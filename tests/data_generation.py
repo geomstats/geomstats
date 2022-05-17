@@ -162,70 +162,36 @@ class _OpenSetTestData(_ManifoldTestData):
 
 
 class _LevelSetTestData(_ManifoldTestData):
-    def _intrinsic_after_extrinsic_test_data(
-        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
+    def intrinsic_after_extrinsic_test_data(self):
         """Generate data to check that changing coordinate system twice gives back the point.
 
         Assumes that random_point generates points in extrinsic coordinates.
-
-        Parameters
-        ----------
-        space_cls : Manifold
-            Class of the space, i.e. a child class of Manifold.
-        space_args_list : list
-            Arguments to pass to constructor of the manifold.
-        n_points_list : list
-            List of number of points on manifold to generate.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
         """
         random_data = [
             dict(
                 space_args=space_args,
-                point_extrinsic=space_cls(
+                point_extrinsic=self.space(
                     *space_args, default_coords_type="extrinsic"
                 ).random_point(n_points),
-                rtol=rtol,
-                atol=atol,
             )
-            for space_args, n_points in zip(space_args_list, n_points_list)
+            for space_args, n_points in zip(self.space_args_list, self.n_points_list)
         ]
         return self.generate_tests([], random_data)
 
-    def _extrinsic_after_intrinsic_test_data(
-        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
+    def extrinsic_after_intrinsic_test_data(self):
         """Generate data to check that changing coordinate system twice gives back the point.
 
         Assumes that the first elements in space_args is the dimension of the space.
-
-        Parameters
-        ----------
-        space_cls : Manifold
-            Class of the space, i.e. a child class of Manifold.
-        space_args_list : list
-            Arguments to pass to constructor of the manifold.
-        n_points_list : list
-            List of number of points on manifold to generate.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
         """
         random_data = []
-        for space_args, n_points in zip(space_args_list, n_points_list):
+        for space_args, n_points in zip(self.space_args_list, self.n_points_list):
 
-            space = space_cls(*space_args, default_coords_type="intrinsic")
-            point_intrinic = space.random_point(n_points)
+            space = self.space(*space_args, default_coords_type="intrinsic")
+            point_intrinsic = space.random_point(n_points)
             random_data.append(
                 dict(
                     space_args=space_args,
-                    point_intrinic=point_intrinic,
-                    rtol=rtol,
-                    atol=atol,
+                    point_intrinsic=point_intrinsic,
                 )
             )
         return self.generate_tests([], random_data)
