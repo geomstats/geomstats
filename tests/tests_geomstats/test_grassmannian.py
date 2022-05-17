@@ -1,7 +1,7 @@
 """Unit tests for the Grassmannian."""
 
 import geomstats.backend as gs
-from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
+from geomstats.geometry.grassmannian import GrassmannianCanonicalMetric
 from geomstats.tests import np_backend
 from tests.conftest import Parametrizer
 from tests.data.grassmannian_data import (
@@ -12,11 +12,11 @@ from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 
 class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
-    space = Grassmannian
     skip_test_intrinsic_after_extrinsic = True
     skip_test_extrinsic_after_intrinsic = True
 
     testing_data = GrassmannianTestData()
+    space = testing_data.space
 
     def test_belongs(self, n, k, point, expected):
         self.assertAllClose(self.space(n, k).belongs(point), gs.array(expected))
