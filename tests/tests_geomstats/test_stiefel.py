@@ -3,19 +3,19 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
+from geomstats.geometry.stiefel import StiefelCanonicalMetric
 from tests.conftest import Parametrizer, np_autograd_and_tf_only
 from tests.data.stiefel_data import StiefelCanonicalMetricTestData, StiefelTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 
 class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
-    space = Stiefel
     skip_test_intrinsic_after_extrinsic = True
     skip_test_extrinsic_after_intrinsic = True
     skip_test_to_tangent_is_tangent = True
 
     testing_data = StiefelTestData()
+    space = testing_data.space
 
     def test_to_grassmannian(self, point, expected):
         self.assertAllClose(

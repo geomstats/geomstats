@@ -32,34 +32,7 @@ class StiefelTestData(_LevelSetTestData):
     n_points_list = random.sample(range(1, 5), 2)
     n_vecs_list = random.sample(range(1, 5), 2)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2, 2), (3, 3), (4, 3), (3, 2)]
-        smoke_n_points_list = [1, 2, 1, 2]
-
-        belongs_atol = gs.atol * 100000
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-            belongs_atol,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        is_tangent_atol = gs.atol * 1000
-
-        return self._to_tangent_is_tangent_test_data(
-            Stiefel,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list, gs.atol * 100
-        )
+    space = Stiefel
 
     def to_grassmannian_test_data(self):
 
@@ -73,14 +46,6 @@ class StiefelTestData(_LevelSetTestData):
             dict(point=batch_points, expected=gs.array([p_xy, p_xy, p_xy])),
         ]
         return self.generate_tests(smoke_data)
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            Stiefel,
-            self.space_args_list,
-            self.n_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
 
 
 class StiefelCanonicalMetricTestData(_RiemannianMetricTestData):
