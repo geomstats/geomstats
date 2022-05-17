@@ -51,6 +51,8 @@ class PreShapeSpaceTestData(_LevelSetTestData):
     shape_list = space_args_list
     n_vecs_list = random.sample(range(1, 5), 2)
 
+    space = PreShapeSpace
+
     def belongs_test_data(self):
         random_data = [
             dict(
@@ -94,7 +96,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
 
     def vertical_projection_test_data(self):
         vector = gs.random.rand(10, 4, 3)
-        space = PreShapeSpace(4, 3)
+        space = self.space(4, 3)
         point = space.random_point()
         smoke_data = [
             dict(
@@ -114,7 +116,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
 
     def horizontal_projection_test_data(self):
         vector = gs.random.rand(10, 4, 3)
-        space = PreShapeSpace(4, 3)
+        space = self.space(4, 3)
         point = space.random_point()
         smoke_data = [
             dict(
@@ -134,7 +136,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
 
     def horizontal_and_is_tangent_test_data(self):
         vector = gs.random.rand(10, 4, 3)
-        space = PreShapeSpace(4, 3)
+        space = self.space(4, 3)
         point = space.random_point()
         smoke_data = [
             dict(
@@ -153,7 +155,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
         return self.generate_tests(smoke_data)
 
     def alignment_is_symmetric_test_data(self):
-        space = PreShapeSpace(4, 3)
+        space = self.space(4, 3)
         random_data = [
             dict(
                 k_landmarks=4,
@@ -177,7 +179,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
         return self.generate_tests([], random_data)
 
     def integrability_tensor_test_data(self):
-        space = PreShapeSpace(4, 3)
+        space = self.space(4, 3)
         vector = gs.random.rand(2, 4, 3)
         base_point = space.random_point()
         random_data = [
@@ -271,51 +273,6 @@ class PreShapeSpaceTestData(_LevelSetTestData):
             )
         ]
         return self.generate_tests(smoke_data)
-
-    def random_point_belongs_test_data(self):
-        belongs_atol = gs.atol * 100
-        smoke_space_args_list = [(2, 2), (3, 2), (4, 3)]
-        smoke_n_points_list = [1, 2, 1]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-            belongs_atol,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-
-        is_tangent_atol = gs.atol * 100
-        return self._to_tangent_is_tangent_test_data(
-            PreShapeSpace,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            PreShapeSpace, self.space_args_list, self.n_vecs_list
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def intrinsic_after_extrinsic_test_data(self):
-        space_args_list = [(1,), (2,)]
-        return self._intrinsic_after_extrinsic_test_data(
-            PreShapeSpace, space_args_list, self.n_points_list
-        )
-
-    def extrinsic_after_intrinsic_test_data(self):
-        space_args_list = [(1,), (2,)]
-        return self._extrinsic_after_intrinsic_test_data(
-            PreShapeSpace, space_args_list, self.n_points_list
-        )
 
 
 class KendallShapeMetricTestData(_RiemannianMetricTestData):

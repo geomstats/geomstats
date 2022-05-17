@@ -21,11 +21,11 @@ from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 
 class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
-    space = PreShapeSpace
     skip_test_intrinsic_after_extrinsic = True
     skip_test_extrinsic_after_intrinsic = True
 
     testing_data = PreShapeSpaceTestData()
+    space = PreShapeSpace
 
     def test_belongs(self, k_landmarks, m_ambient, mat, expected):
         space = self.space(k_landmarks, m_ambient)
@@ -117,14 +117,14 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor_old(
-        self, k_landmarks, m_ambient, tangent_vec_x, tangent_vec_e, base_point
+        self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):
         """Test if old and new implementation give the same result."""
         space = self.space(k_landmarks, m_ambient)
         result = space.integrability_tensor_old(
-            tangent_vec_x, tangent_vec_e, base_point
+            tangent_vec_a, tangent_vec_b, base_point
         )
-        expected = space.integrability_tensor(tangent_vec_x, tangent_vec_e, base_point)
+        expected = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
