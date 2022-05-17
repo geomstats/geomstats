@@ -3,18 +3,18 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.landmarks import L2Metric, Landmarks
+from geomstats.geometry.landmarks import L2Metric
 from tests.conftest import Parametrizer
-from tests.data.landmarks_data import TestDataL2Metric, TestDataLandmarks
+from tests.data.landmarks_data import TestDataL2Metric, LandmarksTestData
 from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 class TestLandmarks(ManifoldTestCase, metaclass=Parametrizer):
-    space = Landmarks
     skip_test_random_point_belongs = True
     skip_test_random_tangent_vec_is_tangent = True
 
-    testing_data = TestDataLandmarks()
+    testing_data = LandmarksTestData()
+    space = testing_data.space
 
 
 class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):

@@ -7,7 +7,7 @@ from geomstats.geometry.landmarks import Landmarks
 from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
 
-class TestDataLandmarks(_ManifoldTestData):
+class LandmarksTestData(_ManifoldTestData):
     dim_list = random.sample(range(2, 4), 2)
     n_landmarks_list = random.sample(range(1, 5), 2)
     space_args_list = [
@@ -23,6 +23,8 @@ class TestDataLandmarks(_ManifoldTestData):
     n_points_list = random.sample(range(1, 5), 4)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    space = Landmarks
+
     def random_point_belongs_test_data(self):
         smoke_space_args_list = [(Hypersphere(2), 2), (Euclidean(2 + 1), 2)]
         smoke_n_points_list = [1, 2]
@@ -31,24 +33,6 @@ class TestDataLandmarks(_ManifoldTestData):
             smoke_n_points_list,
             self.space_args_list,
             self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            Landmarks,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            Landmarks, self.space_args_list, self.n_vecs_list
         )
 
 
