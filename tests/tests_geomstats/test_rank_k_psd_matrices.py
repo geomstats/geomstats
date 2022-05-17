@@ -2,7 +2,6 @@ r"""Unit tests for the space of PSD matrices of rank k."""
 
 import geomstats.backend as gs
 from geomstats.geometry.rank_k_psd_matrices import (
-    BuresWassersteinBundle,
     PSDMatrices,
     PSDMetricBuresWasserstein,
 )
@@ -20,9 +19,9 @@ from tests.geometry_test_cases import (
 
 
 class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
-    space = PSDMatrices
 
     testing_data = PSDMatricesTestData()
+    space = testing_data.space
 
     def test_belongs(self, n, k, mat, expected):
         space = self.space(n, k)
@@ -30,9 +29,10 @@ class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
 
 
 class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
-    bundle = BuresWassersteinBundle
 
     testing_data = BuresWassersteinBundleTestData()
+    space = bundle = testing_data.space
+    base = testing_data.base
 
 
 class TestPSDMetricBuresWasserstein(QuotientMetricTestCase, metaclass=Parametrizer):

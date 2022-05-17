@@ -381,105 +381,70 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
 
 
 class _FiberBundleTestData(TestData):
-    def _is_horizontal_after_horizontal_projection_test_data(
-        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
+    def is_horizontal_after_horizontal_projection_test_data(self):
         random_data = []
-        for space_args, n_points in zip(space_args_list, n_points_list):
-            space = space_cls(*space_args)
+        for space_args, n_points in zip(self.space_args_list, self.n_points_list):
+            space = self.space(*space_args)
             base_point = space.random_point(n_points)
             tangent_vec = space.random_tangent_vec(base_point, n_points)
             data = dict(
                 space_args=space_args,
                 base_point=base_point,
                 tangent_vec=tangent_vec,
-                rtol=rtol,
-                atol=atol,
             )
             random_data.append(data)
         return self.generate_tests([], random_data)
 
-    def _is_vertical_after_vertical_projection_test_data(
-        self, space_cls, space_args_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
+    def is_vertical_after_vertical_projection_test_data(self):
         random_data = []
-        for space_args, n_points in zip(space_args_list, n_points_list):
-            space = space_cls(*space_args)
+        for space_args, n_points in zip(self.space_args_list, self.n_points_list):
+            space = self.space(*space_args)
             base_point = space.random_point(n_points)
             tangent_vec = space.random_tangent_vec(base_point, n_points)
             data = dict(
                 space_args=space_args,
                 base_point=base_point,
                 tangent_vec=tangent_vec,
-                rtol=rtol,
-                atol=atol,
             )
             random_data.append(data)
 
         return self.generate_tests([], random_data)
 
-    def _is_horizontal_after_log_after_align_test_data(
-        self,
-        space_cls,
-        space_args_list,
-        n_points_list,
-        n_base_points_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
+    def is_horizontal_after_log_after_align_test_data(self):
         random_data = [
             dict(
                 space_args=space_args,
-                base_point=space_cls(*space_args).random_point(n_base_points),
-                point=space_cls(*space_args).random_point(n_points),
-                rtol=rtol,
-                atol=atol,
+                base_point=self.space(*space_args).random_point(n_base_points),
+                point=self.space(*space_args).random_point(n_points),
             )
             for space_args, n_points, n_base_points in zip(
-                space_args_list, n_points_list, n_base_points_list
+                self.space_args_list, self.n_points_list, self.n_base_points_list
             )
         ]
         return self.generate_tests([], random_data)
 
-    def _riemannian_submersion_after_lift_test_data(
-        self,
-        base_cls,
-        space_args_list,
-        n_base_points_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
+    def riemannian_submersion_after_lift_test_data(self):
         random_data = [
             dict(
                 space_args=space_args,
-                base_point=base_cls(*space_args).random_point(n_points),
-                rtol=rtol,
-                atol=atol,
+                base_point=self.base(*space_args).random_point(n_points),
             )
-            for space_args, n_points in zip(space_args_list, n_base_points_list)
+            for space_args, n_points in zip(
+                self.space_args_list, self.n_base_points_list
+            )
         ]
         return self.generate_tests([], random_data)
 
-    def _is_tangent_after_tangent_riemannian_submersion_test_data(
-        self,
-        bundle_cls,
-        base_cls,
-        space_args_list,
-        n_vecs_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
+    def is_tangent_after_tangent_riemannian_submersion_test_data(self):
         random_data = []
-        for space_args, n_vecs in zip(space_args_list, n_vecs_list):
-            base_point = bundle_cls(*space_args).random_point()
-            tangent_vec = bundle_cls(*space_args).random_tangent_vec(base_point, n_vecs)
+        for space_args, n_vecs in zip(self.space_args_list, self.n_vecs_list):
+            base_point = self.space(*space_args).random_point()
+            tangent_vec = self.space(*space_args).random_tangent_vec(base_point, n_vecs)
             d = dict(
                 space_args=space_args,
-                base_cls=base_cls,
+                base_cls=self.base,
                 tangent_vec=tangent_vec,
                 base_point=base_point,
-                rtol=rtol,
-                atol=atol,
             )
             random_data.append(d)
         return self.generate_tests([], random_data)

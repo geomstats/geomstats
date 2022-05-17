@@ -17,6 +17,8 @@ class PSDMatricesTestData(_ManifoldTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    space = PSDMatrices
+
     def belongs_test_data(self):
         smoke_data = [
             dict(
@@ -38,39 +40,6 @@ class PSDMatricesTestData(_ManifoldTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2, 2), (3, 2)]
-        smoke_n_points_list = [1, 2]
-        belongs_atol = gs.atol * 100000
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-            belongs_atol,
-        )
-
-    def projection_belongs_test_data(self):
-        belongs_atol = gs.atol * 100000
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list, belongs_atol
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        is_tangent_atol = gs.atol * 100000
-        return self._to_tangent_is_tangent_test_data(
-            PSDMatrices,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            PSDMatrices, self.space_args_list, self.n_vecs_list
-        )
-
 
 class BuresWassersteinBundleTestData(_FiberBundleTestData):
     n_list = random.sample(range(3, 5), 2)
@@ -81,52 +50,8 @@ class BuresWassersteinBundleTestData(_FiberBundleTestData):
     n_base_points_list = [1] * len(n_points_list) + n_points_list
     n_vecs_list = random.sample(range(1, 5), 2)
 
-    def is_horizontal_after_horizontal_projection_test_data(self):
-        return self._is_horizontal_after_horizontal_projection_test_data(
-            BuresWassersteinBundle,
-            self.space_args_list,
-            self.n_points_list,
-            gs.rtol,
-            gs.atol,
-        )
-
-    def is_vertical_after_vertical_projection_test_data(self):
-        return self._is_vertical_after_vertical_projection_test_data(
-            BuresWassersteinBundle,
-            self.space_args_list,
-            self.n_points_list,
-            gs.rtol,
-            gs.atol,
-        )
-
-    def is_horizontal_after_log_after_align_test_data(self):
-        return self._is_horizontal_after_log_after_align_test_data(
-            BuresWassersteinBundle,
-            self.space_args_list,
-            self.n_points_list,
-            self.n_base_points_list,
-            gs.rtol,
-            gs.atol,
-        )
-
-    def riemannian_submersion_after_lift_test_data(self):
-        return self._riemannian_submersion_after_lift_test_data(
-            PSDMatrices,
-            self.space_args_list,
-            self.n_base_points_list,
-            gs.rtol,
-            gs.atol,
-        )
-
-    def is_tangent_after_tangent_riemannian_submersion_test_data(self):
-        return self._is_tangent_after_tangent_riemannian_submersion_test_data(
-            BuresWassersteinBundle,
-            PSDMatrices,
-            self.space_args_list,
-            self.n_vecs_list,
-            rtol=gs.rtol,
-            atol=gs.atol,
-        )
+    base = PSDMatrices
+    space = BuresWassersteinBundle
 
 
 class TestDataPSDMetricBuresWasserstein(_QuotientMetricTestData):
