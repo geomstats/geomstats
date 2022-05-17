@@ -50,7 +50,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
     def test_random_von_mises_fisher_belongs(self, dim, n_samples):
         space = self.space(dim)
         result = space.belongs(space.random_von_mises_fisher(n_samples=n_samples))
-        self.assertAllClose(gs.all(result), gs.array(True))
+        self.assertTrue(gs.all(result))
 
     def test_random_von_mises_fisher_mean(self, dim, kappa, n_samples, expected):
         space = self.space(dim)
