@@ -6,7 +6,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.poincare_ball import PoincareBall
 from tests.conftest import Parametrizer
-from tests.data.hyperbolic_data import HyperboloidMetricTestData, HyperboloidTestData
+from tests.data.hyperboloid_data import HyperboloidMetricTestData, HyperboloidTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 
