@@ -295,17 +295,15 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         if gs.ndim(tangent_samples) > 2:
             tangent_samples = gs.moveaxis(tangent_samples, -2, -1)
 
-        flat_tangent_samples = gs.reshape(
-            tangent_samples, (-1, *self.y_train_shape_)
-        )
+        flat_tangent_samples = gs.reshape(tangent_samples, (-1, *self.y_train_shape_))
 
         base_points = gs.repeat(self.prior(X), n_samples, axis=0)
 
-        flat_y_samples = self.metric.exp(flat_tangent_samples,
-                                         base_point=base_points)
+        flat_y_samples = self.metric.exp(flat_tangent_samples, base_point=base_points)
 
-        y_samples = gs.reshape(flat_y_samples,
-                               (X.shape[0], n_samples, *self.y_train_shape_))
+        y_samples = gs.reshape(
+            flat_y_samples, (X.shape[0], n_samples, *self.y_train_shape_)
+        )
 
         if gs.ndim(tangent_samples) > 2:
             y_samples = gs.moveaxis(y_samples, -2, -1)
