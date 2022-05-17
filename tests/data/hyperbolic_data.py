@@ -3,7 +3,6 @@ import random
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 
@@ -14,13 +13,15 @@ from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 RTOL = 1e-6
 
 
-class HyperbolicTestData(_LevelSetTestData):
+class HyperboloidTestData(_LevelSetTestData):
 
     dim_list = random.sample(range(2, 4), 2)
     space_args_list = [(dim,) for dim in dim_list]
     shape_list = [(dim + 1,) for dim in dim_list]
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
+
+    space = Hyperboloid
 
     def belongs_test_data(self):
         smoke_data = [
@@ -65,48 +66,6 @@ class HyperbolicTestData(_LevelSetTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        belongs_atol = gs.atol * 100000
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-            belongs_atol,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-
-        is_tangent_atol = gs.atol * 100000
-
-        return self._to_tangent_is_tangent_test_data(
-            Hyperboloid,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 100000,
-        )
-
-    def intrinsic_after_extrinsic_test_data(self):
-        return self._intrinsic_after_extrinsic_test_data(
-            Hyperbolic, self.space_args_list, self.n_points_list
-        )
-
-    def extrinsic_after_intrinsic_test_data(self):
-        return self._extrinsic_after_intrinsic_test_data(
-            Hyperbolic, self.space_args_list, self.n_points_list
-        )
-
     def extrinsic_ball_extrinsic_composition_test_data(self):
         smoke_data = [dict(dim=2, point_intrinsic=gs.array([0.5, 7]))]
         return self.generate_tests(smoke_data)
@@ -118,14 +77,6 @@ class HyperbolicTestData(_LevelSetTestData):
     def ball_extrinsic_ball_test_data(self):
         smoke_data = [dict(dim=2, x_ball=gs.array([0.5, 0.2]))]
         return self.generate_tests(smoke_data)
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            Hyperbolic,
-            self.space_args_list,
-            self.n_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
 
 
 class HyperboloidMetricTestData(_RiemannianMetricTestData):

@@ -6,16 +6,16 @@ from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.poincare_ball import PoincareBall
 from tests.conftest import Parametrizer
-from tests.data.hyperbolic_data import HyperbolicTestData, HyperboloidMetricTestData
+from tests.data.hyperbolic_data import HyperboloidMetricTestData, HyperboloidTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 
-class TestHyperbolic(LevelSetTestCase, metaclass=Parametrizer):
-    space = Hyperboloid
+class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
     skip_test_extrinsic_after_intrinsic = True
     skip_test_projection_belongs = True
 
-    testing_data = HyperbolicTestData()
+    testing_data = HyperboloidTestData()
+    space = testing_data.space
 
     def test_belongs(self, dim, coords_type, vec, expected):
         space = self.space(dim, coords_type=coords_type)
