@@ -45,33 +45,7 @@ class DiscreteCurvesTestData(_ManifoldTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(s2,), (r2,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            DiscreteCurves,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            DiscreteCurves, self.space_args_list, self.n_vecs_list
-        )
+    space = DiscreteCurves
 
 
 class L2CurvesMetricTestData(_RiemannianMetricTestData):
@@ -608,33 +582,7 @@ class ClosedDiscreteCurvesTestData(_ManifoldTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(self.s2,), (self.r2,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            ClosedDiscreteCurves,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            ClosedDiscreteCurves, self.space_args_list, self.n_vecs_list
-        )
+    space = ClosedDiscreteCurves
 
     def projection_closed_curves_test_data(self):
         cells, _, _ = data_utils.load_cells()

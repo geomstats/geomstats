@@ -4,7 +4,6 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.discrete_curves import (
-    ClosedDiscreteCurves,
     DiscreteCurves,
     ElasticMetric,
     L2CurvesMetric,
@@ -34,11 +33,11 @@ r3 = Euclidean(dim=3)
 
 
 class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
-    space = DiscreteCurves
     skip_test_projection_belongs = True
     skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = DiscreteCurvesTestData()
+    space = testing_data.space
 
 
 class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -374,17 +373,17 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
 class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     # closed discrete curves doesn't have random point
-    space = ClosedDiscreteCurves
     skip_test_projection_belongs = True
     skip_test_random_point_belongs = True
     skip_test_random_tangent_vec_is_tangent = True
     skip_test_to_tangent_is_tangent = True
 
     testing_data = ClosedDiscreteCurvesTestData()
+    space = testing_data.space
 
     @geomstats.tests.np_and_autograd_only
     def test_projection_closed_curves(self, ambient_manifold, curve):
-        planar_closed_curve = ClosedDiscreteCurves(ambient_manifold)
+        planar_closed_curve = self.space(ambient_manifold)
         proj = planar_closed_curve.project(curve)
         expected = proj
         result = planar_closed_curve.project(proj)
