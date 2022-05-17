@@ -5,14 +5,13 @@ Lead author: Nicolas Guigui.
 
 from abc import ABC
 
-import numpy as np
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.integrator import integrate
 
-N_STEPS = 10
+N_STEPS = 100
 POINT_TYPES = {1: "vector", 2: "matrix", 3: "matrix"}
 
 
@@ -142,6 +141,7 @@ class Connection(ABC):
         point,
         base_point,
         n_steps=N_STEPS,
+        init=None,
         step="euler",
         max_iter=25,
         verbose=False,
@@ -182,15 +182,15 @@ class Connection(ABC):
             velocity = gs.array(velocity)
             velocity = gs.cast(velocity, dtype=base_point.dtype)
             velocity = gs.reshape(velocity, max_shape)
-            shoot_point = self.exp(velocity, base_point, n_steps, step)
-            if shoot_point.min() < 0:
-                return np.inf
-            delta = shoot_point - point
+            delta = self.exp(velocity, base_point, n_steps, step) - point
             return gs.sum(delta**2)
 
         objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
 
-        tangent_vec = point - base_point
+        if init is not None:
+            tangent_vec = init
+        else:
+            tangent_vec = gs.flatten(gs.random.rand(*max_shape))
 
         res = minimize(
             objective_with_grad,
