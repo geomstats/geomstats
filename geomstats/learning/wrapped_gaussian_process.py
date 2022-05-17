@@ -291,25 +291,23 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         """
         tangent_samples = self._euclidean_gpr.sample_y(X, n_samples, random_state)
         tangent_samples = gs.cast(tangent_samples, dtype=X.dtype)
-        # flatten the samples
-        tangent_samples = gs.reshape(
-            gs.transpose(tangent_samples, [0, 2, 1]), (-1, *self.y_train_shape_)
+
+        if gs.ndim(tangent_samples) > 2:
+            tangent_samples = gs.moveaxis(tangent_samples, -2, -1)
+
+        flat_tangent_samples = gs.reshape(
+            tangent_samples, (-1, *self.y_train_shape_)
         )
 
-        # generate the base_points
-        base_points = self.prior(X)
-        # repeat the base points in order to match the tangent samples
-        base_points = gs.repeat(gs.expand_dims(base_points, 2), n_samples, axis=2)
-        # flatten the base_points
-        base_points = gs.reshape(
-            gs.transpose(base_points, [0, 2, 1]), (-1, *self.y_train_shape_)
-        )
+        base_points = gs.repeat(self.prior(X), n_samples, axis=0)
 
-        # get the flattened samples
-        y_samples = self.metric.exp(tangent_samples, base_point=base_points)
-        y_samples = gs.transpose(
-            gs.reshape(y_samples, (X.shape[0], n_samples, *self.y_train_shape_)),
-            [0, 2, 1],
-        )
+        flat_y_samples = self.metric.exp(flat_tangent_samples,
+                                         base_point=base_points)
+
+        y_samples = gs.reshape(flat_y_samples,
+                               (X.shape[0], n_samples, *self.y_train_shape_))
+
+        if gs.ndim(tangent_samples) > 2:
+            y_samples = gs.moveaxis(y_samples, -2, -1)
 
         return y_samples
