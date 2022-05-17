@@ -39,18 +39,18 @@ class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, x_ball)
 
     def test_extrinsic_ball_extrinsic_composition(self, dim, point_intrinsic):
-        x = Hyperboloid(dim, coords_type="intrinsic").to_coordinates(
+        x = self.space(dim, coords_type="intrinsic").to_coordinates(
             point_intrinsic, to_coords_type="extrinsic"
         )
-        x_b = Hyperboloid(dim).to_coordinates(x, to_coords_type="ball")
+        x_b = self.space(dim).to_coordinates(x, to_coords_type="ball")
         x2 = PoincareBall(dim).to_coordinates(x_b, to_coords_type="extrinsic")
         self.assertAllClose(x, x2)
 
     def test_extrinsic_half_plane_extrinsic_composition(self, dim, point_intrinsic):
-        x = Hyperboloid(dim, coords_type="intrinsic").to_coordinates(
+        x = self.space(dim, coords_type="intrinsic").to_coordinates(
             point_intrinsic, to_coords_type="extrinsic"
         )
-        x_up = Hyperboloid(dim).to_coordinates(x, to_coords_type="half-space")
+        x_up = self.space(dim).to_coordinates(x, to_coords_type="half-space")
         x2 = Hyperbolic.change_coordinates_system(x_up, "half-space", "extrinsic")
         self.assertAllClose(x, x2)
 

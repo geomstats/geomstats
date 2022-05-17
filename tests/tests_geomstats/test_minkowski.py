@@ -1,7 +1,7 @@
 """Unit tests for Minkowski space."""
 
 import geomstats.backend as gs
-from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
+from geomstats.geometry.minkowski import MinkowskiMetric
 from geomstats.tests import np_backend
 from tests.conftest import Parametrizer
 from tests.data.minkowski_data import MinkowskiMetricTestData, MinkowskiTestData
@@ -9,11 +9,11 @@ from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestC
 
 
 class TestMinkowski(VectorSpaceTestCase, metaclass=Parametrizer):
-    space = Minkowski
     skip_test_basis_belongs = True
     skip_test_basis_cardinality = True
 
     testing_data = MinkowskiTestData()
+    space = testing_data.space
 
     def test_belongs(self, dim, point, expected):
         self.assertAllClose(

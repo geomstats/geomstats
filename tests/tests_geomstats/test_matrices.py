@@ -9,9 +9,9 @@ from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestC
 
 
 class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
-    space = Matrices
 
     testing_data = MatricesTestData()
+    space = testing_data.space
 
     def test_belongs(self, m, n, mat, expected):
         self.assertAllClose(

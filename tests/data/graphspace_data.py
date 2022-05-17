@@ -6,11 +6,11 @@ class GraphSpaceTestData(TestData):
     def belongs_test_data(self):
         smoke_data = [
             dict(
-                dim=2,
+                n=2,
                 mat=gs.array([[[3.0, -1.0], [-1.0, 3.0]], [[4.0, -6.0], [-1.0, 3.0]]]),
                 expected=[True, True],
             ),
-            dict(dim=2, mat=gs.array([-1.0, -1.0]), expected=False),
+            dict(n=2, mat=gs.array([-1.0, -1.0]), expected=False),
         ]
         return self.generate_tests(smoke_data)
 

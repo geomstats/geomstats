@@ -21,14 +21,7 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
     skip_test_to_tangent_at_identity_belongs_to_lie_algebra = True
 
     testing_data = SpecialOrthogonalTestData()
-
-    @property
-    def space(self):
-        return self.testing_data.space
-
-    @property
-    def group(self):
-        return self.testing_data.space
+    space = group = testing_data.space
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))
@@ -152,9 +145,9 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
 
 
 class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
-    space = group = SpecialOrthogonal
 
     testing_data = SpecialOrthogonal3TestData()
+    space = group = testing_data.space
 
     def test_tait_bryan_angles_matrix(self, coord, order, vec, mat):
         group = self.space(3, point_type="vector")

@@ -1,7 +1,6 @@
 """Unit tests for the 3D heisenberg group in vector representation."""
 
 import geomstats.backend as gs
-from geomstats.geometry.heisenberg import HeisenbergVectors
 from tests.conftest import Parametrizer
 from tests.data.heisenberg_data import HeisenbergVectorsTestData
 from tests.geometry_test_cases import LieGroupTestCase, VectorSpaceTestCase
@@ -10,9 +9,9 @@ from tests.geometry_test_cases import LieGroupTestCase, VectorSpaceTestCase
 class TestHeisenbergVectors(
     LieGroupTestCase, VectorSpaceTestCase, metaclass=Parametrizer
 ):
-    space = group = HeisenbergVectors
 
     testing_data = HeisenbergVectorsTestData()
+    space = group = testing_data.space
 
     def test_dimension(self, expected):
         self.assertAllClose(self.space().dim, expected)

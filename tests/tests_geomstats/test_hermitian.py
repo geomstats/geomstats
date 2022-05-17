@@ -3,7 +3,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hermitian import Hermitian, HermitianMetric
+from geomstats.geometry.hermitian import HermitianMetric
 from geomstats.tests import tf_backend
 from tests.conftest import Parametrizer
 from tests.data.hermitian_data import HermitianMetricTestData, HermitianTestData
@@ -11,12 +11,12 @@ from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestC
 
 
 class TestHermitian(VectorSpaceTestCase, metaclass=Parametrizer):
-    space = Hermitian
     skip_test_basis_belongs = True
     skip_test_basis_cardinality = True
     skip_test_belongs = tf_backend()
 
     testing_data = HermitianTestData()
+    space = testing_data.space
 
     def test_belongs(self, dim, vec, expected):
         self.assertAllClose(self.space(dim).belongs(gs.array(vec)), gs.array(expected))

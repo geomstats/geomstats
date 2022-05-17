@@ -31,14 +31,7 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
     skip_test_exp_after_log = tf_backend()
 
     testing_data = SpecialEuclideanTestData()
-
-    @property
-    def space(self):
-        return self.testing_data.space
-
-    @property
-    def group(self):
-        return self.testing_data.space
+    space = group = testing_data.space
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(
@@ -102,14 +95,7 @@ class TestSpecialEuclideanMatrixLieAlgebra(
 ):
 
     testing_data = SpecialEuclideanMatrixLieAlgebraTestData()
-
-    @property
-    def space(self):
-        return self.testing_data.space
-
-    @property
-    def algebra(self):
-        return self.testing_data.space
+    space = algebra = testing_data.space
 
     def test_dim(self, n, expected):
         algebra = self.space(n)

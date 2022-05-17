@@ -5,7 +5,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.landmarks import L2Metric
 from tests.conftest import Parametrizer
-from tests.data.landmarks_data import TestDataL2Metric, LandmarksTestData
+from tests.data.landmarks_data import LandmarksTestData, TestDataL2Metric
 from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 

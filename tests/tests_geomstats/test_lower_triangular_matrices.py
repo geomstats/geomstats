@@ -1,7 +1,6 @@
 """Unit tests for the vector space of lower triangular matrices."""
 
 import geomstats.backend as gs
-from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from tests.conftest import Parametrizer
 from tests.data.lower_triangular_matrices_data import LowerTriangularMatricesTestData
 from tests.geometry_test_cases import VectorSpaceTestCase
@@ -10,10 +9,10 @@ from tests.geometry_test_cases import VectorSpaceTestCase
 class TestLowerTriangularMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
     """Test of LowerTriangularMatrices methods."""
 
-    space = LowerTriangularMatrices
     skip_test_basis_belongs = True
 
     testing_data = LowerTriangularMatricesTestData()
+    space = testing_data.space
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))
