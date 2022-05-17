@@ -561,7 +561,7 @@ class ConnectionTestCase(TestCase):
         expected : tuple
             Expected shape for the result of the exp function.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Connection(*connection_args)
         exp = connection.exp(gs.array(tangent_vec), gs.array(base_point))
         result = gs.shape(exp)
         self.assertAllClose(result, expected)
@@ -580,7 +580,7 @@ class ConnectionTestCase(TestCase):
         expected : tuple
             Expected shape for the result of the log function.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Connection(*connection_args)
         log = connection.log(gs.array(point), gs.array(base_point))
         result = gs.shape(log)
         self.assertAllClose(result, expected)
@@ -603,7 +603,7 @@ class ConnectionTestCase(TestCase):
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Connection(*connection_args)
         exp = connection.exp(gs.array(tangent_vec), gs.array(base_point))
         result = gs.all(space.belongs(exp, belongs_atol))
         self.assertTrue(result)
@@ -626,7 +626,7 @@ class ConnectionTestCase(TestCase):
         is_tangent_atol : float
             Absolute tolerance for the is_tangent function.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Connection(*connection_args)
         log = connection.log(gs.array(point), gs.array(base_point))
         result = gs.all(space.is_tangent(log, gs.array(base_point), is_tangent_atol))
         self.assertTrue(result)
@@ -659,7 +659,7 @@ class ConnectionTestCase(TestCase):
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Connection(*connection_args)
         geodesic = connection.geodesic(
             initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
         )
@@ -700,7 +700,7 @@ class ConnectionTestCase(TestCase):
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Connection(*connection_args)
 
         geodesic = connection.geodesic(initial_point=initial_point, end_point=end_point)
 
@@ -730,7 +730,7 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Connection(*connection_args)
         log = connection.log(gs.array(point), base_point=gs.array(base_point))
         result = connection.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, rtol=rtol, atol=atol)
@@ -753,7 +753,7 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Connection(*connection_args)
         exp = connection.exp(tangent_vec=tangent_vec, base_point=gs.array(base_point))
         result = connection.log(exp, base_point=gs.array(base_point))
         self.assertAllClose(result, tangent_vec, rtol=rtol, atol=atol)
@@ -793,7 +793,7 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Connection(*connection_args)
 
         ladder = connection.ladder_parallel_transport(
             tangent_vec,
@@ -829,7 +829,7 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Connection(*connection_args)
         geodesic = connection.geodesic(
             initial_point=base_point, initial_tangent_vec=tangent_vec
         )
@@ -862,7 +862,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         dist_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
         dist_b_a = metric.dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(dist_a_b, dist_b_a, rtol=rtol, atol=atol)
@@ -881,7 +881,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         is_positive_atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
         result = gs.all(sd_a_b > -1 * is_positive_atol)
         self.assertTrue(result)
@@ -902,7 +902,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(sd_a_b, sd_b_a, rtol=rtol, atol=atol)
@@ -923,7 +923,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         is_positive_atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
 
         sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
         result = gs.all(sd_a_b > -1 * is_positive_atol)
@@ -949,7 +949,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         ip_a_b = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         ip_b_a = metric.inner_product(tangent_vec_b, tangent_vec_a, base_point)
         self.assertAllClose(ip_a_b, ip_b_a, rtol, atol)
@@ -988,7 +988,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
 
         end_point = metric.exp(direction, base_point)
 
@@ -1040,7 +1040,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
 
         transported = metric.parallel_transport(
             tangent_vec, base_point, end_point=end_point
@@ -1074,7 +1074,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         log = metric.norm(metric.log(point_a, point_b), point_b)
         dist = metric.dist(point_a, point_b)
         self.assertAllClose(log, dist, rtol, atol)
@@ -1093,7 +1093,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         dist = metric.dist(point, point)
         expected = gs.zeros_like(dist)
         self.assertAllClose(dist, expected, rtol, atol)
@@ -1116,7 +1116,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         dist_ab = metric.dist(point_a, point_b)
         dist_bc = metric.dist(point_b, point_c)
         dist_ac = metric.dist(point_a, point_c)
@@ -1153,7 +1153,7 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         metrics_list = metric_args[0]
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = sum(
@@ -1177,7 +1177,7 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
         ----------
         ...
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         result = metric.metric_matrix(base_point)
         individual_metric_matrices = [metric.matrix for metric in metric_args[0]]
         expected = reduce(gs.kron, individual_metric_matrices)
@@ -1206,7 +1206,7 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         quotient_distance = metric.dist(point_a, point_b)
         bundle_distance = bundle.ambient_metric(point_a, point_b)
         result = gs.all(bundle_distance - quotient_distance > atol)
@@ -1233,7 +1233,7 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
         is_horizontal_atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         log = metric.log(point, base_point)
         result = gs.all(bundle.is_horizontal(log, base_point, is_horizontal_atol))
         self.assertTrue(result)
@@ -1266,7 +1266,7 @@ class PullbackMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         immersion = metric.immersion
         differential_immersion = metric.tangent_immersion
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
@@ -1295,7 +1295,7 @@ class PullbackDiffeoMetricTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
 
         point_bis = metric.inverse_diffeomorphism(metric.diffeomorphism(point))
         self.assertAllClose(point_bis, point, rtol, atol)
@@ -1320,7 +1320,7 @@ class PullbackDiffeoMetricTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
 
         image_point = metric.diffeomorphism(point)
 
@@ -1379,7 +1379,7 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         exp = metric.exp(lie_algebra_point, group.identity)
         result = gs.all(group.belongs(exp, belongs_atol))
         self.assertTrue(result)
@@ -1402,7 +1402,7 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         belongs_atol : float
             Absolute tolerance for the belongs function.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         log = metric.log(point, group.identity)
         result = gs.all(group.lie_algebra.belongs(log, belongs_atol))
         self.assertTrue(result)
@@ -1425,7 +1425,7 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         log = metric.log(point, group.identity)
         result = metric.exp(log, group.identity)
         self.assertAllClose(result, point, rtol, atol)
@@ -1450,7 +1450,7 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         exp = metric.exp(tangent_vec, group.identity)
         result = metric.log(exp, group.identity)
         self.assertAllClose(result, tangent_vec, rtol, atol)

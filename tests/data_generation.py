@@ -451,22 +451,12 @@ class _FiberBundleTestData(TestData):
 
 
 class _ConnectionTestData(TestData):
-    def _exp_shape_test_data(self, connection_args_list, space_list, shape_list):
-        """Generate data to check that exp returns an array of the expected shape.
-
-        Parameters
-        ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
-        space_list : list
-            List of manifolds on which the connection is defined.
-        shape_list : list
-            List of shapes for random data to generate.
-        """
-        n_samples_list = [3] * len(connection_args_list)
+    def exp_shape_test_data(self):
+        """Generate data to check that exp returns an array of the expected shape."""
+        n_samples_list = [3] * len(self.metric_args_list)
         random_data = []
         for connection_args, space, tangent_shape, n_samples in zip(
-            connection_args_list, space_list, shape_list, n_samples_list
+            self.metric_args_list, self.space_list, self.shape_list, n_samples_list
         ):
             base_point = space.random_point(n_samples)
             tangent_vec = space.to_tangent(
@@ -487,20 +477,12 @@ class _ConnectionTestData(TestData):
                 )
         return self.generate_tests([], random_data)
 
-    def _log_shape_test_data(self, connection_args_list, space_list):
-        """Generate data to check that log returns an array of the expected shape.
-
-        Parameters
-        ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
-        space_list : list
-            List of manifolds on which the connection is defined.
-        """
-        n_samples_list = [3] * len(connection_args_list)
+    def log_shape_test_data(self):
+        """Generate data to check that log returns an array of the expected shape."""
+        n_samples_list = [3] * len(self.metric_args_list)
         random_data = []
         for connection_args, space, n_samples in zip(
-            connection_args_list, space_list, n_samples_list
+            self.metric_args_list, self.space_list, n_samples_list
         ):
             base_point = space.random_point(n_samples)
             point = space.random_point(n_samples)
@@ -520,30 +502,14 @@ class _ConnectionTestData(TestData):
                 )
         return self.generate_tests([], random_data)
 
-    def _exp_belongs_test_data(
-        self,
-        connection_args_list,
-        space_list,
-        shape_list,
-        n_tangent_vecs_list,
-        belongs_atol=gs.atol,
-    ):
-        """Generate data to check that exp gives a point on the manifold.
-
-        Parameters
-        ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
-        space_list : list
-            List of manifolds on which the connection is defined.
-        shape_list : list
-            List of shapes for random data to generate.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
-        """
+    def exp_belongs_test_data(self):
+        """Generate data to check that exp gives a point on the manifold."""
         random_data = []
         for connection_args, space, shape, n_tangent_vecs in zip(
-            connection_args_list, space_list, shape_list, n_tangent_vecs_list
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
@@ -555,19 +521,16 @@ class _ConnectionTestData(TestData):
                     space=space,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
-                    belongs_atol=belongs_atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _log_is_tangent_test_data(
-        self, connection_args_list, space_list, n_points_list, is_tangent_atol=gs.atol
-    ):
+    def log_is_tangent_test_data(self):
         """Generate data to check that log gives a tangent vector.
 
         Parameters
         ----------
-        connection_args_list : list
+        self.metric_args_list : list
             List of argument to pass to constructor of the connection.
         space_list : list
             List of manifolds on which the connection is defined.
@@ -576,7 +539,7 @@ class _ConnectionTestData(TestData):
         """
         random_data = []
         for connection_args, space, n_points in zip(
-            connection_args_list, space_list, n_points_list
+            self.metric_args_list, self.space_list, self.n_points_list
         ):
             point = space.random_point(n_points)
             base_point = space.random_point()
@@ -586,37 +549,15 @@ class _ConnectionTestData(TestData):
                     space=space,
                     point=point,
                     base_point=base_point,
-                    is_tangent_atol=is_tangent_atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _geodesic_ivp_belongs_test_data(
-        self,
-        connection_args_list,
-        space_list,
-        shape_list,
-        n_points_list,
-        belongs_atol=gs.atol,
-    ):
-        """Generate data to check that connection geodesics belong to manifold.
-
-        Parameters
-        ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
-        space_list : list
-            List of manifolds on which the connection is defined.
-        shape_list : list
-            List of shapes for random data to generate.
-        n_points_list : list
-            List of number of times on the geodesics.
-        belongs_atol : float
-            Absolute tolerance for the belongs function.
-        """
+    def geodesic_ivp_belongs_test_data(self):
+        """Generate data to check that connection geodesics belong to manifold."""
         random_data = []
         for connection_args, space, n_points, shape in zip(
-            connection_args_list, space_list, n_points_list, shape_list
+            self.metric_args_list, self.space_list, self.n_points_list, self.shape_list
         ):
             initial_point = space.random_point()
             initial_tangent_vec = space.to_tangent(
@@ -629,36 +570,17 @@ class _ConnectionTestData(TestData):
                     n_points=n_points,
                     initial_point=initial_point,
                     initial_tangent_vec=initial_tangent_vec,
-                    belongs_atol=belongs_atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _geodesic_bvp_belongs_test_data(
-        self,
-        connection_args_list,
-        space_list,
-        n_points_list,
-        belongs_atol=gs.atol,
-    ):
-        """Generate data to check that connection geodesics belong to manifold.
-
-        Parameters
-        ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
-        space_list : list
-            List of manifolds on which the connection is defined.
-        n_points_list : list
-            List of number of points on the geodesics.
-        belongs_atol : float
-            Absolute tolerance for the belongs function.
-        """
+    def geodesic_bvp_belongs_test_data(self):
+        """Generate data to check that connection geodesics belong to manifold."""
         random_data = []
         for connection_args, space, n_points in zip(
-            connection_args_list,
-            space_list,
-            n_points_list,
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_list,
         ):
             initial_point = space.random_point()
             end_point = space.random_point()
@@ -669,34 +591,15 @@ class _ConnectionTestData(TestData):
                     n_points=n_points,
                     initial_point=initial_point,
                     end_point=end_point,
-                    belongs_atol=belongs_atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _exp_after_log_test_data(
-        self,
-        connection_args_list,
-        space_list,
-        n_points_list,
-        smoke_data=None,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that logarithm and exponential are inverse.
-
-        Parameters
-        ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
-        space_list : list
-            List of manifolds on which the connection is defined.
-        n_points_list : list
-            List of number of points on manifold to generate.
-        """
+    def exp_after_log_test_data(self):
+        """Generate data to check that logarithm and exponential are inverse."""
         random_data = []
         for connection_args, space, n_points in zip(
-            connection_args_list, space_list, n_points_list
+            self.metric_args_list, self.space_list, self.n_points_list
         ):
             point = space.random_point(n_points)
             base_point = space.random_point()
@@ -705,46 +608,28 @@ class _ConnectionTestData(TestData):
                     connection_args=connection_args,
                     point=point,
                     base_point=base_point,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
-        if smoke_data is None:
-            smoke_data = []
-        return self.generate_tests(smoke_data, random_data)
+        return self.generate_tests([], random_data)
 
-    def _log_after_exp_test_data(
+    def log_after_exp_test_data(
         self,
-        connection_args_list,
-        space_list,
-        shape_list,
-        n_tangent_vecs_list,
-        smoke_data=None,
         amplitude=1.0,
-        rtol=gs.rtol,
-        atol=gs.atol,
     ):
         """Generate data to check that exponential and logarithm are inverse.
 
         Parameters
         ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
-        space_list : list
-            List of manifolds on which the connection is defined.
-        shape_list : list
-            List of shapes for random data to generate.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
-        n_samples_list : list
-            List of number of random data to generate.
         amplitude : float
             Factor to scale the amplitude of a tangent vector to stay in the
             injectivity domain of the exponential map.
         """
         random_data = []
         for connection_args, space, shape, n_tangent_vecs in zip(
-            connection_args_list, space_list, shape_list, n_tangent_vecs_list
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
         ):
             base_point = space.random_point()
             tangent_vec = space.to_tangent(
@@ -755,49 +640,12 @@ class _ConnectionTestData(TestData):
                     connection_args=connection_args,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
-        if smoke_data is None:
-            smoke_data = []
-        return self.generate_tests(smoke_data, random_data)
+        return self.generate_tests([], random_data)
 
-    def _exp_ladder_parallel_transport_test_data(
-        self,
-        connection_args_list,
-        space_list,
-        shape_list,
-        n_tangent_vecs_list,
-        n_rungs_list,
-        alpha_list,
-        scheme_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that end point of ladder matches exponential.
-
-        Parameters
-        ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
-        space_list : list
-            List of manifolds on which the connection is defined.
-        shape_list : list
-            List of shapes for random data to generate.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
-        n_rungs_list : list
-            List of number of rungs for the ladder.
-        alpha_list : list
-            List of exponents for th scaling of the vector to transport.
-        scheme_list : list
-            List of ladder schemes to test.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
+    def exp_ladder_parallel_transport_test_data(self):
+        """Generate data to check that end point of ladder matches exponential."""
         random_data = []
         for (
             connection_args,
@@ -808,13 +656,13 @@ class _ConnectionTestData(TestData):
             alpha,
             scheme,
         ) in zip(
-            connection_args_list,
-            space_list,
-            shape_list,
-            n_tangent_vecs_list,
-            n_rungs_list,
-            alpha_list,
-            scheme_list,
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+            self.n_rungs_list,
+            self.alpha_list,
+            self.scheme_list,
         ):
             base_point = space.random_point()
 
@@ -831,47 +679,20 @@ class _ConnectionTestData(TestData):
                     scheme=scheme,
                     n_rungs=n_rungs,
                     alpha=alpha,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
 
         return self.generate_tests([], random_data)
 
-    def _exp_geodesic_ivp_test_data(
-        self,
-        connection_args_list,
-        space_list,
-        shape_list,
-        n_tangent_vecs_list,
-        n_points_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that end point of geodesic matches exponential.
-
-        Parameters
-        ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
-        space_list : list
-            List of manifolds on which the connection is defined.
-        shape_list : list
-            List of shapes for random data to generate.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
-        n_points_list : list
-            List of number of times on the geodesics.
-        belongs_atol : float
-            Absolute tolerance for the belongs function.
-        """
+    def exp_geodesic_ivp_test_data(self):
+        """Generate data to check that end point of geodesic matches exponential."""
         random_data = []
         for connection_args, space, shape, n_tangent_vecs, n_points in zip(
-            connection_args_list,
-            space_list,
-            shape_list,
-            n_tangent_vecs_list,
-            n_points_list,
+            self.connection_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+            self.n_points_list,
         ):
             base_point = space.random_point()
             tangent_vec = gs.squeeze(
@@ -885,23 +706,13 @@ class _ConnectionTestData(TestData):
                     n_points=n_points,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
         return self.generate_tests([], random_data)
 
 
 class _RiemannianMetricTestData(_ConnectionTestData):
-    def _dist_is_symmetric_test_data(
-        self,
-        metric_args_list,
-        space_list,
-        n_points_a_list,
-        n_points_b_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
+    def dist_is_symmetric_test_data(self):
         """Generate data to check that the squared geodesic distance is symmetric.
 
         Parameters
@@ -919,70 +730,20 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         atol : float
             Absolute tolerance to test this property.
         """
-        return self._squared_dist_is_symmetric_test_data(
-            metric_args_list, space_list, n_points_a_list, n_points_b_list, rtol, atol
-        )
+        return self.squared_dist_is_symmetric_test_data()
 
-    def _dist_is_positive_test_data(
-        self,
-        metric_args_list,
-        space_list,
-        n_points_a_list,
-        n_points_b_list,
-        is_positive_atol=gs.atol,
-    ):
-        """Generate data to check that the squared geodesic distance is symmetric.
+    def dist_is_positive_test_data(self):
+        """Generate data to check that the squared geodesic distance is symmetric."""
+        return self.squared_dist_is_positive_test_data()
 
-        Parameters
-        ----------
-        metric_args_list : list
-            List of arguments to pass to constructor of the metric.
-        space_list : list
-            List of spaces on which the metric is defined.
-        n_points_a_list : list
-            List of number of points A to generate on the manifold.
-        n_points_b_list : list
-            List of number of points B to generate on the manifold.
-        is_positive_atol: float
-            Absolute tolerance for checking whether value is positive.
-        """
-        return self._squared_dist_is_positive_test_data(
-            metric_args_list,
-            space_list,
-            n_points_a_list,
-            n_points_b_list,
-            is_positive_atol,
-        )
-
-    def _squared_dist_is_symmetric_test_data(
-        self,
-        metric_args_list,
-        space_list,
-        n_points_a_list,
-        n_points_b_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that the squared geodesic distance is symmetric.
-
-        Parameters
-        ----------
-        metric_args_list : list
-            List of arguments to pass to constructor of the metric.
-        space_list : list
-            List of spaces on which the metric is defined.
-        n_points_a_list : list
-            List of number of points A to generate on the manifold.
-        n_points_b_list : list
-            List of number of points B to generate on the manifold.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
+    def squared_dist_is_symmetric_test_data(self):
+        """Generate data to check that the squared geodesic distance is symmetric."""
         random_data = []
         for metric_args, space, n_points_a, n_points_b in zip(
-            metric_args_list, space_list, n_points_a_list, n_points_b_list
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_a_list,
+            self.n_points_b_list,
         ):
             point_a = space.random_point(n_points_a)
             point_b = space.random_point(n_points_b)
@@ -991,38 +752,18 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     metric_args=metric_args,
                     point_a=point_a,
                     point_b=point_b,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _squared_dist_is_positive_test_data(
-        self,
-        metric_args_list,
-        space_list,
-        n_points_a_list,
-        n_points_b_list,
-        is_positive_atol=gs.atol,
-    ):
-        """Generate data to check that the squared geodesic distance is symmetric.
-
-        Parameters
-        ----------
-        metric_args_list : list
-            List of arguments to pass to constructor of the metric.
-        space_list : list
-            List of spaces on which the metric is defined.
-        n_points_a_list : list
-            List of number of points A to generate on the manifold.
-        n_points_b_list : list
-            List of number of points B to generate on the manifold.
-        is_positive_atol: float
-            Absolute tolerance for checking whether value is positive.
-        """
+    def squared_dist_is_positive_test_data(self):
+        """Generate data to check that the squared geodesic distance is symmetric."""
         random_data = []
         for metric_args, space, n_points_a, n_points_b in zip(
-            metric_args_list, space_list, n_points_a_list, n_points_b_list
+            self.metric_args_list,
+            self.space_list,
+            self.n_points_a_list,
+            self.n_points_b_list,
         ):
             point_a = space.random_point(n_points_a)
             point_b = space.random_point(n_points_b)
@@ -1031,70 +772,22 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     metric_args=metric_args,
                     point_a=point_a,
                     point_b=point_b,
-                    is_positive_atol=is_positive_atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _dist_is_norm_of_log_test_data(
-        self,
-        metric_args_list,
-        space_list,
-        n_points_a_list,
-        n_points_b_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that the squared geodesic distance is symmetric.
+    def dist_is_norm_of_log_test_data(self):
+        """Generate data to check that the squared geodesic distance is symmetric."""
+        return self.squared_dist_is_symmetric_test_data()
 
-        Parameters
-        ----------
-        metric_args_list : list
-            List of arguments to pass to constructor of the metric.
-        space_list : list
-            List of spaces on which the metric is defined.
-        n_points_a_list : list
-            List of number of points A to generate on the manifold.
-        n_points_b_list : list
-            List of number of points B to generate on the manifold.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
-        return self._squared_dist_is_symmetric_test_data(
-            metric_args_list, space_list, n_points_a_list, n_points_b_list, rtol, atol
-        )
-
-    def _inner_product_is_symmetric_test_data(
-        self,
-        metric_args_list,
-        space_list,
-        shape_list,
-        n_tangent_vecs_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that the inner product is symmetric.
-
-        Parameters
-        ----------
-        metric_args_list : list
-            List of arguments to pass to constructor of the metric.
-        space_list : list
-            List of spaces on which the metric is defined.
-        shape_list : list
-            List of shapes for random data to generate.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
+    def inner_product_is_symmetric_test_data(self):
+        """Generate data to check that the inner product is symmetric."""
         random_data = []
         for metric_args, space, shape, n_tangent_vecs in zip(
-            metric_args_list, space_list, shape_list, n_tangent_vecs_list
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
         ):
             base_point = space.random_point()
             tangent_vec_a = space.to_tangent(
@@ -1109,75 +802,33 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
                     base_point=base_point,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _dist_point_to_itself_is_zero_test_data(
-        self, metric_args_list, space_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
-        """Generate data to check that the squared geodesic distance is symmetric.
-
-        Parameters
-        ----------
-        metric_args_list : list
-            List of arguments to pass to constructor of the metric.
-        space_list : list
-            List of spaces on which the metric is defined.
-        n_points_list : list
-            List of number of points to generate on the manifold.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
+    def dist_point_to_itself_is_zero_test_data(self):
+        """Generate data to check that the squared geodesic distance is symmetric."""
         random_data = []
         for metric_args, space, n_points in zip(
-            metric_args_list, space_list, n_points_list
+            self.metric_args_list, self.space_list, self.n_points_list
         ):
             point = space.random_point(n_points)
             random_data.append(
                 dict(
                     metric_args=metric_args,
                     point=point,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _parallel_transport_ivp_is_isometry_test_data(
-        self,
-        metric_args_list,
-        space_list,
-        shape_list,
-        n_tangent_vecs_list,
-        is_tangent_atol=gs.atol,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that parallel transport is an isometry.
-
-        Parameters
-        ----------
-        metric_args_list : list
-            List of arguments to pass to constructor of the metric.
-        space_list : list
-            List of spaces on which the metric is defined.
-        shape_list : list
-            List of shapes for random data to generate.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
+    def parallel_transport_ivp_is_isometry_test_data(self):
+        """Generate data to check that parallel transport is an isometry."""
         random_data = []
         for metric_args, space, shape, n_tangent_vecs in zip(
-            metric_args_list, space_list, shape_list, n_tangent_vecs_list
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
         ):
             base_point = space.random_point()
 
@@ -1192,46 +843,19 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     tangent_vec=tangent_vec,
                     base_point=base_point,
                     direction=direction,
-                    is_tangent_atol=is_tangent_atol,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
 
         return self.generate_tests([], random_data)
 
-    def _parallel_transport_bvp_is_isometry_test_data(
-        self,
-        metric_args_list,
-        space_list,
-        shape_list,
-        n_tangent_vecs_list,
-        is_tangent_atol=gs.atol,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that parallel transport is an isometry.
-
-        Parameters
-        ----------
-        metric_args_list : list
-            List of arguments to pass to constructor of the metric.
-        space_list : list
-            List of spaces on which the metric is defined.
-        shape_list : list
-            List of shapes for random data to generate.
-        n_tangent_vecs_list : list
-            List of number of random tangent vectors to generate.
-        is_tangent_atol: float
-            Asbolute tolerance for the is_tangent function.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
+    def parallel_transport_bvp_is_isometry_test_data(self):
+        """Generate data to check that parallel transport is an isometry."""
         random_data = []
         for metric_args, space, tangent_shape, n_tangent_vecs in zip(
-            metric_args_list, space_list, shape_list, n_tangent_vecs_list
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
         ):
             base_point = space.random_point()
 
@@ -1246,33 +870,16 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     tangent_vec=tangent_vec,
                     base_point=base_point,
                     end_point=end_point,
-                    is_tangent_atol=is_tangent_atol,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
 
         return self.generate_tests([], random_data)
 
-    def _triangle_inequality_of_dist_test_data(
-        self, metric_args_list, space_list, n_points_list, atol=gs.atol
-    ):
-        """Generate data to check the traingle inequality of geodesic distance.
-
-        Parameters
-        ----------
-        metric_args_list : list
-            List of arguments to pass to constructor of the metric.
-        space_list : list
-            List of spaces on which the metric is defined.
-        n_points_list : list
-            List of number of random points to generate.
-        atol : float
-            Absolute tolerance to test this property.
-        """
+    def triangle_inequality_of_dist_test_data(self):
+        """Generate data to check the traingle inequality of geodesic distance."""
         random_data = []
         for metric_args, space, n_points in zip(
-            metric_args_list, space_list, n_points_list
+            self.metric_args_list, self.space_list, self.n_points_list
         ):
             point_a = space.random_point(n_points)
             point_b = space.random_point(n_points)
@@ -1283,7 +890,6 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     point_a=point_a,
                     point_b=point_b,
                     point_c=point_c,
-                    atol=atol,
                 )
             )
         return self.generate_tests([], random_data)
