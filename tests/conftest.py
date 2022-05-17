@@ -195,28 +195,9 @@ class Parametrizer(type):
                 ):
                     arg_names = inspect.getfullargspec(attr_value)[0]
                     args_str = ", ".join(arg_names[1:])
-                    data_fn_str = attr_name[5:] + "_test_data"
 
-                    if not hasattr(testing_data, data_fn_str):
-                        raise Exception(
-                            "testing_data object doesn't have '{}' function for "
-                            "pairing with '{}'".format(data_fn_str, attr_name)
-                        )
-                    test_data = getattr(testing_data, data_fn_str)()
-                    if test_data is None:
-                        raise Exception(
-                            "'{}' returned None. should be list".format(data_fn_str)
-                        )
-
-                    test_data = _dictify_test_data(test_data, arg_names[1:])
-                    test_data = _handle_tolerances(
-                        attr_name[5:],
-                        arg_names[1:],
-                        test_data,
-                        cls_tols,
-                    )
-                    test_data = _pytestify_test_data(
-                        attr_name, test_data, arg_names[1:]
+                    test_data = _get_test_data(
+                        attr_name, testing_data, arg_names, cls_tols
                     )
 
                     attrs[attr_name] = pytest.mark.parametrize(
@@ -271,6 +252,46 @@ class TestCase:
         if tf_backend():
             return tf.test.TestCase().assertShapeEqual(a, b)
         assert a.shape == b.shape
+
+
+def _get_test_data(test_name, testing_data, test_arg_names, cls_tols):
+    short_name = test_name[5:]
+    suffixes = ["", "_smoke", "_random"]
+
+    data_fn_ls = [f"{short_name}{suffix}_test_data" for suffix in suffixes]
+
+    has_method = False
+    for data_fn_str in data_fn_ls:
+        if hasattr(testing_data, data_fn_str):
+            has_method = True
+            break
+
+    if not has_method:
+        raise Exception(
+            "testing_data object doesn't have '{}' function for "
+            "pairing with '{}'".format(f"{short_name}_test_data", test_name)
+        )
+
+    test_data = []
+    for data_fn_str in data_fn_ls:
+        if not hasattr(testing_data, data_fn_str):
+            continue
+
+        test_data_ = getattr(testing_data, data_fn_str)()
+        if test_data_ is None:
+            raise Exception("'{}' returned None. should be list".format(data_fn_str))
+        test_data.extend(test_data_)
+
+    test_data = _dictify_test_data(test_data, test_arg_names[1:])
+    test_data = _handle_tolerances(
+        test_name[5:],
+        test_arg_names[1:],
+        test_data,
+        cls_tols,
+    )
+    test_data = _pytestify_test_data(test_name, test_data, test_arg_names[1:])
+
+    return test_data
 
 
 def _dictify_test_data(test_data, arg_names):
