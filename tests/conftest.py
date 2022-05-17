@@ -291,21 +291,27 @@ def _dictify_test_data(test_data, arg_names):
 
 def _handle_tolerances(func_name, arg_names, test_data, cls_tols):
 
-    has_atol = "atol" in arg_names
-    has_rtol = "rtol" in arg_names
+    has_tol = False
+    for arg_name in arg_names:
+        if arg_name.endswith("tol"):
+            has_tol = True
+            break
 
-    if not (has_atol or has_rtol):
+    if not has_tol:
         return test_data
 
     func_tols = cls_tols.get(func_name, {})
 
+    tols = dict()
+    for arg_name in arg_names:
+        if arg_name.endswith("rtol"):
+            tols[arg_name] = func_tols.get(arg_name, gs.rtol)
+        elif arg_name.endswith("tol"):
+            tols[arg_name] = func_tols.get(arg_name, gs.atol)
+
     for test_datum in test_data:
-
-        if has_atol:
-            test_datum.setdefault("atol", func_tols.get("atol", gs.atol))
-
-        if has_rtol:
-            test_datum.setdefault("rtol", func_tols.get("rtol", gs.rtol))
+        for tol_arg_name, tol in tols.items():
+            test_datum.setdefault(tol_arg_name, tol)
 
     return test_data
 
