@@ -4,7 +4,6 @@ import geomstats.backend as gs
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
     FullRankCorrelationAffineQuotientMetric,
-    FullRankCorrelationMatrices,
 )
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
@@ -12,23 +11,23 @@ from tests.conftest import Parametrizer, TestCase, autograd_tf_and_torch_only
 from tests.data.full_rank_correlation_matrices_data import (
     CorrelationMatricesBundleTestData,
     FullRankcorrelationAffineQuotientMetricTestData,
-    RankFullRankCorrelationMatricesTestData,
+    FullRankCorrelationMatricesTestData,
 )
 from tests.geometry_test_cases import LevelSetTestCase
 
 
 class TestFullRankCorrelationMatrices(LevelSetTestCase, metaclass=Parametrizer):
 
-    space = FullRankCorrelationMatrices
     skip_test_intrinsic_after_extrinsic = True
     skip_test_extrinsic_after_intrinsic = True
-    testing_data = RankFullRankCorrelationMatricesTestData()
+    testing_data = FullRankCorrelationMatricesTestData()
+    space = testing_data.space
 
 
 class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
-    space = CorrelationMatricesBundle
-    base = FullRankCorrelationMatrices
     testing_data = CorrelationMatricesBundleTestData()
+    space = testing_data.space
+    base = testing_data.base
 
     def test_riemannian_submersion_belongs_to_base(self, n, point):
         bundle = self.space(n)
