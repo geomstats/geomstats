@@ -11,6 +11,7 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 import geomstats.vectorization
+from geomstats.geometry.discrete_curves import SRVMetric
 from geomstats.geometry.hypersphere import Hypersphere
 
 EPSILON = 1e-4
@@ -138,7 +139,13 @@ def _default_gradient_descent(
         sq_dists_between_iterates.append(sq_dist)
 
         var_is_0 = gs.isclose(var, 0.0)
-        sq_dist_is_small = gs.less_equal(sq_dist, epsilon * metric.dim)
+
+        metric_dim = metric.dim
+        if isinstance(metric, SRVMetric):
+            metric_dim = tangent_mean.shape[-2] * tangent_mean.shape[-1]
+
+        sq_dist_is_small = gs.less_equal(sq_dist, epsilon * metric_dim)
+
         condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
         if not (condition or iteration == 0):
             break

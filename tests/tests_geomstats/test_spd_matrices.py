@@ -43,19 +43,14 @@ class TestSPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
         result = self.space.cholesky_factor(gs.array(spd_mat))
 
         self.assertAllClose(result, gs.array(expected))
-        self.assertAllClose(
-            gs.all(PositiveLowerTriangularMatrices(n).belongs(result)),
-            gs.array(True),
-        )
+        self.assertTrue(gs.all(PositiveLowerTriangularMatrices(n).belongs(result)))
 
     def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
         result = self.space.differential_cholesky_factor(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
-        self.assertAllClose(
-            gs.all(LowerTriangularMatrices(n).belongs(result)), gs.array(True)
-        )
+        self.assertTrue(gs.all(LowerTriangularMatrices(n).belongs(result)))
 
     def test_differential_power(self, power, tangent_vec, base_point, expected):
         result = self.space.differential_power(

@@ -91,6 +91,7 @@ from numpy import (
     stack,
     std,
     sum,
+    take,
     tan,
     tanh,
     tile,
