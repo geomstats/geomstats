@@ -16,9 +16,9 @@ ONLINE_KMEANS_TOL = 1e-1
 
 
 class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
-    space = Hypersphere
 
     testing_data = HypersphereTestData()
+    space = testing_data.space
 
     def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.space(dim)

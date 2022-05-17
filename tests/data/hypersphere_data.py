@@ -16,6 +16,8 @@ class HypersphereTestData(_LevelSetTestData):
     shape_list = [(dim + 1,) for dim in dim_list]
     n_vecs_list = random.sample(range(1, 5), 2)
 
+    space = Hypersphere
+
     def replace_values_test_data(self):
         smoke_data = [
             dict(
@@ -113,7 +115,7 @@ class HypersphereTestData(_LevelSetTestData):
             dict(
                 dim=dim,
                 kappa=10,
-                n_points=100000,
+                n_samples=100000,
                 expected=gs.array([1.0] + [0.0] * dim),
             )
             for dim in dim_list
@@ -124,7 +126,7 @@ class HypersphereTestData(_LevelSetTestData):
         smoke_data = []
         dim_list = [2, 3]
         for dim in dim_list:
-            space = Hypersphere(dim)
+            space = self.space(dim)
             base_point = space.random_point()
             tangent_vec = space.to_tangent(space.random_point(), base_point)
             if dim == 2:
@@ -195,7 +197,7 @@ class HypersphereTestData(_LevelSetTestData):
         smoke_data = [
             dict(
                 dim=dim,
-                mean=Hypersphere(dim).random_point(),
+                mean=self.space(dim).random_point(),
                 kappa=1000.0,
                 n_points=10000,
             )
@@ -207,51 +209,6 @@ class HypersphereTestData(_LevelSetTestData):
         dim_list = random.sample(range(2, 8), 5)
         smoke_data = [dict(dim=dim, kappa=1.0, n_points=50000) for dim in dim_list]
         return self.generate_tests(smoke_data)
-
-    def random_point_belongs_test_data(self):
-        belongs_atol = gs.atol * 10000
-        smoke_space_args_list = [(2,), (3,), (4,)]
-        smoke_n_points_list = [1, 2, 1]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-            belongs_atol,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-
-        is_tangent_atol = gs.atol * 1000
-        return self._to_tangent_is_tangent_test_data(
-            Hypersphere,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def intrinsic_after_extrinsic_test_data(self):
-        space_args_list = [(1,), (2,)]
-        return self._intrinsic_after_extrinsic_test_data(
-            Hypersphere, space_args_list, self.n_points_list, atol=gs.atol * 100
-        )
-
-    def extrinsic_after_intrinsic_test_data(self):
-        space_args_list = [(1,), (2,)]
-        return self._extrinsic_after_intrinsic_test_data(
-            Hypersphere, space_args_list, self.n_points_list, atol=gs.atol * 100
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            Hypersphere, self.space_args_list, self.n_vecs_list
-        )
 
 
 class HypersphereMetricTestData(_RiemannianMetricTestData):
