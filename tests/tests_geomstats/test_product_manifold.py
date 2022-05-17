@@ -4,11 +4,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.product_manifold import (
-    NFoldManifold,
-    NFoldMetric,
-    ProductManifold,
-)
+from geomstats.geometry.product_manifold import NFoldMetric, ProductManifold
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 from tests.conftest import Parametrizer
 from tests.data.product_manifold_data import (
@@ -21,11 +17,11 @@ from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
-    space = ProductManifold
     skip_test_random_tangent_vec_is_tangent = True
     skip_test_projection_belongs = True
 
     testing_data = ProductManifoldTestData()
+    space = testing_data.space
 
     def test_dimension(self, manifolds, default_point_type, expected):
         space = self.space(manifolds, default_point_type=default_point_type)
@@ -88,10 +84,10 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
 
 class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
-    space = NFoldManifold
     skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = NFoldManifoldTestData()
+    space = testing_data.space
 
     def test_belongs(self, base, power, point, expected):
         space = self.space(base, power)

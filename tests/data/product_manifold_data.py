@@ -17,7 +17,6 @@ smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
 
 
 class ProductManifoldTestData(_ManifoldTestData):
-
     n_list = random.sample(range(2, 4), 2)
     default_point_list = ["vector", "matrix"]
     manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
@@ -32,15 +31,17 @@ class ProductManifoldTestData(_ManifoldTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    space = ProductManifold
+
     def dimension_test_data(self):
         smoke_data = [
             dict(
-                manifold=smoke_manifolds_1,
+                manifolds=smoke_manifolds_1,
                 default_point_type="vector",
                 expected=4,
             ),
             dict(
-                manifold=smoke_manifolds_1,
+                manifolds=smoke_manifolds_1,
                 default_point_type="matrix",
                 expected=4,
             ),
@@ -50,59 +51,21 @@ class ProductManifoldTestData(_ManifoldTestData):
     def regularize_test_data(self):
         smoke_data = [
             dict(
-                manifold=smoke_manifolds_1,
+                manifolds=smoke_manifolds_1,
                 default_point_type="vector",
-                point=ProductManifold(
+                point=self.space(
                     smoke_manifolds_1, default_point_type="vector"
                 ).random_point(5),
             ),
             dict(
-                manifold=smoke_manifolds_1,
+                manifolds=smoke_manifolds_1,
                 default_point_type="matrix",
-                point=ProductManifold(
+                point=self.space(
                     smoke_manifolds_1, default_point_type="matrix"
                 ).random_point(5),
             ),
         ]
         return self.generate_tests(smoke_data)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [
-            (smoke_manifolds_1, None, "vector"),
-            (smoke_manifolds_1, None, "matrix"),
-        ]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=1e-1,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            ProductManifold,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            ProductManifold,
-            self.space_args_list,
-            self.n_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
 
 
 class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
@@ -355,6 +318,8 @@ class NFoldManifoldTestData(_ManifoldTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    space = NFoldManifold
+
     def belongs_test_data(self):
         smoke_data = [
             dict(
@@ -373,43 +338,8 @@ class NFoldManifoldTestData(_ManifoldTestData):
         return self.generate_tests(smoke_data)
 
     def shape_test_data(self):
-        smoke_data = [dict(base=SpecialOrthogonal(3), power=2, shape=(2, 3, 3))]
+        smoke_data = [dict(base=SpecialOrthogonal(3), power=2, expected=(2, 3, 3))]
         return self.generate_tests(smoke_data)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [
-            (SpecialOrthogonal(2), 2),
-            (SpecialOrthogonal(2), 2),
-        ]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=1e-1,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            NFoldManifold,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            NFoldManifold, self.space_args_list, self.n_vecs_list
-        )
 
 
 class NFoldMetricTestData(_RiemannianMetricTestData):
