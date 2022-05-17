@@ -474,6 +474,8 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
 
 
 class SpecialOrthogonal3TestData(TestData):
+    space = SpecialOrthogonal
+
     def tait_bryan_angles_matrix_test_data(self):
         xyz = gs.array(
             [
