@@ -35,7 +35,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
     def test_is_centered(self, k_landmarks, m_ambient, point, expected):
         space = self.space(k_landmarks, m_ambient)
         result = space.is_centered(point)
-        self.assertAllClose(result, expected)
+        self.assertAllEqual(result, expected)
 
     def test_to_center_is_center(self, k_landmarks, m_ambient, point):
         space = self.space(k_landmarks, m_ambient)

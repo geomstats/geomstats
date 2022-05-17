@@ -14,8 +14,7 @@ class TestGraphSpace(TestCase, metaclass=Parametrizer):
     def test_random_point_belongs(self, n, n_points):
         space = self.space(n)
         point = space.random_point(n_points)
-        result = gs.all(space.belongs(point))
-        self.assertAllClose(result, True)
+        self.assertTrue(gs.all(space.belongs(point)))
 
     def test_belongs(self, n, mat, expected):
         space = self.space(n)
