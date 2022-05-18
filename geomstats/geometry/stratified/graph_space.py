@@ -231,11 +231,12 @@ class GraphSpaceMetric(PointSetMetric):
 
     @property
     def total_space_metric(self):
+        """Retrieve the total space metric."""
         return self.space.total_space.metric
 
     @property
     def n_nodes(self):
-        r"""Save the number of nodes."""
+        """Retrieve the number of nodes."""
         return self.space.n_nodes
 
     @_vectorize_graph((1, "graph_a"), (2, "graph_b"))
@@ -338,7 +339,7 @@ class GraphSpaceMetric(PointSetMetric):
             graph_to_permute = gs.expand_dims(graph_to_permute, 0)
 
         perm = matching_alg.get(matcher)(base_graph, graph_to_permute)
-        self.perm_ = perm[0] if is_single else perm
+        self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
 
         return self.perm_
 
