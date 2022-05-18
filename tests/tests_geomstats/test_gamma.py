@@ -127,24 +127,25 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, False)
 
     @geomstats.tests.autograd_only
-    def test_log_control(self, base_point, tangent_vec, exp_solver, log_solver):
-        """Test log at a pair of points, with controlled geodesic distance."""
+    def test_log_control(self, base_point, tangent_vec, exp_solver, log_method):
+        """Test log at a pair of points with controlled geodesic distance."""
         point = self.metric().exp(
             self.metric().normalize(vector=tangent_vec, base_point=base_point),
             base_point,
             solver=exp_solver,
         )
-        vec = self.metric().log(point, base_point, n_steps=1000, solver=log_solver)
+        vec = self.metric().log(point, base_point, n_steps=1000, method=log_method)
         result = gs.any(gs.isnan(vec))
         self.assertAllClose(result, False)
 
     @geomstats.tests.autograd_only
     def test_exp_after_log_control(
-        self, base_point, end_point, exp_solver, log_solver, atol
+        self, base_point, end_point, exp_solver, log_method, atol
     ):
+        """Test exp after log at a pair of points with controlled geodesic distance."""
         expected = end_point
         tangent_vec = self.metric().log(
-            expected, base_point, n_steps=1000, solver=log_solver
+            expected, base_point, n_steps=1000, method=log_method
         )
         end_point = self.metric().exp(tangent_vec, base_point, solver=exp_solver)
         result = end_point

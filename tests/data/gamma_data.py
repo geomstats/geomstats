@@ -293,13 +293,13 @@ class GammaMetricTestData(_RiemannianMetricTestData):
                 base_point=base_point,
                 tangent_vec=tangent_vec,
                 exp_solver="geomstats",
-                log_solver="geodesic_shooting",
+                log_method="geodesic_shooting",
             ),
             dict(
                 base_point=base_point,
                 tangent_vec=2 * tangent_vec,
                 exp_solver="lsoda",
-                log_solver="ode_bvp",
+                log_method="ode_bvp",
             ),
         ]
         return self.generate_tests([], random_data)
@@ -319,14 +319,14 @@ class GammaMetricTestData(_RiemannianMetricTestData):
                 base_point=base_point,
                 end_point=end_point,
                 exp_solver="geomstats",
-                log_solver="geodesic_shooting",
+                log_method="geodesic_shooting",
                 atol=1,
             ),
             dict(
                 base_point=base_point,
                 end_point=end_point,
                 exp_solver="lsoda",
-                log_solver="ode_bvp",
+                log_method="ode_bvp",
                 atol=1,
             ),
         ]

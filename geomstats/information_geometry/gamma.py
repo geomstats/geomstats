@@ -28,7 +28,7 @@ point = [kappa, nu], where kappa is the shape parameter, and nu the rate, or 1/s
 However, information geometry most often works with standard coordinates, given by:
 point = [kappa, gamma] = [kappa, kappa/nu].
 
-Standard coordinates is the convention we use in this script.
+The standard coordinate system is the convention we use in this script.
 All points and all vectors input are assumed to be given in the standard coordinate
 system unless stated otherwise.
 
@@ -192,7 +192,7 @@ class GammaDistributions(OpenSet):
 
         return pdf
 
-    def natural_to_standard_point(self, point):
+    def natural_to_standard(self, point):
         """Convert point from natural coordinates to standard coordinates.
 
         The change of variable is symmetric.
@@ -213,7 +213,7 @@ class GammaDistributions(OpenSet):
 
         return gs.squeeze(point)
 
-    def standard_to_natural_point(self, point):
+    def standard_to_natural(self, point):
         """Convert point from standard coordinates to natural coordinates.
 
         The change of variable is symmetric.
@@ -230,7 +230,7 @@ class GammaDistributions(OpenSet):
         """
         return self.natural_to_standard_point(point)
 
-    def natural_to_standard_vec(self, vec, base_point):
+    def tangent_natural_to_standard(self, vec, base_point):
         """Convert tangent vector from natural coordinates to standard coordinates.
 
         The change of variable is symmetric.
@@ -266,7 +266,7 @@ class GammaDistributions(OpenSet):
 
         return gs.squeeze(vec)
 
-    def standard_to_natural_vec(self, point):
+    def tangent_standard_to_natural(self, point):
         """Convert tangent vector from standard coordinates to natural coordinates.
 
         The change of variable is symmetric.
@@ -291,8 +291,8 @@ class GammaMetric(RiemannianMetric):
 
     References
     ----------
-    Arwini, K. A., & Dodson, C. T. (2008). Information geometry (pp. 31-54).
-    Springer Berlin Heidelberg.
+    [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
+    Information geometry (pp. 31-54). Springer Berlin Heidelberg.
     """
 
     def __init__(self):
@@ -338,11 +338,12 @@ class GammaMetric(RiemannianMetric):
 
         References
         ----------
-        Arwini, K. A., & Dodson, C. T. (2008). Information geometry (pp. 31-54).
-        Springer Berlin Heidelberg.
+        [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
+        Information geometry (pp. 31-54). Springer Berlin Heidelberg.
 
-        Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015). Sharp inequalities for
-        polygamma functions. Mathematica Slovaca, 65(1), 103-120.
+        [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
+        Sharp inequalities for polygamma functions.
+        Mathematica Slovaca, 65(1), 103-120.
 
         Parameters
         ----------
@@ -409,8 +410,8 @@ class GammaMetric(RiemannianMetric):
 
         christoffels = gs.array([c1, c2])
 
-        if len(christoffels.shape) > 3:
-            christoffels = gs.stack(christoffels, 1)
+        if len(christoffels.shape) == 4:
+            christoffels = gs.transpose(christoffels, [1, 0, 2, 3])
 
         return gs.squeeze(christoffels)
 
@@ -426,8 +427,9 @@ class GammaMetric(RiemannianMetric):
 
         References
         ----------
-        Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015). Sharp inequalities for
-        polygamma functions. Mathematica Slovaca, 65(1), 103-120.
+        [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
+        Sharp inequalities for polygamma functions.
+        Mathematica Slovaca, 65(1), 103-120.
 
         Parameters
         ----------
@@ -529,12 +531,12 @@ class GammaMetric(RiemannianMetric):
         n_steps : int
             Number of steps for integration.
             Optional, default: 100.
-        step : str, {'euler', 'rk4'}
-            Numerical scheme to use for integration.
-            Optional, default: 'euler'.
-        method : string, {'geomstats', 'lsoda'}
-            Method to compute the exponential map (self._exp_ivp or Connection.exp)
+        solver : string, {'geomstats', 'lsoda'}
+            Solver to compute the exponential map (self._exp_ivp or Connection.exp)
             Optional, default : "geomstats"
+        step : str, {'euler', 'rk4'}
+            Numerical scheme to use for integration in the geomstats solver.
+            Optional, default: 'euler'.
 
         Returns
         -------
@@ -559,7 +561,7 @@ class GammaMetric(RiemannianMetric):
         max_iter=25,
         verbose=False,
         tol=gs.atol,
-        solver="geodesic_shooting",
+        method="geodesic_shooting",
     ):
         """Compute the logarithm map.
 
@@ -582,9 +584,9 @@ class GammaMetric(RiemannianMetric):
         max_iter
         verbose
         tol
-        solver : string, {'geodesic_shooting', 'ode_bvp'}
+        method : string, {'geodesic_shooting', 'ode_bvp'}
             Method to compute the logarithm map (self._log_bvp or Connection.log)
-            Optional, default : 'connection'
+            Optional, default : 'geodesic_shooting'
 
 
         Returns
@@ -594,11 +596,11 @@ class GammaMetric(RiemannianMetric):
             reaching point at time 1.
         """
         try:
-            if solver == "geodesic_shooting":
+            if method == "geodesic_shooting":
                 return super(GammaMetric, self).log(
                     point, base_point, n_steps, step, max_iter, verbose, tol
                 )
-            if solver == "ode_bvp":
+            if method == "ode_bvp":
                 return self._log_bvp(point, base_point, n_steps, jacobian=True)
         except RuntimeWarning:
             print(
@@ -638,8 +640,8 @@ class GammaMetric(RiemannianMetric):
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
         solver : string, {'geomstats', 'vp'}
-            Method to compute the log map (self._geodesic_vp or Connection.geodesic)
-            Optional, default : 'connection'
+            Solver to compute the log map (self._geodesic_vp or Connection.geodesic)
+            Optional, default : 'geomstats'
 
         Returns
         -------
