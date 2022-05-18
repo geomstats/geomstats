@@ -263,11 +263,11 @@ class GraphSpaceMetric(PointSetMetric):
                   "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
                   https://www.jmlr.org/papers/v10/jain09a.html.
         """
-        perm = self.matching(base_graph, graph_to_permute, matcher=matcher)
+        perm = self.matching(graph_a, graph_b, matcher=matcher)
 
         return self.total_space_metric.dist(
-            base_graph,
-            self.space.permute(graph_to_permute, perm),
+            graph_a,
+            self.space.permute(graph_b, perm),
         )
 
     @_vectorize_graph((1, "base_point"), (2, "end_point"))
@@ -303,7 +303,7 @@ class GraphSpaceMetric(PointSetMetric):
             base_point, self.space.permute(end_point, perm)
         )
 
-    @_vectorize_graph((1, "base_point"), (2, "end_point"))
+    @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
     def matching(self, base_graph, graph_to_permute, matcher="ID"):
         """Match graphs.
 
