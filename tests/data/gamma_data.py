@@ -261,8 +261,8 @@ class GammaMetricTestData(_RiemannianMetricTestData):
             base_point=point, n_vectors=n_tangent_vecs
         )
         random_data = [
-            dict(point=point, tangent_vecs=tangent_vecs, exp_method="connection"),
-            dict(point=point, tangent_vecs=tangent_vecs, exp_method="ivp"),
+            dict(point=point, tangent_vecs=tangent_vecs, exp_solver="geomstats"),
+            dict(point=point, tangent_vecs=2 * tangent_vecs, exp_solver="lsoda"),
         ]
         return self.generate_tests([], random_data)
 
@@ -274,14 +274,16 @@ class GammaMetricTestData(_RiemannianMetricTestData):
         )
         random_data = [
             dict(
-                base_point=base_point, tangent_vec=tangent_vec, exp_method="connection"
+                base_point=base_point, tangent_vec=tangent_vec, exp_solver="geomstats"
             ),
-            dict(base_point=base_point, tangent_vec=tangent_vec, exp_method="ivp"),
+            dict(
+                base_point=base_point, tangent_vec=2 * tangent_vec, exp_solver="lsoda"
+            ),
         ]
         return self.generate_tests([], random_data)
 
     def log_control_test_data(self):
-        n_times = 10
+        n_times = 3
         base_point = self.space().random_point(n_times)
         tangent_vec = self.space().metric.random_unit_tangent_vec(
             base_point=base_point, n_vectors=1
@@ -290,38 +292,42 @@ class GammaMetricTestData(_RiemannianMetricTestData):
             dict(
                 base_point=base_point,
                 tangent_vec=tangent_vec,
-                exp_method="connection",
-                log_method="connection",
+                exp_solver="geomstats",
+                log_solver="geodesic_shooting",
             ),
             dict(
                 base_point=base_point,
-                tangent_vec=tangent_vec,
-                exp_method="ivp",
-                log_method="bvp",
+                tangent_vec=2 * tangent_vec,
+                exp_solver="lsoda",
+                log_solver="ode_bvp",
             ),
         ]
         return self.generate_tests([], random_data)
 
     def exp_after_log_control_test_data(self):
-        n_times = 10
+        n_times = 3
         base_point = self.space().random_point(n_times)
         tangent_vec = self.space().metric.random_unit_tangent_vec(
             base_point=base_point, n_vectors=1
         )
+        tangent_vec = gs.einsum("i,ij->ij", gs.array([1, 2, 3]), tangent_vec)
+        end_point = self.space().metric.exp(
+            tangent_vec=tangent_vec, base_point=base_point
+        )
         random_data = [
             dict(
                 base_point=base_point,
-                tangent_vec=tangent_vec,
-                exp_method="connection",
-                log_method="connection",
-                atol=0.1,
+                end_point=end_point,
+                exp_solver="geomstats",
+                log_solver="geodesic_shooting",
+                atol=1,
             ),
             dict(
                 base_point=base_point,
-                tangent_vec=tangent_vec,
-                exp_method="ivp",
-                log_method="bvp",
-                atol=0.1,
+                end_point=end_point,
+                exp_solver="lsoda",
+                log_solver="ode_bvp",
+                atol=1,
             ),
         ]
         return self.generate_tests([], random_data)
@@ -337,27 +343,23 @@ class GammaMetricTestData(_RiemannianMetricTestData):
         random_data = [
             dict(
                 base_point=self.space().random_point(),
-                direction=gs.random.rand(2),
                 norm=2,
-                method="connection",
+                solver="geomstats",
             ),
             dict(
                 base_point=self.space().random_point(),
-                direction=gs.random.rand(2),
                 norm=1,
-                method="connection",
+                solver="geomstats",
             ),
             dict(
                 base_point=self.space().random_point(),
-                direction=gs.random.rand(2),
                 norm=2,
-                method="vp",
+                solver="vp",
             ),
             dict(
                 base_point=self.space().random_point(),
-                direction=gs.random.rand(2),
                 norm=1,
-                method="vp",
+                solver="vp",
             ),
         ]
         return self.generate_tests([], random_data)

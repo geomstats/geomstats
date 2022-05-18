@@ -22,11 +22,18 @@ warnings.filterwarnings("error")
 N_STEPS = 100
 
 """
-The convention taken for the following is:
-point=[kappa, gamma]=[kappa, kappa/nu], where kappa and nu are natural parameters.
+The natural coordinate system for a Gamma Distribution is:
+point = [kappa, nu], where kappa is the shape parameter, and nu the rate, or 1/scale.
 
-However, the methods _var_change_point and _var_change_vec in GammaMetric allow to
-easily make the associated change of variable, either for a point or a vector.
+However, information geometry most often works with standard coordinates, given by:
+point = [kappa, gamma] = [kappa, kappa/nu].
+
+Standard coordinates is the convention we use in this script.
+All points and all vectors input are assumed to be given in the standard coordinate
+system unless stated otherwise.
+
+Some of the methods in GammaDistributions allow to easily make the associated
+change of variable, either for a point or a vector.
 """
 
 
@@ -175,7 +182,7 @@ class GammaDistributions(OpenSet):
             """
             pdf_at_x = gs.array(
                 [
-                    gamma.pdf(t, a=point[:, 0], scale=1 / point[:, 1])
+                    gamma.pdf(t, a=point[:, 0], scale=point[:, 1] / point[:, 0])
                     for t in gs.array(x)
                 ]
             )
@@ -185,30 +192,20 @@ class GammaDistributions(OpenSet):
 
         return pdf
 
+    def natural_to_standard_point(self, point):
+        """Convert point from natural coordinates to standard coordinates.
 
-class GammaMetric(RiemannianMetric):
-    """Class for the Fisher information metric on Gamma distributions."""
-
-    def __init__(self):
-        super(GammaMetric, self).__init__(dim=2)
-
-    def _var_change_point(self, point):
-        """Compute change of variable of a point.
-
-        Change of variable of a point given in natural coordinates (i.e., (kappa, nu))
-        into (kappa, gamma) = (kappa, kappa/nu). Or the opposite change of variable
-        depending on which system the point is input, as the change of variable is
-        symmetric.
+        The change of variable is symmetric.
 
         Parameters
         ----------
         point : array-like, shape=[..., 2]
-            Point of the Gamma manifold.
+            Point of the Gamma manifold, given in natural coordinates.
 
         Returns
         -------
         point : array-like, shape=[..., 2]
-            Point of the Gamma manifold.
+            Point of the Gamma manifold, given in standard coordinates.
         """
         point = gs.to_ndarray(point, to_ndim=2)
 
@@ -216,24 +213,39 @@ class GammaMetric(RiemannianMetric):
 
         return gs.squeeze(point)
 
-    def _var_change_vec(self, vec, base_point):
-        """Compute change of variable of a tangent vector.
+    def standard_to_natural_point(self, point):
+        """Convert point from standard coordinates to natural coordinates.
 
-        Change of variable of a tangent vector at base point, both given in the same
-        system (i.e., (kappa, scale)) into (kappa, scale') = (kappa, kappa/scale).
-        Again, the change of variable is symmetric.
+        The change of variable is symmetric.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point of the Gamma manifold, given in standard coordinates.
+
+        Returns
+        -------
+        point : array-like, shape=[..., 2]
+            Point of the Gamma manifold, given in natural coordinates.
+        """
+        return self.natural_to_standard_point(point)
+
+    def natural_to_standard_vec(self, vec, base_point):
+        """Convert tangent vector from natural coordinates to standard coordinates.
+
+        The change of variable is symmetric.
 
         Parameters
         ----------
         base_point : array-like, shape=[..., 2]
-            Point of the Gamma manifold.
+            Point of the Gamma manifold, given in natural coordinates.
         vec : array-like, shape=[..., 2]
-            Tangent vector at base_point
+            Tangent vector at base_point, given in natural coordinates.
 
         Returns
         -------
         vec : array-like, shape=[..., 2]
-            Tangent vector at base_point
+            Tangent vector at base_point, given in standard coordinates.
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -253,6 +265,38 @@ class GammaMetric(RiemannianMetric):
         vec = gs.matmul(jac, vec)
 
         return gs.squeeze(vec)
+
+    def standard_to_natural_vec(self, point):
+        """Convert tangent vector from standard coordinates to natural coordinates.
+
+        The change of variable is symmetric.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point of the Gamma manifold, given in standard coordinates.
+        vec : array-like, shape=[..., 2]
+            Tangent vector at base_point, given in standard coordinates.
+
+        Returns
+        -------
+        vec : array-like, shape=[..., 2]
+            Tangent vector at base_point, given in natural coordinates.
+        """
+        return self.natural_to_standard_vec(point)
+
+
+class GammaMetric(RiemannianMetric):
+    """Class for the Fisher information metric on Gamma distributions.
+
+    References
+    ----------
+    Arwini, K. A., & Dodson, C. T. (2008). Information geometry (pp. 31-54).
+    Springer Berlin Heidelberg.
+    """
+
+    def __init__(self):
+        super(GammaMetric, self).__init__(dim=2)
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix.
@@ -285,14 +329,20 @@ class GammaMetric(RiemannianMetric):
         return gs.squeeze(mat)
 
     def christoffels(self, base_point):
-        """Compute the Christoffel symbols, when given in simple coordinates.
+        """Compute the Christoffel symbols.
 
         Compute the Christoffel symbols of the Fisher information metric.
+        For computation purposes, we replace the value of
+        (gs.polygamma(1, x) - 1/x) by an equivalent (close lower-bound) when it becomes
+        too difficult to compute, as per in the second reference.
 
         References
         ----------
         Arwini, K. A., & Dodson, C. T. (2008). Information geometry (pp. 31-54).
         Springer Berlin Heidelberg.
+
+        Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015). Sharp inequalities for
+        polygamma functions. Mathematica Slovaca, 65(1), 103-120.
 
         Parameters
         ----------
@@ -309,6 +359,12 @@ class GammaMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
         kappa, gamma = base_point[:, 0], base_point[:, 1]
+
+        if gs.any(kappa > 4e15):
+            raise ValueError(
+                "Christoffels computation overflows with values of kappa. "
+                "All values of kappa < 4e15 work."
+            )
 
         shape = kappa.shape
 
@@ -359,10 +415,19 @@ class GammaMetric(RiemannianMetric):
         return gs.squeeze(christoffels)
 
     def jacobian_christoffels(self, base_point):
-        """Compute the Jacobian of the Christoffel symbols, when given in simple coordinates.
+        """Compute the Jacobian of the Christoffel symbols.
 
         Compute the Jacobian of the Christoffel symbols of the
         Fisher information metric.
+
+        For computation purposes, we replace the value of
+        (gs.polygamma(1, x) - 1/x) and (gs.polygamma(2,x) + 1/x**2) by an equivalent
+        (close bounds) when they become too difficult to compute.
+
+        References
+        ----------
+        Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015). Sharp inequalities for
+        polygamma functions. Mathematica Slovaca, 65(1), 103-120.
 
         Parameters
         ----------
@@ -447,7 +512,7 @@ class GammaMetric(RiemannianMetric):
         base_point,
         n_steps=N_STEPS,
         step="euler",
-        method="connection",
+        solver="geomstats",
     ):
         """Compute the exponential map.
 
@@ -467,9 +532,9 @@ class GammaMetric(RiemannianMetric):
         step : str, {'euler', 'rk4'}
             Numerical scheme to use for integration.
             Optional, default: 'euler'.
-        method : string, {'connection', 'ivp'}
+        method : string, {'geomstats', 'lsoda'}
             Method to compute the exponential map (self._exp_ivp or Connection.exp)
-            Optional, default : "connection"
+            Optional, default : "geomstats"
 
         Returns
         -------
@@ -477,11 +542,11 @@ class GammaMetric(RiemannianMetric):
             End point of the geodesic starting at base_point with
             initial velocity tangent_vec and stopping at time 1.
         """
-        if method == "connection":
+        if solver == "geomstats":
             return super(GammaMetric, self).exp(
-                tangent_vec, base_point, n_steps, step, method
+                tangent_vec, base_point, n_steps, step, solver
             )
-        if method == "ivp":
+        if solver == "lsoda":
             return self._exp_ivp(tangent_vec, base_point, n_steps)
 
     def log(
@@ -489,11 +554,12 @@ class GammaMetric(RiemannianMetric):
         point,
         base_point,
         n_steps=N_STEPS,
+        init=None,
         step="euler",
         max_iter=25,
         verbose=False,
         tol=gs.atol,
-        method="connection",
+        solver="geodesic_shooting",
     ):
         """Compute the logarithm map.
 
@@ -516,7 +582,7 @@ class GammaMetric(RiemannianMetric):
         max_iter
         verbose
         tol
-        method : string, {'connection', 'bvp'}
+        solver : string, {'geodesic_shooting', 'ode_bvp'}
             Method to compute the logarithm map (self._log_bvp or Connection.log)
             Optional, default : 'connection'
 
@@ -528,12 +594,12 @@ class GammaMetric(RiemannianMetric):
             reaching point at time 1.
         """
         try:
-            if method == "connection":
+            if solver == "geodesic_shooting":
                 return super(GammaMetric, self).log(
                     point, base_point, n_steps, step, max_iter, verbose, tol
                 )
-            if method == "bvp":
-                return self._log_bvp(point, base_point, n_steps)
+            if solver == "ode_bvp":
+                return self._log_bvp(point, base_point, n_steps, jacobian=True)
         except RuntimeWarning:
             print(
                 "The points at which to compute the log might be too far away in "
@@ -552,7 +618,7 @@ class GammaMetric(RiemannianMetric):
         initial_point,
         end_point=None,
         initial_tangent_vec=None,
-        method="connection",
+        solver="geomstats",
     ):
         """Generate parameterized function for the geodesic curve.
 
@@ -571,7 +637,7 @@ class GammaMetric(RiemannianMetric):
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
-        method : string, {'connection', 'vp'}
+        solver : string, {'geomstats', 'vp'}
             Method to compute the log map (self._geodesic_vp or Connection.geodesic)
             Optional, default : 'connection'
 
@@ -583,11 +649,11 @@ class GammaMetric(RiemannianMetric):
             represents time, and the second corresponds to the different
             initial conditions.
         """
-        if method == "connection":
+        if solver == "geomstats":
             return super(GammaMetric, self).geodesic(
                 initial_point, end_point, initial_tangent_vec
             )
-        if method == "vp":
+        if solver == "vp":
             return self.geodesic_vp(initial_point, end_point, initial_tangent_vec)
 
     def _geodesic_ivp(self, initial_point, initial_tangent_vec, n_steps=N_STEPS):
@@ -618,7 +684,7 @@ class GammaMetric(RiemannianMetric):
         n_initial_tangent_vecs = initial_tangent_vec.shape[0]
         if n_initial_points > n_initial_tangent_vecs:
             raise ValueError(
-                "There cannot be more initial points than " "initial tangent vectors."
+                "There cannot be more initial points than initial tangent vectors."
             )
         if n_initial_tangent_vecs > n_initial_points:
             if n_initial_points > 1:
@@ -804,7 +870,7 @@ class GammaMetric(RiemannianMetric):
             jac : array-like, shape=(dim * (degree - 1),)
                 Jacobian of the cost function at polynomial curve.
             """
-            last_coef = end_point - initial_point - gs.sum(param, 0)
+            last_coef = end_point - initial_point - gs.sum(param, axis=0)
             coef = gs.vstack((initial_point, param, last_coef))
 
             t = gs.linspace(0.0, 1.0, n_times)
@@ -816,25 +882,26 @@ class GammaMetric(RiemannianMetric):
             t_velocity = gs.stack(t_velocity)
             velocity = gs.einsum("ij,ik->kj", coef[1:], t_velocity)
 
-            fac1 = gs.stack(
-                [
-                    k * t ** (k - 1) - degree * t ** (degree - 1)
-                    for k in range(1, degree)
-                ]
-            )
-            fac2 = gs.stack([t**k - t**degree for k in range(1, degree)])
-            fac3 = (velocity * gs.polygamma(1, position)).T - gs.sum(
-                velocity, 1
-            ) * gs.polygamma(1, gs.sum(position, 1))
-            fac4 = (velocity**2 * gs.polygamma(2, position)).T - gs.sum(
-                velocity, 1
-            ) ** 2 * gs.polygamma(2, gs.sum(position, 1))
+            kappa, gamma = position[:, 0], position[:, 1]
+            kappa_dot, gamma_dot = velocity[:, 0], velocity[:, 1]
 
-            cost_jac = (
-                2 * gs.einsum("ij,kj->ik", fac1, fac3)
-                + gs.einsum("ij,kj->ik", fac2, fac4)
-            ) / n_times
-            return cost_jac.T.reshape(dim * (degree - 1))
+            jac_kappa_0 = (
+                (gs.polygamma(2, kappa) + 1 / kappa**2) * kappa_dot
+                + gamma_dot**2 / gamma
+            ) * t_position[1:-1]
+            jac_kappa_1 = (2 * gs.polygamma(1, kappa) * kappa_dot) * t_velocity[:-1]
+
+            jac_kappa = jac_kappa_0 + jac_kappa_1
+
+            jac_gamma_0 = (-kappa * gamma_dot**2 / gamma**2) * t_position[1:-1]
+            jac_gamma_1 = (2 * kappa * gamma_dot / gamma) * t_velocity[:-1]
+
+            jac_gamma = jac_gamma_0 + jac_gamma_1
+
+            jac = gs.vstack([jac_kappa, jac_gamma])
+
+            cost_jac = gs.sum(jac, axis=1)
+            return cost_jac
 
         def f2minimize(x):
             """Compute function to minimize."""
@@ -861,7 +928,7 @@ class GammaMetric(RiemannianMetric):
         initial_point,
         end_point,
         n_steps=N_STEPS,
-        jacobian=False,
+        jacobian=True,
     ):
         """Solve geodesic boundary problem.
 
@@ -878,7 +945,7 @@ class GammaMetric(RiemannianMetric):
         jacobian : boolean.
             If True, the explicit value of the jacobian is used to solve
             the geodesic boundary value problem.
-            Optional, default: False.
+            Optional, default: True.
 
         Returns
         -------
@@ -1029,7 +1096,7 @@ class GammaMetric(RiemannianMetric):
         return path
 
     def _log_bvp(
-        self, point, base_point, n_steps=N_STEPS, jacobian=False, init="polynomial"
+        self, point, base_point, n_steps=N_STEPS, jacobian=True, init="polynomial"
     ):
         """Compute the logarithm map.
 
@@ -1049,7 +1116,7 @@ class GammaMetric(RiemannianMetric):
         jacobian : boolean.
             If True, the explicit value of the jacobian is used to solve
             the geodesic boundary value problem.
-            Optional, default: False.
+            Optional, default: True.
         init : str, {'linear', 'polynomial}
             Initialization used to solve the geodesic boundary value problem.
             If 'linear', use the Euclidean straight line as initial guess.
@@ -1079,7 +1146,7 @@ class GammaMetric(RiemannianMetric):
         end_point=None,
         initial_tangent_vec=None,
         n_steps=N_STEPS,
-        jacobian=False,
+        jacobian=True,
     ):
         """Generate parameterized function for the geodesic curve.
 
@@ -1101,7 +1168,7 @@ class GammaMetric(RiemannianMetric):
         jacobian : boolean.
             If True, the explicit value of the jacobian is used to solve
             the geodesic boundary value problem.
-            Optional, default: False.
+            Optional, default: True.
 
         Returns
         -------

@@ -37,7 +37,7 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
             pdf.append(
                 gs.array(
                     [
-                        gamma.pdf(x, a=point[i, 0], scale=1 / point[i, 1])
+                        gamma.pdf(x, a=point[i, 0], scale=point[i, 1] / point[i, 0])
                         for x in samples
                     ]
                 )
@@ -66,7 +66,9 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_dist_is_positive = (
         geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
     )
-    skip_test_squared_dist_is_symmetric = True
+    skip_test_squared_dist_is_symmetric = (
+        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+    )
     skip_test_squared_dist_is_positive = (
         geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
     )
@@ -106,43 +108,45 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
 
     @geomstats.tests.np_and_autograd_only
-    def test_exp_vectorization(self, point, tangent_vecs, exp_method):
+    def test_exp_vectorization(self, point, tangent_vecs, exp_solver):
         """Test the case with one initial point and several tangent vectors."""
         end_points = self.metric().exp(
-            tangent_vec=tangent_vecs, base_point=point, method=exp_method
+            tangent_vec=tangent_vecs, base_point=point, solver=exp_solver
         )
         result = end_points.shape
         expected = (tangent_vecs.shape[0], 2)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
-    def test_exp_control(self, base_point, tangent_vec, exp_method):
+    def test_exp_control(self, base_point, tangent_vec, exp_solver):
+        """Test exp at a random base point for a tangent vector of controlled norm."""
         end_point = self.metric().exp(
-            tangent_vec=tangent_vec, base_point=base_point, method=exp_method
+            tangent_vec=tangent_vec, base_point=base_point, solver=exp_solver
         )
         result = gs.any(gs.isnan(end_point))
         self.assertAllClose(result, False)
 
     @geomstats.tests.autograd_only
-    def test_log_control(self, base_point, tangent_vec, exp_method, log_method):
+    def test_log_control(self, base_point, tangent_vec, exp_solver, log_solver):
+        """Test log at a pair of points, with controlled geodesic distance."""
         point = self.metric().exp(
             self.metric().normalize(vector=tangent_vec, base_point=base_point),
             base_point,
-            method=exp_method,
+            solver=exp_solver,
         )
-        vec = self.metric().log(point, base_point, method=log_method)
+        vec = self.metric().log(point, base_point, n_steps=1000, solver=log_solver)
         result = gs.any(gs.isnan(vec))
         self.assertAllClose(result, False)
 
     @geomstats.tests.autograd_only
     def test_exp_after_log_control(
-        self, base_point, tangent_vec, exp_method, log_method, atol
+        self, base_point, end_point, exp_solver, log_solver, atol
     ):
-        expected = self.metric().exp(tangent_vec, base_point, method=exp_method)
+        expected = end_point
         tangent_vec = self.metric().log(
-            expected, base_point, n_steps=1000, method=log_method
+            expected, base_point, n_steps=1000, solver=log_solver
         )
-        end_point = self.metric().exp(tangent_vec, base_point, method=exp_method)
+        end_point = self.metric().exp(tangent_vec, base_point, solver=exp_solver)
         result = end_point
         self.assertAllClose(result, expected, atol)
 
@@ -163,14 +167,14 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_autograd_only
-    def test_geodesic(self, base_point, direction, norm, method):
+    def test_geodesic(self, base_point, norm, solver):
         """Check that the norm of the geodesic velocity is constant."""
         n_steps = 1000
-        tangent_vec = norm * self.metric().normalize(
-            vector=direction, base_point=base_point
+        tangent_vec = norm * self.metric().random_unit_tangent_vec(
+            base_point=base_point
         )
         geod = self.metric().geodesic(
-            initial_point=base_point, initial_tangent_vec=tangent_vec, method=method
+            initial_point=base_point, initial_tangent_vec=tangent_vec, solver=solver
         )
         t = gs.linspace(0.0, 1.0, n_steps)
         geod_at_t = geod(t)
