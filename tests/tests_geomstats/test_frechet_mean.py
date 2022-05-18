@@ -384,11 +384,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         mean = FrechetMean(metric=self.minkowski.metric)
         mean.fit(points, weights=weights)
-        result = mean.estimate_
-        result = self.minkowski.belongs(result)
-        expected = gs.array(True)
+        result = self.minkowski.belongs(mean.estimate_)
 
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
     def test_variance_minkowski(self):
         points = gs.array(

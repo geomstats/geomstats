@@ -2,7 +2,6 @@
 
 Lead author: Nina Miolane.
 """
-
 from abc import ABC
 
 import joblib
@@ -256,6 +255,52 @@ class RiemannianMetric(Connection, ABC):
         norm = gs.sqrt(sq_norm)
         return norm
 
+    def normalize(self, vector, base_point):
+        """Normalize tangent vector at a given point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Tangent vector at base_point.
+        base_point : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        normalized_vector : array-like, shape=[..., dim]
+            Unit tangent vector at base_point.
+        """
+        norm = self.norm(vector, base_point)
+        norm = gs.where(norm == 0, gs.ones(norm.shape), norm)
+        normalized_vector = gs.einsum("...i,...->...i", vector, 1 / norm)
+        return normalized_vector
+
+    def random_unit_tangent_vec(self, base_point, n_vectors=1):
+        """Generate a random unit tangent vector at a given point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point.
+        n_vectors : float
+            Number of vectors to be generated at base_point.
+            For vectorization purposes n_vectors can be greater than 1 iff base_point
+            constitues of a single point.
+
+        Returns
+        -------
+        normalized_vector : array-like, shape=[..., n_vectors, dim]
+            Random unit tangent vector at base_point.
+        """
+        shape = base_point.shape
+        if len(shape) > 1 and shape[-2] > 1 and n_vectors > 1:
+            raise ValueError(
+                "Several tangent vectors is only applicable to a single base point."
+            )
+        random_vector = gs.squeeze(gs.random.rand(n_vectors, *shape))
+        normalized_vector = self.normalize(random_vector, base_point)
+        return gs.squeeze(normalized_vector)
+
     def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
 
@@ -420,7 +465,7 @@ class RiemannianMetric(Connection, ABC):
         ----------
         point : array-like, shape=[..., dim]
             Point.
-        neighbors : array-like, shape=[..., dim]
+        neighbors : array-like, shape=[n_neighbors, dim]
             Neighbors.
 
         Returns
@@ -428,8 +473,23 @@ class RiemannianMetric(Connection, ABC):
         closest_neighbor_index : int
             Index of closest neighbor.
         """
-        dist = self.dist(point, neighbors)
-        closest_neighbor_index = gs.argmin(dist)
+        n_points = point.shape[0] if gs.ndim(point) == gs.ndim(neighbors) else 1
+        n_neighbors = neighbors.shape[0]
+
+        if n_points > 1 and n_neighbors > 1:
+            neighbors = gs.repeat(neighbors, n_points, axis=0)
+
+            point = gs.concatenate([point for _ in range(n_neighbors)])
+
+        closest_neighbor_index = gs.argmin(
+            gs.transpose(
+                gs.reshape(self.dist(point, neighbors), (n_neighbors, n_points)),
+            ),
+            axis=1,
+        )
+
+        if n_points == 1:
+            return closest_neighbor_index[0]
 
         return closest_neighbor_index
 

@@ -228,6 +228,16 @@ class TestCase:
             msg=pytorch_error_msg(a, b, rtol, atol),
         )
 
+    def assertAllEqual(self, a, b):
+        if tf_backend():
+            return tf.test.TestCase().assertAllEqual(a, b)
+
+        elif np_backend() or autograd_backend():
+            np.testing.assert_array_equal(a, b)
+
+        else:
+            self.assertTrue(gs.equal(a, b))
+
     def assertTrue(self, condition, msg=None):
         assert condition, msg
 
