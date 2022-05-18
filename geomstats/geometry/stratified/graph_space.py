@@ -250,7 +250,7 @@ class GraphSpaceMetric(PointSetMetric):
         graph_a : list of Graph or array-like, shape=[..., n, n].
         graph_b : list of Graph or array-like, shape=[..., n, n].
         matcher : str
-            Check ``GraphSpace.matching``.
+            Check ``GraphSpaceMetric.matching``.
 
         Returns
         -------
@@ -284,7 +284,7 @@ class GraphSpaceMetric(PointSetMetric):
         end_point : list of Graph or array-like, shape=[..., n, n].
             Second graph to align to the first graph.
         matcher : str
-            Check ``GraphSpace.matching``.
+            Check ``GraphSpaceMetric.matching``.
 
         Returns
         -------
@@ -334,8 +334,8 @@ class GraphSpaceMetric(PointSetMetric):
         base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
         is_single = gs.ndim(base_graph) == 2
         if is_single:
-            base_graph = gs.expands_dims(base_graph, 0)
-            graph_to_permute = gs.expands_dims(graph_to_permute, 0)
+            base_graph = gs.expand_dims(base_graph, 0)
+            graph_to_permute = gs.expand_dims(graph_to_permute, 0)
 
         perm = matching_alg.get(matcher)(base_graph, graph_to_permute)
         self.perm_ = perm[0] if is_single else perm
