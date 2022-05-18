@@ -241,7 +241,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             X, return_cov=return_tangent_cov, return_std=return_tangent_std
         )
 
-        return_multiple = return_tangent_std + return_tangent_cov
+        return_multiple = return_tangent_std or return_tangent_cov
         tangent_means = euc_result[0] if return_multiple else euc_result
 
         base_points = self.prior(X)
@@ -306,6 +306,6 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         )
 
         if gs.ndim(tangent_samples) > 2:
-            y_samples = gs.moveaxis(y_samples, -2, -1)
+            y_samples = gs.moveaxis(y_samples, -len(self.y_train_shape_) - 1, -1)
 
         return y_samples
