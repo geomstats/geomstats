@@ -141,7 +141,6 @@ class Connection(ABC):
         point,
         base_point,
         n_steps=N_STEPS,
-        init=None,
         step="euler",
         max_iter=25,
         verbose=False,
@@ -187,10 +186,7 @@ class Connection(ABC):
 
         objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
 
-        if init is not None:
-            tangent_vec = init
-        else:
-            tangent_vec = gs.flatten(gs.random.rand(*max_shape))
+        tangent_vec = gs.flatten(gs.random.rand(*max_shape))
 
         res = minimize(
             objective_with_grad,
