@@ -285,7 +285,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         Returns
         -------
         y_samples : ndarray of shape (n_samples_X, n_samples), or \
-            (n_samples_X, n_targets, n_samples)
+            (n_samples_X, *target_shape, n_samples)
             Values of n_samples samples drawn from wrapped Gaussian process and
             evaluated at query points.
         """
@@ -306,6 +306,6 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         )
 
         if gs.ndim(tangent_samples) > 2:
-            y_samples = gs.moveaxis(y_samples, -len(self.y_train_shape_) - 1, -1)
+            y_samples = gs.moveaxis(y_samples, 1, -1)
 
         return y_samples
