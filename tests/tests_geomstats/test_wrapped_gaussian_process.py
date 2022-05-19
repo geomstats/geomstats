@@ -56,7 +56,7 @@ class TestWrappedGaussianProcess(geomstats.tests.TestCase):
         )
         wgpr.fit(self.X_sphere, self.y_sphere)
         y, std = wgpr.predict(self.X_sphere, return_tangent_std=True)
-        self.assertAllClose(std, gs.zeros(*std.shape), atol=1e-4)
+        self.assertAllClose(std, gs.zeros(std.shape), atol=1e-4)
         self.assertAllClose(y, self.y_sphere, atol=1e-4)
 
     def test_samples_y_hypersphere(self):
