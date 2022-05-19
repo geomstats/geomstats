@@ -228,7 +228,7 @@ class GammaDistributions(OpenSet):
         point : array-like, shape=[..., 2]
             Point of the Gamma manifold, given in natural coordinates.
         """
-        return self.natural_to_standard_point(point)
+        return self.natural_to_standard(point)
 
     def tangent_natural_to_standard(self, vec, base_point):
         """Convert tangent vector from natural coordinates to standard coordinates.
@@ -247,13 +247,14 @@ class GammaDistributions(OpenSet):
         vec : array-like, shape=[..., 2]
             Tangent vector at base_point, given in standard coordinates.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        vec = gs.to_ndarray(vec, to_ndim=2)
+        base_point = gs.broadcast_to(base_point, vec.shape)
 
         n_points = base_point.shape[0]
 
         kappa, scale = (
-            base_point[:, 0],
-            base_point[:, 1],
+            base_point[..., 0],
+            base_point[..., 1],
         )
 
         jac = gs.array(
@@ -261,12 +262,14 @@ class GammaDistributions(OpenSet):
         )
         jac = gs.transpose(jac, [2, 0, 1])
 
-        vec = vec.reshape((n_points, 2, 1))
-        vec = gs.matmul(jac, vec)
+        vec = gs.einsum("...jk,...k->...j", jac, vec)
+
+        """vec = vec.reshape((n_points, 2, 1))
+        vec = gs.matmul(jac, vec)"""
 
         return gs.squeeze(vec)
 
-    def tangent_standard_to_natural(self, point):
+    def tangent_standard_to_natural(self, vec, base_point):
         """Convert tangent vector from standard coordinates to natural coordinates.
 
         The change of variable is symmetric.
@@ -283,7 +286,7 @@ class GammaDistributions(OpenSet):
         vec : array-like, shape=[..., 2]
             Tangent vector at base_point, given in natural coordinates.
         """
-        return self.natural_to_standard_vec(point)
+        return self.tangent_natural_to_standard(vec, base_point)
 
 
 class GammaMetric(RiemannianMetric):
@@ -369,35 +372,21 @@ class GammaMetric(RiemannianMetric):
 
         shape = kappa.shape
 
+        c111 = gs.where(
+            gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
+            (gs.polygamma(2, kappa) + gs.array(kappa, dtype=gs.float32) ** -2)
+            / (2 * (gs.polygamma(1, kappa) - 1 / kappa)),
+            0.25 * (kappa**2 * gs.polygamma(2, kappa) + 1),
+        )
+
+        c122 = gs.where(
+            gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
+            -1 / (2 * gamma**2 * (gs.polygamma(1, kappa) - 1 / kappa)),
+            -(kappa**2) / (4 * gamma**2),
+        )
+
         c1 = gs.squeeze(
-            from_vector_to_diagonal_matrix(
-                gs.transpose(
-                    gs.where(
-                        gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
-                        gs.array(
-                            [
-                                (
-                                    gs.polygamma(2, kappa)
-                                    + gs.array(kappa, dtype=gs.float32) ** -2
-                                )
-                                / (2 * (gs.polygamma(1, kappa) - 1 / kappa)),
-                                -1
-                                / (
-                                    2
-                                    * gamma**2
-                                    * (gs.polygamma(1, kappa) - 1 / kappa)
-                                ),
-                            ]
-                        ),
-                        gs.array(
-                            [
-                                0.25 * (kappa**2 * gs.polygamma(2, kappa) + 1),
-                                -(kappa**2) / (4 * gamma**2),
-                            ]
-                        ),
-                    )
-                )
-            )
+            from_vector_to_diagonal_matrix(gs.transpose(gs.array([c111, c122])))
         )
 
         c2 = gs.squeeze(
@@ -731,8 +720,9 @@ class GammaMetric(RiemannianMetric):
                     for pt, vc in zip(point, vec):
                         initial_state = gs.hstack([pt, vc])
                         solution = odeint(ivp, initial_state, t_int, ())
-                        exp.append(solution[-1, : self.dim])
-                    exp = exp[0] if n_times == 1 else gs.stack(exp)
+                        shooting_point = solution[-1, : self.dim]
+                        exp.append(shooting_point)
+                    exp = gs.array(exp) if n_times == 1 else gs.stack(exp)
                     geod.append(exp)
             else:
                 t_int = t
@@ -771,7 +761,7 @@ class GammaMetric(RiemannianMetric):
         """
         stop_time = 1.0
         geodesic = self._geodesic_ivp(base_point, tangent_vec, n_steps)
-        exp = geodesic(stop_time)
+        exp = geodesic(stop_time)[..., 0, :]
 
         return exp
 

@@ -45,6 +45,42 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
         expected = gs.squeeze(gs.stack(pdf, axis=0))
         self.assertAllClose(result, expected)
 
+    def test_natural_to_standard(self, point, expected):
+        result = self.space().natural_to_standard(point)
+        self.assertAllClose(result, expected)
+
+    def test_natural_to_standard_vectorization(self, point):
+        result = self.space().natural_to_standard(point).shape
+        expected = point.shape
+        self.assertAllClose(result, expected)
+
+    def test_standard_to_natural(self, point, expected):
+        result = self.space().standard_to_natural(point)
+        self.assertAllClose(result, expected)
+
+    def test_standard_to_natural_vectorization(self, point):
+        result = self.space().standard_to_natural(point).shape
+        expected = point.shape
+        self.assertAllClose(result, expected)
+
+    def test_tangent_natural_to_standard(self, vec, point, expected):
+        result = self.space().tangent_natural_to_standard(vec, point)
+        self.assertAllClose(result, expected)
+
+    def test_tangent_natural_to_standard_vectorization(self, vec, point):
+        result = self.space().tangent_natural_to_standard(vec, point).shape
+        expected = vec.shape
+        self.assertAllClose(result, expected)
+
+    def test_tangent_standard_to_natural(self, vec, point, expected):
+        result = self.space().tangent_standard_to_natural(vec, point)
+        self.assertAllClose(result, expected)
+
+    def test_tangent_standard_to_natural_vectorization(self, vec, point):
+        result = self.space().tangent_standard_to_natural(vec, point).shape
+        expected = vec.shape
+        self.assertAllClose(result, expected)
+
 
 class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     space = GammaDistributions
@@ -140,7 +176,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.autograd_only
     def test_exp_after_log_control(
-        self, base_point, end_point, exp_solver, log_method, atol
+        self, base_point, end_point, exp_solver, log_method, rtol
     ):
         """Test exp after log at a pair of points with controlled geodesic distance."""
         expected = end_point
@@ -149,7 +185,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         end_point = self.metric().exp(tangent_vec, base_point, solver=exp_solver)
         result = end_point
-        self.assertAllClose(result, expected, atol)
+        self.assertAllClose(result, expected, rtol=rtol)
 
     @geomstats.tests.autograd_and_torch_only
     def test_jacobian_christoffels(self, point):
@@ -184,3 +220,29 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = 1 / velocity_norm.min() * (velocity_norm.max() - velocity_norm.min())
         expected = 0.0
         self.assertAllClose(expected, result, rtol=1.0)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_geodesic_shape(self, point, n_vec, norm, time, solver, expected):
+        tangent_vec = norm * self.metric().random_unit_tangent_vec(
+            base_point=point, n_vectors=n_vec
+        )
+        geod = self.metric().geodesic(
+            initial_point=point, initial_tangent_vec=tangent_vec, solver=solver
+        )
+        result = geod(time).shape
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_and_autograd_only
+    def test_gamma_level_geodesics_are_horizontal(self, base_point, norm, solver, atol):
+        """Check that geodesics between two points of same gamma are straight lines."""
+        n_steps = 1000
+        tangent_vec = norm * self.metric().normalize(gs.array([1, 0]), base_point)
+        end_point = self.metric().exp(tangent_vec=tangent_vec, base_point=base_point)
+        geod = self.metric().geodesic(
+            initial_point=base_point, end_point=end_point, solver=solver
+        )
+        t = gs.linspace(0.0, 1.0, n_steps)
+        geod_at_t = geod(t)
+        gamma = geod_at_t[:, 1]
+        deviation = gamma.max() - gamma.min()
+        self.assertAllClose(deviation, 0, atol=atol)
