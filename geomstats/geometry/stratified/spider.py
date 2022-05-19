@@ -38,7 +38,7 @@ class SpiderPoint(Point):
 
     def __repr__(self):
         """Return a readable representation of the instance."""
-        return f"s{self.stratum}: {self.stratum_coord}"
+        return f"r{self.stratum}: {self.stratum_coord}"
 
     def __hash__(self):
         """Return the hash of the instance."""
