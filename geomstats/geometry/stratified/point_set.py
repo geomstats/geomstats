@@ -4,7 +4,24 @@ Lead authors: Anna Calissano & Jonas Lueg
 """
 
 import functools
+import itertools
 from abc import ABC, abstractmethod
+
+
+def broadcast_lists(list_a, list_b):
+    n_a = len(list_a)
+    n_b = len(list_b)
+
+    if n_a == n_b:
+        return list_a, list_b
+
+    if n_a == 1:
+        return itertools.zip_longest(list_a, list_b, fillvalue=list_a[0])
+
+    if n_b == 1:
+        return itertools.zip_longest(list_a, list_b, fillvalue=list_b[0])
+
+    raise Exception(f"Cannot broadcast lens {n_a} and {n_b}")
 
 
 def _manipulate_input(arg):

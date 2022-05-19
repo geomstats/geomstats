@@ -2,7 +2,6 @@
 
 Lead authors: Anna Calissano & Jonas Lueg
 """
-import itertools
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import EuclideanMetric
@@ -11,6 +10,7 @@ from geomstats.geometry.stratified.point_set import (
     PointSet,
     PointSetMetric,
     _vectorize_point,
+    broadcast_lists,
 )
 
 
@@ -230,15 +230,10 @@ class SpiderMetric(PointSetMetric):
         point_array : array-like, shape=[...]
             An array with the distance.
         """
-        if len(point_a) == 1:
-            values = itertools.zip_longest(point_a, point_b, fillvalue=point_a[0])
-        elif len(point_b) == 1:
-            values = itertools.zip_longest(point_a, point_b, fillvalue=point_b[0])
-        else:
-            values = itertools.zip_longest(point_a, point_b)
+        point_a, point_b = broadcast_lists(point_a, point_b)
 
         result = []
-        for point_a_, point_b_ in values:
+        for point_a_, point_b_ in zip(point_a, point_b):
             if (
                 point_a_.stratum == point_b_.stratum
                 or point_a_.stratum == 0
@@ -276,13 +271,12 @@ class SpiderMetric(PointSetMetric):
 
             return [fnc(t) for fnc in fncs]
 
-        if len(initial_point) == 1 and len(end_point) != 1:
-            values = itertools.zip_longest(
-                initial_point, end_point, fillvalue=initial_point[0]
-            )
-        else:
-            values = zip(initial_point, end_point)
-        fncs = [self._point_geodesic(pt_a, pt_b) for (pt_a, pt_b) in values]
+        initial_point, end_point = broadcast_lists(initial_point, end_point)
+
+        fncs = [
+            self._point_geodesic(pt_a, pt_b)
+            for (pt_a, pt_b) in zip(initial_point, end_point)
+        ]
         return lambda t: _vec(t, fncs=fncs)
 
     def _point_geodesic(self, initial_point, end_point):
