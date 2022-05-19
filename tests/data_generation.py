@@ -1730,9 +1730,6 @@ class _QuotientMetricTestData(_RiemannianMetricTestData):
 
 
 class _PointSetTestData(TestData):
-    n_samples = 2
-    n_points_list = random.sample(range(1, 5), n_samples)
-
     def random_point_belongs_test_data(self):
 
         random_data = [
@@ -1771,7 +1768,7 @@ class _PointTestData(TestData):
 class _PointMetricTestData(TestData):
     def dist_output_shape_test_data(self):
         space = self._PointSet(*self.space_args_list[0])
-        geom = self._SetGeometry(space)
+        geom = self._PointSetMetric(space)
         pts = space.random_point(2)
 
         dist_fnc = geom.dist
@@ -1787,7 +1784,7 @@ class _PointMetricTestData(TestData):
 
     def dist_properties_test_data(self):
         space = self._PointSet(*self.space_args_list[0])
-        geom = self._SetGeometry(space)
+        geom = self._PointSetMetric(space)
         pts = space.random_point(3)
 
         dist_fnc = geom.dist
@@ -1800,23 +1797,27 @@ class _PointMetricTestData(TestData):
 
     def geodesic_output_shape_test_data(self):
         space = self._PointSet(*self.space_args_list[0])
-        geom = self._SetGeometry(space)
+        metric = self._PointSetMetric(space)
         pts = space.random_point(2)
 
         smoke_data = [
-            dict(geometry=geom, start_point=pts[0], end_point=pts[0], t=0.0),
-            dict(geometry=geom, start_point=pts[0], end_point=pts[0], t=[0.0, 1.0]),
-            dict(geometry=geom, start_point=pts[0], end_point=pts, t=0.0),
-            dict(geometry=geom, start_point=pts[0], end_point=pts, t=[0.0, 1.0]),
+            dict(metric=metric, start_point=pts[0], end_point=pts[0], t=0.0),
+            dict(metric=metric, start_point=pts[0], end_point=pts[0], t=[0.0, 1.0]),
+            dict(metric=metric, start_point=pts[0], end_point=pts, t=0.0),
+            dict(metric=metric, start_point=pts[0], end_point=pts, t=[0.0, 1.0]),
+            dict(metric=metric, start_point=pts, end_point=pts[0], t=0.0),
+            dict(metric=metric, start_point=pts, end_point=pts[0], t=[0.0, 1.0]),
+            dict(metric=metric, start_point=pts, end_point=pts, t=0.0),
+            dict(metric=metric, start_point=pts, end_point=pts, t=[0.0, 1.0]),
         ]
 
         return self.generate_tests(smoke_data)
 
     def geodesic_bounds_test_data(self):
         space = self._PointSet(*self.space_args_list[0])
-        geom = self._SetGeometry(space)
+        metric = self._PointSetMetric(space)
         pts = space.random_point(2)
 
-        smoke_data = [dict(geometry=geom, start_point=pts[0], end_point=pts[1])]
+        smoke_data = [dict(metric=metric, start_point=pts[0], end_point=pts[1])]
 
         return self.generate_tests(smoke_data)

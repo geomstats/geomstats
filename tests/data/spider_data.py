@@ -14,8 +14,8 @@ class SpiderTestData(_PointSetTestData):
     _Point = SpiderPoint
     _PointSet = Spider
 
-    # for random tests
-    n_samples = _PointSetTestData.n_samples
+    n_samples = 2
+    n_points_list = random.sample(range(1, 5), n_samples)
     rays_list = random.sample(range(1, 5), n_samples)
     space_args_list = [(rays,) for rays in rays_list]
 
@@ -23,11 +23,13 @@ class SpiderTestData(_PointSetTestData):
         pt1 = self._Point(3, 13)
         pt2 = self._Point(0, 0)
         pt3 = self._Point(4, 1)
+        pt4 = self._Point(2, 0)
 
         smoke_data = [
-            dict(space_args=(10,), points=pt1, expected=[True]),
+            dict(space_args=(10,), points=[pt1], expected=[True]),
             dict(space_args=(0,), points=[pt2, pt3], expected=[True, False]),
             dict(space_args=(2,), points=[pt3], expected=[False]),
+            dict(space_args=(3,), points=[pt4], expected=[False]),
         ]
 
         return self.generate_tests(smoke_data)
@@ -57,6 +59,13 @@ class SpiderPointTestData(_PointTestData):
 
     _Point = SpiderPoint
 
+    def raise_zero_error_test_data(self):
+        smoke_data = [
+            dict(point_args=(0., 1.))
+        ]
+
+        return self.generate_tests(smoke_data)
+
     def to_array_test_data(self):
         smoke_data = [
             dict(point_args=(1, 2.0), expected=gs.array([1.0, 2.0])),
@@ -68,12 +77,11 @@ class SpiderPointTestData(_PointTestData):
 
 class SpiderMetricTestData(_PointMetricTestData):
 
-    _SetGeometry = SpiderMetric
+    _PointSetMetric = SpiderMetric
     _PointSet = Spider
     _Point = SpiderPoint
 
-    # for random tests
-    n_samples = _PointSetTestData.n_samples
+    n_samples = 2
     rays_list = random.sample(range(1, 5), n_samples)
     space_args_list = [(rays,) for rays in rays_list]
 
@@ -101,6 +109,13 @@ class SpiderMetricTestData(_PointMetricTestData):
                 end_point=self._Point(10, 31.0),
                 t=0.4,
                 expected=gs.array([[10.0, 13.0]]),
+            ),
+            dict(
+                space_args=(12,),
+                start_point=self._Point(10, 1.0),
+                end_point=self._Point(11, 2.0),
+                t=0.5,
+                expected=gs.array(([[11.0, 0.5]])),
             ),
         ]
 
