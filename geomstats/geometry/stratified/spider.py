@@ -121,7 +121,6 @@ class Spider(PointSet):
             results += [
                 self._coord_check(single_point)
                 and self._n_rays_check(single_point)
-                and self._zero_check(single_point)
                 and type(single_point) is SpiderPoint
             ]
         return gs.array(results)
@@ -140,24 +139,6 @@ class Spider(PointSet):
             Boolean denoting if the point has a ray in the rays set.
         """
         if single_point.stratum not in list(range(self.n_rays + 1)):
-            return False
-        return True
-
-    @staticmethod
-    def _zero_check(single_point):
-        r"""Check if a random point satisfy the zero condition.
-
-        Parameters
-        ----------
-        single_point : SpiderPoint
-             Point to be checked.
-
-        Returns
-        -------
-        belongs : boolean
-            Boolean denoting if the point has zero length when it has zero ray.
-        """
-        if single_point.stratum == 0 and single_point.stratum_coord != 0:
             return False
         return True
 
