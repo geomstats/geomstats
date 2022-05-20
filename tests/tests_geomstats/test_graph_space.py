@@ -21,7 +21,7 @@ IS_NOT_NP = not np_backend()
 
 
 class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
-    skip_all = IS_NOT_NP
+    skip_all = True
 
     testing_data = GraphSpaceTestData()
 
@@ -100,7 +100,7 @@ class TestGraphPoint(PointTestCase, metaclass=Parametrizer):
 
 
 class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
-    skip_all = IS_NOT_NP
+    skip_all = True
 
     skip_test_geodesic_output_type = True
 
