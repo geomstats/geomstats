@@ -44,7 +44,7 @@ jobs:
       - name: install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
-          pip install -e .[ci,dev,doc,opt]
+          pip install -e .[ci,dev,test,doc,opt]
 
       - name: Add annotations [pytest]
         run: pip install pytest-github-actions-annotate-failures
