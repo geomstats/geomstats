@@ -42,6 +42,7 @@ from tensorflow import (
     minimum,
     ones,
     ones_like,
+    pad,
 )
 from tensorflow import range as arange
 from tensorflow import reduce_max as amax
