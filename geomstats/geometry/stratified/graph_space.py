@@ -184,7 +184,6 @@ class GraphSpace(PointSet):
             Matrices(n_nodes, n_nodes) if total_space is None else total_space
         )
 
-    @_vectorize_graph((1, "graphs"))
     @_pad_with_zeros((1, "graphs"))
     def belongs(self, graphs, atol=gs.atol):
         r"""Check if the matrix is an adjacency matrix.
@@ -205,7 +204,11 @@ class GraphSpace(PointSet):
         belongs : array-like, shape=[...,n]
             Boolean denoting if graph belongs to the space.
         """
-        # TODO: cannot use vectorize here
+        if type(graphs) in [list, tuple]:
+            return gs.array([graph.n_nodes == self.n_nodes for graph in graphs])
+        elif type(graphs) is Graph:
+            return graphs.n_nodes == self.n_nodes
+
         return self.total_space.belongs(graphs, atol=atol)
 
     def random_point(self, n_samples=1, bound=1.0):

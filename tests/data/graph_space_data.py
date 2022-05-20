@@ -31,6 +31,11 @@ class GraphSpaceTestData(_PointSetTestData):
         smoke_data = [
             dict(space_args=(3,), points=gs.ones((4, 4)), expected=False),
             dict(space_args=(3,), points=gs.ones((2, 2)), expected=True),
+            dict(
+                space_args=(2,),
+                points=[self._Point(gs.ones((n + 1, n + 1))) for n in range(3)],
+                expected=gs.array([True] * 2 + [False]),
+            ),
         ]
 
         return self.generate_tests(smoke_data)
