@@ -178,7 +178,7 @@ class TestDecorators(TestCase, metaclass=Parametrizer):
         gs_array_type = type(gs.array([0]))
         vec_points = fnc(points)
 
-        self.assertTrue(type(vec_points) == gs_array_type)
+        self.assertTrue(type(vec_points) is gs_array_type)
         if type(points) is gs_array_type:
             self.assertTrue(vec_points.shape == points.shape)
         else:

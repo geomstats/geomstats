@@ -43,7 +43,7 @@ def _pad_array_with_zeros(array, n_nodes):
 
 def _pad_points_with_zeros(points, n_nodes, copy=True):
     if type(points) in [list, tuple, Graph]:
-        points = _pad_graph_points_with_zeros(points, n_nodes)
+        points = _pad_graph_points_with_zeros(points, n_nodes, copy=copy)
     else:
         points = _pad_array_with_zeros(points, n_nodes)
 
@@ -303,6 +303,7 @@ class GraphSpace(PointSet):
 
     @_pad_with_zeros((1, "points"), copy=False)
     def pad_with_zeros(self, points):
+        """Pad points with zeros to match space dimension."""
         return points
 
 
@@ -315,6 +316,7 @@ class GraphSpaceMetric(PointSetMetric):
     """
 
     def __init__(self, space):
+        super().__init__()
         self.space = space
         self.perm_ = None
 
