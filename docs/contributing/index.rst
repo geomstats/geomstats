@@ -1,8 +1,8 @@
 .. _contributing:
 
-============
-Contributing
-============
+==================
+Contributing Guide
+==================
 
 Geomstats is a community effort, and everyone is welcome to
 contribute.
