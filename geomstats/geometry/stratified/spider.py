@@ -2,7 +2,6 @@
 
 Lead authors: Anna Calissano & Jonas Lueg
 """
-import itertools
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import EuclideanMetric
@@ -11,6 +10,7 @@ from geomstats.geometry.stratified.point_set import (
     PointSet,
     PointSetMetric,
     _vectorize_point,
+    broadcast_lists,
 )
 
 
@@ -38,7 +38,7 @@ class SpiderPoint(Point):
 
     def __repr__(self):
         """Return a readable representation of the instance."""
-        return f"s{self.stratum}: {self.stratum_coord}"
+        return f"r{self.stratum}: {self.stratum_coord}"
 
     def __hash__(self):
         """Return the hash of the instance."""
@@ -121,7 +121,6 @@ class Spider(PointSet):
             results += [
                 self._coord_check(single_point)
                 and self._n_rays_check(single_point)
-                and self._zero_check(single_point)
                 and type(single_point) is SpiderPoint
             ]
         return gs.array(results)
@@ -140,24 +139,6 @@ class Spider(PointSet):
             Boolean denoting if the point has a ray in the rays set.
         """
         if single_point.stratum not in list(range(self.n_rays + 1)):
-            return False
-        return True
-
-    @staticmethod
-    def _zero_check(single_point):
-        r"""Check if a random point satisfy the zero condition.
-
-        Parameters
-        ----------
-        single_point : SpiderPoint
-             Point to be checked.
-
-        Returns
-        -------
-        belongs : boolean
-            Boolean denoting if the point has zero length when it has zero ray.
-        """
-        if single_point.stratum == 0 and single_point.stratum_coord != 0:
             return False
         return True
 
@@ -230,15 +211,10 @@ class SpiderMetric(PointSetMetric):
         point_array : array-like, shape=[...]
             An array with the distance.
         """
-        if len(point_a) == 1:
-            values = itertools.zip_longest(point_a, point_b, fillvalue=point_a[0])
-        elif len(point_b) == 1:
-            values = itertools.zip_longest(point_a, point_b, fillvalue=point_b[0])
-        else:
-            values = itertools.zip_longest(point_a, point_b)
+        point_a, point_b = broadcast_lists(point_a, point_b)
 
         result = []
-        for point_a_, point_b_ in values:
+        for point_a_, point_b_ in zip(point_a, point_b):
             if (
                 point_a_.stratum == point_b_.stratum
                 or point_a_.stratum == 0
@@ -276,13 +252,12 @@ class SpiderMetric(PointSetMetric):
 
             return [fnc(t) for fnc in fncs]
 
-        if len(initial_point) == 1 and len(end_point) != 1:
-            values = itertools.zip_longest(
-                initial_point, end_point, fillvalue=initial_point[0]
-            )
-        else:
-            values = zip(initial_point, end_point)
-        fncs = [self._point_geodesic(pt_a, pt_b) for (pt_a, pt_b) in values]
+        initial_point, end_point = broadcast_lists(initial_point, end_point)
+
+        fncs = [
+            self._point_geodesic(pt_a, pt_b)
+            for (pt_a, pt_b) in zip(initial_point, end_point)
+        ]
         return lambda t: _vec(t, fncs=fncs)
 
     def _point_geodesic(self, initial_point, end_point):

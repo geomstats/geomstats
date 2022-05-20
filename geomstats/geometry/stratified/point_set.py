@@ -4,10 +4,38 @@ Lead authors: Anna Calissano & Jonas Lueg
 """
 
 import functools
+import itertools
 from abc import ABC, abstractmethod
 
 
-def _vectorize_point(*args_positions):
+def broadcast_lists(list_a, list_b):
+    """Broadcast two lists.
+
+    Similar behavior as ``gs.broadcast_arrays``, but for lists.
+    """
+    n_a = len(list_a)
+    n_b = len(list_b)
+
+    if n_a == n_b:
+        return list_a, list_b
+
+    if n_a == 1:
+        return itertools.zip_longest(list_a, list_b, fillvalue=list_a[0])
+
+    if n_b == 1:
+        return itertools.zip_longest(list_a, list_b, fillvalue=list_b[0])
+
+    raise Exception(f"Cannot broadcast lens {n_a} and {n_b}")
+
+
+def _manipulate_input(arg):
+    if not (type(arg) in [list, tuple]):
+        return [arg]
+
+    return arg
+
+
+def _vectorize_point(*args_positions, manipulate_input=_manipulate_input):
     """Check point type and transform in iterable if not the case.
 
     Parameters
@@ -22,20 +50,14 @@ def _vectorize_point(*args_positions):
     """
 
     def _dec(func):
-        def _manipulate_input(arg):
-            if not (type(arg) in [list, tuple]):
-                return [arg]
-
-            return arg
-
         @functools.wraps(func)
         def _wrapped(*args, **kwargs):
             args = list(args)
             for pos, name in args_positions:
                 if name in kwargs:
-                    kwargs[name] = _manipulate_input(kwargs[name])
+                    kwargs[name] = manipulate_input(kwargs[name])
                 else:
-                    args[pos] = _manipulate_input(args[pos])
+                    args[pos] = manipulate_input(args[pos])
 
             return func(*args, **kwargs)
 

@@ -1,6 +1,7 @@
 """Pytorch based computation backend."""
 
 import math
+from collections.abc import Iterable
 from functools import wraps
 
 import numpy as _np
@@ -43,7 +44,7 @@ from torch import (
     logical_or,
 )
 from torch import max as amax
-from torch import mean, meshgrid, nonzero, ones, ones_like, outer, polygamma
+from torch import mean, meshgrid, moveaxis, nonzero, ones, ones_like, outer, polygamma
 from torch import pow as power
 from torch import real
 from torch import repeat_interleave as repeat
@@ -56,6 +57,7 @@ from torch import (
     std,
     tan,
     tanh,
+    trapz,
     uint8,
     unique,
     vstack,
@@ -856,3 +858,27 @@ def sort(a, axis=-1):
 def amin(a, axis=-1):
     (values, _) = torch.min(a, dim=axis)
     return values
+
+
+def take(a, indices, axis=0):
+    if not torch.is_tensor(indices):
+        indices = torch.as_tensor(indices)
+
+    return torch.squeeze(torch.index_select(a, axis, indices))
+
+
+def _unnest_iterable(ls):
+    out = []
+    if isinstance(ls, Iterable):
+        for inner_ls in ls:
+            out.extend(_unnest_iterable(inner_ls))
+    else:
+        out.append(ls)
+
+    return out
+
+
+def pad(a, pad_width, constant_value=0.0):
+    return torch.nn.functional.pad(
+        a, _unnest_iterable(reversed(pad_width)), value=constant_value
+    )

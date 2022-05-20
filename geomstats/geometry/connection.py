@@ -125,6 +125,8 @@ class Connection(ABC):
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
+        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
+
         initial_state = gs.stack([base_point, tangent_vec])
         flow = integrate(
             self.geodesic_equation, initial_state, n_steps=n_steps, step=step
@@ -544,7 +546,9 @@ class Connection(ABC):
             tangent_vec_a, tangent_vec_b, tangent_vec_a, tangent_vec_b, base_point
         )
 
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+    def geodesic(
+        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
+    ):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
@@ -617,7 +621,8 @@ class Connection(ABC):
                 tangent_vecs = gs.einsum("i,...kl->...ikl", t, initial_tangent_vec)
 
             points_at_time_t = [
-                self.exp(tv, pt) for tv, pt in zip(tangent_vecs, initial_point)
+                self.exp(tv, pt, **exp_kwargs)
+                for tv, pt in zip(tangent_vecs, initial_point)
             ]
             points_at_time_t = gs.stack(points_at_time_t, axis=0)
 

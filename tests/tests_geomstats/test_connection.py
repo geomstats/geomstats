@@ -104,7 +104,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.autograd_tf_and_torch_only
-    def test_log_connection_metric(self, dim, point, base_point):
+    def test_log_connection_metric(self, dim, point, base_point, atol):
         sphere = Hypersphere(dim)
         connection = Connection(dim)
         connection.christoffels = sphere.metric.christoffels
@@ -116,7 +116,38 @@ class TestConnection(TestCase, metaclass=Parametrizer):
         q_ext = sphere.spherical_to_extrinsic(point)
         expected = sphere.metric.log(base_point=p_ext, point=q_ext)
 
-        self.assertAllClose(result, expected, atol=1e-6)
+        self.assertAllClose(result, expected, atol)
+
+    def test_geodesic_with_exp_connection(
+        self, dim, point, tangent_vec, n_times, n_steps, expected, atol
+    ):
+        sphere = Hypersphere(dim)
+        connection = Connection(dim)
+        connection.christoffels = sphere.metric.christoffels
+        geo = connection.geodesic(
+            initial_point=point, initial_tangent_vec=tangent_vec, n_steps=n_steps
+        )
+        times = gs.linspace(0, 1, n_times)
+        geo = geo(times)
+        result = geo.shape
+
+        self.assertAllClose(result, expected, atol)
+
+    @geomstats.tests.autograd_tf_and_torch_only
+    def test_geodesic_with_log_connection(
+        self, dim, point, end_point, n_times, n_steps, expected, atol
+    ):
+        sphere = Hypersphere(dim)
+        connection = Connection(dim)
+        connection.christoffels = sphere.metric.christoffels
+        geo = connection.geodesic(
+            initial_point=point, end_point=end_point, n_steps=n_steps
+        )
+        times = gs.linspace(0, 1, n_times)
+        geo = geo(times)
+        result = geo.shape
+
+        self.assertAllClose(result, expected, atol)
 
     def test_geodesic_and_coincides_exp(self, space, n_geodesic_points, vector):
         initial_point = space.random_uniform(2)
