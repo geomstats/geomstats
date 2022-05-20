@@ -21,7 +21,10 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
     def test_random_point(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
-    def test_sample(self, point, n_samples, expected):
+    def test_sample(self, point, n_samples):
+        expected = (
+            (n_samples,) if len(point.shape) == 1 else (point.shape[0], n_samples)
+        )
         self.assertAllClose(self.space().sample(point, n_samples).shape, expected)
 
     @geomstats.tests.np_and_autograd_only
@@ -147,7 +150,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_exp_vectorization(self, point, tangent_vecs, exp_solver):
         """Test the case with one initial point and several tangent vectors."""
         end_points = self.metric().exp(
-            tangent_vec=tangent_vecs, base_point=point, solver=exp_solver
+            tangent_vec=tangent_vecs, base_point=point, n_steps=1000, solver=exp_solver
         )
         result = end_points.shape
         expected = (tangent_vecs.shape[0], 2)
@@ -157,7 +160,10 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_exp_control(self, base_point, tangent_vec, exp_solver):
         """Test exp at a random base point for a tangent vector of controlled norm."""
         end_point = self.metric().exp(
-            tangent_vec=tangent_vec, base_point=base_point, solver=exp_solver
+            tangent_vec=tangent_vec,
+            base_point=base_point,
+            n_steps=1000,
+            solver=exp_solver,
         )
         result = gs.any(gs.isnan(end_point))
         self.assertAllClose(result, False)
@@ -183,12 +189,31 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         tangent_vec = self.metric().log(
             expected, base_point, n_steps=1000, method=log_method
         )
-        end_point = self.metric().exp(tangent_vec, base_point, solver=exp_solver)
+        end_point = self.metric().exp(
+            tangent_vec, base_point, n_steps=1000, solver=exp_solver
+        )
         result = end_point
+        self.assertAllClose(result, expected, rtol=rtol)
+
+    @geomstats.tests.autograd_only
+    def test_log_after_exp_control(
+        self, base_point, tangent_vec, exp_solver, log_method, rtol
+    ):
+        """Test exp after log at a pair of points with controlled geodesic distance."""
+        expected = tangent_vec
+        end_point = self.metric().exp(
+            expected, base_point, n_steps=1000, solver=exp_solver
+        )
+        back_to_vec = self.metric().log(
+            end_point, base_point, n_steps=1000, method=log_method
+        )
+        result = back_to_vec
         self.assertAllClose(result, expected, rtol=rtol)
 
     @geomstats.tests.autograd_and_torch_only
     def test_jacobian_christoffels(self, point):
+        n_points = 1 if len(point.shape) == 1 else point.shape[0]
+
         result = self.metric().jacobian_christoffels(point[0, :])
         self.assertAllClose((2, 2, 2, 2), result.shape)
 
@@ -197,8 +222,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         result = self.metric().jacobian_christoffels(point)
         expected = [
-            self.metric().jacobian_christoffels(point[0, :]),
-            self.metric().jacobian_christoffels(point[1, :]),
+            self.metric().jacobian_christoffels(point[i, :]) for i in range(n_points)
         ]
         expected = gs.stack(expected, 0)
         self.assertAllClose(expected, result)
@@ -211,7 +235,10 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             base_point=base_point
         )
         geod = self.metric().geodesic(
-            initial_point=base_point, initial_tangent_vec=tangent_vec, solver=solver
+            initial_point=base_point,
+            initial_tangent_vec=tangent_vec,
+            n_steps=1000,
+            solver=solver,
         )
         t = gs.linspace(0.0, 1.0, n_steps)
         geod_at_t = geod(t)
@@ -227,7 +254,10 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             base_point=point, n_vectors=n_vec
         )
         geod = self.metric().geodesic(
-            initial_point=point, initial_tangent_vec=tangent_vec, solver=solver
+            initial_point=point,
+            initial_tangent_vec=tangent_vec,
+            n_steps=1000,
+            solver=solver,
         )
         result = geod(time).shape
         self.assertAllClose(expected, result)
@@ -237,9 +267,11 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         """Check that geodesics between two points of same gamma are straight lines."""
         n_steps = 1000
         tangent_vec = norm * self.metric().normalize(gs.array([1, 0]), base_point)
-        end_point = self.metric().exp(tangent_vec=tangent_vec, base_point=base_point)
+        end_point = self.metric().exp(
+            tangent_vec=tangent_vec, n_steps=1000, base_point=base_point
+        )
         geod = self.metric().geodesic(
-            initial_point=base_point, end_point=end_point, solver=solver
+            initial_point=base_point, end_point=end_point, n_steps=1000, solver=solver
         )
         t = gs.linspace(0.0, 1.0, n_steps)
         geod_at_t = geod(t)

@@ -75,7 +75,7 @@ class GammaDistributions(OpenSet):
         belongs = gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
         return belongs
 
-    def random_point(self, n_samples=1, bound=5.0):
+    def random_point(self, n_samples=1, upper_bound=5.0, lower_bound=0.0):
         """Sample parameters of Gamma distributions.
 
         The uniform distribution on [0, bound]^2 is used.
@@ -94,8 +94,15 @@ class GammaDistributions(OpenSet):
         samples : array-like, shape=[..., 2]
             Sample of points representing Gamma distributions.
         """
+        upper_bound, lower_bound = gs.array(upper_bound) * gs.ones(2), gs.array(
+            lower_bound
+        ) * gs.ones(2)
+
+        if gs.any((upper_bound - lower_bound) < 0):
+            raise ValueError("upper_bound cannot be greater than lower_bound.")
+
         size = (2,) if n_samples == 1 else (n_samples, 2)
-        return bound * gs.random.rand(*size)
+        return lower_bound + (upper_bound - lower_bound) * gs.random.rand(*size)
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
@@ -209,7 +216,7 @@ class GammaDistributions(OpenSet):
         """
         point = gs.to_ndarray(point, to_ndim=2)
 
-        point[:, 1] = point[:, 0] / point[:, 1]
+        point = gs.transpose(gs.stack([point[:, 0], point[:, 0] / point[:, 1]]))
 
         return gs.squeeze(point)
 
@@ -263,9 +270,6 @@ class GammaDistributions(OpenSet):
         jac = gs.transpose(jac, [2, 0, 1])
 
         vec = gs.einsum("...jk,...k->...j", jac, vec)
-
-        """vec = vec.reshape((n_points, 2, 1))
-        vec = gs.matmul(jac, vec)"""
 
         return gs.squeeze(vec)
 
@@ -609,6 +613,7 @@ class GammaMetric(RiemannianMetric):
         initial_point,
         end_point=None,
         initial_tangent_vec=None,
+        n_steps=N_STEPS,
         solver="geomstats",
     ):
         """Generate parameterized function for the geodesic curve.
@@ -629,7 +634,7 @@ class GammaMetric(RiemannianMetric):
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
         solver : string, {'geomstats', 'vp'}
-            Solver to compute the log map (self._geodesic_vp or Connection.geodesic)
+            Solver to compute the log map (self.__geodesic_vp or Connection.geodesic)
             Optional, default : 'geomstats'
 
         Returns
@@ -642,10 +647,12 @@ class GammaMetric(RiemannianMetric):
         """
         if solver == "geomstats":
             return super(GammaMetric, self).geodesic(
-                initial_point, end_point, initial_tangent_vec
+                initial_point, end_point, initial_tangent_vec, n_steps=n_steps
             )
         if solver == "vp":
-            return self.geodesic_vp(initial_point, end_point, initial_tangent_vec)
+            return self._geodesic_vp(
+                initial_point, end_point, initial_tangent_vec, n_steps=n_steps
+            )
 
     def _geodesic_ivp(self, initial_point, initial_tangent_vec, n_steps=N_STEPS):
         """Solve geodesic initial value problem.
@@ -761,7 +768,7 @@ class GammaMetric(RiemannianMetric):
         """
         stop_time = 1.0
         geodesic = self._geodesic_ivp(base_point, tangent_vec, n_steps)
-        exp = geodesic(stop_time)[..., 0, :]
+        exp = gs.squeeze(geodesic(stop_time)[..., 0, :])
 
         return exp
 
@@ -1132,7 +1139,7 @@ class GammaMetric(RiemannianMetric):
 
         return gs.squeeze(gs.stack(log))
 
-    def geodesic_vp(
+    def _geodesic_vp(
         self,
         initial_point,
         end_point=None,

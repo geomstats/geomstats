@@ -7,7 +7,6 @@ from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 
 class GammaTestData(_OpenSetTestData):
     space = GammaDistributions
-    n_list = random.sample(range(2, 5), 2)
     space_args_list = []
     shape_list = [(2,)]
     n_samples_list = random.sample(range(2, 5), 2)
@@ -71,8 +70,13 @@ class GammaTestData(_OpenSetTestData):
 
     def sample_test_data(self):
         smoke_data = [
-            dict(point=gs.array([1.0, 1.0]), n_samples=1, expected=()),
-            dict(point=gs.array([[0.1, 0.2], [1, 0.1]]), n_samples=2, expected=(2, 2)),
+            dict(
+                point=gs.array([1.0, 1.0]), n_samples=random.choice(self.n_samples_list)
+            ),
+            dict(
+                point=gs.array([[0.1, 0.2], [1, 0.1]]),
+                n_samples=random.choice(self.n_samples_list),
+            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -80,15 +84,15 @@ class GammaTestData(_OpenSetTestData):
         random_data = [
             dict(
                 point=self.space().random_point(2),
-                n_samples=10,
+                n_samples=random.choice(self.n_samples_list),
             ),
             dict(
                 point=self.space().random_point(4),
-                n_samples=10,
+                n_samples=random.choice(self.n_samples_list),
             ),
             dict(
                 point=self.space().random_point(1),
-                n_samples=10,
+                n_samples=random.choice(self.n_samples_list),
             ),
         ]
         return self.generate_tests([], random_data)
@@ -187,12 +191,12 @@ class GammaTestData(_OpenSetTestData):
 class GammaMetricTestData(_RiemannianMetricTestData):
     space = GammaDistributions
     metric = GammaMetric
-    n_list = random.sample(range(2, 5), 2)
     metric_args_list = []
     space_list = [GammaDistributions()]
     space_args_list = []
     n_samples_list = random.sample(range(2, 5), 2)
     shape_list = [(2,)]
+    n_norms_list = random.sample(range(1, 3), 2)
     n_points_list = random.sample(range(1, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -338,7 +342,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
 
     def christoffels_shape_test_data(self):
         random_data = [
-            dict(point=self.space().random_point(1), expected=(2, 2, 2)),
+            dict(point=self.space().random_point(), expected=(2, 2, 2)),
             dict(point=self.space().random_point(3), expected=(3, 2, 2, 2)),
             dict(point=self.space().random_point(2), expected=(2, 2, 2, 2)),
         ]
@@ -346,116 +350,72 @@ class GammaMetricTestData(_RiemannianMetricTestData):
 
     def exp_vectorization_test_data(self):
         point = self.space().random_point()
-        n_tangent_vecs = 10
+        n_tangent_vecs = random.choice(self.n_vecs_list)
         tangent_vecs = self.space().metric.random_unit_tangent_vec(
             base_point=point, n_vectors=n_tangent_vecs
         )
         random_data = [
             dict(
                 point=point,
-                tangent_vecs=random.choice(self.n_points_list) * tangent_vecs,
+                tangent_vecs=random.choice(self.n_norms_list) * tangent_vecs,
                 exp_solver="geomstats",
             ),
             dict(
                 point=point,
-                tangent_vecs=random.choice(self.n_points_list) * tangent_vecs,
+                tangent_vecs=random.choice(self.n_norms_list) * tangent_vecs,
                 exp_solver="lsoda",
-            ),
-            dict(
-                point=point,
-                tangent_vecs=random.choice(self.n_points_list) * tangent_vecs,
-                exp_solver="lsoda",
-            ),
-            dict(
-                point=point,
-                tangent_vecs=random.choice(self.n_points_list) * tangent_vecs,
-                exp_solver="geomstats",
             ),
         ]
         return self.generate_tests([], random_data)
 
     def exp_control_test_data(self):
-        n_times = 10
-        base_point = self.space().random_point(n_times)
+        n_points = random.choice(self.n_points_list)
+        base_point = self.space().random_point(n_points)
         tangent_vec = self.space().metric.random_unit_tangent_vec(
             base_point=base_point, n_vectors=1
         )
         random_data = [
             dict(
                 base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
+                tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
                 exp_solver="geomstats",
             ),
             dict(
                 base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
+                tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
                 exp_solver="lsoda",
-            ),
-            dict(
-                base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
-                exp_solver="lsoda",
-            ),
-            dict(
-                base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
-                exp_solver="geomstats",
             ),
         ]
         return self.generate_tests([], random_data)
 
     def log_control_test_data(self):
-        n_times = 3
-        base_point = self.space().random_point(n_times)
+        n_points = random.choice(self.n_points_list)
+        base_point = self.space().random_point(n_points, lower_bound=1.0)
         tangent_vec = self.space().metric.random_unit_tangent_vec(
             base_point=base_point, n_vectors=1
         )
         random_data = [
             dict(
                 base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
+                tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
                 exp_solver="geomstats",
                 log_method="geodesic_shooting",
             ),
             dict(
                 base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
+                tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
                 exp_solver="lsoda",
                 log_method="ode_bvp",
             ),
             dict(
                 base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
+                tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
                 exp_solver="geomstats",
                 log_method="ode_bvp",
             ),
             dict(
                 base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
-                exp_solver="lsoda",
-                log_method="ode_bvp",
-            ),
-            dict(
-                base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
-                exp_solver="geomstats",
-                log_method="geodesic_shooting",
-            ),
-            dict(
-                base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
-                exp_solver="lsoda",
-                log_method="ode_bvp",
-            ),
-            dict(
-                base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
-                exp_solver="geomstats",
-                log_method="ode_bvp",
-            ),
-            dict(
-                base_point=base_point,
-                tangent_vec=random.choice(self.n_points_list) * tangent_vec,
+                tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
                 exp_solver="lsoda",
                 log_method="ode_bvp",
             ),
@@ -463,12 +423,18 @@ class GammaMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests([], random_data)
 
     def exp_after_log_control_test_data(self):
-        n_times = 3
-        base_point = self.space().random_point(n_times)
+        n_points = random.choice(self.n_points_list)
+        base_point = self.space().random_point(n_points, lower_bound=1.0)
         tangent_vec = self.space().metric.random_unit_tangent_vec(
             base_point=base_point, n_vectors=1
         )
-        tangent_vec = gs.einsum("i,ij->ij", gs.array([1, 2, 3]), tangent_vec)
+        tangent_vec = gs.squeeze(
+            gs.einsum(
+                "...,...j->...j",
+                gs.array(random.choices(self.n_norms_list, k=n_points)),
+                tangent_vec,
+            )
+        )
         end_point = self.space().metric.exp(
             tangent_vec=tangent_vec, base_point=base_point
         )
@@ -504,10 +470,56 @@ class GammaMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests([], random_data)
 
+    def log_after_exp_control_test_data(self):
+        n_points = random.choice(self.n_points_list)
+        base_point = self.space().random_point(n_points, lower_bound=1.0)
+        tangent_vec = self.space().metric.random_unit_tangent_vec(
+            base_point=base_point, n_vectors=1
+        )
+        tangent_vec = gs.squeeze(
+            gs.einsum(
+                "...,...j->...j",
+                gs.array(random.choices(self.n_norms_list, k=n_points)),
+                tangent_vec,
+            )
+        )
+        random_data = [
+            dict(
+                base_point=base_point,
+                tangent_vec=tangent_vec,
+                exp_solver="geomstats",
+                log_method="geodesic_shooting",
+                rtol=1,
+            ),
+            dict(
+                base_point=base_point,
+                tangent_vec=tangent_vec,
+                exp_solver="lsoda",
+                log_method="ode_bvp",
+                rtol=1,
+            ),
+            dict(
+                base_point=base_point,
+                tangent_vec=tangent_vec,
+                exp_solver="geomstats",
+                log_method="ode_bvp",
+                rtol=1,
+            ),
+            dict(
+                base_point=base_point,
+                tangent_vec=tangent_vec,
+                exp_solver="lsoda",
+                log_method="geodesic_shooting",
+                rtol=1,
+            ),
+        ]
+        return self.generate_tests([], random_data)
+
     def jacobian_christoffels_test_data(self):
         random_data = [
-            dict(point=self.space().random_point(2)),
-            dict(point=self.space().random_point(2)),
+            dict(
+                point=self.space().random_point(random.choice(self.n_points_list) + 1)
+            ),
         ]
         return self.generate_tests([], random_data)
 
@@ -515,22 +527,12 @@ class GammaMetricTestData(_RiemannianMetricTestData):
         random_data = [
             dict(
                 base_point=self.space().random_point(),
-                norm=random.choice(self.n_points_list),
+                norm=random.choice(self.n_norms_list),
                 solver="geomstats",
             ),
             dict(
                 base_point=self.space().random_point(),
-                norm=random.choice(self.n_points_list),
-                solver="geomstats",
-            ),
-            dict(
-                base_point=self.space().random_point(),
-                norm=random.choice(self.n_points_list),
-                solver="vp",
-            ),
-            dict(
-                base_point=self.space().random_point(),
-                norm=random.choice(self.n_points_list),
+                norm=random.choice(self.n_norms_list),
                 solver="vp",
             ),
         ]
@@ -541,7 +543,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
             dict(
                 point=self.space().random_point(),
                 n_vec=1,
-                norm=random.choice(self.n_points_list),
+                norm=random.choice(self.n_norms_list),
                 time=0.5,
                 solver="geomstats",
                 expected=(1, 2),
@@ -549,7 +551,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
             dict(
                 point=self.space().random_point(),
                 n_vec=4,
-                norm=random.choice(self.n_points_list),
+                norm=random.choice(self.n_norms_list),
                 time=0.5,
                 solver="geomstats",
                 expected=(4, 1, 2),
@@ -557,7 +559,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
             dict(
                 point=self.space().random_point(),
                 n_vec=4,
-                norm=random.choice(self.n_points_list),
+                norm=random.choice(self.n_norms_list),
                 time=gs.linspace(0.0, 1.0, 10),
                 solver="geomstats",
                 expected=(4, 10, 2),
@@ -565,7 +567,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
             dict(
                 point=self.space().random_point(),
                 n_vec=1,
-                norm=random.choice(self.n_points_list),
+                norm=random.choice(self.n_norms_list),
                 time=0.5,
                 solver="vp",
                 expected=(1, 2),
@@ -573,7 +575,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
             dict(
                 point=self.space().random_point(),
                 n_vec=4,
-                norm=random.choice(self.n_points_list),
+                norm=random.choice(self.n_norms_list),
                 time=0.5,
                 solver="vp",
                 expected=(4, 1, 2),
@@ -581,7 +583,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
             dict(
                 point=self.space().random_point(),
                 n_vec=4,
-                norm=random.choice(self.n_points_list),
+                norm=random.choice(self.n_norms_list),
                 time=gs.linspace(0.0, 1.0, 10),
                 solver="vp",
                 expected=(4, 10, 2),
@@ -592,26 +594,14 @@ class GammaMetricTestData(_RiemannianMetricTestData):
     def gamma_level_geodesics_are_horizontal_test_data(self):
         random_data = [
             dict(
-                base_point=self.space().random_point(),
-                norm=random.choice(self.n_points_list),
+                base_point=self.space().random_point(lower_bound=1.0),
+                norm=random.choice(self.n_norms_list),
                 solver="geomstats",
                 atol=1e-3,
             ),
             dict(
-                base_point=self.space().random_point(),
-                norm=random.choice(self.n_points_list),
-                solver="geomstats",
-                atol=1e-3,
-            ),
-            dict(
-                base_point=self.space().random_point(),
-                norm=random.choice(self.n_points_list),
-                solver="vp",
-                atol=1e-3,
-            ),
-            dict(
-                base_point=self.space().random_point(),
-                norm=random.choice(self.n_points_list),
+                base_point=self.space().random_point(lower_bound=1.0),
+                norm=random.choice(self.n_norms_list),
                 solver="vp",
                 atol=1e-3,
             ),
