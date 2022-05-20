@@ -316,8 +316,7 @@ class GraphSpaceMetric(PointSetMetric):
     """
 
     def __init__(self, space):
-        super().__init__()
-        self.space = space
+        super().__init__(space)
         self.perm_ = None
 
     @property
