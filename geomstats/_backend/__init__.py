@@ -96,6 +96,7 @@ BACKEND_ATTRIBUTES = {
         "ones",
         "ones_like",
         "outer",
+        "pad",
         "polygamma",
         "power",
         "prod",
