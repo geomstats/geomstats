@@ -20,6 +20,7 @@ from tests.data_generation import (
 class GraphSpaceTestData(_PointSetTestData):
 
     _PointSet = GraphSpace
+    _Point = Graph
 
     n_samples = 2
     n_points_list = random.sample(range(1, 5), n_samples)
@@ -27,7 +28,10 @@ class GraphSpaceTestData(_PointSetTestData):
     space_args_list = [(n_nodes,) for n_nodes in nodes_list]
 
     def belongs_test_data(self):
-        smoke_data = [dict(space_args=(3,), points=gs.ones((4,)), expected=False)]
+        smoke_data = [
+            dict(space_args=(3,), points=gs.ones((4, 4)), expected=False),
+            dict(space_args=(3,), points=gs.ones((2, 2)), expected=True),
+        ]
 
         return self.generate_tests(smoke_data)
 
@@ -91,6 +95,25 @@ class GraphSpaceTestData(_PointSetTestData):
                     gs.expand_dims(permutation, 0), points.shape[0], axis=0
                 ),
             ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def pad_with_zeros_test_data(self):
+
+        space = self._PointSet(3)
+
+        adj_2 = Matrices(2, 2).random_point(3)
+        adj_3 = Matrices(3, 3).random_point(2)
+        points = [self._Point(adj_2[0]), self._Point(adj_3[0])]
+
+        smoke_data = [
+            dict(space=space, points=adj_2),
+            dict(space=space, points=adj_2[0]),
+            dict(space=space, points=adj_3),
+            dict(space=space, points=adj_3[0]),
+            dict(space=space, points=points),
+            dict(space=space, points=points[0]),
         ]
 
         return self.generate_tests(smoke_data)
@@ -226,6 +249,7 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
 
 class DecoratorsTestData(TestData):
     _Point = Graph
+    _PointSet = GraphSpace
 
     def _get_data(self, fnc):
         adj = Matrices(3, 3).random_point(2)

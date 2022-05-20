@@ -68,6 +68,27 @@ class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
         else:
             self.assertTrue(nx_objects, nx.classes.graph.Graph)
 
+    def test_pad_with_zeros(self, space, points):
+        padded_points = space.pad_with_zeros(points)
+
+        expected_shape = (space.n_nodes, space.n_nodes)
+
+        if type(points) is list:
+            for point in padded_points:
+                self.assertTrue(point.adj.shape == expected_shape)
+
+            self.assertTrue(len(padded_points) == len(points))
+
+        elif type(points) is self.testing_data._Point:
+            self.assertTrue(padded_points.adj.shape == expected_shape)
+            self.assertTrue(isinstance(padded_points, self.testing_data._Point))
+
+        else:
+            self.assertTrue(padded_points.shape[-2:] == expected_shape)
+            self.assertTrue(padded_points.ndim == points.ndim)
+            if points.ndim == 3:
+                self.assertTrue(padded_points.shape[0] == points.shape[0])
+
 
 class TestGraphPoint(PointTestCase, metaclass=Parametrizer):
     skip_all = IS_NOT_NP
@@ -180,5 +201,4 @@ class TestDecorators(TestCase, metaclass=Parametrizer):
         else:
             n_points = 1 if points.ndim == 2 else points.shape[0]
 
-        print(n_points, len(vec_points))
         self.assertTrue(len(vec_points) == n_points)

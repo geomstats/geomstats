@@ -3,6 +3,8 @@
 Lead author: Anna Calissano.
 """
 
+import functools
+
 import networkx as nx
 
 import geomstats.backend as gs
@@ -13,6 +15,39 @@ from geomstats.geometry.stratified.point_set import (
     PointSetMetric,
     _vectorize_point,
 )
+
+
+def _pad_graph_points_with_zeros(points, n_nodes, copy=False):
+    if type(points) is Graph:
+        if copy:
+            points = Graph(points.adj)
+
+        n = n_nodes - points.n_nodes
+        if n > 0:
+            points.adj = gs.pad(points.adj, [[0, n], [0, n]])
+    else:
+        points = [
+            _pad_graph_points_with_zeros(point, n_nodes, copy=copy) for point in points
+        ]
+
+    return points
+
+
+def _pad_array_with_zeros(array, n_nodes):
+    if array.shape[-1] < n_nodes:
+        paddings = [[0, 0]] + [[0, 1]] * 2 if array.ndim > 2 else [[0, 1]] * 2
+        array = gs.pad(array, paddings)
+
+    return array
+
+
+def _pad_points_with_zeros(points, n_nodes, copy=True):
+    if type(points) in [list, tuple, Graph]:
+        points = _pad_graph_points_with_zeros(points, n_nodes)
+    else:
+        points = _pad_array_with_zeros(points, n_nodes)
+
+    return points
 
 
 def _vectorize_graph(*args_positions):
@@ -44,6 +79,29 @@ def _vectorize_graph_to_points(*args_positions):
     return _vectorize_point(*args_positions, manipulate_input=_manipulate_input)
 
 
+def _pad_with_zeros(*args_positions, copy=True):
+    def _dec(func):
+        def _manipulate_input(points, n_nodes):
+            return _pad_points_with_zeros(points, n_nodes, copy=copy)
+
+        @functools.wraps(func)
+        def _wrapped(*args, **kwargs):
+            args = list(args)
+
+            n_nodes = args[0].n_nodes
+            for pos, name in args_positions:
+                if name in kwargs:
+                    kwargs[name] = _manipulate_input(kwargs[name], n_nodes)
+                else:
+                    args[pos] = _manipulate_input(args[pos], n_nodes)
+
+            return func(*args, **kwargs)
+
+        return _wrapped
+
+    return _dec
+
+
 class Graph(Point):
     r"""Class for the Graph.
 
@@ -64,8 +122,13 @@ class Graph(Point):
     """
 
     def __init__(self, adj):
-        super(Graph).__init__()
+        super().__init__()
         self.adj = adj
+
+    @property
+    def n_nodes(self):
+        """Retrieve the number of nodes."""
+        return self.adj.shape[0]
 
     def __repr__(self):
         """Return a readable representation of the instance."""
@@ -122,6 +185,7 @@ class GraphSpace(PointSet):
         )
 
     @_vectorize_graph((1, "graphs"))
+    @_pad_with_zeros((1, "graphs"))
     def belongs(self, graphs, atol=gs.atol):
         r"""Check if the matrix is an adjacency matrix.
 
@@ -141,6 +205,7 @@ class GraphSpace(PointSet):
         belongs : array-like, shape=[...,n]
             Boolean denoting if graph belongs to the space.
         """
+        # TODO: cannot use vectorize here
         return self.total_space.belongs(graphs, atol=atol)
 
     def random_point(self, n_samples=1, bound=1.0):
@@ -163,6 +228,7 @@ class GraphSpace(PointSet):
         return self.total_space.random_point(n_samples=n_samples, bound=bound)
 
     @_vectorize_graph((1, "points"))
+    @_pad_with_zeros((1, "points"))
     def set_to_array(self, points):
         r"""Sample in Graph Space.
 
@@ -178,6 +244,7 @@ class GraphSpace(PointSet):
         return gs.copy(points)
 
     @_vectorize_graph_to_points((1, "points"))
+    @_pad_with_zeros((1, "points"))
     def set_to_networkx(self, points):
         r"""Turn point into a networkx object.
 
@@ -194,6 +261,7 @@ class GraphSpace(PointSet):
         return networkx_objs if len(networkx_objs) > 1 else networkx_objs[0]
 
     @_vectorize_graph((1, "graph_to_permute"))
+    @_pad_with_zeros((1, "graph_to_permute"))
     def permute(self, graph_to_permute, permutation):
         r"""Permutation action applied to graph observation.
 
@@ -230,6 +298,10 @@ class GraphSpace(PointSet):
             perm_matrices, graph_to_permute, Matrices.transpose(perm_matrices)
         )
 
+    @_pad_with_zeros((1, "points"), copy=False)
+    def pad_with_zeros(self, points):
+        return points
+
 
 class GraphSpaceMetric(PointSetMetric):
     """Quotient metric on the graph space.
@@ -254,6 +326,7 @@ class GraphSpaceMetric(PointSetMetric):
         return self.space.n_nodes
 
     @_vectorize_graph((1, "graph_a"), (2, "graph_b"))
+    @_pad_with_zeros((1, "graph_a"), (2, "graph_b"))
     def dist(self, graph_a, graph_b, matcher="ID"):
         """Compute distance between two equivalence classes.
 
@@ -286,6 +359,7 @@ class GraphSpaceMetric(PointSetMetric):
         )
 
     @_vectorize_graph((1, "base_point"), (2, "end_point"))
+    @_pad_with_zeros((1, "base_point"), (2, "end_point"))
     def geodesic(self, base_point, end_point, matcher="ID"):
         """Compute distance between two equivalence classes.
 
@@ -319,6 +393,7 @@ class GraphSpaceMetric(PointSetMetric):
         )
 
     @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
+    @_pad_with_zeros((1, "base_graph"), (2, "graph_to_permute"))
     def matching(self, base_graph, graph_to_permute, matcher="ID"):
         """Match graphs.
 
