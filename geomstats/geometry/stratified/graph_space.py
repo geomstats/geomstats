@@ -15,17 +15,32 @@ from geomstats.geometry.stratified.point_set import (
 )
 
 
-def _manipulate_input(arg):
-    if type(arg) not in [list, tuple, Graph]:
-        return arg
-
-    if type(arg) is Graph:
-        return arg.adj
-
-    return gs.array([graph.adj for graph in arg])
-
-
 def _vectorize_graph(*args_positions):
+    def _manipulate_input(arg):
+        if type(arg) not in [list, tuple, Graph]:
+            return arg
+
+        if type(arg) is Graph:
+            return arg.adj
+
+        return gs.array([graph.adj for graph in arg])
+
+    return _vectorize_point(*args_positions, manipulate_input=_manipulate_input)
+
+
+def _vectorize_graph_to_points(*args_positions):
+    def _manipulate_input(arg):
+        if type(arg) in [list, tuple]:
+            return arg
+
+        if type(arg) is Graph:
+            return [arg]
+
+        if arg.ndim == 2:
+            return [Graph(arg)]
+        else:
+            return [Graph(point) for point in arg]
+
     return _vectorize_point(*args_positions, manipulate_input=_manipulate_input)
 
 
@@ -66,7 +81,7 @@ class Graph(Point):
 
     def to_networkx(self):
         """Turn the graph into a networkx format."""
-        return nx.from_numpy_matrix(self.adj)
+        return nx.from_numpy_array(self.adj)
 
 
 class GraphSpace(PointSet):
@@ -160,10 +175,10 @@ class GraphSpace(PointSet):
         graph_array : array-like, shape=[..., nodes, nodes]
                 An array containing all the Graphs.
         """
-        return points
+        return gs.copy(points)
 
-    @_vectorize_graph((1, "points"))
-    def to_networkx(self, points):
+    @_vectorize_graph_to_points((1, "points"))
+    def set_to_networkx(self, points):
         r"""Turn point into a networkx object.
 
         Parameters
@@ -175,9 +190,8 @@ class GraphSpace(PointSet):
         nx_list : list of Networkx object
                 An array containing all the Graphs.
         """
-        if points.shape == (self.n_nodes, self.n_nodes):
-            return nx.from_numpy_matrix(points)
-        return [nx.from_numpy_matrix(point) for point in points]
+        networkx_objs = [pt.to_networkx() for pt in points]
+        return networkx_objs if len(networkx_objs) > 1 else networkx_objs[0]
 
     @_vectorize_graph((1, "graph_to_permute"))
     def permute(self, graph_to_permute, permutation):
@@ -331,6 +345,12 @@ class GraphSpaceMetric(PointSetMetric):
             "ID": self._id_matching,
             "FAQ": self._faq_matching,
         }
+
+        if matcher not in matching_alg:
+            raise NameError(
+                f"{matcher} not available."
+                f"Choose from the following: {','.join(matching_alg)}"
+            )
 
         base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
         is_single = gs.ndim(base_graph) == 2
