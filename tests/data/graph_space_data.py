@@ -6,8 +6,11 @@ from geomstats.geometry.stratified.graph_space import (
     Graph,
     GraphSpace,
     GraphSpaceMetric,
+    _vectorize_graph,
+    _vectorize_graph_to_points,
 )
 from tests.data_generation import (
+    TestData,
     _PointMetricTestData,
     _PointSetTestData,
     _PointTestData,
@@ -18,66 +21,74 @@ class GraphSpaceTestData(_PointSetTestData):
 
     _PointSet = GraphSpace
 
-    # for random tests
-    n_samples = _PointSetTestData.n_samples
+    n_samples = 2
+    n_points_list = random.sample(range(1, 5), n_samples)
     nodes_list = random.sample(range(1, 3), n_samples)
-    space_args_list = [(nodes,) for nodes in nodes_list]
+    space_args_list = [(n_nodes,) for n_nodes in nodes_list]
 
     def belongs_test_data(self):
-        g1 = Graph(adj=Matrices(3, 3).random_point(1))
-        g2 = Matrices(4, 4).random_point(1)
-        g3 = Matrices(4, 4).random_point(2)
-        # g4 = [
-        #   Graph(adj=Matrices(3, 3).random_point(1)),
-        #    Graph(adj=Matrices(4, 4).random_point(1)),
-        # ]
-
-        smoke_data = [
-            dict(space_args=(3,), points=g1, expected=[True]),
-            dict(space_args=(4,), points=g2, expected=[True]),
-            dict(space_args=(5,), points=g3, expected=[False, False]),
-            # dict(space_args=(3,), points=g4, expected=[True, False]),
-        ]
+        smoke_data = [dict(space_args=(3,), points=gs.ones((4,)), expected=False)]
 
         return self.generate_tests(smoke_data)
 
     def set_to_array_test_data(self):
-        g0 = Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]]))
-        g1 = [
-            Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]])),
-            Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]])),
-        ]
-        g2 = gs.array([[1.0, 2.0, 3.0], [3.0, 4.0, 5.0], [1.0, 2.0, 5.0]])
-        g3 = gs.array(
-            [
-                [[1.0, 2.0, 3.0], [3.0, 4.0, 5.0], [1.0, 2.0, 5.0]],
-                [[1.0, 2.0, 3.0], [3.0, 4.0, 5.0], [1.0, 2.0, 5.0]],
-            ]
-        )
         smoke_data = [
             dict(
                 space_args=(2,),
-                points=g0,
+                points=Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]])),
                 expected=gs.array([[1.0, 2.0], [3.0, 4.0]]),
             ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def set_to_networkx_test_data(self):
+        smoke_data = [
             dict(
-                space_args=(2,),
-                points=g1,
-                expected=gs.array([[[1.0, 2.0], [3.0, 4.0]], [[1.0, 2.0], [3.0, 4.0]]]),
+                space=self._PointSet(2),
+                points=Matrices(2, 2).random_point(),
+            ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def permute_test_data(self):
+        space = self._PointSet(2)
+        graph = gs.array([[0.0, 1.0], [2.0, 3]])
+
+        smoke_data = [
+            dict(
+                space=space, graph=graph, permutation=gs.array([0, 1]), expected=graph
             ),
             dict(
-                space_args=(3,),
-                points=g2,
-                expected=gs.array([[1.0, 2.0, 3.0], [3.0, 4.0, 5.0], [1.0, 2.0, 5.0]]),
+                space=space,
+                graph=graph,
+                permutation=gs.array([1, 0]),
+                expected=gs.array([[3.0, 2.0], [1.0, 0.0]]),
             ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def permute_vectorization_test_data(self):
+        space = self._PointSet(2)
+        points = space.random_point(3)
+
+        permutation = gs.array([0, 1])
+
+        smoke_data = [
+            dict(space=space, graph=points[0], id_permutation=permutation),
             dict(
-                space_args=(3,),
-                points=g3,
-                expected=gs.array(
-                    [
-                        [[1.0, 2.0, 3.0], [3.0, 4.0, 5.0], [1.0, 2.0, 5.0]],
-                        [[1.0, 2.0, 3.0], [3.0, 4.0, 5.0], [1.0, 2.0, 5.0]],
-                    ]
+                space=space,
+                graph=points[0],
+                id_permutation=gs.repeat(gs.expand_dims(permutation, 0), 2, axis=0),
+            ),
+            dict(space=space, graph=points, id_permutation=permutation),
+            dict(
+                space=space,
+                graph=points,
+                id_permutation=gs.repeat(
+                    gs.expand_dims(permutation, 0), points.shape[0], axis=0
                 ),
             ),
         ]
@@ -91,117 +102,154 @@ class GraphTestData(_PointTestData):
     def to_array_test_data(self):
         smoke_data = [
             dict(
-                point_args=gs.array([[1.0, 2.0], [3.0, 4.0]]),
+                point_args=(gs.array([[1.0, 2.0], [3.0, 4.0]]),),
                 expected=gs.array([[1.0, 2.0], [3.0, 4.0]]),
             ),
             dict(
-                point_args=gs.array([[1.0, 2.0], [3.0, 4.0]]),
+                point_args=(gs.array([[1.0, 2.0], [3.0, 4.0]]),),
                 expected=gs.array([[1.0, 2.0], [3.0, 4.0]]),
             ),
         ]
+
+        return self.generate_tests(smoke_data)
+
+    def to_networkx_test_data(self):
+        adj = Matrices(3, 3).random_point()
+        point = self._Point(adj)
+
+        smoke_data = [dict(point=point)]
 
         return self.generate_tests(smoke_data)
 
 
 class GraphSpaceMetricTestData(_PointMetricTestData):
-    _SetGeometry = GraphSpaceMetric
+    _PointSetMetric = GraphSpaceMetric
     _PointSet = GraphSpace
     _Point = Graph
 
-    def dist_test_data(self):
-        pts_start = [
-            Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]])),
-            Graph(adj=gs.array([[1.0, 8.0], [3.0, 4.0]])),
-        ]
+    n_samples = 2
+    n_nodes_list = random.sample(range(2, 4), n_samples)
+    space_args_list = [(n_nodes,) for n_nodes in n_nodes_list]
 
-        pts_end = [
-            Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]])),
-            Graph(adj=gs.array([[1.0, 6.0], [3.0, 4.0]])),
-        ]
+    def dist_test_data(self):
+        graph_a = Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]]))
+        graph_b = Graph(adj=gs.array([[1.0, 8.0], [3.0, 4.0]]))
+        graph_c = Graph(adj=gs.array([[1.0, 6.0], [3.0, 4.0]]))
 
         smoke_data = [
             dict(
                 space_args=(2,),
-                start_point=pts_start[0],
-                end_point=pts_end[0],
-                expected=gs.array([0.0]),
-            ),
-            dict(
-                space_args=(2,),
-                start_point=pts_start[0],
-                end_point=pts_end,
-                expected=gs.array([0.0, 4.0]),
-            ),
-            dict(
-                space_args=(2,),
-                start_point=pts_start,
-                end_point=pts_end[0],
-                expected=gs.array([0.0, 6.0]),
-            ),
-            dict(
-                space_args=(2,),
-                start_point=pts_start,
-                end_point=pts_end,
-                expected=gs.array([0.0, 2.0]),
+                start_point=[graph_a, graph_a, graph_b],
+                end_point=[graph_b, graph_c, graph_c],
+                expected=gs.array(
+                    [6.0, 4.0, 2.0],
+                ),
             ),
         ]
 
         return self.generate_tests(smoke_data)
 
-    def geodesic_graphs_test_data(self):
-        pts_start = [
-            Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]])),
-            Graph(adj=gs.array([[1.0, 8.0], [3.0, 4.0]])),
-        ]
+    def geodesic_test_data(self):
+        graph_a = Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]]))
+        graph_b = Graph(adj=gs.array([[1.0, 8.0], [3.0, 4.0]]))
 
-        pts_end = [
-            Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]])),
-            Graph(adj=gs.array([[1.0, 6.0], [3.0, 4.0]])),
-        ]
-
+        # TODO: change for t != 0 and t != 1
         smoke_data = [
             dict(
                 space_args=(2,),
-                start_point=pts_start[0],
-                end_point=pts_end[1],
+                start_point=graph_a,
+                end_point=graph_b,
                 t=0.0,
                 expected=gs.array([[[1.0, 2.0], [3.0, 4.0]]]),
             ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def matching_test_data(self):
+        space = self._PointSet(n_nodes=2)
+        metric = self._PointSetMetric(space)
+
+        graph_a = Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]]))
+        graph_b = Graph(adj=gs.array([[3.0, 4.0], [1.0, 2.0]]))
+
+        smoke_data = [
             dict(
-                space_args=(2,),
-                start_point=pts_start[0],
-                end_point=pts_end[1],
-                t=1,
-                expected=gs.array([[[1.0, 6.0], [3.0, 4.0]]]),
+                metric=metric,
+                point_a=graph_a,
+                point_b=graph_b,
+                matcher="ID",
+                expected=gs.array([0, 1]),
             ),
             dict(
-                space_args=(2,),
-                start_point=pts_start[0],
-                end_point=pts_end[1],
-                t=[0.0, 1.0],
-                expected=gs.array([[[1.0, 2.0], [3.0, 4.0]], [[1.0, 6.0], [3.0, 4.0]]]),
-            ),
-            dict(
-                space_args=(2,),
-                start_point=pts_start,
-                end_point=pts_end,
-                t=0.0,
-                expected=gs.array(
-                    [[[[1.0, 2.0], [3.0, 4.0]]], [[[1.0, 2.0], [3.0, 4.0]]]]
-                ),
-            ),
-            dict(
-                space_args=(2,),
-                start_point=pts_start,
-                end_point=pts_end,
-                t=[0.0, 1.0],
-                expected=gs.array(
-                    [
-                        [[[1.0, 2.0], [3.0, 4.0]], [[1.0, 2.0], [3.0, 4.0]]],
-                        [[[1.0, 8.0], [3.0, 4.0]], [[1.0, 6.0], [3.0, 4.0]]],
-                    ]
-                ),
+                metric=metric,
+                point_a=graph_a,
+                point_b=graph_b,
+                matcher="FAQ",
+                expected=gs.array([1, 0]),
             ),
         ]
 
         return self.generate_tests(smoke_data)
+
+    def matching_output_shape_test_data(self):
+        space = self._PointSet(*self.space_args_list[0])
+        metric = self._PointSetMetric(space)
+        pts = space.random_point(3)
+
+        smoke_data = []
+        for matcher in ["ID", "FAQ"]:
+            smoke_data.extend(
+                [
+                    dict(
+                        metric=metric, point_a=pts[0], point_b=pts[0], matcher=matcher
+                    ),
+                    dict(metric=metric, point_a=pts, point_b=pts[0], matcher=matcher),
+                    dict(metric=metric, point_a=pts[0], point_b=pts, matcher=matcher),
+                    dict(metric=metric, point_a=pts, point_b=pts, matcher=matcher),
+                ]
+            )
+
+        return self.generate_tests(smoke_data)
+
+    def matching_raises_error_test_data(self):
+        space = self._PointSet(*self.space_args_list[0])
+        metric = self._PointSetMetric(space)
+        pt = space.random_point()
+
+        smoke_data = [
+            dict(metric=metric, point_a=pt, point_b=pt, invalid_matcher="invalid")
+        ]
+
+        return self.generate_tests(smoke_data)
+
+
+class DecoratorsTestData(TestData):
+    _Point = Graph
+
+    def _get_data(self, fnc):
+        adj = Matrices(3, 3).random_point(2)
+        points = [self._Point(adj_) for adj_ in adj]
+
+        smoke_data = [
+            dict(fnc=fnc, points=points[0]),
+            dict(fnc=fnc, points=points),
+            dict(fnc=fnc, points=adj[0]),
+            dict(fnc=fnc, points=adj),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def vectorize_graph_test_data(self):
+        @_vectorize_graph((0, "points"))
+        def vec_example(points):
+            return points
+
+        return self._get_data(vec_example)
+
+    def vectorize_graph_to_points_test_data(self):
+        @_vectorize_graph_to_points((0, "points"))
+        def vec_example(points):
+            return points
+
+        return self._get_data(vec_example)

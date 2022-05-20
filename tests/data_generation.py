@@ -1,5 +1,4 @@
 import itertools
-import random
 
 import pytest
 
@@ -1768,10 +1767,10 @@ class _PointTestData(TestData):
 class _PointMetricTestData(TestData):
     def dist_output_shape_test_data(self):
         space = self._PointSet(*self.space_args_list[0])
-        geom = self._PointSetMetric(space)
+        metric = self._PointSetMetric(space)
         pts = space.random_point(2)
 
-        dist_fnc = geom.dist
+        dist_fnc = metric.dist
 
         smoke_data = [
             dict(dist_fnc=dist_fnc, point_a=pts[0], point_b=pts[1]),
@@ -1784,10 +1783,10 @@ class _PointMetricTestData(TestData):
 
     def dist_properties_test_data(self):
         space = self._PointSet(*self.space_args_list[0])
-        geom = self._PointSetMetric(space)
+        metric = self._PointSetMetric(space)
         pts = space.random_point(3)
 
-        dist_fnc = geom.dist
+        dist_fnc = metric.dist
 
         smoke_data = [
             dict(dist_fnc=dist_fnc, point_a=pts[0], point_b=pts[1], point_c=pts[2]),

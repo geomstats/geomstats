@@ -4,7 +4,7 @@
 from collections.abc import Iterable
 
 import geomstats.backend as gs
-from tests.conftest import TestCase, np_only
+from tests.conftest import TestCase
 
 
 class PointSetTestCase(TestCase):
@@ -69,16 +69,14 @@ class PointSetMetricTestCase(TestCase):
             self.assertTrue(not isinstance(results, Iterable))
 
     def test_dist_properties(self, dist_fnc, point_a, point_b, point_c):
-        dist_ab, dist_ba = dist_fnc([point_a], [point_b]), dist_fnc(
-            [point_b], [point_a]
-        )
+        dist_ab = dist_fnc(point_a, point_b)
+        dist_ba = dist_fnc(point_b, point_a)
         self.assertAllClose(dist_ab, dist_ba)
 
-        self.assertAllClose(dist_fnc([point_a], [point_a]), gs.zeros(1))
+        self.assertAllClose(dist_fnc(point_a, point_a), gs.zeros(1))
 
-        dist_ac, dist_cb = dist_fnc([point_a], [point_c]), dist_fnc(
-            [point_c], [point_b]
-        )
+        dist_ac = dist_fnc(point_a, point_c)
+        dist_cb = dist_fnc(point_c, point_b)
         rhs = dist_ac + dist_cb
         assert dist_ab <= (gs.atol + gs.rtol * rhs) + rhs
 
