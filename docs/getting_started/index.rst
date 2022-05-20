@@ -9,4 +9,3 @@ Getting Started
    
    first-steps
    examples
-   gsod

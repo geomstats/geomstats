@@ -43,16 +43,18 @@ scikit-learn's base classes and mixins.
 In both modules, the operations are vectorized for batch computation and provide
 support for different execution backends---namely NumPy, PyTorch, and TensorFlow.
 
-To learn how to use `geomstats`, visit the page :ref:`first_steps`.
-To contribute to `geomstats` visit the page :ref:`contributing`.
+To learn how to use `geomstats`, visit :ref:`first_steps`. To contribute to `geomstats` visit :ref:`contributing`. To learn more about differential geometry and manifolds, visit :ref:`explanation`. To find more advanced examples, visit :ref:`tutorials`.
+
+
 
 .. toctree::
    :maxdepth: 1
    :hidden:
 
    getting_started/index
-   tutorials/index
    explanation/index
+   tutorials/index
    contributing/index
    api/index
+   gsod <gsod>
 
