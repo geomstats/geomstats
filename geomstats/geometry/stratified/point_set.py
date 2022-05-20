@@ -9,6 +9,10 @@ from abc import ABC, abstractmethod
 
 
 def broadcast_lists(list_a, list_b):
+    """Broadcast two lists.
+
+    Similar behavior as ``gs.broadcast_arrays``, but for lists.
+    """
     n_a = len(list_a)
     n_b = len(list_b)
 

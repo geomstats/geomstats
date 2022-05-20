@@ -60,9 +60,7 @@ class SpiderPointTestData(_PointTestData):
     _Point = SpiderPoint
 
     def raise_zero_error_test_data(self):
-        smoke_data = [
-            dict(point_args=(0., 1.))
-        ]
+        smoke_data = [dict(point_args=(0.0, 1.0))]
 
         return self.generate_tests(smoke_data)
 
