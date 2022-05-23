@@ -93,7 +93,7 @@ class TestDataL2Metric(_RiemannianMetricTestData):
     Metric = L2Metric
 
     def log_after_exp_test_data(self):
-        return super().log_after_exp_test_data(amplitude=30)
+        return super().log_after_exp_test_data(amplitude=30.0)
 
     def l2_metric_inner_product_vectorization_test_data(self):
         smoke_data = [

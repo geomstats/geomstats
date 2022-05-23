@@ -44,7 +44,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
 
     tolerances = {
         "exp_belongs": {"atol": 1e-4},
-        "integrated_parallel_transport": {"atol": 1e-8}
+        "integrated_parallel_transport": {"atol": 1e-8},
     }
 
     def inner_product_mat_at_identity_shape_test_data(self):
@@ -407,7 +407,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def log_after_exp_test_data(self):
-        return super().log_after_exp_test_data(amplitude=1000)
+        return super().log_after_exp_test_data(amplitude=1000.0)
 
     def exp_log_composition_at_identity_test_data(self):
         smoke_data = []

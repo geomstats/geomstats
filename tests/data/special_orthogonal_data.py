@@ -473,6 +473,9 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def log_after_exp_test_data(self):
+        return super().log_after_exp_test_data(amplitude=100.0)
+
 
 class SpecialOrthogonal3TestData(TestData):
     space = SpecialOrthogonal
