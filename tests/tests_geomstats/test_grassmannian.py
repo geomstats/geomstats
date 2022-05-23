@@ -1,7 +1,6 @@
 """Unit tests for the Grassmannian."""
 
 import geomstats.backend as gs
-from geomstats.geometry.grassmannian import GrassmannianCanonicalMetric
 from geomstats.tests import np_backend
 from tests.conftest import Parametrizer
 from tests.data.grassmannian_data import (
@@ -23,15 +22,15 @@ class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
 
 
 class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = GrassmannianCanonicalMetric
     skip_test_log_after_exp = True
     skip_test_exp_geodesic_ivp = True
     skip_test_log_is_tangent = not np_backend()
 
     testing_data = GrassmannianCanonicalMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_exp(self, n, k, tangent_vec, base_point, expected):
         self.assertAllClose(
-            self.metric(n, k).exp(gs.array(tangent_vec), gs.array(base_point)),
+            self.Metric(n, k).exp(gs.array(tangent_vec), gs.array(base_point)),
             gs.array(expected),
         )

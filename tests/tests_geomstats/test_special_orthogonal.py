@@ -1,6 +1,5 @@
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.invariant_metric import BiInvariantMetric, InvariantMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import Parametrizer, TestCase, pytorch_backend
 from tests.data.special_orthogonal_data import (
@@ -323,12 +322,12 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
 
 class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
-    metric = connection = BiInvariantMetric
     skip_test_exp_geodesic_ivp = True
     skip_test_log_after_exp_at_identity = True
     skip_test_triangle_inequality_of_dist = True
 
     testing_data = BiInvariantMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_squared_dist_is_less_than_squared_pi(self, point_1, point_2):
         """
@@ -337,7 +336,7 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
         distances above pi.
         """
         group = SpecialOrthogonal(3, "vector")
-        metric = self.metric(SpecialOrthogonal(3, "vector"))
+        metric = self.Metric(SpecialOrthogonal(3, "vector"))
         point_1 = group.regularize(point_1)
         point_2 = group.regularize(point_2)
 
@@ -348,12 +347,12 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
         )
 
     def test_exp(self, tangent_vec, base_point, expected):
-        metric = self.metric(SpecialOrthogonal(3, "vector"))
+        metric = self.Metric(SpecialOrthogonal(3, "vector"))
         result = metric.exp(tangent_vec, base_point)
         self.assertAllClose(result, expected)
 
     def test_log(self, point, base_point, expected):
-        metric = self.metric(SpecialOrthogonal(3, "vector"))
+        metric = self.Metric(SpecialOrthogonal(3, "vector"))
         result = metric.log(point, base_point)
         self.assertAllClose(result, expected)
 
@@ -370,16 +369,16 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
 
 
 class TestInvariantMetricOnSO3(TestCase, metaclass=Parametrizer):
-    metric = connection = InvariantMetric
     skip_test_exp_geodesic_ivp = True
 
     testing_data = InvariantMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_squared_dist_is_symmetric(
         self, metric_mat_at_identity, left_or_right, point_1, point_2
     ):
         group = SpecialOrthogonal(3, "vector")
-        metric = self.metric(
+        metric = self.Metric(
             SpecialOrthogonal(n=3, point_type="vector"),
             metric_mat_at_identity=metric_mat_at_identity,
             left_or_right=left_or_right,

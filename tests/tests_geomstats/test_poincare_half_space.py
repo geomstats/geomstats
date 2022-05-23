@@ -2,7 +2,6 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.poincare_half_space import PoincareHalfSpaceMetric
 from tests.conftest import Parametrizer, np_and_autograd_only
 from tests.data.poincare_half_space_data import (
     PoincareHalfSpaceMetricTestData,
@@ -51,30 +50,30 @@ class TestPoincareHalfSpace(OpenSetTestCase, metaclass=Parametrizer):
 
 
 class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = PoincareHalfSpaceMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_belongs = True
 
     testing_data = PoincareHalfSpaceMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_exp_and_coordinates_tangent(self, dim, tangent_vec, base_point):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         end_point = metric.exp(tangent_vec, base_point)
         self.assertAllClose(base_point[0], end_point[0])
 
     @np_and_autograd_only
     def test_exp(self, dim, tangent_vec, base_point, expected):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.exp(gs.array(tangent_vec), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))

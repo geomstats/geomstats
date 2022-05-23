@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.poincare_ball import PoincareBall
 from tests.conftest import Parametrizer
@@ -56,18 +56,18 @@ class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
 
 
 class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    connection = metric = HyperboloidMetric
 
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
     testing_data = HyperboloidMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_inner_product_is_minkowski_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point
     ):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         minkowki_space = Minkowski(dim + 1)
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = minkowki_space.metric.inner_product(

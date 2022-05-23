@@ -6,18 +6,13 @@ from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
-from geomstats.geometry.spd_matrices import (
-    SPDMatrices,
-    SPDMetricAffine,
-    SPDMetricBuresWasserstein,
-    SPDMetricEuclidean,
-    SPDMetricLogEuclidean,
-)
+from geomstats.geometry.spd_matrices import SPDMatrices
 from tests.conftest import Parametrizer
 from tests.data.spd_matrices_data import (
     SPDMatricesTestData,
     SPDMetricAffineTestData,
     SPDMetricBuresWassersteinTestData,
+    SPDMetricEuclideanPower1TestData,
     SPDMetricEuclideanTestData,
     SPDMetricLogEuclideanTestData,
 )
@@ -96,7 +91,6 @@ class TestSPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
 
 
 class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
-    connection = metric = SPDMetricAffine
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -104,59 +98,60 @@ class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_geodesic_ivp_belongs = True
 
     testing_data = SPDMetricAffineTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_inner_product(
         self, n, power_affine, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = SPDMetricAffine(n, power_affine)
+        metric = self.Metric(n, power_affine)
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )
         self.assertAllClose(result, expected)
 
     def test_exp(self, n, power_affine, tangent_vec, base_point, expected):
-        metric = SPDMetricAffine(n, power_affine)
+        metric = self.Metric(n, power_affine)
         self.assertAllClose(
             metric.exp(gs.array(tangent_vec), gs.array(base_point)), gs.array(expected)
         )
 
     def test_log(self, n, power_affine, point, base_point, expected):
-        metric = SPDMetricAffine(n, power_affine)
+        metric = self.Metric(n, power_affine)
         self.assertAllClose(
             metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
         )
 
 
 class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = SPDMetricBuresWasserstein
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_dist_point_to_itself_is_zero = True
 
     testing_data = SPDMetricBuresWassersteinTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
-        metric = SPDMetricBuresWasserstein(n)
+        metric = self.Metric(n)
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_exp(self, n, tangent_vec, base_point, expected):
-        metric = SPDMetricBuresWasserstein(n)
+        metric = self.Metric(n)
         result = metric.exp(gs.array(tangent_vec), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_log(self, n, point, base_point, expected):
-        metric = SPDMetricBuresWasserstein(n)
+        metric = self.Metric(n)
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
     def test_parallel_transport(self, n):
         space = SPDMatrices(*n)
-        metric = self.metric(*n)
+        metric = self.Metric(*n)
         shape = (2, *n, *n)
 
         point = space.random_point(2)
@@ -202,18 +197,24 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
 
 
 class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
-    connection = metric = SPDMetricEuclidean
     skip_test_exp_geodesic_ivp = True
-    skip_test_geodesic_ivp_belongs = True
     skip_test_exp_belongs = True
     skip_test_log_after_exp = True
 
+    # ignore (tested below)
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_exp_ladder_parallel_transport = True
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_parallel_transport_bvp_is_isometry = True
+
     testing_data = SPDMetricEuclideanTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_inner_product(
         self, n, power_euclidean, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = SPDMetricEuclidean(n, power_euclidean)
+        metric = self.Metric(n, power_euclidean)
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )
@@ -221,25 +222,25 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_exp_domain(self, n, power_euclidean, tangent_vec, base_point, expected):
-        metric = SPDMetricEuclidean(n, power_euclidean)
+        metric = self.Metric(n, power_euclidean)
         result = metric.exp_domain(
             gs.array(tangent_vec), gs.array(base_point), expected
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_log(self, n, power_euclidean, point, base_point, expected):
-        metric = SPDMetricEuclidean(n)
+        metric = self.Metric(n)
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_exp_after_log(self, n, power_euclidean, point, base_point):
-        metric = SPDMetricEuclidean(n, power_euclidean)
+        metric = self.Metric(n, power_euclidean)
         log = metric.log(gs.array(point), base_point=gs.array(base_point))
         result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, atol=gs.atol * 1000)
 
     def test_squared_dist_is_symmetric(self, n, power_euclidean, point_a, point_b):
-        metric = SPDMetricEuclidean(n, power_euclidean)
+        metric = self.Metric(n, power_euclidean)
         sd_a_b = metric.squared_dist(point_a, point_b)
         sd_b_a = metric.squared_dist(point_b, point_a)
         self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
@@ -247,13 +248,40 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_parallel_transport(
         self, n, power_euclidean, tangent_vec_a, base_point, tangent_vec_b
     ):
-        metric = SPDMetricEuclidean(n, power_euclidean)
+        metric = self.Metric(n, power_euclidean)
         result = metric.parallel_transport(tangent_vec_a, base_point, tangent_vec_b)
         self.assertAllClose(result, tangent_vec_a)
 
 
+class TestSPDMetricEuclideanPower1(RiemannianMetricTestCase, metaclass=Parametrizer):
+    skip_test_dist_is_norm_of_log = True
+    skip_test_dist_is_positive = True
+    skip_test_dist_is_symmetric = True
+    skip_test_dist_point_to_itself_is_zero = True
+    skip_test_exp_after_log = True
+    skip_test_exp_belongs = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_shape = True
+    skip_test_geodesic_bvp_belongs = True
+    skip_test_inner_product_is_symmetric = True
+    skip_test_log_after_exp = True
+    skip_test_log_is_tangent = True
+    skip_test_log_shape = True
+    skip_test_squared_dist_is_positive = True
+    skip_test_squared_dist_is_symmetric = True
+    skip_test_triangle_inequality_of_dist = True
+
+    # not skip
+    skip_test_exp_ladder_parallel_transport = False
+    skip_test_parallel_transport_bvp_is_isometry = False
+    skip_test_parallel_transport_ivp_is_isometry = False
+    skip_test_geodesic_ivp_belongs = True  # fails to often
+
+    testing_data = SPDMetricEuclideanPower1TestData()
+    Metric = Connection = testing_data.Metric
+
+
 class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
-    connection = metric = SPDMetricLogEuclidean
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -263,25 +291,26 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
     skip_test_exp_belongs = True
 
     testing_data = SPDMetricLogEuclideanTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
-        metric = SPDMetricLogEuclidean(n)
+        metric = self.Metric(n)
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_exp(self, n, tangent_vec, base_point, expected):
-        metric = SPDMetricLogEuclidean(n)
+        metric = self.Metric(n)
         result = metric.exp(gs.array(tangent_vec), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_log(self, n, point, base_point, expected):
-        metric = SPDMetricLogEuclidean(n)
+        metric = self.Metric(n)
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_dist(self, n, point_a, point_b, expected):
-        metric = SPDMetricLogEuclidean(n)
+        metric = self.Metric(n)
         result = metric.dist(gs.array(point_a), gs.array(point_b))
         self.assertAllClose(result, gs.array(expected))

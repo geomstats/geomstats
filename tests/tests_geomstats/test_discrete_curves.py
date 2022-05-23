@@ -41,7 +41,6 @@ class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
 
 
 class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = L2CurvesMetric
     skip_test_exp_belongs = True
     skip_test_exp_shape = True
     skip_test_log_shape = True
@@ -54,12 +53,13 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_inner_product_is_symmetric = tf_backend()
 
     testing_data = L2CurvesMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_l2_metric_geodesic(
         self, ambient_manifold, curve_a, curve_b, times, n_sampling_points
     ):
         """Test the geodesic method of L2Metric."""
-        l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
+        l2_metric_s2 = self.Metric(ambient_manifold=s2)
         curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
         curves_ab = curves_ab(times)
 
@@ -75,7 +75,6 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
 
 class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = SRVMetric
     skip_test_exp_shape = True
     skip_test_log_shape = True
     skip_test_exp_geodesic_ivp = True
@@ -91,6 +90,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_is_tangent = tf_backend()
 
     testing_data = SRVMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_srv_inner_product(self, curve_a, curve_b, curve_c, times):
         l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)

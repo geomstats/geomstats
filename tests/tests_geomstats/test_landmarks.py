@@ -3,7 +3,6 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.landmarks import L2Metric
 from tests.conftest import Parametrizer
 from tests.data.landmarks_data import LandmarksTestData, TestDataL2Metric
 from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
@@ -18,7 +17,6 @@ class TestLandmarks(ManifoldTestCase, metaclass=Parametrizer):
 
 
 class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = L2Metric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -27,6 +25,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_shape = True
 
     testing_data = TestDataL2Metric()
+    Metric = Connection = testing_data.Metric
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_l2_metric_inner_product_vectorization(

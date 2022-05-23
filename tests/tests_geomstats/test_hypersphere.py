@@ -4,7 +4,7 @@ import scipy.special
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
 from tests.conftest import Parametrizer
 from tests.data.hypersphere_data import HypersphereMetricTestData, HypersphereTestData
@@ -148,43 +148,43 @@ class HypersphereMetricTestCase(RiemannianMetricTestCase):
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )
         self.assertAllClose(result, expected)
 
     def test_dist(self, dim, point_a, point_b, expected):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.dist(gs.array(point_a), gs.array(point_b))
         self.assertAllClose(result, gs.array(expected))
 
     def test_dist_pairwise(self, dim, point, expected, rtol):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.dist_pairwise(gs.array(point))
         self.assertAllClose(result, gs.array(expected), rtol=rtol)
 
     def test_diameter(self, dim, points, expected):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.diameter(gs.array(points))
         self.assertAllClose(result, gs.array(expected))
 
     def test_christoffels_shape(self, dim, point, expected):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.christoffels(point)
         self.assertAllClose(gs.shape(result), expected)
 
     def test_sectional_curvature(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.sectional_curvature(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected, atol=1e-2)
 
     def test_exp_and_dist_and_projection_to_tangent_space(
         self, dim, vector, base_point
     ):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         tangent_vec = Hypersphere(dim).to_tangent(vector=vector, base_point=base_point)
         exp = metric.exp(tangent_vec=tangent_vec, base_point=base_point)
         result = metric.dist(base_point, exp)
@@ -193,8 +193,8 @@ class HypersphereMetricTestCase(RiemannianMetricTestCase):
 
 
 class TestHypersphereMetric(HypersphereMetricTestCase, metaclass=Parametrizer):
-    metric = connection = HypersphereMetric
     skip_test_exp_geodesic_ivp = True
     skip_test_dist_point_to_itself_is_zero = True
 
     testing_data = HypersphereMetricTestData()
+    Metric = Connection = testing_data.Metric

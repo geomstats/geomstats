@@ -5,11 +5,7 @@ import pytest
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.pre_shape import (
-    KendallShapeMetric,
-    PreShapeMetric,
-    PreShapeSpace,
-)
+from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
 from geomstats.geometry.quotient_metric import QuotientMetric
 from tests.conftest import Parametrizer, np_autograd_and_torch_only
 from tests.data.pre_shape_data import (
@@ -338,7 +334,6 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
 
 
 class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = KendallShapeMetric
     space = PreShapeSpace
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
@@ -347,9 +342,10 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_after_exp = True
 
     testing_data = KendallShapeMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_curvature_is_skew_operator(self, k_landmarks, m_ambient, vec, base_point):
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         space = self.space(k_landmarks, m_ambient)
         tangent_vec_a = space.to_tangent(vec[:2], base_point)
         tangent_vec_b = space.to_tangent(vec[2:], base_point)
@@ -374,7 +370,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         :math:`R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
         """
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         curvature_1 = metric.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
         )
@@ -403,7 +399,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         directional_curvature and sectional curvature methods.
         """
         space = self.space(k_landmarks, m_ambient)
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         hor_a = space.horizontal_projection(tangent_vec_a, base_point)
         hor_b = space.horizontal_projection(tangent_vec_b, base_point)
 
@@ -432,7 +428,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         space to Kendall pre-shape space, :math:`(\nabla_X R)(Y, Z)
         + (\nabla_Y R)(Z,X) + (\nabla_Z R)(X, Y) = 0`.
         """
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         term_x = metric.curvature_derivative(hor_x, hor_y, hor_z, hor_h, base_point)
         term_y = metric.curvature_derivative(hor_y, hor_z, hor_x, hor_h, base_point)
         term_z = metric.curvature_derivative(hor_z, hor_x, hor_y, hor_h, base_point)
@@ -448,7 +444,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         For any 3 tangent vectors horizontally lifted from kendall shape space
         to Kendall pre-shape space, :math:`(\nabla_X R)(Y,Y)Z = 0`.
         """
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         result = metric.curvature_derivative(hor_x, hor_y, hor_y, hor_z, base_point)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
@@ -462,7 +458,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         KendallShapeMetric class, method from the QuotientMetric class and
         method from the Connection class have to give identical results.
         """
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
 
         # General formula based on curvature derivative
         expected = metric.curvature_derivative(hor_x, hor_y, hor_x, hor_y, base_point)
@@ -491,7 +487,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self, k_landmarks, m_ambient, coef_x, coef_y, hor_x, hor_y, base_point
     ):
         """Directional curvature derivative is quadratic in both variables."""
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         coef_x = -2.5
         coef_y = 1.5
         result = metric.directional_curvature_derivative(
@@ -509,7 +505,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):
         space = self.space(k_landmarks, m_ambient)
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         tan_a = space.horizontal_projection(tangent_vec_a, base_point)
         tan_b = space.horizontal_projection(tangent_vec_b, base_point)
 
@@ -542,10 +538,10 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
 
 class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = PreShapeMetric
     space = PreShapeSpace
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_shape = True
     skip_test_log_after_exp = True
 
     testing_data = PreShapeMetricTestData()
+    Metric = Connection = testing_data.Metric

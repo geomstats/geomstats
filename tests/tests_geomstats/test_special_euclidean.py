@@ -2,11 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.special_euclidean import (
-    SpecialEuclidean,
-    SpecialEuclideanMatrixCannonicalLeftMetric,
-)
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.tests import tf_backend
 from tests.conftest import Parametrizer, TestCase, np_backend
 from tests.data.special_euclidean_data import (
@@ -111,15 +107,15 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
     metaclass=Parametrizer,
 ):
 
-    metric = connection = SpecialEuclideanMatrixCannonicalLeftMetric
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_shape = True
 
     testing_data = SpecialEuclideanMatrixCanonicalLeftMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_left_metric_wrong_group(self, group, expected):
         with expected:
-            self.metric(group)
+            self.Metric(group)
 
 
 class TestSpecialEuclideanMatrixCanonicalRightMetric(
@@ -127,7 +123,6 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     metaclass=Parametrizer,
 ):
 
-    metric = connection = InvariantMetric
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_shape = np_backend()
     skip_test_log_shape = np_backend()
@@ -153,6 +148,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_log_at_identity_belongs_to_lie_algebra = np_backend()
 
     testing_data = SpecialEuclideanMatrixCanonicalRightMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_right_exp_coincides(self, n, initial_vec):
         group = SpecialEuclidean(n=n)

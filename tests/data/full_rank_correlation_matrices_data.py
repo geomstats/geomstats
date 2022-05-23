@@ -2,6 +2,7 @@ import random
 
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
+    FullRankCorrelationAffineQuotientMetric,
     FullRankCorrelationMatrices,
 )
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -113,6 +114,9 @@ class CorrelationMatricesBundleTestData(TestData):
 
 
 class FullRankcorrelationAffineQuotientMetricTestData(TestData):
+
+    Metric = FullRankCorrelationAffineQuotientMetric
+
     def exp_log_composition_test_data(self):
         bundle = CorrelationMatricesBundle(3)
         point = bundle.riemannian_submersion(bundle.random_point(2))

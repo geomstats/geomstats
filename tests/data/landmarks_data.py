@@ -3,7 +3,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.landmarks import Landmarks
+from geomstats.geometry.landmarks import L2Metric, Landmarks
 from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
 
@@ -90,175 +90,17 @@ class TestDataL2Metric(_RiemannianMetricTestData):
     )
     l2_metric_s2 = space_landmarks_in_sphere_2d.metric
 
-    def exp_shape_test_data(self):
-        return self._exp_shape_test_data(
-            self.metric_args_list, self.space_list, self.shape_list
-        )
-
-    def log_shape_test_data(self):
-        return self._log_shape_test_data(self.metric_args_list, self.space_list)
-
-    def squared_dist_is_symmetric_test_data(self):
-        return self._squared_dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-            atol=gs.atol * 1000,
-        )
-
-    def exp_belongs_test_data(self):
-        return self._exp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            belongs_atol=gs.atol * 10000,
-        )
-
-    def log_is_tangent_test_data(self):
-        return self._log_is_tangent_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
-
-    def geodesic_ivp_belongs_test_data(self):
-        return self._geodesic_ivp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def geodesic_bvp_belongs_test_data(self):
-        return self._geodesic_bvp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 100,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_tangent_vecs_list,
-            rtol=gs.rtol * 1000,
-            atol=gs.atol * 1000,
-        )
+    Metric = L2Metric
 
     def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            amplitude=30,
-            rtol=gs.rtol * 10000,
-            atol=gs.atol * 100000,
-        )
-
-    def exp_ladder_parallel_transport_test_data(self):
-        return self._exp_ladder_parallel_transport_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_rungs_list,
-            self.alpha_list,
-            self.scheme_list,
-        )
-
-    def exp_geodesic_ivp_test_data(self):
-        return self._exp_geodesic_ivp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_points_list,
-            rtol=gs.rtol * 10000,
-            atol=gs.atol * 10000,
-        )
-
-    def parallel_transport_ivp_is_isometry_test_data(self):
-        return self._parallel_transport_ivp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 100,
-        )
-
-    def parallel_transport_bvp_is_isometry_test_data(self):
-        return self._parallel_transport_bvp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            is_tangent_atol=gs.atol * 100,
-            atol=gs.atol * 100,
-        )
-
-    def dist_is_symmetric_test_data(self):
-        return self._dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_positive_test_data(self):
-        return self._dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def squared_dist_is_positive_test_data(self):
-        return self._squared_dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_norm_of_log_test_data(self):
-        return self._dist_is_norm_of_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_point_to_itself_is_zero_test_data(self):
-        return self._dist_point_to_itself_is_zero_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def inner_product_is_symmetric_test_data(self):
-        return self._inner_product_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-        )
-
-    def triangle_inequality_of_dist_test_data(self):
-        return self._triangle_inequality_of_dist_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
+        return super().log_after_exp_test_data(amplitude=30)
 
     def l2_metric_inner_product_vectorization_test_data(self):
         smoke_data = [
             dict(
-                l2_metric=self.l2_metric_s2,
+                l2_metric_s2=self.l2_metric_s2,
                 times=self.times,
-                landmark_sets=self.n_landmark_sets,
+                n_landmark_sets=self.n_landmark_sets,
                 landmarks_a=self.landmark_set_a,
                 landmarks_b=self.landmark_set_b,
                 landmarks_c=self.landmark_set_c,
@@ -269,7 +111,7 @@ class TestDataL2Metric(_RiemannianMetricTestData):
     def l2_metric_exp_vectorization_test_data(self):
         smoke_data = [
             dict(
-                l2_metric=self.l2_metric_s2,
+                l2_metric_s2=self.l2_metric_s2,
                 times=self.times,
                 landmarks_a=self.landmark_set_a,
                 landmarks_b=self.landmark_set_b,
@@ -281,7 +123,7 @@ class TestDataL2Metric(_RiemannianMetricTestData):
     def l2_metric_log_vectorization_test_data(self):
         smoke_data = [
             dict(
-                l2_metric=self.l2_metric_s2,
+                l2_metric_s2=self.l2_metric_s2,
                 times=self.times,
                 landmarks_a=self.landmark_set_a,
                 landmarks_b=self.landmark_set_b,
@@ -293,7 +135,7 @@ class TestDataL2Metric(_RiemannianMetricTestData):
     def l2_metric_geodesic_test_data(self):
         smoke_data = [
             dict(
-                l2_metric=self.l2_metric_s2,
+                l2_metric_s2=self.l2_metric_s2,
                 times=self.times,
                 n_sampling_points=self.n_sampling_points,
                 landmarks_a=self.landmark_set_a,

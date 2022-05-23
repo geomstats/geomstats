@@ -2,7 +2,10 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.poincare_polydisk import PoincarePolydisk
+from geomstats.geometry.poincare_polydisk import (
+    PoincarePolydisk,
+    PoincarePolydiskMetric,
+)
 from tests.data_generation import TestData, _OpenSetTestData
 
 
@@ -34,6 +37,8 @@ class PoincarePolydiskMetricTestData(TestData):
     alpha_list = [1] * 2
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
+
+    Metric = PoincarePolydiskMetric
 
     def signature_test_data(self):
         smoke_data = [

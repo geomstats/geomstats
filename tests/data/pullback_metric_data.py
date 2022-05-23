@@ -1,8 +1,12 @@
 import geomstats.backend as gs
+from geomstats.geometry.pullback_metric import PullbackMetric
 from tests.data_generation import TestData
 
 
 class PullbackMetricTestData(TestData):
+
+    Metric = PullbackMetric
+
     def immersion_test_data(self):
         smoke_data = [
             dict(
@@ -115,12 +119,12 @@ class PullbackMetricTestData(TestData):
         smoke_data = [
             dict(
                 dim=2,
-                tangent_vec_a=gs.array([0.0, 1.0]),
+                tangent_vec=gs.array([0.0, 1.0]),
                 base_point=gs.array([gs.pi / 2.0, 0.0]),
             ),
             dict(
                 dim=2,
-                tangent_vec_a=gs.array([0.4, 1.0]),
+                tangent_vec=gs.array([0.4, 1.0]),
                 base_point=gs.array([gs.pi / 2.0, 0.1]),
             ),
         ]

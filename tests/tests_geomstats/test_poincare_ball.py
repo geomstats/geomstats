@@ -4,7 +4,7 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.poincare_ball import PoincareBall, PoincareBallMetric
+from geomstats.geometry.poincare_ball import PoincareBall
 from tests.conftest import Parametrizer
 from tests.data.poincare_ball_data import (
     PoincareBallTestData,
@@ -32,7 +32,6 @@ class TestPoincareBall(OpenSetTestCase, metaclass=Parametrizer):
 
 
 class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = PoincareBallMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -40,29 +39,30 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_geodesic_ivp_belongs = True
 
     testing_data = TestDataPoincareBallMetric()
+    Metric = Connection = testing_data.Metric
 
     def test_mobius_out_of_the_ball(self, dim, x, y):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         with pytest.raises(ValueError):
             metric.mobius_add(gs.array(x), gs.array(y), project_first=False)
 
     def test_log(self, dim, point, base_point, expected):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_dist_pairwise(self, dim, point, expected):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.dist_pairwise(gs.array(point))
         self.assertAllClose(result, gs.array(expected), rtol=1e-3)
 
     def test_dist(self, dim, point_a, point_b, expected):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         result = metric.dist(gs.array(point_a), gs.array(point_b))
         self.assertAllClose(result, gs.array(expected))
 
     def test_coordinate(self, dim, point_a, point_b):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         point_a_h = PoincareBall(dim).to_coordinates(gs.array(point_a), "extrinsic")
         point_b_h = PoincareBall(dim).to_coordinates(gs.array(point_b), "extrinsic")
         dist_in_ball = metric.dist(gs.array(point_a), gs.array(point_b))
@@ -70,7 +70,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(dist_in_ball, dist_in_hype)
 
     def test_mobius_vectorization(self, dim, point_a, point_b):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
 
         dist_a_b = metric.mobius_add(point_a, point_b)
 
@@ -88,7 +88,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     def test_log_vectorization(self, dim, point_a, point_b):
 
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         dist_a_b = metric.log(point_a, point_b)
 
         result_vect = dist_a_b
@@ -105,7 +105,7 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     def test_exp_vectorization(self, dim, point_a, point_b):
 
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         dist_a_b = metric.exp(point_a, point_b)
 
         result_vect = dist_a_b

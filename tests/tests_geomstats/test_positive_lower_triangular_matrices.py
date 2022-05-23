@@ -2,10 +2,6 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.positive_lower_triangular_matrices import (
-    CholeskyMetric,
-    PositiveLowerTriangularMatrices,
-)
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import Parametrizer
 from tests.data.positive_lower_triangular_matrices_data import (
@@ -58,19 +54,18 @@ class TestPositiveLowerTriangularMatrices(OpenSetTestCase, metaclass=Parametrize
 
 
 class TestCholeskyMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = CholeskyMetric
-    space = PositiveLowerTriangularMatrices
 
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
     testing_data = CholeskyMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_diag_inner_product(
         self, n, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        result = self.metric(n).diag_inner_product(
+        result = self.Metric(n).diag_inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
@@ -78,25 +73,25 @@ class TestCholeskyMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_strictly_lower_inner_product(
         self, n, tangent_vec_a, tangent_vec_b, expected
     ):
-        result = self.metric(n).strictly_lower_inner_product(
+        result = self.Metric(n).strictly_lower_inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
-        result = self.metric(n).inner_product(
+        result = self.Metric(n).inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_exp(self, n, tangent_vec, base_point, expected):
-        result = self.metric(n).exp(gs.array(tangent_vec), gs.array(base_point))
+        result = self.Metric(n).exp(gs.array(tangent_vec), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_log(self, n, point, base_point, expected):
-        result = self.metric(n).log(gs.array(point), gs.array(base_point))
+        result = self.Metric(n).log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_squared_dist(self, n, point_a, point_b, expected):
-        result = self.metric(n).squared_dist(gs.array(point_a), gs.array(point_b))
+        result = self.Metric(n).squared_dist(gs.array(point_a), gs.array(point_b))
         self.assertAllClose(result, gs.array(expected))

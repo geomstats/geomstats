@@ -1,10 +1,7 @@
 """Unit tests for the manifold of matrices."""
 
 import geomstats.backend as gs
-from geomstats.geometry.full_rank_correlation_matrices import (
-    CorrelationMatricesBundle,
-    FullRankCorrelationAffineQuotientMetric,
-)
+from geomstats.geometry.full_rank_correlation_matrices import CorrelationMatricesBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer, TestCase, autograd_tf_and_torch_only
@@ -98,18 +95,18 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
 
 
 class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametrizer):
-    metric = connection = FullRankCorrelationAffineQuotientMetric
     testing_data = FullRankcorrelationAffineQuotientMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     @autograd_tf_and_torch_only
     def test_exp_log_composition(self, dim, point):
 
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         log = metric.log(point[1], point[0])
         result = metric.exp(log, point[0])
         self.assertAllClose(result, point[1], atol=gs.atol * 10000)
 
     def test_exp_belongs(self, dim, tangent_vec, base_point):
-        metric = self.metric(dim)
+        metric = self.Metric(dim)
         exp = metric.exp(tangent_vec, base_point)
         self.assertAllClose(CorrelationMatricesBundle(dim).belongs(exp), True)

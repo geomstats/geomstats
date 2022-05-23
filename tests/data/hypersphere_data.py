@@ -4,7 +4,7 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 
 
@@ -210,6 +210,24 @@ class HypersphereTestData(_LevelSetTestData):
         smoke_data = [dict(dim=dim, kappa=1.0, n_points=50000) for dim in dim_list]
         return self.generate_tests(smoke_data)
 
+    def intrinsic_after_extrinsic_test_data(self):
+        space_args_list = self.space_args_list
+        self.space_args_list = [(1,), (2,)]
+
+        test_data = super().intrinsic_after_extrinsic_test_data()
+
+        self.space_args_list = space_args_list
+        return test_data
+
+    def extrinsic_after_intrinsic_test_data(self):
+        space_args_list = self.space_args_list
+        self.space_args_list = [(1,), (2,)]
+
+        test_data = super().extrinsic_after_intrinsic_test_data()
+
+        self.space_args_list = space_args_list
+        return test_data
+
 
 class HypersphereMetricTestData(_RiemannianMetricTestData):
     dim_list = random.sample(range(2, 5), 2)
@@ -223,6 +241,8 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
     alpha_list = [1] * 2
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
+
+    Metric = HypersphereMetric
 
     def inner_product_test_data(self):
         smoke_data = [
@@ -298,58 +318,7 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def exp_shape_test_data(self):
-        return self._exp_shape_test_data(
-            self.metric_args_list, self.space_list, self.shape_list
-        )
-
-    def log_shape_test_data(self):
-        return self._log_shape_test_data(self.metric_args_list, self.space_list)
-
-    def squared_dist_is_symmetric_test_data(self):
-        return self._squared_dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-            atol=gs.atol * 1000,
-        )
-
-    def exp_belongs_test_data(self):
-        return self._exp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def log_is_tangent_test_data(self):
-        return self._log_is_tangent_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
-
-    def geodesic_ivp_belongs_test_data(self):
-        return self._geodesic_ivp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def geodesic_bvp_belongs_test_data(self):
-        return self._geodesic_bvp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def exp_after_log_test_data(self):
+    def exp_after_log_smoke_test_data(self):
         # edge case: two very close points, base_point_2 and point_2,
         # form an angle < epsilon
         base_point = gs.array([1.0, 2.0, 3.0, 4.0, 6.0])
@@ -358,139 +327,29 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         point = point / gs.linalg.norm(point)
         smoke_data = [
             dict(
-                space_args=(4,),
+                connection_args=(4,),
                 point=point,
                 base_point=base_point,
-                rtol=gs.rtol,
-                atol=gs.atol,
             )
         ]
-        return self._exp_after_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            smoke_data,
-            atol=1e-3,
-        )
+        return self.generate_tests(smoke_data)
 
-    def log_after_exp_test_data(self):
+    def log_after_exp_smoke_test_data(self):
         base_point = gs.array([1.0, 0.0, 0.0, 0.0])
         tangent_vec = gs.array([0.0, 0.0, gs.pi / 6, 0.0])
 
         smoke_data = [
             dict(
-                space_args=(4,),
+                connection_args=(4,),
                 tangent_vec=tangent_vec,
                 base_point=base_point,
-                rtol=gs.rtol,
-                atol=gs.atol,
             )
         ]
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            smoke_data,
-            amplitude=gs.pi / 2.0,
-            rtol=gs.rtol,
-            atol=gs.atol,
-        )
 
-    def exp_ladder_parallel_transport_test_data(self):
-        return self._exp_ladder_parallel_transport_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_rungs_list,
-            self.alpha_list,
-            self.scheme_list,
-        )
+        return self.generate_tests(smoke_data)
 
-    def exp_geodesic_ivp_test_data(self):
-        return self._exp_geodesic_ivp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_points_list,
-            rtol=1e-3,
-            atol=1e-3,
-        )
-
-    def parallel_transport_ivp_is_isometry_test_data(self):
-        return self._parallel_transport_ivp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 1000,
-        )
-
-    def parallel_transport_bvp_is_isometry_test_data(self):
-        return self._parallel_transport_bvp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 1000,
-        )
-
-    def dist_is_symmetric_test_data(self):
-        return self._dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_positive_test_data(self):
-        return self._dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def squared_dist_is_positive_test_data(self):
-        return self._squared_dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_norm_of_log_test_data(self):
-        return self._dist_is_norm_of_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_point_to_itself_is_zero_test_data(self):
-        return self._dist_point_to_itself_is_zero_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            atol=gs.atol * 10000,
-        )
-
-    def inner_product_is_symmetric_test_data(self):
-        return self._inner_product_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-        )
-
-    def triangle_inequality_of_dist_test_data(self):
-        return self._triangle_inequality_of_dist_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
+    def log_after_exp_test_data(self):
+        return super().log_after_exp_test_data(amplitude=gs.pi / 2.0)
 
     def exp_and_dist_and_projection_to_tangent_space_test_data(self):
         unnorm_base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])

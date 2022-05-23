@@ -4,8 +4,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.product_manifold import NFoldMetric, ProductManifold
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
+from geomstats.geometry.product_manifold import ProductManifold
 from tests.conftest import Parametrizer
 from tests.data.product_manifold_data import (
     NFoldManifoldTestData,
@@ -34,18 +33,18 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
 
 
 class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = ProductRiemannianMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
     testing_data = ProductRiemannianMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_inner_product_matrix(
         self, manifolds, default_point_type, point, base_point
     ):
-        metric = self.metric(manifolds, default_point_type=default_point_type)
+        metric = self.Metric(manifolds, default_point_type=default_point_type)
         logs = metric.log(point, base_point)
         result = metric.inner_product(logs, logs)
         expected = metric.squared_dist(base_point, point)
@@ -99,7 +98,6 @@ class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
 
 
 class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = NFoldMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -108,6 +106,7 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_is_tangent = True
 
     testing_data = NFoldMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_inner_product_shape(self, space, n_samples, point, tangent_vec):
         result = space.metric.inner_product(tangent_vec, tangent_vec, point)

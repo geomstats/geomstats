@@ -39,137 +39,16 @@ class BetaDistributionsTestsData(_OpenSetTestData):
 
 
 class BetaMetricTestData(_RiemannianMetricTestData):
-    space = BetaDistributions
-    metric = BetaMetric
+
     metric_args_list = [()]
     shape_list = [(2,)]
     space_list = [BetaDistributions()]
     n_samples_list = random.sample(range(2, 5), 2)
-    n_points_list = random.sample(range(1, 5), 2)
-    n_vecs_list = random.sample(range(2, 5), 2)
+    n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
-    def exp_shape_test_data(self):
-        return self._exp_shape_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_samples_list,
-        )
-
-    def log_shape_test_data(self):
-        return self._log_shape_test_data(
-            self.metric_args_list,
-            self.space_list,
-        )
-
-    def exp_belongs_test_data(self):
-        return self._exp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_samples_list,
-        )
-
-    def log_is_tangent_test_data(self):
-        return self._log_is_tangent_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_samples_list,
-        )
-
-    def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_samples_list,
-            rtol=0.1,
-            atol=0.0,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_samples_list,
-            self.n_vecs_list,
-            rtol=0.1,
-            atol=0.0,
-        )
-
-    def squared_dist_is_symmetric_test_data(self):
-        return self._squared_dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            0.1,
-            0.1,
-        )
-
-    def squared_dist_is_positive_test_data(self):
-        return self._squared_dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            is_positive_atol=gs.atol,
-        )
-
-    def dist_is_symmetric_test_data(self):
-        return self._dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            rtol=0.1,
-            atol=gs.atol,
-        )
-
-    def dist_is_positive_test_data(self):
-        return self._dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            is_positive_atol=gs.atol,
-        )
-
-    def dist_is_norm_of_log_test_data(self):
-        return self._dist_is_norm_of_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            rtol=0.1,
-            atol=gs.atol,
-        )
-
-    def dist_point_to_itself_is_zero_test_data(self):
-        return self._dist_point_to_itself_is_zero_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            rtol=gs.rtol,
-            atol=1e-5,
-        )
-
-    def inner_product_is_symmetric_test_data(self):
-        return self._inner_product_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_vecs_list,
-            rtol=gs.rtol,
-            atol=gs.atol,
-        )
-
-    def triangle_inequality_of_dist_test_data(self):
-        return self._triangle_inequality_of_dist_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            atol=gs.atol * 10000,
-        )
+    Space = BetaDistributions
+    Metric = BetaMetric
 
     def metric_matrix_test_data(self):
         smoke_data = [

@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer
 from tests.data.matrices_data import MatricesMetricTestData, MatricesTestData
 from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
@@ -176,16 +176,16 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
 
 
 class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = MatricesMetric
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
     testing_data = MatricesMetricTestData()
+    Metric = Connection = testing_data.Metric
 
     def test_inner_product(self, m, n, tangent_vec_a, tangent_vec_b, expected):
         self.assertAllClose(
-            self.metric(m, n).inner_product(
+            self.Metric(m, n).inner_product(
                 gs.array(tangent_vec_a), gs.array(tangent_vec_b)
             ),
             gs.array(expected),
@@ -193,11 +193,11 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     def test_norm(self, m, n, vector, expected):
         self.assertAllClose(
-            self.metric(m, n).norm(gs.array(vector)), gs.array(expected)
+            self.Metric(m, n).norm(gs.array(vector)), gs.array(expected)
         )
 
     def test_inner_product_norm(self, m, n, mat):
         self.assertAllClose(
-            self.metric(m, n).inner_product(mat, mat),
-            gs.power(self.metric(m, n).norm(mat), 2),
+            self.Metric(m, n).inner_product(mat, mat),
+            gs.power(self.Metric(m, n).norm(mat), 2),
         )
