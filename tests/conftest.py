@@ -173,7 +173,8 @@ class Parametrizer(type):
         for base in bases:
             test_fn_list = [fn for fn in dir(base) if fn.startswith("test")]
             for test_fn in test_fn_list:
-                attrs[test_fn] = copy_func(getattr(base, test_fn))
+                if test_fn not in attrs:
+                    attrs[test_fn] = copy_func(getattr(base, test_fn))
 
         skip_all = attrs.get("skip_all", False)
 

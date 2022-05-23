@@ -233,18 +233,6 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
-    def test_exp_after_log(self, n, power_euclidean, point, base_point):
-        metric = self.Metric(n, power_euclidean)
-        log = metric.log(gs.array(point), base_point=gs.array(base_point))
-        result = metric.exp(tangent_vec=log, base_point=gs.array(base_point))
-        self.assertAllClose(result, point, atol=gs.atol * 1000)
-
-    def test_squared_dist_is_symmetric(self, n, power_euclidean, point_a, point_b):
-        metric = self.Metric(n, power_euclidean)
-        sd_a_b = metric.squared_dist(point_a, point_b)
-        sd_b_a = metric.squared_dist(point_b, point_a)
-        self.assertAllClose(sd_a_b, sd_b_a, atol=gs.atol * 100)
-
     def test_parallel_transport(
         self, n, power_euclidean, tangent_vec_a, base_point, tangent_vec_b
     ):

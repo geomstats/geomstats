@@ -21,9 +21,6 @@ class TestHeisenbergVectors(
             self.space().jacobian_translation(gs.array(vec)), gs.array(expected)
         )
 
-    def test_random_point_belongs(self, n_samples, bound):
-        gs.assertTrue(gs.all(self.space().random_point(n_samples, bound)))
-
     def test_is_tangent(self, vector, expected):
         group = self.space()
         result = group.is_tangent(gs.array(vector))
