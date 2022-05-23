@@ -165,7 +165,7 @@ class Stiefel(LevelSet):
 
         References
         ----------
-        ..[Absil] Absil, Pierre-Antoine, and Jérôme Malick.
+        .. [Absil] Absil, Pierre-Antoine, and Jérôme Malick.
             “Projection-like Retractions on Matrix Manifolds.”
             SIAM Journal on Optimization 22, no. 1 (January 2012):
             135–58. https://doi.org/10.1137/100802529.

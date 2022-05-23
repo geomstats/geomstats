@@ -52,10 +52,11 @@ def submersion(point, k):
     symmetric matrices, as the pre-image of the function defined around the
     projector on the space spanned by the first k columns of the identity
     matrix by (see Exercise E.25 in [Pau07]_).
+
     .. math:
 
-            \begin{pmatrix} I_k + A & B^T \\ B & D \end{pmatrix} \mapsto
-                (D - B(I_k + A)^{-1}B^T, A + A^2 + B^TB
+        \begin{pmatrix} I_k + A & B^T \\ B & D \end{pmatrix} \mapsto
+            (D - B(I_k + A)^{-1}B^T, A + A^2 + B^TB
 
     This map is a submersion and its zero space is the set of orthogonal
     rank-k projectors.

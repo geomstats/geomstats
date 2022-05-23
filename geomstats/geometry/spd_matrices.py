@@ -772,7 +772,6 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         .. math::
             \frac{1}{2}\sum_{i,j}\frac{[P^\top AP]_{ij}[P^\top BP]_{ij}}{d_i+d_j}
-        .
 
         Parameters
         ----------
@@ -893,8 +892,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         Approximation of the solution of the parallel transport of a tangent
         vector a along the geodesic defined by :math:`t \mapsto exp_(
-        base_point)(t* tangent_vec_b)`. The parallel transport equation is formulated
-        in this case in [TP2021]_.
+        base_point)(t* tangent_vec_b)`. The parallel transport equation is
+        formulated in this case in [TP2021]_.
 
         Parameters
         ----------
@@ -902,7 +901,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             Tangent vector at `base_point` to transport.
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector ar `base_point`, initial velocity of the geodesic to
-            transport  along.
+            transport along.
         base_point : array-like, shape=[..., n, n]
             Initial point of the geodesic.
         end_point : array-like, shape=[..., n, n]
@@ -924,7 +923,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         References
         ----------
         ..[TP2021] Yann Thanwerdas, Xavier Pennec. O(n)-invariant Riemannian
-            metrics on SPD matrices. 2021. hal-03338601v2
+            metrics on SPD matrices. 2021. ⟨hal-03338601v2⟩
 
         See Also
         --------

@@ -87,10 +87,11 @@ def _squared_dist(point_a, point_b, metric):
     and point_b, as defined by the metric.
 
     This is an auxiliary private function that:
+
     - is called by the method `squared_dist` of the class
-    SpecialEuclideanMatrixCannonicalLeftMetric,
+      SpecialEuclideanMatrixCannonicalLeftMetric,
     - has been created to support the implementation
-    of custom_gradient in tensorflow backend.
+      of custom_gradient in tensorflow backend.
 
     Parameters
     ----------
@@ -1168,7 +1169,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         t*direction)`. As the special Euclidean group endowed with its
         canonical left-invariant metric is a symmetric space, parallel
         transport is achieved by a geodesic symmetry, or equivalently, one step
-         of the pole ladder scheme.
+        of the pole ladder scheme.
 
         Parameters
         ----------

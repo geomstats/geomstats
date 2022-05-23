@@ -521,7 +521,7 @@ class RiemannianMetric(Connection, ABC):
         For two orthonormal tangent vectors :math:`x,y` at a base point,
         the sectional curvature is defined by :math:`<R(x, y)x, y> =
         <R_x(y), y>`. For non-orthonormal vectors vectors, it is
-        :math:`<R(x, y)x, y> / \\|x \\wedge y\\|^2`.
+        :math:`<R(x, y)x, y> / \\|x \wedge y\\|^2`.
 
         Parameters
         ----------
