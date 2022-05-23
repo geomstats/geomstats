@@ -112,13 +112,14 @@ def _squared_dist(point_a, point_b, metric):
 def homogeneous_representation(rotation, translation, output_shape, constant=1.0):
     r"""Embed rotation, translation couples into n+1 square matrices.
 
-    Construct a block matrix of size :math: `n + 1 \times n + 1` of the form
+    Construct a block matrix of size :math:`n + 1 \times n + 1` of the form
+
     .. math::
         \matvec{cc}{R & t\\
-                    0&c}
+                    0 & c}
 
-    where :math: `R` is a square matrix, :math: `t` a vector of size
-    :math: `n`, and :math: `c` a constant (either 0 or 1 should be used).
+    where :math:`R` is a square matrix, :math:`t` a vector of size
+    :math:`n`, and :math:`c` a constant (either 0 or 1 should be used).
 
     Parameters
     ----------
@@ -1139,11 +1140,11 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
 
         References
         ----------
-        [Zefran98]  Zefran, M., V. Kumar, and C.B. Croke.
-                    “On the Generation of Smooth Three-Dimensional Rigid Body
-                    Motions.” IEEE Transactions on Robotics and Automation 14,
-                    no. 4 (August 1998): 576–89.
-                    https://doi.org/10.1109/70.704225.
+        .. [Zefran98] Zefran, M., V. Kumar, and C.B. Croke.
+            “On the Generation of Smooth Three-Dimensional Rigid Body Motions.”
+            IEEE Transactions on Robotics and Automation 14,
+            no. 4 (August 1998): 576–89.
+            https://doi.org/10.1109/70.704225.
         """
         max_shape = point.shape if point.ndim == 3 else base_point.shape
         rotation_bp = base_point[..., : self.n, : self.n]
@@ -1322,10 +1323,11 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
     This is the tangent space at the identity. It is identified with the
     :math:`n + 1 \times n + 1` block matrices of the form:
-    .. math:
-                ((A, t), (0, 0))
 
-    where A is an :math:`n \times n` skew-symmetric matrix, :math: `t` is an
+    .. math:
+        ((A, t), (0, 0))
+
+    where A is an :math:`n \times n` skew-symmetric matrix, :math:`t` is an
     n-dimensional vector.
 
     Parameters

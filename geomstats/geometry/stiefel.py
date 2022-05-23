@@ -165,10 +165,10 @@ class Stiefel(LevelSet):
 
         References
         ----------
-        ..[Absil]   Absil, Pierre-Antoine, and Jérôme Malick.
-                    “Projection-like Retractions on Matrix Manifolds.”
-                    SIAM Journal on Optimization 22, no. 1 (January 2012):
-                     135–58. https://doi.org/10.1137/100802529.
+        ..[Absil] Absil, Pierre-Antoine, and Jérôme Malick.
+            “Projection-like Retractions on Matrix Manifolds.”
+            SIAM Journal on Optimization 22, no. 1 (January 2012):
+            135–58. https://doi.org/10.1137/100802529.
         """
         mat_u, _, mat_v = gs.linalg.svd(point)
         return Matrices.mul(mat_u[..., :, : self.p], mat_v)
@@ -210,9 +210,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
         References
         ----------
         .. [RLSMRZ2017] R Zimmermann. A matrix-algebraic algorithm for the
-          Riemannian logarithm on the Stiefel manifold under the canonical
-          metric. SIAM Journal on Matrix Analysis and Applications 38 (2),
-          322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
+            Riemannian logarithm on the Stiefel manifold under the canonical
+            metric. SIAM Journal on Matrix Analysis and Applications 38 (2),
+            322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
 
         Parameters
         ----------
@@ -354,9 +354,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
         References
         ----------
         .. [ZR2017] Zimmermann, Ralf. "A Matrix-Algebraic Algorithm for the
-          Riemannian Logarithm on the Stiefel Manifold under the Canonical
-          Metric" SIAM J. Matrix Anal. & Appl., 38(2), 322–342, 2017.
-          https://arxiv.org/pdf/1604.05054.pdf
+            Riemannian Logarithm on the Stiefel Manifold under the Canonical
+            Metric" SIAM J. Matrix Anal. & Appl., 38(2), 322–342, 2017.
+            https://arxiv.org/pdf/1604.05054.pdf
 
         Parameters
         ----------
@@ -540,8 +540,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         References
         ----------
-        .. [Rentmeesters2015] Rentmeesters, Quentin. “Algorithms for Data Fitting on
-        Some Common Homogeneous Spaces.” UCL - Université Catholique de Louvain, 2013.
-        https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
+        .. [Rentmeesters2015] Rentmeesters, Quentin. “Algorithms for Data 
+            Fitting on Some Common Homogeneous Spaces.” UCL - Université
+            Catholique de Louvain, 2013.
+            https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
         """
         return 0.89 * gs.pi
