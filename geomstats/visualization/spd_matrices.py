@@ -11,10 +11,10 @@ class Ellipses:
     Elements S of the manifold of 2D Symmetric Positive Definite matrices
     can be conveniently represented by ellipses.
 
-    We write :math: `S = O D O^T` with :math: `O` an orthogonal matrix (rotation)
-    and :math: `D` a diagonal matrix. The positive eigenvalues, i.e. the elements of
-    :math: `D`, are the inverse of the length of the major and minor axes of
-    the ellipse. The rotation matrix :math: `O` determines the orientation of the
+    We write :math:`S = O D O^T` with :math:`O` an orthogonal matrix (rotation)
+    and :math:`D` a diagonal matrix. The positive eigenvalues, i.e. the elements of
+    :math:`D`, are the inverse of the length of the major and minor axes of
+    the ellipse. The rotation matrix :math:`O` determines the orientation of the
     2D ellipse in the 2D plane.
 
     Parameters
