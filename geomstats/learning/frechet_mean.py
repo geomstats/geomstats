@@ -52,6 +52,7 @@ def linear_mean(points, weights=None, point_type="vector"):
     """Compute the weighted linear mean.
 
     The linear mean is the Frechet mean when points:
+
     - lie in a Euclidean space with Euclidean metric,
     - lie in a Minkowski space with Minkowski metric.
 
