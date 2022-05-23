@@ -55,7 +55,7 @@ def _is_isometry(
 
 
 class ManifoldTestCase(TestCase):
-    def test_random_point_belongs(self, space_args, n_points, belongs_atol):
+    def test_random_point_belongs(self, space_args, n_points, atol):
         """Check that a random point belongs to the manifold.
 
         Parameters
@@ -64,15 +64,15 @@ class ManifoldTestCase(TestCase):
             Arguments to pass to constructor of the manifold.
         n_points : array-like
             Number of random points to sample.
-        belongs_atol : float
+        atol : float
             Absolute tolerance for the belongs function.
         """
         space = self.testing_data.space(*space_args)
         random_point = space.random_point(n_points)
-        result = gs.all(space.belongs(random_point, atol=belongs_atol))
+        result = gs.all(space.belongs(random_point, atol=atol))
         self.assertTrue(result)
 
-    def test_projection_belongs(self, space_args, point, belongs_atol):
+    def test_projection_belongs(self, space_args, point, atol):
         """Check that a point projected on a manifold belongs to the manifold.
 
         Parameters
@@ -81,16 +81,14 @@ class ManifoldTestCase(TestCase):
             Arguments to pass to constructor of the manifold.
         point : array-like
             Point to be projected on the manifold.
-        belongs_atol : float
+        atol : float
             Absolute tolerance for the belongs function.
         """
         space = self.testing_data.space(*space_args)
-        belongs = space.belongs(space.projection(gs.array(point)), belongs_atol)
+        belongs = space.belongs(space.projection(gs.array(point)), atol)
         self.assertTrue(gs.all(belongs))
 
-    def test_to_tangent_is_tangent(
-        self, space_args, vector, base_point, is_tangent_atol
-    ):
+    def test_to_tangent_is_tangent(self, space_args, vector, base_point, atol):
         """Check that to_tangent returns a tangent vector.
 
         Parameters
@@ -101,18 +99,16 @@ class ManifoldTestCase(TestCase):
             Vector to be projected on the tangent space at base_point.
         base_point : array-like
             Point on the manifold.
-        is_tangent_atol : float
+        atol : float
             Absolute tolerance for the is_tangent function.
         """
         space = self.testing_data.space(*space_args)
         tangent = space.to_tangent(gs.array(vector), gs.array(base_point))
-        result = gs.all(
-            space.is_tangent(tangent, gs.array(base_point), is_tangent_atol)
-        )
+        result = gs.all(space.is_tangent(tangent, gs.array(base_point), atol))
         self.assertTrue(result)
 
     def test_random_tangent_vec_is_tangent(
-        self, space_args, n_samples, base_point, is_tangent_atol
+        self, space_args, n_samples, base_point, atol
     ):
         """Check that to_tangent returns a tangent vector.
 
@@ -124,12 +120,12 @@ class ManifoldTestCase(TestCase):
             Vector to be projected on the tangent space at base_point.
         base_point : array-like
             Point on the manifold.
-        is_tangent_atol : float
+        atol : float
             Absolute tolerance for the is_tangent function.
         """
         space = self.testing_data.space(*space_args)
         tangent_vec = space.random_tangent_vec(base_point, n_samples)
-        result = space.is_tangent(tangent_vec, base_point, is_tangent_atol)
+        result = space.is_tangent(tangent_vec, base_point, atol)
         self.assertTrue(gs.all(result))
 
 
@@ -335,7 +331,7 @@ class VectorSpaceTestCase(ManifoldTestCase):
         basis = space.basis
         self.assertAllClose(len(basis), space.dim)
 
-    def test_random_point_is_tangent(self, space_args, n_points, is_tangent_atol):
+    def test_random_point_is_tangent(self, space_args, n_points, atol):
         """Check that the random point is tangent.
 
         Parameters
@@ -344,13 +340,13 @@ class VectorSpaceTestCase(ManifoldTestCase):
             Arguments to pass to constructor of the vector space.
         n_points : array-like
             Number of random points to sample.
-        is_tangent_atol : float
+        atol : float
             Absolute tolerance for the is_tangent function.
         """
         space = self.testing_data.space(*space_args)
         points = space.random_point(n_points)
         base_point = space.random_point()
-        result = space.is_tangent(points, base_point, is_tangent_atol)
+        result = space.is_tangent(points, base_point, atol)
         self.assertTrue(gs.all(result))
 
     def test_to_tangent_is_projection(self, space_args, vector, base_point, rtol, atol):
@@ -585,9 +581,7 @@ class ConnectionTestCase(TestCase):
         result = gs.shape(log)
         self.assertAllClose(result, expected)
 
-    def test_exp_belongs(
-        self, connection_args, space, tangent_vec, base_point, belongs_atol
-    ):
+    def test_exp_belongs(self, connection_args, space, tangent_vec, base_point, atol):
         """Check that the connection exponential gives a point on the manifold.
 
         Parameters
@@ -600,17 +594,15 @@ class ConnectionTestCase(TestCase):
             Tangent vector at base point.
         base_point : array-like
             Point on the manifold.
-        belongs_atol : float
+        atol : float
             Absolute tolerance for the belongs function.
         """
         connection = self.Connection(*connection_args)
         exp = connection.exp(gs.array(tangent_vec), gs.array(base_point))
-        result = gs.all(space.belongs(exp, belongs_atol))
+        result = gs.all(space.belongs(exp, atol))
         self.assertTrue(result)
 
-    def test_log_is_tangent(
-        self, connection_args, space, point, base_point, is_tangent_atol
-    ):
+    def test_log_is_tangent(self, connection_args, space, point, base_point, atol):
         """Check that the connection logarithm gives a tangent vector.
 
         Parameters
@@ -623,12 +615,12 @@ class ConnectionTestCase(TestCase):
             Point on the manifold.
         base_point : array-like
             Point on the manifold.
-        is_tangent_atol : float
+        atol : float
             Absolute tolerance for the is_tangent function.
         """
         connection = self.Connection(*connection_args)
         log = connection.log(gs.array(point), gs.array(base_point))
-        result = gs.all(space.is_tangent(log, gs.array(base_point), is_tangent_atol))
+        result = gs.all(space.is_tangent(log, gs.array(base_point), atol))
         self.assertTrue(result)
 
     def test_geodesic_ivp_belongs(
@@ -638,7 +630,7 @@ class ConnectionTestCase(TestCase):
         n_points,
         initial_point,
         initial_tangent_vec,
-        belongs_atol,
+        atol,
     ):
         """Check that connection geodesics belong to manifold.
 
@@ -656,7 +648,7 @@ class ConnectionTestCase(TestCase):
             Point on the manifold.
         initial_tangent_vec : array-like
             Tangent vector at base point.
-        belongs_atol : float
+        atol : float
             Absolute tolerance for the belongs function.
         """
         connection = self.Connection(*connection_args)
@@ -667,7 +659,7 @@ class ConnectionTestCase(TestCase):
         t = gs.linspace(start=0.0, stop=1.0, num=n_points)
         points = geodesic(t)
 
-        result = space.belongs(points, belongs_atol)
+        result = space.belongs(points, atol)
         expected = gs.array(n_points * [True])
 
         self.assertAllClose(result, expected)
@@ -679,7 +671,7 @@ class ConnectionTestCase(TestCase):
         n_points,
         initial_point,
         end_point,
-        belongs_atol,
+        atol,
     ):
         """Check that connection geodesics belong to manifold.
 
@@ -697,7 +689,7 @@ class ConnectionTestCase(TestCase):
             Point on the manifold.
         end_point : array-like
             Point on the manifold.
-        belongs_atol : float
+        atol : float
             Absolute tolerance for the belongs function.
         """
         connection = self.Connection(*connection_args)
@@ -707,7 +699,7 @@ class ConnectionTestCase(TestCase):
         t = gs.linspace(start=0.0, stop=1.0, num=n_points)
         points = geodesic(t)
 
-        result = space.belongs(points, belongs_atol)
+        result = space.belongs(points, atol)
         expected = gs.array(n_points * [True])
 
         self.assertAllClose(result, expected)
@@ -867,7 +859,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         dist_b_a = metric.dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(dist_a_b, dist_b_a, rtol=rtol, atol=atol)
 
-    def test_dist_is_positive(self, metric_args, point_a, point_b, is_positive_atol):
+    def test_dist_is_positive(self, metric_args, point_a, point_b, atol):
         """Check that the geodesic distance is positive.
 
         Parameters
@@ -878,12 +870,12 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             Point on the manifold.
         point_b : array-like
             Point on the manifold.
-        is_positive_atol : float
+        atol : float
             Absolute tolerance to test this property.
         """
         metric = self.Metric(*metric_args)
         sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
-        result = gs.all(sd_a_b > -1 * is_positive_atol)
+        result = gs.all(sd_a_b > -1 * atol)
         self.assertTrue(result)
 
     def test_squared_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
@@ -907,9 +899,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(sd_a_b, sd_b_a, rtol=rtol, atol=atol)
 
-    def test_squared_dist_is_positive(
-        self, metric_args, point_a, point_b, is_positive_atol
-    ):
+    def test_squared_dist_is_positive(self, metric_args, point_a, point_b, atol):
         """Check that the squared geodesic distance is positive.
 
         Parameters
@@ -920,13 +910,13 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             Point on the manifold.
         point_b : array-like
             Point on the manifold.
-        is_positive_atol : float
+        atol : float
             Absolute tolerance to test this property.
         """
         metric = self.Metric(*metric_args)
 
         sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
-        result = gs.all(sd_a_b > -1 * is_positive_atol)
+        result = gs.all(sd_a_b > -1 * atol)
         self.assertTrue(result)
 
     def test_inner_product_is_symmetric(
@@ -1212,9 +1202,7 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
         result = gs.all(bundle_distance - quotient_distance > atol)
         self.assertTrue(result)
 
-    def test_log_is_horizontal(
-        self, metric_args, bundle, point, base_point, is_horizontal_atol
-    ):
+    def test_log_is_horizontal(self, metric_args, bundle, point, base_point, atol):
         """Check the quotient log is a horizontal tangent vector.
 
         Check that the quotient metric logarithm gives a tangent vector
@@ -1230,12 +1218,12 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
             Point on the quotient manifold.
         base_point : array-like
             Point on the quotient manifold.
-        is_horizontal_atol : float
+        atol : float
             Absolute tolerance to test this property.
         """
         metric = self.Metric(*metric_args)
         log = metric.log(point, base_point)
-        result = gs.all(bundle.is_horizontal(log, base_point, is_horizontal_atol))
+        result = gs.all(bundle.is_horizontal(log, base_point, atol))
         self.assertTrue(result)
 
 
@@ -1361,7 +1349,7 @@ class PullbackDiffeoMetricTestCase(TestCase):
 
 class InvariantMetricTestCase(RiemannianMetricTestCase):
     def test_exp_at_identity_of_lie_algebra_belongs(
-        self, metric_args, group, lie_algebra_point, belongs_atol
+        self, metric_args, group, lie_algebra_point, atol
     ):
         """Check that exp of a lie algebra element is in group.
 
@@ -1376,16 +1364,16 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
             Lie Group on which invariant metric is defined.
         lie_algebra_point : array-like
             Point on lie algebra.
-        belongs_atol : float
+        atol : float
             Absolute tolerance for the belongs function.
         """
         metric = self.Metric(*metric_args)
         exp = metric.exp(lie_algebra_point, group.identity)
-        result = gs.all(group.belongs(exp, belongs_atol))
+        result = gs.all(group.belongs(exp, atol))
         self.assertTrue(result)
 
     def test_log_at_identity_belongs_to_lie_algebra(
-        self, metric_args, group, point, belongs_atol
+        self, metric_args, group, point, atol
     ):
         """Check that log belongs to lie algebra.
 
@@ -1399,12 +1387,12 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
             Point on group.
         base_point : array-like
             Point on group.
-        belongs_atol : float
+        atol : float
             Absolute tolerance for the belongs function.
         """
         metric = self.Metric(*metric_args)
         log = metric.log(point, group.identity)
-        result = gs.all(group.lie_algebra.belongs(log, belongs_atol))
+        result = gs.all(group.lie_algebra.belongs(log, atol))
         self.assertTrue(result)
 
     def test_exp_after_log_at_identity(self, metric_args, group, point, rtol, atol):
