@@ -896,12 +896,10 @@ class _RiemannianMetricTestData(_ConnectionTestData):
 
 
 class _InvariantMetricTestData(_RiemannianMetricTestData):
-    def _exp_at_identity_of_lie_algebra_belongs_test_data(
-        self, metric_args_list, group_list, n_tangent_vecs_list, belongs_atol=gs.atol
-    ):
+    def exp_at_identity_of_lie_algebra_belongs_test_data(self):
         random_data = []
         for metric_args, group, n_tangent_vecs in zip(
-            metric_args_list, group_list, n_tangent_vecs_list
+            self.metric_args_list, self.group_list, self.n_tangent_vecs_list
         ):
             lie_algebra_point = group.lie_algebra.random_point(n_tangent_vecs)
             random_data.append(
@@ -909,17 +907,14 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
                     metric_args=metric_args,
                     group=group,
                     lie_algebra_point=lie_algebra_point,
-                    belongs_atol=belongs_atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _log_at_identity_belongs_to_lie_algebra_test_data(
-        self, metric_args_list, group_list, n_points_list, belongs_atol=gs.atol
-    ):
+    def log_at_identity_belongs_to_lie_algebra_test_data(self):
         random_data = []
         for metric_args, group, n_points in zip(
-            metric_args_list, group_list, n_points_list
+            self.metric_args_list, self.group_list, self.n_points_list
         ):
             point = group.random_point(n_points)
             random_data.append(
@@ -927,18 +922,15 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
                     metric_args=metric_args,
                     group=group,
                     point=point,
-                    belongs_atol=belongs_atol,
                 )
             )
 
         return self.generate_tests([], random_data)
 
-    def _exp_after_log_at_identity_test_data(
-        self, metric_args_list, group_list, n_points_list, rtol=gs.rtol, atol=gs.atol
-    ):
+    def exp_after_log_at_identity_test_data(self):
         random_data = []
         for metric_args, group, n_points in zip(
-            metric_args_list, group_list, n_points_list
+            self.metric_args_list, self.group_list, self.n_points_list
         ):
             point = group.random_point(n_points)
             random_data.append(
@@ -946,27 +938,22 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
                     metric_args=metric_args,
                     group=group,
                     point=point,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
 
         return self.generate_tests([], random_data)
 
-    def _log_after_exp_at_identity_test_data(
+    def log_after_exp_at_identity_test_data(
         self,
-        metric_args_list,
-        group_list,
-        shape_list,
-        n_tangent_vecs_list,
         amplitude=1.0,
-        rtol=gs.rtol,
-        atol=gs.atol,
     ):
         random_data = []
 
         for metric_args, group, shape, n_tangent_vecs in zip(
-            metric_args_list, group_list, shape_list, n_tangent_vecs_list
+            self.metric_args_list,
+            self.group_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
         ):
             base_point = group.random_point()
             tangent_vec = group.to_tangent(
@@ -979,8 +966,6 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
                         metric_args=metric_args,
                         group=group,
                         tangent_vec=tangent_vec,
-                        rtol=rtol,
-                        atol=atol,
                     )
                 )
             )
@@ -989,12 +974,10 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
 
 
 class _QuotientMetricTestData(_RiemannianMetricTestData):
-    def _dist_is_smaller_than_bundle_dist_test_data(
-        self, metric_args_list, bundle_list, n_points_list, atol=gs.atol
-    ):
+    def dist_is_smaller_than_bundle_dist_test_data(self):
         random_data = []
         for metric_args, bundle, n_points in zip(
-            metric_args_list, bundle_list, n_points_list
+            self.metric_args_list, self.bundle_list, self.n_points_list
         ):
             point_a = bundle.random_point(n_points)
             point_b = bundle.random_point(n_points)
@@ -1004,17 +987,14 @@ class _QuotientMetricTestData(_RiemannianMetricTestData):
                     bundle=bundle,
                     point_a=point_a,
                     point_b=point_b,
-                    atol=atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _log_is_horizontal_test_data(
-        self, metric_args_list, bundle_list, n_points_list, atol=gs.atol
-    ):
+    def log_is_horizontal_test_data(self):
         random_data = []
         for metric_args, bundle, n_points in zip(
-            metric_args_list, bundle_list, n_points_list
+            self.metric_args_list, self.bundle_list, self.n_points_list
         ):
             point = bundle.random_point(n_points)
             base_point = bundle.random_point()
@@ -1024,7 +1004,6 @@ class _QuotientMetricTestData(_RiemannianMetricTestData):
                     bundle=bundle,
                     point=point,
                     base_point=base_point,
-                    is_horizontoal_atol=atol,
                 )
             )
 
