@@ -74,6 +74,7 @@ from numpy import (
     ones,
     ones_like,
     outer,
+    pad,
     power,
     prod,
     real,

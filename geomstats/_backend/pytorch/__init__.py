@@ -1,6 +1,7 @@
 """Pytorch based computation backend."""
 
 import math
+from collections.abc import Iterable
 from functools import wraps
 
 import numpy as _np
@@ -864,3 +865,20 @@ def take(a, indices, axis=0):
         indices = torch.as_tensor(indices)
 
     return torch.squeeze(torch.index_select(a, axis, indices))
+
+
+def _unnest_iterable(ls):
+    out = []
+    if isinstance(ls, Iterable):
+        for inner_ls in ls:
+            out.extend(_unnest_iterable(inner_ls))
+    else:
+        out.append(ls)
+
+    return out
+
+
+def pad(a, pad_width, constant_value=0.0):
+    return torch.nn.functional.pad(
+        a, _unnest_iterable(reversed(pad_width)), value=constant_value
+    )

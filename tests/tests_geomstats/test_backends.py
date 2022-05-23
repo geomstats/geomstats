@@ -997,3 +997,20 @@ class TestBackends(tests.conftest.TestCase):
         )
 
         self.assertAllClose(gs.take(mat, 0, axis=1), gs.array([0, 2]))
+
+    def test_pad(self):
+
+        n = 2
+        mat = gs.ones((n, n))
+
+        paddings = [[0, 1], [0, 1]]
+        self.assertTrue(gs.pad(mat, paddings).shape == (n + 1, n + 1))
+
+        paddings = [[0, 1], [0, 0]]
+        self.assertTrue(gs.pad(mat, paddings).shape == (n + 1, n))
+
+        n = 2
+        m = 3
+        mat = gs.ones((m, n, n))
+        paddings = [[0, 0], [0, 1], [0, 1]]
+        self.assertTrue(gs.pad(mat, paddings).shape == (m, n + 1, n + 1))
