@@ -155,7 +155,7 @@ class OpenSetTestCase(ManifoldTestCase):
         """
         space = self.space(*space_args)
         tangent_vec = space.to_tangent(gs.array(vector), gs.array(base_point))
-        result = gs.all(space.ambient_metric.is_tangent(tangent_vec, atol))
+        result = gs.all(space.ambient_space.is_tangent(tangent_vec, atol))
         self.assertTrue(result)
 
 
