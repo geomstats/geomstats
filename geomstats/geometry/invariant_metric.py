@@ -717,7 +717,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximate solution for the parallel transport of a tangent vector a
-        along the geodesic between two points `base\_point` and `end\_point`
+        along the geodesic between two points `base_point` and `end_point`
         or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`. The parallel transport equation is written entirely
         in the Lie algebra and solved with an integration scheme.

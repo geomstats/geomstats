@@ -540,7 +540,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         References
         ----------
-        .. [Rentmeesters2015] Rentmeesters, Quentin. “Algorithms for Data 
+        .. [Rentmeesters2015] Rentmeesters, Quentin. “Algorithms for Data
             Fitting on Some Common Homogeneous Spaces.” UCL - Université
             Catholique de Louvain, 2013.
             https://dial.uclouvain.be/pr/boreal/object/boreal:132587.

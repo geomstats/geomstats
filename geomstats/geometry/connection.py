@@ -461,7 +461,7 @@ class Connection(ABC):
         raise NotImplementedError("The curvature is not implemented.")
 
     def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the directional curvature (tidal force operator).
+        r"""Compute the directional curvature (tidal force operator).
 
         For two vectors fields :math:`X|_P = tangent\_vec\_a`, and :math:`Y|_P
         = tangent\_vec\_b` with tangent vector specified in argument at
@@ -552,6 +552,7 @@ class Connection(ABC):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
+
         - an initial point and an initial tangent vector,
         - an initial point and an end point.
 
