@@ -261,20 +261,3 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         result = geod(time).shape
         self.assertAllClose(expected, result)
-
-    @geomstats.tests.np_and_autograd_only
-    def test_gamma_level_geodesics_are_horizontal(self, base_point, norm, solver, atol):
-        """Check that geodesics between two points of same gamma are straight lines."""
-        n_steps = 1000
-        tangent_vec = norm * self.metric().normalize(gs.array([1, 0]), base_point)
-        end_point = self.metric().exp(
-            tangent_vec=tangent_vec, n_steps=1000, base_point=base_point
-        )
-        geod = self.metric().geodesic(
-            initial_point=base_point, end_point=end_point, n_steps=1000, solver=solver
-        )
-        t = gs.linspace(0.0, 1.0, n_steps)
-        geod_at_t = geod(t)
-        gamma = geod_at_t[:, 1]
-        deviation = gamma.max() - gamma.min()
-        self.assertAllClose(deviation, 0, atol=atol)

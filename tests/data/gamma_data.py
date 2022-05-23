@@ -590,20 +590,3 @@ class GammaMetricTestData(_RiemannianMetricTestData):
             ),
         ]
         return self.generate_tests([], random_data)
-
-    def gamma_level_geodesics_are_horizontal_test_data(self):
-        random_data = [
-            dict(
-                base_point=self.space().random_point(lower_bound=1.0),
-                norm=random.choice(self.n_norms_list),
-                solver="geomstats",
-                atol=1e-3,
-            ),
-            dict(
-                base_point=self.space().random_point(lower_bound=1.0),
-                norm=random.choice(self.n_norms_list),
-                solver="vp",
-                atol=1e-3,
-            ),
-        ]
-        return self.generate_tests([], random_data)
