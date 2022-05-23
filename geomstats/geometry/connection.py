@@ -11,7 +11,7 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.integrator import integrate
 
-N_STEPS = 10
+N_STEPS = 100
 POINT_TYPES = {1: "vector", 2: "matrix", 3: "matrix"}
 
 
@@ -128,6 +128,7 @@ class Connection(ABC):
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
         initial_state = gs.stack([base_point, tangent_vec])
+
         flow = integrate(
             self.geodesic_equation, initial_state, n_steps=n_steps, step=step
         )
