@@ -42,6 +42,11 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
 
     Metric = InvariantMetric
 
+    tolerances = {
+        "exp_belongs": {"atol": 1e-4},
+        "integrated_parallel_transport": {"atol": 1e-8}
+    }
+
     def inner_product_mat_at_identity_shape_test_data(self):
         group = SpecialEuclidean(n=3, point_type="vector")
         sym_mat_at_identity = gs.eye(group.dim)

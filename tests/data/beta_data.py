@@ -50,6 +50,12 @@ class BetaMetricTestData(_RiemannianMetricTestData):
     Space = BetaDistributions
     Metric = BetaMetric
 
+    tolerances = {
+        "dist_point_to_itself_is_zero": {"atol": 5e-6},
+        "dist_is_symmetric": {"atol": 5e-1},
+        "dist_is_norm_of_log": {"atol": 5e-1},
+    }
+
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(

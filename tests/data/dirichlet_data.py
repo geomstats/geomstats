@@ -102,6 +102,12 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
     n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
+    tolerances = {
+        "dist_point_to_itself_is_zero": {"atol": 1e-6},
+        "dist_is_symmetric": {"atol": 5e-1},
+        "dist_is_norm_of_log": {"atol": 5e-1},
+    }
+
     def metric_matrix_shape_test_data(self):
         random_data = [
             dict(dim=2, point=self.Space(2).random_point(1), expected=(2, 2)),

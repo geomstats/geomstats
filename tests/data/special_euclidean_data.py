@@ -235,6 +235,9 @@ class SpecialEuclideanTestData(_LieGroupTestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def log_after_exp_test_data(self):
+        return super().log_after_exp_test_data(amplitude=100.0)
+
 
 class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
 
@@ -299,7 +302,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData
         return self.generate_tests(smoke_data)
 
     def log_after_exp_test_data(self):
-        return super().log_after_exp_test_data(amplitude=10)
+        return super().log_after_exp_test_data(amplitude=10.0)
 
     def log_after_exp_at_identity_test_data(self):
         return super().log_after_exp_at_identity_test_data(amplitude=10.0)
@@ -433,6 +436,14 @@ class SpecialEuclidean3VectorsTestData(TestData):
     angles_close_to_pi = angles_close_to_pi_all
     if geomstats.tests.tf_backend():
         angles_close_to_pi = ["angle_close_pi_low"]
+
+    tolerances = {
+        "log_after_exp": {"atol": 1e-6},
+        "exp_after_log": {"atol": 1e-4},
+        "log_after_exp_with_angles_close_to_pi": {"atol": 1e-6},
+        "exp_after_log_with_angles_close_to_pi": {"atol": 1e-8},
+        "exp_after_log_right_with_angles_close_to_pi": {"atol": 1e-8},
+    }
 
     def exp_after_log_right_with_angles_close_to_pi_test_data(self):
         smoke_data = []
