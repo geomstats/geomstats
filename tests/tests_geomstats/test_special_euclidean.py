@@ -18,8 +18,6 @@ from tests.geometry_test_cases import (
     MatrixLieAlgebraTestCase,
 )
 
-ATOL = 1e-5
-
 
 class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
@@ -162,7 +160,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
     testing_data = SpecialEuclidean3VectorsTestData()
 
     @geomstats.tests.np_and_autograd_only
-    def test_exp_after_log(self, metric, point, base_point):
+    def test_exp_after_log(self, metric, point, base_point, atol):
         """
         Test that the Riemannian right exponential and the
         Riemannian right logarithm are inverse.
@@ -173,14 +171,17 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         expected = group.regularize(point)
         expected = gs.cast(expected, gs.float64)
         norm = gs.linalg.norm(expected)
-        atol = ATOL
         if norm != 0:
-            atol = ATOL * norm
+            atol *= norm
         self.assertAllClose(result, expected, atol=atol)
 
     @geomstats.tests.np_and_autograd_only
     def test_exp_after_log_right_with_angles_close_to_pi(
-        self, metric, point, base_point
+        self,
+        metric,
+        point,
+        base_point,
+        atol,
     ):
         group = SpecialEuclidean(3, "vector")
         result = metric.exp(metric.log(point, base_point), base_point)
@@ -189,9 +190,8 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         inv_expected = gs.concatenate([-expected[:3], expected[3:6]])
 
         norm = gs.linalg.norm(expected)
-        atol = ATOL
         if norm != 0:
-            atol = ATOL * norm
+            atol *= norm
 
         self.assertTrue(
             gs.allclose(result, expected, atol=atol)
@@ -200,7 +200,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_and_autograd_only
     def test_log_after_exp_with_angles_close_to_pi(
-        self, metric, tangent_vec, base_point
+        self, metric, tangent_vec, base_point, atol
     ):
         """
         Test that the Riemannian left exponential and the
@@ -217,9 +217,8 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         inv_expected = gs.concatenate([-expected[:3], expected[3:6]])
 
         norm = gs.linalg.norm(expected)
-        atol = ATOL
         if norm != 0:
-            atol = ATOL * norm
+            atol *= norm
 
         self.assertTrue(
             gs.allclose(result, expected, atol=atol)
@@ -227,7 +226,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         )
 
     @geomstats.tests.np_and_autograd_only
-    def test_log_after_exp(self, metric, tangent_vec, base_point):
+    def test_log_after_exp(self, metric, tangent_vec, base_point, atol):
         """
         Test that the Riemannian left exponential and the
         Riemannian left logarithm are inverse.
@@ -241,9 +240,8 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         )
 
         norm = gs.linalg.norm(expected)
-        atol = ATOL
         if norm != 0:
-            atol = ATOL * norm
+            atol *= norm
         self.assertAllClose(result, expected, atol=atol)
 
     @geomstats.tests.np_and_autograd_only
