@@ -300,7 +300,9 @@ class _SpecialOrthogonalVectors(LieGroup):
 
     def __init__(self, n, shape, epsilon=0.0):
         dim = n * (n - 1) // 2
-        LieGroup.__init__(self, dim=dim, shape=shape, default_point_type="vector")
+        LieGroup.__init__(
+            self, dim=dim, shape=shape, default_point_type="vector", lie_algebra=self
+        )
 
         self.n = n
         self.epsilon = epsilon
