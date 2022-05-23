@@ -237,9 +237,9 @@ class Connection(ABC):
         References
         ----------
         .. [LP2013a] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
-         of Deformations in Time Series of Images: from Schild's to
-         Pole Ladder. Journal of Mathematical Imaging and Vision, Springer
-         Verlag, 2013,50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+            of Deformations in Time Series of Images: from Schild's to
+            Pole Ladder. Journal of Mathematical Imaging and Vision, Springer
+            Verlag, 2013,50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
         """
         mid_tangent_vector_to_shoot = (
             1.0 / 2.0 * self.log(base_point=base_point, point=next_point, **kwargs)
@@ -302,9 +302,9 @@ class Connection(ABC):
         References
         ----------
         .. [LP2013a] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
-         of Deformations in Time Series of Images: from Schild's to
-         Pole Ladder. Journal of Mathematical Imaging and Vision, Springer
-         Verlag, 2013,50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+            of Deformations in Time Series of Images: from Schild's to
+            Pole Ladder. Journal of Mathematical Imaging and Vision, Springer
+            Verlag, 2013,50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
         """
         mid_tangent_vector_to_shoot = (
             1.0 / 2.0 * self.log(base_point=base_shoot, point=next_point, **kwargs)
@@ -392,15 +392,15 @@ class Connection(ABC):
         References
         ----------
         .. [LP2013b] Lorenzi, Marco, and Xavier Pennec. “Efficient Parallel
-        Transport of Deformations in Time Series of Images: From Schild to
-        Pole Ladder.” Journal of Mathematical Imaging and Vision 50, no. 1
-        (September 1, 2014): 5–17. https://doi.org/10.1007/s10851-013-0470-3.
-
+            Transport of Deformations in Time Series of Images: From Schild to
+            Pole Ladder.” Journal of Mathematical Imaging and Vision 50, no. 1
+            (September 1, 2014): 5–17.
+            https://doi.org/10.1007/s10851-013-0470-3.
 
         .. [GP2020] Guigui, Nicolas, and Xavier Pennec. “Numerical Accuracy
-        of Ladder Schemes for Parallel Transport on Manifolds.”
-        Foundations of Computational Mathematics, June 18, 2021.
-        https://doi.org/10.1007/s10208-021-09515-x.
+            of Ladder Schemes for Parallel Transport on Manifolds.”
+            Foundations of Computational Mathematics, June 18, 2021.
+            https://doi.org/10.1007/s10208-021-09515-x.
         """
         geomstats.errors.check_integer(n_rungs, "n_rungs")
         if alpha < 1:
@@ -463,8 +463,8 @@ class Connection(ABC):
     def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the directional curvature (tidal force operator).
 
-        For two vectors fields :math:`X|_P = tangent_vec_a`, and :math:
-        `Y|_P = tangent_vec_b` with tangent vector specified in argument at
+        For two vectors fields :math:`X|_P = tangent\_vec\_a`, and :math:`Y|_P
+        = tangent\_vec\_b` with tangent vector specified in argument at
         the base point :math:`P`, the directional curvature, better known
         in relativity as the tidal force operator, is defined by
         :math:`R_Y(X) = R(Y,X)Y`.
@@ -538,9 +538,9 @@ class Connection(ABC):
         References
         ----------
         .. [Pennec] Pennec, Xavier. Curvature effects on the empirical mean in
-        Riemannian and affine Manifolds: a non-asymptotic high concentration
-        expansion in the small-sample regime. Preprint. June 2019.
-        https://arxiv.org/abs/1906.07418
+            Riemannian and affine Manifolds: a non-asymptotic high
+            concentration expansion in the small-sample regime. Preprint. 2019.
+            https://arxiv.org/abs/1906.07418
         """
         return self.curvature_derivative(
             tangent_vec_a, tangent_vec_b, tangent_vec_a, tangent_vec_b, base_point

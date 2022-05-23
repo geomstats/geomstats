@@ -717,8 +717,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximate solution for the parallel transport of a tangent vector a
-        along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        along the geodesic between two points `base\_point` and `end\_point`
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`. The parallel transport equation is written entirely
         in the Lie algebra and solved with an integration scheme.
 
@@ -1194,10 +1194,10 @@ class BiInvariantMetric(_InvariantMetricVector):
 
     References
     ----------
-    .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
-                   and Lie Groups: A Computational Perspective.
-                   Geonger International Publishing, 2020.
-                   https://doi.org/10.1007/978-3-030-46040-2.
+    .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
+        and Lie Groups: A Computational Perspective.
+        Geonger International Publishing, 2020.
+        https://doi.org/10.1007/978-3-030-46040-2.
     """
 
     def __init__(self, group):
@@ -1232,10 +1232,10 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         References
         ----------
-        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
-                       Geometry and Lie Groups: A Computational Perspective.
-                       Geonger International Publishing, 2020.
-                       https://doi.org/10.1007/978-3-030-46040-2.
+        .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential
+            Geometry and Lie Groups: A Computational Perspective.
+            Geonger International Publishing, 2020.
+            https://doi.org/10.1007/978-3-030-46040-2.
         """
         return self.group.exp(tangent_vec, base_point)
 
@@ -1260,10 +1260,10 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         References
         ----------
-        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
-                       Geometry and Lie Groups: A Computational Perspective.
-                       Geonger International Publishing, 2020.
-                       https://doi.org/10.1007/978-3-030-46040-2.
+        .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential
+            Geometry and Lie Groups: A Computational Perspective.
+            Geonger International Publishing, 2020.
+            https://doi.org/10.1007/978-3-030-46040-2.
         """
         log = self.group.log(point, base_point)
         return self.group.to_tangent(log, base_point)
