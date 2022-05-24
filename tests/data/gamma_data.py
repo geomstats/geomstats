@@ -30,44 +30,6 @@ class GammaTestData(_OpenSetTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = []
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_samples_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            self.space,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        return self._to_tangent_is_tangent_in_ambient_space_test_data(
-            self.space,
-            self.space_args_list,
-            self.shape_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            self.space,
-            self.space_args_list,
-            self.n_vecs_list,
-            is_tangent_atol=gs.atol,
-        )
-
     def sample_test_data(self):
         smoke_data = [
             dict(
@@ -106,7 +68,7 @@ class GammaTestData(_OpenSetTestData):
 
     def natural_to_standard_vectorization_test_data(self):
         random_data = [
-            dict(points=self.space().random_point(n_points))
+            dict(point=self.space().random_point(n_points))
             for n_points in self.n_points_list
         ]
         return self.generate_tests([], random_data)
@@ -120,7 +82,7 @@ class GammaTestData(_OpenSetTestData):
 
     def standard_to_natural_vectorization_test_data(self):
         random_data = [
-            dict(points=self.space().random_point(n_points))
+            dict(point=self.space().random_point(n_points))
             for n_points in self.n_points_list
         ]
         return self.generate_tests([], random_data)
@@ -129,12 +91,12 @@ class GammaTestData(_OpenSetTestData):
         smoke_data = [
             dict(
                 vec=gs.array([2.0, 1.0]),
-                base_point=gs.array([1.0, 2.0]),
+                point=gs.array([1.0, 2.0]),
                 expected=gs.array([2.0, 0.75]),
             ),
             dict(
                 vec=gs.array([1.0, 1.0]),
-                base_point=gs.array([1.0, 1.0]),
+                point=gs.array([1.0, 1.0]),
                 expected=gs.array([1.0, 0]),
             ),
         ]
@@ -144,13 +106,13 @@ class GammaTestData(_OpenSetTestData):
         random_data = [
             dict(
                 vec=self.space().random_point(n_points),
-                base_point=self.space().random_point(),
+                point=self.space().random_point(),
             )
             for n_points in self.n_points_list
         ] + [
             dict(
                 vec=self.space().random_point(n_points),
-                base_point=self.space().random_point(n_points),
+                point=self.space().random_point(n_points),
             )
             for n_points in self.n_points_list
         ]
@@ -160,12 +122,12 @@ class GammaTestData(_OpenSetTestData):
         smoke_data = [
             dict(
                 vec=gs.array([2.0, 1.0]),
-                base_point=gs.array([1.0, 2.0]),
+                point=gs.array([1.0, 2.0]),
                 expected=gs.array([2.0, 0.75]),
             ),
             dict(
                 vec=gs.array([1.0, 1.0]),
-                base_point=gs.array([1.0, 1.0]),
+                point=gs.array([1.0, 1.0]),
                 expected=gs.array([1.0, 0]),
             ),
         ]
@@ -175,13 +137,13 @@ class GammaTestData(_OpenSetTestData):
         random_data = [
             dict(
                 vec=self.space().random_point(n_points),
-                base_point=self.space().random_point(),
+                point=self.space().random_point(),
             )
             for n_points in self.n_points_list
         ] + [
             dict(
                 vec=self.space().random_point(n_points),
-                base_point=self.space().random_point(n_points),
+                point=self.space().random_point(n_points),
             )
             for n_points in self.n_points_list
         ]
@@ -197,137 +159,14 @@ class GammaMetricTestData(_RiemannianMetricTestData):
     n_samples_list = random.sample(range(2, 5), 2)
     shape_list = [(2,)]
     n_norms_list = random.sample(range(1, 3), 2)
-    n_points_list = random.sample(range(1, 5), 2)
-    n_vecs_list = random.sample(range(2, 5), 2)
-
-    def exp_shape_test_data(self):
-        return self._exp_shape_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_samples_list,
-        )
-
-    def log_shape_test_data(self):
-        return self._log_shape_test_data(
-            self.metric_args_list,
-            self.space_list,
-        )
-
-    def exp_belongs_test_data(self):
-        return self._exp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_samples_list,
-        )
-
-    def log_is_tangent_test_data(self):
-        return self._log_is_tangent_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_samples_list,
-        )
-
-    def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_samples_list,
-            rtol=0.1,
-            atol=0.0,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_samples_list,
-            self.n_vecs_list,
-            rtol=0.1,
-            atol=0.0,
-        )
-
-    def squared_dist_is_symmetric_test_data(self):
-        return self._squared_dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            0.1,
-            0.1,
-        )
-
-    def squared_dist_is_positive_test_data(self):
-        return self._squared_dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            is_positive_atol=gs.atol,
-        )
-
-    def dist_is_symmetric_test_data(self):
-        return self._dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            rtol=0.1,
-            atol=gs.atol,
-        )
-
-    def dist_is_positive_test_data(self):
-        return self._dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            is_positive_atol=gs.atol,
-        )
-
-    def dist_is_norm_of_log_test_data(self):
-        return self._dist_is_norm_of_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            rtol=0.1,
-            atol=gs.atol,
-        )
-
-    def dist_point_to_itself_is_zero_test_data(self):
-        return self._dist_point_to_itself_is_zero_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            rtol=gs.rtol,
-            atol=1e-5,
-        )
-
-    def inner_product_is_symmetric_test_data(self):
-        return self._inner_product_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_vecs_list,
-            rtol=gs.rtol,
-            atol=gs.atol,
-        )
-
-    def triangle_inequality_of_dist_test_data(self):
-        return self._triangle_inequality_of_dist_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            atol=gs.atol * 10000,
-        )
+    n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
     def metric_matrix_shape_test_data(self):
         random_data = [
             dict(point=self.space().random_point(), expected=(2, 2)),
             dict(point=self.space().random_point(3), expected=(3, 2, 2)),
-            dict(points=self.space().random_point(2), expected=(2, 2, 2)),
+            dict(point=self.space().random_point(2), expected=(2, 2, 2)),
         ]
         return self.generate_tests([], random_data)
 
