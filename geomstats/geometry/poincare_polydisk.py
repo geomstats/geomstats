@@ -138,8 +138,8 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     References
     ----------
     .. [JV2016] B. Jeuris and R. Vandebril. The Kähler mean of Block-Toeplitz
-      matrices with Toeplitz structured blocks, 2016.
-      https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+        matrices with Toeplitz structured blocks, 2016.
+        https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
     default_coords_type = "extrinsic"

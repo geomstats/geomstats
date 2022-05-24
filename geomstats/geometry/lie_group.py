@@ -198,7 +198,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
 
         The vector input is not an element of the Lie algebra, but of the
         tangent space at base_point: if :math:`g` denotes `base_point`,
-        :math:`v` the tangent vector, and :math:'V = g^{-1} v' the associated
+        :math:`v` the tangent vector, and :math:`V = g^{-1} v` the associated
         Lie algebra vector, then
 
         .. math::

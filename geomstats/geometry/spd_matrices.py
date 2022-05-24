@@ -202,7 +202,7 @@ class SPDMatrices(OpenSet):
         r"""Compute the differential of the matrix power function.
 
         Compute the differential of the power function on SPD(n)
-        (:math: `A^p=\exp(p \log(A))`) at base_point applied to tangent_vec.
+        (:math:`A^p=\exp(p \log(A))`) at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -235,7 +235,7 @@ class SPDMatrices(OpenSet):
         r"""Compute the inverse of the differential of the matrix power.
 
         Compute the inverse of the differential of the power
-        function on SPD matrices (:math: `A^p=exp(p log(A))`) at base_point
+        function on SPD matrices (:math:`A^p=exp(p log(A))`) at base_point
         applied to tangent_vec.
 
         Parameters
@@ -681,14 +681,14 @@ class SPDMetricAffine(RiemannianMetric):
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
         Denoting `tangent_vec_a` by `S`, `base_point` by `A`, and `end_point`
-        by `B` or `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1
+        by `B` or `B = Exp_A(tangent_vec_b)` and :math:`E = (BA^{- 1})^({ 1
         / 2})`. Then the parallel transport to `B` is:
 
-        ..math::
-                        S' = ESE^T
+        .. math::
+            S' = ESE^T
 
         Parameters
         ----------
@@ -749,11 +749,11 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
     References
     ----------
     .. [BJL2017]_ Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
-      positive definite matrices" Elsevier, Expositiones Mathematicae,
-      vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
+        positive definite matrices" Elsevier, Expositiones Mathematicae,
+        vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
     .. [MMP2018]_ Malago, Montrucchio, Pistone. "Wasserstein-Riemannian
-      geometry of Gaussian densities"  Information Geometry, vol. 1, 137-179,
-      2018. https://arxiv.org/pdf/1801.09269.pdf
+        geometry of Gaussian densities"  Information Geometry, vol. 1, 137-179,
+        2018. https://arxiv.org/pdf/1801.09269.pdf
     """
 
     def __init__(self, n):
@@ -766,12 +766,12 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the Bures-Wasserstein inner-product.
 
-        Compute the inner-product of tangent_vec_a :math: `A` and tangent_vec_b
-        :math: `B` at point base_point :math: `S=PDP^\top` using the
+        Compute the inner-product of tangent_vec_a :math:`A` and tangent_vec_b
+        :math:`B` at point base_point :math:`S=PDP^\top` using the
         Bures-Wasserstein Riemannian metric:
-        ..math::
-        `\frac{1}{2}\sum_{i,j}\frac{[P^\top AP]_{ij}[P^\top BP]_{ij}}{d_i+d_j}`
-        .
+
+        .. math::
+            \frac{1}{2}\sum_{i,j}\frac{[P^\top AP]_{ij}[P^\top BP]_{ij}}{d_i+d_j}
 
         Parameters
         ----------
@@ -892,8 +892,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         Approximation of the solution of the parallel transport of a tangent
         vector a along the geodesic defined by :math:`t \mapsto exp_(
-        base_point)(t* tangent_vec_b)`. The parallel transport equation is formulated
-        in this case in [TP2021]_.
+        base_point)(t* tangent_vec_b)`. The parallel transport equation is
+        formulated in this case in [TP2021]_.
 
         Parameters
         ----------
@@ -901,7 +901,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             Tangent vector at `base_point` to transport.
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector ar `base_point`, initial velocity of the geodesic to
-            transport  along.
+            transport along.
         base_point : array-like, shape=[..., n, n]
             Initial point of the geodesic.
         end_point : array-like, shape=[..., n, n]
@@ -922,8 +922,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         References
         ----------
-        ..[TP2021]      Yann Thanwerdas, Xavier Pennec. O(n)-invariant Riemannian /
-        metrics on SPD matrices. 2021. ⟨hal-03338601v2⟩
+        ..[TP2021] Yann Thanwerdas, Xavier Pennec. O(n)-invariant Riemannian
+            metrics on SPD matrices. 2021. ⟨hal-03338601v2⟩
 
         See Also
         --------
