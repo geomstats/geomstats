@@ -687,7 +687,7 @@ class Matrices(VectorSpace):
             R.point.
         """
         mat = gs.matmul(cls.transpose(point), base_point)
-        left, singular_values, right = gs.linalg.svd(mat)
+        left, singular_values, right = gs.linalg.svd(mat, full_matrices=False)
         det = gs.linalg.det(mat)
         conditioning = (
             singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
