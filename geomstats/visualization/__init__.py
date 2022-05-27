@@ -61,6 +61,7 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
     """Plot points in one of the implemented manifolds.
 
     The implemented manifolds are:
+
     - the special orthogonal group SO(3)
     - the special Euclidean group SE(3)
     - the circle S1 and the sphere S2

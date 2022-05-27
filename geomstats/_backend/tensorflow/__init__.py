@@ -41,6 +41,7 @@ from tensorflow import (
     minimum,
     ones,
     ones_like,
+    pad,
 )
 from tensorflow import range as arange
 from tensorflow import reduce_max as amax
@@ -64,6 +65,7 @@ from tensorflow import (
     zeros,
     zeros_like,
 )
+from tensorflow.experimental.numpy import moveaxis
 
 from ..constants import tf_atol, tf_rtol
 from . import autodiff  # NOQA
@@ -947,3 +949,7 @@ def ravel_tril_indices(n, k=0, m=None):
 
 def kron(a, b):
     return tf.linalg.LinearOperatorKronecker([a, b]).to_dense()
+
+
+def take(a, indices, axis=0):
+    return tf.gather(a, indices, axis=axis)

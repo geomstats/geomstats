@@ -57,6 +57,7 @@ class L2Metric(ProductRiemannianMetric):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
+
         - an initial landmark set and an initial tangent vector,
         - an initial landmark set and an end landmark set.
 

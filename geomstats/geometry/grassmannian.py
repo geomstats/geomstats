@@ -29,10 +29,10 @@ For such a representation, work in the Stiefel manifold instead.
 
 References
 ----------
-.. [Batzies15]   Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
-                “Geometric Mean and Geodesic Regression on Grassmannians.”
-                Linear Algebra and Its Applications 466 (February 1, 2015):
-                83–101. https://doi.org/10.1016/j.laa.2014.10.003.
+.. [Batzies15] Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
+    “Geometric Mean and Geodesic Regression on Grassmannians.”
+    Linear Algebra and Its Applications 466 (February 1, 2015):
+    83–101. https://doi.org/10.1016/j.laa.2014.10.003.
 """
 
 import geomstats.backend as gs
@@ -52,19 +52,20 @@ def submersion(point, k):
     symmetric matrices, as the pre-image of the function defined around the
     projector on the space spanned by the first k columns of the identity
     matrix by (see Exercise E.25 in [Pau07]_).
+
     .. math:
 
-            \begin{pmatrix} I_k + A & B^T \\ B & D \end{pmatrix} \mapsto
-                (D - B(I_k + A)^{-1}B^T, A + A^2 + B^TB
+        \begin{pmatrix} I_k + A & B^T \\ B & D \end{pmatrix} \mapsto
+            (D - B(I_k + A)^{-1}B^T, A + A^2 + B^TB
 
     This map is a submersion and its zero space is the set of orthogonal
     rank-k projectors.
 
     References
     ----------
-    .. [Pau07]   Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
-                 https://www.imo.universite-paris-saclay.fr/~paulin
-                 /notescours/cours_geodiff.pdf.
+    .. [Pau07] Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
+        https://www.imo.universite-paris-saclay.fr/~paulin/notescours/
+        cours_geodiff.pdf.
     """
     _, eigvecs = gs.linalg.eigh(point)
     eigvecs = gs.flip(eigvecs, -1)
@@ -197,7 +198,7 @@ class Grassmannian(LevelSet):
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.
 
-        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
+        Following [Chikuse03]_, :math:`n_samples * n * k` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
         the projectors on their first k columns follow a uniform distribution.
 
@@ -215,7 +216,7 @@ class Grassmannian(LevelSet):
         References
         ----------
         .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
-        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
+            New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
         points = gs.random.normal(size=(n_samples, self.n, self.k))
         full_rank = Matrices.mul(Matrices.transpose(points), points)
@@ -227,7 +228,7 @@ class Grassmannian(LevelSet):
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points from a uniform distribution.
 
-        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
+        Following [Chikuse03]_, :math:`n_samples * n * k` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
         the projectors on their first k columns follow a uniform distribution.
 
@@ -245,7 +246,7 @@ class Grassmannian(LevelSet):
         References
         ----------
         .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
-        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
+            New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
         return self.random_uniform(n_samples)
 
@@ -414,10 +415,9 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         References
         ----------
         .. [BZA20]  Bendokat, Thomas, Ralf Zimmermann, and P.-A. Absil.
-                    “A Grassmann Manifold Handbook: Basic Geometry and
-                    Computational Aspects.”
-                    ArXiv:2011.13699 [Cs, Math], November 27, 2020.
-                    https://arxiv.org/abs/2011.13699.
+            “A Grassmann Manifold Handbook: Basic Geometry and Computational
+            Aspects.” ArXiv:2011.13699 [Cs, Math], November 27, 2020.
+            https://arxiv.org/abs/2011.13699.
         """
         if tangent_vec_b is None:
             if end_point is not None:
