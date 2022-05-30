@@ -1056,6 +1056,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         rot_mat = Z(angle_1).Y(angle_2).X(angle_3)
         where:
+
         - Z(angle_1) is a rotation of angle angle_1 around axis z.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - X(angle_3) is a rotation of angle angle_3 around axis x.
@@ -1140,6 +1141,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1226,6 +1228,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         If the order is zyx, into the rotation matrix rot_mat:
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1298,6 +1301,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         for the order zyx, i.e.:
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.

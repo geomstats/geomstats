@@ -17,16 +17,16 @@ from geomstats.geometry.stratified.point_set import (
 class SpiderPoint(Point):
     r"""Class for points of the Spider.
 
-    A point in the Spider is `math:`(s,c) \in \mathbb{N} \times \mathbb{R}`.
+    A point in the Spider is :math:`(s,c) \in \mathbb{N} \times \mathbb{R}`.
 
     Parameters
     ----------
     stratum : int
-        The stratum, an integer indicating the stratum the point lies in. If zero, then
-        the point is on the origin.
+        The stratum, an integer indicating the stratum the point lies in.
+        If zero, then the point is on the origin.
     stratum_coord : float
-        A positive number, the coordinate of the point. It must be zero if and only if
-        the stratum is zero, i.e. the origin.
+        A positive number, the coordinate of the point. It must be zero if and
+        only if the stratum is zero, i.e. the origin.
     """
 
     def __init__(self, stratum, stratum_coord):
@@ -60,7 +60,7 @@ class Spider(PointSet):
     r"""Spider: a set of rays attached to the origin.
 
     The k-spider consists of k copies of the positive real line
-    `math:`\mathbb{R}_{\geq 0}` glued together at the origin [Feragen2020].
+    :math:`\mathbb{R}_{\geq 0}` glued together at the origin [Feragen2020]_.
 
     Parameters
     ----------
@@ -70,9 +70,9 @@ class Spider(PointSet):
 
     References
     ----------
-    ..[Feragen2020]  Feragen, Aasa, and Tom Nye. "Statistics on stratified spaces."
-    Riemannian Geometric Statistics in Medical Image Analysis.
-    Academic Press, 2020. 299-342.
+    .. [Feragen2020]  Feragen, Aasa, and Tom Nye. "Statistics on stratified spaces."
+        Riemannian Geometric Statistics in Medical Image Analysis.
+        Academic Press, 2020. 299-342.
     """
 
     def __init__(self, n_rays):

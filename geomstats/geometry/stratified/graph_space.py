@@ -114,11 +114,10 @@ class Graph(Point):
 
     References
     ----------
-    ..[Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-              “Graph Space: Geodesic Principal Components for a Population of
-              Network-valued Data.”
-              Mox report 14, 2020.
-              https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+        “Graph Space: Geodesic Principal Components for a Population of
+        Network-valued Data.” Mox report 14, 2020.
+        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
     """
 
     def __init__(self, adj):
@@ -170,11 +169,10 @@ class GraphSpace(PointSet):
 
     References
     ----------
-    ..[Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-              “Graph Space: Geodesic Principal Components for a Population of
-              Network-valued Data.”
-              Mox report 14, 2020.
-              https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+        “Graph Space: Geodesic Principal Components for a Population of
+        Network-valued Data.” Mox report 14, 2020.
+        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
     """
 
     def __init__(self, n_nodes, total_space=None):
@@ -351,9 +349,9 @@ class GraphSpaceMetric(PointSetMetric):
 
         References
         ----------
-        ..[Jain2009]  Jain, B., Obermayer, K.
-                  "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
-                  https://www.jmlr.org/papers/v10/jain09a.html.
+        .. [Jain2009]  Jain, B., Obermayer, K.
+            "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
+            https://www.jmlr.org/papers/v10/jain09a.html.
         """
         perm = self.matching(graph_a, graph_b, matcher=matcher)
 
@@ -386,9 +384,9 @@ class GraphSpaceMetric(PointSetMetric):
 
         References
         ----------
-        ..[Jain2009]  Jain, B., Obermayer, K.
-                  "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
-                  https://www.jmlr.org/papers/v10/jain09a.html.
+        .. [Jain2009]  Jain, B., Obermayer, K.
+            "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
+            https://www.jmlr.org/papers/v10/jain09a.html.
         """
         perm = self.matching(base_point, end_point, matcher=matcher)
 
@@ -415,7 +413,7 @@ class GraphSpaceMetric(PointSetMetric):
 
         References
         ----------
-        ..[Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
+        .. [Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
                 Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
                 “Fast approximate quadratic programming for graph matching.“
                 PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
@@ -460,7 +458,7 @@ class GraphSpaceMetric(PointSetMetric):
 
         References
         ----------
-        ..[Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
+        .. [Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
                 Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
                 “Fast approximate quadratic programming for graph matching.“
                 PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.

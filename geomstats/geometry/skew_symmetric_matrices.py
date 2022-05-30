@@ -96,7 +96,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
         The skew-symmetric part of a matrix :math:`X` is defined by
 
-        .. math:
+        .. math::
             (X - X^T) / 2
 
         Parameters
