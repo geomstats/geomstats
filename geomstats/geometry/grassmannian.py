@@ -197,7 +197,7 @@ class Grassmannian(LevelSet):
         )
 
     def random_uniform(self, n_samples=1):
-        """Sample random points from a uniform distribution.
+        r"""Sample random points from a uniform distribution.
 
         Following [Chikuse03]_, :math:`n\_samples * n * k` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
@@ -227,7 +227,7 @@ class Grassmannian(LevelSet):
         return projector[0] if n_samples == 1 else projector
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points from a uniform distribution.
+        r"""Sample random points from a uniform distribution.
 
         Following [Chikuse03]_, :math:`n\_samples * n * k` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
