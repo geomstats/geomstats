@@ -53,7 +53,7 @@ def submersion(point, k):
     projector on the space spanned by the first k columns of the identity
     matrix by (see Exercise E.25 in [Pau07]_).
 
-    .. math:
+    .. math::
 
         \begin{pmatrix} I_k + A & B^T \\ B & D \end{pmatrix} \mapsto
             (D - B(I_k + A)^{-1}B^T, A + A^2 + B^TB
@@ -138,10 +138,11 @@ def _squared_dist(point_a, point_b, metric):
     and point_b, as defined by the metric.
 
     This is an auxiliary private function that:
+
     - is called by the method `squared_dist` of the class
-    SpecialEuclideanMatrixCannonicalLeftMetric,
+      SpecialEuclideanMatrixCannonicalLeftMetric,
     - has been created to support the implementation
-    of custom_gradient in tensorflow backend.
+      of custom_gradient in tensorflow backend.
 
     Parameters
     ----------
@@ -198,7 +199,7 @@ class Grassmannian(LevelSet):
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.
 
-        Following [Chikuse03]_, :math:`n_samples * n * k` scalars are sampled
+        Following [Chikuse03]_, :math:`n\_samples * n * k` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
         the projectors on their first k columns follow a uniform distribution.
 
@@ -228,7 +229,7 @@ class Grassmannian(LevelSet):
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points from a uniform distribution.
 
-        Following [Chikuse03]_, :math:`n_samples * n * k` scalars are sampled
+        Following [Chikuse03]_, :math:`n\_samples * n * k` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
         the projectors on their first k columns follow a uniform distribution.
 
@@ -389,7 +390,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
 
         Parameters
@@ -403,8 +404,8 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             is computed.
             Optional, default: None
         end_point : array-like, shape=[..., n, n]
-            Point on the Grassmann manifold to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the Grassmann manifold to transport to. Unused if
+            `tangent_vec_b` is given.
             Optional, default: None
 
         Returns
@@ -439,10 +440,11 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         and point_b, as defined by the metric.
 
         This is an auxiliary private function that:
+
         - is called by the method `squared_dist` of the class
-        GrassmannianCanonicalMetric,
+          GrassmannianCanonicalMetric,
         - has been created to support the implementation
-        of custom_gradient in tensorflow backend.
+          of custom_gradient in tensorflow backend.
 
         Parameters
         ----------
@@ -481,8 +483,8 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
         In this case it is Pi / 2 everywhere.
 
         Parameters

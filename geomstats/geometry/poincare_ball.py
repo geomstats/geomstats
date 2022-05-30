@@ -258,9 +258,6 @@ class PoincareBallMetric(RiemannianMetric):
         """Poincaré ball model retraction.
 
         Approximate the exponential map of the Poincare ball
-        .. [1] Nickel et.al, "Poincaré Embedding for
-         Learning Hierarchical Representation", 2017.
-
 
         Parameters
         ----------
@@ -273,6 +270,11 @@ class PoincareBallMetric(RiemannianMetric):
         -------
         point : array-like, shape=[..., dim]
             Retraction point.
+
+        References
+        ----------
+        .. [1] Nickel et.al, "Poincaré Embedding for
+            Learning Hierarchical Representation", 2017.
         """
         ball_manifold = PoincareBall(self.dim, scale=self.scale)
         base_point_belong = ball_manifold.belongs(base_point)
