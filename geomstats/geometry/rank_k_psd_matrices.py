@@ -70,7 +70,7 @@ class RankKPSDMatrices(Manifold):
         The nearest symmetric positive semidefinite matrix in the
         Frobenius norm to an arbitrary real matrix A is shown to be (B + H)/2,
         where H is the symmetric polar factor of B=(A + A')/2.
-        As [Higham1988] is turning the matrix into a PSD, the rank
+        As [Higham1988]_ is turning the matrix into a PSD, the rank
         is then forced to be k.
 
         Parameters
@@ -85,10 +85,10 @@ class RankKPSDMatrices(Manifold):
 
         References
         ----------
-        [Higham1988]_    Highamm, N. J.
-                        “Computing a nearest symmetric positive semidefinite matrix.”
-                        Linear Algebra and Its Applications 103 (May 1, 1988):
-                        103-118. https://doi.org/10.1016/0024-3795(88)90223-6
+        .. [Higham1988] Highamm, N. J.
+            “Computing a nearest symmetric positive semidefinite matrix.”
+            Linear Algebra and Its Applications 103 (May 1, 1988):
+            103-118. https://doi.org/10.1016/0024-3795(88)90223-6
         """
         sym = Matrices.to_symmetric(point)
         _, s, v = gs.linalg.svd(sym)
@@ -260,8 +260,9 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
 
         Compute the vertical component of a tangent vector :math:`w` at a
         base point :math:`x` by solving the sylvester equation:
+
         .. math::
-                        `Axx^T + xx^TA = wx^T - xw^T`
+            Axx^T + xx^TA = wx^T - xw^T
 
         where A is skew-symmetric. Then Ax is the vertical projection of w.
 

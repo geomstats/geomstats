@@ -550,6 +550,7 @@ class _Hypersphere(LevelSet):
         The Riemannian normal distribution, or spherical normal in this case,
         is defined by the probability density function (with respect to the
         Riemannian volume measure) proportional to:
+
         .. math::
                 \exp \Big \left(- \frac{\lambda}{2} \mathtm{arccos}^2(x^T\mu)
                 \Big \right)

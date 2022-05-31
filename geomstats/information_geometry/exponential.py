@@ -159,7 +159,7 @@ class ExponentialFisherRaoMetric(RiemannianMetric):
     References
     ----------
     .. [AM1981] Atkinson, C., & Mitchell, A. F. (1981). Rao's distance measure.
-    Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
+        Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
     """
 
     def __init__(self):

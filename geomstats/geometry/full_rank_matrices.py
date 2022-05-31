@@ -1,4 +1,4 @@
-r"""Full rank Euclidean matrices `math:`R_*^{m\times n}`.
+r"""Full rank Euclidean matrices :math:`R_*^{m\times n}`.
 
 Lead author: Anna Calissano.
 """
@@ -9,7 +9,7 @@ from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
 class FullRankMatrices(OpenSet):
-    r"""Class for `math:`R_*^{n\times k}` matrices of dimension n x k and full rank.
+    r"""Class for :math:`R_*^{n\times k}` matrices of dimension n x k and full rank.
 
     Parameters
     ----------
@@ -28,7 +28,7 @@ class FullRankMatrices(OpenSet):
         self.k = k
 
     def belongs(self, point, atol=gs.atol):
-        r"""Check if the matrix belongs to `math:`R_*^{n \times k}`.
+        r"""Check if the matrix belongs to :math:`R_*^{n \times k}`.
 
         Parameters
         ----------
@@ -40,7 +40,7 @@ class FullRankMatrices(OpenSet):
         Returns
         -------
         belongs : Boolean
-            Denoting if point is in `math:`R_*^{m\times n}`.
+            Denoting if point is in :math:`R_*^{m\times n}`.
         """
         has_right_size = self.ambient_space.belongs(point)
         has_right_rank = gs.where(
@@ -54,7 +54,7 @@ class FullRankMatrices(OpenSet):
 
         As the space of full rank matrices is dense in the space of matrices,
         this is not a projection per se, but a regularization if the matrix input X
-        is not already full rank: `math:`X + \epsilon [I_rank, 0]` is returned
+        is not already full rank: :math:`X + \epsilon [I_{rank}, 0]` is returned
         where :math:`\epsilon=gs.atol`
 
         Parameters
@@ -77,7 +77,7 @@ class FullRankMatrices(OpenSet):
         return projected
 
     def random_point(self, n_samples=1, bound=1.0, n_iter=100):
-        r"""Sample in `math:`R_*^{n\times k}` from a normal distribution.
+        r"""Sample in :math:`R_*^{n\times k}` from a normal distribution.
 
         Parameters
         ----------
@@ -94,7 +94,7 @@ class FullRankMatrices(OpenSet):
         Returns
         -------
         samples : array-like, shape=[..., n, k]
-            Point sampled on `math:`R_*^{n\times k}`.
+            Point sampled on :math:`R_*^{n\times k}`.
         """
         n = self.n
         k = self.k

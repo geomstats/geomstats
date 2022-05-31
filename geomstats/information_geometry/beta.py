@@ -18,7 +18,7 @@ EPSILON = 1e-6
 class BetaDistributions(DirichletDistributions):
     r"""Class for the manifold of beta distributions.
 
-    This is :math: Beta = `R_+^* \times R_+^*`, the upper-right
+    This is Beta = :math:`R_+^* \times R_+^*`, the upper-right
     quadrant of the Euclidean plane.
 
     Attributes

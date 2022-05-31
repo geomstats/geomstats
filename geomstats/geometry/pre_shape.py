@@ -33,7 +33,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
 
     References
     ----------
-    ..[Nava]  Nava-Yazdani, E., H.-C. Hege, T. J.Sullivan, and C. von Tycowicz.
+    .. [Nava]  Nava-Yazdani, E., H.-C. Hege, T. J.Sullivan, and C. von Tycowicz.
               “Geodesic Analysis in Kendall’s Shape Space with Epidemiological
               Applications.”
               Journal of Mathematical Imaging and Vision 62, no. 4 549–59.
@@ -186,10 +186,12 @@ class PreShapeSpace(LevelSet, FiberBundle):
 
         Compute the vertical component of a tangent vector :math:`w` at a
         base point :math:`x` by solving the sylvester equation:
-        .. math::
-                        `Axx^T + xx^TA = wx^T - xw^T`
 
-        where A is skew-symmetric. Then Ax is the vertical projection of w.
+        .. math::
+            Axx^T + xx^TA = wx^T - xw^T
+
+        where `A` is skew-symmetric.
+        Then `Ax` is the vertical projection of `w`.
 
         Parameters
         ----------
@@ -290,8 +292,8 @@ class PreShapeSpace(LevelSet, FiberBundle):
         References
         ----------
         .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
-        Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
-        459–69. https://doi.org/10.1307/mmj/1028999604.
+            Submersion, Michigan Mathematical Journal 13, no. 4
+            (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
         """
         # Only the horizontal part of a counts
         horizontal_a = self.horizontal_projection(tangent_vec_a, base_point)
@@ -348,11 +350,11 @@ class PreShapeSpace(LevelSet, FiberBundle):
         References
         ----------
         .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
-        Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
-        459–69. https://doi.org/10.1307/mmj/1028999604.
+            Submersion, Michigan Mathematical Journal 13, no. 4
+            (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
 
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
         hor_x = self.horizontal_projection(tangent_vec_x, base_point)
         p_top = Matrices.transpose(base_point)
@@ -392,10 +394,10 @@ class PreShapeSpace(LevelSet, FiberBundle):
         submersion.
         The components :math:`\nabla_X (A_Y E)` and :math:`A_Y E` are
         computed here for the Kendall shape space at base-point
-        :math:`P = base_point` for horizontal vector fields fields :math:
-        `X, Y` extending the values :math:`X|_P = horizontal_vec_x`,
-        :math:`Y|_P = horizontal_vec_y` and a general vector field
-        :math:`E` extending :math:`E|_P = tangent_vec_e` in a neighborhood
+        :math:`P = base\_point` for horizontal vector fields fields :math:
+        `X, Y` extending the values :math:`X|_P = horizontal\_vec\_x`,
+        :math:`Y|_P = horizontal\_vec\_y` and a general vector field
+        :math:`E` extending :math:`E|_P = tangent\_vec\_e` in a neighborhood
         of the base-point P with covariant derivatives
         :math:`\nabla_X Y |_P = nabla_x_y` and
         :math:`\nabla_X E |_P = nabla_x_e`.
@@ -825,8 +827,8 @@ class PreShapeMetric(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math:`H|_P = tangent_vec_a, X|_P =
-        tangent_vec_b, Y|_P = tangent_vec_c, Z|_P = tangent_vec_d` with
+        For four vectors fields :math:`H|_P = tangent\_vec\_a, X|_P =
+        tangent\_vec\_b, Y|_P = tangent\_vec\_c, Z|_P = tangent\_vec\_d` with
         tangent vector value specified in argument at the base point `P`,
         the covariant derivative of the curvature
         :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
@@ -906,10 +908,10 @@ class PreShapeMetric(RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of the sphere, it does not depend on the base point and is Pi
-        everywhere.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the sphere, it does not depend on the base point and is
+        Pi everywhere.
 
         Parameters
         ----------
@@ -949,8 +951,8 @@ class KendallShapeMetric(QuotientMetric):
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math:`X|_P = tangent_vec_a, Y|_P =
-        tangent_vec_b` with tangent vector value specified in argument at the
+        For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
+        tangent\_vec\_b` with tangent vector value specified in argument at the
         base point `P`, the covariant derivative (in the direction 'X')
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)
@@ -1013,7 +1015,7 @@ class KendallShapeMetric(QuotientMetric):
 
         Approximation of the solution of the parallel transport of a tangent
         vector a along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t\mapsto exp_{(base\_point)}(
         t*direction)`
 
         Parameters
