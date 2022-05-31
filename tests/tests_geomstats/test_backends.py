@@ -32,6 +32,11 @@ class TestBackends(tests.conftest.TestCase):
         np_mat = _np.array([_np.ones(3), _np.ones(3)])
         self.assertAllCloseToNp(gs_mat, np_mat)
 
+        self.assertAllCloseToNp(gs_mat, np_mat)
+        gs_mat = gs.array([gs.ones(1), gs.ones(1)])
+        np_mat = _np.array([_np.ones(1), _np.ones(1)])
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
         gs_mat = gs.array([gs.ones(3), gs.ones(3)], dtype=gs.float64)
         np_mat = _np.array([_np.ones(3), _np.ones(3)], dtype=_np.float64)
         self.assertTrue(gs_mat.dtype == gs.float64)
