@@ -5,13 +5,14 @@ Lead author: Nicolas Guigui.
 
 from abc import ABC
 
-from scipy.optimize import minimize
-
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.integrator import integrate
+from geomstats.solvers import (
+    GeomstatsExpSolver,
+    GeomstatsGeodesicSolver,
+    GeomstatsLogSolver,
+)
 
-N_STEPS = 100
 POINT_TYPES = {1: "vector", 2: "matrix", 3: "matrix"}
 
 
@@ -51,6 +52,13 @@ class Connection(ABC):
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
 
+        self._set_default_solvers()
+
+    def _set_default_solvers(self):
+        self.log_solver = GeomstatsLogSolver()
+        self.exp_solver = GeomstatsExpSolver()
+        self.geodesic_solver = GeomstatsGeodesicSolver()
+
     def christoffels(self, base_point):
         """Christoffel symbols associated with the connection.
 
@@ -89,118 +97,11 @@ class Connection(ABC):
         equation = -gs.einsum("...kj,...j->...k", equation, velocity)
         return gs.stack([velocity, equation])
 
-    def exp(
-        self,
-        tangent_vec,
-        base_point,
-        n_steps=N_STEPS,
-        step="euler",
-        point_type=None,
-        **kwargs
-    ):
-        """Exponential map associated to the affine connection.
+    def exp(self, tangent_vec, base_point):
+        return self.exp_solver.solve(self, tangent_vec, base_point)
 
-        Exponential map at base_point of tangent_vec computed by integration
-        of the geodesic equation (initial value problem), using the
-        christoffel symbols.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at the base point.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-        n_steps : int
-            Number of discrete time steps to take in the integration.
-            Optional, default: N_STEPS.
-        step : str, {'euler', 'rk4'}
-            The numerical scheme to use for integration.
-            Optional, default: 'euler'.
-        point_type : str, {'vector', 'matrix'}
-            Type of representation used for points.
-            Optional, default: None.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., dim]
-            Point on the manifold.
-        """
-        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
-
-        initial_state = gs.stack([base_point, tangent_vec])
-
-        flow = integrate(
-            self.geodesic_equation, initial_state, n_steps=n_steps, step=step
-        )
-
-        exp = flow[-1][0]
-        return exp
-
-    def log(
-        self,
-        point,
-        base_point,
-        n_steps=N_STEPS,
-        step="euler",
-        max_iter=25,
-        verbose=False,
-        tol=gs.atol,
-    ):
-        """Compute logarithm map associated to the affine connection.
-
-        Solve the boundary value problem associated to the geodesic equation
-        using the Christoffel symbols and conjugate gradient descent.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point on the manifold.
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-        n_steps : int
-            Number of discrete time steps to take in the integration.
-            Optional, default: N_STEPS.
-        step : str, {'euler', 'rk4'}
-            Numerical scheme to use for integration.
-            Optional, default: 'euler'.
-        max_iter
-        verbose
-        tol
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at the base point.
-        """
-        max_shape = point.shape
-        if len(point.shape) <= len(base_point.shape):
-            max_shape = base_point.shape
-
-        def objective(velocity):
-            """Define the objective function."""
-            velocity = gs.array(velocity)
-            velocity = gs.cast(velocity, dtype=base_point.dtype)
-            velocity = gs.reshape(velocity, max_shape)
-            delta = self.exp(velocity, base_point, n_steps, step) - point
-            return gs.sum(delta**2)
-
-        objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
-
-        tangent_vec = gs.flatten(gs.random.rand(*max_shape))
-
-        res = minimize(
-            objective_with_grad,
-            tangent_vec,
-            method="L-BFGS-B",
-            jac=True,
-            options={"disp": verbose, "maxiter": max_iter},
-            tol=tol,
-        )
-
-        tangent_vec = gs.array(res.x)
-        tangent_vec = gs.reshape(tangent_vec, max_shape)
-        tangent_vec = gs.cast(tangent_vec, dtype=base_point.dtype)
-        return tangent_vec
+    def log(self, point, base_point):
+        return self.log_solver.solve(self, point, base_point)
 
     def _pole_ladder_step(
         self, base_point, next_point, base_shoot, return_geodesics=False, **kwargs
@@ -547,92 +448,19 @@ class Connection(ABC):
             tangent_vec_a, tangent_vec_b, tangent_vec_a, tangent_vec_b, base_point
         )
 
-    def geodesic(
-        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
-    ):
-        """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial point and an initial tangent vector,
-        - an initial point and an end point.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., dim]
-            Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
-            Point on the manifold, end point of the geodesic. If None,
-            an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim],
-            Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
-            If None, an end point must be given and a logarithm is computed.
-
-        Returns
-        -------
-        path : callable
-            Time parameterized geodesic curve. If a batch of initial
-            conditions is passed, the output array's first dimension
-            represents the different initial conditions, and the second
-            corresponds to time.
-        """
-        point_type = self.default_point_type
-
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         if end_point is None and initial_tangent_vec is None:
             raise ValueError(
                 "Specify an end point or an initial tangent "
                 "vector to define the geodesic."
             )
-        if end_point is not None:
-            shooting_tangent_vec = self.log(point=end_point, base_point=initial_point)
-            if initial_tangent_vec is not None:
-                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
-                    raise RuntimeError(
-                        "The shooting tangent vector is too"
-                        " far from the input initial tangent vector."
-                    )
-            initial_tangent_vec = shooting_tangent_vec
 
-        if point_type == "vector":
-            initial_point = gs.to_ndarray(initial_point, to_ndim=2)
-            initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=2)
-
-        else:
-            initial_point = gs.to_ndarray(initial_point, to_ndim=3)
-            initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=3)
-        n_initial_conditions = initial_tangent_vec.shape[0]
-
-        if n_initial_conditions > 1 and len(initial_point) == 1:
-            initial_point = gs.stack([initial_point[0]] * n_initial_conditions)
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_points,]
-                Times at which to compute points of the geodesics.
-            """
-            t = gs.array(t)
-            t = gs.cast(t, initial_tangent_vec.dtype)
-            t = gs.to_ndarray(t, to_ndim=1)
-            if point_type == "vector":
-                tangent_vecs = gs.einsum("i,...k->...ik", t, initial_tangent_vec)
-            else:
-                tangent_vecs = gs.einsum("i,...kl->...ikl", t, initial_tangent_vec)
-
-            points_at_time_t = [
-                self.exp(tv, pt, **exp_kwargs)
-                for tv, pt in zip(tangent_vecs, initial_point)
-            ]
-            points_at_time_t = gs.stack(points_at_time_t, axis=0)
-
-            return (
-                points_at_time_t[0] if n_initial_conditions == 1 else points_at_time_t
-            )
-
-        return path
+        return self.geodesic_solver.geodesic(
+            self,
+            initial_point,
+            end_point=end_point,
+            initial_tangent_vec=initial_tangent_vec,
+        )
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
