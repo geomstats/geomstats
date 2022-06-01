@@ -43,6 +43,7 @@ class _Hypersphere(LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
+
         super(_Hypersphere, self).__init__(
             dim=dim,
             embedding_space=Euclidean(dim + 1),
@@ -657,7 +658,7 @@ class HypersphereMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(HypersphereMetric, self).__init__(dim=dim, signature=(dim, 0))
+        super(HypersphereMetric, self).__init__(dim=dim, shape=(dim + 1,), signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
 
