@@ -23,7 +23,7 @@ class QuotientMetric(RiemannianMetric):
         Bundle structure to define the quotient.
     """
 
-    def __init__(self, fiber_bundle: FiberBundle, dim: int = None, **kwargs):
+    def __init__(self, fiber_bundle: FiberBundle, dim: int = None, shape=None, **kwargs):
         if dim is None:
             if fiber_bundle.group is not None:
                 dim = fiber_bundle.dim - fiber_bundle.group.dim
@@ -36,7 +36,7 @@ class QuotientMetric(RiemannianMetric):
                     "total space must be provided to the fiber bundle."
                 )
         super(QuotientMetric, self).__init__(
-            dim=dim, default_point_type=fiber_bundle.default_point_type, **kwargs
+            dim=dim, shape=shape, default_point_type=fiber_bundle.default_point_type, **kwargs
         )
 
         self.fiber_bundle = fiber_bundle
