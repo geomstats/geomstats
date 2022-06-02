@@ -57,4 +57,6 @@ To learn how to use `geomstats`, visit :ref:`first_steps`. To contribute to `geo
    contributing/index
    api/index
    gsod <gsod>
+   roadmap <roadmap>
+   governance <governance>
 
