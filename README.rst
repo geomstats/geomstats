@@ -228,7 +228,8 @@ Interested? Contact us and join the next hackathons. Previous Geomstats events i
 -  December 2021: fixit hackathon at the Sorbonne Center for Artificial Intelligence, Paris, France.
 -  February 2022: hackathon, hybrid at Inria Sophia-Antipolis / remotely with contributors from around the world
 -  April 2022: in-person hackathon at the Villa Cynthia, Saint Raphael, France.
--  August 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
+-  April 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR), remotely.
+-  June 2022: hakathon at the University of Washington (UW).
 -  October 17-21, 2022: hackathon during the trimester `Geometry and Statistics in Data Sciences <https://indico.math.cnrs.fr/category/498/>`__, in Paris.
 
 
