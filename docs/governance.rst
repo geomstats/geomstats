@@ -52,8 +52,8 @@ list. Members of the team are welcome to participate in `monthly core developer 
 <https://github.com/geomstats/admin/blob/main/meeting_notes.md>`_.
 
 The contributor experience team is currently constituted of: 
-- Luis Pereira,
-- Nina Miolane.
+* Luis Pereira,
+* Nina Miolane.
 
 .. _communication_team:
 
@@ -72,7 +72,7 @@ Communicators are welcome to participate in `monthly core developer meetings
 <https://github.com/geomstats/admin/blob/main/meeting_notes.md>`_.
 
 The communication team is currently constituted of: 
-- Nina Miolane.
+* Nina Miolane.
 
 Core developers
 ---------------
@@ -103,17 +103,17 @@ active again. The list of core developers, active and emeritus (with dates at
 which they became active) will be public on the Geomstats website.
 
 The core developers are currently:
-- Luis Pereira, 
-- Nicolas Guigui, 
-- Alice Le Brigant, 
-- Jules Deschamps, 
-- Saiteja Utpala, 
-- Adele Myers, 
-- Anna Callissano,
-- Yann Thanwerdas,
-- Elodie Maignant,
-- Tom Swzagier,
-- Nina Miolane.
+* Luis Pereira, 
+* Nicolas Guigui, 
+* Alice Le Brigant, 
+* Jules Deschamps, 
+* Saiteja Utpala, 
+* Adele Myers, 
+* Anna Callissano,
+* Yann Thanwerdas,
+* Elodie Maignant,
+* Tom Swzagier,
+* Nina Miolane.
 
 Technical Committee
 -------------------
@@ -134,9 +134,9 @@ approval of all the current TC members. TC members who do not actively engage
 with the TC duties are expected to resign.
 
 The Technical Committee of Geomstats currently consists of:
-- Nina Miolane, 
-- Alice Le Brigant,
-- Xavier Pennec.
+* Nina Miolane, 
+* Alice Le Brigant,
+* Xavier Pennec.
 
 Decision Making Process
 =======================
