@@ -50,7 +50,7 @@ on manifolds, such as supervised and unsupervised learning techniques.
    :class: with-shadow
    :width: 1000px
 
-   **Figure**: Parallel transport of a vector X along a geodesic, e.g. representing a deformation's force acting on the time evolution of a cell shape. Image credits: `Adele Myers. <https://ahma2017.wixsite.com/adelemyers>`_.
+   **Figure**: Parallel transport of a vector X (pink) along a geodesic (green) on the manifold M, e.g. representing a deformation's force acting on the time evolution of a cell shape. Image credits: `Adele Myers. <https://ahma2017.wixsite.com/adelemyers>`_.
 
 The code is object-oriented and follows Scikit-Learn's API. The operations are vectorized for batch computation and provide
 support for different execution backends --- namely NumPy, PyTorch, Autograd and TensorFlow.
