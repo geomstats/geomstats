@@ -18,7 +18,7 @@ design and participate in the decision making process. This document describes
 how that participation takes place and how to earn merit within
 the project community.
 
-This document is inspired by Scikit-Learn's governance document.
+This document is inspired by Scikit-Learn's and Pandas' governance documents.
 
 Roles And Responsibilities
 ==========================
@@ -51,6 +51,11 @@ Every new member of the contributor experience team will be announced in Geomsta
 list. Members of the team are welcome to participate in `monthly core developer meetings
 <https://github.com/geomstats/admin/blob/main/meeting_notes.md>`_.
 
+The contributor experience team is currently constituted of:
+
+  * Luis Pereira,
+  * Nina Miolane.
+
 .. _communication_team:
 
 Communication team
@@ -66,6 +71,10 @@ networks and produce materials.
 Every new communicator will be announced in Geomstats GoogleGroups mailing list.
 Communicators are welcome to participate in `monthly core developer meetings
 <https://github.com/geomstats/admin/blob/main/meeting_notes.md>`_.
+
+The communication team is currently constituted of:
+
+  * Nina Miolane.
 
 Core developers
 ---------------
@@ -95,6 +104,20 @@ core developers and recant their commit and voting rights until they become
 active again. The list of core developers, active and emeritus (with dates at
 which they became active) will be public on the Geomstats website.
 
+The core developers are currently:
+
+  * Luis Pereira, 
+  * Nicolas Guigui, 
+  * Alice Le Brigant, 
+  * Jules Deschamps, 
+  * Saiteja Utpala, 
+  * Adele Myers, 
+  * Anna Callissano,
+  * Yann Thanwerdas,
+  * Elodie Maignant,
+  * Tom Swzagier,
+  * Nina Miolane.
+
 Technical Committee
 -------------------
 The Technical Committee (TC) members are core developers who have additional
@@ -113,11 +136,15 @@ subject to a two-third majority of all cast votes as well as a simple majority
 approval of all the current TC members. TC members who do not actively engage
 with the TC duties are expected to resign.
 
-The Technical Committee of geomstats consists of Nina Miolane, Alice Le Brigant 
-and Xavier Pennec.
+The Technical Committee of Geomstats currently consists of:
+
+  * Nina Miolane, 
+  * Alice Le Brigant,
+  * Xavier Pennec.
 
 Decision Making Process
 =======================
+
 Decisions about the future of the project are made through discussion with all
 members of the community. All non-sensitive project management discussion takes
 place at the project's monthly meetings and follow-up emails,
@@ -155,3 +182,34 @@ are made according to the following rules:
 If a veto -1 vote is cast on a lazy consensus, the proposer can appeal to the
 community and core developers and the change can be approved or rejected using
 the decision making procedure outlined above.
+
+
+Conflict of Interest
+====================
+
+It is expected that Geomstats Team Members will be employed at a wide range of companies, 
+universities and non-profit organizations. Because of this, it is possible that Members will have 
+conflict of interests. Such conflict of interests include, but are not limited to:
+
+  * Financial interests, such as investments, employment or contracting work, outside of Geomstats that may influence their contributions.
+  * Access to proprietary information of their employer that could potentially leak into their work with Geomstats.
+
+All members of Geomstats shall disclose to the Technical Committee any conflict of interest they may have. 
+
+Members with a conflict of interest in a particular issue may participate in discussions on that issue, but must recuse themselves from voting on the issue.
+
+
+Breach
+======
+
+Non-compliance with the terms of the governance documents shall be reported to the Technical Committee either through public or private channels as deemed appropriate.
+
+Changing the Governance Documents
+=================================
+
+Changes to the governance documents are submitted via a GitHub pull request targeting `Geomstats governance documents <https://github.com/geomstats/geomstats/blob/master/docs/governance.rst>`_. 
+The pull request is then refined in response to public comment and review, with the goal being consensus in the community. 
+After this open period, a member of the Technical Committee proposes to the core developers that the changes be ratified and the pull request merged (accepting the proposed changes) 
+or proposes that the pull request be closed without merging (rejecting the proposed changes). The Technical Committee member should state the final commit hash in the pull request being proposed 
+for acceptance or rejection and briefly summarize the pull request. A minimum of 60% of the core developers must vote and at least 2/3 of the votes must be positive to carry out the proposed action 
+(fractions of a vote rounded up to the nearest integer).
