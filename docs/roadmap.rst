@@ -65,18 +65,18 @@ bottom of each goal. We try to keep the document up to date as we work on these 
 
 3. Learning
 
-   * Implement geodesic PCA, see `Issue 1446<https://github.com/geomstats/geomstats/issues/1446>`_.
+   * Implement geodesic PCA, see `Issue 1446 <https://github.com/geomstats/geomstats/issues/1446>`_.
    * Enhance the pool of regression algorithms on manifolds.
 
 4. Shapes
 
-   * Refactor the shape space of discrete open and closed curves, see `Issue 1183 <https://github.com/geomstats/geomstats/issues/1183>`_ .
+   * Refactor the shape space of discrete open and closed curves, see `Issue 1183 <https://github.com/geomstats/geomstats/issues/1183>`_.
    * Add shape space of discrete surfaces.
    * Add shape space of deformations. 
 
 5. Information Geometry
 
-   * Complete manifolds of exponential families in `information_geometry .<https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_.
+   * Complete manifolds of exponential families in `information_geometry  <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_.
 
 6. Stratified Geometry
 
