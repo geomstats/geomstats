@@ -943,7 +943,9 @@ class KendallShapeMetric(QuotientMetric):
     def __init__(self, k_landmarks, m_ambient):
         bundle = PreShapeSpace(k_landmarks, m_ambient)
         super(KendallShapeMetric, self).__init__(
-            fiber_bundle=bundle, dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2), shape=(k_landmarks, m_ambient)
+            fiber_bundle=bundle,
+            dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2),
+            shape=(k_landmarks, m_ambient),
         )
 
     def directional_curvature_derivative(
