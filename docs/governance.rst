@@ -51,7 +51,9 @@ Every new member of the contributor experience team will be announced in Geomsta
 list. Members of the team are welcome to participate in `monthly core developer meetings
 <https://github.com/geomstats/admin/blob/main/meeting_notes.md>`_.
 
-The contributor experience team is currently constituted of: Luis Pereira and Nina Miolane.
+The contributor experience team is currently constituted of: 
+- Luis Pereira,
+- Nina Miolane.
 
 .. _communication_team:
 
@@ -69,7 +71,8 @@ Every new communicator will be announced in Geomstats GoogleGroups mailing list.
 Communicators are welcome to participate in `monthly core developer meetings
 <https://github.com/geomstats/admin/blob/main/meeting_notes.md>`_.
 
-The communication team is currently constituted of: Nina Miolane.
+The communication team is currently constituted of: 
+- Nina Miolane.
 
 Core developers
 ---------------
@@ -99,7 +102,18 @@ core developers and recant their commit and voting rights until they become
 active again. The list of core developers, active and emeritus (with dates at
 which they became active) will be public on the Geomstats website.
 
-The core developers are currently: Luis Pereira, Nicolas Guigui, Alice Le Brigant, Jules Deschamps, Saiteja Utpala, Adele Myers, Anna Callissano, Nina Miolane.
+The core developers are currently:
+- Luis Pereira, 
+- Nicolas Guigui, 
+- Alice Le Brigant, 
+- Jules Deschamps, 
+- Saiteja Utpala, 
+- Adele Myers, 
+- Anna Callissano,
+- Yann Thanwerdas,
+- Elodie Maignant,
+- Tom Swzagier,
+- Nina Miolane.
 
 Technical Committee
 -------------------
@@ -119,8 +133,10 @@ subject to a two-third majority of all cast votes as well as a simple majority
 approval of all the current TC members. TC members who do not actively engage
 with the TC duties are expected to resign.
 
-The Technical Committee of Geomstats currently consists of Nina Miolane, Alice Le Brigant 
-and Xavier Pennec.
+The Technical Committee of Geomstats currently consists of:
+- Nina Miolane, 
+- Alice Le Brigant,
+- Xavier Pennec.
 
 Decision Making Process
 =======================
