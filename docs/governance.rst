@@ -28,7 +28,7 @@ Contributors
 
 Contributors are community members who contribute in concrete ways to the
 project. Anyone can become a contributor, and contributions can take many forms
-- not only code - as detailed in the `contributors guide <https://geomstats.github.io/contributing/index.html#contributing>`.
+- not only code - as detailed in the `contributors guide <https://geomstats.github.io/contributing/index.html#contributing>`_.
 
 Contributor Experience Team
 ---------------------------

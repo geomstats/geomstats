@@ -34,8 +34,7 @@ and an expanding user base. It is costly to maintain the existing modules, and o
 
 **Our main goals are to**:
 
-1. continue maintaining a high-quality, well-documented collection of canonical
-  tools for computations, statistics and machine learning for data on manifolds,
+1. continue maintaining a high-quality, well-documented collection of canonical tools for computations, statistics and machine learning for data on manifolds,
 2. re-organize and re-design the documentation website,
 3. re-organize the architecture of the learning module, with a scikit-learn inspired design with Mixins,
 4. develop the shapes module and transfer techniques to communities in applied sciences including biomedical fields,
@@ -53,32 +52,32 @@ make referring to specific points easier. Please add new entries only at the
 bottom of each goal. We try to keep the document up to date as we work on these issues.
 
 
-1. Maintainance
+1. Maintenance
 
-   * Refactor testing infrastructure, e.g. `PR 1493 <https://github.com/geomstats/geomstats/pull/1493>`_
-   * Fix existing bugs, e.g. `PR 1550 <https://github.com/geomstats/geomstats/pull/1550>`_ 
-   * Support for Jax backend, see `Issue 800 <https://github.com/geomstats/geomstats/issues/800>`_
+   * Refactor testing infrastructure, e.g. `PR 1493 <https://github.com/geomstats/geomstats/pull/1493>`_.
+   * Fix existing bugs, e.g. `PR 1550 <https://github.com/geomstats/geomstats/pull/1550>`_. 
+   * Support for Jax backend, see `Issue 800 <https://github.com/geomstats/geomstats/issues/800>`_.
 
 2. Documentation
 
-   * See `documentation roadmap <https://geomstats.github.io/gsod.html>`_
+   * See `documentation roadmap <https://geomstats.github.io/gsod.html>`_.
 
 3. Learning
 
-   * Implement geodesic PCA, see `Issue 1446<https://github.com/geomstats/geomstats/issues/1446>`_
+   * Implement geodesic PCA, see `Issue 1446 <https://github.com/geomstats/geomstats/issues/1446>`_.
    * Enhance the pool of regression algorithms on manifolds.
 
 4. Shapes
 
-   * Refactor the shape space of discrete open and closed curves, see `Issue 1183 <https://github.com/geomstats/geomstats/issues/1183>`_ 
+   * Refactor the shape space of discrete open and closed curves, see `Issue 1183 <https://github.com/geomstats/geomstats/issues/1183>`_.
    * Add shape space of discrete surfaces.
    * Add shape space of deformations. 
 
 5. Information Geometry
 
-   * Complete manifolds of exponential families in `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_
+   * Complete manifolds of exponential families in `information_geometry  <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_.
 
 6. Stratified Geometry
 
-   * Complete stratified geometry of graph spaces, e.g. see `PR <https://github.com/geomstats/geomstats/pull/1244>`_
+   * Complete stratified geometry of graph spaces, e.g. see `PR 1244 <https://github.com/geomstats/geomstats/pull/1244>`_.
    * Add BHV tree spaces.
