@@ -236,7 +236,7 @@ def array(val, dtype=None):
     elif isinstance(val, _np.ndarray):
         return from_numpy(val, dtype=dtype)
 
-    elif isinstance(val, (list, tuple)):
+    elif isinstance(val, (list, tuple)) and len(val):
         tensors = [array(tensor, dtype=dtype) for tensor in val]
         return stack(tensors)
 
