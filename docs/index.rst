@@ -2,7 +2,7 @@ Geomstats
 =========
 
 .. image:: geomstats_logo.jpg
-  :width: 170
+  :width: 160
   :alt: Geomstats Logo
 
 **Geomstats** is an open-source Python package for computations, statistics, and machine learning on
