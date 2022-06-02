@@ -205,7 +205,7 @@ Changing the Governance Documents
 
 Changes to the governance documents are submitted via a GitHub pull request targeting `Geomstats governance documents <https://github.com/geomstats/geomstats/blob/master/docs/governance.rst>`_. 
 The pull request is then refined in response to public comment and review, with the goal being consensus in the community. 
-After this open period, a member of the Technical Committee proposes to the Core Contributors that the changes be ratified and the pull request merged (accepting the proposed changes) 
+After this open period, a member of the Technical Committee proposes to the core developers that the changes be ratified and the pull request merged (accepting the proposed changes) 
 or proposes that the pull request be closed without merging (rejecting the proposed changes). The Technical Committee member should state the final commit hash in the pull request being proposed 
-for acceptance or rejection and briefly summarize the pull request. A minimum of 60% of the Core Contributors must vote and at least 2/3 of the votes must be positive to carry out the proposed action 
+for acceptance or rejection and briefly summarize the pull request. A minimum of 60% of the core developers must vote and at least 2/3 of the votes must be positive to carry out the proposed action 
 (fractions of a vote rounded up to the nearest integer).
