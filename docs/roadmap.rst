@@ -34,8 +34,7 @@ and an expanding user base. It is costly to maintain the existing modules, and o
 
 **Our main goals are to**:
 
-1. continue maintaining a high-quality, well-documented collection of canonical
-  tools for computations, statistics and machine learning for data on manifolds,
+1. continue maintaining a high-quality, well-documented collection of canonical tools for computations, statistics and machine learning for data on manifolds,
 2. re-organize and re-design the documentation website,
 3. re-organize the architecture of the learning module, with a scikit-learn inspired design with Mixins,
 4. develop the shapes module and transfer techniques to communities in applied sciences including biomedical fields,

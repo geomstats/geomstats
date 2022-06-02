@@ -2,7 +2,7 @@ Geomstats
 =========
 
 .. image:: geomstats_logo.jpg
-  :width: 150
+  :width: 160
   :alt: Geomstats Logo
 
 **Geomstats** is an open-source Python package for computations, statistics, and machine learning on
@@ -13,11 +13,11 @@ are manifolds. Additional examples are introduced in Geomstats `paper <https://a
 
 .. figure:: geomstats_examples.jpg
    :alt: natural shapes
-   :target: https://typo3.org
+   :target: https://geomstats.github.io/notebooks/11_real_world_applications__cell_shapes_analysis.html
    :class: with-shadow
    :width: 1000px
 
-   **Figure:** Shapes in natural sciences can be represented as data points on "manifolds". Images credits: Greg Dunn Neuro Art, British Art Foundation, Ashok Prasad, Matematik Dunyasi, Gabriel Pérez / SMM-IAC.
+   **Figure**: Shapes in natural sciences can be represented as data points on "manifolds". Images credits: Greg Dunn Neuro Art, British Art Foundation, Ashok Prasad, Matematik Dunyasi, Gabriel Pérez.
 
 Computations and statistics on manifolds require special tools of
 `differential geometry <https://en.wikipedia.org/wiki/Differential_geometry>`_. Computing
@@ -62,7 +62,7 @@ To learn how to use `geomstats`, visit :ref:`first_steps`. To contribute to `geo
    tutorials/index
    contributing/index
    api/index
-   gsod <gsod>
-   roadmap <roadmap>
-   governance <governance>
+   Roadmap <roadmap>
+   Governance <governance>
+   Google Season of Docs <gsod>
 
