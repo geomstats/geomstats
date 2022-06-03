@@ -24,25 +24,29 @@ class WaldTestData(_PointTestData):
     def to_array_test_data(self):
         smoke_data = []
 
-        top = Topology(n=2, partition=((0,), (1,)), split_sets=((), ()))
+        top = Topology(n_labels=2, partition=((0,), (1,)), split_sets=((), ()))
         x = gs.array([])
-        smoke_data.append(dict(point_args=(top.n, top, x), expected=gs.eye(2)))
+        smoke_data.append(dict(point_args=(top, x), expected=gs.eye(2)))
 
-        top = Topology(n=3, partition=((0,), (1,), (2,)), split_sets=((), (), ()))
+        top = Topology(
+            n_labels=3, partition=((0,), (1,), (2,)), split_sets=((), (), ())
+        )
         x = gs.array([])
-        smoke_data.append(dict(point_args=(top.n, top, x), expected=gs.eye(3)))
+        smoke_data.append(dict(point_args=(top, x), expected=gs.eye(3)))
 
-        top = Topology(n=4, partition=((0,), (1,), (2,), (3,)), split_sets=((),) * 4)
+        top = Topology(
+            n_labels=4, partition=((0,), (1,), (2,), (3,)), split_sets=((),) * 4
+        )
         x = gs.array([])
-        smoke_data.append(dict(point_args=(top.n, top, x), expected=gs.eye(4)))
+        smoke_data.append(dict(point_args=(top, x), expected=gs.eye(4)))
 
         partition = ((0, 1, 2),)
         split_sets = ((((0, 1), (2,)), ((0, 2), (1,)), ((0,), (1, 2))),)
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
-        top = Topology(n=3, partition=partition, split_sets=split_sets)
+        top = Topology(n_labels=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1, 0.2, 0.3])
         expected = gs.array([[1.0, 0.56, 0.63], [0.56, 1.0, 0.72], [0.63, 0.72, 1.0]])
-        smoke_data.append(dict(point_args=(top.n, top, x), expected=expected))
+        smoke_data.append(dict(point_args=(top, x), expected=expected))
 
         return self.generate_tests(smoke_data)
 
@@ -62,54 +66,68 @@ class WaldSpaceTestData(_PointSetTestData):
 
         split_sets = ((((0,), (1,)),),)
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
-        top = Topology(n=2, partition=((0, 1),), split_sets=split_sets)
+        top = Topology(n_labels=2, partition=((0, 1),), split_sets=split_sets)
         x = gs.array([0.3])
-        point = self._Point(n=top.n, topology=top, weights=x)
+        point = self._Point(topology=top, weights=x)
 
-        smoke_data.append(dict(space_args=(top.n,), points=point, expected=True))
+        smoke_data.append(dict(space_args=(top.n_labels,), points=point, expected=True))
         smoke_data.append(dict(space_args=(3,), points=point, expected=False))
 
-        top = Topology(n=2, partition=((0, 1),), split_sets=((),))
+        top = Topology(n_labels=2, partition=((0, 1),), split_sets=((),))
         x = gs.array([])
-        point = Wald(n=top.n, topology=top, weights=x)
+        point = Wald(topology=top, weights=x)
 
-        smoke_data.append(dict(space_args=(top.n,), points=point, expected=False))
+        smoke_data.append(
+            dict(space_args=(top.n_labels,), points=point, expected=False)
+        )
         smoke_data.append(dict(space_args=(3,), points=point, expected=False))
-        smoke_data.append(dict(space_args=(top.n,), points=[point], expected=False))
-        smoke_data.append(dict(space_args=(top.n,), points=point, expected=[False]))
-        smoke_data.append(dict(space_args=(top.n,), points=[point], expected=[False]))
+        smoke_data.append(
+            dict(space_args=(top.n_labels,), points=[point], expected=False)
+        )
+        smoke_data.append(
+            dict(space_args=(top.n_labels,), points=point, expected=[False])
+        )
+        smoke_data.append(
+            dict(space_args=(top.n_labels,), points=[point], expected=[False])
+        )
 
         partition = ((0, 1, 2),)
         split_sets = ((((0, 1), (2,)), ((0, 2), (1,))),)
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
-        top = Topology(n=3, partition=partition, split_sets=split_sets)
+        top = Topology(n_labels=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1, 0.2])
-        point = Wald(n=top.n, topology=top, weights=x)
-        smoke_data.append(dict(space_args=(top.n,), points=point, expected=True))
+        point = Wald(topology=top, weights=x)
+        smoke_data.append(dict(space_args=(top.n_labels,), points=point, expected=True))
 
         partition = ((0, 1, 2),)
         split_sets = ((((0, 1), (2,)),),)
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
-        top = Topology(n=3, partition=partition, split_sets=split_sets)
+        top = Topology(n_labels=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1])
-        point = Wald(n=top.n, topology=top, weights=x)
-        smoke_data.append(dict(space_args=(top.n,), points=point, expected=False))
+        point = Wald(topology=top, weights=x)
+        smoke_data.append(
+            dict(space_args=(top.n_labels,), points=point, expected=False)
+        )
 
         partition = ((0, 1, 2),)
         split_sets = ((((0, 1), (2,)), ((0, 2), (1,))),)
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
-        top = Topology(n=3, partition=partition, split_sets=split_sets)
+        top = Topology(n_labels=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.0, 0.2])
-        point = Wald(n=top.n, topology=top, weights=x)
-        smoke_data.append(dict(space_args=(top.n,), points=point, expected=False))
+        point = Wald(topology=top, weights=x)
+        smoke_data.append(
+            dict(space_args=(top.n_labels,), points=point, expected=False)
+        )
 
         partition = ((0, 1, 2),)
         split_sets = ((((0, 1), (2,)), ((0, 2), (1,))),)
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
-        top = Topology(n=3, partition=partition, split_sets=split_sets)
+        top = Topology(n_labels=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1, 1.0])
-        point = Wald(n=top.n, topology=top, weights=x)
-        smoke_data.append(dict(space_args=(top.n,), points=point, expected=False))
+        point = Wald(topology=top, weights=x)
+        smoke_data.append(
+            dict(space_args=(top.n_labels,), points=point, expected=False)
+        )
 
         points = []
         expected = []
@@ -117,18 +135,18 @@ class WaldSpaceTestData(_PointSetTestData):
         partition = ((0, 1, 2),)
         split_sets = ((((0, 1), (2,)), ((0, 2), (1,))),)
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
-        top = Topology(n=3, partition=partition, split_sets=split_sets)
+        top = Topology(n_labels=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1, 0.2])
-        point = Wald(n=top.n, topology=top, weights=x)
+        point = Wald(topology=top, weights=x)
         points.append(point)
         expected.append(True)
 
         partition = ((0, 1, 2),)
         split_sets = ((((0, 1), (2,)),),)
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
-        top = Topology(n=3, partition=partition, split_sets=split_sets)
+        top = Topology(n_labels=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1])
-        point = Wald(n=top.n, topology=top, weights=x)
+        point = Wald(topology=top, weights=x)
         points.append(point)
         expected.append(False)
 
@@ -141,18 +159,20 @@ class WaldSpaceTestData(_PointSetTestData):
         points = []
         expected = []
 
-        top = Topology(n=3, partition=((0,), (1,), (2,)), split_sets=((), (), ()))
+        top = Topology(
+            n_labels=3, partition=((0,), (1,), (2,)), split_sets=((), (), ())
+        )
         x = gs.array([])
-        point = Wald(top.n, top, x)
+        point = Wald(top, x)
         points.append(point)
         expected.append(gs.eye(3))
 
         partition = ((0, 1, 2),)
         split_sets = ((((0, 1), (2,)), ((0, 2), (1,)), ((0,), (1, 2))),)
         split_sets = [[Split(a, b) for a, b in splits] for splits in split_sets]
-        top = Topology(n=3, partition=partition, split_sets=split_sets)
+        top = Topology(n_labels=3, partition=partition, split_sets=split_sets)
         x = gs.array([0.1, 0.2, 0.3])
-        point = Wald(top.n, top, x)
+        point = Wald(top, x)
         points.append(point)
         expected.append(
             gs.array([[1.0, 0.56, 0.63], [0.56, 1.0, 0.72], [0.63, 0.72, 1.0]])
@@ -283,16 +303,20 @@ class TopologyTestData(TestData):
         # TODO: add false example
         smoke_data = [
             dict(
-                st_a=Topology(n=3, partition=((1, 0), (2,)), split_sets=((), ())),
-                st_b=Topology(n=3, partition=((2,), (0, 1)), split_sets=((), ())),
+                st_a=Topology(
+                    n_labels=3, partition=((1, 0), (2,)), split_sets=((), ())
+                ),
+                st_b=Topology(
+                    n_labels=3, partition=((2,), (0, 1)), split_sets=((), ())
+                ),
                 expected=True,
             ),
             dict(
                 st_a=Topology(
-                    n=3, partition=((1,), (0,), (2,)), split_sets=((), (), ())
+                    n_labels=3, partition=((1,), (0,), (2,)), split_sets=((), (), ())
                 ),
                 st_b=Topology(
-                    n=3, partition=((0,), (1,), (2,)), split_sets=((), (), ())
+                    n_labels=3, partition=((0,), (1,), (2,)), split_sets=((), (), ())
                 ),
                 expected=True,
             ),
@@ -308,8 +332,8 @@ class TopologyTestData(TestData):
 
         smoke_data.append(
             dict(
-                st_a=Topology(n=2, partition=((0, 1),), split_sets=split_sets1),
-                st_b=Topology(n=2, partition=((0, 1),), split_sets=((),)),
+                st_a=Topology(n_labels=2, partition=((0, 1),), split_sets=split_sets1),
+                st_b=Topology(n_labels=2, partition=((0, 1),), split_sets=((),)),
                 expected=[True, True, False, False, False, True],
             )
         )
@@ -329,8 +353,12 @@ class TopologyTestData(TestData):
 
         smoke_data.append(
             dict(
-                st_a=Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1),
-                st_b=Topology(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2),
+                st_a=Topology(
+                    n_labels=4, partition=((0, 1, 2, 3),), split_sets=split_sets1
+                ),
+                st_b=Topology(
+                    n_labels=4, partition=((1, 2), (0, 3)), split_sets=split_sets2
+                ),
                 expected=[True, True, False, False, False, True],
             )
         )
@@ -350,8 +378,12 @@ class TopologyTestData(TestData):
 
         smoke_data.append(
             dict(
-                st_a=Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1),
-                st_b=Topology(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2),
+                st_a=Topology(
+                    n_labels=4, partition=((0, 1, 2, 3),), split_sets=split_sets1
+                ),
+                st_b=Topology(
+                    n_labels=4, partition=((1, 2), (0, 3)), split_sets=split_sets2
+                ),
                 expected=[False, False, False, False, False, True],
             )
         )
@@ -379,8 +411,12 @@ class TopologyTestData(TestData):
 
         smoke_data.append(
             dict(
-                st_a=Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1),
-                st_b=Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets2),
+                st_a=Topology(
+                    n_labels=4, partition=((0, 1, 2, 3),), split_sets=split_sets1
+                ),
+                st_b=Topology(
+                    n_labels=4, partition=((0, 1, 2, 3),), split_sets=split_sets2
+                ),
                 expected=[False, False, False, False, False, True],
             )
         )
@@ -394,8 +430,12 @@ class TopologyTestData(TestData):
 
         smoke_data.append(
             dict(
-                st_a=Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1),
-                st_b=Topology(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2),
+                st_a=Topology(
+                    n_labels=4, partition=((0, 1, 2, 3),), split_sets=split_sets1
+                ),
+                st_b=Topology(
+                    n_labels=4, partition=((1, 2), (0, 3)), split_sets=split_sets2
+                ),
                 expected=[False, False, False, False, False, True],
             )
         )

@@ -48,7 +48,7 @@ References
 """
 
 import functools
-import itertools as it
+import itertools
 
 import geomstats.backend as gs
 import geomstats.geometry.spd_matrices as spd
@@ -304,7 +304,7 @@ class Topology:
 
     Parameters
     ----------
-    n : int
+    n_labels : int
         Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
     partition : tuple
         A tuple of tuples that is a partition of the set :math:`\{0,\dots,n-1\}`,
@@ -337,22 +337,11 @@ class Topology:
         ``False``.
     """
 
-    def __init__(self, n, partition, split_sets):
+    def __init__(self, n_labels, partition, split_sets):
         """Return a topology with partition and sets of splits of components."""
-        if len(split_sets) != len(partition):
-            raise ValueError(
-                "Number of split sets is not equal to number of " "components."
-            )
-        if set.union(*[set(part) for part in partition]) != set(range(n)):
-            raise ValueError("The partition is not a partition of the set (0,...,n-1).")
-        for _part, _splits in zip(partition, split_sets):
-            for _sp in _splits:
-                if (_sp.part1 | _sp.part2) != set(_part):
-                    raise ValueError(
-                        f"The split {_sp} is not a split of component {_part}."
-                    )
+        self._check_init(n_labels, partition, split_sets)
 
-        self.n = n
+        self.n_labels = n_labels
         partition = [tuple(sorted(x)) for x in partition]
         seq = [part[0] for part in partition]
         sort_key = sorted(range(len(seq)), key=seq.__getitem__)
@@ -367,13 +356,13 @@ class Topology:
         self.paths = [
             {
                 (u, v): [s for s in splits if s.separates(u, v)]
-                for u, v in it.combinations(part, r=2)
+                for u, v in itertools.combinations(part, r=2)
             }
             for part, splits in zip(self.partition, self.split_sets)
         ]
 
         _support = [
-            gs.zeros((self.n, self.n), dtype=bool)
+            gs.zeros((self.n_labels, self.n_labels), dtype=bool)
             for _ in self.flatten(self.split_sets)
         ]
         for path_dict in self.paths:
@@ -383,6 +372,20 @@ class Topology:
                     _support[self.where[split]][v][u] = True
         self.support = [gs.array(m) for m in self.flatten(_support)]
         self._chart_gradient = None
+
+    def _check_init(self, n_labels, partition, split_sets):
+        if len(split_sets) != len(partition):
+            raise ValueError(
+                "Number of split sets is not equal to number of " "components."
+            )
+        if set.union(*[set(part) for part in partition]) != set(range(n_labels)):
+            raise ValueError("The partition is not a partition of the set (0,...,n-1).")
+        for _part, _splits in zip(partition, split_sets):
+            for _sp in _splits:
+                if (_sp.part1 | _sp.part2) != set(_part):
+                    raise ValueError(
+                        f"The split {_sp} is not a split of component {_part}."
+                    )
 
     def __eq__(self, other):
         """Check if ``self`` is equal to ``other``.
@@ -397,7 +400,7 @@ class Topology:
         is_equal : bool
             Return ``True`` if the topologies are equal, else ``False``.
         """
-        equal_n = self.n == other.n
+        equal_n = self.n_labels == other.n_labels
         equal_partition = self.partition == other.partition
         equal_split_sets = self.split_sets == other.split_sets
         return equal_n and equal_partition and equal_split_sets
@@ -443,7 +446,7 @@ class Topology:
         hash_of_topology : int
             Return the hash of the topology.
         """
-        return hash((self.n, self.partition, self.split_sets))
+        return hash((self.n_labels, self.partition, self.split_sets))
 
     def __le__(self, other):
         """Check if ``self`` is less than or equal to ``other``.
@@ -497,7 +500,7 @@ class Topology:
         try:
             for j in range(len(y_parts)):
                 xs_in_y = [x for i, x in enumerate(x_parts) if cover[i] == j]
-                for x1, x2 in it.combinations(xs_in_y, r=2):
+                for x1, x2 in itertools.combinations(xs_in_y, r=2):
                     sep_sp = [sp for sp in other.split_sets[j] if sp.separates(x1, x2)]
                     if not sep_sp:
                         raise NotPartialOrder()
@@ -531,7 +534,7 @@ class Topology:
         string_of_topology : str
             Return the string representation of the topology.
         """
-        return str((self.n, self.partition, self.split_sets))
+        return str((self.n_labels, self.partition, self.split_sets))
 
     def __str__(self):
         """Return the fancy printable string representation of the topology.
@@ -561,7 +564,7 @@ class Topology:
         corr : array-like, shape=[n, n]
             Returns the corresponding correlation matrix.
         """
-        corr = gs.zeros((self.n, self.n))
+        corr = gs.zeros((self.n_labels, self.n_labels))
         for path_dict in self.paths:
             for (u, v), path in path_dict.items():
                 corr[u][v] = gs.prod([1 - x[self.where[split]] for split in path])
@@ -630,8 +633,6 @@ class Wald(Point):
 
     Parameters
     ----------
-    n : int
-        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
     topology : Topology
         The structure of the forest.
     weights : array-like
@@ -639,14 +640,16 @@ class Wald(Point):
         the total number of splits/edges in the structure ``top``.
     """
 
-    def __init__(self, n: int, topology: Topology, weights):
-        # TODO: make `n` come from topology?
-        # TODO: keep parameters naming
+    def __init__(self, topology: Topology, weights):
         super().__init__()
-        self.n = n
-        self.top = topology
+        self.topology = topology
         self.weights = weights
-        self.corr = self.top.corr(weights)
+        self.corr = self.topology.corr(weights)
+
+    @property
+    def n_labels(self):
+        r"""Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`."""
+        return self.topology.n_labels
 
     def __eq__(self, other):
         """Check for equal hashes of the two wälder.
@@ -673,7 +676,7 @@ class Wald(Point):
         hash_of_wald : int
             Return the hash of the wald.
         """
-        return hash((self.top, tuple(self.weights)))
+        return hash((self.topology, tuple(self.weights)))
 
     def __repr__(self):
         """Return the string representation of the wald.
@@ -686,7 +689,7 @@ class Wald(Point):
         string_of_wald : str
             Return the string representation of the wald.
         """
-        return repr((self.top, tuple(self.weights)))
+        return repr((self.topology, tuple(self.weights)))
 
     def __str__(self):
         """Return the fancy printable string representation of the wald.
@@ -700,7 +703,7 @@ class Wald(Point):
         string_of_wald : str
             Return the fancy readable string representation of the wald.
         """
-        return f"({str(self.top)};{str(self.weights)})"
+        return f"({str(self.topology)};{str(self.weights)})"
 
     def to_array(self):
         """Turn the wald into a numpy array, namely its correlation matrix.
@@ -731,7 +734,7 @@ class Wald(Point):
         return gs.all(
             [
                 gs.any([sp.separates(u, v) for sp in splits])
-                for u, v in it.combinations(labels, 2)
+                for u, v in itertools.combinations(labels, 2)
             ]
         )
 
@@ -774,7 +777,7 @@ class Wald(Point):
         return splits
 
     @staticmethod
-    def _generate_partition(n, p_new):
+    def _generate_partition(n_labels, p_new):
         r"""Generate a random partition of :math:`\{0,\dots,n-1\}`.
 
         This algorithm works as follows: Start with a single set containing zero,
@@ -795,7 +798,7 @@ class Wald(Point):
             A partition of the set :math:`\{0,\dots,n-1\}` into non-empty sets.
         """
         _partition = [[0]]
-        for u in range(1, n):
+        for u in range(1, n_labels):
             if gs.random.rand(1) < p_new:
                 index = int(gs.random.randint(0, len(_partition), (1,)))
                 _partition[index].append(u)
@@ -856,12 +859,12 @@ class Wald(Point):
         return splits
 
     @staticmethod
-    def generate_wald(n, p_keep, p_new, btol=10**-8, check=True):
+    def generate_wald(n_labels, p_keep, p_new, btol=10**-8, check=True):
         """Generate a random instance of class ``Wald``.
 
         Parameters
         ----------
-        n : int
+        n_labels : int
             The number of labels the wald is generated with respect to.
         p_keep : float
             The probability will be inserted into the generation of a partition as
@@ -881,16 +884,16 @@ class Wald(Point):
         random_wald : Wald
             The randomly generated wald.
         """
-        partition = Wald._generate_partition(n=n, p_new=p_new)
+        partition = Wald._generate_partition(n_labels=n_labels, p_new=p_new)
         split_sets = [Wald._generate_splits(labels=_part) for _part in partition]
         split_sets = [
             Wald._delete_splits(splits=splits, labels=part, p_keep=p_keep, check=check)
             for part, splits in zip(partition, split_sets)
         ]
-        top = Topology(n=n, partition=partition, split_sets=split_sets)
+        top = Topology(n_labels=n_labels, partition=partition, split_sets=split_sets)
         x = gs.random.uniform(size=(len(top.flatten(split_sets)),), low=0, high=1)
         x = gs.minimum(gs.maximum(btol, x), 1 - btol)
-        return Wald(n=n, topology=top, weights=x)
+        return Wald(topology=top, weights=x)
 
 
 class WaldSpace(PointSet):
@@ -898,21 +901,21 @@ class WaldSpace(PointSet):
 
     Parameters
     ----------
-    n : int
+    n_labels : int
         Integer determining the number of labels in the forests, and thus the shape of
-        the correlation matrices: n x n.
+        the correlation matrices: n_labels x n_labels.
 
     Attributes
     ----------
     ambient :
-        The ambient space, the positive definite n x n matrices that the WaldSpace is
-        embedded into.
+        The ambient space, the positive definite n_labels x n_labels matrices that the
+        WaldSpace is embedded into.
     """
 
-    def __init__(self, n):
+    def __init__(self, n_labels):
         super().__init__()
-        self.n = n
-        self.ambient = spd.SPDMatrices(n=self.n)
+        self.n_labels = n_labels
+        self.ambient = spd.SPDMatrices(n=self.n_labels)
 
     @_vectorize_point((1, "point"))
     def belongs(self, point):
@@ -967,9 +970,9 @@ class WaldSpace(PointSet):
         samples : Wald or list of Wald, shape=[n_samples]
             Points sampled in Wald space.
         """
-        p_new = p_tree ** (1 / (self.n - 1))
+        p_new = p_tree ** (1 / (self.n_labels - 1))
         sample = [
-            Wald.generate_wald(self.n, p_keep, p_new, btol, check=True)
+            Wald.generate_wald(self.n_labels, p_keep, p_new, btol, check=True)
             for _ in range(n_samples)
         ]
         return sample
