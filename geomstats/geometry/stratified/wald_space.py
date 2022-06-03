@@ -648,7 +648,7 @@ class Wald(Point):
 
     @property
     def n_labels(self):
-        r"""Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`."""
+        """Get number of labels."""
         return self.topology.n_labels
 
     def __eq__(self, other):
