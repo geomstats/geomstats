@@ -1,6 +1,10 @@
-from geomstats.geometry.stratified.wald_space import Split, Topology, Wald
 from tests.conftest import Parametrizer, TestCase, np_backend
-from tests.data.wald_space_data import SplitTestData, WaldSpaceTestData, WaldTestData
+from tests.data.wald_space_data import (
+    SplitTestData,
+    TopologyTestData,
+    WaldSpaceTestData,
+    WaldTestData,
+)
 from tests.stratified_test_cases import PointSetTestCase, PointTestCase
 
 IS_NOT_NP = not np_backend()
@@ -15,8 +19,8 @@ class TestWaldSpace(PointSetTestCase, metaclass=Parametrizer):
 class TestWald(PointTestCase, metaclass=Parametrizer):
     skip_all = IS_NOT_NP
 
-    _Point = Wald
     testing_data = WaldTestData()
+    _Point = testing_data._Point
 
     def test_generate_wald_belongs(self, point_args):
         generated_point = self._Point.generate_wald(*point_args)
@@ -60,109 +64,22 @@ class TestSplit(TestCase, metaclass=Parametrizer):
         self.assertEqual(result, expected)
 
 
-class TestTopology(TestCase):
-    """Class for testing the class Topology."""
-
+class TestTopology(TestCase, metaclass=Parametrizer):
     skip_all = IS_NOT_NP
+    testing_data = TopologyTestData()
 
-    def test_partition(self):
-        """Test the attribute partition of class Topology."""
-        st1a = Topology(n=3, partition=((1, 0), (2,)), split_sets=((), ()))
-        st1b = Topology(n=3, partition=((2,), (0, 1)), split_sets=((), ()))
-        result = st1a.partition == st1b.partition
-        expected = True
+    def test_partition(self, st_a, st_b, expected):
+        result = st_a.partition == st_b.partition
         self.assertEqual(result, expected)
 
-        st2a = Topology(n=3, partition=((1,), (0,), (2,)), split_sets=((), (), ()))
-        st2b = Topology(n=3, partition=((0,), (1,), (2,)), split_sets=((), (), ()))
-        result = st2a.partition == st2b.partition
-        expected = True
-        self.assertEqual(result, expected)
-
-    def test_partial_ordering(self):
+    def test_partial_ordering(self, st_a, st_b, expected):
         """Test the attributes __gt__, __ge__, __eq__, __lt__, __le__, __ne__."""
-        sp1 = [[((0,), (1,))]]
-        split_sets1 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp1]
-        st1 = Topology(n=2, partition=((0, 1),), split_sets=split_sets1)
-        st2 = Topology(n=2, partition=((0, 1),), split_sets=((),))
-        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
-        expected = [True, True, False, False, False, True]
-        self.assertEqual(result, expected)
-
-        sp1 = [
-            [
-                ((0,), (1, 2, 3)),
-                ((3,), (0, 1, 2)),
-                ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3)),
-                ((1, 2), (0, 3)),
-            ]
+        result = [
+            st_a > st_b,
+            st_a >= st_b,
+            st_a == st_b,
+            st_a < st_b,
+            st_a <= st_b,
+            st_a != st_b,
         ]
-        split_sets1 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp1]
-        st1 = Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1)
-        sp2 = [[((1,), (2,))], [((0,), (3,))]]
-        split_sets2 = [[Split(a, b) for a, b in splits] for splits in sp2]
-        st2 = Topology(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2)
-
-        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
-        expected = [True, True, False, False, False, True]
-        self.assertEqual(result, expected)
-
-        sp1 = [
-            [
-                ((0,), (1, 2, 3)),
-                ((3,), (0, 1, 2)),
-                ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3)),
-                ((0, 2), (1, 3)),
-            ]
-        ]
-        split_sets1 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp1]
-        st1 = Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1)
-        sp2 = [[((1,), (2,))], [((0,), (3,))]]
-        split_sets2 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp2]
-        st2 = Topology(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2)
-
-        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
-        expected = [False, False, False, False, False, True]
-        self.assertEqual(result, expected)
-
-        sp1 = [
-            [
-                ((0,), (1, 2, 3)),
-                ((3,), (0, 1, 2)),
-                ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3)),
-                ((0, 2), (1, 3)),
-            ]
-        ]
-        split_sets1 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp1]
-        st1 = Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1)
-        sp2 = [
-            [
-                ((0,), (1, 2, 3)),
-                ((3,), (0, 1, 2)),
-                ((1,), (0, 2, 3)),
-                ((2,), (0, 1, 3)),
-                ((0, 3), (1, 2)),
-            ]
-        ]
-        split_sets2 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp2]
-        st2 = Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets2)
-
-        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
-        expected = [False, False, False, False, False, True]
-        self.assertEqual(result, expected)
-
-        sp1 = [
-            [((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)), ((2,), (0, 1, 3))]
-        ]
-        split_sets1 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp1]
-        st1 = Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1)
-        sp2 = [[((1,), (2,))], [((0,), (3,))]]
-        split_sets2 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp2]
-        st2 = Topology(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2)
-
-        result = [st1 > st2, st1 >= st2, st1 == st2, st1 < st2, st1 <= st2, st1 != st2]
-        expected = [False, False, False, False, False, True]
         self.assertEqual(result, expected)

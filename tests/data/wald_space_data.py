@@ -276,3 +276,128 @@ class SplitTestData(TestData):
         ]
 
         return self.generate_tests(smoke_data)
+
+
+class TopologyTestData(TestData):
+    def partition_test_data(self):
+        # TODO: add false example
+        smoke_data = [
+            dict(
+                st_a=Topology(n=3, partition=((1, 0), (2,)), split_sets=((), ())),
+                st_b=Topology(n=3, partition=((2,), (0, 1)), split_sets=((), ())),
+                expected=True,
+            ),
+            dict(
+                st_a=Topology(
+                    n=3, partition=((1,), (0,), (2,)), split_sets=((), (), ())
+                ),
+                st_b=Topology(
+                    n=3, partition=((0,), (1,), (2,)), split_sets=((), (), ())
+                ),
+                expected=True,
+            ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def partial_ordering_test_data(self):
+        smoke_data = []
+
+        sp1 = [[((0,), (1,))]]
+        split_sets1 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp1]
+
+        smoke_data.append(
+            dict(
+                st_a=Topology(n=2, partition=((0, 1),), split_sets=split_sets1),
+                st_b=Topology(n=2, partition=((0, 1),), split_sets=((),)),
+                expected=[True, True, False, False, False, True],
+            )
+        )
+
+        sp1 = [
+            [
+                ((0,), (1, 2, 3)),
+                ((3,), (0, 1, 2)),
+                ((1,), (0, 2, 3)),
+                ((2,), (0, 1, 3)),
+                ((1, 2), (0, 3)),
+            ]
+        ]
+        split_sets1 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp1]
+        sp2 = [[((1,), (2,))], [((0,), (3,))]]
+        split_sets2 = [[Split(a, b) for a, b in splits] for splits in sp2]
+
+        smoke_data.append(
+            dict(
+                st_a=Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1),
+                st_b=Topology(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2),
+                expected=[True, True, False, False, False, True],
+            )
+        )
+
+        sp1 = [
+            [
+                ((0,), (1, 2, 3)),
+                ((3,), (0, 1, 2)),
+                ((1,), (0, 2, 3)),
+                ((2,), (0, 1, 3)),
+                ((0, 2), (1, 3)),
+            ]
+        ]
+        split_sets1 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp1]
+        sp2 = [[((1,), (2,))], [((0,), (3,))]]
+        split_sets2 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp2]
+
+        smoke_data.append(
+            dict(
+                st_a=Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1),
+                st_b=Topology(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2),
+                expected=[False, False, False, False, False, True],
+            )
+        )
+
+        sp1 = [
+            [
+                ((0,), (1, 2, 3)),
+                ((3,), (0, 1, 2)),
+                ((1,), (0, 2, 3)),
+                ((2,), (0, 1, 3)),
+                ((0, 2), (1, 3)),
+            ]
+        ]
+        split_sets1 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp1]
+        sp2 = [
+            [
+                ((0,), (1, 2, 3)),
+                ((3,), (0, 1, 2)),
+                ((1,), (0, 2, 3)),
+                ((2,), (0, 1, 3)),
+                ((0, 3), (1, 2)),
+            ]
+        ]
+        split_sets2 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp2]
+
+        smoke_data.append(
+            dict(
+                st_a=Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1),
+                st_b=Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets2),
+                expected=[False, False, False, False, False, True],
+            )
+        )
+
+        sp1 = [
+            [((0,), (1, 2, 3)), ((3,), (0, 1, 2)), ((1,), (0, 2, 3)), ((2,), (0, 1, 3))]
+        ]
+        split_sets1 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp1]
+        sp2 = [[((1,), (2,))], [((0,), (3,))]]
+        split_sets2 = [[Split(part1=a, part2=b) for a, b in splits] for splits in sp2]
+
+        smoke_data.append(
+            dict(
+                st_a=Topology(n=4, partition=((0, 1, 2, 3),), split_sets=split_sets1),
+                st_b=Topology(n=4, partition=((1, 2), (0, 3)), split_sets=split_sets2),
+                expected=[False, False, False, False, False, True],
+            )
+        )
+
+        return self.generate_tests(smoke_data)
