@@ -12,22 +12,22 @@ import geomstats.backend as gs
 
 def autograd_backend():
     """Check if autograd is set as backend."""
-    return gs.__name__ == "autograd"
+    return gs.__name__.endswith("autograd")
 
 
 def np_backend():
     """Check if numpy is set as backend."""
-    return gs.__name__ == "numpy"
+    return gs.__name__.endswith("numpy")
 
 
 def pytorch_backend():
     """Check if pytorch is set as backend."""
-    return gs.__name__ == "pytorch"
+    return gs.__name__.endswith("pytorch")
 
 
 def tf_backend():
     """Check if tensorflow is set as backend."""
-    return gs.__name__ == "tensorflow"
+    return gs.__name__.endswith("tensorflow")
 
 
 if tf_backend():
