@@ -2,7 +2,7 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.stratified.wald_space import Split, Topology, Wald, WaldSpace
-from tests.data_generation import _PointSetTestData, _PointTestData
+from tests.data_generation import TestData, _PointSetTestData, _PointTestData
 
 
 class WaldTestData(_PointTestData):
@@ -159,5 +159,120 @@ class WaldSpaceTestData(_PointSetTestData):
         )
 
         smoke_data.append(dict(space_args=(3,), points=points, expected=expected))
+
+        return self.generate_tests(smoke_data)
+
+
+class SplitTestData(TestData):
+    def restrict_to_test_data(self):
+        smoke_data = [
+            dict(
+                split=Split(part1=[2, 3], part2=[0, 1, 4]),
+                subset={0, 1, 2},
+                expected=Split(part1=[0, 1], part2=[2]),
+            ),
+            dict(
+                split=Split(part1=[0, 1, 2, 3, 4, 5], part2=[6]),
+                subset={0},
+                expected=Split(part1=[], part2=[0]),
+            ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def part_contains_test_data(self):
+        smoke_data = [
+            dict(
+                split=Split(part1=[0, 4], part2=[1, 2, 3]),
+                subset={0, 2},
+                expected=False,
+            ),
+            dict(
+                split=Split(part1=[0, 1, 2, 3, 6, 7, 8, 9], part2=[4, 5]),
+                subset={0, 1, 2},
+                expected=True,
+            ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def separates_test_data(self):
+        smoke_data = [
+            dict(split=Split(part1=[0, 1], part2=[2]), u=[0, 1], v=[2], expected=True),
+            dict(
+                split=Split(part1=[0, 1, 2], part2=[3, 4]),
+                u=[0, 1, 2],
+                v=[2, 3, 4],
+                expected=False,
+            ),
+            dict(split=Split(part1=[0, 1], part2=[2, 3]), u=1, v=3, expected=True),
+            dict(
+                split=Split(part1=[], part2=[0, 1, 2, 3, 4]), u=4, v=1, expected=False
+            ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def get_part_towards_test_data(self):
+        split1 = Split(part1=[0, 4], part2=[1, 2, 3])
+        split2 = Split(part1=[2, 3], part2=[0, 1, 4])
+
+        smoke_data = [
+            dict(split_a=split1, split_b=split2, expected={1, 2, 3}),
+            dict(split_a=split2, split_b=split1, expected={0, 1, 4}),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def get_part_away_from_test_data(self):
+        split1 = Split(part1=[0, 4], part2=[1, 2, 3])
+        split2 = Split(part1=[2, 3], part2=[0, 1, 4])
+
+        smoke_data = [
+            dict(
+                split_a=split1,
+                split_b=split2,
+                expected={0, 4},
+            ),
+            dict(
+                split_a=split2,
+                split_b=split1,
+                expected={2, 3},
+            ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def is_compatible_test_data(self):
+        # TODO: add a non compatible example
+
+        smoke_data = [
+            dict(
+                split_a=Split(part1=[0, 4], part2=[1, 2, 3]),
+                split_b=Split(part1=[2, 3], part2=[0, 1, 4]),
+                expected=True,
+            ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def hash_test_data(self):
+        smoke_data = [
+            dict(
+                split_a=Split(part1=[0, 4], part2=[1, 2, 3]),
+                split_b=Split(part1=[2, 3], part2=[0, 1, 4]),
+                expected=False,
+            ),
+            dict(
+                split_a=Split(part1=[0], part2=[1, 2, 3]),
+                split_b=Split(part1=[0], part2=[1, 3, 2]),
+                expected=True,
+            ),
+            dict(
+                split_a=Split(part1=[2, 1], part2=[0, 3, 4]),
+                split_b=Split(part1=[0, 4, 3], part2=[1, 2]),
+                expected=True,
+            ),
+        ]
 
         return self.generate_tests(smoke_data)
