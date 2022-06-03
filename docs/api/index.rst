@@ -1,6 +1,6 @@
-*************
+=============
 API Reference
-*************
+=============
 
 The API reference gives an overview of Geomstats implementation.
 
@@ -15,7 +15,7 @@ scikit-learn's base classes and mixins.
 
 In both modules, the operations are vectorized for batch computation and provide
 support for different execution backends---namely NumPy, PyTorch, and TensorFlow.
-The module `backend` implements the operations needed to use Geomstats seemlessly with any backend.
+The module `backend` implements the operations needed to use Geomstats seamlessly with any backend.
 
 .. toctree::
    :maxdepth: 3

@@ -21,8 +21,8 @@ Geomstats
 
 - Next hackathon will be on October 17-21, 2022 in Paris. Interested? Reach out to us on slack!
 - Google's Season of Docs (SoD) 2022: Geomstats is participating! Interested?
-   - Find details about being a Google SoD's writer `here <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and details about Geomstats' proposal `here  <https://geomstats.github.io/gsod.html>`_. 
-   - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_. 
+   - Find out more about being a Google SoD's `writer <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and about Geomstats' `proposal <https://geomstats.github.io/gsod.html>`_.
+   - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_.
    - Submit your `statement of interest <https://developers.google.com/season-of-docs/docs/tech-writer-statement>`_ via email to nmiolane@gmail.com before May 1st, at 18:00 UTC.
    - Selected technical writers will be notified no later than May 16th.
 
@@ -38,11 +38,6 @@ The module ``geometry`` implements concepts in differential geometry,
 and the module ``learning`` implements statistics and learning
 algorithms for data on manifolds.
 
-.. raw:: html
-
-    <img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" height="120px" width="120px" align="left">
-
-
 -  To get an overview of ``geomstats``, see our `introductory
    video <https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3>`__.
 -  To get started with ``geomstats``, see the
@@ -55,8 +50,8 @@ algorithms for data on manifolds.
 - Interested in information geometry? Go to our `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
 -  To follow the scientific literature on geometric statistics, follow
    our twitter-bot `@geomstats <https://twitter.com/geomstats>`__!
-  
-Keep in touch with the community by joining us on our `slack workspace <https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ>`__! 
+
+Keep in touch with the community by joining us on our `slack workspace <https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ>`__!
 
 
 Citing Geomstats
@@ -233,8 +228,9 @@ Interested? Contact us and join the next hackathons. Previous Geomstats events i
 -  December 2021: fixit hackathon at the Sorbonne Center for Artificial Intelligence, Paris, France.
 -  February 2022: hackathon, hybrid at Inria Sophia-Antipolis / remotely with contributors from around the world
 -  April 2022: in-person hackathon at the Villa Cynthia, Saint Raphael, France.
--  August 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR), remotely
--  October 17-21, 2022: hackathon during the trimester `Geometry and Statistics in Data Sciences <https://indico.math.cnrs.fr/category/498/>`__, in Paris. 
+-  April 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR), remotely.
+-  June 2022: hakathon at the University of Washington (UW).
+-  October 17-21, 2022: hackathon during the trimester `Geometry and Statistics in Data Sciences <https://indico.math.cnrs.fr/category/498/>`__, in Paris.
 
 
 Acknowledgements

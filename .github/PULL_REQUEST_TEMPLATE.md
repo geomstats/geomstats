@@ -27,7 +27,7 @@ For testing in alternative backends such as `numpy`, `pytorch`, `autograd`, `ten
 $ export GEOMSTATS_BACKEND=<backend_name>
 
 Next, import the `backend` module using:
-import geomstats.backend as gs 
+import geomstats.backend as gs
 -->
 
 
@@ -37,10 +37,10 @@ $ pip3 install -r dev-requirements.txt
 
 Then run the following commands:
 $ flake8 --ignore=D,W503,W504 geomstats examples tests   #shadows .flake8
-$ flake8 geomstats/geometry geomstats/learning           #passed two subfolders 
+$ flake8 geomstats/geometry geomstats/learning           #passed two subfolders
 -->
 
-## Description 
+## Description
 
 <!-- Include a description of your pull request. If relevant, feel free to use this space to talk about time and space complexity as well scalability of your code-->
 

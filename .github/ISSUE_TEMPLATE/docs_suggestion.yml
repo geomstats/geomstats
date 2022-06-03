@@ -7,8 +7,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for helping us improve Geomstat's docs!        
-        Please check to make sure that a similar [issue](https://github.com/geomstats/geomstats/labels/documentation) doesn't already exist and then fill out the form below.        
+        Thank you for helping us improve Geomstat's docs!
+        Please check to make sure that a similar [issue](https://github.com/geomstats/geomstats/labels/documentation) doesn't already exist and then fill out the form below.
   - type: input
     attributes:
       label: Where should the content be modified?

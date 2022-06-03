@@ -23,12 +23,14 @@ class Landmarks(ProductManifold):
         Number of landmarks.
     """
 
-    def __init__(self, ambient_manifold, k_landmarks):
+    def __init__(self, ambient_manifold, k_landmarks, **kwargs):
+        kwargs.setdefault("metric", L2Metric(ambient_manifold, k_landmarks))
         super(Landmarks, self).__init__(
-            manifolds=[ambient_manifold] * k_landmarks, default_point_type="matrix"
+            manifolds=[ambient_manifold] * k_landmarks,
+            default_point_type="matrix",
+            **kwargs
         )
         self.ambient_manifold = ambient_manifold
-        self.metric = L2Metric(ambient_manifold, k_landmarks)
         self.k_landmarks = k_landmarks
 
 
@@ -55,6 +57,7 @@ class L2Metric(ProductRiemannianMetric):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
+
         - an initial landmark set and an initial tangent vector,
         - an initial landmark set and an end landmark set.
 

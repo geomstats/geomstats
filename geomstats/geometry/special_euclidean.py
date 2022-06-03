@@ -87,10 +87,11 @@ def _squared_dist(point_a, point_b, metric):
     and point_b, as defined by the metric.
 
     This is an auxiliary private function that:
+
     - is called by the method `squared_dist` of the class
-    SpecialEuclideanMatrixCannonicalLeftMetric,
+      SpecialEuclideanMatrixCannonicalLeftMetric,
     - has been created to support the implementation
-    of custom_gradient in tensorflow backend.
+      of custom_gradient in tensorflow backend.
 
     Parameters
     ----------
@@ -112,13 +113,13 @@ def _squared_dist(point_a, point_b, metric):
 def homogeneous_representation(rotation, translation, output_shape, constant=1.0):
     r"""Embed rotation, translation couples into n+1 square matrices.
 
-    Construct a block matrix of size :math: `n + 1 \times n + 1` of the form
-    .. math::
-        \matvec{cc}{R & t\\
-                    0&c}
+    Construct a block matrix of size :math:`n + 1 \times n + 1` of the form
 
-    where :math: `R` is a square matrix, :math: `t` a vector of size
-    :math: `n`, and :math: `c` a constant (either 0 or 1 should be used).
+    .. math::
+        \begin{pmatrix} R & t \\ 0 & c \end{pmatrix}
+
+    where :math:`R` is a square matrix, :math:`t` a vector of size
+    :math:`n`, and :math:`c` a constant (either 0 or 1 should be used).
 
     Parameters
     ----------
@@ -220,7 +221,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         The Euclidean (Frobenius) inner product.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         super().__init__(
             n=n + 1,
             dim=int((n * (n + 1)) / 2),
@@ -229,6 +230,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             value=gs.eye(n + 1),
             tangent_submersion=tangent_submersion,
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
+            **kwargs
         )
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
@@ -237,7 +239,8 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         self.left_canonical_metric = SpecialEuclideanMatrixCannonicalLeftMetric(
             group=self
         )
-        self.metric = self.left_canonical_metric
+        if self._metric is None:
+            self._metric = self.left_canonical_metric
 
     @property
     def identity(self):
@@ -492,7 +495,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Equation
         --------
-        (:math: `(R_1, t_1) \\cdot (R_2, t_2) = (R_1 R_2, R_1 t_2 + t_1)`)
+        (:math:`(R_1, t_1) \\cdot (R_2, t_2) = (R_1 R_2, R_1 t_2 + t_1)`)
 
         Returns
         -------
@@ -1137,11 +1140,11 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
 
         References
         ----------
-        [Zefran98]  Zefran, M., V. Kumar, and C.B. Croke.
-                    “On the Generation of Smooth Three-Dimensional Rigid Body
-                    Motions.” IEEE Transactions on Robotics and Automation 14,
-                    no. 4 (August 1998): 576–89.
-                    https://doi.org/10.1109/70.704225.
+        .. [Zefran98] Zefran, M., V. Kumar, and C.B. Croke.
+            “On the Generation of Smooth Three-Dimensional Rigid Body Motions.”
+            IEEE Transactions on Robotics and Automation 14,
+            no. 4 (August 1998): 576–89.
+            https://doi.org/10.1109/70.704225.
         """
         max_shape = point.shape if point.ndim == 3 else base_point.shape
         rotation_bp = base_point[..., : self.n, : self.n]
@@ -1161,11 +1164,11 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
 
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`. As the special Euclidean group endowed with its
         canonical left-invariant metric is a symmetric space, parallel
         transport is achieved by a geodesic symmetry, or equivalently, one step
-         of the pole ladder scheme.
+        of the pole ladder scheme.
 
         Parameters
         ----------
@@ -1178,8 +1181,8 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
             is computed.
             Optional, default: None
         end_point : array-like, shape=[..., n + 1, n + 1]
-            Point on the Grassmann manifold to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the Grassmann manifold to transport to. Unused if
+            `tangent_vec_b` is given.
             Optional, default: None
 
         Returns
@@ -1215,10 +1218,11 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         and point_b, as defined by the metric.
 
         This is an auxiliary private function that:
+
         - is called by the method `squared_dist` of the class
-        SpecialEuclideanMatrixCannonicalLeftMetric,
+          SpecialEuclideanMatrixCannonicalLeftMetric,
         - has been created to support the implementation
-        of custom_gradient in tensorflow backend.
+          of custom_gradient in tensorflow backend.
 
         Parameters
         ----------
@@ -1320,10 +1324,11 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
     This is the tangent space at the identity. It is identified with the
     :math:`n + 1 \times n + 1` block matrices of the form:
-    .. math:
-                ((A, t), (0, 0))
 
-    where A is an :math:`n \times n` skew-symmetric matrix, :math: `t` is an
+    .. math::
+        ((A, t), (0, 0))
+
+    where A is an :math:`n \times n` skew-symmetric matrix, :math:`t` is an
     n-dimensional vector.
 
     Parameters

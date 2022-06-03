@@ -20,11 +20,10 @@ class Hermitian(VectorSpace):
         Dimension of the Hermitian space.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, **kwargs):
+        kwargs.setdefault("metric", HermitianMetric(dim, shape=(dim,)))
         super(Hermitian, self).__init__(
-            shape=(dim,),
-            default_point_type="vector",
-            metric=HermitianMetric(dim, shape=(dim,)),
+            shape=(dim,), default_point_type="vector", **kwargs
         )
 
     def get_identity(self):
@@ -67,9 +66,10 @@ class HermitianMetric(RiemannianMetric):
     """Class for Hermitian metrics.
 
     As a Riemannian metric, the Hermitian metric is:
+
     - flat: the inner-product is independent of the base point.
     - positive definite: it has signature (dimension, 0, 0),
-    where dimension is the dimension of the Hermitian space.
+      where dimension is the dimension of the Hermitian space.
 
     Parameters
     ----------

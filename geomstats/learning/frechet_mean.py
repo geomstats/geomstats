@@ -11,6 +11,7 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 import geomstats.vectorization
+from geomstats.geometry.discrete_curves import SRVMetric
 from geomstats.geometry.hypersphere import Hypersphere
 
 EPSILON = 1e-4
@@ -51,6 +52,7 @@ def linear_mean(points, weights=None, point_type="vector"):
     """Compute the weighted linear mean.
 
     The linear mean is the Frechet mean when points:
+
     - lie in a Euclidean space with Euclidean metric,
     - lie in a Minkowski space with Minkowski metric.
 
@@ -138,7 +140,13 @@ def _default_gradient_descent(
         sq_dists_between_iterates.append(sq_dist)
 
         var_is_0 = gs.isclose(var, 0.0)
-        sq_dist_is_small = gs.less_equal(sq_dist, epsilon * metric.dim)
+
+        metric_dim = metric.dim
+        if isinstance(metric, SRVMetric):
+            metric_dim = tangent_mean.shape[-2] * tangent_mean.shape[-1]
+
+        sq_dist_is_small = gs.less_equal(sq_dist, epsilon * metric_dim)
+
         condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
         if not (condition or iteration == 0):
             break
@@ -388,7 +396,7 @@ def _circle_mean(points):
 
     Reference
     ---------
-    ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
+    .. [HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
                  Uniqueness, locus and asymptotics", Annals of the Institute of
                  Statistical Mathematics 67 (1), 177–193.
                  https://arxiv.org/abs/1108.2141
@@ -421,7 +429,7 @@ def _circle_variances(mean, var, n_samples, points):
 
     References
     ----------
-    ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
+    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
                  Uniqueness, locus and asymptotics", Annals of the Institute of
                  Statistical Mathematics 67 (1), 177–193.
                  https://arxiv.org/abs/1108.2141

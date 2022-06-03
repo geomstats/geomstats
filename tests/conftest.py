@@ -12,22 +12,22 @@ import geomstats.backend as gs
 
 def autograd_backend():
     """Check if autograd is set as backend."""
-    return os.environ["GEOMSTATS_BACKEND"] == "autograd"
+    return gs.__name__ == "autograd"
 
 
 def np_backend():
     """Check if numpy is set as backend."""
-    return os.environ["GEOMSTATS_BACKEND"] == "numpy"
+    return gs.__name__ == "numpy"
 
 
 def pytorch_backend():
     """Check if pytorch is set as backend."""
-    return os.environ["GEOMSTATS_BACKEND"] == "pytorch"
+    return gs.__name__ == "pytorch"
 
 
 def tf_backend():
     """Check if tensorflow is set as backend."""
-    return os.environ["GEOMSTATS_BACKEND"] == "tensorflow"
+    return gs.__name__ == "tensorflow"
 
 
 if tf_backend():
@@ -175,10 +175,15 @@ class Parametrizer(type):
             for test_fn in test_fn_list:
                 attrs[test_fn] = copy_func(getattr(base, test_fn))
 
+        skip_all = attrs.get("skip_all", False)
+
         for attr_name, attr_value in attrs.copy().items():
             if isinstance(attr_value, types.FunctionType):
 
-                if ("skip_" + attr_name, True) not in locals()["attrs"].items():
+                if (
+                    not skip_all
+                    and ("skip_" + attr_name, True) not in locals()["attrs"].items()
+                ):
                     args_str = ", ".join(inspect.getfullargspec(attr_value)[0][1:])
                     data_fn_str = attr_name[5:] + "_test_data"
                     if "testing_data" not in locals()["attrs"]:
@@ -222,6 +227,16 @@ class TestCase:
             gs.allclose(a, b, rtol=rtol, atol=atol),
             msg=pytorch_error_msg(a, b, rtol, atol),
         )
+
+    def assertAllEqual(self, a, b):
+        if tf_backend():
+            return tf.test.TestCase().assertAllEqual(a, b)
+
+        elif np_backend() or autograd_backend():
+            np.testing.assert_array_equal(a, b)
+
+        else:
+            self.assertTrue(gs.equal(a, b))
 
     def assertTrue(self, condition, msg=None):
         assert condition, msg

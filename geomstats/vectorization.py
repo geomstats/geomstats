@@ -46,10 +46,12 @@ def decorator(input_types):
     """Vectorize geomstats functions.
 
     This decorator assumes that its function:
+
     - works with fully-vectorized inputs,
     - returns fully-vectorized outputs,
 
     where "fully-vectorized" means that:
+
     - one scalar has shape [1, 1],
     - n scalars have shape [n, 1],
     - one d-D vector has shape [1, d],
@@ -57,6 +59,7 @@ def decorator(input_types):
     etc.
 
     The decorator:
+
     - gets the types of all inputs of its function:
         - args,
         - kwargs,
@@ -71,7 +74,7 @@ def decorator(input_types):
     - converts the inputs into fully-vectorized inputs,
     - calls the function,
     - adapts the output shapes to match the users' expectations,
-    using the initial shapes of the inputs.
+      using the initial shapes of the inputs.
 
     Parameters
     ----------
@@ -245,6 +248,7 @@ def vectorize_args(input_types, args):
 
     Transform input array-like args into their fully-vectorized form,
     where "fully-vectorized" means that:
+
     - one scalar has shape [1, 1],
     - n scalars have shape [n, 1],
     - one d-D vector has shape [1, d],
@@ -283,6 +287,7 @@ def vectorize_kwargs(input_types, kwargs):
 
     Transform input array-like kwargs into their fully-vectorized form,
     where "fully-vectorized" means that:
+
     - one scalar has shape [1, 1],
     - n scalars have shape [n, 1],
     - one d-D vector has shape [1, d],
@@ -321,6 +326,7 @@ def adapt_result(result, initial_shapes, args_kwargs_types, is_scal):
     """Adapt shape of output.
 
     This function squeezes the dim 0 or 1 of the output, depending on:
+
     - the type of the output: scalar vs else,
     - the initial shapes or args and kwargs provided by the user.
 
@@ -355,10 +361,11 @@ def squeeze_output_dim_0(result, in_shapes, input_types):
     """Determine if the output needs to be squeezed on dim 0.
 
     The dimension 0 is squeezed iff all input parameters:
+
     - contain one sample,
     - have the corresponding dimension 0 squeezed,
-    i.e. if all input parameters have ndim strictly less than the ndim
-    corresponding to their vectorized shape.
+      i.e. if all input parameters have ndim strictly less than the ndim
+      corresponding to their vectorized shape.
 
     Parameters
     ----------

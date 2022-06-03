@@ -29,6 +29,7 @@ class RankKPSDMatrices(Manifold):
     """
 
     def __init__(self, n, k, **kwargs):
+        kwargs.setdefault("metric", PSDMetricBuresWasserstein(n, k))
         super(RankKPSDMatrices, self).__init__(
             **kwargs,
             dim=int(k * n - k * (k + 1) / 2),
@@ -69,7 +70,7 @@ class RankKPSDMatrices(Manifold):
         The nearest symmetric positive semidefinite matrix in the
         Frobenius norm to an arbitrary real matrix A is shown to be (B + H)/2,
         where H is the symmetric polar factor of B=(A + A')/2.
-        As [Higham1988] is turning the matrix into a PSD, the rank
+        As [Higham1988]_ is turning the matrix into a PSD, the rank
         is then forced to be k.
 
         Parameters
@@ -84,10 +85,10 @@ class RankKPSDMatrices(Manifold):
 
         References
         ----------
-        [Higham1988]_    Highamm, N. J.
-                        “Computing a nearest symmetric positive semidefinite matrix.”
-                        Linear Algebra and Its Applications 103 (May 1, 1988):
-                        103-118. https://doi.org/10.1016/0024-3795(88)90223-6
+        .. [Higham1988] Highamm, N. J.
+            “Computing a nearest symmetric positive semidefinite matrix.”
+            Linear Algebra and Its Applications 103 (May 1, 1988):
+            103-118. https://doi.org/10.1016/0024-3795(88)90223-6
         """
         sym = Matrices.to_symmetric(point)
         _, s, v = gs.linalg.svd(sym)
@@ -147,8 +148,8 @@ class RankKPSDMatrices(Manifold):
         """
         vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
 
-        _, r = gs.linalg.eigh(base_point)
-        r_ort = r[..., :, self.n - self.rank : self.n]
+        r, _, _ = gs.linalg.svd(base_point)
+        r_ort = r[..., :, -(self.n - self.rank) :]
         r_ort_t = Matrices.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         candidates = Matrices.mul(rr, vector_sym, rr)
@@ -172,8 +173,8 @@ class RankKPSDMatrices(Manifold):
             Projection of the tangent vector at base_point.
         """
         vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
-        _, r = gs.linalg.eigh(base_point)
-        r_ort = r[..., :, self.n - self.rank : self.n]
+        r, _, _ = gs.linalg.svd(base_point)
+        r_ort = r[..., :, : (self.rank - 1)]
         r_ort_t = Matrices.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
@@ -219,7 +220,6 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
         super(BuresWassersteinBundle, self).__init__(
             n=n,
             k=k,
-            base=PSDMatrices(n, k),
             group=SpecialOrthogonal(k),
             ambient_metric=MatricesMetric(n, k),
         )
@@ -232,7 +232,7 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Differential."""
         product = Matrices.mul(base_point, Matrices.transpose(tangent_vec))
-        return 2 * Matrices.to_symmetric(product)
+        return product + Matrices.transpose(product)
 
     def lift(self, point):
         """Find a representer in top space."""
@@ -260,8 +260,9 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
 
         Compute the vertical component of a tangent vector :math:`w` at a
         base point :math:`x` by solving the sylvester equation:
+
         .. math::
-                        `Axx^T + xx^TA = wx^T - xw^T`
+            Axx^T + xx^TA = wx^T - xw^T
 
         where A is skew-symmetric. Then Ax is the vertical projection of w.
 

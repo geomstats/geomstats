@@ -19,13 +19,11 @@ class Matrices(VectorSpace):
     """
 
     def __init__(self, m, n, **kwargs):
-        if "default_point_type" not in kwargs.keys():
-            kwargs["default_point_type"] = "matrix"
-        super(Matrices, self).__init__(
-            shape=(m, n), metric=MatricesMetric(m, n), **kwargs
-        )
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
+        kwargs.setdefault("metric", MatricesMetric(m, n))
+        kwargs.setdefault("default_point_type", "matrix")
+        super(Matrices, self).__init__(shape=(m, n), **kwargs)
         self.m = m
         self.n = n
 
@@ -546,9 +544,9 @@ class Matrices(VectorSpace):
 
     @classmethod
     def congruent(cls, mat_1, mat_2):
-        """Compute the congruent action of mat_2 on mat_1.
+        r"""Compute the congruent action of mat_2 on mat_1.
 
-        This is :math: `mat_2 mat_1 mat_2^T`.
+        This is :math:`mat\_2 \ mat\_1 \ mat\_2^T`.
 
         Parameters
         ----------
@@ -689,7 +687,7 @@ class Matrices(VectorSpace):
             R.point.
         """
         mat = gs.matmul(cls.transpose(point), base_point)
-        left, singular_values, right = gs.linalg.svd(mat)
+        left, singular_values, right = gs.linalg.svd(mat, full_matrices=False)
         det = gs.linalg.det(mat)
         conditioning = (
             singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
@@ -739,7 +737,8 @@ class MatricesMetric(EuclideanMetric):
         """
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
 
-    def norm(self, vector, base_point=None):
+    @staticmethod
+    def norm(vector, base_point=None):
         """Compute norm of a matrix.
 
         Norm of a matrix associated to the Frobenius inner product.

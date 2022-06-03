@@ -92,11 +92,13 @@ BACKEND_ATTRIBUTES = {
         "meshgrid",
         "minimum",
         "mod",
+        "moveaxis",
         "ndim",
         "one_hot",
         "ones",
         "ones_like",
         "outer",
+        "pad",
         "polygamma",
         "power",
         "prod",
@@ -118,6 +120,7 @@ BACKEND_ATTRIBUTES = {
         "stack",
         "std",
         "sum",
+        "take",
         "tan",
         "tanh",
         "tile",
@@ -138,6 +141,7 @@ BACKEND_ATTRIBUTES = {
         "where",
         "zeros",
         "zeros_like",
+        "trapz",
     ],
     "autodiff": ["custom_gradient", "detach", "jacobian", "value_and_grad"],
     "linalg": [
@@ -259,6 +263,7 @@ class BackendImporter:
             os.environ["GEOMSTATS_BACKEND"] = _BACKEND = "numpy"
 
         module = self._create_backend_module(_BACKEND)
+        module.__name__ = _BACKEND
         module.__loader__ = self
         sys.modules[fullname] = module
 

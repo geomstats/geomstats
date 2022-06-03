@@ -23,17 +23,15 @@ class PositiveLowerTriangularMatrices(OpenSet):
     References
     ----------
     .. [TP2019] . "Riemannian Geometry of Symmetric
-    Positive Definite Matrices Via Cholesky Decomposition"
-    SIAM journal on Matrix Analysis and Applications , 2019.
-    https://arxiv.org/abs/1908.09326
+        Positive Definite Matrices Via Cholesky Decomposition"
+        SIAM journal on Matrix Analysis and Applications , 2019.
+        https://arxiv.org/abs/1908.09326
     """
 
     def __init__(self, n, **kwargs):
+        kwargs.setdefault("metric", CholeskyMetric(n))
         super(PositiveLowerTriangularMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            metric=(CholeskyMetric(n)),
-            ambient_space=LowerTriangularMatrices(n),
-            **kwargs
+            dim=int(n * (n + 1) / 2), ambient_space=LowerTriangularMatrices(n), **kwargs
         )
         self.n = n
 
@@ -181,7 +179,7 @@ class CholeskyMetric(RiemannianMetric):
 
     References
     ----------
-        .. [TP2019] . "Riemannian Geometry of Symmetric
+    .. [TP2019] . "Riemannian Geometry of Symmetric
         Positive Definite Matrices Via Cholesky Decomposition"
         SIAM journal on Matrix Analysis and Applications , 2019.
         https://arxiv.org/abs/1908.09326

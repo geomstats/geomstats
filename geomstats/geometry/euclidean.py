@@ -70,9 +70,10 @@ class EuclideanMetric(RiemannianMetric):
     """Class for Euclidean metrics.
 
     As a Riemannian metric, the Euclidean metric is:
-    - flat: the inner-product is independent of the base point.
+
+    - flat: the inner-product is independent of the base point;
     - positive definite: it has signature (dimension, 0, 0),
-    where dimension is the dimension of the Euclidean space.
+      where dimension is the dimension of the Euclidean space.
 
     Parameters
     ----------

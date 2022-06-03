@@ -60,7 +60,7 @@ class Manifold(abc.ABC):
         self.shape = shape
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
-        self.metric = metric
+        self._metric = metric
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):

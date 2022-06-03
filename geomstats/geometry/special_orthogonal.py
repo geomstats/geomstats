@@ -37,7 +37,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         matrices = Matrices(n, n)
         gln = GeneralLinear(n, positive_det=True)
         super(_SpecialOrthogonalMatrices, self).__init__(
@@ -49,9 +49,11 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             submersion=lambda x: matrices.mul(matrices.transpose(x), x),
             tangent_submersion=lambda v, x: 2
             * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
+            **kwargs,
         )
         self.bi_invariant_metric = BiInvariantMetric(group=self)
-        self.metric = self.bi_invariant_metric
+        if self._metric is None:
+            self._metric = self.bi_invariant_metric
 
     @classmethod
     def inverse(cls, point):
@@ -1054,6 +1056,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         rot_mat = Z(angle_1).Y(angle_2).X(angle_3)
         where:
+
         - Z(angle_1) is a rotation of angle angle_1 around axis z.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - X(angle_3) is a rotation of angle angle_3 around axis x.
@@ -1138,6 +1141,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1224,6 +1228,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         If the order is zyx, into the rotation matrix rot_mat:
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1296,6 +1301,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         for the order zyx, i.e.:
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1723,7 +1729,7 @@ class SpecialOrthogonal(
         default: 0
     """
 
-    def __new__(cls, n, point_type="matrix", epsilon=0.0):
+    def __new__(cls, n, point_type="matrix", epsilon=0.0, **kwargs):
         """Instantiate a special orthogonal group.
 
         Select the object to instantiate depending on the point_type.
@@ -1736,4 +1742,4 @@ class SpecialOrthogonal(
             raise NotImplementedError(
                 "SO(n) is only implemented in vector representation" " when n = 3."
             )
-        return _SpecialOrthogonalMatrices(n)
+        return _SpecialOrthogonalMatrices(n, **kwargs)

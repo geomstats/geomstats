@@ -23,20 +23,25 @@ class QuotientMetric(RiemannianMetric):
         Bundle structure to define the quotient.
     """
 
-    def __init__(self, fiber_bundle: FiberBundle, dim: int = None, **kwargs):
+    def __init__(
+        self, fiber_bundle: FiberBundle, dim: int = None, shape=None, **kwargs
+    ):
         if dim is None:
-            if fiber_bundle.base is not None:
-                dim = fiber_bundle.base.dim
-            elif fiber_bundle.group is not None:
+            if fiber_bundle.group is not None:
                 dim = fiber_bundle.dim - fiber_bundle.group.dim
+            elif fiber_bundle.group_dim is not None:
+                dim = fiber_bundle.dim - fiber_bundle.group_dim
             else:
                 raise ValueError(
-                    "Either the base manifold, "
-                    "its dimension, or the group acting on the "
-                    "total space must be provided."
+                    "Either the dimension of the base manifold, "
+                    "or the group acting on the "
+                    "total space must be provided to the fiber bundle."
                 )
         super(QuotientMetric, self).__init__(
-            dim=dim, default_point_type=fiber_bundle.default_point_type, **kwargs
+            dim=dim,
+            shape=shape,
+            default_point_type=fiber_bundle.default_point_type,
+            **kwargs
         )
 
         self.fiber_bundle = fiber_bundle
@@ -157,8 +162,8 @@ class QuotientMetric(RiemannianMetric):
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         r"""Compute the curvature.
 
-        For three vectors fields :math:`X|_P = tangent_vec_a,
-        Y|_P = tangent_vec_b, Z|_P = tangent_vec_c` with tangent vector
+        For three vectors fields :math:`X|_P = tangent\_vec\_a,
+        Y|_P = tangent\_vec\_b, Z|_P = tangent\_vec\_c` with tangent vector
         specified in argument at the base point :math:`P`,
         the curvature is defined by :math:`R(X,Y)Z = \nabla_{[X,Y]}Z
         - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
@@ -195,8 +200,8 @@ class QuotientMetric(RiemannianMetric):
         References
         ----------
         .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
-        Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
-        459–69. https://doi.org/10.1307/mmj/1028999604.
+            Submersion, Michigan Mathematical Journal 13, no. 4
+            (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
         """
         bundle = self.fiber_bundle
         fiber_point = bundle.lift(base_point)
@@ -235,8 +240,8 @@ class QuotientMetric(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math:`H|_P = tangent_vec_a, X|_P =
-        tangent_vec_b, Y|_P = tangent_vec_c, Z|_P = tangent_vec_d` with
+        For four vectors fields :math:`H|_P = tangent\_vec\_a, X|_P =
+        tangent\_vec\_b, Y|_P = tangent\_vec\_c, Z|_P = tangent\_vec\_d` with
         tangent vector value specified in argument at the base point `P`,
         the covariant derivative of the curvature
         :math:`(\nabla_H R)(X, Y)Z |_P` is computed at the base point P.
@@ -348,8 +353,8 @@ class QuotientMetric(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math:`X|_P = tangent_vec_a, Y|_P =
-        tangent_vec_b` with tangent vector value specified in argument at the
+        For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
+        tangent\_vec\_b` with tangent vector value specified in argument at the
         base point `P`, the covariant derivative (in the direction 'X')
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)
