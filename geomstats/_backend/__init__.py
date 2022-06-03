@@ -89,7 +89,6 @@ BACKEND_ATTRIBUTES = {
         "minimum",
         "mean",
         "meshgrid",
-        "minimum",
         "mod",
         "moveaxis",
         "ndim",
