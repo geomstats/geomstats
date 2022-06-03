@@ -318,17 +318,6 @@ class Topology:
 
     Attributes
     ----------
-    n : int
-        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
-    partition : tuple
-        A tuple of tuples that is a partition of the set :math:`\{0,\dots,n-1\}`,
-        representing the label sets of each connected component of the forest topology.
-    split_sets : tuple
-        A tuple of tuples containing splits, where each set of splits contains only
-        splits of the respective label set in the partition, so their order
-        is related. The splits are the edges of the connected components of the forest,
-        respectively, and thus the union of all sets of splits yields all edges of the
-        forest topology.
     where : dict
         Give the index of a split in the flattened list of all splits.
     sep : list of int
@@ -577,8 +566,9 @@ class Topology:
             for (u, v), path in path_dict.items():
                 corr[u][v] = gs.prod([1 - x[self.where[split]] for split in path])
                 corr[v][u] = corr[u][v]
-        gs.fill_diagonal(corr, 1)
-        return gs.array(corr, dtype=gs.float32)
+
+        corr = gs.array(corr)
+        return corr + gs.eye(corr.shape[0])
 
     def corr_gradient(self, x):
         """Compute the gradient of the correlation matrix, differentiated by weights.
@@ -650,10 +640,12 @@ class Wald(Point):
     """
 
     def __init__(self, n: int, topology: Topology, weights):
-        super(Wald).__init__()
+        # TODO: make `n` come from topology?
+        # TODO: keep parameters naming
+        super().__init__()
         self.n = n
         self.top = topology
-        self.weights = gs.array(weights)
+        self.weights = weights
         self.corr = self.top.corr(weights)
 
     def __eq__(self, other):
@@ -918,7 +910,7 @@ class WaldSpace(PointSet):
     """
 
     def __init__(self, n):
-        super(WaldSpace).__init__()
+        super().__init__()
         self.n = n
         self.ambient = spd.SPDMatrices(n=self.n)
 

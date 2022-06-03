@@ -45,7 +45,6 @@ from numpy import (
     exp,
     expand_dims,
     eye,
-    fill_diagonal,
     flip,
     float32,
     float64,

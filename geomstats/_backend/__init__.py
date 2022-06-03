@@ -64,7 +64,6 @@ BACKEND_ATTRIBUTES = {
         "exp",
         "expand_dims",
         "eye",
-        "fill_diagonal",
         "flatten",
         "flip",
         "floor",
