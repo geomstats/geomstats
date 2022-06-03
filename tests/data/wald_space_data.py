@@ -9,8 +9,7 @@ class WaldTestData(_PointTestData):
 
     _Point = Wald
 
-    # for random tests
-    n_samples = _PointSetTestData.n_samples
+    n_samples = 2
     n_labels_list = random.sample(range(2, 4), n_samples)
     point_args_list = [(n_labels, 0.9, 0.9) for n_labels in n_labels_list]
 
@@ -53,8 +52,8 @@ class WaldSpaceTestData(_PointSetTestData):
     _Point = Wald
     _PointSet = WaldSpace
 
-    # for random tests
-    n_samples = _PointSetTestData.n_samples
+    n_samples = 2
+    n_points_list = random.sample(range(1, 5), n_samples)
     n_labels_list = random.sample(range(2, 4), n_samples)
     space_args_list = [(n_labels,) for n_labels in n_labels_list]
 

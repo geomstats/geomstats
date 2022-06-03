@@ -1,6 +1,7 @@
-import geomstats.tests
+
 from geomstats.geometry.stratified.wald_space import Split, Topology, Wald
-from tests.conftest import Parametrizer, np_backend
+
+from tests.conftest import TestCase, Parametrizer, np_backend
 from tests.data.wald_space_data import WaldSpaceTestData, WaldTestData
 from tests.stratified_test_cases import PointSetTestCase, PointTestCase
 
@@ -8,10 +9,14 @@ IS_NOT_NP = not np_backend()
 
 
 class TestWaldSpace(PointSetTestCase, metaclass=Parametrizer):
+    skip_all = IS_NOT_NP
+
     testing_data = WaldSpaceTestData()
 
 
 class TestWald(PointTestCase, metaclass=Parametrizer):
+    skip_all = IS_NOT_NP
+
     _Point = Wald
     testing_data = WaldTestData()
 
@@ -21,9 +26,9 @@ class TestWald(PointTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, True)
 
 
-@geomstats.tests.np_only
-class TestSplit(geomstats.tests.TestCase):
+class TestSplit(TestCase):
     """Class for testing the class Split."""
+    skip_all = IS_NOT_NP
 
     def test_restrict_to(self):
         """Test the attribute restrict_to of class Split."""
@@ -143,9 +148,9 @@ class TestSplit(geomstats.tests.TestCase):
         self.assertEqual(result, expected)
 
 
-@geomstats.tests.np_only
-class TestTopology(geomstats.tests.TestCase):
+class TestTopology(TestCase):
     """Class for testing the class Topology."""
+    skip_all = IS_NOT_NP
 
     def test_partition(self):
         """Test the attribute partition of class Topology."""
