@@ -42,12 +42,10 @@ class HilbertSphereMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        if tangent_vec_a.ndim == 1:
-            tangent_vec_a = tangent_vec_a.reshape(1, len(tangent_vec_a))
-        if tangent_vec_b.ndim == 1:
-            tangent_vec_b = tangent_vec_b.reshape(1, len(tangent_vec_b))
+        tangent_vec_a, tangent_vec_b = gs.broadcast_arrays(tangent_vec_a, tangent_vec_b)
+        x = gs.broadcast_to(self.x, tangent_vec_a.shape)
 
-        l2_norm = gs.trapz(tangent_vec_a * tangent_vec_b, x=self.x, axis=1)
+        l2_norm = gs.trapz(tangent_vec_a * tangent_vec_b, x=x, axis=-1)
 
         return l2_norm
 
