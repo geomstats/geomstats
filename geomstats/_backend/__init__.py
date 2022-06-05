@@ -261,6 +261,7 @@ class BackendImporter:
             os.environ["GEOMSTATS_BACKEND"] = _BACKEND = "numpy"
 
         module = self._create_backend_module(_BACKEND)
+        module.__name__ = f"geomstats.{_BACKEND}"
         module.__loader__ = self
         sys.modules[fullname] = module
 

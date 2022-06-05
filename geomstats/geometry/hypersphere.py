@@ -43,6 +43,7 @@ class _Hypersphere(LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
+
         super(_Hypersphere, self).__init__(
             dim=dim,
             embedding_space=Euclidean(dim + 1),
@@ -550,6 +551,7 @@ class _Hypersphere(LevelSet):
         The Riemannian normal distribution, or spherical normal in this case,
         is defined by the probability density function (with respect to the
         Riemannian volume measure) proportional to:
+
         .. math::
                 \exp \Big \left(- \frac{\lambda}{2} \mathtm{arccos}^2(x^T\mu)
                 \Big \right)
@@ -656,7 +658,9 @@ class HypersphereMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(HypersphereMetric, self).__init__(dim=dim, signature=(dim, 0))
+        super(HypersphereMetric, self).__init__(
+            dim=dim, shape=(dim + 1,), signature=(dim, 0)
+        )
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
 

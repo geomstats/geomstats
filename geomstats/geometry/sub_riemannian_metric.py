@@ -53,7 +53,7 @@ class SubRiemannianMetric(abc.ABC):
     def frame(self, point):
         """Frame field for the distribution.
 
-        The frame field spans the distribution at 'point'.The frame field is
+        The frame field spans the distribution at `point`. The frame field is
         represented as a matrix, whose columns are the frame field vectors.
 
         Parameters
@@ -141,7 +141,7 @@ class SubRiemannianMetric(abc.ABC):
 
         The Hamiltonian at state :math:`(q, p)` is defined by
 
-        .. math:
+        .. math::
                 H(q, p) = \frac{1}{2} <p, p>_q
 
         where :math:`<\cdot, \cdot>_q` is the cometric at :math:`q`.

@@ -177,7 +177,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         self.centers = centers
 
     def predict(self, points):
-        """Predict the closest cluster each point in 'points' belongs to.
+        """Predict the closest cluster each point in `points` belongs to.
 
         Parameters
         ----------
@@ -192,7 +192,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         return gs.take(self.centers, indices, axis=0)
 
     def predict_labels(self, points):
-        """Predict the closest cluster label each point in 'points' belongs to.
+        """Predict the closest cluster label each point in `points` belongs to.
 
         Parameters
         ----------

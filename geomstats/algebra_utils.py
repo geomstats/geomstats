@@ -172,7 +172,7 @@ def flip_determinant(matrix, det):
     """Change sign of the determinant if it is negative.
 
     For a batch of matrices, multiply the matrices which have negative
-    determinant by a diagonal matrix :math: `diag(1,...,1,-1) from the right.
+    determinant by a diagonal matrix :math:`diag(1,...,1,-1) from the right.
     This changes the sign of the last column of the matrix.
 
     Parameters

@@ -126,8 +126,13 @@ def to_numpy(x):
     return x.numpy()
 
 
-def from_numpy(x):
-    return torch.from_numpy(x)
+def from_numpy(x, dtype=None):
+    tensor = torch.from_numpy(x)
+
+    if dtype is not None and tensor.dtype != dtype:
+        tensor = cast(tensor, dtype=dtype)
+
+    return tensor
 
 
 def one_hot(labels, num_classes):
@@ -203,7 +208,7 @@ def any(x, axis=None):
 def cast(x, dtype):
     if torch.is_tensor(x):
         return x.to(dtype=dtype)
-    return array(x).to(dtype=dtype)
+    return array(x, dtype=dtype)
 
 
 def flip(x, axis):
@@ -219,60 +224,22 @@ def concatenate(seq, axis=0, out=None):
     return torch.cat(seq, dim=axis, out=out)
 
 
-def _get_largest_dtype(seq):
-    dtype_dict = {
-        0: t_bool,
-        1: uint8,
-        2: int32,
-        3: int64,
-        4: float32,
-        5: float64,
-        6: complex128,
-    }
-    reverse_dict = {dtype_dict[key]: key for key in dtype_dict}
-    dtype_code_set = {reverse_dict[t.dtype] for t in seq}
-    return dtype_dict[max(dtype_code_set)]
-
-
 def array(val, dtype=None):
-    if isinstance(val, (list, tuple)):
-        if isinstance(val[0], (list, tuple)):
-            aux_list = [array(t, dtype) for t in val]
-            if dtype is None:
-                local_dtype = _get_largest_dtype(aux_list)
-                aux_list = [cast(t, local_dtype) for t in aux_list]
-            return stack(aux_list)
-        if not any([isinstance(t, torch.Tensor) for t in val]):
-            val = _np.copy(_np.array(val))
-        elif any([not isinstance(t, torch.Tensor) for t in val]):
-            tensor_members = [t for t in val if torch.is_tensor(t)]
-            local_dtype = _get_largest_dtype(tensor_members)
-            for index, t in enumerate(val):
-                if torch.is_tensor(t) and t.dtype != local_dtype:
-                    cast(t, local_dtype)
-                elif torch.is_tensor(t):
-                    val[index] = cast(t, dtype=local_dtype)
-                else:
-                    val[index] = torch.tensor(t, dtype=local_dtype)
-            val = stack(val)
+
+    if torch.is_tensor(val):
+        if dtype is None or val.dtype == dtype:
+            return val.clone()
         else:
-            val = stack(val)
+            return cast(val, dtype=dtype)
 
-    if isinstance(val, (bool, int, float)):
-        val = _np.array(val)
+    elif isinstance(val, _np.ndarray):
+        return from_numpy(val, dtype=dtype)
 
-    if isinstance(val, _np.ndarray):
-        val = torch.from_numpy(val)
+    elif isinstance(val, (list, tuple)) and len(val):
+        tensors = [array(tensor, dtype=dtype) for tensor in val]
+        return stack(tensors)
 
-    if not isinstance(val, torch.Tensor):
-        val = torch.Tensor([val])
-
-    if dtype is not None:
-        if val.dtype != dtype:
-            val = cast(val, dtype)
-    elif val.dtype == torch.float64:
-        val = val.float()
-    return val
+    return torch.tensor(val, dtype=dtype)
 
 
 def all(x, axis=None):
@@ -356,7 +323,9 @@ def minimum(a, b):
 
 
 def to_ndarray(x, to_ndim, axis=0):
-    x = array(x)
+    if not torch.is_tensor(x):
+        x = array(x)
+
     if x.dim() == to_ndim - 1:
         x = torch.unsqueeze(x, dim=axis)
     return x
@@ -392,86 +361,11 @@ def sum(x, axis=None, keepdims=None, **kwargs):
     return torch.sum(x, dim=axis, keepdim=keepdims, **kwargs)
 
 
-def einsum(*args, **kwargs):
+def einsum(*args):
     einsum_str = args[0]
-    input_tensors_list = args[1:]
+    input_tensors_list = convert_to_wider_dtype(args[1:])
 
-    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
-
-    if len(input_tensors_list) == 1:
-        return torch.einsum(einsum_str, input_tensors_list)
-
-    einsum_list = einsum_str.split("->")
-    input_str = einsum_list[0]
-    if len(einsum_list) > 1:
-        output_str = einsum_list[1]
-
-    input_str_list = input_str.split(",")
-
-    is_ellipsis = [input_str[:3] == "..." for input_str in input_str_list]
-    all_ellipsis = bool(_np.prod(is_ellipsis))
-
-    if all_ellipsis:
-        ndims = [len(input_str[3:]) for input_str in input_str_list]
-
-        if len(input_str_list) > 2:
-            raise NotImplementedError(
-                "Ellipsis support not implemented for >2 input tensors"
-            )
-
-        tensor_a = input_tensors_list[0]
-        tensor_b = input_tensors_list[1]
-        initial_ndim_a = tensor_a.ndim
-        initial_ndim_b = tensor_b.ndim
-        tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)
-        tensor_b = to_ndarray(tensor_b, to_ndim=ndims[1] + 1)
-
-        n_tensor_a = tensor_a.shape[0]
-        n_tensor_b = tensor_b.shape[0]
-
-        cond = (
-            n_tensor_a == n_tensor_b == 1
-            and initial_ndim_a != tensor_a.ndim
-            and initial_ndim_b != tensor_b.ndim
-        )
-
-        if cond:
-            tensor_a = squeeze(tensor_a, axis=0)
-            tensor_b = squeeze(tensor_b, axis=0)
-            input_prefix_list = ["", ""]
-            output_prefix = ""
-        elif n_tensor_a != n_tensor_b:
-            if n_tensor_a == 1:
-                tensor_a = squeeze(tensor_a, axis=0)
-                input_prefix_list = ["", "r"]
-                output_prefix = "r"
-            elif n_tensor_b == 1:
-                tensor_b = squeeze(tensor_b, axis=0)
-                input_prefix_list = ["r", ""]
-                output_prefix = "r"
-            else:
-                raise ValueError("Shape mismatch for einsum.")
-        else:
-            input_prefix_list = ["r", "r"]
-            output_prefix = "r"
-
-        input_str_list = [
-            input_str.replace("...", prefix)
-            for input_str, prefix in zip(input_str_list, input_prefix_list)
-        ]
-
-        input_str = input_str_list[0] + "," + input_str_list[1]
-
-        einsum_str = input_str
-        if len(einsum_list) > 1:
-            output_str = output_str.replace("...", output_prefix)
-            einsum_str = input_str + "->" + output_str
-
-        result = torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
-
-        return result
-
-    return torch.einsum(*args, **kwargs)
+    return torch.einsum(einsum_str, *input_tensors_list)
 
 
 def T(x):

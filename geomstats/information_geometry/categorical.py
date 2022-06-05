@@ -17,8 +17,8 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 class CategoricalDistributions(LevelSet):
     r"""Class for the manifold of categorical distributions.
 
-    This is the set of $n+1$-tuples of positive reals that sum up to one,
-    i.e. the $n$-simplex. Each point is the parameter of a categorical
+    This is the set of `n+1`-tuples of positive reals that sum up to one,
+    i.e. the `n`-simplex. Each point is the parameter of a categorical
     distribution, i.e. gives the probabilities of $n$ different outcomes
     in a single experiment.
 
@@ -148,7 +148,7 @@ class CategoricalMetric(RiemannianMetric):
     References
     ----------
     .. [K2003] R. E. Kass. The Geometry of Asymptotic Inference. Statistical
-      Science, 4(3): 188 - 234, 1989.
+        Science, 4(3): 188 - 234, 1989.
     """
 
     def __init__(self, dim):
@@ -320,6 +320,7 @@ class CategoricalMetric(RiemannianMetric):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
+
         - an initial point and an initial tangent vector,
         - an initial point and an end point.
 

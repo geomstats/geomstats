@@ -33,7 +33,6 @@ from tensorflow import (
     int64,
     less,
     less_equal,
-    linspace,
     logical_and,
     logical_or,
     maximum,
@@ -953,3 +952,11 @@ def kron(a, b):
 
 def take(a, indices, axis=0):
     return tf.gather(a, indices, axis=axis)
+
+
+def linspace(*args, **kwargs):
+    a = tf.linspace(*args, **kwargs)
+    if a.dtype is float64:
+        a = cast(a, dtype=float32)
+
+    return a
