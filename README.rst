@@ -176,8 +176,11 @@ Getting started
 ---------------
 
 To use ``geomstats`` for learning algorithms on Riemannian manifolds,
-you need to follow three steps: - instantiate the manifold of interest,
-- instantiate the learning algorithm of interest, - run the algorithm.
+you need to follow three steps: 
+
+* instantiate the manifold of interest,
+* instantiate the learning algorithm of interest, 
+* run the algorithm.
 
 The data should be represented by a ``gs.array``. This structure
 represents numpy arrays, or tensorflow/pytorch tensors, depending on the
