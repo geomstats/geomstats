@@ -207,9 +207,10 @@ def load_optical_nerves():
 
     Load the dataset of sets of 5 landmarks, labelled S, T, I, N, V, in 3D
     on monkeys' optical nerve heads:
+
     - 1st landmark (S): superior aspect of the retina,
     - 2nd landmark (T): side of the retina closest to the temporal
-        bone of the skull,
+      bone of the skull,
     - 3rd landmark (N): nose side of the retina,
     - 4th landmark (I): inferior point,
     - 5th landmarks (V): optical nerve head deepest point.
@@ -223,9 +224,9 @@ def load_optical_nerves():
 
     References
     ----------
-        .. [PE2015] V. Patrangenaru and L. Ellingson. Nonparametric Statistics
-          on Manifolds and Their Applications to Object Data, 2015.
-          https://doi.org/10.1201/b18969
+    .. [PE2015] V. Patrangenaru and L. Ellingson. Nonparametric Statistics
+        on Manifolds and Their Applications to Object Data, 2015.
+        https://doi.org/10.1201/b18969
 
 
     Returns
@@ -259,6 +260,7 @@ def load_hands():
     set of 22 landmarks - the hands joints - in 3D.
 
     The hand poses represent two different hand poses:
+
     - Label 0: hand is in the position "Grab"
     - Label 1: hand is in the position "Expand"
 
@@ -266,7 +268,7 @@ def load_hands():
 
     References
     ----------
-        .. [SWVGLF2017] Q. De Smedt, H. Wannous, J.P. Vandeborre,
+    .. [SWVGLF2017] Q. De Smedt, H. Wannous, J.P. Vandeborre,
         J. Guerry, B. Le Saux, D. Filliat, SHREC'17 Track: 3D Hand Gesture
         Recognition Using a Depth and Skeletal Dataset, 10th Eurographics
         Workshop on 3D Object Retrieval, 2017.

@@ -24,12 +24,22 @@ class TestBackends(tests.conftest.TestCase):
         self.n_samples = 2
 
     def test_array(self):
+
+        gs_mat = gs.array([])
+        np_mat = _np.array([])
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
         gs_mat = gs.array(1.5)
         np_mat = _np.array(1.5)
         self.assertAllCloseToNp(gs_mat, np_mat)
 
         gs_mat = gs.array([gs.ones(3), gs.ones(3)])
         np_mat = _np.array([_np.ones(3), _np.ones(3)])
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
+        self.assertAllCloseToNp(gs_mat, np_mat)
+        gs_mat = gs.array([gs.ones(1), gs.ones(1)])
+        np_mat = _np.array([_np.ones(1), _np.ones(1)])
         self.assertAllCloseToNp(gs_mat, np_mat)
 
         gs_mat = gs.array([gs.ones(3), gs.ones(3)], dtype=gs.float64)

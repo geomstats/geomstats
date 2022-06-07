@@ -107,8 +107,9 @@ class RiemannianMetric(Connection, ABC):
         The Koszul formula defining the Levi-Civita connection gives the
         expression of the Christoffel symbols with respect to the metric:
         :math:`\Gamma^k_{ij}(p) = \frac{1}{2} g^{lk}(
-            \partial_i g_{jl} + \partial_j g_{li} - \partial_l g_{ij})`,
+        \partial_i g_{jl} + \partial_j g_{li} - \partial_l g_{ij})`,
         where:
+
         - :math:`p` represents the base point, and
         - :math:`g` represents the Riemannian metric tensor.
 
@@ -188,10 +189,12 @@ class RiemannianMetric(Connection, ABC):
     def hamiltonian(self, state):
         r"""Compute the hamiltonian energy associated to the cometric.
 
-        The Hamiltonian at state :math: `(q, p)` is defined by
-        .. math:
-                H(q, p) = \frac{1}{2} <p, p>_q
-        where :math: `<\cdot, \cdot>_q` is the cometric at :math: `q`.
+        The Hamiltonian at state :math:`(q, p)` is defined by
+
+        .. math::
+            H(q, p) = \frac{1}{2} <p, p>_q
+
+        where :math:`<\cdot, \cdot>_q` is the cometric at :math:`q`.
 
         Parameters
         ----------
@@ -519,7 +522,7 @@ class RiemannianMetric(Connection, ABC):
         For two orthonormal tangent vectors :math:`x,y` at a base point,
         the sectional curvature is defined by :math:`<R(x, y)x, y> =
         <R_x(y), y>`. For non-orthonormal vectors vectors, it is
-        :math:`<R(x, y)x, y> / \\|x \\wedge y\\|^2`.
+        :math:`<R(x, y)x, y> / \\|x \wedge y\\|^2`.
 
         Parameters
         ----------

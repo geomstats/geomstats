@@ -4,11 +4,12 @@ Lead author: Nicolas Guigui.
 
 These are designed for first order ODE written of a variable x and a time
 variable t:
+
 .. math::
 
-                    \frac{dx}{dt} = force(x, t)
+    \frac{dx}{dt} = force(x, t)
 
-where :math: `x` is called the state variable. It may represent many
+where :math:`x` is called the state variable. It may represent many
 variables by stacking arrays, e.g. position and velocity in a geodesic
 equation.
 """
