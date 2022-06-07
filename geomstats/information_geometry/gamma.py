@@ -199,6 +199,35 @@ class GammaDistributions(OpenSet):
 
         return pdf
 
+    @staticmethod
+    def maximum_likelihood_fit(data):
+        """Estimate parameters from samples.
+
+        This is a wrapper around scipy's maximum likelihood estimator to
+        estimate the parameters of a gamma distribution from samples.
+
+        Parameters
+        ----------
+        data : array-like, shape=[..., n_samples]
+            Data to estimate parameters from. Arrays of
+            different length may be passed.
+
+        Returns
+        -------
+        parameter : array-like, shape=[..., 2]
+            Estimate of parameter obtained by maximum likelihood.
+        """
+        nested = any(isinstance(el, list) for el in data)
+        if not nested:
+            data = [data]
+        parameters = []
+        for sample in data:
+            sample = gs.array(sample, dtype=gs.float32)
+            kappa, _, scale = gamma.fit(sample, floc=0)
+            nu = 1 / scale
+            parameters.append(gs.array([kappa, kappa / nu]))
+        return parameters[0] if len(data) == 1 else gs.stack(parameters)
+
     def natural_to_standard(self, point):
         """Convert point from natural coordinates to standard coordinates.
 
