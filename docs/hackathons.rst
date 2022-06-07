@@ -6,9 +6,9 @@ Hackathons
 
 Geomstats core developers organize several hackathons a year, with the following goals:
   * Train new users
-    - Includes pair-programming, i.e. pairing a new user with an experienced Geomstats developer.
+    * Includes pair-programming, i.e. pairing a new user with an experienced Geomstats developer.
   * On-board new contributors
-    - Includes training on collaborative coding practices.
+    * Includes training on collaborative coding practices.
   * Foster new collaborations and strenghten existing ones
   * Bring the community of geometric statistics and learning together.
 
@@ -26,9 +26,9 @@ Coding as a group in an open-source project is different from coding alone.
 This is the typical collaborative workflow at a hackathon:
 
 1. Join Geomstats slack workspace
-  * Join the slack channel associated with your hackathon 
+* Join the slack channel associated with your hackathon 
 2. Assign yourself to a GitHub task 
-  * Join the Hackathon GitHub project associated with your hackathon 
+* Join the Hackathon GitHub project associated with your hackathon 
 3. Code a few lines on a new GitHub branch
 4. Document your code with docstrings
 5. Test with unit-tests
@@ -41,51 +41,51 @@ This is the typical collaborative workflow at a hackathon:
 More details can be found in the contributing guidelines.
 
 In a one-day hackathon:
-- we start with a stand-up meeting, where each participant states their goal for the day,
-- participants go through steps 1-10, on a (possibly small) code additions.
+  * we start with a stand-up meeting, where each participant states their goal for the day,
+  * participants go through steps 1-10, on a (possibly small) code additions.
 
 In a one-week hackathon:
-- we organize daily stand-up meetings,
-- we expect participants to go 2-3 times through steps 1-10.
+  * we organize daily stand-up meetings,
+  * we expect participants to go 2-3 times through steps 1-10.
 
 Past and future hackathons
 --------------------------
 
 2022:
   * February 2022: hybrid hackathon:
-    - in-person at Inria Sophia-Antipolis, France,
-    - remote with participants around the world.
+    * in-person at Inria Sophia-Antipolis, France,
+    * remote with participants around the world.
   * April 2022: hybrid hackathon:
-    - in-person at the Villa Cynthia, CNRS CAES Saint Raphael, France,
-    - remote with participants around the world.
+    * in-person at the Villa Cynthia, CNRS CAES Saint Raphael, France,
+    * remote with participants around the world.
   * June 2022: in-person hakathon:
-    - in-person at the University of Washington (UW), Seattle, US.
+    * in-person at the University of Washington (UW), Seattle, US.
   * October 2022: hybrid hackathon:
-    - in-person during the trimester Geometry and Statistics in Data Sciences, in Paris, France. (October 17-21)
-    - remote with participants around the world.
+    * in-person during the trimester Geometry and Statistics in Data Sciences, in Paris, France. (October 17-21)
+    * remote with participants around the world.
 
 2021:
   * March - April 2021: hybrid hackathon:
-    - in-person at Inria Sophia-Antipolis, France,
-    - remote with participants around the world.
+    * in-person at Inria Sophia-Antipolis, France,
+    * remote with participants around the world.
   * July 2021: hybrid hackathon:
-    - in-person at the Geometric Science of Information (GSI) conference, Paris, France
-    - remote with participants around the world.
+    * in-person at the Geometric Science of Information (GSI) conference, Paris, France
+    * remote with participants around the world.
   * December 2021: in-person hackathon:
-    - in-person at the Sorbonne Center for Artificial Intelligence, Paris, France.
+    * in-person at the Sorbonne Center for Artificial Intelligence, Paris, France.
 
 2020:
   * January 2020: in-person hackathon:
-    - in person at Inria Sophia-Antipolis, France
+    * in person at Inria Sophia-Antipolis, France
   * April 2020: remote hackathon:
-    - remote via Zoom and Slack with participants around the world.
+    * remote via Zoom and Slack with participants around the world.
 
 Related events
 --------------
 
 In addition to hackathons, we co-organize international coding challenges.
 
-  * April 2021: international Coding Challenge at the International Conference on Learning Representations (ICLR)
-  * April 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR)
+* April 2021: international Coding Challenge at the International Conference on Learning Representations (ICLR)
+* April 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR)
 
 
