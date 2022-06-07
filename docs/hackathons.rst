@@ -27,15 +27,24 @@ This is the typical collaborative workflow at a hackathon:
 
 1. Join Geomstats slack workspace
 * Join the slack channel associated with your hackathon 
+
 2. Assign yourself to a GitHub task 
 * Join the Hackathon GitHub project associated with your hackathon 
+
 3. Code a few lines on a new GitHub branch
+
 4. Document your code with docstrings
+
 5. Test with unit-tests
+
 6. Lint to respect the coding style
+
 7. Submit a PR on GitHub
+
 8. Address code reviews
+
 9. Merge your PR
+
 10. Repeat :) 
 
 More details can be found in the contributing guidelines.
@@ -52,31 +61,40 @@ Past and future hackathons
 --------------------------
 
 2022:
+
   * February 2022: hybrid hackathon:
     * in-person at Inria Sophia-Antipolis, France,
     * remote with participants around the world.
+
   * April 2022: hybrid hackathon:
     * in-person at the Villa Cynthia, CNRS CAES Saint Raphael, France,
     * remote with participants around the world.
+
   * June 2022: in-person hakathon:
     * in-person at the University of Washington (UW), Seattle, US.
+
   * October 2022: hybrid hackathon:
     * in-person during the trimester Geometry and Statistics in Data Sciences, in Paris, France. (October 17-21)
     * remote with participants around the world.
 
 2021:
+
   * March - April 2021: hybrid hackathon:
     * in-person at Inria Sophia-Antipolis, France,
     * remote with participants around the world.
+
   * July 2021: hybrid hackathon:
     * in-person at the Geometric Science of Information (GSI) conference, Paris, France
     * remote with participants around the world.
+
   * December 2021: in-person hackathon:
     * in-person at the Sorbonne Center for Artificial Intelligence, Paris, France.
 
 2020:
+
   * January 2020: in-person hackathon:
     * in person at Inria Sophia-Antipolis, France
+    
   * April 2020: remote hackathon:
     * remote via Zoom and Slack with participants around the world.
 
