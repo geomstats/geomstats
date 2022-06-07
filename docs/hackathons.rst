@@ -5,10 +5,8 @@ Hackathons
 ==========
 
 Geomstats core developers organize several hackathons a year, with the following goals:
-  * Train new users
-   * Includes pair-programming, i.e. pairing a new user with an experienced Geomstats developer.
-  * On-board new contributors
-   * Includes training on collaborative coding practices.
+  * Train new users, e.g. pairing a new user with an experienced Geomstats developer.
+  * On-board new contributors, e.g. on collaborative coding practices.
   * Foster new collaborations and strenghten existing ones
   * Bring the community of geometric statistics and learning together.
 
@@ -25,11 +23,9 @@ Coding as a group in an open-source project is different from coding alone.
 
 This is the typical collaborative workflow at a hackathon:
 
-1. Join Geomstats slack workspace
-* Join the slack channel associated with your hackathon 
+1. Join Geomstats slack workspace: Join channel associated with your hackathon 
 
-2. Assign yourself to a GitHub task 
-* Join the Hackathon GitHub project associated with your hackathon 
+2. Assign yourself to a GitHub task on the GitHub project associated with your hackathon 
 
 3. Code a few lines on a new GitHub branch
 
@@ -62,20 +58,20 @@ Past and future hackathons
 
 2022:
 
-  * February 2022: hybrid hackathon:
-    * in-person at Inria Sophia-Antipolis, France,
-    * remote with participants around the world.
+* February 2022: hybrid hackathon:
+* in-person at Inria Sophia-Antipolis, France,
+* remote with participants around the world.
 
-  * April 2022: hybrid hackathon:
-    * in-person at the Villa Cynthia, CNRS CAES Saint Raphael, France,
-    * remote with participants around the world.
+* April 2022: hybrid hackathon:
+* in-person at the Villa Cynthia, CNRS CAES Saint Raphael, France,
+* remote with participants around the world.
 
-  * June 2022: in-person hakathon:
-    * in-person at the University of Washington (UW), Seattle, US.
+* June 2022: in-person hakathon:
+* in-person at the University of Washington (UW), Seattle, US.
 
-  * October 2022: hybrid hackathon:
-    * in-person during the trimester Geometry and Statistics in Data Sciences, in Paris, France. (October 17-21)
-    * remote with participants around the world.
+* October 2022: hybrid hackathon:
+* in-person during the trimester Geometry and Statistics in Data Sciences, in Paris, France. (October 17-21)
+* remote with participants around the world.
 
 2021:
 
@@ -94,7 +90,7 @@ Past and future hackathons
 
   * January 2020: in-person hackathon:
     * in person at Inria Sophia-Antipolis, France
-    
+
   * April 2020: remote hackathon:
     * remote via Zoom and Slack with participants around the world.
 
