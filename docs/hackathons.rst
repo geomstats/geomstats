@@ -11,7 +11,7 @@ Geomstats core developers organize several hackathons a year, with the following
     - Includes training on collaborative coding practices.
   * Foster new collaborations and strenghten existing ones
   * Bring the community of geometric statistics and learning together.
-  
+
 
 Interested? Feel free to:
   * Join the next hackathons, either remotely or in person (see section below)
@@ -41,9 +41,11 @@ This is the typical collaborative workflow at a hackathon:
 More details can be found in the contributing guidelines.
 
 In a one-day hackathon:
-- we expect participants to go through steps 1-10, on a (possibly small) code additions.
+- we start with a stand-up meeting, where each participant states their goal for the day,
+- participants go through steps 1-10, on a (possibly small) code additions.
 
 In a one-week hackathon:
+- we organize daily stand-up meetings,
 - we expect participants to go 2-3 times through steps 1-10.
 
 Past and future hackathons
