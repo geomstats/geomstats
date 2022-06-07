@@ -75,24 +75,24 @@ Past and future hackathons
 
 2021:
 
-  * March - April 2021: hybrid hackathon:
-    * in-person at Inria Sophia-Antipolis, France,
-    * remote with participants around the world.
+* March - April 2021: hybrid hackathon:
+ * in-person at Inria Sophia-Antipolis, France,
+ * remote with participants around the world.
 
-  * July 2021: hybrid hackathon:
-    * in-person at the Geometric Science of Information (GSI) conference, Paris, France
-    * remote with participants around the world.
+* July 2021: hybrid hackathon:
+ * in-person at the Geometric Science of Information (GSI) conference, Paris, France
+ * remote with participants around the world.
 
-  * December 2021: in-person hackathon:
-    * in-person at the Sorbonne Center for Artificial Intelligence, Paris, France.
+* December 2021: in-person hackathon:
+ * in-person at the Sorbonne Center for Artificial Intelligence, Paris, France.
 
 2020:
 
-  * January 2020: in-person hackathon:
-    * in person at Inria Sophia-Antipolis, France
+* January 2020: in-person hackathon:
+ * in person at Inria Sophia-Antipolis, France
 
-  * April 2020: remote hackathon:
-    * remote via Zoom and Slack with participants around the world.
+* April 2020: remote hackathon:
+ * remote via Zoom and Slack with participants around the world.
 
 Related events
 --------------
