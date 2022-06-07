@@ -23,25 +23,25 @@ Coding as a group in an open-source project is different from coding alone.
 
 This is the typical collaborative workflow at a hackathon:
 
-1. Join Geomstats slack workspace: Join channel associated with your hackathon 
+1. **Join** Geomstats slack workspace: Join channel associated with your hackathon 
 
-2. Assign yourself to a GitHub task on the GitHub project associated with your hackathon 
+2. **Assign** yourself to a GitHub task on the GitHub project associated with your hackathon 
 
-3. Code a few lines on a new GitHub branch
+3. **Code** a few lines on a new GitHub branch
 
-4. Document your code with docstrings
+4. **Document** your code with docstrings
 
-5. Test with unit-tests
+5. **Test** with unit-tests
 
-6. Lint to respect the coding style
+6. **Lint** to respect the coding style
 
-7. Submit a PR on GitHub
+7. **Submit** a PR on GitHub
 
-8. Address code reviews
+8. **Address** code reviews
 
-9. Merge your PR
+9. **Merge** your PR
 
-10. Repeat :) 
+10. **Repeat** :) 
 
 More details can be found in the contributing guidelines.
 
@@ -59,19 +59,19 @@ Past and future hackathons
 2022:
 
 * February 2022: hybrid hackathon:
-* in-person at Inria Sophia-Antipolis, France,
-* remote with participants around the world.
+ * in-person at Inria Sophia-Antipolis, France,
+ * remote with participants around the world.
 
 * April 2022: hybrid hackathon:
-* in-person at the Villa Cynthia, CNRS CAES Saint Raphael, France,
-* remote with participants around the world.
+ * in-person at the Villa Cynthia, CNRS CAES Saint Raphael, France,
+ * remote with participants around the world.
 
 * June 2022: in-person hakathon:
-* in-person at the University of Washington (UW), Seattle, US.
+ * in-person at the University of Washington (UW), Seattle, US.
 
 * October 2022: hybrid hackathon:
-* in-person during the trimester Geometry and Statistics in Data Sciences, in Paris, France. (October 17-21)
-* remote with participants around the world.
+ * in-person during the trimester Geometry and Statistics in Data Sciences, in Paris, France. (October 17-21)
+ * remote with participants around the world.
 
 2021:
 
