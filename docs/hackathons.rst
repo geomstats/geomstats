@@ -6,9 +6,9 @@ Hackathons
 
 Geomstats core developers organize several hackathons a year, with the following goals:
   * Train new users
-    * Includes pair-programming, i.e. pairing a new user with an experienced Geomstats developer.
+   * Includes pair-programming, i.e. pairing a new user with an experienced Geomstats developer.
   * On-board new contributors
-    * Includes training on collaborative coding practices.
+   * Includes training on collaborative coding practices.
   * Foster new collaborations and strenghten existing ones
   * Bring the community of geometric statistics and learning together.
 
