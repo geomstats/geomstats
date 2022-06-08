@@ -16,7 +16,7 @@ def _gradient_descent(x_ini, grad, exp, lrate=0.1, max_iter=100, tol=1e-6):
     """Apply a gradient descent until max_iter or a given tolerance is reached."""
     L = len(x_ini)
     x = x_ini
-    for i in range(max_iter):
+    for _ in range(max_iter):
         grad_x = grad(x)
         grad_norm = gs.linalg.norm(grad_x)
         if grad_norm < tol:
@@ -96,7 +96,7 @@ class SasakiMetric(RiemannianMetric):
         v0, w0 = tngs[:, 0], tngs[:, 1]
         p0, u0 = bs_pts[:, 0], bs_pts[:, 1]
         p, u = p0, u0
-        for j in range(n_s):
+        for _ in range(n_s):
             p = metric.exp(eps * v0, p0)
             u = par_trans(u0 + eps * w0, p0, None, p)
             v = par_trans(v0 - eps * (metric.curvature(u0, w0, v0, p0)), p0, None, p)
@@ -172,7 +172,7 @@ class SasakiMetric(RiemannianMetric):
             Discrete geodesic x(s)=(p(s), u(s)) in Sasaki metric connecting
             initial_point = x(0) and end_point = x(1).
         """
-        n_s = self.n_s if n_steps is None else n_steps
+        n_s = int(self.n_s if n_steps is None else n_steps)
         metric = self.metric
         par_trans = metric.parallel_transport
         p0, u0 = initial_point[0], initial_point[1]
