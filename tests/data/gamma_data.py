@@ -107,6 +107,26 @@ class GammaTestData(_OpenSetTestData):
                 sample=[[1, 2, 3, 4, 5], [1, 2, 3, 4]],
                 expected=[[3.70164381, 3.0], [4.26542805, 2.5]],
             ),
+            dict(
+                sample=[gs.array([1, 2, 3, 4, 5]), gs.array([1, 2, 3, 4])],
+                expected=[[3.70164381, 3.0], [4.26542805, 2.5]],
+            ),
+            dict(
+                sample=[[1, 2, 3, 4]],
+                expected=[4.26542805, 2.5],
+            ),
+            dict(
+                sample=gs.array([1, 2, 3, 4]),
+                expected=[4.26542805, 2.5],
+            ),
+            dict(
+                sample=[gs.array([1, 2, 3, 4])],
+                expected=[4.26542805, 2.5],
+            ),
+            dict(
+                sample=[[1, 2, 3, 4, 5], gs.array([1, 2, 3, 4])],
+                expected=[[3.70164381, 3.0], [4.26542805, 2.5]],
+            ),
         ]
         return self.generate_tests(smoke_data)
 

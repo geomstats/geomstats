@@ -208,8 +208,8 @@ class GammaDistributions(OpenSet):
 
         Parameters
         ----------
-        data : array-like, shape=[..., n_samples]
-            Data to estimate parameters from. Arrays of
+        data : list or list of lists/arrays
+            Data to estimate parameters from. Lists of
             different length may be passed.
 
         Returns
@@ -217,12 +217,19 @@ class GammaDistributions(OpenSet):
         parameter : array-like, shape=[..., 2]
             Estimate of parameter obtained by maximum likelihood.
         """
-        nested = any(isinstance(el, list) for el in data)
-        if not nested:
+
+        def is_nested(sample):
+            for el in sample:
+                try:
+                    return iter(el)
+                except TypeError:
+                    return False
+
+        if not (is_nested(data)):
             data = [data]
         parameters = []
         for sample in data:
-            sample = gs.array(sample, dtype=gs.float32)
+            sample = gs.array(sample)
             kappa, _, scale = gamma.fit(sample, floc=0)
             nu = 1 / scale
             parameters.append(gs.array([kappa, kappa / nu]))
