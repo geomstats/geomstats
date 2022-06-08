@@ -28,7 +28,7 @@ def _gradient_descent(x_ini, grad, exp, lrate=0.1, max_iter=100, tol=1e-6):
 
 
 class SasakiMetric(RiemannianMetric):
-    """Implementation of the Sasaki metric on the tangent bundle TM of a Riem. manifold M.
+    """Implements of the Sasaki metric on the tangent bundle TM of a Riem. manifold M.
 
     The Sasaki metric is characterized by the following three properties:
      * the canonical projection of TM becomes a Riemannian submersion,
@@ -138,6 +138,7 @@ class SasakiMetric(RiemannianMetric):
 
         @delayed
         def do_log(pt, bs_pt):
+            """Calculate the logarithm."""
             pu = self.geodesic_discrete(bs_pt, pt, n_s)
             p1, u1 = pu[1][0], pu[1][1]
             p0, u0 = bs_pt[0], bs_pt[1]
