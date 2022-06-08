@@ -1,6 +1,7 @@
-""" Sasaki metric
+"""Class for the Sasaki metric.
 
-A natural choice of metric on the tangent bundle of a Riemannian manifold.
+A class implementing the Sasaki metric: The natural metric on the tangent bundle TM
+of a Riemannian manifold M.
 
 Lead authors: E. Nava-Yazdani, F. Ambellan, M. Hanik and C. von Tycowicz.
 """
@@ -12,9 +13,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 def _gradient_descent(x_ini, grad, exp, lrate=0.1, max_iter=100, tol=1e-6):
-    """
-    Apply a gradient descent until either max_iter or a given tolerance is reached.
-    """
+    """Apply a gradient descent until max_iter or a given tolerance is reached."""
     L = len(x_ini)
     x = x_ini
     for i in range(max_iter):
@@ -29,9 +28,7 @@ def _gradient_descent(x_ini, grad, exp, lrate=0.1, max_iter=100, tol=1e-6):
 
 
 class SasakiMetric(RiemannianMetric):
-    """
-    This class implements the Sasaki metric: The natural metric on the tangent bundle TM
-    of a Riemannian manifold M.
+    """Implementation of the Sasaki metric on the tangent bundle TM of a Riem. manifold M.
 
     The Sasaki metric is characterized by the following three properties:
      * the canonical projection of TM becomes a Riemannian submersion,
@@ -156,8 +153,7 @@ class SasakiMetric(RiemannianMetric):
         return gs.reshape(gs.array(rslt), point.shape)
 
     def geodesic_discrete(self, initial_point, end_point, n_steps=None, **kwargs):
-        """
-        Compute Sakai geodesic employing a variational time discretization.
+        """Compute Sakai geodesic employing a variational time discretization.
 
         Parameters
         ----------
@@ -176,7 +172,6 @@ class SasakiMetric(RiemannianMetric):
             Discrete geodesic x(s)=(p(s), u(s)) in Sasaki metric connecting
             initial_point = x(0) and end_point = x(1).
         """
-
         n_s = self.n_s if n_steps is None else n_steps
         metric = self.metric
         par_trans = metric.parallel_transport
@@ -184,7 +179,7 @@ class SasakiMetric(RiemannianMetric):
         pL, uL = end_point[0], end_point[1]
 
         def grad(pu):
-            """ gradient of discrete geodesic energy """
+            """Gradient of discrete geodesic energy."""
             g = []
             # add boundary points to the list of points
             pu = [initial_point] + pu + [end_point]
@@ -231,7 +226,6 @@ class SasakiMetric(RiemannianMetric):
         inner_product : array-like, shape=[..., 1]
             Inner-product.
         """
-
         # unflatten
         vec_a = gs.reshape(tangent_vec_a, (-1, 2) + self.metric.shape)
         vec_b = gs.reshape(tangent_vec_b, (-1, 2) + self.metric.shape)
