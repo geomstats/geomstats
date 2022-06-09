@@ -1,27 +1,22 @@
 """Pytorch based computation backend."""
 
-import math
-from collections.abc import Iterable
-from functools import wraps
+import functools as _functools
+from collections.abc import Iterable as _Iterable
 
 import numpy as _np
-import torch
+import torch as _torch
 from torch import angle, arange, arccos, arccosh, arcsin, arctanh, argmin
 from torch import atan2 as arctan2  # NOQA
-from torch import bool as t_bool
 from torch import broadcast_tensors as broadcast_arrays
 from torch import (
     ceil,
     clip,
-    complex64,
-    complex128,
     conj,
     cos,
     cosh,
     cross,
     divide,
     empty_like,
-    eq,
     erf,
     exp,
     eye,
@@ -44,7 +39,7 @@ from torch import (
     logical_or,
 )
 from torch import max as amax
-from torch import mean, meshgrid, moveaxis, nonzero, ones, ones_like, outer, polygamma
+from torch import mean, meshgrid, moveaxis, ones, ones_like, outer, polygamma
 from torch import pow as power
 from torch import real
 from torch import repeat_interleave as repeat
@@ -65,23 +60,21 @@ from torch import (
     zeros_like,
 )
 
-from ..constants import pytorch_atol, pytorch_rtol
+from .._backend_config import pytorch_atol as atol
+from .._backend_config import pytorch_rtol as rtol
+from .._common import comb
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-DTYPES = {
+_DTYPES = {
     int32: 0,
     int64: 1,
     float32: 2,
     float64: 3,
-    complex64: 4,
-    complex128: 5,
+    _torch.complex64: 4,
+    _torch.complex128: 5,
 }
-
-
-atol = pytorch_atol
-rtol = pytorch_rtol
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -92,10 +85,10 @@ searchsorted = _raise_not_implemented_error
 
 
 def _box_scalar(function):
-    @wraps(function)
+    @_functools.wraps(function)
     def wrapper(x):
-        if not torch.is_tensor(x):
-            x = torch.tensor(x)
+        if not _torch.is_tensor(x):
+            x = _torch.tensor(x)
         return function(x)
 
     return wrapper
@@ -114,13 +107,9 @@ sinh = _box_scalar(sinh)
 tan = _box_scalar(tan)
 
 
-def comb(n, k):
-    return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
-
-
 def matmul(x, y, *, out=None):
     x, y = convert_to_wider_dtype([x, y])
-    return torch.matmul(x, y, out=out)
+    return _torch.matmul(x, y, out=out)
 
 
 def to_numpy(x):
@@ -128,7 +117,7 @@ def to_numpy(x):
 
 
 def from_numpy(x, dtype=None):
-    tensor = torch.from_numpy(x)
+    tensor = _torch.from_numpy(x)
 
     if dtype is not None and tensor.dtype != dtype:
         tensor = cast(tensor, dtype=dtype)
@@ -137,77 +126,77 @@ def from_numpy(x, dtype=None):
 
 
 def one_hot(labels, num_classes):
-    if not torch.is_tensor(labels):
-        labels = torch.LongTensor(labels)
-    return torch.nn.functional.one_hot(labels, num_classes).type(torch.uint8)
+    if not _torch.is_tensor(labels):
+        labels = _torch.LongTensor(labels)
+    return _torch.nn.functional.one_hot(labels, num_classes).type(_torch.uint8)
 
 
 def argmax(a, **kwargs):
-    if a.dtype == torch.bool:
-        return torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))
-    return torch.argmax(a, **kwargs)
+    if a.dtype == _torch.bool:
+        return _torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))
+    return _torch.argmax(a, **kwargs)
 
 
 def convert_to_wider_dtype(tensor_list):
-    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    dtype_list = [_DTYPES[x.dtype] for x in tensor_list]
     wider_dtype_index = max(dtype_list)
 
-    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+    wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
 
     tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
     return tensor_list
 
 
 def less_equal(x, y, **kwargs):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
-    if not torch.is_tensor(y):
-        y = torch.tensor(y)
-    return torch.le(x, y, **kwargs)
+    if not _torch.is_tensor(x):
+        x = _torch.tensor(x)
+    if not _torch.is_tensor(y):
+        y = _torch.tensor(y)
+    return _torch.le(x, y, **kwargs)
 
 
 def empty(shape, dtype=float64):
-    return torch.empty(*shape, dtype=dtype)
+    return _torch.empty(*shape, dtype=dtype)
 
 
 def split(x, indices_or_sections, axis=0):
     if isinstance(indices_or_sections, int):
         indices_or_sections = x.shape[axis] // indices_or_sections
-        return torch.split(x, indices_or_sections, dim=axis)
+        return _torch.split(x, indices_or_sections, dim=axis)
     indices_or_sections = _np.array(indices_or_sections)
     intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
     last_interval_length = x.shape[axis] - indices_or_sections[-1]
     if last_interval_length > 0:
         intervals_length = _np.append(intervals_length, last_interval_length)
     intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
-    return torch.split(x, tuple(intervals_length), dim=axis)
+    return _torch.split(x, tuple(intervals_length), dim=axis)
 
 
 def logical_and(x, y):
-    if torch.is_tensor(x):
-        return torch.logical_and(x, y)
+    if _torch.is_tensor(x):
+        return _torch.logical_and(x, y)
     return x and y
 
 
 def any(x, axis=None):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
+    if not _torch.is_tensor(x):
+        x = _torch.tensor(x)
     if axis is None:
-        return torch.any(x)
+        return _torch.any(x)
     if isinstance(axis, int):
-        return torch.any(x.bool(), axis)
+        return _torch.any(x.bool(), axis)
     if len(axis) == 1:
-        return torch.any(x, *axis)
+        return _torch.any(x, *axis)
     axis = list(axis)
     for i_axis, one_axis in enumerate(axis):
         if one_axis < 0:
             axis[i_axis] = ndim(x) + one_axis
     new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
-    return any(torch.any(x.bool(), axis[0]), new_axis)
+    return any(_torch.any(x.bool(), axis[0]), new_axis)
 
 
 def cast(x, dtype):
-    if torch.is_tensor(x):
+    if _torch.is_tensor(x):
         return x.to(dtype=dtype)
     return array(x, dtype=dtype)
 
@@ -217,17 +206,17 @@ def flip(x, axis):
         axis = [axis]
     if axis is None:
         axis = list(range(x.ndim))
-    return torch.flip(x, dims=axis)
+    return _torch.flip(x, dims=axis)
 
 
 def concatenate(seq, axis=0, out=None):
     seq = convert_to_wider_dtype(seq)
-    return torch.cat(seq, dim=axis, out=out)
+    return _torch.cat(seq, dim=axis, out=out)
 
 
 def array(val, dtype=None):
 
-    if torch.is_tensor(val):
+    if _torch.is_tensor(val):
         if dtype is None or val.dtype == dtype:
             return val.clone()
         else:
@@ -240,24 +229,24 @@ def array(val, dtype=None):
         tensors = [array(tensor, dtype=dtype) for tensor in val]
         return stack(tensors)
 
-    return torch.tensor(val, dtype=dtype)
+    return _torch.tensor(val, dtype=dtype)
 
 
 def all(x, axis=None):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
+    if not _torch.is_tensor(x):
+        x = _torch.tensor(x)
     if axis is None:
         return x.bool().all()
     if isinstance(axis, int):
-        return torch.all(x.bool(), axis)
+        return _torch.all(x.bool(), axis)
     if len(axis) == 1:
-        return torch.all(x, *axis)
+        return _torch.all(x, *axis)
     axis = list(axis)
     for i_axis, one_axis in enumerate(axis):
         if one_axis < 0:
             axis[i_axis] = ndim(x) + one_axis
     new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
-    return all(torch.all(x.bool(), axis[0]), new_axis)
+    return all(_torch.all(x.bool(), axis[0]), new_axis)
 
 
 def get_slice(x, indices):
@@ -281,7 +270,7 @@ def get_slice(x, indices):
 
     Examples
     --------
-    >>> a = torch.tensor(range(30)).reshape(3,10)
+    >>> a = _torch.tensor(range(30)).reshape(3,10)
     >>> get_slice(a, ((0, 2), (8, 9)))
     tensor([8, 29])
     """
@@ -289,10 +278,10 @@ def get_slice(x, indices):
 
 
 def allclose(a, b, atol=atol, rtol=rtol):
-    if not isinstance(a, torch.Tensor):
-        a = torch.tensor(a)
-    if not isinstance(b, torch.Tensor):
-        b = torch.tensor(b)
+    if not isinstance(a, _torch.Tensor):
+        a = _torch.tensor(a)
+    if not isinstance(b, _torch.Tensor):
+        b = _torch.tensor(b)
     a = to_ndarray(a.float(), to_ndim=1)
     b = to_ndarray(b.float(), to_ndim=1)
     n_a = a.shape[0]
@@ -304,7 +293,7 @@ def allclose(a, b, atol=atol, rtol=rtol):
     elif n_a < n_b:
         reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
-    return torch.allclose(a, b, atol=atol, rtol=rtol)
+    return _torch.allclose(a, b, atol=atol, rtol=rtol)
 
 
 def shape(val):
@@ -316,61 +305,57 @@ def dot(a, b):
 
 
 def maximum(a, b):
-    return torch.max(array(a), array(b))
+    return _torch.max(array(a), array(b))
 
 
 def minimum(a, b):
-    return torch.min(array(a), array(b))
+    return _torch.min(array(a), array(b))
 
 
 def to_ndarray(x, to_ndim, axis=0):
-    if not torch.is_tensor(x):
+    if not _torch.is_tensor(x):
         x = array(x)
 
     if x.dim() == to_ndim - 1:
-        x = torch.unsqueeze(x, dim=axis)
+        x = _torch.unsqueeze(x, dim=axis)
     return x
 
 
 def broadcast_to(x, shape):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
+    if not _torch.is_tensor(x):
+        x = _torch.tensor(x)
     return x.expand(shape)
 
 
 def sqrt(x):
-    if not isinstance(x, torch.Tensor):
-        x = torch.tensor(x).float()
-    return torch.sqrt(x)
+    if not isinstance(x, _torch.Tensor):
+        x = _torch.tensor(x).float()
+    return _torch.sqrt(x)
 
 
 def isclose(x, y, rtol=rtol, atol=atol):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
-    if not torch.is_tensor(y):
-        y = torch.tensor(y)
-    return torch.isclose(x, y, atol=atol, rtol=rtol)
+    if not _torch.is_tensor(x):
+        x = _torch.tensor(x)
+    if not _torch.is_tensor(y):
+        y = _torch.tensor(y)
+    return _torch.isclose(x, y, atol=atol, rtol=rtol)
 
 
 def sum(x, axis=None, keepdims=None, **kwargs):
     if axis is None:
         if keepdims is None:
-            return torch.sum(x, **kwargs)
-        return torch.sum(x, keepdim=keepdims, **kwargs)
+            return _torch.sum(x, **kwargs)
+        return _torch.sum(x, keepdim=keepdims, **kwargs)
     if keepdims is None:
-        return torch.sum(x, dim=axis, **kwargs)
-    return torch.sum(x, dim=axis, keepdim=keepdims, **kwargs)
+        return _torch.sum(x, dim=axis, **kwargs)
+    return _torch.sum(x, dim=axis, keepdim=keepdims, **kwargs)
 
 
 def einsum(*args):
     einsum_str = args[0]
     input_tensors_list = convert_to_wider_dtype(args[1:])
 
-    return torch.einsum(einsum_str, *input_tensors_list)
-
-
-def T(x):
-    return torch.t(x)
+    return _torch.einsum(einsum_str, *input_tensors_list)
 
 
 def transpose(x, axes=None):
@@ -385,68 +370,68 @@ def transpose(x, axes=None):
 
 def squeeze(x, axis=None):
     if axis is None:
-        return torch.squeeze(x)
-    return torch.squeeze(x, dim=axis)
+        return _torch.squeeze(x)
+    return _torch.squeeze(x, dim=axis)
 
 
 def trace(x, axis1=0, axis2=1):
     min_axis = min(axis1, axis2)
     max_axis = max(axis1, axis2)
     if min_axis == 1 and max_axis == 2:
-        return torch.einsum("...ii", x)
+        return _torch.einsum("...ii", x)
     if min_axis == -2 and max_axis == -1:
-        return torch.einsum("...ii", x)
+        return _torch.einsum("...ii", x)
     if min_axis == 0 and max_axis == 1:
-        return torch.einsum("ii...", x)
+        return _torch.einsum("ii...", x)
     if min_axis == 0 and max_axis == 2:
-        return torch.einsum("i...i", x)
+        return _torch.einsum("i...i", x)
     raise NotImplementedError()
 
 
 def linspace(start, stop, num):
-    return torch.linspace(start=start, end=stop, steps=num)
+    return _torch.linspace(start=start, end=stop, steps=num)
 
 
 def equal(a, b, **kwargs):
-    if a.dtype == torch.ByteTensor:
-        a = cast(a, torch.uint8).float()
-    if b.dtype == torch.ByteTensor:
-        b = cast(b, torch.uint8).float()
-    return torch.eq(a, b, **kwargs)
+    if a.dtype == _torch.ByteTensor:
+        a = cast(a, _torch.uint8).float()
+    if b.dtype == _torch.ByteTensor:
+        b = cast(b, _torch.uint8).float()
+    return _torch.eq(a, b, **kwargs)
 
 
 def diag_indices(*args, **kwargs):
-    return tuple(map(torch.from_numpy, _np.diag_indices(*args, **kwargs)))
+    return tuple(map(_torch.from_numpy, _np.diag_indices(*args, **kwargs)))
 
 
 def tril(mat, k=0):
-    return torch.tril(mat, diagonal=k)
+    return _torch.tril(mat, diagonal=k)
 
 
 def triu(mat, k=0):
-    return torch.triu(mat, diagonal=k)
+    return _torch.triu(mat, diagonal=k)
 
 
 def tril_indices(n, k=0, m=None):
     if m is None:
         m = n
-    return torch.tril_indices(row=n, col=m, offset=k)
+    return _torch.tril_indices(row=n, col=m, offset=k)
 
 
 def triu_indices(n, k=0, m=None):
     if m is None:
         m = n
-    return torch.triu_indices(row=n, col=m, offset=k)
+    return _torch.triu_indices(row=n, col=m, offset=k)
 
 
 def tile(x, y):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
+    if not _torch.is_tensor(x):
+        x = _torch.tensor(x)
     return x.repeat(y)
 
 
 def expand_dims(x, axis=0):
-    return torch.unsqueeze(x, dim=axis)
+    return _torch.unsqueeze(x, dim=axis)
 
 
 def ndim(x):
@@ -456,11 +441,11 @@ def ndim(x):
 def hsplit(x, indices_or_section):
     if isinstance(indices_or_section, int):
         indices_or_section = x.shape[1] // indices_or_section
-    return torch.split(x, indices_or_section, dim=1)
+    return _torch.split(x, indices_or_section, dim=1)
 
 
 def diagonal(x, offset=0, axis1=0, axis2=1):
-    return torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
+    return _torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
 
 
 def set_diag(x, new_diag):
@@ -483,26 +468,26 @@ def set_diag(x, new_diag):
     1-D array, but modifies x instead of creating a copy.
     """
     arr_shape = x.shape
-    off_diag = (1 - torch.eye(arr_shape[-1])) * x
-    diag = torch.einsum("ij,...i->...ij", torch.eye(new_diag.shape[-1]), new_diag)
+    off_diag = (1 - _torch.eye(arr_shape[-1])) * x
+    diag = _torch.einsum("ij,...i->...ij", _torch.eye(new_diag.shape[-1]), new_diag)
     return diag + off_diag
 
 
 def prod(x, axis=None):
     if axis is None:
         axis = 0
-    return torch.prod(x, axis)
+    return _torch.prod(x, axis)
 
 
 def where(condition, x=None, y=None):
     if x is None and y is None:
-        return torch.where(condition)
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
-    if not torch.is_tensor(y):
-        y = torch.tensor(y)
+        return _torch.where(condition)
+    if not _torch.is_tensor(x):
+        x = _torch.tensor(x)
+    if not _torch.is_tensor(y):
+        y = _torch.tensor(y)
     y = cast(y, x.dtype)
-    return torch.where(condition, x, y)
+    return _torch.where(condition, x, y)
 
 
 def get_mask_i_float(i, n):
@@ -532,15 +517,15 @@ def _is_boolean(x):
         return True
     if isinstance(x, (tuple, list)):
         return _is_boolean(x[0])
-    if torch.is_tensor(x):
-        return x.dtype in [torch.bool, torch.uint8]
+    if _torch.is_tensor(x):
+        return x.dtype in [_torch.bool, _torch.uint8]
     return False
 
 
 def _is_iterable(x):
     if isinstance(x, (list, tuple)):
         return True
-    if torch.is_tensor(x):
+    if _torch.is_tensor(x):
         return ndim(x) > 0
     return False
 
@@ -648,17 +633,17 @@ def copy(x):
 
 
 def cumsum(x, axis=None):
-    if not torch.is_tensor(x):
+    if not _torch.is_tensor(x):
         x = array(x)
     if axis is None:
         return x.flatten().cumsum(dim=0)
-    return torch.cumsum(x, dim=axis)
+    return _torch.cumsum(x, dim=axis)
 
 
 def cumprod(x, axis=None):
     if axis is None:
         axis = 0
-    return torch.cumprod(x, axis)
+    return _torch.cumprod(x, axis)
 
 
 def array_from_sparse(indices, data, target_shape):
@@ -680,10 +665,10 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return torch.sparse.FloatTensor(
-        torch.LongTensor(indices).t(),
-        torch.FloatTensor(cast(data, float32)),
-        torch.Size(target_shape),
+    return _torch.sparse.FloatTensor(
+        _torch.LongTensor(indices).t(),
+        _torch.FloatTensor(cast(data, float32)),
+        _torch.Size(target_shape),
     ).to_dense()
 
 
@@ -694,7 +679,7 @@ def vectorize(x, pyfunc, multiple_args=False, **kwargs):
 
 
 def vec_to_diag(vec):
-    return torch.diag_embed(vec, offset=0)
+    return _torch.diag_embed(vec, offset=0)
 
 
 def tril_to_vec(x, k=0):
@@ -728,7 +713,7 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     n = diag.shape[-1]
     (i,) = diag_indices(n, ndim=1)
     j, k = triu_indices(n, k=1)
-    mat = torch.zeros((diag.shape + (n,)))
+    mat = _torch.zeros((diag.shape + (n,)))
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
@@ -741,29 +726,29 @@ def ravel_tril_indices(n, k=0, m=None):
     else:
         size = (n, m)
     idxs = _np.tril_indices(n, k, m)
-    return torch.from_numpy(_np.ravel_multi_index(idxs, size))
+    return _torch.from_numpy(_np.ravel_multi_index(idxs, size))
 
 
 def sort(a, axis=-1):
-    sorted_a, _ = torch.sort(a, dim=axis)
+    sorted_a, _ = _torch.sort(a, dim=axis)
     return sorted_a
 
 
 def amin(a, axis=-1):
-    (values, _) = torch.min(a, dim=axis)
+    (values, _) = _torch.min(a, dim=axis)
     return values
 
 
 def take(a, indices, axis=0):
-    if not torch.is_tensor(indices):
-        indices = torch.as_tensor(indices)
+    if not _torch.is_tensor(indices):
+        indices = _torch.as_tensor(indices)
 
-    return torch.squeeze(torch.index_select(a, axis, indices))
+    return _torch.squeeze(_torch.index_select(a, axis, indices))
 
 
 def _unnest_iterable(ls):
     out = []
-    if isinstance(ls, Iterable):
+    if isinstance(ls, _Iterable):
         for inner_ls in ls:
             out.extend(_unnest_iterable(inner_ls))
     else:
@@ -773,6 +758,6 @@ def _unnest_iterable(ls):
 
 
 def pad(a, pad_width, constant_value=0.0):
-    return torch.nn.functional.pad(
+    return _torch.nn.functional.pad(
         a, _unnest_iterable(reversed(pad_width)), value=constant_value
     )

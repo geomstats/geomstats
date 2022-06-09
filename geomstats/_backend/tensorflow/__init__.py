@@ -1,12 +1,11 @@
 """Tensorflow based computation backend."""
 
-import math
-from collections import Counter
-from itertools import product
+from collections import Counter as _Counter
+from itertools import product as _product
 
 import numpy as _np
-import tensorflow as tf
-import tensorflow_probability as tfp
+import tensorflow as _tf
+import tensorflow_probability as _tfp
 from tensorflow import abs
 from tensorflow import acos as arccos  # NOQA
 from tensorflow import acosh as arccosh
@@ -16,9 +15,6 @@ from tensorflow import atan2 as arctan2
 from tensorflow import broadcast_to
 from tensorflow import clip_by_value as clip
 from tensorflow import (
-    complex64,
-    complex128,
-    concat,
     cos,
     cosh,
     divide,
@@ -28,7 +24,6 @@ from tensorflow import (
     float32,
     float64,
     floor,
-    gather,
     greater,
     int32,
     int64,
@@ -67,39 +62,42 @@ from tensorflow import (
 )
 from tensorflow.experimental.numpy import moveaxis
 
-from ..constants import tf_atol, tf_rtol
+from .._backend_config import tf_atol as atol
+from .._backend_config import tf_rtol as rtol
+from .._common import comb
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-DTYPES = {int32: 0, int64: 1, float32: 2, float64: 3, complex64: 4, complex128: 5}
+_DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3,
+    _tf.complex64: 4,
+    _tf.complex128: 5,
+}
 
-angle = tf.math.angle
-arctanh = tf.math.atanh
-ceil = tf.math.ceil
-conj = tf.math.conj
-cross = tf.linalg.cross
-erf = tf.math.erf
-imag = tf.math.imag
-isnan = tf.math.is_nan
-log = tf.math.log
-mod = tf.math.mod
-polygamma = tf.math.polygamma
-power = tf.math.pow
-real = tf.math.real
-set_diag = tf.linalg.set_diag
-std = tf.math.reduce_std
-atol = tf_atol
-rtol = tf_rtol
-trapz = tfp.math.trapz
+angle = _tf.math.angle
+arctanh = _tf.math.atanh
+ceil = _tf.math.ceil
+conj = _tf.math.conj
+cross = _tf.linalg.cross
+erf = _tf.math.erf
+imag = _tf.math.imag
+isnan = _tf.math.is_nan
+log = _tf.math.log
+mod = _tf.math.mod
+polygamma = _tf.math.polygamma
+power = _tf.math.pow
+real = _tf.math.real
+set_diag = _tf.linalg.set_diag
+std = _tf.math.reduce_std
+trapz = _tfp.math.trapz
 
 
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
-
-
-def comb(n, k):
-    return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
 
 
 def to_numpy(x):
@@ -107,90 +105,90 @@ def to_numpy(x):
 
 
 def from_numpy(x):
-    return tf.convert_to_tensor(x)
+    return _tf.convert_to_tensor(x)
 
 
 def one_hot(labels, num_classes):
-    return tf.one_hot(labels, num_classes, dtype=tf.uint8)
+    return _tf.one_hot(labels, num_classes, dtype=_tf.uint8)
 
 
 def concatenate(x, axis=0, out=None):
-    return concat(x, axis=axis)
+    return _tf.concat(x, axis=axis)
 
 
 def convert_to_wider_dtype(tensor_list):
-    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    dtype_list = [_DTYPES[x.dtype] for x in tensor_list]
     wider_dtype_index = max(dtype_list)
 
-    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+    wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
 
     tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
     return tensor_list
 
 
 def repeat(a, repeats, axis=None):
-    return tf.repeat(input=a, repeats=repeats, axis=axis)
+    return _tf.repeat(input=a, repeats=repeats, axis=axis)
 
 
 def array(x, dtype=None):
-    return tf.convert_to_tensor(x, dtype=dtype)
+    return _tf.convert_to_tensor(x, dtype=dtype)
 
 
 def trace(x, axis1=0, axis2=1):
     min_axis = min(axis1, axis2)
     max_axis = max(axis1, axis2)
     if min_axis == 1 and max_axis == 2:
-        return tf.einsum("...ii", x)
+        return _tf.einsum("...ii", x)
     if min_axis == -2 and max_axis == -1:
-        return tf.einsum("...ii", x)
+        return _tf.einsum("...ii", x)
     if min_axis == 0 and max_axis == 1:
-        return tf.einsum("ii...", x)
+        return _tf.einsum("ii...", x)
     if min_axis == 0 and max_axis == 2:
-        return tf.einsum("i...i", x)
+        return _tf.einsum("i...i", x)
     raise NotImplementedError()
 
 
 # TODO (nkoep): Handle the optional axis arguments.
 def diagonal(a, axis1=0, axis2=1):
-    return tf.linalg.diag_part(a)
+    return _tf.linalg.diag_part(a)
 
 
 def ndim(x):
-    return tf.convert_to_tensor(x).ndim
+    return _tf.convert_to_tensor(x).ndim
 
 
 def to_ndarray(x, to_ndim, axis=0):
     if ndim(x) == to_ndim - 1:
-        x = tf.expand_dims(x, axis=axis)
+        x = _tf.expand_dims(x, axis=axis)
     return x
 
 
 def empty(shape, dtype=float64):
-    if not isinstance(dtype, tf.DType):
+    if not isinstance(dtype, _tf.DType):
         raise ValueError("dtype must be one of Tensorflow's types")
     np_dtype = dtype.as_numpy_dtype
-    return tf.convert_to_tensor(_np.empty(shape, dtype=np_dtype))
+    return _tf.convert_to_tensor(_np.empty(shape, dtype=np_dtype))
 
 
 def empty_like(prototype, dtype=None):
-    initial_shape = tf.shape(prototype)
+    initial_shape = _tf.shape(prototype)
     if dtype is None:
         dtype = prototype.dtype
     return empty(initial_shape, dtype=dtype)
 
 
 def flip(m, axis=None):
-    if not isinstance(m, tf.Tensor):
+    if not isinstance(m, _tf.Tensor):
         raise ValueError("m must be a Tensorflow tensor")
     if axis is None:
         axis = range(m.ndim)
     elif not hasattr(axis, "__iter__"):
         axis = (axis,)
-    return tf.reverse(m, axis=axis)
+    return _tf.reverse(m, axis=axis)
 
 
 def any(x, axis=None):
-    return tf.math.reduce_any(tf.cast(x, bool), axis=axis)
+    return _tf.math.reduce_any(_tf.cast(x, bool), axis=axis)
 
 
 def _is_boolean(x):
@@ -198,7 +196,7 @@ def _is_boolean(x):
         return True
     if isinstance(x, (tuple, list)):
         return isinstance(x[0], bool)
-    if tf.is_tensor(x):
+    if _tf.is_tensor(x):
         return x.dtype == bool
     return False
 
@@ -239,7 +237,7 @@ def _mask_from_indices(indices, mask_shape, dtype=float32):
 
     Returns
     -------
-    tf_mask : array, shape=[mask_shape]
+    _tf_mask : array, shape=[mask_shape]
     """
     np_mask = _np.zeros(mask_shape)
 
@@ -255,8 +253,8 @@ def _mask_from_indices(indices, mask_shape, dtype=float32):
 
     for index in indices:
         np_mask[index] = 1
-    tf_mask = array(np_mask, dtype=dtype)
-    return tf_mask
+    _tf_mask = array(np_mask, dtype=dtype)
+    return _tf_mask
 
 
 def _duplicate_array(x, n_samples, axis=0):
@@ -301,7 +299,7 @@ def _vectorized_mask_from_indices(
 
     Returns
     -------
-    tf_mask : array, shape=[mask_shape[:axis], n_samples, mask_shape[axis:]]
+    _tf_mask : array, shape=[mask_shape[:axis], n_samples, mask_shape[axis:]]
     """
     mask = _mask_from_indices(indices, mask_shape, dtype)
     return _duplicate_array(mask, n_samples, axis=axis)
@@ -334,14 +332,14 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
         along an axis).
     """
     single_index = not isinstance(indices, list)
-    if tf.is_tensor(indices):
+    if _tf.is_tensor(indices):
         single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
     if single_index:
         indices = [indices]
 
     if isinstance(indices[0], tuple):
         use_vectorization = len(indices[0]) < ndim(x)
-    elif tf.is_tensor(indices[0]) and ndim(indices[0]) >= 1:
+    elif _tf.is_tensor(indices[0]) and ndim(indices[0]) >= 1:
         use_vectorization = len(indices[0]) < ndim(x)
     else:
         use_vectorization = ndim(x) > 1
@@ -365,19 +363,19 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
 def _assignment(x, values, indices, mode, axis):
     if _is_boolean(indices):
         if ndim(array(indices)) > 1:
-            indices_tensor = tf.where(indices)
+            indices_tensor = _tf.where(indices)
             indices = [tuple(ind) for ind in indices_tensor]
         else:
             indices_from_booleans = [index for index, val in enumerate(indices) if val]
             indices_along_dims = [range(dim) for dim in shape(x)]
             indices_along_dims[axis] = indices_from_booleans
-            indices = list(product(*indices_along_dims))
-    if tf.rank(values) == 0:
+            indices = list(_product(*indices_along_dims))
+    if _tf.rank(values) == 0:
         return _assignment_single_value(x, values, indices, mode, axis)
     values = cast(flatten(array(values)), x.dtype)
 
     single_index = not isinstance(indices, list)
-    if tf.is_tensor(indices):
+    if _tf.is_tensor(indices):
         single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
     if single_index:
         if len(values) > 1:
@@ -501,8 +499,8 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return tf.sparse.to_dense(
-        tf.sparse.reorder(tf.SparseTensor(indices, data, target_shape))
+    return _tf.sparse.to_dense(
+        _tf.sparse.reorder(_tf.SparseTensor(indices, data, target_shape))
     )
 
 
@@ -527,48 +525,48 @@ def get_slice(x, indices):
 
     Examples
     --------
-    >>> a = tf.reshape(tf.convert_to_tensor(range(30)), (3,10))
+    >>> a = _tf.reshape(_tf.convert_to_tensor(range(30)), (3,10))
     >>> get_slice(a, ((0, 2), (8, 9)))
-    <tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
+    <_tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
     """
     if hasattr(indices, "shape"):
         if indices.shape.rank == 0:
             return x[indices]
 
-        if tf.is_tensor(indices) and indices.shape[-1] == 1:
-            return tf.gather_nd(x, indices)
+        if _tf.is_tensor(indices) and indices.shape[-1] == 1:
+            return _tf.gather_nd(x, indices)
 
-    return tf.gather_nd(x, list(zip(*indices)))
+    return _tf.gather_nd(x, list(zip(*indices)))
 
 
 def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
     if multiple_args:
-        return tf.map_fn(lambda y: pyfunc(*y), elems=x, dtype=dtype)
-    return tf.map_fn(pyfunc, elems=x, dtype=dtype)
+        return _tf.map_fn(lambda y: pyfunc(*y), elems=x, dtype=dtype)
+    return _tf.map_fn(pyfunc, elems=x, dtype=dtype)
 
 
 def split(x, indices_or_sections, axis=0):
     if isinstance(indices_or_sections, int):
-        return tf.split(x, indices_or_sections, axis=axis)
+        return _tf.split(x, indices_or_sections, axis=axis)
     indices_or_sections = _np.array(indices_or_sections)
     intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
     last_interval_length = x.shape[axis] - indices_or_sections[-1]
     if last_interval_length > 0:
         intervals_length = _np.append(intervals_length, last_interval_length)
     intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
-    return tf.split(x, num_or_size_splits=tuple(intervals_length), axis=axis)
+    return _tf.split(x, num_or_size_splits=tuple(intervals_length), axis=axis)
 
 
 def hsplit(x, n_splits):
-    return tf.split(x, num_or_size_splits=n_splits, axis=1)
+    return _tf.split(x, num_or_size_splits=n_splits, axis=1)
 
 
 def flatten(x):
     """Collapse the tensor into 1-D.
 
-    Following https://www.tensorflow.org/api_docs/python/tf/reshape
+    Following https://www.tensorflow.org/api_docs/python/_tf/reshape
     """
-    return tf.reshape(x, [-1])
+    return _tf.reshape(x, [-1])
 
 
 def matmul(a, b):
@@ -578,34 +576,34 @@ def matmul(a, b):
     behavior of torch's and numpy's versions of matmul
     """
     if ndim(b) < ndim(a) and (ndim(b) == 1 or b.shape[-2] != a.shape[-1]):
-        return tf.linalg.matvec(a, b)
-    return tf.linalg.matmul(a, b)
+        return _tf.linalg.matvec(a, b)
+    return _tf.linalg.matmul(a, b)
 
 
 def outer(x, y):
-    return tf.einsum("i,j->ij", x, y)
+    return _tf.einsum("i,j->ij", x, y)
 
 
 def copy(x):
-    return tf.Variable(x)
+    return _tf.Variable(x)
 
 
 def hstack(x):
-    return tf.concat(x, axis=1)
+    return _tf.concat(x, axis=1)
 
 
 def vstack(x):
     new_x = []
     for one_x in x:
         if one_x.ndim < 2:
-            new_x.append(tf.expand_dims(one_x, axis=0))
+            new_x.append(_tf.expand_dims(one_x, axis=0))
         else:
             new_x.append(one_x)
-    return tf.concat(new_x, axis=0)
+    return _tf.concat(new_x, axis=0)
 
 
 def cast(x, dtype):
-    return tf.cast(x, dtype)
+    return _tf.cast(x, dtype)
 
 
 def broadcast_arrays(*args, **kwargs):
@@ -620,13 +618,13 @@ def broadcast_arrays(*args, **kwargs):
         tensor = tensors[index]
         for _ in range(max_rank - len(value)):
             value.insert(0, 1)
-            tensor = tf.expand_dims(tensor, axis=0)
+            tensor = _tf.expand_dims(tensor, axis=0)
         tensors[index] = tensor
 
     broadcast_shape = []
     for index in range(max_rank):
         dimensions = [s[index] for s in shapes]
-        repeats = Counter(dimensions)
+        repeats = _Counter(dimensions)
         if len(repeats) > 2 or (len(repeats) == 2 and 1 not in list(repeats.keys())):
             raise ValueError(
                 "operands could not be broadcast together with shapes", shapes
@@ -635,7 +633,7 @@ def broadcast_arrays(*args, **kwargs):
 
     for axis, dimension in enumerate(broadcast_shape):
         tensors = [
-            tf.concat([t] * dimension, axis=axis) if t.get_shape()[axis] == 1 else t
+            _tf.concat([t] * dimension, axis=axis) if t.get_shape()[axis] == 1 else t
             for t in tensors
         ]
 
@@ -643,37 +641,37 @@ def broadcast_arrays(*args, **kwargs):
 
 
 def dot(x, y):
-    return tf.tensordot(x, y, axes=1)
+    return _tf.tensordot(x, y, axes=1)
 
 
 def isclose(x, y, rtol=rtol, atol=atol):
-    if not tf.is_tensor(x):
-        x = tf.constant(x)
-    if not tf.is_tensor(y):
-        y = tf.constant(y)
+    if not _tf.is_tensor(x):
+        x = _tf.constant(x)
+    if not _tf.is_tensor(y):
+        y = _tf.constant(y)
     x, y = convert_to_wider_dtype([x, y])
     dtype = x.dtype
 
-    rhs = tf.constant(atol, dtype=dtype) + tf.constant(rtol, dtype=dtype) * tf.abs(y)
-    return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
+    rhs = _tf.constant(atol, dtype=dtype) + _tf.constant(rtol, dtype=dtype) * _tf.abs(y)
+    return _tf.less_equal(_tf.abs(_tf.subtract(x, y)), rhs)
 
 
 def allclose(x, y, rtol=rtol, atol=atol):
-    return tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
+    return _tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
 
 
 def eye(n, m=None):
     if m is None:
         m = n
-    return tf.eye(num_rows=n, num_columns=m)
+    return _tf.eye(num_rows=n, num_columns=m)
 
 
 def sum(x, axis=None, keepdims=False, name=None):
-    if not tf.is_tensor(x):
-        x = tf.convert_to_tensor(x)
+    if not _tf.is_tensor(x):
+        x = _tf.convert_to_tensor(x)
     if x.dtype == bool:
         x = cast(x, int32)
-    return tf.reduce_sum(x, axis, keepdims, name)
+    return _tf.reduce_sum(x, axis, keepdims, name)
 
 
 def einsum(equation, *inputs, **kwargs):
@@ -732,7 +730,7 @@ def einsum(equation, *inputs, **kwargs):
         input_str = input_str_list[0] + "," + input_str_list[1]
         einsum_str = input_str + "->" + output_str
 
-        result = tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+        result = _tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
 
         cond = (
             n_tensor_a == n_tensor_b == 1
@@ -744,117 +742,117 @@ def einsum(equation, *inputs, **kwargs):
             result = squeeze(result, axis=0)
         return result
 
-    return tf.einsum(equation, *input_tensors_list, **kwargs)
+    return _tf.einsum(equation, *input_tensors_list, **kwargs)
 
 
 def transpose(x, axes=None):
-    return tf.transpose(x, perm=axes)
+    return _tf.transpose(x, perm=axes)
 
 
 def all(x, axis=None):
-    return tf.math.reduce_all(tf.cast(x, bool), axis=axis)
+    return _tf.math.reduce_all(_tf.cast(x, bool), axis=axis)
 
 
 def cumsum(a, axis=None):
     if axis is None:
-        return tf.math.cumsum(flatten(a), axis=0)
-    return tf.math.cumsum(a, axis=axis)
+        return _tf.math.cumsum(flatten(a), axis=0)
+    return _tf.math.cumsum(a, axis=axis)
 
 
 def cumprod(a, axis=None):
     if axis is None:
-        return tf.math.cumprod(flatten(a), axis=0)
-    return tf.math.cumprod(a, axis=axis)
+        return _tf.math.cumprod(flatten(a), axis=0)
+    return _tf.math.cumprod(a, axis=axis)
 
 
-# (sait) there is tf.experimental.tril (we can use it once it moves to stable)
+# (sait) there is _tf.experimental.tril (we can use it once it moves to stable)
 def tril(mat, k=0):
     if k not in (0, -1):
         raise NotImplementedError("Only k=0 and k=-1 supported so far")
-    tril = tf.linalg.band_part(mat, -1, 0)
+    tril = _tf.linalg.band_part(mat, -1, 0)
     if k == 0:
         return tril
-    zero_diag = tf.zeros(mat.shape[:-1])
-    return tf.linalg.set_diag(tril, zero_diag)
+    zero_diag = _tf.zeros(mat.shape[:-1])
+    return _tf.linalg.set_diag(tril, zero_diag)
 
 
-# TODO(sait) use tf.experimental.triu once it becomes stable.
+# TODO(sait) use _tf.experimental.triu once it becomes stable.
 def triu(mat, k=0):
     if k not in (0, 1):
         raise NotImplementedError("Only k=0 and k=1 supported so far")
-    triu = tf.linalg.band_part(mat, 0, -1)
+    triu = _tf.linalg.band_part(mat, 0, -1)
     if k == 0:
         return triu
-    zero_diag = tf.zeros(mat.shape[:-1])
-    return tf.linalg.set_diag(triu, zero_diag)
+    zero_diag = _tf.zeros(mat.shape[:-1])
+    return _tf.linalg.set_diag(triu, zero_diag)
 
 
 def diag_indices(*args, **kwargs):
-    return tuple(map(tf.convert_to_tensor, _np.diag_indices(*args, **kwargs)))
+    return tuple(map(_tf.convert_to_tensor, _np.diag_indices(*args, **kwargs)))
 
 
 def tril_indices(*args, **kwargs):
-    return tuple(map(tf.convert_to_tensor, _np.tril_indices(*args, **kwargs)))
+    return tuple(map(_tf.convert_to_tensor, _np.tril_indices(*args, **kwargs)))
 
 
 def triu_indices(*args, **kwargs):
-    return tuple(map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
+    return tuple(map(_tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
 
 
 def unique(x):
-    return tf.unique(x).y
+    return _tf.unique(x).y
 
 
 def where(condition, x=None, y=None):
     if x is None and y is None:
-        return tf.where(condition)
-    if not tf.is_tensor(x):
-        x = tf.constant(x)
-    if not tf.is_tensor(y):
-        y = tf.constant(y)
+        return _tf.where(condition)
+    if not _tf.is_tensor(x):
+        x = _tf.constant(x)
+    if not _tf.is_tensor(y):
+        y = _tf.constant(y)
     y = cast(y, x.dtype)
-    return tf.where(condition, x, y)
+    return _tf.where(condition, x, y)
 
 
 def tril_to_vec(x, k=0):
     n = x.shape[-1]
     axis = 1 if x.ndim == 3 else 0
-    mask = tf.ones((n, n))
-    mask_a = tf.linalg.band_part(mask, -1, 0)
+    mask = _tf.ones((n, n))
+    mask_a = _tf.linalg.band_part(mask, -1, 0)
     if k < 0:
-        mask_b = tf.linalg.band_part(mask, -k - 1, 0)
+        mask_b = _tf.linalg.band_part(mask, -k - 1, 0)
     else:
-        mask_b = tf.zeros_like(mask_a)
-    mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
-    return tf.boolean_mask(x, mask, axis=axis)
+        mask_b = _tf.zeros_like(mask_a)
+    mask = _tf.cast(mask_a - mask_b, dtype=_tf.bool)
+    return _tf.boolean_mask(x, mask, axis=axis)
 
 
 def triu_to_vec(x, k=0):
     n = x.shape[-1]
     axis = 1 if x.ndim == 3 else 0
-    mask = tf.ones((n, n))
-    mask_a = tf.linalg.band_part(mask, 0, -1)
+    mask = _tf.ones((n, n))
+    mask_a = _tf.linalg.band_part(mask, 0, -1)
     if k > 0:
-        mask_b = tf.linalg.band_part(mask, 0, k - 1)
+        mask_b = _tf.linalg.band_part(mask, 0, k - 1)
     else:
-        mask_b = tf.zeros_like(mask_a)
-    mask = tf.cast(mask_a - mask_b, dtype=tf.bool)
-    return tf.boolean_mask(x, mask, axis=axis)
+        mask_b = _tf.zeros_like(mask_a)
+    mask = _tf.cast(mask_a - mask_b, dtype=_tf.bool)
+    return _tf.boolean_mask(x, mask, axis=axis)
 
 
 def tile(x, multiples):
-    t1 = tf.ones(len(multiples) - len(tf.shape(x)))
-    t1 = tf.cast(t1, tf.int32)
-    t2 = tf.shape(x)
-    x_reshape = tf.reshape(x, tf.concat([t1, t2], axis=0))
-    return tf.tile(x_reshape, multiples)
+    t1 = _tf.ones(len(multiples) - len(_tf.shape(x)))
+    t1 = _tf.cast(t1, _tf.int32)
+    t2 = _tf.shape(x)
+    x_reshape = _tf.reshape(x, _tf.concat([t1, t2], axis=0))
+    return _tf.tile(x_reshape, multiples)
 
 
 def vec_to_diag(vec):
-    return tf.linalg.diag(vec)
+    return _tf.linalg.diag(vec)
 
 
-def vec_to_triu(vec):
+def _vec_to_triu(vec):
     """Take vec and forms strictly upper triangular matrix.
 
     Parameters
@@ -868,18 +866,18 @@ def vec_to_triu(vec):
     """
     n = vec.shape[-1]
     triu_shape = vec.shape + (n,)
-    _ones = tf.ones(triu_shape)
-    vec = tf.reshape(vec, [-1])
-    mask_a = tf.linalg.band_part(_ones, 0, -1)
-    mask_b = tf.linalg.band_part(_ones, 0, 0)
-    mask = tf.subtract(mask_a, mask_b)
-    non_zero = tf.not_equal(mask, tf.constant(0.0))
-    indices = tf.where(non_zero)
-    sparse = tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
-    return tf.sparse.to_dense(sparse)
+    _ones = _tf.ones(triu_shape)
+    vec = _tf.reshape(vec, [-1])
+    mask_a = _tf.linalg.band_part(_ones, 0, -1)
+    mask_b = _tf.linalg.band_part(_ones, 0, 0)
+    mask = _tf.subtract(mask_a, mask_b)
+    non_zero = _tf.not_equal(mask, _tf.constant(0.0))
+    indices = _tf.where(non_zero)
+    sparse = _tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
+    return _tf.sparse.to_dense(sparse)
 
 
-def vec_to_tril(vec):
+def _vec_to_tril(vec):
     """Take vec and forms strictly lower triangular matrix.
 
     Parameters
@@ -893,15 +891,15 @@ def vec_to_tril(vec):
     """
     n = vec.shape[-1]
     tril_shape = vec.shape + (n,)
-    _ones = tf.ones(tril_shape)
-    vec = tf.reshape(vec, [-1])
-    mask_a = tf.linalg.band_part(_ones, -1, 0)
-    mask_b = tf.linalg.band_part(_ones, 0, 0)
-    mask = tf.subtract(mask_a, mask_b)
-    non_zero = tf.not_equal(mask, tf.constant(0.0))
-    indices = tf.where(non_zero)
-    sparse = tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
-    return tf.sparse.to_dense(sparse)
+    _ones = _tf.ones(tril_shape)
+    vec = _tf.reshape(vec, [-1])
+    mask_a = _tf.linalg.band_part(_ones, -1, 0)
+    mask_b = _tf.linalg.band_part(_ones, 0, 0)
+    mask = _tf.subtract(mask_a, mask_b)
+    non_zero = _tf.not_equal(mask, _tf.constant(0.0))
+    indices = _tf.where(non_zero)
+    sparse = _tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
+    return _tf.sparse.to_dense(sparse)
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
@@ -920,16 +918,16 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     -------
     mat : array_like, shape=[..., n, n]
     """
-    triu_mat = vec_to_triu(tri_upp)
-    tril_mat = vec_to_tril(tri_low)
+    triu_mat = _vec_to_triu(tri_upp)
+    tril_mat = _vec_to_tril(tri_low)
     triu_tril_mat = triu_mat + tril_mat
-    mat = tf.linalg.set_diag(triu_tril_mat, diag)
+    mat = _tf.linalg.set_diag(triu_tril_mat, diag)
     return mat
 
 
 def _ravel_multi_index(multi_index, shape):
-    strides = tf.math.cumprod(shape, exclusive=True, reverse=True)
-    return tf.reduce_sum(multi_index * tf.expand_dims(strides, 1), axis=0)
+    strides = _tf.math.cumprod(shape, exclusive=True, reverse=True)
+    return _tf.reduce_sum(multi_index * _tf.expand_dims(strides, 1), axis=0)
 
 
 def ravel_tril_indices(n, k=0, m=None):
@@ -942,15 +940,15 @@ def ravel_tril_indices(n, k=0, m=None):
 
 
 def kron(a, b):
-    return tf.linalg.LinearOperatorKronecker([a, b]).to_dense()
+    return _tf.linalg.LinearOperatorKronecker([a, b]).to_dense()
 
 
 def take(a, indices, axis=0):
-    return tf.gather(a, indices, axis=axis)
+    return _tf.gather(a, indices, axis=axis)
 
 
 def linspace(*args, **kwargs):
-    a = tf.linspace(*args, **kwargs)
+    a = _tf.linspace(*args, **kwargs)
     if a.dtype is float64:
         a = cast(a, dtype=float32)
 
