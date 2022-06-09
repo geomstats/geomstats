@@ -62,7 +62,6 @@ from torch import (
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
-from .._common import comb
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA

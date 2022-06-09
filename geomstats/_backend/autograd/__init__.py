@@ -113,7 +113,6 @@ from scipy.sparse import coo_matrix as _coo_matrix
 
 from .._backend_config import np_atol as atol
 from .._backend_config import np_rtol as rtol
-from .._common import comb
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA

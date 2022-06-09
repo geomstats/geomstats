@@ -9,6 +9,8 @@ import os
 import sys
 import types
 
+import geomstats._backend._common as common
+
 BACKEND_ATTRIBUTES = {
     "": [
         # Types
@@ -98,6 +100,7 @@ BACKEND_ATTRIBUTES = {
         "ones_like",
         "outer",
         "pad",
+        "pi",
         "polygamma",
         "power",
         "prod",
@@ -216,7 +219,11 @@ class BackendImporter:
                 new_submodule = new_module
             for attribute_name in attributes:
                 try:
-                    attribute = getattr(submodule, attribute_name)
+                    submodule_ = submodule
+                    if module_name == "" and not hasattr(submodule, attribute_name):
+                        submodule_ = common
+                    attribute = getattr(submodule_, attribute_name)
+
                 except AttributeError:
                     if module_name:
                         error = (
@@ -232,10 +239,6 @@ class BackendImporter:
                     raise RuntimeError(error) from None
                 else:
                     setattr(new_submodule, attribute_name, attribute)
-
-        from numpy import pi
-
-        new_module.pi = pi
 
         return new_module
 

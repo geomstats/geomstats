@@ -64,7 +64,6 @@ from tensorflow.experimental.numpy import moveaxis
 
 from .._backend_config import tf_atol as atol
 from .._backend_config import tf_rtol as rtol
-from .._common import comb
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
