@@ -90,7 +90,6 @@ class SasakiMetric(RiemannianMetric):
 
         v0, w0 = tngs[:, 0], tngs[:, 1]
         p0, u0 = bs_pts[:, 0], bs_pts[:, 1]
-        p, u = p0, u0
         for _ in range(n_steps):
             p = metric.exp(eps * v0, p0)
             u = par_trans(u0 + eps * w0, p0, None, p)
