@@ -269,7 +269,7 @@ def get_slice(x, indices):
 
     Examples
     --------
-    >>> a = _torch.tensor(range(30)).reshape(3,10)
+    >>> a = torch.tensor(range(30)).reshape(3,10)
     >>> get_slice(a, ((0, 2), (8, 9)))
     tensor([8, 29])
     """

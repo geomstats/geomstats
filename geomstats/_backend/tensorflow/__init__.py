@@ -524,9 +524,9 @@ def get_slice(x, indices):
 
     Examples
     --------
-    >>> a = _tf.reshape(_tf.convert_to_tensor(range(30)), (3,10))
+    >>> a = tf.reshape(_tf.convert_to_tensor(range(30)), (3,10))
     >>> get_slice(a, ((0, 2), (8, 9)))
-    <_tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
+    <tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
     """
     if hasattr(indices, "shape"):
         if indices.shape.rank == 0:
