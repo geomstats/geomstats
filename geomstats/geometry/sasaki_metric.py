@@ -56,8 +56,8 @@ class SasakiMetric(RiemannianMetric):
     """
 
     def __init__(self, metric: RiemannianMetric, n_s=3):
-        self.metric = metric  # Riemannian metric of underlying space
-        self.n_s = n_s  # Number of discretization steps
+        self.metric = metric
+        self.n_s = n_s
         shape = (2, gs.prod(metric.shape))
 
         super(SasakiMetric, self).__init__(2 * metric.dim, shape=shape,
@@ -84,7 +84,6 @@ class SasakiMetric(RiemannianMetric):
         exp : array-like, shape=[..., 2, M.dim]
             Point on the tangent bundle TM.
         """
-        # unflatten
         bs_pts = gs.reshape(base_point, (-1, 2) + self.metric.shape)
         tngs = gs.reshape(tangent_vec, bs_pts.shape)
 
@@ -128,7 +127,6 @@ class SasakiMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        # unflatten
         pts = gs.reshape(point, (-1, 2) + self.metric.shape)
         bs_pts = gs.reshape(base_point, (-1, 2) + self.metric.shape)
 
