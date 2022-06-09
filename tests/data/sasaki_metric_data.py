@@ -7,7 +7,7 @@ from tests.data_generation import TestData
 class SasakiMetricTestData(TestData):
 
     dim = 2
-    sas_sphere_metric = SasakiMetric(HypersphereMetric(dim=dim), n_s=3)
+    sas_sphere_metric = SasakiMetric(HypersphereMetric(dim=dim))
 
     # fix elements in TS
     pu0 = gs.array([[0, -1, 0], [1, 0, 1]])

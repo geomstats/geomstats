@@ -11,6 +11,7 @@ from joblib import Parallel, delayed
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
+N_STEPS = 3
 
 def _gradient_descent(x_ini, grad, exp, lrate=0.1, max_iter=100, tol=1e-6):
     """Apply a gradient descent until max_iter or a given tolerance is reached."""
@@ -43,9 +44,6 @@ class SasakiMetric(RiemannianMetric):
     ----------
     metric : RiemannianMetric
         Metric of the base manifold of the tangent bundle.
-    n_s : int
-        Number of steps used in time-discrete geodesic computations.
-        Optional. Default : 3.
 
     References
     ----------
@@ -55,15 +53,14 @@ class SasakiMetric(RiemannianMetric):
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4270017/
     """
 
-    def __init__(self, metric: RiemannianMetric, n_s=3):
+    def __init__(self, metric: RiemannianMetric):
         self.metric = metric
-        self.n_s = n_s
         shape = (2, gs.prod(metric.shape))
 
         super(SasakiMetric, self).__init__(2 * metric.dim, shape=shape,
                                            default_point_type='matrix')
 
-    def exp(self, tangent_vec, base_point, n_steps=None, **kwargs):
+    def exp(self, tangent_vec, base_point, n_steps=N_STEPS, **kwargs):
         """Compute the Riemannian exponential of a point.
 
         Exponential map at base_point of tangent_vec computed by
@@ -77,7 +74,7 @@ class SasakiMetric(RiemannianMetric):
             Point in the tangent bundle TM of manifold M.
         n_steps : int
             Number of discrete time steps.
-            Optional, default: self.n_s.
+            Optional, default: N_STEPS.
 
         Returns
         -------
@@ -89,13 +86,12 @@ class SasakiMetric(RiemannianMetric):
 
         metric = self.metric
         par_trans = metric.parallel_transport
-        n_s = self.n_s if n_steps is None else n_steps
-        eps = 1 / n_s
+        eps = 1 / n_steps
 
         v0, w0 = tngs[:, 0], tngs[:, 1]
         p0, u0 = bs_pts[:, 0], bs_pts[:, 1]
         p, u = p0, u0
-        for _ in range(n_s):
+        for _ in range(n_steps):
             p = metric.exp(eps * v0, p0)
             u = par_trans(u0 + eps * w0, p0, None, p)
             v = par_trans(v0 - eps * (metric.curvature(u0, w0, v0, p0)), p0, None, p)
@@ -105,7 +101,7 @@ class SasakiMetric(RiemannianMetric):
 
         return gs.reshape(gs.array(list(zip(p, u))), base_point.shape)
 
-    def log(self, point, base_point, n_steps=None, **kwargs):
+    def log(self, point, base_point, n_steps=N_STEPS, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
         Logarithmic map at base_point of point computed by
@@ -119,7 +115,7 @@ class SasakiMetric(RiemannianMetric):
             Point in the tangent bundle TM of manifold M.
         n_steps : int
             Number of discrete time steps.
-            Optional, default: self.n_s.
+            Optional, default: N_STEPS.
 
         Returns
         -------
@@ -132,17 +128,17 @@ class SasakiMetric(RiemannianMetric):
 
         metric = self.metric
         par_trans = metric.parallel_transport
-        n_s = self.n_s if n_steps is None else n_steps
+        n_steps = n_steps
 
         @delayed
         def do_log(pt, bs_pt):
             """Calculate the logarithm."""
-            pu = self.geodesic_discrete(bs_pt, pt, n_s)
+            pu = self.geodesic_discrete(bs_pt, pt, n_steps)
             p1, u1 = pu[1][0], pu[1][1]
             p0, u0 = bs_pt[0], bs_pt[1]
             w = (par_trans(u1, p1, None, p0) - u0)
             v = metric.log(point=p1, base_point=p0)
-            return n_s * gs.array([v, w])
+            return n_steps * gs.array([v, w])
 
         n_jobs = min(os.cpu_count(), len(pts))
         with Parallel(n_jobs=n_jobs, verbose=0) as parallel:
@@ -151,7 +147,7 @@ class SasakiMetric(RiemannianMetric):
 
         return gs.reshape(gs.array(rslt), point.shape)
 
-    def geodesic_discrete(self, initial_point, end_point, n_steps=None, **kwargs):
+    def geodesic_discrete(self, initial_point, end_point, n_steps=N_STEPS, **kwargs):
         """Compute Sakai geodesic employing a variational time discretization.
 
         Parameters
@@ -163,7 +159,7 @@ class SasakiMetric(RiemannianMetric):
         n_steps : int
             n_steps - 1 is the number of intermediate points in the discretization
             of the geodesic from initial_point to end_point
-            Optional, default: self.n_s.
+            Optional, default: N_STEPS.
 
         Returns
         -------
@@ -171,7 +167,6 @@ class SasakiMetric(RiemannianMetric):
             Discrete geodesic x(s)=(p(s), u(s)) in Sasaki metric connecting
             initial_point = x(0) and end_point = x(1).
         """
-        n_s = int(self.n_s if n_steps is None else n_steps)
         metric = self.metric
         par_trans = metric.parallel_transport
         p0, u0 = initial_point[0], initial_point[1]
@@ -182,7 +177,7 @@ class SasakiMetric(RiemannianMetric):
             g = []
             # add boundary points to the list of points
             pu = [initial_point] + pu + [end_point]
-            for j in range(n_s - 1):
+            for j in range(n_steps - 1):
                 p1, _ = pu[j][0], pu[j][1]
                 p2, u2 = pu[j + 1][0], pu[j + 1][1]
                 p3, u3 = pu[j + 2][0], pu[j + 2][1]
@@ -191,13 +186,13 @@ class SasakiMetric(RiemannianMetric):
                     u2, w, v, p2)
                 gu = par_trans(u3, p3, None, p2) - 2 * u2 + par_trans(u0, p0, None, p2)
                 g.append([gp, gu])
-            return -n_s * gs.array(g)
+            return -n_steps * gs.array(g)
 
         # Initial guess for gradient_descent
         v = metric.log(pL, p0)
-        s = gs.linspace(0., 1., n_s + 1)
+        s = gs.linspace(0., 1., n_steps + 1)
         pu_ini = []
-        for i in range(1, n_s):
+        for i in range(1, n_steps):
             p_ini = metric.exp(s[i] * v, p0)
             u_ini = (1 - s[i]) * par_trans(u0, p0, None, p_ini) + s[i] * par_trans(
                 uL, pL, None, p_ini)
