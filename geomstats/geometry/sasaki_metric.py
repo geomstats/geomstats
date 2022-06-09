@@ -55,7 +55,7 @@ class SasakiMetric(RiemannianMetric):
 
     def __init__(self, metric: RiemannianMetric):
         self.metric = metric
-        shape = (2, gs.prod(metric.shape))
+        shape = (2, gs.prod(gs.array(metric.shape)))
 
         super(SasakiMetric, self).__init__(2 * metric.dim, shape=shape,
                                            default_point_type='matrix')
@@ -200,7 +200,7 @@ class SasakiMetric(RiemannianMetric):
         # Minimization by gradient descent
         x = _gradient_descent(pu_ini, grad, self.exp)
 
-        return [initial_point] + x + [end_point]
+        return gs.array([initial_point] + x + [end_point])
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.

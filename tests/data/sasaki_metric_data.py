@@ -61,12 +61,10 @@ class SasakiMetricTestData(TestData):
 
     def geodesic_discrete_test_data(self):
         sqrt32 = gs.sqrt(3) / 2
-        expected = [
-            [[0, -1, 0], [1, 0, 1]],
+        expected = gs.array([[[0, -1, 0], [1, 0, 1]],
             [[.5, -sqrt32, 0], [sqrt32, .5, 1]],
             [[sqrt32, -.5, 0], [.5, sqrt32, 1]],
-            [[1, 0, 0], [0, 1, 1]]
-        ]
+            [[1, 0, 0], [0, 1, 1]]])
         smoke_data = [
             dict(
                 metric=self.sas_sphere_metric,
