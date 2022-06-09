@@ -3,6 +3,7 @@
 Lead authors: Johan Mathe and Niklas Koep.
 """
 
+import importlib
 import logging
 import os
 import sys
@@ -184,17 +185,10 @@ class BackendImporter:
 
     @staticmethod
     def _import_backend(backend_name):
-        if backend_name == "autograd":
-            from geomstats._backend import autograd as backend
-        elif backend_name == "numpy":
-            from geomstats._backend import numpy as backend
-        elif backend_name == "pytorch":
-            from geomstats._backend import pytorch as backend
-        elif backend_name == "tensorflow":
-            from geomstats._backend import tensorflow as backend
-        else:
+        try:
+            return importlib.import_module(f"geomstats._backend.{backend_name}")
+        except ModuleNotFoundError:
             raise RuntimeError("Unknown backend '{:s}'".format(backend_name))
-        return backend
 
     def _create_backend_module(self, backend_name):
         backend = self._import_backend(backend_name)
