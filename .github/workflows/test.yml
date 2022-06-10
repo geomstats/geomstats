@@ -24,7 +24,6 @@ on:
 
 jobs:
   build:
-    - uses: actions/checkout@v2
 
     runs-on: ${{matrix.os}}
     strategy:
@@ -36,6 +35,7 @@ jobs:
       fail-fast: false
 
     steps:
+      - uses: actions/checkout@v2
       - name: Cache dependencies
         id: cache-pip
         uses: actions/cache@v3
