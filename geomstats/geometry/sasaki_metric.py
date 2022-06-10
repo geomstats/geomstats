@@ -127,7 +127,6 @@ class SasakiMetric(RiemannianMetric):
 
         metric = self.metric
         par_trans = metric.parallel_transport
-        n_steps = n_steps
 
         @delayed
         def do_log(pt, bs_pt):
