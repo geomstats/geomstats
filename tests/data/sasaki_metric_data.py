@@ -5,7 +5,6 @@ from tests.data_generation import TestData
 
 
 class SasakiMetricTestData(TestData):
-
     dim = 2
     sas_sphere_metric = SasakiMetric(HypersphereMetric(dim=dim))
 
@@ -62,9 +61,10 @@ class SasakiMetricTestData(TestData):
     def geodesic_discrete_test_data(self):
         sqrt32 = gs.sqrt(3) / 2
         expected = gs.array([[[0, -1, 0], [1, 0, 1]],
-            [[.5, -sqrt32, 0], [sqrt32, .5, 1]],
-            [[sqrt32, -.5, 0], [.5, sqrt32, 1]],
-            [[1, 0, 0], [0, 1, 1]]])
+                             [[.5, -sqrt32, 0], [sqrt32, .5, 1]],
+                             [[sqrt32, -.5, 0], [.5, sqrt32, 1]],
+                             [[1, 0, 0], [0, 1, 1]]]
+                            )
         smoke_data = [
             dict(
                 metric=self.sas_sphere_metric,
