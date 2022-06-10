@@ -15,7 +15,6 @@ N_STEPS = 3
 
 def _gradient_descent(x_ini, grad, exp, lrate=0.1, max_iter=100, tol=1e-6):
     """Apply a gradient descent until max_iter or a given tolerance is reached."""
-    L = len(x_ini)
     x = x_ini
     for _ in range(max_iter):
         grad_x = grad(x)
@@ -23,8 +22,8 @@ def _gradient_descent(x_ini, grad, exp, lrate=0.1, max_iter=100, tol=1e-6):
         if grad_norm < tol:
             break
         grad_x = -lrate * grad_x
-        for j in range(L):
-            x[j] = exp(grad_x[j], x[j])
+        x = exp(grad_x, gs.array(x))
+        x = [*x]
     return list(x)
 
 
@@ -177,13 +176,16 @@ class SasakiMetric(RiemannianMetric):
             # add boundary points to the list of points
             pu = [initial_point] + pu + [end_point]
             for j in range(n_steps - 1):
-                p1, _ = pu[j][0], pu[j][1]
+                p1, u1 = pu[j][0], pu[j][1]
                 p2, u2 = pu[j + 1][0], pu[j + 1][1]
                 p3, u3 = pu[j + 2][0], pu[j + 2][1]
+                p4, u4 = (p3, u3) if j+3 >= len(pu) else (pu[j + 3][0], pu[j + 3][1])
+
                 v, w = metric.log(p3, p2), par_trans(u3, p3, None, p2) - u2
+                w1, w3 = par_trans(u2, p2, None, p1) - u1, par_trans(u4, p4, None, p3) - u3
                 gp = metric.log(p3, p2) + metric.log(p1, p2) + metric.curvature(
                     u2, w, v, p2)
-                gu = par_trans(u3, p3, None, p2) - 2 * u2 + par_trans(u0, p0, None, p2)
+                gu = par_trans(w3, p3, None, p2) - par_trans(w1, p1, None, p2)
                 g.append([gp, gu])
             return -n_steps * gs.array(g)
 
