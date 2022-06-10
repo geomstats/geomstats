@@ -39,6 +39,8 @@ HANDS_LABELS_PATH = os.path.join(DATA_PATH, "hands", "labels.txt")
 CELLS_PATH = os.path.join(DATA_PATH, "cells", "cells.txt")
 CELL_LINES_PATH = os.path.join(DATA_PATH, "cells", "cell_lines.txt")
 CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, "cells", "treatments.txt")
+SAO_PAULO_TABLE = os.path.join(DATA_PATH, "sao_paulo", "jam_table.csv")
+SAO_PAULO_COUNT = os.path.join(DATA_PATH, "sao_paulo", "jam_count.csv")
 
 
 def load_cities():
@@ -351,3 +353,34 @@ def load_cells():
     with open(CELL_TREATMENTS_PATH) as treatments_file:
         treatments = treatments_file.read().split("\n")
     return cells, cell_lines, treatments
+
+
+def load_sao_paulo():
+    """Load data from data/sao_paulo/jam_count.csv and data/sao_paulo/jam_table.csv.
+
+    Load the dataset of traffic jams in Sao Paulo from 2001 to 2019.
+
+    jam_count.csv lists the number of traffic jams for each road in Sao Paulo in that
+    time span.
+    jam_table.csv lists the dates, roads, and durations of all these traffic jams.
+
+    The dataset is accessible here:
+    https://www.kaggle.com/datasets/danlessa/sao-paulo-traffic-jams-since-2001
+
+    Returns
+    -------
+    jam_table : pandas.DataFrame
+        Columns : name (of the road), date (of traffic jam), duration.
+    jam_count : dictionary
+        Keys : name of the road
+        Values : count of traffic jams between 2001 and 2019.
+    """
+    jam_table = pd.read_csv(SAO_PAULO_TABLE)
+    jam_table = jam_table.drop("Unnamed: 0", axis=1)
+
+    jam_count = pd.read_csv(SAO_PAULO_COUNT)
+    del jam_count["Unnamed: 0"]
+    jam_count_df = pd.DataFrame(jam_count, index=[0])
+    jam_count = dict(zip(list(jam_count_df.columns), list(jam_count_df.values[0])))
+
+    return jam_table, jam_count
