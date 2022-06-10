@@ -201,7 +201,8 @@ class SasakiMetric(RiemannianMetric):
         pu_ini = []
         for i in range(1, n_steps):
             p_ini = metric.exp(s[i] * v, p0)
-            u_ini = (1 - s[i]) * par_trans(u0, p0, None, p_ini) + s[i] * par_trans(uL, pL, None, p_ini)
+            u_ini = (1 - s[i]) * par_trans(u0, p0, None, p_ini) + s[i] * par_trans(
+                uL, pL, None, p_ini)
             pu_ini.append(gs.array([p_ini, u_ini]))
 
         pu_ini = gs.array(pu_ini)
