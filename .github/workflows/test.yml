@@ -36,6 +36,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Build using Python ${{matrix.python-version}} and Backend ${{matrix.geomstats-backend}}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{matrix.python-version}}
+
       - name: Cache dependencies
         id: cache-pip
         uses: actions/cache@v3
@@ -45,17 +51,11 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.cfg') }}
 
-      - name: Build using Python ${{matrix.python-version}} and Backend ${{matrix.geomstats-backend}}
-        if: steps.cache-pip.outputs.cache-hit != 'true'
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{matrix.python-version}}
-
       - name: install dependencies [pip]
         if: steps.cache-pip.outputs.cache-hit != 'true'
         run:  |
           pip install --upgrade pip setuptools wheel
-          pip install .[ci,dev,doc,opt]
+          pip install -e .[ci,dev,doc,opt]
 
       - name: Add annotations [pytest]
         if: steps.cache-pip.outputs.cache-hit != 'true'
