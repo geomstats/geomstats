@@ -23,9 +23,8 @@ def _gradient_descent(x_ini, grad, exp, lrate=0.1, max_iter=100, tol=1e-6):
         if grad_norm < tol:
             break
         grad_x = -lrate * grad_x
-        x = exp(grad_x, gs.array(x))
-        x = [*x]
-    return list(x)
+        x = exp(grad_x, x)
+    return x
 
 
 class SasakiMetric(RiemannianMetric):
@@ -98,7 +97,7 @@ class SasakiMetric(RiemannianMetric):
             p0, u0 = p, u
             v0, w0 = v, w
 
-        return gs.reshape(gs.array(list(zip(p, u))), base_point.shape)
+        return gs.reshape(gs.stack([p, u], axis=1), base_point.shape)
 
     def log(self, point, base_point, n_steps=N_STEPS, **kwargs):
         """Compute the Riemannian logarithm of a point.
@@ -129,18 +128,18 @@ class SasakiMetric(RiemannianMetric):
         par_trans = metric.parallel_transport
 
         @delayed
-        def do_log(pt, bs_pt):
+        def _log(pt, bs_pt):
             """Calculate the logarithm."""
             pu = self.geodesic_discrete(bs_pt, pt, n_steps)
             p1, u1 = pu[1][0], pu[1][1]
             p0, u0 = bs_pt[0], bs_pt[1]
-            w = (par_trans(u1, p1, None, p0) - u0)
+            w = par_trans(u1, p1, None, p0) - u0
             v = metric.log(point=p1, base_point=p0)
             return n_steps * gs.array([v, w])
 
         n_jobs = min(os.cpu_count(), len(pts))
         with Parallel(n_jobs=n_jobs, verbose=0) as parallel:
-            rslt = parallel(do_log(pt, bs_pts[i % len(bs_pts)])
+            rslt = parallel(_log(pt, bs_pts[i % len(bs_pts)])
                             for i, pt in enumerate(pts))
 
         return gs.reshape(gs.array(rslt), point.shape)
@@ -170,40 +169,47 @@ class SasakiMetric(RiemannianMetric):
         p0, u0 = initial_point[0], initial_point[1]
         pL, uL = end_point[0], end_point[1]
 
-        def grad(pu):
+        def _grad(pu):
             """Gradient of discrete geodesic energy."""
-            g = []
-            # add boundary points to the list of points
-            pu = [initial_point] + pu + [end_point]
-            for j in range(n_steps - 1):
-                p1, u1 = pu[j][0], pu[j][1]
-                p2, u2 = pu[j + 1][0], pu[j + 1][1]
-                p3, u3 = pu[j + 2][0], pu[j + 2][1]
-                p4, u4 = (p3, u3) if j + 3 >= len(pu) else (pu[j + 3][0], pu[j + 3][1])
+            pu = gs.vstack([gs.expand_dims(initial_point, axis=0),
+                            pu,
+                            gs.expand_dims(end_point, axis=0)])
 
-                v, w = metric.log(p3, p2), par_trans(u3, p3, None, p2) - u2
-                w1 = par_trans(u2, p2, None, p1) - u1
-                w3 = par_trans(u4, p4, None, p3) - u3
-                gp = metric.log(p3, p2) + metric.log(p1, p2) + metric.curvature(
-                    u2, w, v, p2)
-                gu = par_trans(w3, p3, None, p2) - par_trans(w1, p1, None, p2)
-                g.append([gp, gu])
-            return -n_steps * gs.array(g)
+            p = gs.take(pu, 0, axis=1)
+            u = gs.take(pu, 1, axis=1)
 
-        # Initial guess for gradient_descent
+            p1, p2, p3 = p[:-2], p[1:-1], p[2:]
+            u1, u2, u3 = u[:-2], u[1:-1], u[2:]
+            p4, u4 = p3.copy(), u3.copy()
+            p4[:p[3:].shape[0]] = p[3:]
+            u4[:u[3:].shape[0]] = u[3:]
+
+            v2 = metric.log(p3, p2)
+            w1 = par_trans(u2, p2, end_point=p1) - u1
+            w2 = par_trans(u3, p3, end_point=p2) - u2
+            w3 = par_trans(u4, p4, end_point=p3) - u3
+
+            gp = metric.log(p3, p2) + metric.log(p1, p2) + metric.curvature(
+                u2, w2, v2, p2)
+
+            gu = par_trans(w3, p3, end_point=p2) - par_trans(w1, p1, end_point=p2)
+
+            return -n_steps * gs.stack([gp, gu], axis=1)
+
         v = metric.log(pL, p0)
         s = gs.linspace(0., 1., n_steps + 1)
         pu_ini = []
         for i in range(1, n_steps):
             p_ini = metric.exp(s[i] * v, p0)
-            u_ini = (1 - s[i]) * par_trans(u0, p0, None, p_ini) + s[i] * par_trans(
-                uL, pL, None, p_ini)
+            u_ini = (1 - s[i]) * par_trans(u0, p0, None, p_ini) + s[i] * par_trans(uL, pL, None, p_ini)
             pu_ini.append(gs.array([p_ini, u_ini]))
 
-        # Minimization by gradient descent
-        x = _gradient_descent(pu_ini, grad, self.exp)
+        pu_ini = gs.array(pu_ini)
+        x = _gradient_descent(pu_ini, _grad, self.exp)
 
-        return gs.array([initial_point] + x + [end_point])
+        return gs.vstack(
+            [gs.expand_dims(initial_point, axis=0),
+             x, gs.expand_dims(end_point, axis=0)])
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.
@@ -222,12 +228,10 @@ class SasakiMetric(RiemannianMetric):
         inner_product : array-like, shape=[..., 1]
             Inner-product.
         """
-        # unflatten
         vec_a = gs.reshape(tangent_vec_a, (-1, 2) + self.metric.shape)
         vec_b = gs.reshape(tangent_vec_b, (-1, 2) + self.metric.shape)
         pt = gs.reshape(base_point, (-1, 2) + self.metric.shape)
 
-        # compute Sasaki inner product via metric of underlying manifold
         inner = self.metric.inner_product
         return inner(vec_a[:, 0], vec_b[:, 0], pt[:, 0]) + inner(vec_a[:, 1],
                                                                  vec_b[:, 1], pt[:, 0])
