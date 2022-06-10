@@ -43,7 +43,7 @@ jobs:
           cache-name: cache-pip-modules
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-{{ python-version }}-${{ hashFiles('setup.cfg') }}
+          key: ${{ runner.os }}-pip-{{ matrix.python-version }}-${{ hashFiles('setup.cfg') }}
 
       - name: Build using Python ${{matrix.python-version}} and Backend ${{matrix.geomstats-backend}}
         if: steps.cache-pip.outputs.cache-hit != 'true'
