@@ -52,13 +52,11 @@ jobs:
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.cfg') }}
 
       - name: install dependencies [pip]
-        if: steps.cache-pip.outputs.cache-hit != 'true'
         run:  |
           pip install --upgrade pip setuptools wheel
           pip install -e .[ci,dev,doc,opt]
 
       - name: Add annotations [pytest]
-        if: steps.cache-pip.outputs.cache-hit != 'true'
         run: pip install pytest-github-actions-annotate-failures
 
       - name: unit testing [pytest]
