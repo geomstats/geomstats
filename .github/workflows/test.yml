@@ -24,6 +24,7 @@ on:
 
 jobs:
   build:
+    - uses: actions/checkout@v2
 
     runs-on: ${{matrix.os}}
     strategy:
@@ -35,20 +36,29 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Cache dependencies
+        id: cache-pip
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-pip-modules
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-{{ python-version }}-${{ hashFiles('setup.cfg') }}
+
       - name: Build using Python ${{matrix.python-version}} and Backend ${{matrix.geomstats-backend}}
+        if: steps.cache-pip.outputs.cache-hit != 'true'
         uses: actions/setup-python@v2
         with:
           python-version: ${{matrix.python-version}}
-          cache: 'pip'
-          cache-dependency-path: 'setup.cfg'
 
       - name: install dependencies [pip]
+        if: steps.cache-pip.outputs.cache-hit != 'true'
         run:  |
           pip install --upgrade pip setuptools wheel
-          pip install -e .[ci,dev,doc,opt]
+          pip install .[ci,dev,doc,opt]
 
       - name: Add annotations [pytest]
+        if: steps.cache-pip.outputs.cache-hit != 'true'
         run: pip install pytest-github-actions-annotate-failures
 
       - name: unit testing [pytest]
