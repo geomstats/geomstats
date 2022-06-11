@@ -87,8 +87,8 @@ class SasakiMetric(RiemannianMetric):
         par_trans = metric.parallel_transport
         eps = 1 / n_steps
 
-        v0, w0 = tngs[:, 0], tngs[:, 1]
-        p0, u0 = bs_pts[:, 0], bs_pts[:, 1]
+        v0, w0 = gs.take(tngs, 0, axis=1), gs.take(tngs, 1, axis=1)
+        p0, u0 = gs.take(bs_pts, 0, axis=1), gs.take(bs_pts, 1, axis=1)
         for _ in range(n_steps):
             p = metric.exp(eps * v0, p0)
             u = par_trans(u0 + eps * w0, p0, None, p)
