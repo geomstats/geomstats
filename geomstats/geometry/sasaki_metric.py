@@ -180,7 +180,7 @@ class SasakiMetric(RiemannianMetric):
 
             p1, p2, p3 = p[:-2], p[1:-1], p[2:]
             u1, u2, u3 = u[:-2], u[1:-1], u[2:]
-            p4, u4 = p3.copy(), u3.copy()
+            p4, u4 = gs.copy(p3), gs.copy(u3)
             p4[:p[3:].shape[0]] = p[3:]
             u4[:u[3:].shape[0]] = u[3:]
 
