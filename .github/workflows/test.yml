@@ -35,16 +35,16 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build using Python ${{matrix.python-version}} and Backend ${{matrix.geomstats-backend}}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{matrix.python-version}}
 
       - name: install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
-          pip install -e .[ci,dev,doc,opt]
+          pip install -e .[opt,test,${{ matrix.geomstats-backend }}]
 
       - name: Add annotations [pytest]
         run: pip install pytest-github-actions-annotate-failures
