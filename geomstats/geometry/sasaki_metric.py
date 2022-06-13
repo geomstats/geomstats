@@ -180,21 +180,19 @@ class SasakiMetric(RiemannianMetric):
 
             p1, p2, p3 = p[:-2], p[1:-1], p[2:]
             u1, u2, u3 = u[:-2], u[1:-1], u[2:]
-            p4, u4 = gs.copy(p3), gs.copy(u3)
-            p4[:p[3:].shape[0]] = p[3:]
-            u4[:u[3:].shape[0]] = u[3:]
 
-            v2 = metric.log(p3, p2)
-            w1 = par_trans(u2, p2, end_point=p1) - u1
-            w2 = par_trans(u3, p3, end_point=p2) - u2
-            w3 = par_trans(u4, p4, end_point=p3) - u3
+            eps = 1 / n_steps
 
-            gp = metric.log(p3, p2) + metric.log(p1, p2) + metric.curvature(
-                u2, w2, v2, p2)
+            v2 = metric.log(p3, p2) / eps
+            w2 = (par_trans(u3, p3, end_point=p2) - u2) / eps
 
-            gu = par_trans(w3, p3, end_point=p2) - par_trans(w1, p1, end_point=p2)
+            gp = (metric.log(p3, p2) + metric.log(p1, p2)) / eps**2 + \
+                metric.curvature(u2, w2, v2, p2)
 
-            return -n_steps * gs.stack([gp, gu], axis=1)
+            gu = (par_trans(u3, p3, end_point=p2) - 2 * u2 + par_trans(
+                u1, p1, end_point=p2)) / eps**2
+
+            return -gs.stack([gp, gu], axis=1) * eps
 
         v = metric.log(pL, p0)
         s = gs.linspace(0., 1., n_steps + 1)
