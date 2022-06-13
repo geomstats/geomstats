@@ -117,6 +117,9 @@ def concatenate(x, axis=0, out=None):
 
 def convert_to_wider_dtype(tensor_list):
     dtype_list = [_DTYPES[x.dtype] for x in tensor_list]
+    if len(set(dtype_list)) == 1:
+        return tensor_list
+
     wider_dtype_index = max(dtype_list)
 
     wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
