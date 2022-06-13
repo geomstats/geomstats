@@ -952,3 +952,7 @@ def linspace(*args, **kwargs):
         a = cast(a, dtype=float32)
 
     return a
+
+
+def is_array(x):
+    return _tf.is_tensor(x)

@@ -79,6 +79,7 @@ BACKEND_ATTRIBUTES = {
         "imag",
         "isclose",
         "isnan",
+        "is_array",
         "kron",
         "less",
         "less_equal",

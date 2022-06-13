@@ -760,3 +760,7 @@ def pad(a, pad_width, constant_value=0.0):
     return _torch.nn.functional.pad(
         a, _unnest_iterable(reversed(pad_width)), value=constant_value
     )
+
+
+def is_array(x):
+    return _torch.is_tensor(x)

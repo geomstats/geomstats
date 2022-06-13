@@ -435,3 +435,7 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, m)
     idxs = _np.tril_indices(n, k, m)
     return _np.ravel_multi_index(idxs, size)
+
+
+def is_array(x):
+    return type(x) is _np.ndarray

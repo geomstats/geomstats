@@ -1024,3 +1024,11 @@ class TestBackends(tests.conftest.TestCase):
         mat = gs.ones((m, n, n))
         paddings = [[0, 0], [0, 1], [0, 1]]
         self.assertTrue(gs.pad(mat, paddings).shape == (m, n + 1, n + 1))
+
+    def test_is_array(self):
+
+        self.assertTrue(gs.is_array(gs.ones(2)))
+
+        self.assertFalse(gs.is_array([1, 2]))
+
+        self.assertFalse(gs.is_array(1))
