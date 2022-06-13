@@ -10,15 +10,17 @@ from urllib.request import urlretrieve
 DEFAULT_DATA_DIR = os.path.expanduser(os.path.join("~", ".geomstats_data"))
 
 
-def _get_data_home(data_home=DEFAULT_DATA_DIR):
+def _get_data_home(data_home=None):
+    if data_home is None:
+        data_home = DEFAULT_DATA_DIR
+
     os.makedirs(data_home, exist_ok=True)
 
     return data_home
 
 
 def _fetch_remote(url, filename, dirname=None):
-    if dirname is None:
-        dirname = _get_data_home()
+    dirname = _get_data_home(data_home=dirname)
 
     file_path = os.path.join(dirname, filename)
 
