@@ -189,7 +189,7 @@ def load_leaves():
     return beta_param, distrib_type
 
 
-def load_emg():
+def load_emg(file_path=EMG_PATH):
     """Load data from data/emg/emg.csv.
 
     Returns
@@ -198,7 +198,7 @@ def load_emg():
         Emg time serie for each of the 8 electrodes, with the time stamps
         and the label of the hand sign.
     """
-    data_emg = pd.read_csv(EMG_PATH)
+    data_emg = pd.read_csv(file_path)
     return data_emg
 
 
