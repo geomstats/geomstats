@@ -1,8 +1,8 @@
 """Automatic differentiation in PyTorch."""
 
-import numpy as np
-import torch
-from torch.autograd.functional import jacobian as torch_jac
+import numpy as _np
+import torch as _torch
+from torch.autograd.functional import jacobian as _torch_jac
 
 
 def detach(x):
@@ -50,7 +50,7 @@ def custom_gradient(*grad_funcs):
             Function func with gradients specified by grad_funcs.
         """
 
-        class func_with_grad(torch.autograd.Function):
+        class func_with_grad(_torch.autograd.Function):
             """Wrapper class for a function with custom grad."""
 
             @staticmethod
@@ -93,7 +93,7 @@ def jacobian(func):
         Function taking x as input and returning
         the jacobian of func at x.
     """
-    return lambda x: torch_jac(func, x)
+    return lambda x: _torch_jac(func, x)
 
 
 def value_and_grad(func, to_numpy=False):
@@ -138,16 +138,16 @@ def value_and_grad(func, to_numpy=False):
         new_args = ()
         for one_arg in args:
             if isinstance(one_arg, float):
-                one_arg = torch.from_numpy(np.array(one_arg))
-            if isinstance(one_arg, np.ndarray):
-                one_arg = torch.from_numpy(one_arg)
+                one_arg = _torch.from_numpy(_np.array(one_arg))
+            if isinstance(one_arg, _np.ndarray):
+                one_arg = _torch.from_numpy(one_arg)
             one_arg = one_arg.clone().requires_grad_(True)
             new_args = (*new_args, one_arg)
         args = new_args
 
         value = func(*args, **kwargs)
         if value.ndim > 0:
-            value.backward(gradient=torch.ones_like(one_arg), retain_graph=True)
+            value.backward(gradient=_torch.ones_like(one_arg), retain_graph=True)
         else:
             value.backward(retain_graph=True)
 
@@ -155,7 +155,7 @@ def value_and_grad(func, to_numpy=False):
         for one_arg in args:
             all_grads = (
                 *all_grads,
-                torch.autograd.grad(value, one_arg, retain_graph=True)[0],
+                _torch.autograd.grad(value, one_arg, retain_graph=True)[0],
             )
 
         if to_numpy:
