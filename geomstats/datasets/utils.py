@@ -9,7 +9,7 @@ Lead author: Nina Miolane.
 import csv
 import json
 import os
-import tarfile
+import zipfile
 
 import pandas as pd
 
@@ -42,11 +42,11 @@ CELLS_PATH = os.path.join(DATA_PATH, "cells", "cells.txt")
 CELL_LINES_PATH = os.path.join(DATA_PATH, "cells", "cell_lines.txt")
 CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, "cells", "treatments.txt")
 SAO_PAULO_ARCHIVE = RemoteFileMetadata(
-    filename="jam.tgz",
-    url="https://figshare.com/ndownloader/" + "articles/20066159/versions/1",
+    filename="jam.zip",
+    url="https://figshare.com/ndownloader/articles/20066159/versions/1",
 )
-SAO_PAULO_TABLE = os.path.join("jam", "jam_table.csv")
-SAO_PAULO_COUNT = os.path.join("jam", "jam_count.csv")
+SAO_PAULO_TABLE = "jam_table.csv"
+SAO_PAULO_COUNT = "jam_count.csv"
 
 
 def load_cities():
@@ -387,12 +387,12 @@ def load_sao_paulo(dirname=None):
         SAO_PAULO_ARCHIVE.url, SAO_PAULO_ARCHIVE.filename, dirname=dirname
     )
 
-    with tarfile.open(mode="r:gz", name=file_path) as folder:
-        table_file = folder.extractfile(SAO_PAULO_TABLE)
-        jam_table = pd.read_csv(table_file)
+    with zipfile.ZipFile(file_path, "r") as folder:
+        with folder.open(SAO_PAULO_TABLE, "r") as table_file:
+            jam_table = pd.read_csv(table_file)
 
-        count_file = folder.extractfile(SAO_PAULO_COUNT)
-        jam_count = pd.read_csv(count_file)
+        with folder.open(SAO_PAULO_COUNT, "r") as count_file:
+            jam_count = pd.read_csv(count_file)
 
     jam_table = jam_table.drop("Unnamed: 0", axis=1)
 

@@ -33,7 +33,7 @@ def _fetch_remote(url, filename, dirname=None):
             f"Data has already been downloaded... using cached file ('{file_path}')."
         )
     else:
-        logging.info(f"Downloading '{file_path}'' from {url} to '{dirname}'.")
+        logging.info(f"Downloading '{file_path}' from {url} to '{dirname}'.")
         urlretrieve(url, file_path)
 
     return file_path
