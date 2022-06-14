@@ -544,9 +544,9 @@ class Matrices(VectorSpace):
 
     @classmethod
     def congruent(cls, mat_1, mat_2):
-        """Compute the congruent action of mat_2 on mat_1.
+        r"""Compute the congruent action of mat_2 on mat_1.
 
-        This is :math: `mat_2 mat_1 mat_2^T`.
+        This is :math:`mat\_2 \ mat\_1 \ mat\_2^T`.
 
         Parameters
         ----------
@@ -687,7 +687,7 @@ class Matrices(VectorSpace):
             R.point.
         """
         mat = gs.matmul(cls.transpose(point), base_point)
-        left, singular_values, right = gs.linalg.svd(mat)
+        left, singular_values, right = gs.linalg.svd(mat, full_matrices=False)
         det = gs.linalg.det(mat)
         conditioning = (
             singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]

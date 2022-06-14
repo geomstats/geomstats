@@ -24,12 +24,22 @@ class TestBackends(tests.conftest.TestCase):
         self.n_samples = 2
 
     def test_array(self):
+
+        gs_mat = gs.array([])
+        np_mat = _np.array([])
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
         gs_mat = gs.array(1.5)
         np_mat = _np.array(1.5)
         self.assertAllCloseToNp(gs_mat, np_mat)
 
         gs_mat = gs.array([gs.ones(3), gs.ones(3)])
         np_mat = _np.array([_np.ones(3), _np.ones(3)])
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
+        self.assertAllCloseToNp(gs_mat, np_mat)
+        gs_mat = gs.array([gs.ones(1), gs.ones(1)])
+        np_mat = _np.array([_np.ones(1), _np.ones(1)])
         self.assertAllCloseToNp(gs_mat, np_mat)
 
         gs_mat = gs.array([gs.ones(3), gs.ones(3)], dtype=gs.float64)
@@ -964,16 +974,53 @@ class TestBackends(tests.conftest.TestCase):
         not_pd_1_result = gs.linalg.is_single_matrix_pd(not_pd_1)
         not_pd_2_result = gs.linalg.is_single_matrix_pd(not_pd_2)
 
-        pd_expected = gs.array(True)
-        not_pd_1_expected = gs.array(False)
-        not_pd_2_expected = gs.array(False)
-
-        self.assertAllClose(pd_expected, pd_result)
-        self.assertAllClose(not_pd_1_expected, not_pd_1_result)
-        self.assertAllClose(not_pd_2_expected, not_pd_2_result)
+        self.assertTrue(pd_result)
+        self.assertFalse(not_pd_1_result)
+        self.assertFalse(not_pd_2_result)
 
     def test_unique(self):
         vec = gs.array([-1, 0, 1, 1, 0, -1])
         result = gs.unique(vec)
         expected = gs.array([-1, 0, 1])
         self.assertAllClose(result, expected)
+
+    def test_take(self):
+        vec = gs.array([0, 1])
+
+        indices = expected = gs.array([0, 0, 1])
+        self.assertAllClose(gs.take(vec, indices), expected)
+
+        self.assertEqual(gs.take(vec, 0), 0)
+
+        mat = gs.array(
+            [
+                [0, 1],
+                [2, 3],
+            ]
+        )
+        self.assertAllClose(
+            gs.take(mat, indices, axis=0), gs.array([[0, 1]] * 2 + [[2, 3]])
+        )
+        self.assertAllClose(
+            gs.take(mat, indices, axis=1),
+            gs.transpose(gs.array([[0, 2]] * 2 + [[1, 3]])),
+        )
+
+        self.assertAllClose(gs.take(mat, 0, axis=1), gs.array([0, 2]))
+
+    def test_pad(self):
+
+        n = 2
+        mat = gs.ones((n, n))
+
+        paddings = [[0, 1], [0, 1]]
+        self.assertTrue(gs.pad(mat, paddings).shape == (n + 1, n + 1))
+
+        paddings = [[0, 1], [0, 0]]
+        self.assertTrue(gs.pad(mat, paddings).shape == (n + 1, n))
+
+        n = 2
+        m = 3
+        mat = gs.ones((m, n, n))
+        paddings = [[0, 0], [0, 1], [0, 1]]
+        self.assertTrue(gs.pad(mat, paddings).shape == (m, n + 1, n + 1))

@@ -3,10 +3,13 @@
 Lead authors: Johan Mathe and Niklas Koep.
 """
 
+import importlib
 import logging
 import os
 import sys
 import types
+
+import geomstats._backend._common as common
 
 BACKEND_ATTRIBUTES = {
     "": [
@@ -96,6 +99,8 @@ BACKEND_ATTRIBUTES = {
         "ones",
         "ones_like",
         "outer",
+        "pad",
+        "pi",
         "polygamma",
         "power",
         "prod",
@@ -117,6 +122,7 @@ BACKEND_ATTRIBUTES = {
         "stack",
         "std",
         "sum",
+        "take",
         "tan",
         "tanh",
         "tile",
@@ -182,17 +188,10 @@ class BackendImporter:
 
     @staticmethod
     def _import_backend(backend_name):
-        if backend_name == "autograd":
-            from geomstats._backend import autograd as backend
-        elif backend_name == "numpy":
-            from geomstats._backend import numpy as backend
-        elif backend_name == "pytorch":
-            from geomstats._backend import pytorch as backend
-        elif backend_name == "tensorflow":
-            from geomstats._backend import tensorflow as backend
-        else:
+        try:
+            return importlib.import_module(f"geomstats._backend.{backend_name}")
+        except ModuleNotFoundError:
             raise RuntimeError("Unknown backend '{:s}'".format(backend_name))
-        return backend
 
     def _create_backend_module(self, backend_name):
         backend = self._import_backend(backend_name)
@@ -220,7 +219,11 @@ class BackendImporter:
                 new_submodule = new_module
             for attribute_name in attributes:
                 try:
-                    attribute = getattr(submodule, attribute_name)
+                    submodule_ = submodule
+                    if module_name == "" and not hasattr(submodule, attribute_name):
+                        submodule_ = common
+                    attribute = getattr(submodule_, attribute_name)
+
                 except AttributeError:
                     if module_name:
                         error = (
@@ -236,10 +239,6 @@ class BackendImporter:
                     raise RuntimeError(error) from None
                 else:
                     setattr(new_submodule, attribute_name, attribute)
-
-        from numpy import pi
-
-        new_module.pi = pi
 
         return new_module
 
@@ -259,6 +258,7 @@ class BackendImporter:
             os.environ["GEOMSTATS_BACKEND"] = _BACKEND = "numpy"
 
         module = self._create_backend_module(_BACKEND)
+        module.__name__ = f"geomstats.{_BACKEND}"
         module.__loader__ = self
         sys.modules[fullname] = module
 

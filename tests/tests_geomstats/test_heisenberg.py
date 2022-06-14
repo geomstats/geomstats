@@ -23,7 +23,7 @@ class TestHeisenbergVectors(
         )
 
     def test_random_point_belongs(self, n_samples, bound):
-        self.assertAllClose(gs.all(self.space().random_point(n_samples, bound)), True)
+        gs.assertTrue(gs.all(self.space().random_point(n_samples, bound)))
 
     def test_is_tangent(self, vector, expected):
         group = self.space()

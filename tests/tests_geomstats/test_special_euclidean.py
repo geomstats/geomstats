@@ -41,7 +41,7 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
     def test_random_point_belongs(self, n, n_samples):
         group = self.cls(n)
-        self.assertAllClose(gs.all(group(n).random_point(n_samples)), gs.array(True))
+        self.assertTrue(gs.all(group(n).random_point(n_samples)))
 
     def test_identity(self, n, expected):
         self.assertAllClose(SpecialEuclidean(n).identity, gs.array(expected))
