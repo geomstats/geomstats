@@ -4,6 +4,7 @@ from scipy.optimize import minimize
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.learning.geodesic_regression import GeodesicRegression
@@ -15,6 +16,25 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
     def setup_method(self):
         gs.random.seed(1234)
         self.n_samples = 20
+
+        # Set up for euclidean
+        self.dim_eucl = 5
+        self.shape_eucl = (5,)
+        self.eucl = Euclidean(dim=self.dim_eucl)
+        X = gs.random.rand(self.n_samples)
+        self.X_eucl = X - gs.mean(X)
+        self.intercept_eucl_true = self.eucl.random_point()
+        self.coef_eucl_true = self.eucl.random_point()
+
+        self.y_eucl = (
+            self.intercept_eucl_true + self.X_eucl[:, None] * self.coef_eucl_true
+        )
+        self.param_eucl_true = gs.vstack(
+            [self.intercept_eucl_true, self.coef_eucl_true]
+        )
+        self.param_eucl_guess = gs.vstack(
+            [self.y_eucl[0], self.y_eucl[0] + gs.gs.random.normal(size=self.shape_eucl)]
+        )
 
         # Set up for hypersphere
         self.dim_sphere = 4
