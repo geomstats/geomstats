@@ -93,6 +93,7 @@ real = _tf.math.real
 set_diag = _tf.linalg.set_diag
 std = _tf.math.reduce_std
 trapz = _tfp.math.trapz
+matmul = _tf.linalg.matmul
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -569,17 +570,6 @@ def flatten(x):
     Following https://www.tensorflow.org/api_docs/python/_tf/reshape
     """
     return _tf.reshape(x, [-1])
-
-
-def matmul(a, b):
-    """Matrix-matrix or matrix-vector product of two tensors.
-
-    This wraps both mathvec and matmul into a single function, to mimic the
-    behavior of torch's and numpy's versions of matmul
-    """
-    if ndim(b) < ndim(a) and (ndim(b) == 1 or b.shape[-2] != a.shape[-1]):
-        return _tf.linalg.matvec(a, b)
-    return _tf.linalg.matmul(a, b)
 
 
 def outer(x, y):

@@ -62,7 +62,6 @@ from numpy import (
     log,
     logical_and,
     logical_or,
-    matmul,
     maximum,
     mean,
     meshgrid,
@@ -442,3 +441,10 @@ def ravel_tril_indices(n, k=0, m=None):
 
 def is_array(x):
     return type(x) is _np.ndarray
+
+
+def matmul(*args, **kwargs):
+    for arg in args:
+        if arg.ndim == 1:
+            raise ValueError("ndims must be >=2")
+    return _np.matmul(*args, **kwargs)

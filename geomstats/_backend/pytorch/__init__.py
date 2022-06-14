@@ -106,7 +106,11 @@ sinh = _box_scalar(sinh)
 tan = _box_scalar(tan)
 
 
-def matmul(x, y, *, out=None):
+def matmul(x, y, out=None):
+    for array_ in [x, y]:
+        if array_.ndim == 1:
+            raise ValueError("ndims must be >=2")
+
     x, y = convert_to_wider_dtype([x, y])
     return _torch.matmul(x, y, out=out)
 
