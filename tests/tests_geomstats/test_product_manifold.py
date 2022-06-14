@@ -4,12 +4,11 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.product_manifold import (
-    NFoldManifold,
+from geomstats.geometry.product_manifold import NFoldManifold, ProductManifold
+from geomstats.geometry.product_riemannian_metric import (
     NFoldMetric,
-    ProductManifold,
+    ProductRiemannianMetric,
 )
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 from tests.conftest import Parametrizer
 from tests.data.product_manifold_data import (
     NFoldManifoldTestData,
