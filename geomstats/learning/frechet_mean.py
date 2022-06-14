@@ -118,7 +118,7 @@ def srv_mean(points, weights=None, metric=None):
 
     srvs = metric.srv_transform(points)
 
-    srv_mean = linear_mean(srvs, weights=weights, point_type="matrix")
+    srv_linear_mean = linear_mean(srvs, weights=weights, point_type="matrix")
 
     starting_point = (
         FrechetMean(metric.ambient_metric)
@@ -126,7 +126,7 @@ def srv_mean(points, weights=None, metric=None):
         .estimate_
     )
     starting_point = gs.expand_dims(starting_point, axis=0)
-    mean = metric.srv_transform_inverse(srv_mean, starting_point=starting_point)
+    mean = metric.srv_transform_inverse(srv_linear_mean, starting_point=starting_point)
     return mean
 
 
