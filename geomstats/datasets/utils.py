@@ -43,8 +43,7 @@ CELL_LINES_PATH = os.path.join(DATA_PATH, "cells", "cell_lines.txt")
 CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, "cells", "treatments.txt")
 SAO_PAULO_ARCHIVE = RemoteFileMetadata(
     filename="jam.tgz",
-    url="https://figshare.com/ndownloader/"
-    + "files/35885096?private_link=cbb1c8ae46376d3502e2",
+    url="https://figshare.com/ndownloader/" + "articles/20066159/versions/1",
 )
 SAO_PAULO_TABLE = os.path.join("jam", "jam_table.csv")
 SAO_PAULO_COUNT = os.path.join("jam", "jam_count.csv")
