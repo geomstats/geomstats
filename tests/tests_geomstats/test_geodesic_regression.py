@@ -419,7 +419,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             options={"disp": True, "maxiter": 50},
         )
         self.assertAllClose(gs.array(res.x).shape, ((self.dim_sphere + 1) * 2,))
-        self.assertAllClose(res.fun, 0.0, atol=1000 * gs.atol)
+        self.assertAllClose(res.fun, 0.0, atol=5e-3)
 
         # Cast required because minimization happens in scipy in float64
         param_hat = gs.cast(gs.array(res.x), self.param_sphere_true.dtype)
@@ -427,7 +427,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         intercept_hat, coef_hat = gs.split(param_hat, 2)
         intercept_hat = self.sphere.projection(intercept_hat)
         coef_hat = self.sphere.to_tangent(coef_hat, intercept_hat)
-        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=5e-3)
+        self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=5e-2)
 
         tangent_vec_of_transport = self.sphere.metric.log(
             self.intercept_sphere_true, base_point=intercept_hat
@@ -467,7 +467,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         )
         self.assertAllClose(gs.array(res.x).shape, (18,))
 
-        self.assertTrue(gs.isclose(res.fun, 0.0))
+        self.assertAllClose(res.fun, 0.0, atol=1e-6)
 
         # Cast required because minimization happens in scipy in float64
         param_hat = gs.cast(gs.array(res.x), self.param_se2_true.dtype)
