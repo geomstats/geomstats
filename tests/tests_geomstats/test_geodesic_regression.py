@@ -320,7 +320,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         intercept_hat, coef_hat = gs.split(param_hat, 2)
         coef_hat = self.eucl.to_tangent(coef_hat, intercept_hat)
-        self.assertAllClose(intercept_hat, self.intercept_eucl_true, atol=5e-3)
+        self.assertAllClose(intercept_hat, self.intercept_eucl_true)
 
         tangent_vec_of_transport = self.eucl.metric.log(
             self.intercept_eucl_true, base_point=intercept_hat
@@ -332,7 +332,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             direction=tangent_vec_of_transport,
         )
 
-        self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=5e-3)
+        self.assertAllClose(transported_coef_hat, self.coef_eucl_true)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_loss_minimization_extrinsic_hypersphere(self):
@@ -447,7 +447,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.assertAllClose(intercept_hat.shape, self.shape_eucl)
         self.assertAllClose(coef_hat.shape, self.shape_eucl)
         self.assertAllClose(training_score, 1.0, atol=500 * gs.atol)
-        self.assertAllClose(intercept_hat, self.intercept_eucl_true, atol=5e-3)
+        self.assertAllClose(intercept_hat, self.intercept_eucl_true)
 
         tangent_vec_of_transport = self.eucl.metric.log(
             self.intercept_eucl_true, base_point=intercept_hat
@@ -459,7 +459,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             direction=tangent_vec_of_transport,
         )
 
-        self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=0.6)
+        self.assertAllClose(transported_coef_hat, self.coef_eucl_true)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_fit_extrinsic_hypersphere(self):
@@ -550,7 +550,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.assertAllClose(coef_hat.shape, self.shape_eucl)
 
         self.assertAllClose(training_score, 1.0, atol=0.1)
-        self.assertAllClose(intercept_hat, self.intercept_eucl_true, atol=5e-3)
+        self.assertAllClose(intercept_hat, self.intercept_eucl_true)
 
         tangent_vec_of_transport = self.eucl.metric.log(
             self.intercept_eucl_true, base_point=intercept_hat
@@ -562,7 +562,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             direction=tangent_vec_of_transport,
         )
 
-        self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=5e-3)
+        self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=1e-2)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_fit_riemannian_hypersphere(self):
