@@ -4,6 +4,7 @@ import math
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.discrete_curves import R2, DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
@@ -26,6 +27,29 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.minkowski = Minkowski(dim=2)
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.so_matrix = SpecialOrthogonal(n=3)
+        self.curves_2d = DiscreteCurves(R2)
+
+    def test_logs_at_mean_curves_2d(self):
+        n_tests = 10
+        estimator = FrechetMean(
+            metric=self.curves_2d.square_root_velocity_metric, init_step_size=1.0
+        )
+
+        result = []
+        for _ in range(n_tests):
+            # take 2 random points, compute their mean, and verify that
+            # log of each at the mean is opposite
+            points = self.curves_2d.random_point(n_samples=2)
+            estimator.fit(points)
+            mean = estimator.estimate_
+
+            logs = self.curves_2d.square_root_velocity_metric.log(
+                point=points, base_point=mean
+            )
+            result.append(gs.linalg.norm(logs[1, :] + logs[0, :]))
+        result = gs.stack(result)
+        expected = gs.zeros(n_tests)
+        self.assertAllClose(expected, result, atol=1e-4)
 
     def test_logs_at_mean_default_gradient_descent_sphere(self):
         n_tests = 10
