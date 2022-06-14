@@ -35,7 +35,6 @@ r3 = Euclidean(dim=3)
 
 class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     space = DiscreteCurves
-    skip_test_projection_belongs = True
     skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = DiscreteCurvesTestData()
