@@ -4,6 +4,7 @@ from scipy.optimize import minimize
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.discrete_curves import R2, DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_euclidean import SpecialEuclidean
@@ -100,6 +101,50 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             ]
         )
 
+        # Set up for discrete curves
+        n_sampling_points = 8
+        self.curves_2d = DiscreteCurves(R2)
+        self.metric_curves_2d = self.curves_2d.square_root_velocity_metric
+        self.metric_curves_2d.default_point_type = "matrix"
+
+        self.shape_curves_2d = (n_sampling_points, 2)
+        X = gs.random.rand(self.n_samples)
+        self.X_curves_2d = X - gs.mean(X)
+
+        self.intercept_curves_2d_true = self.curves_2d.random_point(
+            n_sampling_points=n_sampling_points
+        )
+        self.coef_curves_2d_true = self.curves_2d.to_tangent(
+            5.0 * gs.random.rand(*self.shape_curves_2d), self.intercept_curves_2d_true
+        )
+
+        # Added because of GitHub issue #1575
+        intercept_curves_2d_true_repeated = gs.tile(
+            gs.expand_dims(self.intercept_curves_2d_true, axis=0),
+            (self.n_samples, 1, 1),
+        )
+        self.y_curves_2d = self.metric_curves_2d.exp(
+            self.X_curves_2d[:, None, None] * self.coef_curves_2d_true[None],
+            intercept_curves_2d_true_repeated,
+        )
+
+        self.param_curves_2d_true = gs.vstack(
+            [
+                gs.flatten(self.intercept_curves_2d_true),
+                gs.flatten(self.coef_curves_2d_true),
+            ]
+        )
+        self.param_curves_2d_guess = gs.vstack(
+            [
+                gs.flatten(self.y_curves_2d[0]),
+                gs.flatten(
+                    self.curves_2d.to_tangent(
+                        gs.random.normal(size=self.shape_curves_2d), self.y_curves_2d[0]
+                    )
+                ),
+            ]
+        )
+
     def test_loss_euclidean(self):
         """Test that the loss is 0 at the true parameters."""
         gr = GeodesicRegression(
@@ -153,6 +198,27 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             verbose=True,
         )
         loss = gr._loss(self.X_se2, self.y_se2, self.param_se2_true, self.shape_se2)
+        self.assertAllClose(loss.shape, ())
+        self.assertTrue(gs.isclose(loss, 0.0))
+
+    @geomstats.tests.autograd_only
+    def test_loss_curves_2d(self):
+        """Test that the loss is 0 at the true parameters."""
+        gr = GeodesicRegression(
+            self.curves_2d,
+            metric=self.metric_curves_2d,
+            center_X=False,
+            method="extrinsic",
+            max_iter=50,
+            init_step_size=0.1,
+            verbose=True,
+        )
+        loss = gr._loss(
+            self.X_curves_2d,
+            self.y_curves_2d,
+            self.param_curves_2d_true,
+            self.shape_curves_2d,
+        )
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.0))
 

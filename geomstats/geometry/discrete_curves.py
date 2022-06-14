@@ -140,6 +140,26 @@ class DiscreteCurves(Manifold):
         tangent_vec = gs.reshape(tangent_vec, vector.shape)
         return tangent_vec
 
+    def projection(self, point):
+        """Project a point to the space of discrete curves.
+
+        Parameters
+        ----------
+        point: array-like, shape[..., n_sampling_points, ambient_dim]
+            Point.
+
+        Returns
+        -------
+        point: array-like, shape[..., n_sampling_points, ambient_dim]
+            Point.
+        """
+        ambient_manifold = self.ambient_manifold
+        shape = point.shape
+        stacked_point = gs.reshape(point, (-1, shape[-1]))
+        projected_point = ambient_manifold.projection(stacked_point)
+        projected_point = gs.reshape(projected_point, shape)
+        return projected_point
+
     def random_point(self, n_samples=1, bound=1.0, n_sampling_points=10):
         """Sample random curves.
 
@@ -556,6 +576,7 @@ class SRVMetric(RiemannianMetric):
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
+
         inner_prod = self.l2_metric.pointwise_inner_products(
             d_vec, unit_velocity_vec, curve[..., :-1, :]
         )
