@@ -1,10 +1,10 @@
 """Automatic differentiation in TensorFlow."""
 
-import numpy as np
-import tensorflow as tf
-import tensorflow_probability as tfp
+import numpy as _np
+import tensorflow as _tf
+import tensorflow_probability as _tfp
 
-tfm = tfp.math
+_tfm = _tfp.math
 
 
 def detach(x):
@@ -20,7 +20,7 @@ def detach(x):
     x : array-like
         Detached tensor.
     """
-    tf.stop_gradient(x)
+    _tf.stop_gradient(x)
     return x
 
 
@@ -57,7 +57,7 @@ def custom_gradient(*grad_funcs):
             def grad(upstream):
                 grad_vals = []
                 for grad_fun in grad_funcs:
-                    grads = tf.convert_to_tensor(grad_fun(*args, **kwargs))
+                    grads = _tf.convert_to_tensor(grad_fun(*args, **kwargs))
                     if isinstance(grads, float):
                         grad_val = upstream * grads
                     elif grads.ndim == 2:
@@ -71,7 +71,7 @@ def custom_gradient(*grad_funcs):
 
             return func(*args, **kwargs), grad
 
-        return tf.custom_gradient(func_with_grad)
+        return _tf.custom_gradient(func_with_grad)
 
     return decorator
 
@@ -116,10 +116,10 @@ def value_and_grad(func, to_numpy=False):
         if not isinstance(args, tuple):
             raise ValueError("The inputs parameters are expected to form a tuple.")
 
-        if isinstance(args[0], np.ndarray):
-            args = (tf.Variable(one_arg) for one_arg in args)
+        if isinstance(args[0], _np.ndarray):
+            args = (_tf.Variable(one_arg) for one_arg in args)
 
-        value, grad = tfm.value_and_gradient(func, *args)
+        value, grad = _tfm.value_and_gradient(func, *args)
         if to_numpy:
             return value.numpy(), grad.numpy()
         return value, grad
@@ -155,9 +155,9 @@ def jacobian(func):
         _ : array-like
             Value of the jacobian of func at x.
         """
-        if isinstance(x, np.ndarray):
-            x = tf.Variable(x)
-        with tf.GradientTape() as g:
+        if isinstance(x, _np.ndarray):
+            x = _tf.Variable(x)
+        with _tf.GradientTape() as g:
             g.watch(x)
             y = func(x)
         return g.jacobian(y, x)

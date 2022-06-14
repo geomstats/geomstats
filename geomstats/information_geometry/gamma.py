@@ -298,8 +298,8 @@ class GammaMetric(RiemannianMetric):
 
     References
     ----------
-    [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
-    Information geometry (pp. 31-54). Springer Berlin Heidelberg.
+    .. [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
+        Information geometry (pp. 31-54). Springer Berlin Heidelberg.
     """
 
     def __init__(self):
@@ -345,12 +345,12 @@ class GammaMetric(RiemannianMetric):
 
         References
         ----------
-        [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
-        Information geometry (pp. 31-54). Springer Berlin Heidelberg.
+        .. [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
+            Information geometry (pp. 31-54). Springer Berlin Heidelberg.
 
-        [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
-        Sharp inequalities for polygamma functions.
-        Mathematica Slovaca, 65(1), 103-120.
+        .. [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
+            Sharp inequalities for polygamma functions.
+            Mathematica Slovaca, 65(1), 103-120.
 
         Parameters
         ----------
@@ -420,9 +420,9 @@ class GammaMetric(RiemannianMetric):
 
         References
         ----------
-        [GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
-        Sharp inequalities for polygamma functions.
-        Mathematica Slovaca, 65(1), 103-120.
+        ..[GQ2015] Guo, B. N., Qi, F., Zhao, J. L., & Luo, Q. M. (2015).
+            Sharp inequalities for polygamma functions.
+            Mathematica Slovaca, 65(1), 103-120.
 
         Parameters
         ----------
@@ -619,6 +619,7 @@ class GammaMetric(RiemannianMetric):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
+
         - an initial point and an initial tangent vector,
         - an initial point and an end point.
 
@@ -1150,6 +1151,7 @@ class GammaMetric(RiemannianMetric):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
+
         - an initial point and an initial tangent vector,
         - an initial point and an end point.
 

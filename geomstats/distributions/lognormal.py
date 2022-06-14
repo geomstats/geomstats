@@ -144,9 +144,9 @@ class LogNormal:
     References
     ----------
     .. [LNGASPD2016] A. Schwartzman,
-    "LogNormal distributions and"
-    "Geometric Averages of Symmetric Positive Definite Matrices.",
-    International Statistical Review 84.3 (2016): 456-486.
+        "LogNormal distributions and"
+        "Geometric Averages of Symmetric Positive Definite Matrices.",
+        International Statistical Review 84.3 (2016): 456-486.
     """
 
     def __init__(self, manifold, mean, cov=None):

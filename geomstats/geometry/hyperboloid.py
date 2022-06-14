@@ -427,7 +427,7 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
 
         Parameters
@@ -448,7 +448,7 @@ class HyperboloidMetric(HyperbolicMetric):
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at exp_(base_point)(tangent_vec_b).
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         if direction is None:
             if end_point is not None:

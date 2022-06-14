@@ -481,8 +481,8 @@ class SPDMetricAffine(RiemannianMetric):
         References
         ----------
         .. [TP2019] Thanwerdas, Pennec. "Is affine-invariance well defined on
-          SPD matrices? A principled continuum of metrics" Proc. of GSI, 2019.
-          https://arxiv.org/abs/1906.01349
+            SPD matrices? A principled continuum of metrics" Proc. of GSI,
+            2019. https://arxiv.org/abs/1906.01349
         """
         dim = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
@@ -684,8 +684,8 @@ class SPDMetricAffine(RiemannianMetric):
         or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
         Denoting `tangent_vec_a` by `S`, `base_point` by `A`, and `end_point`
-        by `B` or `B = Exp_A(tangent_vec_b)` and :math:`E = (BA^{- 1})^({ 1
-        / 2})`. Then the parallel transport to `B` is:
+        by `B` or `B = Exp_A(tangent_vec_b)` and :math:`E = (BA^{- 1})^{( 1
+        / 2)}`. Then the parallel transport to `B` is:
 
         .. math::
             S' = ESE^T
@@ -748,10 +748,10 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
     References
     ----------
-    .. [BJL2017]_ Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
+    .. [BJL2017] Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
         positive definite matrices" Elsevier, Expositiones Mathematicae,
         vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
-    .. [MMP2018]_ Malago, Montrucchio, Pistone. "Wasserstein-Riemannian
+    .. [MMP2018] Malago, Montrucchio, Pistone. "Wasserstein-Riemannian
         geometry of Gaussian densities"  Information Geometry, vol. 1, 137-179,
         2018. https://arxiv.org/pdf/1801.09269.pdf
     """
@@ -891,8 +891,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximation of the solution of the parallel transport of a tangent
-        vector a along the geodesic defined by :math:`t \mapsto exp_(
-        base_point)(t* tangent_vec_b)`. The parallel transport equation is
+        vector a along the geodesic defined by :math:`t \mapsto exp_{(
+        base\_point)}(t* tangent\_vec\_b)`. The parallel transport equation is
         formulated in this case in [TP2021]_.
 
         Parameters
@@ -922,7 +922,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         References
         ----------
-        ..[TP2021] Yann Thanwerdas, Xavier Pennec. O(n)-invariant Riemannian
+        .. [TP2021] Yann Thanwerdas, Xavier Pennec. O(n)-invariant Riemannian
             metrics on SPD matrices. 2021. ⟨hal-03338601v2⟩
 
         See Also
@@ -1161,7 +1161,7 @@ class SPDMetricEuclidean(RiemannianMetric):
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
 
         Parameters

@@ -7,11 +7,10 @@ introduced in [Mallasto]_.
 
 References
 ----------
-..[Mallasto]   Mallasto, A. and Feragen, A.
-            “Wrapped gaussian process
-            regression on riemannian manifolds.”
-            IEEE/CVF
-Conference on Computer Vision and Pattern Recognition (2018)
+.. [Mallasto] Mallasto, A. and Feragen, A.
+            “Wrapped gaussian process regression on riemannian manifolds.”
+            IEEE/CVF Conference on Computer Vision and Pattern Recognition
+            (2018)
 
 """
 
@@ -199,11 +198,11 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         A fitted Wrapped Gaussian process can be use to predict values
         through the following steps:
 
-            - Use the stored Gaussian process regression on the dataset to
-                return tangent predictions
-            - Compute the base-points using the prior
-            - Map the tangent predictions on the manifold via the metric's exp
-                with the base-points yielded by the prior
+        - Use the stored Gaussian process regression on the dataset to
+          return tangent predictions
+        - Compute the base-points using the prior
+        - Map the tangent predictions on the manifold via the metric's exp
+          with the base-points yielded by the prior
 
         We can also predict based on an unfitted model by using the GP prior.
         In addition to the mean of the predictive distribution, optionally also
@@ -263,13 +262,13 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         A fitted Wrapped Gaussian process can be use to sample
         values through the following steps:
 
-            - Use the stored Gaussian process regression on the dataset
-                to sample tangent values
-            - Compute the base-points using the prior
-            - Flatten (and repeat if needed) both the base-points and the
-                tangent samples to benefit from vectorized computation.
-            - Map the tangent samples on the manifold via the metric's exp with the
-                flattened and repeated base-points yielded by the prior
+        - Use the stored Gaussian process regression on the dataset
+          to sample tangent values
+        - Compute the base-points using the prior
+        - Flatten (and repeat if needed) both the base-points and the
+          tangent samples to benefit from vectorized computation.
+        - Map the tangent samples on the manifold via the metric's exp with the
+          flattened and repeated base-points yielded by the prior
 
         Parameters
         ----------

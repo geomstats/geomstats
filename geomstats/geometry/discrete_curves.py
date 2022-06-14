@@ -140,6 +140,26 @@ class DiscreteCurves(Manifold):
         tangent_vec = gs.reshape(tangent_vec, vector.shape)
         return tangent_vec
 
+    def projection(self, point):
+        """Project a point to the space of discrete curves.
+
+        Parameters
+        ----------
+        point: array-like, shape[..., n_sampling_points, ambient_dim]
+            Point.
+
+        Returns
+        -------
+        point: array-like, shape[..., n_sampling_points, ambient_dim]
+            Point.
+        """
+        ambient_manifold = self.ambient_manifold
+        shape = point.shape
+        stacked_point = gs.reshape(point, (-1, shape[-1]))
+        projected_point = ambient_manifold.projection(stacked_point)
+        projected_point = gs.reshape(projected_point, shape)
+        return projected_point
+
     def random_point(self, n_samples=1, bound=1.0, n_sampling_points=10):
         """Sample random curves.
 
@@ -404,9 +424,9 @@ class SRVMetric(RiemannianMetric):
     References
     ----------
     .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
-    "Shape Analysis of Elastic Curves in Euclidean Spaces,"
-    in IEEE Transactions on Pattern Analysis and Machine Intelligence,
-    vol. 33, no. 7, pp. 1415-1428, July 2011.
+        "Shape Analysis of Elastic Curves in Euclidean Spaces,"
+        in IEEE Transactions on Pattern Analysis and Machine Intelligence,
+        vol. 33, no. 7, pp. 1415-1428, July 2011.
     """
 
     def __init__(self, ambient_manifold, metric=None, translation_invariant=True):
@@ -556,6 +576,7 @@ class SRVMetric(RiemannianMetric):
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
+
         inner_prod = self.l2_metric.pointwise_inner_products(
             d_vec, unit_velocity_vec, curve[..., :-1, :]
         )
@@ -1052,9 +1073,9 @@ class ClosedSRVMetric(SRVMetric):
     References
     ----------
     .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
-    "Shape Analysis of Elastic Curves in Euclidean Spaces,"
-    in IEEE Transactions on Pattern Analysis and Machine Intelligence,
-    vol. 33, no. 7, pp. 1415-1428, July 2011.
+        "Shape Analysis of Elastic Curves in Euclidean Spaces,"
+        in IEEE Transactions on Pattern Analysis and Machine Intelligence,
+        vol. 33, no. 7, pp. 1415-1428, July 2011.
     """
 
     def __init__(self, ambient_manifold):
@@ -1163,8 +1184,8 @@ class ElasticMetric(RiemannianMetric):
     References
     ----------
     .. [KN2018] S. Kurtek and T. Needham,
-    "Simplifying transforms for general elastic metrics on the space of
-    plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
+        "Simplifying transforms for general elastic metrics on the space of
+        plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
     """
 
     def __init__(self, a, b):
@@ -1499,9 +1520,9 @@ class QuotientSRVMetric(SRVMetric):
     References
     ----------
     .. [LAB2017] A. Le Brigant, M. Arnaudon and F. Barbaresco,
-    "Optimal matching between curves in a manifold,"
-    in International Conference on Geometric Science of Information,
-    pp. 57-65, Springer, Cham, 2017.
+        "Optimal matching between curves in a manifold,"
+        in International Conference on Geometric Science of Information,
+        pp. 57-65, Springer, Cham, 2017.
     """
 
     def __init__(self, ambient_manifold):
@@ -1645,7 +1666,7 @@ class QuotientSRVMetric(SRVMetric):
 
             Construct path of reparametrizations phi(t, u) that transforms
             a path of curves c(t, u) into a horizontal path of curves, i.e.
-            :math: `d/dt c(t, phi(t, u))` is a horizontal vector.
+            :math:`d/dt c(t, phi(t, u))` is a horizontal vector.
 
             Parameters
             ----------
@@ -1696,11 +1717,11 @@ class QuotientSRVMetric(SRVMetric):
 
             Given a path of curves c(t, u) and a path of reparametrizations
             phi(t, u), compute:
-            :math: `c(t, phi_inv(t, u))` where `phi_inv(t, .) = phi(t, .)^{-1}`
+            :math:`c(t, phi_inv(t, u))` where `phi_inv(t, .) = phi(t, .)^{-1}`
             The computation for the last time t=1 is done differently, using
             the spline function associated to the end curve and the composition
             of the inverse reparametrizations contained in rep_inverse_end:
-            :math: `spline_end_curve ° phi_inv(1, .) ° ... ° phi_inv(0, .)`.
+            :math:`spline_end_curve ° phi_inv(1, .) ° ... ° phi_inv(0, .)`.
 
             Parameters
             ----------
