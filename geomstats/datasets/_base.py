@@ -5,9 +5,13 @@ Note: deeply inspired by sklearn.
 
 import logging
 import os
+from collections import namedtuple
 from urllib.request import urlretrieve
 
 DEFAULT_DATA_DIR = os.path.expanduser(os.path.join("~", ".geomstats_data"))
+
+
+RemoteFileMetadata = namedtuple("RemoteFileMetadata", ["filename", "url"])
 
 
 def _get_data_home(data_home=None):
@@ -29,7 +33,7 @@ def _fetch_remote(url, filename, dirname=None):
             f"Data has already been downloaded... using cached file ('{file_path}')."
         )
     else:
-        logging.info(f"Downloading '{file_path}'' from {url} into '{dirname}'.")
+        logging.info(f"Downloading '{file_path}'' from {url} to '{dirname}'.")
         urlretrieve(url, file_path)
 
     return file_path
