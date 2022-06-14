@@ -598,7 +598,8 @@ class FrechetMean(BaseEstimator):
 
         if is_linear_metric:
             mean = linear_mean(points=X, weights=weights, point_type=self.point_type)
-        if is_srv_metric:
+
+        elif is_srv_metric:
             mean = srv_mean(points=X, weights=weights, metric=self.metric)
 
         elif self.method == "default":
