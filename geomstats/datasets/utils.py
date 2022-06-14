@@ -41,15 +41,13 @@ HANDS_LABELS_PATH = os.path.join(DATA_PATH, "hands", "labels.txt")
 CELLS_PATH = os.path.join(DATA_PATH, "cells", "cells.txt")
 CELL_LINES_PATH = os.path.join(DATA_PATH, "cells", "cell_lines.txt")
 CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, "cells", "treatments.txt")
-SAO_PAULO_TABLE = os.path.join(DATA_PATH, "sao_paulo", "jam_table.csv")
-SAO_PAULO_COUNT = os.path.join(DATA_PATH, "sao_paulo", "jam_count.csv")
-
-
 SAO_PAULO_ARCHIVE = RemoteFileMetadata(
     filename="jam.tgz",
     url="https://figshare.com/ndownloader/"
     + "files/35885096?private_link=cbb1c8ae46376d3502e2",
 )
+SAO_PAULO_TABLE = os.path.join("jam", "jam_table.csv")
+SAO_PAULO_COUNT = os.path.join("jam", "jam_count.csv")
 
 
 def load_cities():
@@ -391,10 +389,10 @@ def load_sao_paulo(dirname=None):
     )
 
     with tarfile.open(mode="r:gz", name=file_path) as folder:
-        table_file = folder.extractfile("jam/jam_table.csv")
+        table_file = folder.extractfile(SAO_PAULO_TABLE)
         jam_table = pd.read_csv(table_file)
 
-        count_file = folder.extractfile("jam/jam_count.csv")
+        count_file = folder.extractfile(SAO_PAULO_COUNT)
         jam_count = pd.read_csv(count_file)
 
     jam_table = jam_table.drop("Unnamed: 0", axis=1)
