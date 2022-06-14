@@ -9,10 +9,12 @@ Lead author: Nina Miolane.
 import csv
 import json
 import os
+import tarfile
 
 import pandas as pd
 
 import geomstats.backend as gs
+from geomstats.datasets._base import RemoteFileMetadata, _fetch_remote
 from geomstats.datasets.prepare_graph_data import Graph
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -41,6 +43,13 @@ CELL_LINES_PATH = os.path.join(DATA_PATH, "cells", "cell_lines.txt")
 CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, "cells", "treatments.txt")
 SAO_PAULO_TABLE = os.path.join(DATA_PATH, "sao_paulo", "jam_table.csv")
 SAO_PAULO_COUNT = os.path.join(DATA_PATH, "sao_paulo", "jam_count.csv")
+
+
+SAO_PAULO_ARCHIVE = RemoteFileMetadata(
+    filename="jam.tgz",
+    url="https://figshare.com/ndownloader/"
+    + "files/35885096?private_link=cbb1c8ae46376d3502e2",
+)
 
 
 def load_cities():
@@ -357,7 +366,7 @@ def load_cells():
     return cells, cell_lines, treatments
 
 
-def load_sao_paulo():
+def load_sao_paulo(dirname=None):
     """Load data from data/sao_paulo/jam_count.csv and data/sao_paulo/jam_table.csv.
 
     Load the dataset of traffic jams in Sao Paulo from 2001 to 2019.
@@ -377,10 +386,19 @@ def load_sao_paulo():
         Keys : name of the road
         Values : count of traffic jams between 2001 and 2019.
     """
-    jam_table = pd.read_csv(SAO_PAULO_TABLE)
+    file_path = _fetch_remote(
+        SAO_PAULO_ARCHIVE.url, SAO_PAULO_ARCHIVE.filename, dirname=dirname
+    )
+
+    with tarfile.open(mode="r:gz", name=file_path) as folder:
+        table_file = folder.extractfile("jam/jam_table.csv")
+        jam_table = pd.read_csv(table_file)
+
+        count_file = folder.extractfile("jam/jam_count.csv")
+        jam_count = pd.read_csv(count_file)
+
     jam_table = jam_table.drop("Unnamed: 0", axis=1)
 
-    jam_count = pd.read_csv(SAO_PAULO_COUNT)
     del jam_count["Unnamed: 0"]
     jam_count_df = pd.DataFrame(jam_count, index=[0])
     jam_count = dict(zip(list(jam_count_df.columns), list(jam_count_df.values[0])))
