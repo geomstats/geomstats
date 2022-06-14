@@ -18,8 +18,8 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.n_samples = 20
 
         # Set up for euclidean
-        self.dim_eucl = 5
-        self.shape_eucl = (5,)
+        self.dim_eucl = 3
+        self.shape_eucl = (self.dim_eucl,)
         self.eucl = Euclidean(dim=self.dim_eucl)
         X = gs.random.rand(self.n_samples)
         self.X_eucl = X - gs.mean(X)
@@ -33,7 +33,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             [self.intercept_eucl_true, self.coef_eucl_true]
         )
         self.param_eucl_guess = gs.vstack(
-            [self.y_eucl[0], self.y_eucl[0] + gs.gs.random.normal(size=self.shape_eucl)]
+            [self.y_eucl[0], self.y_eucl[0] + gs.random.normal(size=self.shape_eucl)]
         )
 
         # Set up for hypersphere
@@ -100,6 +100,26 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             ]
         )
 
+    def test_loss_euclidean(self):
+        """Test that the loss is 0 at the true parameters."""
+        gr = GeodesicRegression(
+            self.eucl,
+            metric=self.eucl.metric,
+            center_X=False,
+            method="extrinsic",
+            max_iter=50,
+            init_step_size=0.1,
+            verbose=True,
+        )
+        loss = gr._loss(
+            self.X_eucl,
+            self.y_eucl,
+            self.param_eucl_true,
+            self.shape_eucl,
+        )
+        self.assertAllClose(loss.shape, ())
+        self.assertTrue(gs.isclose(loss, 0.0))
+
     def test_loss_hypersphere(self):
         """Test that the loss is 0 at the true parameters."""
         gr = GeodesicRegression(
@@ -135,6 +155,51 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         loss = gr._loss(self.X_se2, self.y_se2, self.param_se2_true, self.shape_se2)
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.0))
+
+    @geomstats.tests.autograd_tf_and_torch_only
+    def test_value_and_grad_loss_euclidean(self):
+        gr = GeodesicRegression(
+            self.eucl,
+            metric=self.eucl.metric,
+            center_X=False,
+            method="extrinsic",
+            max_iter=50,
+            init_step_size=0.1,
+            verbose=True,
+            regularization=0,
+        )
+
+        def loss_of_param(param):
+            return gr._loss(self.X_eucl, self.y_eucl, param, self.shape_eucl)
+
+        # Without numpy conversion
+        objective_with_grad = gs.autodiff.value_and_grad(loss_of_param)
+        loss_value, loss_grad = objective_with_grad(self.param_eucl_guess)
+
+        expected_grad_shape = (2, self.dim_eucl)
+        self.assertAllClose(loss_value.shape, ())
+        self.assertAllClose(loss_grad.shape, expected_grad_shape)
+
+        self.assertFalse(gs.isclose(loss_value, 0.0))
+        self.assertFalse(gs.isnan(loss_value))
+        self.assertFalse(gs.all(gs.isclose(loss_grad, gs.zeros(expected_grad_shape))))
+        self.assertTrue(gs.all(~gs.isnan(loss_grad)))
+
+        # With numpy conversion
+        objective_with_grad = gs.autodiff.value_and_grad(loss_of_param, to_numpy=True)
+        loss_value, loss_grad = objective_with_grad(self.param_eucl_guess)
+        # Convert back to arrays/tensors
+        loss_value = gs.array(loss_value)
+        loss_grad = gs.array(loss_grad)
+
+        expected_grad_shape = (2, self.dim_eucl)
+        self.assertAllClose(loss_value.shape, ())
+        self.assertAllClose(loss_grad.shape, expected_grad_shape)
+
+        self.assertFalse(gs.isclose(loss_value, 0.0))
+        self.assertFalse(gs.isnan(loss_value))
+        self.assertFalse(gs.all(gs.isclose(loss_grad, gs.zeros(expected_grad_shape))))
+        self.assertTrue(gs.all(~gs.isnan(loss_grad)))
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_value_and_grad_loss_hypersphere(self):
@@ -230,6 +295,46 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.assertTrue(gs.all(~gs.isnan(loss_grad)))
 
     @geomstats.tests.autograd_tf_and_torch_only
+    def test_loss_minimization_extrinsic_euclidean(self):
+        """Minimize loss from noiseless data."""
+        gr = GeodesicRegression(self.eucl, regularization=0)
+
+        def loss_of_param(param):
+            return gr._loss(self.X_eucl, self.y_eucl, param, self.shape_eucl)
+
+        objective_with_grad = gs.autodiff.value_and_grad(loss_of_param, to_numpy=True)
+        initial_guess = gs.flatten(self.param_eucl_guess)
+        res = minimize(
+            objective_with_grad,
+            initial_guess,
+            method="CG",
+            jac=True,
+            tol=10 * gs.atol,
+            options={"disp": True, "maxiter": 50},
+        )
+        self.assertAllClose(gs.array(res.x).shape, (self.dim_eucl * 2,))
+        self.assertAllClose(res.fun, 0.0, atol=1000 * gs.atol)
+
+        # Cast required because minimization happens in scipy in float64
+        param_hat = gs.cast(gs.array(res.x), self.param_eucl_true.dtype)
+
+        intercept_hat, coef_hat = gs.split(param_hat, 2)
+        coef_hat = self.eucl.to_tangent(coef_hat, intercept_hat)
+        self.assertAllClose(intercept_hat, self.intercept_eucl_true, atol=5e-3)
+
+        tangent_vec_of_transport = self.eucl.metric.log(
+            self.intercept_eucl_true, base_point=intercept_hat
+        )
+
+        transported_coef_hat = self.eucl.metric.parallel_transport(
+            tangent_vec=coef_hat,
+            base_point=intercept_hat,
+            direction=tangent_vec_of_transport,
+        )
+
+        self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=5e-3)
+
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_loss_minimization_extrinsic_hypersphere(self):
         """Minimize loss from noiseless data."""
         gr = GeodesicRegression(self.sphere, regularization=0)
@@ -322,6 +427,41 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         self.assertAllClose(transported_coef_hat, self.coef_se2_true, atol=0.6)
 
     @geomstats.tests.autograd_tf_and_torch_only
+    def test_fit_extrinsic_euclidean(self):
+        gr = GeodesicRegression(
+            self.eucl,
+            metric=self.eucl.metric,
+            center_X=False,
+            method="extrinsic",
+            max_iter=50,
+            init_step_size=0.1,
+            verbose=True,
+            initialization="random",
+            regularization=0.9,
+        )
+
+        gr.fit(self.X_eucl, self.y_eucl, compute_training_score=True)
+
+        training_score = gr.training_score_
+        intercept_hat, coef_hat = gr.intercept_, gr.coef_
+        self.assertAllClose(intercept_hat.shape, self.shape_eucl)
+        self.assertAllClose(coef_hat.shape, self.shape_eucl)
+        self.assertAllClose(training_score, 1.0, atol=500 * gs.atol)
+        self.assertAllClose(intercept_hat, self.intercept_eucl_true, atol=5e-3)
+
+        tangent_vec_of_transport = self.eucl.metric.log(
+            self.intercept_eucl_true, base_point=intercept_hat
+        )
+
+        transported_coef_hat = self.eucl.metric.parallel_transport(
+            tangent_vec=coef_hat,
+            base_point=intercept_hat,
+            direction=tangent_vec_of_transport,
+        )
+
+        self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=0.6)
+
+    @geomstats.tests.autograd_tf_and_torch_only
     def test_fit_extrinsic_hypersphere(self):
         gr = GeodesicRegression(
             self.sphere,
@@ -389,6 +529,40 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         )
 
         self.assertAllClose(transported_coef_hat, self.coef_se2_true, atol=0.6)
+
+    @geomstats.tests.autograd_tf_and_torch_only
+    def test_fit_riemannian_euclidean(self):
+        gr = GeodesicRegression(
+            self.eucl,
+            metric=self.eucl.metric,
+            center_X=False,
+            method="riemannian",
+            max_iter=50,
+            init_step_size=0.1,
+            verbose=True,
+        )
+
+        gr.fit(self.X_eucl, self.y_eucl, compute_training_score=True)
+        intercept_hat, coef_hat = gr.intercept_, gr.coef_
+        training_score = gr.training_score_
+
+        self.assertAllClose(intercept_hat.shape, self.shape_eucl)
+        self.assertAllClose(coef_hat.shape, self.shape_eucl)
+
+        self.assertAllClose(training_score, 1.0, atol=0.1)
+        self.assertAllClose(intercept_hat, self.intercept_eucl_true, atol=5e-3)
+
+        tangent_vec_of_transport = self.eucl.metric.log(
+            self.intercept_eucl_true, base_point=intercept_hat
+        )
+
+        transported_coef_hat = self.eucl.metric.parallel_transport(
+            tangent_vec=coef_hat,
+            base_point=intercept_hat,
+            direction=tangent_vec_of_transport,
+        )
+
+        self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=5e-3)
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_fit_riemannian_hypersphere(self):
