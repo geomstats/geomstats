@@ -1,6 +1,6 @@
-*************
+=============
 API Reference
-*************
+=============
 
 The API reference gives an overview of Geomstats implementation.
 

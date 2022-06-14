@@ -95,7 +95,7 @@ class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
 
     def test_belongs(self, base, power, point, expected):
         space = self.space(base, power)
-        self.assertAllClose(space.belongs(point), expected)
+        self.assertAllEqual(space.belongs(point), expected)
 
     def test_shape(self, base, power, expected):
         space = self.space(base, power)

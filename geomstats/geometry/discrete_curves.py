@@ -404,9 +404,9 @@ class SRVMetric(RiemannianMetric):
     References
     ----------
     .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
-    "Shape Analysis of Elastic Curves in Euclidean Spaces,"
-    in IEEE Transactions on Pattern Analysis and Machine Intelligence,
-    vol. 33, no. 7, pp. 1415-1428, July 2011.
+        "Shape Analysis of Elastic Curves in Euclidean Spaces,"
+        in IEEE Transactions on Pattern Analysis and Machine Intelligence,
+        vol. 33, no. 7, pp. 1415-1428, July 2011.
     """
 
     def __init__(self, ambient_manifold, metric=None, translation_invariant=True):
@@ -423,10 +423,11 @@ class SRVMetric(RiemannianMetric):
                 )
         else:
             self.ambient_metric = metric
+        self.default_point_type = "matrix"
         self.l2_metric = L2CurvesMetric(ambient_manifold, metric)
         self.translation_invariant = translation_invariant
 
-    def srv_transform(self, curve):
+    def srv_transform(self, curve, tol=gs.atol):
         """Square Root Velocity Transform (SRVT).
 
         Compute the square root velocity representation of a curve. The
@@ -440,11 +441,23 @@ class SRVMetric(RiemannianMetric):
         curve : array-like, shape=[..., n_sampling_points, ambient_dim]
             Discrete curve.
 
+        tol : float
+            Tolerance value to decide duplicity of two consecutive sample
+            points on a given Discrete Curve.
+
         Returns
         -------
         srv : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
             Square-root velocity representation of a discrete curve.
         """
+        if gs.any(
+            self.ambient_metric.norm(curve[..., 1:, :] - curve[..., :-1, :]) < tol
+        ):
+            raise AssertionError(
+                "The square root velocity framework "
+                "is only defined for discrete curves "
+                "with distinct consecutive sample points."
+            )
         curve_ndim = gs.ndim(curve)
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, n_coords = curve.shape
@@ -1039,9 +1052,9 @@ class ClosedSRVMetric(SRVMetric):
     References
     ----------
     .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
-    "Shape Analysis of Elastic Curves in Euclidean Spaces,"
-    in IEEE Transactions on Pattern Analysis and Machine Intelligence,
-    vol. 33, no. 7, pp. 1415-1428, July 2011.
+        "Shape Analysis of Elastic Curves in Euclidean Spaces,"
+        in IEEE Transactions on Pattern Analysis and Machine Intelligence,
+        vol. 33, no. 7, pp. 1415-1428, July 2011.
     """
 
     def __init__(self, ambient_manifold):
@@ -1150,8 +1163,8 @@ class ElasticMetric(RiemannianMetric):
     References
     ----------
     .. [KN2018] S. Kurtek and T. Needham,
-    "Simplifying transforms for general elastic metrics on the space of
-    plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
+        "Simplifying transforms for general elastic metrics on the space of
+        plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
     """
 
     def __init__(self, a, b):
@@ -1486,9 +1499,9 @@ class QuotientSRVMetric(SRVMetric):
     References
     ----------
     .. [LAB2017] A. Le Brigant, M. Arnaudon and F. Barbaresco,
-    "Optimal matching between curves in a manifold,"
-    in International Conference on Geometric Science of Information,
-    pp. 57-65, Springer, Cham, 2017.
+        "Optimal matching between curves in a manifold,"
+        in International Conference on Geometric Science of Information,
+        pp. 57-65, Springer, Cham, 2017.
     """
 
     def __init__(self, ambient_manifold):
@@ -1632,7 +1645,7 @@ class QuotientSRVMetric(SRVMetric):
 
             Construct path of reparametrizations phi(t, u) that transforms
             a path of curves c(t, u) into a horizontal path of curves, i.e.
-            :math: `d/dt c(t, phi(t, u))` is a horizontal vector.
+            :math:`d/dt c(t, phi(t, u))` is a horizontal vector.
 
             Parameters
             ----------
@@ -1683,11 +1696,11 @@ class QuotientSRVMetric(SRVMetric):
 
             Given a path of curves c(t, u) and a path of reparametrizations
             phi(t, u), compute:
-            :math: `c(t, phi_inv(t, u))` where `phi_inv(t, .) = phi(t, .)^{-1}`
+            :math:`c(t, phi_inv(t, u))` where `phi_inv(t, .) = phi(t, .)^{-1}`
             The computation for the last time t=1 is done differently, using
             the spline function associated to the end curve and the composition
             of the inverse reparametrizations contained in rep_inverse_end:
-            :math: `spline_end_curve ° phi_inv(1, .) ° ... ° phi_inv(0, .)`.
+            :math:`spline_end_curve ° phi_inv(1, .) ° ... ° phi_inv(0, .)`.
 
             Parameters
             ----------

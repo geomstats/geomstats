@@ -17,16 +17,16 @@ jobs:
         python-version: [3.7]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build using Python ${{matrix.python-version}}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{matrix.python-version}}
 
       - name: Install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
-          pip install -e .[doc,opt]
+          pip install -e .[doc,opt,backends]
 
       - name: Install Pandoc [apt-get]
         run: |
