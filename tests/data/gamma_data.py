@@ -97,6 +97,39 @@ class GammaTestData(_OpenSetTestData):
         ]
         return self.generate_tests([], random_data)
 
+    def maximum_likelihood_fit_test_data(self):
+        smoke_data = [
+            dict(
+                sample=[1, 2, 3, 4],
+                expected=[4.26542805, 2.5],
+            ),
+            dict(
+                sample=[[1, 2, 3, 4, 5], [1, 2, 3, 4]],
+                expected=[[3.70164381, 3.0], [4.26542805, 2.5]],
+            ),
+            dict(
+                sample=[gs.array([1, 2, 3, 4, 5]), gs.array([1, 2, 3, 4])],
+                expected=[[3.70164381, 3.0], [4.26542805, 2.5]],
+            ),
+            dict(
+                sample=[[1, 2, 3, 4]],
+                expected=[4.26542805, 2.5],
+            ),
+            dict(
+                sample=gs.array([1, 2, 3, 4]),
+                expected=[4.26542805, 2.5],
+            ),
+            dict(
+                sample=[gs.array([1, 2, 3, 4])],
+                expected=[4.26542805, 2.5],
+            ),
+            dict(
+                sample=[[1, 2, 3, 4, 5], gs.array([1, 2, 3, 4])],
+                expected=[[3.70164381, 3.0], [4.26542805, 2.5]],
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
     def natural_to_standard_test_data(self):
         smoke_data = [
             dict(point=gs.array([1.0, 1.0]), expected=gs.array([1.0, 1.0])),
