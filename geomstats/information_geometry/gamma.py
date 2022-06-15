@@ -219,13 +219,14 @@ class GammaDistributions(OpenSet):
         """
 
         def is_nested(sample):
+            """Check if sample contains an iterable."""
             for el in sample:
                 try:
                     return iter(el)
                 except TypeError:
                     return False
 
-        if not (is_nested(data)):
+        if not is_nested(data):
             data = [data]
         parameters = []
         for sample in data:
