@@ -1,192 +1,73 @@
-"""Unit tests for the examples."""
-
-import logging
+import glob
+import importlib
 import os
-import sys
 import warnings
 
 import matplotlib
-import matplotlib.pyplot as plt
+import pytest
+from matplotlib import pyplot as plt
 
-import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn  # NOQA
-import examples.geodesic_regression_grassmannian as geodesic_regression_grassmannian
-import examples.geodesic_regression_hypersphere as geodesic_regression_hypersphere  # NOQA
-import examples.geodesic_regression_se2 as geodesic_regression_se2
-import examples.gradient_descent_s2 as gradient_descent_s2
-import examples.kalman_filter as kalman_filter
-import examples.learning_graph_structured_data_h2 as learning_gsd_h2
-import examples.plot_bch_so3 as plot_bch_so3
-import examples.plot_expectation_maximization_ball as plot_em_manifolds
-import examples.plot_geodesics_h2 as plot_geodesics_h2
-import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk  # NOQA
-import examples.plot_geodesics_s2 as plot_geodesics_s2
-import examples.plot_geodesics_se2 as plot_geodesics_se2
-import examples.plot_geodesics_se3 as plot_geodesics_se3
-import examples.plot_geodesics_so3 as plot_geodesics_so3
-import examples.plot_grid_h2 as plot_grid_h2
-import examples.plot_kernel_density_estimation_classifier_s2 as plot_kernel_density_estimation_classifier_s2  # NOQA
-import examples.plot_kmeans_manifolds as plot_kmeans_manifolds
-import examples.plot_kmedoids_manifolds as plot_kmedoids_manifolds
-import examples.plot_knn_s2 as plot_knn_s2
-import examples.plot_online_kmeans_s1 as plot_online_kmeans_s1
-import examples.plot_online_kmeans_s2 as plot_online_kmeans_s2
-import examples.plot_pole_ladder_s2 as plot_pole_ladder_s2
-import examples.plot_square_h2_klein_disk as plot_square_h2_klein_disk
-import examples.plot_square_h2_poincare_disk as plot_square_h2_poincare_disk
-import examples.plot_square_h2_poincare_half_plane as plot_square_h2_poincare_half_plane  # NOQA
-import examples.tangent_pca_h2 as tangent_pca_h2
-import examples.tangent_pca_s2 as tangent_pca_s2
-import examples.tangent_pca_so3 as tangent_pca_so3
-import geomstats.backend as gs
-import geomstats.tests
-
-matplotlib.use("Agg")  # NOQA
+matplotlib.use("Agg")
 
 
-class TestExamples(geomstats.tests.TestCase):
-    @classmethod
-    def setup_class(cls):
-        sys.stdout = open(os.devnull, "w")
+BACKEND = os.environ.get("GEOMSTATS_BACKEND", "numpy")
+ALL_BACKENDS = ["numpy", "autograd", "pytorch", "tensorflow"]
+AUTODIFF_BACKENDS = ALL_BACKENDS[1:]
+NP_LIKE_BACKENDS = ALL_BACKENDS[:2]
 
-    @staticmethod
-    def setup_method():
-        gs.random.seed(1234)
-        logger = logging.getLogger()
-        logger.disabled = True
-        warnings.simplefilter("ignore", category=ImportWarning)
-        warnings.simplefilter("ignore", category=UserWarning)
-        plt.rcParams.update({"figure.max_open_warning": 0})
-        plt.figure()
+EXAMPLES_DIR = "examples"
 
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_empirical_frechet_mean_uncertainty_sn():
-        empirical_frechet_mean_uncertainty_sn.main()
+paths = sorted(glob.glob(f"{EXAMPLES_DIR}/*.py"))
+SKIP = {"geomstats_in_pymanopt"}
 
-    @staticmethod
-    @geomstats.tests.autograd_tf_and_torch_only
-    def test_geodesic_regression_hypersphere():
-        geodesic_regression_hypersphere.main()
+METADATA = {
+    "gradient_descent_s2": {
+        "backends": NP_LIKE_BACKENDS,
+        "kwargs": {"max_iter": 64, "output_file": None},
+    },
+    "geodesic_regression_hypersphere": AUTODIFF_BACKENDS,
+    "geodesic_regression_se2": ["autograd", "tensorflow"],
+    "geodesic_regression_grassmannian": ["autograd", "tensorflow"],
+    "learning_graph_embedding_and_predicting": ALL_BACKENDS[:-1],
+}
+np_like_backends = [
+    "empirical_frechet_mean_uncertainty_sn",
+    "learning_graph_structured_data_h2",
+    "plot_bch_so3",
+    "plot_agglomerative_hierarchical_clustering_s2",
+    "plot_expectation_maximization_ball",
+    "plot_kernel_density_estimation_classifier_s2",
+    "plot_kmeans_manifolds",
+    "plot_kmedoids_manifolds",
+    "plot_knn_s2",
+    "plot_online_kmeans_s1",
+    "plot_online_kmeans_s2",
+    "tangent_pca_h2",
+    "tangent_pca_s2",
+    "tangent_pca_so3",
+]
+for example_name in np_like_backends:
+    METADATA[example_name] = NP_LIKE_BACKENDS
 
-    @staticmethod
-    @geomstats.tests.autograd_and_tf_only
-    def test_geodesic_regression_se2():
-        geodesic_regression_se2.main()
 
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_gradient_descent_s2():
-        gradient_descent_s2.main(max_iter=64, output_file=None)
+@pytest.mark.parametrize("path", paths)
+def test_example(path):
+    warnings.simplefilter("ignore", category=UserWarning)
 
-    @staticmethod
-    def test_kalman_filter():
-        kalman_filter.main()
+    example_name = path.split(os.sep)[-1].split(".")[0]
+    metadata = METADATA.get(example_name, {})
+    if not isinstance(metadata, dict):
+        metadata = {"backends": metadata}
 
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_learning_graph_structured_data_h2():
-        learning_gsd_h2.main()
+    backends = metadata.get("backends", ALL_BACKENDS)
+    if example_name in SKIP or BACKEND not in backends:
+        pytest.skip()
 
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_plot_bch_so3():
-        plot_bch_so3.main()
+    spec = importlib.util.spec_from_file_location("module.name", path)
 
-    @staticmethod
-    def test_plot_geodesics_h2():
-        plot_geodesics_h2.main()
+    example = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(example)
 
-    @staticmethod
-    def test_plot_geodesics_poincare_polydisk():
-        plot_geodesics_poincare_polydisk.main()
-
-    @staticmethod
-    def test_plot_geodesics_s2():
-        plot_geodesics_s2.main()
-
-    @staticmethod
-    def test_plot_geodesics_se3():
-        plot_geodesics_se3.main()
-
-    @staticmethod
-    def test_plot_geodesics_so3():
-        plot_geodesics_so3.main()
-
-    @staticmethod
-    def test_plot_grid_h2():
-        plot_grid_h2.main()
-
-    @staticmethod
-    def test_plot_square_h2_square_poincare_disk():
-        plot_square_h2_poincare_disk.main()
-
-    @staticmethod
-    def test_plot_square_h2_square_poincare_half_plane():
-        plot_square_h2_poincare_half_plane.main()
-
-    @staticmethod
-    def test_plot_square_h2_square_klein_disk():
-        plot_square_h2_klein_disk.main()
-
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_tangent_pca_s2():
-        tangent_pca_h2.main()
-
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_tangent_pca_h2():
-        tangent_pca_s2.main()
-
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_tangent_pca_so3():
-        tangent_pca_so3.main()
-
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_plot_kernel_density_estimation_classifier_s2():
-        plot_kernel_density_estimation_classifier_s2.main()
-
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_plot_kmeans_manifolds():
-        plot_kmeans_manifolds.main()
-
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_plot_kmedoids_manifolds():
-        plot_kmedoids_manifolds.main()
-
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_plot_em_manifolds():
-        plot_em_manifolds.main()
-
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_plot_knn_s2():
-        plot_knn_s2.main()
-
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_plot_online_kmeans_s1():
-        plot_online_kmeans_s1.main()
-
-    @staticmethod
-    @geomstats.tests.np_and_autograd_only
-    def test_plot_online_kmeans_s2():
-        plot_online_kmeans_s2.main()
-
-    @staticmethod
-    def test_plot_pole_ladder_s2():
-        plot_pole_ladder_s2.main()
-
-    @staticmethod
-    def test_plot_geodesics_se2():
-        plot_geodesics_se2.main()
-
-    @staticmethod
-    @geomstats.tests.autograd_and_tf_only
-    def test_geodesic_regression_grassmannian():
-        geodesic_regression_grassmannian.main()
+    kwargs = metadata.get("kwargs", {})
+    example.main(**kwargs)
+    plt.close("all")
