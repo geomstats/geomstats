@@ -1622,7 +1622,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             squared_angle < utils.EPSILON, coef_2, (1 - coef_1) / squared_angle_
         )
 
-        outer_ = gs.einsum("...i,...j->...ij", point, point)
+        outer_ = gs.outer(point, point)
         sign = -1.0 if left_or_right == "right" else 1.0
 
         return (
