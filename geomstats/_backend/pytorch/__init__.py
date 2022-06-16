@@ -784,9 +784,6 @@ def outer(a, b):
     if b.ndim == 2:
         out = out.swapaxes(-3, -2)
 
-        if a.ndim == 2:
-            out = out[:, 0]
-
     return out
 
 
