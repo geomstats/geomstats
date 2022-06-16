@@ -464,3 +464,15 @@ def outer(a, b):
             out = out[:, 0]
 
     return out
+
+
+def matvec(A, b):
+    if A.ndim > 2 and b.ndim > 1 and A.shape[0] != b.shape[0]:
+        raise ValueError("Unable to broadcast")
+
+    if b.ndim == 1:
+        return _np.matmul(A, b)
+    else:
+        if A.ndim == 2:
+            return _np.matmul(A, b.T).T
+        return _np.einsum("...ij,...j->...i", A, b)

@@ -788,3 +788,20 @@ def outer(a, b):
             out = out[:, 0]
 
     return out
+
+
+def matvec(A, b):
+
+    if A.ndim > 2 and b.ndim > 1 and A.shape[0] != b.shape[0]:
+        raise ValueError("Unable to broadcast")
+
+    if A.ndim == 2 and b.ndim == 1:
+        return _torch.mv(A, b)
+
+    if b.ndim == 1:  # A.ndim > 2
+        return _torch.matmul(A, b)
+
+    if A.ndim == 2:  # b.ndim > 1
+        return _torch.matmul(A, b.T).T
+
+    return _torch.einsum("...ij,...j->...i", A, b)

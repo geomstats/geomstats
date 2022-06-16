@@ -350,7 +350,7 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
     if use_vectorization:
         full_shape = shape(x).numpy()
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
         mask = _vectorized_mask_from_indices(
             n_samples, indices, tile_shape, axis, x.dtype
         )
@@ -949,3 +949,7 @@ def linspace(*args, **kwargs):
 
 def is_array(x):
     return _tf.is_tensor(x)
+
+
+def matvec(A, b):
+    return _tf.linalg.matvec(A, b)
