@@ -573,7 +573,7 @@ def flatten(x):
 
 
 def outer(x, y):
-    return _tf.einsum("i,j->ij", x, y)
+    return _tf.einsum("...i,...j->...ij", x, y)
 
 
 def copy(x):

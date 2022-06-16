@@ -70,7 +70,6 @@ from autograd.numpy import (
     moveaxis,
     ones,
     ones_like,
-    outer,
     pad,
     power,
     prod,
@@ -450,3 +449,20 @@ def matmul(*args, **kwargs):
         if arg.ndim == 1:
             raise ValueError("ndims must be >=2")
     return _np.matmul(*args, **kwargs)
+
+
+def outer(a, b):
+    if a.ndim == 2 and b.ndim == 2 and a.shape[0] != b.shape[0]:
+        raise ValueError("Unable to broadcast")
+
+    if a.ndim == 2 and b.ndim == 2:
+        return _np.einsum("...i,...j->...ij", a, b)
+
+    out = _np.outer(a, b).reshape(a.shape + b.shape)
+    if b.ndim == 2:
+        out = out.swapaxes(-3, -2)
+
+        if a.ndim == 2:
+            out = out[:, 0]
+
+    return out

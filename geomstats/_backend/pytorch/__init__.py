@@ -39,7 +39,7 @@ from torch import (
     logical_or,
 )
 from torch import max as amax
-from torch import mean, meshgrid, moveaxis, ones, ones_like, outer, polygamma
+from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma
 from torch import pow as power
 from torch import real
 from torch import repeat_interleave as repeat
@@ -771,3 +771,20 @@ def pad(a, pad_width, constant_value=0.0):
 
 def is_array(x):
     return _torch.is_tensor(x)
+
+
+def outer(a, b):
+    if a.ndim == 2 and b.ndim == 2 and a.shape[0] != b.shape[0]:
+        raise ValueError("Unable to broadcast")
+
+    if a.ndim == 2 and b.ndim == 2:
+        return _torch.einsum("...i,...j->...ij", a, b)
+
+    out = _torch.tensordot(a, b, dims=0)
+    if b.ndim == 2:
+        out = out.swapaxes(-3, -2)
+
+        if a.ndim == 2:
+            out = out[:, 0]
+
+    return out
