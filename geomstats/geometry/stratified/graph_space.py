@@ -316,8 +316,9 @@ class GraphSpaceMetric(PointSetMetric):
 
     def __init__(self, space):
         super().__init__(space)
-        self.perm_ = None
         self.matcher = self._set_default_matcher()
+        self.default_point_type = "matrix"
+        self.perm_ = None
 
     def _set_default_matcher(self):
         return IDMatcher()
@@ -356,11 +357,10 @@ class GraphSpaceMetric(PointSetMetric):
             "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
             https://www.jmlr.org/papers/v10/jain09a.html.
         """
-        perm = self.matching(graph_a, graph_b)
-
+        aligned_graph_b = self.align(graph_a, graph_b)
         return self.total_space_metric.dist(
             graph_a,
-            self.space.permute(graph_b, perm),
+            aligned_graph_b,
         )
 
     @_vectorize_graph((1, "base_point"), (2, "end_point"))
@@ -389,11 +389,9 @@ class GraphSpaceMetric(PointSetMetric):
             "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
             https://www.jmlr.org/papers/v10/jain09a.html.
         """
-        perm = self.matching(base_point, end_point)
+        aligned_end_point = self.align(base_point, end_point)
 
-        return self.total_space_metric.geodesic(
-            base_point, self.space.permute(end_point, perm)
-        )
+        return self.total_space_metric.geodesic(base_point, aligned_end_point)
 
     @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
     @_pad_with_zeros((1, "base_graph"), (2, "graph_to_permute"))
@@ -418,6 +416,12 @@ class GraphSpaceMetric(PointSetMetric):
         self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
 
         return self.perm_
+
+    @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
+    @_pad_with_zeros((1, "base_graph"), (2, "graph_to_permute"))
+    def align(self, base_graph, graph_to_permute):
+        perm = self.matching(base_graph, graph_to_permute)
+        return self.space.permute(graph_to_permute, perm)
 
 
 class _Matcher(metaclass=ABCMeta):
