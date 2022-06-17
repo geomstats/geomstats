@@ -1,7 +1,6 @@
 """Unit tests for the graphspace quotient space."""
 
 import networkx as nx
-import pytest
 
 import geomstats.backend as gs
 from tests.conftest import Parametrizer, TestCase, np_backend
@@ -21,7 +20,7 @@ IS_NOT_NP = not np_backend()
 
 
 class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
-    skip_all = True
+    skip_all = IS_NOT_NP
 
     testing_data = GraphSpaceTestData()
 
@@ -100,7 +99,7 @@ class TestGraphPoint(PointTestCase, metaclass=Parametrizer):
 
 
 class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
-    skip_all = True
+    skip_all = IS_NOT_NP
 
     skip_test_geodesic_output_type = True
 
@@ -148,12 +147,14 @@ class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(results, gs.stack([pt_start, pt_end]))
 
     def test_matching(self, metric, point_a, point_b, matcher, expected):
-        perm = metric.matching(point_a, point_b, matcher=matcher)
+        metric.matcher = matcher
+        perm = metric.matching(point_a, point_b)
 
         self.assertAllClose(perm, expected)
 
     def test_matching_output_shape(self, metric, point_a, point_b, matcher):
-        results = metric.matching(point_a, point_b, matcher=matcher)
+        metric.matcher = matcher
+        results = metric.matching(point_a, point_b)
 
         is_multiple = gs.ndim(point_a) > 2 or gs.ndim(point_b) > 2
 
@@ -165,10 +166,6 @@ class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
             self.assertTrue(results.shape[0] == n_dist)
         else:
             self.assertTrue(results.ndim == 1)
-
-    def test_matching_raises_error(self, metric, point_a, point_b, invalid_matcher):
-        with pytest.raises(NameError):
-            metric.matching(point_a, point_b, invalid_matcher)
 
 
 class TestDecorators(TestCase, metaclass=Parametrizer):

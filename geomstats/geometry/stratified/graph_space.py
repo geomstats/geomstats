@@ -4,6 +4,7 @@ Lead author: Anna Calissano.
 """
 
 import functools
+from abc import ABCMeta, abstractmethod
 
 import networkx as nx
 
@@ -316,6 +317,10 @@ class GraphSpaceMetric(PointSetMetric):
     def __init__(self, space):
         super().__init__(space)
         self.perm_ = None
+        self.matcher = self._set_default_matcher()
+
+    def _set_default_matcher(self):
+        return IDMatcher()
 
     @property
     def total_space_metric(self):
@@ -329,7 +334,7 @@ class GraphSpaceMetric(PointSetMetric):
 
     @_vectorize_graph((1, "graph_a"), (2, "graph_b"))
     @_pad_with_zeros((1, "graph_a"), (2, "graph_b"))
-    def dist(self, graph_a, graph_b, matcher="ID"):
+    def dist(self, graph_a, graph_b):
         """Compute distance between two equivalence classes.
 
         Compute the distance between two equivalence classes of
@@ -339,8 +344,6 @@ class GraphSpaceMetric(PointSetMetric):
         ----------
         graph_a : list of Graph or array-like, shape=[..., n, n].
         graph_b : list of Graph or array-like, shape=[..., n, n].
-        matcher : str
-            Check ``GraphSpaceMetric.matching``.
 
         Returns
         -------
@@ -353,7 +356,7 @@ class GraphSpaceMetric(PointSetMetric):
             "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
             https://www.jmlr.org/papers/v10/jain09a.html.
         """
-        perm = self.matching(graph_a, graph_b, matcher=matcher)
+        perm = self.matching(graph_a, graph_b)
 
         return self.total_space_metric.dist(
             graph_a,
@@ -362,7 +365,7 @@ class GraphSpaceMetric(PointSetMetric):
 
     @_vectorize_graph((1, "base_point"), (2, "end_point"))
     @_pad_with_zeros((1, "base_point"), (2, "end_point"))
-    def geodesic(self, base_point, end_point, matcher="ID"):
+    def geodesic(self, base_point, end_point):
         """Compute distance between two equivalence classes.
 
         Compute the distance between two equivalence classes of
@@ -374,8 +377,6 @@ class GraphSpaceMetric(PointSetMetric):
             Start .
         end_point : list of Graph or array-like, shape=[..., n, n].
             Second graph to align to the first graph.
-        matcher : str
-            Check ``GraphSpaceMetric.matching``.
 
         Returns
         -------
@@ -388,7 +389,7 @@ class GraphSpaceMetric(PointSetMetric):
             "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
             https://www.jmlr.org/papers/v10/jain09a.html.
         """
-        perm = self.matching(base_point, end_point, matcher=matcher)
+        perm = self.matching(base_point, end_point)
 
         return self.total_space_metric.geodesic(
             base_point, self.space.permute(end_point, perm)
@@ -396,7 +397,7 @@ class GraphSpaceMetric(PointSetMetric):
 
     @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
     @_pad_with_zeros((1, "base_graph"), (2, "graph_to_permute"))
-    def matching(self, base_graph, graph_to_permute, matcher="ID"):
+    def matching(self, base_graph, graph_to_permute):
         """Match graphs.
 
         Parameters
@@ -405,29 +406,7 @@ class GraphSpaceMetric(PointSetMetric):
             Base graph.
         graph_to_permute : list of Graph or array-like, shape=[..., n, n].
             Graph to align.
-        matcher : str
-            Possible values are 'ID', 'FAQ'.
-                'ID': Identity matching.
-                'FAQ': [Vogelstein2015]_ Fast Quadratic Assignment
-            Note: uses Frobenius metric in background.
-
-        References
-        ----------
-        .. [Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
-                Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
-                “Fast approximate quadratic programming for graph matching.“
-                PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
         """
-        matching_alg = {
-            "ID": self._id_matching,
-            "FAQ": self._faq_matching,
-        }
-
-        if matcher not in matching_alg:
-            raise NameError(
-                f"{matcher} not available."
-                f"Choose from the following: {','.join(matching_alg)}"
-            )
 
         base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
         is_single = gs.ndim(base_graph) == 2
@@ -435,13 +414,20 @@ class GraphSpaceMetric(PointSetMetric):
             base_graph = gs.expand_dims(base_graph, 0)
             graph_to_permute = gs.expand_dims(graph_to_permute, 0)
 
-        perm = matching_alg.get(matcher)(base_graph, graph_to_permute)
+        perm = self.matcher.match(base_graph, graph_to_permute)
         self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
 
         return self.perm_
 
-    @staticmethod
-    def _faq_matching(base_graph, graph_to_permute):
+
+class _Matcher(metaclass=ABCMeta):
+    @abstractmethod
+    def match(self, base_graph, graph_to_permute):
+        pass
+
+
+class FAQMatcher(_Matcher):
+    def match(self, base_graph, graph_to_permute):
         """Fast Quadratic Assignment for graph matching.
 
         Parameters
@@ -468,7 +454,9 @@ class GraphSpaceMetric(PointSetMetric):
             for x, y in zip(base_graph, graph_to_permute)
         ]
 
-    def _id_matching(self, base_graph, graph_to_permute):
+
+class IDMatcher(_Matcher):
+    def match(self, base_graph, graph_to_permute):
         """Identity matching.
 
         Parameters
@@ -483,6 +471,5 @@ class GraphSpaceMetric(PointSetMetric):
         permutation : array-like, shape=[m, n]
             Node permutation indexes of the second graph.
         """
-        return gs.reshape(
-            gs.tile(range(self.n_nodes), base_graph.shape[0]), (-1, self.n_nodes)
-        )
+        n_nodes = base_graph.shape[1]
+        return gs.reshape(gs.tile(range(n_nodes), base_graph.shape[0]), (-1, n_nodes))
