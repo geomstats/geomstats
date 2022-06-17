@@ -317,7 +317,6 @@ class GraphSpaceMetric(PointSetMetric):
     def __init__(self, space):
         super().__init__(space)
         self.matcher = self._set_default_matcher()
-        self.default_point_type = "matrix"
         self.perm_ = None
 
     def _set_default_matcher(self):
