@@ -1,8 +1,6 @@
 """Autograd based computation backend."""
 
-import math
-
-import autograd.numpy as np
+import autograd.numpy as _np
 from autograd.numpy import (
     abs,
     all,
@@ -35,7 +33,7 @@ from autograd.numpy import (
     diagonal,
     dot,
 )
-from autograd.numpy import dtype as ndtype  # NOQA
+from autograd.numpy import dtype as _ndtype
 from autograd.numpy import (
     einsum,
     empty,
@@ -110,30 +108,23 @@ from autograd.numpy import (
     zeros_like,
 )
 from autograd.scipy.special import erf, polygamma  # NOQA
-from scipy.sparse import coo_matrix
+from scipy.sparse import coo_matrix as _coo_matrix
 
-from ..constants import np_atol, np_rtol
+from .._backend_config import np_atol as atol
+from .._backend_config import np_rtol as rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from .common import to_ndarray  # NOQA
+from ._common import to_ndarray  # NOQA
 
-DTYPES = {
-    ndtype("int32"): 0,
-    ndtype("int64"): 1,
-    ndtype("float32"): 2,
-    ndtype("float64"): 3,
-    ndtype("complex64"): 4,
-    ndtype("complex128"): 5,
+_DTYPES = {
+    _ndtype("int32"): 0,
+    _ndtype("int64"): 1,
+    _ndtype("float32"): 2,
+    _ndtype("float64"): 3,
+    _ndtype("complex64"): 4,
+    _ndtype("complex128"): 5,
 }
-
-
-atol = np_atol
-rtol = np_rtol
-
-
-def comb(n, k):
-    return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
 
 
 def to_numpy(x):
@@ -145,10 +136,10 @@ def from_numpy(x):
 
 
 def convert_to_wider_dtype(tensor_list):
-    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    dtype_list = [_DTYPES[x.dtype] for x in tensor_list]
     wider_dtype_index = max(dtype_list)
 
-    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+    wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
 
     tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
     return tensor_list
@@ -159,7 +150,7 @@ def flatten(x):
 
 
 def one_hot(labels, num_classes):
-    return np.eye(num_classes, dtype=np.dtype("uint8"))[labels]
+    return _np.eye(num_classes, dtype=_np.dtype("uint8"))[labels]
 
 
 def get_mask_i_float(i, n):
@@ -189,7 +180,7 @@ def _is_boolean(x):
         return True
     if isinstance(x, (tuple, list)):
         return _is_boolean(x[0])
-    if isinstance(x, np.ndarray):
+    if isinstance(x, _np.ndarray):
         return x.dtype == bool
     return False
 
@@ -197,7 +188,7 @@ def _is_boolean(x):
 def _is_iterable(x):
     if isinstance(x, (list, tuple)):
         return True
-    if isinstance(x, np.ndarray):
+    if isinstance(x, _np.ndarray):
         return ndim(x) > 0
     return False
 
@@ -330,8 +321,8 @@ def get_slice(x, indices):
 
 def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     if multiple_args:
-        return np.vectorize(pyfunc, signature=signature)(*x)
-    return np.vectorize(pyfunc, signature=signature)(x)
+        return _np.vectorize(pyfunc, signature=signature)(*x)
+    return _np.vectorize(pyfunc, signature=signature)(x)
 
 
 def cast(x, dtype):
@@ -389,7 +380,7 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return array(coo_matrix((data, list(zip(*indices))), target_shape).todense())
+    return array(_coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
 
 def tril_to_vec(x, k=0):
@@ -409,7 +400,7 @@ def triu_to_vec(x, k=0):
 def vec_to_diag(vec):
     """Convert vector to diagonal matrix."""
     d = vec.shape[-1]
-    return np.squeeze(vec[..., None, :] * np.eye(d)[None, :, :])
+    return _np.squeeze(vec[..., None, :] * _np.eye(d)[None, :, :])
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
@@ -429,9 +420,9 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     mat : array_like, shape=[..., n, n]
     """
     n = diag.shape[-1]
-    (i,) = np.diag_indices(n, ndim=1)
-    j, k = np.triu_indices(n, k=1)
-    mat = np.zeros(diag.shape + (n,))
+    (i,) = _np.diag_indices(n, ndim=1)
+    j, k = _np.triu_indices(n, k=1)
+    mat = _np.zeros(diag.shape + (n,))
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
@@ -449,5 +440,5 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, n)
     else:
         size = (n, m)
-    idxs = np.tril_indices(n, k, m)
-    return np.ravel_multi_index(idxs, size)
+    idxs = _np.tril_indices(n, k, m)
+    return _np.ravel_multi_index(idxs, size)

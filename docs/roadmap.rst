@@ -39,7 +39,7 @@ and an expanding user base. It is costly to maintain the existing modules, and o
 3. re-organize the architecture of the learning module, with a scikit-learn inspired design with Mixins,
 4. develop the shapes module and transfer techniques to communities in applied sciences including biomedical fields,
 5. develop the information geometry module,
-6. develop the stratified geometry module.
+6. develop the stratified geometry module,
 
 Issues corresponding to these goals can be found under their corresponding GitHub's tag, e.g. the `shapes tag
 <https://github.com/geomstats/geomstats/labels/shapes>`_ for goal 4.
@@ -57,6 +57,7 @@ bottom of each goal. We try to keep the document up to date as we work on these 
    * Refactor testing infrastructure, e.g. `PR 1493 <https://github.com/geomstats/geomstats/pull/1493>`_.
    * Fix existing bugs, e.g. `PR 1550 <https://github.com/geomstats/geomstats/pull/1550>`_. 
    * Support for Jax backend, see `Issue 800 <https://github.com/geomstats/geomstats/issues/800>`_.
+   * Benchmark numerical precision of algorithms in float32 versus float64.
 
 2. Documentation
 

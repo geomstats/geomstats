@@ -74,4 +74,5 @@ To learn how to use `geomstats`, visit :ref:`first_steps`. To contribute to `geo
    Roadmap <roadmap>
    Governance <governance>
    Google Season of Docs <gsod>
+   Hackathons <hackathons>
 

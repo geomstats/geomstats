@@ -20,9 +20,6 @@ class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
 
 class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = EuclideanMetric
-    skip_test_parallel_transport_ivp_is_isometry = True
-    skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_exp_geodesic_ivp = True
     testing_data = EuclideanMetricTestData()
 
     def test_exp(self, dim, tangent_vec, base_point, expected):
