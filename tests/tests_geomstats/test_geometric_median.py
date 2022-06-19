@@ -11,7 +11,7 @@ ROOT2 = gs.sqrt(2)
 class TestGeometricMedian(geomstats.tests.TestCase):
     """Test of Geometric Median Estimators"""
 
-    def test_median_for_SPD_manifold(self):
+    def test_median_for_spd_manifold(self):
         """Test the fit method on SPD manifold"""
         wa_estimator = GeomtericMedian(SPDMetricAffine(n=2))
         X = gs.array([[[1.0, 0.0], [0.0, 1.0]], [[1.0, 0.0], [0.0, 1]]])
@@ -22,7 +22,7 @@ class TestGeometricMedian(geomstats.tests.TestCase):
 
         self.assertAllClose(gm_expected, gm_result)
 
-    def test_median_belongs_to_SPD_manifold(self):
+    def test_median_belongs_to_spd_manifold(self):
         """Test the fit method on SPD manifold"""
         n = 5
         n_samples = 10

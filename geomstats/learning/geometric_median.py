@@ -29,7 +29,7 @@ class GeomtericMedian:
 
     References
     ----------
-    .. [BJL2008]_ Bhatia, Jain, Lim. "Robust statstics on
+    .. [BJL2008]_ Bhatia, Jain, Lim. "Robust statistics on
     Riemannian manifolds via the geometric median"
     """
 
@@ -41,7 +41,7 @@ class GeomtericMedian:
         self.print_every = print_every
         self.estimate_ = None
 
-    def single_iteration(self, current_median, X, weights, lr):
+    def _iterate_once(self, current_median, X, weights, lr):
         """Compute a single iteration of Weiszfeld Algorithm.
 
         Parameters
@@ -97,7 +97,7 @@ class GeomtericMedian:
         if weights is None:
             weights = gs.ones((n_points,)) / n_points
         for iter in range(1, self.max_iter + 1):
-            new_median = self.single_iteration(current_median, X, weights, self.lr)
+            new_median = self._iterate_once(current_median, X, weights, self.lr)
             shift = self.metric.dist(new_median, current_median)
             if shift < gs.atol:
                 break
