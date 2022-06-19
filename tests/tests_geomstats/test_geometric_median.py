@@ -3,17 +3,17 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
-from geomstats.learning.geometric_median import WeiszfeldAlgorithm
+from geomstats.learning.geometric_median import GeomtericMedian
 
 ROOT2 = gs.sqrt(2)
 
 
-class TestGeometricMedianEstimation(geomstats.tests.TestCase):
-    """Test of Geometric Meidan Estimators"""
+class TestGeometricMedian(geomstats.tests.TestCase):
+    """Test of Geometric Median Estimators"""
 
     def test_median_for_SPD_manifold(self):
         """Test the fit method on SPD manifold"""
-        wa_estimator = WeiszfeldAlgorithm(SPDMetricAffine(n=2))
+        wa_estimator = GeomtericMedian(SPDMetricAffine(n=2))
         X = gs.array([[[1.0, 0.0], [0.0, 1.0]], [[1.0, 0.0], [0.0, 1]]])
 
         wa_estimator.fit(X)
@@ -26,7 +26,7 @@ class TestGeometricMedianEstimation(geomstats.tests.TestCase):
         """Test the fit method on SPD manifold"""
         n = 5
         n_samples = 10
-        wa_estimator = WeiszfeldAlgorithm(SPDMetricAffine(n))
+        wa_estimator = GeomtericMedian(SPDMetricAffine(n))
         SPDmanifold = SPDMatrices(n)
         X = SPDmanifold.random_point(n_samples)
         gm = wa_estimator.fit(X).estimate_

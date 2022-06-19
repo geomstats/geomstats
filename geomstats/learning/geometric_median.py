@@ -3,8 +3,8 @@
 import geomstats.backend as gs
 
 
-class WeiszfeldAlgorithm:
-    r"""Weiszfeld Algorithm for Manifolds.
+class GeomtericMedian:
+    r"""Using Weiszfeld Algorithm for finding Geometric Median on Manifolds.
 
     Parameters
     ----------
