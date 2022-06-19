@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 
 
-class GeomtericMedian:
+class GeometricMedian:
     r"""Using Weiszfeld Algorithm for finding Geometric Median on Manifolds.
 
     Parameters
@@ -60,13 +60,9 @@ class GeomtericMedian:
         updated_median: array-like, shape={representation shape}
             updated median after single iteration.
         """
-        dists = []
-        for x in X:
-            dists.append(self.metric.dist(current_median, x))
+        dists = gs.array([self.metric.dist(current_median, x) for x in X])
 
-        dists = gs.array(dists)
-        sum = gs.sum(dists)
-        if sum == 0.0:
+        if sum(dists) == 0.0:
             return current_median
 
         logs = self.metric.log(X, current_median)
@@ -80,7 +76,7 @@ class GeomtericMedian:
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[..., {dim, [n, n]}]
+            X : array-like, shape=[..., n_features]
             Training input samples.
         weights : array-like, shape=[...,]
             Weights associated to the points.
@@ -96,15 +92,15 @@ class GeomtericMedian:
         current_median = X[-1] if self.init is None else self.init
         if weights is None:
             weights = gs.ones((n_points,)) / n_points
-        for iter in range(1, self.max_iter + 1):
+        for itr in range(1, self.max_iter + 1):
             new_median = self._iterate_once(current_median, X, weights, self.lr)
             shift = self.metric.dist(new_median, current_median)
             if shift < gs.atol:
                 break
 
             current_median = new_median
-            if self.print_every is not None and (iter + 1) % self.print_every == 0:
-                print("iteration: {} curr_median: {}".format(iter, current_median))
+            if self.print_every is not None and (itr + 1) % self.print_every == 0:
+                print("iteration: {} curr_median: {}".format(itr, current_median))
         self.estimate_ = current_median
 
         return self

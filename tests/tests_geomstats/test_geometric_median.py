@@ -1,9 +1,9 @@
-"""Methods for testing the Geometric Median Estimators."""
+"""Methods for testing the Geometric Median."""
 
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
-from geomstats.learning.geometric_median import GeomtericMedian
+from geomstats.learning.geometric_median import GeometricMedian
 
 ROOT2 = gs.sqrt(2)
 
@@ -13,7 +13,7 @@ class TestGeometricMedian(geomstats.tests.TestCase):
 
     def test_median_for_spd_manifold(self):
         """Test the fit method on SPD manifold"""
-        wa_estimator = GeomtericMedian(SPDMetricAffine(n=2))
+        wa_estimator = GeometricMedian(SPDMetricAffine(n=2))
         X = gs.array([[[1.0, 0.0], [0.0, 1.0]], [[1.0, 0.0], [0.0, 1]]])
 
         wa_estimator.fit(X)
@@ -26,7 +26,7 @@ class TestGeometricMedian(geomstats.tests.TestCase):
         """Test the fit method on SPD manifold"""
         n = 5
         n_samples = 10
-        wa_estimator = GeomtericMedian(SPDMetricAffine(n))
+        wa_estimator = GeometricMedian(SPDMetricAffine(n))
         SPDmanifold = SPDMatrices(n)
         X = SPDmanifold.random_point(n_samples)
         gm = wa_estimator.fit(X).estimate_
