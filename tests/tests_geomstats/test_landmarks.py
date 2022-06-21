@@ -3,9 +3,9 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.landmarks import L2Metric, Landmarks
+from geomstats.geometry.landmarks import L2LandmarksMetric, Landmarks
 from tests.conftest import Parametrizer
-from tests.data.landmarks_data import TestDataL2Metric, TestDataLandmarks
+from tests.data.landmarks_data import TestDataL2LandmarksMetric, TestDataLandmarks
 from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
@@ -17,8 +17,8 @@ class TestLandmarks(ManifoldTestCase, metaclass=Parametrizer):
     testing_data = TestDataLandmarks()
 
 
-class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = L2Metric
+class TestL2LandmarksMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    metric = connection = L2LandmarksMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -26,7 +26,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_shape = True
     skip_test_log_shape = True
 
-    testing_data = TestDataL2Metric()
+    testing_data = TestDataL2LandmarksMetric()
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_l2_metric_inner_product_vectorization(
@@ -84,7 +84,7 @@ class TestL2Metric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_l2_metric_geodesic(
         self, l2_metric_s2, times, n_sampling_points, landmarks_a, landmarks_b
     ):
-        """Test the geodesic method of L2Metric."""
+        """Test the geodesic method of L2LandmarksMetric."""
         landmarks_ab = l2_metric_s2.geodesic(landmarks_a, landmarks_b)
         landmarks_ab = landmarks_ab(times)
 
