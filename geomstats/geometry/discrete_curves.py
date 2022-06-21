@@ -212,7 +212,7 @@ class L2CurvesMetric(RiemannianMetric):
         else:
             self.ambient_metric = metric
         self.l2_landmarks_metric = lambda n: L2LandmarksMetric(
-            ambient_manifold, n_landmarks=n
+            ambient_manifold.metric, k_landmarks=n
         )
 
     def riemann_sum(self, func, missing_last_point=True):
@@ -1408,7 +1408,7 @@ class ElasticCurves(Manifold):
         )
         self.ambient_manifold = R2
         self.l2_metric = lambda n: L2LandmarksMetric(
-            self.ambient_manifold, n_landmarks=n
+            self.ambient_manifold, k_landmarks=n
         )
         self.elastic_metric = ElasticMetric(a, b)
 
