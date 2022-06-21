@@ -561,7 +561,6 @@ class NFoldManifoldTestCase(ManifoldTestCase):
         space_args : tuple
             Arguments to pass to constructor of the n-fold manifold.
         """
-        print(space_args)
         base_manifold = space_args[0]
         n_copies = space_args[1]
         result = self.space(*space_args).dim
