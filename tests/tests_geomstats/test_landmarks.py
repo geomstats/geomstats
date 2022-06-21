@@ -6,10 +6,10 @@ import geomstats.tests
 from geomstats.geometry.landmarks import L2LandmarksMetric, Landmarks
 from tests.conftest import Parametrizer
 from tests.data.landmarks_data import TestDataL2LandmarksMetric, TestDataLandmarks
-from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
+from tests.geometry_test_cases import NFoldManifoldTestCase, RiemannianMetricTestCase
 
 
-class TestLandmarks(ManifoldTestCase, metaclass=Parametrizer):
+class TestLandmarks(NFoldManifoldTestCase, metaclass=Parametrizer):
     space = Landmarks
     skip_test_random_point_belongs = True
     skip_test_random_tangent_vec_is_tangent = True

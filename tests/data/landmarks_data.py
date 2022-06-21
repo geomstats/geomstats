@@ -51,6 +51,10 @@ class TestDataLandmarks(_ManifoldTestData):
             Landmarks, self.space_args_list, self.n_vecs_list
         )
 
+    def dimension_is_dim_multiplied_by_n_copies_test_data(self):
+        smoke_data = [space_args for space_args in self.space_args_list]
+        return smoke_data
+
 
 class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
 
