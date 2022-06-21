@@ -369,9 +369,12 @@ class NFoldManifold(Manifold):
             default_coords_type=default_coords_type,
             **kwargs,
         )
+
         self.base_manifold = base_manifold
         self.base_shape = base_manifold.shape
         self.n_copies = n_copies
+
+        self.metric = metric
         if metric is None:
             self.metric = NFoldMetric(base_manifold.metric, n_copies)
 

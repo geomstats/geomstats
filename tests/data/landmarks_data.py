@@ -56,14 +56,17 @@ class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
 
     dim_list = random.sample(range(2, 4), 2)
     n_landmarks_list = random.sample(range(2, 5), 2)
-    metric_args_list = [
+    space_args_list = [
         (Hypersphere(dim), n_landmarks)
         for dim, n_landmarks in zip(dim_list, n_landmarks_list)
     ] + [
         (Euclidean(dim + 1), n_landmarks)
         for dim, n_landmarks in zip(dim_list, n_landmarks_list)
     ]
-    space_list = [Landmarks(*metric_arg) for metric_arg in metric_args_list]
+    metric_args_list = [
+        (space.metric, n_landmarks) for space, n_landmarks in space_args_list
+    ]
+    space_list = [Landmarks(*space_arg) for space_arg in space_args_list]
     shape_list = [
         (n_landmark, dim + 1) for dim, n_landmark in zip(dim_list, n_landmarks_list)
     ] * 2
