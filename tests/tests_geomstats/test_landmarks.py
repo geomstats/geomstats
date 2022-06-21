@@ -11,8 +11,6 @@ from tests.geometry_test_cases import NFoldManifoldTestCase, RiemannianMetricTes
 
 class TestLandmarks(NFoldManifoldTestCase, metaclass=Parametrizer):
     space = Landmarks
-    skip_test_random_point_belongs = True
-    skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = TestDataLandmarks()
 
