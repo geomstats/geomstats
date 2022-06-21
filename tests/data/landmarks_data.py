@@ -52,8 +52,10 @@ class TestDataLandmarks(_ManifoldTestData):
         )
 
     def dimension_is_dim_multiplied_by_n_copies_test_data(self):
-        smoke_data = [space_args for space_args in self.space_args_list]
-        return smoke_data
+        smoke_data = [
+            dict(space_args=space_args) for space_args in self.space_args_list
+        ]
+        return self.generate_tests(smoke_data)
 
 
 class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
@@ -321,6 +323,19 @@ class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
                 n_sampling_points=self.n_sampling_points,
                 landmarks_a=self.landmark_set_a,
                 landmarks_b=self.landmark_set_b,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def innerproduct_is_sum_of_innerproducts_test_data(self):
+        smoke_data = [
+            dict(
+                metric_args=(Hypersphere(dim=2).metric, self.n_sampling_points),
+                tangent_vec_a=self.landmark_set_a,
+                tangent_vec_b=self.landmark_set_b,
+                base_point=self.landmark_set_c,
+                rtol=gs.rtol,
+                atol=gs.atol,
             )
         ]
         return self.generate_tests(smoke_data)
