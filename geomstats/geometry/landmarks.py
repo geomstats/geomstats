@@ -23,7 +23,9 @@ class Landmarks(NFoldManifold):
     """
 
     def __init__(self, ambient_manifold, k_landmarks, **kwargs):
-        kwargs.setdefault("metric", L2LandmarksMetric(ambient_manifold, k_landmarks))
+        kwargs.setdefault(
+            "metric", L2LandmarksMetric(ambient_manifold.metric, k_landmarks)
+        )
         super(Landmarks, self).__init__(
             base_manifold=ambient_manifold, n_copies=k_landmarks, **kwargs
         )
