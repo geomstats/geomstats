@@ -42,11 +42,15 @@ class ProductPositiveRealsAndPoincareComplexDisks(ProductManifold):
         self.n_manifolds = n_manifolds
         positive_real = PositiveReals()
         disk = PoincareComplexDisk()
-        list_manifolds = [positive_real, ] + [disk, ] * (n_manifolds - 1)
+        list_manifolds = [positive_real,] + [
+            disk,
+        ] * (n_manifolds - 1)
         super(ProductPositiveRealsAndPoincareComplexDisks, self).__init__(
-            manifolds=list_manifolds)
+            manifolds=list_manifolds
+        )
         self.metric = ProductPositiveRealsAndPoincareComplexDisksMetric(
-            n_manifolds=n_manifolds)
+            n_manifolds=n_manifolds
+        )
 
 
 class ProductPositiveRealsAndPoincareComplexDisksMetric(ProductRiemannianMetric):
@@ -68,30 +72,25 @@ class ProductPositiveRealsAndPoincareComplexDisksMetric(ProductRiemannianMetric)
     def __init__(self, n_manifolds):
         """Construct the Positive Real and Poincare disks metric."""
         self.n_disks = n_manifolds - 1
-        list_metrics = [PositiveRealsMetric(scale=n_manifolds ** 0.5), ]
+        list_metrics = [
+            PositiveRealsMetric(scale=n_manifolds**0.5),
+        ]
         for i_disk in range(self.n_disks):
             scale_i = (self.n_disks - i_disk) ** 0.5
             metric_i = PoincareComplexDiskMetric(scale=scale_i)
             list_metrics.append(metric_i)
         super(ProductPositiveRealsAndPoincareComplexDisksMetric, self).__init__(
-                metrics=list_metrics)
+            metrics=list_metrics
+        )
 
     def dist(self, point_a, point_b):
-        return gs.real(super().dist(
-            point_a, point_b
-        ))
+        return gs.real(super().dist(point_a, point_b))
 
     def squared_dist(self, point_a, point_b):
-        return gs.real(super().squared_dist(
-            point_a, point_b
-        ))
+        return gs.real(super().squared_dist(point_a, point_b))
 
     def norm(self, vector, base_point):
-        return gs.real(super().norm(
-            vector, base_point
-        ))
+        return gs.real(super().norm(vector, base_point))
 
     def squared_norm(self, vector, base_point):
-        return gs.real(super().squared_norm(
-            vector, base_point
-        ))
+        return gs.real(super().squared_norm(vector, base_point))

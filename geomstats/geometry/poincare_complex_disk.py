@@ -29,7 +29,8 @@ class PoincareComplexDisk(OpenSet):
             dim=1,
             ambient_space=Hermitian(dim=1),
             metric=PoincareComplexDiskMetric(scale=scale),
-            **kwargs)
+            **kwargs
+        )
         self.scale = scale
 
     def projection(self, point):
@@ -45,7 +46,9 @@ class PoincareComplexDisk(OpenSet):
         projected : array-like, shape=[..., 1]
             Projected point.
         """
-        return gs.where(gs.abs(point) >= 1, (1 - 2 * gs.atol) / gs.abs(point) * point, point)
+        return gs.where(
+            gs.abs(point) >= 1, (1 - 2 * gs.atol) / gs.abs(point) * point, point
+        )
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the Poincare complex disk.
@@ -79,7 +82,7 @@ class PoincareComplexDiskMetric(RiemannianMetric):
         """
         self.dim = 1
         self.signature = (1, 0, 0)
-        assert scale > 0, 'The scale should be strictly positive'
+        assert scale > 0, "The scale should be strictly positive"
         self.scale = scale
         self.point_shape = (1,)
         self.n_dim_point = 1
@@ -96,7 +99,7 @@ class PoincareComplexDiskMetric(RiemannianMetric):
         matrices : array-like of shape (n_samples, 1)
         """
         matrix = 1 / (1 - gs.abs(base_point) ** 2) ** 2
-        matrix *= self.scale ** 2
+        matrix *= self.scale**2
         return matrix
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -114,10 +117,8 @@ class PoincareComplexDiskMetric(RiemannianMetric):
         -------
         inner_prod : array, shape=[n_samples, 1]
         """
-        inner_product_matrix = self.inner_product_matrix(
-            base_point=base_point)
-        inner_prod = \
-            gs.conj(tangent_vec_a) * inner_product_matrix * tangent_vec_b
+        inner_product_matrix = self.inner_product_matrix(base_point=base_point)
+        inner_prod = gs.conj(tangent_vec_a) * inner_product_matrix * tangent_vec_b
         return inner_prod
 
     def squared_norm(self, vector, base_point):
@@ -136,10 +137,7 @@ class PoincareComplexDiskMetric(RiemannianMetric):
         -------
         sq_norm : array-like, shape=[n_samples, 1]
         """
-        sq_norm = self.inner_product(
-            vector,
-            vector,
-            base_point=base_point)
+        sq_norm = self.inner_product(vector, vector, base_point=base_point)
         sq_norm = gs.real(sq_norm)
         return sq_norm
 
@@ -157,25 +155,27 @@ class PoincareComplexDiskMetric(RiemannianMetric):
         exp : array-like, shape=[n_samples, 1]
         """
         data_type = (tangent_vec + base_point).dtype
-        data_is_complex = (data_type == 'complex')
+        data_is_complex = data_type == "complex"
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         theta = gs.angle(tangent_vec, deg=False)
         s = 2 * gs.abs(tangent_vec) / (1 - gs.abs(base_point) ** 2)
-        exp = (base_point + gs.exp(1j * theta) +
-               (base_point - gs.exp(1j * theta)) *
-               gs.exp(-s)) / (
-                    1 + gs.conj(base_point) *
-                    gs.exp(1j * theta) +
-                    (1 - gs.conj(base_point) *
-                     gs.exp(1j * theta)) * gs.exp(-s))
+        exp = (
+            base_point
+            + gs.exp(1j * theta)
+            + (base_point - gs.exp(1j * theta)) * gs.exp(-s)
+        ) / (
+            1
+            + gs.conj(base_point) * gs.exp(1j * theta)
+            + (1 - gs.conj(base_point) * gs.exp(1j * theta)) * gs.exp(-s)
+        )
         # exp = gs.array(exp, dtype=data_type)
         if not data_is_complex:
             exp = exp.real
         return exp
 
     @staticmethod
-    def tau(point_a, point_b, epsilon=EPSILON, type='float'):
+    def tau(point_a, point_b, epsilon=EPSILON, type="float"):
         """Compute the distance in the Poincare disk of scale 1."""
         num = gs.abs(point_a - point_b)
         den = gs.abs(1 - point_a * gs.conj(point_b))
@@ -200,13 +200,12 @@ class PoincareComplexDiskMetric(RiemannianMetric):
         log : array-like, shape=[n_samples, dimension + 1]
         """
         data_type = (point + base_point).dtype
-        data_is_complex = (data_type == 'complex')
+        data_is_complex = data_type == "complex"
         point = gs.to_ndarray(point, to_ndim=2)
         log = self.tau(base_point, point, type=complex)
-        angle = gs.angle(point - base_point) - gs.angle(
-            1 - gs.conj(base_point) * point)
+        angle = gs.angle(point - base_point) - gs.angle(1 - gs.conj(base_point) * point)
         log *= gs.exp(1j * angle)
-        log *= (1 - gs.abs(base_point) ** 2)
+        log *= 1 - gs.abs(base_point) ** 2
         if not data_is_complex:
             log = gs.real(log)
         return log
@@ -228,8 +227,8 @@ class PoincareComplexDiskMetric(RiemannianMetric):
         dist : array-like, shape=[n_samples, 1]
         """
         dist = self.tau(point_a, point_b, epsilon=epsilon)
-        sq_dist = dist ** 2
-        sq_dist *= self.scale ** 2
+        sq_dist = dist**2
+        sq_dist *= self.scale**2
         return gs.real(sq_dist)
 
     def dist(self, point_a, point_b, epsilon=EPSILON):

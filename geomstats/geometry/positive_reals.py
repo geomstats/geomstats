@@ -23,7 +23,11 @@ class PositiveReals(OpenSet):
     def __init__(self, scale=1, **kwargs):
         """Construct the positive real axis."""
         super().__init__(
-            dim=1, ambient_space=Euclidean(1), metric=PositiveRealsMetric(scale=scale), **kwargs)
+            dim=1,
+            ambient_space=Euclidean(1),
+            metric=PositiveRealsMetric(scale=scale),
+            **kwargs
+        )
         self.scale = scale
 
     def projection(self, point):
@@ -58,8 +62,8 @@ class PositiveReals(OpenSet):
         -------
         belongs : array-like, shape=[...,]
         """
-        is_real = (point == point.real)
-        is_positive = (point > 0)
+        is_real = point == point.real
+        is_positive = point > 0
         belongs = is_real * is_positive
         return belongs
 
@@ -75,7 +79,7 @@ class PositiveRealsMetric(RiemannianMetric):
         """
         self.dim = 1
         self.signature = (1, 0, 0)
-        assert scale > 0, 'The scale should be strictly positive'
+        assert scale > 0, "The scale should be strictly positive"
         self.scale = scale
         self.point_shape = (1,)
         self.n_dim_point = 1
@@ -91,8 +95,8 @@ class PositiveRealsMetric(RiemannianMetric):
         -------
         matrices : array-like of shape (n_samples, 1)
         """
-        matrix = 1 / base_point ** 2
-        matrix *= self.scale ** 2
+        matrix = 1 / base_point**2
+        matrix *= self.scale**2
         return matrix
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -110,10 +114,8 @@ class PositiveRealsMetric(RiemannianMetric):
         -------
         inner_prod : array, shape=[n_samples, 1]
         """
-        inner_product_matrix = self.inner_product_matrix(
-            base_point=base_point)
-        inner_prod = \
-            tangent_vec_a * inner_product_matrix * tangent_vec_b
+        inner_product_matrix = self.inner_product_matrix(base_point=base_point)
+        inner_prod = tangent_vec_a * inner_product_matrix * tangent_vec_b
         return inner_prod
 
     def squared_norm(self, vector, base_point):
@@ -132,10 +134,7 @@ class PositiveRealsMetric(RiemannianMetric):
         -------
         sq_norm : array-like, shape=[n_samples, 1]
         """
-        sq_norm = self.inner_product(
-            vector,
-            vector,
-            base_point=base_point)
+        sq_norm = self.inner_product(vector, vector, base_point=base_point)
         return gs.real(sq_norm)
 
     def exp(self, tangent_vec, base_point):
@@ -189,7 +188,7 @@ class PositiveRealsMetric(RiemannianMetric):
         dist : array-like, shape=[n_samples, 1]
         """
         sq_dist = gs.log(point_b / point_a) ** 2
-        sq_dist *= self.scale ** 2
+        sq_dist *= self.scale**2
         return gs.real(sq_dist)
 
     def dist(self, point_a, point_b, epsilon=EPSILON):
