@@ -10,7 +10,7 @@ from scipy.interpolate import CubicSpline
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
-from geomstats.geometry.landmarks import L2Metric
+from geomstats.geometry.landmarks import L2LandmarksMetric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -211,7 +211,9 @@ class L2CurvesMetric(RiemannianMetric):
                 )
         else:
             self.ambient_metric = metric
-        self.l2_landmarks_metric = lambda n: L2Metric(ambient_manifold, n_landmarks=n)
+        self.l2_landmarks_metric = lambda n: L2LandmarksMetric(
+            ambient_manifold, n_landmarks=n
+        )
 
     def riemann_sum(self, func, missing_last_point=True):
         """Compute the left Riemann sum approximation of the integral.
@@ -1405,7 +1407,9 @@ class ElasticCurves(Manifold):
             dim=math.inf, shape=(), default_point_type="matrix"
         )
         self.ambient_manifold = R2
-        self.l2_metric = lambda n: L2Metric(self.ambient_manifold, n_landmarks=n)
+        self.l2_metric = lambda n: L2LandmarksMetric(
+            self.ambient_manifold, n_landmarks=n
+        )
         self.elastic_metric = ElasticMetric(a, b)
 
     def belongs(self, point, atol=gs.atol):
