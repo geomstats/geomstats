@@ -4,14 +4,19 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 from geomstats.information_geometry.beta import BetaDistributions
-from geomstats.information_geometry.visualization_draft import Visualizer2D
+from geomstats.information_geometry.binomial import BinomialDistributions
+from geomstats.information_geometry.visualization_draft import (
+    Visualizer1D,
+    Visualizer2D,
+)
+
+"""2D"""
 
 space = BetaDistributions()
 
 visu = Visualizer2D(space)
 
 fig, axs = plt.subplots(2, 2, figsize=(12, 8))
-
 
 visu.plot_grid(
     axs[0, 0], lower_left=gs.array([1.0, 1.0]), upper_right=gs.array([10.0, 10.0])
@@ -30,5 +35,41 @@ axs[1, 0].axis("equal")
 visu.plot_geodesic(axs[1, 1], initial_point=point[0], initial_tangent_vec=vec[0])
 axs[1, 1].title.set_text("random geodesic in the Beta manifold")
 axs[1, 1].axis("equal")
+
+plt.show()
+
+"""1D"""
+
+n = 10
+
+space = BinomialDistributions(n)
+
+exp = space.metric.exp(gs.array([1.0]), gs.array([0.5]))
+
+fig, axs = plt.subplots(2, figsize=(12, 8))
+
+visu = Visualizer1D(space)
+
+iso = visu.iso_visualizer1D(axs[0], 0, 1, 1000)
+iso.isometric_plot_geodesic_ball(0.5, 0.4, label="geodesic ball in isometric immersion")
+iso.isometric_scatter(
+    [0.4, 0.5, 0.6], s=20, label=f"points of the {n}-binomial manifold"
+)
+axs[0].set_yticks([])
+axs[0].legend(loc="upper right")
+axs[0].set_xlabel("p")
+
+center = 0.3
+visu.scatter(axs[1], [center], s=50, color="r", label="center of the ball")
+visu.plot_geodesic_ball(
+    axs[1],
+    center,
+    0.5,
+    linestyle="-",
+    label=f"geodesic ball of the {n}-binomial manifold",
+)
+visu.scatter(axs[1], [0.2, 0.8], s=20, label=f"points of the {n}-binomial manifold")
+axs[1].legend(loc="upper right")
+axs[1].set_xlabel("p")
 
 plt.show()
