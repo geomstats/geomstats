@@ -596,7 +596,6 @@ class ElasticMetricTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def f_transform_and_inverse_test_data(self):
-        # cells, _, _ = data_utils.load_cells()
         smoke_data = [
             dict(a=a, b=b, rtol=10 * gs.rtol, atol=10 * gs.atol)
             for a, b in self.a_b_list
