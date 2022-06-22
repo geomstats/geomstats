@@ -669,11 +669,16 @@ class ElasticMetric(RiemannianMetric):
                 "f_transform_inverse is only implemented for a / (2b) <= 1."
             )
 
+        self.l2_metric
+
         n_sampling_points = f.shape[-2]
         n_curves = 1 if f.ndim == 2 else f.shape[0]
+
         f_polar = self.cartesian_to_polar(f)
         norms = f_polar[..., :, 0]
         args = f_polar[..., :, 1]
+
+        dt = 1 / n_sampling_points
 
         curve_x = gs.zeros((n_curves, n_sampling_points))
         curve_y = gs.zeros((n_curves, n_sampling_points))
@@ -681,12 +686,13 @@ class ElasticMetric(RiemannianMetric):
         for i in range(1, n_sampling_points):
             x = curve_x[..., i - 1]
             x += norms[..., i] ** 2 * gs.cos(2 * self.b / self.a * args[..., i])
-            curve_x[..., i] = x
+            curve_x[..., i] = dt * x
             y = curve_y[..., i - 1]
             y += norms[..., i] ** 2 * gs.sin(2 * self.b / self.a * args[..., i])
-            curve_y[..., i] = y
+            curve_y[..., i] = dt * y
 
         curve = gs.stack((curve_x, curve_y), axis=-1) / n_sampling_points
+
         curve = 1 / (4 * self.b**2) * curve
         starting_point = gs.to_ndarray(starting_point, to_ndim=2)
         starting_point = gs.to_ndarray(starting_point, to_ndim=3)
