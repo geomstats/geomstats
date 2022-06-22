@@ -271,6 +271,18 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    def test_estimate_elastic_curves_2d(self):
+        point = self.elastic_curves_2d.random_point(n_samples=1)
+        points = gs.array([point, point])
+
+        mean = FrechetMean(metric=self.elastic_curves_2d.elastic_metric)
+        mean.fit(X=points)
+
+        result = mean.estimate_
+        expected = point
+
+        self.assertAllClose(expected, result)
+
     def test_estimate_curves_2d(self):
         point = self.curves_2d.random_point(n_samples=1)
         points = gs.array([point, point])
