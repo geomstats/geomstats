@@ -1202,12 +1202,13 @@ class SRVMetric(ElasticMetric):
         if end_curve is not None:
             end_curve = gs.to_ndarray(end_curve, to_ndim=curve_ndim + 1)
             shooting_tangent_vec = self.log(point=end_curve, base_point=initial_curve)
-            if initial_tangent_vec is not None:
-                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
-                    raise RuntimeError(
-                        "The shooting tangent vector is too"
-                        " far from the initial tangent vector."
-                    )
+            if (initial_tangent_vec is not None) and (
+                not gs.allclose(shooting_tangent_vec, initial_tangent_vec)
+            ):
+                raise RuntimeError(
+                    "The shooting tangent vector is too"
+                    " far from the initial tangent vector."
+                )
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=curve_ndim + 1)
@@ -1518,6 +1519,15 @@ class ClosedSRVMetric(SRVMetric):
         inner_prod = self.ambient_metric.inner_product
 
         def g_criterion(srv, srv_norms):
+            """Compute the closeness criterion from [Sea2011]_.
+
+            References
+            ----------
+            .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
+                "Shape Analysis of Elastic Curves in Euclidean Spaces,"
+                in IEEE Transactions on Pattern Analysis and Machine Intelligence,
+                vol. 33, no. 7, pp. 1415-1428, July 2011.
+            """
             return gs.sum(srv * srv_norms[:, None], axis=0)
 
         initial_norm = srv_norm(srv)
