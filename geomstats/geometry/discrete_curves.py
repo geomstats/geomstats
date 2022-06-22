@@ -447,13 +447,13 @@ class ElasticMetric(RiemannianMetric):
     """
 
     def __init__(
-        self, a, b, ambient_manifold=R2, metric=None, translation_invariant=True
+        self, a, b, ambient_manifold=R2, ambient_metric=None, translation_invariant=True
     ):
         super(ElasticMetric, self).__init__(
             dim=math.inf, signature=(math.inf, 0, 0), default_point_type="matrix"
         )
-        self.ambient_metric = metric
-        if metric is None:
+        self.ambient_metric = ambient_metric
+        if ambient_metric is None:
             if hasattr(ambient_manifold, "metric"):
                 self.ambient_metric = ambient_manifold.metric
             else:
@@ -472,19 +472,23 @@ class ElasticMetric(RiemannianMetric):
     def cartesian_to_polar(self, curve):
         """Compute polar coordinates of a curve from the cartesian ones.
 
+        This function is an auxiliary function used for the computation
+        of the f_transform and its inverse, and is applied to the derivative
+        of a curve.
+
         See [KN2018]_ for details.
 
         Parameters
         ----------
         curve : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve.
+            Discrete curve, representing the derivative c' of a curve c.
 
         Returns
         -------
         norms : array-like, shape=[..., n_sampling_points]
-            Norms of the sampling points.
+            Norms of the sampling points in polar coordinates.
         args : array-like, shape=[..., n_sampling_points]
-            Arguments of the sampling points.
+            Arguments, i.e. angle, of the sampling points in polar coordinates.
         """
         if not (
             isinstance(self.ambient_manifold, Euclidean)
@@ -499,24 +503,25 @@ class ElasticMetric(RiemannianMetric):
         inner_prod = self.ambient_metric.inner_product
 
         norms = self.ambient_metric.norm(curve)
-        arg_0 = math.atan2(curve[0, 1], curve[0, 0])
+        arg_0 = gs.arctan2(curve[..., 0, 1], curve[..., 0, 0])
         args = [arg_0]
 
         for i in range(1, n_sampling_points):
-            point, last_point = curve[i], curve[i - 1]
+            point, last_point = curve[..., i, :], curve[..., i - 1, :]
             prod = inner_prod(point, last_point)
-            cosine = prod / (norms[i] * norms[i - 1])
+            cosine = prod / (norms[..., i] * norms[..., i - 1])
             angle = gs.arccos(gs.clip(cosine, -1, 1))
-            det = gs.linalg.det(gs.array([last_point, point]))
+            det = gs.linalg.det(gs.stack([last_point, point], axis=-1))
             orientation = gs.sign(det)
             arg = args[-1] + orientation * angle
             args.append(arg)
 
-        args = gs.array(args)
+        args = gs.stack(args, axis=-1)
+        polar_curve = gs.stack([norms, args], axis=-1)
 
-        return norms, args
+        return polar_curve
 
-    def polar_to_cartesian(self, norms, args):
+    def polar_to_cartesian(self, polar_curve):
         """Compute the cartesian coordinates of a curve from polar ones.
 
         Parameters
@@ -540,10 +545,11 @@ class ElasticMetric(RiemannianMetric):
                 "ambient_manifold must be a plane, but it is:\n"
                 f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
             )
-        curve_x = gs.cos(args)
-        curve_y = gs.sin(args)
-        unit_curve = gs.transpose(gs.vstack((curve_x, curve_y)))
-        curve = norms[:, None] * unit_curve
+        curve_x = gs.cos(polar_curve[..., :, 1])
+        curve_y = gs.sin(polar_curve[..., :, 1])
+        norms = polar_curve[..., :, 0]
+        unit_curve = gs.stack((curve_x, curve_y), axis=-1)
+        curve = norms[..., :, None] * unit_curve
 
         return curve
 
@@ -808,12 +814,14 @@ class SRVMetric(ElasticMetric):
         vol. 33, no. 7, pp. 1415-1428, July 2011.
     """
 
-    def __init__(self, ambient_manifold, metric=None, translation_invariant=True):
+    def __init__(
+        self, ambient_manifold, ambient_metric=None, translation_invariant=True
+    ):
         super(SRVMetric, self).__init__(
             a=1,
             b=0.5,
             ambient_manifold=ambient_manifold,
-            metric=metric,
+            ambient_metric=ambient_metric,
             translation_invariant=translation_invariant,
         )
 
@@ -829,7 +837,7 @@ class SRVMetric(ElasticMetric):
         curve[k + 1, :, :].
 
         .. math::
-            curve \mapsto \frac{curve'}{|curve'|^{1/2}}
+            c \mapsto \frac{c'}{|c'|^{1/2}}
 
         Parameters
         ----------

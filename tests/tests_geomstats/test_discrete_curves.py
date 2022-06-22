@@ -6,6 +6,7 @@ import geomstats.tests
 from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     DiscreteCurves,
+    ElasticCurves,
     ElasticMetric,
     L2CurvesMetric,
     SRVMetric,
@@ -398,6 +399,26 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
     metric = ElasticMetric
 
     testing_data = ElasticMetricTestData()
+
+    def test_cartesian_to_polar_and_polar_to_cartesian(self, a, b):
+        """Test conversion to polar coordinate"""
+        el_metric = ElasticMetric(a=a, b=b)
+        el_curve = ElasticCurves(a=a, b=b)
+        curve = el_curve.random_point()
+        polar_curve = el_metric.cartesian_to_polar(curve)
+        result = el_metric.polar_to_cartesian(polar_curve)
+
+        self.assertAllClose(result, curve)
+
+    def test_cartesian_to_polar_and_polar_to_cartesian_vectorization(self, a, b):
+        """Test conversion to polar coordinate"""
+        el_metric = ElasticMetric(a=a, b=b)
+        el_curve = ElasticCurves(a=a, b=b)
+        curve = el_curve.random_point(n_samples=3)
+        polar_curve = el_metric.cartesian_to_polar(curve)
+        result = el_metric.polar_to_cartesian(polar_curve)
+
+        self.assertAllClose(result, curve)
 
 
 class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):

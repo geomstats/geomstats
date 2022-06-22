@@ -546,6 +546,16 @@ class SRVMetricTestData(_RiemannianMetricTestData):
 
 
 class ElasticMetricTestData(TestData):
+    a_b_list = [(8, 1)]
+
+    def cartesian_to_polar_and_polar_to_cartesian_test_data(self):
+        smoke_data = [dict(a=a, b=b) for a, b in self.a_b_list]
+        return self.generate_tests(smoke_data)
+
+    def cartesian_to_polar_and_polar_to_cartesian_vectorization_test_data(self):
+        smoke_data = [dict(a=a, b=b) for a, b in self.a_b_list]
+        return self.generate_tests(smoke_data)
+
     def f_transform_test_data(self):
         smoke_data = [
             dict(
