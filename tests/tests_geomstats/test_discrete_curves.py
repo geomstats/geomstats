@@ -451,24 +451,24 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
         expected = curves_r2.square_root_velocity_metric.srv_transform(curve)
         self.assertAllClose(result, expected, rtol, atol)
 
-    # def test_f_transform_inverse_and_srv_transform_inverse(self, curve, rtol, atol):
-    #     """Test that the f transform coincides with the SRVF
+    def test_f_transform_inverse_and_srv_transform_inverse(self, curve, rtol, atol):
+        """Test that the f transform coincides with the SRVF
 
-    #     This is valid for a f transform with a=1, b=1/2.
-    #     """
-    #     r2 = Euclidean(dim=2)
-    #     elastic_curves_r2 = ElasticCurves(a=1.0, b=0.5)
-    #     curves_r2 = DiscreteCurves(ambient_manifold=r2)
-    #     starting_point = curve[0]
-    #     fake_transformed_curve = curve[1:, :]
+        This is valid for a f transform with a=1, b=1/2.
+        """
+        r2 = Euclidean(dim=2)
+        elastic_curves_r2 = ElasticCurves(a=1.0, b=0.5)
+        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+        starting_point = curve[0]
+        fake_transformed_curve = curve[1:, :]
 
-    #     result = elastic_curves_r2.elastic_metric.f_transform_inverse(
-    #         fake_transformed_curve, starting_point
-    #     )
-    #     expected = curves_r2.square_root_velocity_metric.srv_transform_inverse(
-    #         fake_transformed_curve, starting_point
-    #     )
-    #     self.assertAllClose(result, expected, rtol, atol)
+        result = elastic_curves_r2.elastic_metric.f_transform_inverse(
+            fake_transformed_curve, starting_point
+        )
+        expected = curves_r2.square_root_velocity_metric.srv_transform_inverse(
+            fake_transformed_curve, starting_point
+        )
+        self.assertAllClose(result, expected, rtol, atol)
 
     def test_f_transform_and_srv_transform_vectorization(self, rtol, atol):
         """Test that the f transform coincides with the SRVF.
@@ -485,23 +485,23 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
         expected = curves_r2.square_root_velocity_metric.srv_transform(curves)
         self.assertAllClose(result, expected, rtol, atol)
 
-    # @geomstats.tests.np_autograd_and_tf_only
-    # def test_f_transform_and_inverse(self, a, b):
-    #     """Test that the inverse is right."""
-    #     elastic_curves_r2 = ElasticCurves(a=a, b=b)
-    #     curve = elastic_curves_r2.random_point()
+    @geomstats.tests.np_autograd_and_tf_only
+    def test_f_transform_and_inverse(self, a, b):
+        """Test that the inverse is right."""
+        elastic_curves_r2 = ElasticCurves(a=a, b=b)
+        curve = elastic_curves_r2.random_point()
 
-    #     metric = elastic_curves_r2.elastic_metric
-    #     f = metric.f_transform(curve)
-    #     f_inverse = metric.f_transform_inverse(f, curve[0])
+        metric = elastic_curves_r2.elastic_metric
+        f = metric.f_transform(curve)
+        f_inverse = metric.f_transform_inverse(f, curve[0])
 
-    #     result = f.shape
-    #     expected = (curve.shape[0] - 1, 2)
-    #     self.assertAllClose(result, expected)
+        result = f.shape
+        expected = (curve.shape[0] - 1, 2)
+        self.assertAllClose(result, expected)
 
-    #     result = f_inverse
-    #     expected = curve
-    #     self.assertAllClose(result, expected)
+        result = f_inverse
+        expected = curve
+        self.assertAllClose(result, expected)
 
 
 class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):

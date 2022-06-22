@@ -671,19 +671,19 @@ class ElasticMetric(RiemannianMetric):
 
         self.l2_metric
 
-        n_sampling_points = f.shape[-2]
+        n_sampling_points_minus_one = f.shape[-2]
         n_curves = 1 if f.ndim == 2 else f.shape[0]
 
         f_polar = self.cartesian_to_polar(f)
         norms = f_polar[..., :, 0]
         args = f_polar[..., :, 1]
 
-        dt = 1 / n_sampling_points
+        dt = 1 / n_sampling_points_minus_one
 
-        curve_x = gs.zeros((n_curves, n_sampling_points))
-        curve_y = gs.zeros((n_curves, n_sampling_points))
+        curve_x = gs.zeros((n_curves, n_sampling_points_minus_one))
+        curve_y = gs.zeros((n_curves, n_sampling_points_minus_one))
 
-        for i in range(1, n_sampling_points):
+        for i in range(1, n_sampling_points_minus_one):
             x = curve_x[..., i - 1]
             x += norms[..., i] ** 2 * gs.cos(2 * self.b / self.a * args[..., i])
             curve_x[..., i] = dt * x
@@ -691,7 +691,7 @@ class ElasticMetric(RiemannianMetric):
             y += norms[..., i] ** 2 * gs.sin(2 * self.b / self.a * args[..., i])
             curve_y[..., i] = dt * y
 
-        curve = gs.stack((curve_x, curve_y), axis=-1) / n_sampling_points
+        curve = gs.stack((curve_x, curve_y), axis=-1) / n_sampling_points_minus_one
 
         curve = 1 / (4 * self.b**2) * curve
         starting_point = gs.to_ndarray(starting_point, to_ndim=2)
@@ -932,10 +932,21 @@ class SRVMetric(ElasticMetric):
         return self.srv_transform_inverse(curve, starting_point)
 
     def srv_transform_inverse(self, srv, starting_point):
-        """Inverse of the Square Root Velocity Transform (SRVT).
+        r"""Inverse of the Square Root Velocity Transform (SRVT).
 
         Retrieve a curve from its square root velocity representation and
         starting point.
+
+        .. math::
+            c(t) = c(0) + \int_0^t q(s) |q(s)|ds
+
+        with:
+        - c the curve that can be retrieved only up to a translation,
+        - q the srv representation of the curve,
+        - c(0) the starting point of the curve.
+
+
+        See [Sea2011]_ Section 2.1 for details.
 
         Parameters
         ----------
@@ -962,10 +973,11 @@ class SRVMetric(ElasticMetric):
         srv = gs.to_ndarray(srv, to_ndim=3)
         n_curves, n_sampling_points_minus_one, n_coords = srv.shape
 
-        srv = gs.reshape(srv, (n_curves * n_sampling_points_minus_one, n_coords))
-        srv_norm = self.ambient_metric.norm(srv)
+        srv_flat = gs.reshape(srv, (n_curves * n_sampling_points_minus_one, n_coords))
+        srv_norm = self.ambient_metric.norm(srv_flat)  # |q(s)| across curves and points
+
         delta_points = gs.einsum(
-            "...,...i->...i", 1 / n_sampling_points_minus_one * srv_norm, srv
+            "...,...i->...i", 1 / n_sampling_points_minus_one * srv_norm, srv_flat
         )
         delta_points = gs.reshape(delta_points, srv_shape)
 
