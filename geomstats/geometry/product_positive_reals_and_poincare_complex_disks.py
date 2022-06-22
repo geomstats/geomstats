@@ -42,7 +42,7 @@ class ProductPositiveRealsAndPoincareComplexDisks(ProductManifold):
         self.n_manifolds = n_manifolds
         positive_real = PositiveReals()
         disk = PoincareComplexDisk()
-        list_manifolds = [positive_real,] + [
+        list_manifolds = [positive_real, ] + [
             disk,
         ] * (n_manifolds - 1)
         super(ProductPositiveRealsAndPoincareComplexDisks, self).__init__(

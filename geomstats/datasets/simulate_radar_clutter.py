@@ -7,14 +7,14 @@ import numpy as np
 from scipy.linalg import eigh, toeplitz
 
 
-def WeibullRNG(scale, shape, noOfRandomNumbers):
+def WeibullRNG(scale, shape, n_random_numbers):
     """
     f(x) = shape / scale(x / scale) ^ (shape - 1) exp(- (x / scale) ^ shape) )
     E(x) = scale * gamma(1 + 1 / shape)
     median(x) = scale * (ln(2)) ^ (1 / shape)
     """
     WeibullRandomNumbers = scale * (
-        -np.log(1 - np.random.rand(1, noOfRandomNumbers))
+        -np.log(1 - np.random.rand(n_random_numbers, 1))
     ) ** (1 / shape)
     return WeibullRandomNumbers
 
