@@ -67,7 +67,7 @@ class HermitianMatricesTestData(_VectorSpaceTestData):
 
     def dim_test_data(self):
 
-        smoke_data = [dict(n=1, dim=1), dict(n=2, dim=3), dict(n=5, dim=15)]
+        smoke_data = [dict(n=1, dim=1), dict(n=2, dim=4), dict(n=5, dim=25)]
 
         return self.generate_tests(smoke_data, [])
 
@@ -82,7 +82,7 @@ class HermitianMatricesTestData(_VectorSpaceTestData):
             dict(
                 n=3,
                 mat=[
-                    [[1.0, 2.0, 3.0 + 1j], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                    [[1.0, 2.0, 3.0 + 1j], [2.0, 4.0, 5.0], [3.0 - 1j, 5.0, 6.0]],
                     [[7.0, 8.0 - 2j, 9.0], [8.0 + 2j, 10.0, 11.0], [9.0, 11.0, 12.0]],
                 ],
                 vec=[

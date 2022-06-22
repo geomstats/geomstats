@@ -42,7 +42,11 @@ class HermitianMatrices(VectorSpace):
                     values = [1.0, 1.0]
                     basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
                     values = [1j, -1j]
-                    basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
+                    basis.append(
+                        gs.array_from_sparse(
+                            indices, values, (self.n,) * 2, dtype=complex
+                        )
+                    )
         basis = gs.stack(basis)
         return basis
 
@@ -123,16 +127,16 @@ class HermitianMatrices(VectorSpace):
 
     @staticmethod
     @geomstats.vectorization.decorator(["vector", "else"])
-    def from_vector(vec, dtype=gs.float32):
+    def from_vector(vec, dtype=gs.complex128):
         """Convert a vector into a Hermitian matrix.
 
         Parameters
         ----------
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
-        dtype : dtype, {gs.float32, gs.float64}
+        dtype : dtype, {gs.complex64, gs.complex128}
             Data type object to use for the output.
-            Optional. Default: gs.float32.
+            Optional. Default: gs.complex128.
 
         Returns
         -------
@@ -150,9 +154,8 @@ class HermitianMatrices(VectorSpace):
         shape = (mat_dim, mat_dim)
         mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
         indices = list(zip(*gs.triu_indices(mat_dim)))
-        vec = gs.cast(vec, dtype)
         upper_triangular = gs.stack(
-            [gs.array_from_sparse(indices, data, shape) for data in vec]
+            [gs.array_from_sparse(indices, data, shape, dtype) for data in vec]
         )
         mat = Matrices.to_hermitian(upper_triangular) * mask
         return mat

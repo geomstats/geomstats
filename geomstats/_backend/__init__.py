@@ -18,6 +18,8 @@ BACKEND_ATTRIBUTES = {
         "int64",
         "float32",
         "float64",
+        "complex64",
+        "complex128",
         "uint8",
         # Functions
         "abs",

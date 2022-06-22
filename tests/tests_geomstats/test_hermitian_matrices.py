@@ -31,7 +31,7 @@ class TestHermitianMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, gs.array(expected))
 
     def test_from_vector(self, n, vec, expected):
-        result = HermitianMatrices(n).from_vector(gs.array(vec))
+        result = HermitianMatrices(n).from_vector(gs.array(vec), dtype=complex)
         self.assertAllClose(result, gs.array(expected))
 
     def test_to_vector(self, n, mat, expected):

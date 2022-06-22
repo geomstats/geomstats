@@ -22,6 +22,8 @@ from numpy import (
     broadcast_to,
     ceil,
     clip,
+    complex64,
+    complex128,
     concatenate,
     conj,
     cos,
@@ -362,7 +364,7 @@ def copy(x):
     return x.copy()
 
 
-def array_from_sparse(indices, data, target_shape):
+def array_from_sparse(indices, data, target_shape, dtype=float):
     """Create an array of given shape, with values at specific indices.
 
     The rest of the array will be filled with zeros.
@@ -375,13 +377,18 @@ def array_from_sparse(indices, data, target_shape):
         Value associated at each index.
     target_shape : tuple(int)
         Shape of the output array.
+    dtype : string
+        Type of the output array.
 
     Returns
     -------
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return array(_coo_matrix((data, list(zip(*indices))), target_shape).todense())
+    return array(
+        _coo_matrix((data, list(zip(*indices))), target_shape, dtype).todense()
+    )
+    # return array(_coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
 
 def vec_to_diag(vec):

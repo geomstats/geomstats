@@ -140,6 +140,32 @@ class VectorSpace(Manifold, abc.ABC):
         point = bound * (gs.random.rand(*size) - 0.5) * 2
         return point
 
+    def complex_random_point(self, n_samples=1, bound=1.0):
+        """Sample in the complex vector space with a uniform distribution in a box.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
+
+        Returns
+        -------
+        point : array-like, shape=[..., dim]
+           Sample.
+        """
+        size = self.shape
+        if n_samples != 1:
+            size = (n_samples,) + self.shape
+        point = (
+            bound * (gs.random.rand(*size) - 0.5) * 2**0.5
+            + 1j * bound * (gs.random.rand(*size) - 0.5) * 2**0.5
+        )
+        return point
+
     @property
     def basis(self):
         """Basis of the vector space."""

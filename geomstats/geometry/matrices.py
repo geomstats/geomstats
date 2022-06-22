@@ -148,7 +148,7 @@ class Matrices(VectorSpace):
         """
         is_vectorized = gs.ndim(gs.array(mat)) == 3
         axes = (0, 2, 1) if is_vectorized else (1, 0)
-        return gs.transconjugate(mat, axes)
+        return gs.transpose(gs.conj(mat), axes)
 
     @staticmethod
     def diagonal(mat):
