@@ -1,7 +1,12 @@
 # Created by https://www.gitignore.io/api/python,jupyternotebooks
 # Edit at https://www.gitignore.io/?templates=python,jupyternotebooks
 
+# From running examples and notebooks
+checkpoint
+initial_weights.hd5.data-00000-of-00001
+initial_weights.hd5.index
 result.png
+
 ### JupyterNotebooks ###
 # gitignore template for Jupyter Notebooks
 # website: http://jupyter.org/
