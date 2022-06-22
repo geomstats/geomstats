@@ -485,8 +485,7 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
         expected = curves_r2.square_root_velocity_metric.srv_transform(curves)
         self.assertAllClose(result, expected, rtol, atol)
 
-    @geomstats.tests.np_autograd_and_tf_only
-    def test_f_transform_and_inverse(self, a, b):
+    def test_f_transform_and_inverse(self, a, b, rtol, atol):
         """Test that the inverse is right."""
         elastic_curves_r2 = ElasticCurves(a=a, b=b)
         curve = elastic_curves_r2.random_point()
@@ -501,7 +500,7 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
         result = f_inverse
         expected = curve
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, rtol, atol)
 
 
 class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):

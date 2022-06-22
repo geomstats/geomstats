@@ -580,8 +580,8 @@ class ElasticMetricTestData(TestData):
         smoke_data = [
             dict(
                 curve=gs.stack([curve_a[:, 0], curve_a[:, 2]], axis=-1),
-                rtol=gs.rtol,
-                atol=gs.atol,
+                rtol=10 * gs.rtol,
+                atol=10 * gs.atol,
             )
         ]
         return self.generate_tests(smoke_data)
@@ -597,7 +597,10 @@ class ElasticMetricTestData(TestData):
 
     def f_transform_and_inverse_test_data(self):
         # cells, _, _ = data_utils.load_cells()
-        smoke_data = [dict(a=a, b=b) for a, b in self.a_b_list]
+        smoke_data = [
+            dict(a=a, b=b, rtol=10 * gs.rtol, atol=10 * gs.atol)
+            for a, b in self.a_b_list
+        ]
         return self.generate_tests(smoke_data)
 
     def elastic_dist_test_data(self):
