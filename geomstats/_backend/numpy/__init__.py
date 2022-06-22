@@ -377,8 +377,9 @@ def array_from_sparse(indices, data, target_shape, dtype=float):
         Value associated at each index.
     target_shape : tuple(int)
         Shape of the output array.
-    dtype : string
-        Type of the output array.
+    dtype : dtype,
+        Data type object to use for the output.
+        Optional. Default: complex.
 
     Returns
     -------
@@ -388,7 +389,6 @@ def array_from_sparse(indices, data, target_shape, dtype=float):
     return array(
         _coo_matrix((data, list(zip(*indices))), target_shape, dtype).todense()
     )
-    # return array(_coo_matrix((data, list(zip(*indices))), target_shape).todense())
 
 
 def vec_to_diag(vec):
