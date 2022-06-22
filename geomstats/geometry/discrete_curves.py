@@ -439,17 +439,23 @@ class ElasticMetric(RiemannianMetric):
     def __init__(
         self, a, b, ambient_manifold=R2, metric=None, translation_invariant=True
     ):
-        if not isinstance(ambient_manifold, R2):
-            raise NotImplementedError(
-                "Currently, elastic metrics are only implemented for planar curves:"
-                f"ambient_manifold must be a plane, but it is: {ambient_manifold}."
-            )
         super(ElasticMetric, self).__init__(
             dim=math.inf, signature=(math.inf, 0, 0), default_point_type="matrix"
         )
+        self.ambient_metric = metric
+        if metric is None:
+            if hasattr(ambient_manifold, "metric"):
+                self.ambient_metric = ambient_manifold.metric
+            else:
+                raise ValueError(
+                    "Instantiating an object of class "
+                    "ElasticCurves requires either a metric"
+                    " or an ambient manifold"
+                    " equipped with a metric."
+                )
         self.ambient_manifold = ambient_manifold
-        self.ambient_metric = ambient_manifold.metric
         self.l2_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
+        self.translation_invariant = translation_invariant
         self.a = a
         self.b = b
 
@@ -470,6 +476,15 @@ class ElasticMetric(RiemannianMetric):
         args : array-like, shape=[..., n_sampling_points]
             Arguments of the sampling points.
         """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "cartesian_to_polar is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
         n_sampling_points = curve.shape[-2]
         inner_prod = self.ambient_metric.inner_product
 
@@ -491,8 +506,7 @@ class ElasticMetric(RiemannianMetric):
 
         return norms, args
 
-    @staticmethod
-    def polar_to_cartesian(norms, args):
+    def polar_to_cartesian(self, norms, args):
         """Compute the cartesian coordinates of a curve from polar ones.
 
         Parameters
@@ -507,6 +521,15 @@ class ElasticMetric(RiemannianMetric):
         curve : array-like, shape=[..., n_sampling_points, ambient_dim]
             Discrete curve.
         """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "polar_to_cartesian is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
         curve_x = gs.cos(args)
         curve_y = gs.sin(args)
         unit_curve = gs.transpose(gs.vstack((curve_x, curve_y)))
@@ -529,6 +552,15 @@ class ElasticMetric(RiemannianMetric):
         f : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
             F_transform of the curve..
         """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "f_transform is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
         n_sampling_points = curve.shape[-2]
         velocity = (n_sampling_points - 1) * (curve[1:] - curve[:-1])
         speeds, args = self.cartesian_to_polar(velocity)
@@ -555,6 +587,15 @@ class ElasticMetric(RiemannianMetric):
         curve : array-like, shape=[..., n_sampling_points, ambient_dim]
             Discrete curve.
         """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "f_transform_inverse is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
         n_sampling_points = f.shape[-2]
         norms, args = self.cartesian_to_polar(f)
         curve_x = [0]
@@ -594,6 +635,15 @@ class ElasticMetric(RiemannianMetric):
         dist : [...]
             Geodesic distance between the curves.
         """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "dist is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
         n_sampling_points = curve_1.shape[-2]
         velocity_1 = (n_sampling_points - 1) * (curve_1[1:] - curve_1[:-1])
         velocity_2 = (n_sampling_points - 1) * (curve_2[1:] - curve_2[:-1])
@@ -793,18 +843,6 @@ class SRVMetric(ElasticMetric):
             metric=metric,
             translation_invariant=translation_invariant,
         )
-        if metric is None:
-            if hasattr(ambient_manifold, "metric"):
-                self.ambient_metric = ambient_manifold.metric
-            else:
-                raise ValueError(
-                    "Instantiating an object of class "
-                    "DiscreteCurves requires either a metric"
-                    " or an ambient manifold"
-                    " equipped with a metric."
-                )
-        else:
-            self.ambient_metric = metric
 
     def srv_transform(self, curve, tol=gs.atol):
         """Square Root Velocity Transform (SRVT).
