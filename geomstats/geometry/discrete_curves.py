@@ -542,6 +542,17 @@ class ElasticMetric(RiemannianMetric):
 
         See [KN2018]_ for details.
 
+        Notes
+        -----
+        f_transform is a bijection if and only if a/2b=1.
+
+        If a 2b is an integer not equal to 1:
+          - then f_transform is well-defined but many-to-one.
+
+        If a 2b is not an integer:
+          - then f_transform is multivalued,
+          - and f_transform takes finitely many values if and only if a 2b is rational.
+
         Parameters
         ----------
         curve : array-like, shape=[..., n_sampling_points, ambient_dim]
@@ -895,6 +906,54 @@ class SRVMetric(ElasticMetric):
         if curve_ndim == 2:
             return gs.squeeze(srv)
         return srv
+
+    def f_transform(self, curve):
+        """Compute the F_transform of a curve.
+
+        See [KN2018]_ for details.
+
+        Notes
+        -----
+        f_transform is a bijection if and only if a/2b=1.
+
+        If a 2b is an integer not equal to 1:
+          - then f_transform is well-defined but many-to-one.
+
+        If a 2b is not an integer:
+          - then f_transform is multivalued,
+          - and f_transform takes finitely many values if and only if a 2b is rational.
+
+        Parameters
+        ----------
+        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        f : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
+            F_transform of the curve..
+        """
+        return self.srv_transform(curve)
+
+    def f_transform_inverse(self, curve, starting_point):
+        """Compute the inverse of the F_transform of a transformed curve.
+
+        See [KN2018]_ for details.
+
+        Parameters
+        ----------
+        curve : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
+            Discrete curve.
+        starting_point : array-like, shape=[..., ambient_dim]
+            Point of the ambient manifold to use as start of the retrieved
+            curve.
+
+        Returns
+        -------
+        f : array-like, shape=[..., n_sampling_points, ambient_dim]
+            F_transform inverse of the curve.
+        """
+        return self.srv_transform_inverse(curve, starting_point)
 
     def srv_transform_inverse(self, srv, starting_point):
         """Inverse of the Square Root Velocity Transform (SRVT).
