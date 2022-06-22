@@ -22,6 +22,8 @@ from autograd.numpy import (
     broadcast_to,
     ceil,
     clip,
+    complex64,
+    complex128,
     concatenate,
     conj,
     cos,
