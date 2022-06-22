@@ -146,7 +146,7 @@ class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
             self.metric_args_list,
             self.space_list,
             self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
+            is_tangent_atol=gs.atol * 10000,
         )
 
     def geodesic_ivp_belongs_test_data(self):
