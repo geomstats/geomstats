@@ -613,14 +613,17 @@ class ElasticMetric(RiemannianMetric):
                 f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
             )
         n_sampling_points = curve.shape[-2]
-        velocity = (n_sampling_points - 1) * (curve[1:] - curve[:-1])
-        speeds, args = self.cartesian_to_polar(velocity)
+        velocity = (n_sampling_points - 1) * (curve[..., 1:, :] - curve[..., :-1, :])
+        polar_velocity = self.cartesian_to_polar(velocity)
+        speeds = polar_velocity[..., :, 0]
+        args = polar_velocity[..., :, 1]
 
         f_args = args * self.a / (2 * self.b)
         f_norms = 2 * self.b * gs.sqrt(speeds)
-        f = self.polar_to_cartesian(f_norms, f_args)
+        f_polar = gs.stack([f_norms, f_args], axis=-1)
+        f_cartesian = self.polar_to_cartesian(f_polar)
 
-        return f
+        return f_cartesian
 
     def f_transform_inverse(self, f, starting_point):
         r"""Compute the inverse F_transform of a transformed curve.
@@ -667,24 +670,27 @@ class ElasticMetric(RiemannianMetric):
             )
 
         n_sampling_points = f.shape[-2]
-        norms, args = self.cartesian_to_polar(f)
-        curve_x = [0]
-        curve_y = [0]
+        n_curves = 1 if f.ndim == 2 else f.shape[0]
+        f_polar = self.cartesian_to_polar(f)
+        norms = f_polar[..., :, 0]
+        args = f_polar[..., :, 1]
 
-        for i in range(n_sampling_points):
-            x = curve_x[-1]
-            x += norms[i] ** 2 * gs.cos(2 * self.b / self.a * args[i])
-            curve_x.append(x)
-            y = curve_y[-1]
-            y += norms[i] ** 2 * gs.sin(2 * self.b / self.a * args[i])
-            curve_y.append(y)
+        curve_x = gs.zeros((n_curves, n_sampling_points))
+        curve_y = gs.zeros((n_curves, n_sampling_points))
 
-        curve_x = gs.array(curve_x)
-        curve_y = gs.array(curve_y)
-        curve = gs.transpose(gs.vstack((curve_x, curve_y))) / n_sampling_points
-        curve = 1 / (4 * self.b**2) * curve + starting_point
+        for i in range(1, n_sampling_points):
+            x = curve_x[..., i - 1]
+            x += norms[..., i] ** 2 * gs.cos(2 * self.b / self.a * args[..., i])
+            curve_x[..., i] = x
+            y = curve_y[..., i - 1]
+            y += norms[..., i] ** 2 * gs.sin(2 * self.b / self.a * args[..., i])
+            curve_y[..., i] = y
 
-        return curve
+        curve = gs.stack((curve_x, curve_y), axis=-1) / n_sampling_points
+        curve = 1 / (4 * self.b**2) * curve
+        starting_point = gs.expand_dims(starting_point, axis=0)
+        curve = gs.concatenate([starting_point, curve], axis=-2)
+        return gs.squeeze(curve)
 
     def dist(self, curve_1, curve_2, rescaled=False):
         """Compute the geodesic distance between two curves.
