@@ -58,7 +58,7 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_l2_metric_geodesic(
         self, ambient_manifold, curve_a, curve_b, times, n_sampling_points
     ):
-        """Test the geodesic method of L2Metric."""
+        """Test the geodesic method of L2LandmarksMetric."""
         l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
         curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
         curves_ab = curves_ab(times)
