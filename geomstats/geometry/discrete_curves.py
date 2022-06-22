@@ -823,7 +823,7 @@ class ElasticCurves(Manifold):
 class SRVMetric(ElasticMetric):
     """Elastic metric defined using the Square Root Velocity Function.
 
-    The SRV metric is equivelent to the elastic metric chosen with
+    The SRV metric is equivalent to the elastic metric chosen with
     - bending parameter a = 1,
     - stretching parameter b = 1/2.
 
@@ -837,6 +837,8 @@ class SRVMetric(ElasticMetric):
         Metric to use on the ambient manifold. If None is passed, ambient
         manifold should have a metric attribute, which will be used.
         Optional, default : None.
+    translation_invariant : bool
+        Optional, default : True.
 
     References
     ----------
