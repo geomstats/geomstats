@@ -134,13 +134,13 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_srv_transform_and_srv_transform_inverse(self, rtol, atol):
         """Test that srv and its inverse are inverse."""
         metric = SRVMetric(ambient_manifold=r3)
-        curve = DiscreteCurves(r3).random_point()
+        curve = DiscreteCurves(r3).random_point(n_samples=2)
 
         srv = metric.srv_transform(curve)
-        srv_inverse = metric.srv_transform_inverse(srv, curve[0])
+        srv_inverse = metric.srv_transform_inverse(srv, curve[:, 0])
 
         result = srv.shape
-        expected = (curve.shape[0] - 1, 3)
+        expected = (curve.shape[0], curve.shape[1] - 1, 3)
         self.assertAllClose(result, expected)
 
         result = srv_inverse
