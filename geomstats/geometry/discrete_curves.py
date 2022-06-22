@@ -23,9 +23,19 @@ class DiscreteCurves(Manifold):
     r"""Space of discrete curves sampled at points in ambient_manifold.
 
     Each individual curve is represented by a 2d-array of shape `[
-    n_sampling_points, ambient_dim]`. A Batch of curves can be passed to
+    n_sampling_points, ambient_dim]`. A batch of curves can be passed to
     all methods either as a 3d-array if all curves have the same number of
     sampled points, or as a list of 2d-arrays, each representing a curve.
+
+    This space corresponds to the space of immersions defined below, i.e. the
+    space of smooth functions from an interval I into the ambient manifold M,
+    with non-vanishing derivative.
+
+    .. math::
+        Imm(I, M)=\{c \in C^{\infty}(I, M) \|c'(t)\|\neq 0 \forall t \in I \},
+
+    where the open interval of parameters I is taken to be I = [0, 1]
+    without loss of generality.
 
     Parameters
     ----------
@@ -538,9 +548,33 @@ class ElasticMetric(RiemannianMetric):
         return curve
 
     def f_transform(self, curve):
-        """Compute the F_transform of a curve.
+        r"""Compute the f_transform of a curve.
 
-        See [KN2018]_ for details.
+        Note that the f_transform is defined on the space of curves
+        quotiented by translations, which is identified with the space
+        of curves with their first sampling point located at 0:
+
+        .. math::
+            curve(0) = (0, 0)
+
+        The f_transform is given by the formula:
+
+        .. math::
+            Imm(I, R^2) / R^2 \mapsto C^\infty(I, C*)
+            c \mapsto 2b |c'|^{1/2} (\frac{c'}{|c'|})^{a/(2b)}
+
+        where the identification :math:`C = R^2` is used and
+        the exponentiation is a complex exponentiation, which can make
+        the f_transform not well-defined:
+
+        .. math::
+            f(c) = 2b r^{1/2}\exp(i\theta * a/(2b)) * \exp(ik\pi * a/b)
+
+         where (r, theta) is the polar representation of c', and for
+         any :math:`k \in Z`.
+
+        The implementation uses formula (3) from [KN2018]_ , i.e. choses
+        the representative corresponding to k = 0.
 
         Notes
         -----
@@ -583,15 +617,28 @@ class ElasticMetric(RiemannianMetric):
         return f
 
     def f_transform_inverse(self, f, starting_point):
-        """Compute the inverse F_transform of a transformed curve.
+        r"""Compute the inverse F_transform of a transformed curve.
 
-        Only works if a/2b <= 1.
+        This only works if a / (2b) <= 1.
         See [KN2018]_ for details.
+
+        When the f_transform is many-to-one, one antecedent is chosen.
+
+        Notes
+        -----
+        f_transform is a bijection if and only if a / (2b) = 1.
+
+        If a / (2b) is an integer not equal to 1:
+          - then f_transform is well-defined but many-to-one.
+
+        If a / (2b) is not an integer:
+          - then f_transform is multivalued,
+          - and f_transform takes finitely many values if and only if a 2b is rational.
 
         Parameters
         ----------
         f : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
-            F_transform of the curve.
+            f_transform of the curve.
 
         Returns
         -------
@@ -607,6 +654,12 @@ class ElasticMetric(RiemannianMetric):
                 "ambient_manifold must be a plane, but it is:\n"
                 f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
             )
+
+        if self.a / (2 * self.b) > 1:
+            raise NotImplementedError(
+                "f_transform_inverse is only implemented for a / (2b) <= 1."
+            )
+
         n_sampling_points = f.shape[-2]
         norms, args = self.cartesian_to_polar(f)
         curve_x = [0]
@@ -765,13 +818,18 @@ class SRVMetric(ElasticMetric):
         )
 
     def srv_transform(self, curve, tol=gs.atol):
-        """Square Root Velocity Transform (SRVT).
+        r"""Square Root Velocity Transform (SRVT).
 
         Compute the square root velocity representation of a curve. The
-        velocity is computed using the log map. In the case of several
+        velocity is computed using the log map.
+
+        In the case of several
         curves, an index selection procedure allows to get rid of the log
         between the end point of curve[k, :, :] and the starting point of
         curve[k + 1, :, :].
+
+        .. math::
+            curve \mapsto \frac{curve'}{|curve'|^{1/2}}
 
         Parameters
         ----------
@@ -818,19 +876,6 @@ class SRVMetric(ElasticMetric):
 
     def f_transform(self, curve):
         """Compute the F_transform of a curve.
-
-        See [KN2018]_ for details.
-
-        Notes
-        -----
-        f_transform is a bijection if and only if a/2b=1.
-
-        If a 2b is an integer not equal to 1:
-          - then f_transform is well-defined but many-to-one.
-
-        If a 2b is not an integer:
-          - then f_transform is multivalued,
-          - and f_transform takes finitely many values if and only if a 2b is rational.
 
         Parameters
         ----------
