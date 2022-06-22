@@ -131,6 +131,22 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = [srvs_ab.shape[0]]
         self.assertAllClose(result, expected)
 
+    def test_srv_transform_and_srv_transform_inverse(self, rtol, atol):
+        """Test that srv and its inverse are inverse."""
+        metric = SRVMetric(ambient_manifold=r3)
+        curve = DiscreteCurves(r3).random_point()
+
+        srv = metric.srv_transform(curve)
+        srv_inverse = metric.srv_transform_inverse(srv, curve[0])
+
+        result = srv.shape
+        expected = (curve.shape[0] - 1, 3)
+        self.assertAllClose(result, expected)
+
+        result = srv_inverse
+        expected = curve
+        self.assertAllClose(result, expected, rtol, atol)
+
     @geomstats.tests.np_and_autograd_only
     def test_aux_differential_srv_transform(
         self, dim, n_sampling_points, n_curves, curve_fun_a
@@ -410,6 +426,18 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
         self.assertAllClose(result, curve, rtol, atol)
 
+    def test_cartesian_to_polar_and_polar_to_cartesian_vectorization(
+        self, a, b, rtol, atol
+    ):
+        """Test conversion to polar coordinate"""
+        el_metric = ElasticMetric(a=a, b=b)
+        el_curve = ElasticCurves(a=a, b=b)
+        curve = el_curve.random_point(n_samples=3)
+        polar_curve = el_metric.cartesian_to_polar(curve)
+        result = el_metric.polar_to_cartesian(polar_curve)
+
+        self.assertAllClose(result, curve, rtol=rtol, atol=atol)
+
     def test_f_transform_and_srv_transform(self, curve, rtol, atol):
         """Test that the f transform coincides with the SRVF
 
@@ -421,6 +449,25 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
         result = elastic_curves_r2.elastic_metric.f_transform(curve)
         expected = curves_r2.square_root_velocity_metric.srv_transform(curve)
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def test_f_transform_inverse_and_srv_transform_inverse(self, curve, rtol, atol):
+        """Test that the f transform coincides with the SRVF
+
+        This is valid for a f transform with a=1, b=1/2.
+        """
+        r2 = Euclidean(dim=2)
+        elastic_curves_r2 = ElasticCurves(a=1.0, b=0.5)
+        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+        starting_point = curve[0]
+        fake_transformed_curve = curve[1:, :]
+
+        result = elastic_curves_r2.elastic_metric.f_transform_inverse(
+            fake_transformed_curve, starting_point
+        )
+        expected = curves_r2.square_root_velocity_metric.srv_transform_inverse(
+            fake_transformed_curve, starting_point
+        )
         self.assertAllClose(result, expected, rtol, atol)
 
     def test_f_transform_and_srv_transform_vectorization(self, rtol, atol):
@@ -438,27 +485,23 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
         expected = curves_r2.square_root_velocity_metric.srv_transform(curves)
         self.assertAllClose(result, expected, rtol, atol)
 
-    # def test_f_transform_and_f_transform_inverse(self, a, b, rtol, atol):
-    #     """Test conversion to polar coordinate"""
-    #     el_metric = ElasticMetric(a=a, b=b)
-    #     el_curve = ElasticCurves(a=a, b=b)
-    #     curve = el_curve.random_point()
-    #     f_curve = el_metric.f_transform(curve)
-    #     result = el_metric.f_transform_inverse(f_curve)
+    # @geomstats.tests.np_autograd_and_tf_only
+    # def test_f_transform_and_inverse(self, a, b):
+    #     """Test that the inverse is right."""
+    #     elastic_curves_r2 = ElasticCurves(a=a, b=b)
+    #     curve = elastic_curves_r2.random_point()
 
-    #     self.assertAllClose(result, curve, rtol, atol)
+    #     metric = elastic_curves_r2.elastic_metric
+    #     f = metric.f_transform(curve)
+    #     f_inverse = metric.f_transform_inverse(f, curve[0])
 
-    def test_cartesian_to_polar_and_polar_to_cartesian_vectorization(
-        self, a, b, rtol, atol
-    ):
-        """Test conversion to polar coordinate"""
-        el_metric = ElasticMetric(a=a, b=b)
-        el_curve = ElasticCurves(a=a, b=b)
-        curve = el_curve.random_point(n_samples=3)
-        polar_curve = el_metric.cartesian_to_polar(curve)
-        result = el_metric.polar_to_cartesian(polar_curve)
+    #     result = f.shape
+    #     expected = (curve.shape[0] - 1, 2)
+    #     self.assertAllClose(result, expected)
 
-        self.assertAllClose(result, curve, rtol=rtol, atol=atol)
+    #     result = f_inverse
+    #     expected = curve
+    #     self.assertAllClose(result, expected)
 
 
 class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):

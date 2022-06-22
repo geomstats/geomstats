@@ -688,7 +688,9 @@ class ElasticMetric(RiemannianMetric):
 
         curve = gs.stack((curve_x, curve_y), axis=-1) / n_sampling_points
         curve = 1 / (4 * self.b**2) * curve
-        starting_point = gs.expand_dims(starting_point, axis=0)
+        starting_point = gs.to_ndarray(starting_point, to_ndim=2)
+        starting_point = gs.to_ndarray(starting_point, to_ndim=3)
+
         curve = gs.concatenate([starting_point, curve], axis=-2)
         return gs.squeeze(curve)
 
@@ -949,7 +951,7 @@ class SRVMetric(ElasticMetric):
                 "in a Euclidean space."
             )
         if gs.ndim(srv) != gs.ndim(starting_point):
-            starting_point = gs.to_ndarray(starting_point, to_ndim=srv.ndim, axis=1)
+            starting_point = gs.to_ndarray(starting_point, to_ndim=srv.ndim)
         srv_shape = srv.shape
         srv = gs.to_ndarray(srv, to_ndim=3)
         n_curves, n_sampling_points_minus_one, n_coords = srv.shape
