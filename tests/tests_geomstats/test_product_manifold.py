@@ -108,7 +108,6 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_geodesic_bvp_belongs = True
     skip_test_geodesic_ivp_belongs = True
-    skip_test_log_is_tangent = True
 
     testing_data = NFoldMetricTestData()
 
