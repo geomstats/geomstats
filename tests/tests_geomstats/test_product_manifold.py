@@ -88,7 +88,6 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
 class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
     space = NFoldManifold
-    skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = NFoldManifoldTestData()
 
