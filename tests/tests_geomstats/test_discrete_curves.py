@@ -400,7 +400,7 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
     testing_data = ElasticMetricTestData()
 
-    def test_cartesian_to_polar_and_polar_to_cartesian(self, a, b):
+    def test_cartesian_to_polar_and_polar_to_cartesian(self, a, b, rtol, atol):
         """Test conversion to polar coordinate"""
         el_metric = ElasticMetric(a=a, b=b)
         el_curve = ElasticCurves(a=a, b=b)
@@ -408,9 +408,11 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
         polar_curve = el_metric.cartesian_to_polar(curve)
         result = el_metric.polar_to_cartesian(polar_curve)
 
-        self.assertAllClose(result, curve)
+        self.assertAllClose(result, curve, rtol, atol)
 
-    def test_cartesian_to_polar_and_polar_to_cartesian_vectorization(self, a, b):
+    def test_cartesian_to_polar_and_polar_to_cartesian_vectorization(
+        self, a, b, rtol, atol
+    ):
         """Test conversion to polar coordinate"""
         el_metric = ElasticMetric(a=a, b=b)
         el_curve = ElasticCurves(a=a, b=b)
@@ -418,7 +420,7 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
         polar_curve = el_metric.cartesian_to_polar(curve)
         result = el_metric.polar_to_cartesian(polar_curve)
 
-        self.assertAllClose(result, curve)
+        self.assertAllClose(result, curve, rtol=rtol, atol=atol)
 
 
 class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
