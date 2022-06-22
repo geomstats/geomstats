@@ -410,6 +410,44 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
         self.assertAllClose(result, curve, rtol, atol)
 
+    def test_f_transform_and_srv_transform(self, curve, rtol, atol):
+        """Test that the f transform coincides with the SRVF
+
+        This is valid for a f transform with a=1, b=1/2.
+        """
+        r2 = Euclidean(dim=2)
+        elastic_curves_r2 = ElasticCurves(a=1.0, b=0.5)
+        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+
+        result = elastic_curves_r2.elastic_metric.f_transform(curve)
+        expected = curves_r2.square_root_velocity_metric.srv_transform(curve)
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def test_f_transform_and_srv_transform_vectorization(self, rtol, atol):
+        """Test that the f transform coincides with the SRVF.
+
+        This is valid for a f_transform with a=1, b=1/2.
+        """
+        r2 = Euclidean(dim=2)
+        elastic_curves_r2 = ElasticCurves(a=1.0, b=0.5)
+        curves = elastic_curves_r2.random_point(n_samples=2)
+
+        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+
+        result = elastic_curves_r2.elastic_metric.f_transform(curves)
+        expected = curves_r2.square_root_velocity_metric.srv_transform(curves)
+        self.assertAllClose(result, expected, rtol, atol)
+
+    # def test_f_transform_and_f_transform_inverse(self, a, b, rtol, atol):
+    #     """Test conversion to polar coordinate"""
+    #     el_metric = ElasticMetric(a=a, b=b)
+    #     el_curve = ElasticCurves(a=a, b=b)
+    #     curve = el_curve.random_point()
+    #     f_curve = el_metric.f_transform(curve)
+    #     result = el_metric.f_transform_inverse(f_curve)
+
+    #     self.assertAllClose(result, curve, rtol, atol)
+
     def test_cartesian_to_polar_and_polar_to_cartesian_vectorization(
         self, a, b, rtol, atol
     ):

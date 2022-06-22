@@ -546,7 +546,7 @@ class SRVMetricTestData(_RiemannianMetricTestData):
 
 
 class ElasticMetricTestData(TestData):
-    a_b_list = [(8, 1)]
+    a_b_list = [(1, 1)]
 
     def cartesian_to_polar_and_polar_to_cartesian_test_data(self):
         smoke_data = [
@@ -562,12 +562,21 @@ class ElasticMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def f_transform_test_data(self):
+    def f_transform_and_srv_transform_test_data(self):
         smoke_data = [
             dict(
-                a=1.0,
-                b=0.5,
-                curve_a_projected=gs.stack((curve_a[:, 0], curve_a[:, 2]), axis=-1),
+                curve=gs.stack([curve_a[:, 0], curve_a[:, 2]], axis=-1),
+                rtol=gs.rtol,
+                atol=gs.atol,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def f_transform_and_srv_transform_vectorization_test_data(self):
+        smoke_data = [
+            dict(
+                rtol=gs.rtol,
+                atol=gs.atol,
             )
         ]
         return self.generate_tests(smoke_data)
