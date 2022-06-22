@@ -42,7 +42,7 @@ class L2LandmarksMetric(NFoldMetric):
     Parameters
     ----------
     ambient_metric : RiemannianMetric
-        Riemannian metric of the manifold in which landmarks liem
+        Riemannian metric of the manifold to which the landmarks belong.
     k_landmarks: int
         Number of landmarks.
 
