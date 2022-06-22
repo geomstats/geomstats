@@ -951,7 +951,7 @@ class SRVMetric(ElasticMetric):
                 "in a Euclidean space."
             )
         if gs.ndim(srv) != gs.ndim(starting_point):
-            starting_point = gs.to_ndarray(starting_point, to_ndim=srv.ndim)
+            starting_point = gs.to_ndarray(starting_point, to_ndim=srv.ndim, axis=-2)
         srv_shape = srv.shape
         srv = gs.to_ndarray(srv, to_ndim=3)
         n_curves, n_sampling_points_minus_one, n_coords = srv.shape
@@ -962,7 +962,9 @@ class SRVMetric(ElasticMetric):
             "...,...i->...i", 1 / n_sampling_points_minus_one * srv_norm, srv
         )
         delta_points = gs.reshape(delta_points, srv_shape)
+
         curve = gs.concatenate((starting_point, delta_points), -2)
+
         curve = gs.cumsum(curve, -2)
 
         return curve
