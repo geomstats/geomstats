@@ -668,36 +668,31 @@ class ElasticMetric(RiemannianMetric):
             raise NotImplementedError(
                 "f_transform_inverse is only implemented for a / (2b) <= 1."
             )
-
+        if gs.ndim(f) != gs.ndim(starting_point):
+            starting_point = gs.to_ndarray(starting_point, to_ndim=f.ndim, axis=-2)
         self.l2_metric
 
         n_sampling_points_minus_one = f.shape[-2]
-        n_curves = 1 if f.ndim == 2 else f.shape[0]
 
         f_polar = self.cartesian_to_polar(f)
-        norms = f_polar[..., :, 0]
-        args = f_polar[..., :, 1]
+        f_norms = f_polar[..., :, 0]
+        f_args = f_polar[..., :, 1]
 
         dt = 1 / n_sampling_points_minus_one
 
-        curve_x = gs.zeros((n_curves, n_sampling_points_minus_one))
-        curve_y = gs.zeros((n_curves, n_sampling_points_minus_one))
+        delta_points_x = gs.einsum(
+            "...i,...i->...i", dt * f_norms**2, gs.cos(2 * self.b / self.a * f_args)
+        )
+        delta_points_y = gs.einsum(
+            "...i,...i->...i", dt * f_norms**2, gs.sin(2 * self.b / self.a * f_args)
+        )
 
-        for i in range(1, n_sampling_points_minus_one):
-            x = curve_x[..., i - 1]
-            x += norms[..., i] ** 2 * gs.cos(2 * self.b / self.a * args[..., i])
-            curve_x[..., i] = dt * x
-            y = curve_y[..., i - 1]
-            y += norms[..., i] ** 2 * gs.sin(2 * self.b / self.a * args[..., i])
-            curve_y[..., i] = dt * y
+        delta_points = gs.stack((delta_points_x, delta_points_y), axis=-1)
 
-        curve = gs.stack((curve_x, curve_y), axis=-1) / n_sampling_points_minus_one
+        delta_points = 1 / (4 * self.b**2) * delta_points
 
-        curve = 1 / (4 * self.b**2) * curve
-        starting_point = gs.to_ndarray(starting_point, to_ndim=2)
-        starting_point = gs.to_ndarray(starting_point, to_ndim=3)
-
-        curve = gs.concatenate([starting_point, curve], axis=-2)
+        curve = gs.concatenate([starting_point, delta_points], axis=-2)
+        curve = gs.cumsum(curve, -2)
         return gs.squeeze(curve)
 
     def dist(self, curve_1, curve_2, rescaled=False):
@@ -976,9 +971,9 @@ class SRVMetric(ElasticMetric):
         srv_flat = gs.reshape(srv, (n_curves * n_sampling_points_minus_one, n_coords))
         srv_norm = self.ambient_metric.norm(srv_flat)  # |q(s)| across curves and points
 
-        delta_points = gs.einsum(
-            "...,...i->...i", 1 / n_sampling_points_minus_one * srv_norm, srv_flat
-        )
+        dt = 1 / n_sampling_points_minus_one
+
+        delta_points = gs.einsum("...,...i->...i", dt * srv_norm, srv_flat)
         delta_points = gs.reshape(delta_points, srv_shape)
 
         curve = gs.concatenate((starting_point, delta_points), -2)
