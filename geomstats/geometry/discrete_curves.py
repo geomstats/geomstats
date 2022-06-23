@@ -969,7 +969,7 @@ class SRVMetric(ElasticMetric):
         n_curves, n_sampling_points_minus_one, n_coords = srv.shape
 
         srv_flat = gs.reshape(srv, (n_curves * n_sampling_points_minus_one, n_coords))
-        srv_norm = self.ambient_metric.norm(srv_flat)  # |q(s)| across curves and points
+        srv_norm = self.ambient_metric.norm(srv_flat)
 
         dt = 1 / n_sampling_points_minus_one
 
