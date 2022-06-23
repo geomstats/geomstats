@@ -81,7 +81,6 @@ angle = _tf.math.angle
 arctanh = _tf.math.atanh
 ceil = _tf.math.ceil
 conj = _tf.math.conj
-cross = _tf.linalg.cross
 erf = _tf.math.erf
 imag = _tf.math.imag
 isnan = _tf.math.is_nan
@@ -956,3 +955,9 @@ def is_array(x):
 
 def matvec(A, b):
     return _tf.linalg.matvec(A, b)
+
+
+def cross(a, b):
+    if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
+        a, b = broadcast_arrays(a, b)
+    return _tf.linalg.cross(a, b)

@@ -14,7 +14,6 @@ from torch import (
     conj,
     cos,
     cosh,
-    cross,
     divide,
     empty_like,
     erf,
@@ -805,3 +804,9 @@ def dot(a, b):
         return _torch.tensordot(a, b.T, dims=1)
 
     return _torch.einsum("...i,...i->...", a, b)
+
+
+def cross(a, b):
+    if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
+        a, b = broadcast_arrays(a, b)
+    return _torch.cross(a, b)
