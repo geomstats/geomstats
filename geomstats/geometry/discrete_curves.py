@@ -671,7 +671,6 @@ class ElasticMetric(RiemannianMetric):
             )
         if gs.ndim(f) != gs.ndim(starting_point):
             starting_point = gs.to_ndarray(starting_point, to_ndim=f.ndim, axis=-2)
-        self.l2_curves_metric
 
         n_sampling_points_minus_one = f.shape[-2]
 
