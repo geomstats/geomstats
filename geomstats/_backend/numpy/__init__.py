@@ -32,7 +32,6 @@ from numpy import (
     diag_indices,
     diagonal,
     divide,
-    dot,
 )
 from numpy import dtype as _ndtype  # NOQA
 from numpy import (
@@ -473,3 +472,16 @@ def matvec(A, b):
         if A.ndim == 2:
             return _np.matmul(A, b.T).T
         return _np.einsum("...ij,...j->...i", A, b)
+
+
+def dot(a, b):
+    if a.ndim > 1 and b.ndim > 1 and a.shape[0] != b.shape[0]:
+        raise ValueError("Unable to broadcast")
+
+    if b.ndim == 1:
+        return _np.dot(a, b)
+
+    if a.ndim == 1:
+        return _np.dot(a, b.T)
+
+    return _np.einsum("...i,...i->...", a, b)

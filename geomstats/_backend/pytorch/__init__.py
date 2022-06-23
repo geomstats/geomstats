@@ -306,10 +306,6 @@ def shape(val):
     return val.shape
 
 
-def dot(a, b):
-    return einsum("...i,...i->...", a, b)
-
-
 def maximum(a, b):
     return _torch.max(array(a), array(b))
 
@@ -802,3 +798,19 @@ def matvec(A, b):
         return _torch.matmul(A, b.T).T
 
     return _torch.einsum("...ij,...j->...i", A, b)
+
+
+def dot(a, b):
+    if a.ndim > 1 and b.ndim > 1 and a.shape[0] != b.shape[0]:
+        raise ValueError("Unable to broadcast")
+
+    if a.ndim == 1 and b.ndim == 1:
+        return _torch.dot(a, b)
+
+    if b.ndim == 1:
+        return _torch.tensordot(a, b, dims=1)
+
+    if a.ndim == 1:
+        return _torch.tensordot(a, b.T, dims=1)
+
+    return _torch.einsum("...i,...i->...", a, b)

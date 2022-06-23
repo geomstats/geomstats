@@ -22,10 +22,7 @@ class BackendsTestData(TestData):
         data = [
             dict(func_name="zeros", args=(2,)),
             dict(func_name="zeros", args=((2, 2),)),
-            dict(
-                func_name="ones",
-                args=(2,),
-            ),
+            dict(func_name="ones", args=(2,)),
             dict(func_name="ones", args=((2, 2),)),
         ]
 
@@ -40,27 +37,13 @@ class BackendsTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def _matmul_data(self):
-        func_name = "matmul"
-        # TODO: create raise error cases
-
-        matrices = [
-            (gs.random.rand(2, 2), gs.random.rand(2, 2)),
-            (gs.random.rand(2, 3), gs.random.rand(3, 2)),
-        ]
-
-        return [
-            {"func_name": func_name, "a": matrices_[0], "b": matrices_[1]}
-            for matrices_ in matrices
-        ]
-
     def np_like_binary_op_test_data(self):
-        smoke_data = []
-
-        smoke_data += self._matmul_data()
-        smoke_data += [
+        smoke_data = [
+            dict(func_name="matmul", a=gs.random.rand(2, 2), b=gs.random.rand(2, 2)),
+            dict(func_name="matmul", a=gs.random.rand(2, 3), b=gs.random.rand(3, 2)),
             dict(func_name="outer", a=gs.random.rand(3), b=gs.random.rand(3)),
             dict(func_name="outer", a=gs.random.rand(3), b=gs.random.rand(4)),
+            dict(func_name="dot", a=gs.random.rand(3), b=gs.random.rand(3)),
         ]
 
         return self.generate_tests(smoke_data)
@@ -74,6 +57,7 @@ class BackendsTestData(TestData):
             dict(func_name="outer", a=gs.random.rand(3), b=gs.random.rand(4)),
             dict(func_name="matvec", a=gs.random.rand(3, 3), b=gs.random.rand(3)),
             dict(func_name="matvec", a=gs.random.rand(4, 3), b=gs.random.rand(3)),
+            dict(func_name="dot", a=gs.random.rand(3), b=gs.random.rand(3)),
         ]
 
         return self.generate_tests(smoke_data)
@@ -84,6 +68,9 @@ class BackendsTestData(TestData):
             dict(func_name="matmul", a=gs.random.rand(2), b=gs.random.rand(2)),
             dict(func_name="matvec", a=gs.random.rand(3, 2), b=gs.random.rand(3)),
             dict(func_name="matvec", a=gs.random.rand(2, 3, 3), b=gs.random.rand(4, 3)),
+            dict(func_name="dot", a=gs.random.rand(4), b=gs.random.rand(3)),
+            dict(func_name="dot", a=gs.random.rand(3, 4), b=gs.random.rand(3)),
+            dict(func_name="dot", a=gs.random.rand(3, 4), b=gs.random.rand(2, 3)),
         ]
 
         return self.generate_tests(smoke_data)

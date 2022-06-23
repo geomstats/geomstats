@@ -350,7 +350,7 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
     if use_vectorization:
         full_shape = shape(x).numpy()
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
         mask = _vectorized_mask_from_indices(
             n_samples, indices, tile_shape, axis, x.dtype
         )
@@ -632,8 +632,14 @@ def broadcast_arrays(*args, **kwargs):
     return tensors
 
 
-def dot(x, y):
-    return _tf.tensordot(x, y, axes=1)
+def dot(a, b):
+    if a.ndim > 1 and b.ndim > 1 and a.shape[0] != b.shape[0]:
+        raise ValueError("Unable to broadcast")
+
+    if b.ndim == 1:
+        return _tf.tensordot(a, b, axes=1)
+
+    return _tf.einsum("...i,...i->...", a, b)
 
 
 def isclose(x, y, rtol=rtol, atol=atol):
