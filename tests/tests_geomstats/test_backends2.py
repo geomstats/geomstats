@@ -73,20 +73,38 @@ class TestBackends(TestCase, metaclass=Parametrizer):
 
         res = gs_fnc(a, b)
 
-        rep_a = gs.repeat(gs.expand_dims(a, 0), 2, axis=0)
-        rep_b = gs.repeat(gs.expand_dims(b, 0), 2, axis=0)
+        a_expanded = gs.expand_dims(a, 0)
+        b_expanded = gs.expand_dims(b, 0)
 
-        res_rep_a = gs_fnc(rep_a, b)
-        res_rep_b = gs_fnc(a, rep_b)
-        res_rep_a_b = gs_fnc(rep_a, rep_b)
+        a_rep = gs.repeat(a_expanded, 2, axis=0)
+        b_rep = gs.repeat(b_expanded, 2, axis=0)
 
-        self.assertAllClose(res_rep_a, res_rep_b)
-        self.assertAllClose(res_rep_a, res_rep_a_b)
-        for res_ in res_rep_a_b:
+        res_a_rep = gs_fnc(a_rep, b)
+        res_b_rep = gs_fnc(a, b_rep)
+        res_a_b_rep = gs_fnc(a_rep, b_rep)
+        res_a_expanded = gs_fnc(a_expanded, b_rep)
+        res_b_expanded = gs_fnc(a_rep, b_expanded)
+
+        self.assertAllClose(res_a_rep, res_a_b_rep)
+        self.assertAllClose(res_b_rep, res_a_b_rep)
+        self.assertAllClose(res_a_expanded, res_a_b_rep)
+        self.assertAllClose(res_b_expanded, res_a_b_rep)
+        for res_ in res_a_b_rep:
             self.assertAllClose(res_, res)
 
-    def test_binary_raises_error(self, func_name, a, b):
+    def test_binary_op_vec_raises_error(self, func_name, a, b):
+        a_rep = gs.repeat(gs.expand_dims(a, 0), 2, axis=0)
+        b_rep = gs.repeat(gs.expand_dims(b, 0), 3, axis=0)
+
+        self.test_binary_op_raises_error(func_name, a_rep, b_rep)
+
+    def test_binary_op_raises_error(self, func_name, a, b):
         gs_fnc = get_backend_fncs(func_name, numpy=False)
 
         with pytest.raises(Exception):
             gs_fnc(a, b)
+
+    def test_binary_op_runs(self, func_name, a, b):
+        gs_fnc = get_backend_fncs(func_name, numpy=False)
+
+        gs_fnc(a, b)

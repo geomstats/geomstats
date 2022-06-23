@@ -1,6 +1,8 @@
 import geomstats.backend as gs
 from tests.data_generation import TestData
 
+rand = gs.random.rand
+
 
 class BackendsTestData(TestData):
     def _array_data(self):
@@ -39,11 +41,12 @@ class BackendsTestData(TestData):
 
     def np_like_binary_op_test_data(self):
         smoke_data = [
-            dict(func_name="matmul", a=gs.random.rand(2, 2), b=gs.random.rand(2, 2)),
-            dict(func_name="matmul", a=gs.random.rand(2, 3), b=gs.random.rand(3, 2)),
-            dict(func_name="outer", a=gs.random.rand(3), b=gs.random.rand(3)),
-            dict(func_name="outer", a=gs.random.rand(3), b=gs.random.rand(4)),
-            dict(func_name="dot", a=gs.random.rand(3), b=gs.random.rand(3)),
+            dict(func_name="matmul", a=rand(2, 2), b=rand(2, 2)),
+            dict(func_name="matmul", a=rand(2, 3), b=rand(3, 2)),
+            dict(func_name="outer", a=rand(3), b=rand(3)),
+            dict(func_name="outer", a=rand(3), b=rand(4)),
+            dict(func_name="dot", a=rand(3), b=rand(3)),
+            dict(func_name="cross", a=rand(3), b=rand(3)),
         ]
 
         return self.generate_tests(smoke_data)
@@ -51,26 +54,35 @@ class BackendsTestData(TestData):
     def binary_op_vec_test_data(self):
 
         smoke_data = [
-            dict(func_name="matmul", a=gs.random.rand(3, 4), b=gs.random.rand(4, 3)),
-            dict(func_name="matmul", a=gs.random.rand(3, 3), b=gs.random.rand(3, 3)),
-            dict(func_name="outer", a=gs.random.rand(3), b=gs.random.rand(3)),
-            dict(func_name="outer", a=gs.random.rand(3), b=gs.random.rand(4)),
-            dict(func_name="matvec", a=gs.random.rand(3, 3), b=gs.random.rand(3)),
-            dict(func_name="matvec", a=gs.random.rand(4, 3), b=gs.random.rand(3)),
-            dict(func_name="dot", a=gs.random.rand(3), b=gs.random.rand(3)),
+            dict(func_name="matmul", a=rand(3, 4), b=rand(4, 3)),
+            dict(func_name="matmul", a=rand(3, 3), b=rand(3, 3)),
+            dict(func_name="outer", a=rand(3), b=rand(3)),
+            dict(func_name="outer", a=rand(3), b=rand(4)),
+            dict(func_name="matvec", a=rand(3, 3), b=rand(3)),
+            dict(func_name="matvec", a=rand(4, 3), b=rand(3)),
+            dict(func_name="dot", a=rand(3), b=rand(3)),
+            dict(func_name="cross", a=rand(3), b=rand(3)),
         ]
 
         return self.generate_tests(smoke_data)
 
-    def binary_raises_error_test_data(self):
+    def binary_op_vec_raises_error_test_data(self):
+        return self.binary_op_vec_test_data()
+
+    def binary_op_raises_error_test_data(self):
         smoke_data = [
-            dict(func_name="matmul", a=gs.random.rand(1), b=gs.random.rand(1)),
-            dict(func_name="matmul", a=gs.random.rand(2), b=gs.random.rand(2)),
-            dict(func_name="matvec", a=gs.random.rand(3, 2), b=gs.random.rand(3)),
-            dict(func_name="matvec", a=gs.random.rand(2, 3, 3), b=gs.random.rand(4, 3)),
-            dict(func_name="dot", a=gs.random.rand(4), b=gs.random.rand(3)),
-            dict(func_name="dot", a=gs.random.rand(3, 4), b=gs.random.rand(3)),
-            dict(func_name="dot", a=gs.random.rand(3, 4), b=gs.random.rand(2, 3)),
+            dict(func_name="matmul", a=rand(1), b=rand(1)),
+            dict(func_name="matmul", a=rand(2, 3, 3), b=rand(2, 3)),
+            dict(func_name="matmul", a=rand(2, 3, 3), b=rand(3, 3, 3)),
+            dict(func_name="matvec", a=rand(3, 2), b=rand(3)),
+            dict(func_name="dot", a=rand(4), b=rand(3)),
+            dict(func_name="dot", a=rand(3, 4), b=rand(3)),
+            dict(func_name="cross", a=rand(4), b=rand(4)),
         ]
+
+        return self.generate_tests(smoke_data)
+
+    def binary_op_runs_test_data(self):
+        smoke_data = []
 
         return self.generate_tests(smoke_data)
