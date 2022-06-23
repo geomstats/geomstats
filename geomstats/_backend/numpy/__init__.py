@@ -449,9 +449,6 @@ def matmul(*args, **kwargs):
 
 
 def outer(a, b):
-    if a.ndim == 2 and b.ndim == 2 and a.shape[0] != b.shape[0]:
-        raise ValueError("Unable to broadcast")
-
     if a.ndim == 2 and b.ndim == 2:
         return _np.einsum("...i,...j->...ij", a, b)
 
@@ -463,9 +460,6 @@ def outer(a, b):
 
 
 def matvec(A, b):
-    if A.ndim > 2 and b.ndim > 1 and A.shape[0] != b.shape[0]:
-        raise ValueError("Unable to broadcast")
-
     if b.ndim == 1:
         return _np.matmul(A, b)
     else:
@@ -475,9 +469,6 @@ def matvec(A, b):
 
 
 def dot(a, b):
-    if a.ndim > 1 and b.ndim > 1 and a.shape[0] != b.shape[0]:
-        raise ValueError("Unable to broadcast")
-
     if b.ndim == 1:
         return _np.dot(a, b)
 

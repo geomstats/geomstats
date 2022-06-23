@@ -633,9 +633,6 @@ def broadcast_arrays(*args, **kwargs):
 
 
 def dot(a, b):
-    if a.ndim > 1 and b.ndim > 1 and a.shape[0] != b.shape[0]:
-        raise ValueError("Unable to broadcast")
-
     if b.ndim == 1:
         return _tf.tensordot(a, b, axes=1)
 
