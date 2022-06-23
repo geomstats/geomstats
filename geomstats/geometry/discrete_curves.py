@@ -746,8 +746,11 @@ class ElasticMetric(RiemannianMetric):
         f_1_norms = 2 * self.b * gs.sqrt(speed_1)
         f_2_norms = 2 * self.b * gs.sqrt(speed_2)
 
-        f_1 = self.polar_to_cartesian(f_1_norms, f_1_args)
-        f_2 = self.polar_to_cartesian(f_2_norms, f_2_args)
+        f_1 = gs.stack([f_1_norms, f_1_args], axis=-1)
+        f_2 = gs.stack([f_2_norms, f_2_args], axis=-1)
+
+        f_1 = self.polar_to_cartesian(f_1)
+        f_2 = self.polar_to_cartesian(f_2)
 
         l2_prod = self.l2_metric.inner_product
         l2_dist = self.l2_metric.dist
