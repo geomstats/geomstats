@@ -465,7 +465,7 @@ class ElasticMetric(RiemannianMetric):
                     " equipped with a metric."
                 )
         self.ambient_manifold = ambient_manifold
-        self.l2_curve_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
+        self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
         self.translation_invariant = translation_invariant
         self.a = a
         self.b = b
@@ -671,7 +671,7 @@ class ElasticMetric(RiemannianMetric):
             )
         if gs.ndim(f) != gs.ndim(starting_point):
             starting_point = gs.to_ndarray(starting_point, to_ndim=f.ndim, axis=-2)
-        self.l2_curve_metric
+        self.l2_curves_metric
 
         n_sampling_points_minus_one = f.shape[-2]
 
@@ -763,7 +763,7 @@ class ElasticMetric(RiemannianMetric):
         f_2 = self.polar_to_cartesian(f_2)
 
         if rescaled:
-            cosine = self.l2_curve_metric.inner_product(f_1, f_2) / (4 * self.b**2)
+            cosine = self.l2_curves_metric.inner_product(f_1, f_2) / (4 * self.b**2)
             distance = 2 * self.b * gs.arccos(gs.clip(cosine, -1, 1))
         else:
             # elastic_metric.dist
@@ -773,7 +773,7 @@ class ElasticMetric(RiemannianMetric):
             # calls l2_curve_metric.pointwise_inner_products
             #  inner product of ElasticMetric
             # ie trying to l2curvemetric -> RiemannianMetric -> ElasticDist
-            distance = self.l2_curve_metric.dist(f_1, f_2)
+            distance = self.l2_curves_metric.dist(f_1, f_2)
 
         return distance
 
@@ -806,7 +806,7 @@ class ElasticCurves(DiscreteCurves):
     def __init__(self, a, b, ambient_manifold=R2, **kwargs):
         kwargs.setdefault("metric", ElasticMetric(a, b, ambient_manifold))
         super(ElasticCurves, self).__init__(ambient_manifold=ambient_manifold, **kwargs)
-        self.l2_landmark_metric = lambda n: L2LandmarksMetric(
+        self.l2_landmarks_metric = lambda n: L2LandmarksMetric(
             self.ambient_manifold, k_landmarks=n
         )
         self.elastic_metric = self._metric
@@ -1035,7 +1035,7 @@ class SRVMetric(ElasticMetric):
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
 
-        inner_prod = self.l2_curve_metric.pointwise_inner_products(
+        inner_prod = self.l2_curves_metric.pointwise_inner_products(
             d_vec, unit_velocity_vec, curve[..., :-1, :]
         )
         d_vec_tangential = gs.einsum("...ij,...i->...ij", unit_velocity_vec, inner_prod)
@@ -1081,7 +1081,7 @@ class SRVMetric(ElasticMetric):
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
-        inner_prod = self.l2_curve_metric.pointwise_inner_products(
+        inner_prod = self.l2_curves_metric.pointwise_inner_products(
             tangent_vec, unit_velocity_vec, curve[..., :-1, :]
         )
         tangent_vec_tangential = gs.einsum(
@@ -1137,7 +1137,7 @@ class SRVMetric(ElasticMetric):
             )
         d_srv_vec_a = self.aux_differential_srv_transform(tangent_vec_a, curve)
         d_srv_vec_b = self.aux_differential_srv_transform(tangent_vec_b, curve)
-        inner_prod = self.l2_curve_metric.inner_product(d_srv_vec_a, d_srv_vec_b)
+        inner_prod = self.l2_curves_metric.inner_product(d_srv_vec_a, d_srv_vec_b)
 
         if not self.translation_invariant:
             inner_prod += self.ambient_metric.inner_product(
@@ -1174,7 +1174,7 @@ class SRVMetric(ElasticMetric):
         d_srv_tangent_vec = self.aux_differential_srv_transform(
             tangent_vec=tangent_vec, curve=base_point
         )
-        end_curve_srv = self.l2_curve_metric.exp(
+        end_curve_srv = self.l2_curves_metric.exp(
             tangent_vec=d_srv_tangent_vec, base_point=base_curve_srv
         )
         end_curve_starting_point = self.ambient_metric.exp(
@@ -1325,7 +1325,7 @@ class SRVMetric(ElasticMetric):
         srv_a = self.srv_transform(point_a)
         srv_b = self.srv_transform(point_b)
         dist_starting_points = self.ambient_metric.dist(point_a[0, :], point_b[0, :])
-        dist_srvs = self.l2_curve_metric.norm(srv_b - srv_a)
+        dist_srvs = self.l2_curves_metric.norm(srv_b - srv_a)
         if self.translation_invariant:
             return dist_srvs
 
@@ -1575,8 +1575,8 @@ class ClosedSRVMetric(SRVMetric):
             )
 
         dim = self.ambient_metric.dim
-        srv_inner_prod = self.l2_landmark_metric.inner_product
-        srv_norm = self.l2_landmark_metric.norm
+        srv_inner_prod = self.l2_curves_metric.inner_product
+        srv_norm = self.l2_curves_metric.norm
         inner_prod = self.ambient_metric.inner_product
 
         def g_criterion(srv, srv_norms):
@@ -1703,32 +1703,32 @@ class QuotientSRVMetric(SRVMetric):
             + tangent_vec[..., :-2, :]
         )
 
-        vec_a = self.l2_landmark_metric.pointwise_norms(
+        vec_a = self.l2_curves_metric.pointwise_norms(
             d_pos, position
-        ) ** 2 - 1 / 2 * self.l2_landmark_metric.pointwise_inner_products(
+        ) ** 2 - 1 / 2 * self.l2_curves_metric.pointwise_inner_products(
             d2_pos, d_pos, position
         )
-        vec_b = -2 * self.l2_landmark_metric.pointwise_norms(
+        vec_b = -2 * self.l2_curves_metric.pointwise_norms(
             d_pos, position
         ) ** 2 - quotient**2 * (
-            self.l2_landmark_metric.pointwise_norms(d2_pos, position) ** 2
-            - self.l2_landmark_metric.pointwise_inner_products(d2_pos, d_pos, position)
+            self.l2_curves_metric.pointwise_norms(d2_pos, position) ** 2
+            - self.l2_curves_metric.pointwise_inner_products(d2_pos, d_pos, position)
             ** 2
-            / self.l2_landmark_metric.pointwise_norms(d_pos, position) ** 2
+            / self.l2_curves_metric.pointwise_norms(d_pos, position) ** 2
         )
-        vec_c = self.l2_landmark_metric.pointwise_norms(
+        vec_c = self.l2_curves_metric.pointwise_norms(
             d_pos, position
-        ) ** 2 + 1 / 2 * self.l2_landmark_metric.pointwise_inner_products(
+        ) ** 2 + 1 / 2 * self.l2_curves_metric.pointwise_inner_products(
             d2_pos, d_pos, position
         )
-        vec_d = self.l2_landmark_metric.pointwise_norms(d_pos, position) * (
-            self.l2_landmark_metric.pointwise_inner_products(d2_vec, d_pos, position)
+        vec_d = self.l2_curves_metric.pointwise_norms(d_pos, position) * (
+            self.l2_curves_metric.pointwise_inner_products(d2_vec, d_pos, position)
             - (quotient**2 - 1)
-            * self.l2_landmark_metric.pointwise_inner_products(d_vec, d2_pos, position)
+            * self.l2_curves_metric.pointwise_inner_products(d_vec, d2_pos, position)
             + (quotient**2 - 2)
-            * self.l2_landmark_metric.pointwise_inner_products(d2_pos, d_pos, position)
-            * self.l2_landmark_metric.pointwise_inner_products(d_vec, d_pos, position)
-            / self.l2_landmark_metric.pointwise_norms(d_pos, position) ** 2
+            * self.l2_curves_metric.pointwise_inner_products(d2_pos, d_pos, position)
+            * self.l2_curves_metric.pointwise_inner_products(d_vec, d_pos, position)
+            / self.l2_curves_metric.pointwise_norms(d_pos, position) ** 2
         )
 
         linear_system = (
@@ -1745,7 +1745,7 @@ class QuotientSRVMetric(SRVMetric):
         unit_speed = gs.einsum(
             "...ij,...i->...ij",
             d_pos,
-            1 / self.l2_landmark_metric.pointwise_norms(d_pos, position),
+            1 / self.l2_curves_metric.pointwise_norms(d_pos, position),
         )
         tangent_vec_ver = gs.einsum(
             "...ij,...i->...ij", unit_speed, vertical_norm[..., 1:-1]

@@ -103,7 +103,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         srvs_ab = srv_metric_r3.srv_transform(curves_ab)
         srvs_bc = srv_metric_r3.srv_transform(curves_bc)
 
-        result = srv_metric_r3.l2_metric.inner_product(srvs_ab, srvs_bc)
+        result = srv_metric_r3.l2_curves_metric.inner_product(srvs_ab, srvs_bc)
         products = srvs_ab * srvs_bc
         expected = [gs.sum(product) for product in products]
         expected = gs.array(expected) / (srvs_ab.shape[-2] + 1)
@@ -120,7 +120,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         curves_ab = curves_ab(times)
         srvs_ab = srv_metric_r3.srv_transform(curves_ab)
 
-        result = srv_metric_r3.l2_metric.norm(srvs_ab)
+        result = srv_metric_r3.l2_curves_metric.norm(srvs_ab)
         products = srvs_ab * srvs_ab
         sums = [gs.sum(product) for product in products]
         squared_norm = gs.array(sums) / (srvs_ab.shape[-2] + 1)
@@ -356,13 +356,13 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         curves_bc = curves_bc(times)
 
         tangent_vecs = l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
-        result = srv_metric_r3.l2_metric.pointwise_inner_products(
+        result = srv_metric_r3.l2_curves_metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_curve=curves_ab
         )
         expected_shape = (n_discretized_curves, n_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-        result = srv_metric_r3.l2_metric.pointwise_inner_products(
+        result = srv_metric_r3.l2_curves_metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs[0],
             tangent_vec_b=tangent_vecs[0],
             base_curve=curves_ab[0],
