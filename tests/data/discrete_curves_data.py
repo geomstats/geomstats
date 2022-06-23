@@ -589,8 +589,8 @@ class ElasticMetricTestData(TestData):
     def f_transform_and_srv_transform_vectorization_test_data(self):
         smoke_data = [
             dict(
-                rtol=gs.rtol,
-                atol=gs.atol,
+                rtol=10 * gs.rtol,
+                atol=10 * gs.atol,
             )
         ]
         return self.generate_tests(smoke_data)
