@@ -647,7 +647,7 @@ def cumprod(x, axis=None):
     return _torch.cumprod(x, axis)
 
 
-def array_from_sparse(indices, data, target_shape):
+def array_from_sparse(indices, data, target_shape, dtype=float):
     """Create an array of given shape, with values at specific indices.
 
     The rest of the array will be filled with zeros.
@@ -660,6 +660,9 @@ def array_from_sparse(indices, data, target_shape):
         Value associated at each index.
     target_shape : tuple(int)
         Shape of the output array.
+    dtype : dtype,
+        Data type object to use for the output.
+        Optional. Default: complex.
 
     Returns
     -------
@@ -670,6 +673,7 @@ def array_from_sparse(indices, data, target_shape):
         _torch.LongTensor(indices).t(),
         _torch.FloatTensor(cast(data, float32)),
         _torch.Size(target_shape),
+        _torch.dtype(dtype),
     ).to_dense()
 
 
