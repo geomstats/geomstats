@@ -51,19 +51,28 @@ class TestDataLandmarks(_ManifoldTestData):
             Landmarks, self.space_args_list, self.n_vecs_list
         )
 
+    def dimension_is_dim_multiplied_by_n_copies_test_data(self):
+        smoke_data = [
+            dict(space_args=space_args) for space_args in self.space_args_list
+        ]
+        return self.generate_tests(smoke_data)
 
-class TestDataL2Metric(_RiemannianMetricTestData):
+
+class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
 
     dim_list = random.sample(range(2, 4), 2)
     n_landmarks_list = random.sample(range(2, 5), 2)
-    metric_args_list = [
+    space_args_list = [
         (Hypersphere(dim), n_landmarks)
         for dim, n_landmarks in zip(dim_list, n_landmarks_list)
     ] + [
         (Euclidean(dim + 1), n_landmarks)
         for dim, n_landmarks in zip(dim_list, n_landmarks_list)
     ]
-    space_list = [Landmarks(*metric_arg) for metric_arg in metric_args_list]
+    metric_args_list = [
+        (space.metric, n_landmarks) for space, n_landmarks in space_args_list
+    ]
+    space_list = [Landmarks(*space_arg) for space_arg in space_args_list]
     shape_list = [
         (n_landmark, dim + 1) for dim, n_landmark in zip(dim_list, n_landmarks_list)
     ] * 2
@@ -137,7 +146,7 @@ class TestDataL2Metric(_RiemannianMetricTestData):
             self.metric_args_list,
             self.space_list,
             self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
+            is_tangent_atol=gs.atol * 100000,
         )
 
     def geodesic_ivp_belongs_test_data(self):
@@ -314,6 +323,19 @@ class TestDataL2Metric(_RiemannianMetricTestData):
                 n_sampling_points=self.n_sampling_points,
                 landmarks_a=self.landmark_set_a,
                 landmarks_b=self.landmark_set_b,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def innerproduct_is_sum_of_innerproducts_test_data(self):
+        smoke_data = [
+            dict(
+                metric_args=(Hypersphere(dim=2).metric, self.n_sampling_points),
+                tangent_vec_a=self.landmark_set_a,
+                tangent_vec_b=self.landmark_set_b,
+                base_point=self.landmark_set_c,
+                rtol=gs.rtol,
+                atol=gs.atol,
             )
         ]
         return self.generate_tests(smoke_data)
