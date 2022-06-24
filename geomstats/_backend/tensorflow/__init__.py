@@ -925,8 +925,8 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
 
 def divide(a, b, ignore_div_zero=False):
     if ignore_div_zero is False:
-        return tf.math.divide(a, b)
-    return tf.math.divide_no_nan(a, b)
+        return _tf.math.divide(a, b)
+    return _tf.math.divide_no_nan(a, b)
 
 
 def _ravel_multi_index(multi_index, shape):

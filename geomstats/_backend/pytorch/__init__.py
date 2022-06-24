@@ -720,9 +720,9 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
 
 def divide(a, b, ignore_div_zero=False):
     if ignore_div_zero is False:
-        return torch.divide(a, b)
-    quo = torch.divide(a, b)
-    return torch.nan_to_num(quo, nan=0.0, posinf=0.0, neginf=0.0)
+        return _torch.divide(a, b)
+    quo = _torch.divide(a, b)
+    return _torch.nan_to_num(quo, nan=0.0, posinf=0.0, neginf=0.0)
 
 
 def ravel_tril_indices(n, k=0, m=None):
