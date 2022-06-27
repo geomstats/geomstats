@@ -38,6 +38,9 @@ class SasakiMetric(RiemannianMetric):
     Geodesic computations are realized via a discrete formulation of the geodesic
     equation on TM that involve geodesics, parallel translation, and the curvature
     tensor on the base manifold M (see [1] for details).
+    However, as the implemented energy in the discrete-geodesics-optimization as well as
+    the approximations of its gradient slightly differ from those proposed in [1], we
+    also refer to [2] for additional details.
 
     Parameters
     ----------
@@ -50,14 +53,19 @@ class SasakiMetric(RiemannianMetric):
     Sasaki metrics for analysis of longitudinal data on manifolds.
     In 2012 IEEE conference on computer vision and pattern recognition (pp. 1027-1034).
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4270017/
+    [2] Nava-Yazdani, E., Hanik, M., Ambellan, F., & von Tycowicz, C. (2022, June).
+    On Gradient Formulas in an Algorithm for the Logarithm of the Sasaki Metric
+    Technical Report Zuse-Institut Berlin (no. ZIB-22-12) (urn:nbn:de:0297-zib-87174).
+    https://nbn-resolving.org/urn/resolver.pl?urn:nbn:de:0297-zib-87174
     """
 
     def __init__(self, metric: RiemannianMetric):
         self.metric = metric
         shape = (2, gs.prod(gs.array(metric.shape)))
 
-        super(SasakiMetric, self).__init__(2 * metric.dim, shape=shape,
-                                           default_point_type='matrix')
+        super(SasakiMetric, self).__init__(
+            2 * metric.dim, shape=shape, default_point_type="matrix"
+        )
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, **kwargs):
         """Compute the Riemannian exponential of a point.
@@ -139,8 +147,9 @@ class SasakiMetric(RiemannianMetric):
 
         n_jobs = min(os.cpu_count(), len(pts))
         with Parallel(n_jobs=n_jobs, verbose=0) as parallel:
-            rslt = parallel(_log(pt, bs_pts[i % len(bs_pts)])
-                            for i, pt in enumerate(pts))
+            rslt = parallel(
+                _log(pt, bs_pts[i % len(bs_pts)]) for i, pt in enumerate(pts)
+            )
 
         return gs.reshape(gs.array(rslt), point.shape)
 
@@ -171,9 +180,13 @@ class SasakiMetric(RiemannianMetric):
 
         def _grad(pu):
             """Gradient of discrete geodesic energy."""
-            pu = gs.vstack([gs.expand_dims(initial_point, axis=0),
-                            pu,
-                            gs.expand_dims(end_point, axis=0)])
+            pu = gs.vstack(
+                [
+                    gs.expand_dims(initial_point, axis=0),
+                    pu,
+                    gs.expand_dims(end_point, axis=0),
+                ]
+            )
 
             p = gs.take(pu, 0, axis=1)
             u = gs.take(pu, 1, axis=1)
@@ -186,29 +199,38 @@ class SasakiMetric(RiemannianMetric):
             v2 = metric.log(p3, p2) / eps
             w2 = (par_trans(u3, p3, end_point=p2) - u2) / eps
 
-            gp = (metric.log(p3, p2) + metric.log(p1, p2)) / eps**2 + \
-                metric.curvature(u2, w2, v2, p2)
+            gp = (metric.log(p3, p2) + metric.log(p1, p2)) / (
+                2 * eps**2
+            ) + metric.curvature(u2, w2, v2, p2)
 
-            gu = (par_trans(u3, p3, end_point=p2) - 2 * u2 + par_trans(
-                u1, p1, end_point=p2)) / eps**2
+            gu = (
+                par_trans(u3, p3, end_point=p2)
+                - 2 * u2
+                + par_trans(u1, p1, end_point=p2)
+            ) / eps**2
 
             return -gs.stack([gp, gu], axis=1) * eps
 
         v = metric.log(pL, p0)
-        s = gs.linspace(0., 1., n_steps + 1)
+        s = gs.linspace(0.0, 1.0, n_steps + 1)
         pu_ini = []
         for i in range(1, n_steps):
             p_ini = metric.exp(s[i] * v, p0)
             u_ini = (1 - s[i]) * par_trans(u0, p0, None, p_ini) + s[i] * par_trans(
-                uL, pL, None, p_ini)
+                uL, pL, None, p_ini
+            )
             pu_ini.append(gs.array([p_ini, u_ini]))
 
         pu_ini = gs.array(pu_ini)
         x = _gradient_descent(pu_ini, _grad, self.exp)
 
         return gs.vstack(
-            [gs.expand_dims(initial_point, axis=0),
-             x, gs.expand_dims(end_point, axis=0)])
+            [
+                gs.expand_dims(initial_point, axis=0),
+                x,
+                gs.expand_dims(end_point, axis=0),
+            ]
+        )
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.
@@ -232,5 +254,6 @@ class SasakiMetric(RiemannianMetric):
         pt = gs.reshape(base_point, (-1, 2) + self.metric.shape)
 
         inner = self.metric.inner_product
-        return inner(vec_a[:, 0], vec_b[:, 0], pt[:, 0]) + inner(vec_a[:, 1],
-                                                                 vec_b[:, 1], pt[:, 0])
+        return inner(vec_a[:, 0], vec_b[:, 0], pt[:, 0]) + inner(
+            vec_a[:, 1], vec_b[:, 1], pt[:, 0]
+        )

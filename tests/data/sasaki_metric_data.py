@@ -29,8 +29,9 @@ class SasakiMetricTestData(TestData):
         return self.generate_tests(smoke_data, [])
 
     def exp_test_data(self):
-        tangent_vec = gs.array([[[gs.pi / 2, 0, 0], [0, 0, 0]],
-                                [[0, -gs.pi / 2, 0], [0, 0, 0]]])
+        tangent_vec = gs.array(
+            [[[gs.pi / 2, 0, 0], [0, 0, 0]], [[0, -gs.pi / 2, 0], [0, 0, 0]]]
+        )
         expected = gs.array([self.pu1, self.pu0])
 
         smoke_data = [
@@ -45,8 +46,9 @@ class SasakiMetricTestData(TestData):
         return self.generate_tests(smoke_data, [])
 
     def log_test_data(self):
-        expected = gs.array([[[gs.pi / 2, 0, 0], [0, 0, 0]],
-                             [[0, -gs.pi / 2, 0], [0, 0, 0]]])
+        expected = gs.array(
+            [[[gs.pi / 2, 0, 0], [0, 0, 0]], [[0, -gs.pi / 2, 0], [0, 0, 0]]]
+        )
 
         smoke_data = [
             dict(
@@ -60,11 +62,14 @@ class SasakiMetricTestData(TestData):
 
     def geodesic_discrete_test_data(self):
         sqrt32 = gs.sqrt(3) / 2
-        expected = gs.array([[[0, -1, 0], [1, 0, 1]],
-                             [[.5, -sqrt32, 0], [sqrt32, .5, 1]],
-                             [[sqrt32, -.5, 0], [.5, sqrt32, 1]],
-                             [[1, 0, 0], [0, 1, 1]]]
-                            )
+        expected = gs.array(
+            [
+                [[0, -1, 0], [1, 0, 1]],
+                [[0.5, -sqrt32, 0], [sqrt32, 0.5, 1]],
+                [[sqrt32, -0.5, 0], [0.5, sqrt32, 1]],
+                [[1, 0, 0], [0, 1, 1]],
+            ]
+        )
         smoke_data = [
             dict(
                 metric=self.sas_sphere_metric,
