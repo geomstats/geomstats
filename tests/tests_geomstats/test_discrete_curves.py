@@ -40,6 +40,29 @@ class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     testing_data = DiscreteCurvesTestData()
 
 
+class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
+    # closed discrete curves doesn't have random point
+    space = ClosedDiscreteCurves
+    skip_test_projection_belongs = True
+    skip_test_random_point_belongs = True
+    skip_test_random_tangent_vec_is_tangent = True
+    skip_test_to_tangent_is_tangent = True
+
+    testing_data = ClosedDiscreteCurvesTestData()
+
+    @geomstats.tests.np_and_autograd_only
+    def test_projection_closed_curves(self, ambient_manifold, curve):
+        planar_closed_curve = ClosedDiscreteCurves(ambient_manifold)
+        proj = planar_closed_curve.projection(curve)
+        expected = proj
+        result = planar_closed_curve.projection(proj)
+        self.assertAllClose(result, expected)
+
+        result = proj[-1, :]
+        expected = proj[0, :]
+        self.assertAllClose(result, expected, rtol=10 * gs.rtol)
+
+
 class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = L2CurvesMetric
     skip_test_exp_belongs = True
@@ -383,29 +406,6 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = curves
 
         self.assertAllClose(result, expected)
-
-
-class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
-    # closed discrete curves doesn't have random point
-    space = ClosedDiscreteCurves
-    skip_test_projection_belongs = True
-    skip_test_random_point_belongs = True
-    skip_test_random_tangent_vec_is_tangent = True
-    skip_test_to_tangent_is_tangent = True
-
-    testing_data = ClosedDiscreteCurvesTestData()
-
-    @geomstats.tests.np_and_autograd_only
-    def test_projection_closed_curves(self, ambient_manifold, curve):
-        planar_closed_curve = ClosedDiscreteCurves(ambient_manifold)
-        proj = planar_closed_curve.projection(curve)
-        expected = proj
-        result = planar_closed_curve.projection(proj)
-        self.assertAllClose(result, expected)
-
-        result = proj[-1, :]
-        expected = proj[0, :]
-        self.assertAllClose(result, expected, rtol=10 * gs.rtol)
 
 
 class TestElasticMetric(TestCase, metaclass=Parametrizer):
