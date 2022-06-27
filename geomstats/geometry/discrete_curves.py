@@ -55,16 +55,22 @@ class DiscreteCurves(Manifold):
         Square root velocity metric.
     """
 
-    def __init__(self, ambient_manifold, **kwargs):
+    def __init__(self, ambient_manifold, a=None, b=None, **kwargs):
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super(DiscreteCurves, self).__init__(
             dim=math.inf, shape=(), default_point_type="matrix", **kwargs
         )
         self.ambient_manifold = ambient_manifold
         self.square_root_velocity_metric = self._metric
+
         self.quotient_square_root_velocity_metric = QuotientSRVMetric(
             self.ambient_manifold
         )
+
+        if a is not None and b is not None:
+            self.elastic_metric = ElasticMetric(
+                a=a, b=b, ambient_manifold=ambient_manifold
+            )
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
@@ -760,7 +766,7 @@ class ElasticMetric(RiemannianMetric):
             else:
                 raise ValueError(
                     "Instantiating an object of class "
-                    "ElasticCurves requires either a metric"
+                    "ElasticMetric requires either a metric"
                     " or an ambient manifold"
                     " equipped with a metric."
                 )

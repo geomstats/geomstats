@@ -6,7 +6,6 @@ import geomstats.tests
 from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     DiscreteCurves,
-    ElasticCurves,
     ElasticMetric,
     L2CurvesMetric,
     SRVMetric,
@@ -418,9 +417,9 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
     def test_cartesian_to_polar_and_polar_to_cartesian(self, a, b, rtol, atol):
         """Test conversion to polar coordinate"""
+        curves_space = DiscreteCurves(ambient_manifold=r2)
         el_metric = ElasticMetric(a=a, b=b)
-        el_curve = ElasticCurves(a=a, b=b)
-        curve = el_curve.random_point()
+        curve = curves_space.random_point()
         polar_curve = el_metric.cartesian_to_polar(curve)
         result = el_metric.polar_to_cartesian(polar_curve)
 
@@ -430,9 +429,9 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
         self, a, b, rtol, atol
     ):
         """Test conversion to polar coordinate"""
+        curves_space = DiscreteCurves(ambient_manifold=r2)
         el_metric = ElasticMetric(a=a, b=b)
-        el_curve = ElasticCurves(a=a, b=b)
-        curve = el_curve.random_point(n_samples=3)
+        curve = curves_space.random_point(n_samples=3)
         polar_curve = el_metric.cartesian_to_polar(curve)
         result = el_metric.polar_to_cartesian(polar_curve)
 
@@ -443,12 +442,11 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
         This is valid for a f transform with a=1, b=1/2.
         """
-        r2 = Euclidean(dim=2)
-        elastic_curves_r2 = ElasticCurves(a=1.0, b=0.5)
-        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+        curves_space = DiscreteCurves(ambient_manifold=r2)
+        el_metric = ElasticMetric(a=1, b=0.5)
 
-        result = elastic_curves_r2.elastic_metric.f_transform(curve)
-        expected = curves_r2.square_root_velocity_metric.srv_transform(curve)
+        result = el_metric.f_transform(curve)
+        expected = curves_space.square_root_velocity_metric.srv_transform(curve)
         self.assertAllClose(result, expected, rtol, atol)
 
     def test_f_transform_inverse_and_srv_transform_inverse(self, curve, rtol, atol):
@@ -456,16 +454,14 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
         This is valid for a f transform with a=1, b=1/2.
         """
-        r2 = Euclidean(dim=2)
-        elastic_curves_r2 = ElasticCurves(a=1.0, b=0.5)
-        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+        curves_space = DiscreteCurves(ambient_manifold=r2)
+
+        el_metric = ElasticMetric(a=1, b=0.5)
         starting_point = curve[0]
         fake_transformed_curve = curve[1:, :]
 
-        result = elastic_curves_r2.elastic_metric.f_transform_inverse(
-            fake_transformed_curve, starting_point
-        )
-        expected = curves_r2.square_root_velocity_metric.srv_transform_inverse(
+        result = el_metric.f_transform_inverse(fake_transformed_curve, starting_point)
+        expected = curves_space.square_root_velocity_metric.srv_transform_inverse(
             fake_transformed_curve, starting_point
         )
         self.assertAllClose(result, expected, rtol, atol)
@@ -475,24 +471,23 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
         This is valid for a f_transform with a=1, b=1/2.
         """
-        r2 = Euclidean(dim=2)
-        elastic_curves_r2 = ElasticCurves(a=1.0, b=0.5)
-        curves = elastic_curves_r2.random_point(n_samples=2)
+        curves_space = DiscreteCurves(ambient_manifold=r2)
+        el_metric = ElasticMetric(a=1, b=0.5)
 
-        curves_r2 = DiscreteCurves(ambient_manifold=r2)
+        curves = curves_space.random_point(n_samples=2)
 
-        result = elastic_curves_r2.elastic_metric.f_transform(curves)
-        expected = curves_r2.square_root_velocity_metric.srv_transform(curves)
+        result = el_metric.f_transform(curves)
+        expected = curves_space.square_root_velocity_metric.srv_transform(curves)
         self.assertAllClose(result, expected, rtol, atol)
 
     def test_f_transform_and_inverse(self, a, b, rtol, atol):
         """Test that the inverse is right."""
-        elastic_curves_r2 = ElasticCurves(a=a, b=b)
-        curve = elastic_curves_r2.random_point()
+        curves_space = DiscreteCurves(ambient_manifold=r2)
+        el_metric = ElasticMetric(a=a, b=b)
+        curve = curves_space.random_point()
 
-        metric = elastic_curves_r2.elastic_metric
-        f = metric.f_transform(curve)
-        f_inverse = metric.f_transform_inverse(f, curve[0])
+        f = el_metric.f_transform(curve)
+        f_inverse = el_metric.f_transform_inverse(f, curve[0])
 
         result = f.shape
         expected = (curve.shape[0] - 1, 2)
