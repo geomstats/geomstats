@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 from geomstats.information_geometry.beta import BetaDistributions
 from geomstats.information_geometry.binomial import BinomialDistributions
-from geomstats.information_geometry.visualization_draft import (
+from geomstats.visualization.information_geometry.visualization_draft_infogeo import (
     Visualizer1D,
     Visualizer2D,
 )
@@ -37,6 +37,17 @@ axs[1, 1].title.set_text("random geodesic in the Beta manifold")
 axs[1, 1].axis("equal")
 
 plt.show()
+
+overlay_fig, overlay_ax = plt.subplots()
+visu.overlay_scatter(overlay_ax, point, support=[0, 1])
+
+overlay_ax.title.set_text("overlay scatter of random points on the Beta manifold")
+overlay_ax.legend(loc="upper right")
+
+plt.show(block=False)
+plt.pause(0.001)  # Pause for interval seconds.
+input("hit [enter] to close 2D visualizer.")
+plt.close("all")  # all open plots are correctly closed after each run
 
 """1D"""
 

@@ -1,6 +1,17 @@
 """Draft of visualizer (plotter) for information geometry."""
 
+import io
+
+import cv2
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.offsetbox import AnnotationBbox, OffsetImage
+from PIL import Image
+
 import geomstats.backend as gs
+
+mpl.rc("figure", max_open_warning=0)
 
 
 class Visualizer2D:
@@ -20,6 +31,93 @@ class Visualizer2D:
             Point on the manifold.
         """
         ax.scatter(point[..., 0], point[..., 1], **kwargs)
+
+    def overlay_scatter(self, ax, point, support, **kwargs):
+        """Plot points on the manifold, p.d.f plot appears when overing over point.
+
+        Parameters
+        ----------
+        ax : matplotlib window
+            Location of the plot.
+        point : array-like, shape=[...,2]
+            Point on the manifold.
+        support : list, shape=[2]
+            Support of the p.d.f.
+        """
+        # define a function which returns an image as numpy array from figure
+        def get_img_from_fig(fig, dpi=180):
+            """Get image from matplotlib plot."""
+            buf = io.BytesIO()
+            fig.savefig(buf, format="png", dpi=dpi)
+            buf.seek(0)
+            img_arr = np.frombuffer(buf.getvalue(), dtype=np.uint8)
+            buf.close()
+            img = cv2.imdecode(img_arr, 1)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+            return img
+
+        left_bound, right_bound = support
+        x = gs.linspace(left_bound, right_bound, 100)
+        fig_template = plt.figure()
+        plt.plot(x, self.space.point_to_pdf(gs.array([1, 1]))(x))
+
+        template_plot = get_img_from_fig(fig_template)
+
+        # create figure and plot scatter
+        fig = plt.figure(figsize=(12, 8))
+        ax = fig.add_subplot(111)
+        (line,) = ax.plot(point[:, 0], point[:, 1], ls="", marker="o")
+
+        # create the annotations box
+        im = OffsetImage(template_plot, zoom=1)
+        xybox = (240.0, 160.0)
+        ab = AnnotationBbox(
+            im,
+            (0, 0),
+            xybox=xybox,
+            xycoords="data",
+            boxcoords="offset points",
+            pad=0.3,
+            arrowprops=dict(arrowstyle="->"),
+        )
+        # add it to the axes and make it invisible
+        ax.add_artist(ab)
+        ab.set_visible(False)
+
+        def hover(event):
+            # if the mouse is over the scatter points
+            if line.contains(event)[0]:
+                # find out the index within the array from the event
+                (ind,) = line.contains(event)[1]["ind"]
+                # get the figure size
+                w, h = fig.get_size_inches() * fig.dpi
+                ws = (event.x > w / 2.0) * -1 + (event.x <= w / 2.0)
+                hs = (event.y > h / 2.0) * -1 + (event.y <= h / 2.0)
+                # if event occurs in the top or right quadrant of the figure,
+                # change the annotation box position relative to mouse.
+                ab.xybox = (xybox[0] * ws, xybox[1] * hs)
+                # make annotation box visible
+                ab.set_visible(True)
+                # place it at the position of the hovered scatter point
+                ab.xy = (point[ind, 0], point[ind, 1])
+                # draw the plot
+                fig_plot = plt.figure(dpi=fig.dpi)
+                ax = fig_plot.add_subplot(111)
+                ax.plot(x, self.space.point_to_pdf(point[ind])(x))
+                # set the image corresponding to that point
+                array = get_img_from_fig(fig_plot)
+                img = Image.fromarray(array, "RGB")
+                img = img.resize((240, 160))
+                img.save("my.png")
+                im.set_data(plt.imread("my.png"))
+            else:
+                # if the mouse is not over a scatter point
+                ab.set_visible(False)
+            fig.canvas.draw_idle()
+
+        # add callback for mouse moves
+        fig.canvas.mpl_connect("motion_notify_event", hover)
 
     def plot_vector_field(self, ax, point, tangent_vec, **kwargs):
         """Quiver plot on the manifold.
