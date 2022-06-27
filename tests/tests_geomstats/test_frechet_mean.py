@@ -4,7 +4,7 @@ import math
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.discrete_curves import R2, DiscreteCurves
+from geomstats.geometry.discrete_curves import R2, DiscreteCurves, ElasticMetric
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
@@ -28,6 +28,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.so_matrix = SpecialOrthogonal(n=3)
         self.curves_2d = DiscreteCurves(R2)
+        self.elastic_metric = ElasticMetric(a=1, b=1, ambient_manifold=R2)
 
     def test_logs_at_mean_curves_2d(self):
         n_tests = 10
@@ -117,16 +118,16 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (dim,))
 
-    def test_estimate_shape_elastic_curves_2d(self):
-        points = self.elastic_curves_2d.random_point(n_samples=2)
+    def test_estimate_shape_elastic_metric(self):
+        points = self.curves_2d.random_point(n_samples=2)
 
-        mean = FrechetMean(metric=self.elastic_curves_2d.elastic_metric)
+        mean = FrechetMean(metric=self.elastic_metric)
         mean.fit(points)
         result = mean.estimate_
 
         self.assertAllClose(gs.shape(result), (points.shape[1:]))
 
-    def test_estimate_shape_curves_2d(self):
+    def test_estimate_shape_metric(self):
         points = self.curves_2d.random_point(n_samples=2)
 
         mean = FrechetMean(metric=self.curves_2d.srv_metric)
@@ -270,11 +271,11 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    def test_estimate_elastic_curves_2d(self):
-        point = self.elastic_curves_2d.random_point(n_samples=1)
+    def test_estimate_elastic_metric(self):
+        point = self.curves_2d.random_point(n_samples=1)
         points = gs.array([point, point])
 
-        mean = FrechetMean(metric=self.elastic_curves_2d.elastic_metric)
+        mean = FrechetMean(metric=self.elastic_metric)
         mean.fit(X=points)
 
         result = mean.estimate_
