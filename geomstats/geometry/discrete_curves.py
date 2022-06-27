@@ -51,7 +51,7 @@ class DiscreteCurves(Manifold):
         Function that takes as argument an integer number of sampled points
         and returns the corresponding L2 metric (product) metric,
         a RiemannianMetric object
-    square_root_velocity_metric : RiemannianMetric
+    srv_metric : RiemannianMetric
         Square root velocity metric.
     """
 
@@ -61,11 +61,10 @@ class DiscreteCurves(Manifold):
             dim=math.inf, shape=(), default_point_type="matrix", **kwargs
         )
         self.ambient_manifold = ambient_manifold
-        self.square_root_velocity_metric = self._metric
+        self.srv_metric = self._metric
 
-        self.quotient_square_root_velocity_metric = QuotientSRVMetric(
-            self.ambient_manifold
-        )
+        self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
+        self.quotient_srv_metric = QuotientSRVMetric(self.ambient_manifold)
 
         if a is not None and b is not None:
             self.elastic_metric = ElasticMetric(
@@ -222,11 +221,13 @@ class ClosedDiscreteCurves(LevelSet):
     ----------
     ambient_manifold : Manifold
         Manifold in which curves take values.
+    embedding_space : Manifold
+        Manifold in which the space of closed curves is embedded.
     l2_landmarks_metric : callable
         Function that takes as argument an integer number of sampled points
         and returns the corresponding L2 metric (product) metric,
         a RiemannianMetric object
-    square_root_velocity_metric : RiemannianMetric
+    srv_metric : RiemannianMetric
         Square root velocity metric.
 
     References
@@ -241,12 +242,13 @@ class ClosedDiscreteCurves(LevelSet):
         super(ClosedDiscreteCurves, self).__init__(
             dim=math.inf,
             shape=(),
-            default_point_type="matrix",
             submersion=None,
             tangent_submersion=None,
+            value=None,
+            embedding_space=DiscreteCurves(ambient_manifold=ambient_manifold),
         )
         self.ambient_manifold = ambient_manifold
-        self.embedding_space = DiscreteCurves(ambient_manifold=ambient_manifold)
+        self.ambient_metric = ambient_manifold.metric
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
@@ -398,7 +400,7 @@ class ClosedDiscreteCurves(LevelSet):
                 "2D Euclidean space."
             )
 
-        srv_metric = self.square_root_velocity_metric
+        srv_metric = self.embedding_space.srv_metric
         srv = srv_metric.srv_transform(curve)
         srv_proj = self.srv_projection(srv, atol=atol, max_iter=max_iter)
         proj = srv_metric.srv_transform_inverse(srv_proj, gs.array([curve[0]]))
@@ -439,8 +441,9 @@ class ClosedDiscreteCurves(LevelSet):
             )
 
         dim = self.ambient_metric.dim
-        srv_inner_prod = self.l2_curves_metric.inner_product
-        srv_norm = self.l2_curves_metric.norm
+        l2_metric = self.embedding_space.l2_curves_metric
+        srv_inner_prod = l2_metric.inner_product
+        srv_norm = l2_metric.norm
         inner_prod = self.ambient_metric.inner_product
 
         def g_criterion(srv, srv_norms):
