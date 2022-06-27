@@ -44,7 +44,6 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     # closed discrete curves doesn't have random point
     space = ClosedDiscreteCurves
     skip_test_projection_belongs = True
-    skip_test_random_point_belongs = True
     skip_test_random_tangent_vec_is_tangent = True
     skip_test_to_tangent_is_tangent = True
 

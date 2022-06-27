@@ -269,7 +269,11 @@ class ClosedDiscreteCurves(LevelSet):
             Boolean evaluating if point belongs to the space of discrete
             curves.
         """
-        raise NotImplementedError("The belongs method is not implemented.")
+        point = gs.to_ndarray(point, to_ndim=3)
+        first_point = point[:, 0, :]
+        last_point = point[:, -1, :]
+        point_belongs = gs.allclose(first_point, last_point, atol=atol)
+        return gs.squeeze(point_belongs)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at a curve.
@@ -370,7 +374,10 @@ class ClosedDiscreteCurves(LevelSet):
         samples : array-like, shape=[..., n_sampling_points, {dim, [n, n]}]
             Points sampled on the hypersphere.
         """
-        raise NotImplementedError("The random_point method is not implemented.")
+        sample = self.embedding_space.random_point(n_samples)
+        sample = gs.to_ndarray(sample, to_ndim=3)
+        sample[:, -1, :] = sample[:, 0, :]
+        return gs.squeeze(sample)
 
     def projection(self, curve, atol=gs.atol, max_iter=1000):
         """Project a discrete curve into the space of closed discrete curves.
@@ -396,7 +403,7 @@ class ClosedDiscreteCurves(LevelSet):
         if not is_planar:
             raise AssertionError(
                 "The projection is only implemented "
-                "for discrete curves embedded in a"
+                "for discrete curves embedded in a "
                 "2D Euclidean space."
             )
 
@@ -435,8 +442,8 @@ class ClosedDiscreteCurves(LevelSet):
 
         if not is_planar:
             raise AssertionError(
-                "The projection is only implemented "
-                "for discrete curves embedded in a"
+                "The srv projection is only implemented "
+                "for discrete curves embedded in a "
                 "2D Euclidean space."
             )
 

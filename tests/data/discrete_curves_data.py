@@ -659,8 +659,10 @@ class ClosedDiscreteCurvesTestData(_ManifoldTestData):
         )
 
     def projection_belongs_test_data(self):
+        smoke_space_args_list = [(self.r2,)]
+        smoke_n_points_list = [1, 2]
         return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
+            smoke_space_args_list, self.shape_list, smoke_n_points_list
         )
 
     def to_tangent_is_tangent_test_data(self):
