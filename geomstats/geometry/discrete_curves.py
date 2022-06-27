@@ -46,7 +46,7 @@ class DiscreteCurves(Manifold):
     ----------
     ambient_manifold : Manifold
         Manifold in which curves take values.
-    l2_landmark_metric : callable
+    l2_landmarks_metric : callable
         Function that takes as argument an integer number of sampled points
         and returns the corresponding L2 metric (product) metric,
         a RiemannianMetric object
@@ -787,7 +787,7 @@ class ElasticCurves(DiscreteCurves):
     ----------
     ambient_manifold : Manifold
         Manifold in which curves take values.
-    l2_landmark_metric : callable
+    l2_landmarks_metric : callable
         Function that takes as argument an integer number of sampled points
         and returns the corresponding L2 metric (product) metric,
         a RiemannianMetric object.
@@ -1370,7 +1370,7 @@ class ClosedDiscreteCurves(Manifold):
     ----------
     ambient_manifold : Manifold
         Manifold in which curves take values.
-    l2_landmark_metric : callable
+    l2_landmarks_metric : callable
         Function that takes as argument an integer number of sampled points
         and returns the corresponding L2 metric (product) metric,
         a RiemannianMetric object
