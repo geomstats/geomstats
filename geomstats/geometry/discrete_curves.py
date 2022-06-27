@@ -582,6 +582,7 @@ class L2CurvesMetric(RiemannianMetric):
         """
 
         def inner_prod_aux(vec_a, vec_b, curve=None):
+            """Compute inner-product of the ambient metric."""
             inner_prod = self.ambient_metric.inner_product(vec_a, vec_b, curve)
             return gs.squeeze(inner_prod)
 

@@ -4,7 +4,7 @@ import math
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.discrete_curves import R2, DiscreteCurves, ElasticCurves
+from geomstats.geometry.discrete_curves import R2, DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
@@ -28,11 +28,10 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.so_matrix = SpecialOrthogonal(n=3)
         self.curves_2d = DiscreteCurves(R2)
-        self.elastic_curves_2d = ElasticCurves(a=2, b=2)
 
     def test_logs_at_mean_curves_2d(self):
         n_tests = 10
-        metric = self.curves_2d.square_root_velocity_metric
+        metric = self.curves_2d.srv_metric
         estimator = FrechetMean(metric=metric, init_step_size=1.0)
 
         result = []
@@ -130,7 +129,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def test_estimate_shape_curves_2d(self):
         points = self.curves_2d.random_point(n_samples=2)
 
-        mean = FrechetMean(metric=self.curves_2d.square_root_velocity_metric)
+        mean = FrechetMean(metric=self.curves_2d.srv_metric)
         mean.fit(points)
         result = mean.estimate_
 
@@ -151,7 +150,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def test_estimate_and_belongs_curves_2d(self):
         points = self.curves_2d.random_point(n_samples=2)
 
-        mean = FrechetMean(metric=self.curves_2d.square_root_velocity_metric)
+        mean = FrechetMean(metric=self.curves_2d.srv_metric)
         mean.fit(points)
 
         result = self.curves_2d.belongs(mean.estimate_)
@@ -287,7 +286,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         point = self.curves_2d.random_point(n_samples=1)
         points = gs.array([point, point])
 
-        mean = FrechetMean(metric=self.curves_2d.square_root_velocity_metric)
+        mean = FrechetMean(metric=self.curves_2d.srv_metric)
         mean.fit(X=points)
 
         result = mean.estimate_
