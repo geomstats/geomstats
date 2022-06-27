@@ -154,7 +154,6 @@ class HermitianMatrices(VectorSpace):
         upper_triangular = gs.stack(
             [gs.array_from_sparse(indices, data, shape) for data in vec]
         )
-        # mat = Matrices.to_hermitian(upper_triangular) * mask
         mat = Matrices.to_hermitian(upper_triangular) * gs.cast(mask, dtype)
         return mat
 

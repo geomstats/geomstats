@@ -674,11 +674,9 @@ def isclose(x, y, rtol=rtol, atol=atol):
     x, y = convert_to_wider_dtype([x, y])
     dtype = x.dtype
 
-    # rhs = _tf.constant(atol, dtype=dtype) + _tf.constant(rtol, dtype=dtype) * _tf.abs(y)
     diff = _tf.abs(_tf.subtract(x, y))
-    rhs = _tf.constant(atol, dtype=dtype) + _tf.constant(rtol, dtype=dtype) * _tf.cast(
-        _tf.abs(y), dtype=dtype
-    )
+    rhs = _tf.constant(atol, dtype=dtype)
+    rhs += +_tf.constant(rtol, dtype=dtype) * _tf.cast(_tf.abs(y), dtype=dtype)
     rhs = _tf.cast(rhs, dtype=diff.dtype)
     return _tf.less_equal(_tf.abs(_tf.subtract(x, y)), rhs)
 
