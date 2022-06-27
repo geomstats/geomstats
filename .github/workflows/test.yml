@@ -31,7 +31,7 @@ jobs:
         os: [ubuntu-18.04]
         python-version: [3.8]
         geomstats-backend : ['autograd','numpy','pytorch','tensorflow']
-        test-folder : ['tests/tests_geomstats/' , 'tests/test_notebooks.py']
+        test-folder : ['tests/tests_geomstats/' , 'tests/tests_scripts']
       fail-fast: false
 
     steps:

@@ -90,6 +90,46 @@ def linear_mean(points, weights=None, point_type="vector"):
     return mean
 
 
+def srv_mean(points, weights=None, metric=None):
+    """Compute the weighted mean of SRV representations of curves.
+
+    SRV: Square Root Velocity.
+
+    The computation of the mean goes as follows:
+    - Transform the curves into their SRVs,
+    - Compute the linear mean of the SRVs,
+    - Transform the srv mean in curve space.
+
+    Parameters
+    ----------
+    points : array-like, shape=[..., n_sampling_points, dim]
+        Points on the manifold of curves (i.e. curves) to be averaged.
+    weights : array-like, shape=[...,]
+        Weights associated to the points (i.e. curves).
+        Optional, default: None.
+
+    Returns
+    -------
+    mean : array-like, shape=[n_sampling_points, dim]
+        Weighted linear mean of the points (i.e. of the curves).
+    """
+    if isinstance(points, list):
+        points = gs.stack(points, axis=0)
+
+    srvs = metric.srv_transform(points)
+
+    srv_linear_mean = linear_mean(srvs, weights=weights, point_type="matrix")
+
+    starting_point = (
+        FrechetMean(metric.ambient_metric)
+        .fit(points[:, 0, :], weights=weights)
+        .estimate_
+    )
+    starting_point = gs.expand_dims(starting_point, axis=0)
+    mean = metric.srv_transform_inverse(srv_linear_mean, starting_point=starting_point)
+    return mean
+
+
 def _default_gradient_descent(
     points,
     metric,
@@ -547,6 +587,7 @@ class FrechetMean(BaseEstimator):
             or "MatricesMetric" in metric_str
             or "MinkowskiMetric" in metric_str
         )
+        is_srv_metric = "SRVMetric" in metric_str
 
         if "HypersphereMetric" in metric_str and self.metric.dim == 1:
             mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
@@ -557,6 +598,9 @@ class FrechetMean(BaseEstimator):
 
         if is_linear_metric:
             mean = linear_mean(points=X, weights=weights, point_type=self.point_type)
+
+        elif is_srv_metric:
+            mean = srv_mean(points=X, weights=weights, metric=self.metric)
 
         elif self.method == "default":
             mean = _default_gradient_descent(

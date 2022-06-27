@@ -10,7 +10,7 @@ from scipy.interpolate import CubicSpline
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
-from geomstats.geometry.landmarks import L2Metric
+from geomstats.geometry.landmarks import L2LandmarksMetric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -140,6 +140,26 @@ class DiscreteCurves(Manifold):
         tangent_vec = gs.reshape(tangent_vec, vector.shape)
         return tangent_vec
 
+    def projection(self, point):
+        """Project a point to the space of discrete curves.
+
+        Parameters
+        ----------
+        point: array-like, shape[..., n_sampling_points, ambient_dim]
+            Point.
+
+        Returns
+        -------
+        point: array-like, shape[..., n_sampling_points, ambient_dim]
+            Point.
+        """
+        ambient_manifold = self.ambient_manifold
+        shape = point.shape
+        stacked_point = gs.reshape(point, (-1, shape[-1]))
+        projected_point = ambient_manifold.projection(stacked_point)
+        projected_point = gs.reshape(projected_point, shape)
+        return projected_point
+
     def random_point(self, n_samples=1, bound=1.0, n_sampling_points=10):
         """Sample random curves.
 
@@ -191,7 +211,9 @@ class L2CurvesMetric(RiemannianMetric):
                 )
         else:
             self.ambient_metric = metric
-        self.l2_landmarks_metric = lambda n: L2Metric(ambient_manifold, n_landmarks=n)
+        self.l2_landmarks_metric = lambda n: L2LandmarksMetric(
+            ambient_manifold.metric, k_landmarks=n
+        )
 
     def riemann_sum(self, func, missing_last_point=True):
         """Compute the left Riemann sum approximation of the integral.
@@ -387,8 +409,412 @@ class L2CurvesMetric(RiemannianMetric):
         )
 
 
-class SRVMetric(RiemannianMetric):
+class ElasticMetric(RiemannianMetric):
+    """Elastic metric defined using the F_transform.
+
+    See [NK2018]_ for details.
+
+    Parameters
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which curves take values.
+    metric : RiemannianMetric
+        Metric to use on the ambient manifold. If None is passed, ambient
+        manifold should have a metric attribute, which will be used.
+        Optional, default : None.
+    translation_invariant : bool
+        Optional, default : True.
+    a : float
+        Bending parameter.
+    b : float
+        Stretching parameter.
+
+    References
+    ----------
+    .. [KN2018] S. Kurtek and T. Needham,
+        "Simplifying transforms for general elastic metrics on the space of
+        plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
+    """
+
+    def __init__(
+        self, a, b, ambient_manifold=R2, metric=None, translation_invariant=True
+    ):
+        super(ElasticMetric, self).__init__(
+            dim=math.inf, signature=(math.inf, 0, 0), default_point_type="matrix"
+        )
+        self.ambient_metric = metric
+        if metric is None:
+            if hasattr(ambient_manifold, "metric"):
+                self.ambient_metric = ambient_manifold.metric
+            else:
+                raise ValueError(
+                    "Instantiating an object of class "
+                    "ElasticCurves requires either a metric"
+                    " or an ambient manifold"
+                    " equipped with a metric."
+                )
+        self.ambient_manifold = ambient_manifold
+        self.l2_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
+        self.translation_invariant = translation_invariant
+        self.a = a
+        self.b = b
+
+    def cartesian_to_polar(self, curve):
+        """Compute polar coordinates of a curve from the cartesian ones.
+
+        See [KN2018]_ for details.
+
+        Parameters
+        ----------
+        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        norms : array-like, shape=[..., n_sampling_points]
+            Norms of the sampling points.
+        args : array-like, shape=[..., n_sampling_points]
+            Arguments of the sampling points.
+        """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "cartesian_to_polar is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
+        n_sampling_points = curve.shape[-2]
+        inner_prod = self.ambient_metric.inner_product
+
+        norms = self.ambient_metric.norm(curve)
+        arg_0 = math.atan2(curve[0, 1], curve[0, 0])
+        args = [arg_0]
+
+        for i in range(1, n_sampling_points):
+            point, last_point = curve[i], curve[i - 1]
+            prod = inner_prod(point, last_point)
+            cosine = prod / (norms[i] * norms[i - 1])
+            angle = gs.arccos(gs.clip(cosine, -1, 1))
+            det = gs.linalg.det(gs.array([last_point, point]))
+            orientation = gs.sign(det)
+            arg = args[-1] + orientation * angle
+            args.append(arg)
+
+        args = gs.array(args)
+
+        return norms, args
+
+    def polar_to_cartesian(self, norms, args):
+        """Compute the cartesian coordinates of a curve from polar ones.
+
+        Parameters
+        ----------
+        norms : array-like, shape=[..., n_sampling_points]
+            Norms of sampling points.
+        args : array-like, shape=[..., n_sampling_points]
+            Arguments of sampling points.
+
+        Returns
+        -------
+        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "polar_to_cartesian is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
+        curve_x = gs.cos(args)
+        curve_y = gs.sin(args)
+        unit_curve = gs.transpose(gs.vstack((curve_x, curve_y)))
+        curve = norms[:, None] * unit_curve
+
+        return curve
+
+    def f_transform(self, curve):
+        """Compute the F_transform of a curve.
+
+        See [KN2018]_ for details.
+
+        Parameters
+        ----------
+        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        f : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
+            F_transform of the curve..
+        """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "f_transform is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
+        n_sampling_points = curve.shape[-2]
+        velocity = (n_sampling_points - 1) * (curve[1:] - curve[:-1])
+        speeds, args = self.cartesian_to_polar(velocity)
+
+        f_args = args * self.a / (2 * self.b)
+        f_norms = 2 * self.b * gs.sqrt(speeds)
+        f = self.polar_to_cartesian(f_norms, f_args)
+
+        return f
+
+    def f_transform_inverse(self, f, starting_point):
+        """Compute the inverse F_transform of a transformed curve.
+
+        Only works if a/2b <= 1.
+        See [KN2018]_ for details.
+
+        Parameters
+        ----------
+        f : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
+            F_transform of the curve.
+
+        Returns
+        -------
+        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "f_transform_inverse is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
+        n_sampling_points = f.shape[-2]
+        norms, args = self.cartesian_to_polar(f)
+        curve_x = [0]
+        curve_y = [0]
+
+        for i in range(n_sampling_points):
+            x = curve_x[-1]
+            x += norms[i] ** 2 * gs.cos(2 * self.b / self.a * args[i])
+            curve_x.append(x)
+            y = curve_y[-1]
+            y += norms[i] ** 2 * gs.sin(2 * self.b / self.a * args[i])
+            curve_y.append(y)
+
+        curve_x = gs.array(curve_x)
+        curve_y = gs.array(curve_y)
+        curve = gs.transpose(gs.vstack((curve_x, curve_y))) / n_sampling_points
+        curve = 1 / (4 * self.b**2) * curve + starting_point
+
+        return curve
+
+    def dist(self, curve_1, curve_2, rescaled=False):
+        """Compute the geodesic distance between two curves.
+
+        The two F_transforms are computed with corrected arguments
+        before taking the L2 distance between them.
+        See [KN2018]_ for details.
+
+        Parameters
+        ----------
+        curve_1 : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        curve_2 : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        dist : [...]
+            Geodesic distance between the curves.
+        """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "dist is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
+        n_sampling_points = curve_1.shape[-2]
+        velocity_1 = (n_sampling_points - 1) * (curve_1[1:] - curve_1[:-1])
+        velocity_2 = (n_sampling_points - 1) * (curve_2[1:] - curve_2[:-1])
+
+        speed_1, arg_1 = self.cartesian_to_polar(velocity_1)
+        speed_2, arg_2 = self.cartesian_to_polar(velocity_2)
+
+        n_sampling_points = arg_1.shape[-1]
+
+        for i in range(n_sampling_points):
+            if arg_2[i] - arg_1[i] > 2 * gs.pi * 0.9:
+                for j in range(i, n_sampling_points):
+                    arg_2[j] -= 2 * gs.pi
+            elif arg_2[i] - arg_1[i] < -2 * gs.pi * 0.9:
+                for j in range(i, n_sampling_points):
+                    arg_2[j] += 2 * gs.pi
+
+        f_1_args = arg_1 * self.a / (2 * self.b)
+        f_2_args = arg_2 * self.a / (2 * self.b)
+
+        f_1_norms = 2 * self.b * gs.sqrt(speed_1)
+        f_2_norms = 2 * self.b * gs.sqrt(speed_2)
+
+        f_1 = self.polar_to_cartesian(f_1_norms, f_1_args)
+        f_2 = self.polar_to_cartesian(f_2_norms, f_2_args)
+
+        l2_prod = self.l2_metric.inner_product
+        l2_dist = self.l2_metric.dist
+
+        if rescaled:
+            cosine = l2_prod(f_1, f_2) / (4 * self.b**2)
+            distance = 2 * self.b * gs.arccos(gs.clip(cosine, -1, 1))
+        else:
+            distance = l2_dist(f_1, f_2)
+
+        return distance
+
+
+class ElasticCurves(Manifold):
+    r"""Space of elastic curves sampled at points in the 2D plane.
+
+    Each individual curve is represented by a 2d-array of shape `[
+    n_sampling_points, ambient_dim]`.
+
+    Parameters
+    ----------
+    a : float
+        Bending parameter.
+    b : float
+        Stretching parameter.
+
+    Attributes
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which curves take values.
+    l2_metric : callable
+        Function that takes as argument an integer number of sampled points
+        and returns the corresponding L2 metric (product) metric,
+        a RiemannianMetric object.
+    elastic_metric : RiemannianMetric
+        Elastic metric with parameters a and b.
+    """
+
+    def __init__(self, a, b):
+        super(ElasticCurves, self).__init__(
+            dim=math.inf, shape=(), default_point_type="matrix"
+        )
+        self.ambient_manifold = R2
+        self.l2_metric = lambda n: L2LandmarksMetric(
+            self.ambient_manifold, k_landmarks=n
+        )
+        self.elastic_metric = ElasticMetric(a, b)
+
+    def belongs(self, point, atol=gs.atol):
+        """Test whether a point belongs to the manifold.
+
+        Test that all points of the curve belong to the ambient manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Point representing a discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : bool
+            Boolean evaluating if point belongs to the space of discrete
+            curves.
+        """
+        raise NotImplementedError("The belongs method is not implemented.")
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at a curve.
+
+        A vector is tangent at a curve if it is a vector field along that
+        curve.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        raise NotImplementedError("The is_tangent method is not implemented.")
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        As tangent vectors are vector fields along a curve, each component of
+        the vector is projected to the tangent space of the corresponding
+        point of the discrete curve. The number of sampling points should
+        match in the vector and the base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Vector.
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Tangent vector at base point.
+        """
+        raise NotImplementedError("The to_tangent method is not implemented.")
+
+    def random_point(self, n_samples=1, bound=1.0, n_sampling_points=10):
+        """Sample random curves.
+
+        If the ambient manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact
+            ambient manifolds.
+            Optional, default: 1.
+        n_sampling_points : int
+            Number of sampling points for the discrete curves.
+            Optional, default : 10.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n_sampling_points, {dim, [n, n]}]
+            Points sampled on the hypersphere.
+        """
+        raise NotImplementedError("The random_point method is not implemented.")
+
+
+class SRVMetric(ElasticMetric):
     """Elastic metric defined using the Square Root Velocity Function.
+
+    The SRV metric is equivelent to the elastic metric chosen with
+    - bending parameter a = 1,
+    - stretching parameter b = 1/2.
 
     See [Sea2011]_ for details.
 
@@ -410,22 +836,13 @@ class SRVMetric(RiemannianMetric):
     """
 
     def __init__(self, ambient_manifold, metric=None, translation_invariant=True):
-        super(SRVMetric, self).__init__(dim=math.inf, signature=(math.inf, 0, 0))
-        if metric is None:
-            if hasattr(ambient_manifold, "metric"):
-                self.ambient_metric = ambient_manifold.metric
-            else:
-                raise ValueError(
-                    "Instantiating an object of class "
-                    "DiscreteCurves requires either a metric"
-                    " or an ambient manifold"
-                    " equipped with a metric."
-                )
-        else:
-            self.ambient_metric = metric
-        self.default_point_type = "matrix"
-        self.l2_metric = L2CurvesMetric(ambient_manifold, metric)
-        self.translation_invariant = translation_invariant
+        super(SRVMetric, self).__init__(
+            a=1,
+            b=0.5,
+            ambient_manifold=ambient_manifold,
+            metric=metric,
+            translation_invariant=translation_invariant,
+        )
 
     def srv_transform(self, curve, tol=gs.atol):
         """Square Root Velocity Transform (SRVT).
@@ -556,6 +973,7 @@ class SRVMetric(RiemannianMetric):
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
+
         inner_prod = self.l2_metric.pointwise_inner_products(
             d_vec, unit_velocity_vec, curve[..., :-1, :]
         )
@@ -784,12 +1202,13 @@ class SRVMetric(RiemannianMetric):
         if end_curve is not None:
             end_curve = gs.to_ndarray(end_curve, to_ndim=curve_ndim + 1)
             shooting_tangent_vec = self.log(point=end_curve, base_point=initial_curve)
-            if initial_tangent_vec is not None:
-                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
-                    raise RuntimeError(
-                        "The shooting tangent vector is too"
-                        " far from the initial tangent vector."
-                    )
+            if (initial_tangent_vec is not None) and (
+                not gs.allclose(shooting_tangent_vec, initial_tangent_vec)
+            ):
+                raise RuntimeError(
+                    "The shooting tangent vector is too"
+                    " far from the initial tangent vector."
+                )
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=curve_ndim + 1)
@@ -1100,6 +1519,15 @@ class ClosedSRVMetric(SRVMetric):
         inner_prod = self.ambient_metric.inner_product
 
         def g_criterion(srv, srv_norms):
+            """Compute the closeness criterion from [Sea2011]_.
+
+            References
+            ----------
+            .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
+                "Shape Analysis of Elastic Curves in Euclidean Spaces,"
+                in IEEE Transactions on Pattern Analysis and Machine Intelligence,
+                vol. 33, no. 7, pp. 1415-1428, July 2011.
+            """
             return gs.sum(srv * srv_norms[:, None], axis=0)
 
         initial_norm = srv_norm(srv)
@@ -1146,337 +1574,6 @@ class ClosedSRVMetric(SRVMetric):
             nb_iter += 1
 
         return proj
-
-
-class ElasticMetric(RiemannianMetric):
-    """Elastic metric defined using the F_transform.
-
-    See [NK2018]_ for details.
-
-    Parameters
-    ----------
-    a: float
-        Bending parameter.
-    b: float
-        Stretching parameter.
-
-    References
-    ----------
-    .. [KN2018] S. Kurtek and T. Needham,
-        "Simplifying transforms for general elastic metrics on the space of
-        plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
-    """
-
-    def __init__(self, a, b):
-        super(ElasticMetric, self).__init__(dim=math.inf, signature=(math.inf, 0, 0))
-        self.ambient_manifold = R2
-        self.ambient_metric = self.ambient_manifold.metric
-        self.l2_metric = L2CurvesMetric(ambient_manifold=R2)
-        self.a = a
-        self.b = b
-
-    def cartesian_to_polar(self, curve):
-        """Compute polar coordinates of a curve from the cartesian ones.
-
-        See [KN2018]_ for details.
-
-        Parameters
-        ----------
-        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve.
-
-        Returns
-        -------
-        norms : array-like, shape=[..., n_sampling_points]
-            Norms of the sampling points.
-        args : array-like, shape=[..., n_sampling_points]
-            Arguments of the sampling points.
-        """
-        n_sampling_points = curve.shape[-2]
-        inner_prod = self.ambient_metric.inner_product
-
-        norms = self.ambient_metric.norm(curve)
-        arg_0 = math.atan2(curve[0, 1], curve[0, 0])
-        args = [arg_0]
-
-        for i in range(1, n_sampling_points):
-            point, last_point = curve[i], curve[i - 1]
-            prod = inner_prod(point, last_point)
-            cosine = prod / (norms[i] * norms[i - 1])
-            angle = gs.arccos(gs.clip(cosine, -1, 1))
-            det = gs.linalg.det(gs.array([last_point, point]))
-            orientation = gs.sign(det)
-            arg = args[-1] + orientation * angle
-            args.append(arg)
-
-        args = gs.array(args)
-
-        return norms, args
-
-    @staticmethod
-    def polar_to_cartesian(norms, args):
-        """Compute the cartesian coordinates of a curve from polar ones.
-
-        Parameters
-        ----------
-        norms : array-like, shape=[..., n_sampling_points]
-            Norms of sampling points.
-        args : array-like, shape=[..., n_sampling_points]
-            Arguments of sampling points.
-
-        Returns
-        -------
-        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve.
-        """
-        curve_x = gs.cos(args)
-        curve_y = gs.sin(args)
-        unit_curve = gs.transpose(gs.vstack((curve_x, curve_y)))
-        curve = norms[:, None] * unit_curve
-
-        return curve
-
-    def f_transform(self, curve):
-        """Compute the F_transform of a curve.
-
-        See [KN2018]_ for details.
-
-        Parameters
-        ----------
-        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve.
-
-        Returns
-        -------
-        f : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
-            F_transform of the curve..
-        """
-        n_sampling_points = curve.shape[-2]
-        velocity = (n_sampling_points - 1) * (curve[1:] - curve[:-1])
-        speeds, args = self.cartesian_to_polar(velocity)
-
-        f_args = args * self.a / (2 * self.b)
-        f_norms = 2 * self.b * gs.sqrt(speeds)
-        f = self.polar_to_cartesian(f_norms, f_args)
-
-        return f
-
-    def f_transform_inverse(self, f, starting_point):
-        """Compute the inverse F_transform of a transformed curve.
-
-        Only works if a/2b <= 1.
-        See [KN2018]_ for details.
-
-        Parameters
-        ----------
-        f : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
-            F_transform of the curve.
-
-        Returns
-        -------
-        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve.
-        """
-        n_sampling_points = f.shape[-2]
-        norms, args = self.cartesian_to_polar(f)
-        curve_x = [0]
-        curve_y = [0]
-
-        for i in range(n_sampling_points):
-            x = curve_x[-1]
-            x += norms[i] ** 2 * gs.cos(2 * self.b / self.a * args[i])
-            curve_x.append(x)
-            y = curve_y[-1]
-            y += norms[i] ** 2 * gs.sin(2 * self.b / self.a * args[i])
-            curve_y.append(y)
-
-        curve_x = gs.array(curve_x)
-        curve_y = gs.array(curve_y)
-        curve = gs.transpose(gs.vstack((curve_x, curve_y))) / n_sampling_points
-        curve = 1 / (4 * self.b**2) * curve + starting_point
-
-        return curve
-
-    def dist(self, curve_1, curve_2, rescaled=False):
-        """Compute the geodesic distance between two curves.
-
-        The two F_transforms are computed with corrected arguments
-        before taking the L2 distance between them.
-        See [KN2018]_ for details.
-
-        Parameters
-        ----------
-        curve_1 : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve.
-        curve_2 : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve.
-
-        Returns
-        -------
-        dist : [...]
-            Geodesic distance between the curves.
-        """
-        n_sampling_points = curve_1.shape[-2]
-        velocity_1 = (n_sampling_points - 1) * (curve_1[1:] - curve_1[:-1])
-        velocity_2 = (n_sampling_points - 1) * (curve_2[1:] - curve_2[:-1])
-
-        speed_1, arg_1 = self.cartesian_to_polar(velocity_1)
-        speed_2, arg_2 = self.cartesian_to_polar(velocity_2)
-
-        n_sampling_points = arg_1.shape[-1]
-
-        for i in range(n_sampling_points):
-            if arg_2[i] - arg_1[i] > 2 * gs.pi * 0.9:
-                for j in range(i, n_sampling_points):
-                    arg_2[j] -= 2 * gs.pi
-            elif arg_2[i] - arg_1[i] < -2 * gs.pi * 0.9:
-                for j in range(i, n_sampling_points):
-                    arg_2[j] += 2 * gs.pi
-
-        f_1_args = arg_1 * self.a / (2 * self.b)
-        f_2_args = arg_2 * self.a / (2 * self.b)
-
-        f_1_norms = 2 * self.b * gs.sqrt(speed_1)
-        f_2_norms = 2 * self.b * gs.sqrt(speed_2)
-
-        f_1 = self.polar_to_cartesian(f_1_norms, f_1_args)
-        f_2 = self.polar_to_cartesian(f_2_norms, f_2_args)
-
-        l2_prod = self.l2_metric.inner_product
-        l2_dist = self.l2_metric.dist
-
-        if rescaled:
-            cosine = l2_prod(f_1, f_2) / (4 * self.b**2)
-            distance = 2 * self.b * gs.arccos(gs.clip(cosine, -1, 1))
-        else:
-            distance = l2_dist(f_1, f_2)
-
-        return distance
-
-
-class ElasticCurves(Manifold):
-    r"""Space of elastic curves sampled at points in the 2D plane.
-
-    Each individual curve is represented by a 2d-array of shape `[
-    n_sampling_points, ambient_dim]`.
-
-    Parameters
-    ----------
-    a : float
-        Bending parameter.
-    b : float
-        Stretching parameter.
-
-    Attributes
-    ----------
-    ambient_manifold : Manifold
-        Manifold in which curves take values.
-    l2_metric : callable
-        Function that takes as argument an integer number of sampled points
-        and returns the corresponding L2 metric (product) metric,
-        a RiemannianMetric object.
-    elastic_metric : RiemannianMetric
-        Elastic metric with parameters a and b.
-    """
-
-    def __init__(self, a, b):
-        super(ElasticCurves, self).__init__(
-            dim=math.inf, shape=(), default_point_type="matrix"
-        )
-        self.ambient_manifold = R2
-        self.l2_metric = lambda n: L2Metric(self.ambient_manifold, n_landmarks=n)
-        self.elastic_metric = ElasticMetric(a, b)
-
-    def belongs(self, point, atol=gs.atol):
-        """Test whether a point belongs to the manifold.
-
-        Test that all points of the curve belong to the ambient manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Point representing a discrete curve.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : bool
-            Boolean evaluating if point belongs to the space of discrete
-            curves.
-        """
-        raise NotImplementedError("The belongs method is not implemented.")
-
-    def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at a curve.
-
-        A vector is tangent at a curve if it is a vector field along that
-        curve.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Vector.
-        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        raise NotImplementedError("The is_tangent method is not implemented.")
-
-    def to_tangent(self, vector, base_point):
-        """Project a vector to a tangent space of the manifold.
-
-        As tangent vectors are vector fields along a curve, each component of
-        the vector is projected to the tangent space of the corresponding
-        point of the discrete curve. The number of sampling points should
-        match in the vector and the base_point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Vector.
-        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Tangent vector at base point.
-        """
-        raise NotImplementedError("The to_tangent method is not implemented.")
-
-    def random_point(self, n_samples=1, bound=1.0, n_sampling_points=10):
-        """Sample random curves.
-
-        If the ambient manifold is compact, a uniform distribution is used.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample for non compact
-            ambient manifolds.
-            Optional, default: 1.
-        n_sampling_points : int
-            Number of sampling points for the discrete curves.
-            Optional, default : 10.
-
-        Returns
-        -------
-        samples : array-like, shape=[..., n_sampling_points, {dim, [n, n]}]
-            Points sampled on the hypersphere.
-        """
-        raise NotImplementedError("The random_point method is not implemented.")
 
 
 class QuotientSRVMetric(SRVMetric):
