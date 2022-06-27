@@ -765,13 +765,6 @@ class ElasticMetric(RiemannianMetric):
             cosine = self.l2_curves_metric.inner_product(f_1, f_2) / (4 * self.b**2)
             distance = 2 * self.b * gs.arccos(gs.clip(cosine, -1, 1))
         else:
-            # elastic_metric.dist
-            # calls l2_curve_metric.dist
-            # calls riemannian_metric dist, squared_dist, squared_norm
-            # calls l2_curve_metric.inner_product
-            # calls l2_curve_metric.pointwise_inner_products
-            #  inner product of ElasticMetric
-            # ie trying to l2curvemetric -> RiemannianMetric -> ElasticDist
             distance = self.l2_curves_metric.dist(f_1, f_2)
 
         return distance
