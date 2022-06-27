@@ -531,7 +531,8 @@ class L2CurvesMetric(RiemannianMetric):
             ambient_manifold.metric, k_landmarks=n
         )
 
-    def riemann_sum(self, func, missing_last_point=True):
+    @staticmethod
+    def riemann_sum(func, missing_last_point=True):
         """Compute the left Riemann sum approximation of the integral.
 
         Compute the left Riemann sum approximation of the integral of a
