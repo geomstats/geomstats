@@ -80,6 +80,8 @@ _DTYPES = {
 angle = _tf.math.angle
 arctanh = _tf.math.atanh
 ceil = _tf.math.ceil
+complex64 = _tf.dtypes.complex64
+complex128 = _tf.dtypes.complex128
 conj = _tf.math.conj
 cross = _tf.linalg.cross
 erf = _tf.math.erf
@@ -498,9 +500,30 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return _tf.sparse.to_dense(
-        _tf.sparse.reorder(_tf.SparseTensor(indices, data, target_shape))
-    )
+    if type(data) is list:
+        data = _tf.convert_to_tensor(_np.array(data))
+    data_type = data.dtype
+    if data_type is _tf.dtypes.complex64 or data_type is _tf.dtypes.complex128:
+        a = _tf.cast(
+            _tf.sparse.to_dense(
+                _tf.sparse.reorder(
+                    _tf.SparseTensor(indices, _tf.math.real(data), target_shape)
+                )
+            ),
+            dtype=data_type,
+        ) + 1j * _tf.cast(
+            _tf.sparse.to_dense(
+                _tf.sparse.reorder(
+                    _tf.SparseTensor(indices, _tf.math.imag(data), target_shape)
+                )
+            ),
+            dtype=data_type,
+        )
+    else:
+        a = _tf.sparse.to_dense(
+            _tf.sparse.reorder(_tf.SparseTensor(indices, data, target_shape))
+        )
+    return a
 
 
 def get_slice(x, indices):
@@ -651,7 +674,12 @@ def isclose(x, y, rtol=rtol, atol=atol):
     x, y = convert_to_wider_dtype([x, y])
     dtype = x.dtype
 
-    rhs = _tf.constant(atol, dtype=dtype) + _tf.constant(rtol, dtype=dtype) * _tf.abs(y)
+    # rhs = _tf.constant(atol, dtype=dtype) + _tf.constant(rtol, dtype=dtype) * _tf.abs(y)
+    diff = _tf.abs(_tf.subtract(x, y))
+    rhs = _tf.constant(atol, dtype=dtype) + _tf.constant(rtol, dtype=dtype) * _tf.cast(
+        _tf.abs(y), dtype=dtype
+    )
+    rhs = _tf.cast(rhs, dtype=diff.dtype)
     return _tf.less_equal(_tf.abs(_tf.subtract(x, y)), rhs)
 
 

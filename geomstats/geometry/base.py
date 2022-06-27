@@ -160,9 +160,10 @@ class VectorSpace(Manifold, abc.ABC):
         size = self.shape
         if n_samples != 1:
             size = (n_samples,) + self.shape
-        point = (
-            bound * (gs.random.rand(*size) - 0.5) * 2**0.5
-            + 1j * bound * (gs.random.rand(*size) - 0.5) * 2**0.5
+        point = gs.cast(
+            bound * (gs.random.rand(*size) - 0.5) * 2**0.5, dtype=gs.complex128
+        ) + 1j * gs.cast(
+            bound * (gs.random.rand(*size) - 0.5) * 2**0.5, dtype=gs.complex128
         )
         return point
 

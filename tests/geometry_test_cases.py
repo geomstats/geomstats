@@ -1142,7 +1142,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         dist_ab = metric.dist(point_a, point_b)
         dist_bc = metric.dist(point_b, point_c)
         dist_ac = metric.dist(point_a, point_c)
-        result = gs.all((dist_ab + dist_bc - dist_ac) >= atol)
+        result = gs.all((dist_ab + dist_bc - dist_ac) >= -atol)
         self.assertTrue(result)
 
 

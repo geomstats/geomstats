@@ -35,18 +35,14 @@ class HermitianMatrices(VectorSpace):
             for col in gs.arange(row, self.n):
                 if row == col:
                     indices = [(row, row)]
-                    values = [1.0]
+                    values = [1.0 + 0j]
                     basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
                 else:
                     indices = [(row, col), (col, row)]
-                    values = [1.0, 1.0]
+                    values = [1.0 + 0j, 1.0 + 0j]
                     basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
                     values = [1j, -1j]
-                    basis.append(
-                        gs.array_from_sparse(
-                            indices, values, (self.n,) * 2, dtype=complex
-                        )
-                    )
+                    basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
         basis = gs.stack(basis)
         return basis
 
@@ -154,10 +150,12 @@ class HermitianMatrices(VectorSpace):
         shape = (mat_dim, mat_dim)
         mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
         indices = list(zip(*gs.triu_indices(mat_dim)))
+        vec = gs.cast(vec, dtype)
         upper_triangular = gs.stack(
-            [gs.array_from_sparse(indices, data, shape, dtype) for data in vec]
+            [gs.array_from_sparse(indices, data, shape) for data in vec]
         )
-        mat = Matrices.to_hermitian(upper_triangular) * mask
+        # mat = Matrices.to_hermitian(upper_triangular) * mask
+        mat = Matrices.to_hermitian(upper_triangular) * gs.cast(mask, dtype)
         return mat
 
     @classmethod
