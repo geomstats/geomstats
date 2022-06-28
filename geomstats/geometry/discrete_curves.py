@@ -452,8 +452,11 @@ class ClosedDiscreteCurves(LevelSet):
         srv_norm = self.embedding_space.l2_curves_metric.norm
         inner_prod = self.ambient_metric.inner_product
 
-        def g_criterion(srv, srv_norms):
+        def closeness_criterion(srv, srv_norms):
             """Compute the closeness criterion from [Sea2011]_.
+
+            The closeness criterion is denoted by G(q) in [Sea2011]_, where q
+            represents the srv of interest.
 
             References
             ----------
@@ -464,50 +467,60 @@ class ClosedDiscreteCurves(LevelSet):
             """
             return gs.sum(srv * srv_norms[:, None], axis=0)
 
-        initial_norm = srv_norm(srv)
-        proj = srv
-        proj_norms = self.ambient_metric.norm(proj)
-        residual = g_criterion(proj, proj_norms)
-        criteria = self.ambient_metric.norm(residual)
+        def one_srv_projection(one_srv):
+            """Project one srv by iteratively updating until closeness criterion is 0.
 
-        nb_iter = 0
-
-        while criteria >= atol and nb_iter < max_iter:
-
-            jacobian_vec = []
-            for i in range(dim):
-                for j in range(i, dim):
-                    coef = 3 * inner_prod(proj[:, i], proj[:, j])
-                    jacobian_vec.append(coef)
-            jacobian_vec = gs.stack(jacobian_vec)
-            g_jacobian = SymmetricMatrices.from_vector(jacobian_vec)
-
-            proj_squared_norm = srv_norm(proj) ** 2
-            g_jacobian += proj_squared_norm * gs.eye(dim)
-            beta = gs.linalg.inv(g_jacobian) @ residual
-
-            e_1, e_2 = gs.array([1, 0]), gs.array([0, 1])
-            grad_1 = proj_norms[:, None] * e_1
-            grad_1 = grad_1 + (proj[:, 0] / proj_norms)[:, None] * proj
-            grad_2 = proj_norms[:, None] * e_2
-            grad_2 = grad_2 + (proj[:, 1] / proj_norms)[:, None] * proj
-
-            basis_vector_1 = grad_1 / srv_norm(grad_1)
-            grad_2_component = srv_inner_prod(grad_2, basis_vector_1)
-            grad_2_proj = grad_2_component * basis_vector_1
-            basis_vector_2 = grad_2 - grad_2_proj
-            basis_vector_2 = basis_vector_2 / srv_norm(basis_vector_2)
-            basis = gs.array([basis_vector_1, basis_vector_2])
-
-            proj -= gs.sum(beta[:, None, None] * basis, axis=0)
-            proj = proj * initial_norm / srv_norm(proj)
+            Details can be found in [Sea2011]_ Section 4.2.
+            """
+            initial_norm = srv_norm(one_srv)
+            proj = one_srv
             proj_norms = self.ambient_metric.norm(proj)
-            residual = g_criterion(proj, proj_norms)
+            residual = closeness_criterion(proj, proj_norms)
             criteria = self.ambient_metric.norm(residual)
 
-            nb_iter += 1
+            nb_iter = 0
 
-        return proj
+            while criteria >= atol and nb_iter < max_iter:
+
+                jacobian_vec = []
+                for i in range(dim):
+                    for j in range(i, dim):
+                        coef = 3 * inner_prod(proj[:, i], proj[:, j])
+                        jacobian_vec.append(coef)
+                jacobian_vec = gs.stack(jacobian_vec)
+                g_jacobian = SymmetricMatrices.from_vector(jacobian_vec)
+
+                proj_squared_norm = srv_norm(proj) ** 2
+                g_jacobian += proj_squared_norm * gs.eye(dim)
+                beta = gs.linalg.inv(g_jacobian) @ residual
+
+                e_1, e_2 = gs.array([1, 0]), gs.array([0, 1])
+                grad_1 = proj_norms[:, None] * e_1
+                grad_1 = grad_1 + (proj[:, 0] / proj_norms)[:, None] * proj
+                grad_2 = proj_norms[:, None] * e_2
+                grad_2 = grad_2 + (proj[:, 1] / proj_norms)[:, None] * proj
+
+                basis_vector_1 = grad_1 / srv_norm(grad_1)
+                grad_2_component = srv_inner_prod(grad_2, basis_vector_1)
+                grad_2_proj = grad_2_component * basis_vector_1
+                basis_vector_2 = grad_2 - grad_2_proj
+                basis_vector_2 = basis_vector_2 / srv_norm(basis_vector_2)
+                basis = gs.array([basis_vector_1, basis_vector_2])
+
+                proj -= gs.sum(beta[:, None, None] * basis, axis=0)
+                proj = proj * initial_norm / srv_norm(proj)
+                proj_norms = self.ambient_metric.norm(proj)
+                residual = closeness_criterion(proj, proj_norms)
+                criteria = self.ambient_metric.norm(residual)
+
+                nb_iter += 1
+            return proj
+
+        srv = gs.to_ndarray(srv, to_ndim=3)
+        for i_srv, one_srv in enumerate(srv):
+            srv[i_srv] = one_srv_projection(one_srv)
+
+        return gs.squeeze(srv)
 
 
 class L2CurvesMetric(RiemannianMetric):
