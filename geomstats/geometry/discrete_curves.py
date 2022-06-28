@@ -406,12 +406,15 @@ class ClosedDiscreteCurves(LevelSet):
                 "for discrete curves embedded in a "
                 "2D Euclidean space."
             )
+        curve_ndim = curve.ndim
 
         srv_metric = self.embedding_space.srv_metric
         srv = srv_metric.srv_transform(curve)
         srv_proj = self.srv_projection(srv, atol=atol, max_iter=max_iter)
-        proj = srv_metric.srv_transform_inverse(srv_proj, gs.array([curve[0]]))
-        return proj
+
+        curve = gs.to_ndarray(curve, to_ndim=3)
+        proj = srv_metric.srv_transform_inverse(srv_proj, curve[:, 0])
+        return proj if curve_ndim == 3 else gs.squeeze(proj)
 
     def srv_projection(self, srv, atol=gs.atol, max_iter=1000):
         """Project a point in the srv space into the space of closed curves srv.
@@ -516,11 +519,19 @@ class ClosedDiscreteCurves(LevelSet):
                 nb_iter += 1
             return proj
 
+        print("srv before")
+        print(srv.shape)
+        srv_ndim = srv.ndim
         srv = gs.to_ndarray(srv, to_ndim=3)
+        print("srv shape")
+        print(srv.shape)
         for i_srv, one_srv in enumerate(srv):
             srv[i_srv] = one_srv_projection(one_srv)
 
-        return gs.squeeze(srv)
+        # srv = gs.squeeze(srv)
+        print("srv after")
+        print(srv.shape)
+        return srv if srv_ndim == 3 else gs.squeeze(srv)
 
 
 class L2CurvesMetric(RiemannianMetric):
