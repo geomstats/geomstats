@@ -666,7 +666,10 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    if _torch.tensor(data).dtype is _torch.complex64 or _torch.complex128:
+    if (
+        _torch.tensor(data).dtype is _torch.complex64
+        or _torch.tensor(data).dtype is _torch.complex128
+    ):
         a = _torch.sparse.FloatTensor(
             _torch.LongTensor(indices).t(),
             _torch.tensor(data),
