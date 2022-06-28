@@ -51,6 +51,13 @@ class BackendsTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
+    def einsum_like_binary_op_test_data(self):
+        smoke_data = [
+            dict(func_name="matvec", a=rand(3, 3), b=rand(3), einsum_expr="ij,j->i")
+        ]
+
+        return self.generate_tests(smoke_data)
+
     def binary_op_vec_test_data(self):
 
         smoke_data = [

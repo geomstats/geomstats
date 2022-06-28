@@ -50,7 +50,7 @@ class TestBackends(TestCase, metaclass=Parametrizer):
     testing_data = BackendsTestData()
 
     def test_np_like_array(self, func_name, args):
-        # TODO: skip for numpy
+        # TODO: skip for numpy?
 
         gs_fnc, np_fnc = get_backend_fncs(func_name)
         np_args = convert_gs_to_np(args)
@@ -67,6 +67,14 @@ class TestBackends(TestCase, metaclass=Parametrizer):
         gs_out = gs_fnc(a, b)
         np_out = np_fnc(np_a, np_b)
         self.assertAllCloseToNp(gs_out, np_out)
+
+    def test_einsum_like_binary_op(self, func_name, a, b, einsum_expr):
+        gs_fnc = get_backend_fncs(func_name, numpy=False)
+
+        gs_out = gs_fnc(a, b)
+        ein_out = gs.einsum(einsum_expr, a, b)
+
+        self.assertAllClose(gs_out, ein_out)
 
     def test_binary_op_vec(self, func_name, a, b):
         gs_fnc = get_backend_fncs(func_name, numpy=False)
