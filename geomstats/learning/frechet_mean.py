@@ -11,7 +11,7 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 import geomstats.errors as error
 import geomstats.vectorization
-from geomstats.geometry.discrete_curves import SRVMetric
+from geomstats.geometry.discrete_curves import ElasticMetric
 from geomstats.geometry.hypersphere import Hypersphere
 
 EPSILON = 1e-4
@@ -90,15 +90,17 @@ def linear_mean(points, weights=None, point_type="vector"):
     return mean
 
 
-def srv_mean(points, weights=None, metric=None):
-    """Compute the weighted mean of SRV representations of curves.
+def elastic_mean(points, weights=None, metric=None):
+    """Compute the weighted mean of elastic curves.
 
     SRV: Square Root Velocity.
 
+    SRV curves are a special case of Elastic curves.
+
     The computation of the mean goes as follows:
-    - Transform the curves into their SRVs,
-    - Compute the linear mean of the SRVs,
-    - Transform the srv mean in curve space.
+    - Transform the curves into their SRVs/F-transform representations,
+    - Compute the linear mean of the SRVs/F-transform representations,
+    - Inverse-transform the mean in curve space.
 
     Parameters
     ----------
@@ -116,9 +118,11 @@ def srv_mean(points, weights=None, metric=None):
     if isinstance(points, list):
         points = gs.stack(points, axis=0)
 
-    srvs = metric.srv_transform(points)
+    transformed = metric.f_transform(points)
 
-    srv_linear_mean = linear_mean(srvs, weights=weights, point_type="matrix")
+    transformed_linear_mean = linear_mean(
+        transformed, weights=weights, point_type="matrix"
+    )
 
     starting_point = (
         FrechetMean(metric.ambient_metric)
@@ -126,7 +130,9 @@ def srv_mean(points, weights=None, metric=None):
         .estimate_
     )
     starting_point = gs.expand_dims(starting_point, axis=0)
-    mean = metric.srv_transform_inverse(srv_linear_mean, starting_point=starting_point)
+    mean = metric.f_transform_inverse(
+        transformed_linear_mean, starting_point=starting_point
+    )
     return mean
 
 
@@ -182,7 +188,7 @@ def _default_gradient_descent(
         var_is_0 = gs.isclose(var, 0.0)
 
         metric_dim = metric.dim
-        if isinstance(metric, SRVMetric):
+        if isinstance(metric, ElasticMetric):
             metric_dim = tangent_mean.shape[-2] * tangent_mean.shape[-1]
 
         sq_dist_is_small = gs.less_equal(sq_dist, epsilon * metric_dim)
@@ -587,7 +593,7 @@ class FrechetMean(BaseEstimator):
             or "MatricesMetric" in metric_str
             or "MinkowskiMetric" in metric_str
         )
-        is_srv_metric = "SRVMetric" in metric_str
+        is_elastic_metric = "SRVMetric" in metric_str or "ElasticMetric" in metric_str
 
         if "HypersphereMetric" in metric_str and self.metric.dim == 1:
             mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
@@ -599,8 +605,8 @@ class FrechetMean(BaseEstimator):
         if is_linear_metric:
             mean = linear_mean(points=X, weights=weights, point_type=self.point_type)
 
-        elif is_srv_metric:
-            mean = srv_mean(points=X, weights=weights, metric=self.metric)
+        elif is_elastic_metric:
+            mean = elastic_mean(points=X, weights=weights, metric=self.metric)
 
         elif self.method == "default":
             mean = _default_gradient_descent(

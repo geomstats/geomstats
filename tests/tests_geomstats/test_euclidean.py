@@ -9,8 +9,6 @@ from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestC
 
 class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
     space = Euclidean
-    skip_test_basis_belongs = True
-    skip_test_basis_cardinality = True
 
     testing_data = EuclideanTestData()
 
