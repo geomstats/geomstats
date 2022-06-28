@@ -38,6 +38,26 @@ class BackendsTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
+    def _einsum_data(self):
+        func_name = 'einsum'
+
+        args = [
+            ("...i,...i->...", rand(1, 2), rand(1, 2)),
+            ("...i,...i->...", rand(2, 2), rand(1, 2)),
+            ("...i,...i->...", rand(1, 2), rand(2, 2)),
+            ("...,...i->...i", rand(1), rand(1, 3)),
+            ("...,...i->...i", rand(1), rand(3)),
+            ("...,...i->...i", gs.array(5.), rand(1, 3)),
+            ("...,...i->...i", gs.array(5.), rand(3)),
+        ]
+        return [{"func_name": func_name, "args": args_} for args_ in args]
+
+    def func_like_np_test_data(self):
+        smoke_data = []
+        smoke_data += self._einsum_data()
+
+        return self.generate_tests(smoke_data)
+
     def binary_op_like_np_test_data(self):
         smoke_data = [
             dict(func_name="matmul", a=rand(2, 2), b=rand(2, 2)),

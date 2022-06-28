@@ -46,7 +46,9 @@ class TestBackends(TestCase, metaclass=Parametrizer):
     testing_data = BackendsTestData()
 
     def test_array_like_np(self, func_name, args):
-        # TODO: skip for numpy?
+        return self.test_func_like_np(func_name, args)
+
+    def test_func_like_np(self, func_name, args):
 
         gs_fnc, np_fnc = get_backend_fncs(func_name)
         np_args = convert_gs_to_np(args)
