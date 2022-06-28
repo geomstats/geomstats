@@ -55,15 +55,12 @@ class DiscreteCurves(Manifold):
         Square root velocity metric.
     """
 
-    def __init__(
-        self, ambient_manifold, n_sampling_points=None, a=None, b=None, **kwargs
-    ):
+    def __init__(self, ambient_manifold, a=None, b=None, **kwargs):
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super(DiscreteCurves, self).__init__(
             dim=math.inf, shape=(), default_point_type="matrix", **kwargs
         )
         self.ambient_manifold = ambient_manifold
-        self.n_sampling_points = n_sampling_points
         self.srv_metric = self._metric
 
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
@@ -241,7 +238,7 @@ class ClosedDiscreteCurves(LevelSet):
         vol. 33, no. 7, pp. 1415-1428, July 2011.
     """
 
-    def __init__(self, ambient_manifold, n_sampling_points=None):
+    def __init__(self, ambient_manifold):
         super(ClosedDiscreteCurves, self).__init__(
             dim=math.inf,
             shape=(),
@@ -252,7 +249,6 @@ class ClosedDiscreteCurves(LevelSet):
         )
         self.ambient_manifold = ambient_manifold
         self.ambient_metric = ambient_manifold.metric
-        self.n_sampling_points = n_sampling_points
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
@@ -277,7 +273,7 @@ class ClosedDiscreteCurves(LevelSet):
         first_point = point[:, 0, :]
         last_point = point[:, -1, :]
         point_belongs = gs.allclose(first_point, last_point, atol=atol)
-        return gs.squeeze(point_belongs)
+        return gs.squeeze(gs.array(point_belongs))
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at a curve.
@@ -523,18 +519,12 @@ class ClosedDiscreteCurves(LevelSet):
                 nb_iter += 1
             return proj
 
-        print("srv before")
-        print(srv.shape)
         srv_ndim = srv.ndim
         srv = gs.to_ndarray(srv, to_ndim=3)
-        print("srv shape")
-        print(srv.shape)
+
         for i_srv, one_srv in enumerate(srv):
             srv[i_srv] = one_srv_projection(one_srv)
 
-        # srv = gs.squeeze(srv)
-        print("srv after")
-        print(srv.shape)
         return srv if srv_ndim == 3 else gs.squeeze(srv)
 
 
