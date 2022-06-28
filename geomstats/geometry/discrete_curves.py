@@ -55,12 +55,15 @@ class DiscreteCurves(Manifold):
         Square root velocity metric.
     """
 
-    def __init__(self, ambient_manifold, a=None, b=None, **kwargs):
+    def __init__(
+        self, ambient_manifold, n_sampling_points=None, a=None, b=None, **kwargs
+    ):
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super(DiscreteCurves, self).__init__(
             dim=math.inf, shape=(), default_point_type="matrix", **kwargs
         )
         self.ambient_manifold = ambient_manifold
+        self.n_sampling_points = n_sampling_points
         self.srv_metric = self._metric
 
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
@@ -238,7 +241,7 @@ class ClosedDiscreteCurves(LevelSet):
         vol. 33, no. 7, pp. 1415-1428, July 2011.
     """
 
-    def __init__(self, ambient_manifold):
+    def __init__(self, ambient_manifold, n_sampling_points=None):
         super(ClosedDiscreteCurves, self).__init__(
             dim=math.inf,
             shape=(),
@@ -249,6 +252,7 @@ class ClosedDiscreteCurves(LevelSet):
         )
         self.ambient_manifold = ambient_manifold
         self.ambient_metric = ambient_manifold.metric
+        self.n_sampling_points = n_sampling_points
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
