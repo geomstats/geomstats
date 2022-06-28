@@ -442,15 +442,14 @@ class ClosedDiscreteCurves(LevelSet):
 
         if not is_planar:
             raise AssertionError(
-                "The srv projection is only implemented "
-                "for discrete curves embedded in a "
+                "The projection is only implemented "
+                "for discrete curves embedded in a"
                 "2D Euclidean space."
             )
 
         dim = self.ambient_metric.dim
-        l2_metric = self.embedding_space.l2_curves_metric
-        srv_inner_prod = l2_metric.inner_product
-        srv_norm = l2_metric.norm
+        srv_inner_prod = self.embedding_space.l2_curves_metric.inner_product
+        srv_norm = self.embedding_space.l2_curves_metric.norm
         inner_prod = self.ambient_metric.inner_product
 
         def g_criterion(srv, srv_norms):
