@@ -351,7 +351,7 @@ class ClosedDiscreteCurves(LevelSet):
         """
         raise NotImplementedError("The to_tangent method is not implemented.")
 
-    def random_point(self, n_samples=1, bound=1.0, n_sampling_points=10):
+    def random_point(self, n_samples=1):
         """Sample random curves.
 
         If the ambient manifold is compact, a uniform distribution is used.
