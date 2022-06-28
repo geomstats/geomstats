@@ -4,104 +4,325 @@
 Contributing Guide
 ==================
 
-Geomstats is a community effort, and everyone is welcome to
-contribute.
+This guide is an exhaustive guide to ease the contribution
+process for both novice and experienced contributors.
+[Geomstats] (https://github.com/geomstats/geomstats) is a 
+community effort, and everyone is welcome to contribute.
 
-The project is hosted on https://github.com/geomstats/geomstats.
+Development Setup
+=================
 
-Code is not the only way to help the project:
+The instrcutions in this section detail the step-by-step
+process on setting up your development environment before
+contribution. One can also us it as a development checklist
+for an overview of developers steps.
 
-- reviewing pull requests,
-- submitting an issue or a bug report,
-- submitting a thumb up on issues that are important for you,
-- answering questions to help others on issues,
-- requesting new features,
-- improving the coding style in the codebase,
-- improving the coding style guidelines,
-- organizing and teaching tutorials, organizing hackathons,
-- working on the website and improving the documentation,
-- reference the project in your articles,
-- or simply star it to say "I use it",
+Source control with Git
+-----------------------
 
-are all priceless contributions.
+The Geomstats project is available on [GitHub](github.com/) and uses `Git`
+for source control to allow collaboration. Typical interaction
+with the project involves using `git` to pull/push code and 
+submitting bugs/feature requests to the [Geomstats repository](https://github.com/geomstats/geomstats).
 
-If you have questions, do not hesitate to send an email to the mailing
-list hi@geomstats.ai.
+Be sure to follow the Git installation and configuration instructions for your
+respective operating system from the 
+[official Git documentation](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), 
+before you follow along the next section of this documentation.
 
-In this contributing document, we give details on submitting issues,
-contributing code, writing documentation, following code style guidelines,
-and reviewing code. This document is largely inspired by the
-Scikit-Learn project.
+.. note::
+   For more basic information about the `git` commandline client, refer to 
+   this [detailed tutorial](https://docs.github.com/en/get-started/using-git/about-git).
+   You can also checkout other GUI options like [tortoisegit](https://tortoisegit.org/) 
+   and [GitHub Desktop](https://desktop.github.com/).
 
-Submitting a Bug Report or Feature Request
-------------------------------------------
+Getting the code
+-----------------
 
-We use GitHub issues to track all bugs and feature requests; feel free to `open
-an issue <https://github.com/geomstats/geomstats/issues>`_ if you have found a
-bug or wish to see a feature implemented.
+For development, you have to get the Geomstats source code to your local machine first,
+from the project GitHub repository using the following instructions:
 
-It is recommended to check that your issue complies with the
-following rules before submitting:
+1. Using your browser, go to https://github.com and create an account if you dont have one.
+2. While there, navigate to https://github.com/geomstats/geomstats.
+3. [Fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
+the repository to have your own copy using a button at the top right corner,
+under your username  i.e:
 
--  Verify that your issue is not being currently addressed by other
-   `issues <https://github.com/geomstats/geomstats/issues?q=>`_
-   or `pull requests <https://github.com/geomstats/geomstats/pulls?q=>`_.
+    https://github.com/<username>/geomstats
 
--  If you are submitting a bug report, we strongly encourage you to
-   follow the guidelines in :ref:`filing_bugs`.
+4. Clone your forked repository using:
 
-.. _filing_bugs:
+    $ git clone git@github.com:<username>/geomstats.git
 
-How to Write a Good Bug Report
-==============================
+5. It is recommended practice to add the main Geomstats repository as the upstream remote repository too:
 
-When you submit an issue to `Github
-<https://github.com/geomstats/geomstats/issues>`__, please do your best to
-follow these guidelines! This will make it a lot easier to provide you with good
-feedback:
+    $ cd geomstats
+    $ git remote add upstream git@github.com:geomstats/geomstats.git
 
-- The ideal bug report contains a **short reproducible code snippet**, this way
-  anyone can try to reproduce the bug easily (see `this
-  <https://stackoverflow.com/help/mcve>`_ for more details). If your snippet is
-  longer than around 50 lines, please link to a `gist
-  <https://gist.github.com>`_ or a github repo.
+6. At this point you should have the Geomstats code on your macine ready for development.
+To continue development, create a new development branch:
 
-- If not feasible to include a reproducible snippet, please be specific about
-  what **estimators and/or functions are involved and the shape of the data**.
+    $ git checkout -b feature-branch
 
-- If an exception is raised, please **provide the full traceback**.
+7. Verify tat you are on the new branch:
 
-- Please include your **operating system type and version number**, as well as
-  your **Python, geomstats, numpy, and scipy versions**. This information
-  can be found by running the following code snippet::
+    $ git branch
+    * feature-branch
+    master
 
-    >>> import geomstats
-    >>> print('geomstats', geomstats.__version___)
+8. Verify remote configurattion:
 
-- Please ensure all **code snippets and error messages are formatted in
-  appropriate code blocks**.  See `Creating and highlighting code blocks
-  <https://help.github.com/articles/creating-and-highlighting-code-blocks>`_
-  for more details.
-
-Contributing: Code Workflow
----------------------------
-
-  To avoid duplicating work, it is highly advised that you search through the
-  `issue tracker <https://github.com/geomstats/geomstats/issues>`_ and
-  the `PR list <https://github.com/geomstats/geomstats/pulls>`_.
-  If in doubt about duplicated work, or if you want to work on a non-trivial
-  feature, it's recommended to first open an issue in
-  the `issue tracker <https://github.com/geomstats/geomstats/issues>`_
-  to get some feedbacks from core developers.
+    $ git remote -v
+    upstream	https://github.com/geomstats/geomstats (fetch)
+    upstream	https://github.com/geomstats/geomstats (push)
+    origin	    https://github.com/<username>/geomstats (fetch)
+    origin	    https://github.com/<username>/geomstats (push)
 
 
-Contributing: Adding a new geometry or manifold
------------------------------------------------
+Dependencies and a virtual environment
+---------------------------------------
 
-  Get used to the code design of geomstats' classes by having a look at the `template manifold <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry/_my_manifold.py>`__ and `template unit-tests <https://github.com/geomstats/geomstats/blob/master/tests/tests_geomstats/test__my_manifold.py>`__ implementations.
+We recommend using the conda virtual environment to create separation between your development environment
+from aany other Geomstats versions installed on your system. Create a virtual environment with conda using:
 
-Contributing: GitHub Workflow
-=============================
+$ conda create -n geomstats-dev
+
+Then clone your code to this environment and activate it:
+
+    $ git clone git@github.com:<username>/geomstats.git
+    $ cd geomstats
+    $ conda activate geomstats-dev
+
+Now install the Geomstats minimumcrequirements:
+
+    $ conda env create --file environment.yml
+
+.. note::
+   See the `setup.cfg` file for details on all project requirements
+
+.. _backends dev
+
+Backends
+--------
+
+Geomstats supports several backends, namely:
+
+- numpy
+- autograd
+- tensorflow
+- pytorch
+
+The default backend is `numpy, therefore install the other backends using:
+
+$ pip install geomstats[<backend_name>]
+
+And use an environment variable to set backed:
+
+$ export GEOMSTATS_BACKEND=<backend_name>
+
+Run the tests
+--------------
+
+Geomstats tests can be run in two ways, either using `nose` or one of the backends
+mentioned earlier.
+
+Using nose
+~~~~~~~~~~
+
+To run tests with Nose, first install the required packages:
+
+    $ pip install geomstats[dev]
+
+Then run all tests using:
+
+    $ nose2 tests
+
+You can run tests by file name:
+
+    $ nose2 tests.test__my_manifold
+
+Alternatively, run a particular test in a given test file:
+
+    $ nose2 tests.test__my_manifold.TestMyManifold.test_dimension
+
+Using a backend
+~~~~~~~~~~~~~~~~~
+
+We recommend that you run  all tests using the different backends discussed in 
+the `backends section <backends dev`_ . 
+
+Threfore install the backends as described before running all the tests using:
+
+    $ numpy tests
+
+Run a test file:
+
+    $ numpy tests.test__my_manifold
+
+Run a single tests method using:
+
+    $ numpy tests.test__my_manifold.TestMyManifold.test_dimension
+
+Build the doc
+--------------
+
+Documentation in the Geomstats project is implemented using `sphinx`.
+Install the sphinx dependecies using:
+
+$ pip install nbsphinx-link nbsphinx jupyter sphinx sphinx-gallery pydata-sphinx-theme
+
+Then while in the project root folder, build the docs using:
+
+$ cd docs
+$ make html
+
+
+Folder Structure
+=================
+
+As a contributor, there are a couple of top-level directories to take note of. 
+The following details contain a break down of folders in the source code.
+
+geomstats
+
+  Contains the core implementation of the Geomstats package features like 
+  geometry, distributions, learning, visualization etc.
+
+tests
+
+  Has unit tests for the core library features.
+
+docs
+
+  Has the official documentation found at https://geomstats.github.io.
+
+benchmarks
+
+  Has code for benchmarking several aspects of Geomstats.
+
+examples
+
+  Sample code demonstrating dfferent geomstats features.
+
+notebooks
+
+  This also contains example code.
+
+
+Testing
+========
+
+Test Driven Development
+-------------------------
+
+High-quality unit testing <https://en.wikipedia.org/wiki/Unit_testing>`_
+is a corner-stone of the geomstats development process.
+The tests are functions appropriately named, located in the `tests`
+subdirectory, that check the validity of the algorithms and the
+different options of the code.
+
+TDD with pytest
+-----------------
+
+Geomstats uses the 'pytest` Python tool for testing different functions and features.
+Install `pytest` using:
+
+    $ pip install pytest
+
+By convention all test functions should be located in files with file names
+that start with `test_`. For example a unit test that exercises the Python
+addition functionality can be written as follows;
+
+    # test_add.py
+
+    def add(x, y):
+        return x + y
+
+    def test_capital_case():
+        assert add(4, 5) == 9
+
+Use an `aasert` statement to check that the function under test returns
+the correct output. Then run the test using:
+
+    $ pytest
+
+Writing tests for Geomstats
+----------------------------
+
+For each function `my_fun` that you implement in a given `my_module.py`, 
+you should add the corresponding test
+function `test_my_fun` in the file `test_my_module.py`. 
+
+We expect code coverage of new features to be at least 90%, which is 
+automatically verified by the `codecov` software when you submit a PR. 
+You should also add `test_my_fun_vect` tests to ensure that your code 
+is vectorized.
+
+Running tests
+--------------
+
+First,run the tests related to your changes. For example, if you changed
+something in `geomstats/spd_matrices_space.py`, you can run tests by file name:
+
+    $ pytest tests/tests_geomstats/test_spd_matrices.py
+
+Then run the tests of the whole codebase to check that your feature is
+not breaking any of them::
+
+    $ pytest tests/
+
+Alternatively, run a particular test in a given test file:
+
+    $ pytest tests/test__my_manifold/TestMyManifold/test_dimension
+
+This way, further modifications on the code base are granted
+to be consistent with the desired behavior. Merging your PR 
+should not break any test in any backend (numpy, tensorflow or pytorch).
+
+Workflow of a contribution 
+==========================
+
+.. _new_contributors:
+
+Create or choose an issue for New Contributors
+----------------------------------------------
+
+New contributors should look for the following tags when looking for issues.  We
+strongly recommend that new contributors tackle "easy" issues first: this helps
+the contributor become familiar with the contribution workflow, and for the core
+devs to become acquainted with the contributor; besides which, we frequently
+underestimate how easy an issue is to solve!
+
+.. topic:: good first issue tag
+
+    A great way to start contributing to geomstats is to pick an item from
+    the list of `good first issues
+    <https://github.com/geomstats/geomstats/labels/good%20first%20issue>`_
+    in the issue tracker. Resolving these issues allow you to start contributing
+    to the project without much prior knowledge. If you have already contributed
+    to geomstats, you should look at Easy issues instead.
+
+.. topic:: starter project tag
+
+    If you have already contributed to geomstats, another great way to contribute
+    to geomstats is to pick an item from the list of `starter project
+    <https://github.com/geomstats/geomstats/labels/starter%project>`_ in the issue
+    tracker. Your assistance in this area will be greatly appreciated by the
+    more experienced developers as it helps free up their time to concentrate on
+    other issues.
+
+.. topic:: help wanted tag
+
+    We often use the help wanted tag to mark issues regardless of difficulty. Additionally,
+    we use the help wanted tag to mark Pull Requests which have been abandoned
+    by their original contributor and are available for someone to pick up where the original
+    contributor left off. The list of issues with the help wanted tag can be found
+    `here <https://github.com/geomstats/geomstats/labels/help%20wanted>`__ .
+
+    Note that not all issues which need contributors will have this tag.
+
+Making changes
+---------------
 
 The preferred way to contribute to geomstats is to fork the `main
 repository <https://github.com/geomstats/geomstats/>`__ on GitHub,
@@ -189,7 +410,7 @@ http://try.github.io are excellent resources to get started with git,
 and understanding all of the commands shown here.
 
 Pull Request Checklist
-======================
+^^^^^^^^^^^^^^^^^^^^^^^
 
 In order to ease the reviewing process, we recommend that your contribution
 complies with the following rules. The **bolded** ones are especially important:
@@ -338,44 +559,84 @@ A good etiquette to take over is:
   new PR to the old one. The new PR should be created by pulling from the
   old one.
 
-.. _new_contributors:
+.. _coding-guidelines:
 
-Issues for New Contributors
-===========================
+Coding Style Guidelines
+=======================
 
-New contributors should look for the following tags when looking for issues.  We
-strongly recommend that new contributors tackle "easy" issues first: this helps
-the contributor become familiar with the contribution workflow, and for the core
-devs to become acquainted with the contributor; besides which, we frequently
-underestimate how easy an issue is to solve!
+The following are some guidelines on how new code should be written. Of
+course, there are special cases and there will be exceptions to these
+rules. However, following these rules when submitting new code makes
+the review easier so new code can be integrated in less time. Uniformly
+formatted code makes it easier to share code ownership.
 
-.. topic:: good first issue tag
+In addition to the PEP8 standards, geomstats follows the following
+guidelines:
 
-    A great way to start contributing to geomstats is to pick an item from
-    the list of `good first issues
-    <https://github.com/geomstats/geomstats/labels/good%20first%20issue>`_
-    in the issue tracker. Resolving these issues allow you to start contributing
-    to the project without much prior knowledge. If you have already contributed
-    to geomstats, you should look at Easy issues instead.
+1. Use underscores to separate words in non class names: ``n_samples``
+   rather than ``nsamples``.
 
-.. topic:: starter project tag
+2. Avoid single-character variable names. This prevents using automatic
+   tools to find-and-replace code, as searching for ``x`` in geomstats
+   will return the whole database. At least 3 characters are advised
+   for a variable name.
 
-    If you have already contributed to geomstats, another great way to contribute
-    to geomstats is to pick an item from the list of `starter project
-    <https://github.com/geomstats/geomstats/labels/starter%project>`_ in the issue
-    tracker. Your assistance in this area will be greatly appreciated by the
-    more experienced developers as it helps free up their time to concentrate on
-    other issues.
+3. Use understandable function and variable names. The naming should help
+   the maintainers reading faster through your code. Thus, ``my_array``,
+   ``aaa``, ``result``, ``res`` are generally bad variable names,
+   whereas ``rotation_vec`` or ``symmetric_mat`` read well.
 
-.. topic:: help wanted tag
+4. Avoid comment in the code, the documentation goes in the docstrings.
+   This allows the explanations to be included in the documentation
+   generated automatically on the website. Furthermore, forbidding comments
+   forces us to write clean code, and clean docstrings.
 
-    We often use the help wanted tag to mark issues regardless of difficulty. Additionally,
-    we use the help wanted tag to mark Pull Requests which have been abandoned
-    by their original contributor and are available for someone to pick up where the original
-    contributor left off. The list of issues with the help wanted tag can be found
-    `here <https://github.com/geomstats/geomstats/labels/help%20wanted>`__ .
+5. Follow geomstats' API. For example, points on manifolds are denoted
+   ``point``, tangent vectors ``tangent_vec``, matrices ``mat``, exponential
+   ``exp`` and logarithms ``log``.
 
-    Note that not all issues which need contributors will have this tag.
+6. Avoid multiple statements on one line. Divide complex computations on several
+   lines. Prefer a line return after a control flow statement (``if``/``for``).
+
+7. **Don't use** ``import *`` **in any case**. It is considered harmful
+   by the `official Python recommendations
+   <https://docs.python.org/2/howto/doanddont.html#from-module-import>`_.
+   It makes the code harder to read as the origin of symbols is no
+   longer explicitly referenced, but most important, it prevents
+   using a static analysis tool like `pyflakes
+   <https://divmod.readthedocs.io/en/latest/products/pyflakes.html>`_ to
+   automatically find bugs in geomstats.
+
+8. Avoid the use of ``import ... as`` and of ``from ... import foo, bar``,
+   i.e. do not rename modules or modules' functions, because you would create
+   objects living in several namespaces which creates confusion, see
+   `<https://docs.python.org/2/howto/doanddont.html#language-constructs-you-should-not-use>`_.
+   Keeping the original namespace ensures naming consistency in the codebase
+   and speeds up the code reviews: co-developpers and maintainers do not have
+   to check if you are using the original module's method or if you have
+   overwritten it.
+
+9. Use double quotes " and not single quotes ' for strings.
+
+10. If you need several lines for a function call,
+
+use the syntax::
+
+   my_function_with_a_very_long_name(
+      my_param_1=value_1, my_param_2=value_2)
+
+and not::
+
+   my_function_with_a_very_long_name(my_param_1=value_1,
+                                     my_param_2=value_2)
+
+as the indentation will break and raise a flake8 error if the name
+of the function is changed.
+
+These guidelines can be revised and modified at any time, the only constraint
+is that they should remain consistent through the codebase. To change geomstats
+style guidelines, submit a PR to this contributing file, together with the
+corresponding changes in the codebase.
 
 .. _contribute_documentation:
 
@@ -555,89 +816,10 @@ understanding the components.
 When editing reStructuredText (``.rst``) files, try to keep line length under
 80 characters (exceptions include links and tables).
 
-.. _coding-guidelines:
-
-Coding Style Guidelines
------------------------
-
-The following are some guidelines on how new code should be written. Of
-course, there are special cases and there will be exceptions to these
-rules. However, following these rules when submitting new code makes
-the review easier so new code can be integrated in less time. Uniformly
-formatted code makes it easier to share code ownership.
-
-In addition to the PEP8 standards, geomstats follows the following
-guidelines:
-
-1. Use underscores to separate words in non class names: ``n_samples``
-   rather than ``nsamples``.
-
-2. Avoid single-character variable names. This prevents using automatic
-   tools to find-and-replace code, as searching for ``x`` in geomstats
-   will return the whole database. At least 3 characters are advised
-   for a variable name.
-
-3. Use understandable function and variable names. The naming should help
-   the maintainers reading faster through your code. Thus, ``my_array``,
-   ``aaa``, ``result``, ``res`` are generally bad variable names,
-   whereas ``rotation_vec`` or ``symmetric_mat`` read well.
-
-4. Avoid comment in the code, the documentation goes in the docstrings.
-   This allows the explanations to be included in the documentation
-   generated automatically on the website. Furthermore, forbidding comments
-   forces us to write clean code, and clean docstrings.
-
-5. Follow geomstats' API. For example, points on manifolds are denoted
-   ``point``, tangent vectors ``tangent_vec``, matrices ``mat``, exponential
-   ``exp`` and logarithms ``log``.
-
-6. Avoid multiple statements on one line. Divide complex computations on several
-   lines. Prefer a line return after a control flow statement (``if``/``for``).
-
-7. **Don't use** ``import *`` **in any case**. It is considered harmful
-   by the `official Python recommendations
-   <https://docs.python.org/2/howto/doanddont.html#from-module-import>`_.
-   It makes the code harder to read as the origin of symbols is no
-   longer explicitly referenced, but most important, it prevents
-   using a static analysis tool like `pyflakes
-   <https://divmod.readthedocs.io/en/latest/products/pyflakes.html>`_ to
-   automatically find bugs in geomstats.
-
-8. Avoid the use of ``import ... as`` and of ``from ... import foo, bar``,
-   i.e. do not rename modules or modules' functions, because you would create
-   objects living in several namespaces which creates confusion, see
-   `<https://docs.python.org/2/howto/doanddont.html#language-constructs-you-should-not-use>`_.
-   Keeping the original namespace ensures naming consistency in the codebase
-   and speeds up the code reviews: co-developpers and maintainers do not have
-   to check if you are using the original module's method or if you have
-   overwritten it.
-
-9. Use double quotes " and not single quotes ' for strings.
-
-10. If you need several lines for a function call,
-
-use the syntax::
-
-   my_function_with_a_very_long_name(
-      my_param_1=value_1, my_param_2=value_2)
-
-and not::
-
-   my_function_with_a_very_long_name(my_param_1=value_1,
-                                     my_param_2=value_2)
-
-as the indentation will break and raise a flake8 error if the name
-of the function is changed.
-
-These guidelines can be revised and modified at any time, the only constraint
-is that they should remain consistent through the codebase. To change geomstats
-style guidelines, submit a PR to this contributing file, together with the
-corresponding changes in the codebase.
-
 .. _code_review:
 
 Code Review Guidelines
-----------------------
+======================
 
 Reviewing code contributed to the project as PRs is a crucial component of
 geomstats development. We encourage anyone to start reviewing code of other
@@ -690,3 +872,4 @@ from high-level questions to a more detailed check-list.
   instructive?
 
 - Upon merging, use the ``Rebase and Merge`` option to keep git history clean.
+
