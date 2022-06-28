@@ -376,7 +376,9 @@ class ClosedDiscreteCurves(LevelSet):
         """
         sample = self.embedding_space.random_point(n_samples)
         sample = gs.to_ndarray(sample, to_ndim=3)
-        sample[:, -1, :] = sample[:, 0, :]
+        sample_minus_last_point = sample[:, :-1, :]
+        first_point = gs.reshape(sample[:, 0, :], (sample.shape[0], 1, -1))
+        sample = gs.concatenate([sample_minus_last_point, first_point], axis=1)
         return gs.squeeze(sample)
 
     def projection(self, curve, atol=gs.atol, max_iter=1000):
