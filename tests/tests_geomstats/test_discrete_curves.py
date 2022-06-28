@@ -42,6 +42,7 @@ class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
 
 class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     space = ClosedDiscreteCurves
+    skip_test_projection_belongs = tf_backend()
     skip_test_random_tangent_vec_is_tangent = True
     skip_test_to_tangent_is_tangent = True
 
