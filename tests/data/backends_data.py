@@ -123,3 +123,20 @@ class BackendsTestData(TestData):
         smoke_data += self._pad_data()
 
         return self.generate_tests(smoke_data)
+
+    def func_out_type_test_data(self):
+        smoke_data = [
+            dict(func_name="shape", args=(gs.ones(3),), expected=tuple),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def func_out_equal_test_data(self):
+        smoke_data = [
+            dict(func_name="shape", args=(1,), expected=()),
+            dict(func_name="shape", args=([1, 2],), expected=(2,)),
+            dict(func_name="shape", args=(gs.ones(3),), expected=(3,)),
+            dict(func_name="shape", args=(gs.ones((3, 3)),), expected=(3, 3)),
+        ]
+
+        return self.generate_tests(smoke_data)

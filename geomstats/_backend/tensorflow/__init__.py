@@ -46,7 +46,6 @@ from tensorflow import reduce_prod as prod
 from tensorflow import (
     reshape,
     searchsorted,
-    shape,
     sign,
     sin,
     sinh,
@@ -961,3 +960,10 @@ def cross(a, b):
     if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
         a, b = broadcast_arrays(a, b)
     return _tf.linalg.cross(a, b)
+
+
+def shape(a):
+    if not is_array(a):
+        a = array(a)
+
+    return tuple(a.shape)

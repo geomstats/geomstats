@@ -302,6 +302,8 @@ def allclose(a, b, atol=atol, rtol=rtol):
 
 
 def shape(val):
+    if not is_array(val):
+        val = array(val)
     return val.shape
 
 

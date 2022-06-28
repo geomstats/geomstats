@@ -127,3 +127,15 @@ class TestBackends(TestCase, metaclass=Parametrizer):
         # TODO: better comparison (for more info when failing)
         out = gs_fnc(*args)
         self.assertTrue(gs.shape(out) == expected)
+
+    def test_func_out_type(self, func_name, args, expected):
+        gs_fnc = getattr(gs, func_name)
+
+        out = gs_fnc(*args)
+        self.assertTrue(isinstance(out, expected))
+
+    def test_func_out_equal(self, func_name, args, expected):
+        gs_fnc = getattr(gs, func_name)
+
+        out = gs_fnc(*args)
+        self.assertEqual(out, expected)
