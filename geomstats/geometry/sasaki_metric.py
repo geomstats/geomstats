@@ -99,9 +99,9 @@ class SasakiMetric(RiemannianMetric):
         p0, u0 = gs.take(bs_pts, 0, axis=1), gs.take(bs_pts, 1, axis=1)
         for _ in range(n_steps):
             p = metric.exp(eps * v0, p0)
-            u = par_trans(u0 + eps * w0, p0, None, p)
-            v = par_trans(v0 - eps * (metric.curvature(u0, w0, v0, p0)), p0, None, p)
-            w = par_trans(w0, p0, None, p)
+            u = par_trans(u0 + eps * w0, p0, end_point=p)
+            v = par_trans(v0 - eps * (metric.curvature(u0, w0, v0, p0)), p0, end_point=p)
+            w = par_trans(w0, p0, end_point=p)
             p0, u0 = p, u
             v0, w0 = v, w
 
@@ -141,7 +141,7 @@ class SasakiMetric(RiemannianMetric):
             pu = self.geodesic_discrete(bs_pt, pt, n_steps)
             p1, u1 = pu[1][0], pu[1][1]
             p0, u0 = bs_pt[0], bs_pt[1]
-            w = par_trans(u1, p1, None, p0) - u0
+            w = par_trans(u1, p1, end_point=p0) - u0
             v = metric.log(point=p1, base_point=p0)
             return n_steps * gs.array([v, w])
 
@@ -216,8 +216,8 @@ class SasakiMetric(RiemannianMetric):
         pu_ini = []
         for i in range(1, n_steps):
             p_ini = metric.exp(s[i] * v, p0)
-            u_ini = (1 - s[i]) * par_trans(u0, p0, None, p_ini) + s[i] * par_trans(
-                uL, pL, None, p_ini
+            u_ini = (1 - s[i]) * par_trans(u0, p0, end_point=p_ini) + s[i] * par_trans(
+                uL, pL, end_point=p_ini
             )
             pu_ini.append(gs.array([p_ini, u_ini]))
 
