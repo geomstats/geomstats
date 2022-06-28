@@ -30,8 +30,7 @@ class BackendsTestData(TestData):
 
         return data
 
-    def np_like_array_test_data(self):
-
+    def array_like_np_test_data(self):
         smoke_data = []
 
         smoke_data += self._array_data()
@@ -39,7 +38,7 @@ class BackendsTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def np_like_binary_op_test_data(self):
+    def binary_op_like_np_test_data(self):
         smoke_data = [
             dict(func_name="matmul", a=rand(2, 2), b=rand(2, 2)),
             dict(func_name="matmul", a=rand(2, 3), b=rand(3, 2)),
@@ -51,7 +50,7 @@ class BackendsTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def einsum_like_binary_op_test_data(self):
+    def binary_op_like_einsum_test_data(self):
         smoke_data = [
             dict(func_name="matvec", a=rand(3, 3), b=rand(3), einsum_expr="ij,j->i")
         ]
@@ -59,7 +58,6 @@ class BackendsTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def binary_op_vec_test_data(self):
-
         smoke_data = [
             dict(func_name="matmul", a=rand(3, 4), b=rand(4, 3)),
             dict(func_name="matmul", a=rand(3, 3), b=rand(3, 3)),
@@ -91,5 +89,37 @@ class BackendsTestData(TestData):
 
     def binary_op_runs_test_data(self):
         smoke_data = []
+
+        return self.generate_tests(smoke_data)
+
+    def bool_unary_func_test_data(self):
+        smoke_data = [
+            dict(func_name="is_array", a=gs.ones(2), expected=True),
+            dict(func_name="is_array", a=[1, 2], expected=False),
+            dict(func_name="is_array", a=1, expected=False),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def _pad_data(self):
+        func_name = "pad"
+
+        n, m = 2, 3
+        args = [
+            (gs.ones((n, n)), [[0, 1], [0, 1]]),
+            (gs.ones((n, n)), [[0, 1], [0, 0]]),
+            (gs.ones((m, n, n)), [[0, 0], [0, 1], [0, 1]]),
+        ]
+        expected = [(n + 1, n + 1), (n + 1, n), (m, n + 1, n + 1)]
+
+        return [
+            {"func_name": func_name, "args": args_, "expected": expected_}
+            for args_, expected_ in zip(args, expected)
+        ]
+
+    def func_out_shape_test_data(self):
+        smoke_data = []
+
+        smoke_data += self._pad_data()
 
         return self.generate_tests(smoke_data)

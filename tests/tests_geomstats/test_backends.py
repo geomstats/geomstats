@@ -23,70 +23,6 @@ class TestBackends(tests.conftest.TestCase):
         self.so3_group = SpecialOrthogonal(n=3)
         self.n_samples = 2
 
-    def test_array(self):
-
-        gs_mat = gs.array([])
-        np_mat = _np.array([])
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-        gs_mat = gs.array(1.5)
-        np_mat = _np.array(1.5)
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-        gs_mat = gs.array([gs.ones(3), gs.ones(3)])
-        np_mat = _np.array([_np.ones(3), _np.ones(3)])
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-        self.assertAllCloseToNp(gs_mat, np_mat)
-        gs_mat = gs.array([gs.ones(1), gs.ones(1)])
-        np_mat = _np.array([_np.ones(1), _np.ones(1)])
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-        gs_mat = gs.array([gs.ones(3), gs.ones(3)], dtype=gs.float64)
-        np_mat = _np.array([_np.ones(3), _np.ones(3)], dtype=_np.float64)
-        self.assertTrue(gs_mat.dtype == gs.float64)
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-        gs_mat = gs.array([[gs.ones(3)], [gs.ones(3)]], dtype=gs.uint8)
-        np_mat = _np.array([[_np.ones(3)], [_np.ones(3)]], dtype=_np.uint8)
-        self.assertTrue(gs_mat.dtype == gs.uint8)
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-        gs_mat = gs.array([gs.ones(3), [0, 0, 0]], dtype=gs.int32)
-        np_mat = _np.array([_np.ones(3), [0, 0, 0]], dtype=_np.int32)
-        self.assertTrue(gs_mat.dtype == gs.int32)
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-    def test_matmul(self):
-        mat_a = [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [7.0, 0.0, 4.0]]
-        mat_b = [[1.0, 0.0, 2.0], [0.0, 3.0, 0.0], [0.0, 0.0, 1.0]]
-        gs_mat_a = gs.array(mat_a)
-        gs_mat_b = gs.array(mat_b)
-        np_mat_a = _np.array(mat_a)
-        np_mat_b = _np.array(mat_b)
-
-        gs_result = gs.matmul(gs_mat_a, gs_mat_b)
-        np_result = _np.matmul(np_mat_a, np_mat_b)
-
-        self.assertAllCloseToNp(gs_result, np_result)
-
-    @tests.conftest.np_autograd_and_tf_only
-    def test_matmul_vectorization(self):
-        mat_a = [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [7.0, 0.0, 4.0]]
-        mat_b = [[1.0, 0.0, 2.0], [0.0, 3.0, 0.0], [0.0, 0.0, 1.0]]
-        mat_c = [[1.0, 4.0, 2.0], [4.0, 3.0, 4.0], [0.0, 0.0, 4.0]]
-        gs_mat_a = gs.array(mat_a)
-        gs_mat_b = gs.array(mat_b)
-        gs_mat_c = gs.array(mat_c)
-        np_mat_a = _np.array(mat_a)
-        np_mat_b = _np.array(mat_b)
-        np_mat_c = _np.array(mat_c)
-
-        gs_result = gs.matmul(gs_mat_a, [gs_mat_b, gs_mat_c])
-        np_result = _np.matmul(np_mat_a, [np_mat_b, np_mat_c])
-
-        self.assertAllCloseToNp(gs_result, np_result)
-
     def test_logm(self):
         point = gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
         result = gs.linalg.logm(point)
@@ -1007,28 +943,3 @@ class TestBackends(tests.conftest.TestCase):
         )
 
         self.assertAllClose(gs.take(mat, 0, axis=1), gs.array([0, 2]))
-
-    def test_pad(self):
-
-        n = 2
-        mat = gs.ones((n, n))
-
-        paddings = [[0, 1], [0, 1]]
-        self.assertTrue(gs.pad(mat, paddings).shape == (n + 1, n + 1))
-
-        paddings = [[0, 1], [0, 0]]
-        self.assertTrue(gs.pad(mat, paddings).shape == (n + 1, n))
-
-        n = 2
-        m = 3
-        mat = gs.ones((m, n, n))
-        paddings = [[0, 0], [0, 1], [0, 1]]
-        self.assertTrue(gs.pad(mat, paddings).shape == (m, n + 1, n + 1))
-
-    def test_is_array(self):
-
-        self.assertTrue(gs.is_array(gs.ones(2)))
-
-        self.assertFalse(gs.is_array([1, 2]))
-
-        self.assertFalse(gs.is_array(1))

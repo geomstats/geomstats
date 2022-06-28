@@ -38,18 +38,14 @@ def convert_gs_to_np(*args):
     return out
 
 
-def get_backend_fncs(func_name, numpy=True):
-    gs_fnc = getattr(gs, func_name)
-    if not numpy:
-        return gs_fnc
-
-    return gs_fnc, getattr(np, func_name)
+def get_backend_fncs(func_name):
+    return getattr(gs, func_name), getattr(np, func_name)
 
 
 class TestBackends(TestCase, metaclass=Parametrizer):
     testing_data = BackendsTestData()
 
-    def test_np_like_array(self, func_name, args):
+    def test_array_like_np(self, func_name, args):
         # TODO: skip for numpy?
 
         gs_fnc, np_fnc = get_backend_fncs(func_name)
@@ -60,7 +56,7 @@ class TestBackends(TestCase, metaclass=Parametrizer):
 
         self.assertAllCloseToNp(gs_array, np_array)
 
-    def test_np_like_binary_op(self, func_name, a, b):
+    def test_binary_op_like_np(self, func_name, a, b):
         gs_fnc, np_fnc = get_backend_fncs(func_name)
         np_a, np_b = convert_gs_to_np(a, b)
 
@@ -68,8 +64,8 @@ class TestBackends(TestCase, metaclass=Parametrizer):
         np_out = np_fnc(np_a, np_b)
         self.assertAllCloseToNp(gs_out, np_out)
 
-    def test_einsum_like_binary_op(self, func_name, a, b, einsum_expr):
-        gs_fnc = get_backend_fncs(func_name, numpy=False)
+    def test_binary_op_like_einsum(self, func_name, a, b, einsum_expr):
+        gs_fnc = getattr(gs, func_name)
 
         gs_out = gs_fnc(a, b)
         ein_out = gs.einsum(einsum_expr, a, b)
@@ -77,7 +73,7 @@ class TestBackends(TestCase, metaclass=Parametrizer):
         self.assertAllClose(gs_out, ein_out)
 
     def test_binary_op_vec(self, func_name, a, b):
-        gs_fnc = get_backend_fncs(func_name, numpy=False)
+        gs_fnc = getattr(gs, func_name)
 
         res = gs_fnc(a, b)
 
@@ -107,12 +103,27 @@ class TestBackends(TestCase, metaclass=Parametrizer):
         self.test_binary_op_raises_error(func_name, a_rep, b_rep)
 
     def test_binary_op_raises_error(self, func_name, a, b):
-        gs_fnc = get_backend_fncs(func_name, numpy=False)
+        gs_fnc = getattr(gs, func_name)
 
         with pytest.raises(Exception):
             gs_fnc(a, b)
 
     def test_binary_op_runs(self, func_name, a, b):
-        gs_fnc = get_backend_fncs(func_name, numpy=False)
-
+        gs_fnc = getattr(gs, func_name)
         gs_fnc(a, b)
+
+    def test_bool_unary_func(self, func_name, a, expected):
+        gs_fnc = getattr(gs, func_name)
+
+        out = gs_fnc(a)
+        if expected:
+            self.assertTrue(out)
+        else:
+            self.assertFalse(out)
+
+    def test_func_out_shape(self, func_name, args, expected):
+        gs_fnc = getattr(gs, func_name)
+
+        # TODO: better comparison (for more info when failing)
+        out = gs_fnc(*args)
+        self.assertTrue(gs.shape(out) == expected)
