@@ -11,6 +11,12 @@ class SasakiMetricTestData(TestData):
     # fix elements in TS
     pu0 = gs.array([[0, -1, 0], [1, 0, 1]])
     pu1 = gs.array([[1, 0, 0], [0, 1, 1]])
+    pu2 = gs.array(
+        [[-0.27215095, -0.90632948, 0.32326574], [0.13474934, 0.0, 1.39415392]]
+    )
+    pu3 = gs.array(
+        [[0.15891441, -0.95795476, 0.23889097], [0.2547784, 0.0, 0.92187986]]
+    )
 
     def inner_product_test_data(self):
         _sqrt2 = 1 / gs.sqrt(2)
@@ -61,20 +67,25 @@ class SasakiMetricTestData(TestData):
         return self.generate_tests(smoke_data, [])
 
     def geodesic_discrete_test_data(self):
-        sqrt32 = gs.sqrt(3) / 2
         expected = gs.array(
             [
-                [[0, -1, 0], [1, 0, 1]],
-                [[0.5, -sqrt32, 0], [sqrt32, 0.5, 1]],
-                [[sqrt32, -0.5, 0], [0.5, sqrt32, 1]],
-                [[1, 0, 0], [0, 1, 1]],
+                [[-0.27215095, -0.90632948, 0.32326574], [0.13474934, 0.0, 1.39415392]],
+                [
+                    [-0.13415037, -0.9507542, 0.27941033],
+                    [0.17027678, -0.03133438, 1.24635354],
+                ],
+                [
+                    [0.01180225, -0.96796946, 0.25079044],
+                    [0.21334916, -0.0301587, 1.08786833],
+                ],
+                [[0.15891441, -0.95795476, 0.23889097], [0.2547784, 0.0, 0.92187986]],
             ]
         )
         smoke_data = [
             dict(
                 metric=self.sas_sphere_metric,
-                initial_point=self.pu0,
-                end_point=self.pu1,
+                initial_point=self.pu2,
+                end_point=self.pu3,
                 expected=expected,
             )
         ]

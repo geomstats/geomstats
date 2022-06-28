@@ -30,4 +30,4 @@ class TestSasakiMetric(TestCase, metaclass=Parametrizer):
     @geomstats.tests.np_autograd_and_torch_only
     def test_geodesic_discrete(self, metric, initial_point, end_point, expected):
         result = metric.geodesic_discrete(initial_point, end_point)
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=6e-06)

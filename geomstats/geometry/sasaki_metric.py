@@ -100,7 +100,9 @@ class SasakiMetric(RiemannianMetric):
         for _ in range(n_steps):
             p = metric.exp(eps * v0, p0)
             u = par_trans(u0 + eps * w0, p0, end_point=p)
-            v = par_trans(v0 - eps * (metric.curvature(u0, w0, v0, p0)), p0, end_point=p)
+            v = par_trans(
+                v0 - eps * (metric.curvature(u0, w0, v0, p0)), p0, end_point=p
+            )
             w = par_trans(w0, p0, end_point=p)
             p0, u0 = p, u
             v0, w0 = v, w
