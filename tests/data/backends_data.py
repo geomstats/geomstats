@@ -39,16 +39,29 @@ class BackendsTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def _einsum_data(self):
-        func_name = 'einsum'
+        func_name = "einsum"
 
         args = [
-            ("...i,...i->...", rand(1, 2), rand(1, 2)),
-            ("...i,...i->...", rand(2, 2), rand(1, 2)),
-            ("...i,...i->...", rand(1, 2), rand(2, 2)),
+            ("...i,...i->...", rand(2, 2), rand(2, 2)),
+            ("...i,...i->...", rand(2, 2), rand(2)),
+            ("...i,...i->...", rand(2), rand(2, 2)),
+            ("...i,...i->...", rand(2), rand(2)),
             ("...,...i->...i", rand(1), rand(1, 3)),
             ("...,...i->...i", rand(1), rand(3)),
-            ("...,...i->...i", gs.array(5.), rand(1, 3)),
-            ("...,...i->...i", gs.array(5.), rand(3)),
+            ("...,...i->...i", 5.0, rand(1, 3)),
+            ("...,...i->...i", 5.0, rand(3)),
+            ("...,...i->...i", rand(3), rand(1, 3)),
+            ("...,...i->...i", rand(3), rand(3)),
+            ("...ij,...ik->...jk", rand(3, 2, 2), rand(3, 2, 2)),
+            ("...ij,...ik->...jk", rand(2, 2), rand(3, 2, 2)),
+            ("...ij,...ik->...jk", rand(3, 2, 2), rand(2, 2)),
+            ("...ij,...ik->...jk", rand(2, 2), rand(2, 2)),
+            ("...i,...ijk->...jk", rand(3), rand(3, 3, 3)),
+            ("...i,...ijk->...jk", rand(3), rand(1, 3, 3, 3)),
+            ("...i,...ijk->...jk", rand(2, 3), rand(2, 3, 3, 3)),
+            ("...i,...ijk->...jk", rand(2, 3), rand(3, 3, 3)),
+            ("...k,...j,...i->...kji", rand(3), rand(3), rand(3)),
+            ("...k,...j,...i->...kji", rand(2, 3), rand(3), rand(3)),
         ]
         return [{"func_name": func_name, "args": args_} for args_ in args]
 

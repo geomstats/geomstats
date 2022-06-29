@@ -354,11 +354,11 @@ def sum(x, axis=None, keepdims=None, **kwargs):
     return _torch.sum(x, dim=axis, keepdim=keepdims, **kwargs)
 
 
-def einsum(*args):
-    einsum_str = args[0]
-    input_tensors_list = convert_to_wider_dtype(args[1:])
+def einsum(equation, *inputs):
+    input_tensors_list = [arg if is_array(arg) else array(arg) for arg in inputs]
+    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
-    return _torch.einsum(einsum_str, *input_tensors_list)
+    return _torch.einsum(equation, *input_tensors_list)
 
 
 def transpose(x, axes=None):

@@ -667,75 +667,11 @@ def sum(x, axis=None, keepdims=False, name=None):
     return _tf.reduce_sum(x, axis, keepdims, name)
 
 
-def einsum(equation, *inputs, **kwargs):
-    einsum_str = equation
-    input_tensors_list = inputs
-
+def einsum(equation, *inputs):
+    input_tensors_list = [arg if is_array(arg) else array(arg) for arg in inputs]
     input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
-    einsum_list = einsum_str.split("->")
-    input_str = einsum_list[0]
-    output_str = einsum_list[1]
-
-    input_str_list = input_str.split(",")
-
-    is_ellipsis = [input_str[:3] == "..." for input_str in input_str_list]
-    all_ellipsis = bool(_np.prod(is_ellipsis))
-
-    if all_ellipsis:
-        if len(input_str_list) > 2:
-            raise NotImplementedError(
-                "Ellipsis support not implemented for >2 input tensors"
-            )
-        ndims = [len(input_str[3:]) for input_str in input_str_list]
-
-        tensor_a = input_tensors_list[0]
-        tensor_b = input_tensors_list[1]
-        initial_ndim_a = tensor_a.ndim
-        initial_ndim_b = tensor_b.ndim
-        tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)
-        tensor_b = to_ndarray(tensor_b, to_ndim=ndims[1] + 1)
-
-        n_tensor_a = tensor_a.shape[0]
-        n_tensor_b = tensor_b.shape[0]
-
-        if n_tensor_a != n_tensor_b:
-            if n_tensor_a == 1:
-                tensor_a = squeeze(tensor_a, axis=0)
-                input_prefix_list = ["", "r"]
-                output_prefix = "r"
-            elif n_tensor_b == 1:
-                tensor_b = squeeze(tensor_b, axis=0)
-                input_prefix_list = ["r", ""]
-                output_prefix = "r"
-            else:
-                raise ValueError("Shape mismatch for einsum.")
-        else:
-            input_prefix_list = ["r", "r"]
-            output_prefix = "r"
-
-        input_str_list = [
-            input_str.replace("...", prefix)
-            for input_str, prefix in zip(input_str_list, input_prefix_list)
-        ]
-        output_str = output_str.replace("...", output_prefix)
-
-        input_str = input_str_list[0] + "," + input_str_list[1]
-        einsum_str = input_str + "->" + output_str
-
-        result = _tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
-
-        cond = (
-            n_tensor_a == n_tensor_b == 1
-            and initial_ndim_a != tensor_a.ndim
-            and initial_ndim_b != tensor_b.ndim
-        )
-
-        if cond:
-            result = squeeze(result, axis=0)
-        return result
-
-    return _tf.einsum(equation, *input_tensors_list, **kwargs)
+    return _tf.einsum(equation, *input_tensors_list)
 
 
 def transpose(x, axes=None):
