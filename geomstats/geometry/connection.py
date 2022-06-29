@@ -458,7 +458,80 @@ class Connection(ABC):
         curvature : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
         """
-        raise NotImplementedError("The curvature is not implemented.")
+        raise NotImplementedError("curvature has not been implemented yet.")
+
+    def riemann_tensor(self, base_point):
+        r"""Compute Riemannian tensor at base_point.
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., {dim, [n, m]}]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        riemann_curvature : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]},
+                                                    {dim, [n, m]}, {dim, [n, m]}]
+            Riemannian tensor curvature.
+        """
+        shape = base_point.shape
+        n_points = shape[0] if len(shape) >= 2 else 1
+        christoffels = self.christoffels(base_point)
+        jacobian_christoffels = [
+            gs.autodiff.jacobian(self.christoffels)(point) for point in base_point
+        ]
+        prod_christoffels = gs.einsum(
+            "...ijk,...klm->...ijlm", christoffels, christoffels
+        )
+        if n_points >= 2:
+            riemann_curvature = (
+                gs.transpose(jacobian_christoffels, [0, 1, 3, 4, 2])
+                - gs.transpose(jacobian_christoffels, [0, 1, 3, 2, 4])
+                + gs.transpose(prod_christoffels, [0, 1, 4, 2, 3])
+                + gs.transpose(prod_christoffels, [0, 1, 4, 3, 2])
+            )
+        else:
+            riemann_curvature = (
+                gs.transpose(jacobian_christoffels, [0, 2, 3, 1])
+                - gs.transpose(jacobian_christoffels, [0, 2, 1, 3])
+                + gs.transpose(prod_christoffels, [0, 3, 1, 2])
+                + gs.transpose(prod_christoffels, [0, 3, 2, 1])
+            )
+        return riemann_curvature
+
+    def ricci_tensor(self, base_point):
+        r"""Compute Ricci tensor at base_point.
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., {dim, [n, m]}]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        ricci_tensor : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]}]
+            Ricci tensor curvature.
+        """
+        riemann_tensor = self.riemann_tensor(base_point)
+        ricci_tensor = gs.trace(riemann_tensor, axis1=-4, axis2=-2)
+        return ricci_tensor
+
+    def scalar_curvature(self, base_point):
+        r"""Compute scalar curvature at base_point.
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., {dim, [n, m]}]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[...,]
+            Scalar curvature.
+        """
+        ricci_tensor = self.ricci_tensor(base_point)
+        curvature = gs.trace(ricci_tensor, axis1=-2, axis2=-1)
+        return curvature
 
     def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the directional curvature (tidal force operator).
