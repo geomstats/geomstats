@@ -257,6 +257,7 @@ class SasakiMetric(RiemannianMetric):
         pt = gs.reshape(base_point, (-1, 2) + self.metric.shape)
 
         inner = self.metric.inner_product
-        return inner(vec_a[:, 0], vec_b[:, 0], pt[:, 0]) + inner(
+        rslt = inner(vec_a[:, 0], vec_b[:, 0], pt[:, 0]) + inner(
             vec_a[:, 1], vec_b[:, 1], pt[:, 0]
         )
+        return rslt if gs.prod(gs.array(rslt.shape)) != 1 else gs.sum(rslt)
