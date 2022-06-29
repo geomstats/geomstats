@@ -346,9 +346,9 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
         use_vectorization = ndim(x) > 1
 
     if use_vectorization:
-        full_shape = shape(x).numpy()
+        full_shape = shape(x)
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
         mask = _vectorized_mask_from_indices(
             n_samples, indices, tile_shape, axis, x.dtype
         )
