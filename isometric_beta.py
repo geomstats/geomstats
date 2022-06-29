@@ -67,6 +67,18 @@ iso_geodesic2 = gs.array(
 )
 ax3d.plot(iso_geodesic2[:, 0], iso_geodesic2[:, 1], iso_geodesic2[:, 2])
 
+base_point3 = gs.array([0.2, 0.8])
+end_point3 = gs.array([2, 2.5])
+geodesic3 = space.metric.geodesic(initial_point=base_point3, end_point=end_point3)
+geodesic3 = geodesic3(t)
+iso_geodesic3 = gs.array(
+    [
+        [eta(geodesic3[i, 0]), eta(geodesic3[i, 1]), eta(gs.sum(geodesic3[i]))]
+        for i in range(100)
+    ]
+)
+ax3d.plot(iso_geodesic3[:, 0], iso_geodesic3[:, 1], iso_geodesic3[:, 2])
+
 ax3d.plot_surface(ETA1, ETA2, ETA3, cmap=plt.cm.gray, alpha=0.7)
 ax3d.set_title("Isometric Visualizer of Beta distributions in Minkowski space")
 ax3d.set_xlabel("$\\eta(\\alpha)$")
