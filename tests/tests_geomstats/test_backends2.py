@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import scipy
 
 import geomstats.backend as gs
 from tests.conftest import Parametrizer, TestCase
@@ -38,8 +39,24 @@ def convert_gs_to_np(*args):
     return out
 
 
-def get_backend_fncs(func_name):
-    return getattr(gs, func_name), getattr(np, func_name)
+def get_backend_fncs(func_name, cmp_package=np):
+    func_name_ls = func_name.split(".")
+    gs_func = gs
+    cmp_func = cmp_package
+    for name in func_name_ls:
+        gs_func = getattr(gs_func, name)
+        cmp_func = getattr(cmp_func, name)
+
+    return gs_func, cmp_func
+
+
+def get_backend_fnc(func_name):
+    func_name_ls = func_name.split(".")
+    gs_func = gs
+    for name in func_name_ls:
+        gs_func = getattr(gs_func, name)
+
+    return gs_func
 
 
 class TestBackends(TestCase, metaclass=Parametrizer):
@@ -48,9 +65,8 @@ class TestBackends(TestCase, metaclass=Parametrizer):
     def test_array_like_np(self, func_name, args):
         return self.test_func_like_np(func_name, args)
 
-    def test_func_like_np(self, func_name, args):
-
-        gs_fnc, np_fnc = get_backend_fncs(func_name)
+    def _test_func_np_based(self, package, func_name, args):
+        gs_fnc, np_fnc = get_backend_fncs(func_name, cmp_package=package)
         np_args = convert_gs_to_np(args)
 
         gs_array = gs_fnc(*args)
@@ -58,11 +74,20 @@ class TestBackends(TestCase, metaclass=Parametrizer):
 
         self.assertAllCloseToNp(gs_array, np_array)
 
+    def test_func_like_np(self, func_name, args):
+        return self._test_func_np_based(np, func_name, args)
+
+    def _test_func_like_scipy(self, func_name, args):
+        return self._test_func_np_based(scipy, func_name, args)
+
     def test_unary_op_like_np(self, func_name, a):
         return self.test_func_like_np(func_name, [a])
 
+    def test_unary_op_like_scipy(self, func_name, a):
+        return self._test_func_like_scipy(func_name, [a])
+
     def test_unary_op_vec(self, func_name, a):
-        gs_fnc = getattr(gs, func_name)
+        gs_fnc = get_backend_fnc(func_name)
 
         res = gs_fnc(a)
 
@@ -77,7 +102,7 @@ class TestBackends(TestCase, metaclass=Parametrizer):
         return self.test_func_like_np(func_name, [a, b])
 
     def test_binary_op_like_einsum(self, func_name, a, b, einsum_expr):
-        gs_fnc = getattr(gs, func_name)
+        gs_fnc = get_backend_fnc(func_name)
 
         gs_out = gs_fnc(a, b)
         ein_out = gs.einsum(einsum_expr, a, b)
@@ -85,7 +110,7 @@ class TestBackends(TestCase, metaclass=Parametrizer):
         self.assertAllClose(gs_out, ein_out)
 
     def test_binary_op_vec(self, func_name, a, b):
-        gs_fnc = getattr(gs, func_name)
+        gs_fnc = get_backend_fnc(func_name)
 
         res = gs_fnc(a, b)
 
@@ -115,17 +140,17 @@ class TestBackends(TestCase, metaclass=Parametrizer):
         self.test_binary_op_raises_error(func_name, a_rep, b_rep)
 
     def test_binary_op_raises_error(self, func_name, a, b):
-        gs_fnc = getattr(gs, func_name)
+        gs_fnc = get_backend_fnc(func_name)
 
         with pytest.raises(Exception):
             gs_fnc(a, b)
 
     def test_binary_op_runs(self, func_name, a, b):
-        gs_fnc = getattr(gs, func_name)
+        gs_fnc = get_backend_fnc(func_name)
         gs_fnc(a, b)
 
     def test_bool_unary_func(self, func_name, a, expected):
-        gs_fnc = getattr(gs, func_name)
+        gs_fnc = get_backend_fnc(func_name)
 
         out = gs_fnc(a)
         if expected:
@@ -134,20 +159,26 @@ class TestBackends(TestCase, metaclass=Parametrizer):
             self.assertFalse(out)
 
     def test_func_out_shape(self, func_name, args, expected):
-        gs_fnc = getattr(gs, func_name)
+        gs_fnc = get_backend_fnc(func_name)
 
         # TODO: better comparison (for more info when failing)
         out = gs_fnc(*args)
         self.assertTrue(gs.shape(out) == expected)
 
     def test_func_out_type(self, func_name, args, expected):
-        gs_fnc = getattr(gs, func_name)
+        gs_fnc = get_backend_fnc(func_name)
 
         out = gs_fnc(*args)
         self.assertTrue(isinstance(out, expected))
 
+    def test_func_out_close(self, func_name, args, expected):
+        gs_fnc = get_backend_fnc(func_name)
+
+        out = gs_fnc(*args)
+        self.assertAllClose(out, expected)
+
     def test_func_out_equal(self, func_name, args, expected):
-        gs_fnc = getattr(gs, func_name)
+        gs_fnc = get_backend_fnc(func_name)
 
         out = gs_fnc(*args)
         self.assertEqual(out, expected)

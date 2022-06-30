@@ -1,4 +1,5 @@
 import geomstats.backend as gs
+from geomstats.geometry.matrices import Matrices
 from tests.data_generation import TestData
 
 rand = gs.random.rand
@@ -65,6 +66,16 @@ class BackendsTestData(TestData):
         ]
         return [{"func_name": func_name, "args": args_} for args_ in args]
 
+    def _logm_data(self):
+        func_name = "linalg.logm"
+        arrays = [
+            Matrices.to_diagonal(rand(3, 3)),
+            # TODO: uncomment or delete?
+            # Matrices.to_symmetric(rand(3, 3)),
+            # rand(3, 3),
+        ]
+        return [dict(func_name=func_name, a=array) for array in arrays]
+
     def func_like_np_test_data(self):
         smoke_data = []
         smoke_data += self._einsum_data()
@@ -78,8 +89,18 @@ class BackendsTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def unary_op_like_scipy_test_data(self):
+        smoke_data = []
+        smoke_data += self._logm_data()
+
+        return self.generate_tests(smoke_data)
+
     def unary_op_vec_test_data(self):
-        smoke_data = [dict(func_name="trace", b=rand(3, 3))]
+        # TODO: compose with inverse
+        smoke_data = [
+            dict(func_name="trace", a=rand(3, 3)),
+        ]
+        smoke_data += self._logm_data()
         return self.generate_tests(smoke_data)
 
     def binary_op_like_np_test_data(self):
@@ -171,6 +192,30 @@ class BackendsTestData(TestData):
     def func_out_type_test_data(self):
         smoke_data = [
             dict(func_name="shape", args=(gs.ones(3),), expected=tuple),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def func_out_close_test_data(self):
+        smoke_data = [
+            dict(
+                func_name="linalg.logm",
+                args=[gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])],
+                expected=gs.array(
+                    [
+                        [0.693147180, 0.0, 0.0],
+                        [0.0, 1.098612288, 0.0],
+                        [0.0, 0.0, 1.38629436],
+                    ]
+                ),
+            ),
+            dict(
+                func_name="linalg.logm",
+                args=[gs.array([[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]])],
+                expected=gs.array(
+                    [[0.0, 0.0, 0.0], [0.0, 1.609437912, 0.0], [0.0, 0.0, 1.79175946]]
+                ),
+            ),
         ]
 
         return self.generate_tests(smoke_data)

@@ -23,18 +23,6 @@ class TestBackends(tests.conftest.TestCase):
         self.so3_group = SpecialOrthogonal(n=3)
         self.n_samples = 2
 
-    def test_logm(self):
-        point = gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
-        result = gs.linalg.logm(point)
-        expected = gs.array(
-            [[0.693147180, 0.0, 0.0], [0.0, 1.098612288, 0.0], [0.0, 0.0, 1.38629436]]
-        )
-        self.assertAllClose(result, expected)
-
-        np_point = _np.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
-        scipy_result = scipy.linalg.logm(np_point)
-        self.assertAllCloseToNp(result, scipy_result)
-
     def test_expm_and_logm(self):
         point = gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
         result = gs.linalg.expm(gs.linalg.logm(point))
@@ -71,30 +59,6 @@ class TestBackends(tests.conftest.TestCase):
         )
 
         result = gs.linalg.expm(point)
-
-        self.assertAllClose(result, expected)
-
-    def test_logm_vectorization_diagonal(self):
-        # Note: scipy.linalg.expm is not vectorized
-        point = gs.array(
-            [
-                [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
-                [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
-            ]
-        )
-
-        expected = gs.array(
-            [
-                [
-                    [0.693147180, 0.0, 0.0],
-                    [0.0, 1.09861228866, 0.0],
-                    [0.0, 0.0, 1.38629436],
-                ],
-                [[0.0, 0.0, 0.0], [0.0, 1.609437912, 0.0], [0.0, 0.0, 1.79175946]],
-            ]
-        )
-
-        result = gs.linalg.logm(point)
 
         self.assertAllClose(result, expected)
 
