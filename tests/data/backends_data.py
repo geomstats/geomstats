@@ -160,15 +160,6 @@ class BackendsTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def bool_unary_func_test_data(self):
-        smoke_data = [
-            dict(func_name="is_array", a=gs.ones(2), expected=True),
-            dict(func_name="is_array", a=[1, 2], expected=False),
-            dict(func_name="is_array", a=1, expected=False),
-        ]
-
-        return self.generate_tests(smoke_data)
-
     def _pad_data(self):
         func_name = "pad"
 
@@ -195,6 +186,15 @@ class BackendsTestData(TestData):
     def func_out_type_test_data(self):
         smoke_data = [
             dict(func_name="shape", args=(gs.ones(3),), expected=tuple),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def func_out_bool_test_data(self):
+        smoke_data = [
+            dict(func_name="is_array", args=[gs.ones(2)], expected=True),
+            dict(func_name="is_array", args=([1, 2],), expected=False),
+            dict(func_name="is_array", args=(1,), expected=False),
         ]
 
         return self.generate_tests(smoke_data)

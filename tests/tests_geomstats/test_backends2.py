@@ -149,15 +149,6 @@ class TestBackends(TestCase, metaclass=Parametrizer):
         gs_fnc = get_backend_fnc(func_name)
         gs_fnc(a, b)
 
-    def test_bool_unary_func(self, func_name, a, expected):
-        gs_fnc = get_backend_fnc(func_name)
-
-        out = gs_fnc(a)
-        if expected:
-            self.assertTrue(out)
-        else:
-            self.assertFalse(out)
-
     def test_func_out_shape(self, func_name, args, expected):
         gs_fnc = get_backend_fnc(func_name)
 
@@ -170,6 +161,15 @@ class TestBackends(TestCase, metaclass=Parametrizer):
 
         out = gs_fnc(*args)
         self.assertTrue(isinstance(out, expected))
+
+    def test_func_out_bool(self, func_name, args, expected):
+        gs_fnc = get_backend_fnc(func_name)
+
+        out = gs_fnc(*args)
+        if expected:
+            self.assertTrue(out)
+        else:
+            self.assertFalse(out)
 
     def test_func_out_close(self, func_name, args, expected):
         gs_fnc = get_backend_fnc(func_name)
