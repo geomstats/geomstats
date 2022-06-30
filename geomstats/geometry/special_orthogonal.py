@@ -855,7 +855,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         n_rot_mats, _, _ = rot_mat.shape
 
-        trace = gs.trace(rot_mat, axis1=1, axis2=2)
+        trace = gs.trace(rot_mat)
         trace = gs.to_ndarray(trace, to_ndim=2, axis=1)
         trace_num = gs.clip(trace, -1, 3)
         angle = gs.arccos(0.5 * (trace_num - 1))
