@@ -66,8 +66,7 @@ class BackendsTestData(TestData):
         ]
         return [{"func_name": func_name, "args": args_} for args_ in args]
 
-    def _logm_data(self):
-        func_name = "linalg.logm"
+    def _logm_expm_data(self, func_name="linalg.logm"):
         arrays = [
             Matrices.to_diagonal(rand(3, 3)),
             # TODO: uncomment or delete?
@@ -91,7 +90,8 @@ class BackendsTestData(TestData):
 
     def unary_op_like_scipy_test_data(self):
         smoke_data = []
-        smoke_data += self._logm_data()
+        smoke_data += self._logm_expm_data()
+        smoke_data += self._logm_expm_data("linalg.expm")
 
         return self.generate_tests(smoke_data)
 
@@ -100,7 +100,9 @@ class BackendsTestData(TestData):
         smoke_data = [
             dict(func_name="trace", a=rand(3, 3)),
         ]
-        smoke_data += self._logm_data()
+        smoke_data += self._logm_expm_data()
+        smoke_data += self._logm_expm_data("linalg.expm")
+
         return self.generate_tests(smoke_data)
 
     def binary_op_like_np_test_data(self):
@@ -216,6 +218,33 @@ class BackendsTestData(TestData):
                     [[0.0, 0.0, 0.0], [0.0, 1.609437912, 0.0], [0.0, 0.0, 1.79175946]]
                 ),
             ),
+            dict(
+                func_name="linalg.expm",
+                args=[
+                    gs.array(
+                        [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
+                    )
+                ],
+                expected=gs.array(
+                    [
+                        [7.38905609, 0.0, 0.0],
+                        [0.0, 20.0855369, 0.0],
+                        [0.0, 0.0, 54.5981500],
+                    ]
+                ),
+            ),
+            # TODO: uncomment or delete?
+            # dict(
+            #     func_name="linalg.expm",
+            #     args=[gs.array([[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]])],
+            #     expected=gs.array(
+            #         [
+            #             [2.718281828, 0.0, 0.0],
+            #             [0.0, 148.413159, 0.0],
+            #             [0.0, 0.0, 403.42879349],
+            #         ],
+            #     ),
+            # ),
         ]
 
         return self.generate_tests(smoke_data)

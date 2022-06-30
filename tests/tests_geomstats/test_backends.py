@@ -33,35 +33,6 @@ class TestBackends(tests.conftest.TestCase):
         scipy_result = scipy.linalg.expm(scipy.linalg.logm(np_point))
         self.assertAllCloseToNp(result, scipy_result)
 
-    @tests.conftest.np_and_autograd_only
-    def test_expm_vectorization(self):
-        # Note: scipy.linalg.expm is not vectorized
-        point = gs.array(
-            [
-                [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
-                [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
-            ]
-        )
-
-        expected = gs.array(
-            [
-                [
-                    [7.38905609, 0.0, 0.0],
-                    [0.0, 20.0855369, 0.0],
-                    [0.0, 0.0, 54.5981500],
-                ],
-                [
-                    [2.718281828, 0.0, 0.0],
-                    [0.0, 148.413159, 0.0],
-                    [0.0, 0.0, 403.42879349],
-                ],
-            ]
-        )
-
-        result = gs.linalg.expm(point)
-
-        self.assertAllClose(result, expected)
-
     def test_expm_and_logm_vectorization_random_rotation(self):
         point = self.so3_group.random_uniform(self.n_samples)
 
