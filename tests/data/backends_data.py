@@ -1,5 +1,6 @@
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import TestData
 
 rand = gs.random.rand
@@ -257,4 +258,24 @@ class BackendsTestData(TestData):
             dict(func_name="shape", args=(gs.ones((3, 3)),), expected=(3, 3)),
         ]
 
+        return self.generate_tests(smoke_data)
+
+    def compose_with_inverse_test_data(self):
+        smoke_data = [
+            dict(
+                func_name_1="linalg.logm",
+                func_name_2="linalg.expm",
+                a=Matrices.to_diagonal(rand(3, 3)),
+            ),
+            dict(
+                func_name_1="linalg.expm",
+                func_name_2="linalg.logm",
+                a=Matrices.to_diagonal(rand(3, 3)),
+            ),
+            dict(
+                func_name_1="linalg.logm",
+                func_name_2="linalg.expm",
+                a=SpecialOrthogonal(n=3).random_point(2),
+            ),
+        ]
         return self.generate_tests(smoke_data)

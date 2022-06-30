@@ -8,50 +8,15 @@ import warnings
 
 import numpy as _np
 import pytest
-import scipy.linalg
 
 import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestBackends(tests.conftest.TestCase):
     def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
-
-        self.so3_group = SpecialOrthogonal(n=3)
-        self.n_samples = 2
-
-    def test_expm_and_logm(self):
-        point = gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
-        result = gs.linalg.expm(gs.linalg.logm(point))
-        expected = point
-        self.assertAllClose(result, expected)
-
-        np_point = _np.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
-        scipy_result = scipy.linalg.expm(scipy.linalg.logm(np_point))
-        self.assertAllCloseToNp(result, scipy_result)
-
-    def test_expm_and_logm_vectorization_random_rotation(self):
-        point = self.so3_group.random_uniform(self.n_samples)
-
-        result = gs.linalg.expm(gs.linalg.logm(point))
-        expected = point
-
-        self.assertAllClose(result, expected, atol=gs.atol * 100)
-
-    def test_expm_and_logm_vectorization(self):
-        point = gs.array(
-            [
-                [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
-                [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
-            ]
-        )
-        result = gs.linalg.expm(gs.linalg.logm(point))
-        expected = point
-
-        self.assertAllClose(result, expected)
 
     @tests.conftest.tf_only
     def test_vstack(self):

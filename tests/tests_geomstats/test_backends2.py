@@ -182,3 +182,10 @@ class TestBackends(TestCase, metaclass=Parametrizer):
 
         out = gs_fnc(*args)
         self.assertEqual(out, expected)
+
+    def test_compose_with_inverse(self, func_name_1, func_name_2, a):
+        gs_fnc_1 = get_backend_fnc(func_name_1)
+        gs_fnc_2 = get_backend_fnc(func_name_2)
+
+        out = gs_fnc_2(gs_fnc_1(a))
+        self.assertAllClose(out, a)
