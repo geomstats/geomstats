@@ -724,6 +724,7 @@ class TestBackends(tests.conftest.TestCase):
         self.assertAllClose(result, expected)
 
     def test_take(self):
+        # TODO: delete afte test refactor merge (and uncomment in tests)
         vec = gs.array([0, 1])
 
         indices = expected = gs.array([0, 0, 1])

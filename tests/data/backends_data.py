@@ -204,7 +204,33 @@ class BackendsTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def func_out_close_test_data(self):
+    def _take_data(self):
+        func_name = "take"
+
+        vec = gs.array([0, 1])
+        indices = gs.array([0, 0, 1])
+        # mat = gs.array(
+        #     [
+        #         [0, 1],
+        #         [2, 3],
+        #     ]
+        # )
+        data = [
+            dict(func_name=func_name, args=[vec, indices], expected=indices),
+            # TODO: uncomment after test refactor merge
+            # dict(func_name=func_name, args=[mat, indices],
+            #      expected=gs.array([[0, 1]] * 2 + [[2, 3]]),
+            #      axis=0),
+            # dict(func_name=func_name, args=[mat, indices],
+            #      expected=gs.transpose(gs.array([[0, 2]] * 2 + [[1, 3]])),
+            #      axis=1),
+            # dict(func_name=func_name, args=[mat, 0], expected=gs.array([0, 2]),
+            #      axis=1)
+        ]
+
+        return data
+
+    def func_out_allclose_test_data(self):
         smoke_data = [
             dict(
                 func_name="linalg.logm",
@@ -252,6 +278,7 @@ class BackendsTestData(TestData):
             #     ),
             # ),
         ]
+        smoke_data += self._take_data()
 
         return self.generate_tests(smoke_data)
 
@@ -261,6 +288,7 @@ class BackendsTestData(TestData):
             dict(func_name="shape", args=([1, 2],), expected=(2,)),
             dict(func_name="shape", args=(gs.ones(3),), expected=(3,)),
             dict(func_name="shape", args=(gs.ones((3, 3)),), expected=(3, 3)),
+            dict(func_name="take", args=[gs.array([0, 1]), 0], expected=0),
         ]
 
         return self.generate_tests(smoke_data)
