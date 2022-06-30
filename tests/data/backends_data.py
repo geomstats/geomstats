@@ -1,5 +1,6 @@
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import TestData
 
@@ -85,7 +86,8 @@ class BackendsTestData(TestData):
     def unary_op_like_np_test_data(self):
         smoke_data = [
             dict(func_name="trace", a=rand(2, 2)),
-            dict(func_name="trace", b=rand(3, 3)),
+            dict(func_name="trace", a=rand(3, 3)),
+            dict(func_name="linalg.cholesky", a=SPDMatrices(3).random_point()),
         ]
         return self.generate_tests(smoke_data)
 
@@ -100,6 +102,7 @@ class BackendsTestData(TestData):
         # TODO: compose with inverse
         smoke_data = [
             dict(func_name="trace", a=rand(3, 3)),
+            dict(func_name="linalg.cholesky", a=SPDMatrices(3).random_point()),
         ]
         smoke_data += self._logm_expm_data()
         smoke_data += self._logm_expm_data("linalg.expm")

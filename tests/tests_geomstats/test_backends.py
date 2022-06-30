@@ -11,7 +11,6 @@ import pytest
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.geometry.spd_matrices import SPDMatrices
 
 
 class TestBackends(tests.conftest.TestCase):
@@ -663,12 +662,6 @@ class TestBackends(tests.conftest.TestCase):
         result = gs.linalg.eigvalsh(mat, UPLO="U")
         expected = _np.linalg.eigvalsh(mat)
         self.assertAllCloseToNp(result, expected)
-
-    def test_cholesky(self):
-        mat = SPDMatrices(3).random_point(2)
-        result = gs.linalg.cholesky(mat)
-        expected = _np.linalg.cholesky(mat)
-        self.assertAllClose(result, expected)
 
     def test_triu(self):
         mat = gs.array([[2.0, 1.0, 1.0], [1.0, -1.5, 2.0], [-1.0, 10.0, 2.0]])
