@@ -135,18 +135,8 @@ def array(x, dtype=None):
     return _tf.convert_to_tensor(x, dtype=dtype)
 
 
-def trace(x, axis1=0, axis2=1):
-    min_axis = min(axis1, axis2)
-    max_axis = max(axis1, axis2)
-    if min_axis == 1 and max_axis == 2:
-        return _tf.einsum("...ii", x)
-    if min_axis == -2 and max_axis == -1:
-        return _tf.einsum("...ii", x)
-    if min_axis == 0 and max_axis == 1:
-        return _tf.einsum("ii...", x)
-    if min_axis == 0 and max_axis == 2:
-        return _tf.einsum("i...i", x)
-    raise NotImplementedError()
+def trace(x):
+    return _tf.linalg.trace(x)
 
 
 # TODO (nkoep): Handle the optional axis arguments.
@@ -348,7 +338,7 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
     if use_vectorization:
         full_shape = shape(x)
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
         mask = _vectorized_mask_from_indices(
             n_samples, indices, tile_shape, axis, x.dtype
         )

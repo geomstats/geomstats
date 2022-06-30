@@ -71,6 +71,17 @@ class BackendsTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
+    def unary_op_like_np_test_data(self):
+        smoke_data = [
+            dict(func_name="trace", a=rand(2, 2)),
+            dict(func_name="trace", b=rand(3, 3)),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def unary_op_vec_test_data(self):
+        smoke_data = [dict(func_name="trace", b=rand(3, 3))]
+        return self.generate_tests(smoke_data)
+
     def binary_op_like_np_test_data(self):
         smoke_data = [
             dict(func_name="matmul", a=rand(2, 2), b=rand(2, 2)),

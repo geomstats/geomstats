@@ -548,23 +548,6 @@ class TestBackends(tests.conftest.TestCase):
         gs_result = gs.all(gs_array > 30.0, axis=(-2, -1))
         self.assertAllCloseToNp(gs_result, np_result)
 
-    def test_trace(self):
-        base_list = [[[22.0, 55.0], [33.0, 88.0]], [[34.0, 12.0], [67.0, 35.0]]]
-        np_array = _np.array(base_list)
-        gs_array = gs.array(base_list)
-
-        np_result = _np.trace(np_array)
-        gs_result = gs.trace(gs_array)
-        self.assertAllCloseToNp(gs_result, np_result)
-
-        np_result = _np.trace(np_array, axis1=1, axis2=2)
-        gs_result = gs.trace(gs_array, axis1=1, axis2=2)
-        self.assertAllCloseToNp(gs_result, np_result)
-
-        np_result = _np.trace(np_array, axis1=-1, axis2=-2)
-        gs_result = gs.trace(gs_array, axis1=-1, axis2=-2)
-        self.assertAllCloseToNp(gs_result, np_result)
-
     def test_isclose(self):
         base_list = [[[22.0 + 1e-5, 22.0 + 1e-7], [22.0 + 1e-6, 88.0 + 1e-4]]]
         np_array = _np.array(base_list)

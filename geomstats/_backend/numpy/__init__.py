@@ -91,7 +91,6 @@ from numpy import (
     tan,
     tanh,
     tile,
-    trace,
     transpose,
     trapz,
     tril,
@@ -476,3 +475,7 @@ def dot(a, b):
         return _np.dot(a, b.T)
 
     return _np.einsum("...i,...i->...", a, b)
+
+
+def trace(a):
+    return _np.trace(a, axis1=-2, axis2=-1)

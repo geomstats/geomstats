@@ -377,18 +377,11 @@ def squeeze(x, axis=None):
     return _torch.squeeze(x, dim=axis)
 
 
-def trace(x, axis1=0, axis2=1):
-    min_axis = min(axis1, axis2)
-    max_axis = max(axis1, axis2)
-    if min_axis == 1 and max_axis == 2:
-        return _torch.einsum("...ii", x)
-    if min_axis == -2 and max_axis == -1:
-        return _torch.einsum("...ii", x)
-    if min_axis == 0 and max_axis == 1:
-        return _torch.einsum("ii...", x)
-    if min_axis == 0 and max_axis == 2:
-        return _torch.einsum("i...i", x)
-    raise NotImplementedError()
+def trace(x):
+    if x.ndim == 2:
+        return _torch.trace(x)
+
+    return _torch.einsum("...ii", x)
 
 
 def linspace(start, stop, num):
