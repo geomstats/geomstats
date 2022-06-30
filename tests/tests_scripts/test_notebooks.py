@@ -9,6 +9,7 @@ import tempfile
 import pytest
 
 BACKEND = os.environ.get("GEOMSTATS_BACKEND", "numpy")
+ALL_BACKENDS = ["numpy", "pytorch", "tensorflow", "autograd"]
 
 
 def _exec_notebook(path):
@@ -38,8 +39,7 @@ def test_notebook(path):
     with open(path, "r") as file:
         metadata = json.load(file).get("metadata")
 
-    all_backends = ["numpy", "torch", "tensorflow", "autograd"]
-    backends = metadata.get("backends", all_backends)
+    backends = metadata.get("backends", ALL_BACKENDS)
     if BACKEND not in backends:
         pytest.skip()
 

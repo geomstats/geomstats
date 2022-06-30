@@ -4,6 +4,7 @@ import math
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.discrete_curves import R2, DiscreteCurves, ElasticMetric
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
@@ -26,6 +27,33 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.minkowski = Minkowski(dim=2)
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.so_matrix = SpecialOrthogonal(n=3)
+        self.curves_2d = DiscreteCurves(R2)
+        self.elastic_metric = ElasticMetric(a=1, b=1, ambient_manifold=R2)
+
+    def test_logs_at_mean_curves_2d(self):
+        n_tests = 10
+        metric = self.curves_2d.srv_metric
+        estimator = FrechetMean(metric=metric, init_step_size=1.0)
+
+        result = []
+        for _ in range(n_tests):
+            # take 2 random points, compute their mean, and verify that
+            # log of each at the mean is opposite
+            points = self.curves_2d.random_point(n_samples=2)
+            estimator.fit(points)
+            mean = estimator.estimate_
+
+            # Expand and tile are added because of GitHub issue 1575
+            mean = gs.expand_dims(mean, axis=0)
+            mean = gs.tile(mean, (2, 1, 1))
+
+            logs = metric.log(point=points, base_point=mean)
+            logs_srv = metric.aux_differential_srv_transform(logs, curve=mean)
+            # Note that the logs are NOT inverse, only the logs_srv are.
+            result.append(gs.linalg.norm(logs_srv[1, :] + logs_srv[0, :]))
+        result = gs.stack(result)
+        expected = gs.zeros(n_tests)
+        self.assertAllClose(expected, result, atol=1e-5)
 
     def test_logs_at_mean_default_gradient_descent_sphere(self):
         n_tests = 10
@@ -90,6 +118,24 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (dim,))
 
+    def test_estimate_shape_elastic_metric(self):
+        points = self.curves_2d.random_point(n_samples=2)
+
+        mean = FrechetMean(metric=self.elastic_metric)
+        mean.fit(points)
+        result = mean.estimate_
+
+        self.assertAllClose(gs.shape(result), (points.shape[1:]))
+
+    def test_estimate_shape_metric(self):
+        points = self.curves_2d.random_point(n_samples=2)
+
+        mean = FrechetMean(metric=self.curves_2d.srv_metric)
+        mean.fit(points)
+        result = mean.estimate_
+
+        self.assertAllClose(gs.shape(result), (points.shape[1:]))
+
     def test_estimate_and_belongs_default_gradient_descent_sphere(self):
         point_a = gs.array([1.0, 0.0, 0.0, 0.0, 0.0])
         point_b = gs.array([0.0, 1.0, 0.0, 0.0, 0.0])
@@ -99,6 +145,16 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean.fit(points)
 
         result = self.sphere.belongs(mean.estimate_)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    def test_estimate_and_belongs_curves_2d(self):
+        points = self.curves_2d.random_point(n_samples=2)
+
+        mean = FrechetMean(metric=self.curves_2d.srv_metric)
+        mean.fit(points)
+
+        result = self.curves_2d.belongs(mean.estimate_)
         expected = True
         self.assertAllClose(result, expected)
 
@@ -208,6 +264,30 @@ class TestFrechetMean(geomstats.tests.TestCase):
         points = gs.array([point, point])
 
         mean = FrechetMean(metric=self.sphere.metric, method="default")
+        mean.fit(X=points)
+
+        result = mean.estimate_
+        expected = point
+
+        self.assertAllClose(expected, result)
+
+    def test_estimate_elastic_metric(self):
+        point = self.curves_2d.random_point(n_samples=1)
+        points = gs.array([point, point])
+
+        mean = FrechetMean(metric=self.elastic_metric)
+        mean.fit(X=points)
+
+        result = mean.estimate_
+        expected = point
+
+        self.assertAllClose(expected, result)
+
+    def test_estimate_curves_2d(self):
+        point = self.curves_2d.random_point(n_samples=1)
+        points = gs.array([point, point])
+
+        mean = FrechetMean(metric=self.curves_2d.srv_metric)
         mean.fit(X=points)
 
         result = mean.estimate_

@@ -72,6 +72,7 @@ Past and future hackathons
 * October 2022: hybrid hackathon:
  * in-person during the trimester Geometry and Statistics in Data Sciences, in Paris, France. (October 17-21)
  * remote with participants around the world.
+ * `hackathon's webpage <https://indico.math.cnrs.fr/event/8111/>`_.
 
 2021:
 
@@ -82,10 +83,12 @@ Past and future hackathons
 * July 2021: hybrid hackathon:
  * in-person at the Geometric Science of Information (GSI) conference, Paris, France
  * remote with participants around the world.
+ * `hackathon's webpage <https://web2.see.asso.fr/wiki/369069_scai-geomstats-hackathon>`_.
 
 * December 2021: in-person hackathon:
  * in-person at the Sorbonne Center for Artificial Intelligence, Paris, France.
-
+ * `hackathon's webpage <https://scai.sorbonne-universite.fr/public/events/view/578dc8677b284de80cf8/1>`_.
+ 
 2020:
 
 * January 2020: in-person hackathon:
