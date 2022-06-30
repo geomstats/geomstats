@@ -15,11 +15,11 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 N_STEPS = 3
 
 
-def _gradient_descent(x_ini, grad, exp, lrate=0.1, max_iter=100, tol=1e-6):
+def _gradient_descent(x_ini, i_pt, e_pt, grad, exp, lrate=0.1, max_iter=100, tol=1e-6):
     """Apply a gradient descent until max_iter or a given tolerance is reached."""
     x = x_ini
     for _ in range(max_iter):
-        grad_x = grad(x)
+        grad_x = grad(x, i_pt, e_pt)
         grad_norm = gs.linalg.norm(grad_x)
         if grad_norm < tol:
             break
@@ -138,33 +138,28 @@ class SasakiMetric(RiemannianMetric):
         metric = self.metric
         par_trans = metric.parallel_transport
 
-        @delayed
-        def _log(pt, bs_pt):
-            """Calculate the logarithm."""
-            pu = self.geodesic_discrete(bs_pt, pt, n_steps)
-            p1, u1 = pu[1][0], pu[1][1]
-            p0, u0 = bs_pt[0], bs_pt[1]
-            w = par_trans(u1, p1, end_point=p0) - u0
-            v = metric.log(point=p1, base_point=p0)
-            return n_steps * gs.array([v, w])
+        pu = self.geodesic_discrete(bs_pts, pts, n_steps)
+        if len(pts) == 1:
+            pu = gs.expand_dims(pu, axis=0)
 
-        n_jobs = min(os.cpu_count(), len(pts))
-        with Parallel(n_jobs=n_jobs, verbose=0) as parallel:
-            rslt = parallel(
-                _log(pt, bs_pts[i % len(bs_pts)]) for i, pt in enumerate(pts)
-            )
+        pu1 = gs.take(pu, 1, axis=1)
+        p1, u1 = gs.take(pu1, 0, axis=1), gs.take(pu1, 1, axis=1)
+        p0, u0 = gs.take(bs_pts, 0, axis=1), gs.take(bs_pts, 1, axis=1)
+        w = par_trans(u1, p1, end_point=p0) - u0
+        v = metric.log(point=p1, base_point=p0)
+        rslt = n_steps * gs.stack([v, w], axis=1)
 
         return gs.reshape(gs.array(rslt), point.shape)
 
-    def geodesic_discrete(self, initial_point, end_point, n_steps=N_STEPS, **kwargs):
+    def geodesic_discrete(self, initial_points, end_points, n_steps=N_STEPS, **kwargs):
         """Compute Sakai geodesic employing a variational time discretization.
 
         Parameters
         ----------
-        end_point : array-like, shape=[2, M.shape]
-            Point in the tangent bundle TM of manifold M.
-        initial_point : array-like, shape=[2, M.shape]
-            Point in the tangent bundle TM of manifold M.
+        end_points : array-like, shape=[..., 2, M.shape]
+            Points in the tangent bundle TM of manifold M.
+        initial_points : array-like, shape=[..., 2, M.shape]
+            Points in the tangent bundle TM of manifold M.
         n_steps : int
             n_steps - 1 is the number of intermediate points in the discretization
             of the geodesic from initial_point to end_point
@@ -172,22 +167,20 @@ class SasakiMetric(RiemannianMetric):
 
         Returns
         -------
-        geodesic : array-like, shape=[n_steps + 1, 2, M.shape]
-            Discrete geodesic x(s)=(p(s), u(s)) in Sasaki metric connecting
+        geodesic : array-like, shape=[..., n_steps + 1, 2, M.shape]
+            Discrete geodesics of form x(s)=(p(s), u(s)) in Sasaki metric connecting
             initial_point = x(0) and end_point = x(1).
         """
         metric = self.metric
         par_trans = metric.parallel_transport
-        p0, u0 = initial_point[0], initial_point[1]
-        pL, uL = end_point[0], end_point[1]
 
-        def _grad(pu):
+        def _grad(pu, i_pt, e_pt):
             """Gradient of discrete geodesic energy."""
             pu = gs.vstack(
                 [
-                    gs.expand_dims(initial_point, axis=0),
+                    gs.expand_dims(i_pt, axis=0),
                     pu,
-                    gs.expand_dims(end_point, axis=0),
+                    gs.expand_dims(e_pt, axis=0),
                 ]
             )
 
@@ -214,26 +207,47 @@ class SasakiMetric(RiemannianMetric):
 
             return -gs.stack([gp, gu], axis=1) * eps
 
-        v = metric.log(pL, p0)
-        s = gs.linspace(0.0, 1.0, n_steps + 1)
-        pu_ini = []
-        for i in range(1, n_steps):
-            p_ini = metric.exp(s[i] * v, p0)
-            u_ini = (1 - s[i]) * par_trans(u0, p0, end_point=p_ini) + s[i] * par_trans(
-                uL, pL, end_point=p_ini
+        @delayed
+        def _geodesic_discrete(initial_point, end_point, n_stps):
+            """Calculate the discrete geodesic."""
+            p0, u0 = initial_point[0], initial_point[1]
+            pL, uL = end_point[0], end_point[1]
+
+            v = metric.log(pL, p0)
+            s = gs.linspace(0.0, 1.0, n_stps + 1)
+            pu_ini = []
+            for i in range(1, n_stps):
+                p_ini = metric.exp(s[i] * v, p0)
+                u_ini = (1 - s[i]) * par_trans(u0, p0, end_point=p_ini) + s[
+                    i
+                ] * par_trans(uL, pL, end_point=p_ini)
+                pu_ini.append(gs.array([p_ini, u_ini]))
+
+            pu_ini = gs.array(pu_ini)
+            x = _gradient_descent(pu_ini, initial_point, end_point, _grad, self.exp)
+
+            return gs.vstack(
+                [
+                    gs.expand_dims(initial_point, axis=0),
+                    x,
+                    gs.expand_dims(end_point, axis=0),
+                ]
             )
-            pu_ini.append(gs.array([p_ini, u_ini]))
 
-        pu_ini = gs.array(pu_ini)
-        x = _gradient_descent(pu_ini, _grad, self.exp)
+        i_pts = gs.reshape(initial_points, (-1, 2) + self.metric.shape)
+        e_pts = gs.reshape(end_points, (-1, 2) + self.metric.shape)
 
-        return gs.vstack(
-            [
-                gs.expand_dims(initial_point, axis=0),
-                x,
-                gs.expand_dims(end_point, axis=0),
-            ]
-        )
+        n_jobs = min(os.cpu_count(), len(e_pts))
+
+        with Parallel(n_jobs=n_jobs, verbose=0) as parallel:
+            rslt = parallel(
+                _geodesic_discrete(i_pts[i % len(i_pts)], e_pt, n_steps)
+                for i, e_pt in enumerate(e_pts)
+            )
+
+        rslt_shape = (-1, 2) + self.metric.shape
+        rslt_shape = rslt_shape if len(e_pts) == 1 else (len(e_pts),) + rslt_shape
+        return gs.reshape(gs.array(rslt), rslt_shape)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.
