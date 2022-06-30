@@ -474,12 +474,13 @@ class Connection(ABC):
                                                     {dim, [n, m]}, {dim, [n, m]}]
             Riemannian tensor curvature.
         """
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
         shape = base_point.shape
-        n_points = shape[0] if len(shape) >= 2 else 1
+        n_points = shape[0]
         christoffels = self.christoffels(base_point)
-        jacobian_christoffels = [
-            gs.autodiff.jacobian(self.christoffels)(point) for point in base_point
-        ]
+        jacobian_christoffels = gs.squeeze(
+            [gs.autodiff.jacobian(self.christoffels)(point) for point in base_point]
+        )
         prod_christoffels = gs.einsum(
             "...ijk,...klm->...ijlm", christoffels, christoffels
         )
