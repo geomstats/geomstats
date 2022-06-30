@@ -22,11 +22,11 @@ def eig(*args, **kwargs):
     raise NotImplementedError
 
 
-def eigvalsh(a, **_unused_kwargs):
+def eigvalsh(a):
     return _tf.linalg.eigvalsh(a)
 
 
-def cholesky(a, **_unused_kwargs):
+def cholesky(a):
     return _tf.linalg.cholesky(a)
 
 

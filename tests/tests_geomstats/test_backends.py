@@ -657,12 +657,6 @@ class TestBackends(tests.conftest.TestCase):
 
         self.assertAllClose(result, skew)
 
-    def test_eigvalsh(self):
-        mat = gs.array([[2.0, 1.0], [1.0, -1.0]])
-        result = gs.linalg.eigvalsh(mat, UPLO="U")
-        expected = _np.linalg.eigvalsh(mat)
-        self.assertAllCloseToNp(result, expected)
-
     def test_triu(self):
         mat = gs.array([[2.0, 1.0, 1.0], [1.0, -1.5, 2.0], [-1.0, 10.0, 2.0]])
         result = gs.triu(mat)
