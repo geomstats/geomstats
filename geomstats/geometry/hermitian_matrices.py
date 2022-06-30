@@ -9,7 +9,7 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.base import VectorSpace
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.complex_matrices import ComplexMatrices, MatricesMetric
 
 
 class HermitianMatrices(VectorSpace):
@@ -63,7 +63,7 @@ class HermitianMatrices(VectorSpace):
         """
         belongs = super(HermitianMatrices, self).belongs(point)
         if gs.any(belongs):
-            is_hermitian = Matrices.is_hermitian(point, atol)
+            is_hermitian = ComplexMatrices.is_hermitian(point, atol)
             return gs.logical_and(belongs, is_hermitian)
         return belongs
 
@@ -80,7 +80,7 @@ class HermitianMatrices(VectorSpace):
         herm : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return Matrices.to_hermitian(point)
+        return ComplexMatrices.to_hermitian(point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample a Hermitian matrix using a uniform distribution in a box.
@@ -99,8 +99,15 @@ class HermitianMatrices(VectorSpace):
         point : array-like, shape=[..., n, n]
            Sample.
         """
-        sample = super(HermitianMatrices, self).complex_random_point(n_samples, bound)
-        return Matrices.to_hermitian(sample)
+        size = self.shape
+        if n_samples != 1:
+            size = (n_samples,) + self.shape
+        point = gs.cast(
+            bound * (gs.random.rand(*size) - 0.5) * 2**0.5, dtype=gs.complex128
+        ) + 1j * gs.cast(
+            bound * (gs.random.rand(*size) - 0.5) * 2**0.5, dtype=gs.complex128
+        )
+        return ComplexMatrices.to_hermitian(point)
 
     @staticmethod
     def to_vector(mat):
@@ -116,9 +123,9 @@ class HermitianMatrices(VectorSpace):
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
         """
-        if not gs.all(Matrices.is_hermitian(mat)):
+        if not gs.all(ComplexMatrices.is_hermitian(mat)):
             logging.warning("non-Hermitian matrix encountered.")
-        mat = Matrices.to_hermitian(mat)
+        mat = ComplexMatrices.to_hermitian(mat)
         return gs.triu_to_vec(mat)
 
     @staticmethod
@@ -154,7 +161,7 @@ class HermitianMatrices(VectorSpace):
         upper_triangular = gs.stack(
             [gs.array_from_sparse(indices, data, shape) for data in vec]
         )
-        mat = Matrices.to_hermitian(upper_triangular) * gs.cast(mask, dtype)
+        mat = ComplexMatrices.to_hermitian(upper_triangular) * gs.cast(mask, dtype)
         return mat
 
     @classmethod
@@ -240,9 +247,11 @@ class HermitianMatrices(VectorSpace):
             function = [function]
             return_list = False
         reconstruction = []
-        transconj_eigvecs = Matrices.transconjugate(eigvecs)
+        transconj_eigvecs = ComplexMatrices.transconjugate(eigvecs)
         for fun in function:
             eigvals_f = fun(eigvals)
             eigvals_f = algebra_utils.from_vector_to_diagonal_matrix(eigvals_f)
-            reconstruction.append(Matrices.mul(eigvecs, eigvals_f, transconj_eigvecs))
+            reconstruction.append(
+                ComplexMatrices.mul(eigvecs, eigvals_f, transconj_eigvecs)
+            )
         return reconstruction if return_list else reconstruction[0]

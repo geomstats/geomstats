@@ -666,22 +666,11 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    if (
-        _torch.tensor(data).dtype is _torch.complex64
-        or _torch.tensor(data).dtype is _torch.complex128
-    ):
-        a = _torch.sparse.FloatTensor(
-            _torch.LongTensor(indices).t(),
-            _torch.tensor(data),
-            _torch.Size(target_shape),
-        ).to_dense()
-    else:
-        a = _torch.sparse.FloatTensor(
-            _torch.LongTensor(indices).t(),
-            _torch.FloatTensor(cast(data, float32)),
-            _torch.Size(target_shape),
-        ).to_dense()
-    return a
+    return _torch.sparse.FloatTensor(
+        _torch.LongTensor(indices).t(),
+        array(data),
+        _torch.Size(target_shape),
+    ).to_dense()
 
 
 def vectorize(x, pyfunc, multiple_args=False, **kwargs):

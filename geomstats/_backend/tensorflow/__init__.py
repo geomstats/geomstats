@@ -500,10 +500,9 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    if type(data) is list:
-        data = _tf.convert_to_tensor(_np.array(data))
+    data = array(data)
     data_type = data.dtype
-    if data_type is _tf.dtypes.complex64 or data_type is _tf.dtypes.complex128:
+    if data_type in [_tf.dtypes.complex64, _tf.dtypes.complex128]:
         a = _tf.cast(
             _tf.sparse.to_dense(
                 _tf.sparse.reorder(
