@@ -323,6 +323,12 @@ class GraphSpaceMetric(PointSetMetric):
         return IDMatcher()
 
     def set_matcher(self, matcher, *args, **kwargs):
+        """Set matcher.
+
+        Parameters
+        ----------
+        matcher : _Matcher or str
+        """
         if isinstance(matcher, str):
             MAP_MATCHER = {
                 "ID": IDMatcher,
@@ -414,7 +420,6 @@ class GraphSpaceMetric(PointSetMetric):
         graph_to_permute : list of Graph or array-like, shape=[..., n, n].
             Graph to align.
         """
-
         base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
         is_single = gs.ndim(base_graph) == 2
         if is_single:
@@ -429,6 +434,15 @@ class GraphSpaceMetric(PointSetMetric):
     @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
     @_pad_with_zeros((1, "base_graph"), (2, "graph_to_permute"))
     def align_point_to_point(self, base_graph, graph_to_permute):
+        """Align graphs (match and permutation).
+
+        Parameters
+        ----------
+        base_graph : list of Graph or array-like, shape=[..., n, n].
+            Base graph.
+        graph_to_permute : list of Graph or array-like, shape=[..., n, n].
+            Graph to align.
+        """
         perm = self.matching(base_graph, graph_to_permute)
         return self.space.permute(graph_to_permute, perm)
 
@@ -436,12 +450,7 @@ class GraphSpaceMetric(PointSetMetric):
 class _Matcher(metaclass=ABCMeta):
     @abstractmethod
     def match(self, base_graph, graph_to_permute):
-        pass
-
-
-class FAQMatcher(_Matcher):
-    def match(self, base_graph, graph_to_permute):
-        """Fast Quadratic Assignment for graph matching.
+        """Match graphs.
 
         Parameters
         ----------
@@ -453,14 +462,36 @@ class FAQMatcher(_Matcher):
         Returns
         -------
         permutation : array-like, shape=[m,n]
-            node permutation indexes of the second graph.
+            Node permutation indices of the second graph.
+        """
+        raise NotImplementedError("Not implemented")
 
-        References
+
+class FAQMatcher(_Matcher):
+    """Fast Quadratic Assignment for graph matching.
+
+    References
+    ----------
+    .. [Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
+            Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
+            “Fast approximate quadratic programming for graph matching.“
+            PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
+    """
+
+    def match(self, base_graph, graph_to_permute):
+        """Match graphs.
+
+        Parameters
         ----------
-        .. [Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
-                Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
-                “Fast approximate quadratic programming for graph matching.“
-                PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
+        base_graph : array-like, shape=[m, n, n]
+            Base graph.
+        graph_to_permute : array-like, shape=[m, n, n]
+            Graph to align.
+
+        Returns
+        -------
+        permutation : array-like, shape=[m,n]
+            Node permutation indices of the second graph.
         """
         return [
             gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
@@ -469,20 +500,22 @@ class FAQMatcher(_Matcher):
 
 
 class IDMatcher(_Matcher):
+    """Identity matching."""
+
     def match(self, base_graph, graph_to_permute):
-        """Identity matching.
+        """Match graphs.
 
         Parameters
         ----------
-        base_graph : array-like, shape[m, n, n]
+        base_graph : array-like, shape=[m, n, n]
             Base graph.
         graph_to_permute : array-like, shape=[m, n, n]
             Graph to align.
 
         Returns
         -------
-        permutation : array-like, shape=[m, n]
-            Node permutation indexes of the second graph.
+        permutation : array-like, shape=[m,n]
+            Node permutation indices of the second graph.
         """
         n_nodes = base_graph.shape[1]
         return gs.reshape(gs.tile(range(n_nodes), base_graph.shape[0]), (-1, n_nodes))
