@@ -54,8 +54,7 @@ class FullRankCorrelationMatrices(LevelSet):
             Symmetric matrix obtained by the action of `diagonal_vec` on
             `point`.
         """
-        aux = gs.einsum("...i,...j->...ij", diagonal_vec, diagonal_vec)
-        return point * aux
+        return point * gs.outer(diagonal_vec, diagonal_vec)
 
     @property
     def metric(self):
@@ -177,8 +176,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
             Full rank correlation matrix.
         """
         diagonal = Matrices.diagonal(point) ** (-0.5)
-        aux = gs.einsum("...i,...j->...ij", diagonal, diagonal)
-        return point * aux
+        return point * gs.outer(diagonal, diagonal)
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Compute the differential of the submersion.

@@ -31,7 +31,6 @@ from numpy import (
     cumsum,
     diag_indices,
     diagonal,
-    dot,
 )
 from numpy import dtype as _ndtype  # NOQA
 from numpy import (
@@ -61,7 +60,6 @@ from numpy import (
     log,
     logical_and,
     logical_or,
-    matmul,
     maximum,
     mean,
     meshgrid,
@@ -70,7 +68,6 @@ from numpy import (
     moveaxis,
     ones,
     ones_like,
-    outer,
     pad,
     power,
     prod,
@@ -93,7 +90,6 @@ from numpy import (
     tan,
     tanh,
     tile,
-    trace,
     transpose,
     trapz,
     tril,
@@ -136,7 +132,10 @@ def from_numpy(x):
 
 
 def convert_to_wider_dtype(tensor_list):
-    dtype_list = [_DTYPES[x.dtype] for x in tensor_list]
+    dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
+    if len(set(dtype_list)) == 1:
+        return tensor_list
+
     wider_dtype_index = max(dtype_list)
 
     wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
@@ -440,3 +439,48 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, m)
     idxs = _np.tril_indices(n, k, m)
     return _np.ravel_multi_index(idxs, size)
+
+
+def is_array(x):
+    return type(x) is _np.ndarray
+
+
+def matmul(*args, **kwargs):
+    for arg in args:
+        if arg.ndim == 1:
+            raise ValueError("ndims must be >=2")
+    return _np.matmul(*args, **kwargs)
+
+
+def outer(a, b):
+    if a.ndim == 2 and b.ndim == 2:
+        return _np.einsum("...i,...j->...ij", a, b)
+
+    out = _np.multiply.outer(a, b)
+    if b.ndim == 2:
+        out = out.swapaxes(-3, -2)
+
+    return out
+
+
+def matvec(A, b):
+    if b.ndim == 1:
+        return _np.matmul(A, b)
+    else:
+        if A.ndim == 2:
+            return _np.matmul(A, b.T).T
+        return _np.einsum("...ij,...j->...i", A, b)
+
+
+def dot(a, b):
+    if b.ndim == 1:
+        return _np.dot(a, b)
+
+    if a.ndim == 1:
+        return _np.dot(a, b.T)
+
+    return _np.einsum("...i,...i->...", a, b)
+
+
+def trace(a):
+    return _np.trace(a, axis1=-2, axis2=-1)

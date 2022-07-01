@@ -45,7 +45,6 @@ from tensorflow import reduce_prod as prod
 from tensorflow import (
     reshape,
     searchsorted,
-    shape,
     sign,
     sin,
     sinh,
@@ -80,7 +79,6 @@ angle = _tf.math.angle
 arctanh = _tf.math.atanh
 ceil = _tf.math.ceil
 conj = _tf.math.conj
-cross = _tf.linalg.cross
 erf = _tf.math.erf
 imag = _tf.math.imag
 isnan = _tf.math.is_nan
@@ -92,6 +90,7 @@ real = _tf.math.real
 set_diag = _tf.linalg.set_diag
 std = _tf.math.reduce_std
 trapz = _tfp.math.trapz
+matmul = _tf.linalg.matmul
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -115,7 +114,10 @@ def concatenate(x, axis=0, out=None):
 
 
 def convert_to_wider_dtype(tensor_list):
-    dtype_list = [_DTYPES[x.dtype] for x in tensor_list]
+    dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
+    if len(set(dtype_list)) == 1:
+        return tensor_list
+
     wider_dtype_index = max(dtype_list)
 
     wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
@@ -132,18 +134,8 @@ def array(x, dtype=None):
     return _tf.convert_to_tensor(x, dtype=dtype)
 
 
-def trace(x, axis1=0, axis2=1):
-    min_axis = min(axis1, axis2)
-    max_axis = max(axis1, axis2)
-    if min_axis == 1 and max_axis == 2:
-        return _tf.einsum("...ii", x)
-    if min_axis == -2 and max_axis == -1:
-        return _tf.einsum("...ii", x)
-    if min_axis == 0 and max_axis == 1:
-        return _tf.einsum("ii...", x)
-    if min_axis == 0 and max_axis == 2:
-        return _tf.einsum("i...i", x)
-    raise NotImplementedError()
+def trace(x):
+    return _tf.linalg.trace(x)
 
 
 # TODO (nkoep): Handle the optional axis arguments.
@@ -343,7 +335,7 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
         use_vectorization = ndim(x) > 1
 
     if use_vectorization:
-        full_shape = shape(x).numpy()
+        full_shape = shape(x)
         n_samples = full_shape[axis]
         tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
         mask = _vectorized_mask_from_indices(
@@ -567,19 +559,8 @@ def flatten(x):
     return _tf.reshape(x, [-1])
 
 
-def matmul(a, b):
-    """Matrix-matrix or matrix-vector product of two tensors.
-
-    This wraps both mathvec and matmul into a single function, to mimic the
-    behavior of torch's and numpy's versions of matmul
-    """
-    if ndim(b) < ndim(a) and (ndim(b) == 1 or b.shape[-2] != a.shape[-1]):
-        return _tf.linalg.matvec(a, b)
-    return _tf.linalg.matmul(a, b)
-
-
 def outer(x, y):
-    return _tf.einsum("i,j->ij", x, y)
+    return _tf.einsum("...i,...j->...ij", x, y)
 
 
 def copy(x):
@@ -638,8 +619,11 @@ def broadcast_arrays(*args, **kwargs):
     return tensors
 
 
-def dot(x, y):
-    return _tf.tensordot(x, y, axes=1)
+def dot(a, b):
+    if b.ndim == 1:
+        return _tf.tensordot(a, b, axes=1)
+
+    return _tf.einsum("...i,...i->...", a, b)
 
 
 def isclose(x, y, rtol=rtol, atol=atol):
@@ -672,75 +656,11 @@ def sum(x, axis=None, keepdims=False, name=None):
     return _tf.reduce_sum(x, axis, keepdims, name)
 
 
-def einsum(equation, *inputs, **kwargs):
-    einsum_str = equation
-    input_tensors_list = inputs
-
+def einsum(equation, *inputs):
+    input_tensors_list = [arg if is_array(arg) else array(arg) for arg in inputs]
     input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
-    einsum_list = einsum_str.split("->")
-    input_str = einsum_list[0]
-    output_str = einsum_list[1]
-
-    input_str_list = input_str.split(",")
-
-    is_ellipsis = [input_str[:3] == "..." for input_str in input_str_list]
-    all_ellipsis = bool(_np.prod(is_ellipsis))
-
-    if all_ellipsis:
-        if len(input_str_list) > 2:
-            raise NotImplementedError(
-                "Ellipsis support not implemented for >2 input tensors"
-            )
-        ndims = [len(input_str[3:]) for input_str in input_str_list]
-
-        tensor_a = input_tensors_list[0]
-        tensor_b = input_tensors_list[1]
-        initial_ndim_a = tensor_a.ndim
-        initial_ndim_b = tensor_b.ndim
-        tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)
-        tensor_b = to_ndarray(tensor_b, to_ndim=ndims[1] + 1)
-
-        n_tensor_a = tensor_a.shape[0]
-        n_tensor_b = tensor_b.shape[0]
-
-        if n_tensor_a != n_tensor_b:
-            if n_tensor_a == 1:
-                tensor_a = squeeze(tensor_a, axis=0)
-                input_prefix_list = ["", "r"]
-                output_prefix = "r"
-            elif n_tensor_b == 1:
-                tensor_b = squeeze(tensor_b, axis=0)
-                input_prefix_list = ["r", ""]
-                output_prefix = "r"
-            else:
-                raise ValueError("Shape mismatch for einsum.")
-        else:
-            input_prefix_list = ["r", "r"]
-            output_prefix = "r"
-
-        input_str_list = [
-            input_str.replace("...", prefix)
-            for input_str, prefix in zip(input_str_list, input_prefix_list)
-        ]
-        output_str = output_str.replace("...", output_prefix)
-
-        input_str = input_str_list[0] + "," + input_str_list[1]
-        einsum_str = input_str + "->" + output_str
-
-        result = _tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
-
-        cond = (
-            n_tensor_a == n_tensor_b == 1
-            and initial_ndim_a != tensor_a.ndim
-            and initial_ndim_b != tensor_b.ndim
-        )
-
-        if cond:
-            result = squeeze(result, axis=0)
-        return result
-
-    return _tf.einsum(equation, *input_tensors_list, **kwargs)
+    return _tf.einsum(equation, *input_tensors_list)
 
 
 def transpose(x, axes=None):
@@ -957,3 +877,24 @@ def linspace(*args, **kwargs):
         a = cast(a, dtype=float32)
 
     return a
+
+
+def is_array(x):
+    return _tf.is_tensor(x)
+
+
+def matvec(A, b):
+    return _tf.linalg.matvec(A, b)
+
+
+def cross(a, b):
+    if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
+        a, b = broadcast_arrays(a, b)
+    return _tf.linalg.cross(a, b)
+
+
+def shape(a):
+    if not is_array(a):
+        a = array(a)
+
+    return tuple(a.shape)

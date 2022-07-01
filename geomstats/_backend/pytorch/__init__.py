@@ -14,7 +14,6 @@ from torch import (
     conj,
     cos,
     cosh,
-    cross,
     empty_like,
     erf,
     exp,
@@ -38,7 +37,7 @@ from torch import (
     logical_or,
 )
 from torch import max as amax
-from torch import mean, meshgrid, moveaxis, ones, ones_like, outer, polygamma
+from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma
 from torch import pow as power
 from torch import real
 from torch import repeat_interleave as repeat
@@ -105,7 +104,11 @@ sinh = _box_scalar(sinh)
 tan = _box_scalar(tan)
 
 
-def matmul(x, y, *, out=None):
+def matmul(x, y, out=None):
+    for array_ in [x, y]:
+        if array_.ndim == 1:
+            raise ValueError("ndims must be >=2")
+
     x, y = convert_to_wider_dtype([x, y])
     return _torch.matmul(x, y, out=out)
 
@@ -136,7 +139,10 @@ def argmax(a, **kwargs):
 
 
 def convert_to_wider_dtype(tensor_list):
-    dtype_list = [_DTYPES[x.dtype] for x in tensor_list]
+    dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
+    if len(set(dtype_list)) == 1:
+        return tensor_list
+
     wider_dtype_index = max(dtype_list)
 
     wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
@@ -295,11 +301,9 @@ def allclose(a, b, atol=atol, rtol=rtol):
 
 
 def shape(val):
+    if not is_array(val):
+        val = array(val)
     return val.shape
-
-
-def dot(a, b):
-    return einsum("...i,...i->...", a, b)
 
 
 def maximum(a, b):
@@ -349,11 +353,11 @@ def sum(x, axis=None, keepdims=None, **kwargs):
     return _torch.sum(x, dim=axis, keepdim=keepdims, **kwargs)
 
 
-def einsum(*args):
-    einsum_str = args[0]
-    input_tensors_list = convert_to_wider_dtype(args[1:])
+def einsum(equation, *inputs):
+    input_tensors_list = [arg if is_array(arg) else array(arg) for arg in inputs]
+    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
-    return _torch.einsum(einsum_str, *input_tensors_list)
+    return _torch.einsum(equation, *input_tensors_list)
 
 
 def transpose(x, axes=None):
@@ -372,18 +376,11 @@ def squeeze(x, axis=None):
     return _torch.squeeze(x, dim=axis)
 
 
-def trace(x, axis1=0, axis2=1):
-    min_axis = min(axis1, axis2)
-    max_axis = max(axis1, axis2)
-    if min_axis == 1 and max_axis == 2:
-        return _torch.einsum("...ii", x)
-    if min_axis == -2 and max_axis == -1:
-        return _torch.einsum("...ii", x)
-    if min_axis == 0 and max_axis == 1:
-        return _torch.einsum("ii...", x)
-    if min_axis == 0 and max_axis == 2:
-        return _torch.einsum("i...i", x)
-    raise NotImplementedError()
+def trace(x):
+    if x.ndim == 2:
+        return _torch.trace(x)
+
+    return _torch.einsum("...ii", x)
 
 
 def linspace(start, stop, num):
@@ -766,3 +763,45 @@ def pad(a, pad_width, constant_value=0.0):
     return _torch.nn.functional.pad(
         a, _unnest_iterable(reversed(pad_width)), value=constant_value
     )
+
+
+def is_array(x):
+    return _torch.is_tensor(x)
+
+
+def outer(a, b):
+    # TODO: improve for torch > 1.9 (dims=0 fails in 1.9)
+    return _torch.einsum("...i,...j->...ij", a, b)
+
+
+def matvec(A, b):
+
+    if A.ndim == 2 and b.ndim == 1:
+        return _torch.mv(A, b)
+
+    if b.ndim == 1:  # A.ndim > 2
+        return _torch.matmul(A, b)
+
+    if A.ndim == 2:  # b.ndim > 1
+        return _torch.matmul(A, b.T).T
+
+    return _torch.einsum("...ij,...j->...i", A, b)
+
+
+def dot(a, b):
+    if a.ndim == 1 and b.ndim == 1:
+        return _torch.dot(a, b)
+
+    if b.ndim == 1:
+        return _torch.tensordot(a, b, dims=1)
+
+    if a.ndim == 1:
+        return _torch.tensordot(a, b.T, dims=1)
+
+    return _torch.einsum("...i,...i->...", a, b)
+
+
+def cross(a, b):
+    if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
+        a, b = broadcast_arrays(a, b)
+    return _torch.cross(a, b)
