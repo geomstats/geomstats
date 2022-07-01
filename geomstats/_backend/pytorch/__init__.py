@@ -140,7 +140,7 @@ def argmax(a, **kwargs):
 
 
 def convert_to_wider_dtype(tensor_list):
-    dtype_list = [_DTYPES[x.dtype] for x in tensor_list]
+    dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
     if len(set(dtype_list)) == 1:
         return tensor_list
 
