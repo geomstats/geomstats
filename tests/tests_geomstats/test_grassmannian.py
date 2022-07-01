@@ -18,8 +18,8 @@ class TestGrassmannian(LevelSetTestCase, metaclass=Parametrizer):
 
     testing_data = GrassmannianTestData()
 
-    def test_belongs(self, n, k, point, expected):
-        self.assertAllClose(self.space(n, k).belongs(point), gs.array(expected))
+    def test_belongs(self, n, p, point, expected):
+        self.assertAllClose(self.space(n, p).belongs(point), gs.array(expected))
 
 
 class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -30,8 +30,8 @@ class TestGrassmannianCanonicalMetric(RiemannianMetricTestCase, metaclass=Parame
 
     testing_data = GrassmannianCanonicalMetricTestData()
 
-    def test_exp(self, n, k, tangent_vec, base_point, expected):
+    def test_exp(self, n, p, tangent_vec, base_point, expected):
         self.assertAllClose(
-            self.metric(n, k).exp(gs.array(tangent_vec), gs.array(base_point)),
+            self.metric(n, p).exp(gs.array(tangent_vec), gs.array(base_point)),
             gs.array(expected),
         )
