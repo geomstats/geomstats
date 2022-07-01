@@ -764,14 +764,7 @@ def is_array(x):
 
 
 def outer(a, b):
-    if a.ndim == 2 and b.ndim == 2:
-        return _torch.einsum("...i,...j->...ij", a, b)
-
-    out = _torch.tensordot(a, b, dims=0)
-    if b.ndim == 2:
-        out = out.swapaxes(-3, -2)
-
-    return out
+    return _torch.einsum("...i,...j->...ij", a, b)
 
 
 def matvec(A, b):
