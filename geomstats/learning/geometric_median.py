@@ -1,5 +1,7 @@
 """Geometric Median Estimation."""
 
+import logging
+
 import geomstats.backend as gs
 
 
@@ -60,14 +62,21 @@ class GeometricMedian:
         updated_median: array-like, shape={representation shape}
             updated median after single iteration.
         """
-        dists = gs.array([self.metric.dist(current_median, x) for x in X])
 
-        if sum(dists) == 0.0:
+        def _scalarmul(scalar, array):
+            if gs.ndim(array) == 2:
+                return scalar[:, None] * array
+
+            return scalar[:, None, None] * array
+
+        dists = self.metric.dist(current_median, X)
+
+        if gs.allclose(dists, 0.0):
             return current_median
 
         logs = self.metric.log(X, current_median)
         mul = gs.divide(weights, dists, ignore_div_zero=True)
-        v_k = gs.sum(mul[:, None, None] * logs, axis=0) / gs.sum(mul)
+        v_k = gs.sum(_scalarmul(mul, logs), axis=0) / gs.sum(mul)
         updated_median = self.metric.exp(lr * v_k, current_median)
         return updated_median
 
@@ -76,9 +85,9 @@ class GeometricMedian:
 
         Parameters
         ----------
-            X : array-like, shape=[..., n_features]
+        X : array-like, shape=[n_samples, n_features]
             Training input samples.
-        weights : array-like, shape=[...,]
+        weights : array-like, shape=[...]
             Weights associated to the points.
             Optional, default: None, in which case
             it is equally weighted
@@ -91,16 +100,17 @@ class GeometricMedian:
         n_points = X.shape[0]
         current_median = X[-1] if self.init is None else self.init
         if weights is None:
-            weights = gs.ones((n_points,)) / n_points
-        for itr in range(1, self.max_iter + 1):
+            weights = gs.ones(n_points) / n_points
+
+        for iteration in range(1, self.max_iter + 1):
             new_median = self._iterate_once(current_median, X, weights, self.lr)
             shift = self.metric.dist(new_median, current_median)
             if shift < gs.atol:
                 break
 
             current_median = new_median
-            if self.print_every is not None and (itr + 1) % self.print_every == 0:
-                print("iteration: {} curr_median: {}".format(itr, current_median))
+            if self.print_every and (iteration + 1) % self.print_every == 0:
+                logging.info(f"iteration: {iteration} curr_median: {current_median}")
         self.estimate_ = current_median
 
         return self
