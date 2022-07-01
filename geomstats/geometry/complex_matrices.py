@@ -125,7 +125,86 @@ class ComplexMatrices(Matrices):
         """
         m, n = self.m, self.n
         size = (n_samples, m, n) if n_samples != 1 else (m, n)
-        point = bound * (gs.random.rand(*size) - 0.5)
-        point += 1j * bound * (gs.random.rand(*size) - 0.5)
+        point = gs.cast(bound * (gs.random.rand(*size) - 0.5), dtype=gs.complex128)
+        point += 1j * gs.cast(
+            bound * (gs.random.rand(*size) - 0.5), dtype=gs.complex128
+        )
         point /= 2**0.5
         return point
+
+    @staticmethod
+    def frobenius_product(mat_1, mat_2):
+        """Compute Frobenius inner-product of two matrices.
+
+        The `einsum` function is used to avoid computing a matrix product. It
+        is also faster than using a sum an element-wise product.
+
+        Parameters
+        ----------
+        mat_1 : array-like, shape=[..., m, n]
+            Matrix.
+        mat_2 : array-like, shape=[..., m, n]
+            Matrix.
+
+        Returns
+        -------
+        product : array-like, shape=[...,]
+            Frobenius inner-product of mat_1 and mat_2
+        """
+        return gs.einsum("...ij,...ij->...", gs.conj(mat_1), mat_2)
+
+
+class ComplexMatricesMetric(MatricesMetric):
+    """Euclidean metric on complex matrices given by Frobenius inner-product.
+
+    Parameters
+    ----------
+    m, n : int
+        Integers representing the shapes of the matrices: m x n.
+    """
+
+    def __init__(self, m, n, **kwargs):
+        super(ComplexMatricesMetric, self).__init__(m, n, **kwargs)
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute Frobenius inner-product of two tangent vectors.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., m, n]
+            Tangent vector.
+        tangent_vec_b : array-like, shape=[..., m, n]
+            Tangent vector.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...,]
+            Frobenius inner-product of tangent_vec_a and tangent_vec_b.
+        """
+        return ComplexMatrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        sq_norm = self.inner_product(vector, vector, base_point)
+        sq_norm = gs.real(sq_norm)
+        return sq_norm
