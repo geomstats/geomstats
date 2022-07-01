@@ -322,6 +322,16 @@ class GraphSpaceMetric(PointSetMetric):
     def _set_default_matcher(self):
         return IDMatcher()
 
+    def set_matcher(self, matcher, *args, **kwargs):
+        if isinstance(matcher, str):
+            MAP_MATCHER = {
+                "ID": IDMatcher,
+                "FAQ": FAQMatcher,
+            }
+            self.matcher = MAP_MATCHER.get(matcher)(*args, **kwargs)
+        else:
+            self.matcher = matcher
+
     @property
     def total_space_metric(self):
         """Retrieve the total space metric."""
@@ -356,7 +366,7 @@ class GraphSpaceMetric(PointSetMetric):
             "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
             https://www.jmlr.org/papers/v10/jain09a.html.
         """
-        aligned_graph_b = self.align(graph_a, graph_b)
+        aligned_graph_b = self.align_point_to_point(graph_a, graph_b)
         return self.total_space_metric.dist(
             graph_a,
             aligned_graph_b,
@@ -388,7 +398,7 @@ class GraphSpaceMetric(PointSetMetric):
             "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
             https://www.jmlr.org/papers/v10/jain09a.html.
         """
-        aligned_end_point = self.align(base_point, end_point)
+        aligned_end_point = self.align_point_to_point(base_point, end_point)
 
         return self.total_space_metric.geodesic(base_point, aligned_end_point)
 
@@ -418,7 +428,7 @@ class GraphSpaceMetric(PointSetMetric):
 
     @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
     @_pad_with_zeros((1, "base_graph"), (2, "graph_to_permute"))
-    def align(self, base_graph, graph_to_permute):
+    def align_point_to_point(self, base_graph, graph_to_permute):
         perm = self.matching(base_graph, graph_to_permute)
         return self.space.permute(graph_to_permute, perm)
 
