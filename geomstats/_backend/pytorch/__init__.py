@@ -764,6 +764,7 @@ def is_array(x):
 
 
 def outer(a, b):
+    # TODO: improve for torch > 1.9 (dims=0 fails in 1.9)
     return _torch.einsum("...i,...j->...ij", a, b)
 
 
