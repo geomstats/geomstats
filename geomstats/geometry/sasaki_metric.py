@@ -11,6 +11,8 @@ from joblib import Parallel, delayed
 
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.tests import tf_backend
+
 
 N_STEPS = 3
 
@@ -218,7 +220,7 @@ class SasakiMetric(RiemannianMetric):
             pu_ini = []
             for i in range(1, n_stps):
                 p_ini = metric.exp(s[i] * v, p0)
-                u_ini = (1 - s[i]) * par_trans(u0, p0, end_point=p_ini) + s[
+                u_ini = (1.0 - s[i]) * par_trans(u0, p0, end_point=p_ini) + s[
                     i
                 ] * par_trans(uL, pL, end_point=p_ini)
                 pu_ini.append(gs.array([p_ini, u_ini]))
@@ -237,8 +239,7 @@ class SasakiMetric(RiemannianMetric):
         i_pts = gs.reshape(initial_points, (-1, 2) + self.metric.shape)
         e_pts = gs.reshape(end_points, (-1, 2) + self.metric.shape)
 
-        n_jobs = min(os.cpu_count(), len(e_pts))
-
+        n_jobs = 1 if (tf_backend()) else min(os.cpu_count(), len(e_pts))
         with Parallel(n_jobs=n_jobs, verbose=0) as parallel:
             rslt = parallel(
                 _geodesic_discrete(i_pts[i % len(i_pts)], e_pt, n_steps)
