@@ -9,8 +9,8 @@ class SasakiMetricTestData(TestData):
     sas_sphere_metric = SasakiMetric(HypersphereMetric(dim=dim))
 
     # fix elements in TS
-    pu0 = gs.array([[0., -1., 0.], [1., 0., 1.]])
-    pu1 = gs.array([[1., 0., 0.], [0., 1., 1.]])
+    pu0 = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 1.0]])
+    pu1 = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 1.0]])
     pu2 = gs.array(
         [[-0.27215095, -0.90632948, 0.32326574], [0.13474934, 0.0, 1.39415392]]
     )
@@ -19,7 +19,7 @@ class SasakiMetricTestData(TestData):
     )
 
     def inner_product_test_data(self):
-        _sqrt2 = 1. / gs.sqrt(2.)
+        _sqrt2 = 1.0 / gs.sqrt(2.0)
         base_point = gs.array([[_sqrt2, -_sqrt2, 0], [_sqrt2, _sqrt2, 1]])
         _log = self.sas_sphere_metric.log(gs.array([self.pu0, self.pu1]), base_point)
 

@@ -13,7 +13,6 @@ import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.tests import tf_backend
 
-
 N_STEPS = 3
 
 
