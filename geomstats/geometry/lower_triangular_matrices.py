@@ -36,7 +36,11 @@ class LowerTriangularMatrices(VectorSpace):
             Basis matrices of the space.
         """
         tril_idxs = gs.ravel_tril_indices(self.n)
-        vector_bases = gs.one_hot(tril_idxs, self.n * self.n)
+        # TODO: use default dtype when available
+        vector_bases = gs.cast(
+            gs.one_hot(tril_idxs, self.n * self.n),
+            dtype=gs.float32,
+        )
         return gs.reshape(vector_bases, [-1, self.n, self.n])
 
     def belongs(self, point, atol=gs.atol):
