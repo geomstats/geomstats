@@ -1032,6 +1032,56 @@ class ElasticMetric(RiemannianMetric):
         curve = gs.cumsum(curve, -2)
         return gs.squeeze(curve)
 
+    def geodesic(self, initial_curve, end_curve):
+        """Compute geodesic from initial curve to end curve.
+
+        Geodesic specified by an initial curve and an end curve computed
+        as an inverse f_transform of a segment between f_transforms.
+
+        Parameters
+        ----------
+        initial_curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+        end_curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        curve_on_geodesic : callable
+            The time parameterized geodesic curve.
+        """
+        if not isinstance(self.ambient_metric, EuclideanMetric):
+            raise AssertionError(
+                "The geodesics are only implemented for "
+                "discrete curves embedded in a "
+                "Euclidean space."
+            )
+        curve_ndim = 2
+        initial_curve = gs.to_ndarray(initial_curve, to_ndim=curve_ndim)
+        end_curve = gs.to_ndarray(end_curve, to_ndim=curve_ndim)
+
+        def path(times):
+            """Generate parametrized function for geodesic.
+
+            Parameters
+            ----------
+            times: array-like, shape=[n_points,]
+                Times in [0, 1] at which to compute points of the geodesic.
+            """
+            times = gs.cast(times, gs.float32)
+            times = gs.to_ndarray(times, to_ndim=1)
+
+            curves_path = []
+            for t in times:
+                initial_f = self.f_transform(initial_curve)
+                end_f = self.f_transform(end_curve)
+                f_t = (1 - t) * initial_f + t * end_f
+                curve_t = self.f_transform_inverse(f_t, gs.zeros(curve_ndim))
+                curves_path.append(curve_t)
+            return gs.stack(curves_path)
+
+        return path
+
     def dist(self, curve_1, curve_2, rescaled=False):
         """Compute the geodesic distance between two curves.
 
