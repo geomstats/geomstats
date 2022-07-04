@@ -310,7 +310,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def test_estimate_spd(self):
         point = SPDMatrices(3).random_point()
         points = gs.array([point, point])
-        mean = FrechetMean(metric=SPDMetricAffine(3), point_type="matrix")
+        mean = FrechetMean(metric=SPDMetricAffine(3))
         mean.fit(X=points)
         result = mean.estimate_
         expected = point
@@ -385,7 +385,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         points = gs.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0], [4.0, 5.0]])
-        weights = [1.0, 2.0, 1.0, 2.0]
+        weights = gs.array([1.0, 2.0, 1.0, 2.0])
 
         mean = FrechetMean(metric=self.euclidean.metric)
         mean.fit(points, weights=weights)
@@ -412,7 +412,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         point = gs.array([[1.0, 4.0], [2.0, 3.0]])
 
         metric = MatricesMetric(m, n)
-        mean = FrechetMean(metric=metric, point_type="matrix")
+        mean = FrechetMean(metric=metric)
         points = [point, point, point]
         mean.fit(points)
 
@@ -425,7 +425,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         point = gs.array([[1.0, 4.0], [2.0, 3.0]])
 
         metric = MatricesMetric(m, n)
-        mean = FrechetMean(metric=metric, point_type="matrix")
+        mean = FrechetMean(metric=metric)
         points = [point, point, point]
         mean.fit(points)
 
@@ -483,20 +483,20 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_one_point(self):
-        point = gs.array([0.0, 0.0, 0.0, 0.0, 1.0])
+        point = gs.array([[0.0, 0.0, 0.0, 0.0, 1.0]])
 
         mean = FrechetMean(metric=self.sphere.metric, method="default")
         mean.fit(X=point)
 
         result = mean.estimate_
-        expected = point
+        expected = point[0]
         self.assertAllClose(expected, result)
 
         mean = FrechetMean(metric=self.sphere.metric, method="default")
         mean.fit(X=point)
 
         result = mean.estimate_
-        expected = point
+        expected = point[0]
         self.assertAllClose(expected, result)
 
     def test_batched(self):
