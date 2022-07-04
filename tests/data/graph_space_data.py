@@ -3,6 +3,7 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stratified.graph_space import (
+    FAQMatcher,
     Graph,
     GraphSpace,
     GraphSpaceMetric,
@@ -198,6 +199,9 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
         space = self._PointSet(n_nodes=2)
         metric = self._PointSetMetric(space)
 
+        id_matcher = metric.matcher
+        faq_matcher = FAQMatcher()
+
         graph_a = Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]]))
         graph_b = Graph(adj=gs.array([[3.0, 4.0], [1.0, 2.0]]))
 
@@ -206,14 +210,14 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
                 metric=metric,
                 point_a=graph_a,
                 point_b=graph_b,
-                matcher="ID",
+                matcher=id_matcher,
                 expected=gs.array([0, 1]),
             ),
             dict(
                 metric=metric,
                 point_a=graph_a,
                 point_b=graph_b,
-                matcher="FAQ",
+                matcher=faq_matcher,
                 expected=gs.array([1, 0]),
             ),
         ]
@@ -225,8 +229,11 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
         metric = self._PointSetMetric(space)
         pts = space.random_point(3)
 
+        id_matcher = metric.matcher
+        faq_matcher = FAQMatcher()
+
         smoke_data = []
-        for matcher in ["ID", "FAQ"]:
+        for matcher in [id_matcher, faq_matcher]:
             smoke_data.extend(
                 [
                     dict(
@@ -237,17 +244,6 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
                     dict(metric=metric, point_a=pts, point_b=pts, matcher=matcher),
                 ]
             )
-
-        return self.generate_tests(smoke_data)
-
-    def matching_raises_error_test_data(self):
-        space = self._PointSet(*self.space_args_list[0])
-        metric = self._PointSetMetric(space)
-        pt = space.random_point()
-
-        smoke_data = [
-            dict(metric=metric, point_a=pt, point_b=pt, invalid_matcher="invalid")
-        ]
 
         return self.generate_tests(smoke_data)
 

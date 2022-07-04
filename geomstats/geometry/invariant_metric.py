@@ -896,7 +896,7 @@ class _InvariantMetricVector(RiemannianMetric):
         inner_prod : array-like, shape=[..., dim]
             Inner-product of the two tangent vectors.
         """
-        return gs.einsum("...i,...i->...", tangent_vec_a, tangent_vec_b)
+        return gs.dot(tangent_vec_a, tangent_vec_b)
 
     def metric_matrix(self, base_point=None):
         """Compute inner product matrix at the tangent space at a base point.

@@ -22,19 +22,25 @@ def eig(*args, **kwargs):
     raise NotImplementedError
 
 
-def eigvalsh(a, **_unused_kwargs):
+def eigvalsh(a):
     return _tf.linalg.eigvalsh(a)
 
 
-def cholesky(a, **_unused_kwargs):
+def cholesky(a):
     return _tf.linalg.cholesky(a)
 
 
 def logm(x):
     original_type = x.dtype
-    x = _tf.cast(x, _tf.complex64)
+    to_cast = False
+    if original_type not in [_tf.complex64, _tf.complex128]:
+        x = _tf.cast(x, _tf.complex128)
+        to_cast = True
+
     tf_logm = _tf.linalg.logm(x)
-    tf_logm = _tf.cast(tf_logm, original_type)
+
+    if to_cast:
+        tf_logm = _tf.cast(tf_logm, original_type)
     return tf_logm
 
 
