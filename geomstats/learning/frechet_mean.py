@@ -15,6 +15,26 @@ from geomstats.geometry.hypersphere import Hypersphere
 
 EPSILON = 1e-4
 
+LINEAR_METRICS = ["EuclideanMetric", "MatricesMetric", "MinkowskiMetric"]
+
+ELASTIC_METRICS = ["SRVMetric", "ElasticMetric"]
+
+
+def _is_metric_in_list(metric_str, metric_names):
+    for cmp_str in metric_names:
+        if cmp_str in metric_str:
+            return True
+
+    return False
+
+
+def _is_linear_metric(metric_str):
+    return _is_metric_in_list(metric_str, LINEAR_METRICS)
+
+
+def _is_elastic_metric(metric_str):
+    return _is_metric_in_list(metric_str, ELASTIC_METRICS)
+
 
 def _scalarmul(scalar, array):
     return gs.einsum("n,n...->n...", scalar, array)
@@ -499,15 +519,46 @@ class FrechetMean(BaseEstimator):
         init_step_size=1.0,
         verbose=False,
     ):
-
         self.metric = metric
+
+        self.method = method
+
         self.max_iter = max_iter
         self.epsilon = epsilon
-        self.method = method
         self.init_step_size = init_step_size
         self.verbose = verbose
         self.init_point = init_point
         self.estimate_ = None
+
+    @property
+    def method(self):
+        return self._method
+
+    @method.setter
+    def method(self, value):
+        error.check_parameter_accepted_values(
+            value, "method", ["default", "adaptive", "batch"]
+        )
+        self._method = value
+
+    @property
+    def _minimize(self):
+        MAP_OPTIMIZER = {
+            "default": _default_gradient_descent,
+            "adaptive": _adaptive_gradient_descent,
+            "batch": _batch_gradient_descent,
+        }
+        minimize_ = MAP_OPTIMIZER.get(self.method)
+        return lambda points, weights, metric: minimize_(
+            points=points,
+            weights=weights,
+            metric=metric,
+            max_iter=self.max_iter,
+            init_step_size=self.init_step_size,
+            epsilon=self.epsilon,
+            verbose=self.verbose,
+            init_point=self.init_point,
+        )
 
     def fit(self, X, y=None, weights=None):
         """Compute the empirical Frechet mean.
@@ -530,60 +581,22 @@ class FrechetMean(BaseEstimator):
             Returns self.
         """
         metric_str = self.metric.__str__()
-        # TODO: update
-        is_linear_metric = (
-            "EuclideanMetric" in metric_str
-            or "MatricesMetric" in metric_str
-            or "MinkowskiMetric" in metric_str
-        )
-        is_elastic_metric = "SRVMetric" in metric_str or "ElasticMetric" in metric_str
 
         if "HypersphereMetric" in metric_str and self.metric.dim == 1:
+            # FIXME: not working properly
             mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
 
-        error.check_parameter_accepted_values(
-            self.method, "method", ["default", "adaptive", "batch"]
-        )
-
-        if is_linear_metric:
+        elif _is_linear_metric(metric_str):
             mean = linear_mean(points=X, weights=weights)
 
-        elif is_elastic_metric:
+        elif _is_elastic_metric(metric_str):
             mean = elastic_mean(points=X, weights=weights, metric=self.metric)
 
-        # TODO: simplify
-        elif self.method == "default":
-            mean = _default_gradient_descent(
+        else:
+            mean = self._minimize(
                 points=X,
                 weights=weights,
                 metric=self.metric,
-                max_iter=self.max_iter,
-                init_step_size=self.init_step_size,
-                epsilon=self.epsilon,
-                verbose=self.verbose,
-                init_point=self.init_point,
-            )
-        elif self.method == "adaptive":
-            mean = _adaptive_gradient_descent(
-                points=X,
-                metric=self.metric,
-                weights=weights,
-                max_iter=self.max_iter,
-                epsilon=self.epsilon,
-                init_step_size=self.init_step_size,
-                init_point=self.init_point,
-                verbose=self.verbose,
-            )
-        elif self.method == "batch":
-            mean = _batch_gradient_descent(
-                points=X,
-                metric=self.metric,
-                weights=weights,
-                max_iter=self.max_iter,
-                init_step_size=self.init_step_size,
-                epsilon=self.epsilon,
-                verbose=self.verbose,
-                init_point=self.init_point,
             )
 
         self.estimate_ = mean
