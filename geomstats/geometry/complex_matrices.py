@@ -26,6 +26,31 @@ class ComplexMatrices(Matrices):
         self.m = m
         self.n = n
 
+    def belongs(self, point, atol=gs.atol):
+        """Check if point belongs to the Matrices space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., m, n]
+            Point to be checked.
+        atol : float
+            Unused here.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the Matrices space.
+        """
+        is_matrix = super(ComplexMatrices, self).belongs(point, atol=gs.atol)
+        is_complex = point.dtype in [gs.complex64, gs.complex128]
+        if point.ndim >= 3 and point.shape[0] >= 2:
+            is_matrix = list(is_matrix)
+            belongs = is_matrix and is_complex
+            belongs = gs.array(belongs)
+        else:
+            belongs = is_matrix and is_complex
+        return belongs
+
     @staticmethod
     def transconjugate(mat):
         """Return the transconjugate of matrices.
