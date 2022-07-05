@@ -93,7 +93,7 @@ class ComplexMatrices(Matrices):
         return cls.equal(mat, cls.transconjugate(mat), atol)
 
     @classmethod
-    def is_spd(cls, mat, atol=gs.atol):
+    def is_hpd(cls, mat, atol=gs.atol):
         """Check if a matrix is Hermitian positive definite.
 
         Parameters
