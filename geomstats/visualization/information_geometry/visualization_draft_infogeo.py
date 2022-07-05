@@ -26,8 +26,10 @@ class Plotter:
 
 
 class Visualizer(ABC, Plotter):
-    def __init__(self, position, space):
-        self.ax = Plotter.fig.add_subplot(position, projection=self.projection)
+    def __init__(self, fig, position, space, **kwargs):
+        self.fig = fig
+        self.position = position
+        self.ax = self.fig.add_subplot(position, projection=self.projection)
         self.space = space
         self.dim = self.space.dim
 
@@ -304,8 +306,9 @@ class Visualizer1D(Visualizer):
 class Visualizer2D(Visualizer):
     """Visualizer for 2-D parameter distributions."""
 
-    def __init__(self, ax, space):
-        super(Visualizer2D, self).__init__(ax=ax, space=space)
+    def __init__(self, fig, position, space):
+        self.projection = None
+        super(Visualizer2D, self).__init__(fig=fig, position=position, space=space)
 
     def directions(self, n_rays=13):
         theta = gs.linspace(0, 2 * gs.pi, n_rays)
