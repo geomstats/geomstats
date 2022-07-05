@@ -43,29 +43,29 @@ eta3 = [eta(alpha + beta) for alpha in ALPHA for beta in BETA]
 ETA1, ETA2 = gs.meshgrid(eta1, eta2)
 ETA3 = gs.reshape(eta3, (n_cells, n_cells))
 
-base_point1 = gs.array([1, 1])
-end_point1 = gs.array([2, 3])
-geodesic1 = space.metric.geodesic(initial_point=base_point1, end_point=end_point1)
-geodesic1 = geodesic1(t)
-iso_geodesic1 = gs.array(
-    [
-        [eta(geodesic1[i, 0]), eta(geodesic1[i, 1]), eta(gs.sum(geodesic1[i]))]
-        for i in range(100)
-    ]
-)
-ax3d.plot(iso_geodesic1[:, 0], iso_geodesic1[:, 1], iso_geodesic1[:, 2])
+# base_point1 = gs.array([1, 1])
+# end_point1 = gs.array([2, 3])
+# geodesic1 = space.metric.geodesic(initial_point=base_point1, end_point=end_point1)
+# geodesic1 = geodesic1(t)
+# iso_geodesic1 = gs.array(
+#     [
+#         [eta(geodesic1[i, 0]), eta(geodesic1[i, 1]), eta(gs.sum(geodesic1[i]))]
+#         for i in range(100)
+#     ]
+# )
+# ax3d.plot(iso_geodesic1[:, 0], iso_geodesic1[:, 1], iso_geodesic1[:, 2])
 
-base_point2 = gs.array([2, 1])
-end_point2 = gs.array([1, 2])
-geodesic2 = space.metric.geodesic(initial_point=base_point2, end_point=end_point2)
-geodesic2 = geodesic2(t)
-iso_geodesic2 = gs.array(
-    [
-        [eta(geodesic2[i, 0]), eta(geodesic2[i, 1]), eta(gs.sum(geodesic2[i]))]
-        for i in range(100)
-    ]
-)
-ax3d.plot(iso_geodesic2[:, 0], iso_geodesic2[:, 1], iso_geodesic2[:, 2])
+# base_point2 = gs.array([2, 1])
+# end_point2 = gs.array([1, 2])
+# geodesic2 = space.metric.geodesic(initial_point=base_point2, end_point=end_point2)
+# geodesic2 = geodesic2(t)
+# iso_geodesic2 = gs.array(
+#     [
+#         [eta(geodesic2[i, 0]), eta(geodesic2[i, 1]), eta(gs.sum(geodesic2[i]))]
+#         for i in range(100)
+#     ]
+# )
+# ax3d.plot(iso_geodesic2[:, 0], iso_geodesic2[:, 1], iso_geodesic2[:, 2])
 
 base_point3 = gs.array([0.2, 0.8])
 end_point3 = gs.array([2, 2.5])
@@ -79,7 +79,7 @@ iso_geodesic3 = gs.array(
 )
 ax3d.plot(iso_geodesic3[:, 0], iso_geodesic3[:, 1], iso_geodesic3[:, 2])
 
-ax3d.plot_surface(ETA1, ETA2, ETA3, cmap=plt.cm.gray, alpha=0.7)
+ax3d.plot_surface(ETA1, ETA2, ETA3, cmap=plt.cm.gray, alpha=0.5)
 ax3d.set_title("Isometric Visualizer of Beta distributions in Minkowski space")
 ax3d.set_xlabel("$\\eta(\\alpha)$")
 ax3d.set_ylabel("$\\eta(\\beta)$")
