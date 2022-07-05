@@ -109,7 +109,22 @@ class ComplexMatrices(Matrices):
         is_hpd : array-like, shape=[...,]
             Boolean evaluating if the matrix is Hermitian positive definite.
         """
+        print("\n")
+        print("\n")
+        print("\n")
+        print(cls.is_hermitian(mat, atol))
+        print("\n")
+        print("\n")
+        print("\n")
+        print(cls.is_pd(mat))
+        print("\n")
+        print("\n")
+        print("\n")
         is_hpd = gs.logical_and(cls.is_hermitian(mat, atol), cls.is_pd(mat))
+        print("\n")
+        print("\n")
+        print("\n")
+        print(is_hpd)
         return is_hpd
 
     @classmethod
