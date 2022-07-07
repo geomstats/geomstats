@@ -16,16 +16,7 @@ import geomstats.backend as gs
 mpl.rc("figure", max_open_warning=0)
 
 
-class Plotter:
-    def __init__(self, figsize=(12, 8), **kwargs):
-        self.figsize = figsize
-        self.fig = plt.figure(figsize=self.figsize, **kwargs)
-
-    def close():
-        plt.close()
-
-
-class Visualizer(ABC, Plotter):
+class Visualizer(ABC):
     def __init__(self, fig, position, space, **kwargs):
         self.fig = fig
         self.position = position
@@ -162,7 +153,7 @@ class Visualizer(ABC, Plotter):
                         initial_point=grid_point, end_point=next_point, **kwargs
                     )
 
-    def plot_geodesic_ball(self, center, n_rays=13, ray_norm=1, **kwargs):
+    def plot_geodesic_ball(self, center, radius=1, n_rays=100, **kwargs):
         """Plot geodesic ball on the manifold.
 
         Parameters
@@ -177,7 +168,31 @@ class Visualizer(ABC, Plotter):
             Radius of the geodesic ball.
         """
         directions = self.directions(n_rays)
-        tangent_vec = ray_norm * self.space.metric.normalize(
+        tangent_vec = radius * self.space.metric.normalize(
+            directions, base_point=center
+        )
+        ball = [
+            self.space.metric.exp(tangent_vec=vec, base_point=center)
+            for vec in tangent_vec
+        ]
+        self.ax.plot(*gs.transpose(ball), **kwargs)
+
+    def plot_geodesic_star(self, center, n_rays=13, radius=1, **kwargs):
+        """Plot geodesic star on the manifold.
+
+        Parameters
+        ----------
+        ax : matplotlib window
+            Location of the plot.
+        center : array-like, shape=[...,dim]
+            Center point of the geodesic ball.
+        n_rays : int
+            Wanted number of rays departing from the center.
+        ray_norm : float
+            Radius of the geodesic ball.
+        """
+        directions = self.directions(n_rays)
+        tangent_vec = radius * self.space.metric.normalize(
             directions, base_point=center
         )
         self.plot_geodesic(
