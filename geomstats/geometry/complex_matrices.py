@@ -43,12 +43,8 @@ class ComplexMatrices(Matrices):
         """
         is_matrix = super(ComplexMatrices, self).belongs(point, atol=gs.atol)
         is_complex = point.dtype in [gs.complex64, gs.complex128]
-        if point.ndim >= 3 and point.shape[0] >= 2:
-            is_matrix = list(is_matrix)
-            belongs = is_matrix and is_complex
-            belongs = gs.array(belongs)
-        else:
-            belongs = is_matrix and is_complex
+        is_complex = gs.array(is_complex)
+        belongs = gs.logical_and(is_matrix, is_complex)
         return belongs
 
     @staticmethod
