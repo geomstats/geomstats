@@ -43,7 +43,7 @@ import geomstats.backend as gs
 from geomstats.geometry.stratified.point_set import (
     Point,
     PointSet,
-    PointSetGeometry,
+    PointSetMetric,
     _vectorize_point,
 )
 from geomstats.geometry.stratified.wald_space import Split, Topology, Wald
@@ -54,33 +54,35 @@ class Tree(Wald, Point):
 
     Parameters
     ----------
-    n : int
-        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
+    n_labels : int
+        Number of labels, the set of labels is then :math:`\{0,\dots,n_labels-1\}`.
     splits : list[Split]
         The structure of the tree in form of a set of splits of the set of labels.
-    b : array-like
+    lengths : array-like
         The edge lengths of the splits, a vector containing positive numbers.
     """
 
-    def __init__(self, n, splits, b):
+    def __init__(self, n_labels, splits, lengths):
         top = Topology(
-            n=n,
-            partition=(tuple(i for i in range(n)),),
+            n_labels=n_labels,
+            partition=(tuple(i for i in range(n_labels)),),
             split_sets=(splits,),
         )
-        self.b = gs.zeros(len(b))
-        for s, val in zip(splits, b):
-            self.b[top.where[s]] = val
-        super(Tree, self).__init__(n=n, topology=top, weights=1 - gs.exp(-self.b))
-        self.n = n
-        self.splits = self.top.split_sets[0]
+        self.lengths = gs.zeros(len(lengths))
+        for s, val in zip(splits, lengths):
+            self.lengths[top.where[s]] = val
+        super(Tree, self).__init__(
+            n_labels=n_labels, topology=top, weights=1 - gs.exp(-self.lengths)
+        )
+        self.n = n_labels
+        self.splits = self.topology.split_sets[0]
 
     def to_array(self):
         """Turn the tree into a numpy array, namely its distance matrix.
 
         Returns
         -------
-        array_of_tree : array-like, shape=[n, n]
+        array_of_tree : array-like, shape=[n_labels, n_labels]
             The distance matrix corresponding to the wald.
         """
         return gs.abs(gs.log(self.corr))
@@ -96,7 +98,7 @@ class Tree(Wald, Point):
         string_of_tree : str
             Return the string representation of the tree.
         """
-        return repr((self.splits, tuple(self.b)))
+        return repr((self.splits, tuple(self.lengths)))
 
     def __str__(self):
         """Return the fancy printable string representation of the tree.
@@ -110,7 +112,7 @@ class Tree(Wald, Point):
         string_of_tree : str
             Return the fancy readable string representation of the tree.
         """
-        return f"({self.top};{str(self.b)})"
+        return f"({self.topology};{str(self.lengths)})"
 
 
 class TreeSpace(PointSet):
@@ -118,13 +120,13 @@ class TreeSpace(PointSet):
 
     Parameters
     ----------
-    n : int
+    n_labels : int
         The number of labels in the trees.
     """
 
-    def __init__(self, n):
+    def __init__(self, n_labels):
         super(TreeSpace).__init__()
-        self.n = n
+        self.n_labels = n_labels
 
     @_vectorize_point((1, "points"))
     def set_to_array(self, points):
@@ -158,7 +160,7 @@ class TreeSpace(PointSet):
             Boolean denoting if `point` belongs to Tree space.
         """
         # TODO: insert a boundary tolerance here; everything < tol will be considered 0
-        belongs = [gs.all(tree.b > 0) for tree in point]
+        belongs = [gs.all(tree.lengths > 0) for tree in point]
         return belongs
 
     def random_point(self, n_samples=1, p_keep=0.9, btol=1e-08):
@@ -197,24 +199,26 @@ class TreeSpace(PointSet):
                 The resulting tree.
             """
             tree_ = Tree(
-                n=wald_.n,
-                splits=wald_.top.split_sets[0],
-                b=gs.maximum(btol, gs.abs(gs.log(1 - wald_.weights))),
+                n_labels=wald_.n_labels,
+                splits=wald_.topology.split_sets[0],
+                lengths=gs.maximum(btol, gs.abs(gs.log(1 - wald_.weights))),
             )
             return tree_
 
         if n_samples == 1:
-            wald = Wald.generate_wald(self.n, p_keep, p_new=1, btol=btol, check=False)
+            wald = Wald.generate_wald(
+                self.n_labels, p_keep, p_new=1, btol=btol, check=False
+            )
             return tree_from_wald(wald_=wald)
         waelder = [
-            Wald.generate_wald(self.n, p_keep, p_new=1, btol=btol, check=False)
+            Wald.generate_wald(self.n_labels, p_keep, p_new=1, btol=btol, check=False)
             for _ in range(n_samples)
         ]
         samples = [tree_from_wald(wald_=wald) for wald in waelder]
         return samples
 
 
-class BHVSpace(PointSetGeometry):
+class BHVSpace(PointSetMetric):
     """BHV Tree Space for phylogenetic trees.
 
     Parameters
@@ -225,7 +229,7 @@ class BHVSpace(PointSetGeometry):
 
     def __init__(self, n):
         self.n = n
-        super(BHVSpace, self).__init__(space=TreeSpace(n=n))
+        super(BHVSpace, self).__init__(space=TreeSpace(n_labels=n))
 
     @_vectorize_point((1, "point_a"), (2, "point_b"))
     def dist(self, point_a, point_b, tol=10**-8, squared=False):
@@ -300,8 +304,8 @@ class BHVSpace(PointSetGeometry):
         dist : float
             The distance between the two points.
         """
-        sp_a = {split: length for split, length in zip(point_a.splits, point_a.b)}
-        sp_b = {split: length for split, length in zip(point_b.splits, point_b.b)}
+        sp_a = {split: length for split, length in zip(point_a.splits, point_a.lengths)}
+        sp_b = {split: length for split, length in zip(point_b.splits, point_b.lengths)}
         common_a, common_b, supports = self._gtp_trees_with_common_support(
             sp_a,
             sp_b,
@@ -342,8 +346,8 @@ class BHVSpace(PointSetGeometry):
             The geodesic between the two points. Takes parameter t, that is the time
             between 0 and 1 at which the corresponding point on the path is returned.
         """
-        sp_a = {split: length for split, length in zip(point_a.splits, point_a.b)}
-        sp_b = {split: length for split, length in zip(point_b.splits, point_b.b)}
+        sp_a = {split: length for split, length in zip(point_a.splits, point_a.lengths)}
+        sp_b = {split: length for split, length in zip(point_b.splits, point_b.lengths)}
         common_a, common_b, supports = self._gtp_trees_with_common_support(
             sp_a,
             sp_b,
@@ -378,9 +382,9 @@ class BHVSpace(PointSetGeometry):
                 }
                 splits_t = {**splits_t, **splits_t_a, **splits_t_b}
             tree_t = Tree(
-                n=self.n,
+                n_labels=self.n,
                 splits=list(splits_t.keys()),
-                b=gs.array(list(splits_t.values())),
+                lengths=gs.array(list(splits_t.values())),
             )
             return tree_t
 
@@ -472,7 +476,7 @@ class BHVSpace(PointSetGeometry):
         -------
         partition : dict of tuple, tuple
             A dictionary, where the keys form a partition of the set of labels
-            (0,...,n-1),
+            (0,...,n_labels-1),
             and each key is assigned the tuple of splits that are part of the subtree
             that
             the respective set of labels is spanning.
