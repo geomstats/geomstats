@@ -71,9 +71,7 @@ class Tree(Wald, Point):
         self.lengths = gs.zeros(len(lengths))
         for s, val in zip(splits, lengths):
             self.lengths[top.where[s]] = val
-        super(Tree, self).__init__(
-            n_labels=n_labels, topology=top, weights=1 - gs.exp(-self.lengths)
-        )
+        super(Tree, self).__init__(topology=top, weights=1 - gs.exp(-self.lengths))
         self.n = n_labels
         self.splits = self.topology.split_sets[0]
 
@@ -146,21 +144,23 @@ class TreeSpace(PointSet):
         return results
 
     @_vectorize_point((1, "point"))
-    def belongs(self, point):
+    def belongs(self, point, atol):
         """Check if a point belongs to Tree space.
 
         Parameters
         ----------
         point : Tree or list of Tree
             The point to be checked.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
 
         Returns
         -------
         belongs : bool
             Boolean denoting if `point` belongs to Tree space.
         """
-        # TODO: insert a boundary tolerance here; everything < tol will be considered 0
-        belongs = [gs.all(tree.lengths > 0) for tree in point]
+        belongs = [gs.all(tree.lengths > atol) for tree in point]
         return belongs
 
     def random_point(self, n_samples=1, p_keep=0.9, btol=1e-08):
@@ -223,13 +223,13 @@ class BHVSpace(PointSetMetric):
 
     Parameters
     ----------
-    n : int
+    n_labels : int
         The number of labels.
     """
 
-    def __init__(self, n):
-        self.n = n
-        super(BHVSpace, self).__init__(space=TreeSpace(n_labels=n))
+    def __init__(self, n_labels):
+        self.n_labels = n_labels
+        super(BHVSpace, self).__init__(space=TreeSpace(n_labels=n_labels))
 
     @_vectorize_point((1, "point_a"), (2, "point_b"))
     def dist(self, point_a, point_b, tol=10**-8, squared=False):
@@ -257,7 +257,7 @@ class BHVSpace(PointSetMetric):
         dist = self._gtp_dist(point_a, point_b, tol, squared)
         return dist
 
-    @_vectorize_point((1, "point_a"), (2, "point_b"))
+    # @_vectorize_point((1, "point_a"), (2, "point_b"))
     def geodesic(self, point_a, point_b, tol=10**-8):
         """Compute the geodesic between two points in BHV Space.
 
@@ -361,6 +361,7 @@ class BHVSpace(PointSetMetric):
             for part, (supp_a, supp_b) in supports.items()
         }
 
+        # @_vectorize_point((1, "t"))
         def geodesic_(t):
             if t == 0:
                 return point_a
@@ -381,8 +382,9 @@ class BHVSpace(PointSetMetric):
                     for s in b_k
                 }
                 splits_t = {**splits_t, **splits_t_a, **splits_t_b}
+            # TODO: rule out splits that have length < tol
             tree_t = Tree(
-                n_labels=self.n,
+                n_labels=self.n_labels,
                 splits=list(splits_t.keys()),
                 lengths=gs.array(list(splits_t.values())),
             )
@@ -426,8 +428,8 @@ class BHVSpace(PointSetMetric):
             Containing for each subtree the respective support.
         """
         pendants = {
-            Split(part1=[i], part2=[j for j in range(self.n) if j != i])
-            for i in range(self.n)
+            Split(part1=[i], part2=[j for j in range(self.n_labels) if j != i])
+            for i in range(self.n_labels)
         }
         sp_a, sp_b = set(splits_a.keys()), set(splits_b.keys())
         common = sp_a & sp_b
@@ -481,7 +483,7 @@ class BHVSpace(PointSetMetric):
             that
             the respective set of labels is spanning.
         """
-        partition = {tuple(range(self.n)): splits}
+        partition = {tuple(range(self.n_labels)): splits}
         for cut in cut_splits:
             try:
                 labels, subtree = [
