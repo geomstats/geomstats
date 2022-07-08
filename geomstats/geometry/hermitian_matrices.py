@@ -27,7 +27,7 @@ class HermitianMatrices(VectorSpace):
             dim=n**2, shape=(n, n), default_point_type="matrix", **kwargs
         )
         self.n = n
-        self.dim = 2 * n**2
+        self.dim = n**2
 
     def _create_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
