@@ -25,6 +25,19 @@ class ComplexMatrices(Matrices):
         super(Matrices, self).__init__(shape=(m, n), **kwargs)
         self.m = m
         self.n = n
+        self.dim = 2 * m * n
+
+    def _create_basis(self):
+        """Create the canonical basis."""
+        m, n = self.m, self.n
+        basis_real = gs.reshape(
+            gs.cast(gs.eye(n * m), dtype=gs.complex128), (n * m, m, n)
+        )
+        basis_imag = 1j * gs.reshape(
+            gs.cast(gs.eye(n * m), dtype=gs.complex128), (n * m, m, n)
+        )
+        basis = gs.concatenate([basis_real, basis_imag], axis=0)
+        return basis
 
     def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
@@ -46,6 +59,27 @@ class ComplexMatrices(Matrices):
         is_complex = gs.array(is_complex)
         belongs = gs.logical_and(is_matrix, is_complex)
         return belongs
+
+    # def is_tangent(self, vector, base_point, atol=gs.atol):
+    #     """Check whether the vector is tangent at base_point.
+    #
+    #     Parameters
+    #     ----------
+    #     vector : array-like, shape=[..., dim]
+    #         Vector.
+    #     base_point : array-like, shape=[..., dim]
+    #         Point on the manifold.
+    #     atol : float
+    #         Absolute tolerance.
+    #         Optional, default: backend atol.
+    #
+    #     Returns
+    #     -------
+    #     is_tangent : bool
+    #         Boolean denoting if vector is a tangent vector at the base point.
+    #     """
+    #     is_tangent = self.belongs(vector, atol)
+    #     return is_tangent
 
     @staticmethod
     def transconjugate(mat):
@@ -150,8 +184,40 @@ class ComplexMatrices(Matrices):
         point += 1j * gs.cast(
             bound * (gs.random.rand(*size) - 0.5), dtype=gs.complex128
         )
-        point /= 2**0.5
         return point
+
+    def random_tangent_vec(self, base_point, n_samples=1):
+        """Generate random tangent vec.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        base_point :  array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vec at base point.
+        """
+        if (
+            n_samples > 1
+            and base_point.ndim > len(self.shape)
+            and n_samples != len(base_point)
+        ):
+            raise ValueError(
+                "The number of base points must be the same as the "
+                "number of samples, when different from 1."
+            )
+        tangent_vec = gs.cast(
+            gs.random.normal(size=(n_samples,) + self.shape), dtype=gs.complex128
+        )
+        tangent_vec += 1j * gs.cast(
+            gs.random.normal(size=(n_samples,) + self.shape), dtype=gs.complex128
+        )
+        return gs.squeeze(tangent_vec)
 
     @staticmethod
     def frobenius_product(mat_1, mat_2):
