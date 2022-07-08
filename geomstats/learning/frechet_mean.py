@@ -532,14 +532,12 @@ class FrechetMean(BaseEstimator):
 
     @property
     def method(self):
-        """Gradient descent method.
-        """
+        """Gradient descent method."""
         return self._method
 
     @method.setter
     def method(self, value):
-        """Gradient descent method.
-        """
+        """Gradient descent method."""
         error.check_parameter_accepted_values(
             value, "method", ["default", "adaptive", "batch"]
         )

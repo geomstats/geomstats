@@ -544,10 +544,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
         estimator.fit(points)
         mean = estimator.estimate_
 
-        mean_gd = estimator._minimize(
-            points=points, weights=None, metric=space.metric)
+        mean_gd = estimator._minimize(points=points, weights=None, metric=space.metric)
 
-        sum_sd_mean = gs.sum(space.metric.dist(points, mean)**2)
-        sum_sd_mean_gd = gs.sum(space.metric.dist(points, mean_gd)**2)
+        sum_sd_mean = gs.sum(space.metric.dist(points, mean) ** 2)
+        sum_sd_mean_gd = gs.sum(space.metric.dist(points, mean_gd) ** 2)
 
         self.assertTrue(sum_sd_mean < sum_sd_mean_gd + gs.atol)
