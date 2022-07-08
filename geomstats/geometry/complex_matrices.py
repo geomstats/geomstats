@@ -20,9 +20,9 @@ class ComplexMatrices(Matrices):
     def __init__(self, m, n, **kwargs):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
-        kwargs.setdefault("metric", MatricesMetric(m, n))
+        kwargs.setdefault("metric", ComplexMatricesMetric(m, n))
         kwargs.setdefault("default_point_type", "matrix")
-        super(Matrices, self).__init__(shape=(m, n), **kwargs)
+        super(ComplexMatrices, self).__init__(m, n, **kwargs)
         self.m = m
         self.n = n
         self.dim = 2 * m * n

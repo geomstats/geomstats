@@ -220,8 +220,7 @@ def array(val, dtype=None):
     if _torch.is_tensor(val):
         if dtype is None or val.dtype == dtype:
             return val.clone()
-        else:
-            return cast(val, dtype=dtype)
+        return cast(val, dtype=dtype)
 
     elif isinstance(val, _np.ndarray):
         return from_numpy(val, dtype=dtype)
