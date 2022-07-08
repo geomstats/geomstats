@@ -532,10 +532,14 @@ class FrechetMean(BaseEstimator):
 
     @property
     def method(self):
+        """Gradient descent method.
+        """
         return self._method
 
     @method.setter
     def method(self, value):
+        """Gradient descent method.
+        """
         error.check_parameter_accepted_values(
             value, "method", ["default", "adaptive", "batch"]
         )
@@ -583,7 +587,6 @@ class FrechetMean(BaseEstimator):
         metric_str = self.metric.__str__()
 
         if "HypersphereMetric" in metric_str and self.metric.dim == 1:
-            # FIXME: not working properly
             mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
 
         elif _is_linear_metric(metric_str):
