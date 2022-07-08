@@ -60,27 +60,6 @@ class ComplexMatrices(Matrices):
         belongs = gs.logical_and(is_matrix, is_complex)
         return belongs
 
-    # def is_tangent(self, vector, base_point, atol=gs.atol):
-    #     """Check whether the vector is tangent at base_point.
-    #
-    #     Parameters
-    #     ----------
-    #     vector : array-like, shape=[..., dim]
-    #         Vector.
-    #     base_point : array-like, shape=[..., dim]
-    #         Point on the manifold.
-    #     atol : float
-    #         Absolute tolerance.
-    #         Optional, default: backend atol.
-    #
-    #     Returns
-    #     -------
-    #     is_tangent : bool
-    #         Boolean denoting if vector is a tangent vector at the base point.
-    #     """
-    #     is_tangent = self.belongs(vector, atol)
-    #     return is_tangent
-
     @staticmethod
     def transconjugate(mat):
         """Return the transconjugate of matrices.
@@ -249,9 +228,6 @@ class ComplexMatricesMetric(MatricesMetric):
     m, n : int
         Integers representing the shapes of the matrices: m x n.
     """
-
-    def __init__(self, m, n, **kwargs):
-        super(ComplexMatricesMetric, self).__init__(m, n, **kwargs)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tangent vectors.
