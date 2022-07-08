@@ -453,6 +453,25 @@ class RiemannianMetric(Connection, ABC):
 
         return gs.einsum("i, ikl->ikl", 1.0 / gs.sqrt(norms), basis)
 
+    def covariant_riemannian_tensor(self, base_point):
+        r"""Compute purely covariant version of Riemannian tensor at base_point.
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., {dim, [n, m]}]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        covariant_tensor : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]},
+                                                    {dim, [n, m]}, {dim, [n, m]}]
+            Covariant version of Riemannian curvature tensor.
+        """
+        riemann_tensor = self.riemann_tensor(base_point)
+        metric = self.metric_matrix(base_point)
+        covariant_tensor = gs.einsum("...ij, ...jklm->...iklm", metric, riemann_tensor)
+        return covariant_tensor
+
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.
 

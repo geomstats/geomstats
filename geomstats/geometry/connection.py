@@ -486,17 +486,17 @@ class Connection(ABC):
         )
         if n_points >= 2:
             riemann_curvature = (
-                gs.transpose(jacobian_christoffels, [0, 1, 3, 4, 2])
-                - gs.transpose(jacobian_christoffels, [0, 1, 3, 2, 4])
-                + gs.transpose(prod_christoffels, [0, 1, 4, 2, 3])
-                + gs.transpose(prod_christoffels, [0, 1, 4, 3, 2])
+                gs.transpose(jacobian_christoffels, [0, 3, 4, 2, 1])
+                - gs.transpose(jacobian_christoffels, [0, 3, 2, 4, 1])
+                + gs.transpose(prod_christoffels, [0, 4, 2, 3, 1])
+                - gs.transpose(prod_christoffels, [0, 4, 3, 2, 1])
             )
         else:
             riemann_curvature = (
-                gs.transpose(jacobian_christoffels, [0, 2, 3, 1])
-                - gs.transpose(jacobian_christoffels, [0, 2, 1, 3])
-                + gs.transpose(prod_christoffels, [0, 3, 1, 2])
-                + gs.transpose(prod_christoffels, [0, 3, 2, 1])
+                gs.transpose(jacobian_christoffels, [2, 3, 1, 0])
+                - gs.transpose(jacobian_christoffels, [2, 1, 3, 0])
+                + gs.transpose(prod_christoffels, [3, 1, 2, 0])
+                - gs.transpose(prod_christoffels, [3, 2, 1, 0])
             )
         return riemann_curvature
 

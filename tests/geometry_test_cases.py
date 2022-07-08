@@ -844,6 +844,57 @@ class ConnectionTestCase(TestCase):
         expected = connection.exp(tangent_vec, base_point)
         self.assertAllClose(expected, result, rtol=rtol, atol=atol)
 
+    def test_riemann_tensor_shape(self, connection_args, base_point, expected):
+        """Check that riemann_tensor returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to pass to constructor of the connection.
+        base_point : array-like
+            Point on the manifold.
+        expected : tuple
+            Expected shape for the result of the riemann_tensor function.
+        """
+        connection = self.connection(*connection_args)
+        tensor = connection.riemann_tensor(gs.array(base_point))
+        result = gs.shape(tensor)
+        self.assertAllClose(result, expected)
+
+    def test_ricci_tensor_shape(self, connection_args, base_point, expected):
+        """Check that ricci_tensor returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to pass to constructor of the connection.
+        base_point : array-like
+            Point on the manifold.
+        expected : tuple
+            Expected shape for the result of the ricci_tensor function.
+        """
+        connection = self.connection(*connection_args)
+        tensor = connection.ricci_tensor(gs.array(base_point))
+        result = gs.shape(tensor)
+        self.assertAllClose(result, expected)
+
+    def test_scalar_curvature_shape(self, connection_args, base_point, expected):
+        """Check that scalar_curvature returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to pass to constructor of the connection.
+        base_point : array-like
+            Point on the manifold.
+        expected : tuple
+            Expected shape for the result of the ricci_tensor function.
+        """
+        connection = self.connection(*connection_args)
+        tensor = connection.scalar_curvature(gs.array(base_point))
+        result = gs.shape(tensor)
+        self.assertAllClose(result, expected)
+
 
 class RiemannianMetricTestCase(ConnectionTestCase):
     def test_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
@@ -1182,6 +1233,90 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
         individual_metric_matrices = [metric.matrix for metric in metric_args[0]]
         expected = reduce(gs.kron, individual_metric_matrices)
         self.assertAllClose(result, expected)
+
+    def test_covariant_riemann_tensor_is_skew_symmetric_1(
+        self, metric_args, base_point
+    ):
+        """Check that the covariant riemannian tensor verifies first skew symmetry.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        base_point : array-like
+            Point on the manifold.
+        """
+        metric = self.metric(*metric_args)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        covariant_metric_tensor = metric.covariant_riemannian_tensor(base_point)
+        skew_symmetry_1 = covariant_metric_tensor + gs.transpose(
+            covariant_metric_tensor, [0, 2, 1, 3, 4]
+        )
+        result = gs.all(gs.abs(skew_symmetry_1) > gs.atol)
+        self.assertAllClose(result, gs.array(True))
+
+    def test_covariant_riemann_tensor_is_skew_symmetric_2(
+        self, metric_args, base_point
+    ):
+        """Check that the covariant riemannian tensor verifies second skew symmetry.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        base_point : array-like
+            Point on the manifold.
+        """
+        metric = self.metric(*metric_args)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        covariant_metric_tensor = metric.covariant_riemannian_tensor(base_point)
+        skew_symmetry_2 = covariant_metric_tensor + gs.transpose(
+            covariant_metric_tensor, [0, 1, 2, 4, 3]
+        )
+        result = gs.all(gs.abs(skew_symmetry_2) > gs.atol)
+        self.assertAllClose(result, gs.array(True))
+
+    def test_covariant_riemann_tensor_bianchi_identity(self, metric_args, base_point):
+        """Check that the covariant riemannian tensor verifies the Bianchi identity.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        base_point : array-like
+            Point on the manifold.
+        """
+        metric = self.metric(*metric_args)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        covariant_metric_tensor = metric.covariant_riemannian_tensor(base_point)
+        bianchi_identity = (
+            covariant_metric_tensor
+            + gs.transpose(covariant_metric_tensor, [0, 2, 3, 1, 4])
+            + gs.transpose(covariant_metric_tensor, [0, 3, 1, 2, 4])
+        )
+        result = gs.all(gs.abs(bianchi_identity) > gs.atol)
+        self.assertAllClose(result, gs.array(True))
+
+    def test_covariant_riemann_tensor_is_interchange_symmetric(
+        self, metric_args, base_point
+    ):
+        """Check that the covariant riemannian tensor verifies interchange symmetry.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        base_point : array-like
+            Point on the manifold.
+        """
+        metric = self.metric(*metric_args)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        covariant_metric_tensor = metric.covariant_riemannian_tensor(base_point)
+        interchange_symmetry = covariant_metric_tensor - gs.transpose(
+            covariant_metric_tensor, [0, 3, 4, 1, 2]
+        )
+        result = gs.all(gs.abs(interchange_symmetry) > gs.atol)
+        self.assertAllClose(result, gs.array(True))
 
 
 class QuotientMetricTestCase(RiemannianMetricTestCase):
