@@ -4,7 +4,7 @@ import scipy
 
 import geomstats.backend as gs
 from tests.conftest import Parametrizer, TestCase
-from tests.data.backends_data import BackendsTestData
+from tests.data.backends_data import BackendsTestData, DtypesTestData
 
 
 def _convert_gs_to_np(value):
@@ -60,6 +60,7 @@ def get_backend_fnc(func_name):
 
 
 class TestBackends(TestCase, metaclass=Parametrizer):
+    skip_all = False
     testing_data = BackendsTestData()
 
     def test_array_like_np(self, func_name, args):
@@ -189,3 +190,86 @@ class TestBackends(TestCase, metaclass=Parametrizer):
 
         out = gs_fnc_2(gs_fnc_1(a))
         self.assertAllClose(out, a)
+
+
+class TestDtypes(TestCase, metaclass=Parametrizer):
+    testing_data = DtypesTestData()
+
+    dtypes_str = ["float32", "float64"]  # sort by wider
+
+    def assertDtype(self, actual, expected):
+        msg = f"{actual} instead of {expected}"
+        self.assertTrue(actual == expected, msg)
+
+    def test_array_creation(self, func_name, args, kwargs):
+        gs_fnc = get_backend_fnc(func_name)
+
+        for dtype_str in self.dtypes_str:
+            # test global
+            gs.set_default_dtype(dtype_str)
+            out = gs_fnc(*args, **kwargs)
+            self.assertDtype(out.dtype, gs.as_dtype(dtype_str))
+
+            # test specifying dtype
+            for dtype_inner_str in self.dtypes_str:
+                dtype = gs.as_dtype(dtype_inner_str)
+                out = gs_fnc(*args, dtype=dtype, **kwargs)
+                self.assertDtype(out.dtype, dtype)
+
+    def test_array_creation_given_shape(self, func_name, shape):
+        return self.test_array_creation(func_name, (shape,), {})
+
+    def test_array_creation_given_array(self, func_name, array_shape, kwargs):
+        gs_fnc = get_backend_fnc(func_name)
+
+        for dtype_str in self.dtypes_str:
+            # test dynamic
+            dtype = gs.as_dtype(dtype_str)
+            a = gs.ones(array_shape, dtype=dtype)
+
+            out = gs_fnc(a, **kwargs)
+            self.assertDtype(out.dtype, a.dtype)
+
+            # test specifying dtype
+            for dtype_inner_str in self.dtypes_str:
+                dtype_inner = gs.as_dtype(dtype_inner_str)
+                out = gs_fnc(a, dtype=dtype_inner, **kwargs)
+                self.assertDtype(out.dtype, dtype_inner)
+
+    def test_unary_op_from_shape(self, func_name, array_shape):
+        gs_fnc = get_backend_fnc(func_name)
+
+        for dtype_str in self.dtypes_str:
+            dtype = gs.as_dtype(dtype_str)
+            a = gs.ones(array_shape, dtype=dtype)
+
+            out = gs_fnc(a)
+            self.assertDtype(out.dtype, dtype)
+
+    def test_unary_op_from_array(self, func_name, array):
+        gs_fnc = get_backend_fnc(func_name)
+
+        for dtype_str in self.dtypes_str:
+            dtype = gs.as_dtype(dtype_str)
+            a = gs.cast(array, dtype)
+
+            out = gs_fnc(a)
+            self.assertDtype(out.dtype, dtype)
+
+    def test_binary_op_from_shape(self, func_name, shape_a, shape_b):
+        gs_fnc = get_backend_fnc(func_name)
+
+        for i, dtype_a_str in enumerate(self.dtypes_str):
+            dtype_a = gs.as_dtype(dtype_a_str)
+
+            a = gs.ones(shape_a, dtype=dtype_a)
+
+            for j, dtype_b_str in enumerate(self.dtypes_str):
+                dtype_b = gs.as_dtype(dtype_b_str)
+
+                b = gs.ones(shape_b, dtype=dtype_b)
+
+                out = gs_fnc(a, b)
+                cmp_dtype = dtype_a if i > j else dtype_b
+
+                self.assertDtype(out.dtype, cmp_dtype)

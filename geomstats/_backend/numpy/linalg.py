@@ -18,6 +18,10 @@ from numpy.linalg import (  # NOQA
 from ._common import to_ndarray as _to_ndarray
 
 
+_logm_vec = _np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
+_diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
+
+
 def _is_symmetric(x, tol=1e-12):
     new_x = _to_ndarray(x, to_ndim=3)
     return (_np.abs(new_x - _np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
@@ -34,14 +38,14 @@ def logm(x):
         eigvals, eigvecs = _np.linalg.eigh(new_x)
         if (eigvals > 0).all():
             eigvals = _np.log(eigvals)
-            eigvals = _np.vectorize(_np.diag, signature="(n)->(n,n)")(eigvals)
+            eigvals = _diag_vec(eigvals)
             transp_eigvecs = _np.transpose(eigvecs, axes=(0, 2, 1))
             result = _np.matmul(eigvecs, eigvals)
             result = _np.matmul(result, transp_eigvecs)
         else:
-            result = _np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")(new_x)
+            result = _logm_vec(new_x)
     else:
-        result = _np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")(new_x)
+        result = _logm_vec(new_x)
 
     if ndim == 2:
         return result[0]

@@ -40,7 +40,6 @@ from numpy import (
     equal,
     exp,
     expand_dims,
-    eye,
     flip,
     float32,
     float64,
@@ -56,7 +55,6 @@ from numpy import (
     kron,
     less,
     less_equal,
-    linspace,
     log,
     logical_and,
     logical_or,
@@ -66,7 +64,6 @@ from numpy import (
     minimum,
     mod,
     moveaxis,
-    ones,
     ones_like,
     pad,
     power,
@@ -100,7 +97,6 @@ from numpy import (
     unique,
     vstack,
     where,
-    zeros,
     zeros_like,
 )
 from scipy.sparse import coo_matrix as _coo_matrix  # NOQA
@@ -111,7 +107,14 @@ from .._backend_config import np_rtol as rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from ._common import to_ndarray
+from ._common import cast, to_ndarray
+from ._dtype_wrapper import (
+    _update_dtype,
+    _update_func_default_dtype,
+    as_dtype,
+    get_default_dtype,
+    set_default_dtype,
+)
 
 _DTYPES = {
     _ndtype("int32"): 0,
@@ -121,6 +124,11 @@ _DTYPES = {
     _ndtype("complex64"): 4,
     _ndtype("complex128"): 5,
 }
+
+ones = _update_func_default_dtype(_np.ones)
+eye = _update_func_default_dtype(_np.eye)
+linspace = _update_func_default_dtype(_np.linspace)
+zeros = _update_dtype(_np.zeros)
 
 
 def to_numpy(x):
@@ -149,7 +157,7 @@ def flatten(x):
 
 
 def one_hot(labels, num_classes):
-    return _np.eye(num_classes, dtype=_np.dtype("uint8"))[labels]
+    return eye(num_classes, dtype=_np.dtype("uint8"))[labels]
 
 
 def get_mask_i_float(i, n):
@@ -324,10 +332,6 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return _np.vectorize(pyfunc, signature=signature)(x)
 
 
-def cast(x, dtype):
-    return x.astype(dtype)
-
-
 def set_diag(x, new_diag):
     """Set the diagonal along the last two axis.
 
@@ -385,7 +389,7 @@ def array_from_sparse(indices, data, target_shape):
 def vec_to_diag(vec):
     """Convert vector to diagonal matrix."""
     d = vec.shape[-1]
-    return _np.squeeze(vec[..., None, :] * _np.eye(d)[None, :, :])
+    return _np.squeeze(vec[..., None, :] * eye(d)[None, :, :])
 
 
 def tril_to_vec(x, k=0):
@@ -419,7 +423,7 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     n = diag.shape[-1]
     (i,) = _np.diag_indices(n, ndim=1)
     j, k = _np.triu_indices(n, k=1)
-    mat = _np.zeros(diag.shape + (n,))
+    mat = zeros(diag.shape + (n,))
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
@@ -429,7 +433,7 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
 def divide(a, b, ignore_div_zero=False):
     if ignore_div_zero is False:
         return _np.divide(a, b)
-    return _np.divide(a, b, out=_np.zeros_like(a), where=b != 0)
+    return _np.divide(a, b, out=zeros_like(a), where=b != 0)
 
 
 def ravel_tril_indices(n, k=0, m=None):

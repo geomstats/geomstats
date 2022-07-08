@@ -312,3 +312,85 @@ class BackendsTestData(TestData):
             ),
         ]
         return self.generate_tests(smoke_data)
+
+
+class DtypesTestData(TestData):
+    def array_creation_test_data(self):
+        smoke_data = [
+            dict(func_name="linspace", args=(0.0, 1.0), kwargs={}),
+            dict(func_name="random.normal", args=(), kwargs={"size": 2}),
+            dict(
+                func_name="random.multivariate_normal",
+                args=(),
+                kwargs={"mean": gs.ones(2), "cov": gs.ones((2, 2)), "size": 2},
+            ),
+            dict(func_name="random.uniform", args=(), kwargs={"size": 2}),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def array_creation_given_shape_test_data(self):
+        smoke_data = [
+            dict(func_name="eye", shape=2),
+            dict(func_name="ones", shape=2),
+            dict(func_name="zeros", shape=2),
+            dict(func_name="random.rand", array_shape=3),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def array_creation_given_array_test_data(self):
+        axis_kwargs = {"axis": 0}
+        smoke_data = [
+            dict(func_name="cumprod", array_shape=2),
+            dict(func_name="cumsum", array_shape=2),
+            dict(func_name="empty_like", array_shape=2),
+            dict(func_name="mean", array_shape=2),
+            dict(func_name="mean", array_shape=(2, 2), kwargs=axis_kwargs),
+            dict(func_name="ones_like", array_shape=2),
+            dict(func_name="sum", array_shape=2),
+            dict(func_name="sum", array_shape=(2, 2), kwargs=axis_kwargs),
+            dict(func_name="std", array_shape=2),
+            dict(func_name="std", array_shape=(2, 2), kwargs=axis_kwargs),
+            dict(func_name="zeros_like", array_shape=2),
+        ]
+
+        for data in smoke_data:
+            data.setdefault("kwargs", {})
+
+        return self.generate_tests(smoke_data)
+
+    def unary_op_from_shape_test_data(self):
+        smoke_data = [
+            dict(func_name="diagonal", array_shape=(2, 2)),
+            dict(func_name="trace", array_shape=(2, 2)),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def unary_op_from_array_test_data(self):
+
+        smoke_data = [
+            dict(func_name="linalg.cholesky", array=SPDMatrices(2).random_point()),
+            dict(
+                func_name="linalg.eigvalsh", array=SymmetricMatrices(2).random_point()
+            ),
+            dict(func_name="linalg.expm", array=Matrices.to_diagonal(rand(2, 2))),
+            dict(func_name="linalg.logm", array=Matrices.to_diagonal(rand(2, 2))),
+            # dict(func_name="linalg.sqrtm", array=SPDMatrices(2).random_point()),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def binary_op_from_shape_test_data(self):
+        smoke_data = [
+            dict(func_name="cross", shape_a=3, shape_b=3),
+            dict(func_name="dot", shape_a=3, shape_b=3),
+            dict(func_name="matmul", shape_a=(2, 2), shape_b=(2, 2)),
+            dict(func_name="matmul", shape_a=(2, 3), shape_b=(3, 2)),
+            dict(func_name="matvec", shape_a=(3, 3), shape_b=3),
+            dict(func_name="outer", shape_a=3, shape_b=3),
+            dict(func_name="outer", shape_a=3, shape_b=4),
+        ]
+
+        return self.generate_tests(smoke_data)
