@@ -540,14 +540,14 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def test_circle_mean(self):
         space = Hypersphere(1)
         points = space.random_uniform(10)
-        mean_circle = FrechetMean(space.metric)
-        mean_circle.fit(points)
-        estimate_circle = mean_circle.estimate_
+        estimator = FrechetMean(space.metric)
+        estimator.fit(points)
+        mean = estimator.estimate_
 
-        # set a wrong dimension so that the extrinsic coordinates are used
-        metric = space.metric
-        metric.dim = 2
-        mean_extrinsic = FrechetMean(metric)
-        mean_extrinsic.fit(points)
-        estimate_extrinsic = mean_extrinsic.estimate_
-        self.assertAllClose(estimate_circle, estimate_extrinsic)
+        mean_gd = estimator._minimize(
+            points=points, weights=None, metric=space.metric)
+
+        sum_sd_mean = gs.sum(space.metric.dist(points, mean)**2)
+        sum_sd_mean_gd = gs.sum(space.metric.dist(points, mean_gd)**2)
+
+        self.assertTrue(sum_sd_mean < sum_sd_mean_gd + gs.atol)
