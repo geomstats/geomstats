@@ -549,4 +549,5 @@ class TestFrechetMean(geomstats.tests.TestCase):
         sum_sd_mean = gs.sum(space.metric.dist(points, mean) ** 2)
         sum_sd_mean_gd = gs.sum(space.metric.dist(points, mean_gd) ** 2)
 
-        self.assertTrue(sum_sd_mean < sum_sd_mean_gd + gs.atol)
+        msg = f"circular mean: {mean}, {sum_sd_mean}\ngd: {mean_gd}, {sum_sd_mean_gd}"
+        self.assertTrue(sum_sd_mean < sum_sd_mean_gd + gs.atol, msg)
