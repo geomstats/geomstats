@@ -42,7 +42,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         kmeans.fit(data)
         result = kmeans.centroids
 
-        mean = FrechetMean(metric=metric, max_iter=100, point_type="matrix")
+        mean = FrechetMean(metric=metric, max_iter=100)
         mean.fit(data)
         expected = mean.estimate_
         self.assertAllClose(result, expected)
