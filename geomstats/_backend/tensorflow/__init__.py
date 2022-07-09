@@ -796,7 +796,7 @@ def tril(mat, k=0):
     tril = _tf.linalg.band_part(mat, -1, 0)
     if k == 0:
         return tril
-    zero_diag = _tf.zeros(mat.shape[:-1])
+    zero_diag = _tf.zeros(mat.shape[:-1], dtype=mat.dtype)
     return _tf.linalg.set_diag(tril, zero_diag)
 
 
@@ -807,7 +807,7 @@ def triu(mat, k=0):
     triu = _tf.linalg.band_part(mat, 0, -1)
     if k == 0:
         return triu
-    zero_diag = _tf.zeros(mat.shape[:-1])
+    zero_diag = _tf.zeros(mat.shape[:-1], dtype=mat.dtype)
     return _tf.linalg.set_diag(triu, zero_diag)
 
 
