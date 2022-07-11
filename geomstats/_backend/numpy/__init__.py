@@ -102,12 +102,10 @@ from numpy import (
 from scipy.sparse import coo_matrix as _coo_matrix  # NOQA
 from scipy.special import erf, polygamma  # NOQA
 
-from .._backend_config import np_atol as atol
-from .._backend_config import np_rtol as rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from ._common import cast, to_ndarray
+from ._common import atol, cast, rtol, to_ndarray
 from ._dtype_wrapper import (
     _update_dtype,
     _update_func_default_dtype,

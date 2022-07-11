@@ -206,15 +206,15 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
 
         for dtype_str in self.dtypes_str:
             # test global
-            gs.set_default_dtype(dtype_str)
+            dtype = gs.set_default_dtype(dtype_str)
             out = gs_fnc(*args, **kwargs)
-            self.assertDtype(out.dtype, gs.as_dtype(dtype_str))
+            self.assertDtype(out.dtype, dtype)
 
             # test specifying dtype
             for dtype_inner_str in self.dtypes_str:
-                dtype = gs.as_dtype(dtype_inner_str)
-                out = gs_fnc(*args, dtype=dtype, **kwargs)
-                self.assertDtype(out.dtype, dtype)
+                dtype_inner = gs.as_dtype(dtype_inner_str)
+                out = gs_fnc(*args, dtype=dtype_inner, **kwargs)
+                self.assertDtype(out.dtype, dtype_inner)
 
     def test_array_creation_given_shape(self, func_name, shape):
         return self.test_array_creation(func_name, (shape,), {})
@@ -246,12 +246,13 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             out = gs_fnc(a)
             self.assertDtype(out.dtype, dtype)
 
-    def test_unary_op_from_array(self, func_name, array):
+    def test_unary_op_from_array(self, func_name, create_array):
+        # create_array to avoid using cast
         gs_fnc = get_backend_fnc(func_name)
 
         for dtype_str in self.dtypes_str:
-            dtype = gs.as_dtype(dtype_str)
-            a = gs.cast(array, dtype)
+            dtype = gs.set_default_dtype(dtype_str)
+            a = create_array()
 
             out = gs_fnc(a)
             self.assertDtype(out.dtype, dtype)

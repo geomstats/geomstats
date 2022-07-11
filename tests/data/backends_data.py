@@ -369,15 +369,23 @@ class DtypesTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def unary_op_from_array_test_data(self):
+        def _create_spd():
+            return SPDMatrices(2).random_point()
+
+        def _create_diag():
+            return Matrices.to_diagonal(rand(2, 2))
+
+        def _create_sym():
+            return SymmetricMatrices(2).random_point()
 
         smoke_data = [
-            dict(func_name="linalg.cholesky", array=SPDMatrices(2).random_point()),
-            dict(
-                func_name="linalg.eigvalsh", array=SymmetricMatrices(2).random_point()
-            ),
-            dict(func_name="linalg.expm", array=Matrices.to_diagonal(rand(2, 2))),
-            dict(func_name="linalg.logm", array=Matrices.to_diagonal(rand(2, 2))),
-            # dict(func_name="linalg.sqrtm", array=SPDMatrices(2).random_point()),
+            dict(func_name="linalg.cholesky", create_array=_create_spd),
+            dict(func_name="linalg.eigvalsh", create_array=_create_sym),
+            dict(func_name="linalg.expm", create_array=_create_diag),
+            dict(func_name="linalg.expm", create_array=_create_spd),
+            dict(func_name="linalg.logm", create_array=_create_diag),
+            dict(func_name="linalg.logm", create_array=_create_spd),
+            dict(func_name="linalg.sqrtm", create_array=_create_spd),
         ]
 
         return self.generate_tests(smoke_data)

@@ -1,5 +1,7 @@
 """Numpy based linear algebra backend."""
 
+import functools
+
 import numpy as _np
 import scipy as _scipy
 from numpy.linalg import (  # NOQA
@@ -15,14 +17,36 @@ from numpy.linalg import (  # NOQA
     svd,
 )
 
+from ._common import atol, cast
 from ._common import to_ndarray as _to_ndarray
 
 
-_logm_vec = _np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
+def _update_out_dtype(func):
+    """Cast out of func if float and not accordingly to input.
+
+    Notes
+    -----
+    Required for scipy when result is innacurate.
+    """
+
+    @functools.wraps(func)
+    def _wrapped(x):
+        out = func(x)
+        if out.dtype.kind == "f" and out.dtype != x.dtype:
+            return cast(out, x.dtype)
+        return out
+
+    return _wrapped
+
+
 _diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
 
+_logm_vec = _update_out_dtype(
+    _np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
+)
 
-def _is_symmetric(x, tol=1e-12):
+
+def _is_symmetric(x, tol=atol):
     new_x = _to_ndarray(x, to_ndim=3)
     return (_np.abs(new_x - _np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
 
@@ -52,12 +76,12 @@ def logm(x):
     return result
 
 
-def solve_sylvester(a, b, q):
+def solve_sylvester(a, b, q, tol=atol):
     if a.shape == b.shape:
         axes = (0, 2, 1) if a.ndim == 3 else (1, 0)
-        if _np.all(a == b) and _np.all(_np.abs(a - _np.transpose(a, axes)) < 1e-12):
+        if _np.all(a == b) and _np.all(_np.abs(a - _np.transpose(a, axes)) < tol):
             eigvals, eigvecs = eigh(a)
-            if _np.all(eigvals >= 1e-12):
+            if _np.all(eigvals >= tol):
                 tilde_q = _np.transpose(eigvecs, axes) @ q @ eigvecs
                 tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
                 return eigvecs @ tilde_x @ _np.transpose(eigvecs, axes)
@@ -67,6 +91,7 @@ def solve_sylvester(a, b, q):
     )(a, b, q)
 
 
+@_update_out_dtype
 def sqrtm(x):
     return _np.vectorize(_scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
 
