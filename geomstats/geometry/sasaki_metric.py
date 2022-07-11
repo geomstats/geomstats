@@ -5,8 +5,6 @@ of a Riemannian manifold M.
 
 Lead authors: E. Nava-Yazdani, F. Ambellan, M. Hanik and C. von Tycowicz.
 """
-import os
-
 from joblib import Parallel, delayed
 
 import geomstats.backend as gs
@@ -48,6 +46,10 @@ class SasakiMetric(RiemannianMetric):
     metric : RiemannianMetric
         Metric of the base manifold of the tangent bundle.
 
+    n_jobs: int
+    Number of jobs for parallel computing.
+    Optional, default: 1.
+
     References
     ----------
     .. [1] Muralidharan, P., & Fletcher, P. T. (2012, June).
@@ -60,13 +62,11 @@ class SasakiMetric(RiemannianMetric):
     https://nbn-resolving.org/urn/resolver.pl?urn:nbn:de:0297-zib-87174
     """
 
-    def __init__(self, metric: RiemannianMetric):
+    def __init__(self, metric: RiemannianMetric, n_jobs: int = 1):
         self.metric = metric
         shape = (2, gs.prod(gs.array(metric.shape)))
 
-        self.n_jobs = (
-            os.cpu_count() if (os.environ["GEOMSTATS_BACKEND"] != "tensorflow") else 1
-        )
+        self.n_jobs = n_jobs
 
         super(SasakiMetric, self).__init__(
             2 * metric.dim, shape=shape, default_point_type="matrix"

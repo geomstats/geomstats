@@ -1,3 +1,5 @@
+import os
+
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import HypersphereMetric
 from geomstats.geometry.sasaki_metric import SasakiMetric
@@ -6,7 +8,10 @@ from tests.data_generation import TestData
 
 class SasakiMetricTestData(TestData):
     dim = 2
-    sas_sphere_metric = SasakiMetric(HypersphereMetric(dim=dim))
+    sas_sphere_metric = SasakiMetric(
+        HypersphereMetric(dim=dim),
+        os.cpu_count() if (os.environ["GEOMSTATS_BACKEND"] != "tensorflow") else 1,
+    )
 
     # fix elements in TS
     pu0 = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 1.0]])
