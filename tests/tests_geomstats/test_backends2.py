@@ -201,7 +201,19 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
         msg = f"{actual} instead of {expected}"
         self.assertTrue(actual == expected, msg)
 
+    def test_array(self, ls, expected_dtype):
+        out = gs.array(ls)
+        self.assertDtype(out.dtype, expected_dtype)
+
     def test_array_creation(self, func_name, args, kwargs):
+        gs_fnc = get_backend_fnc(func_name)
+
+        for dtype_str in self.dtypes_str:
+            dtype = gs.set_default_dtype(dtype_str)
+            out = gs_fnc(*args, **kwargs)
+            self.assertDtype(out.dtype, dtype)
+
+    def test_array_creation_with_dtype(self, func_name, args, kwargs):
         gs_fnc = get_backend_fnc(func_name)
 
         for dtype_str in self.dtypes_str:
@@ -216,10 +228,12 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
                 out = gs_fnc(*args, dtype=dtype_inner, **kwargs)
                 self.assertDtype(out.dtype, dtype_inner)
 
-    def test_array_creation_given_shape(self, func_name, shape):
-        return self.test_array_creation(func_name, (shape,), {})
+    def test_array_creation_with_dtype_given_shape(self, func_name, shape):
+        return self.test_array_creation_with_dtype(func_name, (shape,), {})
 
-    def test_array_creation_given_array(self, func_name, array_shape, kwargs):
+    def test_array_creation_with_dtype_given_array(
+        self, func_name, array_shape, kwargs
+    ):
         gs_fnc = get_backend_fnc(func_name)
 
         for dtype_str in self.dtypes_str:
@@ -235,6 +249,11 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
                 dtype_inner = gs.as_dtype(dtype_inner_str)
                 out = gs_fnc(a, dtype=dtype_inner, **kwargs)
                 self.assertDtype(out.dtype, dtype_inner)
+
+    def test_unary_op_with_dtype_from_shape(self, func_name, array_shape, kwargs):
+        return self.test_array_creation_with_dtype_given_array(
+            func_name, array_shape, kwargs
+        )
 
     def test_unary_op_from_shape(self, func_name, array_shape):
         gs_fnc = get_backend_fnc(func_name)

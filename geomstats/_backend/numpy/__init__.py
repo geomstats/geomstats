@@ -17,7 +17,6 @@ from numpy import (
     arctanh,
     argmax,
     argmin,
-    array,
     broadcast_arrays,
     broadcast_to,
     ceil,
@@ -107,6 +106,7 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 from ._common import atol, cast, rtol, to_ndarray
 from ._dtype_wrapper import (
+    _cast_fout_from_dtype,
     _update_dtype,
     _update_func_default_dtype,
     as_dtype,
@@ -126,7 +126,8 @@ _DTYPES = {
 ones = _update_func_default_dtype(_np.ones)
 eye = _update_func_default_dtype(_np.eye)
 linspace = _update_func_default_dtype(_np.linspace)
-zeros = _update_dtype(_np.zeros)
+array = _cast_fout_from_dtype(_func=_np.array, dtype_pos=1)
+zeros = _update_dtype(_func=_np.zeros, dtype_pos=1)
 
 
 def to_numpy(x):

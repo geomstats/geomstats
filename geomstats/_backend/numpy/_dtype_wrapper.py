@@ -2,7 +2,7 @@ import functools
 import inspect
 import types
 
-from numpy import dtype as _dtype
+import numpy as _np
 
 from ._common import cast
 
@@ -53,7 +53,7 @@ def _update_default_dtypes():
         func.__defaults__ = tuple(defaults)
 
 
-def _add_dtype(func):
+def _add_default_dtype(func):
     @functools.wraps(func)
     def _wrapped(*args, dtype=None, **kwargs):
         if dtype is None:
@@ -89,8 +89,51 @@ def _update_dtype(dtype_pos=None, _func=None):
         return _decorator(_func)
 
 
+def _cast_fout_from_dtype(dtype_pos=None, _func=None):
+    def _decorator(func):
+        @functools.wraps(func)
+        def _wrapped(*args, **kwargs):
+            out = func(*args, **kwargs)
+
+            if out.dtype.kind == "f":
+                if out.dtype is not None and len(args) > dtype_pos:
+                    dtype = args[dtype_pos]
+                else:
+                    dtype = kwargs.get("dtype", _DEFAULT_DTYPE)
+
+                if out.dtype != dtype:
+                    return cast(out, dtype)
+
+            return out
+
+        return _wrapped
+
+    if _func is None:
+        return _decorator
+    else:
+        return _decorator(_func)
+
+
+def _cast_fout_from_input_dtype(func):
+    """Cast out of func if float and not accordingly to input.
+
+    Notes
+    -----
+    Required for scipy when result is innacurate.
+    """
+
+    @functools.wraps(func)
+    def _wrapped(x, *args, **kwargs):
+        out = func(x, *args, **kwargs)
+        if out.dtype.kind == "f" and out.dtype != x.dtype:
+            return cast(out, x.dtype)
+        return out
+
+    return _wrapped
+
+
 def as_dtype(value):
-    return _dtype(value)
+    return _np.dtype(value)
 
 
 def set_default_dtype(value):

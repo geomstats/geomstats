@@ -19,29 +19,11 @@ from numpy.linalg import (  # NOQA
 
 from ._common import atol, cast
 from ._common import to_ndarray as _to_ndarray
-
-
-def _update_out_dtype(func):
-    """Cast out of func if float and not accordingly to input.
-
-    Notes
-    -----
-    Required for scipy when result is innacurate.
-    """
-
-    @functools.wraps(func)
-    def _wrapped(x):
-        out = func(x)
-        if out.dtype.kind == "f" and out.dtype != x.dtype:
-            return cast(out, x.dtype)
-        return out
-
-    return _wrapped
-
+from ._dtype_wrapper import _cast_fout_from_input_dtype
 
 _diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
 
-_logm_vec = _update_out_dtype(
+_logm_vec = _cast_fout_from_input_dtype(
     _np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
 )
 
@@ -91,7 +73,7 @@ def solve_sylvester(a, b, q, tol=atol):
     )(a, b, q)
 
 
-@_update_out_dtype
+@_cast_fout_from_input_dtype
 def sqrtm(x):
     return _np.vectorize(_scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
 

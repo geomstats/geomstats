@@ -315,8 +315,25 @@ class BackendsTestData(TestData):
 
 
 class DtypesTestData(TestData):
+    def array_test_data(self):
+        smoke_data = [
+            dict(ls=[1, 2], expected_dtype=gs.int64),
+            # TODO: uncomment later
+            # dict(ls=[1, 2j], expected_dtype=gs.complex128),
+        ]
+        return self.generate_tests(smoke_data)
+
     def array_creation_test_data(self):
         smoke_data = [
+            dict(
+                func_name="array_from_sparse", args=([(0, 0)], [1.0], (2, 2)), kwargs={}
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def array_creation_with_dtype_test_data(self):
+        smoke_data = [
+            dict(func_name="array", args=([1.0, 2.0],), kwargs={}),
             dict(func_name="linspace", args=(0.0, 1.0), kwargs={}),
             dict(func_name="random.normal", args=(), kwargs={"size": 2}),
             dict(
@@ -329,7 +346,7 @@ class DtypesTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def array_creation_given_shape_test_data(self):
+    def array_creation_with_dtype_given_shape_test_data(self):
         smoke_data = [
             dict(func_name="eye", shape=2),
             dict(func_name="ones", shape=2),
@@ -339,20 +356,29 @@ class DtypesTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def array_creation_given_array_test_data(self):
+    def array_creation_with_dtype_given_array_test_data(self):
+        smoke_data = [
+            dict(func_name="empty_like", array_shape=2),
+            dict(func_name="ones_like", array_shape=2),
+            dict(func_name="zeros_like", array_shape=2),
+        ]
+
+        for data in smoke_data:
+            data.setdefault("kwargs", {})
+
+        return self.generate_tests(smoke_data)
+
+    def unary_op_with_dtype_from_shape_test_data(self):
         axis_kwargs = {"axis": 0}
         smoke_data = [
             dict(func_name="cumprod", array_shape=2),
             dict(func_name="cumsum", array_shape=2),
-            dict(func_name="empty_like", array_shape=2),
             dict(func_name="mean", array_shape=2),
             dict(func_name="mean", array_shape=(2, 2), kwargs=axis_kwargs),
-            dict(func_name="ones_like", array_shape=2),
             dict(func_name="sum", array_shape=2),
             dict(func_name="sum", array_shape=(2, 2), kwargs=axis_kwargs),
             dict(func_name="std", array_shape=2),
             dict(func_name="std", array_shape=(2, 2), kwargs=axis_kwargs),
-            dict(func_name="zeros_like", array_shape=2),
         ]
 
         for data in smoke_data:
