@@ -67,15 +67,26 @@ def _add_dtype(func):
     return _wrapped
 
 
-def _update_dtype(func):
-    @functools.wraps(func)
-    def _wrapped(*args, dtype=None, **kwargs):
-        if dtype is None:
-            dtype = _DEFAULT_DTYPE
+def _update_dtype(dtype_pos=None, _func=None):
+    def _decorator(func):
+        @functools.wraps(func)
+        def _wrapped(*args, **kwargs):
+            if dtype_pos is not None and len(args) > dtype_pos:
+                args = list(args)
+                args[dtype_pos] = _DEFAULT_DTYPE
 
-        return func(*args, dtype=dtype, **kwargs)
+            else:
+                if kwargs.get("dtype", None) is None:
+                    kwargs["dtype"] = _DEFAULT_DTYPE
 
-    return _wrapped
+            return func(*args, **kwargs)
+
+        return _wrapped
+
+    if _func is None:
+        return _decorator
+    else:
+        return _decorator(_func)
 
 
 def as_dtype(value):
