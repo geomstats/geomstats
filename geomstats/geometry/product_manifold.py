@@ -365,10 +365,10 @@ class NFoldManifold(ProductManifold):
             metrics = [metric for i in range(n_copies)]
         
         super(NFoldManifold, self).__init__(
-            manifolds=manifolds, 
-            metrics=metrics, 
-            default_point_type="vector", 
-            n_jobs=n_jobs, 
+            manifolds=manifolds,
+            metrics=metrics,
+            default_point_type="vector",
+            n_jobs=n_jobs,
             **kwargs
         )
 
@@ -376,36 +376,3 @@ class NFoldManifold(ProductManifold):
         self.base_shape = base_manifold.shape
         self.n_copies = n_copies
         self.metric = metric
-        
-            
-def __init__(
-    self, manifolds, metrics=None, default_point_type="vector", n_jobs=1, **kwargs
-):
-    geomstats.errors.check_parameter_accepted_values(
-        default_point_type, "default_point_type", ["vector", "matrix"]
-    )
-
-    self.dims = [manifold.dim for manifold in manifolds]
-    if metrics is None:
-        metrics = [manifold.metric for manifold in manifolds]
-    kwargs.setdefault(
-        "metric",
-        ProductRiemannianMetric(
-            metrics, default_point_type=default_point_type, n_jobs=n_jobs
-        ),
-    )
-    dim = sum(self.dims)
-
-    if default_point_type == "vector":
-        shape = (sum([m.shape[0] for m in manifolds]),)
-    else:
-        shape = (len(manifolds), *manifolds[0].shape)
-
-    super(ProductManifold, self).__init__(
-        dim=dim,
-        shape=shape,
-        default_point_type=default_point_type,
-        **kwargs,
-    )
-    self.manifolds = manifolds
-    self.n_jobs = n_jobs

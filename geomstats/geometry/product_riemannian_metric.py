@@ -302,16 +302,14 @@ class NFoldMetric(ProductRiemannianMetric):
         Number of replication of the base metric.
     """
 
-    def __init__(self, base_metric, n_copies,default_point_type="vector",n_jobs=1):
+    def __init__(self, base_metric, n_copies,default_point_type="vector", n_jobs=1):
         geomstats.errors.check_integer(n_copies, "n_copies")
         base_shape = base_metric.shape
         metrics = [base_metric for i in range(n_copies)]
-        super(NFoldMetric, self).__init__(metrics, 
-                                          default_point_type=default_point_type, 
+        super(NFoldMetric, self).__init__(metrics,
+                                          default_point_type=default_point_type,
                                           n_jobs=n_jobs
                                           )
         self.base_shape = base_shape
         self.base_metric = base_metric
         self.n_copies = n_copies
-        
-       
