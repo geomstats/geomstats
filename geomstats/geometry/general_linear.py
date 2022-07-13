@@ -6,7 +6,8 @@ from geomstats.geometry.base import OpenSet
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
-
+from geomstats.geometry.invariant_metric import InvariantMetric
+import math
 
 class GeneralLinear(MatrixLieGroup, OpenSet):
     """Class for the general linear group GL(n) and its identity component.
@@ -219,3 +220,75 @@ class SquareMatrices(MatrixLieAlgebra):
             Matrix.
         """
         return self.mat_space.reshape(basis_representation)
+
+
+class VMetric(InvariantMetric):
+
+    def __init__(self, group, **kwargs):
+        if (
+            not isinstance(group, GeneralLinear)
+            or group.default_point_type != "matrix"
+        ):
+            raise ValueError(
+                "group must be an instance of the "
+                "GeneralLinear class with 'point_type=matrix'."
+            )
+        super(VMetric).__init__(
+            group, left_or_right='right', point_type='matrix',
+            **kwargs)
+        self.n = group.n
+
+    def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
+        """Compute inner product at tangent space at identity.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            First tangent vector at identity.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Second tangent vector at identity.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...]
+            Inner-product of the two tangent vectors.
+        """
+        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+
+    def exp(self, tangent_vec, base_point=None, n_steps=10, **kwargs):
+        group = self.group
+        if base_point is None:
+            base_point = group.identity
+        transpose_exp = GeneralLinear.exp(Matrices.transpose(tangent_vec))
+        unitary_exp = GeneralLinear.exp(tangent_vec - Matrices.transpose(tangent_vec))
+        exp = Matrices.mul(unitary_exp,transpose_exp,base_point)
+
+        return exp
+
+    def Dexp(self, tangent_vec, D_tangent_vec, accuracy, base_point=None):
+
+        group = self.group
+        if base_point is None:
+            base_point = group.identity
+
+        el_1 = [tangent_vec-Matrices.transpose(tangent_vec), D_tangent_vec-Matrices.transpose(D_tangent_vec)]
+        for i in range(accuracy):
+            el_1.append(Matrices.bracket(el_1[0], el_1[i + 1]))
+
+        Op_exp_1 = el_1[1]
+        for i in range(1, accuracy + 1):
+            Op_exp_1 = Op_exp_1 + (((-1) ** i) / (math.factorial(i)))* el_1[i + 1]
+
+        el_2 = [Matrices.transpose(tangent_vec), Matrices.transpose(D_tangent_vec)]
+        for i in range(accuracy):
+            el_2.append(Matrices.bracket(el_2[0], el_2[i + 1]))
+
+        Op_exp_2 = el_2[1]
+        for i in range(1, accuracy + 1):
+            Op_exp_2 = Op_exp_2 + (((-1) ** i) / (math.factorial(i))) * el_2[i + 1]
+
+        transpose_exp = GeneralLinear.exp(Matrices.transpose(tangent_vec))
+        unitary_exp = GeneralLinear.exp(tangent_vec - Matrices.transpose(tangent_vec))
+        Dexp = Matrices.mul(unitary_exp,Op_exp_1,transpose_exp)+Matrices.mul(unitary_exp,transpose_exp,Op_exp_2)
+
+        return Dexp
