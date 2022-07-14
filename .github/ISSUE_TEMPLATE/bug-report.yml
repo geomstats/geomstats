@@ -13,7 +13,7 @@ body:
         If you're new to Geomstats, consider the following options first:
 
         - reading the Geomstats documentation: https://geomstats.github.io/
-        - searching our existing issue tracker for a similar issue (https://github.com/geomstats/geomstats) to see if
+        - searching our existing issue tracker for a similar issue (https://github.com/geomstats/geomstats/issues) to see if
           your problem has already been reported.
     
 - type: textarea
