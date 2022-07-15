@@ -458,7 +458,15 @@ class Connection(ABC):
         curvature : array-like, shape=[..., {dim, [n, m]}]
             Tangent vector at `base_point`.
         """
-        raise NotImplementedError("curvature has not been implemented yet.")
+        riemann = self.riemann_tensor(base_point)
+        curvature = gs.einsum(
+            "...ijkl, ...i, ...j, ...k -> ...l",
+            riemann,
+            tangent_vec_a,
+            tangent_vec_b,
+            tangent_vec_c,
+        )
+        return curvature
 
     def riemann_tensor(self, base_point):
         r"""Compute Riemannian tensor at base_point.
@@ -472,6 +480,7 @@ class Connection(ABC):
         -------
         riemann_curvature : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]},
                                                     {dim, [n, m]}, {dim, [n, m]}]
+            R_ijk^l = riemann_tensor[i,j,k,l]
             Riemannian tensor curvature.
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)

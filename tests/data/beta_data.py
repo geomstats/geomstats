@@ -209,6 +209,41 @@ class BetaMetricTestData(_RiemannianMetricTestData):
             atol=gs.atol * 10000,
         )
 
+    def riemann_tensor_shape_test_data(self):
+        return self._riemann_tensor_shape_test_data(
+            self.metric_args_list, self.space_list
+        )
+
+    def ricci_tensor_shape_test_data(self):
+        return self._ricci_tensor_shape_test_data(
+            self.metric_args_list, self.space_list
+        )
+
+    def scalar_curvature_shape_test_data(self):
+        return self._scalar_curvature_shape_test_data(
+            self.metric_args_list, self.space_list
+        )
+
+    def covariant_riemann_tensor_is_skew_symmetric_1_test_data(self):
+        return self._covariant_riemann_tensor_is_skew_symmetric_1_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def covariant_riemann_tensor_is_skew_symmetric_2_test_data(self):
+        return self._covariant_riemann_tensor_is_skew_symmetric_2_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def covariant_riemann_tensor_bianchi_identity_test_data(self):
+        return self._covariant_riemann_tensor_bianchi_identity_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def covariant_riemann_tensor_is_interchange_symmetric_test_data(self):
+        return self._covariant_riemann_tensor_is_interchange_symmetric_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(
