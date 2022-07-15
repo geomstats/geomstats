@@ -238,13 +238,35 @@ class PolynomialRegression(BaseEstimator):
         Returns
         -------
         intercept : array-like, shape=[{dim, [n,n]}]
-            Initial value for the intercept.
+             Value for the intercept.
         coef : array-like, shape=[{order, dim, [n,n]}]
             Initial value for the coefficient matrix.
         """
         param = gs.reshape(param, (self.order + 1, -1))
         intercept, coef = gs.split(param, [1], axis=0)  # split 1st row off as intercept
         return gs.squeeze(intercept), coef
+
+    def combine_parameters(self, intercept, coef):
+        """Combine  intercept and coeff into param.
+
+        Split parameters (order + 1 x dim) into intercept (1 x dim)
+        and coefficient matrix (order x dim).
+
+        Parameters
+        ----------
+        intercept : array-like, shape=[{dim, [n,n]}]
+            Value for the intercept.
+        coef : array-like, shape=[{order, dim, [n,n]}]
+            Value for the coefficient matrix.
+
+        Returns
+        -------
+        param : array-like, shape=[order + 1, {dim, [n,n]}]
+            Parameters intercept and coef of the polynomial regression,
+            vertically stacked or in matrix form
+
+        """
+        return gs.vstack([gs.flatten(intercept), gs.reshape(coef, (self.order, -1))])
 
     def fit(self, X, y, weights=None, compute_training_score=False):
         """Estimate the parameters of the polynomial regression.
@@ -309,9 +331,13 @@ class PolynomialRegression(BaseEstimator):
         )
 
         intercept_init, coef_init = self.initialize_parameters(y)
+        intercept_init = gs.reshape(intercept_init, (1,) + shape)
+        # Need to reshape for matrix manifolds
+
         intercept_hat = self.space.projection(intercept_init)
+        coef_init = gs.reshape(coef_init, (self.order,) + shape)
         coef_hat = self.space.to_tangent(coef_init, intercept_hat)
-        initial_guess = gs.vstack([gs.flatten(intercept_hat), gs.flatten(coef_hat)])
+        initial_guess = self.combine_parameters(intercept_hat, coef_hat)
 
         objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self._loss(X, y, param, shape, weights), to_numpy=True
@@ -326,10 +352,10 @@ class PolynomialRegression(BaseEstimator):
             tol=self.tol,
         )
 
-        intercept_hat, coef_hat = gs.split(gs.array(res.x), 2)
+        intercept_hat, coef_hat = self.split_parameters(gs.array(res.x))
         intercept_hat = gs.reshape(intercept_hat, shape)
         intercept_hat = gs.cast(intercept_hat, dtype=y.dtype)
-        coef_hat = gs.reshape(coef_hat, shape)
+        coef_hat = gs.reshape(coef_hat, (self.order,) + shape)
         coef_hat = gs.cast(coef_hat, dtype=y.dtype)
 
         self.intercept_ = self.space.projection(intercept_hat)
@@ -373,17 +399,22 @@ class PolynomialRegression(BaseEstimator):
         )
         if isinstance(init, str):
             if init == "random":
-                return gs.random.normal(size=(1 + self.order,) + shape)
+                return self.split_parameters(
+                    gs.random.normal(size=(1 + self.order,) + shape)
+                )
             if init == "frechet":
-                # todo edit this for polynomial
                 mean = FrechetMean(self.metric, verbose=self.verbose).fit(y).estimate_
-                return mean, gs.zeros(shape)
+                return mean, gs.zeros((self.order,) + shape)
             if init == "data":
-                return gs.random.choice(y, 1)[0], gs.random.normal(size=shape)
+                return gs.random.choice(y, 1)[0], gs.random.normal(
+                    size=(self.order,) + shape
+                )
             if init == "warm_start":
                 if self.intercept_ is not None:
                     return self.intercept_, self.coef_
-                return gs.random.normal(size=(2,) + shape)
+                return self.split_parameters(
+                    gs.random.normal(size=(1 + self.order,) + shape)
+                )
             raise ValueError(
                 "The initialization string must be one of "
                 "random, frechet, data or warm_start"
