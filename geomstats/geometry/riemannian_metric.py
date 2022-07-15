@@ -469,7 +469,7 @@ class RiemannianMetric(Connection, ABC):
         """
         riemann_tensor = self.riemann_tensor(base_point)
         metric = self.metric_matrix(base_point)
-        covariant_tensor = gs.einsum("...ij, ...jklm->...iklm", metric, riemann_tensor)
+        covariant_tensor = gs.einsum("...ij, ...klmj->...iklm", metric, riemann_tensor)
         return covariant_tensor
 
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
