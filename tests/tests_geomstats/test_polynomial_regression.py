@@ -1,6 +1,4 @@
 """Unit tests for Polynomial Regression."""
-import os
-
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
@@ -200,9 +198,6 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
                 ),
             ]
         )
-
-    def test_backend(self):
-        print("\n" + os.environ["GEOMSTATS_BACKEND"])
 
     def test_loss_euclidean(self):
         """Test that the loss is 0 at the true parameters."""
