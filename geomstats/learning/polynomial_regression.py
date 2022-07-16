@@ -164,7 +164,6 @@ class PolynomialRegression(BaseEstimator):
         # Output should be shape N x dim -> exp -> N
         # Matrix multiply with coefficients and apply exp map at intercept
         # Reshape twice to do mat mul between 2D arrays
-        # print((-1, coef.shape[1], coef.shape[2]))
         return self.metric.exp(
             gs.reshape(
                 Matrices.mul(X_powers, gs.reshape(coef, (self.order, -1))),
@@ -464,12 +463,14 @@ class PolynomialRegression(BaseEstimator):
 
         lr = self.init_step_size
         intercept_init, coef_init = self.initialize_parameters(y)
+
         intercept_hat = intercept_hat_new = self.space.projection(intercept_init)
         coef_hat = coef_hat_new = self.space.to_tangent(coef_init, intercept_hat)
-        param = gs.vstack([gs.flatten(intercept_hat), gs.flatten(coef_hat)])
+        param = self.combine_parameters(intercept_hat, coef_hat)
         current_loss = [math.inf]
         current_grad = gs.zeros_like(param)
         current_iter = i = 0
+
         for i in range(self.max_iter):
             loss, grad = objective_with_grad(param)
             if gs.any(gs.isnan(grad)):
@@ -489,12 +490,13 @@ class PolynomialRegression(BaseEstimator):
                     logging.info(f"Tolerance threshold reached at iter {current_iter}")
                 break
 
-            grad_intercept, grad_coef = gs.split(grad, 2)
+            grad_intercept, grad_coef = self.split_parameters(grad)
+
             riem_grad_intercept = self.space.to_tangent(
                 gs.reshape(grad_intercept, shape), intercept_hat
             )
             riem_grad_coef = self.space.to_tangent(
-                gs.reshape(grad_coef, shape), intercept_hat
+                gs.reshape(grad_coef, (self.order,) + shape), intercept_hat
             )
 
             intercept_hat_new = self.metric.exp(
@@ -507,7 +509,7 @@ class PolynomialRegression(BaseEstimator):
                 intercept_hat_new,
             )
 
-            param = gs.vstack([gs.flatten(intercept_hat_new), gs.flatten(coef_hat_new)])
+            param = self.combine_parameters(intercept_hat_new, coef_hat_new)
 
             current_loss.append(loss)
             current_grad = grad
