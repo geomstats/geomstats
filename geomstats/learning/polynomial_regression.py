@@ -1,7 +1,7 @@
 r"""Polynomial Regression.
 
 Lead author: Arka Mallela.
-Last updated: 7-14-22
+Last updated: 7-15-22
 
 The generative model of the data is:
 :math:`Z = Exp_{\beta_0}(\sum_{k=1}^{N}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
@@ -10,8 +10,9 @@ where:
 - :math:`Exp` denotes the Riemannian exponential,
 - :math:`\beta_0` is called the intercept,
   and is a point on the manifold,
-- :math:`\beta_1` is called the coefficient,
+- :math:`\beta_k` is called the coefficient, of :math:`X^k' power term
   and is a tangent vector to the manifold at :math:`\beta_0`,
+- :math:`N` denotes the order of the polynomial,
 - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
 - :math:`X` is the input, :math:`Y` is the target.
 
