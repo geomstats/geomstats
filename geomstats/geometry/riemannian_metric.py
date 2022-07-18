@@ -465,6 +465,8 @@ class RiemannianMetric(Connection, ABC):
         -------
         covariant_tensor : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]},
                                                     {dim, [n, m]}, {dim, [n, m]}]
+            R_{ijkl} = covariant_tensor[...,i,j,k,l]
+            [covariant_tensor]_{ijkl} = [metric_matrix]_{im} [riemann_tensor]_{jkl}^m
             Covariant version of Riemannian curvature tensor.
         """
         riemann_tensor = self.riemann_tensor(base_point)

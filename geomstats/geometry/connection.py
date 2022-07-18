@@ -480,7 +480,7 @@ class Connection(ABC):
         -------
         riemann_curvature : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]},
                                                     {dim, [n, m]}, {dim, [n, m]}]
-            R_ijk^l = riemann_tensor[i,j,k,l]
+            R_{ijk}^l = riemann_tensor[...,i,j,k,l]
             Riemannian tensor curvature.
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -520,6 +520,7 @@ class Connection(ABC):
         Returns
         -------
         ricci_tensor : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]}]
+            Ric_{ij} = ricci_tensor[...,i,j]
             Ricci tensor curvature.
         """
         riemann_tensor = self.riemann_tensor(base_point)
