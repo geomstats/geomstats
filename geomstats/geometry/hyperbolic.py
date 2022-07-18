@@ -16,11 +16,12 @@ class Hyperbolic(_Hyperbolic, Manifold):
 
     This class is a common interface to the different models of hyperbolic
     geometry:
+
     - the hyperboloid, embedded in Minkowski space of dimension dim + 1. This
-    representation is called `extrinsic` here.
+      representation is called `extrinsic` here.
     - the Poincare ball, the open ball of the Euclidean space of dimension dim.
     - the Poincare half-space, the open space of points of the Euclidean
-    space of  dimension dim, whose last coordinate is positive.
+      space of  dimension dim, whose last coordinate is positive.
 
     Parameters
     ----------

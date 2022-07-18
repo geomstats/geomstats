@@ -64,8 +64,8 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
         References
         ----------
         .. [CM2009a] F. Casas and A. Murua. An efficient algorithm for
-           computing the Baker–Campbell–Hausdorff series and some of its
-           applications. Journal of Mathematical Physics 50, 2009
+            computing the Baker–Campbell–Hausdorff series and some of its
+            applications. Journal of Mathematical Physics 50, 2009
         .. [CM2009b] http://www.ehu.eus/ccwmuura/research/bchHall20.dat
         """
         if order > 15:

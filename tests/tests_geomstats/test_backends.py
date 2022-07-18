@@ -8,169 +8,14 @@ import warnings
 
 import numpy as _np
 import pytest
-import scipy.linalg
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestBackends(tests.conftest.TestCase):
     def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
-
-        self.so3_group = SpecialOrthogonal(n=3)
-        self.n_samples = 2
-
-    def test_array(self):
-        gs_mat = gs.array(1.5)
-        np_mat = _np.array(1.5)
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-        gs_mat = gs.array([gs.ones(3), gs.ones(3)])
-        np_mat = _np.array([_np.ones(3), _np.ones(3)])
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-        gs_mat = gs.array([gs.ones(3), gs.ones(3)], dtype=gs.float64)
-        np_mat = _np.array([_np.ones(3), _np.ones(3)], dtype=_np.float64)
-        self.assertTrue(gs_mat.dtype == gs.float64)
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-        gs_mat = gs.array([[gs.ones(3)], [gs.ones(3)]], dtype=gs.uint8)
-        np_mat = _np.array([[_np.ones(3)], [_np.ones(3)]], dtype=_np.uint8)
-        self.assertTrue(gs_mat.dtype == gs.uint8)
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-        gs_mat = gs.array([gs.ones(3), [0, 0, 0]], dtype=gs.int32)
-        np_mat = _np.array([_np.ones(3), [0, 0, 0]], dtype=_np.int32)
-        self.assertTrue(gs_mat.dtype == gs.int32)
-        self.assertAllCloseToNp(gs_mat, np_mat)
-
-    def test_matmul(self):
-        mat_a = [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [7.0, 0.0, 4.0]]
-        mat_b = [[1.0, 0.0, 2.0], [0.0, 3.0, 0.0], [0.0, 0.0, 1.0]]
-        gs_mat_a = gs.array(mat_a)
-        gs_mat_b = gs.array(mat_b)
-        np_mat_a = _np.array(mat_a)
-        np_mat_b = _np.array(mat_b)
-
-        gs_result = gs.matmul(gs_mat_a, gs_mat_b)
-        np_result = _np.matmul(np_mat_a, np_mat_b)
-
-        self.assertAllCloseToNp(gs_result, np_result)
-
-    @tests.conftest.np_autograd_and_tf_only
-    def test_matmul_vectorization(self):
-        mat_a = [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [7.0, 0.0, 4.0]]
-        mat_b = [[1.0, 0.0, 2.0], [0.0, 3.0, 0.0], [0.0, 0.0, 1.0]]
-        mat_c = [[1.0, 4.0, 2.0], [4.0, 3.0, 4.0], [0.0, 0.0, 4.0]]
-        gs_mat_a = gs.array(mat_a)
-        gs_mat_b = gs.array(mat_b)
-        gs_mat_c = gs.array(mat_c)
-        np_mat_a = _np.array(mat_a)
-        np_mat_b = _np.array(mat_b)
-        np_mat_c = _np.array(mat_c)
-
-        gs_result = gs.matmul(gs_mat_a, [gs_mat_b, gs_mat_c])
-        np_result = _np.matmul(np_mat_a, [np_mat_b, np_mat_c])
-
-        self.assertAllCloseToNp(gs_result, np_result)
-
-    def test_logm(self):
-        point = gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
-        result = gs.linalg.logm(point)
-        expected = gs.array(
-            [[0.693147180, 0.0, 0.0], [0.0, 1.098612288, 0.0], [0.0, 0.0, 1.38629436]]
-        )
-        self.assertAllClose(result, expected)
-
-        np_point = _np.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
-        scipy_result = scipy.linalg.logm(np_point)
-        self.assertAllCloseToNp(result, scipy_result)
-
-    def test_expm_and_logm(self):
-        point = gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
-        result = gs.linalg.expm(gs.linalg.logm(point))
-        expected = point
-        self.assertAllClose(result, expected)
-
-        np_point = _np.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])
-        scipy_result = scipy.linalg.expm(scipy.linalg.logm(np_point))
-        self.assertAllCloseToNp(result, scipy_result)
-
-    @tests.conftest.np_and_autograd_only
-    def test_expm_vectorization(self):
-        # Note: scipy.linalg.expm is not vectorized
-        point = gs.array(
-            [
-                [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
-                [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
-            ]
-        )
-
-        expected = gs.array(
-            [
-                [
-                    [7.38905609, 0.0, 0.0],
-                    [0.0, 20.0855369, 0.0],
-                    [0.0, 0.0, 54.5981500],
-                ],
-                [
-                    [2.718281828, 0.0, 0.0],
-                    [0.0, 148.413159, 0.0],
-                    [0.0, 0.0, 403.42879349],
-                ],
-            ]
-        )
-
-        result = gs.linalg.expm(point)
-
-        self.assertAllClose(result, expected)
-
-    def test_logm_vectorization_diagonal(self):
-        # Note: scipy.linalg.expm is not vectorized
-        point = gs.array(
-            [
-                [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
-                [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
-            ]
-        )
-
-        expected = gs.array(
-            [
-                [
-                    [0.693147180, 0.0, 0.0],
-                    [0.0, 1.09861228866, 0.0],
-                    [0.0, 0.0, 1.38629436],
-                ],
-                [[0.0, 0.0, 0.0], [0.0, 1.609437912, 0.0], [0.0, 0.0, 1.79175946]],
-            ]
-        )
-
-        result = gs.linalg.logm(point)
-
-        self.assertAllClose(result, expected)
-
-    def test_expm_and_logm_vectorization_random_rotation(self):
-        point = self.so3_group.random_uniform(self.n_samples)
-
-        result = gs.linalg.expm(gs.linalg.logm(point))
-        expected = point
-
-        self.assertAllClose(result, expected, atol=gs.atol * 100)
-
-    def test_expm_and_logm_vectorization(self):
-        point = gs.array(
-            [
-                [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
-                [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
-            ]
-        )
-        result = gs.linalg.expm(gs.linalg.logm(point))
-        expected = point
-
-        self.assertAllClose(result, expected)
 
     @tests.conftest.tf_only
     def test_vstack(self):
@@ -216,73 +61,6 @@ class TestBackends(tests.conftest.TestCase):
         expected = gs.array([[0, 1, 0], [0, 0, 2]])
         result = gs.array_from_sparse([(0, 1), (1, 2)], [1, 2], (2, 3))
         self.assertAllClose(result, expected)
-
-    def test_einsum(self):
-        np_array_1 = _np.array([[1, 4]])
-        np_array_2 = _np.array([[2, 3]])
-        array_1 = gs.array([[1, 4]])
-        array_2 = gs.array([[2, 3]])
-
-        np_result = _np.einsum("...i,...i->...", np_array_1, np_array_2)
-        gs_result = gs.einsum("...i,...i->...", array_1, array_2)
-
-        self.assertAllCloseToNp(gs_result, np_result)
-
-        np_array_1 = _np.array([[1, 4], [-1, 5]])
-        np_array_2 = _np.array([[2, 3]])
-        array_1 = gs.array([[1, 4], [-1, 5]])
-        array_2 = gs.array([[2, 3]])
-
-        np_result = _np.einsum("...i,...i->...", np_array_1, np_array_2)
-        gs_result = gs.einsum("...i,...i->...", array_1, array_2)
-
-        self.assertAllCloseToNp(gs_result, np_result)
-
-        np_array_1 = _np.array([[1, 4]])
-        np_array_2 = _np.array([[2, 3], [5, 6]])
-        array_1 = gs.array([[1, 4]])
-        array_2 = gs.array([[2, 3], [5, 6]])
-
-        np_result = _np.einsum("...i,...i->...", np_array_1, np_array_2)
-        gs_result = gs.einsum("...i,...i->...", array_1, array_2)
-
-        self.assertAllCloseToNp(gs_result, np_result)
-
-        np_array_1 = _np.array([5])
-        np_array_2 = _np.array([[1, 2, 3]])
-        array_1 = gs.array([5])
-        array_2 = gs.array([[1, 2, 3]])
-
-        np_result = _np.einsum("...,...i->...i", np_array_1, np_array_2)
-        gs_result = gs.einsum("...,...i->...i", array_1, array_2)
-        self.assertAllCloseToNp(gs_result, np_result)
-
-        np_array_1 = _np.array(5)
-        np_array_2 = _np.array([[1, 2, 3]])
-        array_1 = gs.array(5)
-        array_2 = gs.array([[1, 2, 3]])
-
-        np_result = _np.einsum("...,...i->...i", np_array_1, np_array_2)
-        gs_result = gs.einsum("...,...i->...i", array_1, array_2)
-        self.assertAllCloseToNp(gs_result, np_result)
-
-        np_array_1 = _np.array([5])
-        np_array_2 = _np.array([1, 2, 3])
-        array_1 = gs.array([5])
-        array_2 = gs.array([1, 2, 3])
-
-        np_result = _np.einsum("...,...i->...i", np_array_1, np_array_2)
-        gs_result = gs.einsum("...,...i->...i", array_1, array_2)
-        self.assertAllCloseToNp(gs_result, np_result)
-
-        np_array_1 = _np.array(5)
-        np_array_2 = _np.array([1, 2, 3])
-        array_1 = gs.array(5)
-        array_2 = gs.array([1, 2, 3])
-
-        np_result = _np.einsum("...,...i->...i", np_array_1, np_array_2)
-        gs_result = gs.einsum("...,...i->...i", array_1, array_2)
-        self.assertAllCloseToNp(gs_result, np_result)
 
     def test_einsum_dtypes(self):
         np_array_1 = _np.array([[1, 4]])
@@ -669,23 +447,6 @@ class TestBackends(tests.conftest.TestCase):
         gs_result = gs.all(gs_array > 30.0, axis=(-2, -1))
         self.assertAllCloseToNp(gs_result, np_result)
 
-    def test_trace(self):
-        base_list = [[[22.0, 55.0], [33.0, 88.0]], [[34.0, 12.0], [67.0, 35.0]]]
-        np_array = _np.array(base_list)
-        gs_array = gs.array(base_list)
-
-        np_result = _np.trace(np_array)
-        gs_result = gs.trace(gs_array)
-        self.assertAllCloseToNp(gs_result, np_result)
-
-        np_result = _np.trace(np_array, axis1=1, axis2=2)
-        gs_result = gs.trace(gs_array, axis1=1, axis2=2)
-        self.assertAllCloseToNp(gs_result, np_result)
-
-        np_result = _np.trace(np_array, axis1=-1, axis2=-2)
-        gs_result = gs.trace(gs_array, axis1=-1, axis2=-2)
-        self.assertAllCloseToNp(gs_result, np_result)
-
     def test_isclose(self):
         base_list = [[[22.0 + 1e-5, 22.0 + 1e-7], [22.0 + 1e-6, 88.0 + 1e-4]]]
         np_array = _np.array(base_list)
@@ -896,18 +657,6 @@ class TestBackends(tests.conftest.TestCase):
 
         self.assertAllClose(result, skew)
 
-    def test_eigvalsh(self):
-        mat = gs.array([[2.0, 1.0], [1.0, -1.0]])
-        result = gs.linalg.eigvalsh(mat, UPLO="U")
-        expected = _np.linalg.eigvalsh(mat)
-        self.assertAllCloseToNp(result, expected)
-
-    def test_cholesky(self):
-        mat = SPDMatrices(3).random_point(2)
-        result = gs.linalg.cholesky(mat)
-        expected = _np.linalg.cholesky(mat)
-        self.assertAllClose(result, expected)
-
     def test_triu(self):
         mat = gs.array([[2.0, 1.0, 1.0], [1.0, -1.5, 2.0], [-1.0, 10.0, 2.0]])
         result = gs.triu(mat)
@@ -964,16 +713,37 @@ class TestBackends(tests.conftest.TestCase):
         not_pd_1_result = gs.linalg.is_single_matrix_pd(not_pd_1)
         not_pd_2_result = gs.linalg.is_single_matrix_pd(not_pd_2)
 
-        pd_expected = gs.array(True)
-        not_pd_1_expected = gs.array(False)
-        not_pd_2_expected = gs.array(False)
-
-        self.assertAllClose(pd_expected, pd_result)
-        self.assertAllClose(not_pd_1_expected, not_pd_1_result)
-        self.assertAllClose(not_pd_2_expected, not_pd_2_result)
+        self.assertTrue(pd_result)
+        self.assertFalse(not_pd_1_result)
+        self.assertFalse(not_pd_2_result)
 
     def test_unique(self):
         vec = gs.array([-1, 0, 1, 1, 0, -1])
         result = gs.unique(vec)
         expected = gs.array([-1, 0, 1])
         self.assertAllClose(result, expected)
+
+    def test_take(self):
+        # TODO: delete afte test refactor merge (and uncomment in tests)
+        vec = gs.array([0, 1])
+
+        indices = expected = gs.array([0, 0, 1])
+        self.assertAllClose(gs.take(vec, indices), expected)
+
+        self.assertEqual(gs.take(vec, 0), 0)
+
+        mat = gs.array(
+            [
+                [0, 1],
+                [2, 3],
+            ]
+        )
+        self.assertAllClose(
+            gs.take(mat, indices, axis=0), gs.array([[0, 1]] * 2 + [[2, 3]])
+        )
+        self.assertAllClose(
+            gs.take(mat, indices, axis=1),
+            gs.transpose(gs.array([[0, 2]] * 2 + [[1, 3]])),
+        )
+
+        self.assertAllClose(gs.take(mat, 0, axis=1), gs.array([0, 2]))

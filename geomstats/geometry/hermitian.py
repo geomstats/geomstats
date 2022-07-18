@@ -66,9 +66,10 @@ class HermitianMetric(RiemannianMetric):
     """Class for Hermitian metrics.
 
     As a Riemannian metric, the Hermitian metric is:
+
     - flat: the inner-product is independent of the base point.
     - positive definite: it has signature (dimension, 0, 0),
-    where dimension is the dimension of the Hermitian space.
+      where dimension is the dimension of the Hermitian space.
 
     Parameters
     ----------
@@ -118,7 +119,7 @@ class HermitianMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return gs.einsum("...i,...i->...", gs.conj(tangent_vec_a), tangent_vec_b)
+        return gs.dot(gs.conj(tangent_vec_a), tangent_vec_b)
 
     def norm(self, vector, base_point=None):
         """Compute norm of a vector.

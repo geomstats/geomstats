@@ -194,7 +194,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         expected1 = group.regularize(point)
         expected2 = -1 * expected1
         expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
-        self.assertAllClose(expected, gs.array(True))
+        self.assertTrue(expected)
 
     def test_quaternion_and_matrix_with_angles_close_to_pi(self, point):
         group = self.space(3, point_type="vector")
@@ -204,7 +204,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         expected1 = mat
         expected2 = gs.linalg.inv(mat)
         expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
-        self.assertAllClose(expected, gs.array(True))
+        self.assertTrue(expected)
 
     def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self, point):
         group = self.space(3, point_type="vector")
@@ -213,7 +213,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         expected1 = group.regularize(point)
         expected2 = -1 * expected1
         expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
-        self.assertAllClose(expected, gs.array(True))
+        self.assertTrue(expected)
 
     def test_lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point, expected):
         group = self.space(3, point_type="vector")

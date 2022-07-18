@@ -241,8 +241,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
     Attributes
     ----------
-    point_type : basestring
-        Whether to use vector or matrix representation.
     _dimension : int
         Manifold dimension.
     mixture_coefficients : array-like, shape=[n_gaussians,]
@@ -286,8 +284,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.metric = metric
         self.initialisation_method = initialisation_method
         self.tol = tol
-        self.mean_method = "batch"
-        self.point_type = metric.default_point_type
         self._dimension = None
         self.mixture_coefficients = None
         self.variances = None
@@ -300,6 +296,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.max_iter = max_iter
         self.max_iter_mean = max_iter_mean
         self.tol_mean = tol_mean
+
+        self._mean_method = "batch"
 
     def update_posterior_probabilities(self, posterior_probabilities):
         """Posterior probabilities update function.
@@ -320,8 +318,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             metric=self.metric,
             max_iter=self.max_iter_mean,
             epsilon=self.tol_mean,
-            point_type=self.point_type,
-            method=self.mean_method,
+            method=self._mean_method,
             init_step_size=self.init_step_size,
         )
 
@@ -470,7 +467,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                 n_clusters=self.n_gaussians,
                 init="random",
                 init_step_size=self.init_step_size,
-                mean_method="batch",
+                mean_method="default",
             )
 
             centroids = kmeans.fit(X=data)

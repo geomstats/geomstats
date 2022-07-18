@@ -37,7 +37,7 @@ class FullRankCorrelationMatrices(LevelSet):
     def diag_action(diagonal_vec, point):
         r"""Apply a diagonal matrix on an SPD matrices by congruence.
 
-        The action of :math: `D` on :math: `\Sigma` is given by :math: `D
+        The action of :math:`D` on :math:`\Sigma` is given by :math:`D
         \Sigma D. The diagonal matrix must be passed as a vector representing
         its diagonal.
 
@@ -54,8 +54,7 @@ class FullRankCorrelationMatrices(LevelSet):
             Symmetric matrix obtained by the action of `diagonal_vec` on
             `point`.
         """
-        aux = gs.einsum("...i,...j->...ij", diagonal_vec, diagonal_vec)
-        return point * aux
+        return point * gs.outer(diagonal_vec, diagonal_vec)
 
     @property
     def metric(self):
@@ -69,8 +68,8 @@ class FullRankCorrelationMatrices(LevelSet):
         r"""Compute the correlation matrix associated to an SPD matrix.
 
         The correlation matrix associated to an SPD matrix (the covariance)
-        :math: `\Sigma` is given by :math: `D  \Sigma D` where :math: `D` is
-        the inverse square-root of the diagonal of :math: `\Sigma`.
+        :math:`\Sigma` is given by :math:`D  \Sigma D` where :math:`D` is
+        the inverse square-root of the diagonal of :math:`\Sigma`.
 
         Parameters
         ----------
@@ -147,11 +146,11 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
 
     References
     ----------
-    .. [TP21]  Thanwerdas, Yann, and Xavier Pennec. “Geodesics and Curvature of
-               the Quotient-Affine Metrics on Full-Rank Correlation
-               Matrices.” In Proceedings of Geometric Science of Information.
-               Paris, France, 2021.
-               https://hal.archives-ouvertes.fr/hal-03157992.
+    .. [TP21] Thanwerdas, Yann, and Xavier Pennec. “Geodesics and Curvature of
+        the Quotient-Affine Metrics on Full-Rank CorrelationMatrices.”
+        In Proceedings of Geometric Science of Information.
+        Paris, France, 2021.
+        https://hal.archives-ouvertes.fr/hal-03157992.
     """
 
     def __init__(self, n):
@@ -177,8 +176,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
             Full rank correlation matrix.
         """
         diagonal = Matrices.diagonal(point) ** (-0.5)
-        aux = gs.einsum("...i,...j->...ij", diagonal, diagonal)
-        return point * aux
+        return point * gs.outer(diagonal, diagonal)
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Compute the differential of the submersion.

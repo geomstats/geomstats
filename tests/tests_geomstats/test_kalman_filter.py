@@ -105,7 +105,8 @@ class TestKalmanFilter(geomstats.tests.TestCase):
         rotation = gs.array(
             [[gs.cos(angle), -gs.sin(angle)], [gs.sin(angle), gs.cos(angle)]]
         )
-        next_position = initial_state[1:] + time_step * gs.matmul(rotation, linear_vel)
+
+        next_position = initial_state[1:] + time_step * gs.matvec(rotation, linear_vel)
         expected = gs.concatenate((gs.array([angle]), next_position), axis=0)
         result = self.nonlinear_model.propagate(initial_state, increment)
         self.assertAllClose(expected, result)
@@ -141,7 +142,7 @@ class TestKalmanFilter(geomstats.tests.TestCase):
         rotation = gs.array(
             [[gs.cos(angle), -gs.sin(angle)], [gs.sin(angle), gs.cos(angle)]]
         )
-        expected = gs.matmul(gs.transpose(rotation), gs.array([-0.3, 0.1]))
+        expected = gs.matvec(gs.transpose(rotation), gs.array([-0.3, 0.1]))
         result = self.nonlinear_model.innovation(initial_state, measurement)
         self.assertAllClose(expected, result)
 

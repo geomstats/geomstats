@@ -2,7 +2,8 @@
 
 from autograd import jacobian as _jacobian
 from autograd import value_and_grad as _value_and_grad
-from autograd.extend import defvjp, primitive
+from autograd.extend import defvjp as _defvjp
+from autograd.extend import primitive as _primitive
 
 
 def detach(x):
@@ -51,7 +52,7 @@ def custom_gradient(*grad_funcs):
         wrapped_function : callable
             Function func with gradients specified by grad_funcs.
         """
-        wrapped_function = primitive(func)
+        wrapped_function = _primitive(func)
 
         def wrapped_grad_func(i, ans, *args, **kwargs):
             grads = grad_funcs[i](*args, **kwargs)
@@ -64,18 +65,18 @@ def custom_gradient(*grad_funcs):
             return lambda g: g * grads
 
         if len(grad_funcs) == 1:
-            defvjp(
+            _defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
             )
         elif len(grad_funcs) == 2:
-            defvjp(
+            _defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
                 lambda ans, *args, **kwargs: wrapped_grad_func(1, ans, *args, **kwargs),
             )
         elif len(grad_funcs) == 3:
-            defvjp(
+            _defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
                 lambda ans, *args, **kwargs: wrapped_grad_func(1, ans, *args, **kwargs),

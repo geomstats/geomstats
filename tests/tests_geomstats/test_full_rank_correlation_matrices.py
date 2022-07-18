@@ -34,7 +34,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         bundle = self.space(n)
         base = self.base(n)
         result = base.belongs(bundle.riemannian_submersion(gs.array(point)))
-        self.assertAllClose(gs.all(result), gs.array(True))
+        self.assertTrue(gs.all(result))
 
     def test_lift_riemannian_submersion_composition(self, n, point):
         bundle = self.space(n)
@@ -47,7 +47,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
             gs.array(vec), gs.array(point)
         )
         result = gs.all(bundle.is_tangent(gs.array(tangent_vec), gs.array(point)))
-        self.assertAllClose(result, gs.array(True))
+        self.assertTrue(result)
 
     def test_vertical_projection_tangent_submersion(self, n, vec, mat):
         bundle = self.space(n)
@@ -67,19 +67,19 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         is_horizontal = gs.all(
             base.is_tangent(product_1 + product_2, mat, atol=gs.atol * 10)
         )
-        self.assertAllClose(is_horizontal, gs.array(True))
+        self.assertTrue(is_horizontal)
 
     def test_horizontal_lift_is_horizontal(self, n, tangent_vec, mat):
         bundle = self.space(n)
         lift = bundle.horizontal_lift(gs.array(tangent_vec), gs.array(mat))
         result = gs.all(bundle.is_horizontal(lift, gs.array(mat)))
-        self.assertAllClose(result, gs.array(True))
+        self.assertTrue(result)
 
     def test_vertical_projection_is_vertical(self, n, tangent_vec, mat):
         bundle = self.space(n)
         proj = bundle.vertical_projection(gs.array(tangent_vec), gs.array(mat))
         result = gs.all(bundle.is_vertical(proj, gs.array(mat)))
-        self.assertAllClose(result, gs.array(True))
+        self.assertTrue(result)
 
     @autograd_tf_and_torch_only
     def test_log_after_align_is_horizontal(self, n, point_a, point_b):
@@ -87,7 +87,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         aligned = bundle.align(point_a, point_b, tol=1e-10)
         log = bundle.ambient_metric.log(aligned, point_b)
         result = bundle.is_horizontal(log, point_b, atol=1e-2)
-        self.assertAllClose(result, gs.array(True))
+        self.assertTrue(result)
 
     def test_horizontal_lift_and_tangent_riemannian_submersion(
         self, n, tangent_vec, mat

@@ -855,7 +855,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         n_rot_mats, _, _ = rot_mat.shape
 
-        trace = gs.trace(rot_mat, axis1=1, axis2=2)
+        trace = gs.trace(rot_mat)
         trace = gs.to_ndarray(trace, to_ndim=2, axis=1)
         trace_num = gs.clip(trace, -1, 3)
         angle = gs.arccos(0.5 * (trace_num - 1))
@@ -1056,6 +1056,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         rot_mat = Z(angle_1).Y(angle_2).X(angle_3)
         where:
+
         - Z(angle_1) is a rotation of angle angle_1 around axis z.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - X(angle_3) is a rotation of angle angle_3 around axis x.
@@ -1140,6 +1141,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1226,6 +1228,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         If the order is zyx, into the rotation matrix rot_mat:
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1298,6 +1301,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         for the order zyx, i.e.:
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1618,7 +1622,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             squared_angle < utils.EPSILON, coef_2, (1 - coef_1) / squared_angle_
         )
 
-        outer_ = gs.einsum("...i,...j->...ij", point, point)
+        outer_ = gs.outer(point, point)
         sign = -1.0 if left_or_right == "right" else 1.0
 
         return (

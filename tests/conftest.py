@@ -12,22 +12,22 @@ import geomstats.backend as gs
 
 def autograd_backend():
     """Check if autograd is set as backend."""
-    return os.environ["GEOMSTATS_BACKEND"] == "autograd"
+    return gs.__name__.endswith("autograd")
 
 
 def np_backend():
     """Check if numpy is set as backend."""
-    return os.environ["GEOMSTATS_BACKEND"] == "numpy"
+    return gs.__name__.endswith("numpy")
 
 
 def pytorch_backend():
     """Check if pytorch is set as backend."""
-    return os.environ["GEOMSTATS_BACKEND"] == "pytorch"
+    return gs.__name__.endswith("pytorch")
 
 
 def tf_backend():
     """Check if tensorflow is set as backend."""
-    return os.environ["GEOMSTATS_BACKEND"] == "tensorflow"
+    return gs.__name__.endswith("tensorflow")
 
 
 if tf_backend():
@@ -178,7 +178,9 @@ class Parametrizer(type):
         skip_all = attrs.get("skip_all", False)
 
         for attr_name, attr_value in attrs.copy().items():
-            if isinstance(attr_value, types.FunctionType):
+            if attr_name.startswith("test") and isinstance(
+                attr_value, types.FunctionType
+            ):
 
                 if (
                     not skip_all
@@ -227,6 +229,16 @@ class TestCase:
             gs.allclose(a, b, rtol=rtol, atol=atol),
             msg=pytorch_error_msg(a, b, rtol, atol),
         )
+
+    def assertAllEqual(self, a, b):
+        if tf_backend():
+            return tf.test.TestCase().assertAllEqual(a, b)
+
+        elif np_backend() or autograd_backend():
+            np.testing.assert_array_equal(a, b)
+
+        else:
+            self.assertTrue(gs.equal(a, b))
 
     def assertTrue(self, condition, msg=None):
         assert condition, msg

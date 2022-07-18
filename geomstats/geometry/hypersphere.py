@@ -43,6 +43,7 @@ class _Hypersphere(LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
+
         super(_Hypersphere, self).__init__(
             dim=dim,
             embedding_space=Euclidean(dim + 1),
@@ -550,6 +551,7 @@ class _Hypersphere(LevelSet):
         The Riemannian normal distribution, or spherical normal in this case,
         is defined by the probability density function (with respect to the
         Riemannian volume measure) proportional to:
+
         .. math::
                 \exp \Big \left(- \frac{\lambda}{2} \mathtm{arccos}^2(x^T\mu)
                 \Big \right)
@@ -656,7 +658,9 @@ class HypersphereMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(HypersphereMetric, self).__init__(dim=dim, signature=(dim, 0))
+        super(HypersphereMetric, self).__init__(
+            dim=dim, shape=(dim + 1,), signature=(dim, 0)
+        )
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
 
@@ -828,7 +832,7 @@ class HypersphereMetric(RiemannianMetric):
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
 
         Parameters
@@ -862,7 +866,7 @@ class HypersphereMetric(RiemannianMetric):
         theta = gs.linalg.norm(direction, axis=-1)
         eps = gs.where(theta == 0.0, 1.0, theta)
         normalized_b = gs.einsum("...,...i->...i", 1 / eps, direction)
-        pb = gs.einsum("...i,...i->...", tangent_vec, normalized_b)
+        pb = gs.dot(tangent_vec, normalized_b)
         p_orth = tangent_vec - gs.einsum("...,...i->...i", pb, normalized_b)
         transported = (
             -gs.einsum("...,...i->...i", gs.sin(theta) * pb, base_point)

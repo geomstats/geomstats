@@ -9,10 +9,12 @@ Lead author: Nina Miolane.
 import csv
 import json
 import os
+import zipfile
 
 import pandas as pd
 
 import geomstats.backend as gs
+from geomstats.datasets._base import RemoteFileMetadata, _fetch_remote
 from geomstats.datasets.prepare_graph_data import Graph
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -39,6 +41,12 @@ HANDS_LABELS_PATH = os.path.join(DATA_PATH, "hands", "labels.txt")
 CELLS_PATH = os.path.join(DATA_PATH, "cells", "cells.txt")
 CELL_LINES_PATH = os.path.join(DATA_PATH, "cells", "cell_lines.txt")
 CELL_TREATMENTS_PATH = os.path.join(DATA_PATH, "cells", "treatments.txt")
+SAO_PAULO_ARCHIVE = RemoteFileMetadata(
+    filename="jam.zip",
+    url="https://figshare.com/ndownloader/articles/20066159/versions/1",
+)
+SAO_PAULO_TABLE = "jam_table.csv"
+SAO_PAULO_COUNT = "jam_count.csv"
 
 
 def load_cities():
@@ -189,7 +197,7 @@ def load_leaves():
     return beta_param, distrib_type
 
 
-def load_emg():
+def load_emg(file_path=EMG_PATH):
     """Load data from data/emg/emg.csv.
 
     Returns
@@ -198,7 +206,7 @@ def load_emg():
         Emg time serie for each of the 8 electrodes, with the time stamps
         and the label of the hand sign.
     """
-    data_emg = pd.read_csv(EMG_PATH)
+    data_emg = pd.read_csv(file_path)
     return data_emg
 
 
@@ -207,9 +215,10 @@ def load_optical_nerves():
 
     Load the dataset of sets of 5 landmarks, labelled S, T, I, N, V, in 3D
     on monkeys' optical nerve heads:
+
     - 1st landmark (S): superior aspect of the retina,
     - 2nd landmark (T): side of the retina closest to the temporal
-        bone of the skull,
+      bone of the skull,
     - 3rd landmark (N): nose side of the retina,
     - 4th landmark (I): inferior point,
     - 5th landmarks (V): optical nerve head deepest point.
@@ -223,9 +232,9 @@ def load_optical_nerves():
 
     References
     ----------
-        .. [PE2015] V. Patrangenaru and L. Ellingson. Nonparametric Statistics
-          on Manifolds and Their Applications to Object Data, 2015.
-          https://doi.org/10.1201/b18969
+    .. [PE2015] V. Patrangenaru and L. Ellingson. Nonparametric Statistics
+        on Manifolds and Their Applications to Object Data, 2015.
+        https://doi.org/10.1201/b18969
 
 
     Returns
@@ -259,6 +268,7 @@ def load_hands():
     set of 22 landmarks - the hands joints - in 3D.
 
     The hand poses represent two different hand poses:
+
     - Label 0: hand is in the position "Grab"
     - Label 1: hand is in the position "Expand"
 
@@ -266,7 +276,7 @@ def load_hands():
 
     References
     ----------
-        .. [SWVGLF2017] Q. De Smedt, H. Wannous, J.P. Vandeborre,
+    .. [SWVGLF2017] Q. De Smedt, H. Wannous, J.P. Vandeborre,
         J. Guerry, B. Le Saux, D. Filliat, SHREC'17 Track: 3D Hand Gesture
         Recognition Using a Depth and Skeletal Dataset, 10th Eurographics
         Workshop on 3D Object Retrieval, 2017.
@@ -351,3 +361,43 @@ def load_cells():
     with open(CELL_TREATMENTS_PATH) as treatments_file:
         treatments = treatments_file.read().split("\n")
     return cells, cell_lines, treatments
+
+
+def load_sao_paulo(dirname=None):
+    """Load data from data/sao_paulo/jam_count.csv and data/sao_paulo/jam_table.csv.
+
+    Load the dataset of traffic jams in Sao Paulo from 2001 to 2019.
+
+    jam_count.csv lists the number of traffic jams for each road in Sao Paulo in that
+    time span.
+    jam_table.csv lists the dates, roads, and durations of all these traffic jams.
+
+    The dataset is accessible here:
+    https://www.kaggle.com/datasets/danlessa/sao-paulo-traffic-jams-since-2001
+
+    Returns
+    -------
+    jam_table : pandas.DataFrame
+        Columns : name (of the road), date (of traffic jam), duration.
+    jam_count : dictionary
+        Keys : name of the road
+        Values : count of traffic jams between 2001 and 2019.
+    """
+    file_path = _fetch_remote(
+        SAO_PAULO_ARCHIVE.url, SAO_PAULO_ARCHIVE.filename, dirname=dirname
+    )
+
+    with zipfile.ZipFile(file_path, "r") as folder:
+        with folder.open(SAO_PAULO_TABLE, "r") as table_file:
+            jam_table = pd.read_csv(table_file)
+
+        with folder.open(SAO_PAULO_COUNT, "r") as count_file:
+            jam_count = pd.read_csv(count_file)
+
+    jam_table = jam_table.drop("Unnamed: 0", axis=1)
+
+    del jam_count["Unnamed: 0"]
+    jam_count_df = pd.DataFrame(jam_count, index=[0])
+    jam_count = dict(zip(list(jam_count_df.columns), list(jam_count_df.values[0])))
+
+    return jam_table, jam_count

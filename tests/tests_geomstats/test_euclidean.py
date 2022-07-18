@@ -9,8 +9,6 @@ from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestC
 
 class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
     space = Euclidean
-    skip_test_basis_belongs = True
-    skip_test_basis_cardinality = True
 
     testing_data = EuclideanTestData()
 
@@ -20,9 +18,6 @@ class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
 
 class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     metric = connection = EuclideanMetric
-    skip_test_parallel_transport_ivp_is_isometry = True
-    skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_exp_geodesic_ivp = True
     testing_data = EuclideanMetricTestData()
 
     def test_exp(self, dim, tangent_vec, base_point, expected):

@@ -23,7 +23,7 @@ N_STEPS = 100
 class DirichletDistributions(OpenSet):
     """Class for the manifold of Dirichlet distributions.
 
-    This is :math: Dirichlet = `(R_+^*)^dim`, the positive quadrant of the
+    This is Dirichlet = :math:`(R_+^*)^dim`, the positive quadrant of the
     dim-dimensional Euclidean space.
 
     Attributes
@@ -230,8 +230,8 @@ class DirichletMetric(RiemannianMetric):
         References
         ----------
         .. [LPP2021] A. Le Brigant, S. C. Preston, S. Puechmorel. Fisher-Rao
-          geometry of Dirichlet Distributions. Differential Geometry
-          and its Applications, 74, 101702, 2021.
+            geometry of Dirichlet Distributions. Differential Geometry
+            and its Applications, 74, 101702, 2021.
 
         Parameters
         ----------
@@ -880,6 +880,7 @@ class DirichletMetric(RiemannianMetric):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
+
         - an initial point and an initial tangent vector,
         - an initial point and an end point.
 
