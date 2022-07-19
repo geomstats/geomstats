@@ -262,6 +262,41 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
             atol=gs.atol * 10000,
         )
 
+    def riemann_tensor_shape_test_data(self):
+        return self._riemann_tensor_shape_test_data(
+            self.metric_args_list, self.space_list
+        )
+
+    def ricci_tensor_shape_test_data(self):
+        return self._ricci_tensor_shape_test_data(
+            self.metric_args_list, self.space_list
+        )
+
+    def scalar_curvature_shape_test_data(self):
+        return self._scalar_curvature_shape_test_data(
+            self.metric_args_list, self.space_list
+        )
+
+    def covariant_riemann_tensor_is_skew_symmetric_1_test_data(self):
+        return self._covariant_riemann_tensor_is_skew_symmetric_1_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def covariant_riemann_tensor_is_skew_symmetric_2_test_data(self):
+        return self._covariant_riemann_tensor_is_skew_symmetric_2_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def covariant_riemann_tensor_bianchi_identity_test_data(self):
+        return self._covariant_riemann_tensor_bianchi_identity_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def covariant_riemann_tensor_is_interchange_symmetric_test_data(self):
+        return self._covariant_riemann_tensor_is_interchange_symmetric_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
     def metric_matrix_shape_test_data(self):
         random_data = [
             dict(dim=2, point=self.space(2).random_point(1), expected=(2, 2)),
@@ -508,3 +543,11 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
             ),
         ]
         return self.generate_tests(smoke_data)
+
+    def sectional_curvature_is_negative_test_data(self):
+        random_data = [
+            dict(dim=2, base_point=self.space(2).random_point()),
+            dict(dim=3, base_point=self.space(3).random_point()),
+            dict(dim=4, base_point=self.space(4).random_point()),
+        ]
+        return self.generate_tests([], random_data)

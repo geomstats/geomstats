@@ -443,6 +443,9 @@ class Connection(ABC):
         the curvature is defined by :math:`R(X,Y)Z = \nabla_{[X,Y]}Z
         - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
 
+        Convention used in the literature is:
+        R_{ijkl} = <R(x_j, x_k)x_i, x_l>
+
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
@@ -461,7 +464,7 @@ class Connection(ABC):
         """
         riemann = self.riemann_tensor(base_point)
         curvature = gs.einsum(
-            "...ijkl, ...i, ...j, ...k -> ...l",
+            "...ijkl, ...j, ...k, ...i -> ...l",
             riemann,
             tangent_vec_a,
             tangent_vec_b,
@@ -485,8 +488,6 @@ class Connection(ABC):
             Riemannian tensor curvature.
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        shape = base_point.shape
-        n_points = shape[0]
         christoffels = self.christoffels(base_point)
         jacobian_christoffels = gs.squeeze(
             [gs.autodiff.jacobian(self.christoffels)(point) for point in base_point]
@@ -494,24 +495,16 @@ class Connection(ABC):
         prod_christoffels = gs.einsum(
             "...ijk,...klm->...ijlm", christoffels, christoffels
         )
-        if n_points >= 2:
-            riemann_curvature = (
-                gs.transpose(jacobian_christoffels, [0, 3, 4, 2, 1])
-                - gs.transpose(jacobian_christoffels, [0, 3, 2, 4, 1])
-                + gs.transpose(prod_christoffels, [0, 4, 2, 3, 1])
-                - gs.transpose(prod_christoffels, [0, 4, 3, 2, 1])
-            )
-        else:
-            riemann_curvature = (
-                gs.transpose(jacobian_christoffels, [2, 3, 1, 0])
-                - gs.transpose(jacobian_christoffels, [2, 1, 3, 0])
-                + gs.transpose(prod_christoffels, [3, 1, 2, 0])
-                - gs.transpose(prod_christoffels, [3, 2, 1, 0])
-            )
+        riemann_curvature = (
+            gs.moveaxis(jacobian_christoffels, [-4, -3, -2, -1], [-2, -1, -3, -4])
+            - gs.moveaxis(jacobian_christoffels, [-4, -3, -2, -1], [-2, -3, -1, -4])
+            + gs.moveaxis(prod_christoffels, [-4, -3, -2, -1], [-1, -3, -2, -4])
+            - gs.moveaxis(prod_christoffels, [-4, -3, -2, -1], [-1, -2, -3, -4])
+        )
         return riemann_curvature
 
     def ricci_tensor(self, base_point):
-        r"""Compute Ricci tensor at base_point.
+        r"""Compute Ricci curvature tensor at base_point.
 
         Parameters
         ----------
@@ -522,28 +515,12 @@ class Connection(ABC):
         -------
         ricci_tensor : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]}]
             Ric_{ij} = ricci_tensor[...,i,j]
+            Ric_{ab} = R_{acb}^c with Einstein notation.
             Ricci tensor curvature.
         """
         riemann_tensor = self.riemann_tensor(base_point)
-        ricci_tensor = gs.trace(riemann_tensor, axis1=-4, axis2=-2)
+        ricci_tensor = gs.einsum("...ijkl -> ...ik", riemann_tensor)
         return ricci_tensor
-
-    def scalar_curvature(self, base_point):
-        r"""Compute scalar curvature at base_point.
-
-        Parameters
-        ----------
-        base_point :  array-like, shape=[..., {dim, [n, m]}]
-            Point on the group. Optional, default is the identity.
-
-        Returns
-        -------
-        curvature : array-like, shape=[...,]
-            Scalar curvature.
-        """
-        ricci_tensor = self.ricci_tensor(base_point)
-        curvature = gs.trace(ricci_tensor, axis1=-2, axis2=-1)
-        return curvature
 
     def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the directional curvature (tidal force operator).

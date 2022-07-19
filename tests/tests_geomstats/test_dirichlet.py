@@ -223,3 +223,16 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_polynomial_init(self, dim, point_a, point_b, expected):
         result = self.metric(dim).dist(point_a, point_b, init="polynomial")
         self.assertAllClose(expected, result, atol=0, rtol=1e-1)
+
+    @geomstats.tests.autograd_only
+    def test_sectional_curvature_is_negative(self, dim, base_point):
+        tangent_vec_a, tangent_vec_b = self.metric(dim).random_unit_tangent_vec(
+            base_point, 2
+        )
+        result = gs.all(
+            self.metric(dim).sectional_curvature(
+                tangent_vec_a, tangent_vec_b, base_point
+            )
+            < 0
+        )
+        self.assertAllClose(result, True)

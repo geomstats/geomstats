@@ -528,8 +528,10 @@ class RiemannianMetric(Connection, ABC):
         -------
         covariant_tensor : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]},
                                                     {dim, [n, m]}, {dim, [n, m]}]
-            R_{ijkl} = covariant_tensor[...,i,j,k,l]
             [covariant_tensor]_{ijkl} = [metric_matrix]_{im} [riemann_tensor]_{jkl}^m
+            Convention used in the literature is: R_{ijkl} = <R(x_j, x_k)x_i, x_l>
+            where x_i is the i-th basis vector of the tangent space.
+
             Covariant version of Riemannian curvature tensor.
         """
         riemann_tensor = self.riemann_tensor(base_point)
@@ -542,7 +544,7 @@ class RiemannianMetric(Connection, ABC):
 
         For two orthonormal tangent vectors :math:`x,y` at a base point,
         the sectional curvature is defined by :math:`<R(x, y)x, y> =
-        <R_x(y), y>`. For non-orthonormal vectors vectors, it is
+        <R_x(y), y>` (see do Carmo). For non-orthonormal vectors vectors, it is
         :math:`<R(x, y)x, y> / \\|x \wedge y\\|^2`.
 
         Parameters
@@ -559,9 +561,10 @@ class RiemannianMetric(Connection, ABC):
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at `base_point`.
 
-        See Also
-        --------
-        https://en.wikipedia.org/wiki/Sectional_curvature
+        Reference
+        ---------
+        [CF1992] Do Carmo, M. P., & Flaherty Francis, J. (1992).
+        Riemannian geometry (Vol. 6). Boston: Birkhäuser.
         """
         curvature = self.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_a, base_point
@@ -575,3 +578,22 @@ class RiemannianMetric(Connection, ABC):
         condition = gs.isclose(normalization_factor, 0.0)
         normalization_factor = gs.where(condition, EPSILON, normalization_factor)
         return gs.where(~condition, sectional / normalization_factor, 0.0)
+
+    def scalar_curvature(self, base_point):
+        r"""Compute scalar curvature at base_point.
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., {dim, [n, m]}]
+            Point on the group. Optional, default is the identity.
+
+        Returns
+        -------
+        curvature : array-like, shape=[...,]
+            S = tr_{metric}(Ricci_tensor) = g^{ab} Ric_{ab} with Einstein notation.
+            Scalar curvature.
+        """
+        ricci_tensor = self.ricci_tensor(base_point)
+        cometric_matrix = self.cometric_matrix(base_point)
+        scalar = gs.einsum("...ik, ...ik -> ...", cometric_matrix, ricci_tensor)
+        return scalar
