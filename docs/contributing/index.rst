@@ -4,101 +4,129 @@
 Contributing Guide
 ==================
 
-This guide is an exhaustive guide to ease the contribution
+This is an exhaustive guide to ease the contribution
 process for both novice and experienced contributors.
-[Geomstats] (https://github.com/geomstats/geomstats) is a 
+`Geomstats <https://github.com/geomstats/geomstats>`_ is a 
 community effort, and everyone is welcome to contribute.
+
+.. _Dev setup:
 
 Development Setup
 =================
 
 The instrcutions in this section detail the step-by-step
 process on setting up your development environment before
-contribution. One can also us it as a development checklist
-for an overview of developers steps.
+contribution. One can also use it as a development checklist
+for an overview of development steps.
+
+.. _source control:
 
 Source control with Git
 -----------------------
 
-The Geomstats project is available on [GitHub](github.com/) and uses `Git`
+The Geomstats project is available on `GitHub <https://github.com/>`_ and uses `Git`
 for source control to allow collaboration. Typical interaction
 with the project involves using `git` to pull/push code and 
-submitting bugs/feature requests to the [Geomstats repository](https://github.com/geomstats/geomstats).
+submitting bugs/feature requests to 
+the `geomstats repository <https://github.com/geomstats/geomstats>`_.
 
 Be sure to follow the Git installation and configuration instructions for your
 respective operating system from the 
-[official Git documentation](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), 
+`official Git documentation <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_, 
 before you follow along the next section of this documentation.
 
 .. note::
-   For more basic information about the `git` commandline client, refer to 
-   this [detailed tutorial](https://docs.github.com/en/get-started/using-git/about-git).
-   You can also checkout other GUI options like [tortoisegit](https://tortoisegit.org/) 
-   and [GitHub Desktop](https://desktop.github.com/).
+   For more basic information about the `git` command line client, refer to 
+   this `detailed tutorial <https://docs.github.com/en/get-started/using-git/about-git>`_.
+   You can also checkout other GUI options like `tortoise git <https://tortoisegit.org/>`_ 
+   and `GitHub Desktop <https://desktop.github.com/>`_.
+
+.. _getting the code:
 
 Getting the code
 -----------------
 
-For development, you have to get the Geomstats source code to your local machine first,
+For development, you have to get the geomstats source code to your local machine first,
 from the project GitHub repository using the following instructions:
 
-1. Using your browser, go to https://github.com and create an account if you dont have one.
-2. While there, navigate to https://github.com/geomstats/geomstats.
-3. [Fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
-the repository to have your own copy using a button at the top right corner,
-under your username  i.e:
+#. Using your browser, go to `github.com <https://github.com>`_ and create an account if you dont have one.
+#. While there, navigate to the `geomstats repository <https://github.com/geomstats/geomstats>`_.
 
-    https://github.com/<username>/geomstats
+#. | Fork the repository, obtaining your own copy using a button at the top right corner on github, under your username:
 
-4. Clone your forked repository using:
+    .. code-block:: bash
 
-    $ git clone git@github.com:<username>/geomstats.git
+      https://github.com/<username>/geomstats
+   
 
-5. It is recommended practice to add the main Geomstats repository as the upstream remote repository too:
+#. Clone your forked repository using:
 
-    $ cd geomstats
-    $ git remote add upstream git@github.com:geomstats/geomstats.git
+    .. code-block:: bash
 
-6. At this point you should have the Geomstats code on your macine ready for development.
-To continue development, create a new development branch:
+      $ git clone git@github.com:<username>/geomstats.git
 
-    $ git checkout -b feature-branch
+#. It is recommended practice to add the main geomstats repository as the upstream remote repository:
 
-7. Verify tat you are on the new branch:
+    .. code-block:: bash
 
-    $ git branch
-    * feature-branch
-    master
+      $ cd geomstats
+      $ git remote add upstream git@github.com:geomstats/geomstats.git
 
-8. Verify remote configurattion:
+#. | At this point you should have the geomstats code on your machine ready for development. Create a new development branch for further development:
 
-    $ git remote -v
-    upstream	https://github.com/geomstats/geomstats (fetch)
-    upstream	https://github.com/geomstats/geomstats (push)
-    origin	    https://github.com/<username>/geomstats (fetch)
-    origin	    https://github.com/<username>/geomstats (push)
+    .. code-block:: bash
 
+      $ git checkout -b feature-branch
+   
+
+7. Verify that you are on the new branch:
+
+    .. code-block:: bash
+
+      $ git branch
+      * feature-branch
+      master
+
+8. Verify your remote configuration:
+
+    .. code-block:: bash
+
+      $ git remote -v
+      upstream	https://github.com/geomstats/geomstats (fetch)
+      upstream	https://github.com/geomstats/geomstats (push)
+      origin	https://github.com/<username>/geomstats (fetch)
+      origin	https://github.com/<username>/geomstats (push)
+
+.. _dependencies
 
 Dependencies and a virtual environment
 ---------------------------------------
 
 We recommend using the conda virtual environment to create separation between your development environment
-from aany other Geomstats versions installed on your system. Create a virtual environment with conda using:
+from any other geomstats versions installed on your system. 
 
-$ conda create -n geomstats-dev
+Create a virtual environment with conda using:
+
+    .. code-block:: bash
+
+      $ conda create -n geomstats-dev
 
 Then clone your code to this environment and activate it:
 
-    $ git clone git@github.com:<username>/geomstats.git
-    $ cd geomstats
-    $ conda activate geomstats-dev
+    .. code-block:: bash
 
-Now install the Geomstats minimumcrequirements:
+      $ git clone git@github.com:<username>/geomstats.git
+      $ cd geomstats
+      $ conda activate geomstats-dev
 
-    $ conda env create --file environment.yml
+Now install the geomstats minimum requirements:
+
+    .. code-block:: bash
+
+      $ conda env create --file environment.yml
 
 .. note::
-   See the `setup.cfg` file for details on all project requirements
+   See the `setup.cfg` file for details on all project requirements.
 
 .. _backends dev
 
@@ -112,80 +140,94 @@ Geomstats supports several backends, namely:
 - tensorflow
 - pytorch
 
-The default backend is `numpy, therefore install the other backends using:
+The default backend is `numpy`, install the other backends using:
 
-$ pip install geomstats[<backend_name>]
+    .. code-block:: bash  
 
-And use an environment variable to set backed:
+      $ pip install geomstats[<backend_name>]
 
-$ export GEOMSTATS_BACKEND=<backend_name>
+Then use an environment variable to set the backend:
+
+    .. code-block:: bash
+
+      $ export GEOMSTATS_BACKEND=<backend_name>
+
+.. _run tests
 
 Run the tests
 --------------
 
-Geomstats tests can be run in two ways, either using `nose` or one of the backends
+Geomstats tests can be run in two ways, either using `pytest` or one of the backends
 mentioned earlier.
 
-Using nose
-~~~~~~~~~~
+Using pytest
+~~~~~~~~~~~~~
 
 To run tests with Nose, first install the required packages:
 
-    $ pip install geomstats[dev]
+    .. code-block:: bash 
+
+      $ pip install pytest
 
 Then run all tests using:
 
-    $ nose2 tests
+    .. code-block:: bash 
 
-You can run tests by file name:
-
-    $ nose2 tests.test__my_manifold
-
-Alternatively, run a particular test in a given test file:
-
-    $ nose2 tests.test__my_manifold.TestMyManifold.test_dimension
+      $ pytest tests/
 
 Using a backend
 ~~~~~~~~~~~~~~~~~
 
 We recommend that you run  all tests using the different backends discussed in 
-the `backends section <backends dev`_ . 
+the `backends section <backends dev>`_ . 
 
 Threfore install the backends as described before running all the tests using:
 
-    $ numpy tests
+    .. code-block:: bash 
+
+      $ numpy tests
 
 Run a test file:
 
-    $ numpy tests.test__my_manifold
+    .. code-block:: bash 
+
+      $ numpy tests.test__my_manifold
 
 Run a single tests method using:
 
-    $ numpy tests.test__my_manifold.TestMyManifold.test_dimension
+    .. code-block:: bash 
 
-Build the doc
+      $ numpy tests.test__my_manifold.TestMyManifold.test_dimension
+
+.. _build the docs:
+
+Build the docs
 --------------
 
-Documentation in the Geomstats project is implemented using `sphinx`.
+Documentation in the geomstats project is implemented using `sphinx`.
 Install the sphinx dependecies using:
 
-$ pip install nbsphinx-link nbsphinx jupyter sphinx sphinx-gallery pydata-sphinx-theme
+    .. code-block:: bash 
+
+      $ pip install nbsphinx-link nbsphinx jupyter sphinx sphinx-gallery pydata-sphinx-theme
 
 Then while in the project root folder, build the docs using:
 
-$ cd docs
-$ make html
+    .. code-block:: bash 
+
+      $ cd docs
+      $ make html
 
 
 Folder Structure
 =================
 
 As a contributor, there are a couple of top-level directories to take note of. 
-The following details contain a break down of folders in the source code.
+The following is a break down of folders in the source code.
 
 geomstats
 
-  Contains the core implementation of the Geomstats package features like 
+  Contains the core implementation of the geomstats package features like 
   geometry, distributions, learning, visualization etc.
 
 tests
@@ -198,7 +240,7 @@ docs
 
 benchmarks
 
-  Has code for benchmarking several aspects of Geomstats.
+  Has code for benchmarking several aspects of geomstats.
 
 examples
 
@@ -215,7 +257,7 @@ Testing
 Test Driven Development
 -------------------------
 
-High-quality unit testing <https://en.wikipedia.org/wiki/Unit_testing>`_
+High-quality `unit testing <https://en.wikipedia.org/wiki/Unit_testing>`_
 is a corner-stone of the geomstats development process.
 The tests are functions appropriately named, located in the `tests`
 subdirectory, that check the validity of the algorithms and the
@@ -224,29 +266,37 @@ different options of the code.
 TDD with pytest
 -----------------
 
-Geomstats uses the 'pytest` Python tool for testing different functions and features.
+Geomstats uses the `pytest` Python tool for testing different functions and features.
 Install `pytest` using:
 
-    $ pip install pytest
+    .. code-block:: bash 
+
+      $ pip install pytest
 
 By convention all test functions should be located in files with file names
 that start with `test_`. For example a unit test that exercises the Python
-addition functionality can be written as follows;
+addition functionality can be written as follows:
 
-    # test_add.py
+    .. code-block:: bash 
 
-    def add(x, y):
-        return x + y
+      # test_add.py
 
-    def test_capital_case():
-        assert add(4, 5) == 9
+      def add(x, y):
+         return x + y
 
-Use an `aasert` statement to check that the function under test returns
+      def test_capital_case():
+         assert add(4, 5) == 9
+
+Use an `asert` statement to check that the function under test returns
 the correct output. Then run the test using:
 
-    $ pytest
+    .. code-block:: bash 
 
-Writing tests for Geomstats
+      $ pytest
+
+.. _run tests geomstats
+
+Writing tests for geomstats
 ----------------------------
 
 For each function `my_fun` that you implement in a given `my_module.py`, 
@@ -261,19 +311,25 @@ is vectorized.
 Running tests
 --------------
 
-First,run the tests related to your changes. For example, if you changed
+First, run the tests related to your changes. For example, if you changed
 something in `geomstats/spd_matrices_space.py`, you can run tests by file name:
 
-    $ pytest tests/tests_geomstats/test_spd_matrices.py
+    .. code-block:: bash 
+
+      $ pytest tests/tests_geomstats/test_spd_matrices.py
 
 Then run the tests of the whole codebase to check that your feature is
-not breaking any of them::
+not breaking any of them:
 
-    $ pytest tests/
+    .. code-block:: bash 
+
+      $ pytest tests/
 
 Alternatively, run a particular test in a given test file:
 
-    $ pytest tests/test__my_manifold/TestMyManifold/test_dimension
+    .. code-block:: bash 
+
+      $ pytest tests/test__my_manifold/TestMyManifold/test_dimension
 
 This way, further modifications on the code base are granted
 to be consistent with the desired behavior. Merging your PR 
@@ -284,11 +340,11 @@ Workflow of a contribution
 
 .. _new_contributors:
 
-Create or choose an issue for New Contributors
+Create or choose an issue for new contributors
 ----------------------------------------------
 
 New contributors should look for the following tags when looking for issues.  We
-strongly recommend that new contributors tackle "easy" issues first: this helps
+strongly recommend that new contributors tackle `easy` issues first. This helps
 the contributor become familiar with the contribution workflow, and for the core
 devs to become acquainted with the contributor; besides which, we frequently
 underestimate how easy an issue is to solve!
@@ -328,97 +384,84 @@ The preferred way to contribute to geomstats is to fork the `main
 repository <https://github.com/geomstats/geomstats/>`__ on GitHub,
 then submit a "pull request" (PR).
 
-In the first few steps, we explain how to locally install geomstats, and
-how to set up your git repository:
+Follow the setup guidelines detailed in `getting the code`_. In this referenced section, 
+we explain how to locally install geomstats, and how to set up your git repository:
+The next steps now describe the process of modifying code and submitting a PR:
 
-1. `Create an account <https://github.com/join>`_ on
-   GitHub if you do not already have one.
+#. Synchronize your master branch with the upstream master branch:
 
-2. Fork the `project repository
-   <https://github.com/geomstats/geomstats>`__: click on the 'Fork'
-   button near the top of the page. This creates a copy of the code under your
-   account on the GitHub user account. For more details on how to fork a
-   repository see `this guide <https://help.github.com/articles/fork-a-repo/>`_.
-
-3. Clone your fork of the geomstats repo from your GitHub account to your
-   local disk::
-
-       $ git clone git@github.com:YourLogin/geomstats.git
-       $ cd geomstats
-
-4. Add the ``upstream`` remote. This saves a reference to the main
-   geomstats repository, which you can use to keep your repository
-   synchronized with the latest changes::
-
-    $ git remote add upstream https://github.com/geomstats/geomstats.git
-
-You should now have a working installation of geomstats, and your git
-repository properly configured. The next steps now describe the process of
-modifying code and submitting a PR:
-
-5. Synchronize your master branch with the upstream master branch::
+    .. code-block:: bash 
 
         $ git checkout master
         $ git pull upstream master
 
-6. Create a feature branch to hold your development changes::
+#. | Create a feature branch to hold your development changes:
+
+    .. code-block:: bash 
 
         $ git checkout -b my_feature
 
    and start making changes. Always use a feature branch. It's good
    practice to never work on the ``master`` branch!
 
-7. Develop the feature on your feature branch on your computer, using Git to
+#. | Develop the feature on your feature branch on your computer, using Git to
    do the version control. When you're done editing, add changed files using
-   ``git add`` and then ``git commit``::
+   ``git add`` and then ``git commit``:
+
+    .. code-block:: bash 
 
        $ git add modified_files
        $ git commit -m "Add my feature"
 
    to record your changes in Git. Your commit message should respect the `good
    commit messages guidelines <https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project>`_.
-   Then push the changes to your GitHub account with::
+   Then push the changes to your GitHub account with:
 
-       $ git push -u origin my-feature
+    .. code-block:: bash 
 
-8. Follow `these
-   <https://help.github.com/articles/creating-a-pull-request-from-a-fork>`_
+         $ git push -u origin my-feature
+
+#. Follow `these <https://help.github.com/articles/creating-a-pull-request-from-a-fork>`_
    instructions to create a pull request from your fork. This will send an
    email to the committers. You may want to consider sending an email to the
    mailing list hi@geomstats.ai for more visibility.
 
 It is often helpful to keep your local feature branch synchronized with the
 latest changes of the main geomstats repository. If there are only a few new
-commits in the master branch, use::
+commits in the master branch, use:
 
-    $ git fetch upstream
-    $ git rebase upstream/master
+    .. code-block:: bash 
+
+      $ git fetch upstream
+      $ git rebase upstream/master
 
 Subsequently, you might need to solve potential conflicts.
 If it's been a while since you've last updated your branch, it might be easier
-to merge the master branch into yours::
+to merge the master branch into yours:
 
-    $ git fetch upstream
-    $ git merge upstream/master
+    .. code-block:: bash 
 
-Refer to the
-`Git documentation related to resolving merge conflict using the command
-line
-<https://help.github.com/articles/resolving-a-merge-conflict-using-the-command-line/>`_.
-The `Git documentation <https://git-scm.com/documentation>`_ and
-http://try.github.io are excellent resources to get started with git,
-and understanding all of the commands shown here.
+      $ git fetch upstream
+      $ git merge upstream/master
+
+.. note::
+   Refer to the
+   `Git documentation related to resolving merge conflict using the command
+   line <https://help.github.com/articles/resolving-a-merge-conflict-using-the-command-line/>`_.
+   The `Git documentation <https://git-scm.com/documentation>`_ and
+   http://try.github.io are excellent resources to get started with git,
+   and understanding all of the commands shown here.
 
 Pull Request Checklist
-^^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 In order to ease the reviewing process, we recommend that your contribution
 complies with the following rules. The **bolded** ones are especially important:
 
-1. **Give your pull request a helpful title** that summarises what your
+1. **Give your pull request a helpful title.** This summarises what your
    contribution does. This title will often become the commit message once
    merged so it should summarise your contribution for posterity. In some
-   cases "Fix <ISSUE TITLE>" is enough. "Fix #<ISSUE NUMBER>" is never a
+   cases `Fix <ISSUE TITLE>` is enough. `Fix #<ISSUE NUMBER>` is never a
    good title.
 
 2. **Make sure that your code is** `vectorized
@@ -531,7 +574,7 @@ list hi@geomstats.ai or on the GitHub issue).
   right direction.
 
 Stalled Pull Requests
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 As contributing a feature can be a lengthy process, some
 pull requests appear inactive but unfinished. In such a case, taking
@@ -641,28 +684,27 @@ corresponding changes in the codebase.
 .. _contribute_documentation:
 
 Documentation
--------------
+=============
 
 We are glad to accept any sort of documentation: function docstrings,
 reStructuredText documents (like this one), tutorials, etc. reStructuredText
 documents live in the source code repository under the ``docs/`` directory.
 
 Building the Documentation
-==========================
+documentation
 
 Building the documentation requires installing sphinx::
 
    pip3 install sphinx
 
-To build the documentation, you need to be in the main ``geomstats`` folder. You can do this with::
-
-   sphinx-build docs/ docs/html
+To build the documentation, follow the steps discussed in `build the docs`_ to install other dependecies 
+and build the documentation.
 
 Writing Docstrings
-==================
+-------------------
 
-Intro to Docstrings
-^^^^^^^^^^^^^^^^^^^
+**Intro to Docstrings**
+
 
 A docstring is a well-formatted description of your function/class/module which includes
 its purpose, usage, and other information.
@@ -680,8 +722,7 @@ Try this out with the np.array class and the np.mean function to see good exampl
     >>> import numpy as np
     >>> print(np.mean.__doc__)
 
-The Anatomy of a Docstring
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+**The Anatomy of a Docstring**
 
 These are some of the most common elements for functions (and ones we’d like you to add where appropriate):
 
@@ -704,13 +745,13 @@ These are some of the most common elements for functions (and ones we’d like y
    a. On the first line, state the parameter name, type, and shape when appropriate. The parameter name should be separated from the rest of the line by a ``:`` (with a space on either side). If a parameter is optional, write ``Optional, default: default_value.`` as a separate line in the description.
    b. On the next line, indent and write a summary of the parameter beginning with a capital letter and ending with a period.
 
-   c. See :ref:`docstring_examples` below
+   c. See `docstring_examples`_ below
 
 4. Returns (esp. for functions) - a formatted list of returned objects type information and description
 
    a. The syntax here is the same as in the parameters section above.
 
-   b. See :ref:`docstring_examples` below
+   b. See `docstring_examples`_ below
 
 If documenting a class, you would also want to include an Attributes section.
 There are many other optional sections you can include which are very helpful.
@@ -722,8 +763,8 @@ N.B. Within Notes, you can
 
 .. _docstring_examples:
 
-Docstring Examples
-^^^^^^^^^^^^^^^^^^
+**Docstring Examples**
+
 Here's a generic docstring template::
 
    def my_method(self, my_param_1, my_param_2="vector"):
@@ -823,7 +864,9 @@ Code Review Guidelines
 
 Reviewing code contributed to the project as PRs is a crucial component of
 geomstats development. We encourage anyone to start reviewing code of other
-developers. The code review process is often highly educational for everybody
+developers. 
+
+The code review process is often highly educational for everybody
 involved. This is particularly appropriate if it is a feature you would like to
 use, and so can respond critically about whether the PR meets your needs. While
 each pull request needs to be signed off by two core developers, you can speed
@@ -873,3 +916,59 @@ from high-level questions to a more detailed check-list.
 
 - Upon merging, use the ``Rebase and Merge`` option to keep git history clean.
 
+Reporting bugs and features 
+===========================
+
+Sharing bugs and potential new features for the geomstats project is an equally significant conteibution.
+We encourage reports for any module including documentation and missing tests.
+
+Issue tracker
+-------------
+
+The geomstats project uses the GitHub issue tracker for all bugs and feature reports. 
+Therefore, to create an issue navigate to the issue tab on project on Github, and click the `New issue`
+button on the upper right corner.
+
+Template of a bug/issue report
+------------------------------
+
+We offer two templates for reporting issues, one for  bug reports and another for issues about the 
+documentation as shown in the figure below:
+
+.. image:: template.png
+
+If none of these suite your needs, feel free to open an issue with default GitHub blank issue template.
+
+Issue Triaging
+==============
+
+Other than reporting bugs, another important aspect of contribution is `issue triaging`. This is
+about issue mamanagement and includes certain aspects that are described in the sequel.
+
+Reproducing issues
+------------------
+
+Sometimes reported issues need to be verified to acertain if they are actual issues or false alarms. Part of 
+triaging is trying to simulate the bugs in their reported environments and other relevant environments. 
+
+We encourage you to help with this and comment on the issue if you can or can not reproduce it as decribed.
+This allows core devs to close the issue if it does not require fixing.
+
+Commenting on alternative solutions
+------------------------------------
+
+If an issue is verified as valid but the author and/or triager, you can choose to share any valuable information 
+to solve the issue before a fix is merged. This helps the issue author and potential contributors to open pull requests
+if you do not have time to work on a fix.
+
+Answering questions
+--------------------
+
+Some issues are questions about how different aspects of the project work. Part of triaging to provide answers
+to these questions that even others in the community may be facing.
+
+Labelling and assigning the issue
+-----------------------------------
+
+Part of triaging also involves labeling issues by their types, modules they belong to or even their priority.
+See the `new_contributors`_ section on what labels can be applied to issues.
