@@ -260,3 +260,7 @@ class BetaMetricTestData(_RiemannianMetricTestData):
     def christoffels_shape_test_data(self):
         smoke_data = [dict(n_samples=10)]
         return self.generate_tests(smoke_data)
+
+    def sectional_curvature_test_data(self):
+        smoke_data = [dict(n_samples=10, atol=1e-10)]
+        return self.generate_tests(smoke_data)

@@ -106,3 +106,27 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = christoffel.shape
         expected = gs.array([n_samples, dim, dim, dim])
         self.assertAllClose(result, expected)
+
+    def test_sectional_curvature(self, n_samples, atol):
+        point = BetaDistributions().random_point(n_samples)
+        tangent_vec_a = BetaDistributions().metric.random_unit_tangent_vec(point)
+        tangent_vec_b = BetaDistributions().metric.random_unit_tangent_vec(point)
+        x, y = point[:, 0], point[:, 1]
+        detg = gs.polygamma(1, x) * gs.polygamma(1, y) - gs.polygamma(1, x + y) * (
+            gs.polygamma(1, x) + gs.polygamma(1, y)
+        )
+        expected = (
+            gs.polygamma(2, x)
+            * gs.polygamma(2, y)
+            * gs.polygamma(2, x + y)
+            * (
+                gs.polygamma(1, x) / gs.polygamma(2, x)
+                + gs.polygamma(1, y) / gs.polygamma(2, y)
+                - gs.polygamma(1, x + y) / gs.polygamma(2, x + y)
+            )
+            / (4 * detg**2)
+        )
+        result = BetaDistributions().metric.sectional_curvature(
+            tangent_vec_a, tangent_vec_b, point
+        )
+        self.assertAllClose(result, expected, atol)
