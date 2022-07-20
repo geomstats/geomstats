@@ -14,7 +14,7 @@ community effort, and everyone is welcome to contribute.
 Development Setup
 =================
 
-The instrcutions in this section detail the step-by-step
+The instructions in this section detail the step-by-step
 process on setting up your development environment before
 contribution. One can also use it as a development checklist
 for an overview of development steps.
@@ -49,10 +49,10 @@ Getting the code
 For development, you have to get the geomstats source code to your local machine first,
 from the project GitHub repository using the following instructions:
 
-#. Using your browser, go to `github.com <https://github.com>`_ and create an account if you dont have one.
+#. Using your browser, go to `github.com <https://github.com>`_ and create an account if you don't have one.
 #. While there, navigate to the `geomstats repository <https://github.com/geomstats/geomstats>`_.
 
-#. | Fork the repository, obtaining your own copy using a button at the top right corner on github, under your username:
+#. | Fork the repository, obtaining your own copy. You can do this  using a button at the top right corner on github, under your username:
 
     .. code-block:: bash
 
@@ -181,7 +181,7 @@ Using a backend
 We recommend that you run  all tests using the different backends discussed in 
 the `backends section <backends dev>`_ . 
 
-Threfore install the backends as described before running all the tests using:
+After you install the backends, you can run all the tests for a given backend using:
 
     .. code-block:: bash 
 
@@ -193,7 +193,7 @@ Run a test file:
 
       $ numpy tests.test__my_manifold
 
-Run a single tests method using:
+Run a single test method using:
 
     .. code-block:: bash 
 
@@ -222,8 +222,8 @@ Then while in the project root folder, build the docs using:
 Folder Structure
 =================
 
-As a contributor, there are a couple of top-level directories to take note of. 
-The following is a break down of folders in the source code.
+When you open the Geomstats github page, you will see the top-level directories of the package. 
+Below is a description of each directory.
 
 geomstats
 
@@ -287,7 +287,7 @@ addition functionality can be written as follows:
       def test_capital_case():
          assert add(4, 5) == 9
 
-Use an `asert` statement to check that the function under test returns
+Use an `assert` statement to check that the function under test returns
 the correct output. Then run the test using:
 
     .. code-block:: bash 
@@ -331,7 +331,7 @@ Alternatively, run a particular test in a given test file:
 
       $ pytest tests/test__my_manifold/TestMyManifold/test_dimension
 
-This way, further modifications on the code base are granted
+This way, further modifications on the code base are guaranteed
 to be consistent with the desired behavior. Merging your PR 
 should not break any test in any backend (numpy, tensorflow or pytorch).
 
@@ -354,9 +354,9 @@ underestimate how easy an issue is to solve!
     A great way to start contributing to geomstats is to pick an item from
     the list of `good first issues
     <https://github.com/geomstats/geomstats/labels/good%20first%20issue>`_
-    in the issue tracker. Resolving these issues allow you to start contributing
+    in the issue tracker. Resolving these issues will allow you to start contributing
     to the project without much prior knowledge. If you have already contributed
-    to geomstats, you should look at Easy issues instead.
+    to geomstats, you should look at easy issues instead.
 
 .. topic:: starter project tag
 
@@ -492,7 +492,7 @@ complies with the following rules. The **bolded** ones are especially important:
 
         $ pytest tests/
 
-   This way, further modifications on the code base are granted
+   This way, further modifications on the code base are guaranteed
    to be consistent with the desired behavior. Merging your PR should not break
    any test in any backend (numpy, tensorflow or pytorch).
 
