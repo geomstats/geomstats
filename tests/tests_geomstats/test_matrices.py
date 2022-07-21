@@ -13,9 +13,7 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
     testing_data = MatricesTestData()
 
     def test_belongs(self, m, n, mat, expected):
-        self.assertAllClose(
-            self.Space(m, n).belongs(gs.array(mat)), gs.array(expected)
-        )
+        self.assertAllClose(self.Space(m, n).belongs(gs.array(mat)), gs.array(expected))
 
     def test_equal(self, m, n, mat1, mat2, expected):
         self.assertAllClose(
@@ -48,9 +46,7 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         )
 
     def test_flatten(self, m, n, mat, expected):
-        self.assertAllClose(
-            self.Space(m, n).flatten(gs.array(mat)), gs.array(expected)
-        )
+        self.assertAllClose(self.Space(m, n).flatten(gs.array(mat)), gs.array(expected))
 
     def test_transpose(self, m, n, mat, expected):
         self.assertAllClose(
@@ -63,9 +59,7 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         )
 
     def test_is_diagonal(self, m, n, mat, expected):
-        self.assertAllClose(
-            self.Space(m, n).is_diagonal(gs.array(mat)), expected
-        )
+        self.assertAllClose(self.Space(m, n).is_diagonal(gs.array(mat)), expected)
 
     def test_is_symmetric(self, m, n, mat, expected):
         self.assertAllClose(
@@ -80,14 +74,10 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         )
 
     def test_is_pd(self, m, n, mat, expected):
-        self.assertAllClose(
-            self.Space(m, n).is_pd(gs.array(mat)), gs.array(expected)
-        )
+        self.assertAllClose(self.Space(m, n).is_pd(gs.array(mat)), gs.array(expected))
 
     def test_is_spd(self, m, n, mat, expected):
-        self.assertAllClose(
-            self.Space(m, n).is_spd(gs.array(mat)), gs.array(expected)
-        )
+        self.assertAllClose(self.Space(m, n).is_spd(gs.array(mat)), gs.array(expected))
 
     def test_is_upper_triangular(self, m, n, mat, expected):
         self.assertAllClose(
@@ -151,9 +141,7 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
 
     def test_to_lower_triangular_diagonal_scaled(self, m, n, mat, expected):
         self.assertAllClose(
-            self.Space(m, n).to_lower_triangular_diagonal_scaled(
-                gs.array(mat)
-            ),
+            self.Space(m, n).to_lower_triangular_diagonal_scaled(gs.array(mat)),
             gs.array(expected),
         )
 

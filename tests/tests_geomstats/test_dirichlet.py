@@ -115,10 +115,10 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         return self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_autograd_only
-    def test_exp_subspace(self, dim, vec, point, expected):
+    def test_exp_subspace(self, dim, vec, point, expected, atol):
         """Check that subspaces xi1 = ... = xik are totally geodesic."""
         end_point = self.Metric(dim).exp(vec, point)
-        result = gs.isclose(end_point - end_point[0], 0)
+        result = gs.isclose(end_point - end_point[0], 0.0, atol=atol)
         return self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_autograd_only

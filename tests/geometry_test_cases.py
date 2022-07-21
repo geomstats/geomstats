@@ -479,7 +479,6 @@ class LevelSetTestCase(ManifoldTestCase):
 
 
 class FiberBundleTestCase(TestCase):
-
     @property
     def Space(self):
         return self.testing_data.Space
@@ -873,7 +872,6 @@ class ConnectionTestCase(TestCase):
 
 
 class RiemannianMetricTestCase(ConnectionTestCase):
-
     def test_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
         """Check that the geodesic distance is symmetric.
 

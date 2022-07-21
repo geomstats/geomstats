@@ -45,6 +45,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
     tolerances = {
         "exp_belongs": {"atol": 1e-4},
         "integrated_parallel_transport": {"atol": 1e-8},
+        "dist_point_to_itself_is_zero": {"atol": 1e-6},
     }
 
     def inner_product_mat_at_identity_shape_test_data(self):
