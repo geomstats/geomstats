@@ -9,8 +9,6 @@ from tests.geometry_test_cases import VectorSpaceTestCase
 class TestLowerTriangularMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
     """Test of LowerTriangularMatrices methods."""
 
-    skip_test_basis_belongs = True
-
     testing_data = LowerTriangularMatricesTestData()
     space = testing_data.space
 

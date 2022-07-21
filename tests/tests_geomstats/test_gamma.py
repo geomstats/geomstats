@@ -48,6 +48,10 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
         expected = gs.squeeze(gs.stack(pdf, axis=0))
         self.assertAllClose(result, expected)
 
+    def test_maximum_likelihood_fit(self, sample, expected):
+        result = self.space().maximum_likelihood_fit(sample)
+        self.assertAllClose(result, expected)
+
     def test_natural_to_standard(self, point, expected):
         result = self.space().natural_to_standard(point)
         self.assertAllClose(result, expected)

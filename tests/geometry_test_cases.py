@@ -542,6 +542,28 @@ class ProductManifoldTestCase(ManifoldTestCase):
         self.assertAllClose(result, expected)
 
 
+class NFoldManifoldTestCase(ManifoldTestCase):
+    def test_dimension_is_dim_multiplied_by_n_copies(self, space_args):
+        """Check the dimension of the product manifold.
+
+        Check that the dimension of the n-fold manifold is the multiplication of
+        the dimension of one of the copies times the number of copies
+
+        For M = M0^n, we check that:
+        dim(M) = n *  dim(M0)
+
+        Parameters
+        ----------
+        space_args : tuple
+            Arguments to pass to constructor of the n-fold manifold.
+        """
+        base_manifold = space_args[0]
+        n_copies = space_args[1]
+        result = self.space(*space_args).dim
+        expected = base_manifold.dim * n_copies
+        self.assertAllClose(result, expected)
+
+
 class ConnectionTestCase(TestCase):
     def test_exp_shape(self, connection_args, tangent_vec, base_point, expected):
         """Check that exp returns an array of the expected shape.
@@ -1172,6 +1194,49 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
         individual_metric_matrices = [metric.matrix for metric in metric_args[0]]
         expected = reduce(gs.kron, individual_metric_matrices)
         self.assertAllClose(result, expected)
+
+
+class NFoldMetricTestCase(RiemannianMetricTestCase):
+    def test_innerproduct_is_sum_of_innerproducts(
+        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+    ):
+        """Check the inner-product of the product metric induced by the n-fold metric.
+
+        Check that the inner-product of two tangent vectors on the n-fold
+        manifold is the sum of the inner-products on each of the manifolds.
+
+        For M = M0^n, equipped with the n-fold Riemannian metric
+        g = (g0, ...., g0) and tangent vectors u = (u1, ..., un) and v = (v1, ..., vn),
+        we check that:
+        <u, v>_g = <u1, v1>_g0 + ... + <un, vn>_g0
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        tangent_vec_a : array-like, shape=[n_copies, *base_shape]
+            Tangent vector on the n-fold manifold.
+        tangent_vec_b : array-like, shape=[n_copies, *base_shape]
+            Tangent vector on the n-fold manifold.
+        base_point : array-like, shape=[n_copies, *base_shape]
+            Point on the n-fold manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.Metric(*metric_args)
+        base_metric = metric_args[0]
+        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        expected = sum(
+            base_metric.inner_product(
+                base_tangent_vec_a, base_tangent_vec_b, base_base_point
+            )
+            for base_tangent_vec_a, base_tangent_vec_b, base_base_point in zip(
+                tangent_vec_a, tangent_vec_b, base_point
+            )
+        )
+        self.assertAllClose(result, expected, rtol, atol)
 
 
 class QuotientMetricTestCase(RiemannianMetricTestCase):

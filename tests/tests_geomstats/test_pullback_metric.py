@@ -117,8 +117,8 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         immersed_base_point = immersion(base_point)
         jac_immersion = pullback_metric.jacobian_immersion(base_point)
-        immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
-        immersed_tangent_vec_b = gs.matmul(jac_immersion, tangent_vec_b)
+        immersed_tangent_vec_a = gs.matvec(jac_immersion, tangent_vec_a)
+        immersed_tangent_vec_b = gs.matvec(jac_immersion, tangent_vec_b)
 
         result = pullback_metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point=base_point
@@ -161,7 +161,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         immersed_base_point = immersion(base_point)
         jac_immersion = pullback_metric.jacobian_immersion(base_point)
-        immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec)
+        immersed_tangent_vec_a = gs.matvec(jac_immersion, tangent_vec)
         result = pullback_metric.exp(tangent_vec, base_point=base_point)
         result = Hypersphere(dim).spherical_to_extrinsic(result)
         expected = Hypersphere(dim).metric.exp(
@@ -186,8 +186,8 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         immersed_base_point = immersion(base_point)
         jac_immersion = pullback_metric.jacobian_immersion(base_point)
-        immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
-        immersed_tangent_vec_b = gs.matmul(jac_immersion, tangent_vec_b)
+        immersed_tangent_vec_a = gs.matvec(jac_immersion, tangent_vec_a)
+        immersed_tangent_vec_b = gs.matvec(jac_immersion, tangent_vec_b)
 
         result_dict = pullback_metric.ladder_parallel_transport(
             tangent_vec_a, base_point=base_point, direction=tangent_vec_b

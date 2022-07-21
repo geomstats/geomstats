@@ -27,7 +27,6 @@ class TestEM(geomstats.tests.TestCase):
         self.space = PoincareBall(dim=self.dim)
         self.metric = self.space.metric
         self.initialisation_method = "random"
-        self.mean_method = "batch"
 
         cluster_1 = gs.random.uniform(
             low=0.2, high=0.6, size=(self.n_samples, self.dim)
@@ -99,9 +98,7 @@ class TestEM(geomstats.tests.TestCase):
         """Test for weighted mean."""
         data = gs.array([[0.1, 0.2], [0.25, 0.35]])
         weights = gs.array([3.0, 1.0])
-        mean_o = FrechetMean(
-            metric=self.metric, point_type="vector", init_step_size=1.0
-        )
+        mean_o = FrechetMean(metric=self.metric, init_step_size=1.0)
         mean_o.fit(data, weights=weights)
         result = mean_o.estimate_
         expected = self.metric.exp(

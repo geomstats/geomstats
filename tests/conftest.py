@@ -188,7 +188,9 @@ class Parametrizer(type):
         )
 
         for attr_name, attr_value in attrs.copy().items():
-            if isinstance(attr_value, types.FunctionType):
+            if attr_name.startswith("test") and isinstance(
+                attr_value, types.FunctionType
+            ):
 
                 if (
                     not skip_all

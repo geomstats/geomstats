@@ -158,7 +158,7 @@ class RiemannianMetric(Connection, ABC):
         """
         inner_prod_mat = self.metric_matrix(base_point)
         aux = gs.einsum("...j,...jk->...k", tangent_vec_a, inner_prod_mat)
-        inner_prod = gs.einsum("...k,...k->...", aux, tangent_vec_b)
+        inner_prod = gs.dot(aux, tangent_vec_b)
         return inner_prod
 
     def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point):
@@ -183,7 +183,7 @@ class RiemannianMetric(Connection, ABC):
         vector_2 = gs.einsum(
             "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
         )
-        inner_coproduct = gs.einsum("...i,...i->...", cotangent_vec_a, vector_2)
+        inner_coproduct = gs.dot(cotangent_vec_a, vector_2)
         return inner_coproduct
 
     def hamiltonian(self, state):

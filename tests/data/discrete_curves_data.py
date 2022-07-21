@@ -109,6 +109,10 @@ class SRVMetricTestData(_RiemannianMetricTestData):
 
     Metric = SRVMetric
 
+    def srv_transform_and_srv_transform_inverse_test_data(self):
+        smoke_data = [dict(rtol=gs.rtol, atol=gs.atol)]
+        return self.generate_tests(smoke_data)
+
     def aux_differential_srv_transform_test_data(self):
         smoke_data = [
             dict(
@@ -205,20 +209,56 @@ class SRVMetricTestData(_RiemannianMetricTestData):
 
 
 class ElasticMetricTestData(TestData):
-    def f_transform_test_data(self):
+    a_b_list = [(1, 1)]
+
+    def cartesian_to_polar_and_polar_to_cartesian_test_data(self):
+        smoke_data = [
+            dict(a=a, b=b, rtol=10 * gs.rtol, atol=10 * gs.atol)
+            for a, b in self.a_b_list
+        ]
+        return self.generate_tests(smoke_data)
+
+    def cartesian_to_polar_and_polar_to_cartesian_vectorization_test_data(self):
+        smoke_data = [
+            dict(a=a, b=b, rtol=10 * gs.rtol, atol=10 * gs.atol)
+            for a, b in self.a_b_list
+        ]
+        return self.generate_tests(smoke_data)
+
+    def f_transform_and_srv_transform_test_data(self):
         smoke_data = [
             dict(
-                a=1.0,
-                b=0.5,
-                curve_a_projected=gs.stack((curve_a[:, 0], curve_a[:, 2]), axis=-1),
+                curve=gs.stack([curve_a[:, 0], curve_a[:, 2]], axis=-1),
+                rtol=gs.rtol,
+                atol=gs.atol,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def f_transform_inverse_and_srv_transform_inverse_test_data(self):
+        smoke_data = [
+            dict(
+                curve=gs.stack([curve_a[:, 0], curve_a[:, 2]], axis=-1),
+                rtol=10 * gs.rtol,
+                atol=10 * gs.atol,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def f_transform_and_srv_transform_vectorization_test_data(self):
+        smoke_data = [
+            dict(
+                rtol=10 * gs.rtol,
+                atol=10 * gs.atol,
             )
         ]
         return self.generate_tests(smoke_data)
 
     def f_transform_and_inverse_test_data(self):
-        cells, _, _ = data_utils.load_cells()
-        curve = cells[0]
-        smoke_data = [dict(a=1.0, b=0.5, curve=curve)]
+        smoke_data = [
+            dict(a=a, b=b, rtol=10 * gs.rtol, atol=10 * gs.atol)
+            for a, b in self.a_b_list
+        ]
         return self.generate_tests(smoke_data)
 
     def elastic_dist_test_data(self):
@@ -266,7 +306,6 @@ class ClosedDiscreteCurvesTestData(_ManifoldTestData):
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
-
     space = ClosedDiscreteCurves
 
     def projection_closed_curves_test_data(self):
@@ -278,3 +317,18 @@ class ClosedDiscreteCurvesTestData(_ManifoldTestData):
             smoke_data += [dict(ambient_manifold=ambient_manifold, curve=curve)]
 
         return self.generate_tests(smoke_data)
+
+    def projection_belongs_test_data(self, belongs_atol=gs.atol):
+        space_args_list = [(self.r2,)]
+        n_points_list = [1, 2]
+        random_data = [
+            dict(
+                space_args=space_args,
+                point=gs.random.normal(size=(n_points,) + shape),
+                belongs_atol=belongs_atol,
+            )
+            for space_args, shape, n_points in zip(
+                space_args_list, self.shape_list, n_points_list
+            )
+        ]
+        return self.generate_tests([], random_data)

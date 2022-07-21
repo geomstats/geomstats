@@ -873,9 +873,9 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         """
         product = gs.matmul(point_a, point_b)
         sqrt_product = gs.linalg.sqrtm(product)
-        trace_a = gs.trace(point_a, axis1=-2, axis2=-1)
-        trace_b = gs.trace(point_b, axis1=-2, axis2=-1)
-        trace_prod = gs.trace(sqrt_product, axis1=-2, axis2=-1)
+        trace_a = gs.trace(point_a)
+        trace_b = gs.trace(point_b)
+        trace_prod = gs.trace(sqrt_product)
 
         return trace_a + trace_b - 2 * trace_prod
 

@@ -85,7 +85,7 @@ class MinkowskiMetric(RiemannianMetric):
         """
         q, p = self.signature
         diagonal = gs.array([-1.0] * p + [1.0] * q, dtype=tangent_vec_a.dtype)
-        return gs.einsum("...i,...i->...", diagonal * tangent_vec_a, tangent_vec_b)
+        return gs.dot(diagonal * tangent_vec_a, tangent_vec_b)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of `tangent_vec` at `base_point`.

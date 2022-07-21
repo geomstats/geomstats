@@ -27,8 +27,8 @@ class GrassmannianTestData(_LevelSetTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(n=3, k=2, point=p_xy, expected=True),
-            dict(n=3, k=2, point=gs.array([p_yz, p_xz]), expected=[True, True]),
+            dict(n=3, p=2, point=p_xy, expected=True),
+            dict(n=3, p=2, point=gs.array([p_yz, p_xz]), expected=[True, True]),
         ]
         return self.generate_tests(smoke_data)
 
@@ -53,14 +53,14 @@ class GrassmannianCanonicalMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 n=3,
-                k=2,
+                p=2,
                 tangent_vec=Matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz])),
                 base_point=gs.array([p_xy, p_yz]),
                 expected=gs.array([p_yz, p_xy]),
             ),
             dict(
                 n=3,
-                k=2,
+                p=2,
                 tangent_vec=Matrices.bracket(
                     pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz])
                 ),
