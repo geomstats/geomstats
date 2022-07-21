@@ -12,11 +12,10 @@ class TestMinkowski(VectorSpaceTestCase, metaclass=Parametrizer):
     skip_test_basis_cardinality = True
 
     testing_data = MinkowskiTestData()
-    space = testing_data.space
 
     def test_belongs(self, dim, point, expected):
         self.assertAllClose(
-            self.space(dim).belongs(gs.array(point)), gs.array(expected)
+            self.Space(dim).belongs(gs.array(point)), gs.array(expected)
         )
 
 
@@ -31,7 +30,6 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_triangle_inequality_of_dist = True
 
     testing_data = MinkowskiMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_metric_matrix(self, dim, expected):
         metric = self.Metric(dim)

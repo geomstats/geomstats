@@ -28,7 +28,7 @@ class SPDMatricesTestData(_OpenSetTestData):
     shape_list = [(n, n) for n in n_list]
     n_vecs_list = random.sample(range(1, 10), 2)
 
-    space = SPDMatrices
+    Space = SPDMatrices
 
     def belongs_test_data(self):
         smoke_data = [
@@ -87,7 +87,7 @@ class SPDMatricesTestData(_OpenSetTestData):
         list_n = random.sample(range(1, 100), 10)
         n_samples = 10
         random_data = [
-            dict(n=n, mat=self.space(n).random_point(n_samples)) for n in list_n
+            dict(n=n, mat=self.Space(n).random_point(n_samples)) for n in list_n
         ]
         return self.generate_tests([], random_data)
 

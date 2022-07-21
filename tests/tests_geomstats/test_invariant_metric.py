@@ -25,7 +25,6 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_triangle_inequality_of_dist = True
 
     testing_data = InvariantMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_inner_product_mat_at_identity_shape(
         self, group, metric_mat_at_identity, left_or_right

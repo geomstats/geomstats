@@ -36,7 +36,7 @@ class ProductManifoldTestData(_ManifoldTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = ProductManifold
+    Space = ProductManifold
 
     def dimension_test_data(self):
         smoke_data = [
@@ -58,14 +58,14 @@ class ProductManifoldTestData(_ManifoldTestData):
             dict(
                 manifolds=smoke_manifolds_1,
                 default_point_type="vector",
-                point=self.space(
+                point=self.Space(
                     smoke_manifolds_1, default_point_type="vector"
                 ).random_point(5),
             ),
             dict(
                 manifolds=smoke_manifolds_1,
                 default_point_type="matrix",
-                point=self.space(
+                point=self.Space(
                     smoke_manifolds_1, default_point_type="matrix"
                 ).random_point(5),
             ),
@@ -165,7 +165,7 @@ class NFoldManifoldTestData(_ManifoldTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = NFoldManifold
+    Space = NFoldManifold
 
     def belongs_test_data(self):
         smoke_data = [

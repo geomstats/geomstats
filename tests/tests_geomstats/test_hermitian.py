@@ -15,10 +15,9 @@ class TestHermitian(VectorSpaceTestCase, metaclass=Parametrizer):
     skip_test_belongs = tf_backend()
 
     testing_data = HermitianTestData()
-    space = testing_data.space
 
     def test_belongs(self, dim, vec, expected):
-        self.assertAllClose(self.space(dim).belongs(gs.array(vec)), gs.array(expected))
+        self.assertAllClose(self.Space(dim).belongs(gs.array(vec)), gs.array(expected))
 
 
 class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -31,7 +30,6 @@ class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
 
     testing_data = HermitianMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_exp(self, dim, tangent_vec, base_point, expected):
         metric = self.Metric(dim)

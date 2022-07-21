@@ -18,7 +18,7 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = GeneralLinear
+    Space = GeneralLinear
 
     def belongs_test_data(self):
         smoke_data = [
@@ -35,7 +35,7 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
                 n=2,
                 mat1=[[1.0, 0.0], [0.0, 2.0]],
                 mat2=[[2.0, 0.0], [0.0, 1.0]],
-                expected=2.0 * self.space(2).identity,
+                expected=2.0 * self.Space(2).identity,
             )
         ]
         return self.generate_tests(smoke_data)
@@ -115,7 +115,7 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
     def orbit_test_data(self):
         point = gs.array([[gs.exp(4.0), 0.0], [0.0, gs.exp(2.0)]])
         sqrt = gs.array([[gs.exp(2.0), 0.0], [0.0, gs.exp(1.0)]])
-        identity = self.space(2).identity
+        identity = self.Space(2).identity
         time = gs.linspace(0.0, 1.0, 3)
         smoke_data = [
             dict(
@@ -150,7 +150,7 @@ class SquareMatricesTestData(_MatrixLieAlgebraTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = SquareMatrices
+    Space = SquareMatrices
 
     def belongs_test_data(self):
         smoke_data = [

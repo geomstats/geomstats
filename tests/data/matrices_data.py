@@ -23,7 +23,7 @@ MAT8_33 = [[0.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, 0.0, 0.0]]
 
 
 class MatricesTestData(_VectorSpaceTestData):
-    space = Matrices
+    Space = Matrices
 
     m_list = random.sample(range(3, 5), 2)
     n_list = random.sample(range(3, 5), 2)
@@ -149,10 +149,10 @@ class MatricesTestData(_VectorSpaceTestData):
 
     def flatten_reshape_test_data(self):
         random_data = [
-            dict(m=1, n=1, mat=self.space(1, 1).random_point(10000)),
-            dict(m=2, n=2, mat=self.space(2, 2).random_point(1000)),
-            dict(m=2, n=10, mat=self.space(2, 10).random_point(100)),
-            dict(m=20, n=10, mat=self.space(20, 10).random_point(100)),
+            dict(m=1, n=1, mat=self.Space(1, 1).random_point(10000)),
+            dict(m=2, n=2, mat=self.Space(2, 2).random_point(1000)),
+            dict(m=2, n=10, mat=self.Space(2, 10).random_point(100)),
+            dict(m=20, n=10, mat=self.Space(20, 10).random_point(100)),
         ]
         return self.generate_tests([], random_data)
 

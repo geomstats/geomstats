@@ -23,7 +23,7 @@ class GrassmannianTestData(_LevelSetTestData):
     n_vecs_list = random.sample(range(1, 5), 2)
     n_points_list = random.sample(range(1, 5), 2)
 
-    space = Grassmannian
+    Space = Grassmannian
 
     def belongs_test_data(self):
         smoke_data = [

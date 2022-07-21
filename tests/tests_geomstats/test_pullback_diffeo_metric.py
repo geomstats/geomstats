@@ -22,14 +22,11 @@ class TestHypersphereBisMetric(HypersphereMetricTestCase, metaclass=Parametrizer
     skip_all = not (autograd_backend() or pytorch_backend())
 
     testing_data = CircleAsSO2MetricTestData()
-    Metric = Connection = testing_data.Metric
 
 
 class TestCircleAsSO2PullbackDiffeoMetric(
     PullbackDiffeoMetricTestCase, metaclass=Parametrizer
 ):
-
     skip_all = not (autograd_backend() or pytorch_backend())
 
     testing_data = CircleAsSO2PullbackDiffeoMetricTestData()
-    Metric = Connection = testing_data.Metric

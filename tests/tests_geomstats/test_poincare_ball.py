@@ -17,15 +17,14 @@ class TestPoincareBall(OpenSetTestCase, metaclass=Parametrizer):
     skip_test_projection_belongs = True
 
     testing_data = PoincareBallTestData()
-    space = testing_data.space
 
     def test_belongs(self, dim, point, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         result = space.belongs(gs.array(point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_projection_norm_lessthan_1(self, dim, point):
-        space = self.space(dim)
+        space = self.Space(dim)
         projected_point = space.projection(gs.array(point))
         result = gs.sum(projected_point * projected_point) < 1.0
         self.assertTrue(result)
@@ -39,7 +38,6 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_geodesic_ivp_belongs = True
 
     testing_data = TestDataPoincareBallMetric()
-    Metric = Connection = testing_data.Metric
 
     def test_mobius_out_of_the_ball(self, dim, x, y):
         metric = self.Metric(dim)

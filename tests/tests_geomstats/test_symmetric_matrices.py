@@ -11,30 +11,29 @@ class TestSymmetricMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
     """Test of SymmetricMatrices methods."""
 
     testing_data = SymmetricMatricesTestData()
-    space = testing_data.space
 
     def test_belongs(self, n, mat, expected):
-        result = self.space(n).belongs(gs.array(mat))
+        result = self.Space(n).belongs(gs.array(mat))
         self.assertAllClose(result, gs.array(expected))
 
     def test_basis(self, n, basis):
-        self.assertAllClose(self.space(n).basis, gs.array(basis))
+        self.assertAllClose(self.Space(n).basis, gs.array(basis))
 
     def test_expm(self, mat, expected):
-        result = self.space.expm(gs.array(mat))
+        result = self.Space.expm(gs.array(mat))
         self.assertAllClose(result, gs.array(expected))
 
     def test_powerm(self, mat, power, expected):
-        result = self.space.powerm(gs.array(mat), power)
+        result = self.Space.powerm(gs.array(mat), power)
         self.assertAllClose(result, gs.array(expected))
 
     def test_from_vector(self, n, vec, expected):
-        result = self.space(n).from_vector(gs.array(vec))
+        result = self.Space(n).from_vector(gs.array(vec))
         self.assertAllClose(result, gs.array(expected))
 
     def test_to_vector(self, n, mat, expected):
-        result = self.space(n).to_vector(gs.array(mat))
+        result = self.Space(n).to_vector(gs.array(mat))
         self.assertAllClose(result, gs.array(expected))
 
     def test_dim(self, n, expected_dim):
-        self.assertAllClose(self.space(n).dim, expected_dim)
+        self.assertAllClose(self.Space(n).dim, expected_dim)

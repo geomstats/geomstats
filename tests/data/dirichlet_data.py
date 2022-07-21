@@ -10,7 +10,7 @@ from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 
 
 class DirichletTestData(_OpenSetTestData):
-    space = DirichletDistributions
+    Space = DirichletDistributions
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]
     shape_list = [(n,) for n in n_list]
@@ -29,8 +29,8 @@ class DirichletTestData(_OpenSetTestData):
 
     def random_point_test_data(self):
         random_data = [
-            dict(point=self.space(2).random_point(1), expected=(2,)),
-            dict(point=self.space(3).random_point(5), expected=(5, 3)),
+            dict(point=self.Space(2).random_point(1), expected=(2,)),
+            dict(point=self.Space(3).random_point(5), expected=(5, 3)),
         ]
         return self.generate_tests([], random_data)
 
@@ -45,19 +45,19 @@ class DirichletTestData(_OpenSetTestData):
         random_data = [
             dict(
                 dim=2,
-                point=self.space(2).random_point(3),
+                point=self.Space(2).random_point(3),
                 n_samples=4,
                 expected=gs.ones((3, 4)),
             ),
             dict(
                 dim=3,
-                point=self.space(3).random_point(1),
+                point=self.Space(3).random_point(1),
                 n_samples=2,
                 expected=gs.ones(2),
             ),
             dict(
                 dim=4,
-                point=self.space(4).random_point(2),
+                point=self.Space(4).random_point(2),
                 n_samples=3,
                 expected=gs.ones((2, 3)),
             ),
@@ -68,17 +68,17 @@ class DirichletTestData(_OpenSetTestData):
         random_data = [
             dict(
                 dim=2,
-                point=self.space(2).random_point(2),
+                point=self.Space(2).random_point(2),
                 n_samples=10,
             ),
             dict(
                 dim=3,
-                point=self.space(3).random_point(4),
+                point=self.Space(3).random_point(4),
                 n_samples=10,
             ),
             dict(
                 dim=4,
-                point=self.space(4).random_point(1),
+                point=self.Space(4).random_point(1),
                 n_samples=10,
             ),
         ]

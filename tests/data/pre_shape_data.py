@@ -55,7 +55,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
     shape_list = space_args_list
     n_vecs_list = random.sample(range(1, 5), 2)
 
-    space = PreShapeSpace
+    Space = PreShapeSpace
 
     def belongs_test_data(self):
         random_data = [
@@ -100,7 +100,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
 
     def vertical_projection_test_data(self):
         vector = gs.random.rand(10, 4, 3)
-        space = self.space(4, 3)
+        space = self.Space(4, 3)
         point = space.random_point()
         smoke_data = [
             dict(
@@ -120,7 +120,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
 
     def horizontal_projection_test_data(self):
         vector = gs.random.rand(10, 4, 3)
-        space = self.space(4, 3)
+        space = self.Space(4, 3)
         point = space.random_point()
         smoke_data = [
             dict(
@@ -140,7 +140,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
 
     def horizontal_and_is_tangent_test_data(self):
         vector = gs.random.rand(10, 4, 3)
-        space = self.space(4, 3)
+        space = self.Space(4, 3)
         point = space.random_point()
         smoke_data = [
             dict(
@@ -159,7 +159,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
         return self.generate_tests(smoke_data)
 
     def alignment_is_symmetric_test_data(self):
-        space = self.space(4, 3)
+        space = self.Space(4, 3)
         random_data = [
             dict(
                 k_landmarks=4,
@@ -183,7 +183,7 @@ class PreShapeSpaceTestData(_LevelSetTestData):
         return self.generate_tests([], random_data)
 
     def integrability_tensor_test_data(self):
-        space = self.space(4, 3)
+        space = self.Space(4, 3)
         vector = gs.random.rand(2, 4, 3)
         base_point = space.random_point()
         random_data = [
@@ -297,6 +297,7 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
     scheme_list = ["pole"] * 2
 
     Metric = KendallShapeMetric
+    Space = PreShapeSpace
 
     def curvature_is_skew_operator_test_data(self):
         base_point = smoke_space.random_point(2)

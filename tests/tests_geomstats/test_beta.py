@@ -15,20 +15,18 @@ TF_OR_PYTORCH_BACKEND = (
 
 
 class TestBetaDistributions(OpenSetTestCase, metaclass=Parametrizer):
-
     testing_data = BetaDistributionsTestsData()
-    space = testing_data.space
 
     def test_point_to_pdf(self, x):
-        point = self.space().random_point()
-        pdf = self.space().point_to_pdf(point)
+        point = self.Space().random_point()
+        pdf = self.Space().point_to_pdf(point)
         result = pdf(x)
         expected = beta.pdf(x, a=point[0], b=point[1])
         self.assertAllClose(result, expected)
 
     def test_point_to_pdf_vectorization(self, x):
-        point = self.space().random_point(n_samples=2)
-        pdf = self.space().point_to_pdf(point)
+        point = self.Space().random_point(n_samples=2)
+        pdf = self.Space().point_to_pdf(point)
         result = pdf(x)
         pdf1 = beta.pdf(x, a=point[0, 0], b=point[0, 1])
         pdf2 = beta.pdf(x, a=point[1, 0], b=point[1, 1])
@@ -59,7 +57,6 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_triangle_inequality_of_dist = True
 
     testing_data = BetaMetricTestData()
-    Metric = Connection = testing_data.Metric
     Space = testing_data.Space
 
     def test_metric_matrix(self, point, expected):

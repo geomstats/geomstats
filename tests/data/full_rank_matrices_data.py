@@ -12,7 +12,7 @@ class FullRankMatricesTestData(_OpenSetTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = FullRankMatrices
+    Space = FullRankMatrices
 
     def belongs_test_data(self):
         smoke_data = [

@@ -17,7 +17,7 @@ class PoincarePolydiskTestData(_OpenSetTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = PoincarePolydisk
+    Space = PoincarePolydisk
 
     def dimension_test_data(self):
         smoke_data = [dict(n_disks=2, expected=4), dict(n_disks=3, expected=6)]

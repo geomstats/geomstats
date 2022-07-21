@@ -61,7 +61,7 @@ elements_matrices = elements_matrices_all
 
 
 class SpecialEuclideanTestData(_LieGroupTestData):
-    space = SpecialEuclidean
+    Space = SpecialEuclidean
 
     n_list = random.sample(range(2, 4), 2)
     space_args_list = [(n,) for n in n_list] + [(2, "vector"), (3, "vector")]
@@ -241,7 +241,7 @@ class SpecialEuclideanTestData(_LieGroupTestData):
 
 class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
 
-    space = SpecialEuclideanMatrixLieAlgebra
+    Space = SpecialEuclideanMatrixLieAlgebra
 
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]

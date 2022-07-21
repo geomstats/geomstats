@@ -20,14 +20,13 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
     skip_test_projection_belongs = True
 
     testing_data = ProductManifoldTestData()
-    space = testing_data.space
 
     def test_dimension(self, manifolds, default_point_type, expected):
-        space = self.space(manifolds, default_point_type=default_point_type)
+        space = self.Space(manifolds, default_point_type=default_point_type)
         self.assertAllClose(space.dim, expected)
 
     def test_regularize(self, manifolds, default_point_type, point):
-        space = self.space(manifolds, default_point_type=default_point_type)
+        space = self.Space(manifolds, default_point_type=default_point_type)
         result = space.regularize(point)
         self.assertAllClose(result, point)
 
@@ -38,7 +37,6 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     skip_test_exp_geodesic_ivp = True
 
     testing_data = ProductRiemannianMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_inner_product_matrix(
@@ -84,14 +82,13 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
 class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
     testing_data = NFoldManifoldTestData()
-    space = testing_data.space
 
     def test_belongs(self, base, power, point, expected):
-        space = self.space(base, power)
+        space = self.Space(base, power)
         self.assertAllEqual(space.belongs(point), expected)
 
     def test_shape(self, base, power, expected):
-        space = self.space(base, power)
+        space = self.Space(base, power)
         self.assertAllClose(space.shape, expected)
 
 
@@ -103,7 +100,6 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_geodesic_ivp_belongs = True
 
     testing_data = NFoldMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_inner_product_shape(self, space, n_samples, point, tangent_vec):
         result = space.metric.inner_product(tangent_vec, tangent_vec, point)

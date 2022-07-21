@@ -11,7 +11,7 @@ SQRT_5 = math.sqrt(5)
 
 class EuclideanTestData(_VectorSpaceTestData):
 
-    space = Euclidean
+    Space = Euclidean
 
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]

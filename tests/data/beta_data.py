@@ -6,7 +6,7 @@ from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 
 
 class BetaDistributionsTestsData(_OpenSetTestData):
-    space = BetaDistributions
+    Space = BetaDistributions
     space_args_list = [()]
     shape_list = [(2,)]
     n_samples_list = random.sample(range(2, 5), 2)
@@ -24,8 +24,8 @@ class BetaDistributionsTestsData(_OpenSetTestData):
 
     def random_point_test_data(self):
         random_data = [
-            dict(point=self.space(2).random_point(1), expected=(2,)),
-            dict(point=self.space(3).random_point(5), expected=(5, 3)),
+            dict(point=self.Space(2).random_point(1), expected=(2,)),
+            dict(point=self.Space(3).random_point(5), expected=(5, 3)),
         ]
         return self.generate_tests([], random_data)
 

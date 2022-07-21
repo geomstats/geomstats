@@ -104,7 +104,7 @@ class _ManifoldTestData(TestData):
         for space_args, shape, n_vecs in zip(
             self.space_args_list, self.shape_list, self.n_vecs_list
         ):
-            space = self.space(*space_args)
+            space = self.Space(*space_args)
             vec = gs.random.normal(size=(n_vecs,) + shape)
             base_point = space.random_point()
             random_data.append(
@@ -133,7 +133,7 @@ class _ManifoldTestData(TestData):
         # TODO: n_vecs_list or self.n_tangent_vecs_list?
 
         for space_args, n_tangent_vec in zip(self.space_args_list, self.n_vecs_list):
-            space = self.space(*space_args)
+            space = self.Space(*space_args)
             base_point = space.random_point()
             random_data.append(
                 dict(
@@ -153,7 +153,7 @@ class _OpenSetTestData(_ManifoldTestData):
             dict(
                 space_args=space_args,
                 vector=gs.random.normal(size=shape),
-                base_point=self.space(*space_args).random_point(shape[0]),
+                base_point=self.Space(*space_args).random_point(shape[0]),
             )
             for space_args, shape in zip(self.space_args_list, self.shape_list)
         ]
@@ -169,7 +169,7 @@ class _LevelSetTestData(_ManifoldTestData):
         random_data = [
             dict(
                 space_args=space_args,
-                point_extrinsic=self.space(
+                point_extrinsic=self.Space(
                     *space_args, default_coords_type="extrinsic"
                 ).random_point(n_points),
             )
@@ -185,7 +185,7 @@ class _LevelSetTestData(_ManifoldTestData):
         random_data = []
         for space_args, n_points in zip(self.space_args_list, self.n_points_list):
 
-            space = self.space(*space_args, default_coords_type="intrinsic")
+            space = self.Space(*space_args, default_coords_type="intrinsic")
             point_intrinsic = space.random_point(n_points)
             random_data.append(
                 dict(
@@ -201,7 +201,7 @@ class _LieGroupTestData(_ManifoldTestData):
         random_data = []
         for group_args, n_points in zip(self.space_args_list, self.n_points_list):
 
-            group = self.space(*group_args)
+            group = self.Space(*group_args)
             point = group.random_point(n_points)
             random_data.append(dict(group_args=group_args, point=point))
 
@@ -229,7 +229,7 @@ class _LieGroupTestData(_ManifoldTestData):
         for group_args, shape, n_tangent_vecs in zip(
             self.space_args_list, self.shape_list, self.n_tangent_vecs_list
         ):
-            group = self.space(*group_args)
+            group = self.Space(*group_args)
             for base_point in [group.random_point(), group.identity]:
 
                 tangent_vec = group.to_tangent(
@@ -250,7 +250,7 @@ class _LieGroupTestData(_ManifoldTestData):
         """Generate data to check that group logarithm and exponential are inverse."""
         random_data = []
         for group_args, n_points in zip(self.space_args_list, self.n_points_list):
-            group = self.space(*group_args)
+            group = self.Space(*group_args)
             for base_point in [group.random_point(), group.identity]:
                 point = group.random_point(n_points)
                 random_data.append(
@@ -336,7 +336,7 @@ class _VectorSpaceTestData(_ManifoldTestData):
         for space_args, shape, n_vecs in zip(
             self.space_args_list, self.shape_list, self.n_vecs_list
         ):
-            space = self.space(*space_args)
+            space = self.Space(*space_args)
             vec = gs.random.normal(size=(n_vecs,) + shape)
             base_point = space.random_point()
 
@@ -359,7 +359,7 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
         random_data = [
             dict(
                 algebra_args=space_args,
-                matrix_rep=self.space(*space_args).random_point(n_points),
+                matrix_rep=self.Space(*space_args).random_point(n_points),
             )
             for space_args, n_points in zip(self.space_args_list, self.n_points_list)
         ]
@@ -370,8 +370,8 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
         random_data = [
             dict(
                 algebra_args=space_args,
-                basis_rep=self.space(*space_args).basis_representation(
-                    self.space(*space_args).random_point(n_points)
+                basis_rep=self.Space(*space_args).basis_representation(
+                    self.Space(*space_args).random_point(n_points)
                 ),
             )
             for space_args, n_points in zip(self.space_args_list, self.n_points_list)
@@ -383,7 +383,7 @@ class _FiberBundleTestData(TestData):
     def is_horizontal_after_horizontal_projection_test_data(self):
         random_data = []
         for space_args, n_points in zip(self.space_args_list, self.n_points_list):
-            space = self.space(*space_args)
+            space = self.Space(*space_args)
             base_point = space.random_point(n_points)
             tangent_vec = space.random_tangent_vec(base_point, n_points)
             data = dict(
@@ -397,7 +397,7 @@ class _FiberBundleTestData(TestData):
     def is_vertical_after_vertical_projection_test_data(self):
         random_data = []
         for space_args, n_points in zip(self.space_args_list, self.n_points_list):
-            space = self.space(*space_args)
+            space = self.Space(*space_args)
             base_point = space.random_point(n_points)
             tangent_vec = space.random_tangent_vec(base_point, n_points)
             data = dict(
@@ -413,8 +413,8 @@ class _FiberBundleTestData(TestData):
         random_data = [
             dict(
                 space_args=space_args,
-                base_point=self.space(*space_args).random_point(n_base_points),
-                point=self.space(*space_args).random_point(n_points),
+                base_point=self.Space(*space_args).random_point(n_base_points),
+                point=self.Space(*space_args).random_point(n_points),
             )
             for space_args, n_points, n_base_points in zip(
                 self.space_args_list, self.n_points_list, self.n_base_points_list
@@ -426,7 +426,7 @@ class _FiberBundleTestData(TestData):
         random_data = [
             dict(
                 space_args=space_args,
-                base_point=self.base(*space_args).random_point(n_points),
+                base_point=self.Base(*space_args).random_point(n_points),
             )
             for space_args, n_points in zip(
                 self.space_args_list, self.n_base_points_list
@@ -437,11 +437,11 @@ class _FiberBundleTestData(TestData):
     def is_tangent_after_tangent_riemannian_submersion_test_data(self):
         random_data = []
         for space_args, n_vecs in zip(self.space_args_list, self.n_vecs_list):
-            base_point = self.space(*space_args).random_point()
-            tangent_vec = self.space(*space_args).random_tangent_vec(base_point, n_vecs)
+            base_point = self.Space(*space_args).random_point()
+            tangent_vec = self.Space(*space_args).random_tangent_vec(base_point, n_vecs)
             d = dict(
                 space_args=space_args,
-                base_cls=self.base,
+                base_cls=self.Base,
                 tangent_vec=tangent_vec,
                 base_point=base_point,
             )

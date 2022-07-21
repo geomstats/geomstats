@@ -14,7 +14,7 @@ class PoincareBallTestData(_OpenSetTestData):
     shape_list = [(n,) for n in n_list]
     n_vecs_list = random.sample(range(1, 10), 5)
 
-    space = PoincareBall
+    Space = PoincareBall
 
     def belongs_test_data(self):
         smoke_data = [

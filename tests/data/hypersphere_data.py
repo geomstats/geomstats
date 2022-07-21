@@ -16,7 +16,7 @@ class HypersphereTestData(_LevelSetTestData):
     shape_list = [(dim + 1,) for dim in dim_list]
     n_vecs_list = random.sample(range(1, 5), 2)
 
-    space = Hypersphere
+    Space = Hypersphere
 
     def replace_values_test_data(self):
         smoke_data = [
@@ -126,7 +126,7 @@ class HypersphereTestData(_LevelSetTestData):
         smoke_data = []
         dim_list = [2, 3]
         for dim in dim_list:
-            space = self.space(dim)
+            space = self.Space(dim)
             base_point = space.random_point()
             tangent_vec = space.to_tangent(space.random_point(), base_point)
             if dim == 2:
@@ -197,7 +197,7 @@ class HypersphereTestData(_LevelSetTestData):
         smoke_data = [
             dict(
                 dim=dim,
-                mean=self.space(dim).random_point(),
+                mean=self.Space(dim).random_point(),
                 kappa=1000.0,
                 n_points=10000,
             )

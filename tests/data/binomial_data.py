@@ -6,7 +6,7 @@ from tests.data_generation import _OpenSetTestData
 
 
 class BinomialTestData(_OpenSetTestData):
-    space = BinomialDistributions
+    Space = BinomialDistributions
     n_list = random.sample((2, 5), 1)
     n_samples_list = random.sample(range(10), 3)
     space_args_list = [(n,) for n in n_list]
@@ -39,9 +39,9 @@ class BinomialTestData(_OpenSetTestData):
 
     def random_point_test_data(self):
         random_data = [
-            dict(point=self.space(5).random_point(3), expected=(3,)),
-            dict(point=self.space(10).random_point(2), expected=(2,)),
-            dict(point=self.space(3).random_point(1), expected=()),
+            dict(point=self.Space(5).random_point(3), expected=(3,)),
+            dict(point=self.Space(10).random_point(2), expected=(2,)),
+            dict(point=self.Space(3).random_point(1), expected=()),
         ]
         return self.generate_tests([], random_data)
 
@@ -61,19 +61,19 @@ class BinomialTestData(_OpenSetTestData):
         random_data = [
             dict(
                 n_draws=2,
-                point=self.space(2).random_point(3),
+                point=self.Space(2).random_point(3),
                 n_samples=4,
                 expected=gs.ones((3, 4)),
             ),
             dict(
                 n_draws=3,
-                point=self.space(3).random_point(1),
+                point=self.Space(3).random_point(1),
                 n_samples=2,
                 expected=gs.ones(2),
             ),
             dict(
                 n_draws=4,
-                point=self.space(4).random_point(2),
+                point=self.Space(4).random_point(2),
                 n_samples=3,
                 expected=gs.ones((2, 3)),
             ),
@@ -84,22 +84,22 @@ class BinomialTestData(_OpenSetTestData):
         random_data = [
             dict(
                 n_draws=5,
-                point=self.space(5).random_point(2),
+                point=self.Space(5).random_point(2),
                 n_samples=3,
             ),
             dict(
                 n_draws=3,
-                point=self.space(3).random_point(1),
+                point=self.Space(3).random_point(1),
                 n_samples=4,
             ),
             dict(
                 n_draws=7,
-                point=self.space(7).random_point(1),
+                point=self.Space(7).random_point(1),
                 n_samples=1,
             ),
             dict(
                 n_draws=2,
-                point=self.space(2).random_point(4),
+                point=self.Space(2).random_point(4),
                 n_samples=1,
             ),
         ]

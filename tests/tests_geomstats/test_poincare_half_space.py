@@ -13,34 +13,33 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 class TestPoincareHalfSpace(OpenSetTestCase, metaclass=Parametrizer):
 
     testing_data = PoincareHalfSpaceTestData()
-    space = testing_data.space
 
     def test_belongs(self, dim, vec, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         self.assertAllClose(space.belongs(gs.array(vec)), gs.array(expected))
 
     def test_half_space_to_ball_coordinates(self, dim, point, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         result = space.half_space_to_ball_coordinates(gs.array(point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_half_space_coordinates_ball_coordinates_composition(
         self, dim, point_half_space
     ):
-        space = self.space(dim)
+        space = self.Space(dim)
         point_ball = space.half_space_to_ball_coordinates(point_half_space)
         result = space.ball_to_half_space_coordinates(point_ball)
         self.assertAllClose(result, point_half_space)
 
     def test_ball_half_plane_tangent_are_inverse(self, dim, tangent_vec, base_point):
-        space = self.space(dim)
+        space = self.Space(dim)
         tangent_vec_ball = space.half_space_to_ball_tangent(tangent_vec, base_point)
         base_point_ball = space.half_space_to_ball_coordinates(base_point)
         result = space.ball_to_half_space_tangent(tangent_vec_ball, base_point_ball)
         self.assertAllClose(result, tangent_vec)
 
     def test_ball_to_half_space_coordinates(self, dim, point_ball):
-        space = self.space(dim)
+        space = self.Space(dim)
         point_half_space = space.ball_to_half_space_coordinates(point_ball)
         point_ext = Hyperboloid(dim).from_coordinates(point_ball, "ball")
         point_half_space_expected = Hyperboloid(dim).to_coordinates(
@@ -56,7 +55,6 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
     skip_test_exp_belongs = True
 
     testing_data = PoincareHalfSpaceMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected

@@ -20,41 +20,40 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
     skip_test_to_tangent_at_identity_belongs_to_lie_algebra = True
 
     testing_data = SpecialOrthogonalTestData()
-    space = group = testing_data.space
 
     def test_belongs(self, n, mat, expected):
-        self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))
+        self.assertAllClose(self.Space(n).belongs(gs.array(mat)), gs.array(expected))
 
     def test_dim(self, n, expected):
-        self.assertAllClose(self.space(n).dim, expected)
+        self.assertAllClose(self.Space(n).dim, expected)
 
     def test_identity(self, n, point_type, expected):
-        self.assertAllClose(self.space(n, point_type).identity, gs.array(expected))
+        self.assertAllClose(self.Space(n, point_type).identity, gs.array(expected))
 
     def test_is_tangent(self, n, vec, base_point, expected):
-        group = self.space(n)
+        group = self.Space(n)
         self.assertAllClose(
             group.is_tangent(gs.array(vec), base_point), gs.array(expected)
         )
 
     def test_skew_to_vector_and_vector_to_skew(self, n, point_type, vec):
-        group = self.space(n, point_type)
+        group = self.Space(n, point_type)
         mat = group.skew_matrix_from_vector(gs.array(vec))
         result = group.vector_from_skew_matrix(mat)
         self.assertAllClose(result, vec)
 
     def test_are_antipodals(self, n, mat1, mat2, expected):
-        group = self.space(n)
+        group = self.Space(n)
         self.assertAllClose(group.are_antipodals(mat1, mat2), gs.array(expected))
 
     def test_log_at_antipodals_value_error(self, n, point, base_point, expected):
-        group = self.space(n)
+        group = self.Space(n)
         with expected:
             group.log(point, base_point)
 
     def test_from_vector_from_matrix(self, n, n_samples):
-        group = self.space(n)
-        groupvec = self.space(n, point_type="vector")
+        group = self.Space(n)
+        groupvec = self.Space(n, point_type="vector")
         point = groupvec.random_point(n_samples)
         rot_mat = group.matrix_from_rotation_vector(point)
         self.assertAllClose(
@@ -62,23 +61,23 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
         )
 
     def test_rotation_vector_from_matrix(self, n, point_type, point, expected):
-        group = self.space(n, point_type)
+        group = self.Space(n, point_type)
         self.assertAllClose(
             group.rotation_vector_from_matrix(gs.array(point)), gs.array(expected)
         )
 
     def test_projection(self, n, point_type, mat, expected):
-        group = self.space(n=n, point_type=point_type)
+        group = self.Space(n=n, point_type=point_type)
         self.assertAllClose(group.projection(mat), expected)
 
     def test_projection_shape(self, n, point_type, n_samples, expected):
-        group = self.space(n=n, point_type=point_type)
+        group = self.Space(n=n, point_type=point_type)
         self.assertAllClose(
             gs.shape(group.projection(group.random_point(n_samples))), expected
         )
 
     def test_skew_matrix_from_vector(self, n, vec, expected):
-        group = self.space(n=n, point_type="vector")
+        group = self.Space(n=n, point_type="vector")
         self.assertAllClose(group.skew_matrix_from_vector(gs.array(vec)), expected)
 
     def test_rotation_vector_rotation_matrix_regularize(self, n, point):
@@ -111,17 +110,17 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_exp(self, n, point_type, tangent_vec, base_point, expected):
-        group = self.space(n, point_type)
+        group = self.Space(n, point_type)
         result = group.exp(tangent_vec, base_point)
         self.assertAllClose(result, expected)
 
     def test_log(self, n, point_type, point, base_point, expected):
-        group = self.space(n, point_type)
+        group = self.Space(n, point_type)
         result = group.log(point=point, base_point=base_point)
         self.assertAllClose(result, expected)
 
     def test_compose_shape(self, n, point_type, n_samples):
-        group = self.space(n, point_type=point_type)
+        group = self.Space(n, point_type=point_type)
         n_points_a = group.random_uniform(n_samples=n_samples)
         n_points_b = group.random_uniform(n_samples=n_samples)
         one_point = group.random_uniform(n_samples=1)
@@ -136,7 +135,7 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
         self.assertAllClose(gs.shape(result), (n_samples,) + group.shape)
 
     def test_rotation_vector_and_rotation_matrix(self, n, point_type, rot_vec):
-        group = self.space(n, point_type=point_type)
+        group = self.Space(n, point_type=point_type)
         rot_mats = group.matrix_from_rotation_vector(rot_vec)
         result = group.rotation_vector_from_matrix(rot_mats)
         expected = group.regularize(rot_vec)
@@ -144,12 +143,11 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
 
 
 class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
-
     testing_data = SpecialOrthogonal3TestData()
-    space = group = testing_data.space
+    Space = testing_data.Space
 
     def test_tait_bryan_angles_matrix(self, coord, order, vec, mat):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
 
         mat_from_vec = group.matrix_from_tait_bryan_angles(vec, coord, order)
         self.assertAllClose(mat_from_vec, mat)
@@ -157,7 +155,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(vec_from_mat, vec)
 
     def test_tait_bryan_angles_quaternion(self, coord, order, vec, quat):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
 
         quat_from_vec = group.quaternion_from_tait_bryan_angles(vec, coord, order)
         self.assertAllClose(quat_from_vec, quat)
@@ -167,7 +165,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
     def test_quaternion_from_rotation_vector_tait_bryan_angles(
         self, coord, order, point
     ):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
 
         quat = group.quaternion_from_rotation_vector(point)
         tait_bryan_angle = group.tait_bryan_angles_from_quaternion(quat, coord, order)
@@ -175,7 +173,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, quat)
 
     def test_tait_bryan_angles_rotation_vector(self, coord, order, point):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
 
         tait_bryan_angle = group.tait_bryan_angles_from_rotation_vector(
             point, coord, order
@@ -187,7 +185,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_quaternion_and_rotation_vector_with_angles_close_to_pi(self, point):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
 
         quaternion = group.quaternion_from_rotation_vector(point)
         result = group.rotation_vector_from_quaternion(quaternion)
@@ -197,7 +195,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertTrue(expected)
 
     def test_quaternion_and_matrix_with_angles_close_to_pi(self, point):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         mat = group.matrix_from_rotation_vector(point)
         quat = group.quaternion_from_matrix(mat)
         result = group.matrix_from_quaternion(quat)
@@ -207,7 +205,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertTrue(expected)
 
     def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self, point):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         mat = group.matrix_from_rotation_vector(point)
         result = group.rotation_vector_from_matrix(mat)
         expected1 = group.regularize(point)
@@ -216,7 +214,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertTrue(expected)
 
     def test_lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point, expected):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         result = group.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
@@ -227,7 +225,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         log and exp gives identity.
         """
         # TODO(nguigs): fix this test for tf
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         result = group.exp(group.log(point, base_point), base_point)
         expected = group.regularize(point)
         inv_expected = -expected
@@ -242,7 +240,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         This tests that the composition of
         log and exp gives identity.
         """
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         result = group.log(group.exp(tangent_vec, base_point), base_point)
         metric = group.left_canonical_metric
         reg_tangent_vec = group.regularize_tangent_vec(
@@ -256,26 +254,26 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         )
 
     def test_left_jacobian_vectorization(self, n_samples):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         points = group.random_uniform(n_samples=n_samples)
         jacobians = group.jacobian_translation(point=points, left_or_right="left")
         self.assertAllClose(gs.shape(jacobians), (n_samples, group.dim, group.dim))
 
     def test_inverse(self, n_samples):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         points = group.random_uniform(n_samples=n_samples)
         result = group.inverse(points)
 
         self.assertAllClose(gs.shape(result), (n_samples, group.dim))
 
     def test_left_jacobian_through_its_determinant(self, point, expected):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         jacobian = group.jacobian_translation(point=point, left_or_right="left")
         result = gs.linalg.det(jacobian)
         self.assertAllClose(result, expected)
 
     def test_compose_and_inverse(self, point):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         inv_point = group.inverse(point)
         result = group.compose(point, inv_point)
         expected = group.identity
@@ -284,7 +282,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_compose_regularize(self, point):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         result = group.compose(point, group.identity)
         expected = group.regularize(point)
         self.assertAllClose(result, expected)
@@ -294,7 +292,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_compose_regularize_angles_close_to_pi(self, point):
-        group = self.space(3, point_type="vector")
+        group = self.Space(3, point_type="vector")
         result = group.compose(point, group.identity)
         expected = group.regularize(point)
         inv_expected = -expected
@@ -327,7 +325,6 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
     skip_test_triangle_inequality_of_dist = True
 
     testing_data = BiInvariantMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_squared_dist_is_less_than_squared_pi(self, point_1, point_2):
         """
@@ -372,7 +369,7 @@ class TestInvariantMetricOnSO3(TestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
 
     testing_data = InvariantMetricTestData()
-    Metric = Connection = testing_data.Metric
+    Metric = testing_data.Metric
 
     def test_squared_dist_is_symmetric(
         self, metric_mat_at_identity, left_or_right, point_1, point_2

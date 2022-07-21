@@ -20,12 +20,10 @@ from tests.geometry_test_cases import (
 
 
 class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
-
     skip_test_log_after_exp = tf_backend()
     skip_test_exp_after_log = tf_backend()
 
     testing_data = SpecialEuclideanTestData()
-    space = group = testing_data.space
 
     def test_belongs(self, n, mat, expected):
         self.assertAllClose(
@@ -42,20 +40,20 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, gs.array(expected))
 
     def test_metrics_default_point_type(self, n, metric_str):
-        group = self.space(n)
+        group = self.Space(n)
         self.assertTrue(getattr(group, metric_str).default_point_type == "matrix")
 
     def test_inverse_shape(self, n, points, expected):
-        group = self.space(n)
+        group = self.Space(n)
         self.assertAllClose(gs.shape(group.inverse(points)), expected)
 
     def test_compose_shape(self, n, point_a, point_b, expected):
-        group = self.space(n)
+        group = self.Space(n)
         result = gs.shape(group.compose(gs.array(point_a), gs.array(point_b)))
         self.assertAllClose(result, expected)
 
     def test_regularize_shape(self, n, point_type, n_samples):
-        group = self.space(n, point_type)
+        group = self.Space(n, point_type)
         points = group.random_point(n_samples=n_samples)
         regularized_points = group.regularize(points)
 
@@ -65,17 +63,17 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
         )
 
     def test_compose(self, n, point_type, point_1, point_2, expected):
-        group = self.space(n, point_type)
+        group = self.Space(n, point_type)
         result = group.compose(point_1, point_2)
         self.assertAllClose(result, expected)
 
     def test_group_exp_from_identity(self, n, point_type, tangent_vec, expected):
-        group = self.space(n, point_type)
+        group = self.Space(n, point_type)
         result = group.exp(base_point=group.identity, tangent_vec=tangent_vec)
         self.assertAllClose(result, expected)
 
     def test_group_log_from_identity(self, n, point_type, point, expected):
-        group = self.space(n, point_type)
+        group = self.Space(n, point_type)
         result = group.log(base_point=group.identity, point=point)
         self.assertAllClose(result, expected)
 
@@ -83,16 +81,14 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 class TestSpecialEuclideanMatrixLieAlgebra(
     MatrixLieAlgebraTestCase, metaclass=Parametrizer
 ):
-
     testing_data = SpecialEuclideanMatrixLieAlgebraTestData()
-    space = algebra = testing_data.space
 
     def test_dim(self, n, expected):
-        algebra = self.space(n)
+        algebra = self.Space(n)
         self.assertAllClose(algebra.dim, expected)
 
     def test_belongs(self, n, vec, expected):
-        algebra = self.space(n)
+        algebra = self.Space(n)
         self.assertAllClose(algebra.belongs(gs.array(vec)), gs.array(expected))
 
 
@@ -105,7 +101,6 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
     skip_test_exp_shape = True
 
     testing_data = SpecialEuclideanMatrixCanonicalLeftMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_left_metric_wrong_group(self, group, expected):
         with expected:
@@ -116,7 +111,6 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     InvariantMetricTestCase,
     metaclass=Parametrizer,
 ):
-
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_shape = np_backend()
     skip_test_log_shape = np_backend()
@@ -142,7 +136,6 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
     skip_test_log_at_identity_belongs_to_lie_algebra = np_backend()
 
     testing_data = SpecialEuclideanMatrixCanonicalRightMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_right_exp_coincides(self, n, initial_vec):
         group = SpecialEuclidean(n=n)
@@ -155,8 +148,6 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
 
 
 class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
-    space = SpecialEuclidean
-
     testing_data = SpecialEuclidean3VectorsTestData()
 
     @geomstats.tests.np_and_autograd_only

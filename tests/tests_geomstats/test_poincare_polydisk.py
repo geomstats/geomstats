@@ -17,10 +17,9 @@ class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
     skip_test_to_tangent_is_tangent = True
 
     testing_data = PoincarePolydiskTestData()
-    space = testing_data.space
 
     def test_dimension(self, n_disks, expected):
-        space = self.space(n_disks)
+        space = self.Space(n_disks)
         self.assertAllClose(space.dim, expected)
 
 

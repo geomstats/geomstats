@@ -18,18 +18,16 @@ from tests.geometry_test_cases import (
 class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
 
     testing_data = PSDMatricesTestData()
-    space = testing_data.space
 
     def test_belongs(self, n, k, mat, expected):
-        space = self.space(n, k)
+        space = self.Space(n, k)
         self.assertAllClose(space.belongs(gs.array(mat)), gs.array(expected))
 
 
 class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
 
     testing_data = BuresWassersteinBundleTestData()
-    space = bundle = testing_data.space
-    base = testing_data.base
+    Base = testing_data.Base
 
 
 class TestPSDMetricBuresWasserstein(QuotientMetricTestCase, metaclass=Parametrizer):
@@ -42,7 +40,6 @@ class TestPSDMetricBuresWasserstein(QuotientMetricTestCase, metaclass=Parametriz
     skip_test_log_is_horizontal = True
 
     testing_data = PSDMetricBuresWassersteinTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_exp(self, n, tangent_vec, base_point, expected):
         metric = self.Metric(n, n)

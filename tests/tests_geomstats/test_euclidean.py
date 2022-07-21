@@ -11,16 +11,14 @@ class TestEuclidean(VectorSpaceTestCase, metaclass=Parametrizer):
     skip_test_basis_cardinality = True
 
     testing_data = EuclideanTestData()
-    space = testing_data.space
 
     def test_belongs(self, dim, vec, expected):
-        self.assertAllClose(self.space(dim).belongs(gs.array(vec)), gs.array(expected))
+        self.assertAllClose(self.Space(dim).belongs(gs.array(vec)), gs.array(expected))
 
 
 class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     testing_data = EuclideanMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_exp(self, dim, tangent_vec, base_point, expected):
         metric = self.Metric(dim)

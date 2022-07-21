@@ -5,7 +5,7 @@ from tests.data_generation import _LieGroupTestData, _VectorSpaceTestData
 
 
 class HeisenbergVectorsTestData(_LieGroupTestData, _VectorSpaceTestData):
-    space = HeisenbergVectors
+    Space = HeisenbergVectors
 
     space_args_list = [()] * 3
     shape_list = [(3,)] * 3

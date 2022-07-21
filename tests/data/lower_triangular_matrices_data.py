@@ -5,7 +5,7 @@ from tests.data_generation import _VectorSpaceTestData
 
 
 class LowerTriangularMatricesTestData(_VectorSpaceTestData):
-    space = LowerTriangularMatrices
+    Space = LowerTriangularMatrices
 
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]

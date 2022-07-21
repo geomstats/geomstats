@@ -19,7 +19,7 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = PositiveLowerTriangularMatrices
+    Space = PositiveLowerTriangularMatrices
 
     def belongs_test_data(self):
         smoke_data = [
@@ -117,8 +117,8 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
         random_data = [
             dict(
                 n=n,
-                tangent_vec=self.space(n).ambient_space.random_point(n_samples),
-                base_point=self.space(n).random_point(n_samples),
+                tangent_vec=self.Space(n).ambient_space.random_point(n_samples),
+                base_point=self.Space(n).random_point(n_samples),
             )
             for n, n_samples in zip(n_list, n_samples_list)
         ]
@@ -130,8 +130,8 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
         random_data = [
             dict(
                 n=n,
-                tangent_vec=self.space(n).ambient_space.random_point(n_samples),
-                base_point=self.space(n).random_point(n_samples),
+                tangent_vec=self.Space(n).ambient_space.random_point(n_samples),
+                base_point=self.Space(n).random_point(n_samples),
             )
             for n, n_samples in zip(n_list, n_samples_list)
         ]

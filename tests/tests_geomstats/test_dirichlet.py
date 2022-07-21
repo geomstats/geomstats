@@ -15,31 +15,29 @@ TF_OR_PYTORCH_BACKEND = (
 
 
 class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
-
     testing_data = DirichletTestData()
-    space = testing_data.space
 
     def test_belongs(self, dim, vec, expected):
-        self.assertAllClose(self.space(dim).belongs(gs.array(vec)), expected)
+        self.assertAllClose(self.Space(dim).belongs(gs.array(vec)), expected)
 
     def test_random_point(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
     def test_sample(self, dim, point, n_samples, expected):
-        self.assertAllClose(self.space(dim).sample(point, n_samples).shape, expected)
+        self.assertAllClose(self.Space(dim).sample(point, n_samples).shape, expected)
 
     @geomstats.tests.np_and_autograd_only
     def test_sample_belongs(self, dim, point, n_samples, expected):
-        samples = self.space(dim).sample(point, n_samples)
+        samples = self.Space(dim).sample(point, n_samples)
         self.assertAllClose(gs.sum(samples, axis=-1), expected)
 
     @geomstats.tests.np_and_autograd_only
     def test_point_to_pdf(self, dim, point, n_samples):
         point = gs.to_ndarray(point, 2)
         n_points = point.shape[0]
-        pdf = self.space(dim).point_to_pdf(point)
+        pdf = self.Space(dim).point_to_pdf(point)
         alpha = gs.ones(dim)
-        samples = self.space(dim).sample(alpha, n_samples)
+        samples = self.Space(dim).sample(alpha, n_samples)
         result = pdf(samples)
         pdf = []
         for i in range(n_points):
@@ -49,7 +47,6 @@ class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
 
 
 class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-
     skip_test_exp_shape = True  # because several base points for one vector
     skip_test_log_shape = TF_OR_PYTORCH_BACKEND
     skip_test_exp_belongs = TF_OR_PYTORCH_BACKEND
@@ -73,7 +70,6 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     )
 
     testing_data = DirichletMetricTestData()
-    Metric = Connection = testing_data.Metric
     Space = testing_data.Space
 
     @geomstats.tests.np_autograd_and_torch_only

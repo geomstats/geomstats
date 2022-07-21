@@ -23,7 +23,7 @@ class TestDataLandmarks(_ManifoldTestData):
     n_points_list = random.sample(range(1, 5), 4)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = Landmarks
+    Space = Landmarks
 
     def random_point_belongs_test_data(self, belongs_atol=gs.atol):
         space_args_list = [(Hypersphere(2), 2), (Euclidean(2 + 1), 2)]

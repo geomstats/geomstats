@@ -76,8 +76,7 @@ if tf_backend():
 
 
 class SpecialOrthogonalTestData(_LieGroupTestData):
-
-    space = SpecialOrthogonal
+    Space = SpecialOrthogonal
 
     n_list = random.sample(range(2, 4), 2)
     space_args_list = list(zip(n_list)) + [(2, "vector"), (3, "vector")]
@@ -478,7 +477,7 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
 
 
 class SpecialOrthogonal3TestData(TestData):
-    space = SpecialOrthogonal
+    Space = SpecialOrthogonal
 
     def tait_bryan_angles_matrix_test_data(self):
         xyz = gs.array(

@@ -6,7 +6,7 @@ from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestDat
 
 
 class MinkowskiTestData(_VectorSpaceTestData):
-    space = Minkowski
+    Space = Minkowski
 
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]

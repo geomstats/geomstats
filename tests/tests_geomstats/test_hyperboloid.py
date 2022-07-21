@@ -15,19 +15,18 @@ class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
     skip_test_projection_belongs = True
 
     testing_data = HyperboloidTestData()
-    space = testing_data.space
 
     def test_belongs(self, dim, coords_type, vec, expected):
-        space = self.space(dim, coords_type=coords_type)
+        space = self.Space(dim, coords_type=coords_type)
         self.assertAllClose(space.belongs(vec), gs.array(expected))
 
     def test_regularize_raises(self, dim, point, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         with expected:
             space.regularize(point)
 
     def test_extrinsic_to_intrinsic_coords_rasises(self, dim, point, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         with expected:
             space.extrinsic_to_intrinsic_coords(point)
 
@@ -35,34 +34,32 @@ class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
         x_extrinsic = PoincareBall(dim).to_coordinates(
             x_ball, to_coords_type="extrinsic"
         )
-        result = self.space(dim).to_coordinates(x_extrinsic, to_coords_type="ball")
+        result = self.Space(dim).to_coordinates(x_extrinsic, to_coords_type="ball")
         self.assertAllClose(result, x_ball)
 
     def test_extrinsic_ball_extrinsic_composition(self, dim, point_intrinsic):
-        x = self.space(dim, coords_type="intrinsic").to_coordinates(
+        x = self.Space(dim, coords_type="intrinsic").to_coordinates(
             point_intrinsic, to_coords_type="extrinsic"
         )
-        x_b = self.space(dim).to_coordinates(x, to_coords_type="ball")
+        x_b = self.Space(dim).to_coordinates(x, to_coords_type="ball")
         x2 = PoincareBall(dim).to_coordinates(x_b, to_coords_type="extrinsic")
         self.assertAllClose(x, x2)
 
     def test_extrinsic_half_plane_extrinsic_composition(self, dim, point_intrinsic):
-        x = self.space(dim, coords_type="intrinsic").to_coordinates(
+        x = self.Space(dim, coords_type="intrinsic").to_coordinates(
             point_intrinsic, to_coords_type="extrinsic"
         )
-        x_up = self.space(dim).to_coordinates(x, to_coords_type="half-space")
+        x_up = self.Space(dim).to_coordinates(x, to_coords_type="half-space")
         x2 = Hyperbolic.change_coordinates_system(x_up, "half-space", "extrinsic")
         self.assertAllClose(x, x2)
 
 
 class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
     testing_data = HyperboloidMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_inner_product_is_minkowski_inner_product(
         self, dim, tangent_vec_a, tangent_vec_b, base_point

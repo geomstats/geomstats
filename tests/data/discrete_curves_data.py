@@ -50,7 +50,7 @@ class DiscreteCurvesTestData(_ManifoldTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = DiscreteCurves
+    Space = DiscreteCurves
 
 
 class L2CurvesMetricTestData(_RiemannianMetricTestData):
@@ -306,7 +306,7 @@ class ClosedDiscreteCurvesTestData(_ManifoldTestData):
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
-    space = ClosedDiscreteCurves
+    Space = ClosedDiscreteCurves
 
     def projection_closed_curves_test_data(self):
         cells, _, _ = data_utils.load_cells()

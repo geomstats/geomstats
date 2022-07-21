@@ -36,7 +36,6 @@ class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = DiscreteCurvesTestData()
-    space = testing_data.space
 
 
 class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
@@ -45,11 +44,10 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     skip_test_to_tangent_is_tangent = True
 
     testing_data = ClosedDiscreteCurvesTestData()
-    space = testing_data.space
 
     @geomstats.tests.np_and_autograd_only
     def test_projection_closed_curves(self, ambient_manifold, curve):
-        planar_closed_curve = self.space(ambient_manifold)
+        planar_closed_curve = self.Space(ambient_manifold)
         proj = planar_closed_curve.projection(curve)
         expected = proj
         result = planar_closed_curve.projection(proj)
@@ -73,7 +71,6 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_inner_product_is_symmetric = tf_backend()
 
     testing_data = L2CurvesMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_l2_metric_geodesic(
         self, ambient_manifold, curve_a, curve_b, times, n_sampling_points
@@ -110,7 +107,6 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_is_tangent = tf_backend()
 
     testing_data = SRVMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_srv_inner_product(self, curve_a, curve_b, curve_c, times):
         l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
@@ -406,8 +402,6 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
 
 class TestElasticMetric(TestCase, metaclass=Parametrizer):
-    metric = ElasticMetric
-
     testing_data = ElasticMetricTestData()
 
     def test_cartesian_to_polar_and_polar_to_cartesian(self, a, b, rtol, atol):
@@ -494,7 +488,6 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
 
 class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
-
     testing_data = QuotientSRVMetricTestData()
 
     @geomstats.tests.np_autograd_and_torch_only

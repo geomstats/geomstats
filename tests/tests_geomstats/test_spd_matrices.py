@@ -23,68 +23,67 @@ class TestSPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
     """Test of SPDMatrices methods."""
 
     testing_data = SPDMatricesTestData()
-    space = testing_data.space
 
     def test_belongs(self, n, mat, expected):
-        self.assertAllClose(self.space(n).belongs(gs.array(mat)), gs.array(expected))
+        self.assertAllClose(self.Space(n).belongs(gs.array(mat)), gs.array(expected))
 
     def test_projection(self, n, mat, expected):
-        self.assertAllClose(self.space(n).projection(gs.array(mat)), gs.array(expected))
+        self.assertAllClose(self.Space(n).projection(gs.array(mat)), gs.array(expected))
 
     def test_logm(self, spd_mat, expected):
-        self.assertAllClose(self.space.logm(gs.array(spd_mat)), gs.array(expected))
+        self.assertAllClose(self.Space.logm(gs.array(spd_mat)), gs.array(expected))
 
     def test_cholesky_factor(self, n, spd_mat, expected):
-        result = self.space.cholesky_factor(gs.array(spd_mat))
+        result = self.Space.cholesky_factor(gs.array(spd_mat))
 
         self.assertAllClose(result, gs.array(expected))
         self.assertTrue(gs.all(PositiveLowerTriangularMatrices(n).belongs(result)))
 
     def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
-        result = self.space.differential_cholesky_factor(
+        result = self.Space.differential_cholesky_factor(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
         self.assertTrue(gs.all(LowerTriangularMatrices(n).belongs(result)))
 
     def test_differential_power(self, power, tangent_vec, base_point, expected):
-        result = self.space.differential_power(
+        result = self.Space.differential_power(
             power, gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_inverse_differential_power(self, power, tangent_vec, base_point, expected):
-        result = self.space.inverse_differential_power(
+        result = self.Space.inverse_differential_power(
             power, gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_differential_log(self, tangent_vec, base_point, expected):
-        result = self.space.differential_log(
+        result = self.Space.differential_log(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_inverse_differential_log(self, tangent_vec, base_point, expected):
-        result = self.space.inverse_differential_log(
+        result = self.Space.inverse_differential_log(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_differential_exp(self, tangent_vec, base_point, expected):
-        result = self.space.differential_exp(
+        result = self.Space.differential_exp(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_inverse_differential_exp(self, tangent_vec, base_point, expected):
-        result = self.space.inverse_differential_exp(
+        result = self.Space.inverse_differential_exp(
             gs.array(tangent_vec), gs.array(base_point)
         )
         self.assertAllClose(result, gs.array(expected))
 
     def test_cholesky_factor_belongs(self, n, mat):
-        result = self.space(n).cholesky_factor(gs.array(mat))
+        result = self.Space(n).cholesky_factor(gs.array(mat))
         self.assertAllClose(
             gs.all(PositiveLowerTriangularMatrices(n).belongs(result)), True
         )
@@ -98,7 +97,6 @@ class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_geodesic_ivp_belongs = True
 
     testing_data = SPDMetricAffineTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_inner_product(
         self, n, power_affine, tangent_vec_a, tangent_vec_b, base_point, expected
@@ -129,7 +127,6 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
     skip_test_dist_point_to_itself_is_zero = True
 
     testing_data = SPDMetricBuresWassersteinTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = self.Metric(n)
@@ -209,7 +206,6 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_parallel_transport_bvp_is_isometry = True
 
     testing_data = SPDMetricEuclideanTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_inner_product(
         self, n, power_euclidean, tangent_vec_a, tangent_vec_b, base_point, expected
@@ -266,7 +262,6 @@ class TestSPDMetricEuclideanPower1(RiemannianMetricTestCase, metaclass=Parametri
     skip_test_geodesic_ivp_belongs = True  # fails to often
 
     testing_data = SPDMetricEuclideanPower1TestData()
-    Metric = Connection = testing_data.Metric
 
 
 class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -279,7 +274,6 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
     skip_test_exp_belongs = True
 
     testing_data = SPDMetricLogEuclideanTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = self.Metric(n)

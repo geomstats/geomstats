@@ -11,7 +11,7 @@ class SkewSymmetricMatricesTestData(_MatrixLieAlgebraTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = SkewSymmetricMatrices
+    Space = SkewSymmetricMatrices
 
     def belongs_test_data(self):
         smoke_data = [

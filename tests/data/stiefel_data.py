@@ -32,7 +32,7 @@ class StiefelTestData(_LevelSetTestData):
     n_points_list = random.sample(range(1, 5), 2)
     n_vecs_list = random.sample(range(1, 5), 2)
 
-    space = Stiefel
+    Space = Stiefel
 
     def to_grassmannian_test_data(self):
 

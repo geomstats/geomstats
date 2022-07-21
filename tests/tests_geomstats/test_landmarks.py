@@ -10,7 +10,6 @@ from tests.geometry_test_cases import NFoldManifoldTestCase, NFoldMetricTestCase
 
 class TestLandmarks(NFoldManifoldTestCase, metaclass=Parametrizer):
     testing_data = TestDataLandmarks()
-    space = testing_data.space
 
 
 class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
@@ -19,7 +18,6 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
 
     testing_data = TestDataL2LandmarksMetric()
-    Metric = Connection = testing_data.Metric
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_l2_metric_inner_product_vectorization(

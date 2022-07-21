@@ -10,7 +10,7 @@ SQRT_5 = math.sqrt(5)
 
 
 class HermitianTestData(_VectorSpaceTestData):
-    space = Hermitian
+    Space = Hermitian
 
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]

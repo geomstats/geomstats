@@ -7,7 +7,7 @@ from tests.data_generation import _VectorSpaceTestData
 class SymmetricMatricesTestData(_VectorSpaceTestData):
     """Data class for Testing Symmetric Matrices"""
 
-    space = SymmetricMatrices
+    Space = SymmetricMatrices
 
     space_args_list = [(n,) for n in random.sample(range(2, 5), 2)]
     n_points_list = random.sample(range(1, 5), 2)

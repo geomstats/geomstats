@@ -18,42 +18,41 @@ ONLINE_KMEANS_TOL = 1e-1
 class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
 
     testing_data = HypersphereTestData()
-    space = testing_data.space
 
     def test_replace_values(self, dim, points, new_points, indcs, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         result = space._replace_values(
             gs.array(points), gs.array(new_points), gs.array(indcs)
         )
         self.assertAllClose(result, expected)
 
     def test_angle_to_extrinsic(self, dim, point, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         result = space.angle_to_extrinsic(point)
         self.assertAllClose(result, expected)
 
     def test_extrinsic_to_angle(self, dim, point, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         result = space.extrinsic_to_angle(point)
         self.assertAllClose(result, expected)
 
     def test_spherical_to_extrinsic(self, dim, point, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         result = space.spherical_to_extrinsic(point)
         self.assertAllClose(result, expected)
 
     def test_extrinsic_to_spherical(self, dim, point, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         result = space.extrinsic_to_spherical(point)
         self.assertAllClose(result, expected)
 
     def test_random_von_mises_fisher_belongs(self, dim, n_samples):
-        space = self.space(dim)
+        space = self.Space(dim)
         result = space.belongs(space.random_von_mises_fisher(n_samples=n_samples))
         self.assertTrue(gs.all(result))
 
     def test_random_von_mises_fisher_mean(self, dim, kappa, n_samples, expected):
-        space = self.space(dim)
+        space = self.Space(dim)
         points = space.random_von_mises_fisher(kappa=kappa, n_samples=n_samples)
         sum_points = gs.sum(points, axis=0)
         result = sum_points / gs.linalg.norm(sum_points)
@@ -62,7 +61,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
     def test_tangent_spherical_to_extrinsic(
         self, dim, tangent_vec_spherical, base_point_spherical, expected
     ):
-        space = self.space(dim)
+        space = self.Space(dim)
         result = space.tangent_spherical_to_extrinsic(
             tangent_vec_spherical, base_point_spherical
         )
@@ -71,7 +70,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
     def test_tangent_extrinsic_to_spherical(
         self, dim, tangent_vec, base_point, base_point_spherical, expected
     ):
-        space = self.space(dim)
+        space = self.Space(dim)
         result = space.tangent_extrinsic_to_spherical(
             tangent_vec, base_point, base_point_spherical
         )
@@ -80,7 +79,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
     def test_tangent_extrinsic_to_spherical_raises(
         self, dim, tangent_vec, base_point, base_point_spherical, expected
     ):
-        space = self.space(dim)
+        space = self.Space(dim)
         with expected:
             space.tangent_extrinsic_to_spherical(
                 tangent_vec, base_point, base_point_spherical
@@ -88,7 +87,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_riemannian_normal_frechet_mean(self, dim):
-        space = self.space(dim)
+        space = self.Space(dim)
         mean = space.random_uniform()
         precision = gs.eye(space.dim) * 10
         sample = space.random_riemannian_normal(mean, precision, 30000)
@@ -99,7 +98,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_riemannian_normal_and_belongs(self, dim, n_points):
-        space = self.space(dim)
+        space = self.Space(dim)
         mean = space.random_uniform()
         cov = gs.eye(dim)
         sample = space.random_riemannian_normal(mean, cov, n_points)
@@ -113,7 +112,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
         estimation of the concentration parameter is obtained by a
         closed-form expression and improved through the Newton method.
         """
-        space = self.space(dim)
+        space = self.Space(dim)
         points = space.random_von_mises_fisher(mu=mean, kappa=kappa, n_samples=n_points)
         sum_points = gs.sum(points, axis=0)
         result = sum_points / gs.linalg.norm(sum_points)
@@ -197,4 +196,3 @@ class TestHypersphereMetric(HypersphereMetricTestCase, metaclass=Parametrizer):
     skip_test_dist_point_to_itself_is_zero = True
 
     testing_data = HypersphereMetricTestData()
-    Metric = Connection = testing_data.Metric

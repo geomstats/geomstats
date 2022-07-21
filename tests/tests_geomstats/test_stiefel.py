@@ -14,11 +14,10 @@ class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
     skip_test_to_tangent_is_tangent = True
 
     testing_data = StiefelTestData()
-    space = testing_data.space
 
     def test_to_grassmannian(self, point, expected):
         self.assertAllClose(
-            self.space.to_grassmannian(gs.array(point)), gs.array(expected)
+            self.Space.to_grassmannian(gs.array(point)), gs.array(expected)
         )
 
 
@@ -38,7 +37,6 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
     skip_test_dist_is_norm_of_log = True
 
     testing_data = StiefelCanonicalMetricTestData()
-    Metric = Connection = testing_data.Metric
 
     def test_log_two_sheets_error(self, n, p, point, base_point, expected):
         metric = self.Metric(n, p)

@@ -20,7 +20,7 @@ class PSDMatricesTestData(_ManifoldTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    space = PSDMatrices
+    Space = PSDMatrices
 
     def belongs_test_data(self):
         smoke_data = [
@@ -53,8 +53,8 @@ class BuresWassersteinBundleTestData(_FiberBundleTestData):
     n_base_points_list = [1] * len(n_points_list) + n_points_list
     n_vecs_list = random.sample(range(1, 5), 2)
 
-    base = PSDMatrices
-    space = BuresWassersteinBundle
+    Base = PSDMatrices
+    Space = BuresWassersteinBundle
 
 
 class PSDMetricBuresWassersteinTestData(_QuotientMetricTestData):

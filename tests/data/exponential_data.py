@@ -6,7 +6,7 @@ from tests.data_generation import _OpenSetTestData
 
 
 class ExponentialTestData(_OpenSetTestData):
-    space = ExponentialDistributions
+    Space = ExponentialDistributions
     n_list = random.sample((2, 5), 1)
     n_samples_list = random.sample(range(10), 3)
     space_args_list = []
@@ -30,9 +30,9 @@ class ExponentialTestData(_OpenSetTestData):
 
     def random_point_test_data(self):
         random_data = [
-            dict(point=self.space().random_point(3), expected=(3,)),
-            dict(point=self.space().random_point(2), expected=(2,)),
-            dict(point=self.space().random_point(1), expected=()),
+            dict(point=self.Space().random_point(3), expected=(3,)),
+            dict(point=self.Space().random_point(2), expected=(2,)),
+            dict(point=self.Space().random_point(1), expected=()),
         ]
         return self.generate_tests([], random_data)
 
@@ -50,17 +50,17 @@ class ExponentialTestData(_OpenSetTestData):
     def sample_belongs_test_data(self):
         random_data = [
             dict(
-                point=self.space().random_point(3),
+                point=self.Space().random_point(3),
                 n_samples=4,
                 expected=gs.ones((3, 4)),
             ),
             dict(
-                point=self.space().random_point(1),
+                point=self.Space().random_point(1),
                 n_samples=2,
                 expected=gs.ones(2),
             ),
             dict(
-                point=self.space().random_point(2),
+                point=self.Space().random_point(2),
                 n_samples=3,
                 expected=gs.ones((2, 3)),
             ),
@@ -70,19 +70,19 @@ class ExponentialTestData(_OpenSetTestData):
     def point_to_pdf_test_data(self):
         random_data = [
             dict(
-                point=self.space().random_point(2),
+                point=self.Space().random_point(2),
                 n_samples=3,
             ),
             dict(
-                point=self.space().random_point(1),
+                point=self.Space().random_point(1),
                 n_samples=4,
             ),
             dict(
-                point=self.space().random_point(1),
+                point=self.Space().random_point(1),
                 n_samples=1,
             ),
             dict(
-                point=self.space().random_point(4),
+                point=self.Space().random_point(4),
                 n_samples=1,
             ),
         ]
