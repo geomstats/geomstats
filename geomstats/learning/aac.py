@@ -3,6 +3,7 @@ import random
 
 import scipy
 from sklearn.decomposition import PCA
+from sklearn.linear_model import LinearRegression
 
 import geomstats.backend as gs
 from geomstats.learning.frechet_mean import FrechetMean
@@ -10,10 +11,19 @@ from geomstats.learning.frechet_mean import FrechetMean
 # TODO: create AAC and control flow with __new__
 
 
+def _warn_max_iterations(iteration, max_iter):
+    if iteration == max_iter:
+        logging.warning(
+            f"Maximum number of iterations {max_iter} reached. "
+            "The estimate may be inaccurate"
+        )
+
+
 class AACFrechet:
     def __init__(
         self,
         metric,
+        *,
         epsilon=1e-6,
         max_iter=20,
         init_point=None,
@@ -48,11 +58,7 @@ class AACFrechet:
 
             previous_estimate = new_estimate
 
-        if iteration == self.max_iter:
-            logging.warning(
-                f"Maximum number of iterations {self.max_iter} reached. "
-                "The mean may be inaccurate"
-            )
+        _warn_max_iterations(iteration, self.max_iter)
 
         self.estimate_ = new_estimate
         self.n_iter_ = iteration
@@ -80,15 +86,17 @@ class _WrappedPCA(PCA):
 
     @property
     def reshaped_mean_(self):
-        # TODO: suggest changes in sklearn to do same as components_
         if self.mean_ is None:
             return None
 
         return gs.reshape(self.mean_, self._init_shape[1:])
 
+    def _reshape(self, x):
+        return gs.reshape(x, (x.shape[0], -1))
+
     def _reshape_X(self, X):
         self._init_shape = X.shape
-        return gs.reshape(X, (X.shape[0], -1))
+        return self._reshape(X)
 
     def fit(self, X, y=None):
         return super().fit(self._reshape_X(X))
@@ -97,15 +105,15 @@ class _WrappedPCA(PCA):
         return super().fit_transform(self._reshape_X(X))
 
     def score_samples(self, X, y=None):
-        return super().score_samples(self._reshape_X(X))
+        return super().score_samples(self._reshape(X))
 
     def score(self, X, y=None):
-        return super().score(self._reshape_X(X))
+        return super().score(self._reshape(X))
 
 
 class AACGPC:
     def __init__(
-        self, metric, n_components=2, epsilon=1e-6, max_iter=20, init_point=None
+        self, metric, *, n_components=2, epsilon=1e-6, max_iter=20, init_point=None
     ):
         self.metric = metric
         self.epsilon = epsilon
@@ -115,11 +123,25 @@ class AACGPC:
         self.pca_solver = _WrappedPCA(n_components=n_components)
         self.aligner = None
 
-        self.components_ = None
-        self.explained_variance_ = None
-        self.explained_variance_ratio_ = None
-        self.singular_values_ = None
-        self.mean_ = None
+    @property
+    def components_(self):
+        return self.pca_solver.reshaped_components_
+
+    @property
+    def explained_variance_(self):
+        return self.pca_solver.explained_variance_
+
+    @property
+    def explained_variance_ratio_(self):
+        return self.pca_solver.explained_variance_ratio_
+
+    @property
+    def singular_values_(self):
+        return self.pca_solver.singular_values_
+
+    @property
+    def mean_(self):
+        return self.pca_solver.reshaped_mean_
 
     def set_default_aligner(self, s_min, s_max, n_sample_points=10):
         self.set_aligner("default", s_min, s_max, n_sample_points=n_sample_points)
@@ -140,6 +162,7 @@ class AACGPC:
         error = self.epsilon + 1
         iteration = 0
         while error > self.epsilon and iteration < self.max_iter:
+            iteration += 1
             mean = self.pca_solver.reshaped_mean_
             direc = self.pca_solver.reshaped_components_[0]
 
@@ -154,17 +177,7 @@ class AACGPC:
             error = expl_ - previous_expl
             previous_expl = expl_
 
-        if iteration == self.max_iter:
-            logging.warning(
-                f"Maximum number of iterations {self.max_iter} reached. "
-                "The estimate may be inaccurate"
-            )
-
-        self.components_ = self.pca_solver.reshaped_components_
-        self.explained_variance_ = self.pca_solver.explained_variance_
-        self.explained_variance_ratio_ = self.pca_solver.explained_variance_ratio_
-        self.singular_values_ = self.pca_solver.singular_values_
-        self.mean_ = self.pca_solver.reshaped_mean_
+        _warn_max_iterations(iteration, self.max_iter)
 
         return self
 
@@ -256,3 +269,79 @@ class GeodesicToPointAligner:
 
         new_x = self.metric.space.permute(x, gs.array(perms))
         return new_x[0] if n_points == 1 else new_x
+
+
+class _WrappedLinearRegression(LinearRegression):
+    # TODO: wrap by manipulating __new__?
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._init_shape_X = None
+        self._init_shape_y = None
+
+    def __repr__(self):
+        # to use *args and **kwargs
+        return object.__repr__(self)
+
+    def _reshape(self, x):
+        return gs.reshape(x, (x.shape[0], -1))
+
+    def _reshape_X(self, X):
+        self._init_shape_X = X.shape
+        return self._reshape(X)
+
+    def _reshape_y(self, y):
+        self._init_shape_y = y.shape
+        return self._reshape(y)
+
+    def _reshape_out(self, out):
+        return gs.reshape(out, (out.shape[0], *self._init_shape_y[1:]))
+
+    def fit(self, X, y):
+        return super().fit(self._reshape_X(X), y=self._reshape_y(y))
+
+    def predict(self, X):
+        return self._reshape_out(super().predict(self._reshape(X)))
+
+
+class AACRegression:
+    def __init__(
+        self, metric, *, epsilon=1e-6, max_iter=20, init_point=None, model_kwargs=None
+    ):
+        self.metric = metric
+        self.epsilon = epsilon
+        self.max_iter = max_iter
+        self.init_point = init_point
+
+        model_kwargs = model_kwargs or {}
+        self.model = _WrappedLinearRegression(**model_kwargs)
+
+    def fit(self, X, y):
+        y_ = random.choice(y) if self.init_point is None else self.init_point
+        aligned_y = self.metric.align_point_to_point(y_, y)
+
+        self.model.fit(X, aligned_y)
+        previous_y_pred = self.model.predict(X)
+
+        error = self.epsilon + 1
+        iteration = 0
+        while error > self.epsilon and iteration < self.max_iter:
+            iteration += 1
+            aligned_y = self.metric.align_point_to_point(previous_y_pred, aligned_y)
+
+            self.model.fit(X, aligned_y)
+            y_pred = self.model.predict(X)
+
+            # TODO: squared distances?
+            error = gs.sum(self.metric.dist(previous_y_pred, y_pred))
+            print(error)
+
+            previous_y_pred = y_pred
+
+        _warn_max_iterations(iteration, self.max_iter)
+
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
