@@ -2,10 +2,9 @@ import logging
 import random
 
 import scipy
-from sklearn.decomposition import PCA
-from sklearn.linear_model import LinearRegression
 
 import geomstats.backend as gs
+from geomstats.learning._sklearn_wrapper import WrappedLinearRegression, WrappedPCA
 from geomstats.learning.frechet_mean import FrechetMean
 
 # TODO: create AAC and control flow with __new__
@@ -66,51 +65,6 @@ class AACFrechet:
         return self
 
 
-class _WrappedPCA(PCA):
-    # TODO: wrap by manipulating __new__?
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self._init_shape = None
-
-    def __repr__(self):
-        # to use *args and **kwargs
-        return object.__repr__(self)
-
-    @property
-    def reshaped_components_(self):
-        if self.components_ is None:
-            return None
-        return gs.reshape(self.components_, (self.n_components, *self._init_shape[1:]))
-
-    @property
-    def reshaped_mean_(self):
-        if self.mean_ is None:
-            return None
-
-        return gs.reshape(self.mean_, self._init_shape[1:])
-
-    def _reshape(self, x):
-        return gs.reshape(x, (x.shape[0], -1))
-
-    def _reshape_X(self, X):
-        self._init_shape = X.shape
-        return self._reshape(X)
-
-    def fit(self, X, y=None):
-        return super().fit(self._reshape_X(X))
-
-    def fit_transform(self, X, y=None):
-        return super().fit_transform(self._reshape_X(X))
-
-    def score_samples(self, X, y=None):
-        return super().score_samples(self._reshape(X))
-
-    def score(self, X, y=None):
-        return super().score(self._reshape(X))
-
-
 class AACGPC:
     def __init__(
         self, metric, *, n_components=2, epsilon=1e-6, max_iter=20, init_point=None
@@ -120,7 +74,7 @@ class AACGPC:
         self.max_iter = max_iter
         self.init_point = init_point
 
-        self.pca_solver = _WrappedPCA(n_components=n_components)
+        self.pca_solver = WrappedPCA(n_components=n_components)
         self.aligner = None
 
     @property
@@ -271,40 +225,6 @@ class GeodesicToPointAligner:
         return new_x[0] if n_points == 1 else new_x
 
 
-class _WrappedLinearRegression(LinearRegression):
-    # TODO: wrap by manipulating __new__?
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self._init_shape_X = None
-        self._init_shape_y = None
-
-    def __repr__(self):
-        # to use *args and **kwargs
-        return object.__repr__(self)
-
-    def _reshape(self, x):
-        return gs.reshape(x, (x.shape[0], -1))
-
-    def _reshape_X(self, X):
-        self._init_shape_X = X.shape
-        return self._reshape(X)
-
-    def _reshape_y(self, y):
-        self._init_shape_y = y.shape
-        return self._reshape(y)
-
-    def _reshape_out(self, out):
-        return gs.reshape(out, (out.shape[0], *self._init_shape_y[1:]))
-
-    def fit(self, X, y):
-        return super().fit(self._reshape_X(X), y=self._reshape_y(y))
-
-    def predict(self, X):
-        return self._reshape_out(super().predict(self._reshape(X)))
-
-
 class AACRegression:
     def __init__(
         self, metric, *, epsilon=1e-6, max_iter=20, init_point=None, model_kwargs=None
@@ -314,15 +234,16 @@ class AACRegression:
         self.max_iter = max_iter
         self.init_point = init_point
 
+        # TODO: set regressor?
         model_kwargs = model_kwargs or {}
-        self.model = _WrappedLinearRegression(**model_kwargs)
+        self.regressor = WrappedLinearRegression(**model_kwargs)
 
     def fit(self, X, y):
         y_ = random.choice(y) if self.init_point is None else self.init_point
         aligned_y = self.metric.align_point_to_point(y_, y)
 
-        self.model.fit(X, aligned_y)
-        previous_y_pred = self.model.predict(X)
+        self.regressor.fit(X, aligned_y)
+        previous_y_pred = self.regressor.predict(X)
 
         error = self.epsilon + 1
         iteration = 0
@@ -330,12 +251,11 @@ class AACRegression:
             iteration += 1
             aligned_y = self.metric.align_point_to_point(previous_y_pred, aligned_y)
 
-            self.model.fit(X, aligned_y)
-            y_pred = self.model.predict(X)
+            self.regressor.fit(X, aligned_y)
+            y_pred = self.regressor.predict(X)
 
             # TODO: squared distances?
             error = gs.sum(self.metric.dist(previous_y_pred, y_pred))
-            print(error)
 
             previous_y_pred = y_pred
 
@@ -344,4 +264,4 @@ class AACRegression:
         return self
 
     def predict(self, X):
-        return self.model.predict(X)
+        return self.regressor.predict(X)
