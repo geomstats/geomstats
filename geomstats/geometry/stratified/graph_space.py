@@ -7,6 +7,7 @@ import functools
 from abc import ABCMeta, abstractmethod
 
 import networkx as nx
+import scipy
 
 import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
@@ -318,6 +319,11 @@ class GraphSpaceMetric(PointSetMetric):
     def __init__(self, space):
         super().__init__(space)
         self.matcher = self._set_default_matcher()
+        self.p2g_aligner = None
+
+    @property
+    def perm_(self):
+        return self.matcher.perm_
 
     def _set_default_matcher(self):
         return self.set_matcher("ID")
@@ -338,11 +344,26 @@ class GraphSpaceMetric(PointSetMetric):
                 matcher, "matcher", list(MAP_MATCHER.keys())
             )
 
-            self.matcher = MAP_MATCHER.get(matcher)(*args, **kwargs)
+            matcher = MAP_MATCHER.get(matcher)(*args, **kwargs)
         else:
-            self.matcher = matcher
+            matcher = matcher
 
+        self.matcher = matcher
         return self.matcher
+
+    def set_default_p2g_aligner(self, s_min, s_max, n_sample_points=10):
+        return self.set_p2g_aligner(
+            "default", s_min, s_max, n_sample_points=n_sample_points
+        )
+
+    def set_p2g_aligner(self, aligner, *args, **kwargs):
+        if aligner == "default":
+            aligner = PointToGeodesicAligner(self, *args, **kwargs)
+        else:
+            aligner = aligner
+
+        self.p2g_aligner = aligner
+        return self.p2g_aligner
 
     @property
     def total_space_metric(self):
@@ -445,6 +466,17 @@ class GraphSpaceMetric(PointSetMetric):
         perm = self.matching(base_graph, graph_to_permute)
         return self.space.permute(graph_to_permute, perm)
 
+    @_vectorize_graph(
+        (2, "graph_to_permute"),
+    )
+    @_pad_with_zeros(
+        (2, "graph_to_permute"),
+    )
+    def align_point_to_geodesic(self, geodesic, graph_to_permute):
+        if self.p2g_aligner is None:
+            raise UnboundLocalError("Set point to geodesic aligner first")
+        return self.p2g_aligner.align(geodesic, graph_to_permute)
+
 
 class _BaseMatcher(metaclass=ABCMeta):
     def __init__(self):
@@ -546,3 +578,94 @@ class IDMatcher(_BaseMatcher):
         self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
 
         return self.perm_
+
+
+class _BasePointToGeodesicAligner(metaclass=ABCMeta):
+    def __init__(self):
+        self.perm_ = None
+
+    @abstractmethod
+    def align(self, geodesic, x):
+        raise NotImplementedError("Not implemented")
+
+
+class PointToGeodesicAligner(_BasePointToGeodesicAligner):
+    def __init__(self, metric, s_min, s_max, n_sample_points=10):
+        super().__init__()
+        self.metric = metric
+        self.s_min = s_min
+        self.s_max = s_max
+        self.n_sample_points = n_sample_points
+
+    @property
+    def _s(self):
+        return gs.linspace(self.s_min, self.s_max, num=self.n_sample_points)
+
+    def _get_gamma_s(self, geodesic):
+        return geodesic(self._s)
+
+    def align(self, geodesic, x):
+        gamma_s = self._get_gamma_s(geodesic)
+
+        n_points = 1 if gs.ndim(x) == 2 else gs.shape(x)[0]
+        if n_points > 1:
+            gamma_s = gs.repeat(gamma_s, n_points, axis=0)
+            rep_x = gs.concatenate([x for _ in range(self.n_sample_points)])
+        else:
+            rep_x = x
+
+        dists = gs.reshape(
+            self.metric.dist(gamma_s, rep_x), (self.n_sample_points, n_points)
+        )
+
+        min_dists_idx = gs.argmin(dists, axis=0)
+        perm_indices = min_dists_idx * n_points + gs.arange(n_points)
+        if n_points == 1:
+            perm_indices = perm_indices[0]
+
+        self.perm_ = gs.take(self.metric.perm_, perm_indices, axis=0)
+
+        return self.metric.space.permute(x, self.perm_)
+
+
+class GeodesicToPointAligner(_BasePointToGeodesicAligner):
+    def __init__(self, metric, method="BFGS"):
+        super().__init__()
+
+        self.metric = metric
+        self.method = method
+
+        self.opt_results_ = None
+
+    def _objective(self, s, x, geodesic):
+        point = geodesic(s)
+        dist = self.metric.dist(point, x)
+
+        return dist
+
+    def align(self, geodesic, x):
+        n_points = 1 if gs.ndim(x) == 2 else gs.shape(x)[0]
+
+        if n_points == 1:
+            x = gs.expand_dims(x, axis=0)
+
+        perms = []
+        min_dists = []
+        opt_results = []
+        for xx in x:
+            s0 = 0.0
+            res = scipy.optimize.minimize(
+                self._objective, x0=s0, args=(xx, geodesic), method=self.method
+            )
+            perms.append(self.metric.perm_[0])
+            min_dists.append(res.fun)
+
+            opt_results.append(res)
+
+        self.opt_results_ = opt_results
+        perms = gs.array(perms)
+
+        new_x = self.metric.space.permute(x, perms)
+        self.perm_ = perms[0] if n_points == 1 else perms
+
+        return new_x[0] if n_points == 1 else new_x
