@@ -9,6 +9,7 @@ from abc import ABCMeta, abstractmethod
 import networkx as nx
 
 import geomstats.backend as gs
+from geomstats.errors import check_parameter_accepted_values
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stratified.point_set import (
     Point,
@@ -317,10 +318,9 @@ class GraphSpaceMetric(PointSetMetric):
     def __init__(self, space):
         super().__init__(space)
         self.matcher = self._set_default_matcher()
-        self.perm_ = None
 
     def _set_default_matcher(self):
-        return IDMatcher()
+        return self.set_matcher("ID")
 
     def set_matcher(self, matcher, *args, **kwargs):
         """Set matcher.
@@ -334,9 +334,15 @@ class GraphSpaceMetric(PointSetMetric):
                 "ID": IDMatcher,
                 "FAQ": FAQMatcher,
             }
+            check_parameter_accepted_values(
+                matcher, "matcher", list(MAP_MATCHER.keys())
+            )
+
             self.matcher = MAP_MATCHER.get(matcher)(*args, **kwargs)
         else:
             self.matcher = matcher
+
+        return self.matcher
 
     @property
     def total_space_metric(self):
@@ -406,7 +412,9 @@ class GraphSpaceMetric(PointSetMetric):
         """
         aligned_end_point = self.align_point_to_point(base_point, end_point)
 
-        return self.total_space_metric.geodesic(base_point, aligned_end_point)
+        return self.total_space_metric.geodesic(
+            initial_point=base_point, end_point=aligned_end_point
+        )
 
     @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
     @_pad_with_zeros((1, "base_graph"), (2, "graph_to_permute"))
@@ -420,16 +428,7 @@ class GraphSpaceMetric(PointSetMetric):
         graph_to_permute : list of Graph or array-like, shape=[..., n, n].
             Graph to align.
         """
-        base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
-        is_single = gs.ndim(base_graph) == 2
-        if is_single:
-            base_graph = gs.expand_dims(base_graph, 0)
-            graph_to_permute = gs.expand_dims(graph_to_permute, 0)
-
-        perm = self.matcher.match(base_graph, graph_to_permute)
-        self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
-
-        return self.perm_
+        return self.matcher.match(base_graph, graph_to_permute)
 
     @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
     @_pad_with_zeros((1, "base_graph"), (2, "graph_to_permute"))
@@ -447,7 +446,10 @@ class GraphSpaceMetric(PointSetMetric):
         return self.space.permute(graph_to_permute, perm)
 
 
-class _Matcher(metaclass=ABCMeta):
+class _BaseMatcher(metaclass=ABCMeta):
+    def __init__(self):
+        self.perm_ = None
+
     @abstractmethod
     def match(self, base_graph, graph_to_permute):
         """Match graphs.
@@ -466,8 +468,17 @@ class _Matcher(metaclass=ABCMeta):
         """
         raise NotImplementedError("Not implemented")
 
+    def _broadcast(self, base_graph, graph_to_permute):
+        base_graph, graph_to_permute = gs.broadcast_arrays(base_graph, graph_to_permute)
+        is_single = gs.ndim(base_graph) == 2
+        if is_single:
+            base_graph = gs.expand_dims(base_graph, 0)
+            graph_to_permute = gs.expand_dims(graph_to_permute, 0)
 
-class FAQMatcher(_Matcher):
+        return base_graph, graph_to_permute, is_single
+
+
+class FAQMatcher(_BaseMatcher):
     """Fast Quadratic Assignment for graph matching.
 
     References
@@ -493,13 +504,21 @@ class FAQMatcher(_Matcher):
         permutation : array-like, shape=[m,n]
             Node permutation indices of the second graph.
         """
-        return [
+        base_graph, graph_to_permute, is_single = self._broadcast(
+            base_graph, graph_to_permute
+        )
+
+        perm = [
             gs.linalg.quadratic_assignment(x, y, options={"maximize": True})
             for x, y in zip(base_graph, graph_to_permute)
         ]
 
+        self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
 
-class IDMatcher(_Matcher):
+        return self.perm_
+
+
+class IDMatcher(_BaseMatcher):
     """Identity matching."""
 
     def match(self, base_graph, graph_to_permute):
@@ -517,5 +536,13 @@ class IDMatcher(_Matcher):
         permutation : array-like, shape=[m,n]
             Node permutation indices of the second graph.
         """
+        base_graph, graph_to_permute, is_single = self._broadcast(
+            base_graph, graph_to_permute
+        )
+
         n_nodes = base_graph.shape[1]
-        return gs.reshape(gs.tile(range(n_nodes), base_graph.shape[0]), (-1, n_nodes))
+        perm = gs.reshape(gs.tile(range(n_nodes), base_graph.shape[0]), (-1, n_nodes))
+
+        self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
+
+        return self.perm_
