@@ -1,11 +1,12 @@
 import logging
 import random
 
+from sklearn.base import BaseEstimator
+
 import geomstats.backend as gs
+from geomstats.errors import check_parameter_accepted_values
 from geomstats.learning._sklearn_wrapper import WrappedLinearRegression, WrappedPCA
 from geomstats.learning.frechet_mean import FrechetMean
-
-# TODO: create AAC and control flow with __new__
 
 
 def _warn_max_iterations(iteration, max_iter):
@@ -16,7 +17,19 @@ def _warn_max_iterations(iteration, max_iter):
         )
 
 
-class AACFrechet:
+class AAC:
+    def __new__(cls, *args, estimate="frechet", **kwargs):
+        MAP_ESTIMATE = {
+            "frechet": _AACFrechetMean,
+            "ggpca": _AACGGPCA,
+            "regression": _AACRegressor,
+        }
+        check_parameter_accepted_values(estimate, "estimate", list(MAP_ESTIMATE.keys()))
+
+        return MAP_ESTIMATE[estimate](*args, **kwargs)
+
+
+class _AACFrechetMean(BaseEstimator):
     def __init__(
         self,
         metric,
@@ -31,9 +44,9 @@ class AACFrechet:
         self.max_iter = max_iter
         self.init_point = init_point
 
-        mean_estimator_kwargs = mean_estimator_kwargs or {}
+        self.mean_estimator_kwargs = mean_estimator_kwargs or {}
         self.mean_estimator = FrechetMean(
-            self.metric.total_space_metric, **mean_estimator_kwargs
+            self.metric.total_space_metric, **self.mean_estimator_kwargs
         )
 
         self.estimate_ = None
@@ -63,7 +76,7 @@ class AACFrechet:
         return self
 
 
-class AACGPC:
+class _AACGGPCA(BaseEstimator):
     def __init__(
         self, metric, *, n_components=2, epsilon=1e-6, max_iter=20, init_point=None
     ):
@@ -71,8 +84,9 @@ class AACGPC:
         self.epsilon = epsilon
         self.max_iter = max_iter
         self.init_point = init_point
+        self.n_components = n_components
 
-        self.pca_solver = WrappedPCA(n_components=n_components)
+        self.pca_solver = WrappedPCA(n_components=self.n_components)
 
     @property
     def components_(self):
@@ -124,9 +138,15 @@ class AACGPC:
         return self
 
 
-class AACRegression:
+class _AACRegressor(BaseEstimator):
     def __init__(
-        self, metric, *, epsilon=1e-6, max_iter=20, init_point=None, model_kwargs=None
+        self,
+        metric,
+        *,
+        epsilon=1e-6,
+        max_iter=20,
+        init_point=None,
+        regressor_kwargs=None,
     ):
         self.metric = metric
         self.epsilon = epsilon
@@ -134,8 +154,8 @@ class AACRegression:
         self.init_point = init_point
 
         # TODO: set regressor?
-        model_kwargs = model_kwargs or {}
-        self.regressor = WrappedLinearRegression(**model_kwargs)
+        self.regressor_kwargs = regressor_kwargs or {}
+        self.regressor = WrappedLinearRegression(**self.regressor_kwargs)
 
     def fit(self, X, y):
         y_ = random.choice(y) if self.init_point is None else self.init_point
