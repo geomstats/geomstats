@@ -516,8 +516,16 @@ class RiemannianMetric(Connection, ABC):
 
         return gs.einsum("i, ikl->ikl", 1.0 / gs.sqrt(norms), basis)
 
-    def covariant_riemannian_tensor(self, base_point):
+    def covariant_riemann_tensor(self, base_point):
         r"""Compute purely covariant version of Riemannian tensor at base_point.
+
+        In the literature the covariant riemannian tensor is noted R_{ijkl}.
+
+        Convention used in the literature (tensor index notation, ref. Wikipedia) is:
+        R_{ijkl} = <R(x_k, x_l)x_j, x_i> where x_i is the i-th basis vector of the
+        tangent space at base point.
+
+        [cov_riemann_tensor]_{ijkl} = [metric_matrix]_{im} [riemann_tensor]_{jkl}^m
 
         Parameters
         ----------
@@ -528,10 +536,7 @@ class RiemannianMetric(Connection, ABC):
         -------
         covariant_tensor : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]},
                                                     {dim, [n, m]}, {dim, [n, m]}]
-            [covariant_tensor]_{ijkl} = [metric_matrix]_{im} [riemann_tensor]_{jkl}^m
-            Convention used in the literature is: R_{ijkl} = <R(x_j, x_k)x_i, x_l>
-            where x_i is the i-th basis vector of the tangent space.
-
+            covariant_riemann_tensor[..., i, j, k, l] = R_{ijkl}
             Covariant version of Riemannian curvature tensor.
         """
         riemann_tensor = self.riemann_tensor(base_point)
@@ -542,10 +547,15 @@ class RiemannianMetric(Connection, ABC):
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.
 
+        In the literature sectional curvature is noted K.
+
         For two orthonormal tangent vectors :math:`x,y` at a base point,
-        the sectional curvature is defined by :math:`<R(x, y)x, y> =
-        <R_x(y), y>` (see do Carmo). For non-orthonormal vectors vectors, it is
-        :math:`<R(x, y)x, y> / \\|x \wedge y\\|^2`.
+        the sectional curvature is defined by :math:`K(x,y) = <R(x, y)x, y>`.
+        For non-orthonormal vectors, it is
+        :math:`K(x,y) = <R(x, y)x, y> / \\|x \wedge y\\|^2`.
+
+        sectional_curvature(X, Y, P) = K(X,Y) where X, Y are tangent vectors
+        at base point P.
 
         Parameters
         ----------
@@ -567,9 +577,9 @@ class RiemannianMetric(Connection, ABC):
         Riemannian geometry (Vol. 6). Boston: Birkhäuser.
         """
         curvature = self.curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_a, base_point
+            tangent_vec_a, tangent_vec_b, tangent_vec_b, base_point
         )
-        sectional = self.inner_product(curvature, tangent_vec_b, base_point)
+        sectional = self.inner_product(curvature, tangent_vec_a, base_point)
         norm_a = self.squared_norm(tangent_vec_a, base_point)
         norm_b = self.squared_norm(tangent_vec_b, base_point)
         inner_ab = self.inner_product(tangent_vec_a, tangent_vec_b, base_point)
@@ -582,6 +592,10 @@ class RiemannianMetric(Connection, ABC):
     def scalar_curvature(self, base_point):
         r"""Compute scalar curvature at base_point.
 
+        In the literature scalar_curvature is noted S.
+
+        S = tr_{metric}(Ricci_tensor) = g^{ij} Ric_{ij} with Einstein notation.
+
         Parameters
         ----------
         base_point :  array-like, shape=[..., {dim, [n, m]}]
@@ -590,10 +604,9 @@ class RiemannianMetric(Connection, ABC):
         Returns
         -------
         curvature : array-like, shape=[...,]
-            S = tr_{metric}(Ricci_tensor) = g^{ab} Ric_{ab} with Einstein notation.
             Scalar curvature.
         """
         ricci_tensor = self.ricci_tensor(base_point)
         cometric_matrix = self.cometric_matrix(base_point)
-        scalar = gs.einsum("...ik, ...ik -> ...", cometric_matrix, ricci_tensor)
+        scalar = gs.einsum("...ij, ...ij -> ...", cometric_matrix, ricci_tensor)
         return scalar

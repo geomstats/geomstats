@@ -265,3 +265,12 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         result = geod(time).shape
         self.assertAllClose(expected, result)
+
+    @geomstats.tests.autograd_only
+    def test_scalar_curvature(self, point, atol):
+        kappa = point[..., 0]
+        expected = (gs.polygamma(1, kappa) + kappa * gs.polygamma(2, kappa)) / (
+            2 * (-1 + kappa * gs.polygamma(1, kappa)) ** 2
+        )
+        result = self.metric().scalar_curvature(point)
+        self.assertAllClose(expected, result, atol)

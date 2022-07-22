@@ -73,6 +73,14 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_dist_is_symmetric = tf_backend()
     skip_test_squared_dist_is_symmetric = tf_backend()
     skip_test_inner_product_is_symmetric = tf_backend()
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     testing_data = L2CurvesMetricTestData()
 
@@ -110,6 +118,14 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_inner_product_is_symmetric = tf_backend()
     skip_test_log_after_exp = tf_backend()
     skip_test_log_is_tangent = tf_backend()
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     testing_data = SRVMetricTestData()
 

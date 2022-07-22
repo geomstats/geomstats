@@ -1250,6 +1250,34 @@ class _ConnectionTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
+    def _scalar_curvature_shape_test_data(self, connection_args_list, space_list):
+        """Generate data to check that scalar_curvature returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        """
+        n_samples_list = [3] * len(connection_args_list)
+        random_data = []
+        for connection_args, space, n_samples in zip(
+            connection_args_list, space_list, n_samples_list
+        ):
+            base_point = space.random_point(n_samples)
+            expected_shape = (n_samples,)
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    base_point=better_squeeze(base_point),
+                    expected_shape=expected_shape,
+                )
+            )
+        return self.generate_tests([], random_data)
+
 
 class _RiemannianMetricTestData(_ConnectionTestData):
     def _dist_is_symmetric_test_data(
@@ -1763,30 +1791,63 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
         return self.generate_tests([], random_data)
 
-    def _scalar_curvature_shape_test_data(self, connection_args_list, space_list):
-        """Generate data to check that scalar_curvature returns an array of the expected shape.
+    def _sectional_curvature_shape_test_data(
+        self,
+        metric_args_list,
+        n_points_list,
+        space_list,
+        shape_list,
+        n_tangent_vecs_list,
+    ):
+        """Generate data to check that sectional_curvature returns an array of expected shape.
 
         Parameters
         ----------
-        connection_args_list : list
-            List of argument to pass to constructor of the connection.
+        metric_args_list : list
+            List of argument to pass to constructor of the metric.
         space_list : list
-            List of manifolds on which the connection is defined.
+            List of spaces on which the metric is defined.
         shape_list : list
             List of shapes for random data to generate.
         """
-        n_samples_list = [3] * len(connection_args_list)
         random_data = []
-        for connection_args, space, n_samples in zip(
-            connection_args_list, space_list, n_samples_list
+        for metric_args, n_points, space, shape, n_tangent_vecs in zip(
+            metric_args_list, n_points_list, space_list, shape_list, n_tangent_vecs_list
         ):
-            base_point = space.random_point(n_samples)
-            expected_shape = (n_samples,)
+            base_point = space.random_point(n_points)
+            tangent_vec_a = gs.squeeze(
+                space.to_tangent(
+                    gs.random.normal(
+                        size=(
+                            n_points,
+                            n_tangent_vecs,
+                        )
+                        + shape
+                    ),
+                    base_point,
+                )
+            )
+            tangent_vec_b = gs.squeeze(
+                space.to_tangent(
+                    gs.random.normal(
+                        size=(
+                            n_points,
+                            n_tangent_vecs,
+                        )
+                        + shape
+                    ),
+                    base_point,
+                )
+            )
             random_data.append(
                 dict(
-                    connection_args=connection_args,
-                    base_point=better_squeeze(base_point),
-                    expected_shape=expected_shape,
+                    metric_args=metric_args,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                    expected=(n_points, n_tangent_vecs)
+                    if n_points >= 2
+                    else (n_tangent_vecs,),
                 )
             )
         return self.generate_tests([], random_data)

@@ -19,6 +19,14 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
     skip_test_exp_after_log = pytorch_backend()
     skip_test_projection_belongs = True
     skip_test_to_tangent_at_identity_belongs_to_lie_algebra = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     testing_data = SpecialOrthogonalTestData()
 
@@ -326,6 +334,14 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_log_after_exp_at_identity = True
     skip_test_triangle_inequality_of_dist = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     testing_data = BiInvariantMetricTestData()
 
@@ -371,6 +387,14 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
 class TestInvariantMetricOnSO3(TestCase, metaclass=Parametrizer):
     metric = connection = InvariantMetric
     skip_test_exp_geodesic_ivp = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     testing_data = InvariantMetricTestData()
 

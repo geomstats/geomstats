@@ -11,7 +11,7 @@ class BetaDistributionsTestsData(_OpenSetTestData):
     shape_list = [(2,)]
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(1, 5), 2)
-    n_vecs_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = random.sample(range(2, 5), 2)
 
     def belongs_test_data(self):
         smoke_data = [
@@ -49,7 +49,7 @@ class BetaDistributionsTestsData(_OpenSetTestData):
             self.space,
             self.space_args_list,
             self.shape_list,
-            self.n_vecs_list,
+            self.n_tangent_vecs_list,
         )
 
     def to_tangent_is_tangent_in_ambient_space_test_data(self):
@@ -63,7 +63,7 @@ class BetaDistributionsTestsData(_OpenSetTestData):
         return self._random_tangent_vec_is_tangent_test_data(
             self.space,
             self.space_args_list,
-            self.n_vecs_list,
+            self.n_tangent_vecs_list,
             is_tangent_atol=gs.atol,
         )
 
@@ -84,7 +84,7 @@ class BetaMetricTestData(_RiemannianMetricTestData):
     space_list = [BetaDistributions()]
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(1, 5), 2)
-    n_vecs_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = random.sample(range(2, 5), 2)
 
     def exp_shape_test_data(self):
         return self._exp_shape_data(
@@ -129,7 +129,7 @@ class BetaMetricTestData(_RiemannianMetricTestData):
             self.metric_args_list,
             self.space_list,
             self.n_samples_list,
-            self.n_vecs_list,
+            self.n_tangent_vecs_list,
             rtol=0.1,
             atol=0.0,
         )
@@ -196,7 +196,7 @@ class BetaMetricTestData(_RiemannianMetricTestData):
             self.metric_args_list,
             self.space_list,
             self.shape_list,
-            self.n_vecs_list,
+            self.n_tangent_vecs_list,
             rtol=gs.rtol,
             atol=gs.atol,
         )
@@ -244,6 +244,15 @@ class BetaMetricTestData(_RiemannianMetricTestData):
             self.metric_args_list, self.space_list, self.n_points_list
         )
 
+    def sectional_curvature_shape_test_data(self):
+        return self._sectional_curvature_shape_test_data(
+            self.metric_args_list,
+            self.n_points_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        )
+
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(
@@ -262,5 +271,5 @@ class BetaMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def sectional_curvature_test_data(self):
-        smoke_data = [dict(n_samples=10, atol=1e-10)]
+        smoke_data = [dict(n_samples=10, atol=1e-8)]
         return self.generate_tests(smoke_data)

@@ -1209,7 +1209,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             Point on the manifold.
         """
         metric = self.metric(*metric_args)
-        covariant_metric_tensor = metric.covariant_riemannian_tensor(base_point)
+        covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
         skew_symmetry_1 = covariant_metric_tensor + gs.moveaxis(
             covariant_metric_tensor, [-2, -1], [-1, -2]
         )
@@ -1229,7 +1229,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             Point on the manifold.
         """
         metric = self.metric(*metric_args)
-        covariant_metric_tensor = metric.covariant_riemannian_tensor(base_point)
+        covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
         skew_symmetry_2 = covariant_metric_tensor + gs.moveaxis(
             covariant_metric_tensor, [-4, -3], [-3, -4]
         )
@@ -1247,7 +1247,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             Point on the manifold.
         """
         metric = self.metric(*metric_args)
-        covariant_metric_tensor = metric.covariant_riemannian_tensor(base_point)
+        covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
         bianchi_identity = (
             covariant_metric_tensor
             + gs.moveaxis(covariant_metric_tensor, [-3, -2, -1], [-2, -1, -3])
@@ -1269,12 +1269,31 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             Point on the manifold.
         """
         metric = self.metric(*metric_args)
-        covariant_metric_tensor = metric.covariant_riemannian_tensor(base_point)
+        covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
         interchange_symmetry = covariant_metric_tensor - gs.moveaxis(
             covariant_metric_tensor, [-4, -3, -2, -1], [-2, -1, -4, -3]
         )
         result = gs.all(gs.abs(interchange_symmetry) < gs.atol)
         self.assertAllClose(result, gs.array(True))
+
+    def test_sectional_curvature_shape(
+        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        """Check that scalar_curvature returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args : tuple
+            Arguments to pass to constructor of the connection.
+        base_point : array-like
+            Point on the manifold.
+        expected : tuple
+            Expected shape for the result of the ricci_tensor function.
+        """
+        metric = self.metric(*metric_args)
+        sectional = metric.sectional_curvature(tangent_vec_a, tangent_vec_b, base_point)
+        result = sectional.shape
+        self.assertAllClose(result, expected)
 
 
 class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):

@@ -16,7 +16,7 @@ class DirichletTestData(_OpenSetTestData):
     shape_list = [(n,) for n in n_list]
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(1, 5), 2)
-    n_vecs_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = random.sample(range(2, 5), 2)
 
     def belongs_test_data(self):
         smoke_data = [
@@ -54,7 +54,7 @@ class DirichletTestData(_OpenSetTestData):
             self.space,
             self.space_args_list,
             self.shape_list,
-            self.n_vecs_list,
+            self.n_tangent_vecs_list,
         )
 
     def to_tangent_is_tangent_in_ambient_space_test_data(self):
@@ -68,7 +68,7 @@ class DirichletTestData(_OpenSetTestData):
         return self._random_tangent_vec_is_tangent_test_data(
             self.space,
             self.space_args_list,
-            self.n_vecs_list,
+            self.n_tangent_vecs_list,
             is_tangent_atol=gs.atol,
         )
 
@@ -137,7 +137,7 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
     n_samples_list = random.sample(range(2, 5), 2)
     shape_list = [(n,) for n in n_list]
     n_points_list = random.sample(range(1, 5), 2)
-    n_vecs_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = random.sample(range(2, 5), 2)
 
     def exp_shape_test_data(self):
         return self._exp_shape_data(
@@ -182,7 +182,7 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
             self.metric_args_list,
             self.space_list,
             self.n_samples_list,
-            self.n_vecs_list,
+            self.n_tangent_vecs_list,
             rtol=0.1,
             atol=0.0,
         )
@@ -249,7 +249,7 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
             self.metric_args_list,
             self.space_list,
             self.shape_list,
-            self.n_vecs_list,
+            self.n_tangent_vecs_list,
             rtol=gs.rtol,
             atol=gs.atol,
         )
@@ -295,6 +295,15 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
     def covariant_riemann_tensor_is_interchange_symmetric_test_data(self):
         return self._covariant_riemann_tensor_is_interchange_symmetric_test_data(
             self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def sectional_curvature_shape_test_data(self):
+        return self._sectional_curvature_shape_test_data(
+            self.metric_args_list,
+            self.n_points_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
         )
 
     def metric_matrix_shape_test_data(self):
