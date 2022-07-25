@@ -213,7 +213,8 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             out = gs_fnc(*args, **kwargs)
             self.assertDtype(out.dtype, dtype)
 
-    def test_array_creation_with_dtype(self, func_name, args, kwargs):
+    def test_array_creation_with_dtype(self, func_name, args=(), kwargs=None):
+        kwargs = kwargs or {}
         gs_fnc = get_backend_fnc(func_name)
 
         for dtype_str in self.dtypes_str:
@@ -232,14 +233,19 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
         return self.test_array_creation_with_dtype(func_name, (shape,), {})
 
     def test_array_creation_with_dtype_given_array(
-        self, func_name, array_shape, kwargs
+        self,
+        func_name,
+        array_shape,
+        kwargs=None,
+        func_array=gs.ones,
     ):
+        kwargs = kwargs or {}
         gs_fnc = get_backend_fnc(func_name)
 
         for dtype_str in self.dtypes_str:
             # test dynamic
             dtype = gs.as_dtype(dtype_str)
-            a = gs.ones(array_shape, dtype=dtype)
+            a = func_array(array_shape, dtype=dtype)
 
             out = gs_fnc(a, **kwargs)
             self.assertDtype(out.dtype, a.dtype)
@@ -250,27 +256,32 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
                 out = gs_fnc(a, dtype=dtype_inner, **kwargs)
                 self.assertDtype(out.dtype, dtype_inner)
 
-    def test_unary_op_with_dtype_from_shape(self, func_name, array_shape, kwargs):
+    def test_unary_op_with_dtype_from_shape(self, func_name, array_shape, kwargs=None):
         return self.test_array_creation_with_dtype_given_array(
-            func_name, array_shape, kwargs
+            func_name, array_shape, kwargs=kwargs
         )
 
-    def test_unary_op_from_shape(self, func_name, array_shape, kwargs):
+    def test_unary_op_from_shape(
+        self, func_name, array_shape, kwargs=None, func_array=gs.ones
+    ):
+        kwargs = kwargs or {}
         gs_fnc = get_backend_fnc(func_name)
 
         for dtype_str in self.dtypes_str:
             dtype = gs.as_dtype(dtype_str)
-            a = gs.ones(array_shape, dtype=dtype)
+            a = func_array(array_shape, dtype=dtype)
 
             out = gs_fnc(a, **kwargs)
             self.assertDtype(out.dtype, dtype)
 
-    def test_unary_op_mult_out_from_shape(self, func_name, array_shape):
+    def test_unary_op_mult_out_from_shape(
+        self, func_name, array_shape, func_array=gs.ones
+    ):
         gs_fnc = get_backend_fnc(func_name)
 
         for dtype_str in self.dtypes_str:
             dtype = gs.as_dtype(dtype_str)
-            a = gs.ones(array_shape, dtype=dtype)
+            a = func_array(array_shape, dtype=dtype)
 
             out = gs_fnc(a)
             for out_ in out:
@@ -292,20 +303,23 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
     def test_unary_op_from_array(self, func_name, create_array):
         return self._test_op_from_array(func_name, create_array)
 
-    def test_binary_op_from_shape(self, func_name, shape_a, shape_b):
+    def test_binary_op_from_shape(
+        self, func_name, shape_a, shape_b, kwargs=None, func_a=gs.ones, func_b=gs.ones
+    ):
+        kwargs = kwargs or {}
         gs_fnc = get_backend_fnc(func_name)
 
         for i, dtype_a_str in enumerate(self.dtypes_str):
             dtype_a = gs.as_dtype(dtype_a_str)
 
-            a = gs.ones(shape_a, dtype=dtype_a)
+            a = func_a(shape_a, dtype=dtype_a)
 
             for j, dtype_b_str in enumerate(self.dtypes_str):
                 dtype_b = gs.as_dtype(dtype_b_str)
 
-                b = gs.ones(shape_b, dtype=dtype_b)
+                b = func_b(shape_b, dtype=dtype_b)
 
-                out = gs_fnc(a, b)
+                out = gs_fnc(a, b, **kwargs)
                 cmp_dtype = dtype_a if i > j else dtype_b
 
                 self.assertDtype(out.dtype, cmp_dtype)

@@ -333,20 +333,18 @@ class DtypesTestData(TestData):
 
     def array_creation_with_dtype_test_data(self):
         smoke_data = [
-            dict(func_name="array", args=([1.0, 2.0],), kwargs={}),
-            dict(func_name="linspace", args=(0.0, 1.0), kwargs={}),
+            dict(func_name="array", args=([1.0, 2.0],)),
+            dict(func_name="linspace", args=(0.0, 1.0)),
             dict(
                 func_name="mat_from_diag_triu_tril",
                 args=[gs.ones(2), gs.ones(1), gs.ones(1)],
-                kwargs={},
             ),
-            dict(func_name="random.normal", args=(), kwargs={"size": 2}),
+            dict(func_name="random.normal", kwargs={"size": 2}),
             dict(
                 func_name="random.multivariate_normal",
-                args=(),
                 kwargs={"mean": gs.ones(2), "cov": gs.ones((2, 2)), "size": 2},
             ),
-            dict(func_name="random.uniform", args=(), kwargs={"size": 2}),
+            dict(func_name="random.uniform", kwargs={"size": 2}),
         ]
 
         return self.generate_tests(smoke_data)
@@ -368,9 +366,6 @@ class DtypesTestData(TestData):
             dict(func_name="zeros_like", array_shape=2),
         ]
 
-        for data in smoke_data:
-            data.setdefault("kwargs", {})
-
         return self.generate_tests(smoke_data)
 
     def unary_op_with_dtype_from_shape_test_data(self):
@@ -385,9 +380,6 @@ class DtypesTestData(TestData):
             dict(func_name="std", array_shape=2),
             dict(func_name="std", array_shape=(2, 2), kwargs=axis_kwargs),
         ]
-
-        for data in smoke_data:
-            data.setdefault("kwargs", {})
 
         return self.generate_tests(smoke_data)
 
@@ -404,9 +396,6 @@ class DtypesTestData(TestData):
             dict(func_name="triu_to_vec", array_shape=(2, 2)),
             dict(func_name="vec_to_diag", array_shape=3),
         ]
-
-        for data in smoke_data:
-            data.setdefault("kwargs", {})
 
         return self.generate_tests(smoke_data)
 
@@ -441,6 +430,13 @@ class DtypesTestData(TestData):
         smoke_data = [
             dict(func_name="cross", shape_a=3, shape_b=3),
             dict(func_name="divide", shape_a=3, shape_b=3),
+            dict(
+                func_name="divide",
+                shape_a=3,
+                shape_b=3,
+                func_b=gs.zeros,
+                kwargs={"ignore_div_zero": True},
+            ),
             dict(func_name="dot", shape_a=3, shape_b=3),
             dict(func_name="dot", shape_a=3, shape_b=(2, 3)),
             dict(func_name="dot", shape_a=(2, 3), shape_b=(2, 3)),

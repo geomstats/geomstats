@@ -138,14 +138,21 @@ def from_numpy(x):
     return x
 
 
-def convert_to_wider_dtype(tensor_list):
+def _get_wider_dtype(tensor_list):
     dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
-    if len(set(dtype_list)) == 1:
-        return tensor_list
+    if len(dtype_list) == 1:
+        return dtype_list[0], True
 
     wider_dtype_index = max(dtype_list)
-
     wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
+
+    return wider_dtype, False
+
+
+def convert_to_wider_dtype(tensor_list):
+    wider_dtype, same = _get_wider_dtype(tensor_list)
+    if same:
+        return tensor_list
 
     tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
     return tensor_list
@@ -433,7 +440,9 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low, dtype=None):
 def divide(a, b, ignore_div_zero=False):
     if ignore_div_zero is False:
         return _np.divide(a, b)
-    return _np.divide(a, b, out=zeros_like(a), where=b != 0)
+
+    wider_dtype, _ = _get_wider_dtype([a, b])
+    return _np.divide(a, b, out=zeros(a.shape, dtype=wider_dtype), where=b != 0)
 
 
 def ravel_tril_indices(n, k=0, m=None):
