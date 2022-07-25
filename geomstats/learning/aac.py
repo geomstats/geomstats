@@ -157,12 +157,18 @@ class _AACRegressor(BaseEstimator):
         self.regressor_kwargs = regressor_kwargs or {}
         self.regressor = WrappedLinearRegression(**self.regressor_kwargs)
 
+    def _compute_pred_error(self, y, y_pred):
+        # TODO: should it be total space? it will lead to negative errors
+        return gs.sum(self.metric.total_space_metric.dist(y, y_pred))
+
     def fit(self, X, y):
+        # TODO: change variable names
         y_ = random.choice(y) if self.init_point is None else self.init_point
         aligned_y = self.metric.align_point_to_point(y_, y)
 
         self.regressor.fit(X, aligned_y)
         previous_y_pred = self.regressor.predict(X)
+        previous_pred_dist = self._compute_pred_error(aligned_y, previous_y_pred)
 
         error = self.epsilon + 1
         iteration = 0
@@ -173,10 +179,12 @@ class _AACRegressor(BaseEstimator):
             self.regressor.fit(X, aligned_y)
             y_pred = self.regressor.predict(X)
 
-            # TODO: squared distances?
-            error = gs.sum(self.metric.dist(previous_y_pred, y_pred))
+            pred_dist = self._compute_pred_error(aligned_y, y_pred)
+            # TODO: check negative errors
+            error = previous_pred_dist - pred_dist
 
             previous_y_pred = y_pred
+            previous_pred_dist = pred_dist
 
         _warn_max_iterations(iteration, self.max_iter)
 
