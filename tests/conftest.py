@@ -271,8 +271,8 @@ def _get_test_data(test_name, testing_data, test_arg_names, cls_tols):
 
     if not has_method:
         raise Exception(
-            "testing_data object doesn't have '{}' function for "
-            "pairing with '{}'".format(f"{short_name}_test_data", test_name)
+            f"testing_data object doesn't have '{short_name}_test_data' "
+            f"function forpairing with '{test_name}'"
         )
 
     test_data = []
@@ -282,7 +282,7 @@ def _get_test_data(test_name, testing_data, test_arg_names, cls_tols):
 
         test_data_ = getattr(testing_data, data_fn_str)()
         if test_data_ is None:
-            raise Exception("'{}' returned None. should be list".format(data_fn_str))
+            raise Exception(f"'{data_fn_str}' returned None. should be list")
         test_data.extend(test_data_)
 
     test_data = _dictify_test_data(test_data, test_arg_names[1:])
@@ -303,9 +303,7 @@ def _dictify_test_data(test_data, arg_names):
     for test_datum in test_data:
         if not isinstance(test_datum, dict):
             marks = test_datum[-1]
-            test_datum = {
-                name: value for name, value in zip(arg_names, test_datum[:-1])
-            }
+            test_datum = dict(zip(arg_names, test_datum[:-1]))
             test_datum["marks"] = marks
 
         tests.append(test_datum)
@@ -326,7 +324,7 @@ def _handle_tolerances(func_name, arg_names, test_data, cls_tols):
 
     func_tols = cls_tols.get(func_name, {})
 
-    tols = dict()
+    tols = {}
     for arg_name in arg_names:
         if arg_name.endswith("rtol"):
             tols[arg_name] = func_tols.get(arg_name, gs.rtol)

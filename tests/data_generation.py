@@ -148,7 +148,9 @@ class _ManifoldTestData(TestData):
 
 class _OpenSetTestData(_ManifoldTestData):
     def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        """Generate data to check that tangent vectors are in ambient space's tangent space."""
+        """Generate data to check that tangent vectors are in ambient space's
+        tangent space.
+        """
         random_data = [
             dict(
                 space_args=space_args,
@@ -355,7 +357,9 @@ class _VectorSpaceTestData(_ManifoldTestData):
 
 class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
     def matrix_representation_after_basis_representation_test_data(self):
-        """Generate data to check that changing coordinates twice gives back the point."""
+        """Generate data to check that changing coordinates twice gives back
+        the point.
+        """
         random_data = [
             dict(
                 algebra_args=space_args,
@@ -366,7 +370,9 @@ class _MatrixLieAlgebraTestData(_VectorSpaceTestData):
         return self.generate_tests([], random_data)
 
     def basis_representation_after_matrix_representation_test_data(self):
-        """Generate data to check that changing coordinates twice gives back the point."""
+        """Generate data to check that changing coordinates twice gives back
+        the point.
+        """
         random_data = [
             dict(
                 algebra_args=space_args,

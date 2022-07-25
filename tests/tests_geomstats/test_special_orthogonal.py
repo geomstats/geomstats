@@ -339,9 +339,7 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
 
         sq_dist = metric.squared_dist(point_1, point_2)
         diff = sq_dist - gs.pi**2
-        self.assertTrue(
-            diff <= 0 or abs(diff) < EPSILON, "sq_dist = {}".format(sq_dist)
-        )
+        self.assertTrue(diff <= 0 or abs(diff) < EPSILON, f"sq_dist = {sq_dist}")
 
     def test_exp(self, tangent_vec, base_point, expected):
         metric = self.Metric(SpecialOrthogonal(3, "vector"))
