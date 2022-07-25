@@ -3,20 +3,16 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.landmarks import L2LandmarksMetric, Landmarks
 from tests.conftest import Parametrizer
 from tests.data.landmarks_data import TestDataL2LandmarksMetric, TestDataLandmarks
 from tests.geometry_test_cases import NFoldManifoldTestCase, NFoldMetricTestCase
 
 
 class TestLandmarks(NFoldManifoldTestCase, metaclass=Parametrizer):
-    space = Landmarks
-
     testing_data = TestDataLandmarks()
 
 
 class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
-    metric = connection = L2LandmarksMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
