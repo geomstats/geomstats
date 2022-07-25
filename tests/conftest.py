@@ -105,7 +105,20 @@ def copy_func(f, name=None):
         f.__code__, f.__globals__, name or f.__name__, f.__defaults__, f.__closure__
     )
     fn.__dict__.update(f.__dict__)
-    return fn
+
+    # transform keyword arguments in positional arguments (due to pytest)
+    sign = inspect.signature(fn)
+    defaults, new_params = {}, []
+    for param in sign.parameters.values():
+        if isinstance(param.default, inspect._empty):
+            new_params.append(param)
+        else:
+            new_params.append(inspect.Parameter(param.name, kind=1))
+            defaults[param.name] = param.default
+    new_sign = sign.replace(parameters=new_params)
+    fn.__signature__ = new_sign
+
+    return fn, defaults
 
 
 class Parametrizer(type):
@@ -174,7 +187,7 @@ class Parametrizer(type):
             test_fn_list = [fn for fn in dir(base) if fn.startswith("test")]
             for test_fn in test_fn_list:
                 if test_fn not in attrs:
-                    attrs[test_fn] = copy_func(getattr(base, test_fn))
+                    attrs[test_fn] = getattr(base, test_fn)
 
         skip_all = attrs.get("skip_all", False)
 
@@ -188,27 +201,35 @@ class Parametrizer(type):
         )
 
         for attr_name, attr_value in attrs.copy().items():
-            if attr_name.startswith("test") and isinstance(
-                attr_value, types.FunctionType
+            if not (
+                attr_name.startswith("test")
+                and isinstance(attr_value, types.FunctionType)
             ):
+                continue
 
-                if (
-                    not skip_all
-                    and ("skip_" + attr_name, True) not in locals()["attrs"].items()
-                ):
-                    arg_names = inspect.getfullargspec(attr_value)[0]
-                    args_str = ", ".join(arg_names[1:])
+            test_func, default_values = copy_func(attr_value)
 
-                    test_data = _get_test_data(
-                        attr_name, testing_data, arg_names, cls_tols
-                    )
+            if (
+                not skip_all
+                and ("skip_" + attr_name, True) not in locals()["attrs"].items()
+            ):
+                arg_names = inspect.getfullargspec(test_func)[0]
+                args_str = ", ".join(arg_names[1:])
 
-                    attrs[attr_name] = pytest.mark.parametrize(
-                        args_str,
-                        test_data,
-                    )(attr_value)
-                else:
-                    attrs[attr_name] = pytest.mark.skip("skipped")(attr_value)
+                test_data = _get_test_data(
+                    attr_name,
+                    testing_data,
+                    arg_names,
+                    cls_tols,
+                    default_values,
+                )
+
+                attrs[attr_name] = pytest.mark.parametrize(
+                    args_str,
+                    test_data,
+                )(test_func)
+            else:
+                attrs[attr_name] = pytest.mark.skip("skipped")(attr_value)
 
         return super(Parametrizer, cls).__new__(cls, name, bases, attrs)
 
@@ -257,7 +278,7 @@ class TestCase:
         assert a.shape == b.shape
 
 
-def _get_test_data(test_name, testing_data, test_arg_names, cls_tols):
+def _get_test_data(test_name, testing_data, test_arg_names, cls_tols, default_values):
     short_name = test_name[5:]
     suffixes = ["", "_smoke", "_random"]
 
@@ -292,7 +313,9 @@ def _get_test_data(test_name, testing_data, test_arg_names, cls_tols):
         test_data,
         cls_tols,
     )
-    test_data = _pytestify_test_data(test_name, test_data, test_arg_names[1:])
+    test_data = _pytestify_test_data(
+        test_name, test_data, test_arg_names[1:], default_values
+    )
 
     return test_data
 
@@ -338,17 +361,17 @@ def _handle_tolerances(func_name, arg_names, test_data, cls_tols):
     return test_data
 
 
-def _pytestify_test_data(func_name, test_data, arg_names):
-
+def _pytestify_test_data(func_name, test_data, arg_names, default_values):
     tests = []
     for test_datum in test_data:
         try:
-            values = [test_datum[key] for key in arg_names]
+            values = [test_datum.get(key, default_values[key]) for key in arg_names]
+
         except KeyError:
             raise Exception(
                 f"{func_name} requires the following arguments: "
                 f"{', '.join(arg_names)}"
             )
-        tests.append(pytest.param(*values, marks=pytest.mark.random))
+        tests.append(pytest.param(*values, marks=test_datum.get("marks")))
 
     return tests
