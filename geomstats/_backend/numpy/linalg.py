@@ -1,7 +1,5 @@
 """Numpy based linear algebra backend."""
 
-import functools
-
 import numpy as _np
 import scipy as _scipy
 from numpy.linalg import (  # NOQA
@@ -17,7 +15,7 @@ from numpy.linalg import (  # NOQA
     svd,
 )
 
-from ._common import atol, cast
+from ._common import atol
 from ._common import to_ndarray as _to_ndarray
 from ._dtype_wrapper import _cast_fout_from_input_dtype
 
@@ -61,7 +59,9 @@ def logm(x):
 def solve_sylvester(a, b, q, tol=atol):
     if a.shape == b.shape:
         axes = (0, 2, 1) if a.ndim == 3 else (1, 0)
-        if _np.all(a == b) and _np.all(_np.abs(a - _np.transpose(a, axes)) < tol):
+        if _np.all(_np.isclose(a, b)) and _np.all(
+            _np.abs(a - _np.transpose(a, axes)) < tol
+        ):
             eigvals, eigvecs = eigh(a)
             if _np.all(eigvals >= tol):
                 tilde_q = _np.transpose(eigvecs, axes) @ q @ eigvecs

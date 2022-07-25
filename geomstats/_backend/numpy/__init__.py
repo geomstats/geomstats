@@ -388,7 +388,7 @@ def array_from_sparse(indices, data, target_shape):
 def vec_to_diag(vec):
     """Convert vector to diagonal matrix."""
     d = vec.shape[-1]
-    return _np.squeeze(vec[..., None, :] * eye(d)[None, :, :])
+    return _np.squeeze(vec[..., None, :] * eye(d, dtype=vec.dtype)[None, :, :])
 
 
 def tril_to_vec(x, k=0):
@@ -403,7 +403,8 @@ def triu_to_vec(x, k=0):
     return x[..., rows, cols]
 
 
-def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+@_update_func_default_dtype
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low, dtype=None):
     """Build matrix from given components.
 
     Forms a matrix from diagonal, strictly upper triangular and
@@ -422,7 +423,7 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     n = diag.shape[-1]
     (i,) = _np.diag_indices(n, ndim=1)
     j, k = _np.triu_indices(n, k=1)
-    mat = zeros(diag.shape + (n,))
+    mat = zeros(diag.shape + (n,), dtype=dtype)
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low

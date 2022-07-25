@@ -60,7 +60,7 @@ def get_backend_fnc(func_name):
 
 
 class TestBackends(TestCase, metaclass=Parametrizer):
-    skip_all = False
+    skip_all = True
     testing_data = BackendsTestData()
 
     def test_array_like_np(self, func_name, args):
@@ -255,7 +255,17 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             func_name, array_shape, kwargs
         )
 
-    def test_unary_op_from_shape(self, func_name, array_shape):
+    def test_unary_op_from_shape(self, func_name, array_shape, kwargs):
+        gs_fnc = get_backend_fnc(func_name)
+
+        for dtype_str in self.dtypes_str:
+            dtype = gs.as_dtype(dtype_str)
+            a = gs.ones(array_shape, dtype=dtype)
+
+            out = gs_fnc(a, **kwargs)
+            self.assertDtype(out.dtype, dtype)
+
+    def test_unary_op_mult_out_from_shape(self, func_name, array_shape):
         gs_fnc = get_backend_fnc(func_name)
 
         for dtype_str in self.dtypes_str:
@@ -263,18 +273,24 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             a = gs.ones(array_shape, dtype=dtype)
 
             out = gs_fnc(a)
-            self.assertDtype(out.dtype, dtype)
+            for out_ in out:
+                self.assertDtype(out_.dtype, dtype)
 
-    def test_unary_op_from_array(self, func_name, create_array):
+    def _test_op_from_array(self, func_name, create_array):
         # create_array to avoid using cast
         gs_fnc = get_backend_fnc(func_name)
 
         for dtype_str in self.dtypes_str:
             dtype = gs.set_default_dtype(dtype_str)
-            a = create_array()
+            args = create_array()
+            if gs.is_array(args):
+                args = [args]
 
-            out = gs_fnc(a)
+            out = gs_fnc(*args)
             self.assertDtype(out.dtype, dtype)
+
+    def test_unary_op_from_array(self, func_name, create_array):
+        return self._test_op_from_array(func_name, create_array)
 
     def test_binary_op_from_shape(self, func_name, shape_a, shape_b):
         gs_fnc = get_backend_fnc(func_name)
@@ -293,3 +309,38 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
                 cmp_dtype = dtype_a if i > j else dtype_b
 
                 self.assertDtype(out.dtype, cmp_dtype)
+
+    def test_ternary_op_from_shape(
+        self,
+        func_name,
+        shape_a,
+        shape_b,
+        shape_c,
+        func_a=gs.ones,
+        func_b=gs.ones,
+        func_c=gs.ones,
+    ):
+
+        gs_fnc = get_backend_fnc(func_name)
+
+        for i, dtype_a_str in enumerate(self.dtypes_str):
+            dtype_a = gs.as_dtype(dtype_a_str)
+
+            a = func_a(shape_a, dtype=dtype_a)
+
+            for j, dtype_b_str in enumerate(self.dtypes_str):
+                dtype_b = gs.as_dtype(dtype_b_str)
+
+                b = func_b(shape_b, dtype=dtype_b)
+
+                for k, dtype_c_str in enumerate(self.dtypes_str):
+                    dtype_c = gs.as_dtype(dtype_c_str)
+                    c = func_c(shape_c, dtype=dtype_c)
+
+                    out = gs_fnc(a, b, c)
+                    cmp_dtype = gs.as_dtype(self.dtypes_str[max([i, j, k])])
+
+                    self.assertDtype(out.dtype, cmp_dtype)
+
+    def test_ternary_op_from_array(self, func_name, create_array):
+        return self._test_op_from_array(func_name, create_array)

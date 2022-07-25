@@ -96,7 +96,7 @@ def _cast_fout_from_dtype(dtype_pos=None, _func=None):
             out = func(*args, **kwargs)
 
             if out.dtype.kind == "f":
-                if out.dtype is not None and len(args) > dtype_pos:
+                if dtype_pos is not None and len(args) > dtype_pos:
                     dtype = args[dtype_pos]
                 else:
                     dtype = kwargs.get("dtype", _DEFAULT_DTYPE)

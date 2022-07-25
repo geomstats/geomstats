@@ -335,6 +335,11 @@ class DtypesTestData(TestData):
         smoke_data = [
             dict(func_name="array", args=([1.0, 2.0],), kwargs={}),
             dict(func_name="linspace", args=(0.0, 1.0), kwargs={}),
+            dict(
+                func_name="mat_from_diag_triu_tril",
+                args=[gs.ones(2), gs.ones(1), gs.ones(1)],
+                kwargs={},
+            ),
             dict(func_name="random.normal", args=(), kwargs={"size": 2}),
             dict(
                 func_name="random.multivariate_normal",
@@ -351,7 +356,7 @@ class DtypesTestData(TestData):
             dict(func_name="eye", shape=2),
             dict(func_name="ones", shape=2),
             dict(func_name="zeros", shape=2),
-            dict(func_name="random.rand", array_shape=3),
+            dict(func_name="random.rand", shape=3),
         ]
 
         return self.generate_tests(smoke_data)
@@ -388,9 +393,25 @@ class DtypesTestData(TestData):
 
     def unary_op_from_shape_test_data(self):
         smoke_data = [
+            dict(func_name="copy", array_shape=(2, 2)),
             dict(func_name="diagonal", array_shape=(2, 2)),
+            dict(func_name="flatten", array_shape=(2, 2)),
+            dict(func_name="from_numpy", array_shape=(2, 2)),
+            dict(func_name="get_slice", array_shape=(2, 2), kwargs={"indices": [0]}),
             dict(func_name="trace", array_shape=(2, 2)),
+            dict(func_name="to_numpy", array_shape=(2, 2)),
+            dict(func_name="tril_to_vec", array_shape=(2, 2)),
+            dict(func_name="triu_to_vec", array_shape=(2, 2)),
+            dict(func_name="vec_to_diag", array_shape=3),
         ]
+
+        for data in smoke_data:
+            data.setdefault("kwargs", {})
+
+        return self.generate_tests(smoke_data)
+
+    def unary_op_mult_out_from_shape_test_data(self):
+        smoke_data = [dict(func_name="linalg.qr", array_shape=(3, 3))]
 
         return self.generate_tests(smoke_data)
 
@@ -419,12 +440,41 @@ class DtypesTestData(TestData):
     def binary_op_from_shape_test_data(self):
         smoke_data = [
             dict(func_name="cross", shape_a=3, shape_b=3),
+            dict(func_name="divide", shape_a=3, shape_b=3),
             dict(func_name="dot", shape_a=3, shape_b=3),
+            dict(func_name="dot", shape_a=3, shape_b=(2, 3)),
+            dict(func_name="dot", shape_a=(2, 3), shape_b=(2, 3)),
             dict(func_name="matmul", shape_a=(2, 2), shape_b=(2, 2)),
             dict(func_name="matmul", shape_a=(2, 3), shape_b=(3, 2)),
             dict(func_name="matvec", shape_a=(3, 3), shape_b=3),
+            dict(func_name="matvec", shape_a=(3, 3), shape_b=(2, 3)),
+            dict(func_name="matvec", shape_a=(2, 3, 3), shape_b=(2, 3)),
             dict(func_name="outer", shape_a=3, shape_b=3),
-            dict(func_name="outer", shape_a=3, shape_b=4),
+            dict(func_name="outer", shape_a=3, shape_b=(2, 3)),
+            dict(func_name="outer", shape_a=(2, 3), shape_b=(2, 3)),
         ]
 
+        return self.generate_tests(smoke_data)
+
+    def ternary_op_from_shape_test_data(self):
+        smoke_data = [
+            dict(
+                func_name="linalg.solve_sylvester",
+                shape_a=(3, 3),
+                shape_b=(1, 1),
+                shape_c=(3, 1),
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def ternary_op_from_array_test_data(self):
+        def _create_sylvester():
+            a = SPDMatrices(3).random_point()
+            b = a
+            q = rand(3, 3)
+            return a, b, q
+
+        smoke_data = [
+            dict(func_name="linalg.solve_sylvester", create_array=_create_sylvester)
+        ]
         return self.generate_tests(smoke_data)
