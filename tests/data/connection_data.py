@@ -17,11 +17,11 @@ class ConnectionTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def parallel_transport_test_data(self):
-        smoke_data = [dict(dim=2, n_sample=2)]
+        smoke_data = [dict(dim=2, n_samples=2)]
         return self.generate_tests(smoke_data)
 
     def parallel_transport_trajectory_test_data(self):
-        smoke_data = [dict(dim=2, n_sample=2)]
+        smoke_data = [dict(dim=2, n_samples=2)]
         return self.generate_tests(smoke_data)
 
     def exp_connection_metric_test_data(self):
@@ -29,12 +29,12 @@ class ConnectionTestData(TestData):
             dict(
                 dim=2,
                 tangent_vec=gs.array([[0.25, 0.5], [0.30, 0.2]]),
-                point=gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]]),
+                base_point=gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]]),
             ),
             dict(
                 dim=2,
                 tangent_vec=gs.array([0.25, 0.5]),
-                point=gs.array([gs.pi / 2, 0]),
+                base_point=gs.array([gs.pi / 2, 0]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -116,12 +116,12 @@ class ConnectionTestData(TestData):
             dict(
                 space=Hypersphere(2),
                 n_geodesic_points=10,
-                vec=gs.array([[2.0, 0.0, -1.0]] * 2),
+                vector=gs.array([[2.0, 0.0, -1.0]] * 2),
             ),
             dict(
                 space=SpecialOrthogonal(n=4),
                 n_geodesic_points=10,
-                vec=gs.random.rand(2, 4, 4),
+                vector=gs.random.rand(2, 4, 4),
             ),
         ]
         return self.generate_tests(smoke_data)

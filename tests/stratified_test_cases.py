@@ -109,9 +109,9 @@ class PointSetMetricTestCase(TestCase):
         if is_list:
             self.assertTrue(results.shape[-d_array - 2] == n_geo)
 
-    def test_geodesic_bounds(self, metric, pt_start, pt_end):
-        geodesic = metric.geodesic(pt_start, pt_end)
+    def test_geodesic_bounds(self, metric, start_point, end_point):
+        geodesic = metric.geodesic(start_point, end_point)
 
         results = geodesic([0.0, 1.0])
-        for pt, pt_res in zip([pt_start, pt_end], results):
+        for pt, pt_res in zip([start_point, end_point], results):
             self.assertAllClose(pt_res.to_array(), pt.to_array())

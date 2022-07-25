@@ -139,6 +139,11 @@ Invariant Metric
 .. automodule:: geomstats.geometry.invariant_metric
    :members:
 
+Sasaki Metric
+----------------
+.. automodule:: geomstats.geometry.sasaki_metric
+   :members:
+
 Sub Riemannian Metric
 ---------------------
 .. automodule:: geomstats.geometry.sub_riemannian_metric

@@ -18,12 +18,14 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    Space = GeneralLinear
+
     def belongs_test_data(self):
         smoke_data = [
-            dict(n=3, mat=gs.eye(3), expected=True),
-            dict(n=3, mat=gs.ones((3, 3)), expected=False),
-            dict(n=3, mat=gs.ones(3), expected=False),
-            dict(n=3, mat=[gs.eye(3), gs.ones((3, 3))], expected=[True, False]),
+            dict(n=3, point=gs.eye(3), expected=True),
+            dict(n=3, point=gs.ones((3, 3)), expected=False),
+            dict(n=3, point=gs.ones(3), expected=False),
+            dict(n=3, point=[gs.eye(3), gs.ones((3, 3))], expected=[True, False]),
         ]
         return self.generate_tests(smoke_data)
 
@@ -33,7 +35,7 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
                 n=2,
                 mat1=[[1.0, 0.0], [0.0, 2.0]],
                 mat2=[[2.0, 0.0], [0.0, 1.0]],
-                expected=2.0 * GeneralLinear(2).identity,
+                expected=2.0 * self.Space(2).identity,
             )
         ]
         return self.generate_tests(smoke_data)
@@ -89,7 +91,7 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
         smoke_data = [
             dict(
                 n=3,
-                tangent_vec=[
+                point=[
                     [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
                     [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
                 ],
@@ -113,7 +115,7 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
     def orbit_test_data(self):
         point = gs.array([[gs.exp(4.0), 0.0], [0.0, gs.exp(2.0)]])
         sqrt = gs.array([[gs.exp(2.0), 0.0], [0.0, gs.exp(1.0)]])
-        identity = GeneralLinear(2).identity
+        identity = self.Space(2).identity
         time = gs.linspace(0.0, 1.0, 3)
         smoke_data = [
             dict(
@@ -136,78 +138,8 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2, True), (3, True), (2, False)]
-        smoke_n_points_list = [1, 2, 1]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_samples_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            GeneralLinear,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            GeneralLinear, self.space_args_list, self.n_vecs_list
-        )
-
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        return self._to_tangent_is_tangent_in_ambient_space_test_data(
-            GeneralLinear, self.space_args_list, self.shape_list
-        )
-
     def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            GeneralLinear,
-            self.space_args_list,
-            self.shape_list,
-            self.n_samples_list,
-            amplitude=10,
-            atol=gs.atol * 100000,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            GeneralLinear, self.space_args_list, self.n_samples_list, atol=1e-2
-        )
-
-    def compose_inverse_point_with_point_is_identity_test_data(self):
-        return self._compose_inverse_point_with_point_is_identity_test_data(
-            GeneralLinear, self.space_args_list, self.n_points_list, atol=1e-4
-        )
-
-    def compose_point_with_inverse_point_is_identity_test_data(self):
-        return self._compose_point_with_inverse_point_is_identity_test_data(
-            GeneralLinear, self.space_args_list, self.n_points_list, atol=1e-4
-        )
-
-    def compose_point_with_identity_is_point_test_data(self):
-        return self._compose_point_with_identity_is_point_test_data(
-            GeneralLinear, self.space_args_list, self.n_points_list
-        )
-
-    def compose_identity_with_point_is_point_test_data(self):
-        return self._compose_identity_with_point_is_point_test_data(
-            GeneralLinear, self.space_args_list, self.n_points_list
-        )
-
-    def to_tangent_at_identity_belongs_to_lie_algebra_test_data(self):
-        return self._to_tangent_at_identity_belongs_to_lie_algebra_test_data(
-            self.space_args_list, self.shape_list, self.n_vecs_list
-        )
+        return super().log_after_exp_test_data(amplitude=10.0)
 
 
 class SquareMatricesTestData(_MatrixLieAlgebraTestData):
@@ -218,6 +150,8 @@ class SquareMatricesTestData(_MatrixLieAlgebraTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    Space = SquareMatrices
+
     def belongs_test_data(self):
         smoke_data = [
             dict(n=3, mat=gs.eye(3), expected=True),
@@ -225,60 +159,3 @@ class SquareMatricesTestData(_MatrixLieAlgebraTestData):
             dict(n=3, mat=gs.ones(3), expected=False),
         ]
         return self.generate_tests(smoke_data)
-
-    def matrix_representation_after_basis_representation_test_data(self):
-        return self._matrix_representation_after_basis_representation_test_data(
-            SquareMatrices, self.space_args_list, self.n_samples_list
-        )
-
-    def basis_representation_after_matrix_representation_test_data(self):
-        return self._basis_representation_after_matrix_representation_test_data(
-            SquareMatrices, self.space_args_list, self.n_samples_list
-        )
-
-    def basis_belongs_test_data(self):
-        return self._basis_belongs_test_data(self.space_args_list)
-
-    def basis_cardinality_test_data(self):
-        return self._basis_cardinality_test_data(self.space_args_list)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_samples_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            SquareMatrices,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            SquareMatrices, self.space_args_list, self.n_vecs_list
-        )
-
-    def to_tangent_is_projection_test_data(self):
-        return self._to_tangent_is_projection_test_data(
-            SquareMatrices,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_point_is_tangent_test_data(self):
-        return self._random_point_is_tangent_test_data(
-            self.space_args_list, self.n_points_list
-        )

@@ -112,10 +112,10 @@ The core developers are currently:
   * Jules Deschamps, 
   * Saiteja Utpala, 
   * Adele Myers, 
-  * Anna Callissano,
+  * Anna Calissano,
   * Yann Thanwerdas,
   * Elodie Maignant,
-  * Tom Swzagier,
+  * Tom Szwagier,
   * Nina Miolane.
 
 Technical Committee
