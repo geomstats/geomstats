@@ -35,8 +35,8 @@ class SymmetricMatrices(VectorSpace):
         """Compute the basis of the vector space of symmetric matrices."""
         indices, values = [], []
         k = -1
-        for row in gs.arange(self.n):
-            for col in gs.arange(row, self.n):
+        for row in range(self.n):
+            for col in range(row, self.n):
                 k += 1
                 if row == col:
                     indices.append((k, row, row))

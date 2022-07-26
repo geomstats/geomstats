@@ -1355,7 +1355,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             0.0,
         )
 
-        indices = [(row, row, n) for row in gs.arange(n)]
+        indices = [(row, row, n) for row in range(n)]
         add_basis = gs.array_from_sparse(indices, [1.0] * n, (n, n + 1, n + 1))
 
         return gs.vstack([basis, add_basis])

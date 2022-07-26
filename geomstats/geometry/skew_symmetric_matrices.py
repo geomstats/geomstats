@@ -42,11 +42,12 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
             )
         indices, data = [], []
         k = -1
-        for row in gs.arange(n - 1):
-            for col in gs.arange(row + 1, n):
+        for row in range(n - 1):
+            for col in range(row + 1, n):
                 k += 1
                 indices.extend([(k, row, col), (k, col, row)])
-                data.extend([[1.0, -1.0]])
+                data.extend([1.0, -1.0])
+
         return gs.array_from_sparse(indices, data, (k + 1, n, n))
 
     def belongs(self, mat, atol=gs.atol):
