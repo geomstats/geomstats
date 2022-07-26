@@ -662,7 +662,7 @@ def array_from_sparse(indices, data, target_shape):
     """
     return _torch.sparse.FloatTensor(
         _torch.LongTensor(indices).t(),
-        _torch.FloatTensor(cast(data, float32)),
+        array(data),
         _torch.Size(target_shape),
     ).to_dense()
 
