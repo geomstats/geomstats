@@ -1040,7 +1040,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
                 ]
             )
 
-            mask_i = gs.get_mask_i_float(i, n_quaternions)
+            mask_i = gs.array_from_sparse([(i,)], [1.0], n_quaternions)
             rot_mat_i = gs.transpose(gs.hstack([column_1, column_2, column_3]))
             rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
             rot_mat += gs.einsum("...,...ij->...ij", mask_i, rot_mat_i)
