@@ -1815,27 +1815,16 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             metric_args_list, n_points_list, space_list, shape_list, n_tangent_vecs_list
         ):
             base_point = space.random_point(n_points)
+            size = (n_tangent_vecs,) + shape if n_points == 1 else (n_points,) + shape
             tangent_vec_a = gs.squeeze(
                 space.to_tangent(
-                    gs.random.normal(
-                        size=(
-                            n_points,
-                            n_tangent_vecs,
-                        )
-                        + shape
-                    ),
+                    gs.random.normal(size=size),
                     base_point,
                 )
             )
             tangent_vec_b = gs.squeeze(
                 space.to_tangent(
-                    gs.random.normal(
-                        size=(
-                            n_points,
-                            n_tangent_vecs,
-                        )
-                        + shape
-                    ),
+                    gs.random.normal(size=size),
                     base_point,
                 )
             )
@@ -1845,9 +1834,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
                     base_point=base_point,
-                    expected=(n_points, n_tangent_vecs)
-                    if n_points >= 2
-                    else (n_tangent_vecs,),
+                    expected=(n_points,) if n_points >= 2 else (n_tangent_vecs,),
                 )
             )
         return self.generate_tests([], random_data)
