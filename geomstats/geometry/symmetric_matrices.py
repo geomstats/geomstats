@@ -33,18 +33,19 @@ class SymmetricMatrices(VectorSpace):
 
     def _create_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
-        basis = []
+        indices, values = [], []
+        k = -1
         for row in gs.arange(self.n):
             for col in gs.arange(row, self.n):
+                k += 1
                 if row == col:
-                    indices = [(row, row)]
-                    values = [1.0]
+                    indices.append((k, row, row))
+                    values.append(1.0)
                 else:
-                    indices = [(row, col), (col, row)]
-                    values = [1.0, 1.0]
-                basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
-        basis = gs.stack(basis)
-        return basis
+                    indices.extend([(k, row, col), (k, col, row)])
+                    values.extend([1.0, 1.0])
+
+        return gs.array_from_sparse(indices, values, (k + 1, self.n, self.n))
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a matrix is symmetric.
