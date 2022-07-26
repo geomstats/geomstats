@@ -16,11 +16,12 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.information_manifolds import InformationManifold
 
 N_STEPS = 100
 
 
-class DirichletDistributions(OpenSet):
+class DirichletDistributions(OpenSet, InformationManifold):
     """Class for the manifold of Dirichlet distributions.
 
     This is Dirichlet = :math:`(R_+^*)^dim`, the positive quadrant of the

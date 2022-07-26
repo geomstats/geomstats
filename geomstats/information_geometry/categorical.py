@@ -12,9 +12,10 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import HypersphereMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.information_manifolds import InformationManifold
 
 
-class CategoricalDistributions(LevelSet):
+class CategoricalDistributions(LevelSet, InformationManifold):
     r"""Class for the manifold of categorical distributions.
 
     This is the set of `n+1`-tuples of positive reals that sum up to one,

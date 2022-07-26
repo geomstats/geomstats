@@ -10,9 +10,10 @@ import geomstats.errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.information_manifolds import InformationManifold
 
 
-class ExponentialDistributions(OpenSet):
+class ExponentialDistributions(OpenSet, InformationManifold):
     """Class for the manifold of exponential distributions.
 
     This is the parameter space of exponential distributions

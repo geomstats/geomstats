@@ -16,6 +16,7 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.information_manifolds import InformationManifold
 
 warnings.filterwarnings("error")
 
@@ -37,7 +38,7 @@ change of variable, either for a point or a vector.
 """
 
 
-class GammaDistributions(OpenSet):
+class GammaDistributions(OpenSet, InformationManifold):
     """Class for the manifold of Gamma distributions.
 
     This is :math: Gamma = `(R_+^*)^2`, the positive quadrant of the
