@@ -97,16 +97,17 @@ def pytorch_error_msg(a, b, rtol, atol):
 
 
 def copy_func(f, name=None):
-    """
-    Return a function with same code, globals, defaults, closure, and
-    name (or provide a new name)
+    """Return a function with same code, globals, defaults, closure, and
+    name (or provide a new name).
+
+    Additionally, keyword arguments are transformed into positional arguments for
+    compatibility with pytest.
     """
     fn = types.FunctionType(
         f.__code__, f.__globals__, name or f.__name__, f.__defaults__, f.__closure__
     )
     fn.__dict__.update(f.__dict__)
 
-    # transform keyword arguments in positional arguments (due to pytest)
     sign = inspect.signature(fn)
     defaults, new_params = {}, []
     for param in sign.parameters.values():
