@@ -11,7 +11,7 @@ class GammaTestData(_OpenSetTestData):
     shape_list = [(2,)]
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(1, 5), 3)
-    n_tangent_vecs_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
     def belongs_test_data(self):
         smoke_data = [
@@ -186,7 +186,7 @@ class GammaTestData(_OpenSetTestData):
 class GammaMetricTestData(_RiemannianMetricTestData):
     Space = GammaDistributions
     Metric = GammaMetric
-    metric_args_list = []
+    connection_args_list = metric_args_list = [()]
     space_list = [GammaDistributions()]
     space_args_list = []
     n_samples_list = random.sample(range(2, 5), 2)
@@ -194,50 +194,6 @@ class GammaMetricTestData(_RiemannianMetricTestData):
     n_norms_list = random.sample(range(1, 3), 2)
     n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
-
-    def riemann_tensor_shape_test_data(self):
-        return self._riemann_tensor_shape_test_data(
-            self.metric_args_list, self.space_list
-        )
-
-    def ricci_tensor_shape_test_data(self):
-        return self._ricci_tensor_shape_test_data(
-            self.metric_args_list, self.space_list
-        )
-
-    def scalar_curvature_shape_test_data(self):
-        return self._scalar_curvature_shape_test_data(
-            self.metric_args_list, self.space_list
-        )
-
-    def covariant_riemann_tensor_is_skew_symmetric_1_test_data(self):
-        return self._covariant_riemann_tensor_is_skew_symmetric_1_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def covariant_riemann_tensor_is_skew_symmetric_2_test_data(self):
-        return self._covariant_riemann_tensor_is_skew_symmetric_2_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def covariant_riemann_tensor_bianchi_identity_test_data(self):
-        return self._covariant_riemann_tensor_bianchi_identity_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def covariant_riemann_tensor_is_interchange_symmetric_test_data(self):
-        return self._covariant_riemann_tensor_is_interchange_symmetric_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def sectional_curvature_shape_test_data(self):
-        return self._sectional_curvature_shape_test_data(
-            self.metric_args_list,
-            self.n_points_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-        )
 
     def metric_matrix_shape_test_data(self):
         random_data = [
@@ -509,8 +465,8 @@ class GammaMetricTestData(_RiemannianMetricTestData):
 
     def scalar_curvature_test_data(self):
         random_data = [
-            dict(point=self.space().random_point(), atol=gs.atol),
-            dict(point=self.space().random_point(2), atol=gs.atol),
-            dict(point=self.space().random_point(3), atol=gs.atol),
+            dict(point=self.Space().random_point(), atol=gs.atol),
+            dict(point=self.Space().random_point(2), atol=gs.atol),
+            dict(point=self.Space().random_point(3), atol=gs.atol),
         ]
         return self.generate_tests([], random_data)

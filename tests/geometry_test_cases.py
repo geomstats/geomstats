@@ -882,7 +882,7 @@ class ConnectionTestCase(TestCase):
         expected : tuple
             Expected shape for the result of the riemann_tensor function.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Metric(*connection_args)
         tensor = connection.riemann_tensor(gs.array(base_point))
         result = gs.shape(tensor)
         self.assertAllClose(result, expected)
@@ -899,7 +899,7 @@ class ConnectionTestCase(TestCase):
         expected : tuple
             Expected shape for the result of the ricci_tensor function.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Metric(*connection_args)
         tensor = connection.ricci_tensor(gs.array(base_point))
         result = gs.shape(tensor)
         self.assertAllClose(result, expected)
@@ -916,7 +916,7 @@ class ConnectionTestCase(TestCase):
         expected : tuple
             Expected shape for the result of the ricci_tensor function.
         """
-        connection = self.connection(*connection_args)
+        connection = self.Metric(*connection_args)
         tensor = connection.scalar_curvature(gs.array(base_point))
         result = gs.shape(tensor)
         self.assertAllClose(result, expected)
@@ -1210,7 +1210,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         base_point : array-like
             Point on the manifold.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
         skew_symmetry_1 = covariant_metric_tensor + gs.moveaxis(
             covariant_metric_tensor, [-2, -1], [-1, -2]
@@ -1230,7 +1230,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         base_point : array-like
             Point on the manifold.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
         skew_symmetry_2 = covariant_metric_tensor + gs.moveaxis(
             covariant_metric_tensor, [-4, -3], [-3, -4]
@@ -1248,7 +1248,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         base_point : array-like
             Point on the manifold.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
         bianchi_identity = (
             covariant_metric_tensor
@@ -1270,7 +1270,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         base_point : array-like
             Point on the manifold.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
         interchange_symmetry = covariant_metric_tensor - gs.moveaxis(
             covariant_metric_tensor, [-4, -3, -2, -1], [-2, -1, -4, -3]
@@ -1292,7 +1292,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         expected : tuple
             Expected shape for the result of the ricci_tensor function.
         """
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         sectional = metric.sectional_curvature(tangent_vec_a, tangent_vec_b, base_point)
         result = sectional.shape
         self.assertAllClose(result, expected)

@@ -13,6 +13,12 @@ TF_OR_PYTORCH_BACKEND = (
     geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
 )
 
+NOT_AUTOGRAD = (
+    geomstats.tests.tf_backend()
+    or geomstats.tests.pytorch_backend()
+    or geomstats.tests.np_backend()
+)
+
 
 class TestBetaDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = BetaDistributionsTestsData()
@@ -55,6 +61,14 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_triangle_inequality_of_dist = True
+    skip_test_riemann_tensor_shape = NOT_AUTOGRAD
+    skip_test_ricci_tensor_shape = NOT_AUTOGRAD
+    skip_test_scalar_curvature_shape = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
+    skip_test_sectional_curvature_shape = NOT_AUTOGRAD
 
     testing_data = BetaMetricTestData()
     Space = testing_data.Space
@@ -76,7 +90,7 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         initial_vectors = gs.array([[vec_x, vec_x] for vec_x in vectors[:, 0]])
         points = gs.array([[param_a, param_a] for param_a in points[:, 0]])
         result_points = self.Metric().exp(initial_vectors, points)
-        result = gs.isclose(result_points[:, 0], result_points[:, 1]).all()
+        result = gs.isclose(result_points[:, 0], result_points[:, 1])
         expected = gs.array([True] * n_samples)
         self.assertAllClose(expected, result)
 
@@ -91,6 +105,7 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.array([n_samples, dim, dim, dim])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.autograd_only
     def test_sectional_curvature(self, n_samples, atol):
         point = self.Space().random_point(n_samples)
         tangent_vec_a = self.Space().metric.random_unit_tangent_vec(point)

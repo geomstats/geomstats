@@ -715,7 +715,7 @@ class _ConnectionTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
-    def _riemann_tensor_shape_test_data(self, connection_args_list, space_list):
+    def riemann_tensor_shape_test_data(self):
         """Generate data to check that riemann_tensor returns an array of the expected shape.
 
         Parameters
@@ -727,23 +727,26 @@ class _ConnectionTestData(TestData):
         shape_list : list
             List of shapes for random data to generate.
         """
-        n_samples_list = [3] * len(connection_args_list)
         random_data = []
-        for connection_args, space, n_samples in zip(
-            connection_args_list, space_list, n_samples_list
+        for n_points, connection_args, space in zip(
+            self.n_points_list,
+            self.connection_args_list,
+            self.space_list,
         ):
-            base_point = space.random_point(n_samples)
-            expected_shape = (n_samples,) + space.shape * 4
+            base_point = space.random_point(n_points)
+            expected_shape = (
+                (n_points,) + space.shape * 4 if n_points >= 2 else space.shape * 4
+            )
             random_data.append(
                 dict(
                     connection_args=connection_args,
                     base_point=better_squeeze(base_point),
-                    expected_shape=expected_shape,
+                    expected=expected_shape,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _ricci_tensor_shape_test_data(self, connection_args_list, space_list):
+    def ricci_tensor_shape_test_data(self):
         """Generate data to check that ricci_tensor returns an array of the expected shape.
 
         Parameters
@@ -755,23 +758,26 @@ class _ConnectionTestData(TestData):
         shape_list : list
             List of shapes for random data to generate.
         """
-        n_samples_list = [3] * len(connection_args_list)
         random_data = []
-        for connection_args, space, n_samples in zip(
-            connection_args_list, space_list, n_samples_list
+        for n_points, connection_args, space in zip(
+            self.n_points_list,
+            self.connection_args_list,
+            self.space_list,
         ):
-            base_point = space.random_point(n_samples)
-            expected_shape = (n_samples,) + space.shape * 2
+            base_point = space.random_point(n_points)
+            expected_shape = (
+                (n_points,) + space.shape * 2 if n_points >= 2 else space.shape * 2
+            )
             random_data.append(
                 dict(
                     connection_args=connection_args,
                     base_point=better_squeeze(base_point),
-                    expected_shape=expected_shape,
+                    expected=expected_shape,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def _scalar_curvature_shape_test_data(self, connection_args_list, space_list):
+    def scalar_curvature_shape_test_data(self):
         """Generate data to check that scalar_curvature returns an array of the expected shape.
 
         Parameters
@@ -783,18 +789,19 @@ class _ConnectionTestData(TestData):
         shape_list : list
             List of shapes for random data to generate.
         """
-        n_samples_list = [3] * len(connection_args_list)
         random_data = []
-        for connection_args, space, n_samples in zip(
-            connection_args_list, space_list, n_samples_list
+        for n_points, connection_args, space in zip(
+            self.n_points_list,
+            self.connection_args_list,
+            self.space_list,
         ):
-            base_point = space.random_point(n_samples)
-            expected_shape = (n_samples,)
+            base_point = space.random_point(n_points)
+            expected_shape = expected_shape = (n_points,) if n_points >= 2 else ()
             random_data.append(
                 dict(
                     connection_args=connection_args,
                     base_point=better_squeeze(base_point),
-                    expected_shape=expected_shape,
+                    expected=expected_shape,
                 )
             )
         return self.generate_tests([], random_data)
@@ -983,9 +990,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
         return self.generate_tests([], random_data)
 
-    def _covariant_riemann_tensor_is_skew_symmetric_1_test_data(
-        self, metric_args_list, space_list, n_points_list, atol=gs.atol
-    ):
+    def covariant_riemann_tensor_is_skew_symmetric_1_test_data(self):
         """Generate data to check the first skew symmetry of covariant riemann tensor.
 
         Parameters
@@ -1001,7 +1006,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         """
         random_data = []
         for metric_args, space, n_points in zip(
-            metric_args_list, space_list, n_points_list
+            self.metric_args_list, self.space_list, self.n_points_list
         ):
             base_point = space.random_point(n_points)
             random_data.append(
@@ -1012,9 +1017,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
         return self.generate_tests([], random_data)
 
-    def _covariant_riemann_tensor_is_skew_symmetric_2_test_data(
-        self, metric_args_list, space_list, n_points_list, atol=gs.atol
-    ):
+    def covariant_riemann_tensor_is_skew_symmetric_2_test_data(self):
         """Generate data to check the second skew symmetry of covariant riemann tensor.
 
         Parameters
@@ -1030,7 +1033,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         """
         random_data = []
         for metric_args, space, n_points in zip(
-            metric_args_list, space_list, n_points_list
+            self.metric_args_list, self.space_list, self.n_points_list
         ):
             base_point = space.random_point(n_points)
             random_data.append(
@@ -1041,9 +1044,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
         return self.generate_tests([], random_data)
 
-    def _covariant_riemann_tensor_bianchi_identity_test_data(
-        self, metric_args_list, space_list, n_points_list, atol=gs.atol
-    ):
+    def covariant_riemann_tensor_bianchi_identity_test_data(self):
         """Generate data to check the bianchi identity of covariant riemann tensor.
 
         Parameters
@@ -1059,7 +1060,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         """
         random_data = []
         for metric_args, space, n_points in zip(
-            metric_args_list, space_list, n_points_list
+            self.metric_args_list, self.space_list, self.n_points_list
         ):
             base_point = space.random_point(n_points)
             random_data.append(
@@ -1070,9 +1071,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
         return self.generate_tests([], random_data)
 
-    def _covariant_riemann_tensor_is_interchange_symmetric_test_data(
-        self, metric_args_list, space_list, n_points_list, atol=gs.atol
-    ):
+    def covariant_riemann_tensor_is_interchange_symmetric_test_data(self):
         """Generate data to check the interchange symmetry of covariant riemann tensor.
 
         Parameters
@@ -1088,7 +1087,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         """
         random_data = []
         for metric_args, space, n_points in zip(
-            metric_args_list, space_list, n_points_list
+            self.metric_args_list, self.space_list, self.n_points_list
         ):
             base_point = space.random_point(n_points)
             random_data.append(
@@ -1099,14 +1098,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
         return self.generate_tests([], random_data)
 
-    def _sectional_curvature_shape_test_data(
-        self,
-        metric_args_list,
-        n_points_list,
-        space_list,
-        shape_list,
-        n_tangent_vecs_list,
-    ):
+    def sectional_curvature_shape_test_data(self):
         """Generate data to check that sectional_curvature returns an array of expected shape.
 
         Parameters
@@ -1120,7 +1112,11 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         """
         random_data = []
         for metric_args, n_points, space, shape, n_tangent_vecs in zip(
-            metric_args_list, n_points_list, space_list, shape_list, n_tangent_vecs_list
+            self.metric_args_list,
+            self.n_points_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
         ):
             base_point = space.random_point(n_points)
             size = (n_tangent_vecs,) + shape if n_points == 1 else (n_points,) + shape

@@ -8,6 +8,16 @@ from tests.conftest import Parametrizer
 from tests.data.gamma_data import GammaMetricTestData, GammaTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
+TF_OR_PYTORCH_BACKEND = (
+    geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+)
+
+NOT_AUTOGRAD = (
+    geomstats.tests.tf_backend()
+    or geomstats.tests.pytorch_backend()
+    or geomstats.tests.np_backend()
+)
+
 
 class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = GammaTestData()
@@ -45,87 +55,35 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
         expected = gs.squeeze(gs.stack(pdf, axis=0))
         self.assertAllClose(result, expected)
 
-    def test_maximum_likelihood_fit(self, sample, expected):
-        result = self.Space().maximum_likelihood_fit(sample)
-        self.assertAllClose(result, expected)
-
-    def test_natural_to_standard(self, point, expected):
-        result = self.Space().natural_to_standard(point)
-        self.assertAllClose(result, expected)
-
-    def test_natural_to_standard_vectorization(self, point):
-        result = self.Space().natural_to_standard(point).shape
-        expected = point.shape
-        self.assertAllClose(result, expected)
-
-    def test_standard_to_natural(self, point, expected):
-        result = self.Space().standard_to_natural(point)
-        self.assertAllClose(result, expected)
-
-    def test_standard_to_natural_vectorization(self, point):
-        result = self.Space().standard_to_natural(point).shape
-        expected = point.shape
-        self.assertAllClose(result, expected)
-
-    def test_tangent_natural_to_standard(self, vec, point, expected):
-        result = self.Space().tangent_natural_to_standard(vec, point)
-        self.assertAllClose(result, expected)
-
-    def test_tangent_natural_to_standard_vectorization(self, vec, point):
-        result = self.Space().tangent_natural_to_standard(vec, point).shape
-        expected = vec.shape
-        self.assertAllClose(result, expected)
-
-    def test_tangent_standard_to_natural(self, vec, point, expected):
-        result = self.Space().tangent_standard_to_natural(vec, point)
-        self.assertAllClose(result, expected)
-
-    def test_tangent_standard_to_natural_vectorization(self, vec, point):
-        result = self.Space().tangent_standard_to_natural(vec, point).shape
-        expected = vec.shape
-        self.assertAllClose(result, expected)
-
 
 class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    skip_test_exp_shape = True
-    skip_test_log_shape = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_exp_belongs = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_log_is_tangent = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_dist_is_symmetric = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_dist_is_positive = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_squared_dist_is_symmetric = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_squared_dist_is_positive = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_dist_is_norm_of_log = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_dist_point_to_itself_is_zero = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
-    skip_test_exp_after_log = True
+    skip_test_exp_shape = True  # because several base points for one vector
+    skip_test_log_shape = TF_OR_PYTORCH_BACKEND
+    skip_test_exp_belongs = TF_OR_PYTORCH_BACKEND
+    skip_test_log_is_tangent = TF_OR_PYTORCH_BACKEND
+    skip_test_dist_is_symmetric = TF_OR_PYTORCH_BACKEND
+    skip_test_dist_is_positive = TF_OR_PYTORCH_BACKEND
+    skip_test_squared_dist_is_symmetric = True
+    skip_test_squared_dist_is_positive = TF_OR_PYTORCH_BACKEND
+    skip_test_dist_is_norm_of_log = TF_OR_PYTORCH_BACKEND
+    skip_test_dist_point_to_itself_is_zero = TF_OR_PYTORCH_BACKEND
     skip_test_log_after_exp = True
+    skip_test_exp_after_log = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_ivp_belongs = True
     skip_test_geodesic_bvp_belongs = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
-    skip_test_triangle_inequality_of_dist = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-    )
+    skip_test_triangle_inequality_of_dist = True
+    skip_test_riemann_tensor_shape = NOT_AUTOGRAD
+    skip_test_ricci_tensor_shape = NOT_AUTOGRAD
+    skip_test_scalar_curvature_shape = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
+    skip_test_sectional_curvature_shape = NOT_AUTOGRAD
 
     testing_data = GammaMetricTestData()
 
@@ -266,5 +224,5 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = (gs.polygamma(1, kappa) + kappa * gs.polygamma(2, kappa)) / (
             2 * (-1 + kappa * gs.polygamma(1, kappa)) ** 2
         )
-        result = self.metric().scalar_curvature(point)
+        result = self.Metric().scalar_curvature(point)
         self.assertAllClose(expected, result, atol)
