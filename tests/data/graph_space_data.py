@@ -168,8 +168,8 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
         smoke_data = [
             dict(
                 space_args=(2,),
-                start_point=[graph_a, graph_a, graph_b],
-                end_point=[graph_b, graph_c, graph_c],
+                point_a=[graph_a, graph_a, graph_b],
+                point_b=[graph_b, graph_c, graph_c],
                 expected=gs.array(
                     [6.0, 4.0, 2.0],
                 ),

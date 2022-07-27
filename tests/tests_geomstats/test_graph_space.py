@@ -97,7 +97,7 @@ class TestGraphPoint(PointTestCase, metaclass=Parametrizer):
 
 
 class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
-    skip_all = True
+    skip_all = IS_NOT_NP
 
     skip_test_geodesic_output_type = True
 
@@ -138,11 +138,11 @@ class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
         if is_multiple:
             self.assertTrue(results.shape[-d_array - 2] == n_geo)
 
-    def test_geodesic_bounds(self, metric, pt_start, pt_end):
-        geodesic = metric.geodesic(pt_start, pt_end)
+    def test_geodesic_bounds(self, metric, start_point, end_point):
+        geodesic = metric.geodesic(start_point, end_point)
 
         results = geodesic([0.0, 1.0])
-        self.assertAllClose(results, gs.stack([pt_start, pt_end]))
+        self.assertAllClose(results, gs.stack([start_point, end_point]))
 
     def test_matching(self, metric, point_a, point_b, matcher, expected):
         metric.matcher = matcher
