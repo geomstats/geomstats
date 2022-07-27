@@ -20,9 +20,10 @@ class Visualizer(ABC):
     def __init__(self, fig, position, space, **kwargs):
         self.fig = fig
         self.position = position
-        self.ax = self.fig.add_subplot(position, projection=self.projection)
         self.space = space
         self.dim = self.space.dim
+        self.projection = "3d" if self.dim > 3 else None
+        self.ax = self.fig.add_subplot(position, projection=self.projection)
 
     def scatter(self, point, **kwargs):
         """Plot points on the manifold.
@@ -97,7 +98,9 @@ class Visualizer(ABC):
         geod_at_t = geodesic(times)
         self.ax.plot(*gs.transpose(geod_at_t), **kwargs)
 
-    def plot_grid(self, first_point, last_point, n_cells=5, steps=None, **kwargs):
+    def plot_geodesic_grid(
+        self, first_point, last_point, n_cells=5, steps=None, **kwargs
+    ):
         """Plot geodesic grid on the manifold.
 
         Parameters
@@ -113,45 +116,48 @@ class Visualizer(ABC):
         steps : float or list, shape=(,) or [dim,]
             Wanted step size between points in the grid, horizontally and vertically.
         """
-        if n_cells is not None:
-            n_cells = gs.array(n_cells) * gs.ones(self.dim, dtype=int) + gs.ones(
-                self.dim, dtype=int
-            )
-        else:
-            if steps is not None:
-                steps = gs.array(steps) * gs.ones(self.dim)
-            else:
-                raise ValueError(
-                    "Either the number of cells of the grid or the steps must input."
+        if self.dim >= 2:
+            if n_cells is not None:
+                n_cells = gs.array(n_cells) * gs.ones(self.dim, dtype=int) + gs.ones(
+                    self.dim, dtype=int
                 )
-
-        grid = gs.array(
-            [
-                gs.linspace(first_point[i], last_point[i], n_cells[i])
-                for i in range(self.dim)
-            ]
-        )
-        meshgrid = gs.reshape(
-            gs.array(list(product(*grid))),
-            (
-                *n_cells,
-                self.dim,
-            ),
-        )
-
-        combinations = list(product(*list([list(range(n_cell)) for n_cell in n_cells])))
-
-        for combination in combinations:
-            grid_point = meshgrid[combination]
-            for i in range(self.dim):
-                if combination[i] < n_cells[i] - 1:
-                    next = gs.zeros(self.dim, int)
-                    next[i] = 1
-                    next_combination = tuple(gs.array(combination) + next)
-                    next_point = meshgrid[next_combination]
-                    self.plot_geodesic(
-                        initial_point=grid_point, end_point=next_point, **kwargs
+            else:
+                if steps is not None:
+                    steps = gs.array(steps) * gs.ones(self.dim)
+                else:
+                    raise ValueError(
+                        "Input either the number of cells or the number of steps."
                     )
+
+            grid = gs.array(
+                [
+                    gs.linspace(first_point[i], last_point[i], n_cells[i])
+                    for i in range(self.dim)
+                ]
+            )
+            meshgrid = gs.reshape(
+                gs.array(list(product(*grid))),
+                (
+                    *n_cells,
+                    self.dim,
+                ),
+            )
+
+            combinations = list(
+                product(*list([list(range(n_cell)) for n_cell in n_cells]))
+            )
+
+            for combination in combinations:
+                grid_point = meshgrid[combination]
+                for i in range(self.dim):
+                    if combination[i] < n_cells[i] - 1:
+                        next = gs.zeros(self.dim, int)
+                        next[i] = 1
+                        next_combination = tuple(gs.array(combination) + next)
+                        next_point = meshgrid[next_combination]
+                        self.plot_geodesic(
+                            initial_point=grid_point, end_point=next_point, **kwargs
+                        )
 
     def plot_geodesic_ball(self, center, radius=1, n_rays=100, **kwargs):
         """Plot geodesic ball on the manifold.
@@ -175,7 +181,10 @@ class Visualizer(ABC):
             self.space.metric.exp(tangent_vec=vec, base_point=center)
             for vec in tangent_vec
         ]
-        self.ax.plot(*gs.transpose(ball), **kwargs)
+        if self.dim == 1:
+            self.ax.plot(*gs.transpose(ball), [0] * len(directions), **kwargs)
+        else:
+            self.ax.plot(*gs.transpose(ball), **kwargs)
 
     def plot_geodesic_star(self, center, n_rays=13, radius=1, **kwargs):
         """Plot geodesic star on the manifold.
@@ -203,21 +212,8 @@ class Visualizer(ABC):
 class Visualizer1D(Visualizer):
     """Visualizer for 1-D parameter distributions."""
 
-    def __init__(self, ax, space):
-        super(Visualizer1D, self).__init__(ax=ax, space=space)
-
-    # def scatter(self, ax, point, **kwargs):
-    #     """Plot points on the manifold.
-
-    #     Parameters
-    #     ----------
-    #     ax : matplotlib window
-    #         Location of the plot.
-    #     point : array-like, shape=[...,1]
-    #         Point on the manifold.
-    #     """
-    #     n_points = len(point)
-    #     ax.scatter(point, gs.zeros(n_points), **kwargs)
+    def __init__(self, fig, position, space):
+        super(Visualizer1D, self).__init__(fig=fig, position=position, space=space)
 
     def directions(self, n_rays):
         return gs.array([[-1.0], [1.0]])
