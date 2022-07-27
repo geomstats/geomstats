@@ -111,7 +111,7 @@ def copy_func(f, name=None):
     sign = inspect.signature(fn)
     defaults, new_params = {}, []
     for param in sign.parameters.values():
-        if isinstance(param.default, inspect._empty):
+        if param.default is inspect._empty:
             new_params.append(param)
         else:
             new_params.append(inspect.Parameter(param.name, kind=1))
@@ -366,7 +366,10 @@ def _pytestify_test_data(func_name, test_data, arg_names, default_values):
     tests = []
     for test_datum in test_data:
         try:
-            values = [test_datum.get(key, default_values[key]) for key in arg_names]
+            values = [
+                test_datum.get(key) if key in test_datum else default_values[key]
+                for key in arg_names
+            ]
 
         except KeyError:
             raise Exception(
