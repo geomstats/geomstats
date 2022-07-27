@@ -171,10 +171,10 @@ class TestBackends(TestCase, metaclass=Parametrizer):
         else:
             self.assertFalse(out)
 
-    def test_func_out_allclose(self, func_name, args, expected, **kwargs):
+    def test_func_out_allclose(self, func_name, args, expected):
         gs_fnc = get_backend_fnc(func_name)
 
-        out = gs_fnc(*args, **kwargs)
+        out = gs_fnc(*args)
         self.assertAllClose(out, expected)
 
     def test_func_out_equal(self, func_name, args, expected):

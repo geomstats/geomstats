@@ -20,8 +20,7 @@ IS_NOT_NP = not np_backend()
 
 
 class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
-    skip_all = True
-
+    skip_all = IS_NOT_NP
     testing_data = GraphSpaceTestData()
 
     def test_random_point_output_shape(self, space, n_samples):
@@ -91,7 +90,6 @@ class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
 
 class TestGraphPoint(PointTestCase, metaclass=Parametrizer):
     skip_all = IS_NOT_NP
-
     testing_data = GraphTestData()
 
     def test_to_networkx(self, point):
@@ -169,6 +167,7 @@ class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
 
 
 class TestDecorators(TestCase, metaclass=Parametrizer):
+    skip_all = IS_NOT_NP
     testing_data = DecoratorsTestData()
 
     def test_vectorize_graph(self, fnc, points):

@@ -4,11 +4,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.product_manifold import NFoldManifold, ProductManifold
-from geomstats.geometry.product_riemannian_metric import (
-    NFoldMetric,
-    ProductRiemannianMetric,
-)
+from geomstats.geometry.product_manifold import ProductManifold
 from tests.conftest import Parametrizer
 from tests.data.product_manifold_data import (
     NFoldManifoldTestData,
@@ -20,24 +16,22 @@ from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
-    space = ProductManifold
     skip_test_random_tangent_vec_is_tangent = True
     skip_test_projection_belongs = True
 
     testing_data = ProductManifoldTestData()
 
     def test_dimension(self, manifolds, default_point_type, expected):
-        space = self.space(manifolds, default_point_type=default_point_type)
+        space = self.Space(manifolds, default_point_type=default_point_type)
         self.assertAllClose(space.dim, expected)
 
     def test_regularize(self, manifolds, default_point_type, point):
-        space = self.space(manifolds, default_point_type=default_point_type)
+        space = self.Space(manifolds, default_point_type=default_point_type)
         result = space.regularize(point)
         self.assertAllClose(result, point)
 
 
 class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = ProductRiemannianMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -56,7 +50,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     def test_inner_product_matrix(
         self, manifolds, default_point_type, point, base_point
     ):
-        metric = self.metric(manifolds, default_point_type=default_point_type)
+        metric = self.Metric(manifolds, default_point_type=default_point_type)
         logs = metric.log(point, base_point)
         result = metric.inner_product(logs, logs)
         expected = metric.squared_dist(base_point, point)
@@ -95,21 +89,18 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
 
 class TestNFoldManifold(ManifoldTestCase, metaclass=Parametrizer):
-    space = NFoldManifold
-
     testing_data = NFoldManifoldTestData()
 
     def test_belongs(self, base, power, point, expected):
-        space = self.space(base, power)
+        space = self.Space(base, power)
         self.assertAllEqual(space.belongs(point), expected)
 
     def test_shape(self, base, power, expected):
-        space = self.space(base, power)
+        space = self.Space(base, power)
         self.assertAllClose(space.shape, expected)
 
 
 class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = NFoldMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True

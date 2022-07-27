@@ -2,7 +2,6 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer, autograd_backend, np_backend
 from tests.data.invariant_metric_data import InvariantMetricTestData
@@ -10,7 +9,6 @@ from tests.geometry_test_cases import RiemannianMetricTestCase
 
 
 class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = InvariantMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -39,7 +37,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_inner_product_mat_at_identity_shape(
         self, group, metric_mat_at_identity, left_or_right
     ):
-        metric = self.metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
         dim = metric.group.dim
         result = metric.metric_mat_at_identity
         self.assertAllClose(gs.shape(result), (dim, dim))
@@ -47,7 +45,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_inner_product_matrix_shape(
         self, group, metric_mat_at_identity, left_or_right, base_point
     ):
-        metric = self.metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
         base_point = None
         dim = metric.group.dim
         result = metric.metric_matrix(base_point=base_point)
@@ -61,7 +59,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_inner_product_matrix_and_its_inverse(
         self, group, metric_mat_at_identity, left_or_right
     ):
-        metric = self.metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
         inner_prod_mat = metric.metric_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
         result = gs.matmul(inv_inner_prod_mat, inner_prod_mat)
@@ -79,21 +77,21 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         base_point,
         expected,
     ):
-        metric = self.metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
     def test_structure_constant(
         self, group, tangent_vec_a, tangent_vec_b, tangent_vec_c, expected
     ):
-        metric = InvariantMetric(group=group)
+        metric = self.Metric(group=group)
         result = metric.structure_constant(tangent_vec_a, tangent_vec_b, tangent_vec_c)
         self.assertAllClose(result, expected)
 
     def test_dual_adjoint_structure_constant(
         self, group, tangent_vec_a, tangent_vec_b, tangent_vec_c
     ):
-        metric = InvariantMetric(group=group)
+        metric = self.Metric(group=group)
         result = metric.inner_product_at_identity(
             metric.dual_adjoint(tangent_vec_a, tangent_vec_b), tangent_vec_c
         )
@@ -103,13 +101,13 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_connection(self, group, tangent_vec_a, tangent_vec_b, expected):
-        metric = InvariantMetric(group)
+        metric = self.Metric(group)
         self.assertAllClose(metric.connection(tangent_vec_a, tangent_vec_b), expected)
 
     def test_connection_translation_map(
         self, group, tangent_vec_a, tangent_vec_b, point, expected
     ):
-        metric = InvariantMetric(group)
+        metric = self.Metric(group)
         translation_map = group.tangent_translation_map(point)
         tan_a = translation_map(tangent_vec_a)
         tan_b = translation_map(tangent_vec_b)
@@ -118,14 +116,14 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, rtol=1e-3, atol=1e-3)
 
     def test_sectional_curvature(self, group, tangent_vec_a, tangent_vec_b, expected):
-        metric = InvariantMetric(group)
+        metric = self.Metric(group)
         result = metric.sectional_curvature(tangent_vec_a, tangent_vec_b)
         self.assertAllClose(result, expected)
 
     def test_sectional_curvature_translation_point(
         self, group, tangent_vec_a, tangent_vec_b, point, expected
     ):
-        metric = InvariantMetric(group)
+        metric = self.Metric(group)
         translation_map = group.tangent_translation_map(point)
         tan_a = translation_map(tangent_vec_a)
         tan_b = translation_map(tangent_vec_b)
@@ -136,7 +134,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_curvature(
         self, group, tangent_vec_a, tangent_vec_b, tangent_vec_c, expected
     ):
-        metric = InvariantMetric(group)
+        metric = self.Metric(group)
         result = metric.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None
         )
@@ -145,7 +143,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_curvature_translation_point(
         self, group, tangent_vec_a, tangent_vec_b, tangent_vec_c, point, expected
     ):
-        metric = InvariantMetric(group)
+        metric = self.Metric(group)
         translation_map = group.tangent_translation_map(point)
         tan_a = translation_map(tangent_vec_a)
         tan_b = translation_map(tangent_vec_b)
@@ -163,7 +161,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         tangent_vec_d,
         expected,
     ):
-        metric = self.metric(group)
+        metric = self.Metric(group)
         result = metric.curvature_derivative(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d
         )
@@ -180,7 +178,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         base_point,
         expected,
     ):
-        metric = InvariantMetric(group=group)
+        metric = self.Metric(group=group)
         translation_map = group.tangent_translation_map(base_point)
         tan_a = translation_map(tangent_vec_a)
         tan_b = translation_map(tangent_vec_b)
@@ -193,7 +191,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self,
         group,
     ):
-        metric = InvariantMetric(group=group)
+        metric = self.Metric(group=group)
         basis = metric.normal_basis(group.lie_algebra.basis)
 
         vector = gs.random.rand(2, len(basis))
@@ -208,7 +206,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     def test_integrated_se3_exp_at_id(self, group):
         lie_algebra = group.lie_algebra
-        metric = InvariantMetric(group=group)
+        metric = self.Metric(group=group)
         canonical_metric = group.left_canonical_metric
         basis = metric.normal_basis(lie_algebra.basis)
 
@@ -224,7 +222,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_integrated_exp_and_log_at_id(self, group):
-        metric = InvariantMetric(group=group)
+        metric = self.Metric(group=group)
         basis = group.lie_algebra.basis
 
         vector = gs.random.rand(2, len(basis))
@@ -236,7 +234,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(tangent_vec, result, atol=1e-5)
 
     def test_integrated_parallel_transport(self, group, n, n_samples):
-        metric = InvariantMetric(group=group)
+        metric = self.Metric(group=group)
         point = group.identity
         tan_b = Matrices(n + 1, n + 1).random_point(n_samples)
         tan_b = group.to_tangent(tan_b)
@@ -268,7 +266,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_left_exp_and_exp_from_identity_left_diag_metrics(self, metric_args, point):
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         left_exp_from_id = metric.left_exp_from_identity(point)
         exp_from_id = metric.exp_from_identity(point)
 
@@ -276,7 +274,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_left_log_and_log_from_identity_left_diag_metrics(self, metric_args, point):
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         left_log_from_id = metric.left_log_from_identity(point)
         log_from_id = metric.log_from_identity(point)
 
@@ -284,7 +282,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_exp_log_composition_at_identity(self, metric_args, tangent_vec):
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         result = metric.left_log_from_identity(
             point=metric.left_exp_from_identity(tangent_vec=tangent_vec)
         )
@@ -292,7 +290,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_log_exp_composition_at_identity(self, metric_args, point):
-        metric = self.metric(*metric_args)
+        metric = self.Metric(*metric_args)
         result = metric.left_exp_from_identity(
             tangent_vec=metric.left_log_from_identity(point=point)
         )

@@ -10,7 +10,7 @@ from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 
 
 class DirichletTestData(_OpenSetTestData):
-    space = DirichletDistributions
+    Space = DirichletDistributions
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]
     shape_list = [(n,) for n in n_list]
@@ -29,48 +29,10 @@ class DirichletTestData(_OpenSetTestData):
 
     def random_point_test_data(self):
         random_data = [
-            dict(point=self.space(2).random_point(1), expected=(2,)),
-            dict(point=self.space(3).random_point(5), expected=(5, 3)),
+            dict(point=self.Space(2).random_point(1), expected=(2,)),
+            dict(point=self.Space(3).random_point(5), expected=(5, 3)),
         ]
         return self.generate_tests([], random_data)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_samples_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            self.space,
-            self.space_args_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-        )
-
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        return self._to_tangent_is_tangent_in_ambient_space_test_data(
-            self.space,
-            self.space_args_list,
-            self.shape_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            self.space,
-            self.space_args_list,
-            self.n_tangent_vecs_list,
-            is_tangent_atol=gs.atol,
-        )
 
     def sample_test_data(self):
         smoke_data = [
@@ -83,19 +45,19 @@ class DirichletTestData(_OpenSetTestData):
         random_data = [
             dict(
                 dim=2,
-                point=self.space(2).random_point(3),
+                point=self.Space(2).random_point(3),
                 n_samples=4,
                 expected=gs.ones((3, 4)),
             ),
             dict(
                 dim=3,
-                point=self.space(3).random_point(1),
+                point=self.Space(3).random_point(1),
                 n_samples=2,
                 expected=gs.ones(2),
             ),
             dict(
                 dim=4,
-                point=self.space(4).random_point(2),
+                point=self.Space(4).random_point(2),
                 n_samples=3,
                 expected=gs.ones((2, 3)),
             ),
@@ -106,17 +68,17 @@ class DirichletTestData(_OpenSetTestData):
         random_data = [
             dict(
                 dim=2,
-                point=self.space(2).random_point(2),
+                point=self.Space(2).random_point(2),
                 n_samples=10,
             ),
             dict(
                 dim=3,
-                point=self.space(3).random_point(4),
+                point=self.Space(3).random_point(4),
                 n_samples=10,
             ),
             dict(
                 dim=4,
-                point=self.space(4).random_point(1),
+                point=self.Space(4).random_point(1),
                 n_samples=10,
             ),
         ]
@@ -124,8 +86,9 @@ class DirichletTestData(_OpenSetTestData):
 
 
 class DirichletMetricTestData(_RiemannianMetricTestData):
-    space = DirichletDistributions
-    metric = DirichletMetric
+    Space = DirichletDistributions
+    Metric = DirichletMetric
+
     n_list = random.sample(range(2, 5), 2)
     metric_args_list = list(
         zip(
@@ -136,131 +99,16 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
     space_args_list = [(n,) for n in n_list]
     n_samples_list = random.sample(range(2, 5), 2)
     shape_list = [(n,) for n in n_list]
-    n_points_list = random.sample(range(1, 5), 2)
-    n_tangent_vecs_list = random.sample(range(2, 5), 2)
+    n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
-    def exp_shape_test_data(self):
-        return self._exp_shape_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_samples_list,
-        )
-
-    def log_shape_test_data(self):
-        return self._log_shape_test_data(
-            self.metric_args_list,
-            self.space_list,
-        )
-
-    def exp_belongs_test_data(self):
-        return self._exp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_samples_list,
-        )
-
-    def log_is_tangent_test_data(self):
-        return self._log_is_tangent_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_samples_list,
-        )
-
-    def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_samples_list,
-            rtol=0.1,
-            atol=0.0,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_samples_list,
-            self.n_tangent_vecs_list,
-            rtol=0.1,
-            atol=0.0,
-        )
-
-    def squared_dist_is_symmetric_test_data(self):
-        return self._squared_dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            0.1,
-            0.1,
-        )
-
-    def squared_dist_is_positive_test_data(self):
-        return self._squared_dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            is_positive_atol=gs.atol,
-        )
-
-    def dist_is_symmetric_test_data(self):
-        return self._dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            rtol=0.1,
-            atol=gs.atol,
-        )
-
-    def dist_is_positive_test_data(self):
-        return self._dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            is_positive_atol=gs.atol,
-        )
-
-    def dist_is_norm_of_log_test_data(self):
-        return self._dist_is_norm_of_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            self.n_points_list,
-            rtol=0.1,
-            atol=gs.atol,
-        )
-
-    def dist_point_to_itself_is_zero_test_data(self):
-        return self._dist_point_to_itself_is_zero_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            rtol=gs.rtol,
-            atol=1e-5,
-        )
-
-    def inner_product_is_symmetric_test_data(self):
-        return self._inner_product_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            rtol=gs.rtol,
-            atol=gs.atol,
-        )
-
-    def triangle_inequality_of_dist_test_data(self):
-        return self._triangle_inequality_of_dist_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            atol=gs.atol * 10000,
-        )
+    tolerances = {
+        "dist_point_to_itself_is_zero": {"atol": 1e-5},
+        "dist_is_symmetric": {"atol": 5e-1},
+        "dist_is_norm_of_log": {"atol": 5e-1},
+        "exp_subspace": {"atol": 1e-5},
+        "triangle_inequality_of_dist": {"atol": 1e-10},
+    }
 
     def riemann_tensor_shape_test_data(self):
         return self._riemann_tensor_shape_test_data(
@@ -308,15 +156,15 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
 
     def metric_matrix_shape_test_data(self):
         random_data = [
-            dict(dim=2, point=self.space(2).random_point(1), expected=(2, 2)),
-            dict(dim=2, point=self.space(2).random_point(3), expected=(3, 2, 2)),
-            dict(dim=3, points=self.space(3).random_point(2), expected=(2, 3, 3)),
+            dict(dim=2, point=self.Space(2).random_point(1), expected=(2, 2)),
+            dict(dim=2, point=self.Space(2).random_point(3), expected=(3, 2, 2)),
+            dict(dim=3, point=self.Space(3).random_point(2), expected=(2, 3, 3)),
         ]
         return self.generate_tests([], random_data)
 
     def metric_matrix_dim_2_test_data(self):
         random_data = [
-            dict(point=self.space(2).random_point(n_points))
+            dict(point=self.Space(2).random_point(n_points))
             for n_points in self.n_points_list
         ]
         return self.generate_tests([], random_data)
@@ -324,18 +172,18 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
     def christoffels_vectorization_test_data(self):
         n_points = 2
         dim = 3
-        points = self.space(dim).random_point(n_points)
-        christoffel_1 = self.metric(dim).christoffels(points[0, :])
-        christoffel_2 = self.metric(dim).christoffels(points[1, :])
+        points = self.Space(dim).random_point(n_points)
+        christoffel_1 = self.Metric(dim).christoffels(points[0, :])
+        christoffel_2 = self.Metric(dim).christoffels(points[1, :])
         expected = gs.stack((christoffel_1, christoffel_2), axis=0)
         random_data = [dict(dim=dim, point=points, expected=expected)]
         return self.generate_tests([], random_data)
 
     def christoffels_shape_test_data(self):
         random_data = [
-            dict(dim=2, point=self.space(2).random_point(1), expected=(2, 2, 2)),
-            dict(dim=2, point=self.space(2).random_point(3), expected=(3, 2, 2, 2)),
-            dict(dim=3, point=self.space(3).random_point(2), expected=(2, 3, 3, 3)),
+            dict(dim=2, point=self.Space(2).random_point(1), expected=(2, 2, 2)),
+            dict(dim=2, point=self.Space(2).random_point(3), expected=(3, 2, 2, 2)),
+            dict(dim=3, point=self.Space(3).random_point(2), expected=(2, 3, 3, 3)),
         ]
         return self.generate_tests([], random_data)
 
@@ -357,7 +205,7 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
 
         gs.random.seed(123)
         n_points = 3
-        points = self.space(2).random_point(n_points)
+        points = self.Space(2).random_point(n_points)
         param_a, param_b = points[:, 0], points[:, 1]
         c1, c2, c3 = coefficients(param_a, param_b)
         c4, c5, c6 = coefficients(param_b, param_a)
@@ -372,7 +220,7 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
 
     def exp_vectorization_test_data(self):
         dim = 3
-        point = self.space(dim).random_point()
+        point = self.Space(dim).random_point()
         tangent_vec = gs.array([1.0, 0.5, 2.0])
         n_tangent_vecs = 10
         t = gs.linspace(0.0, 1.0, n_tangent_vecs)
@@ -416,22 +264,22 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
         random_data = [
             dict(
                 dim=2,
-                point=self.space(2).random_point(1),
-                vec=self.space(2).random_point(1),
+                point=self.Space(2).random_point(1),
+                vec=self.Space(2).random_point(1),
                 n_steps=50,
                 expected=(50, 2),
             ),
             dict(
                 dim=2,
-                point=self.space(2).random_point(3),
-                vec=self.space(2).random_point(3),
+                point=self.Space(2).random_point(3),
+                vec=self.Space(2).random_point(3),
                 n_steps=50,
                 expected=(3, 50, 2),
             ),
             dict(
                 dim=3,
-                point=self.space(3).random_point(4),
-                vec=self.space(3).random_point(4),
+                point=self.Space(3).random_point(4),
+                vec=self.Space(3).random_point(4),
                 n_steps=50,
                 expected=(4, 50, 3),
             ),
@@ -442,22 +290,22 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
         random_data = [
             dict(
                 dim=2,
-                point_a=self.space(2).random_point(1),
-                point_b=self.space(2).random_point(1),
+                point_a=self.Space(2).random_point(1),
+                point_b=self.Space(2).random_point(1),
                 n_steps=50,
                 expected=(50, 2),
             ),
             dict(
                 dim=2,
-                point_a=self.space(2).random_point(3),
-                point_b=self.space(2).random_point(3),
+                point_a=self.Space(2).random_point(3),
+                point_b=self.Space(2).random_point(3),
                 n_steps=50,
                 expected=(3, 50, 2),
             ),
             dict(
                 dim=3,
-                point_a=self.space(3).random_point(4),
-                point_b=self.space(3).random_point(4),
+                point_a=self.Space(3).random_point(4),
+                point_b=self.Space(3).random_point(4),
                 n_steps=50,
                 expected=(4, 50, 3),
             ),
@@ -468,13 +316,13 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
         random_data = [
             dict(
                 dim=2,
-                point_a=self.space(2).random_point(),
-                point_b=self.space(2).random_point(),
+                point_a=self.Space(2).random_point(),
+                point_b=self.Space(2).random_point(),
             ),
             dict(
                 dim=4,
-                point_a=self.space(4).random_point(),
-                point_b=self.space(4).random_point(),
+                point_a=self.Space(4).random_point(),
+                point_b=self.Space(4).random_point(),
             ),
         ]
         return self.generate_tests([], random_data)
@@ -483,22 +331,22 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
         random_data = [
             dict(
                 dim=2,
-                point=self.space(2).random_point(),
-                vec=self.space(2).random_point(),
+                point=self.Space(2).random_point(),
+                vec=self.Space(2).random_point(),
                 time=0.5,
                 expected=(2,),
             ),
             dict(
                 dim=3,
-                point=self.space(3).random_point(),
-                vec=self.space(3).random_point(4),
+                point=self.Space(3).random_point(),
+                vec=self.Space(3).random_point(4),
                 time=0.5,
                 expected=(4, 3),
             ),
             dict(
                 dim=3,
-                point=self.space(3).random_point(),
-                vec=self.space(3).random_point(4),
+                point=self.Space(3).random_point(),
+                vec=self.Space(3).random_point(4),
                 time=gs.linspace(0.0, 1.0, 10),
                 expected=(4, 10, 3),
             ),
@@ -507,8 +355,8 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
 
     def jacobian_christoffels_test_data(self):
         random_data = [
-            dict(dim=2, point=self.space(2).random_point(2)),
-            dict(dim=4, point=self.space(4).random_point(2)),
+            dict(dim=2, point=self.Space(2).random_point(2)),
+            dict(dim=4, point=self.Space(4).random_point(2)),
         ]
         return self.generate_tests([], random_data)
 
@@ -516,13 +364,13 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
         random_data = [
             dict(
                 dim=2,
-                point_a=self.space(2).random_point(),
-                point_b=self.space(2).random_point(),
+                point_a=self.Space(2).random_point(),
+                point_b=self.Space(2).random_point(),
             ),
             dict(
                 dim=3,
-                point_a=self.space(3).random_point(),
-                point_b=self.space(3).random_point(),
+                point_a=self.Space(3).random_point(),
+                point_b=self.Space(3).random_point(),
             ),
         ]
         return self.generate_tests([], random_data)
@@ -531,13 +379,13 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
         random_data = [
             dict(
                 dim=2,
-                point_a=self.space(2).random_point(),
-                point_b=self.space(2).random_point(),
+                point_a=self.Space(2).random_point(),
+                point_b=self.Space(2).random_point(),
             ),
             dict(
                 dim=3,
-                point_a=self.space(3).random_point(),
-                point_b=self.space(3).random_point(),
+                point_a=self.Space(3).random_point(),
+                point_b=self.Space(3).random_point(),
             ),
         ]
         return self.generate_tests([], random_data)

@@ -1,10 +1,8 @@
 """Unit tests for parameterized manifolds."""
 
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.discrete_curves import (
-    ClosedDiscreteCurves,
     DiscreteCurves,
     ElasticMetric,
     L2CurvesMetric,
@@ -34,14 +32,13 @@ r3 = Euclidean(dim=3)
 
 
 class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
-    space = DiscreteCurves
+    skip_test_projection_belongs = True
     skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = DiscreteCurvesTestData()
 
 
 class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
-    space = ClosedDiscreteCurves
     skip_test_projection_belongs = tf_backend()
     skip_test_random_tangent_vec_is_tangent = True
     skip_test_to_tangent_is_tangent = True
@@ -50,7 +47,7 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_and_autograd_only
     def test_projection_closed_curves(self, ambient_manifold, curve):
-        planar_closed_curve = ClosedDiscreteCurves(ambient_manifold)
+        planar_closed_curve = self.Space(ambient_manifold)
         proj = planar_closed_curve.projection(curve)
         expected = proj
         result = planar_closed_curve.projection(proj)
@@ -62,7 +59,6 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
 
 
 class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = L2CurvesMetric
     skip_test_exp_belongs = True
     skip_test_exp_shape = True
     skip_test_log_shape = True
@@ -88,7 +84,7 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self, ambient_manifold, curve_a, curve_b, times, n_sampling_points
     ):
         """Test the geodesic method of L2LandmarksMetric."""
-        l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
+        l2_metric_s2 = self.Metric(ambient_manifold=s2)
         curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
         curves_ab = curves_ab(times)
 
@@ -104,7 +100,6 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
 
 class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = SRVMetric
     skip_test_exp_shape = True
     skip_test_log_shape = True
     skip_test_exp_geodesic_ivp = True
@@ -423,8 +418,6 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
 
 class TestElasticMetric(TestCase, metaclass=Parametrizer):
-    metric = ElasticMetric
-
     testing_data = ElasticMetricTestData()
 
     def test_cartesian_to_polar_and_polar_to_cartesian(self, a, b, rtol, atol):
@@ -511,7 +504,6 @@ class TestElasticMetric(TestCase, metaclass=Parametrizer):
 
 
 class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
-
     testing_data = QuotientSRVMetricTestData()
 
     @geomstats.tests.np_autograd_and_torch_only
