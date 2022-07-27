@@ -153,34 +153,34 @@ class _AACRegressor(BaseEstimator):
         self.max_iter = max_iter
         self.init_point = init_point
 
-        # TODO: set regressor?
         self.regressor_kwargs = regressor_kwargs or {}
         self.regressor = WrappedLinearRegression(**self.regressor_kwargs)
 
-    def _compute_pred_error(self, y, y_pred):
-        # TODO: should it be total space? it will lead to negative errors
-        return gs.sum(self.metric.total_space_metric.dist(y, y_pred))
+    def _compute_pred_error(self, y_pred, y):
+        # order matters for reuse of perm_
+        return gs.sum(self.metric.dist(y_pred, y))
 
     def fit(self, X, y):
-        # TODO: change variable names
         y_ = random.choice(y) if self.init_point is None else self.init_point
         aligned_y = self.metric.align_point_to_point(y_, y)
 
         self.regressor.fit(X, aligned_y)
         previous_y_pred = self.regressor.predict(X)
-        previous_pred_dist = self._compute_pred_error(aligned_y, previous_y_pred)
+        previous_pred_dist = self._compute_pred_error(previous_y_pred, aligned_y)
 
         error = self.epsilon + 1
         iteration = 0
-        while error > self.epsilon and iteration < self.max_iter:
+        while (error < 0.0 or error > self.epsilon) and iteration < self.max_iter:
+
             iteration += 1
-            aligned_y = self.metric.align_point_to_point(previous_y_pred, aligned_y)
+
+            # align point to point using previous computed alignment
+            aligned_y = self.metric.space.permute(aligned_y, self.metric.perm_)
 
             self.regressor.fit(X, aligned_y)
             y_pred = self.regressor.predict(X)
 
-            pred_dist = self._compute_pred_error(aligned_y, y_pred)
-            # TODO: check negative errors
+            pred_dist = self._compute_pred_error(y_pred, aligned_y)
             error = previous_pred_dist - pred_dist
 
             previous_y_pred = y_pred
