@@ -4,6 +4,7 @@ Lead author: Anna Calissano.
 """
 
 import functools
+import itertools
 from abc import ABCMeta, abstractmethod
 
 import networkx as nx
@@ -345,8 +346,6 @@ class GraphSpaceMetric(PointSetMetric):
             )
 
             matcher = MAP_MATCHER.get(matcher)(*args, **kwargs)
-        else:
-            matcher = matcher
 
         self.matcher = matcher
         return self.matcher
@@ -577,6 +576,54 @@ class IDMatcher(_BaseMatcher):
 
         self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
 
+        return self.perm_
+
+
+class BruteForceExactMatcher(_BaseMatcher):
+    """Brute force exact matching.
+
+    Notes
+    -----
+    Not recommended for large `n_nodes`.
+    """
+
+    def __init__(self, metric):
+        super().__init__()
+        self.metric = metric
+
+        n_nodes = metric.n_nodes
+        self._all_perms = gs.array(
+            list(itertools.permutations(range(n_nodes), n_nodes))
+        )
+
+    def _match_single(self, base_graph, graph_to_permute):
+        permuted_graphs = self.metric.space.permute(graph_to_permute, self._all_perms)
+        dists = self.metric.total_space_metric.dist(base_graph, permuted_graphs)
+        return self._all_perms[gs.argmin(dists)]
+
+    def match(self, base_graph, graph_to_permute):
+        """Match graphs.
+
+        Parameters
+        ----------
+        base_graph : array-like, shape=[m, n, n]
+            Base graph.
+        graph_to_permute : array-like, shape=[m, n, n]
+            Graph to align.
+
+        Returns
+        -------
+        permutation : array-like, shape=[m,n]
+            Node permutation indices of the second graph.
+        """
+        base_graph, graph_to_permute, is_single = self._broadcast(
+            base_graph, graph_to_permute
+        )
+        perms = []
+        for base_graph_, graph_to_permute_ in zip(base_graph, graph_to_permute):
+            perms.append(self._match_single(base_graph_, graph_to_permute_))
+
+        self.perm_ = gs.array(perms[0]) if is_single else gs.array(perms)
         return self.perm_
 
 
