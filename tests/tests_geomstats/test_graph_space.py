@@ -9,6 +9,7 @@ from tests.data.graph_space_data import (
     GraphSpaceMetricTestData,
     GraphSpaceTestData,
     GraphTestData,
+    MatcherTestData,
 )
 from tests.stratified_test_cases import (
     PointSetMetricTestCase,
@@ -17,6 +18,10 @@ from tests.stratified_test_cases import (
 )
 
 IS_NOT_NP = not np_backend()
+
+
+def _repeat_point(point, n_reps=2):
+    return gs.repeat(gs.expand_dims(point, 0), n_reps, axis=0)
 
 
 class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
@@ -148,22 +153,7 @@ class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
         metric.matcher = matcher
         perm = metric.matching(point_a, point_b)
 
-        self.assertAllClose(perm, expected)
-
-    def test_matching_output_shape(self, metric, point_a, point_b, matcher):
-        metric.matcher = matcher
-        results = metric.matching(point_a, point_b)
-
-        is_multiple = gs.ndim(point_a) > 2 or gs.ndim(point_b) > 2
-
-        if is_multiple:
-            n_dist = max(
-                point_a.shape[0] if gs.ndim(point_a) > 2 else 1,
-                point_b.shape[0] if gs.ndim(point_b) > 2 else 1,
-            )
-            self.assertTrue(results.shape[0] == n_dist)
-        else:
-            self.assertTrue(results.ndim == 1)
+        self.assertAllEqual(perm, expected)
 
 
 class TestDecorators(TestCase, metaclass=Parametrizer):
@@ -198,3 +188,68 @@ class TestDecorators(TestCase, metaclass=Parametrizer):
             n_points = 1 if points.ndim == 2 else points.shape[0]
 
         self.assertTrue(len(vec_points) == n_points)
+
+
+class TestMatcher(TestCase, metaclass=Parametrizer):
+    skip_all = IS_NOT_NP
+    testing_data = MatcherTestData()
+
+    def _check_permutation(self, permute_point, perm, expected, perm_fnc, dist_fnc):
+        permuted_point = perm_fnc(permute_point, perm)
+        dist = dist_fnc(expected, permuted_point)
+        self.assertAllEqual(dist, 0.0)
+
+    def test_match(
+        self, matcher, base_point, permute_point, expected, perm_fnc, dist_fnc
+    ):
+        perm = matcher.match(base_point, permute_point)
+
+        self._check_permutation(permute_point, perm, expected, perm_fnc, dist_fnc)
+
+    def test_match_vec(self, matcher, base_point, permute_point, perm_fnc, dist_fnc):
+        def check_perm(base_point, perm, expected):
+            return self._check_permutation(
+                permute_point,
+                perm,
+                expected,
+                perm_fnc,
+                dist_fnc,
+            )
+
+        perm = matcher.match(base_point, permute_point)
+        expected = perm_fnc(permute_point, perm)
+        expected_rep = _repeat_point(expected)
+
+        base_point_rep = _repeat_point(base_point)
+        permute_point_rep = _repeat_point(permute_point)
+
+        perm_bp_rep = matcher.match(base_point_rep, permute_point)
+        perm_pp_rep = matcher.match(base_point, permute_point_rep)
+        perm_bp_pp_rep = matcher.match(base_point_rep, permute_point_rep)
+
+        check_perm(permute_point, perm_bp_rep, expected_rep)
+        check_perm(permute_point_rep, perm_pp_rep, expected_rep)
+        check_perm(permute_point_rep, perm_bp_pp_rep, expected_rep)
+
+    def test_match_output_shape(self, matcher, base_point, permute_point):
+        perm = matcher.match(base_point, permute_point)
+        self.assertEqual(gs.ndim(perm), 1)
+
+        base_point_expanded = gs.expand_dims(base_point, 0)
+        permute_point_expanded = _repeat_point(permute_point)
+
+        base_point_rep = _repeat_point(base_point)
+        permute_point_rep = _repeat_point(permute_point)
+
+        combs = [
+            (base_point_rep, permute_point),
+            (base_point, permute_point_rep),
+            (base_point_rep, permute_point_rep),
+            (base_point_expanded, permute_point_rep),
+            (base_point_rep, permute_point_expanded),
+        ]
+
+        for comb in combs:
+            perm_ = matcher.match(*comb)
+            self.assertEqual(gs.ndim(perm_), 2)
+            self.assertEqual(perm_.shape[0], 2)

@@ -3,10 +3,12 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stratified.graph_space import (
+    BruteForceExactMatcher,
     FAQMatcher,
     Graph,
     GraphSpace,
     GraphSpaceMetric,
+    IDMatcher,
     _vectorize_graph,
     _vectorize_graph_to_points,
 )
@@ -200,7 +202,6 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
         metric = self._PointSetMetric(space)
 
         id_matcher = metric.matcher
-        faq_matcher = FAQMatcher()
 
         graph_a = Graph(adj=gs.array([[1.0, 2.0], [3.0, 4.0]]))
         graph_b = Graph(adj=gs.array([[3.0, 4.0], [1.0, 2.0]]))
@@ -213,37 +214,7 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
                 matcher=id_matcher,
                 expected=gs.array([0, 1]),
             ),
-            dict(
-                metric=metric,
-                point_a=graph_a,
-                point_b=graph_b,
-                matcher=faq_matcher,
-                expected=gs.array([1, 0]),
-            ),
         ]
-
-        return self.generate_tests(smoke_data)
-
-    def matching_output_shape_test_data(self):
-        space = self._PointSet(*self.space_args_list[0])
-        metric = self._PointSetMetric(space)
-        pts = space.random_point(3)
-
-        id_matcher = metric.matcher
-        faq_matcher = FAQMatcher()
-
-        smoke_data = []
-        for matcher in [id_matcher, faq_matcher]:
-            smoke_data.extend(
-                [
-                    dict(
-                        metric=metric, point_a=pts[0], point_b=pts[0], matcher=matcher
-                    ),
-                    dict(metric=metric, point_a=pts, point_b=pts[0], matcher=matcher),
-                    dict(metric=metric, point_a=pts[0], point_b=pts, matcher=matcher),
-                    dict(metric=metric, point_a=pts, point_b=pts, matcher=matcher),
-                ]
-            )
 
         return self.generate_tests(smoke_data)
 
@@ -253,6 +224,7 @@ class DecoratorsTestData(TestData):
     _PointSet = GraphSpace
 
     def _get_data(self, fnc):
+        # TODO: improve testing
         adj = Matrices(3, 3).random_point(2)
         points = [self._Point(adj_) for adj_ in adj]
 
@@ -278,3 +250,79 @@ class DecoratorsTestData(TestData):
             return points
 
         return self._get_data(vec_example)
+
+
+class MatcherTestData(TestData):
+    def __init__(self):
+        self._setup()
+
+    def _setup(self):
+        self.spaces = [GraphSpace(3)]
+
+    def match_test_data(self):
+        smoke_data = []
+        for space in self.spaces:
+            base_point, permute_point = space.random_point(2)
+
+            metric = GraphSpaceMetric(space)
+            exact_matcher = BruteForceExactMatcher(metric)
+            metric.set_matcher(exact_matcher)
+
+            perm = exact_matcher.match(base_point, permute_point)
+            expected = space.permute(permute_point, perm)
+
+            matchers = [FAQMatcher()]
+            for matcher in matchers:
+                smoke_data.append(
+                    dict(
+                        matcher=matcher,
+                        base_point=base_point,
+                        permute_point=permute_point,
+                        expected=expected,
+                        perm_fnc=space.permute,
+                        dist_fnc=metric.dist,
+                    )
+                )
+
+        return self.generate_tests(smoke_data)
+
+    def match_vec_test_data(self):
+        smoke_data = []
+        for space in self.spaces:
+            base_point, permute_point = space.random_point(2)
+
+            metric = GraphSpaceMetric(space)
+            exact_matcher = BruteForceExactMatcher(metric)
+            metric.set_matcher(exact_matcher)
+
+            matchers = [IDMatcher(), FAQMatcher(), BruteForceExactMatcher(metric)]
+            for matcher in matchers:
+                smoke_data.append(
+                    dict(
+                        matcher=matcher,
+                        base_point=base_point,
+                        permute_point=permute_point,
+                        perm_fnc=space.permute,
+                        dist_fnc=metric.dist,
+                    )
+                )
+
+        return self.generate_tests(smoke_data)
+
+    def match_output_shape_test_data(self):
+        smoke_data = []
+        for space in self.spaces:
+            base_point, permute_point = space.random_point(2)
+
+            metric = GraphSpaceMetric(space)
+            matchers = [IDMatcher(), FAQMatcher(), BruteForceExactMatcher(metric)]
+            for matcher in matchers:
+                smoke_data.append(
+                    dict(
+                        matcher=matcher,
+                        base_point=base_point,
+                        permute_point=permute_point,
+                    )
+                )
+
+        return self.generate_tests(smoke_data)
