@@ -1,4 +1,4 @@
-"""Mixin to implement methods specific to information manifolds."""
+"""Mixin for manifolds of probability distributions."""
 
 import geomstats.backend as gs
 import geomstats.errors
