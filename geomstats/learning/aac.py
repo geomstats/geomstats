@@ -52,7 +52,7 @@ class _AACFrechetMean(BaseEstimator):
         self.estimate_ = None
         self.n_iter_ = None
 
-    def fit(self, X):
+    def fit(self, X, y=None):
         previous_estimate = (
             random.choice(X) if self.init_point is None else self.init_point
         )
@@ -87,6 +87,7 @@ class _AACGGPCA(BaseEstimator):
         self.n_components = n_components
 
         self.pca_solver = WrappedPCA(n_components=self.n_components)
+        self.n_iter_ = None
 
     @property
     def components_(self):
@@ -133,6 +134,7 @@ class _AACGGPCA(BaseEstimator):
             error = expl_ - previous_expl
             previous_expl = expl_
 
+        self.n_iter_ = iteration
         _warn_max_iterations(iteration, self.max_iter)
 
         return self
@@ -155,6 +157,7 @@ class _AACRegressor(BaseEstimator):
 
         self.regressor_kwargs = regressor_kwargs or {}
         self.regressor = WrappedLinearRegression(**self.regressor_kwargs)
+        self.n_iter_ = None
 
     def _compute_pred_error(self, y_pred, y):
         # order matters for reuse of perm_
@@ -186,6 +189,7 @@ class _AACRegressor(BaseEstimator):
             previous_y_pred = y_pred
             previous_pred_dist = pred_dist
 
+        self.n_iter_ = iteration
         _warn_max_iterations(iteration, self.max_iter)
 
         return self
