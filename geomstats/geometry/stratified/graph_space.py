@@ -306,6 +306,7 @@ class GraphSpace(PointSet):
     @_pad_with_zeros((1, "points"), copy=False)
     def pad_with_zeros(self, points):
         """Pad points with zeros to match space dimension."""
+        # FIXME: fix output shape
         return points
 
 
@@ -350,16 +351,15 @@ class GraphSpaceMetric(PointSetMetric):
         self.matcher = matcher
         return self.matcher
 
-    def set_default_p2g_aligner(self, s_min, s_max, n_sample_points=10):
-        return self.set_p2g_aligner(
-            "default", s_min, s_max, n_sample_points=n_sample_points
-        )
-
-    def set_p2g_aligner(self, aligner, *args, **kwargs):
+    def set_p2g_aligner(self, aligner, **kwargs):
+        """
+        For default: s_min, s_max, n_sample_points
+        """
         if aligner == "default":
-            aligner = PointToGeodesicAligner(self, *args, **kwargs)
-        else:
-            aligner = aligner
+            kwargs.setdefault("s_min", -1.0)
+            kwargs.setdefault("s_max", 1.0)
+            kwargs.setdefault("n_sample_points", 10)
+            aligner = PointToGeodesicAligner(self, **kwargs)
 
         self.p2g_aligner = aligner
         return self.p2g_aligner
@@ -635,6 +635,10 @@ class _BasePointToGeodesicAligner(metaclass=ABCMeta):
     def align(self, geodesic, x):
         raise NotImplementedError("Not implemented")
 
+    @abstractmethod
+    def dist(self, geodesic, x):
+        raise NotImplementedError("Not implemented")
+
 
 class PointToGeodesicAligner(_BasePointToGeodesicAligner):
     def __init__(self, metric, s_min, s_max, n_sample_points=10):
@@ -642,16 +646,31 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         self.metric = metric
         self.s_min = s_min
         self.s_max = s_max
+        # TODO: rename
         self.n_sample_points = n_sample_points
 
-    @property
-    def _s(self):
+        self._s = None
+
+    def __setattr__(self, attr_name, value):
+        if attr_name in ["s_min", "s_max", "n_sample_points"]:
+            self._s = None
+
+        return object.__setattr__(self, attr_name, value)
+
+    def _discretize_s(self):
         return gs.linspace(self.s_min, self.s_max, num=self.n_sample_points)
 
-    def _get_gamma_s(self, geodesic):
-        return geodesic(self._s)
+    @property
+    def s(self):
+        if self._s is None:
+            self._s = self._discretize_s()
 
-    def align(self, geodesic, x):
+        return self._s
+
+    def _get_gamma_s(self, geodesic):
+        return geodesic(self.s)
+
+    def _compute_dists(self, geodesic, x):
         gamma_s = self._get_gamma_s(geodesic)
 
         n_points = 1 if gs.ndim(x) == 2 else gs.shape(x)[0]
@@ -666,6 +685,20 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         )
 
         min_dists_idx = gs.argmin(dists, axis=0)
+
+        return dists, min_dists_idx, n_points
+
+    def dist(self, geodesic, x):
+        dists, min_dists_idx, n_points = self._compute_dists(geodesic, x)
+
+        return gs.take(
+            gs.transpose(dists),
+            min_dists_idx + gs.arange(n_points) * self.n_sample_points,
+        )
+
+    def align(self, geodesic, x):
+        _, min_dists_idx, n_points = self._compute_dists(geodesic, x)
+
         perm_indices = min_dists_idx * n_points + gs.arange(n_points)
         if n_points == 1:
             perm_indices = perm_indices[0]
@@ -676,11 +709,12 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
 
 
 class GeodesicToPointAligner(_BasePointToGeodesicAligner):
-    def __init__(self, metric, method="BFGS"):
+    def __init__(self, metric, method="BFGS", *, save_opt_res=False):
         super().__init__()
 
         self.metric = metric
         self.method = method
+        self.save_opt_res = save_opt_res
 
         self.opt_results_ = None
 
@@ -690,7 +724,7 @@ class GeodesicToPointAligner(_BasePointToGeodesicAligner):
 
         return dist
 
-    def align(self, geodesic, x):
+    def _compute_dists(self, geodesic, x):
         n_points = 1 if gs.ndim(x) == 2 else gs.shape(x)[0]
 
         if n_points == 1:
@@ -709,8 +743,18 @@ class GeodesicToPointAligner(_BasePointToGeodesicAligner):
 
             opt_results.append(res)
 
-        self.opt_results_ = opt_results
-        perms = gs.array(perms)
+        if self.save_opt_res:
+            self.opt_results_ = opt_results
+
+        return gs.array(min_dists), gs.array(perms), n_points
+
+    def dist(self, geodesic, x):
+        dists, _, _ = self._compute_dists(geodesic, x)
+
+        return dists
+
+    def align(self, geodesic, x):
+        _, perms, n_points = self._compute_dists(geodesic, x)
 
         new_x = self.metric.space.permute(x, perms)
         self.perm_ = perms[0] if n_points == 1 else perms
