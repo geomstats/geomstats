@@ -321,7 +321,7 @@ class GraphSpaceMetric(PointSetMetric):
     def __init__(self, space):
         super().__init__(space)
         self.matcher = self._set_default_matcher()
-        self.p2g_aligner = None
+        self.point_to_geodesic_aligner = None
 
     @property
     def perm_(self):
@@ -351,18 +351,18 @@ class GraphSpaceMetric(PointSetMetric):
         self.matcher = matcher
         return self.matcher
 
-    def set_p2g_aligner(self, aligner, **kwargs):
+    def set_point_to_geodesic_aligner(self, aligner, **kwargs):
         """
-        For default: s_min, s_max, n_sample_points
+        For default: s_min, s_max, n_points
         """
         if aligner == "default":
             kwargs.setdefault("s_min", -1.0)
             kwargs.setdefault("s_max", 1.0)
-            kwargs.setdefault("n_sample_points", 10)
+            kwargs.setdefault("n_points", 10)
             aligner = PointToGeodesicAligner(self, **kwargs)
 
-        self.p2g_aligner = aligner
-        return self.p2g_aligner
+        self.point_to_geodesic_aligner = aligner
+        return self.point_to_geodesic_aligner
 
     @property
     def total_space_metric(self):
@@ -472,9 +472,13 @@ class GraphSpaceMetric(PointSetMetric):
         (2, "graph_to_permute"),
     )
     def align_point_to_geodesic(self, geodesic, graph_to_permute):
-        if self.p2g_aligner is None:
-            raise UnboundLocalError("Set point to geodesic aligner first")
-        return self.p2g_aligner.align(geodesic, graph_to_permute)
+        if self.point_to_geodesic_aligner is None:
+            raise UnboundLocalError(
+                "Set point to geodesic aligner first (e.g. "
+                "`metric.set_point_to_geodesic_aligner('default', "
+                "s_min=-1., s_max=1.)`)"
+            )
+        return self.point_to_geodesic_aligner.align(geodesic, graph_to_permute)
 
 
 class _BaseMatcher(metaclass=ABCMeta):
@@ -641,24 +645,24 @@ class _BasePointToGeodesicAligner(metaclass=ABCMeta):
 
 
 class PointToGeodesicAligner(_BasePointToGeodesicAligner):
-    def __init__(self, metric, s_min, s_max, n_sample_points=10):
+    def __init__(self, metric, s_min, s_max, n_points=10):
         super().__init__()
         self.metric = metric
         self.s_min = s_min
         self.s_max = s_max
         # TODO: rename
-        self.n_sample_points = n_sample_points
+        self.n_points = n_points
 
         self._s = None
 
     def __setattr__(self, attr_name, value):
-        if attr_name in ["s_min", "s_max", "n_sample_points"]:
+        if attr_name in ["s_min", "s_max", "n_points"]:
             self._s = None
 
         return object.__setattr__(self, attr_name, value)
 
     def _discretize_s(self):
-        return gs.linspace(self.s_min, self.s_max, num=self.n_sample_points)
+        return gs.linspace(self.s_min, self.s_max, num=self.n_points)
 
     @property
     def s(self):
@@ -676,13 +680,11 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         n_points = 1 if gs.ndim(x) == 2 else gs.shape(x)[0]
         if n_points > 1:
             gamma_s = gs.repeat(gamma_s, n_points, axis=0)
-            rep_x = gs.concatenate([x for _ in range(self.n_sample_points)])
+            rep_x = gs.concatenate([x for _ in range(self.n_points)])
         else:
             rep_x = x
 
-        dists = gs.reshape(
-            self.metric.dist(gamma_s, rep_x), (self.n_sample_points, n_points)
-        )
+        dists = gs.reshape(self.metric.dist(gamma_s, rep_x), (self.n_points, n_points))
 
         min_dists_idx = gs.argmin(dists, axis=0)
 
@@ -693,7 +695,7 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
 
         return gs.take(
             gs.transpose(dists),
-            min_dists_idx + gs.arange(n_points) * self.n_sample_points,
+            min_dists_idx + gs.arange(n_points) * self.n_points,
         )
 
     def align(self, geodesic, x):

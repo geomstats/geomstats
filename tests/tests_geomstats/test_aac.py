@@ -28,7 +28,7 @@ class _GeodesicEstimatorTest(TestCase):
             initial_point=mean, initial_tangent_vec=direc
         )
 
-        dists = estimator.metric.p2g_aligner.dist(new_geo, X)
+        dists = estimator.metric.point_to_geodesic_aligner.dist(new_geo, X)
         self.assertAllClose(dists, 0.0, atol=atol)
 
 

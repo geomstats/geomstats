@@ -113,7 +113,7 @@ class AACGGPCATestData(_TrivialGeodesicEstimatorTestData):
         metric.set_matcher(BruteForceExactMatcher(metric))
 
         aligner = GeodesicToPointAligner(metric)
-        metric.set_p2g_aligner(aligner)
+        metric.set_point_to_geodesic_aligner(aligner)
 
         self.metrics = [metric] * 2
         self.estimators = [_AACGGPCA(metric) for metric in self.metrics]
@@ -129,7 +129,9 @@ class AACRegressorTestData(_TrivialRegressorTestData):
         metric = GraphSpaceMetric(space_2)
         metric.set_matcher(BruteForceExactMatcher(metric))
 
-        metric.set_p2g_aligner("default", s_min=-1.0, s_max=1.0, n_sample_points=10)
+        metric.set_point_to_geodesic_aligner(
+            "default", s_min=-1.0, s_max=1.0, n_points=10
+        )
 
         self.metrics = [metric] * 3
         self.estimators = [_AACRegressor(metric) for metric in self.metrics]
@@ -143,7 +145,7 @@ class MaxIterTestData(TestData):
         n_samples = 3
         space_2 = GraphSpace(2)
         metric = GraphSpaceMetric(space_2)
-        metric.set_p2g_aligner("default")
+        metric.set_point_to_geodesic_aligner("default")
 
         X = space_2.random_point(n_samples)
         inputs = [X] * 2 + [gs.expand_dims(gs.linspace(0, 1, num=n_samples), 1)]

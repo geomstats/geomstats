@@ -20,7 +20,7 @@ def _warn_max_iterations(iteration, max_iter):
 class AAC:
     def __new__(cls, *args, estimate="frechet", **kwargs):
         MAP_ESTIMATE = {
-            "frechet": _AACFrechetMean,
+            "frechet_mean": _AACFrechetMean,
             "ggpca": _AACGGPCA,
             "regression": _AACRegressor,
         }
@@ -37,16 +37,16 @@ class _AACFrechetMean(BaseEstimator):
         epsilon=1e-6,
         max_iter=20,
         init_point=None,
-        mean_estimator_kwargs=None,
+        total_space_estimator_kwargs=None,
     ):
         self.metric = metric
         self.epsilon = epsilon
         self.max_iter = max_iter
         self.init_point = init_point
 
-        self.mean_estimator_kwargs = mean_estimator_kwargs or {}
-        self.mean_estimator = FrechetMean(
-            self.metric.total_space_metric, **self.mean_estimator_kwargs
+        self.total_space_estimator_kwargs = total_space_estimator_kwargs or {}
+        self.total_space_estimator = FrechetMean(
+            self.metric.total_space_metric, **self.total_space_estimator_kwargs
         )
 
         self.estimate_ = None
@@ -63,7 +63,7 @@ class _AACFrechetMean(BaseEstimator):
             iteration += 1
 
             aligned_X = self.metric.align_point_to_point(previous_estimate, aligned_X)
-            new_estimate = self.mean_estimator.fit(aligned_X).estimate_
+            new_estimate = self.total_space_estimator.fit(aligned_X).estimate_
             error = self.metric.total_space_metric.dist(previous_estimate, new_estimate)
 
             previous_estimate = new_estimate
@@ -86,50 +86,46 @@ class _AACGGPCA(BaseEstimator):
         self.init_point = init_point
         self.n_components = n_components
 
-        self.pca_solver = WrappedPCA(n_components=self.n_components)
+        self.total_space_estimator = WrappedPCA(n_components=self.n_components)
         self.n_iter_ = None
 
     @property
     def components_(self):
-        return self.pca_solver.reshaped_components_
+        return self.total_space_estimator.reshaped_components_
 
     @property
     def explained_variance_(self):
-        return self.pca_solver.explained_variance_
+        return self.total_space_estimator.explained_variance_
 
     @property
     def explained_variance_ratio_(self):
-        return self.pca_solver.explained_variance_ratio_
-
-    @property
-    def singular_values_(self):
-        return self.pca_solver.singular_values_
+        return self.total_space_estimator.explained_variance_ratio_
 
     @property
     def mean_(self):
-        return self.pca_solver.reshaped_mean_
+        return self.total_space_estimator.reshaped_mean_
 
     def fit(self, X, y=None):
         x = random.choice(X) if self.init_point is None else self.init_point
         aligned_X = self.metric.align_point_to_point(x, X)
 
-        self.pca_solver.fit(aligned_X)
-        previous_expl = self.pca_solver.explained_variance_ratio_[0]
+        self.total_space_estimator.fit(aligned_X)
+        previous_expl = self.total_space_estimator.explained_variance_ratio_[0]
 
         error = self.epsilon + 1
         iteration = 0
         while error > self.epsilon and iteration < self.max_iter:
             iteration += 1
-            mean = self.pca_solver.reshaped_mean_
-            direc = self.pca_solver.reshaped_components_[0]
+            mean = self.total_space_estimator.reshaped_mean_
+            direc = self.total_space_estimator.reshaped_components_[0]
 
             geodesic = self.metric.total_space_metric.geodesic(
                 initial_point=mean, initial_tangent_vec=direc
             )
 
             aligned_X = self.metric.align_point_to_geodesic(geodesic, aligned_X)
-            self.pca_solver.fit(aligned_X)
-            expl_ = self.pca_solver.explained_variance_ratio_[0]
+            self.total_space_estimator.fit(aligned_X)
+            expl_ = self.total_space_estimator.explained_variance_ratio_[0]
 
             error = expl_ - previous_expl
             previous_expl = expl_
@@ -148,15 +144,17 @@ class _AACRegressor(BaseEstimator):
         epsilon=1e-6,
         max_iter=20,
         init_point=None,
-        regressor_kwargs=None,
+        total_space_estimator_kwargs=None,
     ):
         self.metric = metric
         self.epsilon = epsilon
         self.max_iter = max_iter
         self.init_point = init_point
 
-        self.regressor_kwargs = regressor_kwargs or {}
-        self.regressor = WrappedLinearRegression(**self.regressor_kwargs)
+        self.total_space_estimator_kwargs = total_space_estimator_kwargs or {}
+        self.total_space_estimator = WrappedLinearRegression(
+            **self.total_space_estimator_kwargs
+        )
         self.n_iter_ = None
 
     def _compute_pred_error(self, y_pred, y):
@@ -167,8 +165,8 @@ class _AACRegressor(BaseEstimator):
         y_ = random.choice(y) if self.init_point is None else self.init_point
         aligned_y = self.metric.align_point_to_point(y_, y)
 
-        self.regressor.fit(X, aligned_y)
-        previous_y_pred = self.regressor.predict(X)
+        self.total_space_estimator.fit(X, aligned_y)
+        previous_y_pred = self.total_space_estimator.predict(X)
         previous_pred_dist = self._compute_pred_error(previous_y_pred, aligned_y)
 
         error = self.epsilon + 1
@@ -180,8 +178,8 @@ class _AACRegressor(BaseEstimator):
             # align point to point using previous computed alignment
             aligned_y = self.metric.space.permute(aligned_y, self.metric.perm_)
 
-            self.regressor.fit(X, aligned_y)
-            y_pred = self.regressor.predict(X)
+            self.total_space_estimator.fit(X, aligned_y)
+            y_pred = self.total_space_estimator.predict(X)
 
             pred_dist = self._compute_pred_error(y_pred, aligned_y)
             error = previous_pred_dist - pred_dist
@@ -195,4 +193,4 @@ class _AACRegressor(BaseEstimator):
         return self
 
     def predict(self, X):
-        return self.regressor.predict(X)
+        return self.total_space_estimator.predict(X)
