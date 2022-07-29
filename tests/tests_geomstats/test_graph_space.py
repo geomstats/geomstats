@@ -10,6 +10,7 @@ from tests.data.graph_space_data import (
     GraphSpaceTestData,
     GraphTestData,
     MatcherTestData,
+    PointToGeodesicAlignerTestData,
 )
 from tests.stratified_test_cases import (
     PointSetMetricTestCase,
@@ -163,6 +164,10 @@ class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllEqual(perm, expected)
 
+    def test_align_point_to_geodesic(self, metric, geodesic, point, expected):
+        aligned_point = metric.align_point_to_geodesic(geodesic, point)
+        self.assertAllClose(aligned_point, expected)
+
 
 class TestDecorators(TestCase, metaclass=Parametrizer):
     skip_all = IS_NOT_NP
@@ -273,3 +278,52 @@ class TestMatcher(TestCase, metaclass=Parametrizer):
                 base_point,
                 permute_point,
             )
+
+
+class TestPointToGeodesicAligner(TestCase, metaclass=Parametrizer):
+    skip_all = IS_NOT_NP
+    testing_data = PointToGeodesicAlignerTestData()
+
+    def test_align(self, aligner, geodesic, point, expected):
+        aligned_point = aligner.align(geodesic, point)
+        self.assertAllClose(aligned_point, expected)
+
+    def test_align_vec(self, aligner, geodesic, point):
+        expected = aligner.align(geodesic, point)
+        expected_rep = _repeat_point(expected)
+
+        point_expanded, point_rep = _expand_and_repeat_point(point)
+
+        combs_single = [
+            (point_expanded,),
+        ]
+        for (point_,) in combs_single:
+            self.test_align(aligner, geodesic, point_, expected)
+
+        combs_mult = [
+            (point_rep,),
+        ]
+        for (point_,) in combs_mult:
+            self.test_align(aligner, geodesic, point_, expected_rep)
+
+    def test_dist(self, aligner, geodesic, point, expected, atol):
+        dist = aligner.dist(geodesic, point)
+        self.assertAllClose(dist, expected, atol=atol)
+
+    def test_dist_vec(self, aligner, geodesic, point, atol):
+        expected = aligner.dist(geodesic, point)
+        expected_rep = gs.repeat(expected, 2)
+
+        point_expanded, point_rep = _expand_and_repeat_point(point)
+
+        combs_single = [
+            (point_expanded,),
+        ]
+        for (point_,) in combs_single:
+            self.test_dist(aligner, geodesic, point_, expected, atol)
+
+        combs_mult = [
+            (point_rep,),
+        ]
+        for (point_,) in combs_mult:
+            self.test_dist(aligner, geodesic, point_, expected_rep, atol)

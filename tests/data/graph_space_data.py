@@ -5,10 +5,12 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stratified.graph_space import (
     BruteForceExactMatcher,
     FAQMatcher,
+    GeodesicToPointAligner,
     Graph,
     GraphSpace,
     GraphSpaceMetric,
     IDMatcher,
+    PointToGeodesicAligner,
     _vectorize_graph,
     _vectorize_graph_to_points,
 )
@@ -18,6 +20,13 @@ from tests.data_generation import (
     _PointSetTestData,
     _PointTestData,
 )
+
+
+def _get_metric_with_exact_matcher(space):
+    metric = GraphSpaceMetric(space)
+    exact_matcher = BruteForceExactMatcher(metric)
+    metric.set_matcher(exact_matcher)
+    return metric
 
 
 class GraphSpaceTestData(_PointSetTestData):
@@ -218,6 +227,28 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
 
         return self.generate_tests(smoke_data)
 
+    def align_point_to_geodesic_test_data(self):
+        space = GraphSpace(2)
+        metric = GraphSpaceMetric(space)
+        metric.set_point_to_geodesic_aligner("default", n_points=3)
+
+        base_point, end_point = space.random_point(2)
+        geodesic = metric.geodesic(base_point=base_point, end_point=end_point)
+
+        s = gs.linspace(0.0, 1.0, num=3)
+        points = geodesic(s)
+
+        smoke_data = [
+            dict(
+                metric=metric,
+                geodesic=geodesic,
+                point=points,
+                expected=points,
+            )
+        ]
+
+        return self.generate_tests(smoke_data)
+
 
 class DecoratorsTestData(TestData):
     _Point = Graph
@@ -262,18 +293,12 @@ class MatcherTestData(TestData):
     def _get_matchers(self, metric):
         return [IDMatcher(), FAQMatcher(), BruteForceExactMatcher(metric)]
 
-    def _get_metric_with_exact_matcher(self, space):
-        metric = GraphSpaceMetric(space)
-        exact_matcher = BruteForceExactMatcher(metric)
-        metric.set_matcher(exact_matcher)
-        return metric
-
     def match_test_data(self):
         smoke_data = []
         for space in self.spaces:
             base_point, permute_point = space.random_point(2)
 
-            metric = self._get_metric_with_exact_matcher(space)
+            metric = _get_metric_with_exact_matcher(space)
 
             perm = metric.matcher.match(base_point, permute_point)
             expected = space.permute(permute_point, perm)
@@ -298,7 +323,7 @@ class MatcherTestData(TestData):
         for space in self.spaces:
             base_point, permute_point = space.random_point(2)
 
-            metric = self._get_metric_with_exact_matcher(space)
+            metric = _get_metric_with_exact_matcher(space)
 
             matchers = self._get_matchers(metric)
             for matcher in matchers:
@@ -330,6 +355,105 @@ class MatcherTestData(TestData):
                         matcher=matcher,
                         base_point=base_point,
                         permute_point=permute_point,
+                    )
+                )
+
+        return self.generate_tests(smoke_data)
+
+
+class PointToGeodesicAlignerTestData(TestData):
+    tolerances = {
+        "dist": {"atol": 1e-8},
+    }
+
+    def __init__(self):
+        self._setup()
+
+    def _setup(self):
+        self.spaces = [GraphSpace(3)]
+
+    def _get_aligners_and_geo(self, space):
+        init_point, end_point = space.random_point(2)
+        metric = _get_metric_with_exact_matcher(space)
+
+        geodesic = metric.geodesic(init_point, end_point)
+
+        aligners = [
+            PointToGeodesicAligner(metric, s_min=0.0, s_max=1.0, n_points=3),
+            GeodesicToPointAligner(metric),
+        ]
+        return aligners, geodesic
+
+    def align_test_data(self):
+        smoke_data = []
+        for space in self.spaces:
+            aligners, geodesic = self._get_aligners_and_geo(space)
+
+            s = gs.linspace(0.0, 1.0, num=3)
+            points = geodesic(s)
+
+            for aligner in aligners:
+                smoke_data.append(
+                    dict(
+                        aligner=aligner,
+                        geodesic=geodesic,
+                        point=points,
+                        expected=points,
+                    )
+                )
+
+        return self.generate_tests(smoke_data)
+
+    def align_vec_test_data(self):
+        smoke_data = []
+        for space in self.spaces:
+            aligners, geodesic = self._get_aligners_and_geo(space)
+            point = geodesic(0.5)[0]
+
+            for aligner in aligners:
+                smoke_data.append(
+                    dict(
+                        aligner=aligner,
+                        geodesic=geodesic,
+                        point=point,
+                    )
+                )
+
+        return self.generate_tests(smoke_data)
+
+    def dist_test_data(self):
+        smoke_data = []
+        for space in self.spaces:
+            aligners, geodesic = self._get_aligners_and_geo(space)
+
+            s = gs.linspace(0.0, 1.0, num=3)
+            points = geodesic(s)
+
+            for aligner in aligners:
+                smoke_data.append(
+                    dict(
+                        aligner=aligner,
+                        geodesic=geodesic,
+                        point=points,
+                        expected=0.0,
+                    )
+                )
+
+        return self.generate_tests(smoke_data)
+
+    def dist_vec_test_data(self):
+        smoke_data = []
+        for space in self.spaces:
+            aligners, geodesic = self._get_aligners_and_geo(space)
+            point = geodesic(0.5)[0]
+
+            for aligner in aligners:
+                smoke_data.append(
+                    dict(
+                        aligner=aligner,
+                        geodesic=geodesic,
+                        point=point,
+                        expected=0.0,
                     )
                 )
 

@@ -15,7 +15,7 @@ def better_squeeze(array):
 class TestData:
     """Class for TestData objects."""
 
-    def generate_tests(self, smoke_test_data, random_test_data=[]):
+    def generate_tests(self, smoke_test_data, random_test_data=()):
         """Wrap test data with corresponding markers.
 
         Parameters

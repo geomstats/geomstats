@@ -299,9 +299,13 @@ class GraphSpace(PointSet):
                 perm_matrices.append(_get_permutation_matrix(indices_))
             perm_matrices = gs.stack(perm_matrices)
 
-        return Matrices.mul(
+        permuted_graph = Matrices.mul(
             perm_matrices, graph_to_permute, Matrices.transpose(perm_matrices)
         )
+        if gs.ndim(permuted_graph) == 3 and gs.shape(permuted_graph)[0] == 1:
+            return permuted_graph[0]
+
+        return permuted_graph
 
     @_pad_with_zeros((1, "points"), copy=False)
     def pad_with_zeros(self, points):
@@ -643,6 +647,9 @@ class _BasePointToGeodesicAligner(metaclass=ABCMeta):
     def dist(self, geodesic, x):
         raise NotImplementedError("Not implemented")
 
+    def _get_n_points(self, x):
+        return 1 if gs.ndim(x) == 2 else gs.shape(x)[0]
+
 
 class PointToGeodesicAligner(_BasePointToGeodesicAligner):
     def __init__(self, metric, s_min, s_max, n_points=10):
@@ -650,7 +657,6 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         self.metric = metric
         self.s_min = s_min
         self.s_max = s_max
-        # TODO: rename
         self.n_points = n_points
 
         self._s = None
@@ -677,7 +683,7 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
     def _compute_dists(self, geodesic, x):
         gamma_s = self._get_gamma_s(geodesic)
 
-        n_points = 1 if gs.ndim(x) == 2 else gs.shape(x)[0]
+        n_points = self._get_n_points(x)
         if n_points > 1:
             gamma_s = gs.repeat(gamma_s, n_points, axis=0)
             rep_x = gs.concatenate([x for _ in range(self.n_points)])
@@ -727,7 +733,7 @@ class GeodesicToPointAligner(_BasePointToGeodesicAligner):
         return dist
 
     def _compute_dists(self, geodesic, x):
-        n_points = 1 if gs.ndim(x) == 2 else gs.shape(x)[0]
+        n_points = self._get_n_points(x)
 
         if n_points == 1:
             x = gs.expand_dims(x, axis=0)
@@ -761,4 +767,4 @@ class GeodesicToPointAligner(_BasePointToGeodesicAligner):
         new_x = self.metric.space.permute(x, perms)
         self.perm_ = perms[0] if n_points == 1 else perms
 
-        return new_x[0] if n_points == 1 else new_x
+        return new_x
