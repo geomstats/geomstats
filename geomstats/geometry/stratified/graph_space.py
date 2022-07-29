@@ -39,7 +39,8 @@ def _pad_graph_points_with_zeros(points, n_nodes, copy=False):
 
 def _pad_array_with_zeros(array, n_nodes):
     if array.shape[-1] < n_nodes:
-        paddings = [[0, 0]] + [[0, 1]] * 2 if array.ndim > 2 else [[0, 1]] * 2
+        n = n_nodes - array.shape[-1]
+        paddings = [[0, 0]] + [[0, n]] * 2 if array.ndim > 2 else [[0, n]] * 2
         array = gs.pad(array, paddings)
 
     return array

@@ -87,19 +87,19 @@ class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
 
         if type(points) is list:
             for point in padded_points:
-                self.assertTrue(point.adj.shape == expected_shape)
+                self.assertEqual(point.adj.shape, expected_shape)
 
-            self.assertTrue(len(padded_points) == len(points))
+            self.assertEqual(len(padded_points), len(points))
 
         elif type(points) is self.testing_data._Point:
-            self.assertTrue(padded_points.adj.shape == expected_shape)
+            self.assertEqual(padded_points.adj.shape, expected_shape)
             self.assertTrue(isinstance(padded_points, self.testing_data._Point))
 
         else:
-            self.assertTrue(padded_points.shape[-2:] == expected_shape)
-            self.assertTrue(padded_points.ndim == points.ndim)
+            self.assertEqual(padded_points.shape[-2:], expected_shape)
+            self.assertEqual(padded_points.ndim, points.ndim)
             if points.ndim == 3:
-                self.assertTrue(padded_points.shape[0] == points.shape[0])
+                self.assertEqual(padded_points.shape[0], points.shape[0])
 
 
 class TestGraphPoint(PointTestCase, metaclass=Parametrizer):
@@ -230,11 +230,15 @@ class TestMatcher(TestCase, metaclass=Parametrizer):
         )
 
         combs = [
-            (base_point_rep, permute_point),
+            (base_point, permute_point),
+            (base_point, permute_point_expanded),
             (base_point, permute_point_rep),
-            (base_point_rep, permute_point_rep),
+            (base_point_expanded, permute_point),
+            (base_point_expanded, permute_point_expanded),
             (base_point_expanded, permute_point_rep),
+            (base_point_rep, permute_point),
             (base_point_rep, permute_point_expanded),
+            (base_point_rep, permute_point_rep),
         ]
 
         for (base_point_, permute_point_) in combs:

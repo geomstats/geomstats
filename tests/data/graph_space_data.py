@@ -118,11 +118,12 @@ class GraphSpaceTestData(_PointSetTestData):
 
     def pad_with_zeros_test_data(self):
 
-        space = self._PointSet(3)
+        space = self._PointSet(4)
 
         adj_2 = Matrices(2, 2).random_point(3)
         adj_3 = Matrices(3, 3).random_point(2)
-        points = [self._Point(adj_2[0]), self._Point(adj_3[0])]
+        adj_4 = Matrices(4, 4).random_point(2)
+        points = [self._Point(adj[0]) for adj in [adj_2, adj_3, adj_4]]
 
         smoke_data = [
             dict(space=space, points=adj_2),
@@ -131,6 +132,7 @@ class GraphSpaceTestData(_PointSetTestData):
             dict(space=space, points=adj_3[0]),
             dict(space=space, points=points),
             dict(space=space, points=points[0]),
+            dict(space=space, points=adj_4),
         ]
 
         return self.generate_tests(smoke_data)
