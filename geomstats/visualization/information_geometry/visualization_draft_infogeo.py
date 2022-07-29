@@ -17,13 +17,40 @@ mpl.rc("figure", max_open_warning=0)
 
 
 class Visualizer(ABC):
+    r"""Class for visualizers.
+
+    Parameters
+    ----------
+    fig : matplotlib figure
+        Where to set the visualizer.
+    position : int
+        3-digit number representing the position of the figure to draw.
+        121 means it's the first image in an arrangement with 1 row and 2 columns.
+    space : InformationManifold
+        Space of the manifold to visualize.
+    """
+
     def __init__(self, fig, position, space, **kwargs):
         self.fig = fig
         self.position = position
         self.space = space
         self.dim = self.space.dim
         self.projection = "3d" if self.dim > 3 else None
-        self.ax = self.fig.add_subplot(position, projection=self.projection)
+        self._position_as_list = list(map(int, list(str(self.position))))
+
+        ax_exists = False
+        for ax in fig.axes:
+            n_rows, n_cols = (
+                ax._subplotspec._gridspec._nrows,
+                ax._subplotspec._gridspec._ncols,
+            )
+            index = 1 + ax._subplotspec.num1 + ax._subplotspec.num2 * n_cols
+            if self._position_as_list == [n_rows, n_cols, index]:
+                ax_exists = True
+                self.ax = ax
+                break
+        if not ax_exists:
+            self.ax = self.fig.add_subplot(position, projection=self.projection)
 
     def scatter(self, point, **kwargs):
         """Plot points on the manifold.
@@ -183,8 +210,10 @@ class Visualizer(ABC):
         ]
         if self.dim == 1:
             self.ax.plot(*gs.transpose(ball), [0] * len(directions), **kwargs)
-        else:
+        elif self.dim == 2:
             self.ax.plot(*gs.transpose(ball), **kwargs)
+        elif self.dim == 3:
+            self.ax.plot_trisurf(*gs.transpose(ball) ** kwargs)
 
     def plot_geodesic_star(self, center, n_rays=13, radius=1, **kwargs):
         """Plot geodesic star on the manifold.
@@ -216,26 +245,16 @@ class Visualizer1D(Visualizer):
         super(Visualizer1D, self).__init__(fig=fig, position=position, space=space)
 
     def directions(self, n_rays):
+        """Generate uniformly distributed tangent vectors.
+
+        Parameters
+        ----------
+        n_rays : int
+            Number of tangent vectors wanted (here unused because it is 2 in dim 1.)
+        """
         return gs.array([[-1.0], [1.0]])
 
-    # def plot_geodesic_ball(self, ax, center, ray_norm=1, **kwargs):
-    #     """Plot geodesic ball on the manifold.
-
-    #     Parameters
-    #     ----------
-    #     ax : matplotlib window
-    #         Location of the plot.
-    #     center : array-like, shape=[...,1]
-    #         Center of the geodesic ball.
-    #     ray_norm : float
-    #         Radius of the geodesic ball.
-    #     """
-    #     one = gs.ones(1)
-    #     left = self.space.metric.exp(-ray_norm * one, center)
-    #     right = self.space.metric.exp(ray_norm * one, center)
-    #     ax.plot([left, right], gs.zeros(2), "bo", **kwargs)
-
-    def iso_visualizer1D(self, ax, left_bound, right_bound, n_points, **kwargs):
+    def iso_visualizer1d(self, left_bound, right_bound, n_points=100, **kwargs):
         """Create framework for isometric representation of the manifold.
 
         Parameters
@@ -251,12 +270,12 @@ class Visualizer1D(Visualizer):
         """
         parent = self
 
-        class Iso_Visualizer1D:
+        class Iso_Visualizer1D(Visualizer1D):
             """Isometric visualizer for 1D distributions."""
 
-            def __init__(self, ax, left_bound, right_bound, n_points, **kwargs):
+            def __init__(self, left_bound, right_bound, **kwargs):
                 self.space = parent.space
-                self.ax = ax
+                self.ax = parent.ax
                 self.left_bound = left_bound
                 self.right_bound = right_bound
                 self.n_points = n_points
@@ -271,10 +290,12 @@ class Visualizer1D(Visualizer):
                 # the geodesic distance between theta1 and theta2 is exactly the
                 # euclidean length of the curve between points at theta1 and theta2.
 
-                times = gs.linspace(left_bound, right_bound, n_points)
-                ax.plot(times, [self.geod_distance(time) for time in times], **kwargs)
+                times = gs.linspace(left_bound, right_bound, self.n_points)
+                self.ax.plot(
+                    times, [self.geod_distance(time) for time in times], **kwargs
+                )
 
-            def isometric_scatter(self, point, **kwargs):
+            def scatter(self, point, **kwargs):
                 """Plot points on the isometric manifold.
 
                 Parameters
@@ -284,9 +305,12 @@ class Visualizer1D(Visualizer):
                 point : array-like, shape=[...,1]
                     Point on the manifold.
                 """
-                self.ax.scatter(point, [self.geod_distance(pt) for pt in point])
+                if point.shape == ():
+                    self.ax.scatter(point, self.geod_distance(point))
+                else:
+                    self.ax.scatter(point, [self.geod_distance(pt) for pt in point])
 
-            def isometric_plot_geodesic_ball(self, center, ray_norm=1, **kwargs):
+            def plot_geodesic_ball(self, center, radius=1, **kwargs):
                 """Plot geodesic ball on the isometric manifold.
 
                 Parameters
@@ -299,8 +323,8 @@ class Visualizer1D(Visualizer):
                     Radius of the geodesic ball.
                 """
                 one = gs.ones(1)
-                left = self.space.metric.exp(-ray_norm * one, center)
-                right = self.space.metric.exp(ray_norm * one, center)
+                left = self.space.metric.exp(-radius * one, center)
+                right = self.space.metric.exp(radius * one, center)
                 n_points = int(
                     (right - left)
                     / (self.right_bound - self.left_bound)
@@ -311,7 +335,7 @@ class Visualizer1D(Visualizer):
                     times, [self.geod_distance(time) for time in times], **kwargs
                 )
 
-        return Iso_Visualizer1D(ax, left_bound, right_bound, n_points, **kwargs)
+        return Iso_Visualizer1D(left_bound, right_bound, **kwargs)
 
 
 class Visualizer2D(Visualizer):
@@ -322,6 +346,13 @@ class Visualizer2D(Visualizer):
         super(Visualizer2D, self).__init__(fig=fig, position=position, space=space)
 
     def directions(self, n_rays=13):
+        """Generate uniformly distributed tangent vectors.
+
+        Parameters
+        ----------
+        n_rays : int
+            Number of tangent vectors wanted.
+        """
         theta = gs.linspace(0, 2 * gs.pi, n_rays)
         return gs.transpose(gs.stack((gs.cos(theta), gs.sin(theta))))
 
@@ -411,3 +442,37 @@ class Visualizer2D(Visualizer):
 
         # add callback for mouse moves
         fig.canvas.mpl_connect("motion_notify_event", hover)
+
+
+class Visualizer3D(Visualizer):
+    """Visualizer for 2-D parameter distributions."""
+
+    def __init__(self, fig, position, space):
+        self.projection = "3d"
+        super(Visualizer3D, self).__init__(fig=fig, position=position, space=space)
+
+    def directions(self, n_rays=51):
+        """Generate uniformly distributed tangent vectors.
+
+        This is the Fibonacci sphere algorithm.
+
+        Parameters
+        ----------
+        n_rays : int
+            Number of tangent vectors wanted.
+        """
+        points = []
+        phi = gs.pi * (3.0 - gs.sqrt(5.0))
+
+        for i in range(n_rays):
+            y = 1 - (i / float(n_rays - 1)) * 2
+            radius = gs.sqrt(1 - y * y)
+
+            theta = phi * i
+
+            x = gs.cos(theta) * radius
+            z = gs.sin(theta) * radius
+
+            points.append([x, y, z])
+
+        return gs.array(points)
