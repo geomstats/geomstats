@@ -20,8 +20,16 @@ from tests.stratified_test_cases import (
 IS_NOT_NP = not np_backend()
 
 
+def _expand_point(point):
+    return gs.expand_dims(point, 0)
+
+
 def _repeat_point(point, n_reps=2):
-    return gs.repeat(gs.expand_dims(point, 0), n_reps, axis=0)
+    return gs.repeat(_expand_point(point), n_reps, axis=0)
+
+
+def _expand_and_repeat_point(point, n_reps=2):
+    return _expand_point(point), _repeat_point(point, n_reps=n_reps)
 
 
 class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
@@ -207,39 +215,49 @@ class TestMatcher(TestCase, metaclass=Parametrizer):
         self._check_permutation(permute_point, perm, expected, perm_fnc, dist_fnc)
 
     def test_match_vec(self, matcher, base_point, permute_point, perm_fnc, dist_fnc):
-        def check_perm(base_point, perm, expected):
-            return self._check_permutation(
-                permute_point,
-                perm,
-                expected,
-                perm_fnc,
-                dist_fnc,
-            )
-
         perm = matcher.match(base_point, permute_point)
         expected = perm_fnc(permute_point, perm)
         expected_rep = _repeat_point(expected)
 
-        base_point_rep = _repeat_point(base_point)
-        permute_point_rep = _repeat_point(permute_point)
+        base_point_expanded, base_point_rep = _expand_and_repeat_point(base_point)
+        permute_point_expanded, permute_point_rep = _expand_and_repeat_point(
+            permute_point,
+        )
 
-        perm_bp_rep = matcher.match(base_point_rep, permute_point)
-        perm_pp_rep = matcher.match(base_point, permute_point_rep)
-        perm_bp_pp_rep = matcher.match(base_point_rep, permute_point_rep)
+        combs = [
+            (base_point_rep, permute_point),
+            (base_point, permute_point_rep),
+            (base_point_rep, permute_point_rep),
+            (base_point_expanded, permute_point_rep),
+            (base_point_rep, permute_point_expanded),
+        ]
 
-        check_perm(permute_point, perm_bp_rep, expected_rep)
-        check_perm(permute_point_rep, perm_pp_rep, expected_rep)
-        check_perm(permute_point_rep, perm_bp_pp_rep, expected_rep)
+        for (base_point_, permute_point_) in combs:
+            self.test_match(
+                matcher, base_point_, permute_point_, expected_rep, perm_fnc, dist_fnc
+            )
 
     def test_match_output_shape(self, matcher, base_point, permute_point):
         perm = matcher.match(base_point, permute_point)
-        self.assertEqual(gs.ndim(perm), 1)
 
-        base_point_expanded = gs.expand_dims(base_point, 0)
-        permute_point_expanded = _repeat_point(permute_point)
+        is_multiple = gs.ndim(base_point) > 2 or gs.ndim(permute_point) > 2
 
-        base_point_rep = _repeat_point(base_point)
-        permute_point_rep = _repeat_point(permute_point)
+        out_ndim = gs.ndim(perm)
+        if is_multiple:
+            n_out = max(
+                base_point.shape[0] if gs.ndim(base_point) > 2 else 1,
+                permute_point.shape[0] if gs.ndim(permute_point) > 2 else 1,
+            )
+            self.assertEqual(out_ndim, 2)
+            self.assertEqual(perm.shape[0], n_out)
+        else:
+            self.assertEqual(out_ndim, 1)
+
+    def test_match_output_shape_vec(self, matcher, base_point, permute_point):
+        base_point_expanded, base_point_rep = _expand_and_repeat_point(base_point)
+        permute_point_expanded, permute_point_rep = _expand_and_repeat_point(
+            permute_point,
+        )
 
         combs = [
             (base_point_rep, permute_point),
@@ -250,6 +268,8 @@ class TestMatcher(TestCase, metaclass=Parametrizer):
         ]
 
         for comb in combs:
-            perm_ = matcher.match(*comb)
-            self.assertEqual(gs.ndim(perm_), 2)
-            self.assertEqual(perm_.shape[0], 2)
+            self.test_match_output_shape(
+                matcher,
+                base_point,
+                permute_point,
+            )

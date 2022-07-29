@@ -259,16 +259,23 @@ class MatcherTestData(TestData):
     def _setup(self):
         self.spaces = [GraphSpace(3)]
 
+    def _get_matchers(self, metric):
+        return [IDMatcher(), FAQMatcher(), BruteForceExactMatcher(metric)]
+
+    def _get_metric_with_exact_matcher(self, space):
+        metric = GraphSpaceMetric(space)
+        exact_matcher = BruteForceExactMatcher(metric)
+        metric.set_matcher(exact_matcher)
+        return metric
+
     def match_test_data(self):
         smoke_data = []
         for space in self.spaces:
             base_point, permute_point = space.random_point(2)
 
-            metric = GraphSpaceMetric(space)
-            exact_matcher = BruteForceExactMatcher(metric)
-            metric.set_matcher(exact_matcher)
+            metric = self._get_metric_with_exact_matcher(space)
 
-            perm = exact_matcher.match(base_point, permute_point)
+            perm = metric.matcher.match(base_point, permute_point)
             expected = space.permute(permute_point, perm)
 
             matchers = [FAQMatcher()]
@@ -291,11 +298,9 @@ class MatcherTestData(TestData):
         for space in self.spaces:
             base_point, permute_point = space.random_point(2)
 
-            metric = GraphSpaceMetric(space)
-            exact_matcher = BruteForceExactMatcher(metric)
-            metric.set_matcher(exact_matcher)
+            metric = self._get_metric_with_exact_matcher(space)
 
-            matchers = [IDMatcher(), FAQMatcher(), BruteForceExactMatcher(metric)]
+            matchers = self._get_matchers(metric)
             for matcher in matchers:
                 smoke_data.append(
                     dict(
@@ -310,12 +315,15 @@ class MatcherTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def match_output_shape_test_data(self):
+        return []
+
+    def match_output_shape_vec_test_data(self):
         smoke_data = []
         for space in self.spaces:
             base_point, permute_point = space.random_point(2)
 
             metric = GraphSpaceMetric(space)
-            matchers = [IDMatcher(), FAQMatcher(), BruteForceExactMatcher(metric)]
+            matchers = self._get_matchers(metric)
             for matcher in matchers:
                 smoke_data.append(
                     dict(
