@@ -5,11 +5,11 @@ import networkx as nx
 import geomstats.backend as gs
 from tests.conftest import Parametrizer, TestCase, np_backend
 from tests.data.graph_space_data import (
+    AlignerTestData,
     DecoratorsTestData,
     GraphSpaceMetricTestData,
     GraphSpaceTestData,
     GraphTestData,
-    MatcherTestData,
     PointToGeodesicAlignerTestData,
 )
 from tests.stratified_test_cases import (
@@ -158,11 +158,10 @@ class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
         results = geodesic([0.0, 1.0])
         self.assertAllClose(results, gs.stack([start_point, end_point]))
 
-    def test_matching(self, metric, point_a, point_b, matcher, expected):
-        metric.matcher = matcher
-        perm = metric.matching(point_a, point_b)
+    def test_align_point_to_point(self, metric, point_a, point_b, aligner, expected):
+        permuted_point = metric.align_point_to_point(point_a, point_b)
 
-        self.assertAllEqual(perm, expected)
+        self.assertAllClose(permuted_point, expected)
 
     def test_align_point_to_geodesic(self, metric, geodesic, point, expected):
         aligned_point = metric.align_point_to_geodesic(geodesic, point)
@@ -203,25 +202,21 @@ class TestDecorators(TestCase, metaclass=Parametrizer):
         self.assertTrue(len(vec_points) == n_points)
 
 
-class TestMatcher(TestCase, metaclass=Parametrizer):
+class TestAligner(TestCase, metaclass=Parametrizer):
     skip_all = IS_NOT_NP
-    testing_data = MatcherTestData()
+    testing_data = AlignerTestData()
 
-    def _check_permutation(self, permute_point, perm, expected, perm_fnc, dist_fnc):
-        permuted_point = perm_fnc(permute_point, perm)
+    def _is_same_equivalence_class(self, permuted_point, expected, dist_fnc):
         dist = dist_fnc(expected, permuted_point)
         self.assertAllEqual(dist, 0.0)
 
-    def test_match(
-        self, matcher, base_point, permute_point, expected, perm_fnc, dist_fnc
-    ):
-        perm = matcher.match(base_point, permute_point)
+    def test_align(self, aligner, base_point, permute_point, expected, dist_fnc):
+        res = aligner.align(base_point, permute_point)
 
-        self._check_permutation(permute_point, perm, expected, perm_fnc, dist_fnc)
+        self._is_same_equivalence_class(res, expected, dist_fnc)
 
-    def test_match_vec(self, matcher, base_point, permute_point, perm_fnc, dist_fnc):
-        perm = matcher.match(base_point, permute_point)
-        expected = perm_fnc(permute_point, perm)
+    def test_align_vec(self, aligner, base_point, permute_point, dist_fnc):
+        expected = aligner.align(base_point, permute_point)
         expected_rep = _repeat_point(expected)
 
         base_point_expanded, base_point_rep = _expand_and_repeat_point(base_point)
@@ -242,27 +237,27 @@ class TestMatcher(TestCase, metaclass=Parametrizer):
         ]
 
         for (base_point_, permute_point_) in combs:
-            self.test_match(
-                matcher, base_point_, permute_point_, expected_rep, perm_fnc, dist_fnc
+            self.test_align(
+                aligner, base_point_, permute_point_, expected_rep, dist_fnc
             )
 
-    def test_match_output_shape(self, matcher, base_point, permute_point):
-        perm = matcher.match(base_point, permute_point)
+    def test_align_output_shape(self, aligner, base_point, permute_point):
+        expected = aligner.align(base_point, permute_point)
 
         is_multiple = gs.ndim(base_point) > 2 or gs.ndim(permute_point) > 2
 
-        out_ndim = gs.ndim(perm)
+        out_ndim = gs.ndim(expected)
         if is_multiple:
             n_out = max(
                 base_point.shape[0] if gs.ndim(base_point) > 2 else 1,
                 permute_point.shape[0] if gs.ndim(permute_point) > 2 else 1,
             )
-            self.assertEqual(out_ndim, 2)
-            self.assertEqual(perm.shape[0], n_out)
+            self.assertEqual(out_ndim, 3)
+            self.assertEqual(expected.shape[0], n_out)
         else:
-            self.assertEqual(out_ndim, 1)
+            self.assertEqual(out_ndim, 2)
 
-    def test_match_output_shape_vec(self, matcher, base_point, permute_point):
+    def test_align_output_shape_vec(self, aligner, base_point, permute_point):
         base_point_expanded, base_point_rep = _expand_and_repeat_point(base_point)
         permute_point_expanded, permute_point_rep = _expand_and_repeat_point(
             permute_point,
@@ -277,8 +272,8 @@ class TestMatcher(TestCase, metaclass=Parametrizer):
         ]
 
         for comb in combs:
-            self.test_match_output_shape(
-                matcher,
+            self.test_align_output_shape(
+                aligner,
                 base_point,
                 permute_point,
             )

@@ -1,9 +1,9 @@
 import geomstats.backend as gs
 from geomstats.geometry.stratified.graph_space import (
-    BruteForceExactMatcher,
-    GeodesicToPointAligner,
+    ExhaustiveAligner,
     GraphSpace,
     GraphSpaceMetric,
+    _GeodesicToPointAligner,
 )
 from geomstats.learning.aac import _AACGGPCA, _AACFrechetMean, _AACRegressor
 from tests.data_generation import TestData
@@ -83,7 +83,7 @@ class AACFrechetMeanTestData(_TrivialMeanEstimatorTestData):
         space_2 = GraphSpace(2)
 
         metric = GraphSpaceMetric(space_2)
-        metric.set_matcher(BruteForceExactMatcher(metric))
+        metric.set_aligner(ExhaustiveAligner(metric))
 
         self.metrics = [metric] * 2
 
@@ -110,9 +110,9 @@ class AACGGPCATestData(_TrivialGeodesicEstimatorTestData):
         space_2 = GraphSpace(2)
 
         metric = GraphSpaceMetric(space_2)
-        metric.set_matcher(BruteForceExactMatcher(metric))
+        metric.set_aligner(ExhaustiveAligner(metric))
 
-        aligner = GeodesicToPointAligner(metric)
+        aligner = _GeodesicToPointAligner(metric)
         metric.set_point_to_geodesic_aligner(aligner)
 
         self.metrics = [metric] * 2
@@ -127,7 +127,7 @@ class AACRegressorTestData(_TrivialRegressorTestData):
         space_2 = GraphSpace(2)
 
         metric = GraphSpaceMetric(space_2)
-        metric.set_matcher(BruteForceExactMatcher(metric))
+        metric.set_aligner(ExhaustiveAligner(metric))
 
         metric.set_point_to_geodesic_aligner(
             "default", s_min=-1.0, s_max=1.0, n_points=10
