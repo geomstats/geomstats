@@ -1,3 +1,8 @@
+"""Graph Space.
+
+Lead author: Anna Calissano.
+"""
+
 import logging
 import random
 
@@ -18,7 +23,47 @@ def _warn_max_iterations(iteration, max_iter):
 
 
 class AAC:
+    r"""Class for Align all and Compute algorithm on Graph Space.
+
+    The Align All and Compute (AAC) algorithm is introduced in [Calissano2020] and it
+    allows to compute different statistical estimators: the Frechet Mean, the
+    Generalized Geodesic Principal components and the Regression for a set of labeled or
+    unlabeled graphs. The idea is to optimally aligned the graphs to the current
+    estimator using the correct alignment technique and compute the current estimation
+    using the geometrical property of the total space, i.e., the Euclidean space of
+    adjacency matrices.
+
+    Parameters
+    ----------
+    estimate : str
+        The estimator desired:
+            "frechet_mean": Frechet Mean estimation [Calissano2020]
+            "ggpca": Generalized Geodesic Principal Components [Calissano2020]
+            "regression": Graph-on-vector regression model [Calissano2022]
+    metric : GraphSpaceMetric
+        Metric Class on Graph Space.
+
+    Example
+    -------
+    Available example on Graph Space:
+    :mod:`notebooks.19_practical_methods__aac`
+    Available example on Graph Space with real world data:
+    :mod:`notebooks.20_real_world_application__graph_space`
+
+    References
+    ----------
+    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+    “Graph Space: Geodesic Principal Components for a Population of
+    Network-valued Data.” Mox report 14, 2020.
+    https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    .. [Calissano2022]  Calissano, A., Feragen, A., Vantini, S.
+    “Graph-valued regression: prediction of unlabelled networks in a non-Euclidean
+    Graph Space.”Journal of Multivariate Analysis 190 - 104950, (2022).
+    https://doi.org/10.1016/j.jmva.2022.104950.
+    """
+
     def __new__(cls, *args, estimate="frechet", **kwargs):
+        r"""Class for Align all and Compute algorithm on Graph Space."""
         MAP_ESTIMATE = {
             "frechet_mean": _AACFrechetMean,
             "ggpca": _AACGGPCA,
@@ -30,6 +75,39 @@ class AAC:
 
 
 class _AACFrechetMean(BaseEstimator):
+    r"""Class AAC for Frechet Mean on Graph Space.
+
+    The Align All and Compute (AAC) algorithm for Frechet Mean (FM)estimation is
+    introduced in [Calissano2020] and it estimates the Frechet Mean for a set of
+    labeled or unlabeled graphs. The idea is to optimally aligned the graphs to the
+    current mean estimator using the optimal alignment between the graphs and the mean
+    (graph matching between two graphs) and compute the mean estimation between the
+    aligned adjacency matrices (the arithmetic mean in the euclidean space of dimension
+    :math:`nodes \times nodes`). The algorithm stops as soon as the distance between two
+    consecutive estimations is lower then :math:`\epsilon` or the maximum number of
+    iterations is reached. The initialization step consists in aligning the data with
+    respect to an initial point.
+
+    Parameters
+    ----------
+    metric : GraphSpaceMetric
+        Metric Class on Graph Space.
+    epsilon: float, default=1e-6
+        Stopping criterion for the estimation step, i.e., the distance between two
+        consecutive estimators.
+    max_iter: int, default = 20
+        Stopping criterion on the maximum number of iterations.
+    init_point: array-like, shape=[n_nodes, n_nodes] or GraphPoint, default random.
+        Algorithm initialization.
+
+    References
+    ----------
+    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+    “Graph Space: Geodesic Principal Components for a Population of
+    Network-valued Data.” Mox report 14, 2020.
+    https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    """
+
     def __init__(
         self,
         metric,
@@ -53,6 +131,18 @@ class _AACFrechetMean(BaseEstimator):
         self.n_iter_ = None
 
     def fit(self, X, y=None):
+        r"""Fit the Frechet Mean.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
+            Dataset to estimate the FM.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
         previous_estimate = (
             random.choice(X) if self.init_point is None else self.init_point
         )
@@ -77,6 +167,45 @@ class _AACFrechetMean(BaseEstimator):
 
 
 class _AACGGPCA(BaseEstimator):
+    r"""Class AAC for Generalized Geodesic Principal Components (GGPCA) on Graph Space.
+
+    The Align All and Compute (AAC) algorithm for GGPCA estimation is
+    introduced in [Calissano2020] and it estimates the GGPCA for a set of
+    labeled or unlabeled graphs. The idea is to optimally aligned the graphs to the
+    current GGPCA estimator using the optimal alignment between the graphs and the
+    geodesics and then compute the GGPCA estimation between the aligned adjacency
+    matrices (the PCA in the euclidean space of dimension :math:`nodes \times nodes`).
+    The algorithm stops as soon as the percentage of variance explained by PCA in two
+    consecutive estimations is lower then :math:`\epsilon` or the maximum number of
+    iteration is reached. The initialization step consists in aligning all the data with
+    respect to a initial point.
+
+    Parameters
+    ----------
+    metric : GraphSpaceMetric
+        Metric Class on Graph Space.
+    epsilon: float, default=1e-6
+        Stopping criterion for the estimation step, i.e., the distance between two
+        consecutive estimators.
+    max_iter: int, default = 20
+        Stopping criterion on the maximum number of iterations.
+    init_point: array-like, shape=[n_nodes, n_nodes] or GraphPoint, default random.
+        Algorithm initialization.
+    n_components: int
+        Number of principal components to be estimated. Notice that the convergence is
+        proved only for the first principal component.
+    total_space_estimator: method, default = sklearn.decomposition.PCA
+        Method for the estimation of the PCA for a set of flattened adjacency matrices
+        in the total space. Check geomstats.learning._sklearn_wrapper for details.
+
+    References
+    ----------
+    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+    “Graph Space: Geodesic Principal Components for a Population of
+    Network-valued Data.” Mox report 14, 2020.
+    https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    """
+
     def __init__(
         self, metric, *, n_components=2, epsilon=1e-6, max_iter=20, init_point=None
     ):
@@ -85,27 +214,48 @@ class _AACGGPCA(BaseEstimator):
         self.max_iter = max_iter
         self.init_point = init_point
         self.n_components = n_components
-
         self.total_space_estimator = WrappedPCA(n_components=self.n_components)
         self.n_iter_ = None
 
     @property
     def components_(self):
+        r"""Principal Components in the total space.
+
+        GGPCA expressed as vectors in the total space.
+        """
         return self.total_space_estimator.reshaped_components_
 
     @property
     def explained_variance_(self):
+        r"""Variance Explained along the GGPCA."""
         return self.total_space_estimator.explained_variance_
 
     @property
     def explained_variance_ratio_(self):
+        r"""Percentage of Variance Explained along the GGPCA."""
         return self.total_space_estimator.explained_variance_ratio_
 
     @property
     def mean_(self):
+        r"""Mean at the last iteration."""
         return self.total_space_estimator.reshaped_mean_
 
     def fit(self, X, y=None):
+        r"""Fit the GGPCA.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
+            Dataset to estimate the GGPCA.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+
+        Note: Default method in the total space is sklearn.decomposition.PCA where
+        the input data are centered but not scaled for each feature.
+        """
         x = random.choice(X) if self.init_point is None else self.init_point
         aligned_X = self.metric.align_point_to_point(x, X)
 
@@ -137,6 +287,46 @@ class _AACGGPCA(BaseEstimator):
 
 
 class _AACRegressor(BaseEstimator):
+    r"""Class AAC for Generalized Geodesic Regression (GGR) on Graph Space.
+
+    The Align All and Compute (AAC) algorithm for GGR estimation is
+    introduced in [Calissano2022] and it estimates the GGR for
+    :math:`\{(s_i, X_i)\in \mathbb{R}^p\times X/T\}` a set of labeled or unlabeled
+    graphs as output and a set of scalar or vector as input:
+    :math:`f: \mathbb{R}^p \rightarrow X/T`. The idea is to iteratively estimate a OLS
+    regression model between a set of regressors and a set of flattened adjacency
+    matrices and align the graphs to the current GGR estimator using the optimal
+    alignment for regression. The optimal alignment for regression consists in aligning
+    the graph with the corresponding predicted graph along the regression model to
+    decrease the prediction error. The algorithm stops as soon as the loss in two
+    consecutive estimations is lower then math:`\epsilon` or the maximum number of
+    iteration is reached. The initialization step consists in aligning all the data with
+    respect to a initial point.
+
+    Parameters
+    ----------
+    metric : GraphSpaceMetric
+        Metric Class on Graph Space.
+    epsilon: float, default=1e-6
+        Stopping criterion for the estimation step, i.e., the distance between loss
+        function in two consecutive estimation steps.
+    max_iter: int, default = 20
+        Stopping criterion on the maximum number of iterations.
+    init_point: array-like, shape=[n_nodes, n_nodes] or GraphPoint, default random.
+        Algorithm initialization.
+    total_space_estimator: method, default = sklearn.linear_model.LinearRegression
+        Method for the estimation of the OLS Regression for a set of flattened adjacency
+        matrices in the total space.
+        Check geomstats.learning._sklearn_wrapper for details.
+
+    References
+    ----------
+    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+    “Graph Space: Geodesic Principal Components for a Population of
+    Network-valued Data.” Mox report 14, 2020.
+    https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    """
+
     def __init__(
         self,
         metric,
@@ -158,10 +348,27 @@ class _AACRegressor(BaseEstimator):
         self.n_iter_ = None
 
     def _compute_pred_error(self, y_pred, y):
+        r"""Compute the prediction error."""
         # order matters for reuse of perm_
         return gs.sum(self.metric.dist(y_pred, y))
 
     def fit(self, X, y):
+        r"""Fit the Generalized Geodesic Regression.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_obs, p].
+            Dataset of regressors to estimate the GGR.
+        y : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
+            Dataset to estimate the GGR.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+
+        Note: Default method in the total space is sklearn.linear_model.LinearRegression
+        """
         y_ = random.choice(y) if self.init_point is None else self.init_point
         aligned_y = self.metric.align_point_to_point(y_, y)
 
@@ -172,7 +379,6 @@ class _AACRegressor(BaseEstimator):
         error = self.epsilon + 1
         iteration = 0
         while (error < 0.0 or error > self.epsilon) and iteration < self.max_iter:
-
             iteration += 1
 
             # align point to point using previous computed alignment
@@ -193,4 +399,19 @@ class _AACRegressor(BaseEstimator):
         return self
 
     def predict(self, X):
+        r"""Prediction function for the Generalized Geodesic Regression.
+
+        Predict a graph or a set of graphs corresponding to the given regressors. It
+        uses the total space prediction.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
+            Dataset to estimate the GGR.
+
+        Returns
+        -------
+        prediction : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
+            Predicted unlabeled graphs.
+        """
         return self.total_space_estimator.predict(X)
