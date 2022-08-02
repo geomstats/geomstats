@@ -47,7 +47,6 @@ from torch import (
     sin,
     sinh,
     stack,
-    std,
     tan,
     tanh,
     trapz,
@@ -63,6 +62,13 @@ from .._backend_config import pytorch_rtol as rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
+from ._common import array, cast, from_numpy
+from ._dtype_wrapper import (
+    _add_default_dtype,
+    as_dtype,
+    get_default_dtype,
+    set_default_dtype,
+)
 
 _DTYPES = {
     int32: 0,
@@ -103,6 +109,8 @@ sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
 tan = _box_scalar(tan)
 
+std = _add_default_dtype(_torch.std)
+
 
 def matmul(x, y, out=None):
     for array_ in [x, y]:
@@ -115,15 +123,6 @@ def matmul(x, y, out=None):
 
 def to_numpy(x):
     return x.numpy()
-
-
-def from_numpy(x, dtype=None):
-    tensor = _torch.from_numpy(x)
-
-    if dtype is not None and tensor.dtype != dtype:
-        tensor = cast(tensor, dtype=dtype)
-
-    return tensor
 
 
 def one_hot(labels, num_classes):
@@ -199,12 +198,6 @@ def any(x, axis=None):
     return any(_torch.any(x.bool(), axis[0]), new_axis)
 
 
-def cast(x, dtype):
-    if _torch.is_tensor(x):
-        return x.to(dtype=dtype)
-    return array(x, dtype=dtype)
-
-
 def flip(x, axis):
     if isinstance(axis, int):
         axis = [axis]
@@ -216,24 +209,6 @@ def flip(x, axis):
 def concatenate(seq, axis=0, out=None):
     seq = convert_to_wider_dtype(seq)
     return _torch.cat(seq, dim=axis, out=out)
-
-
-def array(val, dtype=None):
-
-    if _torch.is_tensor(val):
-        if dtype is None or val.dtype == dtype:
-            return val.clone()
-        else:
-            return cast(val, dtype=dtype)
-
-    elif isinstance(val, _np.ndarray):
-        return from_numpy(val, dtype=dtype)
-
-    elif isinstance(val, (list, tuple)) and len(val):
-        tensors = [array(tensor, dtype=dtype) for tensor in val]
-        return stack(tensors)
-
-    return _torch.tensor(val, dtype=dtype)
 
 
 def all(x, axis=None):
@@ -383,8 +358,8 @@ def trace(x):
     return _torch.einsum("...ii", x)
 
 
-def linspace(start, stop, num):
-    return _torch.linspace(start=start, end=stop, steps=num)
+def linspace(start, stop, num=50, dtype=None):
+    return _torch.linspace(start=start, end=stop, steps=num, dtype=dtype)
 
 
 def equal(a, b, **kwargs):
@@ -605,18 +580,18 @@ def copy(x):
     return x.clone()
 
 
-def cumsum(x, axis=None):
+def cumsum(x, axis=None, dtype=None):
     if not _torch.is_tensor(x):
-        x = array(x)
+        x = array(x, dtype=dtype)
     if axis is None:
-        return x.flatten().cumsum(dim=0)
-    return _torch.cumsum(x, dim=axis)
+        return x.flatten().cumsum(dim=0, dtype=dtype)
+    return _torch.cumsum(x, dim=axis, dtype=dtype)
 
 
-def cumprod(x, axis=None):
+def cumprod(x, axis=None, dtype=None):
     if axis is None:
         axis = 0
-    return _torch.cumprod(x, axis)
+    return _torch.cumprod(x, axis, dtype=dtype)
 
 
 def array_from_sparse(indices, data, target_shape):
@@ -667,7 +642,7 @@ def triu_to_vec(x, k=0):
     return x[..., rows, cols]
 
 
-def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low, dtype=None):
     """Build matrix from given components.
 
     Forms a matrix from diagonal, strictly upper triangular and
@@ -686,10 +661,10 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     n = diag.shape[-1]
     (i,) = diag_indices(n, ndim=1)
     j, k = triu_indices(n, k=1)
-    mat = _torch.zeros((diag.shape + (n,)))
-    mat[..., i, i] = diag
-    mat[..., j, k] = tri_upp
-    mat[..., k, j] = tri_low
+    mat = _torch.zeros((diag.shape + (n,)), dtype=dtype)
+    mat[..., i, i] = diag if diag.dtype is mat.dtype else cast(diag, mat.dtype)
+    mat[..., j, k] = tri_upp if tri_upp.dtype is mat.dtype else cast(tri_upp, mat.dtype)
+    mat[..., k, j] = tri_low if tri_low.dtype is mat.dtype else cast(tri_low, mat.dtype)
     return mat
 
 

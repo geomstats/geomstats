@@ -366,7 +366,11 @@ class DtypesTestData(TestData):
             dict(func_name="random.normal", kwargs={"size": 2}),
             dict(
                 func_name="random.multivariate_normal",
-                kwargs={"mean": gs.ones(2), "cov": gs.ones((2, 2)), "size": 2},
+                kwargs={
+                    "mean": gs.ones(2),
+                    "cov": SPDMatrices(2).random_point(),
+                    "size": 2,
+                },
             ),
             dict(func_name="random.uniform", kwargs={"size": 2}),
         ]
