@@ -231,7 +231,31 @@ class BackendsTestData(TestData):
         return data
 
     def func_out_allclose_test_data(self):
+        # TODO: verify dtype
         smoke_data = [
+            dict(
+                func_name="array_from_sparse",
+                kwargs={"indices": [(0,)], "data": [1.0], "target_shape": (2,)},
+                expected=gs.array([1.0, 0.0]),
+            ),
+            dict(
+                func_name="array_from_sparse",
+                kwargs={
+                    "indices": [(0, 0), (0, 1), (1, 2)],
+                    "data": [1.0, 2.0, 3.0],
+                    "target_shape": (2, 3),
+                },
+                expected=gs.array([[1.0, 2.0, 0], [0, 0, 3.0]]),
+            ),
+            dict(
+                func_name="array_from_sparse",
+                kwargs={
+                    "indices": [(0, 1, 1), (1, 1, 1)],
+                    "data": [1.0, 2.0],
+                    "target_shape": (2, 2, 2),
+                },
+                expected=gs.array([[[0.0, 0.0], [0.0, 1.0]], [[0.0, 0.0], [0.0, 2.0]]]),
+            ),
             dict(
                 func_name="linalg.logm",
                 args=[gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])],

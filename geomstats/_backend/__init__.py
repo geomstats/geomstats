@@ -73,7 +73,6 @@ BACKEND_ATTRIBUTES = {
         "floor",
         "from_numpy",
         "get_default_dtype",
-        "get_mask_i_float",
         "get_slice",
         "greater",
         "hsplit",
