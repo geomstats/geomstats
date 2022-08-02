@@ -75,67 +75,46 @@ class GraphSpaceTestData(_PointSetTestData):
 
     def permute_test_data(self):
         space = self._PointSet(2)
-        graph = gs.array([[0.0, 1.0], [2.0, 3]])
+        graph = gs.array([[0.0, 1.0], [2.0, 3.0]])
 
         smoke_data = [
             dict(
                 space=space, graph=graph, permutation=gs.array([0, 1]), expected=graph
             ),
+        ]
+        vec_data = (
             dict(
                 space=space,
                 graph=graph,
                 permutation=gs.array([1, 0]),
                 expected=gs.array([[3.0, 2.0], [1.0, 0.0]]),
             ),
-        ]
+        )
 
-        return self.generate_tests(smoke_data)
-
-    def permute_vectorization_test_data(self):
-        space = self._PointSet(2)
-        points = space.random_point(3)
-
-        permutation = gs.array([0, 1])
-
-        smoke_data = [
-            dict(space=space, graph=points[0], id_permutation=permutation),
-            dict(
-                space=space,
-                graph=points[0],
-                id_permutation=gs.repeat(gs.expand_dims(permutation, 0), 2, axis=0),
-            ),
-            dict(space=space, graph=points, id_permutation=permutation),
-            dict(
-                space=space,
-                graph=points,
-                id_permutation=gs.repeat(
-                    gs.expand_dims(permutation, 0), points.shape[0], axis=0
-                ),
-            ),
-        ]
-
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(smoke_data) + self.generate_vec_tests(
+            vec_data,
+            ["graph", "permutation"],
+            expected_name="expected",
+            n_reps=3,
+        )
 
     def pad_with_zeros_test_data(self):
 
         space = self._PointSet(4)
 
-        adj_2 = Matrices(2, 2).random_point(3)
-        adj_3 = Matrices(3, 3).random_point(2)
-        adj_4 = Matrices(4, 4).random_point(2)
-        points = [self._Point(adj[0]) for adj in [adj_2, adj_3, adj_4]]
-
-        smoke_data = [
-            dict(space=space, points=adj_2),
-            dict(space=space, points=adj_2[0]),
-            dict(space=space, points=adj_3),
-            dict(space=space, points=adj_3[0]),
-            dict(space=space, points=points),
-            dict(space=space, points=points[0]),
-            dict(space=space, points=adj_4),
+        adjs = [
+            Matrices(2, 2).random_point(),
+            Matrices(3, 3).random_point(),
+            Matrices(4, 4).random_point(),
         ]
+        points = [self._Point(adj) for adj in adjs]
 
-        return self.generate_tests(smoke_data)
+        vec_data_1 = [dict(space=space, points=point) for point in adjs]
+        vec_data_2 = [dict(space=space, points=point) for point in points]
+
+        return self.generate_vec_tests(
+            vec_data_1, ["points"]
+        ) + self.generate_vec_tests(vec_data_2, ["points"], check_expand=False)
 
 
 class GraphTestData(_PointTestData):
@@ -290,8 +269,11 @@ class AlignerTestData(TestData):
     def _setup(self):
         self.spaces = [GraphSpace(3)]
 
-    def _get_aligners(self, metric):
-        return [IDAligner(metric), FAQAligner(metric), ExhaustiveAligner(metric)]
+    def _get_aligners(self, metric=None):
+        Aligners = [IDAligner, FAQAligner, ExhaustiveAligner]
+        if metric is None:
+            return Aligners
+        return [Aligner(metric) for Aligner in Aligners]
 
     def align_test_data(self):
         smoke_data = []
@@ -316,31 +298,36 @@ class AlignerTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def align_vec_test_data(self):
-        smoke_data = []
+    def align_cmp_points_test_data(self):
+        vec_data = []
         for space in self.spaces:
             base_point, permute_point = space.random_point(2)
 
-            metric = _get_metric_with_exact_aligner(space)
+            Aligners = self._get_aligners()
+            for Aligner in Aligners:
+                metric = GraphSpaceMetric(space)
+                aligner = Aligner(metric)
+                metric.set_aligner(aligner)
 
-            aligners = self._get_aligners(metric)
-            for aligner in aligners:
-                smoke_data.append(
+                if isinstance(aligner, IDAligner):
+                    expected = permute_point
+                else:
+                    expected = metric.aligner.align(base_point, permute_point)
+
+                vec_data.append(
                     dict(
                         aligner=aligner,
                         base_point=base_point,
                         permute_point=permute_point,
-                        perm_fnc=space.permute,
-                        dist_fnc=metric.dist,
+                        expected=expected,
                     )
                 )
 
-        return self.generate_tests(smoke_data)
+        return self.generate_vec_tests(
+            vec_data, ["base_point", "permute_point"], expected_name="expected"
+        )
 
     def align_output_shape_test_data(self):
-        return []
-
-    def align_output_shape_vec_test_data(self):
         smoke_data = []
         for space in self.spaces:
             base_point, permute_point = space.random_point(2)
@@ -356,7 +343,7 @@ class AlignerTestData(TestData):
                     )
                 )
 
-        return self.generate_tests(smoke_data)
+        return self.generate_vec_tests(smoke_data, ["base_point", "permute_point"])
 
 
 class PointToGeodesicAlignerTestData(TestData):
@@ -400,24 +387,24 @@ class PointToGeodesicAlignerTestData(TestData):
                     )
                 )
 
-        return self.generate_tests(smoke_data)
-
-    def align_vec_test_data(self):
-        smoke_data = []
+        vec_data = []
         for space in self.spaces:
             aligners, geodesic = self._get_aligners_and_geo(space)
             point = geodesic(0.5)[0]
 
             for aligner in aligners:
-                smoke_data.append(
+                vec_data.append(
                     dict(
                         aligner=aligner,
                         geodesic=geodesic,
                         point=point,
+                        expected=point,
                     )
                 )
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(smoke_data) + self.generate_vec_tests(
+            vec_data, ["point"], expected_name="expected"
+        )
 
     def dist_test_data(self):
         smoke_data = []
@@ -437,16 +424,13 @@ class PointToGeodesicAlignerTestData(TestData):
                     )
                 )
 
-        return self.generate_tests(smoke_data)
-
-    def dist_vec_test_data(self):
-        smoke_data = []
+        vec_data = []
         for space in self.spaces:
             aligners, geodesic = self._get_aligners_and_geo(space)
             point = geodesic(0.5)[0]
 
             for aligner in aligners:
-                smoke_data.append(
+                vec_data.append(
                     dict(
                         aligner=aligner,
                         geodesic=geodesic,
@@ -455,4 +439,6 @@ class PointToGeodesicAlignerTestData(TestData):
                     )
                 )
 
-        return self.generate_tests(smoke_data)
+        return self.generate_tests(smoke_data) + self.generate_vec_tests(
+            vec_data, ["point"], expected_name="expected"
+        )
