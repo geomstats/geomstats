@@ -71,7 +71,6 @@ BACKEND_ATTRIBUTES = {
         "flip",
         "floor",
         "from_numpy",
-        "get_mask_i_float",
         "get_slice",
         "greater",
         "hsplit",
