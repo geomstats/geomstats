@@ -29,7 +29,7 @@ def _expand_and_repeat_point(point, n_reps=2):
 class TestData:
     """Class for TestData objects."""
 
-    def generate_tests(self, smoke_test_data, random_test_data=[]):
+    def generate_tests(self, smoke_test_data, random_test_data=()):
         """Wrap test data with corresponding markers.
 
         Parameters
