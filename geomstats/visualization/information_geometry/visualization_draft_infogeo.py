@@ -44,7 +44,7 @@ class Visualizer(ABC):
                 ax._subplotspec._gridspec._nrows,
                 ax._subplotspec._gridspec._ncols,
             )
-            index = 1 + ax._subplotspec.num1 + ax._subplotspec.num2 * n_cols
+            index = 1 + ax._subplotspec.num1
             if self._position_as_list == [n_rows, n_cols, index]:
                 ax_exists = True
                 self.ax = ax
@@ -213,7 +213,7 @@ class Visualizer(ABC):
         elif self.dim == 2:
             self.ax.plot(*gs.transpose(ball), **kwargs)
         elif self.dim == 3:
-            self.ax.plot_trisurf(*gs.transpose(ball) ** kwargs)
+            self.ax.plot_trisurf(*gs.transpose(ball), **kwargs)
 
     def plot_geodesic_star(self, center, n_rays=13, radius=1, **kwargs):
         """Plot geodesic star on the manifold.
@@ -445,7 +445,7 @@ class Visualizer2D(Visualizer):
 
 
 class Visualizer3D(Visualizer):
-    """Visualizer for 2-D parameter distributions."""
+    """Visualizer for 3-D parameter distributions."""
 
     def __init__(self, fig, position, space):
         self.projection = "3d"

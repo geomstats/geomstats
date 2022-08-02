@@ -190,7 +190,7 @@ class BinomialFisherRaoMetric(RiemannianMetric):
         mat : array-like, shape=[..., 1, 1]
             Inner-product matrix.
         """
-        return gs.array([self.n_draws / (base_point * (1 - base_point))])
+        return gs.to_ndarray([self.n_draws / (base_point * (1 - base_point))], 2)
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Compute squared distance associated with the binomial Fisher Rao metric.
