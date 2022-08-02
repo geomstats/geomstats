@@ -19,6 +19,9 @@ def _expand_point(point):
 
 
 def _repeat_point(point, n_reps=2):
+    if not gs.is_array(point):
+        return [point] * n_reps
+
     return gs.repeat(_expand_point(point), n_reps, axis=0)
 
 
@@ -79,7 +82,6 @@ class TestData:
         self, datum, comb_indices, arg_names, expected_name, check_expand=True, n_reps=2
     ):
 
-        # TODO: improving handling of expected
         if expected_name is not None:
             has_expected = True
             expected = datum.get(expected_name)
