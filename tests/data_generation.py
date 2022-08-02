@@ -1,3 +1,4 @@
+import copy
 import itertools
 
 import pytest
@@ -10,6 +11,18 @@ def better_squeeze(array):
     if len(array) == 1:
         return gs.squeeze(array, axis=0)
     return array
+
+
+def _expand_point(point):
+    return gs.expand_dims(point, 0)
+
+
+def _repeat_point(point, n_reps=2):
+    return gs.repeat(_expand_point(point), n_reps, axis=0)
+
+
+def _expand_and_repeat_point(point, n_reps=2):
+    return _expand_point(point), _repeat_point(point, n_reps=n_reps)
 
 
 class TestData:
@@ -46,6 +59,67 @@ class TestData:
                 tests.append(test_datum)
 
         return tests
+
+    def _generate_datum_vec_tests(
+        self, datum, arg_names, expected_name, check_expand=True, n_reps=2
+    ):
+
+        # TODO: improving handling of expected
+        if expected_name is not None:
+            has_expected = True
+            expected = datum.get(expected_name)
+            expected_rep = _repeat_point(expected, n_reps=n_reps)
+        else:
+            has_expected = False
+
+        args_combs = []
+        for arg_name in arg_names:
+            arg = datum.get(arg_name)
+            arg_combs = [arg]
+            if check_expand:
+                arg_combs.extend(_expand_and_repeat_point(arg, n_reps=n_reps))
+            else:
+                arg_combs.append(_repeat_point(arg, n_reps=n_reps))
+
+            args_combs.append(arg_combs)
+
+        n_indices = 2 + int(check_expand)
+        comb_indices = list(itertools.product(*[range(n_indices)] * len(arg_names)))
+
+        new_data = []
+        for indices in comb_indices:
+            new_datum = copy.copy(datum)
+
+            if has_expected:
+                new_datum[expected_name] = (
+                    expected_rep if (1 + int(check_expand)) in indices else expected
+                )
+
+            for arg_i, (index, arg_name) in enumerate(zip(indices, arg_names)):
+                new_datum[arg_name] = args_combs[arg_i][index]
+
+            new_data.append(new_datum)
+
+        return new_data
+
+    def generate_vec_tests(
+        self, data, arg_names, expected_name=None, check_expand=True, n_reps=2
+    ):
+        # TODO: vectorization type (e.g. symmetric)
+        new_data = []
+        for datum in data:
+            new_data.extend(
+                self._generate_datum_vec_tests(
+                    datum,
+                    arg_names,
+                    expected_name=expected_name,
+                    check_expand=check_expand,
+                    n_reps=n_reps,
+                )
+            )
+
+        # TODO: mark as vec?
+        return self.generate_tests(new_data)
 
 
 class _ManifoldTestData(TestData):
