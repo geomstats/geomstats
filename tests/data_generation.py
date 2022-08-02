@@ -4,6 +4,7 @@ import itertools
 import pytest
 
 import geomstats.backend as gs
+from geomstats.errors import check_parameter_accepted_values
 
 
 def better_squeeze(array):
@@ -60,8 +61,22 @@ class TestData:
 
         return tests
 
+    def _filter_combs(self, combs, vec_type, threshold):
+        MAP_VEC_TYPE = {
+            "asym-left": 1,
+            "asym-right": 0,
+        }
+        index = MAP_VEC_TYPE[vec_type]
+        other_index = (index + 1) % 2
+
+        for comb in combs.copy():
+            if comb[index] >= threshold and comb[index] != comb[other_index]:
+                combs.remove(comb)
+
+        return combs
+
     def _generate_datum_vec_tests(
-        self, datum, arg_names, expected_name, check_expand=True, n_reps=2
+        self, datum, comb_indices, arg_names, expected_name, check_expand=True, n_reps=2
     ):
 
         # TODO: improving handling of expected
@@ -83,9 +98,6 @@ class TestData:
 
             args_combs.append(arg_combs)
 
-        n_indices = 2 + int(check_expand)
-        comb_indices = list(itertools.product(*[range(n_indices)] * len(arg_names)))
-
         new_data = []
         for indices in comb_indices:
             new_datum = copy.copy(datum)
@@ -103,14 +115,36 @@ class TestData:
         return new_data
 
     def generate_vec_tests(
-        self, data, arg_names, expected_name=None, check_expand=True, n_reps=2
+        self,
+        data,
+        arg_names,
+        expected_name=None,
+        check_expand=True,
+        n_reps=2,
+        vec_type="sym",
     ):
-        # TODO: vectorization type (e.g. symmetric)
+
+        check_parameter_accepted_values(
+            vec_type, "vec_type", ["sym", "asym-left", "asym-right"]
+        )
+
+        n_args = len(arg_names)
+        if n_args != 2 and vec_type != "sym":
+            raise NotImplementedError(f"`{vec_type} only implemented for 2 arguments.")
+
+        n_indices = 2 + int(check_expand)
+        comb_indices = list(itertools.product(*[range(n_indices)] * len(arg_names)))
+        if n_args == 2 and vec_type != "sym":
+            comb_indices = self._filter_combs(
+                comb_indices, vec_type, threshold=1 + int(check_expand)
+            )
+
         new_data = []
         for datum in data:
             new_data.extend(
                 self._generate_datum_vec_tests(
                     datum,
+                    comb_indices,
                     arg_names,
                     expected_name=expected_name,
                     check_expand=check_expand,
