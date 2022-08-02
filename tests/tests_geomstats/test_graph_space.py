@@ -271,11 +271,11 @@ class TestAligner(TestCase, metaclass=Parametrizer):
             (base_point_rep, permute_point_expanded),
         ]
 
-        for comb in combs:
+        for (base_point_, permute_point_) in combs:
             self.test_align_output_shape(
                 aligner,
-                base_point,
-                permute_point,
+                base_point_,
+                permute_point_,
             )
 
 
