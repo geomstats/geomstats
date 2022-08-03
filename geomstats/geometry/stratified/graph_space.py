@@ -518,9 +518,16 @@ class GraphSpaceMetric(PointSetMetric):
             kwargs.setdefault("s_min", -1.0)
             kwargs.setdefault("s_max", 1.0)
             kwargs.setdefault("n_points", 10)
-            aligner = PointToGeodesicAligner(metric=self, **kwargs)
+            aligner_ptg = PointToGeodesicAligner(metric=self, **kwargs)
 
-        self.point_to_geodesic_aligner = aligner
+        else:
+            self.set_aligner(aligner=aligner)
+            kwargs.setdefault("s_min", -1.0)
+            kwargs.setdefault("s_max", 1.0)
+            kwargs.setdefault("n_points", 10)
+            aligner_ptg = PointToGeodesicAligner(metric=self, **kwargs)
+
+        self.point_to_geodesic_aligner = aligner_ptg
         return self.point_to_geodesic_aligner
 
     @property

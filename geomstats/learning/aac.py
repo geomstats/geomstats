@@ -178,7 +178,7 @@ class _AACGGPCA(BaseEstimator):
     The algorithm stops as soon as the percentage of variance explained by PCA in two
     consecutive estimations is lower then :math:`\epsilon` or the maximum number of
     iteration is reached. The initialization step consists in aligning all the data with
-    respect to a initial point.
+    respect to an initial point.
 
     Parameters
     ----------
@@ -193,7 +193,7 @@ class _AACGGPCA(BaseEstimator):
         Algorithm initialization.
     n_components: int
         Number of principal components to be estimated. Notice that the convergence is
-        proved only for the first principal component.
+        ensured only for the first principal component.
     total_space_estimator: method, default = sklearn.decomposition.PCA
         Method for the estimation of the PCA for a set of flattened adjacency matrices
         in the total space. Check geomstats.learning._sklearn_wrapper for details.
