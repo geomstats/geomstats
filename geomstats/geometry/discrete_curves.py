@@ -55,12 +55,15 @@ class DiscreteCurves(Manifold):
         Square root velocity metric.
     """
 
-    def __init__(self, ambient_manifold, a=None, b=None, **kwargs):
+    def __init__(
+        self, ambient_manifold, n_sampling_points=10, a=None, b=None, **kwargs
+    ):
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super(DiscreteCurves, self).__init__(
             dim=math.inf, shape=(), default_point_type="matrix", **kwargs
         )
         self.ambient_manifold = ambient_manifold
+        self.n_sampling_points = n_sampling_points
         self.srv_metric = self._metric
 
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
@@ -92,7 +95,10 @@ class DiscreteCurves(Manifold):
         """
 
         def each_belongs(pt):
-            return gs.all(self.ambient_manifold.belongs(pt))
+            return (
+                gs.all(self.ambient_manifold.belongs(pt))
+                and pt.shape[-2] == self.n_sampling_points
+            )
 
         if isinstance(point, list) or point.ndim > 2:
             return gs.stack([each_belongs(pt) for pt in point])
@@ -122,6 +128,8 @@ class DiscreteCurves(Manifold):
         """
         ambient_manifold = self.ambient_manifold
         shape = vector.shape
+        if shape[-2] != self.n_sampling_points:
+            return [False] * shape[0]
         stacked_vec = gs.reshape(vector, (-1, shape[-1]))
         stacked_point = gs.reshape(base_point, (-1, shape[-1]))
         is_tangent = ambient_manifold.is_tangent(stacked_vec, stacked_point, atol)
@@ -176,7 +184,7 @@ class DiscreteCurves(Manifold):
         projected_point = gs.reshape(projected_point, shape)
         return projected_point
 
-    def random_point(self, n_samples=1, bound=1.0, n_sampling_points=10):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample random curves.
 
         If the ambient manifold is compact, a uniform distribution is used.
@@ -199,8 +207,8 @@ class DiscreteCurves(Manifold):
         samples : array-like, shape=[..., n_sampling_points, {dim, [n, n]}]
             Points sampled on the hypersphere.
         """
-        sample = self.ambient_manifold.random_point(n_samples * n_sampling_points)
-        sample = gs.reshape(sample, (n_samples, n_sampling_points, -1))
+        sample = self.ambient_manifold.random_point(n_samples * self.n_sampling_points)
+        sample = gs.reshape(sample, (n_samples, self.n_sampling_points, -1))
         return sample[0] if n_samples == 1 else sample
 
 
@@ -238,14 +246,16 @@ class ClosedDiscreteCurves(LevelSet):
         vol. 33, no. 7, pp. 1415-1428, July 2011.
     """
 
-    def __init__(self, ambient_manifold):
+    def __init__(self, ambient_manifold, n_sampling_points=10):
         super(ClosedDiscreteCurves, self).__init__(
             dim=math.inf,
             shape=(),
             submersion=None,
             tangent_submersion=None,
             value=None,
-            embedding_space=DiscreteCurves(ambient_manifold=ambient_manifold),
+            embedding_space=DiscreteCurves(
+                ambient_manifold=ambient_manifold, n_sampling_points=n_sampling_points
+            ),
         )
         self.ambient_manifold = ambient_manifold
         self.ambient_metric = ambient_manifold.metric
@@ -273,7 +283,8 @@ class ClosedDiscreteCurves(LevelSet):
         first_point = point[:, 0, :]
         last_point = point[:, -1, :]
         point_belongs = gs.allclose(first_point, last_point, atol=atol)
-        return gs.squeeze(gs.array(point_belongs))
+        point_belongs_to_embedding = self.embedding_space.belongs(point)
+        return gs.squeeze(gs.array(point_belongs) and point_belongs_to_embedding)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at a curve.
