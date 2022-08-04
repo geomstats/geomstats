@@ -28,6 +28,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.so_matrix = SpecialOrthogonal(n=3)
         self.curves_2d = DiscreteCurves(R2)
+        self.curves_2d_many_sampling_points = DiscreteCurves(R2, n_sampling_points=300)
         self.elastic_metric = ElasticMetric(a=1, b=1, ambient_manifold=R2)
 
     def test_logs_at_mean_curves_2d(self):
@@ -127,8 +128,19 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (points.shape[1:]))
 
-    def test_estimate_shape_elastic_metric_big(self):
-        points = self.curves_2d.random_point(n_samples=1000)
+    def test_estimate_shape_srv_metric_many_sampling_points(self):
+        points = self.curves_2d_many_sampling_points.random_point(n_samples=1000)
+
+        mean = FrechetMean(
+            metric=self.curves_2d_many_sampling_points.srv_metric, method="default"
+        )
+        mean.fit(points)
+        result = mean.estimate_
+
+        self.assertAllClose(gs.shape(result), (points.shape[1:]))
+
+    def test_estimate_shape_elastic_metric_many_sampling_points(self):
+        points = self.curves_2d_many_sampling_points.random_point(n_samples=1000)
 
         mean = FrechetMean(metric=self.elastic_metric, method="default")
         mean.fit(points)
