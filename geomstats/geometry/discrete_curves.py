@@ -131,7 +131,7 @@ class DiscreteCurves(Manifold):
                 [each_belongs(pt) and each_has_n_sampling_points(pt) for pt in point]
             )
 
-        return each_belongs(point) * each_has_n_sampling_points(point)
+        return each_belongs(point) and each_has_n_sampling_points(point)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at a curve.
