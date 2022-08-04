@@ -103,7 +103,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
 
         # Set up for discrete curves
         n_sampling_points = 8
-        self.curves_2d = DiscreteCurves(R2)
+        self.curves_2d = DiscreteCurves(R2, n_sampling_points=n_sampling_points)
         self.metric_curves_2d = self.curves_2d.srv_metric
         self.metric_curves_2d.default_point_type = "matrix"
 
@@ -111,9 +111,7 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         X = gs.random.rand(self.n_samples)
         self.X_curves_2d = X - gs.mean(X)
 
-        self.intercept_curves_2d_true = self.curves_2d.random_point(
-            n_sampling_points=n_sampling_points
-        )
+        self.intercept_curves_2d_true = self.curves_2d.random_point()
         self.coef_curves_2d_true = self.curves_2d.to_tangent(
             5.0 * gs.random.rand(*self.shape_curves_2d), self.intercept_curves_2d_true
         )
