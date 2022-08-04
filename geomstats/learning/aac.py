@@ -321,10 +321,10 @@ class _AACRegressor(BaseEstimator):
 
     References
     ----------
-    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-    “Graph Space: Geodesic Principal Components for a Population of
-    Network-valued Data.” Mox report 14, 2020.
-    https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    .. [Calissano2022]  Calissano, A., Feragen, A., Vantini, S.
+    “Graph-valued regression: prediction of unlabelled networks in a non-Euclidean
+    Graph Space.”Journal of Multivariate Analysis 190 - 104950, (2022).
+    https://doi.org/10.1016/j.jmva.2022.104950.
     """
 
     def __init__(
