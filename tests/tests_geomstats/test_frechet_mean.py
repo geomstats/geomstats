@@ -28,7 +28,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.so_matrix = SpecialOrthogonal(n=3)
         self.curves_2d = DiscreteCurves(R2)
-        self.curves_2d_many_sampling_points = DiscreteCurves(R2, n_sampling_points=300)
+        self.curves_2d_many_sampling_points = DiscreteCurves(R2, k_sampling_points=300)
         self.elastic_metric = ElasticMetric(a=1, b=1, ambient_manifold=R2)
 
     def test_logs_at_mean_curves_2d(self):

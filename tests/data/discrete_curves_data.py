@@ -32,8 +32,8 @@ curve_fun_c = s2.metric.geodesic(
 )
 
 
-n_sampling_points = 10
-sampling_times = gs.linspace(0.0, 1.0, n_sampling_points)
+k_sampling_points = 10
+sampling_times = gs.linspace(0.0, 1.0, k_sampling_points)
 curve_a = curve_fun_a(sampling_times)
 curve_b = curve_fun_b(sampling_times)
 curve_c = curve_fun_c(sampling_times)
@@ -82,7 +82,7 @@ class L2CurvesMetricTestData(_RiemannianMetricTestData):
                 curve_a=curve_a,
                 curve_b=curve_b,
                 times=times,
-                n_sampling_points=n_sampling_points,
+                k_sampling_points=k_sampling_points,
             )
         ]
         return self.generate_tests(smoke_data)
@@ -117,7 +117,7 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 dim=3,
-                n_sampling_points=2000,
+                k_sampling_points=2000,
                 n_curves=2000,
                 curve_fun_a=curve_fun_a,
             )
@@ -125,14 +125,14 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def aux_differential_srv_transform_inverse_test_data(self):
-        smoke_data = [dict(dim=3, n_sampling_points=n_sampling_points, curve_a=curve_a)]
+        smoke_data = [dict(dim=3, k_sampling_points=k_sampling_points, curve_a=curve_a)]
         return self.generate_tests(smoke_data)
 
     def aux_differential_srv_transform_vectorization_test_data(self):
         smoke_data = [
             dict(
                 dim=3,
-                n_sampling_points=n_sampling_points,
+                k_sampling_points=k_sampling_points,
                 curve_a=curve_a,
                 curve_b=curve_b,
             )
@@ -140,7 +140,7 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def srv_inner_product_elastic_test_data(self):
-        smoke_data = [dict(dim=3, n_sampling_points=n_sampling_points, curve_a=curve_a)]
+        smoke_data = [dict(dim=3, k_sampling_points=k_sampling_points, curve_a=curve_a)]
         return self.generate_tests(smoke_data)
 
     def srv_inner_product_and_dist_test_data(self):
@@ -151,7 +151,7 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 dim=3,
-                n_sampling_points=n_sampling_points,
+                k_sampling_points=k_sampling_points,
                 curve_a=curve_a,
                 curve_b=curve_b,
             )
@@ -175,7 +175,7 @@ class SRVMetricTestData(_RiemannianMetricTestData):
                 dim=3,
                 n_points=3,
                 n_discretized_curves=n_discretized_curves,
-                n_sampling_points=n_sampling_points,
+                k_sampling_points=k_sampling_points,
             )
         ]
         return self.generate_tests(smoke_data)
@@ -198,7 +198,7 @@ class SRVMetricTestData(_RiemannianMetricTestData):
                 curve_b=curve_b,
                 curve_c=curve_c,
                 n_discretized_curves=n_discretized_curves,
-                n_sampling_points=n_sampling_points,
+                k_sampling_points=k_sampling_points,
             )
         ]
         return self.generate_tests(smoke_data)
@@ -281,7 +281,7 @@ class ElasticMetricTestData(TestData):
 class QuotientSRVMetricTestData(TestData):
     def horizontal_geodesic_test_data(self):
         smoke_data = [
-            dict(n_sampling_points=n_sampling_points, curve_a=curve_a, n_times=20)
+            dict(k_sampling_points=k_sampling_points, curve_a=curve_a, n_times=20)
         ]
         return self.generate_tests(smoke_data)
 
@@ -291,7 +291,7 @@ class QuotientSRVMetricTestData(TestData):
                 sampling_times=sampling_times,
                 curve_fun_a=curve_fun_a,
                 curve_a=curve_a,
-                n_sampling_points=n_sampling_points,
+                k_sampling_points=k_sampling_points,
             )
         ]
         return self.generate_tests(smoke_data)
