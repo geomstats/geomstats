@@ -58,9 +58,10 @@ class DiscreteCurves(Manifold):
     def __init__(
         self, ambient_manifold, n_sampling_points=10, a=None, b=None, **kwargs
     ):
+        dim = ambient_manifold.dim * n_sampling_points
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super(DiscreteCurves, self).__init__(
-            dim=math.inf, shape=(), default_point_type="matrix", **kwargs
+            dim=dim, shape=(), default_point_type="matrix", **kwargs
         )
         self.ambient_manifold = ambient_manifold
         self.n_sampling_points = n_sampling_points
@@ -95,15 +96,42 @@ class DiscreteCurves(Manifold):
         """
 
         def each_belongs(pt):
-            return (
-                gs.all(self.ambient_manifold.belongs(pt))
-                and pt.shape[-2] == self.n_sampling_points
-            )
+            """Check that sampling points are in ambient manifold.
+
+            Parameters
+            ----------
+            pt : array-like, shape=[n_sampling_points, ambient_dim]
+                One curve represented as its sampling points.
+
+            Returns
+            -------
+            _ : array-like, shape=[]
+                Whether curve has all of its sampling points on
+                the ambient manifold.
+            """
+            return gs.all(self.ambient_manifold.belongs(pt))
+
+        def each_has_n_sampling_points(pt):
+            """Check that a curve has the correct number of sampling points.
+
+            Parameters
+            ----------
+            pt : array-like, shape=[n_sampling_points_to_test, ambient_dim]
+                One curve represented as its sampling points.
+
+            Returns
+            -------
+            _ : array-like, shape=[]
+                Whether curve has the correct number of sampling points.
+            """
+            return gs.array(pt.shape[-2] == self.n_sampling_points)
 
         if isinstance(point, list) or point.ndim > 2:
-            return gs.stack([each_belongs(pt) for pt in point])
+            return gs.stack(
+                [each_belongs(pt) and each_has_n_sampling_points(pt) for pt in point]
+            )
 
-        return each_belongs(point)
+        return each_belongs(point) * each_has_n_sampling_points(point)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at a curve.
@@ -247,8 +275,9 @@ class ClosedDiscreteCurves(LevelSet):
     """
 
     def __init__(self, ambient_manifold, n_sampling_points=10):
+        dim = ambient_manifold.dim * (n_sampling_points - 1)
         super(ClosedDiscreteCurves, self).__init__(
-            dim=math.inf,
+            dim=dim,
             shape=(),
             submersion=None,
             tangent_submersion=None,
