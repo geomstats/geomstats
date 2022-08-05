@@ -190,18 +190,22 @@ class TestAligner(TestCase, metaclass=Parametrizer):
         dist = dist_fnc(expected, permuted_point)
         self.assertAllClose(dist, 0.0)
 
-    def test_align(self, aligner, base_point, permute_point, expected, dist_fnc):
-        res = aligner.align(base_point, permute_point)
+    def test_align(
+        self, metric, aligner, base_point, permute_point, expected, dist_fnc
+    ):
+        res = aligner.align(metric, base_point, permute_point)
 
         self._is_same_equivalence_class(res, expected, dist_fnc)
 
-    def test_align_cmp_points(self, aligner, base_point, permute_point, expected):
-        res = aligner.align(base_point, permute_point)
+    def test_align_cmp_points(
+        self, metric, aligner, base_point, permute_point, expected
+    ):
+        res = aligner.align(metric, base_point, permute_point)
 
         self.assertAllClose(res, expected)
 
-    def test_align_output_shape(self, aligner, base_point, permute_point):
-        expected = aligner.align(base_point, permute_point)
+    def test_align_output_shape(self, metric, aligner, base_point, permute_point):
+        expected = aligner.align(metric, base_point, permute_point)
 
         is_multiple = (gs.ndim(base_point) > 2 and base_point.shape[0] > 1) or (
             gs.ndim(permute_point) > 2 and permute_point.shape[0] > 1

@@ -485,7 +485,7 @@ class GraphSpaceMetric(PointSetMetric):
                 aligner, "aligner", list(MAP_ALIGNER.keys())
             )
 
-            aligner = MAP_ALIGNER.get(aligner)(metric=self, **kwargs)
+            aligner = MAP_ALIGNER.get(aligner)(**kwargs)
 
         self.aligner = aligner
         return self.aligner
@@ -620,7 +620,7 @@ class GraphSpaceMetric(PointSetMetric):
         -------
         permuted_graph: list, shape = [...,n, n]
         """
-        return self.aligner.align(base_graph, graph_to_permute)
+        return self.aligner.align(self, base_graph, graph_to_permute)
 
     @_vectorize_graph(
         (2, "graph_to_permute"),
@@ -670,12 +670,26 @@ class _BaseAligner(metaclass=ABCMeta):
         the node i should be permuted with node j.
     """
 
-    def __init__(self, metric):
-        self.metric = metric
+    def __init__(self):
         self.perm_ = None
 
     @abstractmethod
-    def align(self, base_graph, graph_to_permute):
+    def align(self, metric, base_graph, graph_to_permute):
+        """Align graphs.
+
+        Parameters
+        ----------
+        metric : GraphSpaceMetric
+        base_graph : array-like, shape=[..., n_nodes, n_nodes]
+            Base graph.
+        graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
+            Graph to align.
+
+        Returns
+        -------
+        permuted_graph : array-like, shape=[..., n_nodes, n_nodes]
+            Permuted graph as to be aligned with respect to the geodesic.
+        """
         raise NotImplementedError("Not implemented")
 
     def _broadcast(self, base_graph, graph_to_permute):
@@ -687,8 +701,8 @@ class _BaseAligner(metaclass=ABCMeta):
 
         return base_graph, graph_to_permute, is_single
 
-    def _permute(self, graph_to_permute, perm):
-        return self.metric.space.permute(graph_to_permute, perm)
+    def _permute(self, metric, graph_to_permute, perm):
+        return metric.space.permute(graph_to_permute, perm)
 
 
 class FAQAligner(_BaseAligner):
@@ -702,21 +716,21 @@ class FAQAligner(_BaseAligner):
         PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
     """
 
-    def align(self, base_graph, graph_to_permute):
+    def align(self, metric, base_graph, graph_to_permute):
         """Align graphs.
 
         Parameters
         ----------
-        base_graph : array-like, shape=[..., n, n]
+        metric : GraphSpaceMetric
+        base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
-        graph_to_permute : array-like, shape=[..., n, n]
+        graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
 
         Returns
         -------
-        permutation : array-like, shape=[...,n]
-            Node permutations where in position i we have the value j meaning
-            the node i should be permuted with node j.
+        permuted_graph : array-like, shape=[..., n_nodes, n_nodes]
+            Permuted graph as to be aligned with respect to the geodesic.
         """
         base_graph, graph_to_permute, is_single = self._broadcast(
             base_graph, graph_to_permute
@@ -729,7 +743,7 @@ class FAQAligner(_BaseAligner):
 
         self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
 
-        return self._permute(graph_to_permute, self.perm_)
+        return self._permute(metric, graph_to_permute, self.perm_)
 
 
 class IDAligner(_BaseAligner):
@@ -740,21 +754,21 @@ class IDAligner(_BaseAligner):
     graphs.
     """
 
-    def align(self, base_graph, graph_to_permute):
+    def align(self, metric, base_graph, graph_to_permute):
         """Align graphs.
 
         Parameters
         ----------
-        base_graph : array-like, shape=[..., n, n]
+        metric : GraphSpaceMetric
+        base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
-        graph_to_permute : array-like, shape=[..., n, n]
+        graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
 
         Returns
         -------
-        permutation : array-like, shape=[...,n]
-            Node permutations where in position i we have the value j meaning
-            the node i should be permuted with node j.
+        permuted_graph : array-like, shape=[..., n_nodes, n_nodes]
+            Permuted graph as to be aligned with respect to the geodesic.
         """
         base_graph, graph_to_permute, is_single = self._broadcast(
             base_graph, graph_to_permute
@@ -765,7 +779,7 @@ class IDAligner(_BaseAligner):
 
         self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
 
-        return self._permute(graph_to_permute, self.perm_)
+        return self._permute(metric, graph_to_permute, self.perm_)
 
 
 class ExhaustiveAligner(_BaseAligner):
@@ -778,44 +792,53 @@ class ExhaustiveAligner(_BaseAligner):
     Not recommended for large `n_nodes`.
     """
 
-    def __init__(self, metric):
-        super().__init__(metric)
+    def __init__(self):
+        super().__init__()
+        self._all_perms = None
+        self._n_nodes = None
 
+    def _set_all_perms(self, metric):
         n_nodes = metric.n_nodes
-        self._all_perms = gs.array(
-            list(itertools.permutations(range(n_nodes), n_nodes))
-        )
+        if self._all_perms is None or self._n_nodes != n_nodes:
+            self._n_nodes = n_nodes
+            self._all_perms = gs.array(
+                list(itertools.permutations(range(n_nodes), n_nodes))
+            )
 
-    def _align_single(self, base_graph, graph_to_permute):
-        permuted_graphs = self.metric.space.permute(graph_to_permute, self._all_perms)
-        dists = self.metric.total_space_metric.dist(base_graph, permuted_graphs)
+    def _align_single(self, metric, base_graph, graph_to_permute):
+        permuted_graphs = metric.space.permute(graph_to_permute, self._all_perms)
+        dists = metric.total_space_metric.dist(base_graph, permuted_graphs)
         return self._all_perms[gs.argmin(dists)]
 
-    def align(self, base_graph, graph_to_permute):
+    def align(self, metric, base_graph, graph_to_permute):
         """Align graphs.
 
         Parameters
         ----------
-        base_graph : array-like, shape=[..., n, n]
+        metric : GraphSpaceMetric
+        base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
-        graph_to_permute : array-like, shape=[..., n, n]
+        graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
 
         Returns
         -------
-        permuted_graph : array-like, shape=[...,n]
+        permuted_graph : array-like, shape=[..., n_nodes, n_nodes]
             Permuted graph as to be aligned with respect to the geodesic.
         """
+        self._set_all_perms(metric)
+
         base_graph, graph_to_permute, is_single = self._broadcast(
             base_graph, graph_to_permute
         )
-        perms = []
-        for base_graph_, graph_to_permute_ in zip(base_graph, graph_to_permute):
-            perms.append(self._align_single(base_graph_, graph_to_permute_))
+        perms = [
+            self._align_single(metric, base_graph_, graph_to_permute_)
+            for base_graph_, graph_to_permute_ in zip(base_graph, graph_to_permute)
+        ]
 
         self.perm_ = gs.array(perms[0]) if is_single else gs.array(perms)
 
-        return self._permute(graph_to_permute, self.perm_)
+        return self._permute(metric, graph_to_permute, self.perm_)
 
 
 class _BasePointToGeodesicAligner(metaclass=ABCMeta):

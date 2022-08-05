@@ -83,7 +83,7 @@ class AACFrechetMeanTestData(_TrivialMeanEstimatorTestData):
         space_2 = GraphSpace(2)
 
         metric = GraphSpaceMetric(space_2)
-        metric.set_aligner(ExhaustiveAligner(metric))
+        metric.set_aligner(ExhaustiveAligner())
 
         self.metrics = [metric] * 2
 
@@ -110,7 +110,7 @@ class AACGGPCATestData(_TrivialGeodesicEstimatorTestData):
         space_2 = GraphSpace(2)
 
         metric = GraphSpaceMetric(space_2)
-        metric.set_aligner(ExhaustiveAligner(metric))
+        metric.set_aligner(ExhaustiveAligner())
 
         aligner = _GeodesicToPointAligner(metric)
         metric.set_point_to_geodesic_aligner(aligner)
@@ -127,7 +127,7 @@ class AACRegressorTestData(_TrivialRegressorTestData):
         space_2 = GraphSpace(2)
 
         metric = GraphSpaceMetric(space_2)
-        metric.set_aligner(ExhaustiveAligner(metric))
+        metric.set_aligner(ExhaustiveAligner())
 
         metric.set_point_to_geodesic_aligner(
             "default", s_min=-1.0, s_max=1.0, n_points=10

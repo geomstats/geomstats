@@ -24,7 +24,7 @@ from tests.data_generation import (
 
 def _get_metric_with_exact_aligner(space):
     metric = GraphSpaceMetric(space)
-    exact_aligner = ExhaustiveAligner(metric)
+    exact_aligner = ExhaustiveAligner()
     metric.set_aligner(exact_aligner)
     return metric
 
@@ -271,11 +271,9 @@ class AlignerTestData(TestData):
     def _setup(self):
         self.spaces = [GraphSpace(3)]
 
-    def _get_aligners(self, metric=None):
+    def _get_aligners(self):
         Aligners = [IDAligner, FAQAligner, ExhaustiveAligner]
-        if metric is None:
-            return Aligners
-        return [Aligner(metric) for Aligner in Aligners]
+        return [Aligner() for Aligner in Aligners]
 
     def align_test_data(self):
         smoke_data = []
@@ -284,12 +282,13 @@ class AlignerTestData(TestData):
 
             metric = _get_metric_with_exact_aligner(space)
 
-            expected = metric.aligner.align(base_point, permute_point)
+            expected = metric.aligner.align(metric, base_point, permute_point)
 
-            aligners = [FAQAligner(metric)]
+            aligners = [FAQAligner()]
             for aligner in aligners:
                 smoke_data.append(
                     dict(
+                        metric=metric,
                         aligner=aligner,
                         base_point=base_point,
                         permute_point=permute_point,
@@ -305,19 +304,19 @@ class AlignerTestData(TestData):
         for space in self.spaces:
             base_point, permute_point = space.random_point(2)
 
-            Aligners = self._get_aligners()
-            for Aligner in Aligners:
+            aligners = self._get_aligners()
+            for aligner in aligners:
                 metric = GraphSpaceMetric(space)
-                aligner = Aligner(metric)
                 metric.set_aligner(aligner)
 
                 if isinstance(aligner, IDAligner):
                     expected = permute_point
                 else:
-                    expected = metric.aligner.align(base_point, permute_point)
+                    expected = metric.aligner.align(metric, base_point, permute_point)
 
                 vec_data.append(
                     dict(
+                        metric=metric,
                         aligner=aligner,
                         base_point=base_point,
                         permute_point=permute_point,
@@ -335,10 +334,11 @@ class AlignerTestData(TestData):
             base_point, permute_point = space.random_point(2)
 
             metric = GraphSpaceMetric(space)
-            aligners = self._get_aligners(metric)
+            aligners = self._get_aligners()
             for aligner in aligners:
                 smoke_data.append(
                     dict(
+                        metric=metric,
                         aligner=aligner,
                         base_point=base_point,
                         permute_point=permute_point,
