@@ -28,23 +28,24 @@ class AAC:
     The Align All and Compute (AAC) algorithm is introduced in [Calissano2020] and it
     allows to compute different statistical estimators: the Frechet Mean, the
     Generalized Geodesic Principal components and the Regression for a set of labeled or
-    unlabeled graphs. The idea is to optimally aligned the graphs to the current
+    unlabeled graphs.
+    The idea is to optimally aligned the graphs to the current
     estimator using the correct alignment technique and compute the current estimation
     using the geometrical property of the total space, i.e., the Euclidean space of
     adjacency matrices.
 
     Parameters
     ----------
-    estimate : str
-        The estimator desired:
-            "frechet_mean": Frechet Mean estimation [Calissano2020]
-            "ggpca": Generalized Geodesic Principal Components [Calissano2020]
-            "regression": Graph-on-vector regression model [Calissano2022]
     metric : GraphSpaceMetric
         Metric Class on Graph Space.
+    estimate : str
+        Desired estimator. One of the following:
+        - "frechet_mean": Frechet Mean estimation [Calissano2020]
+        - "ggpca": Generalized Geodesic Principal Components [Calissano2020]
+        - "regression": Graph-on-vector regression model [Calissano2022]
 
-    Example
-    -------
+    Examples
+    --------
     Available example on Graph Space:
     :mod:`notebooks.19_practical_methods__aac`
     Available example on Graph Space with real world data:
@@ -53,16 +54,16 @@ class AAC:
     References
     ----------
     .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-    “Graph Space: Geodesic Principal Components for a Population of
-    Network-valued Data.” Mox report 14, 2020.
-    https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+        “Graph Space: Geodesic Principal Components for a Population of
+        Network-valued Data.” Mox report 14, 2020.
+        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
     .. [Calissano2022]  Calissano, A., Feragen, A., Vantini, S.
-    “Graph-valued regression: prediction of unlabelled networks in a non-Euclidean
-    Graph Space.”Journal of Multivariate Analysis 190 - 104950, (2022).
-    https://doi.org/10.1016/j.jmva.2022.104950.
+        “Graph-valued regression: prediction of unlabelled networks in a non-Euclidean
+        Graph Space.”Journal of Multivariate Analysis 190 - 104950, (2022).
+        https://doi.org/10.1016/j.jmva.2022.104950.
     """
 
-    def __new__(cls, *args, estimate="frechet", **kwargs):
+    def __new__(cls, metric, *args, estimate="frechet", **kwargs):
         r"""Class for Align all and Compute algorithm on Graph Space."""
         MAP_ESTIMATE = {
             "frechet_mean": _AACFrechetMean,
@@ -71,7 +72,7 @@ class AAC:
         }
         check_parameter_accepted_values(estimate, "estimate", list(MAP_ESTIMATE.keys()))
 
-        return MAP_ESTIMATE[estimate](*args, **kwargs)
+        return MAP_ESTIMATE[estimate](metric, *args, **kwargs)
 
 
 class _AACFrechetMean(BaseEstimator):
@@ -85,8 +86,8 @@ class _AACFrechetMean(BaseEstimator):
     aligned adjacency matrices (the arithmetic mean in the euclidean space of dimension
     :math:`nodes \times nodes`). The algorithm stops as soon as the distance between two
     consecutive estimations is lower then :math:`\epsilon` or the maximum number of
-    iterations is reached. The initialization step consists in aligning the data with
-    respect to an initial point.
+    iterations is reached. The initialization step consists in aligning the data
+    with respect to an initial point.
 
     Parameters
     ----------
@@ -99,13 +100,24 @@ class _AACFrechetMean(BaseEstimator):
         Stopping criterion on the maximum number of iterations.
     init_point: array-like, shape=[n_nodes, n_nodes] or GraphPoint, default random.
         Algorithm initialization.
+    total_space_estimator_kwargs : dict
+        Total space estimator keyword arguments.
+
+    Attributes
+    ----------
+    total_space_estimator : BaseEstimator
+        Frechet mean estimator in total space.
+    estimate_ : array-like, mean=[n_nodes, n_nodes]
+        Mean.
+    n_iter_ : int
+        Number of performed iterations.
 
     References
     ----------
     .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-    “Graph Space: Geodesic Principal Components for a Population of
-    Network-valued Data.” Mox report 14, 2020.
-    https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+        “Graph Space: Geodesic Principal Components for a Population of
+        Network-valued Data.” Mox report 14, 2020.
+        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
     """
 
     def __init__(
@@ -137,6 +149,8 @@ class _AACFrechetMean(BaseEstimator):
         ----------
         X : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
             Dataset to estimate the FM.
+        y : Ignored
+            Ignored.
 
         Returns
         -------
@@ -194,16 +208,22 @@ class _AACGGPCA(BaseEstimator):
     n_components: int
         Number of principal components to be estimated. Notice that the convergence is
         ensured only for the first principal component.
-    total_space_estimator: method, default = sklearn.decomposition.PCA
+
+    Attributes
+    ----------
+    total_space_estimator: BaseEstimator
         Method for the estimation of the PCA for a set of flattened adjacency matrices
         in the total space. Check geomstats.learning._sklearn_wrapper for details.
+        Default: ``sklearn.decomposition.PCA``.
+    n_iter_ : int
+        Number of performed iterations.
 
     References
     ----------
     .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-    “Graph Space: Geodesic Principal Components for a Population of
-    Network-valued Data.” Mox report 14, 2020.
-    https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+        “Graph Space: Geodesic Principal Components for a Population of
+        Network-valued Data.” Mox report 14, 2020.
+        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
     """
 
     def __init__(
@@ -247,6 +267,8 @@ class _AACGGPCA(BaseEstimator):
         ----------
         X : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
             Dataset to estimate the GGPCA.
+        y : Ignored
+            Ignored.
 
         Returns
         -------
@@ -314,17 +336,23 @@ class _AACRegressor(BaseEstimator):
         Stopping criterion on the maximum number of iterations.
     init_point: array-like, shape=[n_nodes, n_nodes] or GraphPoint, default random.
         Algorithm initialization.
-    total_space_estimator: method, default = sklearn.linear_model.LinearRegression
+    total_space_estimator_kwargs : dict
+        Total space estimator keyword arguments.
+
+    Attributes
+    ----------
+    total_space_estimator: BaseEstimator
         Method for the estimation of the OLS Regression for a set of flattened adjacency
         matrices in the total space.
         Check geomstats.learning._sklearn_wrapper for details.
+        Default: ``sklearn.linear_model.LinearRegression``.
 
     References
     ----------
     .. [Calissano2022]  Calissano, A., Feragen, A., Vantini, S.
-    “Graph-valued regression: prediction of unlabelled networks in a non-Euclidean
-    Graph Space.”Journal of Multivariate Analysis 190 - 104950, (2022).
-    https://doi.org/10.1016/j.jmva.2022.104950.
+        “Graph-valued regression: prediction of unlabelled networks in a non-Euclidean
+        Graph Space.”Journal of Multivariate Analysis 190 - 104950, (2022).
+        https://doi.org/10.1016/j.jmva.2022.104950.
     """
 
     def __init__(
@@ -366,8 +394,6 @@ class _AACRegressor(BaseEstimator):
         -------
         self : object
             Returns self.
-
-        Note: Default method in the total space is sklearn.linear_model.LinearRegression
         """
         y_ = random.choice(y) if self.init_point is None else self.init_point
         aligned_y = self.metric.align_point_to_point(y_, y)
