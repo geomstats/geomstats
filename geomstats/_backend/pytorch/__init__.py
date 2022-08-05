@@ -485,28 +485,6 @@ def where(condition, x=None, y=None):
     return _torch.where(condition, x, y)
 
 
-def get_mask_i_float(i, n):
-    """Create a 1D array of zeros with one element at one, with floating type.
-
-    Parameters
-    ----------
-    i : int
-        Index of the non-zero element.
-    n: n
-        Length of the created array.
-
-    Returns
-    -------
-    mask_i_float : array-like, shape=[n,]
-        1D array of zeros except at index i, where it is one
-    """
-    range_n = arange(cast(array(n), int32))
-    i_float = cast(array(i), int32)
-    mask_i = equal(range_n, i_float)
-    mask_i_float = cast(mask_i, float32)
-    return mask_i_float
-
-
 def _is_boolean(x):
     if isinstance(x, bool):
         return True
@@ -662,7 +640,7 @@ def array_from_sparse(indices, data, target_shape):
     """
     return _torch.sparse.FloatTensor(
         _torch.LongTensor(indices).t(),
-        _torch.FloatTensor(cast(data, float32)),
+        array(data),
         _torch.Size(target_shape),
     ).to_dense()
 

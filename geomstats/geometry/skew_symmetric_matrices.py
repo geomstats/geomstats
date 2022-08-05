@@ -40,13 +40,15 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
                     [[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
                 ]
             )
-        basis = []
-        for row in gs.arange(n - 1):
-            for col in gs.arange(row + 1, n):
-                basis.append(
-                    gs.array_from_sparse([(row, col), (col, row)], [1.0, -1.0], (n, n))
-                )
-        return gs.stack(basis)
+        indices, data = [], []
+        k = -1
+        for row in range(n - 1):
+            for col in range(row + 1, n):
+                k += 1
+                indices.extend([(k, row, col), (k, col, row)])
+                data.extend([1.0, -1.0])
+
+        return gs.array_from_sparse(indices, data, (k + 1, n, n))
 
     def belongs(self, mat, atol=gs.atol):
         """Evaluate if mat is a skew-symmetric matrix.
