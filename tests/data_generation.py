@@ -66,8 +66,8 @@ class TestData:
 
     def _filter_combs(self, combs, vec_type, threshold):
         MAP_VEC_TYPE = {
-            "asym-left": 1,
-            "asym-right": 0,
+            "repeat-first": 1,
+            "repeat-second": 0,
         }
         index = MAP_VEC_TYPE[vec_type]
         other_index = (index + 1) % 2
@@ -78,7 +78,7 @@ class TestData:
 
         return combs
 
-    def _generate_datum_vec_tests(
+    def _generate_datum_vectorization_tests(
         self, datum, comb_indices, arg_names, expected_name, check_expand=True, n_reps=2
     ):
 
@@ -116,35 +116,61 @@ class TestData:
 
         return new_data
 
-    def generate_vec_tests(
+    def generate_vectorization_tests(
         self,
         data,
         arg_names,
         expected_name=None,
         check_expand=True,
         n_reps=2,
-        vec_type="sym",
+        vectorization_type="sym",
     ):
+        """Create new data with vectorized version of inputs.
+
+        Parameters
+        ----------
+        data : list of dict
+            Data. Each to vectorize.
+        arg_names: list
+            Name of inputs to vectorize.
+        expected_name: str
+            Output name in case it needs to be repeated.
+        check_expand: bool
+            If `True`, expanded version of each input will be tested.
+        n_reps: int
+            Number of times the input points should be repeated.
+        vectorization_type: str
+            Possible values are `sym`, `repeat-first`, `repeat-second`.
+            `repeat-first` and `repeat-second` only valid for two argument case.
+            `repeat-first` and `repeat-second` test asymmetric cases, repeating
+            only first or second input, respectively.
+
+
+        """
 
         check_parameter_accepted_values(
-            vec_type, "vec_type", ["sym", "asym-left", "asym-right"]
+            vectorization_type,
+            "vectorization_type",
+            ["sym", "repeat-first", "repeat-second"],
         )
 
         n_args = len(arg_names)
-        if n_args != 2 and vec_type != "sym":
-            raise NotImplementedError(f"`{vec_type} only implemented for 2 arguments.")
+        if n_args != 2 and vectorization_type != "sym":
+            raise NotImplementedError(
+                f"`{vectorization_type} only implemented for 2 arguments."
+            )
 
         n_indices = 2 + int(check_expand)
         comb_indices = list(itertools.product(*[range(n_indices)] * len(arg_names)))
-        if n_args == 2 and vec_type != "sym":
+        if n_args == 2 and vectorization_type != "sym":
             comb_indices = self._filter_combs(
-                comb_indices, vec_type, threshold=1 + int(check_expand)
+                comb_indices, vectorization_type, threshold=1 + int(check_expand)
             )
 
         new_data = []
         for datum in data:
             new_data.extend(
-                self._generate_datum_vec_tests(
+                self._generate_datum_vectorization_tests(
                     datum,
                     comb_indices,
                     arg_names,
