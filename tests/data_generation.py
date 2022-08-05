@@ -144,10 +144,7 @@ class TestData:
             `repeat-first` and `repeat-second` only valid for two argument case.
             `repeat-first` and `repeat-second` test asymmetric cases, repeating
             only first or second input, respectively.
-
-
         """
-
         check_parameter_accepted_values(
             vectorization_type,
             "vectorization_type",
@@ -205,7 +202,8 @@ class _ManifoldTestData(TestData):
         return self.generate_tests([], random_data)
 
     def projection_belongs_test_data(self, belongs_atol=gs.atol):
-        """Generate data to check that a point projected on a manifold belongs to the manifold.
+        """Generate data to check that a point projected on a manifold belongs
+        to the manifold.
 
         Parameters
         ----------
@@ -300,7 +298,8 @@ class _OpenSetTestData(_ManifoldTestData):
 
 class _LevelSetTestData(_ManifoldTestData):
     def intrinsic_after_extrinsic_test_data(self):
-        """Generate data to check that changing coordinate system twice gives back the point.
+        """Generate data to check that changing coordinate system twice gives
+        back the point.
 
         Assumes that random_point generates points in extrinsic coordinates.
         """
@@ -316,7 +315,8 @@ class _LevelSetTestData(_ManifoldTestData):
         return self.generate_tests([], random_data)
 
     def extrinsic_after_intrinsic_test_data(self):
-        """Generate data to check that changing coordinate system twice gives back the point.
+        """Generate data to check that changing coordinate system twice gives
+        back the point.
 
         Assumes that the first elements in space_args is the dimension of the space.
         """
