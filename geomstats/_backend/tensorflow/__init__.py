@@ -191,28 +191,6 @@ def _is_boolean(x):
     return False
 
 
-def get_mask_i_float(i, n):
-    """Create a 1D array of zeros with one element at one, with floating type.
-
-    Parameters
-    ----------
-    i : int
-        Index of the non-zero element.
-    n: n
-        Length of the created array.
-
-    Returns
-    -------
-    mask_i_float : array-like, shape=[n,]
-        1D array of zeros except at index i, where it is one
-    """
-    range_n = arange(n)
-    i_float = cast(array([i]), int32)[0]
-    mask_i = equal(range_n, i_float)
-    mask_i_float = cast(mask_i, float32)
-    return mask_i_float
-
-
 def _mask_from_indices(indices, mask_shape, dtype=float32):
     """Create a binary mask.
 
