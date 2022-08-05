@@ -518,7 +518,7 @@ class GraphSpaceMetric(PointSetMetric):
             kwargs.setdefault("s_min", -1.0)
             kwargs.setdefault("s_max", 1.0)
             kwargs.setdefault("n_points", 10)
-            aligner = PointToGeodesicAligner(metric=self, **kwargs)
+            aligner = PointToGeodesicAligner(**kwargs)
 
         self.point_to_geodesic_aligner = aligner
         return self.point_to_geodesic_aligner
@@ -657,7 +657,7 @@ class GraphSpaceMetric(PointSetMetric):
                 "`metric.set_point_to_geodesic_aligner('default', "
                 "s_min=-1., s_max=1.)`)"
             )
-        return self.point_to_geodesic_aligner.align(geodesic, graph_to_permute)
+        return self.point_to_geodesic_aligner.align(self, geodesic, graph_to_permute)
 
 
 class _BaseAligner(metaclass=ABCMeta):
@@ -851,8 +851,7 @@ class _BasePointToGeodesicAligner(metaclass=ABCMeta):
         the node i should be permuted with node j.
     """
 
-    def __init__(self, metric):
-        self.metric = metric
+    def __init__(self):
         self.perm_ = None
 
     @abstractmethod
@@ -866,8 +865,8 @@ class _BasePointToGeodesicAligner(metaclass=ABCMeta):
     def _get_n_points(self, x):
         return 1 if gs.ndim(x) == 2 else gs.shape(x)[0]
 
-    def _permute(self, graph_to_permute, perm):
-        return self.metric.space.permute(graph_to_permute, perm)
+    def _permute(self, metric, graph_to_permute, perm):
+        return metric.space.permute(graph_to_permute, perm)
 
 
 class PointToGeodesicAligner(_BasePointToGeodesicAligner):
@@ -896,8 +895,8 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         isometric Lie group actions." Statistica Sinica, 1-58, 2010.
     """
 
-    def __init__(self, metric, s_min, s_max, n_points=10):
-        super().__init__(metric)
+    def __init__(self, s_min, s_max, n_points=10):
+        super().__init__()
         self.s_min = s_min
         self.s_max = s_max
         self.n_points = n_points
@@ -926,7 +925,7 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         r"""Evaluate the geodesic in s."""
         return geodesic(self.s)
 
-    def _compute_dists(self, geodesic, x):
+    def _compute_dists(self, metric, geodesic, x):
         gamma_s = self._get_gamma_s(geodesic)
 
         n_points = self._get_n_points(x)
@@ -936,13 +935,13 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         else:
             rep_x = x
 
-        dists = gs.reshape(self.metric.dist(gamma_s, rep_x), (self.n_points, n_points))
+        dists = gs.reshape(metric.dist(gamma_s, rep_x), (self.n_points, n_points))
 
         min_dists_idx = gs.argmin(dists, axis=0)
 
         return dists, min_dists_idx, n_points
 
-    def dist(self, geodesic, graph_to_permute):
+    def dist(self, metric, geodesic, graph_to_permute):
         r"""Compute the distance between the geodesic and the point.
 
         Parameters
@@ -956,14 +955,16 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         dist : array-like, shape=[...,n]
             Distance between the graph_to_permute and the geodesic.
         """
-        dists, min_dists_idx, n_points = self._compute_dists(geodesic, graph_to_permute)
+        dists, min_dists_idx, n_points = self._compute_dists(
+            metric, geodesic, graph_to_permute
+        )
 
         return gs.take(
             gs.transpose(dists),
             min_dists_idx + gs.arange(n_points) * self.n_points,
         )
 
-    def align(self, geodesic, graph_to_permute):
+    def align(self, metric, geodesic, graph_to_permute):
         r"""Align the graph to the geodesic.
 
         Parameters
@@ -977,33 +978,35 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         permuted_graph : array-like, shape=[...,n]
             Permuted graph as to be aligned with respect to the geodesic.
         """
-        _, min_dists_idx, n_points = self._compute_dists(geodesic, graph_to_permute)
+        _, min_dists_idx, n_points = self._compute_dists(
+            metric, geodesic, graph_to_permute
+        )
 
         perm_indices = min_dists_idx * n_points + gs.arange(n_points)
         if n_points == 1:
             perm_indices = perm_indices[0]
 
-        self.perm_ = gs.take(self.metric.perm_, perm_indices, axis=0)
+        self.perm_ = gs.take(metric.perm_, perm_indices, axis=0)
 
-        return self._permute(graph_to_permute, self.perm_)
+        return self._permute(metric, graph_to_permute, self.perm_)
 
 
 class _GeodesicToPointAligner(_BasePointToGeodesicAligner):
-    def __init__(self, metric, method="BFGS", *, save_opt_res=False):
-        super().__init__(metric)
+    def __init__(self, method="BFGS", *, save_opt_res=False):
+        super().__init__()
 
         self.method = method
         self.save_opt_res = save_opt_res
 
         self.opt_results_ = None
 
-    def _objective(self, s, x, geodesic):
+    def _objective(self, s, metric, x, geodesic):
         point = geodesic(s)
-        dist = self.metric.dist(point, x)
+        dist = metric.dist(point, x)
 
         return dist
 
-    def _compute_dists(self, geodesic, x):
+    def _compute_dists(self, metric, geodesic, x):
         n_points = self._get_n_points(x)
 
         if n_points == 1:
@@ -1015,9 +1018,9 @@ class _GeodesicToPointAligner(_BasePointToGeodesicAligner):
         for xx in x:
             s0 = 0.0
             res = scipy.optimize.minimize(
-                self._objective, x0=s0, args=(xx, geodesic), method=self.method
+                self._objective, x0=s0, args=(metric, xx, geodesic), method=self.method
             )
-            perms.append(self.metric.perm_[0])
+            perms.append(metric.perm_[0])
             min_dists.append(res.fun)
 
             opt_results.append(res)
@@ -1027,15 +1030,15 @@ class _GeodesicToPointAligner(_BasePointToGeodesicAligner):
 
         return gs.array(min_dists), gs.array(perms), n_points
 
-    def dist(self, geodesic, x):
-        dists, _, _ = self._compute_dists(geodesic, x)
+    def dist(self, metric, geodesic, x):
+        dists, _, _ = self._compute_dists(metric, geodesic, x)
 
         return dists
 
-    def align(self, geodesic, x):
-        _, perms, n_points = self._compute_dists(geodesic, x)
+    def align(self, metric, geodesic, x):
+        _, perms, n_points = self._compute_dists(metric, geodesic, x)
 
-        new_x = self._permute(x, perms)
+        new_x = self._permute(metric, x, perms)
         self.perm_ = perms[0] if n_points == 1 else perms
 
         return new_x

@@ -112,7 +112,7 @@ class AACGGPCATestData(_TrivialGeodesicEstimatorTestData):
         metric = GraphSpaceMetric(space_2)
         metric.set_aligner(ExhaustiveAligner())
 
-        aligner = _GeodesicToPointAligner(metric)
+        aligner = _GeodesicToPointAligner()
         metric.set_point_to_geodesic_aligner(aligner)
 
         self.metrics = [metric] * 2

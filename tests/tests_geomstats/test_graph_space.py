@@ -227,12 +227,12 @@ class TestPointToGeodesicAligner(TestCase, metaclass=Parametrizer):
     skip_all = IS_NOT_NP
     testing_data = PointToGeodesicAlignerTestData()
 
-    def test_align(self, aligner, geodesic, point, expected):
-        aligned_point = aligner.align(geodesic, point)
+    def test_align(self, metric, aligner, geodesic, point, expected):
+        aligned_point = aligner.align(metric, geodesic, point)
         self.assertAllClose(aligned_point, expected)
 
-    def test_dist(self, aligner, geodesic, point, expected, atol):
-        dist = aligner.dist(geodesic, point)
+    def test_dist(self, metric, aligner, geodesic, point, expected, atol):
+        dist = aligner.dist(metric, geodesic, point)
 
         # TODO: make output type and shape consistent
         # self.assertTrue(

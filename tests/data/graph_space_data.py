@@ -368,15 +368,15 @@ class PointToGeodesicAlignerTestData(TestData):
         geodesic = metric.geodesic(init_point, end_point)
 
         aligners = [
-            PointToGeodesicAligner(metric, s_min=0.0, s_max=1.0, n_points=3),
-            _GeodesicToPointAligner(metric),
+            PointToGeodesicAligner(s_min=0.0, s_max=1.0, n_points=3),
+            _GeodesicToPointAligner(),
         ]
-        return aligners, geodesic
+        return metric, aligners, geodesic
 
     def align_test_data(self):
         smoke_data = []
         for space in self.spaces:
-            aligners, geodesic = self._get_aligners_and_geo(space)
+            metric, aligners, geodesic = self._get_aligners_and_geo(space)
 
             s = gs.linspace(0.0, 1.0, num=3)
             points = geodesic(s)
@@ -384,6 +384,7 @@ class PointToGeodesicAlignerTestData(TestData):
             for aligner in aligners:
                 smoke_data.append(
                     dict(
+                        metric=metric,
                         aligner=aligner,
                         geodesic=geodesic,
                         point=points,
@@ -393,12 +394,13 @@ class PointToGeodesicAlignerTestData(TestData):
 
         vec_data = []
         for space in self.spaces:
-            aligners, geodesic = self._get_aligners_and_geo(space)
+            metric, aligners, geodesic = self._get_aligners_and_geo(space)
             point = geodesic(0.5)[0]
 
             for aligner in aligners:
                 vec_data.append(
                     dict(
+                        metric=metric,
                         aligner=aligner,
                         geodesic=geodesic,
                         point=point,
@@ -413,7 +415,7 @@ class PointToGeodesicAlignerTestData(TestData):
     def dist_test_data(self):
         smoke_data = []
         for space in self.spaces:
-            aligners, geodesic = self._get_aligners_and_geo(space)
+            metric, aligners, geodesic = self._get_aligners_and_geo(space)
 
             s = gs.linspace(0.0, 1.0, num=3)
             points = geodesic(s)
@@ -421,6 +423,7 @@ class PointToGeodesicAlignerTestData(TestData):
             for aligner in aligners:
                 smoke_data.append(
                     dict(
+                        metric=metric,
                         aligner=aligner,
                         geodesic=geodesic,
                         point=points,
@@ -430,12 +433,13 @@ class PointToGeodesicAlignerTestData(TestData):
 
         vec_data = []
         for space in self.spaces:
-            aligners, geodesic = self._get_aligners_and_geo(space)
+            metric, aligners, geodesic = self._get_aligners_and_geo(space)
             point = geodesic(0.5)[0]
 
             for aligner in aligners:
                 vec_data.append(
                     dict(
+                        metric=metric,
                         aligner=aligner,
                         geodesic=geodesic,
                         point=point,
