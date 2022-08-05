@@ -91,7 +91,7 @@ class GraphSpaceTestData(_PointSetTestData):
             ),
         )
 
-        return self.generate_tests(smoke_data) + self.generate_vec_tests(
+        return self.generate_tests(smoke_data) + self.generate_vectorization_tests(
             vec_data,
             ["graph", "permutation"],
             expected_name="expected",
@@ -112,9 +112,11 @@ class GraphSpaceTestData(_PointSetTestData):
         vec_data_1 = [dict(space=space, points=point) for point in adjs]
         vec_data_2 = [dict(space=space, points=point) for point in points]
 
-        return self.generate_vec_tests(
+        return self.generate_vectorization_tests(
             vec_data_1, ["points"]
-        ) + self.generate_vec_tests(vec_data_2, ["points"], check_expand=False)
+        ) + self.generate_vectorization_tests(
+            vec_data_2, ["points"], check_expand=False
+        )
 
 
 class GraphTestData(_PointTestData):
@@ -323,7 +325,7 @@ class AlignerTestData(TestData):
                     )
                 )
 
-        return self.generate_vec_tests(
+        return self.generate_vectorization_tests(
             vec_data, ["base_point", "permute_point"], expected_name="expected"
         )
 
@@ -343,7 +345,9 @@ class AlignerTestData(TestData):
                     )
                 )
 
-        return self.generate_vec_tests(smoke_data, ["base_point", "permute_point"])
+        return self.generate_vectorization_tests(
+            smoke_data, ["base_point", "permute_point"]
+        )
 
 
 class PointToGeodesicAlignerTestData(TestData):
@@ -402,7 +406,7 @@ class PointToGeodesicAlignerTestData(TestData):
                     )
                 )
 
-        return self.generate_tests(smoke_data) + self.generate_vec_tests(
+        return self.generate_tests(smoke_data) + self.generate_vectorization_tests(
             vec_data, ["point"], expected_name="expected"
         )
 
@@ -439,6 +443,6 @@ class PointToGeodesicAlignerTestData(TestData):
                     )
                 )
 
-        return self.generate_tests(smoke_data) + self.generate_vec_tests(
+        return self.generate_tests(smoke_data) + self.generate_vectorization_tests(
             vec_data, ["point"], expected_name="expected"
         )
