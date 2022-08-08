@@ -16,7 +16,7 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.information_manifolds import InformationManifold
+from geomstats.information_geometry.information_manifold import InformationManifold
 
 warnings.filterwarnings("error")
 

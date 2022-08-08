@@ -11,7 +11,7 @@ from geomstats.information_geometry.dirichlet import (
     DirichletDistributions,
     DirichletMetric,
 )
-from geomstats.information_geometry.information_manifolds import InformationManifold
+from geomstats.information_geometry.information_manifold import InformationManifold
 
 EPSILON = 1e-6
 

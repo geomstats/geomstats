@@ -12,7 +12,7 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import HypersphereMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.information_manifolds import InformationManifold
+from geomstats.information_geometry.information_manifold import InformationManifold
 
 
 class CategoricalDistributions(LevelSet, InformationManifold):

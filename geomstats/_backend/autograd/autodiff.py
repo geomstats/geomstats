@@ -92,7 +92,9 @@ def custom_gradient(*grad_funcs):
     return decorator
 
 
-def jacobian(func):
+def jacobian(
+    func,
+):
     """Wrap autograd's jacobian function.
 
     Parameters

@@ -10,7 +10,7 @@ import geomstats.errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.information_manifolds import InformationManifold
+from geomstats.information_geometry.information_manifold import InformationManifold
 
 
 class BinomialDistributions(OpenSet, InformationManifold):

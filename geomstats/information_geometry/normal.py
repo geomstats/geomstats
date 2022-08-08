@@ -11,7 +11,7 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
 )
-from geomstats.information_geometry.information_manifolds import InformationManifold
+from geomstats.information_geometry.information_manifold import InformationManifold
 
 
 class NormalDistributions(PoincareHalfSpace, InformationManifold):
