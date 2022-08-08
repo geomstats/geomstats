@@ -65,7 +65,7 @@ class FisherRaoMetric(RiemannianMetric):
          \partial_{\theta} \mathbb{E}[(\partial_{\theta}(\log(f_{\theta}(x))))^2]`
 
         With further calculations, this is:
-        :math: `\mathbb{E} [\frac{2 *
+        :math: `int [\frac{2 *
          \partial_{\theta}^2 f \times \partial_{\theta} f \times f +
          (\partial_{\theta} f)^3}{f^2}]
 
