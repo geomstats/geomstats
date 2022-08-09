@@ -188,11 +188,21 @@ class Connection(ABC):
 
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
 
+        try:
+            inject_radius = self.injectivity_radius(base_point)
+            inject_constraint = {
+                "type": "ineq",
+                "fun": lambda v: inject_radius - gs.linalg.norm(v),
+            }
+        except NotImplementedError:
+            inject_constraint = None
+
         res = minimize(
             objective_with_grad,
             tangent_vec,
             method="L-BFGS-B",
             jac=True,
+            constraints=inject_constraint,
             options={"disp": verbose, "maxiter": max_iter},
             tol=tol,
         )
