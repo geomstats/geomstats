@@ -1072,7 +1072,7 @@ class ElasticMetric(RiemannianMetric):
         curve = gs.cumsum(curve, -2)
         return gs.squeeze(curve)
 
-    def dist(self, curve_1, curve_2, rescaled=False):
+    def dist(self, point_a, point_b, rescaled=False):
         """Compute the geodesic distance between two curves.
 
         The two F_transforms are computed with corrected arguments
@@ -1081,9 +1081,9 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        curve_1 : array-like, shape=[..., k_sampling_points, ambient_dim]
+        point_a : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
-        curve_2 : array-like, shape=[..., k_sampling_points, ambient_dim]
+        point_b : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
 
         Returns
@@ -1100,12 +1100,12 @@ class ElasticMetric(RiemannianMetric):
                 "ambient_manifold must be a plane, but it is:\n"
                 f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
             )
-        k_sampling_points = curve_1.shape[-2]
+        k_sampling_points = point_a.shape[-2]
         velocity_1 = (k_sampling_points - 1) * (
-            curve_1[..., 1:, :] - curve_1[..., :-1, :]
+            point_a[..., 1:, :] - point_a[..., :-1, :]
         )
         velocity_2 = (k_sampling_points - 1) * (
-            curve_2[..., 1:, :] - curve_2[..., :-1, :]
+            point_b[..., 1:, :] - point_b[..., :-1, :]
         )
 
         polar_velocity_1 = self.cartesian_to_polar(velocity_1)
@@ -1146,7 +1146,7 @@ class ElasticMetric(RiemannianMetric):
 
         return distance
 
-    def squared_dist(self, curve_1, curve_2, rescaled=False):
+    def squared_dist(self, point_a, point_b, rescaled=False):
         """Compute squared geodesic distance between two curves.
 
         The two F_transforms are computed with corrected arguments
@@ -1155,9 +1155,9 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        curve_1 : array-like, shape=[..., k_sampling_points, ambient_dim]
+        point_a : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
-        curve_2 : array-like, shape=[..., k_sampling_points, ambient_dim]
+        point_b : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
 
         Returns
@@ -1165,7 +1165,7 @@ class ElasticMetric(RiemannianMetric):
         _ : [...]
             Squared geodesic distance between the curves.
         """
-        return self.dist(curve_1=curve_1, curve_2=curve_2, rescaled=rescaled) ** 2
+        return self.dist(point_a=point_a, point_b=point_b, rescaled=rescaled) ** 2
 
     def geodesic(self, initial_curve, end_curve):
         """Compute geodesic from initial curve to end curve.
