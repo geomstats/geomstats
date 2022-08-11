@@ -5,6 +5,7 @@ import geomstats.datasets.utils as data_utils
 from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     DiscreteCurves,
+    ElasticMetric,
     L2CurvesMetric,
     SRVMetric,
 )
@@ -208,8 +209,25 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
 
-class ElasticMetricTestData(TestData):
+class ElasticMetricTestData(_RiemannianMetricTestData):
     a_b_list = [(1, 1)]
+
+    ambient_manifolds_list = [r2]
+    metric_args_list = a_b_list
+    shape_list = [(10, 2), (10, 3)]
+    space_list = [
+        DiscreteCurves(ambient_manifolds)
+        for ambient_manifolds in ambient_manifolds_list
+    ]
+    n_points_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = random.sample(range(2, 5), 2)
+    n_points_a_list = [1, 2]
+    n_points_b_list = [1, 2]
+    alpha_list = [1] * 2
+    n_rungs_list = [1] * 2
+    scheme_list = ["pole"] * 2
+
+    Metric = ElasticMetric
 
     def cartesian_to_polar_and_polar_to_cartesian_test_data(self):
         smoke_data = [
