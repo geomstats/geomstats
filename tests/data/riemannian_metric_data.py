@@ -2,7 +2,7 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from tests.data_generation import TestData
+from tests.data_generation import ConnectionTestData
 
 
 def _euc_metric_matrix(base_point):
@@ -18,7 +18,7 @@ def _sphere_metric_matrix(base_point):
     return mat
 
 
-class RiemannianMetricTestData(TestData):
+class RiemannianMetricTestData(ConnectionTestData):
 
     dim = 2
     euc = Euclidean(dim=dim)
