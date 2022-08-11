@@ -60,8 +60,6 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
 
 class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_belongs = True
-    skip_test_exp_shape = True
-    skip_test_log_shape = True
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -92,8 +90,6 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
 
 class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    skip_test_exp_shape = True
-    skip_test_log_shape = True
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True

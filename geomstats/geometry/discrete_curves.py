@@ -61,7 +61,10 @@ class DiscreteCurves(Manifold):
         dim = ambient_manifold.dim * k_sampling_points
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super(DiscreteCurves, self).__init__(
-            dim=dim, shape=(), default_point_type="matrix", **kwargs
+            dim=dim,
+            shape=(k_sampling_points,) + ambient_manifold.shape,
+            default_point_type="matrix",
+            **kwargs,
         )
         self.ambient_manifold = ambient_manifold
         self.k_sampling_points = k_sampling_points
