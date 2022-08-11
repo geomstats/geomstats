@@ -1167,7 +1167,7 @@ class ElasticMetric(RiemannianMetric):
         """
         return self.dist(point_a=point_a, point_b=point_b, rescaled=rescaled) ** 2
 
-    def geodesic(self, initial_curve, end_curve):
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Compute geodesic from initial curve to end curve.
 
         Geodesic specified by an initial curve and an end curve computed
@@ -1175,9 +1175,9 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        initial_curve : array-like, shape=[..., k_sampling_points, ambient_dim]
+        initial_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
-        end_curve : array-like, shape=[..., k_sampling_points, ambient_dim]
+        end_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
 
         Returns
@@ -1192,8 +1192,8 @@ class ElasticMetric(RiemannianMetric):
                 "Euclidean space."
             )
         curve_ndim = 2
-        initial_curve = gs.to_ndarray(initial_curve, to_ndim=curve_ndim)
-        end_curve = gs.to_ndarray(end_curve, to_ndim=curve_ndim)
+        initial_point = gs.to_ndarray(initial_point, to_ndim=curve_ndim)
+        end_point = gs.to_ndarray(end_point, to_ndim=curve_ndim)
 
         def path(times):
             """Generate parametrized function for geodesic.
@@ -1208,8 +1208,8 @@ class ElasticMetric(RiemannianMetric):
 
             curves_path = []
             for t in times:
-                initial_f = self.f_transform(initial_curve)
-                end_f = self.f_transform(end_curve)
+                initial_f = self.f_transform(initial_point)
+                end_f = self.f_transform(end_point)
                 f_t = (1 - t) * initial_f + t * end_f
                 curve_t = self.f_transform_inverse(f_t, gs.zeros(curve_ndim))
                 curves_path.append(curve_t)
