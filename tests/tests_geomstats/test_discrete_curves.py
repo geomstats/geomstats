@@ -60,8 +60,6 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
 
 class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_belongs = True
-    skip_test_exp_shape = True
-    skip_test_log_shape = True
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -92,8 +90,6 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
 
 class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    skip_test_exp_shape = True
-    skip_test_log_shape = True
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -401,7 +397,24 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
 
-class TestElasticMetric(TestCase, metaclass=Parametrizer):
+class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    skip_test_exp_shape = True
+    skip_test_log_shape = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_after_log = True
+    skip_test_exp_belongs = True
+    skip_test_exp_ladder_parallel_transport = True
+    skip_test_inner_product_is_symmetric = True
+    skip_test_log_after_exp = True
+    skip_test_log_is_tangent = True
+    skip_test_squared_dist_is_positive = tf_backend()
+    skip_test_dist_is_positive = tf_backend()
+    skip_test_dist_is_norm_of_log = True
+    skip_test_dist_point_to_itself_is_zero = True
+    skip_test_triangle_inequality_of_dist = True
+
     testing_data = ElasticMetricTestData()
 
     def test_cartesian_to_polar_and_polar_to_cartesian(self, a, b, rtol, atol):

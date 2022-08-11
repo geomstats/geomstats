@@ -3,7 +3,6 @@
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
-from geomstats.geometry.discrete_curves import R2, DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
@@ -192,11 +191,6 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
         result = len(treatments)
         self.assertAllClose(result, expected)
-
-        planar_curves_space = DiscreteCurves(R2)
-
-        result = planar_curves_space.belongs(cells)
-        self.assertTrue(gs.all(result))
 
         result = [line in ["dlm8", "dunn"] for line in cell_lines]
         self.assertTrue(gs.all(result))
