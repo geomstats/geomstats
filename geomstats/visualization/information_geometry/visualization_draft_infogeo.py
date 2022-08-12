@@ -7,6 +7,7 @@ from itertools import product
 import cv2
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.tri as mtri
 import numpy as np
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 from PIL import Image
@@ -35,7 +36,7 @@ class Visualizer(ABC):
         self.position = position
         self.space = space
         self.dim = self.space.dim
-        self.projection = "3d" if self.dim > 3 else None
+        self.projection = "3d" if self.dim >= 3 else None
         self._position_as_list = list(map(int, list(str(self.position))))
 
         ax_exists = False
@@ -212,8 +213,6 @@ class Visualizer(ABC):
             self.ax.plot(*gs.transpose(ball), [0] * len(directions), **kwargs)
         elif self.dim == 2:
             self.ax.plot(*gs.transpose(ball), **kwargs)
-        elif self.dim == 3:
-            self.ax.plot_trisurf(*gs.transpose(ball), **kwargs)
 
     def plot_geodesic_star(self, center, n_rays=13, radius=1, **kwargs):
         """Plot geodesic star on the manifold.
@@ -448,7 +447,6 @@ class Visualizer3D(Visualizer):
     """Visualizer for 3-D parameter distributions."""
 
     def __init__(self, fig, position, space):
-        self.projection = "3d"
         super(Visualizer3D, self).__init__(fig=fig, position=position, space=space)
 
     def directions(self, n_rays=51):
@@ -476,3 +474,42 @@ class Visualizer3D(Visualizer):
             points.append([x, y, z])
 
         return gs.array(points)
+
+    def plot_geodesic_ball(self, center, radius=1, n_rays=100, **kwargs):
+        """Plot geodesic ball on the manifold.
+
+        Parameters
+        ----------
+        ax : matplotlib window
+            Location of the plot.
+        center : array-like, shape=[...,dim]
+            Center point of the geodesic ball.
+        n_rays : int
+            Wanted number of rays departing from the center.
+        ray_norm : float
+            Radius of the geodesic ball.
+        """
+        n = int(gs.sqrt(n_rays))
+
+        theta, phi = gs.linspace(0, 2 * gs.pi, n), gs.linspace(0, 2 * gs.pi, n)
+        theta, phi = gs.meshgrid(theta, phi)
+        theta, phi = gs.flatten(theta), gs.flatten(phi)
+
+        x = gs.sin(phi) * gs.cos(theta)
+        y = gs.sin(phi) * gs.sin(theta)
+        z = gs.cos(phi)
+
+        directions = gs.transpose([x, y, z])
+
+        tangent_vec = self.space.metric.normalize(directions, base_point=center)
+
+        ball = gs.array(
+            [
+                self.space.metric.exp(tangent_vec=vec, base_point=center)
+                for vec in tangent_vec
+            ]
+        )
+
+        tri = mtri.Triangulation(theta, phi)
+
+        self.ax.plot_trisurf(*gs.transpose(ball), triangles=tri.triangles, **kwargs)
