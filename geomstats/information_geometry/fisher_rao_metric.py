@@ -7,7 +7,16 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class FisherRaoMetric(RiemannianMetric):
-    """Class to derive the information metric from the pdf in InformationManifold."""
+    """Class to derive the information metric from the pdf in InformationManifold.
+
+    Attributes
+    ----------
+    information_manifold : InformationManifold object
+        Riemannian Manifold for a parametric family of (real) distributions.
+    support : list, shape = (2,)
+        Left and right bounds for the support of the distribution.
+        But this is just to help integration, bounds should be as large as needed.
+    """
 
     def __init__(self, information_manifold, support):
         self.information_manifold = information_manifold
@@ -40,18 +49,42 @@ class FisherRaoMetric(RiemannianMetric):
         """
 
         def log_pdf_at_x(x):
+            """Compute the log function of the pdf for a fixed value on the support.
+
+            Parameters
+            ----------
+            x : float, shape (,)
+                Point on the support of the distribution
+            """
             return lambda point: gs.log(
                 self.information_manifold.point_to_pdf(point)(x)
             )
 
-        def sqrtscore(x):
+        def dlog(x):
+            """Compute the derivative of the log-pdf with respect to the parameters.
+
+            Parameters
+            ----------
+            x : float, shape (,)
+                Point on the support of the distribution
+            """
             return gs.autodiff.jacobian(log_pdf_at_x(x))(base_point)
 
-        def score(x):
-            return gs.einsum("...i, ...j -> ...ij", sqrtscore(x), sqrtscore(x))
+        def squared_dlog(x):
+            """Compute the square (in matrix terms) of dlog.
+
+            This is the variable whose expectance is the Fisher-Rao information.
+
+            Parameters
+            ----------
+            x : float, shape (,)
+                Point on the support of the distribution
+            """
+            return gs.einsum("...i, ...j -> ...ij", dlog(x), dlog(x))
 
         return quad_vec(
-            lambda x: score(x) * self.information_manifold.point_to_pdf(base_point)(x),
+            lambda x: squared_dlog(x)
+            * self.information_manifold.point_to_pdf(base_point)(x),
             *self.support
         )[0]
 
@@ -81,6 +114,13 @@ class FisherRaoMetric(RiemannianMetric):
         """
 
         def pdf(x):
+            """Compute pdf at a fixed point on the support.
+
+            Parameters
+            ----------
+            x : float, shape (,)
+                Point on the support of the distribution
+            """
             return lambda point: self.information_manifold.point_to_pdf(point)(x)
 
         function = (
