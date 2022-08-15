@@ -72,7 +72,6 @@ BACKEND_ATTRIBUTES = {
         "floor",
         "from_numpy",
         "gamma",
-        "get_mask_i_float",
         "get_slice",
         "greater",
         "hsplit",
