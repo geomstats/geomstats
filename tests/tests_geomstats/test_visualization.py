@@ -187,7 +187,7 @@ class TestVisualization(geomstats.tests.TestCase):
 
     def test_compute_coordinates_spd2(self):
         point = gs.eye(2)
-        ellipsis = visualization.Ellipses(n_sampling_points=4)
+        ellipsis = visualization.Ellipses(k_sampling_points=4)
         x, y = ellipsis.compute_coordinates(point)
         self.assertAllClose(x, gs.array([1, 0, -1, 0, 1]))
         self.assertAllClose(y, gs.array([0, 1, 0, -1, 0]))
