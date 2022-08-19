@@ -213,7 +213,7 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
     a_b_list = [(1, 1)]
 
     ambient_manifolds_list = [r2]
-    metric_args_list = a_b_list
+    connection_args_list = metric_args_list = a_b_list
     shape_list = [(10, 2), (10, 3)]
     space_list = [
         DiscreteCurves(ambient_manifolds)
