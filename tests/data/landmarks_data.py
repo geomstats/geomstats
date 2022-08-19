@@ -85,8 +85,8 @@ class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
         initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_c
     )
 
-    n_sampling_points = 10
-    sampling_times = gs.linspace(0.0, 1.0, n_sampling_points)
+    k_sampling_points = 10
+    sampling_times = gs.linspace(0.0, 1.0, k_sampling_points)
     landmark_set_a = landmarks_a(sampling_times)
     landmark_set_b = landmarks_b(sampling_times)
     landmark_set_c = landmarks_c(sampling_times)
@@ -94,7 +94,7 @@ class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
     n_landmark_sets = 5
     times = gs.linspace(0.0, 1.0, n_landmark_sets)
     space_landmarks_in_sphere_2d = Landmarks(
-        ambient_manifold=s2, k_landmarks=n_sampling_points
+        ambient_manifold=s2, k_landmarks=k_sampling_points
     )
     l2_metric_s2 = space_landmarks_in_sphere_2d.metric
 
@@ -145,7 +145,7 @@ class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
             dict(
                 l2_metric_s2=self.l2_metric_s2,
                 times=self.times,
-                n_sampling_points=self.n_sampling_points,
+                k_sampling_points=self.k_sampling_points,
                 landmarks_a=self.landmark_set_a,
                 landmarks_b=self.landmark_set_b,
             )
@@ -155,7 +155,7 @@ class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
     def innerproduct_is_sum_of_innerproducts_test_data(self):
         smoke_data = [
             dict(
-                metric_args=(Hypersphere(dim=2).metric, self.n_sampling_points),
+                metric_args=(Hypersphere(dim=2).metric, self.k_sampling_points),
                 tangent_vec_a=self.landmark_set_a,
                 tangent_vec_b=self.landmark_set_b,
                 base_point=self.landmark_set_c,

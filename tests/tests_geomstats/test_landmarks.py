@@ -81,7 +81,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_l2_metric_geodesic(
-        self, l2_metric_s2, times, n_sampling_points, landmarks_a, landmarks_b
+        self, l2_metric_s2, times, k_sampling_points, landmarks_a, landmarks_b
     ):
         """Test the geodesic method of L2LandmarksMetric."""
         landmarks_ab = l2_metric_s2.geodesic(landmarks_a, landmarks_b)
@@ -89,7 +89,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
 
         result = landmarks_ab
         expected = []
-        for k in range(n_sampling_points):
+        for k in range(k_sampling_points):
             geod = l2_metric_s2.ambient_metric.geodesic(
                 initial_point=landmarks_a[k, :], end_point=landmarks_b[k, :]
             )

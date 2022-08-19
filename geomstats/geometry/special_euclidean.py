@@ -1354,11 +1354,11 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             (self.skew.dim, n + 1, n + 1),
             0.0,
         )
-        basis = list(basis)
 
-        for row in gs.arange(n):
-            basis.append(gs.array_from_sparse([(row, n)], [1.0], (n + 1, n + 1)))
-        return gs.stack(basis)
+        indices = [(row, row, n) for row in range(n)]
+        add_basis = gs.array_from_sparse(indices, [1.0] * n, (n, n + 1, n + 1))
+
+        return gs.vstack([basis, add_basis])
 
     def belongs(self, mat, atol=ATOL):
         """Evaluate if the rotation part of mat is a skew-symmetric matrix.
