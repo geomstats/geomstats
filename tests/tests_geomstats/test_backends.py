@@ -699,6 +699,16 @@ class TestBackends(tests.conftest.TestCase):
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
 
+    def test_quantile(self):
+        vec = gs.random.rand(10, 10)
+        q = gs.random.rand(1)
+        expected = _np.quantile(vec, q=q)
+        result = gs.quantile(vec, q=q)
+        expected1 = _np.quantile(vec, q=q, axis=1)
+        result1 = gs.quantile(vec, q=q, axis=1)
+        self.assertAllClose(result, expected)
+        self.assertAllClose(result1, expected1)
+
     def test_is_single_matrix_pd(self):
         pd = gs.eye(3)
         not_pd_1 = -1 * gs.eye(3)

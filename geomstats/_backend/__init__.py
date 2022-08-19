@@ -105,6 +105,7 @@ BACKEND_ATTRIBUTES = {
         "polygamma",
         "power",
         "prod",
+        "quantile",
         "ravel_tril_indices",
         "real",
         "repeat",
