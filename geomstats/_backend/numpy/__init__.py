@@ -71,6 +71,7 @@ from numpy import (
     pad,
     power,
     prod,
+    quantile,
     real,
     repeat,
     reshape,

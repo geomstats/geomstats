@@ -39,7 +39,7 @@ from torch import (
 from torch import max as amax
 from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma
 from torch import pow as power
-from torch import real
+from torch import quantile, real
 from torch import repeat_interleave as repeat
 from torch import (
     reshape,
