@@ -304,7 +304,7 @@ class SRVShapeBundleTestData(TestData):
         return self.generate_tests(smoke_data)
 
 
-class QuotientSRVMetricTestData(TestData):
+class SRVQuotientMetricTestData(TestData):
     def dist_test_data(self):
         smoke_data = [
             dict(

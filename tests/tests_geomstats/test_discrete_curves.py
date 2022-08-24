@@ -6,8 +6,8 @@ from geomstats.geometry.discrete_curves import (
     DiscreteCurves,
     ElasticMetric,
     L2CurvesMetric,
-    QuotientSRVMetric,
     SRVMetric,
+    SRVQuotientMetric,
     SRVShapeBundle,
 )
 from geomstats.geometry.euclidean import Euclidean
@@ -19,8 +19,8 @@ from tests.data.discrete_curves_data import (
     DiscreteCurvesTestData,
     ElasticMetricTestData,
     L2CurvesMetricTestData,
-    QuotientSRVMetricTestData,
     SRVMetricTestData,
+    SRVQuotientMetricTestData,
     SRVShapeBundleTestData,
 )
 from tests.geometry_test_cases import (
@@ -534,8 +534,8 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, atol=1e-3)
 
 
-class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
-    testing_data = QuotientSRVMetricTestData()
+class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
+    testing_data = SRVQuotientMetricTestData()
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
@@ -553,7 +553,7 @@ class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        quotient_srv_metric_r3 = QuotientSRVMetric(ambient_manifold=r3)
-        result = quotient_srv_metric_r3.dist(curve_a_resampled, curve_b)
-        expected = quotient_srv_metric_r3.dist(curve_a, curve_b)
+        srv_quotient_metric_r3 = SRVQuotientMetric(ambient_manifold=r3)
+        result = srv_quotient_metric_r3.dist(curve_a_resampled, curve_b)
+        expected = srv_quotient_metric_r3.dist(curve_a, curve_b)
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)

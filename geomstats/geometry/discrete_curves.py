@@ -2140,8 +2140,8 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         return horizontal_path(1.0)
 
 
-class QuotientSRVMetric(QuotientMetric):
-    """Quotient SRV metric on the space of unparametrized curves.
+class SRVQuotientMetric(QuotientMetric):
+    """SRV quotient metric on the space of unparametrized curves.
 
     This is the class for the quotient metric induced by the SRV Metric
     on the shape space of unparametrized curves, i.e. the space of parametrized
@@ -2152,7 +2152,7 @@ class QuotientSRVMetric(QuotientMetric):
     def __init__(self, ambient_manifold, k_sampling_points=10):
         dim = ambient_manifold.dim * k_sampling_points
         bundle = SRVShapeBundle(ambient_manifold, dim)
-        super(QuotientSRVMetric, self).__init__(fiber_bundle=bundle, dim=dim)
+        super(SRVQuotientMetric, self).__init__(fiber_bundle=bundle, dim=dim)
 
     def geodesic(self, initial_point, end_point, threshold=1e-3):
         """Geodesic for the quotient SRV Metric.
