@@ -159,17 +159,6 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def split_horizontal_vertical_test_data(self):
-        smoke_data = [
-            dict(
-                times=times,
-                n_discretized_curves=n_discretized_curves,
-                curve_a=curve_a,
-                curve_b=curve_b,
-            )
-        ]
-        return self.generate_tests(smoke_data)
-
     def space_derivative_test_data(self):
         smoke_data = [
             dict(
@@ -297,6 +286,17 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
 
 
 class SRVShapeBundleTestData(TestData):
+    def horizontal_and_vertical_projections_test_data(self):
+        smoke_data = [
+            dict(
+                times=times,
+                n_discretized_curves=n_discretized_curves,
+                curve_a=curve_a,
+                curve_b=curve_b,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
     def horizontal_geodesic_test_data(self):
         smoke_data = [
             dict(k_sampling_points=k_sampling_points, curve_a=curve_a, n_times=20)

@@ -287,42 +287,6 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.stack((res_a, res_b))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
-    def test_split_horizontal_vertical(
-        self, times, n_discretized_curves, curve_a, curve_b
-    ):
-        """Test split horizontal vertical.
-        Check that horizontal and vertical parts of any tangent
-        vector are othogonal with respect to the SRVMetric inner
-        product, and check vectorization.
-        """
-        srv_metric_r3 = SRVMetric(r3)
-        quotient_srv_metric_r3 = DiscreteCurves(ambient_manifold=r3).quotient_srv_metric
-        geod = srv_metric_r3.geodesic(initial_curve=curve_a, end_curve=curve_b)
-        geod = geod(times)
-        tangent_vec = n_discretized_curves * (geod[1, :, :] - geod[0, :, :])
-        (
-            tangent_vec_hor,
-            tangent_vec_ver,
-            _,
-        ) = quotient_srv_metric_r3.split_horizontal_vertical(tangent_vec, curve_a)
-        result = srv_metric_r3.inner_product(tangent_vec_hor, tangent_vec_ver, curve_a)
-        expected = 0.0
-        self.assertAllClose(result, expected, atol=1e-4)
-
-        tangent_vecs = n_discretized_curves * (geod[1:] - geod[:-1])
-        _, _, result = quotient_srv_metric_r3.split_horizontal_vertical(
-            tangent_vecs, geod[:-1]
-        )
-        expected = []
-        for i in range(n_discretized_curves - 1):
-            _, _, res = quotient_srv_metric_r3.split_horizontal_vertical(
-                tangent_vecs[i], geod[i]
-            )
-            expected.append(res)
-        expected = gs.stack(expected)
-        self.assertAllClose(result, expected)
-
     def test_space_derivative(
         self, dim, n_points, n_discretized_curves, k_sampling_points
     ):
@@ -507,6 +471,39 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
     testing_data = SRVShapeBundleTestData()
 
     @geomstats.tests.np_autograd_and_torch_only
+    def test_horizontal_and_vertical_projections(
+        self, times, n_discretized_curves, curve_a, curve_b
+    ):
+        """Test horizontal and vertical projections.
+        Check that horizontal and vertical parts of any tangent
+        vector are othogonal with respect to the SRVMetric inner
+        product, and check vectorization.
+        """
+        srv_metric_r3 = SRVMetric(r3)
+        srv_shape_bundle_r3 = SRVShapeBundle(r3)
+        geod = srv_metric_r3.geodesic(initial_curve=curve_a, end_curve=curve_b)
+        geod = geod(times)
+        tangent_vec = n_discretized_curves * (geod[1, :, :] - geod[0, :, :])
+        tangent_vec_hor = srv_shape_bundle_r3.horizontal_projection(
+            tangent_vec, curve_a
+        )
+        tangent_vec_ver, _ = srv_shape_bundle_r3.vertical_projection(
+            tangent_vec, curve_a
+        )
+        result = srv_metric_r3.inner_product(tangent_vec_hor, tangent_vec_ver, curve_a)
+        expected = 0.0
+        self.assertAllClose(result, expected, atol=1e-4)
+
+        tangent_vecs = n_discretized_curves * (geod[1:] - geod[:-1])
+        _, result = srv_shape_bundle_r3.vertical_projection(tangent_vecs, geod[:-1])
+        expected = []
+        for i in range(n_discretized_curves - 1):
+            _, res = srv_shape_bundle_r3.vertical_projection(tangent_vecs[i], geod[i])
+            expected.append(res)
+        expected = gs.stack(expected)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_autograd_and_torch_only
     def test_horizontal_geodesic(self, k_sampling_points, curve_a, n_times):
         """Test horizontal geodesic.
         Check that the time derivative of the geodesic is
@@ -521,7 +518,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        srv_shape_bundle_r3 = SRVShapeBundle(ambient_manifold=r3)
+        srv_shape_bundle_r3 = SRVShapeBundle(r3)
         horizontal_geod_fun = srv_shape_bundle_r3.horizontal_geodesic(curve_a, curve_b)
         times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_geod_fun(times)

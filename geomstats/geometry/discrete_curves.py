@@ -1801,7 +1801,6 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         super(SRVShapeBundle, self).__init__(
             ambient_manifold=ambient_manifold,
             k_sampling_points=k_sampling_points,
-            ambient_metric=SRVMetric(ambient_manifold=ambient_manifold),
         )
         self.ambient_metric = SRVMetric(ambient_manifold=ambient_manifold)
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
@@ -2083,7 +2082,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                 _, vertical_norm = self.vertical_projection(time_deriv, geod[:-1])
 
                 space_deriv = SRVMetric.space_derivative(geod)
-                space_deriv_norm = self.ambient_metric.norm(space_deriv)
+                space_deriv_norm = self.ambient_manifold.metric.norm(space_deriv)
 
                 repar = construct_reparametrization(vertical_norm, space_deriv_norm)
 
@@ -2140,9 +2139,10 @@ class QuotientSRVMetric(QuotientMetric):
     reparametrization corresponds to resampling.
     """
 
-    def __init__(self, ambient_manifold):
-        bundle = SRVShapeBundle(ambient_manifold)
-        super(QuotientSRVMetric, self).__init__(fiber_bundle=bundle)
+    def __init__(self, ambient_manifold, k_sampling_points=10):
+        dim = ambient_manifold.dim * k_sampling_points
+        bundle = SRVShapeBundle(ambient_manifold, dim)
+        super(QuotientSRVMetric, self).__init__(fiber_bundle=bundle, dim=dim)
 
     def geodesic(self, initial_point, end_point, threshold=1e-3):
         """Geodesic for the quotient SRV Metric.
@@ -2185,7 +2185,7 @@ class QuotientSRVMetric(QuotientMetric):
             Quotient distance between the two curves.
         """
         horizontal_path = self.geodesic(
-            initial_curve=curve_a, end_curve=curve_b, threshold=threshold
+            initial_point=curve_a, end_point=curve_b, threshold=threshold
         )
         times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_path(times)
