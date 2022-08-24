@@ -6,7 +6,9 @@ from geomstats.geometry.discrete_curves import (
     DiscreteCurves,
     ElasticMetric,
     L2CurvesMetric,
+    QuotientSRVMetric,
     SRVMetric,
+    SRVShapeBundle,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -19,6 +21,7 @@ from tests.data.discrete_curves_data import (
     L2CurvesMetricTestData,
     QuotientSRVMetricTestData,
     SRVMetricTestData,
+    SRVShapeBundleTestData,
 )
 from tests.geometry_test_cases import (
     ManifoldTestCase,
@@ -500,8 +503,8 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, rtol, atol)
 
 
-class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
-    testing_data = QuotientSRVMetricTestData()
+class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
+    testing_data = SRVShapeBundleTestData()
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_horizontal_geodesic(self, k_sampling_points, curve_a, n_times):
@@ -518,24 +521,24 @@ class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        quotient_srv_metric_r3 = DiscreteCurves(ambient_manifold=r3).quotient_srv_metric
-        horizontal_geod_fun = quotient_srv_metric_r3.horizontal_geodesic(
-            curve_a, curve_b
-        )
+        srv_shape_bundle_r3 = SRVShapeBundle(ambient_manifold=r3)
+        horizontal_geod_fun = srv_shape_bundle_r3.horizontal_geodesic(curve_a, curve_b)
         times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_geod_fun(times)
         velocity_vec = n_times * (horizontal_geod[1:] - horizontal_geod[:-1])
-        _, _, vertical_norms = quotient_srv_metric_r3.split_horizontal_vertical(
+        _, vertical_norms = srv_shape_bundle_r3.vertical_projection(
             velocity_vec, horizontal_geod[:-1]
         )
         result = gs.sum(vertical_norms**2, axis=1) ** (1 / 2)
         expected = gs.zeros(n_times - 1)
         self.assertAllClose(result, expected, atol=1e-3)
 
+
+class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
+    testing_data = QuotientSRVMetricTestData()
+
     @geomstats.tests.np_autograd_and_torch_only
-    def test_quotient_dist(
-        self, sampling_times, curve_fun_a, curve_a, k_sampling_points
-    ):
+    def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
         """Test quotient distance.
         Check that the quotient distance is the same as the distance
         between the end points of the horizontal geodesic.
@@ -550,7 +553,7 @@ class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        quotient_srv_metric_r3 = DiscreteCurves(ambient_manifold=r3).quotient_srv_metric
+        quotient_srv_metric_r3 = QuotientSRVMetric(ambient_manifold=r3)
         result = quotient_srv_metric_r3.dist(curve_a_resampled, curve_b)
         expected = quotient_srv_metric_r3.dist(curve_a, curve_b)
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)

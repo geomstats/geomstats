@@ -296,14 +296,16 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
 
-class QuotientSRVMetricTestData(TestData):
+class SRVShapeBundleTestData(TestData):
     def horizontal_geodesic_test_data(self):
         smoke_data = [
             dict(k_sampling_points=k_sampling_points, curve_a=curve_a, n_times=20)
         ]
         return self.generate_tests(smoke_data)
 
-    def quotient_dist_test_data(self):
+
+class QuotientSRVMetricTestData(TestData):
+    def dist_test_data(self):
         smoke_data = [
             dict(
                 sampling_times=sampling_times,

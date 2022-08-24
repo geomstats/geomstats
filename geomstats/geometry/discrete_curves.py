@@ -11,8 +11,10 @@ import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.landmarks import L2LandmarksMetric
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -68,10 +70,8 @@ class DiscreteCurves(Manifold):
         )
         self.ambient_manifold = ambient_manifold
         self.k_sampling_points = k_sampling_points
-        self.srv_metric = self._metric
-
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
-        self.quotient_srv_metric = QuotientSRVMetric(self.ambient_manifold)
+        self.srv_metric = self._metric
 
         if a is not None and b is not None:
             self.elastic_metric = ElasticMetric(
@@ -1772,36 +1772,42 @@ class SRVMetric(ElasticMetric):
         return space_deriv
 
 
-class QuotientSRVMetric(SRVMetric):
-    """Metric on shape space induced by the SRV metric.
+class SRVShapeBundle(DiscreteCurves, FiberBundle):
+    """Principal bundle of shapes of curves induced by the SRV metric.
 
     The space of parameterized curves is the total space of a principal
     bundle where the group action is given by reparameterization and the
-    base space is the shape space. This is the class for the quotient metric
-    induced on the shape space by the SRV metric.
+    base space is the shape space of curves modulo reparametrization, i.e.
+    unparametrized curves. In the discrete case, reparametrization corresponds
+    to resampling.
 
     Each tangent vector to the space of parameterized curves can be
     split into a vertical part (tangent to the fibers of the principal
     bundle) and a horizontal part (orthogonal to the vertical part with
-    respect to the SRV metric). The geodesics for the quotient metric on the
-    shape space are the projections of the horizontal geodesics in the total
-    space of parameterized curves. They can be computed using an algorithm
-    that iteratively finds the best correspondence between two fibers of the
-    principal bundle, see Reference below.
+    respect to the SRV metric). Horizontal geodesics in the total space
+    can be computed using an algorithm that iteratively finds the best
+    correspondence between two fibers of the principal bundle, see Reference
+    below.
 
     References
     ----------
-    .. [LAB2017] A. Le Brigant, M. Arnaudon and F. Barbaresco,
-        "Optimal matching between curves in a manifold,"
-        in International Conference on Geometric Science of Information,
-        pp. 57-65, Springer, Cham, 2017.
+    .. [LAB2017] A. Le Brigant,
+        "A discrete framework to find the optimal matching between manifold-
+        valued curves," in Journal of Mathematical Imaging and Vision, 61,
+        pp. 40-70, 2019.
     """
 
-    def __init__(self, ambient_manifold):
-        super(QuotientSRVMetric, self).__init__(ambient_manifold)
+    def __init__(self, ambient_manifold, k_sampling_points=10):
+        super(SRVShapeBundle, self).__init__(
+            ambient_manifold=ambient_manifold,
+            k_sampling_points=k_sampling_points,
+            ambient_metric=SRVMetric(ambient_manifold=ambient_manifold),
+        )
+        self.ambient_metric = SRVMetric(ambient_manifold=ambient_manifold)
+        self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
 
-    def split_horizontal_vertical(self, tangent_vec, curve):
-        """Split tangent vector into horizontal and vertical parts.
+    def vertical_projection(self, tangent_vec, curve):
+        """Compute vertical part of tangent vector at base point.
 
         Parameters
         ----------
@@ -1814,9 +1820,6 @@ class QuotientSRVMetric(SRVMetric):
 
         Returns
         -------
-        tangent_vec_hor : array-like,
-            shape=[..., k_sampling_points, ambient_dim]
-            Horizontal part of tangent_vec.
         tangent_vec_ver : array-like,
             shape=[..., k_sampling_points, ambient_dim]
             Vertical part of tangent_vec.
@@ -1894,9 +1897,28 @@ class QuotientSRVMetric(SRVMetric):
             axis=1,
         )
         tangent_vec_ver = gs.squeeze(tangent_vec_ver)
-        tangent_vec_hor = tangent_vec - tangent_vec_ver
+        return tangent_vec_ver, vertical_norm
 
-        return tangent_vec_hor, tangent_vec_ver, vertical_norm
+    def horizontal_projection(self, tangent_vec, curve):
+        """Compute vertical part of tangent vector at base point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like,
+            shape=[..., k_sampling_points, ambient_dim]
+            Tangent vector to decompose into horizontal and vertical parts.
+        curve : array-like,
+            shape=[..., k_sampling_points, ambient_dim]
+            Base point of tangent_vec in the manifold of curves.
+
+        Returns
+        -------
+        tangent_vec_hor : array-like,
+            shape=[..., k_sampling_points, ambient_dim]
+            Horizontal part of tangent_vec.
+        """
+        tangent_vec_ver, _ = self.vertical_projection(tangent_vec, curve)
+        return tangent_vec - tangent_vec_ver
 
     def horizontal_geodesic(self, initial_curve, end_curve, threshold=1e-3):
         """Compute horizontal geodesic between two curves.
@@ -2052,18 +2074,15 @@ class QuotientSRVMetric(SRVMetric):
             counter = 0
 
             while gap > threshold:
-                srv_geod_fun = self.geodesic(
+                srv_geod_fun = self.ambient_metric.geodesic(
                     initial_curve=initial_curve, end_curve=current_end_curve
                 )
                 geod = srv_geod_fun(t)
 
                 time_deriv = n_times * (geod[1:] - geod[:-1])
-                vertical_norm = gs.zeros((n_times - 1, n_points))
-                _, _, vertical_norm = self.split_horizontal_vertical(
-                    time_deriv, geod[:-1]
-                )
+                _, vertical_norm = self.vertical_projection(time_deriv, geod[:-1])
 
-                space_deriv = QuotientSRVMetric.space_derivative(geod)
+                space_deriv = SRVMetric.space_derivative(geod)
                 space_deriv_norm = self.ambient_metric.norm(space_deriv)
 
                 repar = construct_reparametrization(vertical_norm, space_deriv_norm)
@@ -2085,14 +2104,66 @@ class QuotientSRVMetric(SRVMetric):
 
         return horizontal_path
 
-    def dist(self, curve_a, curve_b, n_times=20, threshold=1e-3):
-        """Compute quotient SRV distance between two curves.
+    def align(self, initial_curve, end_curve, threshold=1e-3):
+        """Find optimal reparametrization of end_curve with respect to initial curve.
 
-        This is the distance induced by the Square Root Velocity Metric
-        on the space of unparametrized curves, i.e. the space of parametrized
-        curves quotiented by the group of reparametrizations. In the discrete case,
-        reparametrization corresponds to resampling. This distance is computed as
-        the length of the horizontal geodesic linking the two curves.
+        The new parametrization of end_curve is optimal in the sense that it is the
+        member of its fiber closest to initial_curve with respect to the SRVMetric.
+        It is found as the end point of the horizontal curve starting at initial_curve
+        and ending at the fiber of end_curve.
+
+        Parameters
+        ----------
+        initial_curve : array-like, shape=[k_sampling_points, ambient_dim]
+            Initial discrete curve.
+        end_curve : array-like, shape=[k_sampling_points, ambient_dim]
+            End discrete curve.
+        threshold: float
+            Threshold to use in the algorithm to compute the horizontal geodesic.
+            Optional, default: 1e-3.
+
+        Returns
+        -------
+        reparametrized_end_curve : array-like, shape=[k_sampling_points, ambient_dim]
+            Optimal reparametrization of end_curve.
+        """
+        horizontal_path = self.horizontal_geodesic(initial_curve, end_curve, threshold)
+        return horizontal_path(1.0)
+
+
+class QuotientSRVMetric(QuotientMetric):
+    """Quotient SRV metric on the space of unparametrized curves.
+
+    This is the class for the quotient metric induced by the SRV Metric
+    on the shape space of unparametrized curves, i.e. the space of parametrized
+    curves quotiented by the group of reparametrizations. In the discrete case,
+    reparametrization corresponds to resampling.
+    """
+
+    def __init__(self, ambient_manifold):
+        bundle = SRVShapeBundle(ambient_manifold)
+        super(QuotientSRVMetric, self).__init__(fiber_bundle=bundle)
+
+    def geodesic(self, initial_point, end_point, threshold=1e-3):
+        """Geodesic for the quotient SRV Metric.
+
+        The geodesics between unparametrized curves for the quotient metric are
+        projections of the horizontal geodesics in the total space of parameterized
+        curves. Since in practice shapes can only be encoded by parametrized curves,
+        geodesics are given in the total space.
+        """
+        return self.fiber_bundle.horizontal_geodesic(
+            initial_point, end_point, threshold
+        )
+
+    def dist(self, curve_a, curve_b, n_times=20, threshold=1e-3):
+        """Quotient SRV distance between unparametrized curves.
+
+        This is the distance induced by the SRV Metric on the space of unparametrized
+        curves. To compute this distance, the second curve is aligned to the first
+        curve, i.e. is reparametrized in an optimal way with respect to the first curve,
+        and the length of the (horizontal) geodesic linking the two is computed for the
+        SRV metric.
 
         Parameters
         ----------
@@ -2113,7 +2184,7 @@ class QuotientSRVMetric(SRVMetric):
         quotient_dist : float
             Quotient distance between the two curves.
         """
-        horizontal_path = self.horizontal_geodesic(
+        horizontal_path = self.geodesic(
             initial_curve=curve_a, end_curve=curve_b, threshold=threshold
         )
         times = gs.linspace(0.0, 1.0, n_times)
@@ -2121,6 +2192,8 @@ class QuotientSRVMetric(SRVMetric):
         horizontal_geod_velocity = n_times * (
             horizontal_geod[:-1] - horizontal_geod[1:]
         )
-        velocity_norms = self.norm(horizontal_geod_velocity, horizontal_geod[:-1])
+        velocity_norms = self.ambient_metric.norm(
+            horizontal_geod_velocity, horizontal_geod[:-1]
+        )
         quotient_dist = gs.sum(velocity_norms) / n_times
         return quotient_dist
