@@ -1805,7 +1805,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         self.ambient_metric = SRVMetric(ambient_manifold=ambient_manifold)
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
 
-    def vertical_projection(self, tangent_vec, curve):
+    def vertical_projection(self, tangent_vec, curve, return_norm=False):
         """Compute vertical part of tangent vector at base point.
 
         Parameters
@@ -1816,6 +1816,10 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         curve : array-like,
             shape=[..., k_sampling_points, ambient_dim]
             Base point of tangent_vec in the manifold of curves.
+        return_norm : boolean,
+            If True, the method returns the pointwise norm of the vertical
+            part of tangent_vec.
+            Optional, default is False.
 
         Returns
         -------
@@ -1824,6 +1828,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             Vertical part of tangent_vec.
         vertical_norm: array-like, shape=[..., n_points]
             Pointwise norm of the vertical part of tangent_vec.
+            Only returned when return_norm is True.
         """
         ambient_dim = curve.shape[-1]
         a_param = 1
@@ -1896,7 +1901,10 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             axis=1,
         )
         tangent_vec_ver = gs.squeeze(tangent_vec_ver)
-        return tangent_vec_ver, vertical_norm
+        if return_norm:
+            return tangent_vec_ver, vertical_norm
+
+        return tangent_vec_ver
 
     def horizontal_projection(self, tangent_vec, curve):
         """Compute vertical part of tangent vector at base point.
@@ -1916,7 +1924,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             shape=[..., k_sampling_points, ambient_dim]
             Horizontal part of tangent_vec.
         """
-        tangent_vec_ver, _ = self.vertical_projection(tangent_vec, curve)
+        tangent_vec_ver = self.vertical_projection(tangent_vec, curve)
         return tangent_vec - tangent_vec_ver
 
     def horizontal_geodesic(self, initial_curve, end_curve, threshold=1e-3):
@@ -2079,7 +2087,9 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                 geod = srv_geod_fun(t)
 
                 time_deriv = n_times * (geod[1:] - geod[:-1])
-                _, vertical_norm = self.vertical_projection(time_deriv, geod[:-1])
+                _, vertical_norm = self.vertical_projection(
+                    time_deriv, geod[:-1], return_norm=True
+                )
 
                 space_deriv = SRVMetric.space_derivative(geod)
                 space_deriv_norm = self.ambient_manifold.metric.norm(space_deriv)

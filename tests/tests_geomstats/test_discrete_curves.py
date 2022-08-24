@@ -487,18 +487,21 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         tangent_vec_hor = srv_shape_bundle_r3.horizontal_projection(
             tangent_vec, curve_a
         )
-        tangent_vec_ver, _ = srv_shape_bundle_r3.vertical_projection(
-            tangent_vec, curve_a
-        )
+        tangent_vec_ver = srv_shape_bundle_r3.vertical_projection(tangent_vec, curve_a)
+        print(tangent_vec_hor.shape)
         result = srv_metric_r3.inner_product(tangent_vec_hor, tangent_vec_ver, curve_a)
         expected = 0.0
         self.assertAllClose(result, expected, atol=1e-4)
 
         tangent_vecs = n_discretized_curves * (geod[1:] - geod[:-1])
-        _, result = srv_shape_bundle_r3.vertical_projection(tangent_vecs, geod[:-1])
+        _, result = srv_shape_bundle_r3.vertical_projection(
+            tangent_vecs, geod[:-1], return_norm=True
+        )
         expected = []
         for i in range(n_discretized_curves - 1):
-            _, res = srv_shape_bundle_r3.vertical_projection(tangent_vecs[i], geod[i])
+            _, res = srv_shape_bundle_r3.vertical_projection(
+                tangent_vecs[i], geod[i], return_norm=True
+            )
             expected.append(res)
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
@@ -524,7 +527,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         horizontal_geod = horizontal_geod_fun(times)
         velocity_vec = n_times * (horizontal_geod[1:] - horizontal_geod[:-1])
         _, vertical_norms = srv_shape_bundle_r3.vertical_projection(
-            velocity_vec, horizontal_geod[:-1]
+            velocity_vec, horizontal_geod[:-1], return_norm=True
         )
         result = gs.sum(vertical_norms**2, axis=1) ** (1 / 2)
         expected = gs.zeros(n_times - 1)
