@@ -1108,43 +1108,9 @@ class ElasticMetric(RiemannianMetric):
                 "ambient_manifold must be a plane, but it is:\n"
                 f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
             )
-        k_sampling_points = point_a.shape[-2]
-        velocity_1 = (k_sampling_points - 1) * (
-            point_a[..., 1:, :] - point_a[..., :-1, :]
-        )
-        velocity_2 = (k_sampling_points - 1) * (
-            point_b[..., 1:, :] - point_b[..., :-1, :]
-        )
 
-        polar_velocity_1 = self.cartesian_to_polar(velocity_1)
-        polar_velocity_2 = self.cartesian_to_polar(velocity_2)
-
-        speed_1 = polar_velocity_1[..., :, 0]
-        arg_1 = polar_velocity_1[..., :, 1]
-        speed_2 = polar_velocity_2[..., :, 0]
-        arg_2 = polar_velocity_2[..., :, 1]
-
-        k_sampling_points = arg_1.shape[-1]
-
-        for i in range(k_sampling_points):
-            if arg_2[..., i] - arg_1[..., i] > 2 * gs.pi * 0.9:
-                for j in range(i, k_sampling_points):
-                    arg_2[..., j] -= 2 * gs.pi
-            elif arg_2[..., i] - arg_1[..., i] < -2 * gs.pi * 0.9:
-                for j in range(i, k_sampling_points):
-                    arg_2[..., j] += 2 * gs.pi
-
-        f_1_args = arg_1[..., :] * self.a / (2 * self.b)
-        f_2_args = arg_2[..., :] * self.a / (2 * self.b)
-
-        f_1_norms = 2 * self.b * gs.sqrt(speed_1)
-        f_2_norms = 2 * self.b * gs.sqrt(speed_2)
-
-        f_1 = gs.stack([f_1_norms, f_1_args], axis=-1)
-        f_2 = gs.stack([f_2_norms, f_2_args], axis=-1)
-
-        f_1 = self.polar_to_cartesian(f_1)
-        f_2 = self.polar_to_cartesian(f_2)
+        f_1 = self.f_transform(point_a)
+        f_2 = self.f_transform(point_b)
 
         if rescaled:
             cosine = self.l2_curves_metric.inner_product(f_1, f_2) / (4 * self.b**2)
