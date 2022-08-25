@@ -89,7 +89,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         space = self.Space(k_landmarks, m_ambient)
         result_ab = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
 
-        result = space.ambient_metric.inner_product(
+        result = space.total_space_metric.inner_product(
             tangent_vec_b, result_ab, base_point
         )
         expected = 0.0
@@ -181,7 +181,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         """
         space = self.Space(k_landmarks, m_ambient)
 
-        scal = space.ambient_metric.inner_product
+        scal = space.total_space_metric.inner_product
 
         nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
             hor_x,
@@ -236,7 +236,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         """
         space = self.Space(k_landmarks, m_ambient)
 
-        scal = space.ambient_metric.inner_product
+        scal = space.total_space_metric.inner_product
 
         nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
             hor_x,

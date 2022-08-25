@@ -504,7 +504,7 @@ class FiberBundleTestCase(TestCase):
     ):
         bundle = self.Space(*space_args)
         aligned = bundle.align(point, base_point)
-        log = bundle.ambient_metric.log(aligned, base_point)
+        log = bundle.total_space_metric.log(aligned, base_point)
         result = bundle.is_horizontal(log, base_point)
         self.assertTrue(gs.all(result))
 
@@ -1275,7 +1275,7 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
         """
         metric = self.Metric(*metric_args)
         quotient_distance = metric.dist(point_a, point_b)
-        bundle_distance = bundle.ambient_metric(point_a, point_b)
+        bundle_distance = bundle.total_space_metric(point_a, point_b)
         result = gs.all(bundle_distance - quotient_distance > atol)
         self.assertTrue(result)
 

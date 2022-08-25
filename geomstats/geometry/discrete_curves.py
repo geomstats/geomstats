@@ -1773,7 +1773,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             ambient_manifold=ambient_manifold,
             k_sampling_points=k_sampling_points,
         )
-        self.ambient_metric = SRVMetric(ambient_manifold=ambient_manifold)
+        self.total_space_metric = SRVMetric(ambient_manifold=ambient_manifold)
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
 
     def vertical_projection(self, tangent_vec, point, return_norm=False):
@@ -2053,7 +2053,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             counter = 0
 
             while gap > threshold:
-                srv_geod_fun = self.ambient_metric.geodesic(
+                srv_geod_fun = self.total_space_metric.geodesic(
                     initial_point=initial_curve, end_point=current_end_curve
                 )
                 geod = srv_geod_fun(t)
@@ -2174,7 +2174,7 @@ class SRVQuotientMetric(QuotientMetric):
         horizontal_geod_velocity = n_times * (
             horizontal_geod[:-1] - horizontal_geod[1:]
         )
-        velocity_norms = self.ambient_metric.norm(
+        velocity_norms = self.total_space_metric.norm(
             horizontal_geod_velocity, horizontal_geod[:-1]
         )
         quotient_dist = gs.sum(velocity_norms) / n_times
