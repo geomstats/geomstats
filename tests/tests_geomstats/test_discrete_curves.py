@@ -333,7 +333,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         tangent_vecs = l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
         result = srv_metric_r3.l2_curves_metric.pointwise_inner_products(
-            tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_curve=curves_ab
+            tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_point=curves_ab
         )
         expected_shape = (n_discretized_curves, k_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
@@ -341,7 +341,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = srv_metric_r3.l2_curves_metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs[0],
             tangent_vec_b=tangent_vecs[0],
-            base_curve=curves_ab[0],
+            base_point=curves_ab[0],
         )
         expected_shape = (k_sampling_points,)
         self.assertAllClose(gs.shape(result), expected_shape)
@@ -481,7 +481,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         """
         srv_metric_r3 = SRVMetric(r3)
         srv_shape_bundle_r3 = SRVShapeBundle(r3)
-        geod = srv_metric_r3.geodesic(initial_curve=curve_a, end_curve=curve_b)
+        geod = srv_metric_r3.geodesic(initial_point=curve_a, end_point=curve_b)
         geod = geod(times)
         tangent_vec = n_discretized_curves * (geod[1, :, :] - geod[0, :, :])
         tangent_vec_hor = srv_shape_bundle_r3.horizontal_projection(
