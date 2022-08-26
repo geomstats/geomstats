@@ -142,14 +142,14 @@ def elastic_mean(points, weights=None, metric=None):
 
     transformed_linear_mean = linear_mean(transformed, weights=weights)
 
-    starting_point = (
+    starting_sampling_point = (
         FrechetMean(metric.ambient_metric)
         .fit(points[:, 0, :], weights=weights)
         .estimate_
     )
-    starting_point = gs.expand_dims(starting_point, axis=0)
+    starting_sampling_point = gs.expand_dims(starting_sampling_point, axis=0)
     mean = metric.f_transform_inverse(
-        transformed_linear_mean, starting_point=starting_point
+        transformed_linear_mean, starting_sampling_point=starting_sampling_point
     )
     return mean
 
