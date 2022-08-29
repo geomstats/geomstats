@@ -384,6 +384,7 @@ class DtypesTestData(TestData):
             dict(func_name="eye", shape=2),
             dict(func_name="ones", shape=2),
             dict(func_name="zeros", shape=2),
+            dict(func_name="empty", shape=2),
             dict(func_name="random.rand", shape=3),
         ]
 

@@ -2,13 +2,8 @@ import numpy as _np
 import torch as _torch
 
 
-def from_numpy(x, dtype=None):
-    tensor = _torch.from_numpy(x)
-
-    if dtype is not None and tensor.dtype != dtype:
-        tensor = cast(tensor, dtype=dtype)
-
-    return tensor
+def from_numpy(x):
+    return _torch.from_numpy(x)
 
 
 def array(val, dtype=None):
@@ -19,7 +14,11 @@ def array(val, dtype=None):
             return cast(val, dtype=dtype)
 
     elif isinstance(val, _np.ndarray):
-        return from_numpy(val, dtype=dtype)
+        tensor = from_numpy(val)
+        if dtype is not None and tensor.dtype != dtype:
+            tensor = cast(tensor, dtype=dtype)
+
+        return tensor
 
     elif isinstance(val, (list, tuple)) and len(val):
         tensors = [array(tensor, dtype=dtype) for tensor in val]

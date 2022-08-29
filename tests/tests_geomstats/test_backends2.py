@@ -274,12 +274,6 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             out = gs_fnc(a, **kwargs)
             self.assertDtype(out.dtype, dtype)
 
-            # test specifying dtype
-            for dtype_inner_str in self.dtypes_str:
-                dtype_inner = gs.as_dtype(dtype_inner_str)
-                out = gs_fnc(a, dtype=dtype_inner, **kwargs)
-                self.assertDtype(out.dtype, dtype_inner)
-
     def test_to_numpy_from_shape(self, array_shape, kwargs=None, func_array=gs.ones):
         func_name = "to_numpy"
 

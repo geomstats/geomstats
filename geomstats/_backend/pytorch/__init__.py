@@ -14,6 +14,7 @@ from torch import (
     conj,
     cos,
     cosh,
+    empty,
     empty_like,
     erf,
     exp,
@@ -157,10 +158,6 @@ def less_equal(x, y, **kwargs):
     if not _torch.is_tensor(y):
         y = _torch.tensor(y)
     return _torch.le(x, y, **kwargs)
-
-
-def empty(shape, dtype=float64):
-    return _torch.empty(*shape, dtype=dtype)
 
 
 def split(x, indices_or_sections, axis=0):

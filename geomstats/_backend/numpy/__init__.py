@@ -34,7 +34,6 @@ from numpy import (
 from numpy import dtype as _ndtype  # NOQA
 from numpy import (
     einsum,
-    empty,
     empty_like,
     equal,
     exp,
@@ -128,6 +127,7 @@ eye = _update_func_default_dtype(_np.eye)
 linspace = _update_func_default_dtype(_np.linspace)
 array = _cast_fout_from_dtype(_func=_np.array, dtype_pos=1)
 zeros = _update_dtype(_func=_np.zeros, dtype_pos=1)
+empty = _update_dtype(_func=_np.empty, dtype_pos=1)
 
 
 def to_numpy(x):
