@@ -65,6 +65,7 @@ from . import random  # NOQA
 from ._common import array, cast, from_numpy
 from ._dtype_wrapper import (
     _add_default_dtype,
+    _preserve_input_dtype,
     as_dtype,
     get_default_dtype,
     set_default_dtype,
@@ -109,7 +110,7 @@ sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
 tan = _box_scalar(tan)
 
-std = _add_default_dtype(_torch.std)
+std = _preserve_input_dtype(_add_default_dtype(_torch.std))
 
 
 def matmul(x, y, out=None):
@@ -728,6 +729,7 @@ def outer(a, b):
 
 
 def matvec(A, b):
+    A, b = convert_to_wider_dtype([A, b])
 
     if A.ndim == 2 and b.ndim == 1:
         return _torch.mv(A, b)
@@ -742,6 +744,8 @@ def matvec(A, b):
 
 
 def dot(a, b):
+    a, b = convert_to_wider_dtype([a, b])
+
     if a.ndim == 1 and b.ndim == 1:
         return _torch.dot(a, b)
 
@@ -757,4 +761,4 @@ def dot(a, b):
 def cross(a, b):
     if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
         a, b = broadcast_arrays(a, b)
-    return _torch.cross(a, b)
+    return _torch.cross(*convert_to_wider_dtype([a, b]))

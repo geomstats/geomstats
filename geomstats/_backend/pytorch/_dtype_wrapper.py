@@ -40,3 +40,18 @@ def _add_default_dtype(func):
         return out
 
     return _wrapped
+
+
+def _preserve_input_dtype(func):
+    # only acts on input
+    # assumes dtype is kwarg
+    # use together with _add_default_dtype
+
+    @functools.wraps(func)
+    def _wrapped(x, *args, dtype=None, **kwargs):
+        if dtype is None:
+            dtype = x.dtype
+
+        return func(x, *args, dtype=dtype, **kwargs)
+
+    return _wrapped

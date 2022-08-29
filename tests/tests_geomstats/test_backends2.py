@@ -60,7 +60,6 @@ def get_backend_fnc(func_name):
 
 
 class TestBackends(TestCase, metaclass=Parametrizer):
-    skip_all = True
     testing_data = BackendsTestData()
 
     def test_array_like_np(self, func_name, args):
@@ -256,6 +255,44 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
                 dtype_inner = gs.as_dtype(dtype_inner_str)
                 out = gs_fnc(a, dtype=dtype_inner, **kwargs)
                 self.assertDtype(out.dtype, dtype_inner)
+
+    def test_from_numpy_from_shape(
+        self, array_shape, kwargs=None, np_func_array=gs.ones
+    ):
+        # TODO: review from and given
+
+        func_name = "from_numpy"
+        kwargs = kwargs or {}
+        gs_fnc = get_backend_fnc(func_name)
+
+        for dtype_str in self.dtypes_str:
+            # test dynamic
+            np_dtype = np.dtype(dtype_str)
+            dtype = gs.as_dtype(dtype_str)
+            a = np_func_array(array_shape, dtype=np_dtype)
+
+            out = gs_fnc(a, **kwargs)
+            self.assertDtype(out.dtype, dtype)
+
+            # test specifying dtype
+            for dtype_inner_str in self.dtypes_str:
+                dtype_inner = gs.as_dtype(dtype_inner_str)
+                out = gs_fnc(a, dtype=dtype_inner, **kwargs)
+                self.assertDtype(out.dtype, dtype_inner)
+
+    def test_to_numpy_from_shape(self, array_shape, kwargs=None, func_array=gs.ones):
+        func_name = "to_numpy"
+
+        kwargs = kwargs or {}
+        gs_fnc = get_backend_fnc(func_name)
+
+        for dtype_str in self.dtypes_str:
+            np_dtype = np.dtype(dtype_str)
+            dtype = gs.as_dtype(dtype_str)
+            a = func_array(array_shape, dtype=dtype)
+
+            out = gs_fnc(a, **kwargs)
+            self.assertDtype(out.dtype, np_dtype)
 
     def test_unary_op_with_dtype_from_shape(self, func_name, array_shape, kwargs=None):
         return self.test_array_creation_with_dtype_given_array(

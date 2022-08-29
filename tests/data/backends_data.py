@@ -1,3 +1,5 @@
+import numpy as np
+
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SPDMatrices
@@ -411,15 +413,26 @@ class DtypesTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
+    def from_numpy_from_shape_test_data(self):
+        smoke_data = [
+            dict(array_shape=(2, 2), np_func_array=np.ones),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def to_numpy_from_shape_test_data(self):
+        smoke_data = [
+            dict(array_shape=(2, 2)),
+        ]
+
+        return self.generate_tests(smoke_data)
+
     def unary_op_from_shape_test_data(self):
         smoke_data = [
             dict(func_name="copy", array_shape=(2, 2)),
             dict(func_name="diagonal", array_shape=(2, 2)),
             dict(func_name="flatten", array_shape=(2, 2)),
-            dict(func_name="from_numpy", array_shape=(2, 2)),
             dict(func_name="get_slice", array_shape=(2, 2), kwargs={"indices": [0]}),
             dict(func_name="trace", array_shape=(2, 2)),
-            dict(func_name="to_numpy", array_shape=(2, 2)),
             dict(func_name="tril_to_vec", array_shape=(2, 2)),
             dict(func_name="triu_to_vec", array_shape=(2, 2)),
             dict(func_name="vec_to_diag", array_shape=3),
