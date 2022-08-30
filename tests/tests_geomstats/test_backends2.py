@@ -6,6 +6,8 @@ import geomstats.backend as gs
 from tests.conftest import Parametrizer, TestCase
 from tests.data.backends_data import BackendsTestData, DtypesTestData
 
+# TODO: vectorization using new approach
+
 
 def _convert_gs_to_np(value):
     if gs.is_array(value):

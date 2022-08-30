@@ -92,6 +92,10 @@ class BackendsTestData(TestData):
             dict(func_name="trace", a=rand(3, 3)),
             dict(func_name="linalg.cholesky", a=SPDMatrices(3).random_point()),
             dict(func_name="linalg.eigvalsh", a=SymmetricMatrices(3).random_point()),
+            dict(
+                func_name="linalg.matrix_rank",
+                a=gs.array([[1.0, -1.0], [1.0, -1.0], [0.0, 0.0]]),
+            ),
         ]
         return self.generate_tests(smoke_data)
 
