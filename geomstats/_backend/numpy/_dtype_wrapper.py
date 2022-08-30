@@ -23,13 +23,7 @@ def _update_func_default_dtype(func):
     new_func.__dict__.update(func.__dict__)
     new_func.__kwdefaults__ = func.__kwdefaults__
 
-    wrapped = getattr(func, "__wrapped__", None)
-    if wrapped is not None:
-        new_func.__wrapped__ = _update_func_default_dtype(wrapped)
-        if "implementation" in new_func.__globals__:
-            new_func.__globals__["implementation"] = new_func.__wrapped__
-    else:
-        _TO_UPDATE_FUNCS_DTYPE.append(new_func)
+    _TO_UPDATE_FUNCS_DTYPE.append(new_func)
     return new_func
 
 

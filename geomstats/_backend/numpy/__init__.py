@@ -124,8 +124,8 @@ _DTYPES = {
 
 ones = _update_func_default_dtype(_np.ones)
 eye = _update_func_default_dtype(_np.eye)
-linspace = _update_func_default_dtype(_np.linspace)
 array = _cast_fout_from_dtype(_func=_np.array, dtype_pos=1)
+linspace = _update_dtype(_func=_np.linspace, dtype_pos=5)
 zeros = _update_dtype(_func=_np.zeros, dtype_pos=1)
 empty = _update_dtype(_func=_np.empty, dtype_pos=1)
 
