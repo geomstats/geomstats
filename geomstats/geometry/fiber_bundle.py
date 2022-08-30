@@ -3,6 +3,7 @@
 Lead author: Nicolas Guigui.
 """
 
+import sys
 from abc import ABC
 
 from scipy.optimize import minimize
@@ -228,13 +229,18 @@ class FiberBundle(Manifold, ABC):
         horizontal : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal component of `tangent_vec`.
         """
-        try:
-            return tangent_vec - self.vertical_projection(tangent_vec, base_point)
-        except (RecursionError, NotImplementedError):
-            return self.horizontal_lift(
-                self.tangent_riemannian_submersion(tangent_vec, base_point),
-                fiber_point=base_point,
-            )
+
+        caller_name = sys._getframe().f_back.f_code.co_name
+        if not caller_name == "vertical_projection":
+            try:
+                return tangent_vec - self.vertical_projection(tangent_vec, base_point)
+            except NotImplementedError:
+                pass
+
+        return self.horizontal_lift(
+            self.tangent_riemannian_submersion(tangent_vec, base_point),
+            fiber_point=base_point,
+        )
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         r"""Project to vertical subspace.
@@ -254,10 +260,11 @@ class FiberBundle(Manifold, ABC):
         vertical : array-like, shape=[..., {total_space.dim, [n, m]}]
             Vertical component of `tangent_vec`.
         """
-        try:
-            return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
-        except RecursionError:
+        caller_name = sys._getframe().f_back.f_code.co_name
+        if caller_name == "horizontal_projection":
             raise NotImplementedError
+
+        return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
 
     def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
         """Evaluate if the tangent vector is horizontal at base_point.
