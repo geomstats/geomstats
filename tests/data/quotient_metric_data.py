@@ -13,7 +13,7 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
         super(BuresWassersteinBundle, self).__init__(
             n=n,
             group=SpecialOrthogonal(n),
-            ambient_metric=MatricesMetric(n, n),
+            total_space_metric=MatricesMetric(n, n),
         )
 
     @staticmethod
