@@ -640,7 +640,7 @@ def triu_to_vec(x, k=0):
     return x[..., rows, cols]
 
 
-def mat_from_diag_triu_tril(diag, tri_upp, tri_low, dtype=None):
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     """Build matrix from given components.
 
     Forms a matrix from diagonal, strictly upper triangular and
@@ -656,13 +656,15 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low, dtype=None):
     -------
     mat : array_like, shape=[..., n, n]
     """
+    diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
+
     n = diag.shape[-1]
     (i,) = diag_indices(n, ndim=1)
     j, k = triu_indices(n, k=1)
-    mat = _torch.zeros((diag.shape + (n,)), dtype=dtype)
-    mat[..., i, i] = diag if diag.dtype is mat.dtype else cast(diag, mat.dtype)
-    mat[..., j, k] = tri_upp if tri_upp.dtype is mat.dtype else cast(tri_upp, mat.dtype)
-    mat[..., k, j] = tri_low if tri_low.dtype is mat.dtype else cast(tri_low, mat.dtype)
+    mat = _torch.zeros((diag.shape + (n,)), dtype=diag.dtype)
+    mat[..., i, i] = diag
+    mat[..., j, k] = tri_upp
+    mat[..., k, j] = tri_low
     return mat
 
 

@@ -391,8 +391,7 @@ def triu_to_vec(x, k=0):
     return x[..., rows, cols]
 
 
-@_update_func_default_dtype
-def mat_from_diag_triu_tril(diag, tri_upp, tri_low, dtype=None):
+def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     """Build matrix from given components.
 
     Forms a matrix from diagonal, strictly upper triangular and
@@ -408,10 +407,12 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low, dtype=None):
     -------
     mat : array_like, shape=[..., n, n]
     """
+    diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
+
     n = diag.shape[-1]
     (i,) = _np.diag_indices(n, ndim=1)
     j, k = _np.triu_indices(n, k=1)
-    mat = zeros(diag.shape + (n,), dtype=dtype)
+    mat = zeros(diag.shape + (n,), dtype=diag.dtype)
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low

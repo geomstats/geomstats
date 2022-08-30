@@ -347,8 +347,9 @@ class BackendsTestData(TestData):
 class DtypesTestData(TestData):
     def array_test_data(self):
         smoke_data = [
-            dict(ls=[1, 2], expected_dtype=gs.int64),
+            dict(ls=[1.0, 2.0], expected_dtype=gs.float64),
             # TODO: uncomment later
+            # dict(ls=[1, 2], expected_dtype=gs.int64),
             # dict(ls=[1, 2j], expected_dtype=gs.complex128),
         ]
         return self.generate_tests(smoke_data)
@@ -365,10 +366,6 @@ class DtypesTestData(TestData):
         smoke_data = [
             dict(func_name="array", args=([1.0, 2.0],)),
             dict(func_name="linspace", args=(0.0, 1.0)),
-            dict(
-                func_name="mat_from_diag_triu_tril",
-                args=[gs.ones(2), gs.ones(1), gs.ones(1)],
-            ),
             dict(func_name="random.normal", kwargs={"size": 2}),
             dict(
                 func_name="random.multivariate_normal",
@@ -500,6 +497,13 @@ class DtypesTestData(TestData):
 
     def ternary_op_from_shape_test_data(self):
         smoke_data = [
+            # TODO: add test in BackendsTesetData
+            dict(
+                func_name="mat_from_diag_triu_tril",
+                shape_a=(2,),
+                shape_b=(1,),
+                shape_c=(1,),
+            ),
             dict(
                 func_name="linalg.solve_sylvester",
                 shape_a=(3, 3),
