@@ -1878,7 +1878,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         return tangent_vec_ver
 
     def horizontal_projection(self, tangent_vec, point):
-        """Compute vertical part of tangent vector at base point.
+        """Compute horizontal part of tangent vector at base point.
 
         Parameters
         ----------
