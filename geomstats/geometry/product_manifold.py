@@ -8,10 +8,7 @@ import joblib
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.product_riemannian_metric import (
-    NFoldMetric,
-    ProductRiemannianMetric,
-)
+from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 
 
 class ProductManifold(Manifold):
@@ -328,7 +325,7 @@ class ProductManifold(Manifold):
         return is_tangent
 
 
-class NFoldManifold(Manifold):
+class NFoldManifold(ProductManifold):
     r"""Class for an n-fold product manifold :math:`M^n`.
 
     Define a manifold as the product manifold of n copies of a given base manifold M.
@@ -354,141 +351,28 @@ class NFoldManifold(Manifold):
         base_manifold,
         n_copies,
         metric=None,
-        default_point_type="matrix",
-        default_coords_type="intrinsic",
+        default_point_type="vector",
+        n_jobs=1,
         **kwargs
     ):
         geomstats.errors.check_integer(n_copies, "n_copies")
-        dim = n_copies * base_manifold.dim
-        shape = (n_copies,) + base_manifold.shape
-
+        
+        manifolds = [base_manifold for i in range(n_copies)]
+        
+        if metric is None:
+            metrics = None
+        else:
+            metrics = [metric for i in range(n_copies)]
+        
         super(NFoldManifold, self).__init__(
-            dim=dim,
-            shape=shape,
-            default_point_type=default_point_type,
-            default_coords_type=default_coords_type,
-            **kwargs,
+            manifolds=manifolds,
+            metrics=metrics,
+            default_point_type="vector",
+            n_jobs=n_jobs,
+            **kwargs
         )
 
         self.base_manifold = base_manifold
         self.base_shape = base_manifold.shape
         self.n_copies = n_copies
-
         self.metric = metric
-        if metric is None:
-            self.metric = NFoldMetric(base_manifold.metric, n_copies)
-
-    def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n_copies, *base_shape]
-            Point.
-        atol : float,
-            Tolerance.
-
-        Returns
-        -------
-        belongs : array-like, shape=[..., n_copies, *base_shape]
-            Boolean evaluating if the point belongs to the manifold.
-        """
-        point_ = gs.reshape(point, (-1, *self.base_shape))
-        each_belongs = self.base_manifold.belongs(point_, atol=atol)
-        reshaped = gs.reshape(each_belongs, (-1, self.n_copies))
-        return gs.squeeze(gs.all(reshaped, axis=1))
-
-    def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        The tangent space of the product manifold is the direct sum of
-        tangent spaces.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., n_copies, *base_shape]
-            Vector.
-        base_point : array-like, shape=[..., n_copies, *base_shape]
-            Point on the manifold.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        vector_, point_ = gs.broadcast_arrays(vector, base_point)
-        point_ = gs.reshape(point_, (-1, *self.base_shape))
-        vector_ = gs.reshape(vector_, (-1, *self.base_shape))
-        each_tangent = self.base_manifold.is_tangent(vector_, point_)
-        reshaped = gs.reshape(each_tangent, (-1, self.n_copies))
-        return gs.all(reshaped, axis=1)
-
-    def to_tangent(self, vector, base_point):
-        """Project a vector to a tangent space of the manifold.
-
-        The tangent space of the product manifold is the direct sum of
-        tangent spaces.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., n_copies, *base_shape]
-            Vector.
-        base_point : array-like, shape=[..., n_copies, *base_shape]
-            Point on the manifold.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., n_copies, *base_shape]
-            Tangent vector at base point.
-        """
-        vector_, point_ = gs.broadcast_arrays(vector, base_point)
-        point_ = gs.reshape(point_, (-1, *self.base_shape))
-        vector_ = gs.reshape(vector_, (-1, *self.base_shape))
-        each_tangent = self.base_manifold.to_tangent(vector_, point_)
-        reshaped = gs.reshape(each_tangent, (-1, self.n_copies) + self.base_shape)
-        return gs.squeeze(reshaped)
-
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample in the product space from the uniform distribution.
-
-        Parameters
-        ----------
-        n_samples : int, optional
-            Number of samples.
-        bound : float
-            Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
-
-        Returns
-        -------
-        samples : array-like, shape=[..., n_copies, *base_shape]
-            Points sampled on the product manifold.
-        """
-        sample = self.base_manifold.random_point(n_samples * self.n_copies, bound)
-        reshaped = gs.reshape(sample, (n_samples, self.n_copies) + self.base_shape)
-        return gs.squeeze(reshaped)
-
-    def projection(self, point):
-        """Project a point from product embedding manifold to the product manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n_copies, *base_shape]
-            Point in embedding manifold.
-
-        Returns
-        -------
-        projected : array-like, shape=[..., n_copies, *base_shape]
-            Projected point.
-        """
-        if hasattr(self.base_manifold, "projection"):
-            point_ = gs.reshape(point, (-1, *self.base_shape))
-            projected = self.base_manifold.projection(point_)
-            reshaped = gs.reshape(projected, (-1, self.n_copies) + self.base_shape)
-            return gs.squeeze(reshaped)
-        raise NotImplementedError(
-            "The base manifold does not implement a projection " "method."
-        )
