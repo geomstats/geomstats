@@ -77,7 +77,7 @@ def norm(x, ord=None, axis=None):
 
 
 def matrix_rank(a, hermitian=False, **_unused_kwargs):
-    return _torch.linalg.matrix_rank(a, None, hermitian)
+    return _torch.linalg.matrix_rank(a, hermitian=hermitian)
 
 
 def quadratic_assignment(a, b, options):
