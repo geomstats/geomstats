@@ -1,5 +1,6 @@
 import functools
 import inspect
+import types
 
 from tensorflow import cast
 from tensorflow.dtypes import as_dtype
@@ -7,11 +8,45 @@ from tensorflow.dtypes import as_dtype
 _DEFAULT_DTYPE = None
 
 _TO_UPDATE_FUNCS_DTYPE = []
+_TO_UPDATE_FUNCS_KW_DTYPE = []
 
 
-def _update_func_default_dtype(func):
-    _TO_UPDATE_FUNCS_DTYPE.append(func)
-    return func
+# TODO: rename to target instead _func
+
+
+def _copy_func(func):
+    new_func = types.FunctionType(
+        func.__code__,
+        func.__globals__,
+        func.__name__,
+        func.__defaults__,
+        func.__closure__,
+    )
+    new_func.__dict__.update(func.__dict__)
+    new_func.__kwdefaults__ = func.__kwdefaults__
+
+    return new_func
+
+
+def _update_func_default_dtype(copy=True, kw_only=False, _func=None):
+    # TODO: modify_func_default_dtype instead?
+    # TODO: rename also below
+
+    def _decorator(func):
+
+        new_func = _copy_func(func) if copy else func
+
+        if kw_only:
+            _TO_UPDATE_FUNCS_KW_DTYPE.append(new_func)
+        else:
+            _TO_UPDATE_FUNCS_DTYPE.append(new_func)
+
+        return new_func
+
+    if _func is None:
+        return _decorator
+    else:
+        return _decorator(_func)
 
 
 def _get_dtype_pos_in_defaults(func):
@@ -26,12 +61,38 @@ def _get_dtype_pos_in_defaults(func):
 
 
 def _update_default_dtypes():
-    funcs = _TO_UPDATE_FUNCS_DTYPE
-    for func in funcs:
+    for func in _TO_UPDATE_FUNCS_DTYPE:
         pos = _get_dtype_pos_in_defaults(func)
         defaults = list(func.__defaults__)
         defaults[pos] = _DEFAULT_DTYPE
         func.__defaults__ = tuple(defaults)
+
+    for func in _TO_UPDATE_FUNCS_KW_DTYPE:
+        func.__kwdefaults__["dtype"] = _DEFAULT_DTYPE
+
+
+def _update_dtype(dtype_pos=None, _func=None):
+    # TODO: rename to "update_dtype_dyn"?
+
+    def _decorator(func):
+        @functools.wraps(func)
+        def _wrapped(*args, **kwargs):
+            if dtype_pos is not None and len(args) > dtype_pos:
+                args = list(args)
+                args[dtype_pos] = _DEFAULT_DTYPE
+
+            else:
+                if kwargs.get("dtype", None) is None:
+                    kwargs["dtype"] = _DEFAULT_DTYPE
+
+            return func(*args, **kwargs)
+
+        return _wrapped
+
+    if _func is None:
+        return _decorator
+    else:
+        return _decorator(_func)
 
 
 def _cast_fout_from_dtype(dtype_pos=None, _func=None):

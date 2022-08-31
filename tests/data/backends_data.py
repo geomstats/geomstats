@@ -455,7 +455,8 @@ class DtypesTestData(TestData):
             dict(func_name="copy", array_shape=(2, 2)),
             dict(func_name="diagonal", array_shape=(2, 2)),
             dict(func_name="flatten", array_shape=(2, 2)),
-            dict(func_name="get_slice", array_shape=(2, 2), kwargs={"indices": [0]}),
+            # TODO: add test in BackendsTestData
+            dict(func_name="get_slice", array_shape=(2, 2), kwargs={"indices": [(0,)]}),
             dict(func_name="trace", array_shape=(2, 2)),
             dict(func_name="tril_to_vec", array_shape=(2, 2)),
             dict(func_name="triu_to_vec", array_shape=(2, 2)),
@@ -519,7 +520,7 @@ class DtypesTestData(TestData):
 
     def ternary_op_from_shape_test_data(self):
         smoke_data = [
-            # TODO: add test in BackendsTesetData
+            # TODO: add test in BackendsTestData
             dict(
                 func_name="mat_from_diag_triu_tril",
                 shape_a=(2,),

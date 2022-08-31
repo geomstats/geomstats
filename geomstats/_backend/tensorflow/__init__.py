@@ -33,13 +33,11 @@ from tensorflow import (
     maximum,
     meshgrid,
     minimum,
-    ones,
     ones_like,
     pad,
 )
 from tensorflow import range as arange
 from tensorflow import reduce_max as amax
-from tensorflow import reduce_mean as mean
 from tensorflow import reduce_min as amin
 from tensorflow import reduce_prod as prod
 from tensorflow import (
@@ -55,10 +53,9 @@ from tensorflow import (
     tan,
     tanh,
     uint8,
-    zeros,
     zeros_like,
 )
-from tensorflow.experimental.numpy import moveaxis
+from tensorflow.experimental.numpy import empty_like, moveaxis
 
 from .._backend_config import tf_atol as atol
 from .._backend_config import tf_rtol as rtol
@@ -67,6 +64,8 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 from ._dtype_wrapper import (
     _cast_fout_from_dtype,
+    _update_dtype,
+    _update_func_default_dtype,
     as_dtype,
     get_default_dtype,
     set_default_dtype,
@@ -94,9 +93,11 @@ polygamma = _tf.math.polygamma
 power = _tf.math.pow
 real = _tf.math.real
 set_diag = _tf.linalg.set_diag
-std = _tf.math.reduce_std
 trapz = _tfp.math.trapz
-matmul = _tf.linalg.matmul
+
+ones = _update_dtype(_func=_tf.ones, dtype_pos=1)
+zeros = _update_dtype(_func=_tf.zeros, dtype_pos=1)
+empty = _update_func_default_dtype(_func=_tf.experimental.numpy.empty)
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -158,20 +159,6 @@ def to_ndarray(x, to_ndim, axis=0):
     if ndim(x) == to_ndim - 1:
         x = _tf.expand_dims(x, axis=axis)
     return x
-
-
-def empty(shape, dtype=float64):
-    if not isinstance(dtype, _tf.DType):
-        raise ValueError("dtype must be one of Tensorflow's types")
-    np_dtype = dtype.as_numpy_dtype
-    return _tf.convert_to_tensor(_np.empty(shape, dtype=np_dtype))
-
-
-def empty_like(prototype, dtype=None):
-    initial_shape = _tf.shape(prototype)
-    if dtype is None:
-        dtype = prototype.dtype
-    return empty(initial_shape, dtype=dtype)
 
 
 def flip(m, axis=None):
@@ -322,7 +309,7 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
     if use_vectorization:
         full_shape = shape(x)
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
         mask = _vectorized_mask_from_indices(
             n_samples, indices, tile_shape, axis, x.dtype
         )
@@ -546,7 +533,7 @@ def flatten(x):
 
 
 def outer(x, y):
-    return _tf.einsum("...i,...j->...ij", x, y)
+    return einsum("...i,...j->...ij", x, y)
 
 
 def copy(x):
@@ -603,9 +590,9 @@ def broadcast_arrays(*args, **kwargs):
 
 def dot(a, b):
     if b.ndim == 1:
-        return _tf.tensordot(a, b, axes=1)
+        return _tf.tensordot(*convert_to_wider_dtype([a, b]), axes=1)
 
-    return _tf.einsum("...i,...i->...", a, b)
+    return einsum("...i,...i->...", a, b)
 
 
 def isclose(x, y, rtol=rtol, atol=atol):
@@ -624,18 +611,25 @@ def allclose(x, y, rtol=rtol, atol=atol):
     return _tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
 
 
-def eye(n, m=None):
+@_update_func_default_dtype(copy=False)
+def eye(n, m=None, dtype=None):
     if m is None:
         m = n
-    return _tf.eye(num_rows=n, num_columns=m)
+    return _tf.eye(num_rows=n, num_columns=m, dtype=dtype)
 
 
-def sum(x, axis=None, keepdims=False, name=None):
-    if not _tf.is_tensor(x):
-        x = _tf.convert_to_tensor(x)
-    if x.dtype == bool:
-        x = cast(x, int32)
-    return _tf.reduce_sum(x, axis, keepdims, name)
+def sum(x, axis=None, dtype=None, keepdims=False):
+    if dtype is not None and x.dtype != dtype:
+        x = cast(x, dtype)
+
+    return _tf.reduce_sum(x, axis=axis, keepdims=keepdims)
+
+
+def std(x, axis=None, dtype=None, keepdims=False):
+    if dtype is not None and x.dtype != dtype:
+        x = cast(x, dtype)
+
+    return _tf.math.reduce_std(x, axis=axis, keepdims=keepdims)
 
 
 def einsum(equation, *inputs):
@@ -653,16 +647,29 @@ def all(x, axis=None):
     return _tf.math.reduce_all(_tf.cast(x, bool), axis=axis)
 
 
-def cumsum(a, axis=None):
+def cumsum(a, axis=None, dtype=None):
+    if dtype is not None and a.dtype != dtype:
+        a = cast(a, dtype)
+
     if axis is None:
         return _tf.math.cumsum(flatten(a), axis=0)
     return _tf.math.cumsum(a, axis=axis)
 
 
-def cumprod(a, axis=None):
+def cumprod(a, axis=None, dtype=None):
+    if dtype is not None and a.dtype != dtype:
+        a = cast(a, dtype)
+
     if axis is None:
         return _tf.math.cumprod(flatten(a), axis=0)
     return _tf.math.cumprod(a, axis=axis)
+
+
+def mean(a, axis=None, dtype=None):
+    if dtype is not None and a.dtype != dtype:
+        a = cast(a, dtype)
+
+    return _tf.reduce_mean(a, axis=axis)
 
 
 # (sait) there is _tf.experimental.tril (we can use it once it moves to stable)
@@ -795,6 +802,7 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
 
 
 def divide(a, b, ignore_div_zero=False):
+    a, b = convert_to_wider_dtype([a, b])
     if ignore_div_zero is False:
         return _tf.math.divide(a, b)
     return _tf.math.divide_no_nan(a, b)
@@ -832,13 +840,14 @@ def is_array(x):
 
 
 def matvec(A, b):
+    A, b = convert_to_wider_dtype([A, b])
     return _tf.linalg.matvec(A, b)
 
 
 def cross(a, b):
     if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
         a, b = broadcast_arrays(a, b)
-    return _tf.linalg.cross(a, b)
+    return _tf.linalg.cross(*convert_to_wider_dtype([a, b]))
 
 
 def shape(a):
@@ -846,3 +855,12 @@ def shape(a):
         a = array(a)
 
     return tuple(a.shape)
+
+
+def matmul(x, y):
+    for array_ in [x, y]:
+        if array_.ndim == 1:
+            raise ValueError("ndims must be >=2")
+
+    x, y = convert_to_wider_dtype([x, y])
+    return _tf.linalg.matmul(x, y)
