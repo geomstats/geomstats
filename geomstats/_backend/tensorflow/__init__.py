@@ -12,7 +12,7 @@ from tensorflow import acosh as arccosh
 from tensorflow import argmax, argmin
 from tensorflow import asin as arcsin
 from tensorflow import atan2 as arctan2
-from tensorflow import broadcast_to
+from tensorflow import broadcast_to, cast
 from tensorflow import clip_by_value as clip
 from tensorflow import (
     cos,
@@ -65,6 +65,12 @@ from .._backend_config import tf_rtol as rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
+from ._dtype_wrapper import (
+    _cast_fout_from_dtype,
+    as_dtype,
+    get_default_dtype,
+    set_default_dtype,
+)
 
 _DTYPES = {
     int32: 0,
@@ -130,6 +136,7 @@ def repeat(a, repeats, axis=None):
     return _tf.repeat(input=a, repeats=repeats, axis=axis)
 
 
+@_cast_fout_from_dtype(dtype_pos=1)
 def array(x, dtype=None):
     return _tf.convert_to_tensor(x, dtype=dtype)
 
@@ -315,7 +322,7 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
     if use_vectorization:
         full_shape = shape(x)
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
         mask = _vectorized_mask_from_indices(
             n_samples, indices, tile_shape, axis, x.dtype
         )
@@ -467,6 +474,7 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
+    data = array(data)
     return _tf.sparse.to_dense(
         _tf.sparse.reorder(_tf.SparseTensor(indices, data, target_shape))
     )
@@ -557,10 +565,6 @@ def vstack(x):
         else:
             new_x.append(one_x)
     return _tf.concat(new_x, axis=0)
-
-
-def cast(x, dtype):
-    return _tf.cast(x, dtype)
 
 
 def broadcast_arrays(*args, **kwargs):
@@ -748,56 +752,6 @@ def vec_to_diag(vec):
     return _tf.linalg.diag(vec)
 
 
-def _vec_to_triu(vec):
-    """Take vec and forms strictly upper triangular matrix.
-
-    Parameters
-    ----------
-    vec : array_like, shape[..., n]
-
-    Returns
-    -------
-    tril : array_like, shape=[..., k, k] where
-        k is (1 + sqrt(1 + 8 * n)) / 2
-    """
-    n = vec.shape[-1]
-    triu_shape = vec.shape + (n,)
-    _ones = _tf.ones(triu_shape)
-    vec = _tf.reshape(vec, [-1])
-    mask_a = _tf.linalg.band_part(_ones, 0, -1)
-    mask_b = _tf.linalg.band_part(_ones, 0, 0)
-    mask = _tf.subtract(mask_a, mask_b)
-    non_zero = _tf.not_equal(mask, _tf.constant(0.0))
-    indices = _tf.where(non_zero)
-    sparse = _tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
-    return _tf.sparse.to_dense(sparse)
-
-
-def _vec_to_tril(vec):
-    """Take vec and forms strictly lower triangular matrix.
-
-    Parameters
-    ----------
-    vec : array_like, shape=[..., n]
-
-    Returns
-    -------
-    tril : array_like, shape=[..., k, k] where
-        k is (1 + sqrt(1 + 8 * n)) / 2
-    """
-    n = vec.shape[-1]
-    tril_shape = vec.shape + (n,)
-    _ones = _tf.ones(tril_shape)
-    vec = _tf.reshape(vec, [-1])
-    mask_a = _tf.linalg.band_part(_ones, -1, 0)
-    mask_b = _tf.linalg.band_part(_ones, 0, 0)
-    mask = _tf.subtract(mask_a, mask_b)
-    non_zero = _tf.not_equal(mask, _tf.constant(0.0))
-    indices = _tf.where(non_zero)
-    sparse = _tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
-    return _tf.sparse.to_dense(sparse)
-
-
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     """Build matrix from given components.
 
@@ -814,10 +768,29 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     -------
     mat : array_like, shape=[..., n, n]
     """
-    triu_mat = _vec_to_triu(tri_upp)
-    tril_mat = _vec_to_tril(tri_low)
-    triu_tril_mat = triu_mat + tril_mat
-    mat = _tf.linalg.set_diag(triu_tril_mat, diag)
+    diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
+
+    n = diag.shape[-1]
+    (i,) = _np.diag_indices(n, ndim=1)
+    j, k = _np.triu_indices(n, k=1)
+
+    if diag.ndim == 1:
+        upper_indices = [(jj, kk) for jj, kk in zip(j, k)]
+        lower_indices = [(kk, jj) for jj, kk in zip(j, k)]
+    else:
+        upper_indices = [
+            (rr, jj, kk) for rr in range(diag.ndim) for jj, kk in zip(j, k)
+        ]
+        lower_indices = [
+            (rr, kk, jj) for rr in range(diag.ndim) for jj, kk in zip(j, k)
+        ]
+
+    mat = zeros(diag.shape + (n,), dtype=diag.dtype)
+    mat = assignment(mat, tri_upp, upper_indices)
+    mat = assignment(mat, tri_low, lower_indices)
+
+    mat = _tf.linalg.set_diag(mat, diag)
+
     return mat
 
 
@@ -849,12 +822,9 @@ def take(a, indices, axis=0):
     return _tf.gather(a, indices, axis=axis)
 
 
-def linspace(*args, **kwargs):
-    a = _tf.linspace(*args, **kwargs)
-    if a.dtype is float64:
-        a = cast(a, dtype=float32)
-
-    return a
+@_cast_fout_from_dtype(dtype_pos=3)
+def linspace(start, stop, num=50, dtype=None):
+    return _tf.linspace(start, stop, num)
 
 
 def is_array(x):

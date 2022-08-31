@@ -263,6 +263,28 @@ class BackendsTestData(TestData):
                 expected=gs.array([[[0.0, 0.0], [0.0, 1.0]], [[0.0, 0.0], [0.0, 2.0]]]),
             ),
             dict(
+                func_name="mat_from_diag_triu_tril",
+                args=(gs.ones(2), gs.array([2.0]), gs.array([3.0])),
+                expected=gs.array([[1.0, 2.0], [3.0, 1.0]]),
+            ),
+            dict(
+                func_name="mat_from_diag_triu_tril",
+                args=(gs.ones(3), gs.array([2.0, 3.0, 4.0]), gs.array([5.0, 6.0, 7.0])),
+                expected=gs.array([[1.0, 2.0, 3.0], [5.0, 1.0, 4.0], [6.0, 7.0, 1.0]]),
+            ),
+            # TODO: add (proper) vectorization test
+            dict(
+                func_name="mat_from_diag_triu_tril",
+                args=(
+                    gs.ones((2, 2)),
+                    gs.array([[2.0], [2.0]]),
+                    gs.array([[3.0], [3.0]]),
+                ),
+                expected=gs.repeat(
+                    gs.expand_dims(gs.array([[1.0, 2.0], [3.0, 1.0]]), 0), 2, axis=0
+                ),
+            ),
+            dict(
                 func_name="linalg.logm",
                 args=[gs.array([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]])],
                 expected=gs.array(
