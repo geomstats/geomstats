@@ -617,7 +617,7 @@ class L2CurvesMetric(RiemannianMetric):
             return gs.vectorize(
                 (tangent_vec_a, tangent_vec_b),
                 inner_prod_aux,
-                dtype=gs.float32,
+                dtype=tangent_vec_a.dtype,
                 multiple_args=True,
                 signature="(i,j),(i,j)->(i)",
             )
@@ -625,7 +625,7 @@ class L2CurvesMetric(RiemannianMetric):
         return gs.vectorize(
             (tangent_vec_a, tangent_vec_b, base_curve),
             inner_prod_aux,
-            dtype=gs.float32,
+            dtype=tangent_vec_a.dtype,
             multiple_args=True,
             signature="(i,j),(i,j),(i,j)->(i)",
         )
@@ -1188,7 +1188,7 @@ class SRVMetric(ElasticMetric):
         srv_shape = (n_curves, n_sampling_points - 1, n_coords)
 
         curve = gs.reshape(curve, (n_curves * n_sampling_points, n_coords))
-        coef = gs.cast(gs.array(n_sampling_points - 1), gs.float32)
+        coef = n_sampling_points - 1
         velocity = coef * self.ambient_metric.log(
             point=curve[1:, :], base_point=curve[:-1, :]
         )
