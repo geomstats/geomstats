@@ -15,7 +15,6 @@ from tensorflow import atan2 as arctan2
 from tensorflow import broadcast_to, cast
 from tensorflow import clip_by_value as clip
 from tensorflow import (
-    cos,
     cosh,
     equal,
     exp,
@@ -44,10 +43,8 @@ from tensorflow import (
     reshape,
     searchsorted,
     sign,
-    sin,
     sinh,
     sort,
-    sqrt,
     squeeze,
     stack,
     tan,
@@ -64,6 +61,7 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 from ._dtype_wrapper import (
     _cast_fout_from_dtype,
+    _input_to_tensor_if_float,
     _update_dtype,
     _update_func_default_dtype,
     as_dtype,
@@ -80,14 +78,10 @@ _DTYPES = {
     _tf.complex128: 5,
 }
 
-angle = _tf.math.angle
-arctanh = _tf.math.atanh
-ceil = _tf.math.ceil
 conj = _tf.math.conj
 erf = _tf.math.erf
 imag = _tf.math.imag
 isnan = _tf.math.is_nan
-log = _tf.math.log
 mod = _tf.math.mod
 polygamma = _tf.math.polygamma
 power = _tf.math.pow
@@ -98,6 +92,14 @@ trapz = _tfp.math.trapz
 ones = _update_dtype(_func=_tf.ones, dtype_pos=1)
 zeros = _update_dtype(_func=_tf.zeros, dtype_pos=1)
 empty = _update_func_default_dtype(_func=_tf.experimental.numpy.empty)
+
+sqrt = _input_to_tensor_if_float(_func=_tf.sqrt)
+cos = _input_to_tensor_if_float(_func=_tf.cos)
+sin = _input_to_tensor_if_float(_func=_tf.sin)
+angle = _input_to_tensor_if_float(_func=_tf.math.angle)
+arctanh = _input_to_tensor_if_float(_func=_tf.math.atanh)
+ceil = _input_to_tensor_if_float(_func=_tf.math.ceil)
+log = _input_to_tensor_if_float(_func=_tf.math.log)
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -619,8 +621,14 @@ def eye(n, m=None, dtype=None):
 
 
 def sum(x, axis=None, dtype=None, keepdims=False):
+    if not _tf.is_tensor(x):
+        x = array(x)
+
     if dtype is not None and x.dtype != dtype:
         x = cast(x, dtype)
+
+    if x.dtype == bool:
+        x = cast(x, int32)
 
     return _tf.reduce_sum(x, axis=axis, keepdims=keepdims)
 
@@ -713,12 +721,13 @@ def unique(x):
 def where(condition, x=None, y=None):
     if x is None and y is None:
         return _tf.where(condition)
-    if not _tf.is_tensor(x):
-        x = _tf.constant(x)
-    if not _tf.is_tensor(y):
-        y = _tf.constant(y)
-    y = cast(y, x.dtype)
-    return _tf.where(condition, x, y)
+
+    if type(x) is float:
+        x = _tf.constant(x, dtype=get_default_dtype())
+
+    out = _tf.where(condition, x, y)
+
+    return out
 
 
 def tril_to_vec(x, k=0):
@@ -785,12 +794,8 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
         upper_indices = [(jj, kk) for jj, kk in zip(j, k)]
         lower_indices = [(kk, jj) for jj, kk in zip(j, k)]
     else:
-        upper_indices = [
-            (rr, jj, kk) for rr in range(diag.ndim) for jj, kk in zip(j, k)
-        ]
-        lower_indices = [
-            (rr, kk, jj) for rr in range(diag.ndim) for jj, kk in zip(j, k)
-        ]
+        upper_indices = [(rr, jj, kk) for rr in range(n) for jj, kk in zip(j, k)]
+        lower_indices = [(rr, kk, jj) for rr in range(n) for jj, kk in zip(j, k)]
 
     mat = zeros(diag.shape + (n,), dtype=diag.dtype)
     mat = assignment(mat, tri_upp, upper_indices)

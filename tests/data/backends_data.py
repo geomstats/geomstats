@@ -422,6 +422,18 @@ class DtypesTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
+    def unary_op_float_input_test_data(self):
+        smoke_data = [
+            dict(func_name="sqrt", x=1.0),
+            dict(func_name="cos", x=1.0),
+            dict(func_name="sin", x=1.0),
+            dict(func_name="angle", x=1.0),
+            dict(func_name="arctanh", x=0.1),
+            dict(func_name="ceil", x=1.0),
+            dict(func_name="log", x=1.0),
+        ]
+        return self.generate_tests(smoke_data)
+
     def unary_op_with_dtype_from_shape_test_data(self):
         axis_kwargs = {"axis": 0}
         smoke_data = [
@@ -454,6 +466,7 @@ class DtypesTestData(TestData):
         smoke_data = [
             dict(func_name="copy", array_shape=(2, 2)),
             dict(func_name="diagonal", array_shape=(2, 2)),
+            dict(func_name="erf", array_shape=2),
             dict(func_name="flatten", array_shape=(2, 2)),
             # TODO: add test in BackendsTestData
             dict(func_name="get_slice", array_shape=(2, 2), kwargs={"indices": [(0,)]}),
@@ -461,6 +474,8 @@ class DtypesTestData(TestData):
             dict(func_name="tril_to_vec", array_shape=(2, 2)),
             dict(func_name="triu_to_vec", array_shape=(2, 2)),
             dict(func_name="vec_to_diag", array_shape=3),
+            # TODO: add test in BackendsTestData
+            dict(func_name="linalg.norm", array_shape=3),
         ]
 
         return self.generate_tests(smoke_data)
@@ -546,4 +561,17 @@ class DtypesTestData(TestData):
         smoke_data = [
             dict(func_name="linalg.solve_sylvester", create_array=_create_sylvester)
         ]
+        return self.generate_tests(smoke_data)
+
+    def func_out_dtype_test_data(self):
+        smoke_data = [
+            # TODO: add additional test for int
+            dict(
+                func_name="where",
+                args=([True, False],),
+                kwargs={"x": 20.0, "y": 20.0},
+                expected=gs.float64,
+            ),
+        ]
+
         return self.generate_tests(smoke_data)

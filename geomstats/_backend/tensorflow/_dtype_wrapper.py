@@ -2,7 +2,7 @@ import functools
 import inspect
 import types
 
-from tensorflow import cast
+import tensorflow as _tf
 from tensorflow.dtypes import as_dtype
 
 _DEFAULT_DTYPE = None
@@ -108,9 +108,27 @@ def _cast_fout_from_dtype(dtype_pos=None, _func=None):
                     dtype = kwargs.get("dtype", _DEFAULT_DTYPE)
 
                 if out.dtype != dtype:
-                    return cast(out, dtype)
+                    return _tf.cast(out, dtype)
 
             return out
+
+        return _wrapped
+
+    if _func is None:
+        return _decorator
+    else:
+        return _decorator(_func)
+
+
+def _input_to_tensor_if_float(_func=None):
+    def _decorator(func):
+        @functools.wraps(func)
+        def _wrapped(x, *args, **kwargs):
+
+            if type(x) is float:
+                x = _tf.constant(x, dtype=_DEFAULT_DTYPE)
+
+            return func(x, *args, **kwargs)
 
         return _wrapped
 

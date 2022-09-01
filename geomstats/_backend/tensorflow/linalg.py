@@ -2,6 +2,7 @@
 
 import scipy as _scipy
 import tensorflow as _tf
+from tensorflow.linalg import norm
 
 # "Forward-import" primitives. Due to the way the 'linalg' module is exported
 # in TF, this does not work with 'from tensorflow.linalg import ...'.
@@ -11,11 +12,6 @@ expm = _tf.linalg.expm
 inv = _tf.linalg.inv
 sqrtm = _tf.linalg.sqrtm
 solve = _tf.linalg.solve
-
-
-def norm(x, dtype=_tf.float32, **kwargs):
-    x = _tf.cast(x, dtype)
-    return _tf.linalg.norm(x, **kwargs)
 
 
 def eig(*args, **kwargs):
@@ -81,7 +77,9 @@ def solve_sylvester(a, b, q):
             if conditions:
                 tilde_q = _tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
                 safe_denominator = (
-                    eigvals[..., :, None] + eigvals[..., None, :] + _tf.eye(a.shape[-1])
+                    eigvals[..., :, None]
+                    + eigvals[..., None, :]
+                    + _tf.eye(a.shape[-1], dtype=eigvals.dtype)
                 )
                 tilde_x = tilde_q / safe_denominator
                 return eigvecs @ tilde_x @ _tf.transpose(eigvecs, perm=axes)
