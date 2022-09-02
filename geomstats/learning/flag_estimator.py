@@ -1,11 +1,12 @@
 from sklearn.covariance import EmpiricalCovariance
+from scipy.stats import chi2
 
 import geomstats.backend as gs
 from geomstats.geometry.grassmannian import GrassmannianCanonicalMetric
 from geomstats.geometry.matrices import Matrices
 
 
-class DimbiEstimator:
+class FlagEstimator:
     def __init__(self, multiplicities):
         self.multiplicities = multiplicities
         self.d = sum(self.multiplicities)
@@ -26,7 +27,7 @@ class DimbiEstimator:
         mult_j = self.multiplicities[j]
         k = sum(self.multiplicities[:j])
 
-        U_j = vec_emp[:, k : k + mult_j]
+        U_j = vec_emp[:, k: k + mult_j]
 
         return gs.sum(gs.einsum("i..., j...->...ij", U_j, U_j), axis=0)
 
@@ -59,7 +60,7 @@ class DimbiEstimator:
 
         mult_j = self.multiplicities[j]
         k = sum(self.multiplicities[:j])
-        E_jj = vec_emp[k : k + mult_j, k : k + mult_j]
+        E_jj = vec_emp[k: k + mult_j, k: k + mult_j]
         det_E_jj = gs.linalg.det(E_jj)
 
         return gs.abs(det_E_jj) < tol
@@ -80,7 +81,7 @@ class DimbiEstimator:
         val_emp_means = []
         for j, mult_j in enumerate(self.multiplicities):
             k = sum(self.multiplicities[:j])
-            val_emp_means.append(gs.mean(val_emp[k : k + mult_j]))
+            val_emp_means.append(gs.mean(val_emp[k: k + mult_j]))
 
         return gs.stack(val_emp_means)
 
@@ -111,3 +112,27 @@ class DimbiEstimator:
             norm += Matrices.frobenius_product(out, out)
 
         return norm * n / 4.0
+
+    def get_flag(self, Q_0):
+        F = []
+        for j, _ in enumerate(self.multiplicities):
+            P_0_j = self._get_P_j(j)
+            F.append(Matrices.mul(Q_0, P_0_j, gs.transpose(Q_0)))
+
+        return gs.stack(F)
+
+
+def test_H0(estimator, X, Q_0, alpha=.05):
+    """Test if Q_0 is a matrix of eigenvectors of the population covariance matrix.
+
+    If True, hypothesis is accepted.
+    """
+    norm = estimator.compute_norm(X, Q_0)
+
+    df = (estimator.d**2 - gs.sum(gs.array(estimator.multiplicities)**2)) / 2
+
+    quantile = chi2.ppf(1 - alpha, df)
+
+    cmp = norm < quantile
+
+    return cmp, (norm, quantile)
