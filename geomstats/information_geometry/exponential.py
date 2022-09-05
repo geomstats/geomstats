@@ -41,8 +41,6 @@ class ExponentialDistributions(OpenSet):
             Boolean indicating whether point represents an exponential
             distribution.
         """
-        point = gs.cast(gs.array(point), dtype=gs.float32)
-        point = gs.to_ndarray(point, 1)
         belongs = point >= atol
         return gs.squeeze(belongs)
 
@@ -85,7 +83,6 @@ class ExponentialDistributions(OpenSet):
         projected : array-like, shape=[...,]
             Projected point.
         """
-        point = gs.cast(gs.array(point), dtype=gs.float32)
         projected = gs.where(point < atol, atol, point)
         return gs.squeeze(projected)
 
@@ -109,7 +106,6 @@ class ExponentialDistributions(OpenSet):
             Sample from exponential distributions.
         """
         geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=1)
         samples = gs.array([expon.rvs(point) for i in range(n_samples)])
         return gs.squeeze(gs.transpose(samples))
 
@@ -140,9 +136,6 @@ class ExponentialDistributions(OpenSet):
             x : array-like, shape=[n_points,]
                 Points at which to compute the probability density function.
             """
-            x = gs.array(x, dtype=gs.float32)
-            x = gs.to_ndarray(x, to_ndim=1)
-
             pdf_at_x = [
                 gs.array(expon.pdf(x, loc=0, scale=param))
                 for param in gs.to_ndarray(point, 1)

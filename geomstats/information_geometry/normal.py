@@ -104,9 +104,6 @@ class NormalDistributions(PoincareHalfSpace):
             x : array-like, shape=[n_points,]
                 Points at which to compute the probability density function.
             """
-            x = gs.array(x, gs.float32)
-            x = gs.to_ndarray(x, to_ndim=1)
-
             pdf_at_x = [
                 gs.array(norm.pdf(x, loc=mean, scale=std))
                 for mean, std in zip(means, stds)
