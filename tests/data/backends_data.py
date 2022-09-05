@@ -574,8 +574,8 @@ class DtypesTestData(TestData):
             # TODO: add additional test for int
             dict(
                 func_name="where",
-                args=([True, False],),
-                kwargs={"x": 20.0, "y": 20.0},
+                args=([True, False], 20.0, 20.0),
+                kwargs={},
                 expected=gs.float64,
             ),
         ]

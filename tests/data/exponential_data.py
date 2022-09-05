@@ -21,9 +21,9 @@ class ExponentialTestData(_OpenSetTestData):
             dict(point=gs.array(-0.8), expected=False),
             dict(point=8, expected=True),
             dict(point=-1.0, expected=False),
-            dict(point=gs.array([5]), expected=True),
-            dict(point=gs.array(-2), expected=False),
-            dict(point=gs.array([1, -1]), expected=gs.array([True, False])),
+            dict(point=gs.array([5.0]), expected=True),
+            dict(point=gs.array(-2.0), expected=False),
+            dict(point=gs.array([1.0, -1.0]), expected=gs.array([True, False])),
             dict(point=gs.array([[0.1], [10]]), expected=gs.array([True, True])),
         ]
         return self.generate_tests(smoke_data)
