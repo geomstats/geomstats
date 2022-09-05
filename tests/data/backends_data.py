@@ -387,6 +387,8 @@ class DtypesTestData(TestData):
     def array_creation_with_dtype_test_data(self):
         smoke_data = [
             dict(func_name="array", args=([1.0, 2.0],)),
+            # TODO: add int test to arange
+            dict(func_name="arange", args=((0.0, 2.0))),
             dict(func_name="linspace", args=(0.0, 1.0)),
             dict(func_name="random.normal", kwargs={"size": 2}),
             dict(

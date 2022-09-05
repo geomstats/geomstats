@@ -35,7 +35,6 @@ from tensorflow import (
     ones_like,
     pad,
 )
-from tensorflow import range as arange
 from tensorflow import reduce_max as amax
 from tensorflow import reduce_min as amin
 from tensorflow import reduce_prod as prod
@@ -112,6 +111,19 @@ def to_numpy(x):
 
 def from_numpy(x):
     return _tf.convert_to_tensor(x)
+
+
+def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
+
+    if dtype is None and (
+        type(stop) is float or type(step) is float or type(start_or_stop) is float
+    ):
+        dtype = get_default_dtype()
+
+    if stop is None:
+        return _tf.range(start_or_stop, delta=step, dtype=dtype)
+
+    return _tf.range(start_or_stop, stop, delta=step, dtype=dtype)
 
 
 def one_hot(labels, num_classes):
