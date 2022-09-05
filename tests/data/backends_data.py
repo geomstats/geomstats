@@ -471,6 +471,10 @@ class DtypesTestData(TestData):
             # TODO: add test in BackendsTestData
             dict(func_name="get_slice", array_shape=(2, 2), kwargs={"indices": [(0,)]}),
             dict(func_name="trace", array_shape=(2, 2)),
+            dict(func_name="tril", array_shape=(2, 2)),
+            dict(func_name="tril", array_shape=(2, 2), kwargs={"k": -1}),
+            dict(func_name="triu", array_shape=(2, 2)),
+            dict(func_name="triu", array_shape=(2, 2), kwargs={"k": 1}),
             dict(func_name="tril_to_vec", array_shape=(2, 2)),
             dict(func_name="triu_to_vec", array_shape=(2, 2)),
             dict(func_name="vec_to_diag", array_shape=3),
