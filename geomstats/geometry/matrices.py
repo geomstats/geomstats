@@ -255,7 +255,7 @@ class Matrices(VectorSpace):
         """
         is_square = cls.is_square(mat)
         if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
+            is_vectorized = gs.ndim(mat) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.tril(mat, k=-1), atol)
 

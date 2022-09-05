@@ -172,24 +172,25 @@ class SPDMatrices(OpenSet):
         denominator = eigvalues[..., :, None] - eigvalues[..., None, :]
         numerator = powered_eigvalues[..., :, None] - powered_eigvalues[..., None, :]
 
+        null_denominator = gs.abs(denominator) < gs.atol
         if power == 0:
-            numerator = gs.where(denominator == 0, gs.ones_like(numerator), numerator)
+            numerator = gs.where(null_denominator, gs.ones_like(numerator), numerator)
             denominator = gs.where(
-                denominator == 0, eigvalues[..., :, None], denominator
+                null_denominator, eigvalues[..., :, None], denominator
             )
         elif power == math.inf:
             numerator = gs.where(
-                denominator == 0, powered_eigvalues[..., :, None], numerator
+                null_denominator, powered_eigvalues[..., :, None], numerator
             )
             denominator = gs.where(
-                denominator == 0, gs.ones_like(numerator), denominator
+                null_denominator, gs.ones_like(numerator), denominator
             )
         else:
             numerator = gs.where(
-                denominator == 0, power * powered_eigvalues[..., :, None], numerator
+                null_denominator, power * powered_eigvalues[..., :, None], numerator
             )
             denominator = gs.where(
-                denominator == 0, eigvalues[..., :, None], denominator
+                null_denominator, eigvalues[..., :, None], denominator
             )
 
         transp_eigvectors = Matrices.transpose(eigvectors)
