@@ -50,7 +50,7 @@ SAO_PAULO_TABLE = "jam_table.csv"
 SAO_PAULO_COUNT = "jam_count.csv"
 MAMMALS_PATH = os.path.join(DATA_PATH, "graph_space", "mammals_grooming.npy")
 FOOTBALL_PATH_GRAPHS = os.path.join(DATA_PATH, "graph_space", "football_ppn.npy")
-FOOTBALL_PATH_REGRESSORS = os.path.join(DATA_PATH, "graph_space", "football_scores.npy")
+FOOTBALL_PATH_SCORES = os.path.join(DATA_PATH, "graph_space", "football_scores.npy")
 
 
 def load_cities():
@@ -413,7 +413,7 @@ def load_mammals(file_path=MAMMALS_PATH):
     Returns
     -------
     data_mammals : gs.array, shape=[26, 18, 18]
-        Adjecency matrices of different group of mammals measuring the
+        Adjacency matrices of different group of mammals measuring the
         mammals grooming.
     """
     data_mammals = np.load(file_path)
@@ -421,16 +421,16 @@ def load_mammals(file_path=MAMMALS_PATH):
 
 
 def load_football():
-    """Load data from data/graph_space/Footballs_scores.npy and Footballs_ppn.npy.
+    """Load data from data/graph_space/Footballs_scores.npy and footballs_ppn.npy.
 
     Returns
     -------
     data_football : gs.array, shape=[128, 11, 11]
-        Adjecency matrices of player passing networks of all the matches and teams
+        Adjacency matrices of player passing networks of all the matches and teams
         in Fifa 2018.
     data_scores: gs.array, shape=[128, 1]
         Scores of the team during the match.
     """
     data_football = np.load(FOOTBALL_PATH_GRAPHS)
-    data_scores = np.load(FOOTBALL_PATH_REGRESSORS)
+    data_scores = np.load(FOOTBALL_PATH_SCORES)
     return data_football, data_scores

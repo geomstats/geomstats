@@ -147,7 +147,7 @@ class _AACFrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
+        X : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint.
             Dataset to estimate the FM.
         y : Ignored
             Ignored.
@@ -265,7 +265,7 @@ class _AACGGPCA(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
+        X : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint.
             Dataset to estimate the GGPCA.
         y : Ignored
             Ignored.
@@ -385,9 +385,9 @@ class _AACRegressor(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_obs, p].
+        X : array-like, shape=[n_samples, p].
             Dataset of regressors to estimate the GGR.
-        y : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
+        y : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint.
             Dataset to estimate the GGR.
 
         Returns
@@ -425,19 +425,19 @@ class _AACRegressor(BaseEstimator):
         return self
 
     def predict(self, X):
-        r"""Prediction function for the Generalized Geodesic Regression.
+        r"""Predict using the generalized geodesic regression.
 
         Predict a graph or a set of graphs corresponding to the given regressors. It
         uses the total space prediction.
 
         Parameters
         ----------
-        X : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
+        X : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint
             Dataset to estimate the GGR.
 
         Returns
         -------
-        prediction : array-like, shape=[n_obs, n_nodes, n_nodes] or set of GraphPoint.
+        prediction : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint
             Predicted unlabeled graphs.
         """
         return self.total_space_estimator.predict(X)
