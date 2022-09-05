@@ -7,23 +7,18 @@ from numpy import (
     allclose,
     amax,
     amin,
-    angle,
     any,
-    arange,
     arccos,
     arccosh,
     arcsin,
     arctan2,
-    arctanh,
     argmax,
     argmin,
     broadcast_arrays,
     broadcast_to,
-    ceil,
     clip,
     concatenate,
     conj,
-    cos,
     cosh,
     cross,
     cumprod,
@@ -53,7 +48,6 @@ from numpy import (
     kron,
     less,
     less_equal,
-    log,
     logical_and,
     logical_or,
     maximum,
@@ -72,11 +66,9 @@ from numpy import (
     searchsorted,
     shape,
     sign,
-    sin,
     sinh,
     sort,
     split,
-    sqrt,
     squeeze,
     stack,
     std,
@@ -106,6 +98,7 @@ from . import random  # NOQA
 from ._common import atol, cast, rtol, to_ndarray
 from ._dtype_wrapper import (
     _cast_fout_from_dtype,
+    _control_dtype_if_float,
     _update_dtype,
     _update_func_default_dtype,
     as_dtype,
@@ -128,6 +121,35 @@ array = _cast_fout_from_dtype(_func=_np.array, dtype_pos=1)
 linspace = _update_dtype(_func=_np.linspace, dtype_pos=5)
 zeros = _update_dtype(_func=_np.zeros, dtype_pos=1)
 empty = _update_dtype(_func=_np.empty, dtype_pos=1)
+
+
+sqrt = _control_dtype_if_float(_func=_np.sqrt)
+cos = _control_dtype_if_float(_func=_np.cos)
+sin = _control_dtype_if_float(_func=_np.sin)
+arctanh = _control_dtype_if_float(_func=_np.arctanh)
+ceil = _control_dtype_if_float(_func=_np.ceil)
+log = _control_dtype_if_float(_func=_np.log)
+
+
+def angle(z, deg=False):
+    out = _np.angle(z, deg=deg)
+    if type(z) is float:
+        return cast(out, get_default_dtype())
+
+    return out
+
+
+def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
+
+    if dtype is None and (
+        type(stop) is float or type(step) is float or type(start_or_stop) is float
+    ):
+        dtype = get_default_dtype()
+
+    if stop is None:
+        return _np.arange(start_or_stop, step=step, dtype=dtype)
+
+    return _np.arange(start_or_stop, stop, step=step, dtype=dtype)
 
 
 def to_numpy(x):

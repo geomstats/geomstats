@@ -13,6 +13,7 @@ _TO_UPDATE_FUNCS_DTYPE = []
 
 
 def _update_func_default_dtype(func):
+    # TODO: copy and update
     new_func = types.FunctionType(
         func.__code__,
         func.__globals__,
@@ -124,6 +125,24 @@ def _cast_fout_from_input_dtype(func):
         return out
 
     return _wrapped
+
+
+def _control_dtype_if_float(_func=None):
+    def _decorator(func):
+        @functools.wraps(func)
+        def _wrapped(x, *args, **kwargs):
+
+            if type(x) is float:
+                return func(x, *args, dtype=_DEFAULT_DTYPE, **kwargs)
+
+            return func(x, *args, **kwargs)
+
+        return _wrapped
+
+    if _func is None:
+        return _decorator
+    else:
+        return _decorator(_func)
 
 
 def as_dtype(value):
