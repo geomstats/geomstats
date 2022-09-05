@@ -7,12 +7,13 @@ from ._common import cast
 
 _DEFAULT_DTYPE = None
 
+MAP_DTYPE = {
+    "float32": float32,
+    "float64": float64,
+}
+
 
 def as_dtype(value):
-    MAP_DTYPE = {
-        "float32": float32,
-        "float64": float64,
-    }
     return MAP_DTYPE[value]
 
 

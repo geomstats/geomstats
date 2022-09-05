@@ -5,19 +5,15 @@ from collections.abc import Iterable as _Iterable
 
 import numpy as _np
 import torch as _torch
-from torch import angle, arange, arccos, arccosh, arcsin, arctanh, argmin
+from torch import arange, arccos, arccosh, arcsin, argmin
 from torch import atan2 as arctan2  # NOQA
 from torch import broadcast_tensors as broadcast_arrays
 from torch import (
-    ceil,
     clip,
     conj,
-    cos,
-    cosh,
     empty,
     empty_like,
     erf,
-    exp,
     eye,
     flatten,
     float32,
@@ -25,30 +21,15 @@ from torch import (
     floor,
 )
 from torch import fmod as mod
-from torch import (
-    greater,
-    hstack,
-    imag,
-    int32,
-    int64,
-    isnan,
-    kron,
-    less,
-    log,
-    logical_or,
-)
+from torch import greater, hstack, int32, int64, isnan, kron, less, logical_or
 from torch import max as amax
 from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma
 from torch import pow as power
-from torch import real
 from torch import repeat_interleave as repeat
 from torch import (
     reshape,
     sign,
-    sin,
-    sinh,
     stack,
-    tan,
     tanh,
     trapz,
     uint8,
@@ -99,17 +80,20 @@ def _box_scalar(function):
     return wrapper
 
 
-abs = _box_scalar(abs)
-ceil = _box_scalar(ceil)
-cos = _box_scalar(cos)
-cosh = _box_scalar(cosh)
-exp = _box_scalar(exp)
-imag = _box_scalar(imag)
-log = _box_scalar(log)
-real = _box_scalar(real)
-sin = _box_scalar(sin)
-sinh = _box_scalar(sinh)
-tan = _box_scalar(tan)
+abs = _box_scalar(_torch.abs)
+ceil = _box_scalar(_torch.ceil)
+cos = _box_scalar(_torch.cos)
+cosh = _box_scalar(_torch.cosh)
+exp = _box_scalar(_torch.exp)
+imag = _box_scalar(_torch.imag)
+log = _box_scalar(_torch.log)
+real = _box_scalar(_torch.real)
+sin = _box_scalar(_torch.sin)
+sinh = _box_scalar(_torch.sinh)
+tan = _box_scalar(_torch.tan)
+angle = _box_scalar(_torch.angle)
+sqrt = _box_scalar(_torch.sqrt)
+arctanh = _box_scalar(_torch.arctanh)
 
 std = _preserve_input_dtype(_add_default_dtype(_torch.std))
 
@@ -304,7 +288,7 @@ def broadcast_to(x, shape):
 
 def sqrt(x):
     if not isinstance(x, _torch.Tensor):
-        x = _torch.tensor(x).float()
+        x = _torch.tensor(x)
     return _torch.sqrt(x)
 
 
@@ -316,14 +300,14 @@ def isclose(x, y, rtol=rtol, atol=atol):
     return _torch.isclose(x, y, atol=atol, rtol=rtol)
 
 
-def sum(x, axis=None, keepdims=None, **kwargs):
+def sum(x, axis=None, keepdims=None, dtype=None):
     if axis is None:
         if keepdims is None:
-            return _torch.sum(x, **kwargs)
-        return _torch.sum(x, keepdim=keepdims, **kwargs)
+            return _torch.sum(x, dtype=dtype)
+        return _torch.sum(x, keepdim=keepdims, dtype=dtype)
     if keepdims is None:
-        return _torch.sum(x, dim=axis, **kwargs)
-    return _torch.sum(x, dim=axis, keepdim=keepdims, **kwargs)
+        return _torch.sum(x, dim=axis, dtype=dtype)
+    return _torch.sum(x, dim=axis, keepdim=keepdims, dtype=dtype)
 
 
 def einsum(equation, *inputs):
@@ -344,6 +328,8 @@ def transpose(x, axes=None):
 
 
 def squeeze(x, axis=None):
+    if not is_array(x):
+        return x
     if axis is None:
         return _torch.squeeze(x)
     return _torch.squeeze(x, dim=axis)
@@ -448,6 +434,9 @@ def prod(x, axis=None):
 
 
 def where(condition, x=None, y=None):
+    if not _torch.is_tensor(condition):
+        condition = array(condition)
+
     if x is None and y is None:
         return _torch.where(condition)
     if not _torch.is_tensor(x):
