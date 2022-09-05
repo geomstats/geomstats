@@ -794,8 +794,9 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
         upper_indices = [(jj, kk) for jj, kk in zip(j, k)]
         lower_indices = [(kk, jj) for jj, kk in zip(j, k)]
     else:
-        upper_indices = [(rr, jj, kk) for rr in range(n) for jj, kk in zip(j, k)]
-        lower_indices = [(rr, kk, jj) for rr in range(n) for jj, kk in zip(j, k)]
+        m = diag.shape[0]
+        upper_indices = [(rr, jj, kk) for rr in range(m) for jj, kk in zip(j, k)]
+        lower_indices = [(rr, kk, jj) for rr in range(m) for jj, kk in zip(j, k)]
 
     mat = zeros(diag.shape + (n,), dtype=diag.dtype)
     mat = assignment(mat, tri_upp, upper_indices)
