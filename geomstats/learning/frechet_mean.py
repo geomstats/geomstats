@@ -124,7 +124,7 @@ def elastic_mean(points, weights=None, metric=None):
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, n_sampling_points, dim]
+    points : array-like, shape=[n_samples, k_sampling_points, dim]
         Points on the manifold of curves (i.e. curves) to be averaged.
     weights : array-like, shape=[...,]
         Weights associated to the points (i.e. curves).
@@ -132,7 +132,7 @@ def elastic_mean(points, weights=None, metric=None):
 
     Returns
     -------
-    mean : array-like, shape=[n_sampling_points, dim]
+    mean : array-like, shape=[k_sampling_points, dim]
         Weighted linear mean of the points (i.e. of the curves).
     """
     if isinstance(points, list):
@@ -142,14 +142,14 @@ def elastic_mean(points, weights=None, metric=None):
 
     transformed_linear_mean = linear_mean(transformed, weights=weights)
 
-    starting_point = (
+    starting_sampling_point = (
         FrechetMean(metric.ambient_metric)
         .fit(points[:, 0, :], weights=weights)
         .estimate_
     )
-    starting_point = gs.expand_dims(starting_point, axis=0)
+    starting_sampling_point = gs.expand_dims(starting_sampling_point, axis=0)
     mean = metric.f_transform_inverse(
-        transformed_linear_mean, starting_point=starting_point
+        transformed_linear_mean, starting_sampling_point=starting_sampling_point
     )
     return mean
 

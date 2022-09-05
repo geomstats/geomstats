@@ -126,6 +126,16 @@ def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
     return _tf.range(start_or_stop, stop, delta=step, dtype=dtype)
 
 
+def quantile(x, q, axis=None, out=None):
+    # Note: numpy, pytorch, and autograd convention is q in [0,1] while tfp expects
+    # [0,100]. These other libraries also default to (the equivalent of)
+    # interpolation=linear
+    result = _tfp.stats.percentile(x, q * 100, axis=axis, interpolation="linear")
+    if out is not None:
+        out[:] = result
+    return result
+
+
 def one_hot(labels, num_classes):
     return _tf.one_hot(labels, num_classes, dtype=_tf.uint8)
 

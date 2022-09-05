@@ -221,7 +221,7 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
             n=n,
             k=k,
             group=SpecialOrthogonal(k),
-            ambient_metric=MatricesMetric(n, k),
+            total_space_metric=MatricesMetric(n, k),
         )
 
     @staticmethod

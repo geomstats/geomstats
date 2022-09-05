@@ -79,7 +79,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
     def test_log_after_align_is_horizontal(self, n, point_a, point_b):
         bundle = self.Space(n)
         aligned = bundle.align(point_a, point_b, tol=1e-10)
-        log = bundle.ambient_metric.log(aligned, point_b)
+        log = bundle.total_space_metric.log(aligned, point_b)
         result = bundle.is_horizontal(log, point_b, atol=1e-2)
         self.assertTrue(result)
 
