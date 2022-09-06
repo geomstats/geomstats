@@ -1,6 +1,5 @@
 """Pytorch based computation backend."""
 
-import functools as _functools
 from collections.abc import Iterable as _Iterable
 
 import numpy as _np
@@ -26,6 +25,7 @@ from . import random  # NOQA
 from ._common import array, cast, from_numpy
 from ._dtype_wrapper import (
     _add_default_dtype,
+    _box_unary_scalar,
     _preserve_input_dtype,
     as_dtype,
     get_default_dtype,
@@ -49,37 +49,26 @@ def _raise_not_implemented_error(*args, **kwargs):
 searchsorted = _raise_not_implemented_error
 
 
-# TODO: rename to box unary scalar
-def _box_scalar(function):
-    @_functools.wraps(function)
-    def wrapper(x):
-        if not _torch.is_tensor(x):
-            x = _torch.tensor(x)
-        return function(x)
-
-    return wrapper
-
-
-abs = _box_scalar(_torch.abs)
-angle = _box_scalar(_torch.angle)
-arccos = _box_scalar(_torch.arccos)
-arccosh = _box_scalar(_torch.arccosh)
-arcsin = _box_scalar(_torch.arcsin)
-arctanh = _box_scalar(_torch.arctanh)
-ceil = _box_scalar(_torch.ceil)
-cos = _box_scalar(_torch.cos)
-cosh = _box_scalar(_torch.cosh)
-exp = _box_scalar(_torch.exp)
-floor = _box_scalar(_torch.floor)
-imag = _box_scalar(_torch.imag)
-log = _box_scalar(_torch.log)
-real = _box_scalar(_torch.real)
-sign = _box_scalar(_torch.sign)
-sin = _box_scalar(_torch.sin)
-sinh = _box_scalar(_torch.sinh)
-sqrt = _box_scalar(_torch.sqrt)
-tan = _box_scalar(_torch.tan)
-tanh = _box_scalar(_torch.tanh)
+abs = _box_unary_scalar(_torch.abs)
+angle = _box_unary_scalar(_torch.angle)
+arccos = _box_unary_scalar(_torch.arccos)
+arccosh = _box_unary_scalar(_torch.arccosh)
+arcsin = _box_unary_scalar(_torch.arcsin)
+arctanh = _box_unary_scalar(_torch.arctanh)
+ceil = _box_unary_scalar(_torch.ceil)
+cos = _box_unary_scalar(_torch.cos)
+cosh = _box_unary_scalar(_torch.cosh)
+exp = _box_unary_scalar(_torch.exp)
+floor = _box_unary_scalar(_torch.floor)
+imag = _box_unary_scalar(_torch.imag)
+log = _box_unary_scalar(_torch.log)
+real = _box_unary_scalar(_torch.real)
+sign = _box_unary_scalar(_torch.sign)
+sin = _box_unary_scalar(_torch.sin)
+sinh = _box_unary_scalar(_torch.sinh)
+sqrt = _box_unary_scalar(_torch.sqrt)
+tan = _box_unary_scalar(_torch.tan)
+tanh = _box_unary_scalar(_torch.tanh)
 
 std = _preserve_input_dtype(_add_default_dtype(_torch.std))
 

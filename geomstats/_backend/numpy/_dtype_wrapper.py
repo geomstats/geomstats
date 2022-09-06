@@ -127,7 +127,7 @@ def _cast_fout_from_input_dtype(func):
     return _wrapped
 
 
-def _control_dtype_if_float(_func=None):
+def _box_unary_scalar(_func=None):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(x, *args, **kwargs):

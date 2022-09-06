@@ -88,7 +88,7 @@ from . import random  # NOQA
 from ._common import atol, cast, rtol, to_ndarray
 from ._dtype_wrapper import (
     _cast_fout_from_dtype,
-    _control_dtype_if_float,
+    _box_unary_scalar,
     _update_dtype,
     _update_func_default_dtype,
     as_dtype,
@@ -113,23 +113,23 @@ zeros = _update_dtype(_func=_np.zeros, dtype_pos=1)
 empty = _update_dtype(_func=_np.empty, dtype_pos=1)
 
 
-abs = _control_dtype_if_float(_func=_np.abs)
-arccos = _control_dtype_if_float(_func=_np.arccos)
-arccosh = _control_dtype_if_float(_func=_np.arccosh)
-arcsin = _control_dtype_if_float(_func=_np.arcsin)
-arctanh = _control_dtype_if_float(_func=_np.arctanh)
-ceil = _control_dtype_if_float(_func=_np.ceil)
-cos = _control_dtype_if_float(_func=_np.cos)
-cosh = _control_dtype_if_float(_func=_np.cosh)
-exp = _control_dtype_if_float(_func=_np.exp)
-floor = _control_dtype_if_float(_func=_np.floor)
-log = _control_dtype_if_float(_func=_np.log)
-sign = _control_dtype_if_float(_func=_np.sign)
-sin = _control_dtype_if_float(_func=_np.sin)
-sinh = _control_dtype_if_float(_func=_np.sinh)
-sqrt = _control_dtype_if_float(_func=_np.sqrt)
-tan = _control_dtype_if_float(_func=_np.tan)
-tanh = _control_dtype_if_float(_func=_np.tanh)
+abs = _box_unary_scalar(_func=_np.abs)
+arccos = _box_unary_scalar(_func=_np.arccos)
+arccosh = _box_unary_scalar(_func=_np.arccosh)
+arcsin = _box_unary_scalar(_func=_np.arcsin)
+arctanh = _box_unary_scalar(_func=_np.arctanh)
+ceil = _box_unary_scalar(_func=_np.ceil)
+cos = _box_unary_scalar(_func=_np.cos)
+cosh = _box_unary_scalar(_func=_np.cosh)
+exp = _box_unary_scalar(_func=_np.exp)
+floor = _box_unary_scalar(_func=_np.floor)
+log = _box_unary_scalar(_func=_np.log)
+sign = _box_unary_scalar(_func=_np.sign)
+sin = _box_unary_scalar(_func=_np.sin)
+sinh = _box_unary_scalar(_func=_np.sinh)
+sqrt = _box_unary_scalar(_func=_np.sqrt)
+tan = _box_unary_scalar(_func=_np.tan)
+tanh = _box_unary_scalar(_func=_np.tanh)
 
 
 def angle(z, deg=False):

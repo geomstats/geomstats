@@ -120,7 +120,7 @@ def _cast_fout_from_dtype(dtype_pos=None, _func=None):
         return _decorator(_func)
 
 
-def _input_to_tensor_if_float(_func=None):
+def _box_unary_scalar(_func=None):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(x, *args, **kwargs):

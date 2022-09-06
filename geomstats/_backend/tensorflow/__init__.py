@@ -41,7 +41,7 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 from ._dtype_wrapper import (
     _cast_fout_from_dtype,
-    _input_to_tensor_if_float,
+    _box_unary_scalar,
     _update_dtype,
     _update_func_default_dtype,
     as_dtype,
@@ -74,25 +74,24 @@ zeros = _update_dtype(_func=_tf.zeros, dtype_pos=1)
 empty = _update_func_default_dtype(_func=_tf.experimental.numpy.empty)
 
 
-# TODO: rename to box_scalar?
-abs = _input_to_tensor_if_float(_func=_tf.math.abs)
-angle = _input_to_tensor_if_float(_func=_tf.math.angle)
-arccos = _input_to_tensor_if_float(_func=_tf.math.acos)
-arccosh = _input_to_tensor_if_float(_func=_tf.math.acosh)
-arcsin = _input_to_tensor_if_float(_func=_tf.math.asin)
-arctanh = _input_to_tensor_if_float(_func=_tf.math.atanh)
-ceil = _input_to_tensor_if_float(_func=_tf.math.ceil)
-cos = _input_to_tensor_if_float(_func=_tf.cos)
-cosh = _input_to_tensor_if_float(_func=_tf.math.cosh)
-exp = _input_to_tensor_if_float(_func=_tf.math.exp)
-floor = _input_to_tensor_if_float(_func=_tf.math.floor)
-log = _input_to_tensor_if_float(_func=_tf.math.log)
-sign = _input_to_tensor_if_float(_func=_tf.math.sign)
-sin = _input_to_tensor_if_float(_func=_tf.sin)
-sinh = _input_to_tensor_if_float(_func=_tf.sinh)
-sqrt = _input_to_tensor_if_float(_func=_tf.sqrt)
-tan = _input_to_tensor_if_float(_func=_tf.tan)
-tanh = _input_to_tensor_if_float(_func=_tf.tanh)
+abs = _box_unary_scalar(_func=_tf.math.abs)
+angle = _box_unary_scalar(_func=_tf.math.angle)
+arccos = _box_unary_scalar(_func=_tf.math.acos)
+arccosh = _box_unary_scalar(_func=_tf.math.acosh)
+arcsin = _box_unary_scalar(_func=_tf.math.asin)
+arctanh = _box_unary_scalar(_func=_tf.math.atanh)
+ceil = _box_unary_scalar(_func=_tf.math.ceil)
+cos = _box_unary_scalar(_func=_tf.cos)
+cosh = _box_unary_scalar(_func=_tf.math.cosh)
+exp = _box_unary_scalar(_func=_tf.math.exp)
+floor = _box_unary_scalar(_func=_tf.math.floor)
+log = _box_unary_scalar(_func=_tf.math.log)
+sign = _box_unary_scalar(_func=_tf.math.sign)
+sin = _box_unary_scalar(_func=_tf.sin)
+sinh = _box_unary_scalar(_func=_tf.sinh)
+sqrt = _box_unary_scalar(_func=_tf.sqrt)
+tan = _box_unary_scalar(_func=_tf.tan)
+tanh = _box_unary_scalar(_func=_tf.tanh)
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -327,7 +326,7 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
     if use_vectorization:
         full_shape = shape(x)
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
         mask = _vectorized_mask_from_indices(
             n_samples, indices, tile_shape, axis, x.dtype
         )

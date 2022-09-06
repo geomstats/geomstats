@@ -56,3 +56,13 @@ def _preserve_input_dtype(func):
         return func(x, *args, dtype=dtype, **kwargs)
 
     return _wrapped
+
+
+def _box_unary_scalar(function):
+    @functools.wraps(function)
+    def wrapper(x, *args, **kwargs):
+        if not _torch.is_tensor(x):
+            x = _torch.tensor(x)
+        return function(x, *args, **kwargs)
+
+    return wrapper
