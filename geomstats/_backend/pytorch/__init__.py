@@ -5,21 +5,10 @@ from collections.abc import Iterable as _Iterable
 
 import numpy as _np
 import torch as _torch
-from torch import arange, arccos, arccosh, arcsin, argmin
+from torch import arange, argmin
 from torch import atan2 as arctan2  # NOQA
 from torch import broadcast_tensors as broadcast_arrays
-from torch import (
-    clip,
-    conj,
-    empty,
-    empty_like,
-    erf,
-    eye,
-    flatten,
-    float32,
-    float64,
-    floor,
-)
+from torch import clip, conj, empty, empty_like, erf, eye, flatten, float32, float64
 from torch import fmod as mod
 from torch import greater, hstack, int32, int64, isnan, kron, less, logical_or
 from torch import max as amax
@@ -27,18 +16,7 @@ from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma
 from torch import pow as power
 from torch import quantile
 from torch import repeat_interleave as repeat
-from torch import (
-    reshape,
-    sign,
-    stack,
-    tanh,
-    trapz,
-    uint8,
-    unique,
-    vstack,
-    zeros,
-    zeros_like,
-)
+from torch import reshape, stack, trapz, uint8, unique, vstack, zeros, zeros_like
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
@@ -71,6 +49,7 @@ def _raise_not_implemented_error(*args, **kwargs):
 searchsorted = _raise_not_implemented_error
 
 
+# TODO: rename to box unary scalar
 def _box_scalar(function):
     @_functools.wraps(function)
     def wrapper(x):
@@ -82,19 +61,25 @@ def _box_scalar(function):
 
 
 abs = _box_scalar(_torch.abs)
+angle = _box_scalar(_torch.angle)
+arccos = _box_scalar(_torch.arccos)
+arccosh = _box_scalar(_torch.arccosh)
+arcsin = _box_scalar(_torch.arcsin)
+arctanh = _box_scalar(_torch.arctanh)
 ceil = _box_scalar(_torch.ceil)
 cos = _box_scalar(_torch.cos)
 cosh = _box_scalar(_torch.cosh)
 exp = _box_scalar(_torch.exp)
+floor = _box_scalar(_torch.floor)
 imag = _box_scalar(_torch.imag)
 log = _box_scalar(_torch.log)
 real = _box_scalar(_torch.real)
+sign = _box_scalar(_torch.sign)
 sin = _box_scalar(_torch.sin)
 sinh = _box_scalar(_torch.sinh)
-tan = _box_scalar(_torch.tan)
-angle = _box_scalar(_torch.angle)
 sqrt = _box_scalar(_torch.sqrt)
-arctanh = _box_scalar(_torch.arctanh)
+tan = _box_scalar(_torch.tan)
+tanh = _box_scalar(_torch.tanh)
 
 std = _preserve_input_dtype(_add_default_dtype(_torch.std))
 

@@ -2,15 +2,11 @@
 
 import numpy as _np
 from numpy import (
-    abs,
     all,
     allclose,
     amax,
     amin,
     any,
-    arccos,
-    arccosh,
-    arcsin,
     arctan2,
     argmax,
     argmin,
@@ -19,7 +15,6 @@ from numpy import (
     clip,
     concatenate,
     conj,
-    cosh,
     cross,
     cumprod,
     cumsum,
@@ -31,12 +26,10 @@ from numpy import (
     einsum,
     empty_like,
     equal,
-    exp,
     expand_dims,
     flip,
     float32,
     float64,
-    floor,
     greater,
     hsplit,
     hstack,
@@ -66,8 +59,6 @@ from numpy import (
     reshape,
     searchsorted,
     shape,
-    sign,
-    sinh,
     sort,
     split,
     squeeze,
@@ -75,8 +66,6 @@ from numpy import (
     std,
     sum,
     take,
-    tan,
-    tanh,
     tile,
     transpose,
     trapz,
@@ -124,12 +113,23 @@ zeros = _update_dtype(_func=_np.zeros, dtype_pos=1)
 empty = _update_dtype(_func=_np.empty, dtype_pos=1)
 
 
-sqrt = _control_dtype_if_float(_func=_np.sqrt)
-cos = _control_dtype_if_float(_func=_np.cos)
-sin = _control_dtype_if_float(_func=_np.sin)
+abs = _control_dtype_if_float(_func=_np.abs)
+arccos = _control_dtype_if_float(_func=_np.arccos)
+arccosh = _control_dtype_if_float(_func=_np.arccosh)
+arcsin = _control_dtype_if_float(_func=_np.arcsin)
 arctanh = _control_dtype_if_float(_func=_np.arctanh)
 ceil = _control_dtype_if_float(_func=_np.ceil)
+cos = _control_dtype_if_float(_func=_np.cos)
+cosh = _control_dtype_if_float(_func=_np.cosh)
+exp = _control_dtype_if_float(_func=_np.exp)
+floor = _control_dtype_if_float(_func=_np.floor)
 log = _control_dtype_if_float(_func=_np.log)
+sign = _control_dtype_if_float(_func=_np.sign)
+sin = _control_dtype_if_float(_func=_np.sin)
+sinh = _control_dtype_if_float(_func=_np.sinh)
+sqrt = _control_dtype_if_float(_func=_np.sqrt)
+tan = _control_dtype_if_float(_func=_np.tan)
+tanh = _control_dtype_if_float(_func=_np.tanh)
 
 
 def angle(z, deg=False):

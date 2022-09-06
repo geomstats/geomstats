@@ -6,22 +6,15 @@ from itertools import product as _product
 import numpy as _np
 import tensorflow as _tf
 import tensorflow_probability as _tfp
-from tensorflow import abs
-from tensorflow import acos as arccos  # NOQA
-from tensorflow import acosh as arccosh
 from tensorflow import argmax, argmin
-from tensorflow import asin as arcsin
 from tensorflow import atan2 as arctan2
 from tensorflow import broadcast_to, cast
 from tensorflow import clip_by_value as clip
 from tensorflow import (
-    cosh,
     equal,
-    exp,
     expand_dims,
     float32,
     float64,
-    floor,
     greater,
     int32,
     int64,
@@ -38,19 +31,7 @@ from tensorflow import (
 from tensorflow import reduce_max as amax
 from tensorflow import reduce_min as amin
 from tensorflow import reduce_prod as prod
-from tensorflow import (
-    reshape,
-    searchsorted,
-    sign,
-    sinh,
-    sort,
-    squeeze,
-    stack,
-    tan,
-    tanh,
-    uint8,
-    zeros_like,
-)
+from tensorflow import reshape, searchsorted, sort, squeeze, stack, uint8, zeros_like
 from tensorflow.experimental.numpy import empty_like, moveaxis
 
 from .._backend_config import tf_atol as atol
@@ -92,13 +73,26 @@ ones = _update_dtype(_func=_tf.ones, dtype_pos=1)
 zeros = _update_dtype(_func=_tf.zeros, dtype_pos=1)
 empty = _update_func_default_dtype(_func=_tf.experimental.numpy.empty)
 
-sqrt = _input_to_tensor_if_float(_func=_tf.sqrt)
-cos = _input_to_tensor_if_float(_func=_tf.cos)
-sin = _input_to_tensor_if_float(_func=_tf.sin)
+
+# TODO: rename to box_scalar?
+abs = _input_to_tensor_if_float(_func=_tf.math.abs)
 angle = _input_to_tensor_if_float(_func=_tf.math.angle)
+arccos = _input_to_tensor_if_float(_func=_tf.math.acos)
+arccosh = _input_to_tensor_if_float(_func=_tf.math.acosh)
+arcsin = _input_to_tensor_if_float(_func=_tf.math.asin)
 arctanh = _input_to_tensor_if_float(_func=_tf.math.atanh)
 ceil = _input_to_tensor_if_float(_func=_tf.math.ceil)
+cos = _input_to_tensor_if_float(_func=_tf.cos)
+cosh = _input_to_tensor_if_float(_func=_tf.math.cosh)
+exp = _input_to_tensor_if_float(_func=_tf.math.exp)
+floor = _input_to_tensor_if_float(_func=_tf.math.floor)
 log = _input_to_tensor_if_float(_func=_tf.math.log)
+sign = _input_to_tensor_if_float(_func=_tf.math.sign)
+sin = _input_to_tensor_if_float(_func=_tf.sin)
+sinh = _input_to_tensor_if_float(_func=_tf.sinh)
+sqrt = _input_to_tensor_if_float(_func=_tf.sqrt)
+tan = _input_to_tensor_if_float(_func=_tf.tan)
+tanh = _input_to_tensor_if_float(_func=_tf.tanh)
 
 
 def _raise_not_implemented_error(*args, **kwargs):

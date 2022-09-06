@@ -426,13 +426,24 @@ class DtypesTestData(TestData):
 
     def unary_op_float_input_test_data(self):
         smoke_data = [
-            dict(func_name="sqrt", x=1.0),
-            dict(func_name="cos", x=1.0),
-            dict(func_name="sin", x=1.0),
+            dict(func_name="abs", x=1.0),
             dict(func_name="angle", x=1.0),
+            dict(func_name="arccos", x=0.1),
+            dict(func_name="arccosh", x=0.1),
+            dict(func_name="arcsin", x=0.1),
             dict(func_name="arctanh", x=0.1),
             dict(func_name="ceil", x=1.0),
+            dict(func_name="cos", x=1.0),
+            dict(func_name="cosh", x=1.0),
+            dict(func_name="exp", x=1.0),
+            dict(func_name="floor", x=1.0),
             dict(func_name="log", x=1.0),
+            dict(func_name="sign", x=1.0),
+            dict(func_name="sin", x=1.0),
+            dict(func_name="sinh", x=1.0),
+            dict(func_name="sqrt", x=1.0),
+            dict(func_name="tan", x=0.5),
+            dict(func_name="tanh", x=0.5),
         ]
         return self.generate_tests(smoke_data)
 
