@@ -6,12 +6,16 @@ import tensorflow as _tf
 from tensorflow.dtypes import as_dtype
 
 _DEFAULT_DTYPE = None
+_DEFAULT_COMPLEX_DTYPE = None
 
 _TO_UPDATE_FUNCS_DTYPE = []
 _TO_UPDATE_FUNCS_KW_DTYPE = []
 
 
-# TODO: rename to target instead _func
+_MAP_FLOAT_TO_COMPLEX = {
+    "float32": "complex64",
+    "float64": "complex128",
+}
 
 
 def _copy_func(func):
@@ -95,17 +99,22 @@ def _update_dtype(dtype_pos=None, _func=None):
         return _decorator(_func)
 
 
-def _cast_fout_from_dtype(dtype_pos=None, _func=None):
+def _cast_out_from_dtype(dtype_pos=None, _func=None):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(*args, **kwargs):
             out = func(*args, **kwargs)
 
-            if out.dtype.is_floating:
+            if out.dtype.is_floating or out.dtype.is_complex:
                 if dtype_pos is not None and len(args) > dtype_pos:
                     dtype = args[dtype_pos]
                 else:
-                    dtype = kwargs.get("dtype", _DEFAULT_DTYPE)
+                    dtype = kwargs.get(
+                        "dtype",
+                        _DEFAULT_DTYPE
+                        if out.dtype.is_floating
+                        else _DEFAULT_COMPLEX_DTYPE,
+                    )
 
                 if out.dtype != dtype:
                     return _tf.cast(out, dtype)
@@ -127,6 +136,8 @@ def _box_unary_scalar(_func=None):
 
             if type(x) is float:
                 x = _tf.constant(x, dtype=_DEFAULT_DTYPE)
+            elif type(x) is complex:
+                x = _tf.constant(x, dtype=_DEFAULT_COMPLEX_DTYPE)
 
             return func(x, *args, **kwargs)
 
@@ -161,7 +172,10 @@ def _box_binary_scalar(_func=None):
 
 def set_default_dtype(value):
     global _DEFAULT_DTYPE
+    global _DEFAULT_COMPLEX_DTYPE
+
     _DEFAULT_DTYPE = as_dtype(value)
+    _DEFAULT_COMPLEX_DTYPE = as_dtype(_MAP_FLOAT_TO_COMPLEX[value])
     _update_default_dtypes()
 
     return get_default_dtype()

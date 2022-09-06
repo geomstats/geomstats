@@ -9,6 +9,8 @@ import tensorflow_probability as _tfp
 from tensorflow import argmax, argmin, broadcast_to, cast
 from tensorflow import clip_by_value as clip
 from tensorflow import (
+    complex64,
+    complex128,
     equal,
     expand_dims,
     float32,
@@ -40,7 +42,7 @@ from . import random  # NOQA
 from ._dtype_wrapper import (
     _box_binary_scalar,
     _box_unary_scalar,
-    _cast_fout_from_dtype,
+    _cast_out_from_dtype,
     _update_dtype,
     _update_func_default_dtype,
     as_dtype,
@@ -53,8 +55,8 @@ _DTYPES = {
     int64: 1,
     float32: 2,
     float64: 3,
-    _tf.complex64: 4,
-    _tf.complex128: 5,
+    complex64: 4,
+    complex128: 5,
 }
 
 conj = _tf.math.conj
@@ -62,6 +64,7 @@ erf = _tf.math.erf
 imag = _tf.math.imag
 isnan = _tf.math.is_nan
 polygamma = _tf.math.polygamma
+real = _tf.math.real
 set_diag = _tf.linalg.set_diag
 trapz = _tfp.math.trapz
 
@@ -81,7 +84,9 @@ cos = _box_unary_scalar(_func=_tf.cos)
 cosh = _box_unary_scalar(_func=_tf.math.cosh)
 exp = _box_unary_scalar(_func=_tf.math.exp)
 floor = _box_unary_scalar(_func=_tf.math.floor)
+imag = _box_unary_scalar(_func=_tf.math.imag)
 log = _box_unary_scalar(_func=_tf.math.log)
+real = _box_unary_scalar(_func=_tf.math.real)
 sign = _box_unary_scalar(_func=_tf.math.sign)
 sin = _box_unary_scalar(_func=_tf.sin)
 sinh = _box_unary_scalar(_func=_tf.sinh)
@@ -155,7 +160,7 @@ def repeat(a, repeats, axis=None):
     return _tf.repeat(input=a, repeats=repeats, axis=axis)
 
 
-@_cast_fout_from_dtype(dtype_pos=1)
+@_cast_out_from_dtype(dtype_pos=1)
 def array(x, dtype=None):
     return _tf.convert_to_tensor(x, dtype=dtype)
 
@@ -852,7 +857,7 @@ def take(a, indices, axis=0):
     return _tf.gather(a, indices, axis=axis)
 
 
-@_cast_fout_from_dtype(dtype_pos=3)
+@_cast_out_from_dtype(dtype_pos=3)
 def linspace(start, stop, num=50, dtype=None):
     return _tf.linspace(start, stop, num)
 

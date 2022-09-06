@@ -7,9 +7,16 @@ import numpy as _np
 from ._common import cast
 
 _DEFAULT_DTYPE = None
+_DEFAULT_COMPLEX_DTYPE = None
 
 
 _TO_UPDATE_FUNCS_DTYPE = []
+
+
+_MAP_FLOAT_TO_COMPLEX = {
+    "float32": "complex64",
+    "float64": "complex128",
+}
 
 
 def _update_func_default_dtype(func):
@@ -84,17 +91,22 @@ def _update_dtype(dtype_pos=None, _func=None):
         return _decorator(_func)
 
 
-def _cast_fout_from_dtype(dtype_pos=None, _func=None):
+def _cast_out_from_dtype(dtype_pos=None, _func=None):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(*args, **kwargs):
             out = func(*args, **kwargs)
 
-            if out.dtype.kind == "f":
+            if out.dtype.kind == "f" or out.dtype.kind == "c":
                 if dtype_pos is not None and len(args) > dtype_pos:
                     dtype = args[dtype_pos]
                 else:
-                    dtype = kwargs.get("dtype", _DEFAULT_DTYPE)
+                    dtype = kwargs.get(
+                        "dtype",
+                        _DEFAULT_DTYPE
+                        if out.dtype.kind == "f"
+                        else _DEFAULT_COMPLEX_DTYPE,
+                    )
 
                 if out.dtype != dtype:
                     return cast(out, dtype)
@@ -169,7 +181,10 @@ def as_dtype(value):
 
 def set_default_dtype(value):
     global _DEFAULT_DTYPE
+    global _DEFAULT_COMPLEX_DTYPE
+
     _DEFAULT_DTYPE = as_dtype(value)
+    _DEFAULT_COMPLEX_DTYPE = as_dtype(_MAP_FLOAT_TO_COMPLEX[value])
     _update_default_dtypes()
 
     return get_default_dtype()

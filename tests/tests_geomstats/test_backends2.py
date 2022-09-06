@@ -209,8 +209,8 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
         msg = f"{actual} instead of {expected}"
         self.assertTrue(actual == expected, msg)
 
-    def test_array(self, ls, expected_dtype):
-        self._reset_dtype()
+    def test_array(self, ls, global_dtype_str, expected_dtype):
+        gs.set_default_dtype(global_dtype_str)
 
         out = gs.array(ls)
         self.assertDtype(out.dtype, expected_dtype)

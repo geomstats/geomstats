@@ -369,10 +369,20 @@ class BackendsTestData(TestData):
 class DtypesTestData(TestData):
     def array_test_data(self):
         smoke_data = [
-            dict(ls=[1.0, 2.0], expected_dtype=gs.float64),
+            dict(ls=[1.0, 2.0], global_dtype_str="float32", expected_dtype=gs.float32),
+            dict(ls=[1.0, 2.0], global_dtype_str="float64", expected_dtype=gs.float64),
             # TODO: uncomment later
             # dict(ls=[1, 2], expected_dtype=gs.int64),
-            # dict(ls=[1, 2j], expected_dtype=gs.complex128),
+            dict(
+                ls=[1.0 + 3.0j, 2.0j],
+                global_dtype_str="float32",
+                expected_dtype=gs.complex64,
+            ),
+            dict(
+                ls=[1.0 + 3.0j, 2.0j],
+                global_dtype_str="float64",
+                expected_dtype=gs.complex128,
+            ),
         ]
         return self.generate_tests(smoke_data)
 

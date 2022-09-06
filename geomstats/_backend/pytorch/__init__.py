@@ -8,6 +8,8 @@ from torch import arange, argmin
 from torch import broadcast_tensors as broadcast_arrays
 from torch import (
     clip,
+    complex64,
+    complex128,
     conj,
     empty,
     empty_like,
@@ -51,8 +53,8 @@ _DTYPES = {
     int64: 1,
     float32: 2,
     float64: 3,
-    _torch.complex64: 4,
-    _torch.complex128: 5,
+    complex64: 4,
+    complex128: 5,
 }
 
 

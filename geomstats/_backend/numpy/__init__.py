@@ -12,6 +12,8 @@ from numpy import (
     broadcast_arrays,
     broadcast_to,
     clip,
+    complex64,
+    complex128,
     concatenate,
     conj,
     cross,
@@ -45,7 +47,6 @@ from numpy import (
     mean,
     meshgrid,
     minimum,
-    mod,
     moveaxis,
     ones_like,
     pad,
@@ -85,7 +86,7 @@ from ._common import atol, cast, rtol, to_ndarray
 from ._dtype_wrapper import (
     _box_binary_scalar,
     _box_unary_scalar,
-    _cast_fout_from_dtype,
+    _cast_out_from_dtype,
     _update_dtype,
     _update_func_default_dtype,
     as_dtype,
@@ -104,7 +105,7 @@ _DTYPES = {
 
 ones = _update_func_default_dtype(_np.ones)
 eye = _update_func_default_dtype(_np.eye)
-array = _cast_fout_from_dtype(_func=_np.array, dtype_pos=1)
+array = _cast_out_from_dtype(_func=_np.array, dtype_pos=1)
 linspace = _update_dtype(_func=_np.linspace, dtype_pos=5)
 zeros = _update_dtype(_func=_np.zeros, dtype_pos=1)
 empty = _update_dtype(_func=_np.empty, dtype_pos=1)
@@ -129,6 +130,7 @@ tan = _box_unary_scalar(_func=_np.tan)
 tanh = _box_unary_scalar(_func=_np.tanh)
 
 arctan2 = _box_binary_scalar(_func=_np.arctan2)
+mod = _box_binary_scalar(_func=_np.mod)
 power = _box_binary_scalar(_func=_np.power)
 
 
