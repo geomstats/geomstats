@@ -18,6 +18,7 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
     skip_test_exp_after_log = pytorch_backend()
     skip_test_projection_belongs = True
     skip_test_to_tangent_at_identity_belongs_to_lie_algebra = True
+    skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = SpecialOrthogonalTestData()
 
