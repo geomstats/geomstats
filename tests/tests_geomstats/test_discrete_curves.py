@@ -381,6 +381,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_dist_is_norm_of_log = True
     skip_test_dist_point_to_itself_is_zero = True
     skip_test_triangle_inequality_of_dist = True
+    skip_test_geodesic_ivp_belongs = True
 
     testing_data = ElasticMetricTestData()
 
