@@ -4,6 +4,8 @@ import scipy as _scipy
 import tensorflow as _tf
 from tensorflow.linalg import norm
 
+from .._backend_config import tf_atol as atol
+
 # "Forward-import" primitives. Due to the way the 'linalg' module is exported
 # in TF, this does not work with 'from tensorflow.linalg import ...'.
 det = _tf.linalg.det
@@ -55,23 +57,23 @@ def svd(x, full_matrices=True, compute_uv=True, **kwargs):
     return _tf.linalg.svd(x, compute_uv=compute_uv)
 
 
-def solve_sylvester(a, b, q):
+def solve_sylvester(a, b, q, tol=atol):
     axes = (0, 2, 1) if a.ndim == 3 else (1, 0)
     if a.shape == b.shape:
-        if _tf.reduce_all(a == b) and _tf.reduce_all(
-            _tf.abs(a - _tf.transpose(a, perm=axes)) < 1e-8
+        if _tf.reduce_all(_tf.abs(a - b) < tol) and _tf.reduce_all(
+            _tf.abs(a - _tf.transpose(a, perm=axes)) < tol
         ):
             eigvals, eigvecs = eigh(a)
-            if _tf.reduce_all(eigvals >= 1e-8):
+            if _tf.reduce_all(eigvals >= tol):
                 tilde_q = _tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
                 tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
                 return eigvecs @ tilde_x @ _tf.transpose(eigvecs, perm=axes)
 
             conditions = (
                 a.shape[-1] >= 2
-                and _tf.reduce_all(eigvals[..., 0] >= -1e-8)
-                and _tf.reduce_all(eigvals[..., 1] >= 1e-8)
-                and _tf.reduce_all(_tf.abs(q + _tf.transpose(q, perm=axes)) < 1e-8)
+                and _tf.reduce_all(eigvals[..., 0] >= -tol)
+                and _tf.reduce_all(eigvals[..., 1] >= tol)
+                and _tf.reduce_all(_tf.abs(q + _tf.transpose(q, perm=axes)) < tol)
             )
 
             if conditions:

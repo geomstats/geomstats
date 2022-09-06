@@ -580,12 +580,6 @@ class DtypesTestData(TestData):
                 shape_b=(1,),
                 shape_c=(1,),
             ),
-            dict(
-                func_name="linalg.solve_sylvester",
-                shape_a=(3, 3),
-                shape_b=(1, 1),
-                shape_c=(3, 1),
-            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -599,6 +593,7 @@ class DtypesTestData(TestData):
         smoke_data = [
             dict(func_name="linalg.solve_sylvester", create_array=_create_sylvester)
         ]
+
         return self.generate_tests(smoke_data)
 
     def func_out_dtype_test_data(self):
@@ -609,6 +604,17 @@ class DtypesTestData(TestData):
                 args=([True, False], 20.0, 20.0),
                 kwargs={},
                 expected=gs.float64,
+            ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def solve_sylvester_test_data(self):
+        smoke_data = [
+            dict(
+                shape_a=(3, 3),
+                shape_b=(1, 1),
+                shape_c=(3, 1),
             ),
         ]
 

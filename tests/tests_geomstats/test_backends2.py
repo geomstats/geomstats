@@ -3,10 +3,13 @@ import pytest
 import scipy
 
 import geomstats.backend as gs
-from tests.conftest import Parametrizer, TestCase
+from tests.conftest import Parametrizer, TestCase, tf_backend
 from tests.data.backends_data import BackendsTestData, DtypesTestData
 
 # TODO: vectorization using new approach
+
+
+IS_TF_BACKEND = tf_backend()
 
 
 def _convert_gs_to_np(value):
@@ -196,6 +199,7 @@ class TestBackends(TestCase, metaclass=Parametrizer):
 
 class TestDtypes(TestCase, metaclass=Parametrizer):
     testing_data = DtypesTestData()
+    skip_test_solve_sylvester = IS_TF_BACKEND
 
     dtypes_str = ["float32", "float64"]  # sort by wider
     default_dtype = gs.as_dtype("float64")
@@ -440,3 +444,24 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
         out = gs_fnc(*args, **kwargs)
 
         self.assertDtype(out.dtype, expected)
+
+    def test_solve_sylvester(
+        self,
+        shape_a,
+        shape_b,
+        shape_c,
+        func_a=gs.ones,
+        func_b=gs.ones,
+        func_c=gs.ones,
+    ):
+        func_name = "linalg.solve_sylvester"
+
+        self.test_ternary_op_from_shape(
+            func_name,
+            shape_a,
+            shape_b,
+            shape_c,
+            func_a=func_a,
+            func_b=func_b,
+            func_c=func_c,
+        )
