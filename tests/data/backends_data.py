@@ -437,7 +437,9 @@ class DtypesTestData(TestData):
             dict(func_name="cosh", x=1.0),
             dict(func_name="exp", x=1.0),
             dict(func_name="floor", x=1.0),
+            dict(func_name="imag", x=1.0 + 0.0j),
             dict(func_name="log", x=1.0),
+            dict(func_name="real", x=1.0),
             dict(func_name="sign", x=1.0),
             dict(func_name="sin", x=1.0),
             dict(func_name="sinh", x=1.0),
@@ -520,6 +522,15 @@ class DtypesTestData(TestData):
             dict(func_name="linalg.logm", create_array=_create_diag),
             dict(func_name="linalg.logm", create_array=_create_spd),
             dict(func_name="linalg.sqrtm", create_array=_create_spd),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def binary_op_float_input_test_data(self):
+        smoke_data = [
+            dict(func_name="arctan2", x1=1.0, x2=0.5),
+            dict(func_name="mod", x1=1.0, x2=2.0),
+            dict(func_name="power", x1=1.0, x2=1.0),
         ]
 
         return self.generate_tests(smoke_data)

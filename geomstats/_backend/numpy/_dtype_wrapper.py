@@ -145,6 +145,24 @@ def _box_unary_scalar(_func=None):
         return _decorator(_func)
 
 
+def _box_binary_scalar(_func=None):
+    def _decorator(func):
+        @functools.wraps(func)
+        def _wrapped(x1, x2, *args, **kwargs):
+
+            if type(x1) is float:
+                return func(x1, x2, *args, dtype=_DEFAULT_DTYPE, **kwargs)
+
+            return func(x1, x2, *args, **kwargs)
+
+        return _wrapped
+
+    if _func is None:
+        return _decorator
+    else:
+        return _decorator(_func)
+
+
 def as_dtype(value):
     return _np.dtype(value)
 

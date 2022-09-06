@@ -6,9 +6,7 @@ from itertools import product as _product
 import numpy as _np
 import tensorflow as _tf
 import tensorflow_probability as _tfp
-from tensorflow import argmax, argmin
-from tensorflow import atan2 as arctan2
-from tensorflow import broadcast_to, cast
+from tensorflow import argmax, argmin, broadcast_to, cast
 from tensorflow import clip_by_value as clip
 from tensorflow import (
     equal,
@@ -40,8 +38,9 @@ from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from ._dtype_wrapper import (
-    _cast_fout_from_dtype,
+    _box_binary_scalar,
     _box_unary_scalar,
+    _cast_fout_from_dtype,
     _update_dtype,
     _update_func_default_dtype,
     as_dtype,
@@ -62,10 +61,7 @@ conj = _tf.math.conj
 erf = _tf.math.erf
 imag = _tf.math.imag
 isnan = _tf.math.is_nan
-mod = _tf.math.mod
 polygamma = _tf.math.polygamma
-power = _tf.math.pow
-real = _tf.math.real
 set_diag = _tf.linalg.set_diag
 trapz = _tfp.math.trapz
 
@@ -92,6 +88,11 @@ sinh = _box_unary_scalar(_func=_tf.sinh)
 sqrt = _box_unary_scalar(_func=_tf.sqrt)
 tan = _box_unary_scalar(_func=_tf.tan)
 tanh = _box_unary_scalar(_func=_tf.tanh)
+
+
+arctan2 = _box_binary_scalar(_func=_tf.math.atan2)
+mod = _box_binary_scalar(_func=_tf.math.mod)
+power = _box_binary_scalar(_func=_tf.math.pow)
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -326,7 +327,7 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
     if use_vectorization:
         full_shape = shape(x)
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
         mask = _vectorized_mask_from_indices(
             n_samples, indices, tile_shape, axis, x.dtype
         )

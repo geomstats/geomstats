@@ -5,15 +5,28 @@ from collections.abc import Iterable as _Iterable
 import numpy as _np
 import torch as _torch
 from torch import arange, argmin
-from torch import atan2 as arctan2  # NOQA
 from torch import broadcast_tensors as broadcast_arrays
-from torch import clip, conj, empty, empty_like, erf, eye, flatten, float32, float64
-from torch import fmod as mod
-from torch import greater, hstack, int32, int64, isnan, kron, less, logical_or
+from torch import (
+    clip,
+    conj,
+    empty,
+    empty_like,
+    erf,
+    eye,
+    flatten,
+    float32,
+    float64,
+    greater,
+    hstack,
+    int32,
+    int64,
+    isnan,
+    kron,
+    less,
+    logical_or,
+)
 from torch import max as amax
-from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma
-from torch import pow as power
-from torch import quantile
+from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma, quantile
 from torch import repeat_interleave as repeat
 from torch import reshape, stack, trapz, uint8, unique, vstack, zeros, zeros_like
 
@@ -25,6 +38,7 @@ from . import random  # NOQA
 from ._common import array, cast, from_numpy
 from ._dtype_wrapper import (
     _add_default_dtype,
+    _box_binary_scalar,
     _box_unary_scalar,
     _preserve_input_dtype,
     as_dtype,
@@ -69,6 +83,12 @@ sinh = _box_unary_scalar(_torch.sinh)
 sqrt = _box_unary_scalar(_torch.sqrt)
 tan = _box_unary_scalar(_torch.tan)
 tanh = _box_unary_scalar(_torch.tanh)
+
+
+arctan2 = _box_binary_scalar(_func=_torch.atan2)
+mod = _box_binary_scalar(_func=_torch.fmod, box_x2=False)
+power = _box_binary_scalar(_func=_torch.pow, box_x2=False)
+
 
 std = _preserve_input_dtype(_add_default_dtype(_torch.std))
 

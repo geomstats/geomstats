@@ -7,7 +7,6 @@ from numpy import (
     amax,
     amin,
     any,
-    arctan2,
     argmax,
     argmin,
     broadcast_arrays,
@@ -33,7 +32,6 @@ from numpy import (
     greater,
     hsplit,
     hstack,
-    imag,
     int32,
     int64,
     isclose,
@@ -51,10 +49,8 @@ from numpy import (
     moveaxis,
     ones_like,
     pad,
-    power,
     prod,
     quantile,
-    real,
     repeat,
     reshape,
     searchsorted,
@@ -87,8 +83,9 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 from ._common import atol, cast, rtol, to_ndarray
 from ._dtype_wrapper import (
-    _cast_fout_from_dtype,
+    _box_binary_scalar,
     _box_unary_scalar,
+    _cast_fout_from_dtype,
     _update_dtype,
     _update_func_default_dtype,
     as_dtype,
@@ -131,6 +128,9 @@ sqrt = _box_unary_scalar(_func=_np.sqrt)
 tan = _box_unary_scalar(_func=_np.tan)
 tanh = _box_unary_scalar(_func=_np.tanh)
 
+arctan2 = _box_binary_scalar(_func=_np.arctan2)
+power = _box_binary_scalar(_func=_np.power)
+
 
 def angle(z, deg=False):
     out = _np.angle(z, deg=deg)
@@ -138,6 +138,22 @@ def angle(z, deg=False):
         return cast(out, get_default_dtype())
 
     return out
+
+
+def imag(x):
+    out = _np.imag(x)
+    if is_array(x):
+        return out
+
+    return get_default_dtype().type(out)
+
+
+def real(x):
+    out = _np.real(x)
+    if is_array(x):
+        return out
+
+    return get_default_dtype().type(out)
 
 
 def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):

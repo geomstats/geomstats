@@ -364,6 +364,15 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
     def test_unary_op_from_array(self, func_name, create_array):
         return self._test_op_from_array(func_name, create_array)
 
+    def test_binary_op_float_input(self, func_name, x1, x2):
+        gs_fnc = get_backend_fnc(func_name)
+
+        for dtype_str in self.dtypes_str:
+            dtype = gs.set_default_dtype(dtype_str)
+            out = gs_fnc(x1, x2)
+
+            self.assertDtype(out.dtype, dtype)
+
     def test_binary_op_from_shape(
         self, func_name, shape_a, shape_b, kwargs=None, func_a=gs.ones, func_b=gs.ones
     ):

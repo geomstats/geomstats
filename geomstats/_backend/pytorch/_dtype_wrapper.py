@@ -58,11 +58,30 @@ def _preserve_input_dtype(func):
     return _wrapped
 
 
-def _box_unary_scalar(function):
-    @functools.wraps(function)
-    def wrapper(x, *args, **kwargs):
+def _box_unary_scalar(func):
+    @functools.wraps(func)
+    def _wrapped(x, *args, **kwargs):
         if not _torch.is_tensor(x):
             x = _torch.tensor(x)
-        return function(x, *args, **kwargs)
+        return func(x, *args, **kwargs)
 
-    return wrapper
+    return _wrapped
+
+
+def _box_binary_scalar(_func=None, box_x1=True, box_x2=True):
+    def _decorator(func):
+        @functools.wraps(func)
+        def _wrapped(x1, x2, *args, **kwargs):
+            if box_x1 and not _torch.is_tensor(x1):
+                x1 = _torch.tensor(x1)
+            if box_x2 and not _torch.is_tensor(x2):
+                x2 = _torch.tensor(x2)
+
+            return func(x1, x2, *args, **kwargs)
+
+        return _wrapped
+
+    if _func is None:
+        return _decorator
+    else:
+        return _decorator(_func)

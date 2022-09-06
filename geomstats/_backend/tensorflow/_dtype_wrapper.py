@@ -138,6 +138,27 @@ def _box_unary_scalar(_func=None):
         return _decorator(_func)
 
 
+def _box_binary_scalar(_func=None):
+    def _decorator(func):
+        @functools.wraps(func)
+        def _wrapped(x1, x2, *args, **kwargs):
+
+            if type(x1) is float:
+                x1 = _tf.constant(x1, dtype=_DEFAULT_DTYPE)
+
+            if type(x2) is float:
+                x2 = _tf.constant(x2, dtype=_DEFAULT_DTYPE)
+
+            return func(x1, x2, *args, **kwargs)
+
+        return _wrapped
+
+    if _func is None:
+        return _decorator
+    else:
+        return _decorator(_func)
+
+
 def set_default_dtype(value):
     global _DEFAULT_DTYPE
     _DEFAULT_DTYPE = as_dtype(value)
