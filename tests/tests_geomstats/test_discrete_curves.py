@@ -7,6 +7,8 @@ from geomstats.geometry.discrete_curves import (
     ElasticMetric,
     L2CurvesMetric,
     SRVMetric,
+    SRVQuotientMetric,
+    SRVShapeBundle,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -17,8 +19,9 @@ from tests.data.discrete_curves_data import (
     DiscreteCurvesTestData,
     ElasticMetricTestData,
     L2CurvesMetricTestData,
-    QuotientSRVMetricTestData,
     SRVMetricTestData,
+    SRVQuotientMetricTestData,
+    SRVShapeBundleTestData,
 )
 from tests.geometry_test_cases import (
     ManifoldTestCase,
@@ -284,42 +287,6 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.stack((res_a, res_b))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
-    def test_split_horizontal_vertical(
-        self, times, n_discretized_curves, curve_a, curve_b
-    ):
-        """Test split horizontal vertical.
-        Check that horizontal and vertical parts of any tangent
-        vector are othogonal with respect to the SRVMetric inner
-        product, and check vectorization.
-        """
-        srv_metric_r3 = SRVMetric(r3)
-        quotient_srv_metric_r3 = DiscreteCurves(ambient_manifold=r3).quotient_srv_metric
-        geod = srv_metric_r3.geodesic(initial_curve=curve_a, end_curve=curve_b)
-        geod = geod(times)
-        tangent_vec = n_discretized_curves * (geod[1, :, :] - geod[0, :, :])
-        (
-            tangent_vec_hor,
-            tangent_vec_ver,
-            _,
-        ) = quotient_srv_metric_r3.split_horizontal_vertical(tangent_vec, curve_a)
-        result = srv_metric_r3.inner_product(tangent_vec_hor, tangent_vec_ver, curve_a)
-        expected = 0.0
-        self.assertAllClose(result, expected, atol=1e-4)
-
-        tangent_vecs = n_discretized_curves * (geod[1:] - geod[:-1])
-        _, _, result = quotient_srv_metric_r3.split_horizontal_vertical(
-            tangent_vecs, geod[:-1]
-        )
-        expected = []
-        for i in range(n_discretized_curves - 1):
-            _, _, res = quotient_srv_metric_r3.split_horizontal_vertical(
-                tangent_vecs[i], geod[i]
-            )
-            expected.append(res)
-        expected = gs.stack(expected)
-        self.assertAllClose(result, expected)
-
     def test_space_derivative(
         self, dim, n_points, n_discretized_curves, k_sampling_points
     ):
@@ -366,7 +333,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         tangent_vecs = l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
         result = srv_metric_r3.l2_curves_metric.pointwise_inner_products(
-            tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_curve=curves_ab
+            tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_point=curves_ab
         )
         expected_shape = (n_discretized_curves, k_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
@@ -374,7 +341,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = srv_metric_r3.l2_curves_metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs[0],
             tangent_vec_b=tangent_vecs[0],
-            base_curve=curves_ab[0],
+            base_point=curves_ab[0],
         )
         expected_shape = (k_sampling_points,)
         self.assertAllClose(gs.shape(result), expected_shape)
@@ -500,8 +467,44 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, rtol, atol)
 
 
-class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
-    testing_data = QuotientSRVMetricTestData()
+class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
+    testing_data = SRVShapeBundleTestData()
+
+    @geomstats.tests.np_autograd_and_torch_only
+    def test_horizontal_and_vertical_projections(
+        self, times, n_discretized_curves, curve_a, curve_b
+    ):
+        """Test horizontal and vertical projections.
+        Check that horizontal and vertical parts of any tangent
+        vector are othogonal with respect to the SRVMetric inner
+        product, and check vectorization.
+        """
+        srv_metric_r3 = SRVMetric(r3)
+        srv_shape_bundle_r3 = SRVShapeBundle(r3)
+        geod = srv_metric_r3.geodesic(initial_point=curve_a, end_point=curve_b)
+        geod = geod(times)
+        tangent_vec = n_discretized_curves * (geod[1, :, :] - geod[0, :, :])
+        tangent_vec_hor = srv_shape_bundle_r3.horizontal_projection(
+            tangent_vec, curve_a
+        )
+        tangent_vec_ver = srv_shape_bundle_r3.vertical_projection(tangent_vec, curve_a)
+        print(tangent_vec_hor.shape)
+        result = srv_metric_r3.inner_product(tangent_vec_hor, tangent_vec_ver, curve_a)
+        expected = 0.0
+        self.assertAllClose(result, expected, atol=1e-4)
+
+        tangent_vecs = n_discretized_curves * (geod[1:] - geod[:-1])
+        _, result = srv_shape_bundle_r3.vertical_projection(
+            tangent_vecs, geod[:-1], return_norm=True
+        )
+        expected = []
+        for i in range(n_discretized_curves - 1):
+            _, res = srv_shape_bundle_r3.vertical_projection(
+                tangent_vecs[i], geod[i], return_norm=True
+            )
+            expected.append(res)
+        expected = gs.stack(expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_autograd_and_torch_only
     def test_horizontal_geodesic(self, k_sampling_points, curve_a, n_times):
@@ -518,24 +521,24 @@ class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        quotient_srv_metric_r3 = DiscreteCurves(ambient_manifold=r3).quotient_srv_metric
-        horizontal_geod_fun = quotient_srv_metric_r3.horizontal_geodesic(
-            curve_a, curve_b
-        )
+        srv_shape_bundle_r3 = SRVShapeBundle(r3)
+        horizontal_geod_fun = srv_shape_bundle_r3.horizontal_geodesic(curve_a, curve_b)
         times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_geod_fun(times)
         velocity_vec = n_times * (horizontal_geod[1:] - horizontal_geod[:-1])
-        _, _, vertical_norms = quotient_srv_metric_r3.split_horizontal_vertical(
-            velocity_vec, horizontal_geod[:-1]
+        _, vertical_norms = srv_shape_bundle_r3.vertical_projection(
+            velocity_vec, horizontal_geod[:-1], return_norm=True
         )
         result = gs.sum(vertical_norms**2, axis=1) ** (1 / 2)
         expected = gs.zeros(n_times - 1)
         self.assertAllClose(result, expected, atol=1e-3)
 
+
+class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
+    testing_data = SRVQuotientMetricTestData()
+
     @geomstats.tests.np_autograd_and_torch_only
-    def test_quotient_dist(
-        self, sampling_times, curve_fun_a, curve_a, k_sampling_points
-    ):
+    def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
         """Test quotient distance.
         Check that the quotient distance is the same as the distance
         between the end points of the horizontal geodesic.
@@ -550,7 +553,7 @@ class TestQuotientSRVMetric(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        quotient_srv_metric_r3 = DiscreteCurves(ambient_manifold=r3).quotient_srv_metric
-        result = quotient_srv_metric_r3.dist(curve_a_resampled, curve_b)
-        expected = quotient_srv_metric_r3.dist(curve_a, curve_b)
+        srv_quotient_metric_r3 = SRVQuotientMetric(ambient_manifold=r3)
+        result = srv_quotient_metric_r3.dist(curve_a_resampled, curve_b)
+        expected = srv_quotient_metric_r3.dist(curve_a, curve_b)
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)

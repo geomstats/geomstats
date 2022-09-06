@@ -156,7 +156,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
     def __init__(self, n):
         super(CorrelationMatricesBundle, self).__init__(
             n=n,
-            ambient_metric=SPDMetricAffine(n),
+            total_space_metric=SPDMetricAffine(n),
             group_dim=n,
             group_action=FullRankCorrelationMatrices.diag_action,
         )

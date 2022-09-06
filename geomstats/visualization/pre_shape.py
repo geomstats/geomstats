@@ -66,8 +66,10 @@ class KendallSphere:
             [[0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2], [-1.0, 0.0]]
         ) / gs.sqrt(3.0)
 
-        self.na = self.ub - S32.ambient_metric.inner_product(self.ub, self.ua) * self.ua
-        self.na = self.na / S32.ambient_metric.norm(self.na)
+        self.na = (
+            self.ub - S32.total_space_metric.inner_product(self.ub, self.ua) * self.ua
+        )
+        self.na = self.na / S32.total_space_metric.norm(self.na)
 
         if points is not None:
             self.add_points(points)
@@ -100,13 +102,13 @@ class KendallSphere:
     def convert_to_polar_coordinates(self, points):
         """Assign polar coordinates to given pre-shapes."""
         aligned_points = S32.align(points, self.pole)
-        speeds = S32.ambient_metric.log(aligned_points, self.pole)
+        speeds = S32.total_space_metric.log(aligned_points, self.pole)
 
         coords_theta = gs.arctan2(
-            S32.ambient_metric.inner_product(speeds, self.na),
-            S32.ambient_metric.inner_product(speeds, self.ua),
+            S32.total_space_metric.inner_product(speeds, self.na),
+            S32.total_space_metric.inner_product(speeds, self.ua),
         )
-        coords_phi = 2.0 * S32.ambient_metric.dist(self.pole, aligned_points)
+        coords_phi = 2.0 * S32.total_space_metric.dist(self.pole, aligned_points)
 
         return coords_theta, coords_phi
 
@@ -325,8 +327,10 @@ class KendallDisk:
             [[0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2], [-1.0, 0.0]]
         ) / gs.sqrt(3.0)
 
-        self.na = self.ub - S32.ambient_metric.inner_product(self.ub, self.ua) * self.ua
-        self.na = self.na / S32.ambient_metric.norm(self.na)
+        self.na = (
+            self.ub - S32.total_space_metric.inner_product(self.ub, self.ua) * self.ua
+        )
+        self.na = self.na / S32.total_space_metric.norm(self.na)
 
         if points is not None:
             self.add_points(points)
@@ -344,12 +348,12 @@ class KendallDisk:
         """Assign polar coordinates to given pre-shapes."""
         aligned_points = S33.align(points, self.centre)
         aligned_points2d = aligned_points[..., :, :2]
-        speeds = S32.ambient_metric.log(aligned_points2d, self.pole)
+        speeds = S32.total_space_metric.log(aligned_points2d, self.pole)
 
-        coords_r = S32.ambient_metric.dist(self.pole, aligned_points2d)
+        coords_r = S32.total_space_metric.dist(self.pole, aligned_points2d)
         coords_theta = gs.arctan2(
-            S32.ambient_metric.inner_product(speeds, self.na),
-            S32.ambient_metric.inner_product(speeds, self.ua),
+            S32.total_space_metric.inner_product(speeds, self.na),
+            S32.total_space_metric.inner_product(speeds, self.ua),
         )
 
         return coords_r, coords_theta
