@@ -164,16 +164,6 @@ class _ManifoldTestData(TestData):
 
         Parameters
         ----------
-        space_cls : Manifold
-            Class of the space, i.e. a child class of Manifold.
-        space_args_list : list
-            List of spaces' args on which tests will run.
-        n_tangent_vecs_list : list
-            List of integers for the number of tangent vectors to generate.
-        amplitude : int
-            Scaling factor.
-            Optional, default
-
         is_tangent_atol : float
             Absolute tolerance for the is_tangent function.
         """

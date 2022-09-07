@@ -383,11 +383,10 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return array(
-        _coo_matrix(
-            (data, list(zip(*indices))), target_shape, _np.array(data).dtype
-        ).todense()
-    )
+    data = array(data)
+    out = zeros(target_shape, dtype=data.dtype)
+    out.put(_np.ravel_multi_index(_np.array(indices).T, target_shape), data)
+    return out
 
 
 def vec_to_diag(vec):
