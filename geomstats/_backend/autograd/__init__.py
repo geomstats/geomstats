@@ -2,30 +2,20 @@
 
 import autograd.numpy as _np
 from autograd.numpy import (
-    abs,
     all,
     allclose,
     amax,
     amin,
-    angle,
     any,
-    arange,
-    arccos,
-    arccosh,
-    arcsin,
-    arctan2,
-    arctanh,
     argmax,
     argmin,
-    array,
     broadcast_arrays,
     broadcast_to,
-    ceil,
     clip,
+    complex64,
+    complex128,
     concatenate,
     conj,
-    cos,
-    cosh,
     cross,
     cumprod,
     cumsum,
@@ -35,20 +25,15 @@ from autograd.numpy import (
 from autograd.numpy import dtype as _ndtype
 from autograd.numpy import (
     einsum,
-    empty,
     empty_like,
     equal,
-    exp,
     expand_dims,
-    eye,
     flip,
     float32,
     float64,
-    floor,
     greater,
     hsplit,
     hstack,
-    imag,
     int32,
     int64,
     isclose,
@@ -56,40 +41,28 @@ from autograd.numpy import (
     kron,
     less,
     less_equal,
-    linspace,
-    log,
     logical_and,
     logical_or,
     maximum,
     mean,
     meshgrid,
     minimum,
-    mod,
     moveaxis,
-    ones,
     ones_like,
     pad,
-    power,
     prod,
     quantile,
-    real,
     repeat,
     reshape,
     searchsorted,
     shape,
-    sign,
-    sin,
-    sinh,
     sort,
     split,
-    sqrt,
     squeeze,
     stack,
     std,
     sum,
     take,
-    tan,
-    tanh,
     tile,
     transpose,
     trapz,
@@ -101,7 +74,6 @@ from autograd.numpy import (
     unique,
     vstack,
     where,
-    zeros,
     zeros_like,
 )
 from autograd.scipy.special import erf, polygamma  # NOQA
@@ -112,7 +84,16 @@ from .._backend_config import np_rtol as rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from ._common import to_ndarray  # NOQA
+from ._common import cast, to_ndarray  # NOQA
+from ._dtype_wrapper import (
+    _box_binary_scalar,
+    _box_unary_scalar,
+    _cast_out_from_dtype,
+    _dyn_update_dtype,
+    as_dtype,
+    get_default_dtype,
+    set_default_dtype,
+)
 
 _DTYPES = {
     _ndtype("int32"): 0,
@@ -124,6 +105,74 @@ _DTYPES = {
 }
 
 
+eye = _dyn_update_dtype(target=_np.eye)
+ones = _dyn_update_dtype(target=_np.ones)
+linspace = _dyn_update_dtype(target=_np.linspace)
+zeros = _dyn_update_dtype(target=_np.zeros)
+empty = _dyn_update_dtype(target=_np.empty)
+
+array = _cast_out_from_dtype(target=_np.array)
+
+abs = _box_unary_scalar(target=_np.abs)
+arccos = _box_unary_scalar(target=_np.arccos)
+arccosh = _box_unary_scalar(target=_np.arccosh)
+arcsin = _box_unary_scalar(target=_np.arcsin)
+arctanh = _box_unary_scalar(target=_np.arctanh)
+ceil = _box_unary_scalar(target=_np.ceil)
+cos = _box_unary_scalar(target=_np.cos)
+cosh = _box_unary_scalar(target=_np.cosh)
+exp = _box_unary_scalar(target=_np.exp)
+floor = _box_unary_scalar(target=_np.floor)
+log = _box_unary_scalar(target=_np.log)
+sign = _box_unary_scalar(target=_np.sign)
+sin = _box_unary_scalar(target=_np.sin)
+sinh = _box_unary_scalar(target=_np.sinh)
+sqrt = _box_unary_scalar(target=_np.sqrt)
+tan = _box_unary_scalar(target=_np.tan)
+tanh = _box_unary_scalar(target=_np.tanh)
+
+arctan2 = _box_binary_scalar(target=_np.arctan2)
+mod = _box_binary_scalar(target=_np.mod)
+power = _box_binary_scalar(target=_np.power)
+
+
+def angle(z, deg=False):
+    out = _np.angle(z, deg=deg)
+    if type(z) is float:
+        return cast(out, get_default_dtype())
+
+    return out
+
+
+def imag(x):
+    out = _np.imag(x)
+    if is_array(x):
+        return out
+
+    return array(out)
+
+
+def real(x):
+    out = _np.real(x)
+    if is_array(x):
+        return out
+
+    return array(out)
+
+
+def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
+
+    if dtype is None and (
+        type(stop) is float or type(step) is float or type(start_or_stop) is float
+    ):
+        dtype = get_default_dtype()
+
+    if stop is None:
+        return _np.arange(start_or_stop, step=step, dtype=dtype)
+
+    return _np.arange(start_or_stop, stop, step=step, dtype=dtype)
+
+
 def to_numpy(x):
     return x
 
@@ -132,17 +181,23 @@ def from_numpy(x):
     return x
 
 
-def convert_to_wider_dtype(tensor_list):
+def _get_wider_dtype(tensor_list):
     dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
-    if len(set(dtype_list)) == 1:
-        return tensor_list
+    if len(dtype_list) == 1:
+        return dtype_list[0], True
 
     wider_dtype_index = max(dtype_list)
-
     wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
 
-    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
-    return tensor_list
+    return wider_dtype, False
+
+
+def convert_to_wider_dtype(tensor_list):
+    wider_dtype, same = _get_wider_dtype(tensor_list)
+    if same:
+        return tensor_list
+
+    return [cast(x, dtype=wider_dtype) for x in tensor_list]
 
 
 def flatten(x):
@@ -303,10 +358,6 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return _np.vectorize(pyfunc, signature=signature)(x)
 
 
-def cast(x, dtype):
-    return x.astype(dtype)
-
-
 def set_diag(x, new_diag):
     """Set the diagonal along the last two axis.
 
@@ -364,6 +415,12 @@ def array_from_sparse(indices, data, target_shape):
     return out
 
 
+def vec_to_diag(vec):
+    """Convert vector to diagonal matrix."""
+    d = vec.shape[-1]
+    return _np.squeeze(vec[..., None, :] * eye(d, dtype=vec.dtype)[None, :, :])
+
+
 def tril_to_vec(x, k=0):
     """ """
     n = x.shape[-1]
@@ -376,12 +433,6 @@ def triu_to_vec(x, k=0):
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
-
-
-def vec_to_diag(vec):
-    """Convert vector to diagonal matrix."""
-    d = vec.shape[-1]
-    return _np.squeeze(vec[..., None, :] * _np.eye(d)[None, :, :])
 
 
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
@@ -400,10 +451,12 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     -------
     mat : array_like, shape=[..., n, n]
     """
+    diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
+
     n = diag.shape[-1]
     (i,) = _np.diag_indices(n, ndim=1)
     j, k = _np.triu_indices(n, k=1)
-    mat = _np.zeros(diag.shape + (n,))
+    mat = zeros(diag.shape + (n,), dtype=diag.dtype)
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
@@ -413,7 +466,9 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
 def divide(a, b, ignore_div_zero=False):
     if ignore_div_zero is False:
         return _np.divide(a, b)
-    return _np.divide(a, b, out=_np.zeros_like(a), where=b != 0)
+
+    wider_dtype, _ = _get_wider_dtype([a, b])
+    return _np.divide(a, b, out=zeros(a.shape, dtype=wider_dtype), where=b != 0)
 
 
 def ravel_tril_indices(n, k=0, m=None):

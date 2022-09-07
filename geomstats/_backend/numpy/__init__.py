@@ -195,8 +195,7 @@ def convert_to_wider_dtype(tensor_list):
     if same:
         return tensor_list
 
-    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
-    return tensor_list
+    return [cast(x, dtype=wider_dtype) for x in tensor_list]
 
 
 def flatten(x):
