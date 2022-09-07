@@ -162,8 +162,8 @@ def _pre_add_default_dtype(cast):
     return _add_default_dtype_by_casting
 
 
-def _pre_cast_fout_from_input_dtype(cast, is_floating):
-    def _cast_fout_from_input_dtype(target=None):
+def _pre_cast_fout_to_input_dtype(cast, is_floating):
+    def _cast_fout_to_input_dtype(target=None):
         """Cast out of func if float and not accordingly to input.
 
         Notes
@@ -175,7 +175,7 @@ def _pre_cast_fout_from_input_dtype(cast, is_floating):
             @functools.wraps(func)
             def _wrapped(x, *args, **kwargs):
                 out = func(x, *args, **kwargs)
-                if is_floating(x) and out.dtype != x.dtype:
+                if is_floating(out) and out.dtype != x.dtype:
                     return cast(out, x.dtype)
                 return out
 
@@ -186,7 +186,7 @@ def _pre_cast_fout_from_input_dtype(cast, is_floating):
         else:
             return _decorator(target)
 
-    return _cast_fout_from_input_dtype
+    return _cast_fout_to_input_dtype
 
 
 def _np_box_unary_scalar(target=None):

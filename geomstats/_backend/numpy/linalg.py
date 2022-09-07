@@ -17,11 +17,11 @@ from numpy.linalg import (  # NOQA
 
 from ._common import atol
 from ._common import to_ndarray as _to_ndarray
-from ._dtype_wrapper import _cast_fout_from_input_dtype
+from ._dtype_wrapper import _cast_fout_to_input_dtype
 
 _diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
 
-_logm_vec = _cast_fout_from_input_dtype(
+_logm_vec = _cast_fout_to_input_dtype(
     target=_np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
 )
 
@@ -73,7 +73,7 @@ def solve_sylvester(a, b, q, tol=atol):
     )(a, b, q)
 
 
-@_cast_fout_from_input_dtype
+@_cast_fout_to_input_dtype
 def sqrtm(x):
     return _np.vectorize(_scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
 
