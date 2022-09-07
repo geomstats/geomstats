@@ -1,3 +1,17 @@
+"""Flag estimator.
+
+
+Lead authors: Dimbihery Rabenoro
+
+
+References
+----------
+.. [rabenoro2022] Rabenoro, D. and Pennec, X., "A geometric framework for
+   asymptotic inference of principal subspaces in PCA".
+   https://arxiv.org/abs/2209.02025
+
+"""
+
 from sklearn.covariance import EmpiricalCovariance
 from scipy.stats import chi2
 
