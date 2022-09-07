@@ -6,7 +6,7 @@ from torch import complex64, complex128, float32, float64
 from geomstats._backend import _backend_config as _config
 from geomstats._backend._dtype_utils import (
     _MAP_FLOAT_TO_COMPLEX,
-    _pre_add_default_dtype,
+    _pre_add_default_dtype_by_casting,
     get_default_dtype,
 )
 
@@ -32,13 +32,13 @@ def set_default_dtype(value):
     return _config._DEFAULT_DTYPE
 
 
-_add_default_dtype = _pre_add_default_dtype(cast)
+_add_default_dtype_by_casting = _pre_add_default_dtype_by_casting(cast)
 
 
 def _preserve_input_dtype(target=None):
     # only acts on input
     # assumes dtype is kwarg
-    # use together with _add_default_dtype
+    # use together with _add_default_dtype_by_casting
 
     def _decorator(func):
         @functools.wraps(func)

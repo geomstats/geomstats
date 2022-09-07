@@ -39,7 +39,7 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 from ._common import array, cast, from_numpy
 from ._dtype_wrapper import (
-    _add_default_dtype,
+    _add_default_dtype_by_casting,
     _box_binary_scalar,
     _box_unary_scalar,
     _preserve_input_dtype,
@@ -92,7 +92,7 @@ mod = _box_binary_scalar(target=_torch.fmod, box_x2=False)
 power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 
 
-std = _preserve_input_dtype(_add_default_dtype(target=_torch.std))
+std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
 
 
 def matmul(x, y, out=None):

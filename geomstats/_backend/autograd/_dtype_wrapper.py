@@ -4,7 +4,7 @@ from geomstats._backend._dtype_utils import _dyn_update_dtype
 from geomstats._backend._dtype_utils import _np_box_binary_scalar as _box_binary_scalar
 from geomstats._backend._dtype_utils import _np_box_unary_scalar as _box_unary_scalar
 from geomstats._backend._dtype_utils import (
-    _pre_add_default_dtype,
+    _pre_add_default_dtype_by_casting,
     _pre_cast_fout_to_input_dtype,
     _pre_cast_out_from_dtype,
     _pre_set_default_dtype,
@@ -29,6 +29,6 @@ def as_dtype(value):
 set_default_dtype = _pre_set_default_dtype(as_dtype)
 
 
-_add_default_dtype = _pre_add_default_dtype(cast)
+_add_default_dtype_by_casting = _pre_add_default_dtype_by_casting(cast)
 _cast_fout_to_input_dtype = _pre_cast_fout_to_input_dtype(cast, _is_floating)
 _cast_out_from_dtype = _pre_cast_out_from_dtype(cast, _is_floating, _is_complex)

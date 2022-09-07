@@ -139,7 +139,7 @@ def _pre_cast_out_from_dtype(cast, is_floating, is_complex):
     return _cast_out_from_dtype
 
 
-def _pre_add_default_dtype(cast):
+def _pre_add_default_dtype_by_casting(cast):
     def _add_default_dtype_by_casting(target=None):
         def _decorator(func):
             @functools.wraps(func)

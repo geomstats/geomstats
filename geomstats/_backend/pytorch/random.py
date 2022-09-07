@@ -6,7 +6,7 @@ from torch.distributions.multivariate_normal import (
     MultivariateNormal as _MultivariateNormal,
 )
 
-from ._dtype_wrapper import _add_default_dtype
+from ._dtype_wrapper import _add_default_dtype_by_casting
 
 
 def choice(x, a):
@@ -21,14 +21,14 @@ def seed(*args, **kwargs):
     return _torch.manual_seed(*args, **kwargs)
 
 
-@_add_default_dtype
+@_add_default_dtype_by_casting
 def normal(loc=0.0, scale=1.0, size=(1,)):
     if not hasattr(size, "__iter__"):
         size = (size,)
     return _torch.normal(mean=loc, std=scale, size=size)
 
 
-@_add_default_dtype
+@_add_default_dtype_by_casting
 def uniform(low=0.0, high=1.0, size=(1,)):
     if not hasattr(size, "__iter__"):
         size = (size,)
@@ -37,7 +37,7 @@ def uniform(low=0.0, high=1.0, size=(1,)):
     return (high - low) * _torch.rand(*size) + low
 
 
-@_add_default_dtype
+@_add_default_dtype_by_casting
 def multivariate_normal(mean, cov, size=(1,)):
     if not hasattr(size, "__iter__"):
         size = (size,)
