@@ -16,7 +16,8 @@ POINT_TYPES = {1: "vector", 2: "matrix"}
 
 
 class Manifold(abc.ABC):
-    r"""Class for manifolds.
+    """
+    Base class for manifolds.
 
     Parameters
     ----------
@@ -64,7 +65,8 @@ class Manifold(abc.ABC):
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the manifold.
+        """
+        Evaluate if a point belongs to the manifold.
 
         Parameters
         ----------
@@ -82,7 +84,8 @@ class Manifold(abc.ABC):
 
     @abc.abstractmethod
     def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
+        """
+        Check whether the vector is tangent at base_point.
 
         Parameters
         ----------
@@ -102,7 +105,8 @@ class Manifold(abc.ABC):
 
     @abc.abstractmethod
     def to_tangent(self, vector, base_point):
-        """Project a vector to a tangent space of the manifold.
+        """
+        Project a vector to a tangent space of the manifold.
 
         Parameters
         ----------
@@ -119,7 +123,8 @@ class Manifold(abc.ABC):
 
     @abc.abstractmethod
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points on the manifold.
+        """
+        Get sample random points on the manifold.
 
         If the manifold is compact, a uniform distribution is used.
 
@@ -139,7 +144,8 @@ class Manifold(abc.ABC):
         """
 
     def regularize(self, point):
-        """Regularize a point to the canonical representation for the manifold.
+        """
+        Regularize a point to the canonical representation for the manifold.
 
         Parameters
         ----------
@@ -169,15 +175,16 @@ class Manifold(abc.ABC):
         self._metric = metric
 
     def random_tangent_vec(self, base_point, n_samples=1):
-        """Generate random tangent vec.
+        """
+        Generate random tangent vector.
 
         Parameters
         ----------
+        base_point :  array-like, shape=[..., dim]
+            Point.
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        base_point :  array-like, shape=[..., dim]
-            Point.
 
         Returns
         -------

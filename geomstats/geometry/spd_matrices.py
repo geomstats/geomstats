@@ -19,7 +19,8 @@ from geomstats.integrator import integrate
 
 
 class SPDMatrices(OpenSet):
-    """Class for the manifold of symmetric positive definite (SPD) matrices.
+    """
+    Class for the manifold of symmetric positive definite (SPD) matrices.
 
     Parameters
     ----------
@@ -35,7 +36,8 @@ class SPDMatrices(OpenSet):
         self.n = n
 
     def belongs(self, mat, atol=gs.atol):
-        """Check if a matrix is symmetric with positive eigenvalues.
+        """
+        Check if a matrix is symmetric with positive eigenvalues.
 
         Parameters
         ----------
@@ -56,7 +58,8 @@ class SPDMatrices(OpenSet):
         return belongs
 
     def projection(self, point):
-        """Project a matrix to the space of SPD matrices.
+        """
+        Project a matrix to the space of SPD matrices.
 
         First the symmetric part of point is computed, then the eigenvalues
         are floored to gs.atol.
@@ -78,7 +81,8 @@ class SPDMatrices(OpenSet):
         return Matrices.mul(reconstruction, Matrices.transpose(eigvecs))
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in SPD(n) from the log-uniform distribution.
+        """
+        Sample in SPD(n) from the log-uniform distribution.
 
         Parameters
         ----------
@@ -103,7 +107,8 @@ class SPDMatrices(OpenSet):
         return spd_mat
 
     def random_tangent_vec(self, base_point, n_samples=1):
-        """Sample on the tangent space of SPD(n) from the uniform distribution.
+        """
+        Sample on the tangent space of SPD(n) from the uniform distribution.
 
         Parameters
         ----------
@@ -138,8 +143,11 @@ class SPDMatrices(OpenSet):
 
     @staticmethod
     def aux_differential_power(power, tangent_vec, base_point):
-        """Compute the differential of the matrix power.
+        """
+        Compute the differential of the matrix power.
 
+        Notes
+        ------
         Auxiliary function to the functions differential_power and
         inverse_differential_power.
 
@@ -199,8 +207,11 @@ class SPDMatrices(OpenSet):
 
     @classmethod
     def differential_power(cls, power, tangent_vec, base_point):
-        r"""Compute the differential of the matrix power function.
+        """
+        Compute the differential of the matrix power function.
 
+        Notes
+        ------
         Compute the differential of the power function on SPD(n)
         (:math:`A^p=\exp(p \log(A))`) at base_point applied to tangent_vec.
 
@@ -232,8 +243,11 @@ class SPDMatrices(OpenSet):
 
     @classmethod
     def inverse_differential_power(cls, power, tangent_vec, base_point):
-        r"""Compute the inverse of the differential of the matrix power.
+        r"""
+        Compute the inverse of the differential of the matrix power.
 
+        Notes
+        -----
         Compute the inverse of the differential of the power
         function on SPD matrices (:math:`A^p=exp(p log(A))`) at base_point
         applied to tangent_vec.
@@ -266,8 +280,11 @@ class SPDMatrices(OpenSet):
 
     @classmethod
     def differential_log(cls, tangent_vec, base_point):
-        """Compute the differential of the matrix logarithm.
+        """
+        Compute the differential of the matrix logarithm.
 
+        Notes
+        ------
         Compute the differential of the matrix logarithm on SPD
         matrices at base_point applied to tangent_vec.
 
@@ -297,8 +314,11 @@ class SPDMatrices(OpenSet):
 
     @classmethod
     def inverse_differential_log(cls, tangent_vec, base_point):
-        """Compute the inverse of the differential of the matrix logarithm.
+        """
+        Compute the inverse of the differential of the matrix logarithm.
 
+        Notes
+        ------
         Compute the inverse of the differential of the matrix
         logarithm on SPD matrices at base_point applied to
         tangent_vec.
@@ -329,8 +349,11 @@ class SPDMatrices(OpenSet):
 
     @classmethod
     def differential_exp(cls, tangent_vec, base_point):
-        """Compute the differential of the matrix exponential.
+        """
+        Compute the differential of the matrix exponential.
 
+        Notes
+        ------
         Computes the differential of the matrix exponential on SPD
         matrices at base_point applied to tangent_vec.
 
@@ -360,8 +383,11 @@ class SPDMatrices(OpenSet):
 
     @classmethod
     def inverse_differential_exp(cls, tangent_vec, base_point):
-        """Compute the inverse of the differential of the matrix exponential.
+        """
+        Compute the inverse of the differential of the matrix exponential.
 
+        Notes
+        ------
         Computes the inverse of the differential of the matrix
         exponential on SPD matrices at base_point applied to
         tangent_vec.
@@ -420,8 +446,11 @@ class SPDMatrices(OpenSet):
 
     @classmethod
     def cholesky_factor(cls, mat):
-        """Compute cholesky factor.
+        """
+        Compute cholesky factor.
 
+        Notes
+        ------
         Compute cholesky factor for a symmetric positive
         definite matrix.
 
@@ -439,7 +468,8 @@ class SPDMatrices(OpenSet):
 
     @classmethod
     def differential_cholesky_factor(cls, tangent_vec, base_point):
-        """Compute the differential of the cholesky factor map.
+        """
+        Compute the differential of the cholesky factor map.
 
         Parameters
         ----------
@@ -468,7 +498,8 @@ class SPDMetricAffine(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold."""
 
     def __init__(self, n, power_affine=1):
-        """Build the affine-invariant metric.
+        """
+        Build the affine-invariant metric.
 
         Parameters
         ----------
@@ -493,7 +524,8 @@ class SPDMetricAffine(RiemannianMetric):
 
     @staticmethod
     def _aux_inner_product(tangent_vec_a, tangent_vec_b, inv_base_point):
-        """Compute the inner-product (auxiliary).
+        """
+        Compute the inner-product (auxiliary).
 
         Parameters
         ----------
@@ -514,8 +546,11 @@ class SPDMetricAffine(RiemannianMetric):
         return inner_product
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the affine-invariant inner-product.
+        """
+        Compute the affine-invariant inner-product.
 
+        Notes
+        ------
         Compute the inner-product of tangent_vec_a and tangent_vec_b
         at point base_point using the affine invariant Riemannian metric.
 
@@ -559,7 +594,8 @@ class SPDMetricAffine(RiemannianMetric):
 
     @staticmethod
     def _aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point):
-        """Compute the exponential map (auxiliary function).
+        """
+        Compute the exponential map (auxiliary function).
 
         Parameters
         ----------
@@ -582,8 +618,11 @@ class SPDMetricAffine(RiemannianMetric):
         return exp
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """Compute the affine-invariant exponential map.
+        """
+        Compute the affine-invariant exponential map.
 
+        Notes
+        ------
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the metric defined in inner_product.
         This gives a symmetric positive definite matrix.
@@ -622,7 +661,8 @@ class SPDMetricAffine(RiemannianMetric):
 
     @staticmethod
     def _aux_log(point, sqrt_base_point, inv_sqrt_base_point):
-        """Compute the log (auxiliary function).
+        """
+        Compute the log (auxiliary function).
 
         Parameters
         ----------
@@ -642,8 +682,11 @@ class SPDMetricAffine(RiemannianMetric):
         return log
 
     def log(self, point, base_point, **kwargs):
-        """Compute the affine-invariant logarithm map.
+        """
+        Compute the affine-invariant logarithm map.
 
+        Notes
+        ------
         Compute the Riemannian logarithm at point base_point,
         of point wrt the metric defined in inner_product.
         This gives a tangent vector at point base_point.
@@ -677,8 +720,11 @@ class SPDMetricAffine(RiemannianMetric):
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
     ):
-        r"""Parallel transport of a tangent vector.
+        """
+        Parallel transport of a tangent vector.
 
+        Notes
+        ------
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
         or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
@@ -720,8 +766,11 @@ class SPDMetricAffine(RiemannianMetric):
         return Matrices.congruent(tangent_vec, congruence_mat)
 
     def injectivity_radius(self, base_point):
-        """Radius of the largest ball where the exponential is injective.
+        """
+        Radius of the largest ball where the exponential is injective.
 
+        Notes
+        -----
         Because of the negative curvature of this space, the injectivity radius is
         infinite everywhere.
 
@@ -739,7 +788,8 @@ class SPDMetricAffine(RiemannianMetric):
 
 
 class SPDMetricBuresWasserstein(RiemannianMetric):
-    """Class for the Bures-Wasserstein metric on the SPD manifold.
+    """
+    Class for the Bures-Wasserstein metric on the SPD manifold.
 
     Parameters
     ----------
@@ -764,8 +814,11 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         self.n = n
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Compute the Bures-Wasserstein inner-product.
+        """
+        Compute the Bures-Wasserstein inner-product.
 
+        Notes
+        ------
         Compute the inner-product of tangent_vec_a :math:`A` and tangent_vec_b
         :math:`B` at point base_point :math:`S=PDP^\top` using the
         Bures-Wasserstein Riemannian metric:
@@ -803,7 +856,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         return result
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """Compute the Bures-Wasserstein exponential map.
+        """
+        Compute the Bures-Wasserstein exponential map.
 
         Parameters
         ----------
@@ -829,8 +883,11 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         return base_point + tangent_vec + hessian
 
     def log(self, point, base_point, **kwargs):
-        """Compute the Bures-Wasserstein logarithm map.
+        """
+        Compute the Bures-Wasserstein logarithm map.
 
+        Notes
+        ------
         Compute the Riemannian logarithm at point base_point,
         of point wrt the Bures-Wasserstein metric.
         This gives a tangent vector at point base_point.
@@ -855,7 +912,11 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         return sqrt_product + transp_sqrt_product - 2 * base_point
 
     def squared_dist(self, point_a, point_b, **kwargs):
-        """Compute the Bures-Wasserstein squared distance.
+        """
+        Compute the Bures-Wasserstein squared distance.
+
+        Notes
+        ------
 
         Compute the Riemannian squared distance between point_a and point_b.
 
@@ -888,7 +949,11 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         n_steps=10,
         step="rk4",
     ):
-        r"""Compute the parallel transport of a tangent vec along a geodesic.
+        """
+        Compute the parallel transport of a tangent vec along a geodesic.
+
+        Notes
+        ------
 
         Approximation of the solution of the parallel transport of a tangent
         vector a along the geodesic defined by :math:`t \mapsto exp_{(
@@ -969,8 +1034,11 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         return final_align + Matrices.transpose(final_align)
 
     def injectivity_radius(self, base_point):
-        """Compute the upper bound of the injectivity domain.
+        """
+        Compute the upper bound of the injectivity domain.
 
+        Notes
+        ------
         This is the smallest eigen value of the base point.
 
         Parameters
@@ -999,8 +1067,11 @@ class SPDMetricEuclidean(RiemannianMetric):
         self.power_euclidean = power_euclidean
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the Euclidean inner-product.
+        """
+        Compute the Euclidean inner-product.
 
+        Notes
+        ------
         Compute the inner-product of tangent_vec_a and tangent_vec_b
         at point base_point using the power-Euclidean metric.
 
@@ -1039,8 +1110,11 @@ class SPDMetricEuclidean(RiemannianMetric):
     @staticmethod
     @geomstats.vectorization.decorator(["matrix", "matrix"])
     def exp_domain(tangent_vec, base_point):
-        """Compute the domain of the Euclidean exponential map.
+        """
+        Compute the domain of the Euclidean exponential map.
 
+        Notes
+        ------
         Compute the real interval of time where the Euclidean geodesic starting
         at point `base_point` in direction `tangent_vec` is defined.
 
@@ -1072,8 +1146,11 @@ class SPDMetricEuclidean(RiemannianMetric):
         return domain
 
     def injectivity_radius(self, base_point):
-        """Compute the upper bound of the injectivity domain.
+        """
+        Compute the upper bound of the injectivity domain.
 
+        Notes
+        ------
         This is the smallest eigen value of the base point.
 
         Parameters
@@ -1090,8 +1167,12 @@ class SPDMetricEuclidean(RiemannianMetric):
         return eigen_values[..., 0]
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """Compute the Euclidean exponential map.
+        """
+        Compute the Euclidean exponential map.
 
+        Notes
+        ------
+        
         Compute the Euclidean exponential at point base_point
         of tangent vector tangent_vec.
         This gives a symmetric positive definite matrix.

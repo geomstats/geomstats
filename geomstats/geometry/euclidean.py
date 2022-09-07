@@ -6,7 +6,11 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class Euclidean(VectorSpace):
-    """Class for Euclidean spaces.
+    """
+    Class for Euclidean spaces.
+
+    Notes
+    ------
 
     By definition, a Euclidean space is a vector space of a given
     dimension, equipped with a Euclidean metric.
@@ -25,7 +29,8 @@ class Euclidean(VectorSpace):
         )
 
     def get_identity(self):
-        """Get the identity of the group.
+        """
+        Get the identity of the group.
 
         Parameters
         ----------
@@ -47,7 +52,8 @@ class Euclidean(VectorSpace):
         return gs.eye(self.dim)
 
     def exp(self, tangent_vec, base_point=None):
-        """Compute the group exponential, which is simply the addition.
+        """
+        Compute the group exponential, which is simply the addition.
 
         Parameters
         ----------
@@ -67,7 +73,11 @@ class Euclidean(VectorSpace):
 
 
 class EuclideanMetric(RiemannianMetric):
-    """Class for Euclidean metrics.
+    """
+    Class for Euclidean metrics.
+
+    Notes
+    ------
 
     As a Riemannian metric, the Euclidean metric is:
 
@@ -89,7 +99,8 @@ class EuclideanMetric(RiemannianMetric):
         )
 
     def metric_matrix(self, base_point=None):
-        """Compute the inner-product matrix, independent of the base point.
+        """
+        Compute the inner-product matrix, independent of the base point.
 
         Parameters
         ----------
@@ -106,7 +117,8 @@ class EuclideanMetric(RiemannianMetric):
         return mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Inner product between two tangent vectors at a base point.
+        """
+        Get the inner product between two tangent vectors at a base point.
 
         Parameters
         ----------
@@ -126,7 +138,11 @@ class EuclideanMetric(RiemannianMetric):
         return gs.dot(tangent_vec_a, tangent_vec_b)
 
     def norm(self, vector, base_point=None):
-        """Compute norm of a vector.
+        """
+        Compute norm of a vector.
+
+        Notes
+        ------
 
         Norm of a vector associated to the inner product
         at the tangent space at a base point.
@@ -150,7 +166,11 @@ class EuclideanMetric(RiemannianMetric):
         return gs.linalg.norm(vector, axis=-1)
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """Compute exp map of a base point in tangent vector direction.
+        """
+        Compute exp map of a base point in tangent vector direction.
+
+        Notes
+        ------
 
         The Riemannian exponential is vector addition in the Euclidean space.
 
@@ -170,7 +190,11 @@ class EuclideanMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point, **kwargs):
-        """Compute log map using a base point and other point.
+        """
+        Compute log map using a base point and other point.
+
+        Notes
+        ------
 
         The Riemannian logarithm is the subtraction in the Euclidean space.
 
@@ -192,7 +216,11 @@ class EuclideanMetric(RiemannianMetric):
     def parallel_transport(
         self, tangent_vec, base_point=None, direction=None, end_point=None
     ):
-        r"""Compute the parallel transport of a tangent vector.
+        """
+        Compute the parallel transport of a tangent vector.
+
+        Notes
+        ------
 
         On a Euclidean space, the parallel transport of a (tangent) vector returns
         the vector itself.

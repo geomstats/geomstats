@@ -23,7 +23,11 @@ R3 = Euclidean(dim=3)
 
 
 class DiscreteCurves(Manifold):
-    r"""Space of discrete curves sampled at points in ambient_manifold.
+    """
+    Space of discrete curves sampled at points in ambient_manifold.
+
+    Notes
+    ------
 
     Each individual curve is represented by a 2d-array of shape `[
     k_sampling_points, ambient_dim]`. A batch of curves can be passed to
@@ -45,8 +49,8 @@ class DiscreteCurves(Manifold):
     ambient_manifold : Manifold
         Manifold in which curves take values.
 
-    Attributes
-    ----------
+    Parameters
+    -----------
     ambient_manifold : Manifold
         Manifold in which curves take values.
     l2_landmarks_metric : callable
@@ -79,7 +83,11 @@ class DiscreteCurves(Manifold):
             )
 
     def belongs(self, point, atol=gs.atol):
-        """Test whether a point belongs to the manifold.
+        """
+        Test whether a point belongs to the manifold.
+
+        Notes
+        ------
 
         Test that all points of the curve belong to the ambient manifold.
 
@@ -99,7 +107,8 @@ class DiscreteCurves(Manifold):
         """
 
         def each_belongs(pt):
-            """Check that sampling points are in ambient manifold.
+            """
+            Check that sampling points are in ambient manifold.
 
             Parameters
             ----------
@@ -115,7 +124,8 @@ class DiscreteCurves(Manifold):
             return gs.all(self.ambient_manifold.belongs(pt))
 
         def each_has_k_sampling_points(pt):
-            """Check that a curve has the correct number of sampling points.
+            """
+            Check that a curve has the correct number of sampling points.
 
             Parameters
             ----------
@@ -137,7 +147,11 @@ class DiscreteCurves(Manifold):
         return each_belongs(point) and each_has_k_sampling_points(point)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at a curve.
+        """
+        Check whether the vector is tangent at a curve.
+
+        Notes
+        ------
 
         A vector is tangent at a curve if it is a vector field along that
         curve.
@@ -168,7 +182,11 @@ class DiscreteCurves(Manifold):
         return gs.all(is_tangent, axis=-1)
 
     def to_tangent(self, vector, base_point):
-        """Project a vector to a tangent space of the manifold.
+        """
+        Project a vector to a tangent space of the manifold.
+
+        Notes
+        ------
 
         As tangent vectors are vector fields along a curve, each component of
         the vector is projected to the tangent space of the corresponding
@@ -196,7 +214,8 @@ class DiscreteCurves(Manifold):
         return tangent_vec
 
     def projection(self, point):
-        """Project a point to the space of discrete curves.
+        """
+        Project a point to the space of discrete curves.
 
         Parameters
         ----------
@@ -216,8 +235,11 @@ class DiscreteCurves(Manifold):
         return projected_point
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample random curves.
+        """
+        Sample random curves.
 
+        Notes
+        ------
         If the ambient manifold is compact, a uniform distribution is used.
 
         Parameters
@@ -244,7 +266,11 @@ class DiscreteCurves(Manifold):
 
 
 class ClosedDiscreteCurves(LevelSet):
-    r"""Space of closed discrete curves sampled at points in ambient_manifold.
+    """
+    Space of closed discrete curves sampled at points in ambient_manifold.
+
+    Notes
+    ------
 
     Each individual curve is represented by a 2d-array of shape `[
     k_sampling_points, ambient_dim]`.
@@ -256,8 +282,8 @@ class ClosedDiscreteCurves(LevelSet):
     ambient_manifold : Manifold
         Manifold in which curves take values.
 
-    Attributes
-    ----------
+    Parameters
+    -----------
     ambient_manifold : Manifold
         Manifold in which curves take values.
     embedding_space : Manifold
@@ -293,8 +319,11 @@ class ClosedDiscreteCurves(LevelSet):
         self.ambient_metric = ambient_manifold.metric
 
     def belongs(self, point, atol=gs.atol):
-        """Test whether a point belongs to the manifold.
+        """
+        Test whether a point belongs to the manifold.
 
+        Notes
+        ------
         Test that all points of the curve belong to the ambient manifold.
 
         Parameters
@@ -319,8 +348,11 @@ class ClosedDiscreteCurves(LevelSet):
         return gs.squeeze(gs.array(point_belongs) and point_belongs_to_embedding)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at a curve.
+        """
+        Check whether the vector is tangent at a curve.
 
+        Notes
+        ------
         A vector is tangent at a curve if it is a vector field along that
         curve.
 
@@ -342,7 +374,8 @@ class ClosedDiscreteCurves(LevelSet):
         raise NotImplementedError("The is_tangent method is not implemented.")
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
-        """Convert from intrinsic to extrinsic coordinates.
+        """
+        Convert from intrinsic to extrinsic coordinates.
 
         Parameters
         ----------
@@ -357,7 +390,8 @@ class ClosedDiscreteCurves(LevelSet):
         raise NotImplementedError("intrinsic_to_extrinsic_coords is not implemented.")
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
-        """Convert from extrinsic to intrinsic coordinates.
+        """
+        Convert from extrinsic to intrinsic coordinates.
 
         Parameters
         ----------
@@ -373,8 +407,11 @@ class ClosedDiscreteCurves(LevelSet):
         raise NotImplementedError("extrinsic_to_intrinsic_coords is not implemented.")
 
     def to_tangent(self, vector, base_point):
-        """Project a vector to a tangent space of the manifold.
+        """
+        Project a vector to a tangent space of the manifold.
 
+        Notes
+        ------
         As tangent vectors are vector fields along a curve, each component of
         the vector is projected to the tangent space of the corresponding
         point of the discrete curve. The number of sampling points should
@@ -395,8 +432,11 @@ class ClosedDiscreteCurves(LevelSet):
         raise NotImplementedError("The to_tangent method is not implemented.")
 
     def random_point(self, n_samples=1):
-        """Sample random curves.
+        """
+        Sample random curves.
 
+        Notes
+        ------
         If the ambient manifold is compact, a uniform distribution is used.
 
         Parameters
@@ -425,7 +465,8 @@ class ClosedDiscreteCurves(LevelSet):
         return gs.squeeze(sample)
 
     def projection(self, point, atol=gs.atol, max_iter=1000):
-        """Project a discrete curve into the space of closed discrete curves.
+        """
+        Project a discrete curve into the space of closed discrete curves.
 
         Parameters
         ----------
@@ -462,8 +503,11 @@ class ClosedDiscreteCurves(LevelSet):
         return proj if point_ndim == 3 else gs.squeeze(proj)
 
     def srv_projection(self, srv, atol=gs.atol, max_iter=1000):
-        """Project a point in the srv space into the space of closed curves srv.
+        """
+        Project a point in the srv space into the space of closed curves srv.
 
+        Notes
+        ------
         The algorithm is from the paper cited above and modifies the srv
         iteratively so that G(srv) = (0, ..., 0) with the paper's notation.
 
@@ -501,8 +545,11 @@ class ClosedDiscreteCurves(LevelSet):
         inner_prod = self.ambient_metric.inner_product
 
         def closeness_criterion(srv, srv_norms):
-            """Compute the closeness criterion from [Sea2011]_.
+            """
+            Compute the closeness criterion from [Sea2011]_.
 
+            Notes
+            ------
             The closeness criterion is denoted by G(q) in [Sea2011]_, where q
             represents the srv of interest.
 
@@ -516,8 +563,11 @@ class ClosedDiscreteCurves(LevelSet):
             return gs.sum(srv * srv_norms[:, None], axis=0)
 
         def one_srv_projection(one_srv):
-            """Project one srv by iteratively updating until closeness criterion is 0.
+            """
+            Project one srv by iteratively updating until closeness criterion is 0.
 
+            Notes
+            ------
             Details can be found in [Sea2011]_ Section 4.2.
             """
             initial_norm = srv_norm(one_srv)
@@ -574,8 +624,11 @@ class ClosedDiscreteCurves(LevelSet):
 
 
 class L2CurvesMetric(RiemannianMetric):
-    """L2 metric on the space of discrete curves.
+    """
+    L2 metric on the space of discrete curves.
 
+    Notes
+    ------
     L2 metric on the space of regularly sampled discrete curves
     defined on the unit interval. The inner product between two tangent vectors
     is given by the integral of the ambient space inner product, approximated by
@@ -602,8 +655,11 @@ class L2CurvesMetric(RiemannianMetric):
 
     @staticmethod
     def riemann_sum(func, missing_last_time=True):
-        """Compute the left Riemann sum approximation of the integral.
-
+        """
+        Compute the left Riemann sum approximation of the integral.
+        
+        Notes
+        ------
         Compute the left Riemann sum approximation of the integral of a
         function func defined on on the unit interval,
         given by sample points at regularly spaced times
@@ -630,8 +686,11 @@ class L2CurvesMetric(RiemannianMetric):
         return gs.squeeze(riemann_sum)
 
     def pointwise_inner_products(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the pointwise inner products of a pair of tangent vectors.
+        """
+        Compute the pointwise inner products of a pair of tangent vectors.
 
+        Notes
+        ------
         Compute the inner-products between the components of two tangent vectors
         at the different sampling points of a base curve.
 
@@ -674,8 +733,11 @@ class L2CurvesMetric(RiemannianMetric):
         )
 
     def pointwise_norms(self, tangent_vec, base_point=None):
-        """Compute the pointwise norms of a tangent vector.
-
+        """
+        Compute the pointwise norms of a tangent vector.
+        
+        Notes
+        ------
         Compute the norms of the components of a tangent vector at the different
         sampling points of a base curve.
 
@@ -699,8 +761,11 @@ class L2CurvesMetric(RiemannianMetric):
     def inner_product(
         self, tangent_vec_a, tangent_vec_b, base_point=None, missing_last_time=True
     ):
-        """Compute L2 inner product between two tangent vectors.
+        """
+        Compute L2 inner product between two tangent vectors.
 
+        Notes
+        ------
         The inner product is the integral of the ambient space inner product,
         approximated by a left Riemann sum.
 
@@ -729,7 +794,8 @@ class L2CurvesMetric(RiemannianMetric):
         return self.riemann_sum(inner_products, missing_last_time)
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """Compute Riemannian exponential of tangent vector wrt to base curve.
+        """
+        Compute Riemannian exponential of tangent vector wrt to base curve.
 
         Parameters
         ----------
@@ -748,7 +814,8 @@ class L2CurvesMetric(RiemannianMetric):
         return l2_landmarks_metric.exp(tangent_vec, base_point)
 
     def log(self, point, base_point, **kwargs):
-        """Compute Riemannian logarithm of a curve wrt a base curve.
+        """
+        Compute Riemannian logarithm of a curve wrt a base curve.
 
         Parameters
         ----------
@@ -767,8 +834,11 @@ class L2CurvesMetric(RiemannianMetric):
         return l2_landmarks_metric.log(point, base_point)
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Compute geodesic from initial curve to end curve.
+        """
+        Compute geodesic from initial curve to end curve.
 
+        Notes
+        ------
         Geodesic specified either by an initial curve and an end curve,
         either by an initial curve and an initial tangent vector.
 
@@ -798,8 +868,11 @@ class L2CurvesMetric(RiemannianMetric):
 
 
 class ElasticMetric(RiemannianMetric):
-    """Elastic metric defined using the F_transform.
+    """
+    Elastic metric defined using the F_transform.
 
+    Notes
+    ------
     Each individual curve is represented by a 2d-array of shape `[
     k_sampling_points, ambient_dim]`.
 
@@ -851,8 +924,11 @@ class ElasticMetric(RiemannianMetric):
         self.b = b
 
     def cartesian_to_polar(self, tangent_vec):
-        """Compute polar coordinates of a tangent vector from the cartesian ones.
+        """
+        Compute polar coordinates of a tangent vector from the cartesian ones.
 
+        Notes
+        ------
         This function is an auxiliary function used for the computation
         of the f_transform and its inverse, and is applied to the derivative
         of a curve.
@@ -903,7 +979,8 @@ class ElasticMetric(RiemannianMetric):
         return polar_tangent_vec
 
     def polar_to_cartesian(self, polar_tangent_vec):
-        """Compute the cartesian coordinates of a tangent vector from polar ones.
+        """
+        Compute the cartesian coordinates of a tangent vector from polar ones.
 
         Parameters
         ----------
@@ -935,8 +1012,11 @@ class ElasticMetric(RiemannianMetric):
         return tangent_vec
 
     def f_transform(self, point):
-        r"""Compute the f_transform of a curve.
+        """
+        Compute the f_transform of a curve.
 
+        Notes
+        ------
         Note that the f_transform is defined on the space of curves
         quotiented by translations, which is identified with the space
         of curves with their first sampling point located at 0:
@@ -963,8 +1043,7 @@ class ElasticMetric(RiemannianMetric):
         The implementation uses formula (3) from [KN2018]_ , i.e. choses
         the representative corresponding to k = 0.
 
-        Notes
-        -----
+        
         f_transform is a bijection if and only if a/2b=1.
 
         If a 2b is an integer not equal to 1:
@@ -1007,7 +1086,8 @@ class ElasticMetric(RiemannianMetric):
         return f_cartesian
 
     def f_transform_inverse(self, f_trans, starting_sampling_point):
-        r"""Compute the inverse F_transform of a transformed curve.
+        """
+        Compute the inverse F_transform of a transformed curve.
 
         This only works if a / (2b) <= 1.
         See [KN2018]_ for details.
@@ -1081,8 +1161,11 @@ class ElasticMetric(RiemannianMetric):
         return gs.squeeze(curve)
 
     def dist(self, point_a, point_b, rescaled=False):
-        """Compute the geodesic distance between two curves.
+        """
+        Compute the geodesic distance between two curves.
 
+        Notes
+        ------
         The two F_transforms are computed with corrected arguments
         before taking the L2 distance between them.
         See [KN2018]_ for details.
@@ -1121,8 +1204,11 @@ class ElasticMetric(RiemannianMetric):
         return distance
 
     def squared_dist(self, point_a, point_b, rescaled=False):
-        """Compute squared geodesic distance between two curves.
+        """
+        Compute squared geodesic distance between two curves.
 
+        Notes
+        ------
         The two F_transforms are computed with corrected arguments
         before taking the L2 distance between them.
         See [KN2018]_ for details.
@@ -1142,8 +1228,11 @@ class ElasticMetric(RiemannianMetric):
         return self.dist(point_a=point_a, point_b=point_b, rescaled=rescaled) ** 2
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Compute geodesic from initial curve to end curve.
+        """
+        Compute geodesic from initial curve to end curve.
 
+        Notes
+        ------
         Geodesic specified by an initial curve and an end curve computed
         as an inverse f_transform of a segment between f_transforms.
 
@@ -1193,8 +1282,11 @@ class ElasticMetric(RiemannianMetric):
 
 
 class SRVMetric(ElasticMetric):
-    """Elastic metric defined using the Square Root Velocity Function.
-
+    """
+    Elastic metric defined using the Square Root Velocity Function.
+    
+    Notes
+    ------
     The SRV metric is equivalent to the elastic metric chosen with
     - bending parameter a = 1,
     - stretching parameter b = 1/2.
@@ -1232,8 +1324,11 @@ class SRVMetric(ElasticMetric):
         )
 
     def srv_transform(self, point, tol=gs.atol):
-        r"""Square Root Velocity Transform (SRVT).
+        """
+        Square Root Velocity Transform (SRVT).
 
+        Notes
+        ------
         Compute the square root velocity representation of a curve. The
         velocity is computed using the log map.
 
@@ -1288,7 +1383,8 @@ class SRVMetric(ElasticMetric):
         return srv
 
     def f_transform(self, point):
-        """Compute the F_transform of a curve.
+        """
+        Compute the F_transform of a curve.
 
         Parameters
         ----------
@@ -1303,7 +1399,8 @@ class SRVMetric(ElasticMetric):
         return self.srv_transform(point)
 
     def srv_transform_inverse(self, srv, starting_sampling_point):
-        r"""Inverse of the Square Root Velocity Transform (SRVT).
+        """
+        Inverse of the Square Root Velocity Transform (SRVT).
 
         Retrieve a curve from its square root velocity representation and
         starting point.
@@ -1360,7 +1457,8 @@ class SRVMetric(ElasticMetric):
         return curve
 
     def f_transform_inverse(self, f_trans, starting_sampling_point):
-        """Compute the inverse of the F_transform of a transformed curve.
+        """
+        Compute the inverse of the F_transform of a transformed curve.
 
         See [KN2018]_ for details.
 
@@ -1380,7 +1478,8 @@ class SRVMetric(ElasticMetric):
         return self.srv_transform_inverse(f_trans, starting_sampling_point)
 
     def aux_differential_srv_transform(self, tangent_vec, point):
-        """Compute differential of the square root velocity transform.
+        """
+        Compute differential of the square root velocity transform.
 
         Parameters
         ----------
@@ -1427,7 +1526,8 @@ class SRVMetric(ElasticMetric):
         return d_srv_vec
 
     def aux_differential_srv_transform_inverse(self, tangent_vec, point):
-        """Compute inverse of differential of the square root velocity transform.
+        """
+        Compute inverse of differential of the square root velocity transform.
 
         Parameters
         ----------
@@ -1488,8 +1588,11 @@ class SRVMetric(ElasticMetric):
         return gs.squeeze(vec)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, point):
-        """Compute inner product between two tangent vectors.
+        """
+        Compute inner product between two tangent vectors.
 
+        Notes
+        ------
         The SRV metric is used, and is computed as pullback of the
         L2 metric by the square root velocity transform.
 
@@ -1526,7 +1629,8 @@ class SRVMetric(ElasticMetric):
         return inner_prod
 
     def exp(self, tangent_vec, base_point):
-        """Compute Riemannian exponential of tangent vector wrt to base curve.
+        """
+        Compute Riemannian exponential of tangent vector wrt to base curve.
 
         Parameters
         ----------
@@ -1565,7 +1669,8 @@ class SRVMetric(ElasticMetric):
         return end_curve
 
     def log(self, point, base_point):
-        """Compute Riemannian logarithm of a curve wrt a base curve.
+        """
+        Compute Riemannian logarithm of a curve wrt a base curve.
 
         Parameters
         ----------
@@ -1603,8 +1708,11 @@ class SRVMetric(ElasticMetric):
         return gs.squeeze(log)
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Compute geodesic from initial curve to end curve.
+        """
+        Compute geodesic from initial curve to end curve.
 
+        Notes
+        ------
         Geodesic specified either by an initial curve and an end curve,
         either by an initial curve and an initial tangent vector.
 
@@ -1655,7 +1763,8 @@ class SRVMetric(ElasticMetric):
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=point_ndim + 1)
 
         def path(t):
-            """Generate parametrized function for geodesic.
+            """
+            Generate parametrized function for geodesic.
 
             Parameters
             ----------
@@ -1680,7 +1789,8 @@ class SRVMetric(ElasticMetric):
         return path
 
     def dist(self, point_a, point_b, **kwargs):
-        """Geodesic distance between two curves.
+        """
+        Geodesic distance between two curves.
 
         Parameters
         ----------
@@ -1714,7 +1824,8 @@ class SRVMetric(ElasticMetric):
 
     @staticmethod
     def space_derivative(curve):
-        """Compute space derivative of curve using centered differences.
+        """
+        Compute space derivative of curve using centered differences.
 
         Parameters
         ----------
@@ -1744,8 +1855,11 @@ class SRVMetric(ElasticMetric):
 
 
 class SRVShapeBundle(DiscreteCurves, FiberBundle):
-    """Principal bundle of shapes of curves induced by the SRV metric.
+    """
+    Principal bundle of shapes of curves induced by the SRV metric.
 
+    Notes
+    ------
     The space of parameterized curves is the total space of a principal
     bundle where the group action is given by reparameterization and the
     base space is the shape space of curves modulo reparametrization, i.e.
@@ -1777,7 +1891,8 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
 
     def vertical_projection(self, tangent_vec, point, return_norm=False):
-        """Compute vertical part of tangent vector at base point.
+        """
+        Compute vertical part of tangent vector at base point.
 
         Parameters
         ----------
@@ -1878,7 +1993,8 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         return tangent_vec_ver
 
     def horizontal_projection(self, tangent_vec, point):
-        """Compute horizontal part of tangent vector at base point.
+        """
+        Compute horizontal part of tangent vector at base point.
 
         Parameters
         ----------
@@ -1899,7 +2015,11 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         return tangent_vec - tangent_vec_ver
 
     def horizontal_geodesic(self, initial_point, end_point, threshold=1e-3):
-        """Compute horizontal geodesic between two curves.
+        """
+        Compute horizontal geodesic between two curves.
+
+        Notes
+        ------
 
         The horizontal geodesic is computed by an interative procedure where
         the initial curve stays fixed and the sampling points are moved on the
@@ -1936,7 +2056,8 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         spline_end_curve = CubicSpline(t_space, end_curve, axis=0)
 
         def construct_reparametrization(vertical_norm, space_deriv_norm):
-            r"""Construct path of reparametrizations.
+            """
+            Construct path of reparametrizations.
 
             Construct path of reparametrizations phi(t, u) that transforms
             a path of curves c(t, u) into a horizontal path of curves, i.e.
@@ -1987,8 +2108,11 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             return repar
 
         def invert_reparametrization(repar, path_of_curves, repar_inverse_end, counter):
-            r"""Invert path of reparametrizations.
+            """
+            Invert the path of reparametrizations.
 
+            Notes
+            ------
             Given a path of curves c(t, u) and a path of reparametrizations
             phi(t, u), compute:
             :math:`c(t, phi_inv(t, u))` where `phi_inv(t, .) = phi(t, .)^{-1}`
@@ -2039,7 +2163,8 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             return gs.stack(reparametrized_path)
 
         def horizontal_path(t):
-            """Generate parametrized function for horizontal geodesic.
+            """
+            Generate parametrized function for horizontal geodesic.
 
             Parameters
             ----------
@@ -2086,8 +2211,11 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         return horizontal_path
 
     def align(self, point, base_point, threshold=1e-3):
-        """Find optimal reparametrization of curve with respect to base curve.
+        """
+        Find optimal reparametrization of curve with respect to base curve.
 
+        Notes
+        ------
         The new parametrization of curve is optimal in the sense that it is the
         member of its fiber closest to the base curve with respect to the SRVMetric.
         It is found as the end point of the horizontal geodesic starting at the base
@@ -2113,8 +2241,11 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
 
 class SRVQuotientMetric(QuotientMetric):
-    """SRV quotient metric on the space of unparametrized curves.
+    """
+    SRV quotient metric on the space of unparametrized curves.
 
+    Notes
+    ------
     This is the class for the quotient metric induced by the SRV Metric
     on the shape space of unparametrized curves, i.e. the space of parametrized
     curves quotiented by the group of reparametrizations. In the discrete case,
@@ -2127,8 +2258,11 @@ class SRVQuotientMetric(QuotientMetric):
         super(SRVQuotientMetric, self).__init__(fiber_bundle=bundle, dim=dim)
 
     def geodesic(self, initial_point, end_point, threshold=1e-3):
-        """Geodesic for the quotient SRV Metric.
+        """
+        Geodesic for the quotient SRV Metric.
 
+        Notes
+        ------
         The geodesics between unparametrized curves for the quotient metric are
         projections of the horizontal geodesics in the total space of parameterized
         curves. Since in practice shapes can only be encoded by parametrized curves,
@@ -2139,8 +2273,11 @@ class SRVQuotientMetric(QuotientMetric):
         )
 
     def dist(self, point_a, point_b, n_times=20, threshold=1e-3):
-        """Quotient SRV distance between unparametrized curves.
+        """
+        Quotient SRV distance between unparametrized curves.
 
+        Notes
+        ------
         This is the distance induced by the SRV Metric on the space of unparametrized
         curves. To compute this distance, the second curve is aligned to the first
         curve, i.e. is reparametrized in an optimal way with respect to the first curve,

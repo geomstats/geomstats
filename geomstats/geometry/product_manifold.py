@@ -15,7 +15,11 @@ from geomstats.geometry.product_riemannian_metric import (
 
 
 class ProductManifold(Manifold):
-    """Class for a product of manifolds M_1 x ... x M_n.
+    """
+    Class for a product of manifolds M_1 x ... x M_n.
+
+    Notes
+    ------
 
     In contrast to the classes NFoldManifold, Landmarks, or DiscretizedCurves,
     the manifolds M_1, ..., M_n need not be the same, nor of
@@ -108,7 +112,8 @@ class ProductManifold(Manifold):
         return out
 
     def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the manifold.
+        """
+        Test if a point belongs to the manifold.
 
         Parameters
         ----------
@@ -144,7 +149,8 @@ class ProductManifold(Manifold):
         return belongs
 
     def regularize(self, point):
-        """Regularize the point into the manifold's canonical representation.
+        """
+        Regularize the point into the manifold's canonical representation.
 
         Parameters
         ----------
@@ -177,7 +183,8 @@ class ProductManifold(Manifold):
         return regularized_point
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in the product space from the uniform distribution.
+        """
+        Sample in the product space from the uniform distribution.
 
         Parameters
         ----------
@@ -210,7 +217,8 @@ class ProductManifold(Manifold):
         return samples
 
     def projection(self, point):
-        """Project a point in product embedding manifold on each manifold.
+        """
+        Project a point in product embedding manifold on each manifold.
 
         Parameters
         ----------
@@ -242,7 +250,11 @@ class ProductManifold(Manifold):
         return projected_point
 
     def to_tangent(self, vector, base_point):
-        """Project a vector to a tangent space of the manifold.
+        """
+        Project a vector to a tangent space of the manifold.
+
+        Notes
+        ------
 
         The tangent space of the product manifold is the direct sum of
         tangent spaces.
@@ -279,7 +291,11 @@ class ProductManifold(Manifold):
         return tangent_vec
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
+        """
+        Check whether the vector is tangent at base_point.
+
+        Notes
+        ------
 
         The tangent space of the product manifold is the direct sum of
         tangent spaces.
@@ -329,7 +345,11 @@ class ProductManifold(Manifold):
 
 
 class NFoldManifold(Manifold):
-    r"""Class for an n-fold product manifold :math:`M^n`.
+    """
+    Class for an n-fold product manifold :math:`M^n`.
+
+    Notes
+    -----
 
     Define a manifold as the product manifold of n copies of a given base manifold M.
 
@@ -379,7 +399,8 @@ class NFoldManifold(Manifold):
             self.metric = NFoldMetric(base_manifold.metric, n_copies)
 
     def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the manifold.
+        """
+        Test if a point belongs to the manifold.
 
         Parameters
         ----------
@@ -399,7 +420,11 @@ class NFoldManifold(Manifold):
         return gs.squeeze(gs.all(reshaped, axis=1))
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
+        """
+        Check whether the vector is tangent at base_point.
+
+        Notes
+        ------
 
         The tangent space of the product manifold is the direct sum of
         tangent spaces.
@@ -427,7 +452,11 @@ class NFoldManifold(Manifold):
         return gs.all(reshaped, axis=1)
 
     def to_tangent(self, vector, base_point):
-        """Project a vector to a tangent space of the manifold.
+        """
+        Project a vector to a tangent space of the manifold.
+
+        Notes
+        ------
 
         The tangent space of the product manifold is the direct sum of
         tangent spaces.
@@ -452,7 +481,8 @@ class NFoldManifold(Manifold):
         return gs.squeeze(reshaped)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in the product space from the uniform distribution.
+        """
+        Sample in the product space from the uniform distribution.
 
         Parameters
         ----------
@@ -472,7 +502,8 @@ class NFoldManifold(Manifold):
         return gs.squeeze(reshaped)
 
     def projection(self, point):
-        """Project a point from product embedding manifold to the product manifold.
+        """
+        Project a point from product embedding manifold to the product manifold.
 
         Parameters
         ----------
