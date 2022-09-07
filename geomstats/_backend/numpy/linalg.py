@@ -22,7 +22,7 @@ from ._dtype_wrapper import _cast_fout_from_input_dtype
 _diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
 
 _logm_vec = _cast_fout_from_input_dtype(
-    _np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
+    target=_np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
 )
 
 

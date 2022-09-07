@@ -87,8 +87,8 @@ from ._dtype_wrapper import (
     _box_binary_scalar,
     _box_unary_scalar,
     _cast_out_from_dtype,
-    _update_dtype,
-    _update_func_default_dtype,
+    _dyn_update_dtype,
+    _modify_func_default_dtype,
     as_dtype,
     get_default_dtype,
     set_default_dtype,
@@ -103,35 +103,35 @@ _DTYPES = {
     _ndtype("complex128"): 5,
 }
 
-ones = _update_func_default_dtype(_np.ones)
-eye = _update_func_default_dtype(_np.eye)
-array = _cast_out_from_dtype(_func=_np.array, dtype_pos=1)
-linspace = _update_dtype(_func=_np.linspace, dtype_pos=5)
-zeros = _update_dtype(_func=_np.zeros, dtype_pos=1)
-empty = _update_dtype(_func=_np.empty, dtype_pos=1)
+ones = _modify_func_default_dtype(target=_np.ones)
+eye = _modify_func_default_dtype(target=_np.eye)
+array = _cast_out_from_dtype(target=_np.array, dtype_pos=1)
+linspace = _dyn_update_dtype(target=_np.linspace, dtype_pos=5)
+zeros = _dyn_update_dtype(target=_np.zeros, dtype_pos=1)
+empty = _dyn_update_dtype(target=_np.empty, dtype_pos=1)
 
 
-abs = _box_unary_scalar(_func=_np.abs)
-arccos = _box_unary_scalar(_func=_np.arccos)
-arccosh = _box_unary_scalar(_func=_np.arccosh)
-arcsin = _box_unary_scalar(_func=_np.arcsin)
-arctanh = _box_unary_scalar(_func=_np.arctanh)
-ceil = _box_unary_scalar(_func=_np.ceil)
-cos = _box_unary_scalar(_func=_np.cos)
-cosh = _box_unary_scalar(_func=_np.cosh)
-exp = _box_unary_scalar(_func=_np.exp)
-floor = _box_unary_scalar(_func=_np.floor)
-log = _box_unary_scalar(_func=_np.log)
-sign = _box_unary_scalar(_func=_np.sign)
-sin = _box_unary_scalar(_func=_np.sin)
-sinh = _box_unary_scalar(_func=_np.sinh)
-sqrt = _box_unary_scalar(_func=_np.sqrt)
-tan = _box_unary_scalar(_func=_np.tan)
-tanh = _box_unary_scalar(_func=_np.tanh)
+abs = _box_unary_scalar(target=_np.abs)
+arccos = _box_unary_scalar(target=_np.arccos)
+arccosh = _box_unary_scalar(target=_np.arccosh)
+arcsin = _box_unary_scalar(target=_np.arcsin)
+arctanh = _box_unary_scalar(target=_np.arctanh)
+ceil = _box_unary_scalar(target=_np.ceil)
+cos = _box_unary_scalar(target=_np.cos)
+cosh = _box_unary_scalar(target=_np.cosh)
+exp = _box_unary_scalar(target=_np.exp)
+floor = _box_unary_scalar(target=_np.floor)
+log = _box_unary_scalar(target=_np.log)
+sign = _box_unary_scalar(target=_np.sign)
+sin = _box_unary_scalar(target=_np.sin)
+sinh = _box_unary_scalar(target=_np.sinh)
+sqrt = _box_unary_scalar(target=_np.sqrt)
+tan = _box_unary_scalar(target=_np.tan)
+tanh = _box_unary_scalar(target=_np.tanh)
 
-arctan2 = _box_binary_scalar(_func=_np.arctan2)
-mod = _box_binary_scalar(_func=_np.mod)
-power = _box_binary_scalar(_func=_np.power)
+arctan2 = _box_binary_scalar(target=_np.arctan2)
+mod = _box_binary_scalar(target=_np.mod)
+power = _box_binary_scalar(target=_np.power)
 
 
 def angle(z, deg=False):

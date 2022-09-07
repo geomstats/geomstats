@@ -6,10 +6,10 @@ from numpy.random import randint, seed
 
 from ._dtype_wrapper import _add_default_dtype
 
-rand = _add_default_dtype(_np.random.rand)
-normal = _add_default_dtype(_np.random.normal)
-multivariate_normal = _add_default_dtype(_np.random.multivariate_normal)
-uniform = _add_default_dtype(_np.random.uniform)
+rand = _add_default_dtype(target=_np.random.rand)
+normal = _add_default_dtype(target=_np.random.normal)
+multivariate_normal = _add_default_dtype(target=_np.random.multivariate_normal)
+uniform = _add_default_dtype(target=_np.random.uniform)
 
 
 def choice(*args, **kwargs):

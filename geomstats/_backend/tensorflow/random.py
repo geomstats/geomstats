@@ -4,7 +4,7 @@ import tensorflow as _tf
 import tensorflow_probability as _tfp
 from tensorflow import cast
 
-from ._dtype_wrapper import _update_func_default_dtype
+from .._dtype_utils import _modify_func_default_dtype
 
 _tfd = _tfp.distributions
 
@@ -31,7 +31,7 @@ def randint(low, high=None, size=None):
     )
 
 
-@_update_func_default_dtype(copy=False, kw_only=True)
+@_modify_func_default_dtype(copy=False, kw_only=True)
 def rand(*args, dtype=None):
     return _tf.random.uniform(shape=args, dtype=dtype)
 
@@ -40,7 +40,7 @@ def seed(*args):
     return _tf.compat.v1.set_random_seed(*args)
 
 
-@_update_func_default_dtype(copy=False, kw_only=False)
+@_modify_func_default_dtype(copy=False, kw_only=False)
 def normal(loc=0.0, scale=1.0, size=(1,), dtype=None):
     if not hasattr(size, "__iter__"):
         size = (size,)
@@ -48,7 +48,7 @@ def normal(loc=0.0, scale=1.0, size=(1,), dtype=None):
     return _tf.random.normal(mean=loc, stddev=scale, shape=size, dtype=dtype)
 
 
-@_update_func_default_dtype(copy=False, kw_only=False)
+@_modify_func_default_dtype(copy=False, kw_only=False)
 def uniform(low=0.0, high=1.0, size=(1,), dtype=None):
     if not hasattr(size, "__iter__"):
         size = (size,)
@@ -56,7 +56,7 @@ def uniform(low=0.0, high=1.0, size=(1,), dtype=None):
     return _tf.random.uniform(shape=size, minval=low, maxval=high, dtype=dtype)
 
 
-@_update_func_default_dtype(copy=False, kw_only=False)
+@_modify_func_default_dtype(copy=False, kw_only=False)
 def multivariate_normal(mean, cov, size=None, dtype=None):
     if size is None:
         size = ()

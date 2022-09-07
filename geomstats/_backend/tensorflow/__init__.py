@@ -43,8 +43,8 @@ from ._dtype_wrapper import (
     _box_binary_scalar,
     _box_unary_scalar,
     _cast_out_from_dtype,
-    _update_dtype,
-    _update_func_default_dtype,
+    _dyn_update_dtype,
+    _modify_func_default_dtype,
     as_dtype,
     get_default_dtype,
     set_default_dtype,
@@ -68,36 +68,36 @@ real = _tf.math.real
 set_diag = _tf.linalg.set_diag
 trapz = _tfp.math.trapz
 
-ones = _update_dtype(_func=_tf.ones, dtype_pos=1)
-zeros = _update_dtype(_func=_tf.zeros, dtype_pos=1)
-empty = _update_func_default_dtype(_func=_tf.experimental.numpy.empty)
+ones = _dyn_update_dtype(target=_tf.ones, dtype_pos=1)
+zeros = _dyn_update_dtype(target=_tf.zeros, dtype_pos=1)
+empty = _modify_func_default_dtype(target=_tf.experimental.numpy.empty)
 
 
-abs = _box_unary_scalar(_func=_tf.math.abs)
-angle = _box_unary_scalar(_func=_tf.math.angle)
-arccos = _box_unary_scalar(_func=_tf.math.acos)
-arccosh = _box_unary_scalar(_func=_tf.math.acosh)
-arcsin = _box_unary_scalar(_func=_tf.math.asin)
-arctanh = _box_unary_scalar(_func=_tf.math.atanh)
-ceil = _box_unary_scalar(_func=_tf.math.ceil)
-cos = _box_unary_scalar(_func=_tf.cos)
-cosh = _box_unary_scalar(_func=_tf.math.cosh)
-exp = _box_unary_scalar(_func=_tf.math.exp)
-floor = _box_unary_scalar(_func=_tf.math.floor)
-imag = _box_unary_scalar(_func=_tf.math.imag)
-log = _box_unary_scalar(_func=_tf.math.log)
-real = _box_unary_scalar(_func=_tf.math.real)
-sign = _box_unary_scalar(_func=_tf.math.sign)
-sin = _box_unary_scalar(_func=_tf.sin)
-sinh = _box_unary_scalar(_func=_tf.sinh)
-sqrt = _box_unary_scalar(_func=_tf.sqrt)
-tan = _box_unary_scalar(_func=_tf.tan)
-tanh = _box_unary_scalar(_func=_tf.tanh)
+abs = _box_unary_scalar(target=_tf.math.abs)
+angle = _box_unary_scalar(target=_tf.math.angle)
+arccos = _box_unary_scalar(target=_tf.math.acos)
+arccosh = _box_unary_scalar(target=_tf.math.acosh)
+arcsin = _box_unary_scalar(target=_tf.math.asin)
+arctanh = _box_unary_scalar(target=_tf.math.atanh)
+ceil = _box_unary_scalar(target=_tf.math.ceil)
+cos = _box_unary_scalar(target=_tf.cos)
+cosh = _box_unary_scalar(target=_tf.math.cosh)
+exp = _box_unary_scalar(target=_tf.math.exp)
+floor = _box_unary_scalar(target=_tf.math.floor)
+imag = _box_unary_scalar(target=_tf.math.imag)
+log = _box_unary_scalar(target=_tf.math.log)
+real = _box_unary_scalar(target=_tf.math.real)
+sign = _box_unary_scalar(target=_tf.math.sign)
+sin = _box_unary_scalar(target=_tf.sin)
+sinh = _box_unary_scalar(target=_tf.sinh)
+sqrt = _box_unary_scalar(target=_tf.sqrt)
+tan = _box_unary_scalar(target=_tf.tan)
+tanh = _box_unary_scalar(target=_tf.tanh)
 
 
-arctan2 = _box_binary_scalar(_func=_tf.math.atan2)
-mod = _box_binary_scalar(_func=_tf.math.mod)
-power = _box_binary_scalar(_func=_tf.math.pow)
+arctan2 = _box_binary_scalar(target=_tf.math.atan2)
+mod = _box_binary_scalar(target=_tf.math.mod)
+power = _box_binary_scalar(target=_tf.math.pow)
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -634,7 +634,7 @@ def allclose(x, y, rtol=rtol, atol=atol):
     return _tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
 
 
-@_update_func_default_dtype(copy=False)
+@_modify_func_default_dtype(copy=False)
 def eye(n, m=None, dtype=None):
     if m is None:
         m = n

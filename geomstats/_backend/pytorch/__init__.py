@@ -65,34 +65,34 @@ def _raise_not_implemented_error(*args, **kwargs):
 searchsorted = _raise_not_implemented_error
 
 
-abs = _box_unary_scalar(_torch.abs)
-angle = _box_unary_scalar(_torch.angle)
-arccos = _box_unary_scalar(_torch.arccos)
-arccosh = _box_unary_scalar(_torch.arccosh)
-arcsin = _box_unary_scalar(_torch.arcsin)
-arctanh = _box_unary_scalar(_torch.arctanh)
-ceil = _box_unary_scalar(_torch.ceil)
-cos = _box_unary_scalar(_torch.cos)
-cosh = _box_unary_scalar(_torch.cosh)
-exp = _box_unary_scalar(_torch.exp)
-floor = _box_unary_scalar(_torch.floor)
-imag = _box_unary_scalar(_torch.imag)
-log = _box_unary_scalar(_torch.log)
-real = _box_unary_scalar(_torch.real)
-sign = _box_unary_scalar(_torch.sign)
-sin = _box_unary_scalar(_torch.sin)
-sinh = _box_unary_scalar(_torch.sinh)
-sqrt = _box_unary_scalar(_torch.sqrt)
-tan = _box_unary_scalar(_torch.tan)
-tanh = _box_unary_scalar(_torch.tanh)
+abs = _box_unary_scalar(target=_torch.abs)
+angle = _box_unary_scalar(target=_torch.angle)
+arccos = _box_unary_scalar(target=_torch.arccos)
+arccosh = _box_unary_scalar(target=_torch.arccosh)
+arcsin = _box_unary_scalar(target=_torch.arcsin)
+arctanh = _box_unary_scalar(target=_torch.arctanh)
+ceil = _box_unary_scalar(target=_torch.ceil)
+cos = _box_unary_scalar(target=_torch.cos)
+cosh = _box_unary_scalar(target=_torch.cosh)
+exp = _box_unary_scalar(target=_torch.exp)
+floor = _box_unary_scalar(target=_torch.floor)
+imag = _box_unary_scalar(target=_torch.imag)
+log = _box_unary_scalar(target=_torch.log)
+real = _box_unary_scalar(target=_torch.real)
+sign = _box_unary_scalar(target=_torch.sign)
+sin = _box_unary_scalar(target=_torch.sin)
+sinh = _box_unary_scalar(target=_torch.sinh)
+sqrt = _box_unary_scalar(target=_torch.sqrt)
+tan = _box_unary_scalar(target=_torch.tan)
+tanh = _box_unary_scalar(target=_torch.tanh)
 
 
-arctan2 = _box_binary_scalar(_func=_torch.atan2)
-mod = _box_binary_scalar(_func=_torch.fmod, box_x2=False)
-power = _box_binary_scalar(_func=_torch.pow, box_x2=False)
+arctan2 = _box_binary_scalar(target=_torch.atan2)
+mod = _box_binary_scalar(target=_torch.fmod, box_x2=False)
+power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 
 
-std = _preserve_input_dtype(_add_default_dtype(_torch.std))
+std = _preserve_input_dtype(_add_default_dtype(target=_torch.std))
 
 
 def matmul(x, y, out=None):
