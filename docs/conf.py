@@ -11,6 +11,7 @@ extensions = [
     "nbsphinx",
     "nbsphinx_link",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "sphinx.ext.coverage",
     "sphinx.ext.doctest",
     "sphinx.ext.githubpages",

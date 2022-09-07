@@ -1,157 +1,91 @@
-********
-Geometry
-********
+:mod:`geomstats.geometry`: Classes and utility functions
+==============================================================
+
+.. automodule:: geomstats.geometry
+    :no-members:
+    :no-inherited-members:
 
 Manifolds
-=========
-
-Manifold
---------
-.. automodule:: geomstats.geometry.manifold
-   :members:
-
-Embedded Manifold
------------------
-.. automodule:: geomstats.geometry.embedded_manifold
-  :members:
-
-Product Manifold
-----------------
-.. automodule:: geomstats.geometry.product_manifold
-   :members:
-
-Euclidean Space
----------------
-.. automodule:: geomstats.geometry.euclidean
-   :members:
-
-Minkowski Space
----------------
-.. automodule:: geomstats.geometry.minkowski
-   :members:
-
-Hypersphere
 -----------
-.. automodule:: geomstats.geometry.hypersphere
-   :members:
+.. currentmodule:: geomstats.geometry
 
-Hyperbolic Space
-----------------
-.. automodule:: geomstats.geometry.hyperbolic
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated/manifolds/
 
-Discretized Curves Space
-------------------------
-.. automodule:: geomstats.geometry.discretized_curves
-   :members:
+   manifold.Manifold
+   product_manifold.ProductManifold
+   product_manifold.NFoldManifold
+   euclidean.Euclidean
+   minkowski.Minkowski
+   minkowski.MinkowskiMetric
+   hypersphere._Hypersphere
+   hypersphere.HypersphereMetric
+   hypersphere.Hypersphere
+   hyperbolic.Hyperbolic
+   discretized_curves.DiscreteCurves
+   discretized_curves.ClosedDiscreteCurves
+   discretized_curves.L2CurvesMetric
+   discretized_curves.ElasticMetric
+   discretized_curves.SRVMetric
+   discretized_curves.SRVShapeBundle
+   discretized_curves.SRVQuotientMetric
+   spd_matrices.SPDMatrices
+   skew_symmetric_matrices.SkewSymmetricMatrices
+   stiefel.Stiefel
+   stiefel.StiefelCanonicalMetric
+   lie_group.MatrixLieGroup
+   lie_group.LieGroup
+   lie_algebra.MatrixLieAlgebra
+   matrices.Matrices
+   matrices.MatricesMetric
+   general_linear.GeneralLinear
+   general_linear.SquareMatrices
+   special_euclidean.SpecialEuclideanMatrixCannonicalLeftMetric
+   special_euclidean.SpecialEuclidean
+   special_euclidean.SpecialEuclideanMatrixLieAlgebra
+   special_orthogonal.SpecialOrthogonal
+   graphspace.Graph
+   graphspace.GraphSpace
+   graphspace.GraphSpaceMetric
+   graphspace.FAQMatcher
+   graphspace.IDMatcher
+   grassmannian.Grassmannian
+   grassmannian.GrassmannianCanonicalMetric
+   landmarks.Landmarks
+   landmarks.L2LandmarksMetric
+   poincare_polydisk.PoincarePolydiskTestData
+   poincare_polydisk.PoincarePolydiskMetricTestData
+   lower_triangular_matrices.LowerTriangularMatricesTestData
+   positive_lower_triangular_matrices.PositiveLowerTriangularMatricesTestData
+   positive_lower_triangular_matrices.CholeskyMetricTestData
 
-Symmetric-Positive-Definite (SPD) Matrices Space
-------------------------------------------------
-.. automodule:: geomstats.geometry.spd_matrices
-   :members:
-
-Skew-Symmetric Matrices Space
------------------------------
-.. automodule:: geomstats.geometry.skew_symmetric_matrices
-   :members:
-
-Stiefel Manifold
-----------------
-.. automodule:: geomstats.geometry.stiefel
-   :members:
-
-Lie Groups
+Matrices
 ----------
-.. automodule:: geomstats.geometry.lie_group
-   :members:
+.. currentmodule:: geomstats.geometry
 
-Lie Algebra
------------
-.. automodule:: geomstats.geometry.lie_algebra
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated/
+   :template: class.rst
 
-Matrices Space
---------------
-.. automodule:: geomstats.geometry.matrices
-   :members:
-
-General Linear Group
---------------------
-.. automodule:: geomstats.geometry.general_linear
-   :members:
-
-Special Euclidean Group
------------------------
-.. automodule:: geomstats.geometry.special_euclidean
-   :members:
-
-Special Orthogonal Group
-------------------------
-.. automodule:: geomstats.geometry.special_orthogonal
-   :members:
-
-Graph Space
------------
-.. automodule:: geomstats.geometry.graphspace
-   :members:
-
-Grassmannian Manifold
----------------------
-.. automodule:: geomstats.geometry.grassmannian
-   :members:
-
-Landmarks Space
----------------
-.. automodule:: geomstats.geometry.landmarks
-   :members:
-
-Poincare Polydisk Space
------------------------
-.. automodule:: geomstats.geometry.poincare_polydisk
-   :members:
-
-Lower Triangular Matrices
--------------------------
-.. automodule:: geomstats.geometry.lower_triangular_matrices
-   :members:
-
-Positive Lower Triangular Matrices
-----------------------------------
-.. automodule:: geomstats.geometry.positive_lower_triangular_matrices
-   :members:
-
-
-Metrics
-=======
-
-Riemannian Metric
------------------
-.. automodule:: geomstats.geometry.riemannian_metric
-   :members:
-
-Product Riemannian Metric
--------------------------
-.. automodule:: geomstats.geometry.product_riemannian_metric
-   :members:
-
-Invariant Metric
-----------------
-.. automodule:: geomstats.geometry.invariant_metric
-   :members:
-
-Sasaki Metric
-----------------
-.. automodule:: geomstats.geometry.sasaki_metric
-   :members:
-
-Sub Riemannian Metric
----------------------
-.. automodule:: geomstats.geometry.sub_riemannian_metric
-   :members:
-
+   riemannian_metric.RiemannianMetric
+   product_riemannian_metric.ProductRiemannianMetric
+   product_riemannian_metric.NFoldMetric
+   invariant_metric.InvariantMetric
+   invariant_metric.BiInvariantMetric
+   sasaki_metric.SasakiMetric
+   sub_riemannian_metric.SubRiemannianMetric
 
 Connections
-===========
+----------
+.. currentmodule:: geomstats.geometry
 
-.. automodule:: geomstats.geometry.connection
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated/
+   :template: class.rst
+
+   connection.Connection
+
+   
