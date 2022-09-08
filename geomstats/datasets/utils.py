@@ -415,6 +415,15 @@ def load_mammals(file_path=MAMMALS_PATH):
     data_mammals : gs.array, shape=[26, 18, 18]
         Adjacency matrices of different group of mammals measuring the
         mammals grooming.
+
+    References
+    ----------
+    .. [Franz2015]  Franz, M., Altmann, J., & Alberts, S. C.
+        "Knockouts of high-ranking males have limited impact on baboon social networks."
+         Current Zoology, 61(1), 107-113, 2015.
+    .. [Rossi2015]  Rossi, R., & Ahmed, N.
+        "The network data repository with interactive graph analytics and
+        visualization." In Twenty-ninth AAAI conference on artificial intelligence, 2015
     """
     data_mammals = np.load(file_path)
     return data_mammals

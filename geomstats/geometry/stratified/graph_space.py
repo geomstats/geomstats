@@ -362,7 +362,8 @@ class GraphSpace(PointSet):
 
         Parameters
         ----------
-        graph_to_permute : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
+        graph_to_permute : list of GraphPoint or array-like,
+            shape=[..., n_nodes, n_nodes]
             Input graphs to be permuted.
         permutation: array-like, shape=[..., n_nodes]
             Node permutations where in position i we have the value j meaning
@@ -422,6 +423,7 @@ class GraphSpaceMetric(PointSetMetric):
     Parameters
     ----------
     space : GraphSpace
+        GraphSpace object.
 
     References
     ----------
@@ -494,8 +496,11 @@ class GraphSpaceMetric(PointSetMetric):
         Parameters
         ----------
         s_min : float
+            Minimum value of the domain to sample along the geodesics.
         s_max : float
+            Minimum value of the domain to sample along the geodesics.
         n_points: int
+            Number of points to sample between s_min and s_max.
 
         References
         ----------
@@ -630,7 +635,8 @@ class GraphSpaceMetric(PointSetMetric):
 
         Parameters
         ----------
-        geodesic : function.
+        geodesic : function
+            Geodesic in Graph Space function.
 
         graph_to_permute : list of Graph or array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
@@ -674,6 +680,7 @@ class _BaseAligner(metaclass=ABCMeta):
         Parameters
         ----------
         metric : GraphSpaceMetric
+            Metric between elements of GraphSpace.
         base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
@@ -716,6 +723,7 @@ class FAQAligner(_BaseAligner):
         Parameters
         ----------
         metric : GraphSpaceMetric
+            Metric between elements of GraphSpace.
         base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
@@ -754,6 +762,7 @@ class IDAligner(_BaseAligner):
         Parameters
         ----------
         metric : GraphSpaceMetric
+            Metric between elements of GraphSpace.
         base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
@@ -810,6 +819,7 @@ class ExhaustiveAligner(_BaseAligner):
         Parameters
         ----------
         metric : GraphSpaceMetric
+            Metric between elements of GraphSpace.
         base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
@@ -850,10 +860,12 @@ class _BasePointToGeodesicAligner(metaclass=ABCMeta):
 
     @abstractmethod
     def align(self, geodesic, graph_to_permute):
+        r"""Class for the Alignment of the geodesic with respect to a point."""
         raise NotImplementedError("Not implemented")
 
     @abstractmethod
     def dist(self, geodesic, graph_to_permute):
+        r"""Class to compute distance between the geodesic with respect to a point."""
         raise NotImplementedError("Not implemented")
 
     def _get_n_points(self, graph_to_permute):
@@ -874,9 +886,13 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
     Parameters
     ----------
     metric : GraphSpaceMetric
-    s_min : float.
-    s_max: float.
-    n_points : int.
+        Metric between elements of GraphSpace.
+    s_min : float
+        Minimum value of the domain to sample along the geodesics.
+    s_max : float
+        Minimum value of the domain to sample along the geodesics.
+    n_points: int
+        Number of points to sample between s_min and s_max.
 
     References
     ----------
@@ -942,7 +958,8 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
 
         Parameters
         ----------
-        geodesic : function.
+        geodesic : function
+            Geodesic function in GraphSpace.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
 
@@ -965,7 +982,8 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
 
         Parameters
         ----------
-        geodesic : function.
+        geodesic : function
+            Geodesic function in GraphSpace.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
             Graph to align.
 
