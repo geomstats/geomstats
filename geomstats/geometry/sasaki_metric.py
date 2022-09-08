@@ -1,7 +1,7 @@
 """Class for the Sasaki metric.
 
-A class implementing the Sasaki metric: The natural metric on the tangent bundle TM
-of a Riemannian manifold M.
+A class implementing the Sasaki metric: The natural metric on the tangent
+bundle TM of a Riemannian manifold M.
 
 Lead authors: E. Nava-Yazdani, F. Ambellan, M. Hanik and C. von Tycowicz.
 """
@@ -30,36 +30,35 @@ class SasakiMetric(RiemannianMetric):
     """Implements of the Sasaki metric on the tangent bundle TM of a Riem. manifold M.
 
     The Sasaki metric is characterized by the following three properties:
+
      * the canonical projection of TM becomes a Riemannian submersion,
      * parallel vector fields along curves are orthogonal to their fibres, and
      * its restriction to any tangent space is Euclidean.
 
-    Geodesic computations are realized via a discrete formulation of the geodesic
-    equation on TM that involve geodesics, parallel translation, and the curvature
-    tensor on the base manifold M (see [1] for details).
-    However, as the implemented energy in the discrete-geodesics-optimization as well as
-    the approximations of its gradient slightly differ from those proposed in [1], we
-    also refer to [2] for additional details.
+    Geodesic computations are realized via a discrete formulation of the
+    geodesic equation on TM that involve geodesics, parallel translation, and
+    the curvature tensor on the base manifold M (see [1]_ for details).
+    However, as the implemented energy in the discrete-geodesics-optimization
+    as well as the approximations of its gradient slightly differ from those
+    proposed in [1]_, we also refer to [2]_ for additional details.
 
     Parameters
     ----------
     metric : RiemannianMetric
         Metric of the base manifold of the tangent bundle.
-
     n_jobs: int
-    Number of jobs for parallel computing.
-    Optional, default: 1.
+        Number of jobs for parallel computing.
+        Optional, default: 1.
 
     References
     ----------
-    .. [1] Muralidharan, P., & Fletcher, P. T. (2012, June).
-    Sasaki metrics for analysis of longitudinal data on manifolds.
-    In 2012 IEEE conference on computer vision and pattern recognition (pp. 1027-1034).
-    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4270017/
-    [2] Nava-Yazdani, E., Hanik, M., Ambellan, F., & von Tycowicz, C. (2022, June).
-    On Gradient Formulas in an Algorithm for the Logarithm of the Sasaki Metric
-    Technical Report Zuse-Institut Berlin (no. ZIB-22-12) (urn:nbn:de:0297-zib-87174).
-    https://nbn-resolving.org/urn/resolver.pl?urn:nbn:de:0297-zib-87174
+    .. [1] Muralidharan, P., & Fletcher, P. T. "Sasaki metrics for analysis of
+        longitudinal data on manifolds", IEEE CVPR 2012, pp. 1027-1034
+        https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4270017/
+    .. [2] Nava-Yazdani, E., Hanik, M., Ambellan, F., & von Tycowicz, C. 
+        "On Gradient Formulas in an Algorithm for the Logarithm of the Sasaki
+        Metric", Technical Report Zuse-Institut Berlin, 2022
+        https://nbn-resolving.org/urn/resolver.pl?urn:nbn:de:0297-zib-87174
     """
 
     def __init__(self, metric: RiemannianMetric, n_jobs: int = 1):
@@ -117,8 +116,8 @@ class SasakiMetric(RiemannianMetric):
     def log(self, point, base_point, n_steps=N_STEPS, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
-        Logarithmic map at base_point of point computed by
-        iteratively relaxing a discretized geodesic between base_point and point.
+        Logarithmic map at base_point of point computed by iteratively relaxing
+        a discretized geodesic between base_point and point.
 
         Parameters
         ----------
@@ -165,15 +164,15 @@ class SasakiMetric(RiemannianMetric):
         initial_points : array-like, shape=[..., 2, M.shape]
             Points in the tangent bundle TM of manifold M.
         n_steps : int
-            n_steps - 1 is the number of intermediate points in the discretization
-            of the geodesic from initial_point to end_point
+            n_steps - 1 is the number of intermediate points in the
+            discretization of the geodesic from initial_point to end_point
             Optional, default: N_STEPS.
 
         Returns
         -------
         geodesic : array-like, shape=[..., n_steps + 1, 2, M.shape]
-            Discrete geodesics of form x(s)=(p(s), u(s)) in Sasaki metric connecting
-            initial_point = x(0) and end_point = x(1).
+            Discrete geodesics of form x(s)=(p(s), u(s)) in Sasaki metric
+            connecting initial_point = x(0) and end_point = x(1).
         """
         metric = self.metric
         par_trans = metric.parallel_transport
