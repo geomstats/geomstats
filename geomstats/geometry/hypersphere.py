@@ -103,8 +103,8 @@ class _Hypersphere(LevelSet):
         """Convert point from angle to extrinsic coordinates.
 
         Convert from the angle in radians to the extrinsic coordinates in
-        2d plane. Angle 0 corresponds to point [1., 0.] and is expected in [-Pi, Pi).
-        This method is only implemented in dimension 1.
+        2d plane. Angle 0 corresponds to point [1., 0.] and is expected in
+        [-Pi, Pi). This method is only implemented in dimension 1.
 
         Parameters
         ----------
@@ -846,14 +846,15 @@ class HypersphereMetric(RiemannianMetric):
             is computed.
             Optional, default : None.
         end_point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere. Point to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the hypersphere. Point to transport to. Unused if
+            `tangent_vec_b` is given.
             Optional, default : None.
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at
+            `end_point=exp_(base_point)(tangent_vec_b)`.
         """
         if direction is None:
             if end_point is not None:
@@ -1093,10 +1094,10 @@ class HypersphereMetric(RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of the sphere, it does not depend on the base point and is Pi
-        everywhere.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the sphere, it does not depend on the base point and is
+        Pi everywhere.
 
         Parameters
         ----------

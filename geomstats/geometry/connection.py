@@ -672,8 +672,8 @@ class Connection(ABC):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
 
         Parameters
         ----------

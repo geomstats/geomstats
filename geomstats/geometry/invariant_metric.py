@@ -1346,7 +1346,8 @@ class BiInvariantMetric(_InvariantMetricVector):
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., n, n]
-            Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at
+            `end_point=exp_(base_point)(tangent_vec_b)`.
         """
         if direction is None:
             if end_point is not None:
@@ -1365,9 +1366,10 @@ class BiInvariantMetric(_InvariantMetricVector):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of a bi-invariant metric, it does not depend on the base point.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of a bi-invariant metric, it does not depend on the base
+        point.
 
         Parameters
         ----------

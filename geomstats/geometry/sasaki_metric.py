@@ -55,7 +55,7 @@ class SasakiMetric(RiemannianMetric):
     .. [1] Muralidharan, P., & Fletcher, P. T. "Sasaki metrics for analysis of
         longitudinal data on manifolds", IEEE CVPR 2012, pp. 1027-1034
         https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4270017/
-    .. [2] Nava-Yazdani, E., Hanik, M., Ambellan, F., & von Tycowicz, C. 
+    .. [2] Nava-Yazdani, E., Hanik, M., Ambellan, F., & von Tycowicz, C.
         "On Gradient Formulas in an Algorithm for the Logarithm of the Sasaki
         Metric", Technical Report Zuse-Institut Berlin, 2022
         https://nbn-resolving.org/urn/resolver.pl?urn:nbn:de:0297-zib-87174
