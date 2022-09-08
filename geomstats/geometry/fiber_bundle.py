@@ -229,7 +229,6 @@ class FiberBundle(Manifold, ABC):
         horizontal : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal component of `tangent_vec`.
         """
-
         caller_name = sys._getframe().f_back.f_code.co_name
         if not caller_name == "vertical_projection":
             try:

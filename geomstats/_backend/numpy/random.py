@@ -8,7 +8,9 @@ from ._dtype_wrapper import _add_default_dtype_by_casting
 
 rand = _add_default_dtype_by_casting(target=_np.random.rand)
 normal = _add_default_dtype_by_casting(target=_np.random.normal)
-multivariate_normal = _add_default_dtype_by_casting(target=_np.random.multivariate_normal)
+multivariate_normal = _add_default_dtype_by_casting(
+    target=_np.random.multivariate_normal
+)
 uniform = _add_default_dtype_by_casting(target=_np.random.uniform)
 
 
