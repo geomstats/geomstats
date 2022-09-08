@@ -1,4 +1,4 @@
-"""Graph Space.
+"""Align All and Compute for Graph Space.
 
 Lead author: Anna Calissano.
 """
@@ -437,7 +437,8 @@ class _AACRegressor(BaseEstimator):
 
         Returns
         -------
-        prediction : array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint
+        prediction : array-like, shape=[n_samples, n_nodes, n_nodes] or set of
+            GraphPoint
             Predicted unlabeled graphs.
         """
         return self.total_space_estimator.predict(X)
