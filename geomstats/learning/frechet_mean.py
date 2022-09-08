@@ -416,10 +416,10 @@ def _circle_mean(points):
 
     Reference
     ---------
-    .. [HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
-                 Uniqueness, locus and asymptotics", Annals of the Institute of
-                 Statistical Mathematics 67 (1), 177–193.
-                 https://arxiv.org/abs/1108.2141
+    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
+        circle: Uniqueness, locus and asymptotics", Annals of the Institute of
+        Statistical Mathematics 67 (1), 177–193.
+        https://arxiv.org/abs/1108.2141
     """
     if points.ndim > 1:
         points_ = Hypersphere.extrinsic_to_angle(points)
@@ -449,10 +449,10 @@ def _circle_variances(mean, var, n_samples, points):
 
     References
     ----------
-    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
-                 Uniqueness, locus and asymptotics", Annals of the Institute of
-                 Statistical Mathematics 67 (1), 177–193.
-                 https://arxiv.org/abs/1108.2141
+    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
+        circle: Uniqueness, locus and asymptotics", Annals of the Institute of
+        Statistical Mathematics 67 (1), 177–193.
+        https://arxiv.org/abs/1108.2141
     """
     means = (mean + gs.linspace(0.0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
     means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)

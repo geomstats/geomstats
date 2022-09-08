@@ -32,7 +32,7 @@ class GeometricMedian:
     References
     ----------
     .. [BJL2008]_ Bhatia, Jain, Lim. "Robust statistics on
-    Riemannian manifolds via the geometric median"
+        Riemannian manifolds via the geometric median"
     """
 
     def __init__(self, metric, max_iter=100, lr=1.0, init=None, print_every=None):

@@ -8,9 +8,9 @@ introduced in [Mallasto]_.
 References
 ----------
 .. [Mallasto] Mallasto, A. and Feragen, A.
-            “Wrapped gaussian process regression on riemannian manifolds.”
-            IEEE/CVF Conference on Computer Vision and Pattern Recognition
-            (2018)
+    “Wrapped gaussian process regression on riemannian manifolds.”
+    IEEE/CVF Conference on Computer Vision and Pattern Recognition
+    (2018)
 
 """
 
@@ -275,7 +275,8 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         X : array-like of shape (n_samples_X, n_features) or list of object
             Query points where the WGP is evaluated.
         n_samples : int, default=1
-            Number of samples drawn from the Wrapped Gaussian process per query point.
+            Number of samples drawn from the Wrapped Gaussian process per query
+            point.
         random_state : int, RandomState instance or None, default=0
             Determines random number generation to randomly draw samples.
             Pass an int for reproducible results across multiple function
