@@ -133,7 +133,7 @@ class SubRiemannianMetric(abc.ABC):
         vector_2 = gs.einsum(
             "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
         )
-        inner_coproduct = gs.einsum("...i,...i->...", cotangent_vec_a, vector_2)
+        inner_coproduct = gs.dot(cotangent_vec_a, vector_2)
         return inner_coproduct
 
     def hamiltonian(self, state):

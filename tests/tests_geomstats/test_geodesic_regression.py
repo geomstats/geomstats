@@ -102,18 +102,16 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         )
 
         # Set up for discrete curves
-        n_sampling_points = 8
-        self.curves_2d = DiscreteCurves(R2)
-        self.metric_curves_2d = self.curves_2d.square_root_velocity_metric
+        k_sampling_points = 8
+        self.curves_2d = DiscreteCurves(R2, k_sampling_points=k_sampling_points)
+        self.metric_curves_2d = self.curves_2d.srv_metric
         self.metric_curves_2d.default_point_type = "matrix"
 
-        self.shape_curves_2d = (n_sampling_points, 2)
+        self.shape_curves_2d = (k_sampling_points, 2)
         X = gs.random.rand(self.n_samples)
         self.X_curves_2d = X - gs.mean(X)
 
-        self.intercept_curves_2d_true = self.curves_2d.random_point(
-            n_sampling_points=n_sampling_points
-        )
+        self.intercept_curves_2d_true = self.curves_2d.random_point()
         self.coef_curves_2d_true = self.curves_2d.to_tangent(
             5.0 * gs.random.rand(*self.shape_curves_2d), self.intercept_curves_2d_true
         )
@@ -398,7 +396,9 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
             direction=tangent_vec_of_transport,
         )
 
-        self.assertAllClose(transported_coef_hat, self.coef_eucl_true)
+        self.assertAllClose(
+            transported_coef_hat, self.coef_eucl_true, atol=10 * gs.atol
+        )
 
     @geomstats.tests.autograd_tf_and_torch_only
     def test_loss_minimization_extrinsic_hypersphere(self):

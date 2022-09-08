@@ -246,7 +246,7 @@ class TangentPCA(_BasePCA):
             Matrices of the SVD decomposition
         """
         if base_point is None:
-            mean = FrechetMean(metric=self.metric, point_type=self.point_type)
+            mean = FrechetMean(metric=self.metric)
             mean.fit(X)
             base_point = mean.estimate_
 

@@ -3,20 +3,16 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.landmarks import L2LandmarksMetric, Landmarks
 from tests.conftest import Parametrizer
 from tests.data.landmarks_data import TestDataL2LandmarksMetric, TestDataLandmarks
 from tests.geometry_test_cases import NFoldManifoldTestCase, NFoldMetricTestCase
 
 
 class TestLandmarks(NFoldManifoldTestCase, metaclass=Parametrizer):
-    space = Landmarks
-
     testing_data = TestDataLandmarks()
 
 
 class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
-    metric = connection = L2LandmarksMetric
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -77,7 +73,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_autograd_and_tf_only
     def test_l2_metric_geodesic(
-        self, l2_metric_s2, times, n_sampling_points, landmarks_a, landmarks_b
+        self, l2_metric_s2, times, k_sampling_points, landmarks_a, landmarks_b
     ):
         """Test the geodesic method of L2LandmarksMetric."""
         landmarks_ab = l2_metric_s2.geodesic(landmarks_a, landmarks_b)
@@ -85,7 +81,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
 
         result = landmarks_ab
         expected = []
-        for k in range(n_sampling_points):
+        for k in range(k_sampling_points):
             geod = l2_metric_s2.ambient_metric.geodesic(
                 initial_point=landmarks_a[k, :], end_point=landmarks_b[k, :]
             )

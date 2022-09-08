@@ -33,8 +33,6 @@ from numpy import (
     cumsum,
     diag_indices,
     diagonal,
-    divide,
-    dot,
 )
 from numpy import dtype as _ndtype  # NOQA
 from numpy import (
@@ -64,7 +62,6 @@ from numpy import (
     log,
     logical_and,
     logical_or,
-    matmul,
     maximum,
     mean,
     meshgrid,
@@ -73,10 +70,10 @@ from numpy import (
     moveaxis,
     ones,
     ones_like,
-    outer,
     pad,
     power,
     prod,
+    quantile,
     real,
     repeat,
     reshape,
@@ -96,7 +93,6 @@ from numpy import (
     tan,
     tanh,
     tile,
-    trace,
     transpose,
     trapz,
     tril,
@@ -139,7 +135,10 @@ def from_numpy(x):
 
 
 def convert_to_wider_dtype(tensor_list):
-    dtype_list = [_DTYPES[x.dtype] for x in tensor_list]
+    dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
+    if len(set(dtype_list)) == 1:
+        return tensor_list
+
     wider_dtype_index = max(dtype_list)
 
     wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
@@ -154,28 +153,6 @@ def flatten(x):
 
 def one_hot(labels, num_classes):
     return _np.eye(num_classes, dtype=_np.dtype("uint8"))[labels]
-
-
-def get_mask_i_float(i, n):
-    """Create a 1D array of zeros with one element at one, with floating type.
-
-    Parameters
-    ----------
-    i : int
-        Index of the non-zero element.
-    n: n
-        Length of the created array.
-
-    Returns
-    -------
-    mask_i_float : array-like, shape=[n,]
-        1D array of zeros except at index i, where it is one
-    """
-    range_n = arange(n)
-    i_float = cast(array([i]), int32)[0]
-    mask_i = equal(range_n, i_float)
-    mask_i_float = cast(mask_i, float32)
-    return mask_i_float
 
 
 def _is_boolean(x):
@@ -433,6 +410,12 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     return mat
 
 
+def divide(a, b, ignore_div_zero=False):
+    if ignore_div_zero is False:
+        return _np.divide(a, b)
+    return _np.divide(a, b, out=_np.zeros_like(a), where=b != 0)
+
+
 def ravel_tril_indices(n, k=0, m=None):
     if m is None:
         size = (n, n)
@@ -440,3 +423,48 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, m)
     idxs = _np.tril_indices(n, k, m)
     return _np.ravel_multi_index(idxs, size)
+
+
+def is_array(x):
+    return type(x) is _np.ndarray
+
+
+def matmul(*args, **kwargs):
+    for arg in args:
+        if arg.ndim == 1:
+            raise ValueError("ndims must be >=2")
+    return _np.matmul(*args, **kwargs)
+
+
+def outer(a, b):
+    if a.ndim == 2 and b.ndim == 2:
+        return _np.einsum("...i,...j->...ij", a, b)
+
+    out = _np.multiply.outer(a, b)
+    if b.ndim == 2:
+        out = out.swapaxes(-3, -2)
+
+    return out
+
+
+def matvec(A, b):
+    if b.ndim == 1:
+        return _np.matmul(A, b)
+    else:
+        if A.ndim == 2:
+            return _np.matmul(A, b.T).T
+        return _np.einsum("...ij,...j->...i", A, b)
+
+
+def dot(a, b):
+    if b.ndim == 1:
+        return _np.dot(a, b)
+
+    if a.ndim == 1:
+        return _np.dot(a, b.T)
+
+    return _np.einsum("...i,...i->...", a, b)
+
+
+def trace(a):
+    return _np.trace(a, axis1=-2, axis2=-1)

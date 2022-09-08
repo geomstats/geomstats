@@ -123,7 +123,7 @@ class EuclideanMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return gs.einsum("...i,...i->...", tangent_vec_a, tangent_vec_b)
+        return gs.dot(tangent_vec_a, tangent_vec_b)
 
     def norm(self, vector, base_point=None):
         """Compute norm of a vector.

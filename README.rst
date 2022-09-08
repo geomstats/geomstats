@@ -26,7 +26,7 @@ Geomstats
    - Submit your `statement of interest <https://developers.google.com/season-of-docs/docs/tech-writer-statement>`_ via email to nmiolane@gmail.com before May 1st, at 18:00 UTC.
    - Selected technical writers will be notified no later than May 16th.
 
-- The white paper summarizing the findings from our `ICLR 2021 challenge of computational differential geometry and topology <https://gt-rl.github.io/challenge>`__ is out. `Read it here <https://arxiv.org/abs/2108.09810>`__.
+- The white papers summarizing the findings from our ICLR 2021 and 2022 challenges of computational differential geometry and topology are available `here (2021) <https://arxiv.org/abs/2108.09810>`__ and `here (2022) <https://arxiv.org/abs/2206.09048>`_.
 
 - Check out our new  `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
 

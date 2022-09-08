@@ -49,11 +49,11 @@ class PreShapeSpace(LevelSet, FiberBundle):
             submersion=embedding_metric.squared_norm,
             value=1.0,
             tangent_submersion=embedding_metric.inner_product,
-            ambient_metric=PreShapeMetric(k_landmarks, m_ambient),
+            total_space_metric=PreShapeMetric(k_landmarks, m_ambient),
         )
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
-        self.ambient_metric = PreShapeMetric(k_landmarks, m_ambient)
+        self.total_space_metric = PreShapeMetric(k_landmarks, m_ambient)
 
     def projection(self, point):
         """Project a point on the pre-shape space.
@@ -69,7 +69,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
             Point projected on the pre-shape space.
         """
         centered_point = self.center(point)
-        frob_norm = self.ambient_metric.norm(centered_point)
+        frob_norm = self.total_space_metric.norm(centered_point)
         projected_point = gs.einsum("...,...ij->...ij", 1.0 / frob_norm, centered_point)
 
         return projected_point
@@ -175,7 +175,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
             raise ValueError("The base_point does not belong to the pre-shape" " space")
         vector = self.center(vector)
         sq_norm = Matrices.frobenius_product(base_point, base_point)
-        inner_prod = self.ambient_metric.inner_product(base_point, vector)
+        inner_prod = self.total_space_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum("...,...ij->...ij", coef, base_point)
 
@@ -480,7 +480,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
             x_top, tangent_vec_e_sym
         )
 
-        scal_x_a_y_e = self.ambient_metric.inner_product(
+        scal_x_a_y_e = self.total_space_metric.inner_product(
             horizontal_vec_x, a_y_e, base_point
         )
 
@@ -1070,8 +1070,8 @@ class KendallShapeMetric(QuotientMetric):
         horizontal_b = self.fiber_bundle.horizontal_projection(direction, base_point)
 
         def force(state, time):
-            gamma_t = self.ambient_metric.exp(time * horizontal_b, base_point)
-            speed = self.ambient_metric.parallel_transport(
+            gamma_t = self.total_space_metric.exp(time * horizontal_b, base_point)
+            speed = self.total_space_metric.parallel_transport(
                 horizontal_b, base_point, time * horizontal_b
             )
             coef = self.inner_product(speed, state, gamma_t)

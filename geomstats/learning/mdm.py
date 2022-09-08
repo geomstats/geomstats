@@ -24,9 +24,6 @@ class RiemannianMinimumDistanceToMeanClassifier:
         Riemannian metric to be used.
     n_classes : int
         Number of classes.
-    point_type : str, {\'vector\', \'matrix\'}
-        Point type.
-        Optional, default: \'matrix\'.
 
     Attributes
     ----------
@@ -42,10 +39,9 @@ class RiemannianMinimumDistanceToMeanClassifier:
         Trans. Biomed. Eng., vol. 59, pp. 920-928, 2012.
     """
 
-    def __init__(self, riemannian_metric, n_classes, point_type="matrix"):
+    def __init__(self, riemannian_metric, n_classes):
         self.riemannian_metric = riemannian_metric
         self.n_classes = n_classes
-        self.point_type = point_type
         self.mean_estimates_ = None
         self.classes_ = None
 
@@ -54,19 +50,14 @@ class RiemannianMinimumDistanceToMeanClassifier:
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, dim]
-                              if point_type='vector'
-                              shape=[n_samples, n, n]
-                              if point_type='matrix'
+        X : array-like, shape=[n_samples, *metric.shape]
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
         y : array-like, shape=[n_samples,]
             Training labels.
         """
         self.classes_ = gs.unique(y)
-        mean_estimator = FrechetMean(
-            metric=self.riemannian_metric, point_type=self.point_type
-        )
+        mean_estimator = FrechetMean(metric=self.riemannian_metric)
         frechet_means = []
         for c in self.classes_:
             X_c = X[gs.where(y == c, True, False)]
@@ -78,10 +69,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, dim]
-                              if point_type='vector'
-                              shape=[n_samples, n, n]
-                              if point_type='matrix'
+        X : array-like, shape=[n_samples, *metric.shape]
             Test data, where n_samples is the number of samples
             and n_features is the number of features.
 
@@ -104,10 +92,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, dim]
-                              if point_type='vector'
-                              shape=[n_samples, n, n]
-                              if point_type='matrix'
+        X : array-like, shape=[n_samples, *metric.shape]
             Test data, where n_samples is the number of samples
             and n_features is the number of features.
 
@@ -130,10 +115,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, dim]
-                              if point_type='vector'
-                              shape=[n_samples, n, n]
-                              if point_type='matrix'
+        X : array-like, shape=[n_samples, *metric.shape]
             Test data, where n_samples is the number of samples
             and n_features is the number of features.
         y : array-like, shape=[n_samples,]

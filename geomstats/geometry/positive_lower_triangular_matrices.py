@@ -236,7 +236,7 @@ class CholeskyMetric(RiemannianMetric):
         """
         sl_tagnet_vec_a = gs.tril_to_vec(tangent_vec_a, k=-1)
         sl_tagnet_vec_b = gs.tril_to_vec(tangent_vec_b, k=-1)
-        ip_sl = gs.einsum("...i,...i->...", sl_tagnet_vec_a, sl_tagnet_vec_b)
+        ip_sl = gs.dot(sl_tagnet_vec_a, sl_tagnet_vec_b)
         return ip_sl
 
     @classmethod

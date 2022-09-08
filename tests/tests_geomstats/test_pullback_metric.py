@@ -5,7 +5,6 @@ import pytest
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.pullback_metric import PullbackMetric
 from tests.conftest import Parametrizer, TestCase
 from tests.data.pullback_metric_data import PullbackMetricTestData
 
@@ -55,6 +54,7 @@ expected_jacobian_immersion = _expected_jacobian_immersion
 class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
     testing_data = PullbackMetricTestData()
+    Metric = testing_data.Metric
 
     def test_immersion(self, spherical_coords, expected):
         result = immersion(spherical_coords)
@@ -66,7 +66,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_jacobian_immersion(self, dim, pole):
-        pullback_metric = PullbackMetric(
+        pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         result = pullback_metric.jacobian_immersion(pole)
@@ -74,14 +74,14 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_tangent_immersion(self, dim, tangent_vec, point, expected):
-        pullback_metric = PullbackMetric(
+        pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         result = pullback_metric.tangent_immersion(tangent_vec, point)
         self.assertAllClose(result, expected)
 
     def test_metric_matrix(self, dim, base_point):
-        pullback_metric = PullbackMetric(
+        pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         result = pullback_metric.metric_matrix(base_point)
@@ -89,7 +89,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_inverse_metric_matrix(self, dim, base_point):
-        pullback_metric = PullbackMetric(
+        pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
 
@@ -112,13 +112,13 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         The inner-product of pullback_metric is defined in terms
         of the spherical coordinates.
         """
-        pullback_metric = PullbackMetric(
+        pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         immersed_base_point = immersion(base_point)
         jac_immersion = pullback_metric.jacobian_immersion(base_point)
-        immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
-        immersed_tangent_vec_b = gs.matmul(jac_immersion, tangent_vec_b)
+        immersed_tangent_vec_a = gs.matvec(jac_immersion, tangent_vec_a)
+        immersed_tangent_vec_b = gs.matvec(jac_immersion, tangent_vec_b)
 
         result = pullback_metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point=base_point
@@ -140,7 +140,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         The christoffels of pullback_metric are also defined
         in terms of the spherical coordinates.
         """
-        pullback_metric = PullbackMetric(
+        pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         result = pullback_metric.christoffels(base_point)
@@ -156,12 +156,12 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         The exp map of pullback_metric is defined
         in terms of the spherical coordinates.
         """
-        pullback_metric = PullbackMetric(
+        pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         immersed_base_point = immersion(base_point)
         jac_immersion = pullback_metric.jacobian_immersion(base_point)
-        immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec)
+        immersed_tangent_vec_a = gs.matvec(jac_immersion, tangent_vec)
         result = pullback_metric.exp(tangent_vec, base_point=base_point)
         result = Hypersphere(dim).spherical_to_extrinsic(result)
         expected = Hypersphere(dim).metric.exp(
@@ -181,13 +181,13 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         The parallel transport of pullback_metric is defined
         in terms of the spherical coordinates.
         """
-        pullback_metric = PullbackMetric(
+        pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=immersion
         )
         immersed_base_point = immersion(base_point)
         jac_immersion = pullback_metric.jacobian_immersion(base_point)
-        immersed_tangent_vec_a = gs.matmul(jac_immersion, tangent_vec_a)
-        immersed_tangent_vec_b = gs.matmul(jac_immersion, tangent_vec_b)
+        immersed_tangent_vec_a = gs.matvec(jac_immersion, tangent_vec_a)
+        immersed_tangent_vec_b = gs.matvec(jac_immersion, tangent_vec_b)
 
         result_dict = pullback_metric.ladder_parallel_transport(
             tangent_vec_a, base_point=base_point, direction=tangent_vec_b

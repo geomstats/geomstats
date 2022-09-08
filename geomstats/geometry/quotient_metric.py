@@ -46,7 +46,7 @@ class QuotientMetric(RiemannianMetric):
 
         self.fiber_bundle = fiber_bundle
         self.group = fiber_bundle.group
-        self.ambient_metric = fiber_bundle.ambient_metric
+        self.total_space_metric = fiber_bundle.total_space_metric
 
     def inner_product(
         self, tangent_vec_a, tangent_vec_b, base_point=None, fiber_point=None
@@ -88,7 +88,7 @@ class QuotientMetric(RiemannianMetric):
         horizontal_b = self.fiber_bundle.horizontal_lift(
             tangent_vec_b, fiber_point=fiber_point
         )
-        return self.ambient_metric.inner_product(
+        return self.total_space_metric.inner_product(
             horizontal_a, horizontal_b, fiber_point
         )
 
@@ -113,7 +113,7 @@ class QuotientMetric(RiemannianMetric):
             tangent_vec, fiber_point=lift
         )
         return self.fiber_bundle.riemannian_submersion(
-            self.ambient_metric.exp(horizontal_vec, lift)
+            self.total_space_metric.exp(horizontal_vec, lift)
         )
 
     def log(self, point, base_point, **kwargs):
@@ -136,7 +136,7 @@ class QuotientMetric(RiemannianMetric):
         bp_fiber = self.fiber_bundle.lift(base_point)
         aligned = self.fiber_bundle.align(fiber_point, bp_fiber, **kwargs)
         return self.fiber_bundle.tangent_riemannian_submersion(
-            self.ambient_metric.log(aligned, bp_fiber), bp_fiber
+            self.total_space_metric.log(aligned, bp_fiber), bp_fiber
         )
 
     def squared_dist(self, point_a, point_b, **kwargs):
@@ -157,7 +157,7 @@ class QuotientMetric(RiemannianMetric):
         lift_a = self.fiber_bundle.lift(point_a)
         lift_b = self.fiber_bundle.lift(point_b)
         aligned = self.fiber_bundle.align(lift_a, lift_b, **kwargs)
-        return self.ambient_metric.squared_dist(aligned, lift_b)
+        return self.total_space_metric.squared_dist(aligned, lift_b)
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         r"""Compute the curvature.
@@ -209,7 +209,7 @@ class QuotientMetric(RiemannianMetric):
         horizontal_b = bundle.horizontal_lift(tangent_vec_b, base_point)
         horizontal_c = bundle.horizontal_lift(tangent_vec_c, base_point)
 
-        top_curvature = self.ambient_metric.curvature(
+        top_curvature = self.total_space_metric.curvature(
             horizontal_a, horizontal_b, horizontal_c, fiber_point
         )
         projected_top_curvature = bundle.tangent_riemannian_submersion(
@@ -300,7 +300,7 @@ class QuotientMetric(RiemannianMetric):
         nabla_h_y = bundle.integrability_tensor(hor_h, hor_y, point_fiber)
         nabla_h_z = bundle.integrability_tensor(hor_h, hor_z, point_fiber)
 
-        nabla_curvature_top = self.ambient_metric.curvature_derivative(
+        nabla_curvature_top = self.total_space_metric.curvature_derivative(
             hor_h, hor_x, hor_y, hor_z, point_fiber
         )
 
@@ -408,7 +408,7 @@ class QuotientMetric(RiemannianMetric):
         nabla_x_x = gs.zeros_like(hor_x)
         nabla_x_y = bundle.integrability_tensor(hor_x, hor_y, point_fiber)
 
-        nabla_curvature_top = self.ambient_metric.curvature_derivative(
+        nabla_curvature_top = self.total_space_metric.curvature_derivative(
             hor_x, hor_x, hor_y, hor_y, point_fiber
         )
 

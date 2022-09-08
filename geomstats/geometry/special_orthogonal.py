@@ -300,7 +300,9 @@ class _SpecialOrthogonalVectors(LieGroup):
 
     def __init__(self, n, shape, epsilon=0.0):
         dim = n * (n - 1) // 2
-        LieGroup.__init__(self, dim=dim, shape=shape, default_point_type="vector")
+        LieGroup.__init__(
+            self, dim=dim, shape=shape, default_point_type="vector", lie_algebra=self
+        )
 
         self.n = n
         self.epsilon = epsilon
@@ -855,7 +857,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         n_rot_mats, _, _ = rot_mat.shape
 
-        trace = gs.trace(rot_mat, axis1=1, axis2=2)
+        trace = gs.trace(rot_mat)
         trace = gs.to_ndarray(trace, to_ndim=2, axis=1)
         trace_num = gs.clip(trace, -1, 3)
         angle = gs.arccos(0.5 * (trace_num - 1))
@@ -1038,7 +1040,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
                 ]
             )
 
-            mask_i = gs.get_mask_i_float(i, n_quaternions)
+            mask_i = gs.array_from_sparse([(i,)], [1.0], (n_quaternions,))
             rot_mat_i = gs.transpose(gs.hstack([column_1, column_2, column_3]))
             rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
             rot_mat += gs.einsum("...,...ij->...ij", mask_i, rot_mat_i)
@@ -1622,7 +1624,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             squared_angle < utils.EPSILON, coef_2, (1 - coef_1) / squared_angle_
         )
 
-        outer_ = gs.einsum("...i,...j->...ij", point, point)
+        outer_ = gs.outer(point, point)
         sign = -1.0 if left_or_right == "right" else 1.0
 
         return (
