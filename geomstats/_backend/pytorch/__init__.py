@@ -283,12 +283,6 @@ def broadcast_to(x, shape):
     return x.expand(shape)
 
 
-def sqrt(x):
-    if not isinstance(x, _torch.Tensor):
-        x = _torch.tensor(x)
-    return _torch.sqrt(x)
-
-
 def isclose(x, y, rtol=rtol, atol=atol):
     if not _torch.is_tensor(x):
         x = _torch.tensor(x)

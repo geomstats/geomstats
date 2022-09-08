@@ -25,11 +25,11 @@ def as_dtype(value):
 
 
 def set_default_dtype(value):
-    _config._DEFAULT_DTYPE = as_dtype(value)
-    _config._DEFAULT_COMPLEX_DTYPE = _MAP_FLOAT_TO_COMPLEX.get(value)
-    _torch.set_default_dtype(_config._DEFAULT_DTYPE)
+    _config.DEFAULT_DTYPE = as_dtype(value)
+    _config.DEFAULT_COMPLEX_DTYPE = _MAP_FLOAT_TO_COMPLEX.get(value)
+    _torch.set_default_dtype(_config.DEFAULT_DTYPE)
 
-    return _config._DEFAULT_DTYPE
+    return _config.DEFAULT_DTYPE
 
 
 _add_default_dtype_by_casting = _pre_add_default_dtype_by_casting(cast)
@@ -52,8 +52,8 @@ def _preserve_input_dtype(target=None):
 
     if target is None:
         return _decorator
-    else:
-        return _decorator(target)
+
+    return _decorator(target)
 
 
 def _box_unary_scalar(target=None):
@@ -68,8 +68,8 @@ def _box_unary_scalar(target=None):
 
     if target is None:
         return _decorator
-    else:
-        return _decorator(target)
+
+    return _decorator(target)
 
 
 def _box_binary_scalar(target=None, box_x1=True, box_x2=True):
@@ -87,5 +87,5 @@ def _box_binary_scalar(target=None, box_x1=True, box_x2=True):
 
     if target is None:
         return _decorator
-    else:
-        return _decorator(target)
+
+    return _decorator(target)

@@ -808,12 +808,11 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
 
     n = diag.shape[-1]
-    (i,) = _np.diag_indices(n, ndim=1)
     j, k = _np.triu_indices(n, k=1)
 
     if diag.ndim == 1:
-        upper_indices = [(jj, kk) for jj, kk in zip(j, k)]
-        lower_indices = [(kk, jj) for jj, kk in zip(j, k)]
+        upper_indices = list(zip(j, k))
+        lower_indices = list(zip(k, j))
     else:
         m = diag.shape[0]
         upper_indices = [(rr, jj, kk) for rr in range(m) for jj, kk in zip(j, k)]

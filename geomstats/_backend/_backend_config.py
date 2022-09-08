@@ -8,5 +8,5 @@ np_atol = 1e-12
 np_rtol = 1e-6
 
 
-_DEFAULT_DTYPE = None
-_DEFAULT_COMPLEX_DTYPE = None
+DEFAULT_DTYPE = None
+DEFAULT_COMPLEX_DTYPE = None

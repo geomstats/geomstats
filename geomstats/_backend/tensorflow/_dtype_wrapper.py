@@ -33,9 +33,9 @@ def _box_unary_scalar(target=None):
         def _wrapped(x, *args, **kwargs):
 
             if type(x) is float:
-                x = _tf.constant(x, dtype=_config._DEFAULT_DTYPE)
+                x = _tf.constant(x, dtype=_config.DEFAULT_DTYPE)
             elif type(x) is complex:
-                x = _tf.constant(x, dtype=_config._DEFAULT_COMPLEX_DTYPE)
+                x = _tf.constant(x, dtype=_config.DEFAULT_COMPLEX_DTYPE)
 
             return func(x, *args, **kwargs)
 
@@ -43,8 +43,8 @@ def _box_unary_scalar(target=None):
 
     if target is None:
         return _decorator
-    else:
-        return _decorator(target)
+
+    return _decorator(target)
 
 
 def _box_binary_scalar(target=None):
@@ -53,10 +53,10 @@ def _box_binary_scalar(target=None):
         def _wrapped(x1, x2, *args, **kwargs):
 
             if type(x1) is float:
-                x1 = _tf.constant(x1, dtype=_config._DEFAULT_DTYPE)
+                x1 = _tf.constant(x1, dtype=_config.DEFAULT_DTYPE)
 
             if type(x2) is float:
-                x2 = _tf.constant(x2, dtype=_config._DEFAULT_DTYPE)
+                x2 = _tf.constant(x2, dtype=_config.DEFAULT_DTYPE)
 
             return func(x1, x2, *args, **kwargs)
 
@@ -64,5 +64,5 @@ def _box_binary_scalar(target=None):
 
     if target is None:
         return _decorator
-    else:
-        return _decorator(target)
+
+    return _decorator(target)
