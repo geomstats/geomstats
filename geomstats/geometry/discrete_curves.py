@@ -1177,7 +1177,6 @@ class ElasticMetric(RiemannianMetric):
             times : array-like, shape=[n_times,]
                 Times in [0, 1] at which to compute points of the geodesic.
             """
-            times = gs.cast(times, gs.float32)
             times = gs.to_ndarray(times, to_ndim=1)
 
             curves_path = []
@@ -1185,7 +1184,9 @@ class ElasticMetric(RiemannianMetric):
                 initial_f = self.f_transform(initial_point)
                 end_f = self.f_transform(end_point)
                 f_t = (1 - t) * initial_f + t * end_f
-                curve_t = self.f_transform_inverse(f_t, gs.zeros(curve_ndim))
+                curve_t = self.f_transform_inverse(
+                    f_t, gs.zeros(curve_ndim, dtype=initial_point.dtype)
+                )
                 curves_path.append(curve_t)
             return gs.stack(curves_path)
 
@@ -1549,6 +1550,8 @@ class SRVMetric(ElasticMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
 
+        base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
+
         base_curve_srv = self.srv_transform(base_point)
 
         d_srv_tangent_vec = self.aux_differential_srv_transform(
@@ -1585,8 +1588,11 @@ class SRVMetric(ElasticMetric):
                 "for discrete curves embedded in a "
                 "Euclidean space."
             )
+
         point = gs.to_ndarray(point, to_ndim=3)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
+
+        point, base_point = gs.broadcast_arrays(point, base_point)
 
         curve_srv = self.srv_transform(point)
         base_curve_srv = self.srv_transform(base_point)
