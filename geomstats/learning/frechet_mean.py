@@ -118,6 +118,7 @@ def elastic_mean(points, weights=None, metric=None):
     SRV curves are a special case of Elastic curves.
 
     The computation of the mean goes as follows:
+
     - Transform the curves into their SRVs/F-transform representations,
     - Compute the linear mean of the SRVs/F-transform representations,
     - Inverse-transform the mean in curve space.
@@ -500,8 +501,8 @@ class FrechetMean(BaseEstimator):
         Optional, default: \'default\'.
     init_point : array-like, shape=[{dim, [n, n]}]
         Initial point.
-        Optional, default : None. In this case the first sample of the input data is
-        used.
+        Optional, default : None. In this case the first sample of the input
+        data is used.
     init_step_size : float
         Initial step size or learning rate.
     verbose : bool
