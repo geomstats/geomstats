@@ -106,7 +106,7 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
         "dist_point_to_itself_is_zero": {"atol": 1e-5},
         "dist_is_symmetric": {"atol": 5e-1},
         "dist_is_norm_of_log": {"atol": 5e-1},
-        "exp_subspace": {"atol": 1e-5},
+        "exp_subspace": {"atol": 1e-4},
         "triangle_inequality_of_dist": {"atol": 1e-10},
     }
 
