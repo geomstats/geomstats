@@ -1668,7 +1668,7 @@ class SRVMetric(ElasticMetric):
             t: array-like, shape=[n_points,]
                 Times at which to compute points of the geodesic.
             """
-            t = gs.cast(t, gs.float32)
+            t = gs.cast(t, initial_point.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
             new_initial_point = gs.to_ndarray(initial_point, to_ndim=point_ndim + 1)
@@ -1967,7 +1967,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             repar = gs.to_ndarray(gs.linspace(0.0, 1.0, k_sampling_points), 2)
             for i in range(n_times - 1):
                 repar_i = [gs.array(0.0)]
-                n_times = gs.cast(gs.array(n_times), gs.float32)
+                n_times = gs.cast(gs.array(n_times), vertical_norm.dtype)
                 for j in range(1, k_sampling_points - 1):
                     d_repar_plus = repar[-1, j + 1] - repar[-1, j]
                     d_repar_minus = repar[-1, j] - repar[-1, j - 1]
@@ -2032,7 +2032,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                 spline = CubicSpline(t_space, path_of_curves[i], axis=0)
                 repar_inverse = CubicSpline(repar[i], t_space)
                 curve_repar = gs.from_numpy(spline(repar_inverse(t_space)))
-                curve_repar = gs.cast(curve_repar, gs.float32)
+                curve_repar = gs.cast(curve_repar, repar.dtype)
                 reparametrized_path.append(curve_repar)
 
             repar_inverse_end.append(CubicSpline(repar[-1, :], t_space))
@@ -2040,7 +2040,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             for i in range(counter + 1):
                 arg = repar_inverse_end[-1 - i](arg)
             end_curve_repar = gs.from_numpy(spline_end_curve(arg))
-            end_curve_repar = gs.cast(end_curve_repar, gs.float32)
+            end_curve_repar = gs.cast(end_curve_repar, repar.dtype)
             reparametrized_path.append(end_curve_repar)
             return gs.stack(reparametrized_path)
 

@@ -124,16 +124,13 @@ class SymmetricMatrices(VectorSpace):
 
     @staticmethod
     @geomstats.vectorization.decorator(["vector", "else"])
-    def from_vector(vec, dtype=gs.float32):
+    def from_vector(vec):
         """Convert a vector into a symmetric matrix.
 
         Parameters
         ----------
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
-        dtype : dtype, {gs.float32, gs.float64}
-            Data type object to use for the output.
-            Optional. Default: gs.float32.
 
         Returns
         -------
@@ -151,7 +148,6 @@ class SymmetricMatrices(VectorSpace):
         shape = (mat_dim, mat_dim)
         mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
         indices = list(zip(*gs.triu_indices(mat_dim)))
-        vec = gs.cast(vec, dtype)
         upper_triangular = gs.stack(
             [gs.array_from_sparse(indices, data, shape) for data in vec]
         )
@@ -227,7 +223,7 @@ class SymmetricMatrices(VectorSpace):
             Symmetric matrix.
         """
         eigvals, eigvecs = gs.linalg.eigh(mat)
-        if check_positive and gs.any(gs.cast(eigvals, gs.float32) < 0.0):
+        if check_positive and gs.any(eigvals < 0.0):
             try:
                 name = function.__name__
             except AttributeError:

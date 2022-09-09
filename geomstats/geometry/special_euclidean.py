@@ -982,12 +982,12 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         mask_close_pi = gs.isclose(angle, gs.pi)
         mask_else = ~mask_close_0 & ~mask_close_pi
 
-        mask_close_0_float = gs.cast(mask_close_0, gs.float32)
-        mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
+        mask_close_0_float = gs.cast(mask_close_0, rot_vec.dtype)
+        mask_close_pi_float = gs.cast(mask_close_pi, rot_vec.dtype)
+        mask_else_float = gs.cast(mask_else, rot_vec.dtype)
 
         mask_0 = gs.isclose(angle, 0.0, atol=1e-7)
-        mask_0_float = gs.cast(mask_0, gs.float32)
+        mask_0_float = gs.cast(mask_0, rot_vec.dtype)
         angle += mask_0_float * gs.ones_like(angle)
 
         coef_1 = -0.5 * gs.ones_like(angle)
