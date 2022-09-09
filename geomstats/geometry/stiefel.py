@@ -523,10 +523,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In this case the exact injectivity radius is not known, and we use here a
-        lower bound given by [Rentmeesters2015]_.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In this case the exact injectivity radius is not known, and we use here
+        a lower bound given by [Rentmeesters2015]_.
 
         Parameters
         ----------

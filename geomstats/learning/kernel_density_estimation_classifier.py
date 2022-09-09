@@ -56,6 +56,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         Range of parameter space to use by default.
     kernel : string or callable, optional (default = 'distance')
         Kernel function used in prediction. Possible values:
+
         - 'distance' : weight points by the inverse of their distance.
           In this case, closer neighbors of a query point will have a
           greater influence than neighbors which are further away.
@@ -82,6 +83,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         must be square during fit.
     outlier_label : {manual label, 'most_frequent'}, optional (default = None)
         Label for outlier samples (samples with no neighbors in given radius).
+
         - manual label: str or int label (should be the same type as y)
           or list of manual labels if multi-output is used.
         - 'most_frequent' : assign the most frequent label of y to outliers.

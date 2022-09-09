@@ -235,7 +235,7 @@ class SPDMatrices(OpenSet):
         r"""Compute the inverse of the differential of the matrix power.
 
         Compute the inverse of the differential of the power
-        function on SPD matrices (:math:`A^p=exp(p log(A))`) at base_point
+        function on SPD matrices (:math:`A^p=\exp(p \log(A))`) at base_point
         applied to tangent_vec.
 
         Parameters
@@ -300,8 +300,7 @@ class SPDMatrices(OpenSet):
         """Compute the inverse of the differential of the matrix logarithm.
 
         Compute the inverse of the differential of the matrix
-        logarithm on SPD matrices at base_point applied to
-        tangent_vec.
+        logarithm on SPD matrices at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -363,8 +362,7 @@ class SPDMatrices(OpenSet):
         """Compute the inverse of the differential of the matrix exponential.
 
         Computes the inverse of the differential of the matrix
-        exponential on SPD matrices at base_point applied to
-        tangent_vec.
+        exponential on SPD matrices at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -422,8 +420,7 @@ class SPDMatrices(OpenSet):
     def cholesky_factor(cls, mat):
         """Compute cholesky factor.
 
-        Compute cholesky factor for a symmetric positive
-        definite matrix.
+        Compute cholesky factor for a symmetric positive definite matrix.
 
         Parameters
         ----------
@@ -722,8 +719,8 @@ class SPDMetricAffine(RiemannianMetric):
     def injectivity_radius(self, base_point):
         """Radius of the largest ball where the exponential is injective.
 
-        Because of the negative curvature of this space, the injectivity radius is
-        infinite everywhere.
+        Because of the negative curvature of this space, the injectivity radius
+        is infinite everywhere.
 
         Parameters
         ----------
@@ -1284,7 +1281,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     def injectivity_radius(self, base_point):
         """Radius of the largest ball where the exponential is injective.
 
-        Because of this space is flat, the injectivity radius is infinite everywhere.
+        Because of this space is flat, the injectivity radius is infinite
+        everywhere.
 
         Parameters
         ----------

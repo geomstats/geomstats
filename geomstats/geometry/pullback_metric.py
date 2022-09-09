@@ -289,7 +289,8 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
     def raw_inverse_jacobian_diffeomorphism(self, image_point):
         r"""Raw jacobian of the inverse_diffeomorphism.
 
-        Raw jacobian autodiff of inverse_diffeomorphism regardless of vectorization.
+        Raw jacobian autodiff of inverse_diffeomorphism regardless of
+        vectorization.
 
         Parameters
         ----------

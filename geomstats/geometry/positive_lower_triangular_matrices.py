@@ -22,7 +22,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     References
     ----------
-    .. [TP2019] . "Riemannian Geometry of Symmetric
+    .. [TP2019] Z Lin. "Riemannian Geometry of Symmetric
         Positive Definite Matrices Via Cholesky Decomposition"
         SIAM journal on Matrix Analysis and Applications , 2019.
         https://arxiv.org/abs/1908.09326

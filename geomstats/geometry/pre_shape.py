@@ -874,8 +874,8 @@ class PreShapeMetric(RiemannianMetric):
             Tangent vector at a base point.
             Optional, default : None.
         end_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space, to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the pre-shape space, to transport to. Unused if
+            `tangent_vec_b` is given.
             Optional, default : None.
 
         Returns
@@ -1016,9 +1016,9 @@ class KendallShapeMetric(QuotientMetric):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximation of the solution of the parallel transport of a tangent
-        vector a along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_{(base\_point)}(
-        t*direction)`
+        vector a along the geodesic between two points `base_point` and
+        `end_point` or alternatively defined by
+        :math:`t\mapsto exp_{(base\_point)}(t*direction)`
 
         Parameters
         ----------
@@ -1048,11 +1048,11 @@ class KendallShapeMetric(QuotientMetric):
 
         References
         ----------
-        .. [GMTP21]   Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
-                      Pennec. “Parallel Transport on Kendall Shape Spaces.”
-                      5th conference on Geometric Science of Information,
-                      Paris 2021. Lecture Notes in Computer Science.
-                      Springer, 2021. https://hal.inria.fr/hal-03160677.
+        .. [GMTP21] Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
+            Pennec. “Parallel Transport on Kendall Shape Spaces.”
+            5th conference on Geometric Science of Information,
+            Paris 2021. Lecture Notes in Computer Science.
+            Springer, 2021. https://hal.inria.fr/hal-03160677.
 
         See Also
         --------

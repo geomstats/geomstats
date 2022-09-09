@@ -118,6 +118,7 @@ def elastic_mean(points, weights=None, metric=None):
     SRV curves are a special case of Elastic curves.
 
     The computation of the mean goes as follows:
+
     - Transform the curves into their SRVs/F-transform representations,
     - Compute the linear mean of the SRVs/F-transform representations,
     - Inverse-transform the mean in curve space.
@@ -415,10 +416,10 @@ def _circle_mean(points):
 
     Reference
     ---------
-    .. [HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
-                 Uniqueness, locus and asymptotics", Annals of the Institute of
-                 Statistical Mathematics 67 (1), 177–193.
-                 https://arxiv.org/abs/1108.2141
+    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
+        circle: Uniqueness, locus and asymptotics", Annals of the Institute of
+        Statistical Mathematics 67 (1), 177–193.
+        https://arxiv.org/abs/1108.2141
     """
     if points.ndim > 1:
         points_ = Hypersphere.extrinsic_to_angle(points)
@@ -448,10 +449,10 @@ def _circle_variances(mean, var, n_samples, points):
 
     References
     ----------
-    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
-                 Uniqueness, locus and asymptotics", Annals of the Institute of
-                 Statistical Mathematics 67 (1), 177–193.
-                 https://arxiv.org/abs/1108.2141
+    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
+        circle: Uniqueness, locus and asymptotics", Annals of the Institute of
+        Statistical Mathematics 67 (1), 177–193.
+        https://arxiv.org/abs/1108.2141
     """
     means = (mean + gs.linspace(0.0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
     means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
@@ -500,8 +501,8 @@ class FrechetMean(BaseEstimator):
         Optional, default: \'default\'.
     init_point : array-like, shape=[{dim, [n, n]}]
         Initial point.
-        Optional, default : None. In this case the first sample of the input data is
-        used.
+        Optional, default : None. In this case the first sample of the input
+        data is used.
     init_step_size : float
         Initial step size or learning rate.
     verbose : bool

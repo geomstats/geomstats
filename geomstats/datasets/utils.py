@@ -272,7 +272,7 @@ def load_hands():
     - Label 0: hand is in the position "Grab"
     - Label 1: hand is in the position "Expand"
 
-    This is a subset of the SHREC 2017 dataset [SWVGLF2017].
+    This is a subset of the SHREC 2017 dataset [SWVGLF2017]_.
 
     References
     ----------

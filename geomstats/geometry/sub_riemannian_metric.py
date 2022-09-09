@@ -32,8 +32,8 @@ class SubRiemannianMetric(abc.ABC):
     def metric_matrix(self, base_point):
         """Metric matrix at the tangent space at a base point.
 
-        This is a sub-Riemannian metric, so it is assumed to satisfy the conditions
-        of an inner product only on each distribution subspace.
+        This is a sub-Riemannian metric, so it is assumed to satisfy the
+        conditions of an inner product only on each distribution subspace.
 
         Parameters
         ----------
@@ -186,9 +186,9 @@ class SubRiemannianMetric(abc.ABC):
     def symp_euler(self, step_size):
         """Compute a function which calculates a step of symplectic euler integration.
 
-        The output function computes a symplectic euler step of the Hamiltonian system
-        of equations associated with the cometric and obtained by the method
-        :meth:`~sub_remannian_metric.SubRiemannianMetric.symp_grad`.
+        The output function computes a symplectic euler step of the Hamiltonian
+        system of equations associated with the cometric and obtained by the
+        method :meth:`~sub_remannian_metric.SubRiemannianMetric.symp_grad`.
 
         Parameters
         ----------
@@ -218,14 +218,16 @@ class SubRiemannianMetric(abc.ABC):
         Parameters
         ----------
         func : callable
-            A function which calculates the next step of a sequence to be calculated.
+            A function which calculates the next step of a sequence to be
+            calculated.
         n_steps : int
             The number of times to iterate func.
 
         Returns
         -------
         flow : callable
-            Given a state, 'flow' returns a sequence with n_steps iterations of func.
+            Given a state, 'flow' returns a sequence with n_steps iterations of
+            func.
         """
 
         def flow(x):
