@@ -167,6 +167,10 @@ class NFoldManifoldTestData(_ManifoldTestData):
 
     Space = NFoldManifold
 
+    tolerances = {
+        "projection_belongs": {"atol": 1e-8},
+    }
+
     def belongs_test_data(self):
         smoke_data = [
             dict(
