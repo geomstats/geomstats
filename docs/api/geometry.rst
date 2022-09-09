@@ -23,13 +23,13 @@ Manifolds
    hypersphere.HypersphereMetric
    hypersphere.Hypersphere
    hyperbolic.Hyperbolic
-   discretized_curves.DiscreteCurves
-   discretized_curves.ClosedDiscreteCurves
-   discretized_curves.L2CurvesMetric
-   discretized_curves.ElasticMetric
-   discretized_curves.SRVMetric
-   discretized_curves.SRVShapeBundle
-   discretized_curves.SRVQuotientMetric
+   discrete_curves.DiscreteCurves
+   discrete_curves.ClosedDiscreteCurves
+   discrete_curves.L2CurvesMetric
+   discrete_curves.ElasticMetric
+   discrete_curves.SRVMetric
+   discrete_curves.SRVShapeBundle
+   discrete_curves.SRVQuotientMetric
    spd_matrices.SPDMatrices
    skew_symmetric_matrices.SkewSymmetricMatrices
    stiefel.Stiefel
@@ -45,20 +45,20 @@ Manifolds
    special_euclidean.SpecialEuclidean
    special_euclidean.SpecialEuclideanMatrixLieAlgebra
    special_orthogonal.SpecialOrthogonal
-   graphspace.Graph
-   graphspace.GraphSpace
-   graphspace.GraphSpaceMetric
-   graphspace.FAQMatcher
-   graphspace.IDMatcher
    grassmannian.Grassmannian
    grassmannian.GrassmannianCanonicalMetric
    landmarks.Landmarks
    landmarks.L2LandmarksMetric
-   poincare_polydisk.PoincarePolydiskTestData
-   poincare_polydisk.PoincarePolydiskMetricTestData
-   lower_triangular_matrices.LowerTriangularMatricesTestData
-   positive_lower_triangular_matrices.PositiveLowerTriangularMatricesTestData
-   positive_lower_triangular_matrices.CholeskyMetricTestData
+   poincare_polydisk.PoincarePolydisk
+   poincare_polydisk.PoincarePolydiskMetric
+   lower_triangular_matrices.LowerTriangularMatrices
+   positive_lower_triangular_matrices.PositiveLowerTriangularMatrices
+   positive_lower_triangular_matrices.CholeskyMetric
+   stratified.graph_space.GraphPoint
+   stratified.graph_space.GraphSpace
+   stratified.graph_space.GraphSpaceMetric
+   stratified.graph_space.FAQMatcher
+   stratified.graph_space.IDMatcher
 
 Matrices
 ----------
