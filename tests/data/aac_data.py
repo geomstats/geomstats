@@ -9,12 +9,56 @@ from geomstats.learning.aac import _AACGGPCA, _AACFrechetMean, _AACRegression
 from tests.data_generation import TestData
 
 
-class _TrivialMeanEstimatorTestData(TestData):
+class _TrivialData:
+    def __init__(self, Estimator, is_regression=False, n_samples=3):
+        self.is_regression = is_regression
+        self.Estimator = Estimator
+        self.n_samples = n_samples
+
+    def fit_warn_test_data(self):
+        space_2 = GraphSpace(2)
+        metric = GraphSpaceMetric(space_2)
+        metric.set_point_to_geodesic_aligner("default")
+
+        X = space_2.random_point(self.n_samples)
+
+        y = None
+        if self.is_regression:
+            y = X
+            X = gs.expand_dims(gs.linspace(0, 1, num=self.n_samples), 1)
+
+        return [dict(estimator=self.Estimator(metric), X=X, y=y)]
+
+
+class _EstimatorTestData(TestData):
     def __init__(self):
-        self.metrics = None
-        self.estimators = None
-        self.n_reps = 2
+        self.basic_data_generators = []
+        self.data_generators = []
         self._setup()
+
+    def _generate_test_data_from_generators(self, data_generators, func_name):
+        smoke_data = []
+        for data_generator in data_generators:
+            smoke_data += getattr(data_generator, func_name)()
+
+        return self.generate_tests(smoke_data)
+
+    def fit_test_data(self):
+        return self._generate_test_data_from_generators(
+            self.data_generators, "fit_test_data"
+        )
+
+    def fit_warn_test_data(self):
+        return self._generate_test_data_from_generators(
+            self.basic_data_generators, "fit_warn_test_data"
+        )
+
+
+class _TrivialMeanData:
+    def __init__(self, metrics, estimators, n_reps=2):
+        self.metrics = metrics
+        self.estimators = estimators
+        self.n_reps = n_reps
 
     def fit_test_data(self):
         smoke_data = []
@@ -25,15 +69,40 @@ class _TrivialMeanEstimatorTestData(TestData):
             datum = dict(estimator=estimator, X=points, expected=point)
             smoke_data.append(datum)
 
+        return smoke_data
+
+
+class AACFrechetMeanTestData(_EstimatorTestData):
+    def _setup(self):
+        space_2 = GraphSpace(2)
+
+        metric = GraphSpaceMetric(space_2)
+        metric.set_aligner(ExhaustiveAligner())
+
+        metrics = [metric] * 2
+
+        estimators = [_AACFrechetMean(metric) for metric in metrics]
+        estimators[0].init_point = gs.zeros((2, 2))
+
+        self.data_generators = [_TrivialMeanData(metrics, estimators, n_reps=2)]
+        self.basic_data_generators = [_TrivialData(_AACFrechetMean)]
+
+    def fit_id_niter_test_data(self):
+        space_3 = GraphSpace(3)
+        metric = GraphSpaceMetric(space_3)
+
+        smoke_data = [
+            dict(estimator=_AACFrechetMean(metric), X=space_3.random_point(4)),
+        ]
+
         return self.generate_tests(smoke_data)
 
 
-class _TrivialGeodesicEstimatorTestData(TestData):
-    def __init__(self):
-        self.metrics = []
-        self.estimators = []
-        self.n_points = 3
-        self._setup()
+class _TrivialGeodesicData:
+    def __init__(self, metrics, estimators, n_points=3):
+        self.metrics = metrics
+        self.estimators = estimators
+        self.n_points = n_points
 
     def fit_test_data(self):
         smoke_data = []
@@ -47,16 +116,39 @@ class _TrivialGeodesicEstimatorTestData(TestData):
             datum = dict(estimator=estimator, X=points)
             smoke_data.append(datum)
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
 
-class _TrivialRegressionTestData(TestData):
-    def __init__(self):
-        self.n_samples = 3
-        self.input_dim = []
-        self.metrics = []
-        self.estimators = []
-        self._setup()
+class AACGGPCATestData(_EstimatorTestData):
+    tolerances = {
+        "fit": {"atol": 1e-8},
+    }
+
+    def _setup(self):
+        space_2 = GraphSpace(2)
+
+        metric = GraphSpaceMetric(space_2)
+        metric.set_aligner(ExhaustiveAligner())
+
+        aligner = _GeodesicToPointAligner()
+        metric.set_point_to_geodesic_aligner(aligner)
+
+        metrics = [metric] * 2
+        estimators = [_AACGGPCA(metric) for metric in metrics]
+
+        estimators[-1].init_point = gs.zeros((2, 2))
+
+        self.data_generators = [_TrivialGeodesicData(metrics, estimators, n_points=3)]
+
+        self.basic_data_generators = [_TrivialData(_AACGGPCA)]
+
+
+class _TrivialRegressionData:
+    def __init__(self, input_dim, metrics, estimators, n_samples=3):
+        self.input_dim = input_dim
+        self.metrics = metrics
+        self.estimators = estimators
+        self.n_samples = n_samples
 
     def fit_and_predict_test_data(self):
         smoke_data = []
@@ -75,53 +167,10 @@ class _TrivialRegressionTestData(TestData):
             datum = dict(estimator=estimator, X=X, y=y)
             smoke_data.append(datum)
 
-        return self.generate_tests(smoke_data)
+        return smoke_data
 
 
-class AACFrechetMeanTestData(_TrivialMeanEstimatorTestData):
-    def _setup(self):
-        space_2 = GraphSpace(2)
-
-        metric = GraphSpaceMetric(space_2)
-        metric.set_aligner(ExhaustiveAligner())
-
-        self.metrics = [metric] * 2
-
-        self.estimators = [_AACFrechetMean(metric) for metric in self.metrics]
-        self.estimators[0].init_point = gs.zeros((2, 2))
-
-    def fit_id_niter_test_data(self):
-        space_3 = GraphSpace(3)
-        metric = GraphSpaceMetric(space_3)
-
-        smoke_data = [
-            dict(estimator=_AACFrechetMean(metric), X=space_3.random_point(4)),
-        ]
-
-        return self.generate_tests(smoke_data)
-
-
-class AACGGPCATestData(_TrivialGeodesicEstimatorTestData):
-    tolerances = {
-        "fit": {"atol": 1e-8},
-    }
-
-    def _setup(self):
-        space_2 = GraphSpace(2)
-
-        metric = GraphSpaceMetric(space_2)
-        metric.set_aligner(ExhaustiveAligner())
-
-        aligner = _GeodesicToPointAligner()
-        metric.set_point_to_geodesic_aligner(aligner)
-
-        self.metrics = [metric] * 2
-        self.estimators = [_AACGGPCA(metric) for metric in self.metrics]
-
-        self.estimators[-1].init_point = gs.zeros((2, 2))
-
-
-class AACRegressionTestData(_TrivialRegressionTestData):
+class AACRegressionTestData(_EstimatorTestData):
     def _setup(self):
 
         space_2 = GraphSpace(2)
@@ -133,32 +182,17 @@ class AACRegressionTestData(_TrivialRegressionTestData):
             "default", s_min=-1.0, s_max=1.0, n_points=10
         )
 
-        self.metrics = [metric] * 3
-        self.estimators = [_AACRegression(metric) for metric in self.metrics]
+        metrics = [metric] * 3
+        estimators = [_AACRegression(metric) for metric in metrics]
 
-        self.estimators[1].init_point = gs.zeros((2, 2))
-        self.input_dim = [1, 1, 2]
+        estimators[1].init_point = gs.zeros((2, 2))
+        input_dim = [1, 1, 2]
 
+        self.data_generators = [_TrivialRegressionData(input_dim, metrics, estimators)]
 
-class MaxIterTestData(TestData):
-    def fit_warn_test_data(self):
-        n_samples = 3
-        space_2 = GraphSpace(2)
-        metric = GraphSpaceMetric(space_2)
-        metric.set_point_to_geodesic_aligner("default")
+        self.basic_data_generators = [_TrivialData(_AACRegression, is_regression=True)]
 
-        X = space_2.random_point(n_samples)
-        inputs = [X] * 2 + [gs.expand_dims(gs.linspace(0, 1, num=n_samples), 1)]
-        outputs = [None] * 2 + [X]
-
-        estimators = [
-            _AACFrechetMean(metric),
-            _AACGGPCA(metric),
-            _AACRegression(metric),
-        ]
-
-        smoke_data = []
-        for estimator, X, y in zip(estimators, inputs, outputs):
-            smoke_data.append(dict(estimator=estimator, X=X, y=y))
-
-        return self.generate_tests(smoke_data)
+    def fit_and_predict_test_data(self):
+        return self._generate_test_data_from_generators(
+            self.data_generators, "fit_and_predict_test_data"
+        )
