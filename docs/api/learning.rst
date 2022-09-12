@@ -37,3 +37,10 @@ Dimension reduction
 
 .. automodule:: geomstats.learning.pca
    :members:
+
+
+Graphs
+======
+
+.. automodule:: geomstats.learning.aac
+    :members:
