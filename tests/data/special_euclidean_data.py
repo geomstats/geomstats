@@ -325,6 +325,11 @@ class SpecialEuclideanMatrixCanonicalRightMetricTestData(_InvariantMetricTestDat
 
     Metric = InvariantMetric
 
+    tolerances = {
+        "exp_after_log_at_identity": {"atol": 1e-2},
+        "log_after_exp_at_identity": {"atol": 1e-1},
+    }
+
     def log_after_exp_test_data(self):
         return super().log_after_exp_test_data(amplitude=100.0)
 

@@ -457,7 +457,7 @@ class NFoldMetric(RiemannianMetric):
         initial_tangent_vec = gs.array(initial_tangent_vec)
 
         def landmarks_on_geodesic(t):
-            t = gs.cast(t, gs.float32)
+            t = gs.cast(t, initial_point.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
 
             tangent_vecs = gs.einsum("...,...ij->...ij", t, initial_tangent_vec)

@@ -6,23 +6,15 @@ from itertools import product as _product
 import numpy as _np
 import tensorflow as _tf
 import tensorflow_probability as _tfp
-from tensorflow import abs
-from tensorflow import acos as arccos  # NOQA
-from tensorflow import acosh as arccosh
-from tensorflow import argmax, argmin
-from tensorflow import asin as arcsin
-from tensorflow import atan2 as arctan2
-from tensorflow import broadcast_to
+from tensorflow import argmax, argmin, broadcast_to, cast
 from tensorflow import clip_by_value as clip
 from tensorflow import (
-    cos,
-    cosh,
+    complex64,
+    complex128,
     equal,
-    exp,
     expand_dims,
     float32,
     float64,
-    floor,
     greater,
     int32,
     int64,
@@ -33,64 +25,79 @@ from tensorflow import (
     maximum,
     meshgrid,
     minimum,
-    ones,
     ones_like,
     pad,
 )
-from tensorflow import range as arange
 from tensorflow import reduce_max as amax
-from tensorflow import reduce_mean as mean
 from tensorflow import reduce_min as amin
 from tensorflow import reduce_prod as prod
-from tensorflow import (
-    reshape,
-    searchsorted,
-    sign,
-    sin,
-    sinh,
-    sort,
-    sqrt,
-    squeeze,
-    stack,
-    tan,
-    tanh,
-    uint8,
-    zeros,
-    zeros_like,
-)
-from tensorflow.experimental.numpy import moveaxis
+from tensorflow import reshape, searchsorted, sort, squeeze, stack, uint8, zeros_like
+from tensorflow.experimental.numpy import empty_like, moveaxis
 
 from .._backend_config import tf_atol as atol
 from .._backend_config import tf_rtol as rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
+from ._dtype import (
+    _box_binary_scalar,
+    _box_unary_scalar,
+    _cast_out_from_dtype,
+    _dyn_update_dtype,
+    _modify_func_default_dtype,
+    as_dtype,
+    get_default_dtype,
+    set_default_dtype,
+)
 
 _DTYPES = {
     int32: 0,
     int64: 1,
     float32: 2,
     float64: 3,
-    _tf.complex64: 4,
-    _tf.complex128: 5,
+    complex64: 4,
+    complex128: 5,
 }
 
-angle = _tf.math.angle
-arctanh = _tf.math.atanh
-ceil = _tf.math.ceil
 conj = _tf.math.conj
 erf = _tf.math.erf
 imag = _tf.math.imag
 isnan = _tf.math.is_nan
-log = _tf.math.log
-mod = _tf.math.mod
 polygamma = _tf.math.polygamma
-power = _tf.math.pow
 real = _tf.math.real
 set_diag = _tf.linalg.set_diag
-std = _tf.math.reduce_std
 trapz = _tfp.math.trapz
-matmul = _tf.linalg.matmul
+
+ones = _dyn_update_dtype(target=_tf.ones, dtype_pos=1)
+zeros = _dyn_update_dtype(target=_tf.zeros, dtype_pos=1)
+empty = _modify_func_default_dtype(target=_tf.experimental.numpy.empty)
+
+
+abs = _box_unary_scalar(target=_tf.math.abs)
+angle = _box_unary_scalar(target=_tf.math.angle)
+arccos = _box_unary_scalar(target=_tf.math.acos)
+arccosh = _box_unary_scalar(target=_tf.math.acosh)
+arcsin = _box_unary_scalar(target=_tf.math.asin)
+arctanh = _box_unary_scalar(target=_tf.math.atanh)
+ceil = _box_unary_scalar(target=_tf.math.ceil)
+cos = _box_unary_scalar(target=_tf.cos)
+cosh = _box_unary_scalar(target=_tf.math.cosh)
+exp = _box_unary_scalar(target=_tf.math.exp)
+floor = _box_unary_scalar(target=_tf.math.floor)
+imag = _box_unary_scalar(target=_tf.math.imag)
+log = _box_unary_scalar(target=_tf.math.log)
+real = _box_unary_scalar(target=_tf.math.real)
+sign = _box_unary_scalar(target=_tf.math.sign)
+sin = _box_unary_scalar(target=_tf.sin)
+sinh = _box_unary_scalar(target=_tf.sinh)
+sqrt = _box_unary_scalar(target=_tf.sqrt)
+tan = _box_unary_scalar(target=_tf.tan)
+tanh = _box_unary_scalar(target=_tf.tanh)
+
+
+arctan2 = _box_binary_scalar(target=_tf.math.atan2)
+mod = _box_binary_scalar(target=_tf.math.mod)
+power = _box_binary_scalar(target=_tf.math.pow)
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -103,6 +110,19 @@ def to_numpy(x):
 
 def from_numpy(x):
     return _tf.convert_to_tensor(x)
+
+
+def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
+
+    if dtype is None and (
+        type(stop) is float or type(step) is float or type(start_or_stop) is float
+    ):
+        dtype = get_default_dtype()
+
+    if stop is None:
+        return _tf.range(start_or_stop, delta=step, dtype=dtype)
+
+    return _tf.range(start_or_stop, stop, delta=step, dtype=dtype)
 
 
 def quantile(x, q, axis=None, out=None):
@@ -140,6 +160,7 @@ def repeat(a, repeats, axis=None):
     return _tf.repeat(input=a, repeats=repeats, axis=axis)
 
 
+@_cast_out_from_dtype(dtype_pos=1)
 def array(x, dtype=None):
     return _tf.convert_to_tensor(x, dtype=dtype)
 
@@ -161,20 +182,6 @@ def to_ndarray(x, to_ndim, axis=0):
     if ndim(x) == to_ndim - 1:
         x = _tf.expand_dims(x, axis=axis)
     return x
-
-
-def empty(shape, dtype=float64):
-    if not isinstance(dtype, _tf.DType):
-        raise ValueError("dtype must be one of Tensorflow's types")
-    np_dtype = dtype.as_numpy_dtype
-    return _tf.convert_to_tensor(_np.empty(shape, dtype=np_dtype))
-
-
-def empty_like(prototype, dtype=None):
-    initial_shape = _tf.shape(prototype)
-    if dtype is None:
-        dtype = prototype.dtype
-    return empty(initial_shape, dtype=dtype)
 
 
 def flip(m, axis=None):
@@ -477,6 +484,7 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
+    data = array(data)
     return _tf.sparse.to_dense(
         _tf.sparse.reorder(_tf.SparseTensor(indices, data, target_shape))
     )
@@ -548,7 +556,7 @@ def flatten(x):
 
 
 def outer(x, y):
-    return _tf.einsum("...i,...j->...ij", x, y)
+    return einsum("...i,...j->...ij", x, y)
 
 
 def copy(x):
@@ -567,10 +575,6 @@ def vstack(x):
         else:
             new_x.append(one_x)
     return _tf.concat(new_x, axis=0)
-
-
-def cast(x, dtype):
-    return _tf.cast(x, dtype)
 
 
 def broadcast_arrays(*args, **kwargs):
@@ -609,9 +613,9 @@ def broadcast_arrays(*args, **kwargs):
 
 def dot(a, b):
     if b.ndim == 1:
-        return _tf.tensordot(a, b, axes=1)
+        return _tf.tensordot(*convert_to_wider_dtype([a, b]), axes=1)
 
-    return _tf.einsum("...i,...i->...", a, b)
+    return einsum("...i,...i->...", a, b)
 
 
 def isclose(x, y, rtol=rtol, atol=atol):
@@ -630,18 +634,31 @@ def allclose(x, y, rtol=rtol, atol=atol):
     return _tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
 
 
-def eye(n, m=None):
+@_modify_func_default_dtype(copy=False)
+def eye(n, m=None, dtype=None):
     if m is None:
         m = n
-    return _tf.eye(num_rows=n, num_columns=m)
+    return _tf.eye(num_rows=n, num_columns=m, dtype=dtype)
 
 
-def sum(x, axis=None, keepdims=False, name=None):
+def sum(x, axis=None, dtype=None, keepdims=False):
     if not _tf.is_tensor(x):
-        x = _tf.convert_to_tensor(x)
+        x = array(x)
+
+    if dtype is not None and x.dtype != dtype:
+        x = cast(x, dtype)
+
     if x.dtype == bool:
         x = cast(x, int32)
-    return _tf.reduce_sum(x, axis, keepdims, name)
+
+    return _tf.reduce_sum(x, axis=axis, keepdims=keepdims)
+
+
+def std(x, axis=None, dtype=None, keepdims=False):
+    if dtype is not None and x.dtype != dtype:
+        x = cast(x, dtype)
+
+    return _tf.math.reduce_std(x, axis=axis, keepdims=keepdims)
 
 
 def einsum(equation, *inputs):
@@ -659,16 +676,29 @@ def all(x, axis=None):
     return _tf.math.reduce_all(_tf.cast(x, bool), axis=axis)
 
 
-def cumsum(a, axis=None):
+def cumsum(a, axis=None, dtype=None):
+    if dtype is not None and a.dtype != dtype:
+        a = cast(a, dtype)
+
     if axis is None:
         return _tf.math.cumsum(flatten(a), axis=0)
     return _tf.math.cumsum(a, axis=axis)
 
 
-def cumprod(a, axis=None):
+def cumprod(a, axis=None, dtype=None):
+    if dtype is not None and a.dtype != dtype:
+        a = cast(a, dtype)
+
     if axis is None:
         return _tf.math.cumprod(flatten(a), axis=0)
     return _tf.math.cumprod(a, axis=axis)
+
+
+def mean(a, axis=None, dtype=None):
+    if dtype is not None and a.dtype != dtype:
+        a = cast(a, dtype)
+
+    return _tf.reduce_mean(a, axis=axis)
 
 
 # (sait) there is _tf.experimental.tril (we can use it once it moves to stable)
@@ -678,7 +708,7 @@ def tril(mat, k=0):
     tril = _tf.linalg.band_part(mat, -1, 0)
     if k == 0:
         return tril
-    zero_diag = _tf.zeros(mat.shape[:-1])
+    zero_diag = _tf.zeros(mat.shape[:-1], dtype=mat.dtype)
     return _tf.linalg.set_diag(tril, zero_diag)
 
 
@@ -689,7 +719,7 @@ def triu(mat, k=0):
     triu = _tf.linalg.band_part(mat, 0, -1)
     if k == 0:
         return triu
-    zero_diag = _tf.zeros(mat.shape[:-1])
+    zero_diag = _tf.zeros(mat.shape[:-1], dtype=mat.dtype)
     return _tf.linalg.set_diag(triu, zero_diag)
 
 
@@ -712,12 +742,13 @@ def unique(x):
 def where(condition, x=None, y=None):
     if x is None and y is None:
         return _tf.where(condition)
-    if not _tf.is_tensor(x):
-        x = _tf.constant(x)
-    if not _tf.is_tensor(y):
-        y = _tf.constant(y)
-    y = cast(y, x.dtype)
-    return _tf.where(condition, x, y)
+
+    if type(x) is float:
+        x = _tf.constant(x, dtype=get_default_dtype())
+
+    out = _tf.where(condition, x, y)
+
+    return out
 
 
 def tril_to_vec(x, k=0):
@@ -758,56 +789,6 @@ def vec_to_diag(vec):
     return _tf.linalg.diag(vec)
 
 
-def _vec_to_triu(vec):
-    """Take vec and forms strictly upper triangular matrix.
-
-    Parameters
-    ----------
-    vec : array_like, shape[..., n]
-
-    Returns
-    -------
-    tril : array_like, shape=[..., k, k] where
-        k is (1 + sqrt(1 + 8 * n)) / 2
-    """
-    n = vec.shape[-1]
-    triu_shape = vec.shape + (n,)
-    _ones = _tf.ones(triu_shape)
-    vec = _tf.reshape(vec, [-1])
-    mask_a = _tf.linalg.band_part(_ones, 0, -1)
-    mask_b = _tf.linalg.band_part(_ones, 0, 0)
-    mask = _tf.subtract(mask_a, mask_b)
-    non_zero = _tf.not_equal(mask, _tf.constant(0.0))
-    indices = _tf.where(non_zero)
-    sparse = _tf.SparseTensor(indices, values=vec, dense_shape=triu_shape)
-    return _tf.sparse.to_dense(sparse)
-
-
-def _vec_to_tril(vec):
-    """Take vec and forms strictly lower triangular matrix.
-
-    Parameters
-    ----------
-    vec : array_like, shape=[..., n]
-
-    Returns
-    -------
-    tril : array_like, shape=[..., k, k] where
-        k is (1 + sqrt(1 + 8 * n)) / 2
-    """
-    n = vec.shape[-1]
-    tril_shape = vec.shape + (n,)
-    _ones = _tf.ones(tril_shape)
-    vec = _tf.reshape(vec, [-1])
-    mask_a = _tf.linalg.band_part(_ones, -1, 0)
-    mask_b = _tf.linalg.band_part(_ones, 0, 0)
-    mask = _tf.subtract(mask_a, mask_b)
-    non_zero = _tf.not_equal(mask, _tf.constant(0.0))
-    indices = _tf.where(non_zero)
-    sparse = _tf.SparseTensor(indices, values=vec, dense_shape=tril_shape)
-    return _tf.sparse.to_dense(sparse)
-
-
 def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     """Build matrix from given components.
 
@@ -824,14 +805,30 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     -------
     mat : array_like, shape=[..., n, n]
     """
-    triu_mat = _vec_to_triu(tri_upp)
-    tril_mat = _vec_to_tril(tri_low)
-    triu_tril_mat = triu_mat + tril_mat
-    mat = _tf.linalg.set_diag(triu_tril_mat, diag)
+    diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
+
+    n = diag.shape[-1]
+    j, k = _np.triu_indices(n, k=1)
+
+    if diag.ndim == 1:
+        upper_indices = list(zip(j, k))
+        lower_indices = list(zip(k, j))
+    else:
+        m = diag.shape[0]
+        upper_indices = [(rr, jj, kk) for rr in range(m) for jj, kk in zip(j, k)]
+        lower_indices = [(rr, kk, jj) for rr in range(m) for jj, kk in zip(j, k)]
+
+    mat = zeros(diag.shape + (n,), dtype=diag.dtype)
+    mat = assignment(mat, tri_upp, upper_indices)
+    mat = assignment(mat, tri_low, lower_indices)
+
+    mat = _tf.linalg.set_diag(mat, diag)
+
     return mat
 
 
 def divide(a, b, ignore_div_zero=False):
+    a, b = convert_to_wider_dtype([a, b])
     if ignore_div_zero is False:
         return _tf.math.divide(a, b)
     return _tf.math.divide_no_nan(a, b)
@@ -859,12 +856,9 @@ def take(a, indices, axis=0):
     return _tf.gather(a, indices, axis=axis)
 
 
-def linspace(*args, **kwargs):
-    a = _tf.linspace(*args, **kwargs)
-    if a.dtype is float64:
-        a = cast(a, dtype=float32)
-
-    return a
+@_cast_out_from_dtype(dtype_pos=3)
+def linspace(start, stop, num=50, dtype=None):
+    return _tf.linspace(start, stop, num)
 
 
 def is_array(x):
@@ -872,13 +866,14 @@ def is_array(x):
 
 
 def matvec(A, b):
+    A, b = convert_to_wider_dtype([A, b])
     return _tf.linalg.matvec(A, b)
 
 
 def cross(a, b):
     if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
         a, b = broadcast_arrays(a, b)
-    return _tf.linalg.cross(a, b)
+    return _tf.linalg.cross(*convert_to_wider_dtype([a, b]))
 
 
 def shape(a):
@@ -886,3 +881,12 @@ def shape(a):
         a = array(a)
 
     return tuple(a.shape)
+
+
+def matmul(x, y):
+    for array_ in [x, y]:
+        if array_.ndim == 1:
+            raise ValueError("ndims must be >=2")
+
+    x, y = convert_to_wider_dtype([x, y])
+    return _tf.linalg.matmul(x, y)

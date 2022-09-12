@@ -660,7 +660,7 @@ class L2CurvesMetric(RiemannianMetric):
             return gs.vectorize(
                 (tangent_vec_a, tangent_vec_b),
                 inner_prod_aux,
-                dtype=gs.float32,
+                dtype=tangent_vec_a.dtype,
                 multiple_args=True,
                 signature="(i,j),(i,j)->(i)",
             )
@@ -668,7 +668,7 @@ class L2CurvesMetric(RiemannianMetric):
         return gs.vectorize(
             (tangent_vec_a, tangent_vec_b, base_point),
             inner_prod_aux,
-            dtype=gs.float32,
+            dtype=tangent_vec_a.dtype,
             multiple_args=True,
             signature="(i,j),(i,j),(i,j)->(i)",
         )
@@ -1177,7 +1177,6 @@ class ElasticMetric(RiemannianMetric):
             times : array-like, shape=[n_times,]
                 Times in [0, 1] at which to compute points of the geodesic.
             """
-            times = gs.cast(times, gs.float32)
             times = gs.to_ndarray(times, to_ndim=1)
 
             curves_path = []
@@ -1185,7 +1184,9 @@ class ElasticMetric(RiemannianMetric):
                 initial_f = self.f_transform(initial_point)
                 end_f = self.f_transform(end_point)
                 f_t = (1 - t) * initial_f + t * end_f
-                curve_t = self.f_transform_inverse(f_t, gs.zeros(curve_ndim))
+                curve_t = self.f_transform_inverse(
+                    f_t, gs.zeros(curve_ndim, dtype=initial_point.dtype)
+                )
                 curves_path.append(curve_t)
             return gs.stack(curves_path)
 
@@ -1272,7 +1273,7 @@ class SRVMetric(ElasticMetric):
         srv_shape = (n_points, k_sampling_points - 1, n_coords)
 
         point = gs.reshape(point, (n_points * k_sampling_points, n_coords))
-        coef = gs.cast(gs.array(k_sampling_points - 1), gs.float32)
+        coef = k_sampling_points - 1
         velocity = coef * self.ambient_metric.log(
             point=point[1:, :], base_point=point[:-1, :]
         )
@@ -1549,6 +1550,8 @@ class SRVMetric(ElasticMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
 
+        base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
+
         base_curve_srv = self.srv_transform(base_point)
 
         d_srv_tangent_vec = self.aux_differential_srv_transform(
@@ -1585,8 +1588,11 @@ class SRVMetric(ElasticMetric):
                 "for discrete curves embedded in a "
                 "Euclidean space."
             )
+
         point = gs.to_ndarray(point, to_ndim=3)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
+
+        point, base_point = gs.broadcast_arrays(point, base_point)
 
         curve_srv = self.srv_transform(point)
         base_curve_srv = self.srv_transform(base_point)
@@ -1662,7 +1668,7 @@ class SRVMetric(ElasticMetric):
             t: array-like, shape=[n_points,]
                 Times at which to compute points of the geodesic.
             """
-            t = gs.cast(t, gs.float32)
+            t = gs.cast(t, initial_point.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
             new_initial_point = gs.to_ndarray(initial_point, to_ndim=point_ndim + 1)
@@ -1961,7 +1967,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             repar = gs.to_ndarray(gs.linspace(0.0, 1.0, k_sampling_points), 2)
             for i in range(n_times - 1):
                 repar_i = [gs.array(0.0)]
-                n_times = gs.cast(gs.array(n_times), gs.float32)
+                n_times = gs.cast(gs.array(n_times), vertical_norm.dtype)
                 for j in range(1, k_sampling_points - 1):
                     d_repar_plus = repar[-1, j + 1] - repar[-1, j]
                     d_repar_minus = repar[-1, j] - repar[-1, j - 1]
@@ -2026,7 +2032,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                 spline = CubicSpline(t_space, path_of_curves[i], axis=0)
                 repar_inverse = CubicSpline(repar[i], t_space)
                 curve_repar = gs.from_numpy(spline(repar_inverse(t_space)))
-                curve_repar = gs.cast(curve_repar, gs.float32)
+                curve_repar = gs.cast(curve_repar, repar.dtype)
                 reparametrized_path.append(curve_repar)
 
             repar_inverse_end.append(CubicSpline(repar[-1, :], t_space))
@@ -2034,7 +2040,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             for i in range(counter + 1):
                 arg = repar_inverse_end[-1 - i](arg)
             end_curve_repar = gs.from_numpy(spline_end_curve(arg))
-            end_curve_repar = gs.cast(end_curve_repar, gs.float32)
+            end_curve_repar = gs.cast(end_curve_repar, repar.dtype)
             reparametrized_path.append(end_curve_repar)
             return gs.stack(reparametrized_path)
 

@@ -34,6 +34,10 @@ class StiefelTestData(_LevelSetTestData):
 
     Space = Stiefel
 
+    tolerances = {
+        "random_tangent_vec_is_tangent": {"atol": 1e-8},
+    }
+
     def to_grassmannian_test_data(self):
 
         point1 = gs.array([[1.0, -1.0], [1.0, 1.0], [0.0, 0.0]]) / gs.sqrt(2.0)
