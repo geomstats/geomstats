@@ -243,7 +243,7 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
                 out = gs_fnc(*args, dtype=dtype_inner, **kwargs)
                 self.assertDtype(out.dtype, dtype_inner)
 
-    def test_array_creation_with_dtype_given_shape(self, func_name, shape):
+    def test_array_creation_with_dtype_from_shape(self, func_name, shape):
         return self.test_array_creation_with_dtype(func_name, (shape,), {})
 
     def test_unary_op_float_input(self, func_name, x):
@@ -255,7 +255,7 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
 
             self.assertDtype(out.dtype, dtype)
 
-    def test_array_creation_with_dtype_given_array(
+    def test_array_creation_with_dtype_from_array(
         self,
         func_name,
         array_shape,
@@ -281,12 +281,10 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
                 out = gs_fnc(a, dtype=dtype_inner, **kwargs)
                 self.assertDtype(out.dtype, dtype_inner)
 
-    def test_from_numpy_from_shape(
+    def test_from_numpy_given_shape(
         self, array_shape, kwargs=None, np_func_array=gs.ones
     ):
         self._reset_dtype()
-
-        # TODO: review from and given
 
         func_name = "from_numpy"
         kwargs = kwargs or {}
@@ -301,7 +299,7 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             out = gs_fnc(a, **kwargs)
             self.assertDtype(out.dtype, dtype)
 
-    def test_to_numpy_from_shape(self, array_shape, kwargs=None, func_array=gs.ones):
+    def test_to_numpy_given_shape(self, array_shape, kwargs=None, func_array=gs.ones):
         self._reset_dtype()
 
         func_name = "to_numpy"
@@ -317,12 +315,12 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             out = gs_fnc(a, **kwargs)
             self.assertDtype(out.dtype, np_dtype)
 
-    def test_unary_op_with_dtype_from_shape(self, func_name, array_shape, kwargs=None):
-        return self.test_array_creation_with_dtype_given_array(
+    def test_unary_op_with_dtype_given_shape(self, func_name, array_shape, kwargs=None):
+        return self.test_array_creation_with_dtype_from_array(
             func_name, array_shape, kwargs=kwargs
         )
 
-    def test_unary_op_from_shape(
+    def test_unary_op_given_shape(
         self, func_name, array_shape, kwargs=None, func_array=gs.ones
     ):
         self._reset_dtype()
@@ -337,7 +335,7 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             out = gs_fnc(a, **kwargs)
             self.assertDtype(out.dtype, dtype)
 
-    def test_unary_op_mult_out_from_shape(
+    def test_unary_op_mult_out_given_shape(
         self, func_name, array_shape, func_array=gs.ones
     ):
         self._reset_dtype()
@@ -352,7 +350,7 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             for out_ in out:
                 self.assertDtype(out_.dtype, dtype)
 
-    def _test_op_from_array(self, func_name, create_array):
+    def _test_op_given_array(self, func_name, create_array):
         # create_array to avoid using cast
         gs_fnc = get_backend_fnc(func_name)
 
@@ -365,8 +363,8 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             out = gs_fnc(*args)
             self.assertDtype(out.dtype, dtype)
 
-    def test_unary_op_from_array(self, func_name, create_array):
-        return self._test_op_from_array(func_name, create_array)
+    def test_unary_op_given_array(self, func_name, create_array):
+        return self._test_op_given_array(func_name, create_array)
 
     def test_binary_op_float_input(self, func_name, x1, x2):
         gs_fnc = get_backend_fnc(func_name)
@@ -377,7 +375,7 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
 
             self.assertDtype(out.dtype, dtype)
 
-    def test_binary_op_from_shape(
+    def test_binary_op_given_shape(
         self, func_name, shape_a, shape_b, kwargs=None, func_a=gs.ones, func_b=gs.ones
     ):
         self._reset_dtype()
@@ -400,7 +398,7 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
 
                 self.assertDtype(out.dtype, cmp_dtype)
 
-    def test_ternary_op_from_shape(
+    def test_ternary_op_given_shape(
         self,
         func_name,
         shape_a,
@@ -433,8 +431,8 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
 
                     self.assertDtype(out.dtype, cmp_dtype)
 
-    def test_ternary_op_from_array(self, func_name, create_array):
-        return self._test_op_from_array(func_name, create_array)
+    def test_ternary_op_given_array(self, func_name, create_array):
+        return self._test_op_given_array(func_name, create_array)
 
     def test_func_out_dtype(self, func_name, args, kwargs, expected):
         self._reset_dtype()
@@ -456,7 +454,7 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
     ):
         func_name = "linalg.solve_sylvester"
 
-        self.test_ternary_op_from_shape(
+        self.test_ternary_op_given_shape(
             func_name,
             shape_a,
             shape_b,

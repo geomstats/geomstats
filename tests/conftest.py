@@ -294,7 +294,7 @@ def _get_test_data(test_name, testing_data, test_arg_names, cls_tols, default_va
     if not has_method:
         raise Exception(
             f"testing_data object doesn't have '{short_name}_test_data' "
-            f"function forpairing with '{test_name}'"
+            f"function for pairing with '{test_name}'"
         )
 
     test_data = []

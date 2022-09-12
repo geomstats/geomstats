@@ -414,7 +414,7 @@ class DtypesTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def array_creation_with_dtype_given_shape_test_data(self):
+    def array_creation_with_dtype_from_shape_test_data(self):
         smoke_data = [
             dict(func_name="eye", shape=2),
             dict(func_name="ones", shape=2),
@@ -425,7 +425,7 @@ class DtypesTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def array_creation_with_dtype_given_array_test_data(self):
+    def array_creation_with_dtype_from_array_test_data(self):
         smoke_data = [
             dict(func_name="empty_like", array_shape=2),
             dict(func_name="ones_like", array_shape=2),
@@ -459,7 +459,7 @@ class DtypesTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def unary_op_with_dtype_from_shape_test_data(self):
+    def unary_op_with_dtype_given_shape_test_data(self):
         axis_kwargs = {"axis": 0}
         smoke_data = [
             dict(func_name="cumprod", array_shape=2),
@@ -474,20 +474,20 @@ class DtypesTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def from_numpy_from_shape_test_data(self):
+    def from_numpy_given_shape_test_data(self):
         smoke_data = [
             dict(array_shape=(2, 2), np_func_array=np.ones),
         ]
         return self.generate_tests(smoke_data)
 
-    def to_numpy_from_shape_test_data(self):
+    def to_numpy_given_shape_test_data(self):
         smoke_data = [
             dict(array_shape=(2, 2)),
         ]
 
         return self.generate_tests(smoke_data)
 
-    def unary_op_from_shape_test_data(self):
+    def unary_op_given_shape_test_data(self):
         smoke_data = [
             dict(func_name="copy", array_shape=(2, 2)),
             dict(func_name="diagonal", array_shape=(2, 2)),
@@ -509,12 +509,12 @@ class DtypesTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def unary_op_mult_out_from_shape_test_data(self):
+    def unary_op_mult_out_given_shape_test_data(self):
         smoke_data = [dict(func_name="linalg.qr", array_shape=(3, 3))]
 
         return self.generate_tests(smoke_data)
 
-    def unary_op_from_array_test_data(self):
+    def unary_op_given_array_test_data(self):
         def _create_spd():
             return SPDMatrices(2).random_point()
 
@@ -545,7 +545,7 @@ class DtypesTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def binary_op_from_shape_test_data(self):
+    def binary_op_given_shape_test_data(self):
         smoke_data = [
             dict(func_name="cross", shape_a=3, shape_b=3),
             dict(func_name="divide", shape_a=3, shape_b=3),
@@ -571,7 +571,7 @@ class DtypesTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def ternary_op_from_shape_test_data(self):
+    def ternary_op_given_shape_test_data(self):
         smoke_data = [
             # TODO: add test in BackendsTestData
             dict(
@@ -583,7 +583,7 @@ class DtypesTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def ternary_op_from_array_test_data(self):
+    def ternary_op_given_array_test_data(self):
         def _create_sylvester():
             a = SPDMatrices(3).random_point()
             b = a
