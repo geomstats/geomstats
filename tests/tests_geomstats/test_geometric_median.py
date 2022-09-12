@@ -1,4 +1,4 @@
-"""Methods for testing the Geometric Median."""
+"""Methods for testing the geometric median."""
 
 
 from tests.conftest import Parametrizer, TestCase
