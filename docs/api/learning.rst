@@ -2,13 +2,16 @@
 Learning
 ********
 
-Estimating the mean
-===================
+Estimating the centroid
+=======================
 
 .. automodule:: geomstats.learning.frechet_mean
    :members:
 
 .. automodule:: geomstats.learning.exponential_barycenter
+   :members:
+
+.. automodule:: geomstats.learning.geometric_median
    :members:
 
 Clustering

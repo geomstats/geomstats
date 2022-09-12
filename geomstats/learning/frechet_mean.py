@@ -55,7 +55,7 @@ def variance(points, base_point, metric, weights=None):
     ----------
     points : array-like, shape=[n_samples, dim]
         Points.
-    weights : array-like, shape=[...,]
+    weights : array-like, shape=[n_samples,]
         Weights associated to the points.
         Optional, default: None.
 
@@ -90,7 +90,7 @@ def linear_mean(points, weights=None):
     ----------
     points : array-like, shape=[n_samples, dim]
         Points to be averaged.
-    weights : array-like, shape=[...,]
+    weights : array-like, shape=[n_samples,]
         Weights associated to the points.
         Optional, default: None.
 
@@ -127,7 +127,7 @@ def elastic_mean(points, weights=None, metric=None):
     ----------
     points : array-like, shape=[n_samples, k_sampling_points, dim]
         Points on the manifold of curves (i.e. curves) to be averaged.
-    weights : array-like, shape=[...,]
+    weights : array-like, shape=[n_samples,]
         Weights associated to the points (i.e. curves).
         Optional, default: None.
 
@@ -319,14 +319,14 @@ def _adaptive_gradient_descent(
     ----------
     points : array-like, shape=[n_samples, dim]
         Points to be averaged.
-    weights : array-like, shape=[..., 1], optional
+    weights : array-like, shape=[n_samples,], optional
         Weights associated to the points.
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
     init_point : array-like, shape=[{dim, [n, n]}]
         Initial point.
-        Optional, default : None. In this case the first sample of the input data is
-        used.
+        Optional, default : None. In this case the first sample of the input
+        data is used.
     epsilon : float, optional
         Tolerance for stopping the gradient descent.
 
@@ -355,7 +355,7 @@ def _adaptive_gradient_descent(
     iteration = 0
 
     logs = metric.log(point=points, base_point=current_mean)
-    var = gs.sum(metric.squared_norm(logs, current_mean) * weights) / gs.sum(weights)
+    var = gs.sum(metric.squared_norm(logs, current_mean) * weights) / sum_weights
 
     current_tangent_mean = _scalarmulsum(weights, logs)
     current_tangent_mean /= sum_weights
@@ -370,9 +370,7 @@ def _adaptive_gradient_descent(
         next_mean = metric.exp(tangent_vec=shooting_vector, base_point=current_mean)
 
         logs = metric.log(point=points, base_point=next_mean)
-        var = gs.sum(metric.squared_norm(logs, current_mean) * weights) / gs.sum(
-            weights
-        )
+        var = gs.sum(metric.squared_norm(logs, current_mean) * weights) / sum_weights
 
         next_tangent_mean = _scalarmulsum(weights, logs)
         next_tangent_mean /= sum_weights
@@ -480,7 +478,7 @@ def _circle_variances(mean, var, n_samples, points):
 
 
 class FrechetMean(BaseEstimator):
-    r"""Empirical Frechet mean.
+    """Empirical Frechet mean.
 
     Parameters
     ----------
@@ -508,6 +506,11 @@ class FrechetMean(BaseEstimator):
     verbose : bool
         Verbose option.
         Optional, default: False.
+
+    Attributes
+    ----------
+    estimate_ : array-like, shape=[{dim, [n, n]}]
+        If fit, Frechet mean.
     """
 
     def __init__(
@@ -570,12 +573,10 @@ class FrechetMean(BaseEstimator):
         ----------
         X : {array-like, sparse matrix}, shape=[n_samples, {dim, [n, n]}]
             Training input samples.
-        y : array-like, shape=[n_samples,] or [n_samples, n_outputs]
-            Target values (class labels in classification, real numbers in
-            regression).
-            Ignored.
-        weights : array-like, shape=[...]
-            Weights associated to the points.
+        y : None
+            Target values. Ignored.
+        weights : array-like, shape=[n_samples,]
+            Weights associated to the samples.
             Optional, default: None.
 
         Returns

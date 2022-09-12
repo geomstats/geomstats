@@ -29,9 +29,9 @@ def _default_gradient_descent(
     ----------
     group : LieGroup
         Instance of the class LieGroup.
-    points : array-like, shape=[..., [n,n]]
+    points : array-like, shape=[n_samples, [n, n]]
         Input points lying in the Lie Group.
-    weights : array-like, shape=[...,]
+    weights : array-like, shape=[n_samples,]
         Weights associated to the points.
         Optional, defaults to 1 for each point if None.
     max_iter : int
@@ -50,7 +50,7 @@ def _default_gradient_descent(
 
     Returns
     -------
-    exp_bar : array-like, shape=[n,n]
+    exp_bar : array-like, shape=[n, n]
         Exponential_barycenter of the input points.
     """
     ndim = 2 if group.default_point_type == "vector" else 3
@@ -121,6 +121,7 @@ class ExponentialBarycenter(BaseEstimator):
     Attributes
     ----------
     estimate_ : array-like, shape=[dim, dim]
+        If fit, exponential barycenter.
     """
 
     def __init__(
@@ -145,14 +146,12 @@ class ExponentialBarycenter(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[..., n_features]
+        X : {array-like, sparse matrix}, shape=[n_samples, dim, dim]
             Training input samples.
-        y : array-like, shape=[...,] or [..., n_outputs]
-            Target values (class labels in classification, real numbers in
-            regression).
-            Ignored.
-        weights : array-like, shape=[...,]
-            Weights associated to the points.
+        y : None
+            Target values. Ignored.
+        weights : array-like, shape=[n_samples,]
+            Weights associated to the samples.
             Optional, default: None.
 
         Returns
