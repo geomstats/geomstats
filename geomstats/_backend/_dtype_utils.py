@@ -15,6 +15,7 @@ _MAP_FLOAT_TO_COMPLEX = {
 
 
 def _copy_func(func):
+    """Copy function."""
     new_func = types.FunctionType(
         func.__code__,
         func.__globals__,
@@ -29,6 +30,7 @@ def _copy_func(func):
 
 
 def _get_dtype_pos_in_defaults(func):
+    """Get dtype position in defaults."""
     pos = 0
     for name, parameter in inspect.signature(func).parameters.items():
         if name == "dtype":
@@ -40,6 +42,11 @@ def _get_dtype_pos_in_defaults(func):
 
 
 def _update_default_dtypes():
+    """Update default dtype of functions.
+
+    Notice it (mutably) changes function defaults. For external functions,
+    copy the functions first to avoid surprising users.
+    """
     for func in _TO_UPDATE_FUNCS_DTYPE:
         pos = _get_dtype_pos_in_defaults(func)
         defaults = list(func.__defaults__)
@@ -51,6 +58,16 @@ def _update_default_dtypes():
 
 
 def _modify_func_default_dtype(copy=True, kw_only=False, target=None):
+    """Modify function default dtype by acting directly in the object.
+
+    Parameters
+    ----------
+    copy: bool
+        If true, copies function before changing dtype.
+    kw_only : bool
+        If true, it is assumed dtype is kwarg only argument.
+    """
+
     def _decorator(func):
 
         new_func = _copy_func(func) if copy else func
@@ -69,10 +86,17 @@ def _modify_func_default_dtype(copy=True, kw_only=False, target=None):
 
 
 def get_default_dtype():
+    """Get backend default float dtype."""
     return _config.DEFAULT_DTYPE
 
 
 def _dyn_update_dtype(dtype_pos=None, target=None):
+    """Update (dynamically) function dtype.
+
+    When function is called, it verifies if dtype is passed. If not, default
+    dtype is set.
+    """
+
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(*args, **kwargs):
@@ -96,6 +120,7 @@ def _dyn_update_dtype(dtype_pos=None, target=None):
 
 def _pre_set_default_dtype(as_dtype):
     def set_default_dtype(value):
+        """Set backend default dtype."""
         _config.DEFAULT_DTYPE = as_dtype(value)
         _config.DEFAULT_COMPLEX_DTYPE = as_dtype(_MAP_FLOAT_TO_COMPLEX[value])
 
@@ -108,6 +133,11 @@ def _pre_set_default_dtype(as_dtype):
 
 def _pre_cast_out_from_dtype(cast, is_floating, is_complex):
     def _cast_out_from_dtype(dtype_pos=None, target=None):
+        """Cast output based on default dtype.
+
+        Useful to wrap functions which output dtype cannot be controlled.
+        """
+
         def _decorator(func):
             @functools.wraps(func)
             def _wrapped(*args, **kwargs):
@@ -141,6 +171,11 @@ def _pre_cast_out_from_dtype(cast, is_floating, is_complex):
 
 def _pre_add_default_dtype_by_casting(cast):
     def _add_default_dtype_by_casting(target=None):
+        """Add default dtype as function argument.
+
+        Behavior is achieved by casting output (not ideal).
+        """
+
         def _decorator(func):
             @functools.wraps(func)
             def _wrapped(*args, dtype=None, **kwargs):
@@ -164,11 +199,9 @@ def _pre_add_default_dtype_by_casting(cast):
 
 def _pre_cast_fout_to_input_dtype(cast, is_floating):
     def _cast_fout_to_input_dtype(target=None):
-        """Cast out of func if float and not accordingly to input.
+        """Cast out func if float and not accordingly to input.
 
-        Notes
-        -----
-        Required for scipy when result is innacurate.
+        It is required e.g. for scipy when result is innacurate.
         """
 
         def _decorator(func):
@@ -190,6 +223,8 @@ def _pre_cast_fout_to_input_dtype(cast, is_floating):
 
 
 def _np_box_unary_scalar(target=None):
+    """Update dtype if input is float for unary operations."""
+
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(x, *args, **kwargs):
@@ -208,6 +243,8 @@ def _np_box_unary_scalar(target=None):
 
 
 def _np_box_binary_scalar(target=None):
+    """Update dtype if input is float for binary operations."""
+
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(x1, x2, *args, **kwargs):

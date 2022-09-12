@@ -26,6 +26,7 @@ def _is_complex(x):
 
 
 def as_dtype(value):
+    """Transform string representing dtype in dtype."""
     return _np.dtype(value)
 
 
