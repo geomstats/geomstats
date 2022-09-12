@@ -478,7 +478,7 @@ def _circle_variances(mean, var, n_samples, points):
 
 
 class FrechetMean(BaseEstimator):
-    """Empirical Frechet mean.
+    r"""Empirical Frechet mean.
 
     Parameters
     ----------
