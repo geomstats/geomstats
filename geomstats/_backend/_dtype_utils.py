@@ -212,8 +212,8 @@ def _pre_cast_out_from_dtype(cast, is_floating, is_complex):
 
         if target is None:
             return _decorator
-        else:
-            return _decorator(target)
+
+        return _decorator(target)
 
     return _cast_out_from_dtype
 
@@ -249,8 +249,8 @@ def _pre_add_default_dtype_by_casting(cast):
 
         if target is None:
             return _decorator
-        else:
-            return _decorator(target)
+
+        return _decorator(target)
 
     return _add_default_dtype_by_casting
 
@@ -282,8 +282,8 @@ def _pre_cast_fout_to_input_dtype(cast, is_floating):
 
         if target is None:
             return _decorator
-        else:
-            return _decorator(target)
+
+        return _decorator(target)
 
     return _cast_fout_to_input_dtype
 
