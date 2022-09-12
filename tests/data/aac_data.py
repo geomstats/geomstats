@@ -9,6 +9,20 @@ from geomstats.learning.aac import _AACGGPCA, _AACFrechetMean, _AACRegression
 from tests.data_generation import TestData
 
 
+class AACTestData(TestData):
+    def init_test_data(self):
+        space_2 = GraphSpace(2)
+        metric = GraphSpaceMetric(space_2)
+
+        smoke_data = [
+            dict(estimate="frechet_mean", metric=metric, expected_type=_AACFrechetMean),
+            dict(estimate="ggpca", metric=metric, expected_type=_AACGGPCA),
+            dict(estimate="regression", metric=metric, expected_type=_AACRegression),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+
 class _TrivialData:
     def __init__(self, Estimator, is_regression=False, n_samples=3):
         self.is_regression = is_regression

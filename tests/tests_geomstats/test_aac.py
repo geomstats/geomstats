@@ -1,8 +1,10 @@
+from geomstats.learning.aac import AAC
 from tests.conftest import Parametrizer, TestCase, np_backend
 from tests.data.aac_data import (
     AACFrechetMeanTestData,
     AACGGPCATestData,
     AACRegressionTestData,
+    AACTestData,
 )
 
 IS_NOT_NP = not np_backend()
@@ -16,6 +18,16 @@ class _TestEstimator(TestCase):
         estimator.fit(X, y=y)
         estimator.max_iter = max_iter
         self.assertEqual(estimator.n_iter_, 1)
+
+
+class TestAAC(TestCase, metaclass=Parametrizer):
+    skip_all = IS_NOT_NP
+
+    testing_data = AACTestData()
+
+    def test_init(self, estimate, metric, expected_type):
+        estimator = AAC(metric, estimate=estimate)
+        self.assertTrue(type(estimator) is expected_type)
 
 
 class TestAACFrechetMean(_TestEstimator, metaclass=Parametrizer):
