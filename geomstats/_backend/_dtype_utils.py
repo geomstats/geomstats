@@ -1,3 +1,15 @@
+"""Machinery to handle global control of dtypes.
+
+Notes
+-----
+Functions starting with "_pre" are shared functions that just need access to
+specific backend functions. e.g. `_pre_set_default_dtype` requires access to
+`as_dtype`. `set_default_dtype` can then be created in each backend by doing
+`set_default_dtype = _pre_set_default_dtype(as_dtype)`. The same principle
+applies to ("_pre") decorators. This decreases code duplication, while being
+able to avoid (dirty) circular imports.
+"""
+
 import functools
 import inspect
 import types
@@ -44,8 +56,15 @@ def _get_dtype_pos_in_defaults(func):
 def _update_default_dtypes():
     """Update default dtype of functions.
 
-    Notice it (mutably) changes function defaults. For external functions,
-    copy the functions first to avoid surprising users.
+    How it works?
+    -------------
+    "dtype" is updated in __defaults__ or __kwdefaults__ to default dtype.
+
+    Every time default dtype is changed, all the functions that follow this
+    strategy will have their default dtype updated.
+
+    It (mutably) changes function defaults. For external functions, copy the
+    function first to avoid surprising users.
     """
     for func in _TO_UPDATE_FUNCS_DTYPE:
         pos = _get_dtype_pos_in_defaults(func)
@@ -58,7 +77,7 @@ def _update_default_dtypes():
 
 
 def _modify_func_default_dtype(copy=True, kw_only=False, target=None):
-    """Modify function default dtype by acting directly in the object.
+    """Modify function default dtype by acting directly in the target object.
 
     Parameters
     ----------
@@ -66,6 +85,11 @@ def _modify_func_default_dtype(copy=True, kw_only=False, target=None):
         If true, copies function before changing dtype.
     kw_only : bool
         If true, it is assumed dtype is kwarg only argument.
+
+    How it works?
+    -------------
+    This decorator only collects functions. Default dtype is modified only
+    when default dtype is changed (see `_update_default_dtypes`).
     """
 
     def _decorator(func):
@@ -93,8 +117,15 @@ def get_default_dtype():
 def _dyn_update_dtype(dtype_pos=None, target=None):
     """Update (dynamically) function dtype.
 
-    When function is called, it verifies if dtype is passed. If not, default
-    dtype is set.
+    Parameters
+    ----------
+    dtype_pos : int
+        Position of "dtype" argument.
+
+    How it works?
+    -------------
+    When the function is called, it verifies if dtype is passed. If not, it
+    uses default dtype.
     """
 
     def _decorator(func):
@@ -120,7 +151,13 @@ def _dyn_update_dtype(dtype_pos=None, target=None):
 
 def _pre_set_default_dtype(as_dtype):
     def set_default_dtype(value):
-        """Set backend default dtype."""
+        """Set backend default dtype.
+
+        Parameters
+        ----------
+        value : str
+            Possible values are "float32" as "float64".
+        """
         _config.DEFAULT_DTYPE = as_dtype(value)
         _config.DEFAULT_COMPLEX_DTYPE = as_dtype(_MAP_FLOAT_TO_COMPLEX[value])
 
@@ -135,7 +172,19 @@ def _pre_cast_out_from_dtype(cast, is_floating, is_complex):
     def _cast_out_from_dtype(dtype_pos=None, target=None):
         """Cast output based on default dtype.
 
-        Useful to wrap functions which output dtype cannot be controlled.
+        Useful to wrap functions which output dtype cannot be (fully) controlled
+        or for which is useful to run it without controlling dtype and cast
+        afterwards (e.g. array).
+
+        Parameters
+        ----------
+        dtype_pos : int
+            Position of "dtype" argument.
+
+        How it works?
+        -------------
+        Function is called normally. If output is float or complex, then it
+        checks if is of expected dtype. If not, cast is performed.
         """
 
         def _decorator(func):
@@ -173,7 +222,16 @@ def _pre_add_default_dtype_by_casting(cast):
     def _add_default_dtype_by_casting(target=None):
         """Add default dtype as function argument.
 
-        Behavior is achieved by casting output (not ideal).
+        Behavior is achieved by casting output (not ideal, but impoosible to
+        avoid without acting directly in the backends themselves).
+
+        How it works?
+        -------------
+        Function is called normally. If output is float or complex, then it
+        checks if is of expected dtype. If not, cast is performed.
+
+        The difference to `_cast_out_from_dtype` is that wrapped functions do
+        not accept dtype.
         """
 
         def _decorator(func):
@@ -202,6 +260,14 @@ def _pre_cast_fout_to_input_dtype(cast, is_floating):
         """Cast out func if float and not accordingly to input.
 
         It is required e.g. for scipy when result is innacurate.
+
+        How it works?
+        -------------
+        Function is called normally. If output is float, then it
+        checks if is of expected dtype (input dtype). If not, cast is performed.
+
+        The difference to `_cast_out_from_dtype` is that output is expected to
+        have same type as input.
         """
 
         def _decorator(func):
@@ -223,7 +289,12 @@ def _pre_cast_fout_to_input_dtype(cast, is_floating):
 
 
 def _np_box_unary_scalar(target=None):
-    """Update dtype if input is float for unary operations."""
+    """Update dtype if input is float in unary operations.
+
+    How it works?
+    -------------
+    If dtype is float, then default dtype is passed as argument.
+    """
 
     def _decorator(func):
         @functools.wraps(func)
@@ -243,7 +314,12 @@ def _np_box_unary_scalar(target=None):
 
 
 def _np_box_binary_scalar(target=None):
-    """Update dtype if input is float for binary operations."""
+    """Update dtype if input is float in binary operations.
+
+    How it works?
+    -------------
+    If dtype is float, then default dtype is passed as argument.
+    """
 
     def _decorator(func):
         @functools.wraps(func)

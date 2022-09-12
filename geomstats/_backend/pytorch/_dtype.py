@@ -26,7 +26,13 @@ def as_dtype(value):
 
 
 def set_default_dtype(value):
-    """Set backend default dtype."""
+    """Set backend default dtype.
+
+    Parameters
+    ----------
+    value : str
+        Possible values are "float32" as "float64".
+    """
     _config.DEFAULT_DTYPE = as_dtype(value)
     _config.DEFAULT_COMPLEX_DTYPE = _MAP_FLOAT_TO_COMPLEX.get(value)
     _torch.set_default_dtype(_config.DEFAULT_DTYPE)
@@ -40,9 +46,12 @@ _add_default_dtype_by_casting = _pre_add_default_dtype_by_casting(cast)
 def _preserve_input_dtype(target=None):
     """Ensure input dtype is preserved.
 
-    Only acts on input.
-    Assumes dtype is kwarg.
-    Use together with _add_default_dtype_by_casting.
+    How it works?
+    -------------
+    Only acts on input. Assumes dtype is kwarg and function accepts dtype.
+    Passes dtype as input dtype.
+
+    Use together with `_add_default_dtype_by_casting`.
     """
 
     def _decorator(func):
@@ -62,7 +71,12 @@ def _preserve_input_dtype(target=None):
 
 
 def _box_unary_scalar(target=None):
-    """Update dtype if input is float for unary operations."""
+    """Update dtype if input is float in unary operations.
+
+    How it works?
+    -------------
+    Promotes input to tensor if not the case.
+    """
 
     def _decorator(func):
         @functools.wraps(func)
@@ -80,7 +94,12 @@ def _box_unary_scalar(target=None):
 
 
 def _box_binary_scalar(target=None, box_x1=True, box_x2=True):
-    """Update dtype if input is float for binary operations."""
+    """Update dtype if input is float in binary operations.
+
+    How it works?
+    -------------
+    Promotes inputs to tensor if not the case.
+    """
 
     def _decorator(func):
         @functools.wraps(func)

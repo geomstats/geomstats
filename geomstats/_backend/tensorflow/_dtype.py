@@ -28,7 +28,12 @@ _cast_out_from_dtype = _pre_cast_out_from_dtype(_tf.cast, _is_floating, _is_comp
 
 
 def _box_unary_scalar(target=None):
-    """Update dtype if input is float for unary operations."""
+    """Update dtype if input is float for unary operations.
+
+    How it works?
+    -------------
+    Promotes input to tensorfow constant if not the case.
+    """
 
     def _decorator(func):
         @functools.wraps(func)
@@ -50,7 +55,12 @@ def _box_unary_scalar(target=None):
 
 
 def _box_binary_scalar(target=None):
-    """Update dtype if input is float for binary operations."""
+    """Update dtype if input is float for binary operations.
+
+    How it works?
+    -------------
+    Promotes input to tensorfow constant if not the case.
+    """
 
     def _decorator(func):
         @functools.wraps(func)
