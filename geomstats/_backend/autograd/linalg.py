@@ -21,7 +21,7 @@ from autograd.numpy.linalg import (  # NOQA
 )
 
 from ._common import to_ndarray as _to_ndarray
-from ._dtype_wrapper import _cast_fout_to_input_dtype
+from ._dtype import _cast_fout_to_input_dtype
 
 _diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
 

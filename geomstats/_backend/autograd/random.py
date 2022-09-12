@@ -3,7 +3,7 @@ import autograd.numpy as _np
 from autograd.numpy.random import default_rng as _default_rng  # NOQA
 from autograd.numpy.random import randint, seed
 
-from ._dtype_wrapper import _add_default_dtype_by_casting
+from ._dtype import _add_default_dtype_by_casting
 
 rand = _add_default_dtype_by_casting(target=_np.random.rand)
 normal = _add_default_dtype_by_casting(target=_np.random.normal)

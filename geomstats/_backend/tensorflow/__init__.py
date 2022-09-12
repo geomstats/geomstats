@@ -39,7 +39,7 @@ from .._backend_config import tf_rtol as rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from ._dtype_wrapper import (
+from ._dtype import (
     _box_binary_scalar,
     _box_unary_scalar,
     _cast_out_from_dtype,

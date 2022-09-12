@@ -38,7 +38,7 @@ from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from ._common import array, cast, from_numpy
-from ._dtype_wrapper import (
+from ._dtype import (
     _add_default_dtype_by_casting,
     _box_binary_scalar,
     _box_unary_scalar,

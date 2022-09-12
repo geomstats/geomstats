@@ -6,7 +6,7 @@ from torch.distributions.multivariate_normal import (
     MultivariateNormal as _MultivariateNormal,
 )
 
-from ._dtype_wrapper import _add_default_dtype_by_casting
+from ._dtype import _add_default_dtype_by_casting
 
 
 def choice(x, a):

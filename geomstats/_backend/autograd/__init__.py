@@ -85,7 +85,7 @@ from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 from ._common import cast, to_ndarray  # NOQA
-from ._dtype_wrapper import (
+from ._dtype import (
     _box_binary_scalar,
     _box_unary_scalar,
     _cast_out_from_dtype,
