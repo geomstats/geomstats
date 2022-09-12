@@ -5,7 +5,7 @@ from geomstats.geometry.stratified.graph_space import (
     GraphSpaceMetric,
     _GeodesicToPointAligner,
 )
-from geomstats.learning.aac import _AACGGPCA, _AACFrechetMean, _AACRegressor
+from geomstats.learning.aac import _AACGGPCA, _AACFrechetMean, _AACRegression
 from tests.data_generation import TestData
 
 
@@ -50,7 +50,7 @@ class _TrivialGeodesicEstimatorTestData(TestData):
         return self.generate_tests(smoke_data)
 
 
-class _TrivialRegressorTestData(TestData):
+class _TrivialRegressionTestData(TestData):
     def __init__(self):
         self.n_samples = 3
         self.input_dim = []
@@ -121,7 +121,7 @@ class AACGGPCATestData(_TrivialGeodesicEstimatorTestData):
         self.estimators[-1].init_point = gs.zeros((2, 2))
 
 
-class AACRegressorTestData(_TrivialRegressorTestData):
+class AACRegressionTestData(_TrivialRegressionTestData):
     def _setup(self):
 
         space_2 = GraphSpace(2)
@@ -134,7 +134,7 @@ class AACRegressorTestData(_TrivialRegressorTestData):
         )
 
         self.metrics = [metric] * 3
-        self.estimators = [_AACRegressor(metric) for metric in self.metrics]
+        self.estimators = [_AACRegression(metric) for metric in self.metrics]
 
         self.estimators[1].init_point = gs.zeros((2, 2))
         self.input_dim = [1, 1, 2]
@@ -151,7 +151,11 @@ class MaxIterTestData(TestData):
         inputs = [X] * 2 + [gs.expand_dims(gs.linspace(0, 1, num=n_samples), 1)]
         outputs = [None] * 2 + [X]
 
-        estimators = [_AACFrechetMean(metric), _AACGGPCA(metric), _AACRegressor(metric)]
+        estimators = [
+            _AACFrechetMean(metric),
+            _AACGGPCA(metric),
+            _AACRegression(metric),
+        ]
 
         smoke_data = []
         for estimator, X, y in zip(estimators, inputs, outputs):

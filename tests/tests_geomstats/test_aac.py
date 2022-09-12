@@ -2,7 +2,7 @@ from tests.conftest import Parametrizer, TestCase, np_backend
 from tests.data.aac_data import (
     AACFrechetMeanTestData,
     AACGGPCATestData,
-    AACRegressorTestData,
+    AACRegressionTestData,
     MaxIterTestData,
 )
 
@@ -61,10 +61,10 @@ class TestAACGGPCA(_GeodesicEstimatorTest, metaclass=Parametrizer):
     testing_data = AACGGPCATestData()
 
 
-class TestAACRegressor(_RegressionTest, metaclass=Parametrizer):
+class TestAACRegression(_RegressionTest, metaclass=Parametrizer):
     skip_all = IS_NOT_NP
 
-    testing_data = AACRegressorTestData()
+    testing_data = AACRegressionTestData()
 
 
 class TestMaxIter(TestCase, metaclass=Parametrizer):
@@ -73,7 +73,9 @@ class TestMaxIter(TestCase, metaclass=Parametrizer):
     testing_data = MaxIterTestData()
 
     def test_fit_warn(self, estimator, X, y=None):
+        max_iter = estimator.max_iter
         estimator.max_iter = 1
 
         estimator.fit(X, y=y)
+        estimator.max_iter = max_iter
         self.assertEqual(estimator.n_iter_, 1)

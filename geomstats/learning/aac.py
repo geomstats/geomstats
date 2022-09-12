@@ -68,7 +68,7 @@ class AAC:
         MAP_ESTIMATE = {
             "frechet_mean": _AACFrechetMean,
             "ggpca": _AACGGPCA,
-            "regression": _AACRegressor,
+            "regression": _AACRegression,
         }
         check_parameter_accepted_values(estimate, "estimate", list(MAP_ESTIMATE.keys()))
 
@@ -308,7 +308,7 @@ class _AACGGPCA(BaseEstimator):
         return self
 
 
-class _AACRegressor(BaseEstimator):
+class _AACRegression(BaseEstimator):
     r"""Class AAC for Generalized Geodesic Regression (GGR) on Graph Space.
 
     The Align All and Compute (AAC) algorithm for GGR estimation is
