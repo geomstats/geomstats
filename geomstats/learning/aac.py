@@ -22,59 +22,6 @@ def _warn_max_iterations(iteration, max_iter):
         )
 
 
-class AAC:
-    r"""Class for Align all and Compute algorithm on Graph Space.
-
-    The Align All and Compute (AAC) algorithm is introduced in [Calissano2020] and it
-    allows to compute different statistical estimators: the Frechet Mean, the
-    Generalized Geodesic Principal components and the Regression for a set of labeled or
-    unlabeled graphs.
-    The idea is to optimally aligned the graphs to the current
-    estimator using the correct alignment technique and compute the current estimation
-    using the geometrical property of the total space, i.e., the Euclidean space of
-    adjacency matrices.
-
-    Parameters
-    ----------
-    metric : GraphSpaceMetric
-        Metric Class on Graph Space.
-    estimate : str
-        Desired estimator. One of the following:
-        - "frechet_mean": Frechet Mean estimation [Calissano2020]
-        - "ggpca": Generalized Geodesic Principal Components [Calissano2020]
-        - "regression": Graph-on-vector regression model [Calissano2022]
-
-    Examples
-    --------
-    Available example on Graph Space:
-    :mod:`notebooks.19_practical_methods__aac`
-    Available example on Graph Space with real world data:
-    :mod:`notebooks.20_real_world_application__graph_space`
-
-    References
-    ----------
-    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-        “Graph Space: Geodesic Principal Components for a Population of
-        Network-valued Data.” Mox report 14, 2020.
-        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
-    .. [Calissano2022]  Calissano, A., Feragen, A., Vantini, S.
-        “Graph-valued regression: prediction of unlabelled networks in a non-Euclidean
-        Graph Space.”Journal of Multivariate Analysis 190 - 104950, (2022).
-        https://doi.org/10.1016/j.jmva.2022.104950.
-    """
-
-    def __new__(cls, metric, *args, estimate="frechet", **kwargs):
-        r"""Class for Align all and Compute algorithm on Graph Space."""
-        MAP_ESTIMATE = {
-            "frechet_mean": _AACFrechetMean,
-            "ggpca": _AACGGPCA,
-            "regression": _AACRegression,
-        }
-        check_parameter_accepted_values(estimate, "estimate", list(MAP_ESTIMATE.keys()))
-
-        return MAP_ESTIMATE[estimate](metric, *args, **kwargs)
-
-
 class _AACFrechetMean(BaseEstimator):
     r"""Class AAC for Frechet Mean on Graph Space.
 
@@ -442,3 +389,59 @@ class _AACRegression(BaseEstimator):
             Predicted unlabeled graphs.
         """
         return self.total_space_estimator.predict(X)
+
+
+class AAC:
+    r"""Class for Align all and Compute algorithm on Graph Space.
+
+    The Align All and Compute (AAC) algorithm is introduced in [Calissano2020] and it
+    allows to compute different statistical estimators: the Frechet Mean, the
+    Generalized Geodesic Principal components and the Regression for a set of labeled or
+    unlabeled graphs.
+    The idea is to optimally aligned the graphs to the current
+    estimator using the correct alignment technique and compute the current estimation
+    using the geometrical property of the total space, i.e., the Euclidean space of
+    adjacency matrices.
+
+    Parameters
+    ----------
+    metric : GraphSpaceMetric
+        Metric Class on Graph Space.
+    estimate : str
+        Desired estimator. One of the following:
+        - "frechet_mean": Frechet Mean estimation [Calissano2020]
+        - "ggpca": Generalized Geodesic Principal Components [Calissano2020]
+        - "regression": Graph-on-vector regression model [Calissano2022]
+
+    Examples
+    --------
+    Available example on Graph Space:
+    :mod:`notebooks.19_practical_methods__aac`
+    Available example on Graph Space with real world data:
+    :mod:`notebooks.20_real_world_application__graph_space`
+
+    References
+    ----------
+    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+        “Graph Space: Geodesic Principal Components for a Population of
+        Network-valued Data.” Mox report 14, 2020.
+        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    .. [Calissano2022]  Calissano, A., Feragen, A., Vantini, S.
+        “Graph-valued regression: prediction of unlabelled networks in a non-Euclidean
+        Graph Space.”Journal of Multivariate Analysis 190 - 104950, (2022).
+        https://doi.org/10.1016/j.jmva.2022.104950.
+    """
+
+    MAP_ESTIMATE = {
+        "frechet_mean": _AACFrechetMean,
+        "ggpca": _AACGGPCA,
+        "regression": _AACRegression,
+    }
+
+    def __new__(cls, metric, *args, estimate="frechet", **kwargs):
+        r"""Class for Align all and Compute algorithm on Graph Space."""
+        check_parameter_accepted_values(
+            estimate, "estimate", list(cls.MAP_ESTIMATE.keys())
+        )
+
+        return cls.MAP_ESTIMATE[estimate](metric, *args, **kwargs)

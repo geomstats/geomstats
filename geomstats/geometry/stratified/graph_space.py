@@ -196,470 +196,6 @@ def _pad_with_zeros(*args_positions, copy=True):
     return _dec
 
 
-class GraphPoint(Point):
-    r"""Class for the GraphPoint.
-
-    Points are represented by :math:`nodes \times nodes` adjacency matrices.
-
-    Parameters
-    ----------
-    adj : array-like, shape=[n_nodes, n_nodes]
-        Adjacency matrix.
-
-    References
-    ----------
-    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-        “Graph Space: Geodesic Principal Components for a Population of
-        Network-valued Data.” Mox report 14, 2020.
-        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
-    """
-
-    def __init__(self, adj):
-        super().__init__()
-        self.adj = adj
-
-    @property
-    def n_nodes(self):
-        """Retrieve the number of nodes."""
-        return self.adj.shape[0]
-
-    def __repr__(self):
-        """Return a readable representation of the instance."""
-        return f"Adjacency: {self.adj}"
-
-    def __hash__(self):
-        """Return the hash of the instance."""
-        return hash(self.adj)
-
-    def to_array(self):
-        """Return a copy of the adjacency matrix."""
-        return gs.copy(self.adj)
-
-    def to_networkx(self):
-        """Turn the graph into a networkx format."""
-        return nx.from_numpy_array(self.adj)
-
-
-class GraphSpace(PointSet):
-    r"""Class for the Graph Space.
-
-    Graph Space to analyse populations of labelled and unlabelled graphs.
-    The space focuses on graphs with scalar euclidean attributes on nodes and edges,
-    with a finite number of nodes and both directed and undirected edges.
-    For undirected graphs, use symmetric adjacency matrices. The space is a quotient
-    space obtained by applying the permutation action of nodes to the space
-    of adjacency matrices. Notice that for computation reasons the module works with
-    both the `gs.array` representation of graph and the `GraphPoint` representation.
-
-    Points are represented by :math:`nodes \times nodes` adjacency matrices.
-    Both the array input and the Graph Point type input work.
-
-    Parameters
-    ----------
-    n_nodes : int
-        Number of graph nodes
-    total_space : space
-        Total Space before applying the permutation action. Default: Euclidean Space.
-
-    References
-    ----------
-    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-        “Graph Space: Geodesic Principal Components for a Population of
-        Network-valued Data.” Mox report 14, 2020.
-        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
-    .. [Jain2009] Jain, B., Obermayer, K.
-        "Structure Spaces." Journal of Machine Learning Research, 10(11), 2009.
-        https://www.jmlr.org/papers/volume10/jain09a/jain09a.pdf
-    """
-
-    def __init__(self, n_nodes, total_space=None):
-        super().__init__()
-        self.n_nodes = n_nodes
-        self.total_space = (
-            Matrices(n_nodes, n_nodes) if total_space is None else total_space
-        )
-
-    @_pad_with_zeros((1, "graphs"))
-    def belongs(self, graphs, atol=gs.atol):
-        r"""Check if the point belongs to the space.
-
-        Parameters
-        ----------
-        graphs : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
-                Points to be checked.
-        atol : float
-            Tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[..., n_nodes]
-            Boolean denoting if graph belongs to the space.
-        """
-        if type(graphs) in [list, tuple]:
-            return gs.array([graph.n_nodes == self.n_nodes for graph in graphs])
-        elif type(graphs) is GraphPoint:
-            return graphs.n_nodes == self.n_nodes
-
-        return self.total_space.belongs(graphs, atol=atol)
-
-    def random_point(self, n_samples=1, bound=1.0):
-        r"""Sample in Graph Space.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
-
-        Returns
-        -------
-        graph_samples : array-like, shape=[..., n_nodes, n_nodes]
-            Points sampled in GraphSpace(n_nodes).
-        """
-        return self.total_space.random_point(n_samples=n_samples, bound=bound)
-
-    @_vectorize_graph((1, "points"))
-    @_pad_with_zeros((1, "points"))
-    def set_to_array(self, points):
-        r"""Return a copy of the adjacency matrices.
-
-        Parameters
-        ----------
-        points : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
-            Points to be turned into an array
-        Returns
-        -------
-        graph_array : array-like, shape=[..., n_nodes, n_nodes]
-            An array containing all the Graphs.
-        """
-        return gs.copy(points)
-
-    @_vectorize_graph_to_points((1, "points"))
-    @_pad_with_zeros((1, "points"))
-    def set_to_networkx(self, points):
-        r"""Turn points into a networkx object.
-
-        Parameters
-        ----------
-        points : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
-
-        Returns
-        -------
-        nx_list : list of networkx object
-            An array containing all the Graphs.
-        """
-        networkx_objs = [pt.to_networkx() for pt in points]
-        return networkx_objs if len(networkx_objs) > 1 else networkx_objs[0]
-
-    @_vectorize_graph((1, "graph_to_permute"))
-    @_pad_with_zeros((1, "graph_to_permute"))
-    def permute(self, graph_to_permute, permutation):
-        r"""Permutation action applied to graph observation.
-
-        Parameters
-        ----------
-        graph_to_permute : list of GraphPoint or array-like,
-            shape=[..., n_nodes, n_nodes]
-            Input graphs to be permuted.
-        permutation: array-like, shape=[..., n_nodes]
-            Node permutations where in position i we have the value j meaning
-            the node i should be permuted with node j.
-
-        Returns
-        -------
-        graphs_permuted : array-like, shape=[..., n_nodes, n_nodes]
-            Graphs permuted.
-        """
-
-        def _get_permutation_matrix(indices_):
-            return gs.array_from_sparse(
-                data=gs.ones(self.n_nodes, dtype=gs.int64),
-                indices=list(zip(range(self.n_nodes), indices_)),
-                target_shape=(self.n_nodes, self.n_nodes),
-            )
-
-        if gs.ndim(permutation) == 1:
-            perm_matrices = _get_permutation_matrix(permutation)
-        else:
-            perm_matrices = []
-            for indices_ in permutation:
-                perm_matrices.append(_get_permutation_matrix(indices_))
-            perm_matrices = gs.stack(perm_matrices)
-
-        permuted_graph = Matrices.mul(
-            perm_matrices, graph_to_permute, Matrices.transpose(perm_matrices)
-        )
-        if gs.ndim(permuted_graph) == 3 and gs.shape(permuted_graph)[0] == 1:
-            return permuted_graph[0]
-
-        return permuted_graph
-
-    @_pad_with_zeros((1, "points"), copy=False)
-    def pad_with_zeros(self, points):
-        """Pad points with zeros to match space dimension.
-
-        Parameters
-        ----------
-        points : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
-        """
-        return points
-
-
-class GraphSpaceMetric(PointSetMetric):
-    r"""Class for the Graph Space Metric.
-
-    Every metric :math:`d: X \times X \rightarrow \mathbb{R}` on the total space of
-    adjacency matrices can descend onto the quotient space as a pseudo-metric:
-    :math:`d([x_1],[x_2]) = min_{t\in T} d_X(x_1, t^Tx_2t)`. The metric relies on the
-    total space metric and an alignment procedure, i.e., Graph Matching or Networks
-    alignment procedure. Metric, alignment, geodesics, and alignment with respect to
-    a geodesic are defined. By default, the alignment is the identity and the total
-    space metric is the Frobenious norm.
-
-    Parameters
-    ----------
-    space : GraphSpace
-        GraphSpace object.
-
-    References
-    ----------
-    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-        “Graph Space: Geodesic Principal Components for a Population of
-        Network-valued Data.” Mox report 14, 2020.
-        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
-    """
-
-    def __init__(self, space):
-        super().__init__(space)
-        self.aligner = self._set_default_aligner()
-        self.point_to_geodesic_aligner = None
-
-    @property
-    def perm_(self):
-        r"""Permutation of nodes after alignment.
-
-        Node permutations where in position i we have the value j meaning
-        the node i should be permuted with node j.
-        """
-        return self.aligner.perm_
-
-    def _set_default_aligner(self):
-        return self.set_aligner("ID")
-
-    def set_aligner(self, aligner, **kwargs):
-        r"""Set the aligning strategy.
-
-        Graph Space metric relies on alignment. In this module we propose the
-        identity matching, the FAQ graph matching by [Vogelstein2015]_, and
-        exhaustive aligner which explores the whole permutation group.
-
-        Parameters
-        ----------
-        aligner : str
-            'ID' Identity
-            'FAQ' Fast Quadratic Assignment - only compatible with Frobenious norm
-            'exhaustive' all group exhaustive search
-
-        References
-        ----------
-        .. [Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
-            Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
-            “Fast approximate quadratic programming for graph matching.“
-            PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
-        """
-        if isinstance(aligner, str):
-            MAP_ALIGNER = {
-                "ID": IDAligner,
-                "FAQ": FAQAligner,
-                "exhaustive": ExhaustiveAligner,
-            }
-            check_parameter_accepted_values(
-                aligner, "aligner", list(MAP_ALIGNER.keys())
-            )
-
-            aligner = MAP_ALIGNER.get(aligner)(**kwargs)
-
-        self.aligner = aligner
-        return self.aligner
-
-    def set_point_to_geodesic_aligner(self, aligner, **kwargs):
-        r"""Set the alignment between a point and a geodesic.
-
-        Following the geodesic to point alignment in [Calissano2020]_ and
-        [Huckemann2010]_, this function defines the parameters [s_min, s_max] and
-        the number of points to sample in the domain.
-
-        Parameters
-        ----------
-        s_min : float
-            Minimum value of the domain to sample along the geodesics.
-        s_max : float
-            Minimum value of the domain to sample along the geodesics.
-        n_points: int
-            Number of points to sample between s_min and s_max.
-
-        References
-        ----------
-        .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-            “Graph Space: Geodesic Principal Components for a Population of
-            Network-valued Data.” Mox report 14, 2020.
-            https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
-
-        .. [Huckemann2010] Huckemann, S., Hotz, T., Munk, A.
-            "Intrinsic shape analysis: Geodesic PCA for Riemannian manifolds modulo
-            isometric Lie group actions." Statistica Sinica, 1-58, 2010.
-        """
-        if aligner == "default":
-            kwargs.setdefault("s_min", -1.0)
-            kwargs.setdefault("s_max", 1.0)
-            kwargs.setdefault("n_points", 10)
-            aligner = PointToGeodesicAligner(**kwargs)
-
-        self.point_to_geodesic_aligner = aligner
-        return self.point_to_geodesic_aligner
-
-    @property
-    def total_space_metric(self):
-        """Retrieve the total space metric."""
-        return self.space.total_space.metric
-
-    @total_space_metric.setter
-    def total_space_metric(self, value):
-        """Set the total space metric."""
-        self.space.total_space.metric = value
-
-    @property
-    def n_nodes(self):
-        """Retrieve the number of nodes."""
-        return self.space.n_nodes
-
-    @_vectorize_graph((1, "graph_a"), (2, "graph_b"))
-    @_pad_with_zeros((1, "graph_a"), (2, "graph_b"))
-    def dist(self, graph_a, graph_b):
-        """Compute distance between two equivalence classes.
-
-        Compute the distance between two equivalence classes of
-        adjacency matrices [Jain2009]_.
-
-        Parameters
-        ----------
-        graph_a : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
-        graph_b : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
-
-        Returns
-        -------
-        distance : array-like, shape=[...]
-            distance between equivalence classes.
-
-        References
-        ----------
-        .. [Jain2009]  Jain, B., Obermayer, K.
-            "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
-            https://www.jmlr.org/papers/v10/jain09a.html.
-        """
-        aligned_graph_b = self.align_point_to_point(graph_a, graph_b)
-        return self.total_space_metric.dist(
-            graph_a,
-            aligned_graph_b,
-        )
-
-    @_vectorize_graph((1, "base_point"), (2, "end_point"))
-    @_pad_with_zeros((1, "base_point"), (2, "end_point"))
-    def geodesic(self, base_point, end_point):
-        """Compute geodesic between two equivalence classes.
-
-        Compute the geodesic between two equivalence classes of
-        adjacency matrices [Calissano2020]_.
-
-        Parameters
-        ----------
-        base_point : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
-            Start .
-        end_point : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
-            Second graph to align to the first graph.
-
-        Returns
-        -------
-        geodesic : callable
-            Geodesic function.
-
-        References
-        ----------
-        .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-        “Graph Space: Geodesic Principal Components for a Population of
-        Network-valued Data.” Mox report 14, 2020.
-        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
-        """
-        aligned_end_point = self.align_point_to_point(base_point, end_point)
-
-        return self.total_space_metric.geodesic(
-            initial_point=base_point, end_point=aligned_end_point
-        )
-
-    @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
-    @_pad_with_zeros((1, "base_graph"), (2, "graph_to_permute"))
-    def align_point_to_point(self, base_graph, graph_to_permute):
-        """Align graphs.
-
-        Using the selected alignment technique, it returns the permuted
-        graph_to_permute as optimally aligned to the base_graph.
-
-        Parameters
-        ----------
-        base_graph : list of Graph or array-like, shape=[..., n_nodes, n_nodes]
-            Base graph.
-        graph_to_permute : list of Graph or array-like, shape=[..., n_nodes, n_nodes]
-            Graph to align.
-
-        Returns
-        -------
-        permuted_graph: list, shape = [..., n_nodes, n_nodes]
-        """
-        return self.aligner.align(self, base_graph, graph_to_permute)
-
-    @_vectorize_graph(
-        (2, "graph_to_permute"),
-    )
-    @_pad_with_zeros(
-        (2, "graph_to_permute"),
-    )
-    def align_point_to_geodesic(self, geodesic, graph_to_permute):
-        """Align graph to a geodesic.
-
-        Using the selected alignment technique, it returns the permuted
-        graph_to_permute as optimally aligned to the geodesic using [Huckemann2010]_.
-
-        Parameters
-        ----------
-        geodesic : function
-            Geodesic in Graph Space function.
-
-        graph_to_permute : list of Graph or array-like, shape=[..., n_nodes, n_nodes]
-            Graph to align.
-
-        Returns
-        -------
-        permuted_graph: list, shape = [..., n_nodes, n_nodes]
-
-        References
-        ----------
-        .. [Huckemann2010] Huckemann, S., Hotz, T., Munk, A.
-            "Intrinsic shape analysis: Geodesic PCA for Riemannian manifolds modulo
-            isometric Lie group actions." Statistica Sinica, 1-58, 2010.
-        """
-        if self.point_to_geodesic_aligner is None:
-            raise UnboundLocalError(
-                "Set point to geodesic aligner first (e.g. "
-                "`metric.set_point_to_geodesic_aligner('default', "
-                "s_min=-1., s_max=1.)`)"
-            )
-        return self.point_to_geodesic_aligner.align(self, geodesic, graph_to_permute)
-
-
 class _BaseAligner(metaclass=ABCMeta):
     """Base class for point to point aligner.
 
@@ -1059,3 +595,468 @@ class _GeodesicToPointAligner(_BasePointToGeodesicAligner):
         self.perm_ = perms[0] if n_points == 1 else perms
 
         return new_graph
+
+
+class GraphPoint(Point):
+    r"""Class for the GraphPoint.
+
+    Points are represented by :math:`nodes \times nodes` adjacency matrices.
+
+    Parameters
+    ----------
+    adj : array-like, shape=[n_nodes, n_nodes]
+        Adjacency matrix.
+
+    References
+    ----------
+    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+        “Graph Space: Geodesic Principal Components for a Population of
+        Network-valued Data.” Mox report 14, 2020.
+        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    """
+
+    def __init__(self, adj):
+        super().__init__()
+        self.adj = adj
+
+    @property
+    def n_nodes(self):
+        """Retrieve the number of nodes."""
+        return self.adj.shape[0]
+
+    def __repr__(self):
+        """Return a readable representation of the instance."""
+        return f"Adjacency: {self.adj}"
+
+    def __hash__(self):
+        """Return the hash of the instance."""
+        return hash(self.adj)
+
+    def to_array(self):
+        """Return a copy of the adjacency matrix."""
+        return gs.copy(self.adj)
+
+    def to_networkx(self):
+        """Turn the graph into a networkx format."""
+        return nx.from_numpy_array(self.adj)
+
+
+class GraphSpace(PointSet):
+    r"""Class for the Graph Space.
+
+    Graph Space to analyse populations of labelled and unlabelled graphs.
+    The space focuses on graphs with scalar euclidean attributes on nodes and edges,
+    with a finite number of nodes and both directed and undirected edges.
+    For undirected graphs, use symmetric adjacency matrices. The space is a quotient
+    space obtained by applying the permutation action of nodes to the space
+    of adjacency matrices. Notice that for computation reasons the module works with
+    both the `gs.array` representation of graph and the `GraphPoint` representation.
+
+    Points are represented by :math:`nodes \times nodes` adjacency matrices.
+    Both the array input and the Graph Point type input work.
+
+    Parameters
+    ----------
+    n_nodes : int
+        Number of graph nodes
+    total_space : space
+        Total Space before applying the permutation action. Default: Euclidean Space.
+
+    References
+    ----------
+    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+        “Graph Space: Geodesic Principal Components for a Population of
+        Network-valued Data.” Mox report 14, 2020.
+        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    .. [Jain2009] Jain, B., Obermayer, K.
+        "Structure Spaces." Journal of Machine Learning Research, 10(11), 2009.
+        https://www.jmlr.org/papers/volume10/jain09a/jain09a.pdf
+    """
+
+    def __init__(self, n_nodes, total_space=None):
+        super().__init__()
+        self.n_nodes = n_nodes
+        self.total_space = (
+            Matrices(n_nodes, n_nodes) if total_space is None else total_space
+        )
+
+    @_pad_with_zeros((1, "graphs"))
+    def belongs(self, graphs, atol=gs.atol):
+        r"""Check if the point belongs to the space.
+
+        Parameters
+        ----------
+        graphs : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
+                Points to be checked.
+        atol : float
+            Tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : array-like, shape=[..., n_nodes]
+            Boolean denoting if graph belongs to the space.
+        """
+        if type(graphs) in [list, tuple]:
+            return gs.array([graph.n_nodes == self.n_nodes for graph in graphs])
+        elif type(graphs) is GraphPoint:
+            return graphs.n_nodes == self.n_nodes
+
+        return self.total_space.belongs(graphs, atol=atol)
+
+    def random_point(self, n_samples=1, bound=1.0):
+        r"""Sample in Graph Space.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample in the tangent space.
+            Optional, default: 1.
+
+        Returns
+        -------
+        graph_samples : array-like, shape=[..., n_nodes, n_nodes]
+            Points sampled in GraphSpace(n_nodes).
+        """
+        return self.total_space.random_point(n_samples=n_samples, bound=bound)
+
+    @_vectorize_graph((1, "points"))
+    @_pad_with_zeros((1, "points"))
+    def set_to_array(self, points):
+        r"""Return a copy of the adjacency matrices.
+
+        Parameters
+        ----------
+        points : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
+            Points to be turned into an array
+        Returns
+        -------
+        graph_array : array-like, shape=[..., n_nodes, n_nodes]
+            An array containing all the Graphs.
+        """
+        return gs.copy(points)
+
+    @_vectorize_graph_to_points((1, "points"))
+    @_pad_with_zeros((1, "points"))
+    def set_to_networkx(self, points):
+        r"""Turn points into a networkx object.
+
+        Parameters
+        ----------
+        points : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
+
+        Returns
+        -------
+        nx_list : list of networkx object
+            An array containing all the Graphs.
+        """
+        networkx_objs = [pt.to_networkx() for pt in points]
+        return networkx_objs if len(networkx_objs) > 1 else networkx_objs[0]
+
+    @_vectorize_graph((1, "graph_to_permute"))
+    @_pad_with_zeros((1, "graph_to_permute"))
+    def permute(self, graph_to_permute, permutation):
+        r"""Permutation action applied to graph observation.
+
+        Parameters
+        ----------
+        graph_to_permute : list of GraphPoint or array-like,
+            shape=[..., n_nodes, n_nodes]
+            Input graphs to be permuted.
+        permutation: array-like, shape=[..., n_nodes]
+            Node permutations where in position i we have the value j meaning
+            the node i should be permuted with node j.
+
+        Returns
+        -------
+        graphs_permuted : array-like, shape=[..., n_nodes, n_nodes]
+            Graphs permuted.
+        """
+
+        def _get_permutation_matrix(indices_):
+            return gs.array_from_sparse(
+                data=gs.ones(self.n_nodes, dtype=gs.int64),
+                indices=list(zip(range(self.n_nodes), indices_)),
+                target_shape=(self.n_nodes, self.n_nodes),
+            )
+
+        if gs.ndim(permutation) == 1:
+            perm_matrices = _get_permutation_matrix(permutation)
+        else:
+            perm_matrices = []
+            for indices_ in permutation:
+                perm_matrices.append(_get_permutation_matrix(indices_))
+            perm_matrices = gs.stack(perm_matrices)
+
+        permuted_graph = Matrices.mul(
+            perm_matrices, graph_to_permute, Matrices.transpose(perm_matrices)
+        )
+        if gs.ndim(permuted_graph) == 3 and gs.shape(permuted_graph)[0] == 1:
+            return permuted_graph[0]
+
+        return permuted_graph
+
+    @_pad_with_zeros((1, "points"), copy=False)
+    def pad_with_zeros(self, points):
+        """Pad points with zeros to match space dimension.
+
+        Parameters
+        ----------
+        points : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
+        """
+        return points
+
+
+class GraphSpaceMetric(PointSetMetric):
+    r"""Class for the Graph Space Metric.
+
+    Every metric :math:`d: X \times X \rightarrow \mathbb{R}` on the total space of
+    adjacency matrices can descend onto the quotient space as a pseudo-metric:
+    :math:`d([x_1],[x_2]) = min_{t\in T} d_X(x_1, t^Tx_2t)`. The metric relies on the
+    total space metric and an alignment procedure, i.e., Graph Matching or Networks
+    alignment procedure. Metric, alignment, geodesics, and alignment with respect to
+    a geodesic are defined. By default, the alignment is the identity and the total
+    space metric is the Frobenious norm.
+
+    Parameters
+    ----------
+    space : GraphSpace
+        GraphSpace object.
+
+    References
+    ----------
+    .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+        “Graph Space: Geodesic Principal Components for a Population of
+        Network-valued Data.” Mox report 14, 2020.
+        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+    """
+
+    MAP_ALIGNER = {
+        "ID": IDAligner,
+        "FAQ": FAQAligner,
+        "exhaustive": ExhaustiveAligner,
+    }
+
+    def __init__(self, space):
+        super().__init__(space)
+        self.aligner = self._set_default_aligner()
+        self.point_to_geodesic_aligner = None
+
+    @property
+    def perm_(self):
+        r"""Permutation of nodes after alignment.
+
+        Node permutations where in position i we have the value j meaning
+        the node i should be permuted with node j.
+        """
+        return self.aligner.perm_
+
+    def _set_default_aligner(self):
+        return self.set_aligner("ID")
+
+    def set_aligner(self, aligner, **kwargs):
+        r"""Set the aligning strategy.
+
+        Graph Space metric relies on alignment. In this module we propose the
+        identity matching, the FAQ graph matching by [Vogelstein2015]_, and
+        exhaustive aligner which explores the whole permutation group.
+
+        Parameters
+        ----------
+        aligner : str
+            'ID' Identity
+            'FAQ' Fast Quadratic Assignment - only compatible with Frobenious norm
+            'exhaustive' all group exhaustive search
+
+        References
+        ----------
+        .. [Vogelstein2015] Vogelstein JT, Conroy JM, Lyzinski V, Podrazik LJ,
+            Kratzer SG, Harley ET, Fishkind DE, Vogelstein RJ, Priebe CE.
+            “Fast approximate quadratic programming for graph matching.“
+            PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
+        """
+        if isinstance(aligner, str):
+            check_parameter_accepted_values(
+                aligner, "aligner", list(self.MAP_ALIGNER.keys())
+            )
+
+            aligner = self.MAP_ALIGNER.get(aligner)(**kwargs)
+
+        self.aligner = aligner
+        return self.aligner
+
+    def set_point_to_geodesic_aligner(self, aligner, **kwargs):
+        r"""Set the alignment between a point and a geodesic.
+
+        Following the geodesic to point alignment in [Calissano2020]_ and
+        [Huckemann2010]_, this function defines the parameters [s_min, s_max] and
+        the number of points to sample in the domain.
+
+        Parameters
+        ----------
+        s_min : float
+            Minimum value of the domain to sample along the geodesics.
+        s_max : float
+            Minimum value of the domain to sample along the geodesics.
+        n_points: int
+            Number of points to sample between s_min and s_max.
+
+        References
+        ----------
+        .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+            “Graph Space: Geodesic Principal Components for a Population of
+            Network-valued Data.” Mox report 14, 2020.
+            https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+
+        .. [Huckemann2010] Huckemann, S., Hotz, T., Munk, A.
+            "Intrinsic shape analysis: Geodesic PCA for Riemannian manifolds modulo
+            isometric Lie group actions." Statistica Sinica, 1-58, 2010.
+        """
+        if aligner == "default":
+            kwargs.setdefault("s_min", -1.0)
+            kwargs.setdefault("s_max", 1.0)
+            kwargs.setdefault("n_points", 10)
+            aligner = PointToGeodesicAligner(**kwargs)
+
+        self.point_to_geodesic_aligner = aligner
+        return self.point_to_geodesic_aligner
+
+    @property
+    def total_space_metric(self):
+        """Retrieve the total space metric."""
+        return self.space.total_space.metric
+
+    @total_space_metric.setter
+    def total_space_metric(self, value):
+        """Set the total space metric."""
+        self.space.total_space.metric = value
+
+    @property
+    def n_nodes(self):
+        """Retrieve the number of nodes."""
+        return self.space.n_nodes
+
+    @_vectorize_graph((1, "graph_a"), (2, "graph_b"))
+    @_pad_with_zeros((1, "graph_a"), (2, "graph_b"))
+    def dist(self, graph_a, graph_b):
+        """Compute distance between two equivalence classes.
+
+        Compute the distance between two equivalence classes of
+        adjacency matrices [Jain2009]_.
+
+        Parameters
+        ----------
+        graph_a : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
+        graph_b : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
+
+        Returns
+        -------
+        distance : array-like, shape=[...]
+            distance between equivalence classes.
+
+        References
+        ----------
+        .. [Jain2009]  Jain, B., Obermayer, K.
+            "Structure Spaces." Journal of Machine Learning Research 10.11 (2009).
+            https://www.jmlr.org/papers/v10/jain09a.html.
+        """
+        aligned_graph_b = self.align_point_to_point(graph_a, graph_b)
+        return self.total_space_metric.dist(
+            graph_a,
+            aligned_graph_b,
+        )
+
+    @_vectorize_graph((1, "base_point"), (2, "end_point"))
+    @_pad_with_zeros((1, "base_point"), (2, "end_point"))
+    def geodesic(self, base_point, end_point):
+        """Compute geodesic between two equivalence classes.
+
+        Compute the geodesic between two equivalence classes of
+        adjacency matrices [Calissano2020]_.
+
+        Parameters
+        ----------
+        base_point : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
+            Start .
+        end_point : list of GraphPoint or array-like, shape=[..., n_nodes, n_nodes]
+            Second graph to align to the first graph.
+
+        Returns
+        -------
+        geodesic : callable
+            Geodesic function.
+
+        References
+        ----------
+        .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
+        “Graph Space: Geodesic Principal Components for a Population of
+        Network-valued Data.” Mox report 14, 2020.
+        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+        """
+        aligned_end_point = self.align_point_to_point(base_point, end_point)
+
+        return self.total_space_metric.geodesic(
+            initial_point=base_point, end_point=aligned_end_point
+        )
+
+    @_vectorize_graph((1, "base_graph"), (2, "graph_to_permute"))
+    @_pad_with_zeros((1, "base_graph"), (2, "graph_to_permute"))
+    def align_point_to_point(self, base_graph, graph_to_permute):
+        """Align graphs.
+
+        Using the selected alignment technique, it returns the permuted
+        graph_to_permute as optimally aligned to the base_graph.
+
+        Parameters
+        ----------
+        base_graph : list of Graph or array-like, shape=[..., n_nodes, n_nodes]
+            Base graph.
+        graph_to_permute : list of Graph or array-like, shape=[..., n_nodes, n_nodes]
+            Graph to align.
+
+        Returns
+        -------
+        permuted_graph: list, shape = [..., n_nodes, n_nodes]
+        """
+        return self.aligner.align(self, base_graph, graph_to_permute)
+
+    @_vectorize_graph(
+        (2, "graph_to_permute"),
+    )
+    @_pad_with_zeros(
+        (2, "graph_to_permute"),
+    )
+    def align_point_to_geodesic(self, geodesic, graph_to_permute):
+        """Align graph to a geodesic.
+
+        Using the selected alignment technique, it returns the permuted
+        graph_to_permute as optimally aligned to the geodesic using [Huckemann2010]_.
+
+        Parameters
+        ----------
+        geodesic : function
+            Geodesic in Graph Space function.
+
+        graph_to_permute : list of Graph or array-like, shape=[..., n_nodes, n_nodes]
+            Graph to align.
+
+        Returns
+        -------
+        permuted_graph: list, shape = [..., n_nodes, n_nodes]
+
+        References
+        ----------
+        .. [Huckemann2010] Huckemann, S., Hotz, T., Munk, A.
+            "Intrinsic shape analysis: Geodesic PCA for Riemannian manifolds modulo
+            isometric Lie group actions." Statistica Sinica, 1-58, 2010.
+        """
+        if self.point_to_geodesic_aligner is None:
+            raise UnboundLocalError(
+                "Set point to geodesic aligner first (e.g. "
+                "`metric.set_point_to_geodesic_aligner('default', "
+                "s_min=-1., s_max=1.)`)"
+            )
+        return self.point_to_geodesic_aligner.align(self, geodesic, graph_to_permute)
