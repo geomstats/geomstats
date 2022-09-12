@@ -22,7 +22,7 @@ from geomstats.geometry.stratified.point_set import (
 
 
 def _pad_graph_points_with_zeros(points, n_nodes, copy=False):
-    r"""Pad graphs point with zeros.
+    """Pad graphs point with zeros.
 
     Graph space is an embedding for adjacency matrices of the same dimension. Smaller
     graphs can be padded adding zero nodes and edges, i.e., block of zero rows and
@@ -56,7 +56,7 @@ def _pad_graph_points_with_zeros(points, n_nodes, copy=False):
 
 
 def _pad_array_with_zeros(array, n_nodes):
-    r"""Pad graphs represented as array with zeros.
+    """Pad graphs represented as array with zeros.
 
     Graph space is an embedding for adjacency matrices of the same dimension. Smaller
     graphs can be padded adding zero nodes and edges, i.e., block of zero rows and
@@ -83,7 +83,7 @@ def _pad_array_with_zeros(array, n_nodes):
 
 
 def _pad_points_with_zeros(points, n_nodes, copy=True):
-    r"""Pad graphs with zeros.
+    """Pad graphs with zeros.
 
     Graph space is an embedding for adjacency matrices of the same dimension.
     Smaller graphs can be padded adding zero nodes and edges, i.e., block of
@@ -110,7 +110,7 @@ def _pad_points_with_zeros(points, n_nodes, copy=True):
 
 
 def _vectorize_graph(*args_positions):
-    r"""Vectorize GraphPoint or array into array.
+    """Vectorize GraphPoint or array into array.
 
     Turns GraphPoint or array into an array of adjacency matrices. This way all
     the methods only need to work for the set of points case (output shape
@@ -140,7 +140,7 @@ def _vectorize_graph(*args_positions):
 
 
 def _vectorize_graph_to_points(*args_positions):
-    r"""Vectorize GraphPoint or array into a list of GraphPoint.
+    """Vectorize GraphPoint or array into a list of GraphPoint.
 
     This way all the methods only need to work for the set of points case (output
     shape should be returned accordingly to the input though).
@@ -172,7 +172,7 @@ def _vectorize_graph_to_points(*args_positions):
 
 
 def _pad_with_zeros(*args_positions, copy=True):
-    r"""Pad graphs with zeros."""
+    """Pad graphs with zeros."""
 
     def _dec(func):
         def _manipulate_input(points, n_nodes):
@@ -396,12 +396,12 @@ class _BasePointToGeodesicAligner(metaclass=ABCMeta):
 
     @abstractmethod
     def align(self, geodesic, graph_to_permute):
-        r"""Class for the Alignment of the geodesic with respect to a point."""
+        """Class for the Alignment of the geodesic with respect to a point."""
         raise NotImplementedError("Not implemented")
 
     @abstractmethod
     def dist(self, geodesic, graph_to_permute):
-        r"""Class to compute distance between the geodesic with respect to a point."""
+        """Class to compute distance between the geodesic with respect to a point."""
         raise NotImplementedError("Not implemented")
 
     def _get_n_points(self, graph_to_permute):
@@ -412,7 +412,7 @@ class _BasePointToGeodesicAligner(metaclass=ABCMeta):
 
 
 class PointToGeodesicAligner(_BasePointToGeodesicAligner):
-    r"""Class for the Alignment of the points with respect to a geodesic.
+    """Class for the Alignment of the points with respect to a geodesic.
 
     Implementing the algorithm in [Huckemann2010]_ to select an optimal alignment to a
     point with respect to a geodesic. The algorithm sample discrete set of n_points
@@ -449,14 +449,14 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         self._s = None
 
     def __setattr__(self, attr_name, value):
-        r"""Set attributes."""
+        """Set attributes."""
         if attr_name in ["s_min", "s_max", "n_points"]:
             self._s = None
 
         return object.__setattr__(self, attr_name, value)
 
     def _discretize_s(self):
-        r"""Compute the domain distretization."""
+        """Compute the domain distretization."""
         return gs.linspace(self.s_min, self.s_max, num=self.n_points)
 
     @property
@@ -490,7 +490,7 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         return dists, min_dists_idx, n_points
 
     def dist(self, metric, geodesic, graph_to_permute):
-        r"""Compute the distance between the geodesic and the point.
+        """Compute the distance between the geodesic and the point.
 
         Parameters
         ----------
@@ -514,7 +514,7 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         )
 
     def align(self, metric, geodesic, graph_to_permute):
-        r"""Align the graph to the geodesic.
+        """Align the graph to the geodesic.
 
         Parameters
         ----------
@@ -682,7 +682,7 @@ class GraphSpace(PointSet):
 
     @_pad_with_zeros((1, "graphs"))
     def belongs(self, graphs, atol=gs.atol):
-        r"""Check if the point belongs to the space.
+        """Check if the point belongs to the space.
 
         Parameters
         ----------
@@ -705,7 +705,7 @@ class GraphSpace(PointSet):
         return self.total_space.belongs(graphs, atol=atol)
 
     def random_point(self, n_samples=1, bound=1.0):
-        r"""Sample in Graph Space.
+        """Sample in Graph Space.
 
         Parameters
         ----------
@@ -726,7 +726,7 @@ class GraphSpace(PointSet):
     @_vectorize_graph((1, "points"))
     @_pad_with_zeros((1, "points"))
     def set_to_array(self, points):
-        r"""Return a copy of the adjacency matrices.
+        """Return a copy of the adjacency matrices.
 
         Parameters
         ----------
@@ -742,7 +742,7 @@ class GraphSpace(PointSet):
     @_vectorize_graph_to_points((1, "points"))
     @_pad_with_zeros((1, "points"))
     def set_to_networkx(self, points):
-        r"""Turn points into a networkx object.
+        """Turn points into a networkx object.
 
         Parameters
         ----------
@@ -759,7 +759,7 @@ class GraphSpace(PointSet):
     @_vectorize_graph((1, "graph_to_permute"))
     @_pad_with_zeros((1, "graph_to_permute"))
     def permute(self, graph_to_permute, permutation):
-        r"""Permutation action applied to graph observation.
+        """Permutation action applied to graph observation.
 
         Parameters
         ----------
@@ -847,7 +847,7 @@ class GraphSpaceMetric(PointSetMetric):
 
     @property
     def perm_(self):
-        r"""Permutation of nodes after alignment.
+        """Permutation of nodes after alignment.
 
         Node permutations where in position i we have the value j meaning
         the node i should be permuted with node j.
@@ -858,7 +858,7 @@ class GraphSpaceMetric(PointSetMetric):
         return self.set_aligner("ID")
 
     def set_aligner(self, aligner, **kwargs):
-        r"""Set the aligning strategy.
+        """Set the aligning strategy.
 
         Graph Space metric relies on alignment. In this module we propose the
         identity matching, the FAQ graph matching by [Vogelstein2015]_, and
@@ -889,7 +889,7 @@ class GraphSpaceMetric(PointSetMetric):
         return self.aligner
 
     def set_point_to_geodesic_aligner(self, aligner, **kwargs):
-        r"""Set the alignment between a point and a geodesic.
+        """Set the alignment between a point and a geodesic.
 
         Following the geodesic to point alignment in [Calissano2020]_ and
         [Huckemann2010]_, this function defines the parameters [s_min, s_max] and

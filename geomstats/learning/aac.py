@@ -26,7 +26,7 @@ class _AACFrechetMean(BaseEstimator):
     r"""Class AAC for Frechet Mean on Graph Space.
 
     The Align All and Compute (AAC) algorithm for Frechet Mean (FM)estimation is
-    introduced in [Calissano2020] and it estimates the Frechet Mean for a set of
+    introduced in [Calissano2020]_ and it estimates the Frechet Mean for a set of
     labeled or unlabeled graphs. The idea is to optimally aligned the graphs to the
     current mean estimator using the optimal alignment between the graphs and the mean
     (graph matching between two graphs) and compute the mean estimation between the
@@ -90,7 +90,7 @@ class _AACFrechetMean(BaseEstimator):
         self.n_iter_ = None
 
     def fit(self, X, y=None):
-        r"""Fit the Frechet Mean.
+        """Fit the Frechet Mean.
 
         Parameters
         ----------
@@ -131,7 +131,7 @@ class _AACGGPCA(BaseEstimator):
     r"""Class AAC for Generalized Geodesic Principal Components (GGPCA) on Graph Space.
 
     The Align All and Compute (AAC) algorithm for GGPCA estimation is
-    introduced in [Calissano2020] and it estimates the GGPCA for a set of
+    introduced in [Calissano2020]_ and it estimates the GGPCA for a set of
     labeled or unlabeled graphs. The idea is to optimally aligned the graphs to the
     current GGPCA estimator using the optimal alignment between the graphs and the
     geodesics and then compute the GGPCA estimation between the aligned adjacency
@@ -186,7 +186,7 @@ class _AACGGPCA(BaseEstimator):
 
     @property
     def components_(self):
-        r"""Principal Components in the total space.
+        """Principal Components in the total space.
 
         GGPCA expressed as vectors in the total space.
         """
@@ -194,21 +194,21 @@ class _AACGGPCA(BaseEstimator):
 
     @property
     def explained_variance_(self):
-        r"""Variance Explained along the GGPCA."""
+        """Variance Explained along the GGPCA."""
         return self.total_space_estimator.explained_variance_
 
     @property
     def explained_variance_ratio_(self):
-        r"""Percentage of Variance Explained along the GGPCA."""
+        """Percentage of Variance Explained along the GGPCA."""
         return self.total_space_estimator.explained_variance_ratio_
 
     @property
     def mean_(self):
-        r"""Mean at the last iteration."""
+        """Mean at the last iteration."""
         return self.total_space_estimator.reshaped_mean_
 
     def fit(self, X, y=None):
-        r"""Fit the GGPCA.
+        """Fit the GGPCA.
 
         Parameters
         ----------
@@ -323,12 +323,12 @@ class _AACRegression(BaseEstimator):
         self.n_iter_ = None
 
     def _compute_pred_error(self, y_pred, y):
-        r"""Compute the prediction error."""
+        """Compute the prediction error."""
         # order matters for reuse of perm_
         return gs.sum(self.metric.dist(y_pred, y))
 
     def fit(self, X, y):
-        r"""Fit the Generalized Geodesic Regression.
+        """Fit the Generalized Geodesic Regression.
 
         Parameters
         ----------
@@ -372,7 +372,7 @@ class _AACRegression(BaseEstimator):
         return self
 
     def predict(self, X):
-        r"""Predict using the generalized geodesic regression.
+        """Predict using the generalized geodesic regression.
 
         Predict a graph or a set of graphs corresponding to the given regressors. It
         uses the total space prediction.
@@ -394,7 +394,7 @@ class _AACRegression(BaseEstimator):
 class AAC:
     r"""Class for Align all and Compute algorithm on Graph Space.
 
-    The Align All and Compute (AAC) algorithm is introduced in [Calissano2020] and it
+    The Align All and Compute (AAC) algorithm is introduced in [Calissano2020]_ and it
     allows to compute different statistical estimators: the Frechet Mean, the
     Generalized Geodesic Principal components and the Regression for a set of labeled or
     unlabeled graphs.
@@ -409,14 +409,15 @@ class AAC:
         Metric Class on Graph Space.
     estimate : str
         Desired estimator. One of the following:
-        - "frechet_mean": Frechet Mean estimation [Calissano2020]
-        - "ggpca": Generalized Geodesic Principal Components [Calissano2020]
-        - "regression": Graph-on-vector regression model [Calissano2022]
+        - "frechet_mean": Frechet Mean estimation [Calissano2020]_
+        - "ggpca": Generalized Geodesic Principal Components [Calissano2020]_
+        - "regression": Graph-on-vector regression model [Calissano2022]_
 
     Examples
     --------
     Available example on Graph Space:
     :mod:`notebooks.19_practical_methods__aac`
+
     Available example on Graph Space with real world data:
     :mod:`notebooks.20_real_world_application__graph_space`
 
@@ -439,7 +440,7 @@ class AAC:
     }
 
     def __new__(cls, metric, *args, estimate="frechet", **kwargs):
-        r"""Class for Align all and Compute algorithm on Graph Space."""
+        """Class for Align all and Compute algorithm on Graph Space."""
         check_parameter_accepted_values(
             estimate, "estimate", list(cls.MAP_ESTIMATE.keys())
         )
