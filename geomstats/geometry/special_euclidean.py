@@ -982,12 +982,12 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         mask_close_pi = gs.isclose(angle, gs.pi)
         mask_else = ~mask_close_0 & ~mask_close_pi
 
-        mask_close_0_float = gs.cast(mask_close_0, gs.float32)
-        mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
+        mask_close_0_float = gs.cast(mask_close_0, rot_vec.dtype)
+        mask_close_pi_float = gs.cast(mask_close_pi, rot_vec.dtype)
+        mask_else_float = gs.cast(mask_else, rot_vec.dtype)
 
         mask_0 = gs.isclose(angle, 0.0, atol=1e-7)
-        mask_0_float = gs.cast(mask_0, gs.float32)
+        mask_0_float = gs.cast(mask_0, rot_vec.dtype)
         angle += mask_0_float * gs.ones_like(angle)
 
         coef_1 = -0.5 * gs.ones_like(angle)
@@ -1354,11 +1354,11 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             (self.skew.dim, n + 1, n + 1),
             0.0,
         )
-        basis = list(basis)
 
-        for row in gs.arange(n):
-            basis.append(gs.array_from_sparse([(row, n)], [1.0], (n + 1, n + 1)))
-        return gs.stack(basis)
+        indices = [(row, row, n) for row in range(n)]
+        add_basis = gs.array_from_sparse(indices, [1.0] * n, (n, n + 1, n + 1))
+
+        return gs.vstack([basis, add_basis])
 
     def belongs(self, mat, atol=ATOL):
         """Evaluate if the rotation part of mat is a skew-symmetric matrix.

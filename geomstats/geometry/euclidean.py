@@ -194,8 +194,8 @@ class EuclideanMetric(RiemannianMetric):
     ):
         r"""Compute the parallel transport of a tangent vector.
 
-        On a Euclidean space, the parallel transport of a (tangent) vector returns
-        the vector itself.
+        On a Euclidean space, the parallel transport of a (tangent) vector
+        returns the vector itself.
 
         Parameters
         ----------

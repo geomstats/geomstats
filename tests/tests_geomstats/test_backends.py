@@ -57,11 +57,6 @@ class TestBackends(tests.conftest.TestCase):
         expected = gs.array(([[0, 1, 3, 6, 10], [5, 11, 18, 26, 35]]))
         self.assertAllClose(result, expected)
 
-    def test_array_from_sparse(self):
-        expected = gs.array([[0, 1, 0], [0, 0, 2]])
-        result = gs.array_from_sparse([(0, 1), (1, 2)], [1, 2], (2, 3))
-        self.assertAllClose(result, expected)
-
     def test_einsum_dtypes(self):
         np_array_1 = _np.array([[1, 4]])
         np_array_2 = _np.array([[2.0, 3.0]])
@@ -703,6 +698,16 @@ class TestBackends(tests.conftest.TestCase):
         result = gs.prod(vec)
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
+
+    def test_quantile(self):
+        vec = gs.random.rand(10, 10)
+        q = gs.random.rand(1)
+        expected = _np.quantile(vec, q=q)
+        result = gs.quantile(vec, q=q)
+        expected1 = _np.quantile(vec, q=q, axis=1)
+        result1 = gs.quantile(vec, q=q, axis=1)
+        self.assertAllClose(result, expected)
+        self.assertAllClose(result1, expected1)
 
     def test_is_single_matrix_pd(self):
         pd = gs.eye(3)

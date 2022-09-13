@@ -2,10 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.poincare_polydisk import (
-    PoincarePolydisk,
-    PoincarePolydiskMetric,
-)
+from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 from tests.conftest import Parametrizer, TestCase
 from tests.data.poincare_polydisk_data import (
     PoincarePolydiskMetricTestData,
@@ -15,7 +12,6 @@ from tests.geometry_test_cases import OpenSetTestCase
 
 
 class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
-    space = PoincarePolydisk
 
     skip_test_to_tangent_is_tangent_in_ambient_space = True
     skip_test_to_tangent_is_tangent = True
@@ -23,17 +19,17 @@ class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = PoincarePolydiskTestData()
 
     def test_dimension(self, n_disks, expected):
-        space = PoincarePolydisk(n_disks)
+        space = self.Space(n_disks)
         self.assertAllClose(space.dim, expected)
 
 
 class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
-    metric = connection = PoincarePolydiskMetric
 
     testing_data = PoincarePolydiskMetricTestData()
+    Metric = testing_data.Metric
 
     def test_signature(self, n_disks, expected):
-        metric = PoincarePolydiskMetric(n_disks)
+        metric = self.Metric(n_disks)
         self.assertAllClose(metric.signature, expected)
 
     @geomstats.tests.np_autograd_and_torch_only

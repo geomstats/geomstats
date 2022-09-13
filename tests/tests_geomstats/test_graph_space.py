@@ -5,10 +5,12 @@ import networkx as nx
 import geomstats.backend as gs
 from tests.conftest import Parametrizer, TestCase, np_backend
 from tests.data.graph_space_data import (
+    AlignerTestData,
     DecoratorsTestData,
     GraphSpaceMetricTestData,
     GraphSpaceTestData,
     GraphTestData,
+    PointToGeodesicAlignerTestData,
 )
 from tests.stratified_test_cases import (
     PointSetMetricTestCase,
@@ -19,9 +21,20 @@ from tests.stratified_test_cases import (
 IS_NOT_NP = not np_backend()
 
 
-class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
-    skip_all = True
+def _expand_point(point):
+    return gs.expand_dims(point, 0)
 
+
+def _repeat_point(point, n_reps=2):
+    return gs.repeat(_expand_point(point), n_reps, axis=0)
+
+
+def _expand_and_repeat_point(point, n_reps=2):
+    return _expand_point(point), _repeat_point(point, n_reps=n_reps)
+
+
+class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
+    skip_all = IS_NOT_NP
     testing_data = GraphSpaceTestData()
 
     def test_random_point_output_shape(self, space, n_samples):
@@ -39,26 +52,6 @@ class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
         permuted_graph = space.permute(graph, permutation)
         self.assertAllClose(permuted_graph, expected)
 
-    def test_permute_vectorization(self, space, graph, id_permutation):
-        permuted_graph = space.permute(graph, id_permutation)
-
-        if graph.ndim == 2 and id_permutation.ndim == 1:
-            n_out = 1
-            expected = graph
-        else:
-            n_out = max(
-                1 if graph.ndim == 2 else graph.shape[0],
-                1 if id_permutation.ndim == 1 else id_permutation.shape[0],
-            )
-            expected = gs.broadcast_to(graph, (n_out, *graph.shape[-2:]))
-
-        if n_out == 1:
-            self.assertTrue(permuted_graph.shape == graph.shape)
-        else:
-            self.assertTrue(permuted_graph.shape[0] == n_out)
-
-        self.assertAllClose(permuted_graph, expected)
-
     def test_set_to_networkx(self, space, points):
         nx_objects = space.set_to_networkx(points)
 
@@ -74,24 +67,23 @@ class TestGraphSpace(PointSetTestCase, metaclass=Parametrizer):
 
         if type(points) is list:
             for point in padded_points:
-                self.assertTrue(point.adj.shape == expected_shape)
+                self.assertEqual(point.adj.shape, expected_shape)
 
-            self.assertTrue(len(padded_points) == len(points))
+            self.assertEqual(len(padded_points), len(points))
 
         elif type(points) is self.testing_data._Point:
-            self.assertTrue(padded_points.adj.shape == expected_shape)
+            self.assertEqual(padded_points.adj.shape, expected_shape)
             self.assertTrue(isinstance(padded_points, self.testing_data._Point))
 
         else:
-            self.assertTrue(padded_points.shape[-2:] == expected_shape)
-            self.assertTrue(padded_points.ndim == points.ndim)
+            self.assertEqual(padded_points.shape[-2:], expected_shape)
+            self.assertEqual(padded_points.ndim, points.ndim)
             if points.ndim == 3:
-                self.assertTrue(padded_points.shape[0] == points.shape[0])
+                self.assertEqual(padded_points.shape[0], points.shape[0])
 
 
 class TestGraphPoint(PointTestCase, metaclass=Parametrizer):
     skip_all = IS_NOT_NP
-
     testing_data = GraphTestData()
 
     def test_to_networkx(self, point):
@@ -99,7 +91,7 @@ class TestGraphPoint(PointTestCase, metaclass=Parametrizer):
 
 
 class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
-    skip_all = True
+    skip_all = IS_NOT_NP
 
     skip_test_geodesic_output_type = True
 
@@ -140,35 +132,24 @@ class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=Parametrizer):
         if is_multiple:
             self.assertTrue(results.shape[-d_array - 2] == n_geo)
 
-    def test_geodesic_bounds(self, metric, pt_start, pt_end):
-        geodesic = metric.geodesic(pt_start, pt_end)
+    def test_geodesic_bounds(self, metric, start_point, end_point):
+        geodesic = metric.geodesic(start_point, end_point)
 
         results = geodesic([0.0, 1.0])
-        self.assertAllClose(results, gs.stack([pt_start, pt_end]))
+        self.assertAllClose(results, gs.stack([start_point, end_point]))
 
-    def test_matching(self, metric, point_a, point_b, matcher, expected):
-        metric.matcher = matcher
-        perm = metric.matching(point_a, point_b)
+    def test_align_point_to_point(self, metric, point_a, point_b, aligner, expected):
+        permuted_point = metric.align_point_to_point(point_a, point_b)
 
-        self.assertAllClose(perm, expected)
+        self.assertAllClose(permuted_point, expected)
 
-    def test_matching_output_shape(self, metric, point_a, point_b, matcher):
-        metric.matcher = matcher
-        results = metric.matching(point_a, point_b)
-
-        is_multiple = gs.ndim(point_a) > 2 or gs.ndim(point_b) > 2
-
-        if is_multiple:
-            n_dist = max(
-                point_a.shape[0] if gs.ndim(point_a) > 2 else 1,
-                point_b.shape[0] if gs.ndim(point_b) > 2 else 1,
-            )
-            self.assertTrue(results.shape[0] == n_dist)
-        else:
-            self.assertTrue(results.ndim == 1)
+    def test_align_point_to_geodesic(self, metric, geodesic, point, expected):
+        aligned_point = metric.align_point_to_geodesic(geodesic, point)
+        self.assertAllClose(aligned_point, expected)
 
 
 class TestDecorators(TestCase, metaclass=Parametrizer):
+    skip_all = IS_NOT_NP
     testing_data = DecoratorsTestData()
 
     def test_vectorize_graph(self, fnc, points):
@@ -199,3 +180,63 @@ class TestDecorators(TestCase, metaclass=Parametrizer):
             n_points = 1 if points.ndim == 2 else points.shape[0]
 
         self.assertTrue(len(vec_points) == n_points)
+
+
+class TestAligner(TestCase, metaclass=Parametrizer):
+    skip_all = IS_NOT_NP
+    testing_data = AlignerTestData()
+
+    def _is_same_equivalence_class(self, permuted_point, expected, dist_fnc):
+        dist = dist_fnc(expected, permuted_point)
+        self.assertAllClose(dist, 0.0)
+
+    def test_align(
+        self, metric, aligner, base_point, permute_point, expected, dist_fnc
+    ):
+        res = aligner.align(metric, base_point, permute_point)
+
+        self._is_same_equivalence_class(res, expected, dist_fnc)
+
+    def test_align_cmp_points(
+        self, metric, aligner, base_point, permute_point, expected
+    ):
+        res = aligner.align(metric, base_point, permute_point)
+
+        self.assertAllClose(res, expected)
+
+    def test_align_output_shape(self, metric, aligner, base_point, permute_point):
+        expected = aligner.align(metric, base_point, permute_point)
+
+        is_multiple = (gs.ndim(base_point) > 2 and base_point.shape[0] > 1) or (
+            gs.ndim(permute_point) > 2 and permute_point.shape[0] > 1
+        )
+
+        out_ndim = gs.ndim(expected)
+        if is_multiple:
+            n_out = max(
+                base_point.shape[0] if gs.ndim(base_point) > 2 else 1,
+                permute_point.shape[0] if gs.ndim(permute_point) > 2 else 1,
+            )
+            self.assertEqual(out_ndim, 3)
+            self.assertEqual(expected.shape[0], n_out)
+        else:
+            self.assertEqual(out_ndim, 2)
+
+
+class TestPointToGeodesicAligner(TestCase, metaclass=Parametrizer):
+    skip_all = IS_NOT_NP
+    testing_data = PointToGeodesicAlignerTestData()
+
+    def test_align(self, metric, aligner, geodesic, point, expected):
+        aligned_point = aligner.align(metric, geodesic, point)
+        self.assertAllClose(aligned_point, expected)
+
+    def test_dist(self, metric, aligner, geodesic, point, expected, atol):
+        dist = aligner.dist(metric, geodesic, point)
+
+        # TODO: make output type and shape consistent
+        # self.assertTrue(
+        #     type(dist) is type(expected),
+        #     f"{type(dist)} is not {type(expected)} (input shape: {point.shape})"
+        # )
+        self.assertAllClose(dist, expected, atol=atol)

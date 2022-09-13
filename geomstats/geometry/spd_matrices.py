@@ -172,24 +172,25 @@ class SPDMatrices(OpenSet):
         denominator = eigvalues[..., :, None] - eigvalues[..., None, :]
         numerator = powered_eigvalues[..., :, None] - powered_eigvalues[..., None, :]
 
+        null_denominator = gs.abs(denominator) < gs.atol
         if power == 0:
-            numerator = gs.where(denominator == 0, gs.ones_like(numerator), numerator)
+            numerator = gs.where(null_denominator, gs.ones_like(numerator), numerator)
             denominator = gs.where(
-                denominator == 0, eigvalues[..., :, None], denominator
+                null_denominator, eigvalues[..., :, None], denominator
             )
         elif power == math.inf:
             numerator = gs.where(
-                denominator == 0, powered_eigvalues[..., :, None], numerator
+                null_denominator, powered_eigvalues[..., :, None], numerator
             )
             denominator = gs.where(
-                denominator == 0, gs.ones_like(numerator), denominator
+                null_denominator, gs.ones_like(numerator), denominator
             )
         else:
             numerator = gs.where(
-                denominator == 0, power * powered_eigvalues[..., :, None], numerator
+                null_denominator, power * powered_eigvalues[..., :, None], numerator
             )
             denominator = gs.where(
-                denominator == 0, eigvalues[..., :, None], denominator
+                null_denominator, eigvalues[..., :, None], denominator
             )
 
         transp_eigvectors = Matrices.transpose(eigvectors)
@@ -235,7 +236,7 @@ class SPDMatrices(OpenSet):
         r"""Compute the inverse of the differential of the matrix power.
 
         Compute the inverse of the differential of the power
-        function on SPD matrices (:math:`A^p=exp(p log(A))`) at base_point
+        function on SPD matrices (:math:`A^p=\exp(p \log(A))`) at base_point
         applied to tangent_vec.
 
         Parameters
@@ -300,8 +301,7 @@ class SPDMatrices(OpenSet):
         """Compute the inverse of the differential of the matrix logarithm.
 
         Compute the inverse of the differential of the matrix
-        logarithm on SPD matrices at base_point applied to
-        tangent_vec.
+        logarithm on SPD matrices at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -363,8 +363,7 @@ class SPDMatrices(OpenSet):
         """Compute the inverse of the differential of the matrix exponential.
 
         Computes the inverse of the differential of the matrix
-        exponential on SPD matrices at base_point applied to
-        tangent_vec.
+        exponential on SPD matrices at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -422,8 +421,7 @@ class SPDMatrices(OpenSet):
     def cholesky_factor(cls, mat):
         """Compute cholesky factor.
 
-        Compute cholesky factor for a symmetric positive
-        definite matrix.
+        Compute cholesky factor for a symmetric positive definite matrix.
 
         Parameters
         ----------
@@ -722,8 +720,8 @@ class SPDMetricAffine(RiemannianMetric):
     def injectivity_radius(self, base_point):
         """Radius of the largest ball where the exponential is injective.
 
-        Because of the negative curvature of this space, the injectivity radius is
-        infinite everywhere.
+        Because of the negative curvature of this space, the injectivity radius
+        is infinite everywhere.
 
         Parameters
         ----------
@@ -1284,7 +1282,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     def injectivity_radius(self, base_point):
         """Radius of the largest ball where the exponential is injective.
 
-        Because of this space is flat, the injectivity radius is infinite everywhere.
+        Because of this space is flat, the injectivity radius is infinite
+        everywhere.
 
         Parameters
         ----------

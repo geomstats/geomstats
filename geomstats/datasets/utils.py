@@ -11,6 +11,7 @@ import json
 import os
 import zipfile
 
+import numpy as np
 import pandas as pd
 
 import geomstats.backend as gs
@@ -47,6 +48,9 @@ SAO_PAULO_ARCHIVE = RemoteFileMetadata(
 )
 SAO_PAULO_TABLE = "jam_table.csv"
 SAO_PAULO_COUNT = "jam_count.csv"
+MAMMALS_PATH = os.path.join(DATA_PATH, "graph_space", "mammals_grooming.npy")
+FOOTBALL_PATH_GRAPHS = os.path.join(DATA_PATH, "graph_space", "football_ppn.npy")
+FOOTBALL_PATH_SCORES = os.path.join(DATA_PATH, "graph_space", "football_scores.npy")
 
 
 def load_cities():
@@ -272,7 +276,7 @@ def load_hands():
     - Label 0: hand is in the position "Grab"
     - Label 1: hand is in the position "Expand"
 
-    This is a subset of the SHREC 2017 dataset [SWVGLF2017].
+    This is a subset of the SHREC 2017 dataset [SWVGLF2017]_.
 
     References
     ----------
@@ -401,3 +405,41 @@ def load_sao_paulo(dirname=None):
     jam_count = dict(zip(list(jam_count_df.columns), list(jam_count_df.values[0])))
 
     return jam_table, jam_count
+
+
+def load_mammals(file_path=MAMMALS_PATH):
+    """Load data from data/graph_space/mammals_grooming.npy.
+
+    Returns
+    -------
+    data_mammals : gs.array, shape=[26, 18, 18]
+        Adjacency matrices of different group of mammals measuring the
+        mammals grooming.
+
+    References
+    ----------
+    .. [Franz2015]  Franz, M., Altmann, J., & Alberts, S. C.
+        "Knockouts of high-ranking males have limited impact on baboon social networks."
+         Current Zoology, 61(1), 107-113, 2015.
+    .. [Rossi2015]  Rossi, R., & Ahmed, N.
+        "The network data repository with interactive graph analytics and
+        visualization." In Twenty-ninth AAAI conference on artificial intelligence, 2015
+    """
+    data_mammals = np.load(file_path)
+    return data_mammals
+
+
+def load_football():
+    """Load data from data/graph_space/Footballs_scores.npy and footballs_ppn.npy.
+
+    Returns
+    -------
+    data_football : gs.array, shape=[128, 11, 11]
+        Adjacency matrices of player passing networks of all the matches and teams
+        in Fifa 2018.
+    data_scores: gs.array, shape=[128, 1]
+        Scores of the team during the match.
+    """
+    data_football = np.load(FOOTBALL_PATH_GRAPHS)
+    data_scores = np.load(FOOTBALL_PATH_SCORES)
+    return data_football, data_scores

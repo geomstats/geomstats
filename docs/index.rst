@@ -17,7 +17,7 @@ are manifolds. Additional examples are introduced in Geomstats `paper <https://a
    :class: with-shadow
    :width: 1000px
 
-   **Figure**: Shapes in natural sciences can be represented as data points on "manifolds". Images credits: Greg Dunn Neuro Art, British Art Foundation, Ashok Prasad, Matematik Dunyasi, Gabriel Pérez.
+   **Figure**: Shapes in natural sciences can be represented as data points on "manifolds". Images credits: Self Reflected, `Greg Dunn Neuro Art <www.gregadunn.com>`_, British Art Foundation, Ashok Prasad, Matematik Dunyasi, Gabriel Pérez.
 
 Computations and statistics on manifolds require special tools of
 `differential geometry <https://en.wikipedia.org/wiki/Differential_geometry>`_. Computing

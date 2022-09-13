@@ -300,7 +300,9 @@ class _SpecialOrthogonalVectors(LieGroup):
 
     def __init__(self, n, shape, epsilon=0.0):
         dim = n * (n - 1) // 2
-        LieGroup.__init__(self, dim=dim, shape=shape, default_point_type="vector")
+        LieGroup.__init__(
+            self, dim=dim, shape=shape, default_point_type="vector", lie_algebra=self
+        )
 
         self.n = n
         self.epsilon = epsilon
@@ -362,7 +364,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = Matrices.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.0)
-        mask_float = gs.cast(mask, gs.float32) + self.epsilon
+        mask_float = gs.cast(mask, mat.dtype) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
         diag = gs.to_ndarray(diag, to_ndim=2)
         diag = (
@@ -1038,7 +1040,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
                 ]
             )
 
-            mask_i = gs.get_mask_i_float(i, n_quaternions)
+            mask_i = gs.array_from_sparse([(i,)], [1.0], (n_quaternions,))
             rot_mat_i = gs.transpose(gs.hstack([column_1, column_2, column_3]))
             rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
             rot_mat += gs.einsum("...,...ij->...ij", mask_i, rot_mat_i)

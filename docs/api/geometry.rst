@@ -92,7 +92,7 @@ Special Orthogonal Group
 
 Graph Space
 -----------
-.. automodule:: geomstats.geometry.graphspace
+.. automodule:: geomstats.geometry.stratified.graph_space
    :members:
 
 Grassmannian Manifold
@@ -137,6 +137,11 @@ Product Riemannian Metric
 Invariant Metric
 ----------------
 .. automodule:: geomstats.geometry.invariant_metric
+   :members:
+
+Sasaki Metric
+----------------
+.. automodule:: geomstats.geometry.sasaki_metric
    :members:
 
 Sub Riemannian Metric

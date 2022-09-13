@@ -5,11 +5,6 @@ import pytest
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.pre_shape import (
-    KendallShapeMetric,
-    PreShapeMetric,
-    PreShapeSpace,
-)
 from geomstats.geometry.quotient_metric import QuotientMetric
 from tests.conftest import Parametrizer, np_autograd_and_torch_only
 from tests.data.pre_shape_data import (
@@ -21,30 +16,29 @@ from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
 
 class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
-    space = PreShapeSpace
     skip_test_intrinsic_after_extrinsic = True
     skip_test_extrinsic_after_intrinsic = True
 
     testing_data = PreShapeSpaceTestData()
 
     def test_belongs(self, k_landmarks, m_ambient, mat, expected):
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         result = space.belongs(mat)
         self.assertAllClose(result, expected)
 
     def test_is_centered(self, k_landmarks, m_ambient, point, expected):
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         result = space.is_centered(point)
         self.assertAllEqual(result, expected)
 
     def test_to_center_is_center(self, k_landmarks, m_ambient, point):
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         centered_point = space.center(point)
         result = gs.all(space.is_centered(centered_point))
         self.assertTrue(result)
 
     def test_vertical_projection(self, k_landmarks, m_ambient, tangent_vec, point):
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         vertical = space.vertical_projection(tangent_vec, point)
         transposed_point = Matrices.transpose(point)
 
@@ -56,7 +50,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_horizontal_projection(self, k_landmarks, m_ambient, tangent_vec, point):
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         horizontal = space.horizontal_projection(tangent_vec, point)
         transposed_point = Matrices.transpose(point)
         result = gs.matmul(transposed_point, horizontal)
@@ -66,13 +60,13 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
     def test_horizontal_and_is_tangent(
         self, k_landmarks, m_ambient, tangent_vec, point
     ):
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         horizontal = space.horizontal_projection(tangent_vec, point)
         result = gs.all(space.is_tangent(horizontal, point))
         self.assertTrue(result)
 
     def test_alignment_is_symmetric(self, k_landmarks, m_ambient, point, base_point):
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         aligned = space.align(point, base_point)
         alignment = gs.matmul(Matrices.transpose(aligned), base_point)
         result = gs.all(Matrices.is_symmetric(alignment))
@@ -92,10 +86,10 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         - A_Y X`)  for horizontal vector fields :math:'X,Y',  and it is
         exchanging horizontal and vertical vector spaces.
         """
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         result_ab = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
 
-        result = space.ambient_metric.inner_product(
+        result = space.total_space_metric.inner_product(
             tangent_vec_b, result_ab, base_point
         )
         expected = 0.0
@@ -117,14 +111,14 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
 
     @geomstats.tests.np_and_autograd_only
     def test_integrability_tensor_old(
-        self, k_landmarks, m_ambient, tangent_vec_x, tangent_vec_e, base_point
+        self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):
         """Test if old and new implementation give the same result."""
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         result = space.integrability_tensor_old(
-            tangent_vec_x, tangent_vec_e, base_point
+            tangent_vec_a, tangent_vec_b, base_point
         )
-        expected = space.integrability_tensor(tangent_vec_x, tangent_vec_e, base_point)
+        expected = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_autograd_only
@@ -145,7 +139,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         tensor (hence its derivatives) is alternate:
         :math:`\nabla_X ( A_Y Z + A_Z Y ) = 0`.
         """
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
             hor_x,
             hor_y,
@@ -185,9 +179,9 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         For :math:`X,Y` horizontal and :math:`V,W` vertical:
         :math:`\nabla_X (< A_Y Z , V > + < A_Y V , Z >) = 0`.
         """
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
 
-        scal = space.ambient_metric.inner_product
+        scal = space.total_space_metric.inner_product
 
         nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
             hor_x,
@@ -240,9 +234,9 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         and vertical subspaces: :math:`\nabla_X < A_Y Z, H > = 0`  and
         :math:`nabla_X < A_Y V, W > = 0`.
         """
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
 
-        scal = space.ambient_metric.inner_product
+        scal = space.total_space_metric.inner_product
 
         nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
             hor_x,
@@ -275,7 +269,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         Optimized version for quotient-parallel vector fields should equal
         the general implementation.
         """
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         (nabla_x_a_y_z_qp, a_y_z_qp,) = space.integrability_tensor_derivative_parallel(
             hor_x, hor_y, hor_z, base_point
         )
@@ -304,7 +298,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         integrability tensor derivatives with proper derivatives.
         Intermediate computations returned are also verified.
         """
-        space = self.space(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
         nabla_x_v, a_x_y = space.integrability_tensor_derivative(
             hor_x,
@@ -338,8 +332,6 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
 
 
 class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = KendallShapeMetric
-    space = PreShapeSpace
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -347,10 +339,11 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_after_exp = True
 
     testing_data = KendallShapeMetricTestData()
+    Space = testing_data.Space
 
     def test_curvature_is_skew_operator(self, k_landmarks, m_ambient, vec, base_point):
-        metric = self.metric(k_landmarks, m_ambient)
-        space = self.space(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
         tangent_vec_a = space.to_tangent(vec[:2], base_point)
         tangent_vec_b = space.to_tangent(vec[2:], base_point)
 
@@ -374,7 +367,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         :math:`R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
         """
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         curvature_1 = metric.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
         )
@@ -402,8 +395,8 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         The sectional curvature is computed here with the generic
         directional_curvature and sectional curvature methods.
         """
-        space = self.space(k_landmarks, m_ambient)
-        metric = self.metric(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         hor_a = space.horizontal_projection(tangent_vec_a, base_point)
         hor_b = space.horizontal_projection(tangent_vec_b, base_point)
 
@@ -432,7 +425,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         space to Kendall pre-shape space, :math:`(\nabla_X R)(Y, Z)
         + (\nabla_Y R)(Z,X) + (\nabla_Z R)(X, Y) = 0`.
         """
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         term_x = metric.curvature_derivative(hor_x, hor_y, hor_z, hor_h, base_point)
         term_y = metric.curvature_derivative(hor_y, hor_z, hor_x, hor_h, base_point)
         term_z = metric.curvature_derivative(hor_z, hor_x, hor_y, hor_h, base_point)
@@ -448,7 +441,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         For any 3 tangent vectors horizontally lifted from kendall shape space
         to Kendall pre-shape space, :math:`(\nabla_X R)(Y,Y)Z = 0`.
         """
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         result = metric.curvature_derivative(hor_x, hor_y, hor_y, hor_z, base_point)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
@@ -462,7 +455,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         KendallShapeMetric class, method from the QuotientMetric class and
         method from the Connection class have to give identical results.
         """
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
 
         # General formula based on curvature derivative
         expected = metric.curvature_derivative(hor_x, hor_y, hor_x, hor_y, base_point)
@@ -475,7 +468,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         # Method from the QuotientMetric class
         result_quotient_metric = super(
-            KendallShapeMetric, metric
+            self.Metric, metric
         ).directional_curvature_derivative(hor_x, hor_y, base_point)
         self.assertAllClose(result_quotient_metric, expected, atol=gs.atol * 10)
 
@@ -491,7 +484,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self, k_landmarks, m_ambient, coef_x, coef_y, hor_x, hor_y, base_point
     ):
         """Directional curvature derivative is quadratic in both variables."""
-        metric = self.metric(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         coef_x = -2.5
         coef_y = 1.5
         result = metric.directional_curvature_derivative(
@@ -508,8 +501,8 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_parallel_transport(
         self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):
-        space = self.space(k_landmarks, m_ambient)
-        metric = self.metric(k_landmarks, m_ambient)
+        space = self.Space(k_landmarks, m_ambient)
+        metric = self.Metric(k_landmarks, m_ambient)
         tan_a = space.horizontal_projection(tangent_vec_a, base_point)
         tan_b = space.horizontal_projection(tangent_vec_b, base_point)
 
@@ -542,8 +535,6 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
 
 class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = PreShapeMetric
-    space = PreShapeSpace
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_shape = True
     skip_test_log_after_exp = True
