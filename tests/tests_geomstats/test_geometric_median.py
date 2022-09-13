@@ -1,6 +1,5 @@
 """Methods for testing the geometric median."""
 
-
 from tests.conftest import Parametrizer, TestCase
 from tests.data.geometric_median_data import GeometricMedianTestData
 
@@ -10,7 +9,12 @@ class TestGeometricMedian(TestCase, metaclass=Parametrizer):
 
     def test_fit(self, estimator, X, expected):
         estimator.fit(X)
-        self.assertAllClose(estimator.estimate_, expected)
+        self.assertAllClose(
+            estimator.estimate_,
+            expected,
+            rtol=1e-5,
+            atol=1e-5,
+        )
 
     def test_fit_sanity(self, estimator, space):
         """Test estimate belongs to space."""
