@@ -187,7 +187,7 @@ def _default_gradient_descent(
     while iteration < max_iter:
         logs = metric.log(point=points, base_point=mean)
 
-        var = gs.sum(metric.squared_norm(logs, mean) * weights) / gs.sum(weights)
+        var = gs.sum(metric.squared_norm(logs, mean) * weights) / sum_weights
 
         tangent_mean = _scalarmulsum(weights, logs)
         tangent_mean /= sum_weights
@@ -317,7 +317,7 @@ def _adaptive_gradient_descent(
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[n_samples, {dim, [n, n]}]
         Points to be averaged.
     weights : array-like, shape=[n_samples,], optional
         Weights associated to the points.
@@ -332,7 +332,7 @@ def _adaptive_gradient_descent(
 
     Returns
     -------
-    current_mean: array-like, shape=[..., dim]
+    current_mean: array-like, shape=[{dim, [n, n]}]
         Weighted Frechet mean of the points.
     """
     n_points = gs.shape(points)[0]
@@ -571,7 +571,7 @@ class FrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[n_samples, {dim, [n, n]}]
+        X : array-like, shape=[n_samples, {dim, [n, n]}]
             Training input samples.
         y : None
             Target values. Ignored.

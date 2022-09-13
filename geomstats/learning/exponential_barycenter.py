@@ -29,7 +29,7 @@ def _default_gradient_descent(
     ----------
     group : LieGroup
         Instance of the class LieGroup.
-    points : array-like, shape=[n_samples, [n, n]]
+    points : array-like, shape=[n_samples, n, n]
         Input points lying in the Lie Group.
     weights : array-like, shape=[n_samples,]
         Weights associated to the points.
@@ -66,10 +66,9 @@ def _default_gradient_descent(
     mean = points[0]
 
     sq_dists_between_iterates = []
-    iteration = 0
     grad_norm = 0.0
 
-    while iteration < max_iter:
+    for iteration in range(max_iter):
         if not (grad_norm > epsilon or iteration == 0):
             break
         inv_mean = group.inverse(mean)
@@ -84,16 +83,17 @@ def _default_gradient_descent(
         sq_dists_between_iterates.append(grad_norm)
 
         mean = mean_next
-        iteration += 1
 
-    if iteration == max_iter:
+    else:
         logging.warning(
             "Maximum number of iterations {} reached. "
             "The mean may be inaccurate".format(max_iter)
         )
 
     if verbose:
-        logging.info("n_iter: {}, final gradient norm: {}".format(iteration, grad_norm))
+        logging.info(
+            "n_iter: {}, final gradient norm: {}".format(iteration, grad_norm)
+        )
     return mean
 
 
@@ -108,7 +108,7 @@ class ExponentialBarycenter(BaseEstimator):
         Maximum number of iterations to perform in the gradient descent.
         Optional, default: 32.
     epsilon : float
-        Tolerance to reach convergence. The exstrinsic norm of the
+        Tolerance to reach convergence. The extrinsic norm of the
         gradient is used as criterion.
         Optional, default: 1e-6.
     init_step_size : float
@@ -130,7 +130,7 @@ class ExponentialBarycenter(BaseEstimator):
         max_iter=32,
         epsilon=EPSILON,
         init_step_size=1.0,
-        point_type=None,
+        point_type=None,  # TODO: undocumented and unused parameter
         verbose=False,
     ):
         self.group = group
@@ -146,7 +146,7 @@ class ExponentialBarycenter(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[n_samples, dim, dim]
+        X : array-like, shape=[n_samples, dim, dim]
             Training input samples.
         y : None
             Target values. Ignored.
