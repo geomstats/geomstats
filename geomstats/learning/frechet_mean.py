@@ -495,7 +495,7 @@ class FrechetMean(BaseEstimator):
         The `adaptive` method uses a Levenberg-Marquardt style adaptation of
         the learning rate. The `batch` method is similar to the default
         method but for batches of equal length of samples. In this case,
-        samples must be of shape [n_samples, n_batch, {dim, [n,n]}].
+        samples must be of shape [n_samples, n_batch, {dim, [n, n]}].
         Optional, default: \'default\'.
     init_point : array-like, shape=[{dim, [n, n]}]
         Initial point.

@@ -86,12 +86,12 @@ def _default_gradient_descent(
 
     else:
         logging.warning(
-            "Maximum number of iterations {} reached. "
-            "The mean may be inaccurate".format(max_iter)
+            f"Maximum number of iterations {max_iter} reached. "
+            "The mean may be inaccurate"
         )
 
     if verbose:
-        logging.info("n_iter: {}, final gradient norm: {}".format(iteration, grad_norm))
+        logging.info(f"n_iter: {iteration}, final gradient norm: {grad_norm}")
     return mean
 
 
