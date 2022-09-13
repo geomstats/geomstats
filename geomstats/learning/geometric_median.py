@@ -81,7 +81,7 @@ class GeometricMedian(BaseEstimator):
             Updated median after single iteration.
         """
         dists = self.metric.dist(current_median, X)
-        is_zero = (dists == 0)
+        is_zero = dists == 0
 
         w = weights[~is_zero] / dists[~is_zero]
         logs = self.metric.log(X[~is_zero], current_median)

@@ -14,7 +14,6 @@ EPSILON = 10e-6
 
 
 class GeometricMedianTestData(TestData):
-
     def fit_test_data(self):
         estimator_0 = GeometricMedian(SPDMetricEuclidean(n=1))
         X_0 = gs.array(
@@ -52,19 +51,19 @@ class GeometricMedianTestData(TestData):
         smoke_data = [
             dict(
                 estimator=GeometricMedian(Euclidean(2).metric),
-                space=Euclidean(2)
+                space=Euclidean(2),
             ),
             dict(
                 estimator=GeometricMedian(Hyperboloid(3).metric),
-                space=Hyperboloid(3)
+                space=Hyperboloid(3),
             ),
             dict(
                 estimator=GeometricMedian(Minkowski(3).metric),
-                space=Minkowski(3)
+                space=Minkowski(3),
             ),
             dict(
                 estimator=GeometricMedian(SPDMetricAffine(4)),
-                space=SPDMatrices(4)
+                space=SPDMatrices(4),
             ),
         ]
 

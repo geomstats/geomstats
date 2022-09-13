@@ -91,9 +91,7 @@ def _default_gradient_descent(
         )
 
     if verbose:
-        logging.info(
-            "n_iter: {}, final gradient norm: {}".format(iteration, grad_norm)
-        )
+        logging.info("n_iter: {}, final gradient norm: {}".format(iteration, grad_norm))
     return mean
 
 
