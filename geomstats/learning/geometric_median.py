@@ -1,4 +1,4 @@
-"""Geometric median estimation."""
+"""Geometric median."""
 
 import logging
 
@@ -81,12 +81,10 @@ class GeometricMedian(BaseEstimator):
             Updated median after single iteration.
         """
         dists = self.metric.dist(current_median, X)
+        is_zero = (dists == 0)
 
-        if gs.allclose(dists, 0.0):
-            return current_median
-
-        logs = self.metric.log(X, current_median)
-        w = gs.divide(weights, dists, ignore_div_zero=True)
+        w = weights[~is_zero] / dists[~is_zero]
+        logs = self.metric.log(X[~is_zero], current_median)
         v_k = gs.einsum("n,n...->...", w, logs) / gs.sum(w)
         updated_median = self.metric.exp(lr * v_k, current_median)
         return updated_median
@@ -112,19 +110,25 @@ class GeometricMedian(BaseEstimator):
             Returns self.
         """
         n_points = X.shape[0]
-        median = X[-1] if self.init is None else self.init
+        median = gs.mean(X, axis=0) if self.init is None else self.init
         if weights is None:
             weights = gs.ones(n_points) / n_points
 
-        for iteration in range(1, self.max_iter + 1):
+        for iteration in range(self.max_iter):
             new_median = self._iterate_once(median, X, weights, self.lr)
             shift = self.metric.dist(new_median, median)
+
             if shift < self.epsilon:
                 break
-
             median = new_median
-            if self.print_every and (iteration + 1) % self.print_every == 0:
-                logging.info(f"median at iteration {iteration}:\n{median}")
-        self.estimate_ = median
 
+            if self.print_every and (iteration + 1) % self.print_every == 0:
+                logging.info(f"median at iteration {iteration+1}:\n{median}")
+        else:
+            logging.warning(
+                f"Maximum number of iterations {self.max_iter} reached. "
+                "The median may be inaccurate"
+            )
+
+        self.estimate_ = median
         return self
