@@ -21,13 +21,15 @@ class FullRankCorrelationMatrices(LevelSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
+        kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
         super(FullRankCorrelationMatrices, self).__init__(
             dim=int(n * (n - 1) / 2),
             embedding_space=SPDMatrices(n=n),
             submersion=Matrices.diagonal,
             value=gs.ones(n),
             tangent_submersion=lambda v, x: Matrices.diagonal(v),
+            **kwargs
         )
         self.n = n
 
@@ -35,7 +37,7 @@ class FullRankCorrelationMatrices(LevelSet):
     def diag_action(diagonal_vec, point):
         r"""Apply a diagonal matrix on an SPD matrices by congruence.
 
-        The action of :math: `D` on :math: `\Sigma` is given by :math: `D
+        The action of :math:`D` on :math:`\Sigma` is given by :math:`D
         \Sigma D. The diagonal matrix must be passed as a vector representing
         its diagonal.
 
@@ -52,16 +54,22 @@ class FullRankCorrelationMatrices(LevelSet):
             Symmetric matrix obtained by the action of `diagonal_vec` on
             `point`.
         """
-        aux = gs.einsum("...i,...j->...ij", diagonal_vec, diagonal_vec)
-        return point * aux
+        return point * gs.outer(diagonal_vec, diagonal_vec)
+
+    @property
+    def metric(self):
+        """Riemannian Metric associated to the Manifold."""
+        if self._metric is None:
+            self._metric = FullRankCorrelationAffineQuotientMetric(self.n)
+        return self._metric
 
     @classmethod
     def from_covariance(cls, point):
         r"""Compute the correlation matrix associated to an SPD matrix.
 
         The correlation matrix associated to an SPD matrix (the covariance)
-        :math: `\Sigma` is given by :math: `D  \Sigma D` where :math: `D` is
-        the inverse square-root of the diagonal of :math: `\Sigma`.
+        :math:`\Sigma` is given by :math:`D  \Sigma D` where :math:`D` is
+        the inverse square-root of the diagonal of :math:`\Sigma`.
 
         Parameters
         ----------
@@ -138,18 +146,17 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
 
     References
     ----------
-    .. [TP21]  Thanwerdas, Yann, and Xavier Pennec. “Geodesics and Curvature of
-               the Quotient-Affine Metrics on Full-Rank Correlation
-               Matrices.” In Proceedings of Geometric Science of Information.
-               Paris, France, 2021.
-               https://hal.archives-ouvertes.fr/hal-03157992.
+    .. [TP21] Thanwerdas, Yann, and Xavier Pennec. “Geodesics and Curvature of
+        the Quotient-Affine Metrics on Full-Rank CorrelationMatrices.”
+        In Proceedings of Geometric Science of Information.
+        Paris, France, 2021.
+        https://hal.archives-ouvertes.fr/hal-03157992.
     """
 
     def __init__(self, n):
         super(CorrelationMatricesBundle, self).__init__(
             n=n,
-            base=FullRankCorrelationMatrices(n),
-            ambient_metric=SPDMetricAffine(n),
+            total_space_metric=SPDMetricAffine(n),
             group_dim=n,
             group_action=FullRankCorrelationMatrices.diag_action,
         )
@@ -169,8 +176,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
             Full rank correlation matrix.
         """
         diagonal = Matrices.diagonal(point) ** (-0.5)
-        aux = gs.einsum("...i,...j->...ij", diagonal, diagonal)
-        return point * aux
+        return point * gs.outer(diagonal, diagonal)
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Compute the differential of the submersion.

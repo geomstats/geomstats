@@ -22,18 +22,16 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     References
     ----------
-    .. [TP2019] . "Riemannian Geometry of Symmetric
-    Positive Definite Matrices Via Cholesky Decomposition"
-    SIAM journal on Matrix Analysis and Applications , 2019.
-    https://arxiv.org/abs/1908.09326
+    .. [TP2019] Z Lin. "Riemannian Geometry of Symmetric
+        Positive Definite Matrices Via Cholesky Decomposition"
+        SIAM journal on Matrix Analysis and Applications , 2019.
+        https://arxiv.org/abs/1908.09326
     """
 
     def __init__(self, n, **kwargs):
+        kwargs.setdefault("metric", CholeskyMetric(n))
         super(PositiveLowerTriangularMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            metric=(CholeskyMetric(n)),
-            ambient_space=LowerTriangularMatrices(n),
-            **kwargs
+            dim=int(n * (n + 1) / 2), ambient_space=LowerTriangularMatrices(n), **kwargs
         )
         self.n = n
 
@@ -181,7 +179,7 @@ class CholeskyMetric(RiemannianMetric):
 
     References
     ----------
-        .. [TP2019] . "Riemannian Geometry of Symmetric
+    .. [TP2019] . "Riemannian Geometry of Symmetric
         Positive Definite Matrices Via Cholesky Decomposition"
         SIAM journal on Matrix Analysis and Applications , 2019.
         https://arxiv.org/abs/1908.09326
@@ -238,7 +236,7 @@ class CholeskyMetric(RiemannianMetric):
         """
         sl_tagnet_vec_a = gs.tril_to_vec(tangent_vec_a, k=-1)
         sl_tagnet_vec_b = gs.tril_to_vec(tangent_vec_b, k=-1)
-        ip_sl = gs.einsum("...i,...i->...", sl_tagnet_vec_a, sl_tagnet_vec_b)
+        ip_sl = gs.dot(sl_tagnet_vec_a, sl_tagnet_vec_b)
         return ip_sl
 
     @classmethod

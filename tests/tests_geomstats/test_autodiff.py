@@ -262,7 +262,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         """Assign made-up gradient to test custom_gradient."""
 
         def fun1_grad(x):
-            return 3.0
+            return gs.array(3.0, dtype=x.dtype)
 
         @gs.autodiff.custom_gradient(fun1_grad)
         def fun1(x):

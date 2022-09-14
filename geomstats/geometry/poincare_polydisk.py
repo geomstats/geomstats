@@ -8,9 +8,9 @@ Lead author: Yann Cabanes.
 
 References
 ----------
-    .. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
-      matrices with Toeplitz structured blocks, 2016.
-      https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+.. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+    matrices with Toeplitz structured blocks, 2016.
+    https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
 import geomstats.backend as gs
@@ -53,7 +53,7 @@ class PoincarePolydisk(ProductManifold, OpenSet):
             default_point_type="matrix",
             ambient_space=Matrices(n_disks, 2),
         )
-        self.metric = PoincarePolydiskMetric(n_disks=n_disks, coords_type=coords_type)
+        self._metric = PoincarePolydiskMetric(n_disks=n_disks, coords_type=coords_type)
 
     @staticmethod
     def intrinsic_to_extrinsic_coords(point_intrinsic):
@@ -103,7 +103,7 @@ class PoincarePolydisk(ProductManifold, OpenSet):
         tangent_vec : array-like, shape=[..., n_disks, dim + 1]
             Tangent vector at base point.
         """
-        n_disks = base_point.shape[1]
+        n_disks = self.n_disks
         hyperbolic_space = Hyperboloid(2, self.coords_type)
         tangent_vec = gs.stack(
             [
@@ -138,8 +138,8 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     References
     ----------
     .. [JV2016] B. Jeuris and R. Vandebril. The Kähler mean of Block-Toeplitz
-      matrices with Toeplitz structured blocks, 2016.
-      https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+        matrices with Toeplitz structured blocks, 2016.
+        https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
     default_coords_type = "extrinsic"

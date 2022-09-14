@@ -10,18 +10,50 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
-import geomstats.vectorization
+from geomstats.geometry.discrete_curves import ElasticMetric
 from geomstats.geometry.hypersphere import Hypersphere
 
 EPSILON = 1e-4
 
+LINEAR_METRICS = ["EuclideanMetric", "MatricesMetric", "MinkowskiMetric"]
 
-def variance(points, base_point, metric, weights=None, point_type="vector"):
+ELASTIC_METRICS = ["SRVMetric", "ElasticMetric"]
+
+
+def _is_metric_in_list(metric_str, metric_names):
+    for cmp_str in metric_names:
+        if cmp_str in metric_str:
+            return True
+
+    return False
+
+
+def _is_linear_metric(metric_str):
+    return _is_metric_in_list(metric_str, LINEAR_METRICS)
+
+
+def _is_elastic_metric(metric_str):
+    return _is_metric_in_list(metric_str, ELASTIC_METRICS)
+
+
+def _scalarmul(scalar, array):
+    return gs.einsum("n,n...->n...", scalar, array)
+
+
+def _scalarmulsum(scalar, array):
+    return gs.einsum("n,n...->...", scalar, array)
+
+
+def _batchscalarmulsum(array_1, array_2):
+    return gs.einsum("ni,ni...->i...", array_1, array_2)
+
+
+def variance(points, base_point, metric, weights=None):
     """Variance of (weighted) points wrt a base point.
 
     Parameters
     ----------
-    points : array-like, shape=[..., dim]
+    points : array-like, shape=[n_samples, dim]
         Points.
     weights : array-like, shape=[...,]
         Weights associated to the points.
@@ -32,9 +64,8 @@ def variance(points, base_point, metric, weights=None, point_type="vector"):
     var : float
        Weighted variance of the points.
     """
-    n_points = geomstats.vectorization.get_n_points(points, point_type)
-
     if weights is None:
+        n_points = gs.shape(points)[0]
         weights = gs.ones((n_points,))
 
     sum_weights = gs.sum(weights)
@@ -47,16 +78,17 @@ def variance(points, base_point, metric, weights=None, point_type="vector"):
     return var
 
 
-def linear_mean(points, weights=None, point_type="vector"):
+def linear_mean(points, weights=None):
     """Compute the weighted linear mean.
 
     The linear mean is the Frechet mean when points:
+
     - lie in a Euclidean space with Euclidean metric,
     - lie in a Minkowski space with Minkowski metric.
 
     Parameters
     ----------
-    points : array-like, shape=[..., dim]
+    points : array-like, shape=[n_samples, dim]
         Points to be averaged.
     weights : array-like, shape=[...,]
         Weights associated to the points.
@@ -67,24 +99,59 @@ def linear_mean(points, weights=None, point_type="vector"):
     mean : array-like, shape=[dim,]
         Weighted linear mean of the points.
     """
-    if isinstance(points, list):
-        points = gs.stack(points, axis=0)
-    if isinstance(weights, list):
-        weights = gs.array(weights)
-
-    n_points = geomstats.vectorization.get_n_points(points, point_type)
-
     if weights is None:
-        weights = gs.ones((n_points,))
+        n_points = gs.shape(points)[0]
+        weights = gs.ones(n_points)
     sum_weights = gs.sum(weights)
 
-    einsum_str = "...,...j->...j"
-    if point_type == "matrix":
-        einsum_str = "...,...jk->...jk"
-
-    weighted_points = gs.einsum(einsum_str, weights, points)
+    weighted_points = _scalarmul(weights, points)
 
     mean = gs.sum(weighted_points, axis=0) / sum_weights
+    return mean
+
+
+def elastic_mean(points, weights=None, metric=None):
+    """Compute the weighted mean of elastic curves.
+
+    SRV: Square Root Velocity.
+
+    SRV curves are a special case of Elastic curves.
+
+    The computation of the mean goes as follows:
+
+    - Transform the curves into their SRVs/F-transform representations,
+    - Compute the linear mean of the SRVs/F-transform representations,
+    - Inverse-transform the mean in curve space.
+
+    Parameters
+    ----------
+    points : array-like, shape=[n_samples, k_sampling_points, dim]
+        Points on the manifold of curves (i.e. curves) to be averaged.
+    weights : array-like, shape=[...,]
+        Weights associated to the points (i.e. curves).
+        Optional, default: None.
+
+    Returns
+    -------
+    mean : array-like, shape=[k_sampling_points, dim]
+        Weighted linear mean of the points (i.e. of the curves).
+    """
+    if isinstance(points, list):
+        points = gs.stack(points, axis=0)
+
+    transformed = metric.f_transform(points)
+
+    transformed_linear_mean = linear_mean(transformed, weights=weights)
+
+    starting_sampling_point = (
+        FrechetMean(metric.ambient_metric)
+        .fit(points[:, 0, :], weights=weights)
+        .estimate_
+    )
+    starting_sampling_point = gs.expand_dims(starting_sampling_point, axis=0)
+    mean = metric.f_transform_inverse(
+        transformed_linear_mean, starting_sampling_point=starting_sampling_point
+    )
     return mean
 
 
@@ -93,21 +160,13 @@ def _default_gradient_descent(
     metric,
     weights,
     max_iter,
-    point_type,
     epsilon,
     init_step_size,
     verbose,
     init_point=None,
 ):
     """Perform default gradient descent."""
-    if point_type == "vector":
-        points = gs.to_ndarray(points, to_ndim=2)
-        einsum_str = "n,nj->j"
-    else:
-        points = gs.to_ndarray(points, to_ndim=3)
-        einsum_str = "n,nij->ij"
     n_points = gs.shape(points)[0]
-
     if weights is None:
         weights = gs.ones((n_points,))
 
@@ -130,7 +189,7 @@ def _default_gradient_descent(
 
         var = gs.sum(metric.squared_norm(logs, mean) * weights) / gs.sum(weights)
 
-        tangent_mean = gs.einsum(einsum_str, weights, logs)
+        tangent_mean = _scalarmulsum(weights, logs)
         tangent_mean /= sum_weights
         norm = gs.linalg.norm(tangent_mean)
 
@@ -138,7 +197,13 @@ def _default_gradient_descent(
         sq_dists_between_iterates.append(sq_dist)
 
         var_is_0 = gs.isclose(var, 0.0)
-        sq_dist_is_small = gs.less_equal(sq_dist, epsilon * metric.dim)
+
+        metric_dim = metric.dim
+        if isinstance(metric, ElasticMetric):
+            metric_dim = tangent_mean.shape[-2] * tangent_mean.shape[-1]
+
+        sq_dist_is_small = gs.less_equal(sq_dist, epsilon * metric_dim)
+
         condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
         if not (condition or iteration == 0):
             break
@@ -175,43 +240,13 @@ def _batch_gradient_descent(
     max_iter=32,
     init_step_size=1e-3,
     epsilon=5e-3,
-    point_type="vector",
     verbose=False,
     init_point=None,
 ):
     """Perform batch gradient descent."""
-    if point_type == "vector":
-        if points.ndim < 3:
-            return _default_gradient_descent(
-                points,
-                metric,
-                weights,
-                max_iter,
-                point_type,
-                epsilon,
-                init_step_size,
-                verbose,
-            )
-        einsum_str = "ni,nij->ij"
-        ndim = 1
-    else:
-        if points.ndim < 4:
-            return _default_gradient_descent(
-                points,
-                metric,
-                weights,
-                max_iter,
-                point_type,
-                epsilon,
-                init_step_size,
-                verbose,
-            )
-        einsum_str = "nk,nkij->kij"
-        ndim = 2
-
     shape = points.shape
-    n_points = shape[0]
-    n_batch = shape[1]
+    n_points, n_batch = shape[:2]
+    point_shape = shape[2:]
 
     if n_points == 1:
         return points[0]
@@ -219,9 +254,9 @@ def _batch_gradient_descent(
     if weights is None:
         weights = gs.ones((n_points, n_batch))
 
-    flat_shape = (n_batch * n_points,) + shape[-ndim:]
+    flat_shape = (n_batch * n_points,) + point_shape
     estimates = points[0] if init_point is None else init_point
-    points_flattened = gs.reshape(points, (n_points * n_batch,) + shape[-ndim:])
+    points_flattened = gs.reshape(points, (n_points * n_batch,) + point_shape)
     convergence = math.inf
     iteration = 0
     convergence_old = convergence
@@ -235,7 +270,7 @@ def _batch_gradient_descent(
         tangent_grad = metric.log(points_flattened, estimates_flattened)
         tangent_grad = gs.reshape(tangent_grad, shape)
 
-        tangent_mean = gs.einsum(einsum_str, weights, tangent_grad) / n_points
+        tangent_mean = _batchscalarmulsum(weights, tangent_grad) / n_points
 
         next_estimates = metric.exp(init_step_size * tangent_mean, estimates)
         convergence = gs.sum(metric.squared_norm(tangent_mean, estimates))
@@ -269,7 +304,6 @@ def _adaptive_gradient_descent(
     epsilon=1e-12,
     init_step_size=1.0,
     init_point=None,
-    point_type="vector",
     verbose=False,
 ):
     """Perform adaptive gradient descent.
@@ -283,7 +317,7 @@ def _adaptive_gradient_descent(
 
     Parameters
     ----------
-    points : array-like, shape=[..., dim]
+    points : array-like, shape=[n_samples, dim]
         Points to be averaged.
     weights : array-like, shape=[..., 1], optional
         Weights associated to the points.
@@ -301,12 +335,6 @@ def _adaptive_gradient_descent(
     current_mean: array-like, shape=[..., dim]
         Weighted Frechet mean of the points.
     """
-    if point_type == "vector":
-        points = gs.to_ndarray(points, to_ndim=2)
-        einsum_str = "n,nj->j"
-    else:
-        points = gs.to_ndarray(points, to_ndim=3)
-        einsum_str = "n,nij->ij"
     n_points = gs.shape(points)[0]
 
     tau_max = 1e6
@@ -329,7 +357,7 @@ def _adaptive_gradient_descent(
     logs = metric.log(point=points, base_point=current_mean)
     var = gs.sum(metric.squared_norm(logs, current_mean) * weights) / gs.sum(weights)
 
-    current_tangent_mean = gs.einsum(einsum_str, weights, logs)
+    current_tangent_mean = _scalarmulsum(weights, logs)
     current_tangent_mean /= sum_weights
     sq_norm_current_tangent_mean = metric.squared_norm(
         current_tangent_mean, base_point=current_mean
@@ -346,7 +374,7 @@ def _adaptive_gradient_descent(
             weights
         )
 
-        next_tangent_mean = gs.einsum(einsum_str, weights, logs)
+        next_tangent_mean = _scalarmulsum(weights, logs)
         next_tangent_mean /= sum_weights
         sq_norm_next_tangent_mean = metric.squared_norm(
             next_tangent_mean, base_point=next_mean
@@ -388,10 +416,10 @@ def _circle_mean(points):
 
     Reference
     ---------
-    ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
-                 Uniqueness, locus and asymptotics", Annals of the Institute of
-                 Statistical Mathematics 67 (1), 177–193.
-                 https://arxiv.org/abs/1108.2141
+    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
+        circle: Uniqueness, locus and asymptotics", Annals of the Institute of
+        Statistical Mathematics 67 (1), 177–193.
+        https://arxiv.org/abs/1108.2141
     """
     if points.ndim > 1:
         points_ = Hypersphere.extrinsic_to_angle(points)
@@ -421,10 +449,10 @@ def _circle_variances(mean, var, n_samples, points):
 
     References
     ----------
-    ..[HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
-                 Uniqueness, locus and asymptotics", Annals of the Institute of
-                 Statistical Mathematics 67 (1), 177–193.
-                 https://arxiv.org/abs/1108.2141
+    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
+        circle: Uniqueness, locus and asymptotics", Annals of the Institute of
+        Statistical Mathematics 67 (1), 177–193.
+        https://arxiv.org/abs/1108.2141
     """
     means = (mean + gs.linspace(0.0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
     means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
@@ -464,9 +492,6 @@ class FrechetMean(BaseEstimator):
     epsilon : float
         Tolerance for stopping the gradient descent.
         Optional, default : 1e-4
-    point_type : str, {\'vector\', \'matrix\'}
-        Point type.
-        Optional, default: None.
     method : str, {\'default\', \'adaptive\', \'batch\'}
         Gradient descent method.
         The `adaptive` method uses a Levenberg-Marquardt style adaptation of
@@ -476,8 +501,8 @@ class FrechetMean(BaseEstimator):
         Optional, default: \'default\'.
     init_point : array-like, shape=[{dim, [n, n]}]
         Initial point.
-        Optional, default : None. In this case the first sample of the input data is
-        used.
+        Optional, default : None. In this case the first sample of the input
+        data is used.
     init_step_size : float
         Initial step size or learning rate.
     verbose : bool
@@ -490,27 +515,52 @@ class FrechetMean(BaseEstimator):
         metric,
         max_iter=32,
         epsilon=EPSILON,
-        point_type=None,
         method="default",
         init_point=None,
         init_step_size=1.0,
         verbose=False,
     ):
-
         self.metric = metric
+
+        self.method = method
+
         self.max_iter = max_iter
         self.epsilon = epsilon
-        self.point_type = point_type
-        self.method = method
         self.init_step_size = init_step_size
         self.verbose = verbose
         self.init_point = init_point
         self.estimate_ = None
 
-        if point_type is None:
-            self.point_type = metric.default_point_type
+    @property
+    def method(self):
+        """Gradient descent method."""
+        return self._method
+
+    @method.setter
+    def method(self, value):
+        """Gradient descent method."""
         error.check_parameter_accepted_values(
-            self.point_type, "point_type", ["vector", "matrix"]
+            value, "method", ["default", "adaptive", "batch"]
+        )
+        self._method = value
+
+    @property
+    def _minimize(self):
+        MAP_OPTIMIZER = {
+            "default": _default_gradient_descent,
+            "adaptive": _adaptive_gradient_descent,
+            "batch": _batch_gradient_descent,
+        }
+        minimize_ = MAP_OPTIMIZER.get(self.method)
+        return lambda points, weights, metric: minimize_(
+            points=points,
+            weights=weights,
+            metric=metric,
+            max_iter=self.max_iter,
+            init_step_size=self.init_step_size,
+            epsilon=self.epsilon,
+            verbose=self.verbose,
+            init_point=self.init_point,
         )
 
     def fit(self, X, y=None, weights=None):
@@ -518,13 +568,13 @@ class FrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[..., {dim, [n, n]}]
+        X : {array-like, sparse matrix}, shape=[n_samples, {dim, [n, n]}]
             Training input samples.
-        y : array-like, shape=[...,] or [..., n_outputs]
+        y : array-like, shape=[n_samples,] or [n_samples, n_outputs]
             Target values (class labels in classification, real numbers in
             regression).
             Ignored.
-        weights : array-like, shape=[...,]
+        weights : array-like, shape=[...]
             Weights associated to the points.
             Optional, default: None.
 
@@ -534,57 +584,21 @@ class FrechetMean(BaseEstimator):
             Returns self.
         """
         metric_str = self.metric.__str__()
-        is_linear_metric = (
-            "EuclideanMetric" in metric_str
-            or "MatricesMetric" in metric_str
-            or "MinkowskiMetric" in metric_str
-        )
 
         if "HypersphereMetric" in metric_str and self.metric.dim == 1:
             mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
 
-        error.check_parameter_accepted_values(
-            self.method, "method", ["default", "adaptive", "batch"]
-        )
+        elif _is_linear_metric(metric_str):
+            mean = linear_mean(points=X, weights=weights)
 
-        if is_linear_metric:
-            mean = linear_mean(points=X, weights=weights, point_type=self.point_type)
+        elif _is_elastic_metric(metric_str):
+            mean = elastic_mean(points=X, weights=weights, metric=self.metric)
 
-        elif self.method == "default":
-            mean = _default_gradient_descent(
+        else:
+            mean = self._minimize(
                 points=X,
                 weights=weights,
                 metric=self.metric,
-                max_iter=self.max_iter,
-                init_step_size=self.init_step_size,
-                point_type=self.point_type,
-                epsilon=self.epsilon,
-                verbose=self.verbose,
-                init_point=self.init_point,
-            )
-        elif self.method == "adaptive":
-            mean = _adaptive_gradient_descent(
-                points=X,
-                metric=self.metric,
-                weights=weights,
-                max_iter=self.max_iter,
-                epsilon=self.epsilon,
-                init_step_size=self.init_step_size,
-                init_point=self.init_point,
-                point_type=self.point_type,
-                verbose=self.verbose,
-            )
-        elif self.method == "batch":
-            mean = _batch_gradient_descent(
-                points=X,
-                metric=self.metric,
-                weights=weights,
-                max_iter=self.max_iter,
-                init_step_size=self.init_step_size,
-                epsilon=self.epsilon,
-                point_type=self.point_type,
-                verbose=self.verbose,
-                init_point=self.init_point,
             )
 
         self.estimate_ = mean

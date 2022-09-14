@@ -18,7 +18,7 @@ EPSILON = 1e-6
 class BetaDistributions(DirichletDistributions):
     r"""Class for the manifold of beta distributions.
 
-    This is :math: Beta = `R_+^* \times R_+^*`, the upper-right
+    This is Beta = :math:`R_+^* \times R_+^*`, the upper-right
     quadrant of the Euclidean plane.
 
     Attributes
@@ -77,6 +77,7 @@ class BetaDistributions(DirichletDistributions):
             parameters provided by point.
         """
         geomstats.errors.check_belongs(point, self)
+        point = gs.to_ndarray(point, to_ndim=2)
         a_params = point[..., 0]
         b_params = point[..., 1]
 
@@ -88,13 +89,12 @@ class BetaDistributions(DirichletDistributions):
             x : array-like, shape=[n_points,]
                 Points at which to compute the probability density function.
             """
-            x = gs.array(x, gs.float32)
             x = gs.to_ndarray(x, to_ndim=1)
 
             pdf_at_x = [
                 gs.array(beta.pdf(x, a=a, b=b)) for a, b in zip(a_params, b_params)
             ]
-            pdf_at_x = gs.stack(pdf_at_x, axis=-1)
+            pdf_at_x = gs.squeeze(gs.stack(pdf_at_x, axis=-1))
 
             return pdf_at_x
 
@@ -126,7 +126,6 @@ class BetaDistributions(DirichletDistributions):
         parameter : array-like, shape=[..., 2]
             Estimate of parameter obtained by maximum likelihood.
         """
-        data = gs.cast(data, gs.float32)
         data = gs.where(data == 1.0, 1.0 - EPSILON, data)
         data = gs.where(data == 0.0, EPSILON, data)
         data = gs.to_ndarray(data, to_ndim=2)

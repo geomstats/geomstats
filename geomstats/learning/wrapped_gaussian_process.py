@@ -7,11 +7,10 @@ introduced in [Mallasto]_.
 
 References
 ----------
-..[Mallasto]   Mallasto, A. and Feragen, A.
-            “Wrapped gaussian process
-            regression on riemannian manifolds.”
-            IEEE/CVF
-Conference on Computer Vision and Pattern Recognition (2018)
+.. [Mallasto] Mallasto, A. and Feragen, A.
+    “Wrapped gaussian process regression on riemannian manifolds.”
+    IEEE/CVF Conference on Computer Vision and Pattern Recognition
+    (2018)
 
 """
 
@@ -115,6 +114,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
         self.y_train_ = None
         self.tangent_y_train_ = None
+        self.y_train_shape_ = None
 
         self._euclidean_gpr = GaussianProcessRegressor(
             kernel=kernel,
@@ -137,11 +137,14 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         X : array-like of shape (n_samples, n_features) or list of object
             Feature vectors or other representations of training data.
         y : array-like of shape (n_samples,) or (n_samples, n_targets)
+        or (n_samples, n1_targets, n2_targets) for
+        matrix-valued targets.
             Target values. The target must belongs to the manifold space
 
         Returns
         -------
         tangent_y : array-like of shape (n_samples,) or (n_samples, n_targets)
+        or (n_samples, n1_targets, n2_targets)
                 Target projected on the associated (by the prior) tangent space.
         """
         base_points = self.prior(X)
@@ -161,6 +164,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         X : array-like of shape (n_samples, n_features) or list of object
             Feature vectors or other representations of training data.
         y : array-like of shape (n_samples,) or (n_samples, n_targets)
+        or (n_samples, n1_targets, n2_targets)
             Target values. The target must belongs to the manifold space
 
         Returns
@@ -173,7 +177,12 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
         # compute the tangent dataset using the prior
         tangent_y = self._get_tangent_targets(X, y)
+        self.y_train_shape_ = y.shape[
+            1:
+        ]  # this is really useful when the samples are matrices, or tensor of dim>1
+        tangent_y = gs.reshape(tangent_y, (y.shape[0], -1))  # flatten the samples.
         # fit a gpr on the tangent dataset
+
         self._euclidean_gpr.fit(X, tangent_y)
         # update the attributes of the wgpr using the new attributes of the gpr
 
@@ -189,11 +198,11 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         A fitted Wrapped Gaussian process can be use to predict values
         through the following steps:
 
-            - Use the stored Gaussian process regression on the dataset to
-                return tangent predictions
-            - Compute the base-points using the prior
-            - Map the tangent predictions on the manifold via the metric's exp
-                with the base-points yielded by the prior
+        - Use the stored Gaussian process regression on the dataset to
+          return tangent predictions
+        - Compute the base-points using the prior
+        - Map the tangent predictions on the manifold via the metric's exp
+          with the base-points yielded by the prior
 
         We can also predict based on an unfitted model by using the GP prior.
         In addition to the mean of the predictive distribution, optionally also
@@ -224,39 +233,28 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
             Covariance of joint predictive distribution a query points
             in the tangent space.
             Only returned when `return_cov` is True.
+            In the case where the target is matrix valued,
+            return the covariance of the vectorized prediction.
         """
-        if return_tangent_cov:
-            tangent_means, tangent_cov = self._euclidean_gpr.predict(
-                X, return_cov=True, return_std=False
-            )
-            tangent_means = gs.cast(tangent_means, dtype=X.dtype)
-            tangent_cov = gs.cast(tangent_cov, dtype=X.dtype)
+        euc_result = self._euclidean_gpr.predict(
+            X, return_cov=return_tangent_cov, return_std=return_tangent_std
+        )
 
-            base_points = self.prior(X)
-            y_mean = self.metric.exp(tangent_means, base_point=base_points)
-            result = (y_mean, tangent_cov)
+        return_multiple = return_tangent_std or return_tangent_cov
+        tangent_means = euc_result[0] if return_multiple else euc_result
 
-        elif return_tangent_std:
-            tangent_means, tangent_std = self._euclidean_gpr.predict(
-                X, return_cov=False, return_std=True
-            )
-            base_points = self.prior(X)
-            tangent_means = gs.cast(tangent_means, dtype=X.dtype)
-            tangent_std = gs.cast(tangent_std, dtype=X.dtype)
+        base_points = self.prior(X)
+        tangent_means = gs.reshape(
+            gs.cast(tangent_means, dtype=X.dtype),
+            (X.shape[0], *self.y_train_shape_),
+        )
+        y_mean = self.metric.exp(tangent_means, base_point=base_points)
 
-            y_mean = self.metric.exp(tangent_means, base_point=base_points)
-            result = (y_mean, tangent_std)
+        if return_multiple:
+            tangent_std_cov = gs.cast(euc_result[1], dtype=X.dtype)
+            return (y_mean, tangent_std_cov)
 
-        else:
-            tangent_means = self._euclidean_gpr.predict(
-                X, return_cov=False, return_std=False
-            )
-            base_points = self.prior(X)
-            tangent_means = gs.cast(tangent_means, dtype=X.dtype)
-            y_mean = self.metric.exp(tangent_means, base_point=base_points)
-            result = y_mean
-
-        return result
+        return y_mean
 
     def sample_y(self, X, n_samples=1, random_state=0):
         """Draw samples from Wrapped Gaussian process and evaluate at X.
@@ -264,20 +262,21 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         A fitted Wrapped Gaussian process can be use to sample
         values through the following steps:
 
-            - Use the stored Gaussian process regression on the dataset
-                to sample tangent values
-            - Compute the base-points using the prior
-            - Flatten (and repeat if needed) both the base-points and the
-                tangent samples to benefit from vectorized computation.
-            - Map the tangent samples on the manifold via the metric's exp with the
-                flattened and repeated base-points yielded by the prior
+        - Use the stored Gaussian process regression on the dataset
+          to sample tangent values
+        - Compute the base-points using the prior
+        - Flatten (and repeat if needed) both the base-points and the
+          tangent samples to benefit from vectorized computation.
+        - Map the tangent samples on the manifold via the metric's exp with the
+          flattened and repeated base-points yielded by the prior
 
         Parameters
         ----------
         X : array-like of shape (n_samples_X, n_features) or list of object
             Query points where the WGP is evaluated.
         n_samples : int, default=1
-            Number of samples drawn from the Wrapped Gaussian process per query point.
+            Number of samples drawn from the Wrapped Gaussian process per query
+            point.
         random_state : int, RandomState instance or None, default=0
             Determines random number generation to randomly draw samples.
             Pass an int for reproducible results across multiple function
@@ -286,31 +285,27 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
         Returns
         -------
         y_samples : ndarray of shape (n_samples_X, n_samples), or \
-            (n_samples_X, n_targets, n_samples)
+            (n_samples_X, *target_shape, n_samples)
             Values of n_samples samples drawn from wrapped Gaussian process and
             evaluated at query points.
         """
         tangent_samples = self._euclidean_gpr.sample_y(X, n_samples, random_state)
         tangent_samples = gs.cast(tangent_samples, dtype=X.dtype)
-        # flatten the samples
-        tangent_samples = gs.reshape(
-            gs.transpose(tangent_samples, [0, 2, 1]), (-1, tangent_samples.shape[1])
+
+        if gs.ndim(tangent_samples) > 2:
+            tangent_samples = gs.moveaxis(tangent_samples, -2, -1)
+
+        flat_tangent_samples = gs.reshape(tangent_samples, (-1, *self.y_train_shape_))
+
+        base_points = gs.repeat(self.prior(X), n_samples, axis=0)
+
+        flat_y_samples = self.metric.exp(flat_tangent_samples, base_point=base_points)
+
+        y_samples = gs.reshape(
+            flat_y_samples, (X.shape[0], n_samples, *self.y_train_shape_)
         )
 
-        # generate the base_points
-        base_points = self.prior(X)
-        # repeat the base points in order to match the tangent samples
-        base_points = gs.repeat(gs.expand_dims(base_points, 2), n_samples, axis=2)
-        # flatten the base_points
-        base_points = gs.reshape(
-            gs.transpose(base_points, [0, 2, 1]), (-1, tangent_samples.shape[1])
-        )
-
-        # get the flattened samples
-        y_samples = self.metric.exp(tangent_samples, base_point=base_points)
-        y_samples = gs.transpose(
-            gs.reshape(y_samples, (X.shape[0], n_samples, y_samples.shape[1])),
-            [0, 2, 1],
-        )
+        if gs.ndim(tangent_samples) > 2:
+            y_samples = gs.moveaxis(y_samples, 1, -1)
 
         return y_samples

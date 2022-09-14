@@ -4,6 +4,7 @@ i.e. the Lie group of rigid transformations in n dimensions.
 
 Lead authors: Nicolas Guigui and Nina Miolane.
 """
+import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
@@ -86,10 +87,11 @@ def _squared_dist(point_a, point_b, metric):
     and point_b, as defined by the metric.
 
     This is an auxiliary private function that:
+
     - is called by the method `squared_dist` of the class
-    SpecialEuclideanMatrixCannonicalLeftMetric,
+      SpecialEuclideanMatrixCannonicalLeftMetric,
     - has been created to support the implementation
-    of custom_gradient in tensorflow backend.
+      of custom_gradient in tensorflow backend.
 
     Parameters
     ----------
@@ -111,13 +113,13 @@ def _squared_dist(point_a, point_b, metric):
 def homogeneous_representation(rotation, translation, output_shape, constant=1.0):
     r"""Embed rotation, translation couples into n+1 square matrices.
 
-    Construct a block matrix of size :math: `n + 1 \times n + 1` of the form
-    .. math::
-        \matvec{cc}{R & t\\
-                    0&c}
+    Construct a block matrix of size :math:`n + 1 \times n + 1` of the form
 
-    where :math: `R` is a square matrix, :math: `t` a vector of size
-    :math: `n`, and :math: `c` a constant (either 0 or 1 should be used).
+    .. math::
+        \begin{pmatrix} R & t \\ 0 & c \end{pmatrix}
+
+    where :math:`R` is a square matrix, :math:`t` a vector of size
+    :math:`n`, and :math:`c` a constant (either 0 or 1 should be used).
 
     Parameters
     ----------
@@ -219,7 +221,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         The Euclidean (Frobenius) inner product.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         super().__init__(
             n=n + 1,
             dim=int((n * (n + 1)) / 2),
@@ -228,6 +230,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             value=gs.eye(n + 1),
             tangent_submersion=tangent_submersion,
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
+            **kwargs
         )
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
@@ -236,7 +239,8 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         self.left_canonical_metric = SpecialEuclideanMatrixCannonicalLeftMetric(
             group=self
         )
-        self.metric = self.left_canonical_metric
+        if self._metric is None:
+            self._metric = self.left_canonical_metric
 
     @property
     def identity(self):
@@ -333,7 +337,13 @@ class _SpecialEuclideanVectors(LieGroup):
 
     def __init__(self, n, epsilon=0.0):
         dim = n * (n + 1) // 2
-        LieGroup.__init__(self, dim=dim, shape=(dim,), default_point_type="vector")
+        LieGroup.__init__(
+            self,
+            dim=dim,
+            shape=(dim,),
+            default_point_type="vector",
+            lie_algebra=Euclidean(dim),
+        )
 
         self.n = n
         self.epsilon = epsilon
@@ -364,12 +374,12 @@ class _SpecialEuclideanVectors(LieGroup):
         """Get the shape of the instance given the default_point_style."""
         return self.get_identity(point_type).shape
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to SE(2) or SE(3).
 
         Parameters
         ----------
-        point : array-like, shape=[..., dimension]
+        point : array-like, shape=[..., dim]
             Point to check.
 
         Returns
@@ -381,27 +391,44 @@ class _SpecialEuclideanVectors(LieGroup):
         point_ndim = point.ndim
         belongs = gs.logical_and(point_dim == self.dim, point_ndim < 3)
         belongs = gs.logical_and(
-            belongs, self.rotations.belongs(point[..., : self.rotations.dim])
+            belongs, self.rotations.belongs(point[..., : self.rotations.dim], atol=atol)
         )
         return belongs
+
+    def projection(self, point):
+        """Project a point to the group.
+
+        The point is regularized, so that the norm of the rotation part lie in [0, pi).
+
+        Parameters
+        ----------
+        point: array-like, shape[..., dim]
+            Point.
+
+        Returns
+        -------
+        projected: array-like, shape[..., dim]
+            Regularized point.
+        """
+        return self.regularize(point)
 
     def regularize(self, point):
         """Regularize a point to the default representation for SE(n).
 
         Parameters
         ----------
-        point : array-like, shape=[..., 3]
+        point : array-like, shape=[..., dim]
             Point to regularize.
 
         Returns
         -------
-        point : array-like, shape=[..., 3]
+        point : array-like, shape=[..., dim]
             Regularized point.
         """
         rotations = self.rotations
         dim_rotations = rotations.dim
 
-        regularized_point = point
+        regularized_point = gs.copy(point)
         rot_vec = regularized_point[..., :dim_rotations]
         regularized_rot_vec = rotations.regularize(rot_vec)
 
@@ -415,7 +442,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[..., 3]
+        tangent_vec: array-like, shape=[..., dim]
             Tangent vector at base point.
         metric : RiemannianMetric
             Metric.
@@ -423,7 +450,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Returns
         -------
-        regularized_vec : array-like, shape=[..., 3]
+        regularized_vec : array-like, shape=[..., dim]
             Regularized vector.
         """
         return self.regularize_tangent_vec(tangent_vec, self.identity, metric)
@@ -434,7 +461,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Parameters
         ----------
-        vec : array-like, shape=[..., dimension]
+        vec : array-like, shape=[..., dim]
             Vector.
 
         Returns
@@ -461,18 +488,18 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., dimension]
+        point_a : array-like, shape=[..., dim]
             Point of the group.
-        point_b : array-like, shape=[..., dimension]
+        point_b : array-like, shape=[..., dim]
             Point of the group.
 
         Equation
         --------
-        (:math: `(R_1, t_1) \\cdot (R_2, t_2) = (R_1 R_2, R_1 t_2 + t_1)`)
+        (:math:`(R_1, t_1) \\cdot (R_2, t_2) = (R_1 R_2, R_1 t_2 + t_1)`)
 
         Returns
         -------
-        composition : array-like, shape=[..., dimension]
+        composition : array-like, shape=[..., dim]
             Composition of point_a and point_b.
         """
         rotations = self.rotations
@@ -508,12 +535,12 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[..., dimension]
+        point: array-like, shape=[..., dim]
             Point.
 
         Returns
         -------
-        inverse_point : array-like, shape=[..., dimension]
+        inverse_point : array-like, shape=[..., dim]
             Inverted point.
 
         Notes
@@ -612,7 +639,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Returns
         -------
-        random_point : array-like, shape=[..., dimension]
+        random_point : array-like, shape=[..., dim]
             Sample.
         """
         random_translation = self.translations.random_point(n_samples, bound)
@@ -955,12 +982,12 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         mask_close_pi = gs.isclose(angle, gs.pi)
         mask_else = ~mask_close_0 & ~mask_close_pi
 
-        mask_close_0_float = gs.cast(mask_close_0, gs.float32)
-        mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
+        mask_close_0_float = gs.cast(mask_close_0, rot_vec.dtype)
+        mask_close_pi_float = gs.cast(mask_close_pi, rot_vec.dtype)
+        mask_else_float = gs.cast(mask_else, rot_vec.dtype)
 
         mask_0 = gs.isclose(angle, 0.0, atol=1e-7)
-        mask_0_float = gs.cast(mask_0, gs.float32)
+        mask_0_float = gs.cast(mask_0, rot_vec.dtype)
         angle += mask_0_float * gs.ones_like(angle)
 
         coef_1 = -0.5 * gs.ones_like(angle)
@@ -1113,11 +1140,11 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
 
         References
         ----------
-        [Zefran98]  Zefran, M., V. Kumar, and C.B. Croke.
-                    “On the Generation of Smooth Three-Dimensional Rigid Body
-                    Motions.” IEEE Transactions on Robotics and Automation 14,
-                    no. 4 (August 1998): 576–89.
-                    https://doi.org/10.1109/70.704225.
+        .. [Zefran98] Zefran, M., V. Kumar, and C.B. Croke.
+            “On the Generation of Smooth Three-Dimensional Rigid Body Motions.”
+            IEEE Transactions on Robotics and Automation 14,
+            no. 4 (August 1998): 576–89.
+            https://doi.org/10.1109/70.704225.
         """
         max_shape = point.shape if point.ndim == 3 else base_point.shape
         rotation_bp = base_point[..., : self.n, : self.n]
@@ -1131,17 +1158,17 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return log
 
     def parallel_transport(
-        self, tangent_vec, base_point, direction=None, end_point=None
+        self, tangent_vec, base_point, direction=None, end_point=None, **kwargs
     ):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`. As the special Euclidean group endowed with its
         canonical left-invariant metric is a symmetric space, parallel
         transport is achieved by a geodesic symmetry, or equivalently, one step
-         of the pole ladder scheme.
+        of the pole ladder scheme.
 
         Parameters
         ----------
@@ -1154,8 +1181,8 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
             is computed.
             Optional, default: None
         end_point : array-like, shape=[..., n + 1, n + 1]
-            Point on the Grassmann manifold to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the Grassmann manifold to transport to. Unused if
+            `tangent_vec_b` is given.
             Optional, default: None
 
         Returns
@@ -1191,10 +1218,11 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         and point_b, as defined by the metric.
 
         This is an auxiliary private function that:
+
         - is called by the method `squared_dist` of the class
-        SpecialEuclideanMatrixCannonicalLeftMetric,
+          SpecialEuclideanMatrixCannonicalLeftMetric,
         - has been created to support the implementation
-        of custom_gradient in tensorflow backend.
+          of custom_gradient in tensorflow backend.
 
         Parameters
         ----------
@@ -1228,6 +1256,33 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         """
         dist = _squared_dist(point_a, point_b, metric=self)
         return dist
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In this case, it does not depend on the base point. If the rotation part is
+        null, then the radius is infinite, otherwise it is the same as the special
+        orthonormal group.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n + 1, n + 1]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        rotation = base_point[..., : self.n, : self.n]
+        rotation_radius = gs.pi * (self.dim - self.n) ** 0.5
+        radius = gs.where(
+            gs.sum(rotation, axis=(-2, -1)) == 0, math.inf, rotation_radius
+        )
+        return radius
 
 
 class SpecialEuclidean(
@@ -1269,10 +1324,11 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
     This is the tangent space at the identity. It is identified with the
     :math:`n + 1 \times n + 1` block matrices of the form:
-    .. math:
-                ((A, t), (0, 0))
 
-    where A is an :math:`n \times n` skew-symmetric matrix, :math: `t` is an
+    .. math::
+        ((A, t), (0, 0))
+
+    where A is an :math:`n \times n` skew-symmetric matrix, :math:`t` is an
     n-dimensional vector.
 
     Parameters
@@ -1284,9 +1340,10 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SpecialEuclideanMatrixLieAlgebra, self).__init__(dim, n)
+        super(SpecialEuclideanMatrixLieAlgebra, self).__init__(dim, n + 1)
 
         self.skew = SkewSymmetricMatrices(n)
+        self.n = n
 
     def _create_basis(self):
         """Create the canonical basis."""
@@ -1297,11 +1354,11 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             (self.skew.dim, n + 1, n + 1),
             0.0,
         )
-        basis = list(basis)
 
-        for row in gs.arange(n):
-            basis.append(gs.array_from_sparse([(row, n)], [1.0], (n + 1, n + 1)))
-        return gs.stack(basis)
+        indices = [(row, row, n) for row in range(n)]
+        add_basis = gs.array_from_sparse(indices, [1.0] * n, (n, n + 1, n + 1))
+
+        return gs.vstack([basis, add_basis])
 
     def belongs(self, mat, atol=ATOL):
         """Evaluate if the rotation part of mat is a skew-symmetric matrix.
@@ -1332,6 +1389,28 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
         belongs = gs.logical_and(belongs, all_zeros)
         return belongs
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample in the lie algebra with a uniform distribution in a box.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
+
+        Returns
+        -------
+        point : array-like, shape=[..., n + 1, n + 1]
+           Sample.
+        """
+        point = super(SpecialEuclideanMatrixLieAlgebra, self).random_point(
+            n_samples, bound
+        )
+        return self.projection(point)
 
     def projection(self, mat):
         """Project a matrix to the Lie Algebra.

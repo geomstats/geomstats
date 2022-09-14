@@ -5,6 +5,8 @@ The n-dimensional hyperbolic space with Poincare ball model.
 Lead author: Hadi Zaatiti.
 """
 
+import math
+
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
@@ -256,9 +258,6 @@ class PoincareBallMetric(RiemannianMetric):
         """Poincaré ball model retraction.
 
         Approximate the exponential map of the Poincare ball
-        .. [1] Nickel et.al, "Poincaré Embedding for
-         Learning Hierarchical Representation", 2017.
-
 
         Parameters
         ----------
@@ -271,6 +270,11 @@ class PoincareBallMetric(RiemannianMetric):
         -------
         point : array-like, shape=[..., dim]
             Retraction point.
+
+        References
+        ----------
+        .. [1] Nickel et.al, "Poincaré Embedding for
+            Learning Hierarchical Representation", 2017.
         """
         ball_manifold = PoincareBall(self.dim, scale=self.scale)
         base_point_belong = ball_manifold.belongs(base_point)
@@ -440,3 +444,24 @@ class PoincareBallMetric(RiemannianMetric):
         norm_factor_gradient = grad_term_1 + (grad_term_21 * grad_term_22)
 
         return gs.squeeze(norm_factor), gs.squeeze(norm_factor_gradient)
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the hyperbolic space, it does not depend on the base
+        point and is infinite everywhere, because of the negative curvature.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf

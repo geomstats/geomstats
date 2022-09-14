@@ -36,7 +36,6 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
         geomstats.errors.check_integer(dim, "dim")
         geomstats.errors.check_integer(n, "n")
         self.dim = dim
-        self.basis = None
         self.n = n
 
     bracket = Matrices.bracket
@@ -65,8 +64,8 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
         References
         ----------
         .. [CM2009a] F. Casas and A. Murua. An efficient algorithm for
-           computing the Baker–Campbell–Hausdorff series and some of its
-           applications. Journal of Mathematical Physics 50, 2009
+            computing the Baker–Campbell–Hausdorff series and some of its
+            applications. Journal of Mathematical Physics 50, 2009
         .. [CM2009b] http://www.ehu.eus/ccwmuura/research/bchHall20.dat
         """
         if order > 15:

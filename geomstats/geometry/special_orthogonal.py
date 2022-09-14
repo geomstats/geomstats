@@ -37,7 +37,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         matrices = Matrices(n, n)
         gln = GeneralLinear(n, positive_det=True)
         super(_SpecialOrthogonalMatrices, self).__init__(
@@ -49,9 +49,11 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             submersion=lambda x: matrices.mul(matrices.transpose(x), x),
             tangent_submersion=lambda v, x: 2
             * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
+            **kwargs,
         )
         self.bi_invariant_metric = BiInvariantMetric(group=self)
-        self.metric = self.bi_invariant_metric
+        if self._metric is None:
+            self._metric = self.bi_invariant_metric
 
     @classmethod
     def inverse(cls, point):
@@ -298,7 +300,9 @@ class _SpecialOrthogonalVectors(LieGroup):
 
     def __init__(self, n, shape, epsilon=0.0):
         dim = n * (n - 1) // 2
-        LieGroup.__init__(self, dim=dim, shape=shape, default_point_type="vector")
+        LieGroup.__init__(
+            self, dim=dim, shape=shape, default_point_type="vector", lie_algebra=self
+        )
 
         self.n = n
         self.epsilon = epsilon
@@ -360,7 +364,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = Matrices.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.0)
-        mask_float = gs.cast(mask, gs.float32) + self.epsilon
+        mask_float = gs.cast(mask, mat.dtype) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
         diag = gs.to_ndarray(diag, to_ndim=2)
         diag = (
@@ -391,7 +395,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         return -self.regularize(point)
 
     def random_point(self, n_samples=1, bound=1.0):
-        return gs.random.rand(n_samples, 3)
+        return gs.squeeze(gs.random.rand(n_samples, 3))
 
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
@@ -853,7 +857,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         n_rot_mats, _, _ = rot_mat.shape
 
-        trace = gs.trace(rot_mat, axis1=1, axis2=2)
+        trace = gs.trace(rot_mat)
         trace = gs.to_ndarray(trace, to_ndim=2, axis=1)
         trace_num = gs.clip(trace, -1, 3)
         angle = gs.arccos(0.5 * (trace_num - 1))
@@ -1036,7 +1040,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
                 ]
             )
 
-            mask_i = gs.get_mask_i_float(i, n_quaternions)
+            mask_i = gs.array_from_sparse([(i,)], [1.0], (n_quaternions,))
             rot_mat_i = gs.transpose(gs.hstack([column_1, column_2, column_3]))
             rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
             rot_mat += gs.einsum("...,...ij->...ij", mask_i, rot_mat_i)
@@ -1054,6 +1058,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         rot_mat = Z(angle_1).Y(angle_2).X(angle_3)
         where:
+
         - Z(angle_1) is a rotation of angle angle_1 around axis z.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - X(angle_3) is a rotation of angle angle_3 around axis x.
@@ -1138,6 +1143,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1224,6 +1230,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         If the order is zyx, into the rotation matrix rot_mat:
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1296,6 +1303,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         for the order zyx, i.e.:
         rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
+
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
@@ -1616,7 +1624,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             squared_angle < utils.EPSILON, coef_2, (1 - coef_1) / squared_angle_
         )
 
-        outer_ = gs.einsum("...i,...j->...ij", point, point)
+        outer_ = gs.outer(point, point)
         sign = -1.0 if left_or_right == "right" else 1.0
 
         return (
@@ -1723,7 +1731,7 @@ class SpecialOrthogonal(
         default: 0
     """
 
-    def __new__(cls, n, point_type="matrix", epsilon=0.0):
+    def __new__(cls, n, point_type="matrix", epsilon=0.0, **kwargs):
         """Instantiate a special orthogonal group.
 
         Select the object to instantiate depending on the point_type.
@@ -1736,4 +1744,4 @@ class SpecialOrthogonal(
             raise NotImplementedError(
                 "SO(n) is only implemented in vector representation" " when n = 3."
             )
-        return _SpecialOrthogonalMatrices(n)
+        return _SpecialOrthogonalMatrices(n, **kwargs)

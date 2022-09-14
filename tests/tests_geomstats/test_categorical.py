@@ -8,6 +8,7 @@ from geomstats.information_geometry.categorical import (
     CategoricalDistributions,
     CategoricalMetric,
 )
+from geomstats.information_geometry.multinomial import MultinomialDistributions
 
 
 class TestCategoricalDistributions(geomstats.tests.TestCase):
@@ -190,4 +191,19 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         time = 0.5
         result = geod(time).shape
         expected = (self.n_points, self.dim + 1)
+        self.assertAllClose(expected, result)
+
+    def test_dist(self):
+        """Check distance.
+
+        Check that the distance between two multinomial distributions with
+        n_draws is equal to the square root of n_draws times the distance
+        of the corresponding categorical distributions (n_draws=1).
+        """
+        n_draws = 10
+        multinomial = MultinomialDistributions(n_draws=n_draws, dim=self.dim)
+        point_a = multinomial.random_point()
+        point_b = multinomial.random_point()
+        result = multinomial.metric.dist(point_a, point_b)
+        expected = n_draws ** (1 / 2) * self.categorical.metric.dist(point_a, point_b)
         self.assertAllClose(expected, result)

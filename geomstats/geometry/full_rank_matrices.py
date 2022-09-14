@@ -1,4 +1,4 @@
-r"""Full rank Euclidean matrices `math:`R_*^{m\times n}`.
+r"""Full rank Euclidean matrices :math:`R_*^{m\times n}`.
 
 Lead author: Anna Calissano.
 """
@@ -9,35 +9,38 @@ from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
 class FullRankMatrices(OpenSet):
-    r"""Class for `math:`R_*^{m\times n}` matrices of dimension m x n and full rank.
+    r"""Class for :math:`R_*^{n\times k}` matrices of dimension n x k and full rank.
 
     Parameters
     ----------
-    m : int
-        Integer representing the shape of the matrices: m x n
     n : int
-        Integer representing the shape of the matrices: m x n
+        Integer representing the shape of the matrices: n x k
+    k : int
+        Integer representing the shape of the matrices: n x k
     """
 
-    def __init__(self, m, n, **kwargs):
-        if "dim" not in kwargs.keys():
-            kwargs["dim"] = m * n
-        super(FullRankMatrices, self).__init__(
-            ambient_space=Matrices(m, n), metric=MatricesMetric(m, n), **kwargs
-        )
-        self.rank = min(m, n)
+    def __init__(self, n, k, **kwargs):
+        kwargs.setdefault("dim", n * k)
+        kwargs.setdefault("metric", MatricesMetric(n, k))
+        super(FullRankMatrices, self).__init__(ambient_space=Matrices(n, k), **kwargs)
+        self.rank = min(n, k)
+        self.n = n
+        self.k = k
 
     def belongs(self, point, atol=gs.atol):
-        r"""Check if the matrix belongs to `math:`R_*^{m\times n}`.
+        r"""Check if the matrix belongs to :math:`R_*^{n \times k}`.
 
         Parameters
         ----------
-        point : array-like, shape=[..., m, n]
+        point : array-like, shape=[..., n, k]
             Matrix to be checked.
+        atol : float
+            Unused.
 
         Returns
         -------
-        belongs : Boolean denoting if point is in `math:`R_*^{m\times n}`
+        belongs : Boolean
+            Denoting if point is in :math:`R_*^{m\times n}`.
         """
         has_right_size = self.ambient_space.belongs(point)
         has_right_rank = gs.where(
@@ -51,17 +54,17 @@ class FullRankMatrices(OpenSet):
 
         As the space of full rank matrices is dense in the space of matrices,
         this is not a projection per se, but a regularization if the matrix input X
-        is not already full rank: `math:`X + \epsilon [I_rank, 0]` is returned
+        is not already full rank: :math:`X + \epsilon [I_{rank}, 0]` is returned
         where :math:`\epsilon=gs.atol`
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim_embedding]
+        point : array-like, shape=[..., n, k]
             Point in embedding manifold.
 
         Returns
         -------
-        projected : array-like, shape=[..., dim_embedding]
+        projected : array-like, shape=[..., n, k]
             Projected point.
         """
         belongs = self.belongs(point)
@@ -74,7 +77,7 @@ class FullRankMatrices(OpenSet):
         return projected
 
     def random_point(self, n_samples=1, bound=1.0, n_iter=100):
-        r"""Sample in `math:`R_*^{m\times n}` from a normal distribution.
+        r"""Sample in :math:`R_*^{n\times k}` from a normal distribution.
 
         Parameters
         ----------
@@ -85,20 +88,20 @@ class FullRankMatrices(OpenSet):
             Bound of the interval in which to sample each matrix entry.
             Optional, default: 1.
         n_iter : int
-            Maximum number of trials to sample a matrix with full rank
+            Maximum number of trials to sample a matrix with full rank.
             Optional, default: 100.
 
         Returns
         -------
-        samples : array-like, shape=[..., m, n]
-            Point sampled on `math:`R_*^{m\times n}`
+        samples : array-like, shape=[..., n, k]
+            Point sampled on :math:`R_*^{n\times k}`.
         """
-        m = self.ambient_space.shape[0]
-        n = self.ambient_space.shape[1]
+        n = self.n
+        k = self.k
         sample = []
         n_accepted, iteration = 0, 0
         while n_accepted < n_samples and iteration < n_iter:
-            raw_samples = gs.random.normal(size=(n_samples - n_accepted, m, n))
+            raw_samples = gs.random.normal(size=(n_samples - n_accepted, n, k))
             ranks = gs.linalg.matrix_rank(raw_samples)
             selected = ranks == self.rank
             sample.append(raw_samples[selected])

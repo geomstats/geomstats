@@ -2,8 +2,12 @@
 
 Lead author: Alice Le Brigant.
 """
+import logging
+import math
 
+import numpy as np
 from scipy.integrate import odeint, solve_bvp
+from scipy.optimize import minimize
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs
@@ -19,7 +23,7 @@ N_STEPS = 100
 class DirichletDistributions(OpenSet):
     """Class for the manifold of Dirichlet distributions.
 
-    This is :math: Dirichlet = `(R_+^*)^dim`, the positive quadrant of the
+    This is Dirichlet = :math:`(R_+^*)^dim`, the positive quadrant of the
     dim-dimensional Euclidean space.
 
     Attributes
@@ -122,7 +126,19 @@ class DirichletDistributions(OpenSet):
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for param in point:
-            samples.append(gs.array(dirichlet.rvs(param, size=n_samples)))
+            sample = gs.array(dirichlet.rvs(param, size=n_samples))
+            samples.append(
+                gs.hstack(
+                    (
+                        sample[:, :-1],
+                        gs.transpose(
+                            gs.to_ndarray(
+                                1 - gs.sum(sample[:, :-1], axis=-1), to_ndim=2
+                            )
+                        ),
+                    )
+                )
+            )
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
     def point_to_pdf(self, point):
@@ -143,6 +159,7 @@ class DirichletDistributions(OpenSet):
             parameters provided by point.
         """
         geomstats.errors.check_belongs(point, self)
+        point = gs.to_ndarray(point, to_ndim=2)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -161,8 +178,8 @@ class DirichletDistributions(OpenSet):
             """
             pdf_at_x = []
             for param in point:
-                pdf_at_x.append([gs.array(dirichlet.pdf(pt, param)) for pt in x])
-            pdf_at_x = gs.stack(pdf_at_x, axis=0)
+                pdf_at_x.append(gs.array([dirichlet.pdf(pt, param) for pt in x]))
+            pdf_at_x = gs.squeeze(gs.stack(pdf_at_x, axis=0))
 
             return pdf_at_x
 
@@ -213,8 +230,8 @@ class DirichletMetric(RiemannianMetric):
         References
         ----------
         .. [LPP2021] A. Le Brigant, S. C. Preston, S. Puechmorel. Fisher-Rao
-          geometry of Dirichlet Distributions. Differential Geometry
-          and its Applications, 74, 101702, 2021.
+            geometry of Dirichlet Distributions. Differential Geometry
+            and its Applications, 74, 101702, 2021.
 
         Parameters
         ----------
@@ -447,7 +464,8 @@ class DirichletMetric(RiemannianMetric):
                     solution = odeint(ivp, initial_state, t_int, ())
                     geod.append(solution[:, : self.dim])
 
-            return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            return gs.where(geod < gs.atol, gs.atol, geod)
 
         return path
 
@@ -480,12 +498,162 @@ class DirichletMetric(RiemannianMetric):
 
         return exp
 
+    def _approx_geodesic_bvp(
+        self,
+        initial_point,
+        end_point,
+        degree=5,
+        method="BFGS",
+        n_times=200,
+        jac_on=True,
+    ):
+        """Solve approximation of the geodesic boundary value problem.
+
+        The space of solutions is restricted to curves whose coordinates are
+        polynomial functions of time. The boundary value problem is solved by
+        minimizing the energy among all such curves starting from initial_point
+        and ending at end_point, i.e. curves t -> (x_1(t),...,x_n(t)) where x_i
+        are polynomial functions of time t, such that (x_1(0),..., x_n(0)) is
+        initial_point and (x_1(1),..., x_n(1)) is end_point. The parameterized
+        curve is computed at n_times discrete times.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=(dim,)
+            Starting point of the geodesic.
+        end_point : array-like, shape=(dim,)
+            End point of the geodesic.
+        degree : int
+            Degree of the coordinates' polynomial functions of time.
+        method : str
+            Minimization method to use in scipy.optimize.minimize.
+        n_times : int
+            Number of sample times.
+        jac_on : bool
+            If jac_on=True, use the Jacobian of the energy cost function in
+            scipy.optimize.minimize.
+
+        Returns
+        -------
+        dist : float
+            Length of the polynomial approximation of the geodesic.
+        curve : array-like, shape=(n_times, dim)
+            Polynomial approximation of the geodesic.
+        velocity : array-like, shape=(n_times, dim)
+            Velocity of the polynomial approximation of the geodesic.
+        """
+
+        def cost_fun(param):
+            """Compute the energy of the polynomial curve defined by param.
+
+            Parameters
+            ----------
+            param : array-like, shape=(degree - 1, dim)
+                Parameters of the curve coordinates' polynomial functions of time.
+
+            Returns
+            -------
+            energy : float
+                Energy of the polynomial approximation of the geodesic.
+            length : float
+                Length of the polynomial approximation of the geodesic.
+            curve : array-like, shape=(n_times, dim)
+                Polynomial approximation of the geodesic.
+            velocity : array-like, shape=(n_times, dim)
+                Velocity of the polynomial approximation of the geodesic.
+            """
+            last_coef = end_point - initial_point - gs.sum(param, axis=0)
+            coef = gs.vstack((initial_point, param, last_coef))
+
+            t = gs.linspace(0.0, 1.0, n_times)
+            t_curve = [t**i for i in range(degree + 1)]
+            t_curve = gs.stack(t_curve)
+            curve = gs.einsum("ij,ik->kj", coef, t_curve)
+
+            t_velocity = [i * t ** (i - 1) for i in range(1, degree + 1)]
+            t_velocity = gs.stack(t_velocity)
+            velocity = gs.einsum("ij,ik->kj", coef[1:], t_velocity)
+
+            if curve.min() < 0:
+                return np.inf, np.inf, curve, np.nan
+
+            velocity_sqnorm = self.squared_norm(vector=velocity, base_point=curve)
+            length = gs.sum(velocity_sqnorm ** (1 / 2)) / n_times
+            energy = gs.sum(velocity_sqnorm) / n_times
+            return energy, length, curve, velocity
+
+        def cost_jacobian(param):
+            """Compute the jacobian of the cost function at polynomial curve.
+
+            Parameters
+            ----------
+            param : array-like, shape=(degree - 1, dim)
+                Parameters of the curve coordinates' polynomial functions of time.
+
+            Returns
+            -------
+            jac : array-like, shape=(dim * (degree - 1),)
+                Jacobian of the cost function at polynomial curve.
+            """
+            last_coef = end_point - initial_point - gs.sum(param, 0)
+            coef = gs.vstack((initial_point, param, last_coef))
+
+            t = gs.linspace(0.0, 1.0, n_times)
+            t_position = [t**i for i in range(degree + 1)]
+            t_position = gs.stack(t_position)
+            position = gs.einsum("ij,ik->kj", coef, t_position)
+
+            t_velocity = [i * t ** (i - 1) for i in range(1, degree + 1)]
+            t_velocity = gs.stack(t_velocity)
+            velocity = gs.einsum("ij,ik->kj", coef[1:], t_velocity)
+
+            fac1 = gs.stack(
+                [
+                    k * t ** (k - 1) - degree * t ** (degree - 1)
+                    for k in range(1, degree)
+                ]
+            )
+            fac2 = gs.stack([t**k - t**degree for k in range(1, degree)])
+            fac3 = (velocity * gs.polygamma(1, position)).T - gs.sum(
+                velocity, 1
+            ) * gs.polygamma(1, gs.sum(position, 1))
+            fac4 = (velocity**2 * gs.polygamma(2, position)).T - gs.sum(
+                velocity, 1
+            ) ** 2 * gs.polygamma(2, gs.sum(position, 1))
+
+            cost_jac = (
+                2 * gs.einsum("ij,kj->ik", fac1, fac3)
+                + gs.einsum("ij,kj->ik", fac2, fac4)
+            ) / n_times
+            return cost_jac.T.reshape(dim * (degree - 1))
+
+        def f2minimize(x):
+            """Compute function to minimize."""
+            param = gs.transpose(x.reshape((dim, degree - 1)))
+            res = cost_fun(param)
+            return res[0]
+
+        def jacobian(x):
+            """Compute jacobian of the function to minimize."""
+            param = gs.transpose(x.reshape((dim, degree - 1)))
+            return cost_jacobian(param)
+
+        dim = initial_point.shape[0]
+        x0 = gs.ones(dim * (degree - 1))
+        jac = jacobian if jac_on else None
+        sol = minimize(f2minimize, x0, method=method, jac=jac)
+        opt_param = sol.x.reshape((dim, degree - 1)).T
+        _, dist, curve, velocity = cost_fun(opt_param)
+
+        return dist, curve, velocity
+
     def _geodesic_bvp(
         self,
         initial_point,
         end_point,
         n_steps=N_STEPS,
         jacobian=False,
+        init="polynomial",
     ):
         """Solve geodesic boundary problem.
 
@@ -616,6 +784,12 @@ class DirichletMetric(RiemannianMetric):
 
             def initialize(point_0, point_1):
                 """Initialize the solution of the boundary value problem."""
+                if init == "polynomial":
+                    _, curve, velocity = self._approx_geodesic_bvp(
+                        point_0, point_1, n_times=n_steps
+                    )
+                    return gs.vstack((curve.T, velocity.T))
+
                 lin_init = gs.zeros([2 * self.dim, n_steps])
                 lin_init[: self.dim, :] = gs.transpose(
                     gs.linspace(point_0, point_1, n_steps)
@@ -637,15 +811,24 @@ class DirichletMetric(RiemannianMetric):
                 solution = solve_bvp(
                     bvp, bc, t_int, initialize(ip, ep), fun_jac=fun_jac
                 )
+                if solution.status == 1:
+                    logging.warning(
+                        "The maximum number of mesh nodes for solving the  "
+                        "geodesic boundary value problem is exceeded. "
+                        "Result may be inaccurate."
+                    )
                 solution_at_t = solution.sol(t)
                 geodesic = solution_at_t[: self.dim, :]
                 geod.append(gs.squeeze(gs.transpose(geodesic)))
 
-            return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            return gs.where(geod < gs.atol, gs.atol, geod)
 
         return path
 
-    def log(self, point, base_point, n_steps=N_STEPS, jacobian=False):
+    def log(
+        self, point, base_point, n_steps=N_STEPS, jacobian=False, init="polynomial"
+    ):
         """Compute the logarithm map.
 
         Compute logarithm map associated to the Fisher information metric by
@@ -665,6 +848,11 @@ class DirichletMetric(RiemannianMetric):
             If True, the explicit value of the jacobian is used to solve
             the geodesic boundary value problem.
             Optional, default: False.
+        init : str, {'linear', 'polynomial}
+            Initialization used to solve the geodesic boundary value problem.
+            If 'linear', use the Euclidean straight line as initial guess.
+            If 'polynomial', use a curve with coordinates that are polynomial
+            functions of time.
 
         Returns
         -------
@@ -674,7 +862,7 @@ class DirichletMetric(RiemannianMetric):
         """
         t = gs.linspace(0.0, 1.0, n_steps)
         geodesic = self._geodesic_bvp(
-            initial_point=base_point, end_point=point, jacobian=jacobian
+            initial_point=base_point, end_point=point, jacobian=jacobian, init=init
         )
         geodesic_at_t = geodesic(t)
         log = n_steps * (geodesic_at_t[..., 1, :] - geodesic_at_t[..., 0, :])
@@ -692,6 +880,7 @@ class DirichletMetric(RiemannianMetric):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
+
         - an initial point and an initial tangent vector,
         - an initial point and an end point.
 
@@ -737,3 +926,24 @@ class DirichletMetric(RiemannianMetric):
             path = self._geodesic_ivp(initial_point, initial_tangent_vec, n_steps)
 
         return path
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of the hyperbolic space, it does not depend on the base point and
+        is infinite everywhere, because of the negative curvature.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf

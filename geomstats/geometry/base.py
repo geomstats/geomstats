@@ -25,11 +25,10 @@ class VectorSpace(Manifold, abc.ABC):
     """
 
     def __init__(self, shape, **kwargs):
-        if "dim" not in kwargs.keys():
-            kwargs["dim"] = int(gs.prod(gs.array(shape)))
+        kwargs.setdefault("dim", int(gs.prod(gs.array(shape))))
         super(VectorSpace, self).__init__(shape=shape, **kwargs)
         self.shape = shape
-        self.basis = None
+        self._basis = None
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the vector space.
@@ -48,7 +47,10 @@ class VectorSpace(Manifold, abc.ABC):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
+        point = gs.array(point)
         minimal_ndim = len(self.shape)
+        if self.shape[0] == 1 and len(point.shape) <= 1:
+            point = gs.transpose(gs.to_ndarray(gs.to_ndarray(point, 1), 2))
         belongs = point.shape[-minimal_ndim:] == self.shape
         if point.ndim <= minimal_ndim:
             return belongs
@@ -148,7 +150,7 @@ class VectorSpace(Manifold, abc.ABC):
 
     @basis.setter
     def basis(self, basis):
-        if basis is not None and len(basis) < self.dim:
+        if len(basis) < self.dim:
             raise ValueError(
                 "The basis should have length equal to the " "dimension of the space."
             )
@@ -183,8 +185,7 @@ class LevelSet(Manifold, abc.ABC):
         default_coords_type="intrinsic",
         **kwargs
     ):
-        if "shape" not in kwargs:
-            kwargs["shape"] = embedding_space.shape
+        kwargs.setdefault("shape", embedding_space.shape)
         super(LevelSet, self).__init__(
             dim=dim,
             default_point_type=embedding_space.default_point_type,
@@ -334,10 +335,8 @@ class OpenSet(Manifold, abc.ABC):
     """
 
     def __init__(self, dim, ambient_space, **kwargs):
-        if "default_point_type" not in kwargs:
-            kwargs["default_point_type"] = ambient_space.default_point_type
-        if "shape" not in kwargs:
-            kwargs["shape"] = ambient_space.shape
+        kwargs.setdefault("default_point_type", ambient_space.default_point_type)
+        kwargs.setdefault("shape", ambient_space.shape)
         super().__init__(dim=dim, **kwargs)
         self.ambient_space = ambient_space
 

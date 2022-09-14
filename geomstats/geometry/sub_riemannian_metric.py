@@ -32,8 +32,8 @@ class SubRiemannianMetric(abc.ABC):
     def metric_matrix(self, base_point):
         """Metric matrix at the tangent space at a base point.
 
-        This is a sub-Riemannian metric, so it is assumed to satisfy the conditions
-        of an inner product only on each distribution subspace.
+        This is a sub-Riemannian metric, so it is assumed to satisfy the
+        conditions of an inner product only on each distribution subspace.
 
         Parameters
         ----------
@@ -53,7 +53,7 @@ class SubRiemannianMetric(abc.ABC):
     def frame(self, point):
         """Frame field for the distribution.
 
-        The frame field spans the distribution at 'point'.The frame field is
+        The frame field spans the distribution at `point`. The frame field is
         represented as a matrix, whose columns are the frame field vectors.
 
         Parameters
@@ -133,16 +133,18 @@ class SubRiemannianMetric(abc.ABC):
         vector_2 = gs.einsum(
             "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
         )
-        inner_coproduct = gs.einsum("...i,...i->...", cotangent_vec_a, vector_2)
+        inner_coproduct = gs.dot(cotangent_vec_a, vector_2)
         return inner_coproduct
 
     def hamiltonian(self, state):
         r"""Compute the hamiltonian energy associated to the cometric.
 
-        The Hamiltonian at state :math: `(q, p)` is defined by
-        .. math:
+        The Hamiltonian at state :math:`(q, p)` is defined by
+
+        .. math::
                 H(q, p) = \frac{1}{2} <p, p>_q
-        where :math: `<\cdot, \cdot>_q` is the cometric at :math: `q`.
+
+        where :math:`<\cdot, \cdot>_q` is the cometric at :math:`q`.
 
         Parameters
         ----------
@@ -184,9 +186,9 @@ class SubRiemannianMetric(abc.ABC):
     def symp_euler(self, step_size):
         """Compute a function which calculates a step of symplectic euler integration.
 
-        The output function computes a symplectic euler step of the Hamiltonian system
-        of equations associated with the cometric and obtained by the method
-        :meth:`~sub_remannian_metric.SubRiemannianMetric.symp_grad`.
+        The output function computes a symplectic euler step of the Hamiltonian
+        system of equations associated with the cometric and obtained by the
+        method :meth:`~sub_remannian_metric.SubRiemannianMetric.symp_grad`.
 
         Parameters
         ----------
@@ -216,14 +218,16 @@ class SubRiemannianMetric(abc.ABC):
         Parameters
         ----------
         func : callable
-            A function which calculates the next step of a sequence to be calculated.
+            A function which calculates the next step of a sequence to be
+            calculated.
         n_steps : int
             The number of times to iterate func.
 
         Returns
         -------
         flow : callable
-            Given a state, 'flow' returns a sequence with n_steps iterations of func.
+            Given a state, 'flow' returns a sequence with n_steps iterations of
+            func.
         """
 
         def flow(x):
