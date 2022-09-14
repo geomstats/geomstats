@@ -81,16 +81,16 @@ class GeometricMedian(BaseEstimator):
             Updated median after single iteration.
         """
         dists = self.metric.dist(current_median, X)
-        is_zero = dists == 0
+        is_zero = dists <= gs.atol
 
         w = weights[~is_zero] / dists[~is_zero]
         logs = self.metric.log(X[~is_zero], current_median)
-        v_k = gs.einsum("n,n...->...", w, logs) / gs.sum(w)
+        v_k = gs.einsum("n,n...->...", w / gs.sum(w), logs)
         updated_median = self.metric.exp(lr * v_k, current_median)
         return updated_median
 
     def fit(self, X, y=None, weights=None):
-        """Compute the geometric median.
+        """Compute the weighted geometric median.
 
         Compute the geometric median on manifold using Weiszfeld algorithm.
 

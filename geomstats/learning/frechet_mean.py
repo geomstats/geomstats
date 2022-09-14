@@ -567,7 +567,7 @@ class FrechetMean(BaseEstimator):
         )
 
     def fit(self, X, y=None, weights=None):
-        """Compute the empirical Frechet mean.
+        """Compute the empirical weighted Frechet mean.
 
         Parameters
         ----------

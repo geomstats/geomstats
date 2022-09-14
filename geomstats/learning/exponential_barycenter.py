@@ -96,7 +96,7 @@ def _default_gradient_descent(
 
 
 class ExponentialBarycenter(BaseEstimator):
-    """Empirical Exponential Barycenter for Matrix groups.
+    """Empirical exponential barycenter for matrix groups.
 
     Parameters
     ----------
@@ -140,7 +140,7 @@ class ExponentialBarycenter(BaseEstimator):
         self.estimate_ = None
 
     def fit(self, X, y=None, weights=None):
-        """Compute the empirical Exponential Barycenter mean.
+        """Compute the empirical weighted exponential barycenter.
 
         Parameters
         ----------
