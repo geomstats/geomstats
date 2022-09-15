@@ -20,9 +20,9 @@ class GeometricMedian(BaseEstimator):
     lr : float
         Learning rate to be used for the algorithm.
         Optional, default : 1.0
-    init : array-like, shape={representation shape}
+    init : array-like, shape=[*metric.shape]
         Initialization to be used in the start.
-        Optional, default : None
+        Optional, default : None, in which case it uses last sample.
     print_every : int
         Print updated median after print_every iterations.
         Optional, default : None
@@ -33,7 +33,7 @@ class GeometricMedian(BaseEstimator):
 
     Attributes
     ----------
-    estimate_ : array-like, shape={representation shape}
+    estimate_ : array-like, shape=[*metric.shape]
         If fit, geometric median.
 
     References
@@ -66,9 +66,9 @@ class GeometricMedian(BaseEstimator):
 
         Parameters
         ----------
-        current_median : array-like, shape={representation shape}
+        current_median : array-like, shape=[*metric.shape]
             Current median.
-        X : array-like, shape=[n_samples, {representation shape}]
+        X : array-like, shape=[n_samples, *metric.shape]
             Training input samples.
         weights : array-like, shape=[n_samples,]
             Weights for weighted sum.
@@ -77,7 +77,7 @@ class GeometricMedian(BaseEstimator):
 
         Returns
         -------
-        updated_median : array-like, shape={representation shape}
+        updated_median : array-like, shape=[*metric.shape]
             Updated median after single iteration.
         """
         dists = self.metric.dist(current_median, X)
@@ -96,7 +96,7 @@ class GeometricMedian(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, {representation shape}]
+        X : array-like, shape=[n_samples, *metric.shape]
             Training input samples.
         y : None
             Target values. Ignored.
@@ -110,9 +110,10 @@ class GeometricMedian(BaseEstimator):
             Returns self.
         """
         n_points = X.shape[0]
-        median = gs.mean(X, axis=0) if self.init is None else self.init
+        median = X[-1] if self.init is None else self.init
         if weights is None:
-            weights = gs.ones(n_points) / n_points
+            weights = gs.ones(n_points)
+        weights /= gs.sum(weights)
 
         for iteration in range(self.max_iter):
             new_median = self._iterate_once(median, X, weights, self.lr)

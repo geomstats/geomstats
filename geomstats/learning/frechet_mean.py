@@ -317,13 +317,13 @@ def _adaptive_gradient_descent(
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, {dim, [n, n]}]
+    points : array-like, shape=[n_samples, *metric.shape]
         Points to be averaged.
     weights : array-like, shape=[n_samples,], optional
         Weights associated to the points.
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
-    init_point : array-like, shape=[{dim, [n, n]}]
+    init_point : array-like, shape=[*metric.shape]
         Initial point.
         Optional, default : None. In this case the first sample of the input
         data is used.
@@ -332,7 +332,7 @@ def _adaptive_gradient_descent(
 
     Returns
     -------
-    current_mean: array-like, shape=[{dim, [n, n]}]
+    current_mean: array-like, shape=[*metric.shape]
         Weighted Frechet mean of the points.
     """
     n_points = gs.shape(points)[0]
@@ -412,6 +412,11 @@ def _circle_mean(points):
     the mean is not unique, the algorithm only returns one of the means. Which
     mean is returned depends on numerical rounding errors.
 
+    Parameters
+    ----------
+    points : array-like, shape=[n_samples,]
+        Data set of angles.
+
     Reference
     ---------
     .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
@@ -442,7 +447,7 @@ def _circle_variances(mean, var, n_samples, points):
         Variance of the angles.
     n_samples : int
         Number of samples.
-    points : array-like, shape=[n,]
+    points : array-like, shape=[n_samples,]
         Data set of ordered angles.
 
     References
@@ -495,9 +500,9 @@ class FrechetMean(BaseEstimator):
         The `adaptive` method uses a Levenberg-Marquardt style adaptation of
         the learning rate. The `batch` method is similar to the default
         method but for batches of equal length of samples. In this case,
-        samples must be of shape [n_samples, n_batch, {dim, [n, n]}].
+        samples must be of shape [n_samples, n_batch, *metric.shape].
         Optional, default: \'default\'.
-    init_point : array-like, shape=[{dim, [n, n]}]
+    init_point : array-like, shape=[*metric.shape]
         Initial point.
         Optional, default : None. In this case the first sample of the input
         data is used.
@@ -509,7 +514,7 @@ class FrechetMean(BaseEstimator):
 
     Attributes
     ----------
-    estimate_ : array-like, shape=[{dim, [n, n]}]
+    estimate_ : array-like, shape=[*metric.shape]
         If fit, Frechet mean.
     """
 
@@ -571,13 +576,13 @@ class FrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, {dim, [n, n]}]
+        X : array-like, shape=[n_samples, *metric.shape]
             Training input samples.
         y : None
             Target values. Ignored.
         weights : array-like, shape=[n_samples,]
             Weights associated to the samples.
-            Optional, default: None.
+            Optional, default: None, in which case it is equally weighted.
 
         Returns
         -------

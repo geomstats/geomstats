@@ -1,5 +1,6 @@
 """Methods for testing the geometric median."""
 
+import geomstats.backend as gs
 from tests.conftest import Parametrizer, TestCase
 from tests.data.geometric_median_data import GeometricMedianTestData
 
@@ -17,10 +18,14 @@ class TestGeometricMedian(TestCase, metaclass=Parametrizer):
         )
 
     def test_fit_sanity(self, estimator, space):
-        """Test estimate belongs to space."""
+        """Test: estimate belongs to space,
+        and weights=None is equivalent to uniform weights."""
         n_samples = 5
-
         X = space.random_point(n_samples)
-        estimator.fit(X)
 
-        self.assertTrue(space.belongs(estimator.estimate_))
+        med = estimator.fit(X).estimate_
+        self.assertTrue(space.belongs(med))
+
+        weights = gs.ones(n_samples)
+        wmed = estimator.fit(X, None, weights).estimate_
+        self.assertAllClose(med, wmed)
