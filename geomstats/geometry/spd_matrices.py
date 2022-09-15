@@ -484,7 +484,9 @@ class SPDMetricAffine(RiemannianMetric):
         """
         dim = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+            dim=dim,
+            shape=(n, n),
+            signature=(dim, 0),
         )
         self.n = n
         self.power_affine = power_affine
@@ -757,7 +759,9 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricBuresWasserstein, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+            dim=dim,
+            signature=(dim, 0),
+            shape=(n, n),
         )
         self.n = n
 
@@ -991,7 +995,9 @@ class SPDMetricEuclidean(RiemannianMetric):
     def __init__(self, n, power_euclidean=1):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricEuclidean, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+            dim=dim,
+            signature=(dim, 0),
+            shape=(n, n),
         )
         self.n = n
         self.power_euclidean = power_euclidean
@@ -1198,7 +1204,9 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricLogEuclidean, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+            dim=dim,
+            signature=(dim, 0),
+            shape=(n, n),
         )
         self.n = n
 

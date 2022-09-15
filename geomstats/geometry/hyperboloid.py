@@ -39,10 +39,8 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         Optional, default: 1.
     """
 
-    default_coords_type = "extrinsic"
-    default_point_type = "vector"
-
     def __init__(self, dim, coords_type="extrinsic", scale=1, **kwargs):
+        # TODO: coords_type vs default_coords_type?
         minkowski = Minkowski(dim + 1)
         kwargs.setdefault("metric", HyperboloidMetric(dim, coords_type, scale))
         super(Hyperboloid, self).__init__(
@@ -55,7 +53,6 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             **kwargs
         )
         self.coords_type = coords_type
-        self.point_type = Hyperboloid.default_point_type
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
@@ -247,7 +244,7 @@ class HyperboloidMetric(HyperbolicMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}
+    coords_type : str, {'extrinsic', 'intrinsic', etc}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
     scale : int
@@ -256,15 +253,11 @@ class HyperboloidMetric(HyperbolicMetric):
         Optional, default: 1.
     """
 
-    default_point_type = "vector"
-    default_coords_type = "extrinsic"
-
     def __init__(self, dim, coords_type="extrinsic", scale=1):
         super(HyperboloidMetric, self).__init__(dim=dim, scale=scale)
         self.embedding_metric = MinkowskiMetric(dim + 1)
 
         self.coords_type = coords_type
-        self.point_type = HyperbolicMetric.default_point_type
 
         self.scale = scale
 

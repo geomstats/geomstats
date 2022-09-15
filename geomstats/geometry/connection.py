@@ -12,7 +12,6 @@ import geomstats.errors
 from geomstats.integrator import integrate
 
 N_STEPS = 100
-POINT_TYPES = {1: "vector", 2: "matrix", 3: "matrix"}
 
 
 class Connection(ABC):
@@ -25,31 +24,30 @@ class Connection(ABC):
     shape : tuple of int
         Shape of one element of the manifold.
         Optional, default : (dim, ).
-    default_point_type : str, {\'vector\', \'matrix\'}
-        Point type.
-        Optional, default: \'vector\'.
     default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
         Optional, default: \'intrinsic\'.
     """
 
-    def __init__(
-        self, dim, shape=None, default_point_type=None, default_coords_type="intrinsic"
-    ):
+    def __init__(self, dim, shape=None, default_coords_type="intrinsic"):
+        geomstats.errors.check_integer(dim, "dim")
+
         if shape is None:
             shape = (dim,)
-        if default_point_type is None:
-            default_point_type = POINT_TYPES[len(shape)]
-
-        geomstats.errors.check_integer(dim, "dim")
-        geomstats.errors.check_parameter_accepted_values(
-            default_point_type, "default_point_type", ["vector", "matrix"]
-        )
 
         self.dim = dim
         self.shape = shape
-        self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
+
+    @property
+    def default_point_type(self):
+        """Point type.
+
+        `vector` or `matrix`.
+        """
+        if len(self.shape) == 1:
+            return "vector"
+        return "matrix"
 
     def christoffels(self, base_point):
         """Christoffel symbols associated with the connection.
@@ -89,15 +87,7 @@ class Connection(ABC):
         equation = -gs.einsum("...kj,...j->...k", equation, velocity)
         return gs.stack([velocity, equation])
 
-    def exp(
-        self,
-        tangent_vec,
-        base_point,
-        n_steps=N_STEPS,
-        step="euler",
-        point_type=None,
-        **kwargs
-    ):
+    def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step="euler", **kwargs):
         """Exponential map associated to the affine connection.
 
         Exponential map at base_point of tangent_vec computed by integration
@@ -116,9 +106,6 @@ class Connection(ABC):
         step : str, {'euler', 'rk4'}
             The numerical scheme to use for integration.
             Optional, default: 'euler'.
-        point_type : str, {'vector', 'matrix'}
-            Type of representation used for points.
-            Optional, default: None.
 
         Returns
         -------

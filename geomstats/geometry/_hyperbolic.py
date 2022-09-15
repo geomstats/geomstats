@@ -23,7 +23,7 @@ class _Hyperbolic:
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}
+    coords_type : str, {'extrinsic', 'intrinsic', etc}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
     scale : int
@@ -459,19 +459,19 @@ class HyperbolicMetric(RiemannianMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+    coords_type : str, {'extrinsic', 'intrinsic', etc}, optional
         Default coordinates to represent points in hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
 
-    default_point_type = "vector"
     default_coords_type = "extrinsic"
 
     def __init__(self, dim, scale=1):
-        super(HyperbolicMetric, self).__init__(dim=dim, signature=(dim, 0))
-        self.point_type = HyperbolicMetric.default_point_type
+        super(HyperbolicMetric, self).__init__(
+            dim=dim, signature=(dim, 0), shape=(dim + 1,)
+        )
 
         self.scale = scale
 

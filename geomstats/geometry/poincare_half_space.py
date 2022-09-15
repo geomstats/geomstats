@@ -14,6 +14,8 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
+COORDS_TYPE = "half-space"
+
 
 class PoincareHalfSpace(_Hyperbolic, OpenSet):
     """Class for the n-dimensional Poincare half-space.
@@ -30,9 +32,6 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
         in Minkowski space whose squared norm is equal to -scale.
     """
 
-    default_coords_type = "half-space"
-    default_point_type = "vector"
-
     def __init__(self, dim, scale=1):
         super(PoincareHalfSpace, self).__init__(
             dim=dim,
@@ -40,8 +39,7 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
             scale=scale,
             metric=PoincareHalfSpaceMetric(dim, scale),
         )
-        self.coords_type = PoincareHalfSpace.default_coords_type
-        self.point_type = PoincareHalfSpace.default_point_type
+        self.coords_type = COORDS_TYPE
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the upper half space.
@@ -102,13 +100,9 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         Optional, default: 1.
     """
 
-    default_point_type = "vector"
-    default_coords_type = "half-space"
-
     def __init__(self, dim, scale=1.0):
         super(PoincareHalfSpaceMetric, self).__init__(dim=dim, signature=(dim, 0))
-        self.coords_type = PoincareHalfSpace.default_coords_type
-        self.point_type = PoincareHalfSpace.default_point_type
+        self.coords_type = COORDS_TYPE
         self.scale = scale
         self.poincare_ball = PoincareBall(dim=dim, scale=scale)
 

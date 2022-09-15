@@ -35,13 +35,8 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         """Create the canonical basis."""
         return gs.eye(3)
 
-    def get_identity(self, point_type="vector"):
+    def get_identity(self):
         """Get the identity of the 3D Heisenberg group.
-
-        Parameters
-        ----------
-        point_type : str, {'vector', 'matrix'}
-            Point_type of the returned value. Unused here.
 
         Returns
         -------

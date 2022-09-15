@@ -28,6 +28,12 @@ class ProductRiemannianMetric(RiemannianMetric):
     """
 
     def __init__(self, metrics, default_point_type="vector", n_jobs=1):
+
+        if default_point_type == "vector":
+            shape = (sum([m.shape[0] for m in metrics]),)
+        else:
+            shape = (len(metrics), *metrics[0].shape)
+
         self.n_metrics = len(metrics)
         dims = [metric.dim for metric in metrics]
         signatures = [metric.signature for metric in metrics]
@@ -37,7 +43,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         super(ProductRiemannianMetric, self).__init__(
             dim=sum(dims),
             signature=(sig_pos, sig_neg),
-            default_point_type=default_point_type,
+            shape=shape,
         )
 
         self.metrics = metrics

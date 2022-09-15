@@ -68,7 +68,8 @@ class SasakiMetric(RiemannianMetric):
         self.n_jobs = n_jobs
 
         super(SasakiMetric, self).__init__(
-            2 * metric.dim, shape=shape, default_point_type="matrix"
+            2 * metric.dim,
+            shape=shape,
         )
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, **kwargs):

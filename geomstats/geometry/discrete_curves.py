@@ -65,7 +65,6 @@ class DiscreteCurves(Manifold):
         super(DiscreteCurves, self).__init__(
             dim=dim,
             shape=(k_sampling_points,) + ambient_manifold.shape,
-            default_point_type="matrix",
             **kwargs,
         )
         self.ambient_manifold = ambient_manifold
@@ -281,7 +280,7 @@ class ClosedDiscreteCurves(LevelSet):
         dim = ambient_manifold.dim * (k_sampling_points - 1)
         super(ClosedDiscreteCurves, self).__init__(
             dim=dim,
-            shape=(),
+            shape=(k_sampling_points,) + ambient_manifold.shape,
             submersion=None,
             tangent_submersion=None,
             value=None,
@@ -583,7 +582,11 @@ class L2CurvesMetric(RiemannianMetric):
     """
 
     def __init__(self, ambient_manifold, ambient_metric=None):
-        super(L2CurvesMetric, self).__init__(dim=math.inf, signature=(math.inf, 0, 0))
+        super(L2CurvesMetric, self).__init__(
+            dim=math.inf,
+            signature=(math.inf, 0, 0),
+            shape=(None,) + ambient_manifold.shape,
+        )
         if ambient_metric is None:
             if hasattr(ambient_manifold, "metric"):
                 self.ambient_metric = ambient_manifold.metric
@@ -831,7 +834,9 @@ class ElasticMetric(RiemannianMetric):
         self, a, b, ambient_manifold=R2, ambient_metric=None, translation_invariant=True
     ):
         super(ElasticMetric, self).__init__(
-            dim=math.inf, signature=(math.inf, 0, 0), default_point_type="matrix"
+            dim=math.inf,
+            signature=(math.inf, 0, 0),
+            shape=(None,) + ambient_manifold.shape,
         )
         self.ambient_metric = ambient_metric
         if ambient_metric is None:
@@ -2130,7 +2135,11 @@ class SRVQuotientMetric(QuotientMetric):
     def __init__(self, ambient_manifold, k_sampling_points=10):
         dim = ambient_manifold.dim * k_sampling_points
         bundle = SRVShapeBundle(ambient_manifold, dim)
-        super(SRVQuotientMetric, self).__init__(fiber_bundle=bundle, dim=dim)
+        super(SRVQuotientMetric, self).__init__(
+            fiber_bundle=bundle,
+            dim=dim,
+            shape=(k_sampling_points,) + ambient_manifold.shape,
+        )
 
     def geodesic(self, initial_point, end_point, threshold=1e-3):
         """Geodesic for the quotient SRV Metric.

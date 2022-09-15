@@ -319,5 +319,5 @@ class PSDMetricBuresWasserstein(QuotientMetric):
     def __init__(self, n, k):
         fiber_bundle = BuresWassersteinBundle(n, k)
         super(PSDMetricBuresWasserstein, self).__init__(
-            fiber_bundle=fiber_bundle, shape=(n, k)
+            fiber_bundle=fiber_bundle, shape=(n, n)
         )

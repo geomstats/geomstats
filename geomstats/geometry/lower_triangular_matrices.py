@@ -20,10 +20,7 @@ class LowerTriangularMatrices(VectorSpace):
     def __init__(self, n, **kwargs):
         kwargs.setdefault("metric", MatricesMetric(n, n))
         super(LowerTriangularMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            shape=(n, n),
-            default_point_type="matrix",
-            **kwargs
+            dim=int(n * (n + 1) / 2), shape=(n, n), **kwargs
         )
         self.n = n
 

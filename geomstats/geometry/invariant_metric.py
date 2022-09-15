@@ -47,7 +47,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         self, group, metric_mat_at_identity=None, left_or_right="left", **kwargs
     ):
         super(_InvariantMetricMatrix, self).__init__(
-            dim=group.dim, default_point_type="matrix", **kwargs
+            dim=group.dim, shape=group.shape, **kwargs
         )
 
         self.group = group
@@ -870,7 +870,9 @@ class _InvariantMetricVector(RiemannianMetric):
     """
 
     def __init__(self, group, left_or_right="left", **kwargs):
-        super(_InvariantMetricVector, self).__init__(dim=group.dim, **kwargs)
+        super(_InvariantMetricVector, self).__init__(
+            dim=group.dim, shape=group.shape, **kwargs
+        )
 
         self.group = group
         self.metric_mat_at_identity = gs.eye(group.dim)
@@ -1204,7 +1206,7 @@ class BiInvariantMetric(_InvariantMetricVector):
     """
 
     def __init__(self, group):
-        super(BiInvariantMetric, self).__init__(group=group, shape=group.shape)
+        super(BiInvariantMetric, self).__init__(group=group)
         condition = (
             "SpecialOrthogonal" not in group.__str__()
             and "SO" not in group.__str__()
@@ -1213,7 +1215,6 @@ class BiInvariantMetric(_InvariantMetricVector):
         # TODO (nguigs): implement it for SE(3)
         if condition:
             raise ValueError("The bi-invariant metric is only implemented for SO(n)")
-        self.default_point_type = group.default_point_type
 
     def exp(self, tangent_vec, base_point=None, **kwargs):
         """Compute Riemannian exponential of tangent vector from the identity.

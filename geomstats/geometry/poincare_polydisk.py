@@ -37,13 +37,9 @@ class PoincarePolydisk(ProductManifold, OpenSet):
         Optional, default: \'extrinsic\'.
     """
 
-    default_coords_type = "extrinsic"
-    default_point_type = "matrix"
-
     def __init__(self, n_disks, coords_type="extrinsic"):
         self.n_disks = n_disks
         self.coords_type = coords_type
-        self.point_type = PoincarePolydisk.default_point_type
         disk = Hyperboloid(2, coords_type=coords_type)
         list_disks = [
             disk,
@@ -142,8 +138,6 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
-    default_coords_type = "extrinsic"
-
     def __init__(self, n_disks, coords_type="extrinsic"):
         self.n_disks = n_disks
         self.coords_type = coords_type
@@ -153,5 +147,6 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
             metric_i = HyperboloidMetric(2, coords_type, scale_i)
             list_metrics.append(metric_i)
         super(PoincarePolydiskMetric, self).__init__(
-            metrics=list_metrics, default_point_type="matrix"
+            metrics=list_metrics,
+            default_point_type="matrix",
         )

@@ -32,14 +32,12 @@ class RiemannianMetric(Connection, ABC):
     signature : tuple
         Signature of the metric.
         Optional, default: None.
-    default_point_type : str, {'vector', 'matrix'}
-        Point type.
-        Optional, default: 'vector'.
     """
 
-    def __init__(self, dim, shape=None, signature=None, default_point_type=None):
+    def __init__(self, dim, shape=None, signature=None):
         super(RiemannianMetric, self).__init__(
-            dim=dim, shape=shape, default_point_type=default_point_type
+            dim=dim,
+            shape=shape,
         )
         if signature is None:
             signature = (dim, 0)

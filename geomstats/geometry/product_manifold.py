@@ -34,9 +34,6 @@ class ProductManifold(Manifold):
     ----------
     manifolds : list
         List of manifolds in the product.
-    default_point_type : str, {'vector', 'matrix'}
-        Default representation of points.
-        Optional, default: 'vector'.
     n_jobs : int
         Number of jobs for parallel computing.
         Optional, default: 1.
@@ -57,7 +54,7 @@ class ProductManifold(Manifold):
         kwargs.setdefault(
             "metric",
             ProductRiemannianMetric(
-                metrics, default_point_type=default_point_type, n_jobs=n_jobs
+                metrics, n_jobs=n_jobs, default_point_type=default_point_type
             ),
         )
         dim = sum(self.dims)
@@ -70,7 +67,6 @@ class ProductManifold(Manifold):
         super(ProductManifold, self).__init__(
             dim=dim,
             shape=shape,
-            default_point_type=default_point_type,
             **kwargs,
         )
         self.manifolds = manifolds
@@ -122,9 +118,7 @@ class ProductManifold(Manifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if the point belongs to the manifold.
         """
-        point_type = self.default_point_type
-
-        if point_type == "vector":
+        if self.default_point_type == "vector":
             intrinsic = self.metric.is_intrinsic(point)
             belongs = self._iterate_over_manifolds(
                 "belongs", {"point": point, "atol": atol}, intrinsic
@@ -150,9 +144,6 @@ class ProductManifold(Manifold):
         ----------
         point : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
             Point to be regularized.
-        point_type : str, {'vector', 'matrix'}
-            Representation of point.
-            Optional, default: None.
 
         Returns
         -------
@@ -192,12 +183,7 @@ class ProductManifold(Manifold):
         samples : array-like, shape=[..., {dim, [n_manifolds, dim_each]}]
             Points sampled on the hypersphere.
         """
-        point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, "point_type", ["vector", "matrix"]
-        )
-
-        if point_type == "vector":
+        if self.default_point_type == "vector":
             data = self.manifolds[0].random_point(n_samples, bound)
             if len(self.manifolds) > 1:
                 for space in self.manifolds[1:]:
@@ -223,9 +209,6 @@ class ProductManifold(Manifold):
             Projected point.
         """
         point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, "point_type", ["vector", "matrix"]
-        )
 
         if point_type == "vector":
             intrinsic = self.metric.is_intrinsic(point)
@@ -260,9 +243,6 @@ class ProductManifold(Manifold):
             Tangent vector at base point.
         """
         point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, "point_type", ["vector", "matrix"]
-        )
 
         if point_type == "vector":
             intrinsic = self.metric.is_intrinsic(base_point)
@@ -299,12 +279,7 @@ class ProductManifold(Manifold):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, "point_type", ["vector", "matrix"]
-        )
-
-        if point_type == "vector":
+        if self.default_point_type == "vector":
             intrinsic = self.metric.is_intrinsic(base_point)
             is_tangent = self._iterate_over_manifolds(
                 "is_tangent",
@@ -342,9 +317,6 @@ class NFoldManifold(Manifold):
         Number of replication of the base manifold.
     metric : RiemannianMetric
         Metric object to use on the manifold.
-    default_point_type : str, {\'vector\', \'matrix\'}
-        Point type.
-        Optional, default: 'vector'.
     default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
         Optional, default: 'intrinsic'.
@@ -355,7 +327,6 @@ class NFoldManifold(Manifold):
         base_manifold,
         n_copies,
         metric=None,
-        default_point_type="matrix",
         default_coords_type="intrinsic",
         **kwargs
     ):
@@ -366,7 +337,6 @@ class NFoldManifold(Manifold):
         super(NFoldManifold, self).__init__(
             dim=dim,
             shape=shape,
-            default_point_type=default_point_type,
             default_coords_type=default_coords_type,
             **kwargs,
         )
@@ -470,7 +440,9 @@ class NFoldManifold(Manifold):
         """
         sample = self.base_manifold.random_point(n_samples * self.n_copies, bound)
         reshaped = gs.reshape(sample, (n_samples, self.n_copies) + self.base_shape)
-        return gs.squeeze(reshaped)
+        if n_samples > 1:
+            return reshaped
+        return gs.squeeze(reshaped, axis=0)
 
     def projection(self, point):
         """Project a point from product embedding manifold to the product manifold.
