@@ -18,8 +18,8 @@ class TestGeometricMedian(TestCase, metaclass=Parametrizer):
         )
 
     def test_fit_sanity(self, estimator, space):
-        """Test: estimate belongs to space,
-        and weights=None is equivalent to uniform weights."""
+        # Test estimate belongs to space,
+        # and weights=None is equivalent to uniform weights.
         n_samples = 5
         X = space.random_point(n_samples)
 
