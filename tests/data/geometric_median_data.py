@@ -2,7 +2,6 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
@@ -74,10 +73,6 @@ class GeometricMedianTestData(TestData):
             dict(
                 estimator=GeometricMedian(Hypersphere(4).metric),
                 space=Hypersphere(4),
-            ),
-            dict(
-                estimator=GeometricMedian(Minkowski(3).metric),
-                space=Minkowski(3),
             ),
             dict(
                 estimator=GeometricMedian(SPDMetricLogEuclidean(4)),
