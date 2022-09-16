@@ -23,9 +23,7 @@ class SymmetricMatrices(VectorSpace):
 
     def __init__(self, n, **kwargs):
         kwargs.setdefault("metric", MatricesMetric(n, n))
-        super(SymmetricMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2), shape=(n, n), **kwargs
-        )
+        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), **kwargs)
         self.n = n
 
     def _create_basis(self):
@@ -59,7 +57,7 @@ class SymmetricMatrices(VectorSpace):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        belongs = super(SymmetricMatrices, self).belongs(point)
+        belongs = super().belongs(point)
         if gs.any(belongs):
             is_symmetric = Matrices.is_symmetric(point, atol)
             return gs.logical_and(belongs, is_symmetric)
@@ -97,7 +95,7 @@ class SymmetricMatrices(VectorSpace):
         point : array-like, shape=[..., n, n]
            Sample.
         """
-        sample = super(SymmetricMatrices, self).random_point(n_samples, bound)
+        sample = super().random_point(n_samples, bound)
         return Matrices.to_symmetric(sample)
 
     @staticmethod

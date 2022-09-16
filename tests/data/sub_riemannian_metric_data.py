@@ -5,7 +5,7 @@ from tests.data_generation import TestData
 
 class ExampleMetric(SubRiemannianMetric):
     def __init__(self, dim, dist_dim, default_point_type="vector"):
-        super(ExampleMetric, self).__init__(
+        super().__init__(
             dim=dim, dist_dim=dist_dim, default_point_type=default_point_type
         )
 

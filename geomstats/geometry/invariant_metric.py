@@ -46,9 +46,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def __init__(
         self, group, metric_mat_at_identity=None, left_or_right="left", **kwargs
     ):
-        super(_InvariantMetricMatrix, self).__init__(
-            dim=group.dim, shape=group.shape, **kwargs
-        )
+        super().__init__(dim=group.dim, shape=group.shape, **kwargs)
 
         self.group = group
         self.lie_algebra = group.lie_algebra
@@ -694,7 +692,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                 f" antipodal matrices: {point} and {base_point}."
             )
         return self.group.to_tangent(
-            super(_InvariantMetricMatrix, self).log(
+            super().log(
                 point,
                 base_point,
                 n_steps=n_steps,
@@ -870,9 +868,7 @@ class _InvariantMetricVector(RiemannianMetric):
     """
 
     def __init__(self, group, left_or_right="left", **kwargs):
-        super(_InvariantMetricVector, self).__init__(
-            dim=group.dim, shape=group.shape, **kwargs
-        )
+        super().__init__(dim=group.dim, shape=group.shape, **kwargs)
 
         self.group = group
         self.metric_mat_at_identity = gs.eye(group.dim)
@@ -1206,7 +1202,7 @@ class BiInvariantMetric(_InvariantMetricVector):
     """
 
     def __init__(self, group):
-        super(BiInvariantMetric, self).__init__(group=group)
+        super().__init__(group=group)
         condition = (
             "SpecialOrthogonal" not in group.__str__()
             and "SO" not in group.__str__()
@@ -1288,9 +1284,7 @@ class BiInvariantMetric(_InvariantMetricVector):
             Inner-product of the two tangent vectors.
         """
         if self.default_point_type == "vector":
-            return super(BiInvariantMetric, self).inner_product_at_identity(
-                tangent_vec_a, tangent_vec_b
-            )
+            return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -1314,9 +1308,7 @@ class BiInvariantMetric(_InvariantMetricVector):
         if base_point is None or self.default_point_type == "matrix":
             return self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
-        return super(BiInvariantMetric, self).inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
+        return super().inner_product(tangent_vec_a, tangent_vec_b, base_point)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None

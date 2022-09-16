@@ -64,7 +64,7 @@ class ProductManifold(Manifold):
         else:
             shape = (len(manifolds), *manifolds[0].shape)
 
-        super(ProductManifold, self).__init__(
+        super().__init__(
             dim=dim,
             shape=shape,
             **kwargs,
@@ -334,7 +334,7 @@ class NFoldManifold(Manifold):
         dim = n_copies * base_manifold.dim
         shape = (n_copies,) + base_manifold.shape
 
-        super(NFoldManifold, self).__init__(
+        super().__init__(
             dim=dim,
             shape=shape,
             default_coords_type=default_coords_type,

@@ -20,7 +20,7 @@ class BinomialDistributions(OpenSet):
     """
 
     def __init__(self, n_draws):
-        super(BinomialDistributions, self).__init__(
+        super().__init__(
             dim=1,
             ambient_space=Euclidean(dim=1),
             metric=BinomialFisherRaoMetric(n_draws),
@@ -167,7 +167,7 @@ class BinomialFisherRaoMetric(RiemannianMetric):
     """
 
     def __init__(self, n_draws):
-        super(BinomialFisherRaoMetric, self).__init__(dim=1)
+        super().__init__(dim=1)
         self.n_draws = n_draws
 
     def squared_dist(self, point_a, point_b, **kwargs):

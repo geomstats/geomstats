@@ -23,7 +23,7 @@ class FullRankCorrelationMatrices(LevelSet):
 
     def __init__(self, n, **kwargs):
         kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
-        super(FullRankCorrelationMatrices, self).__init__(
+        super().__init__(
             dim=int(n * (n - 1) / 2),
             embedding_space=SPDMatrices(n=n),
             submersion=Matrices.diagonal,
@@ -154,7 +154,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
     """
 
     def __init__(self, n):
-        super(CorrelationMatricesBundle, self).__init__(
+        super().__init__(
             n=n,
             total_space_metric=SPDMetricAffine(n),
             group_dim=n,
@@ -263,7 +263,7 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
 
     def __init__(self, n):
         fiber_bundle = CorrelationMatricesBundle(n=n)
-        super(FullRankCorrelationAffineQuotientMetric, self).__init__(
+        super().__init__(
             fiber_bundle=fiber_bundle,
             shape=fiber_bundle.shape,
         )

@@ -32,7 +32,7 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
     """
 
     def __init__(self, dim, n, **kwargs):
-        super(MatrixLieAlgebra, self).__init__(shape=(n, n), **kwargs)
+        super().__init__(shape=(n, n), **kwargs)
         geomstats.errors.check_integer(dim, "dim")
         geomstats.errors.check_integer(n, "n")
         self.dim = dim

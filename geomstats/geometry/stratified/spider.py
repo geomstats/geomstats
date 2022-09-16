@@ -30,7 +30,7 @@ class SpiderPoint(Point):
     """
 
     def __init__(self, stratum, stratum_coord):
-        super(SpiderPoint, self).__init__()
+        super().__init__()
         if stratum == 0 and stratum_coord != 0:
             raise ValueError("If the stratum is zero, x must be zero.")
         self.stratum = stratum
@@ -76,7 +76,7 @@ class Spider(PointSet):
     """
 
     def __init__(self, n_rays):
-        super(Spider, self).__init__()
+        super().__init__()
         self.n_rays = n_rays
 
     def random_point(self, n_samples=1):
@@ -184,7 +184,7 @@ class SpiderMetric(PointSetMetric):
     """Geometry on the Spider, induced by the rays Geometry."""
 
     def __init__(self, space, ray_metric=EuclideanMetric(1)):
-        super(SpiderMetric, self).__init__(space=space)
+        super().__init__(space=space)
         self.ray_metric = ray_metric
 
     @property

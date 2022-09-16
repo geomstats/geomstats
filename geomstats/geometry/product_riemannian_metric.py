@@ -40,7 +40,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         sig_pos = sum(sig[0] for sig in signatures)
         sig_neg = sum(sig[1] for sig in signatures)
-        super(ProductRiemannianMetric, self).__init__(
+        super().__init__(
             dim=sum(dims),
             signature=(sig_pos, sig_neg),
             shape=shape,
@@ -313,7 +313,7 @@ class NFoldMetric(RiemannianMetric):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_metric.dim
         base_shape = base_metric.shape
-        super(NFoldMetric, self).__init__(dim=dim, shape=(n_copies, *base_shape))
+        super().__init__(dim=dim, shape=(n_copies, *base_shape))
         self.base_shape = base_shape
         self.base_metric = base_metric
         self.n_copies = n_copies

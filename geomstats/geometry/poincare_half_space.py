@@ -33,7 +33,7 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
     """
 
     def __init__(self, dim, scale=1):
-        super(PoincareHalfSpace, self).__init__(
+        super().__init__(
             dim=dim,
             ambient_space=Euclidean(dim),
             scale=scale,
@@ -101,7 +101,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, scale=1.0):
-        super(PoincareHalfSpaceMetric, self).__init__(dim=dim, signature=(dim, 0))
+        super().__init__(dim=dim, signature=(dim, 0))
         self.coords_type = COORDS_TYPE
         self.scale = scale
         self.poincare_ball = PoincareBall(dim=dim, scale=scale)

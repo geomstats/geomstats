@@ -67,7 +67,7 @@ class SasakiMetric(RiemannianMetric):
 
         self.n_jobs = n_jobs
 
-        super(SasakiMetric, self).__init__(
+        super().__init__(
             2 * metric.dim,
             shape=shape,
         )

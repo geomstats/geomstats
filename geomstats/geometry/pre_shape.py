@@ -43,7 +43,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
     def __init__(self, k_landmarks, m_ambient):
         embedding_manifold = Matrices(k_landmarks, m_ambient)
         embedding_metric = embedding_manifold.metric
-        super(PreShapeSpace, self).__init__(
+        super().__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
             embedding_space=embedding_manifold,
             submersion=embedding_metric.squared_norm,
@@ -698,7 +698,7 @@ class PreShapeMetric(RiemannianMetric):
     """
 
     def __init__(self, k_landmarks, m_ambient):
-        super(PreShapeMetric, self).__init__(
+        super().__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
             shape=(k_landmarks, m_ambient),
         )
@@ -943,7 +943,7 @@ class KendallShapeMetric(QuotientMetric):
 
     def __init__(self, k_landmarks, m_ambient):
         bundle = PreShapeSpace(k_landmarks, m_ambient)
-        super(KendallShapeMetric, self).__init__(
+        super().__init__(
             fiber_bundle=bundle,
             dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2),
             shape=(k_landmarks, m_ambient),

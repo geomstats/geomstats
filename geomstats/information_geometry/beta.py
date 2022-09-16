@@ -30,7 +30,7 @@ class BetaDistributions(DirichletDistributions):
     """
 
     def __init__(self):
-        super(BetaDistributions, self).__init__(dim=2)
+        super().__init__(dim=2)
         self.metric = BetaMetric()
 
     def sample(self, point, n_samples=1):
@@ -140,7 +140,7 @@ class BetaMetric(DirichletMetric):
     """Class for the Fisher information metric on beta distributions."""
 
     def __init__(self):
-        super(BetaMetric, self).__init__(dim=2)
+        super().__init__(dim=2)
 
     @staticmethod
     def metric_det(param_a, param_b):

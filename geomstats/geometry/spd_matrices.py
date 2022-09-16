@@ -29,7 +29,7 @@ class SPDMatrices(OpenSet):
 
     def __init__(self, n, **kwargs):
         kwargs.setdefault("metric", SPDMetricAffine(n))
-        super(SPDMatrices, self).__init__(
+        super().__init__(
             dim=int(n * (n + 1) / 2), ambient_space=SymmetricMatrices(n), **kwargs
         )
         self.n = n
@@ -483,7 +483,7 @@ class SPDMetricAffine(RiemannianMetric):
             2019. https://arxiv.org/abs/1906.01349
         """
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricAffine, self).__init__(
+        super().__init__(
             dim=dim,
             shape=(n, n),
             signature=(dim, 0),
@@ -758,7 +758,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricBuresWasserstein, self).__init__(
+        super().__init__(
             dim=dim,
             signature=(dim, 0),
             shape=(n, n),
@@ -994,7 +994,7 @@ class SPDMetricEuclidean(RiemannianMetric):
 
     def __init__(self, n, power_euclidean=1):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricEuclidean, self).__init__(
+        super().__init__(
             dim=dim,
             signature=(dim, 0),
             shape=(n, n),
@@ -1203,7 +1203,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricLogEuclidean, self).__init__(
+        super().__init__(
             dim=dim,
             signature=(dim, 0),
             shape=(n, n),

@@ -21,7 +21,7 @@ class VectorSpace(Manifold, abc.ABC):
 
     def __init__(self, shape, **kwargs):
         kwargs.setdefault("dim", int(gs.prod(gs.array(shape))))
-        super(VectorSpace, self).__init__(shape=shape, **kwargs)
+        super().__init__(shape=shape, **kwargs)
         self.shape = shape
         self._basis = None
 
@@ -181,9 +181,7 @@ class LevelSet(Manifold, abc.ABC):
         **kwargs
     ):
         kwargs.setdefault("shape", embedding_space.shape)
-        super(LevelSet, self).__init__(
-            dim=dim, default_coords_type=default_coords_type, **kwargs
-        )
+        super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
         self.embedding_space = embedding_space
         self.embedding_metric = embedding_space.metric
         self.submersion = submersion

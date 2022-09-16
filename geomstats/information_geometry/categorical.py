@@ -26,7 +26,7 @@ class CategoricalDistributions(MultinomialDistributions):
     """
 
     def __init__(self, dim):
-        super(CategoricalDistributions, self).__init__(
+        super().__init__(
             dim=dim,
             n_draws=1,
         )
@@ -47,4 +47,4 @@ class CategoricalMetric(MultinomialMetric):
     """
 
     def __init__(self, dim):
-        super(CategoricalMetric, self).__init__(dim=dim, n_draws=1)
+        super().__init__(dim=dim, n_draws=1)

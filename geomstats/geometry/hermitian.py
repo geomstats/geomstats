@@ -22,7 +22,7 @@ class Hermitian(VectorSpace):
 
     def __init__(self, dim, **kwargs):
         kwargs.setdefault("metric", HermitianMetric(dim, shape=(dim,)))
-        super(Hermitian, self).__init__(shape=(dim,), **kwargs)
+        super().__init__(shape=(dim,), **kwargs)
 
     def get_identity(self):
         """Get the identity of the group.
@@ -76,7 +76,7 @@ class HermitianMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, shape=None):
-        super(HermitianMetric, self).__init__(
+        super().__init__(
             dim=dim,
             shape=shape,
             signature=(dim, 0),

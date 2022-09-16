@@ -40,7 +40,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
     def __init__(self, n, **kwargs):
         matrices = Matrices(n, n)
         gln = GeneralLinear(n, positive_det=True)
-        super(_SpecialOrthogonalMatrices, self).__init__(
+        super().__init__(
             dim=int((n * (n - 1)) / 2),
             n=n,
             value=gs.eye(n),
@@ -534,7 +534,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal2Vectors, self).__init__(
+        super().__init__(
             n=2,
             epsilon=epsilon,
         )
@@ -702,7 +702,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal3Vectors, self).__init__(n=3, epsilon=epsilon)
+        super().__init__(n=3, epsilon=epsilon)
 
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.metric = self.bi_invariant_metric

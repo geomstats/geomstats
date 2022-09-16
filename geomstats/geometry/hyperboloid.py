@@ -43,7 +43,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         # TODO: coords_type vs default_coords_type?
         minkowski = Minkowski(dim + 1)
         kwargs.setdefault("metric", HyperboloidMetric(dim, coords_type, scale))
-        super(Hyperboloid, self).__init__(
+        super().__init__(
             dim=dim,
             embedding_space=minkowski,
             submersion=minkowski.metric.squared_norm,
@@ -84,7 +84,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
                 belongs = gs.tile([belongs], (point.shape[0],))
             return belongs
 
-        return super(Hyperboloid, self).belongs(point, atol)
+        return super().belongs(point, atol)
 
     def projection(self, point):
         """Project a point in space on the hyperboloid.
@@ -254,7 +254,7 @@ class HyperboloidMetric(HyperbolicMetric):
     """
 
     def __init__(self, dim, coords_type="extrinsic", scale=1):
-        super(HyperboloidMetric, self).__init__(dim=dim, scale=scale)
+        super().__init__(dim=dim, scale=scale)
         self.embedding_metric = MinkowskiMetric(dim + 1)
 
         self.coords_type = coords_type
