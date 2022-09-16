@@ -34,11 +34,47 @@ r2 = Euclidean(dim=2)
 r3 = Euclidean(dim=3)
 
 
+def _test_manifold_shape(test_cls, space_args):
+    space = test_cls.Space(*space_args)
+    point = space.random_point()
+
+    msg = f"Shape is {space.shape}, but random point shape is {point.shape}"
+    test_cls.assertTrue(space.shape == point.shape, msg)
+
+    if space.metric is None:
+        return
+
+    msg = (
+        f"Space shape is {space.shape}, "
+        f"whereas space metric shape is {space.metric.shape}",
+    )
+
+    if space.metric.shape[0] is None:
+        test_cls.assertTrue(len(space.shape) == len(space.metric.shape), msg)
+        test_cls.assertTrue(space.shape[1:] == space.metric.shape[1:], msg)
+    else:
+        test_cls.assertTrue(space.shape == space.metric.shape, msg)
+
+
+def _test_metric_manifold_shape(test_cls, connection_args, expected_shape):
+    connection = test_cls.Metric(*connection_args)
+
+    msg = f"Shape is {connection.shape}, but random point shape is {expected_shape}"
+    if connection.shape[0] is None:
+        test_cls.assertTrue(len(connection.shape) == len(expected_shape), msg)
+        test_cls.assertTrue(connection.shape[1:] == expected_shape[1:], msg)
+    else:
+        test_cls.asserttrue(connection.shape == expected_shape, msg)
+
+
 class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     skip_test_projection_belongs = True
     skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = DiscreteCurvesTestData()
+
+    def test_manifold_shape(self, space_args):
+        return _test_manifold_shape(self, space_args)
 
 
 class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
@@ -59,6 +95,9 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
         result = proj[-1, :]
         expected = proj[0, :]
         self.assertAllClose(result, expected, rtol=10 * gs.rtol)
+
+    def test_manifold_shape(self, space_args):
+        return _test_manifold_shape(self, space_args)
 
 
 class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -90,6 +129,9 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             expected.append(geod(times))
         expected = gs.stack(expected, axis=1)
         self.assertAllClose(result, expected)
+
+    def test_manifold_shape(self, connection_args, expected_shape):
+        return _test_metric_manifold_shape(self, connection_args, expected_shape)
 
 
 class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -363,6 +405,9 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(result, expected)
 
+    def test_manifold_shape(self, connection_args, expected_shape):
+        return _test_metric_manifold_shape(self, connection_args, expected_shape)
+
 
 class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_shape = True
@@ -466,6 +511,9 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = f_inverse
         expected = curve
         self.assertAllClose(result, expected, rtol, atol)
+
+    def test_manifold_shape(self, connection_args, expected_shape):
+        return _test_metric_manifold_shape(self, connection_args, expected_shape)
 
 
 class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
