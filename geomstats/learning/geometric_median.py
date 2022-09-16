@@ -20,7 +20,7 @@ class GeometricMedian(BaseEstimator):
     lr : float
         Learning rate to be used for the algorithm.
         Optional, default : 1.0
-    init : array-like, shape=[*metric.shape]
+    init_point : array-like, shape=[*metric.shape]
         Initialization to be used in the start.
         Optional, default : None, in which case it uses last sample.
     print_every : int
@@ -49,14 +49,14 @@ class GeometricMedian(BaseEstimator):
         metric,
         max_iter=100,
         lr=1.0,
-        init=None,
+        init_point=None,
         print_every=None,
         epsilon=gs.atol,
     ):
         self.metric = metric
         self.max_iter = max_iter
         self.lr = lr
-        self.init = init
+        self.init_point = init_point
         self.print_every = print_every
         self.epsilon = epsilon
         self.estimate_ = None
@@ -81,10 +81,12 @@ class GeometricMedian(BaseEstimator):
             Updated median after single iteration.
         """
         dists = self.metric.dist(current_median, X)
-        is_zero = dists <= gs.atol
+        is_non_zero = dists > gs.atol
+        if not gs.any(is_non_zero):
+            return current_median
 
-        w = weights[~is_zero] / dists[~is_zero]
-        logs = self.metric.log(X[~is_zero], current_median)
+        w = weights[is_non_zero] / dists[is_non_zero]
+        logs = self.metric.log(X[is_non_zero], current_median)
         v_k = gs.einsum("n,n...->...", w / gs.sum(w), logs)
         updated_median = self.metric.exp(lr * v_k, current_median)
         return updated_median
@@ -110,7 +112,7 @@ class GeometricMedian(BaseEstimator):
             Returns self.
         """
         n_points = X.shape[0]
-        median = X[-1] if self.init is None else self.init
+        median = X[-1] if self.init_point is None else self.init_point
         if weights is None:
             weights = gs.ones(n_points)
         weights /= gs.sum(weights)
