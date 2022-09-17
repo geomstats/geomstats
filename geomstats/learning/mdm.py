@@ -11,26 +11,25 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 
 class RiemannianMinimumDistanceToMeanClassifier:
-    r"""Minimum Distance to Mean (MDM) classifier on manifolds.
+    """Minimum Distance to Mean (MDM) classifier on manifolds.
 
     Classification by nearest centroid. For each of the given classes, a
     centroid is estimated according to the chosen metric. Then, for each new
-    point, the class is affected according to the nearest centroid (see
-    [BBCJ2012]_).
+    point, the class is affected according to the nearest centroid [BBCJ2012]_.
 
     Parameters
     ----------
     riemannian_metric : RiemannianMetric
         Riemannian metric to be used.
-    n_classes : int
-        Number of classes.
 
     Attributes
     ----------
-    mean_estimates_ : list
-        If fit, centroids computed on training set.
+    n_classes_ : int
+        If fit, number of classes.
     classes_ : list
-        If fit, classes of training set.
+        If fit, n_classes labels of training set.
+    mean_estimates_ : list of arrays-like of shape=[*metric.shape]
+        If fit, n_classes centroids computed on training set.
 
     References
     ----------
@@ -39,11 +38,11 @@ class RiemannianMinimumDistanceToMeanClassifier:
         Trans. Biomed. Eng., vol. 59, pp. 920-928, 2012.
     """
 
-    def __init__(self, riemannian_metric, n_classes):
+    def __init__(self, riemannian_metric):
         self.riemannian_metric = riemannian_metric
-        self.n_classes = n_classes
-        self.mean_estimates_ = None
+        self.n_classes_ = None
         self.classes_ = None
+        self.mean_estimates_ = None
 
     def fit(self, X, y):
         """Compute Frechet mean of each class.
@@ -51,12 +50,12 @@ class RiemannianMinimumDistanceToMeanClassifier:
         Parameters
         ----------
         X : array-like, shape=[n_samples, *metric.shape]
-            Training data, where n_samples is the number of samples
-            and n_features is the number of features.
+            Training input samples.
         y : array-like, shape=[n_samples,]
             Training labels.
         """
         self.classes_ = gs.unique(y)
+        self.n_classes_ = len(self.classes_)
         mean_estimator = FrechetMean(metric=self.riemannian_metric)
         frechet_means = []
         for c in self.classes_:
@@ -70,15 +69,17 @@ class RiemannianMinimumDistanceToMeanClassifier:
         Parameters
         ----------
         X : array-like, shape=[n_samples, *metric.shape]
-            Test data, where n_samples is the number of samples
-            and n_features is the number of features.
+            Test samples.
 
         Returns
         -------
         y : array-like, shape=[n_samples,]
             Predicted labels.
         """
-        indices = self.riemannian_metric.closest_neighbor_index(X, self.mean_estimates_)
+        indices = self.riemannian_metric.closest_neighbor_index(
+            X,
+            self.mean_estimates_,
+        )
         if gs.ndim(indices) == 0:
             indices = gs.expand_dims(indices, 0)
 
@@ -93,8 +94,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         Parameters
         ----------
         X : array-like, shape=[n_samples, *metric.shape]
-            Test data, where n_samples is the number of samples
-            and n_features is the number of features.
+            Test samples.
 
         Returns
         -------
@@ -104,7 +104,10 @@ class RiemannianMinimumDistanceToMeanClassifier:
         n_samples = X.shape[0]
         probas = []
         for i in range(n_samples):
-            dist2 = self.riemannian_metric.squared_dist(X[i], self.mean_estimates_)
+            dist2 = self.riemannian_metric.squared_dist(
+                X[i],
+                self.mean_estimates_,
+            )
             probas.append(softmax(-dist2))
         return gs.array(probas)
 
@@ -116,8 +119,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         Parameters
         ----------
         X : array-like, shape=[n_samples, *metric.shape]
-            Test data, where n_samples is the number of samples
-            and n_features is the number of features.
+            Test samples.
         y : array-like, shape=[n_samples,]
             True labels for `X`.
         weights : array-like, shape=[n_samples,]
