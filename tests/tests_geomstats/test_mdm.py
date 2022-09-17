@@ -25,7 +25,6 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         for metric in METRICS:
             MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
                 metric(n=2),
-                n_classes=2,
             )
             MDMEstimator.fit(X_train, y_train)
             bary_a_fit = MDMEstimator.mean_estimates_[0]
@@ -56,7 +55,6 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         for metric in METRICS:
             MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
                 metric(n=2),
-                n_classes=2,
             )
             MDMEstimator.fit(X_train, y_train)
             y_test = MDMEstimator.predict(X_test)
@@ -75,7 +73,6 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         for metric in METRICS:
             MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
                 metric(n=2),
-                n_classes=2,
             )
             MDMEstimator.fit(X_train, y_train)
             proba_test = MDMEstimator.predict_proba(X_test)
@@ -101,7 +98,6 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         for metric in METRICS:
             MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
                 metric(n=2),
-                n_classes=2,
             )
             MDMEstimator.fit(X_train, y_train)
 
