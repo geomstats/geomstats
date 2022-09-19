@@ -14,8 +14,6 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-COORDS_TYPE = "half-space"
-
 
 class PoincareHalfSpace(_Hyperbolic, OpenSet):
     """Class for the n-dimensional Poincare half-space.
@@ -38,8 +36,8 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
             ambient_space=Euclidean(dim),
             scale=scale,
             metric=PoincareHalfSpaceMetric(dim, scale),
+            default_coords_type="half-space",
         )
-        self.coords_type = COORDS_TYPE
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the upper half space.
@@ -101,10 +99,13 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, scale=1.0):
-        super(PoincareHalfSpaceMetric, self).__init__(dim=dim, signature=(dim, 0))
-        self.coords_type = COORDS_TYPE
-        self.scale = scale
         self.poincare_ball = PoincareBall(dim=dim, scale=scale)
+        super(PoincareHalfSpaceMetric, self).__init__(
+            dim=dim,
+            signature=(dim, 0),
+            default_coords_type=self.poincare_ball.default_coords_type,
+        )
+        self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner-product of two tangent vectors at a base point.

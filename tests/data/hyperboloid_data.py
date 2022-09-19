@@ -27,19 +27,19 @@ class HyperboloidTestData(_LevelSetTestData):
         smoke_data = [
             dict(
                 dim=3,
-                coords_type="extrinsic",
+                default_coords_type="extrinsic",
                 vec=gs.array([1.0, 0.0, 0.0, 0.0]),
                 expected=True,
             ),
             dict(
                 dim=2,
-                coords_type="extrinsic",
+                default_coords_type="extrinsic",
                 vec=gs.array([0.5, 7, 3.0]),
                 expected=False,
             ),
             dict(
                 dim=2,
-                coords_type="intrinsic",
+                default_coords_type="intrinsic",
                 vec=gs.array([0.5, 7]),
                 expected=True,
             ),
