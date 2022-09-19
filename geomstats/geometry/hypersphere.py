@@ -876,7 +876,7 @@ class HypersphereMetric(RiemannianMetric):
         )
         return transported
 
-    def christoffels(self, point, point_type="spherical"):
+    def christoffels(self, point, coords_type="spherical"):
         """Compute the Christoffel symbols at a point.
 
         Only implemented in dimension 2 and for spherical coordinates.
@@ -886,7 +886,7 @@ class HypersphereMetric(RiemannianMetric):
         point : array-like, shape=[..., dim]
             Point on hypersphere where the Christoffel symbols are computed.
 
-        point_type: str, {'spherical', 'intrinsic', 'extrinsic'}
+        coords_type: str, {'spherical', 'intrinsic', 'extrinsic'}
             Coordinates in which to express the Christoffel symbols.
             Optional, default: 'spherical'.
 
@@ -896,7 +896,7 @@ class HypersphereMetric(RiemannianMetric):
                                          covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """
-        if self.dim != 2 or point_type != "spherical":
+        if self.dim != 2 or coords_type != "spherical":
             raise NotImplementedError(
                 "The Christoffel symbols are only implemented"
                 " for spherical coordinates in the 2-sphere"

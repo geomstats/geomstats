@@ -1149,7 +1149,7 @@ class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
     This class supports both left and right invariant metrics
     which exist on Lie groups.
 
-    If `point_type='vector'`, points are parameterized by the Riemannian
+    If `point_type == 'vector'`, points are parameterized by the Riemannian
     logarithm for the canonical left-invariant metric.
 
     Parameters

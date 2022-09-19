@@ -354,7 +354,8 @@ class _Hyperbolic:
         -------
         point_to : array-like, shape=[..., dim]
                                or shape=[n_sample, dim + 1]
-            Point in hyperbolic space in coordinates given by to_point_type.
+            Point in hyperbolic space in coordinates given by
+            to_coordinates_system.
         """
         coords_transform = {
             "ball-extrinsic": _Hyperbolic._ball_to_extrinsic_coordinates,
@@ -389,7 +390,7 @@ class _Hyperbolic:
         Returns
         -------
         point_to : array-like, shape=[..., {dim, dim + 1}]
-            Point in hyperbolic space in coordinates given by to_point_type.
+            Point in hyperbolic space in coordinates given by to_coords_type.
         """
         return _Hyperbolic.change_coordinates_system(
             point, self.coords_type, to_coords_type
@@ -404,7 +405,7 @@ class _Hyperbolic:
         Parameters
         ----------
         point : array-like, shape=[..., {dim, dim + 1}]
-            Point in hyperbolic space in coordinates from_point_type.
+            Point in hyperbolic space in coordinates from_coords_type.
         from_coords_type : str, {'ball', 'extrinsic', 'intrinsic', ...}
             Coordinates type.
 
