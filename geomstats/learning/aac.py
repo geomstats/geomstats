@@ -47,6 +47,9 @@ class _AACFrechetMean(BaseEstimator):
         Stopping criterion on the maximum number of iterations.
     init_point: array-like, shape=[n_nodes, n_nodes] or GraphPoint, default random.
         Algorithm initialization.
+    save_last_X: bool, default = True
+        Flag to save the data as aligned in the last algorithm iteration. Use with care
+        if number of nodes is large.
     total_space_estimator_kwargs : dict
         Total space estimator keyword arguments.
 
@@ -58,6 +61,8 @@ class _AACFrechetMean(BaseEstimator):
         Mean.
     n_iter_ : int
         Number of performed iterations.
+    aligned_X_: array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint.
+        Set of aligned data as after the last call of fit. Saved if save_last_X=True.
 
     References
     ----------
@@ -75,6 +80,7 @@ class _AACFrechetMean(BaseEstimator):
         max_iter=20,
         init_point=None,
         total_space_estimator_kwargs=None,
+        save_last_X=True,
     ):
         self.metric = metric
         self.epsilon = epsilon
@@ -88,6 +94,8 @@ class _AACFrechetMean(BaseEstimator):
 
         self.estimate_ = None
         self.n_iter_ = None
+        self.save_last_X = save_last_X
+        self.aligned_X_ = None
 
     def fit(self, X, y=None):
         """Fit the Frechet Mean.
@@ -120,7 +128,8 @@ class _AACFrechetMean(BaseEstimator):
             previous_estimate = new_estimate
 
         _warn_max_iterations(iteration, self.max_iter)
-
+        if self.save_last_X:
+            self.aligned_X_ = aligned_X
         self.estimate_ = new_estimate
         self.n_iter_ = iteration
 
@@ -155,6 +164,9 @@ class _AACGGPCA(BaseEstimator):
     n_components: int
         Number of principal components to be estimated. Notice that the convergence is
         ensured only for the first principal component.
+    save_last_X: bool, default = True
+        Flag to save the data as aligned in the last algorithm iteration. Use with care
+        if number of nodes is large.
 
     Attributes
     ----------
@@ -164,6 +176,8 @@ class _AACGGPCA(BaseEstimator):
         Default: ``sklearn.decomposition.PCA``.
     n_iter_ : int
         Number of performed iterations.
+    aligned_X_: array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint.
+        Set of aligned data as after the last call of fit. Saved if save_last_X=True.
 
     References
     ----------
@@ -174,7 +188,14 @@ class _AACGGPCA(BaseEstimator):
     """
 
     def __init__(
-        self, metric, *, n_components=2, epsilon=1e-6, max_iter=20, init_point=None
+        self,
+        metric,
+        *,
+        n_components=2,
+        epsilon=1e-6,
+        max_iter=20,
+        init_point=None,
+        save_last_X=True,
     ):
         self.metric = metric
         self.epsilon = epsilon
@@ -183,6 +204,7 @@ class _AACGGPCA(BaseEstimator):
         self.n_components = n_components
         self.total_space_estimator = WrappedPCA(n_components=self.n_components)
         self.n_iter_ = None
+        self.save_last_X = True
 
     @property
     def components_(self):
@@ -249,6 +271,8 @@ class _AACGGPCA(BaseEstimator):
             error = expl_ - previous_expl
             previous_expl = expl_
 
+        if self.save_last_X:
+            self.aligned_X_ = aligned_X
         self.n_iter_ = iteration
         _warn_max_iterations(iteration, self.max_iter)
 
@@ -283,6 +307,9 @@ class _AACRegression(BaseEstimator):
         Stopping criterion on the maximum number of iterations.
     init_point: array-like, shape=[n_nodes, n_nodes] or GraphPoint, default random.
         Algorithm initialization.
+    save_last_Y: bool, default=True
+        Flag to save the data as aligned in the last algorithm iteration. Use with care
+        if number of nodes is large.
     total_space_estimator_kwargs : dict
         Total space estimator keyword arguments.
 
@@ -293,6 +320,8 @@ class _AACRegression(BaseEstimator):
         matrices in the total space.
         Check geomstats.learning._sklearn_wrapper for details.
         Default: ``sklearn.linear_model.LinearRegression``.
+    aligned_Y_: array-like, shape=[n_samples, n_nodes, n_nodes] or set of GraphPoint.
+        Set of aligned data as after the last call of fit. Saved if save_last_Y=True.
 
     References
     ----------
@@ -310,6 +339,7 @@ class _AACRegression(BaseEstimator):
         max_iter=20,
         init_point=None,
         total_space_estimator_kwargs=None,
+        save_last_Y=True,
     ):
         self.metric = metric
         self.epsilon = epsilon
@@ -321,6 +351,8 @@ class _AACRegression(BaseEstimator):
             **self.total_space_estimator_kwargs
         )
         self.n_iter_ = None
+        self.save_last_Y = save_last_Y
+        self.aligned_Y_ = None
 
     def _compute_pred_error(self, y_pred, y):
         """Compute the prediction error."""
@@ -366,6 +398,8 @@ class _AACRegression(BaseEstimator):
             previous_y_pred = y_pred
             previous_pred_dist = pred_dist
 
+        if self.save_last_Y:
+            self.aligned_Y_ = aligned_y
         self.n_iter_ = iteration
         _warn_max_iterations(iteration, self.max_iter)
 
