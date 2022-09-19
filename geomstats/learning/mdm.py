@@ -12,7 +12,11 @@ from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
 
 
-class RiemannianMinimumDistanceToMeanClassifier(TransformerMixin, ClassifierMixin, BaseEstimator):
+class RiemannianMinimumDistanceToMeanClassifier(
+        TransformerMixin,
+        ClassifierMixin,
+        BaseEstimator,
+    ):
     """Minimum Distance to Mean (MDM) classifier on manifolds.
 
     Classification by nearest centroid. For each of the given classes, a
@@ -26,8 +30,6 @@ class RiemannianMinimumDistanceToMeanClassifier(TransformerMixin, ClassifierMixi
 
     Attributes
     ----------
-    n_classes_ : int
-        If fit, number of classes in training set.
     classes_ : array-like, shape=[n_classes,]
         If fit, labels of training set.
     mean_estimates_ : array-like, shape=[n_classes, *metric.shape]
@@ -42,7 +44,6 @@ class RiemannianMinimumDistanceToMeanClassifier(TransformerMixin, ClassifierMixi
 
     def __init__(self, riemannian_metric):
         self.riemannian_metric = riemannian_metric
-        self.n_classes_ = None
         self.classes_ = None
         self.mean_estimates_ = None
 
