@@ -13,10 +13,10 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 
 class RiemannianMinimumDistanceToMeanClassifier(
-        TransformerMixin,
-        ClassifierMixin,
-        BaseEstimator,
-    ):
+    TransformerMixin,
+    ClassifierMixin,
+    BaseEstimator,
+):
     """Minimum Distance to Mean (MDM) classifier on manifolds.
 
     Classification by nearest centroid. For each of the given classes, a
