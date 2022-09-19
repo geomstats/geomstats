@@ -4,13 +4,15 @@ Lead authors: Daniel Brooks and Quentin Barthelemy.
 """
 
 from scipy.special import softmax
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import accuracy_score
 
 import geomstats.backend as gs
+from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
 
 
-class RiemannianMinimumDistanceToMeanClassifier:
+class RiemannianMinimumDistanceToMeanClassifier(TransformerMixin, ClassifierMixin, BaseEstimator):
     """Minimum Distance to Mean (MDM) classifier on manifolds.
 
     Classification by nearest centroid. For each of the given classes, a
@@ -25,11 +27,11 @@ class RiemannianMinimumDistanceToMeanClassifier:
     Attributes
     ----------
     n_classes_ : int
-        If fit, number of classes.
-    classes_ : list
-        If fit, n_classes labels of training set.
-    mean_estimates_ : list of arrays-like of shape=[*metric.shape]
-        If fit, n_classes centroids computed on training set.
+        If fit, number of classes in training set.
+    classes_ : array-like, shape=[n_classes,]
+        If fit, labels of training set.
+    mean_estimates_ : array-like, shape=[n_classes, *metric.shape]
+        If fit, centroids computed on training set.
 
     References
     ----------
@@ -44,7 +46,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         self.classes_ = None
         self.mean_estimates_ = None
 
-    def fit(self, X, y):
+    def fit(self, X, y, weights=None):
         """Compute Frechet mean of each class.
 
         Parameters
@@ -53,14 +55,28 @@ class RiemannianMinimumDistanceToMeanClassifier:
             Training input samples.
         y : array-like, shape=[n_samples,]
             Training labels.
+        weights : array-like, shape=[n_samples,]
+            Weights associated to the samples.
+            Optional, default: None, in which case it is equally weighted.
+
+        Returns
+        -------
+        self : object
+            Returns self.
         """
         self.classes_ = gs.unique(y)
         self.n_classes_ = len(self.classes_)
+        if weights is None:
+            weights = gs.ones(X.shape[0])
+        weights /= gs.sum(weights)
+
         mean_estimator = FrechetMean(metric=self.riemannian_metric)
         frechet_means = []
         for c in self.classes_:
             X_c = X[gs.where(y == c, True, False)]
-            frechet_means.append(mean_estimator.fit(X_c).estimate_)
+            weights_c = weights[gs.where(y == c, True, False)]
+            mean_c = mean_estimator.fit(X_c, None, weights_c).estimate_
+            frechet_means.append(mean_c)
         self.mean_estimates_ = gs.array(frechet_means)
 
     def predict(self, X):
@@ -124,7 +140,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
             True labels for `X`.
         weights : array-like, shape=[n_samples,]
             Weights associated to the samples.
-            Optional, default: None.
+            Optional, default: None, in which case it is equally weighted.
 
         Returns
         -------
