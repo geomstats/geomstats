@@ -331,7 +331,8 @@ class ProductManifold(Manifold):
 class NFoldManifold(Manifold):
     r"""Class for an n-fold product manifold :math:`M^n`.
 
-    Define a manifold as the product manifold of n copies of a given base manifold M.
+    Define a manifold as the product manifold of n copies of a given base
+    manifold M.
 
     Parameters
     ----------

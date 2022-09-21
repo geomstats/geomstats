@@ -39,6 +39,7 @@ BACKEND_ATTRIBUTES = {
         "argmin",
         "array",
         "array_from_sparse",
+        "as_dtype",
         "assignment",
         "assignment_by_sum",
         "atol",
@@ -73,6 +74,7 @@ BACKEND_ATTRIBUTES = {
         "flip",
         "floor",
         "from_numpy",
+        "get_default_dtype",
         "get_slice",
         "greater",
         "hsplit",
@@ -114,6 +116,7 @@ BACKEND_ATTRIBUTES = {
         "reshape",
         "rtol",
         "searchsorted",
+        "set_default_dtype",
         "set_diag",
         "shape",
         "sign",
@@ -265,6 +268,8 @@ class BackendImporter:
         module.__name__ = f"geomstats.{_BACKEND}"
         module.__loader__ = self
         sys.modules[fullname] = module
+
+        module.set_default_dtype("float64")
 
         logging.info("Using {:s} backend".format(_BACKEND))
         return module

@@ -17,10 +17,10 @@ s2 = Hypersphere(dim=2)
 r2 = Euclidean(dim=2)
 r3 = s2.embedding_space
 
-initial_point = [0.0, 0.0, 1.0]
-initial_tangent_vec_a = [1.0, 0.0, 0.0]
-initial_tangent_vec_b = [0.0, 1.0, 0.0]
-initial_tangent_vec_c = [-1.0, 0.0, 0.0]
+initial_point = gs.array([0.0, 0.0, 1.0])
+initial_tangent_vec_a = gs.array([1.0, 0.0, 0.0])
+initial_tangent_vec_b = gs.array([0.0, 1.0, 0.0])
+initial_tangent_vec_c = gs.array([-1.0, 0.0, 0.0])
 
 curve_fun_a = s2.metric.geodesic(
     initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_a

@@ -32,7 +32,7 @@ def _expand_and_repeat_point(point, n_reps=2):
 class TestData:
     """Class for TestData objects."""
 
-    def generate_tests(self, smoke_test_data, random_test_data=[]):
+    def generate_tests(self, smoke_test_data, random_test_data=()):
         """Wrap test data with corresponding markers.
 
         Parameters
@@ -184,36 +184,20 @@ class TestData:
 class _ManifoldTestData(TestData):
     """Class for ManifoldTestData: data to test manifold properties."""
 
-    def random_point_belongs_test_data(
-        self,
-        belongs_atol=gs.atol,
-    ):
-        """Generate data to check that a random point belongs to the manifold.
-
-        Parameters
-        ----------
-        belongs_atol : float
-            Absolute tolerance for the belongs function.
-        """
+    def random_point_belongs_test_data(self):
+        """Generate data to check that a random point belongs to the manifold."""
         random_data = [
-            dict(space_args=space_args, n_points=n_points, belongs_atol=belongs_atol)
+            dict(space_args=space_args, n_points=n_points)
             for space_args, n_points in zip(self.space_args_list, self.n_points_list)
         ]
         return self.generate_tests([], random_data)
 
-    def projection_belongs_test_data(self, belongs_atol=gs.atol):
-        """Generate data to check that a projected point belongs to the manifold.
-
-        Parameters
-        ----------
-        belongs_atol : float
-            Absolute tolerance for the belongs function.
-        """
+    def projection_belongs_test_data(self):
+        """Generate data to check that a projected point belongs to the manifold."""
         random_data = [
             dict(
                 space_args=space_args,
                 point=gs.random.normal(size=(n_points,) + shape),
-                belongs_atol=belongs_atol,
             )
             for space_args, shape, n_points in zip(
                 self.space_args_list, self.shape_list, self.n_points_list
@@ -221,17 +205,8 @@ class _ManifoldTestData(TestData):
         ]
         return self.generate_tests([], random_data)
 
-    def to_tangent_is_tangent_test_data(
-        self,
-        is_tangent_atol=gs.atol,
-    ):
-        """Generate data to check that to_tangent returns a tangent vector.
-
-        Parameters
-        ----------
-        is_tangent_atol : float
-            Absolute tolerance for the is_tangent function.
-        """
+    def to_tangent_is_tangent_test_data(self):
+        """Generate data to check that to_tangent returns a tangent vector."""
         random_data = []
 
         for space_args, shape, n_vecs in zip(
@@ -245,22 +220,12 @@ class _ManifoldTestData(TestData):
                     space_args=space_args,
                     vector=vec,
                     base_point=base_point,
-                    is_tangent_atol=is_tangent_atol,
                 )
             )
         return self.generate_tests([], random_data)
 
-    def random_tangent_vec_is_tangent_test_data(
-        self,
-        is_tangent_atol=gs.atol,
-    ):
-        """Generate data to check that random tangent vec returns a tangent vector.
-
-        Parameters
-        ----------
-        is_tangent_atol : float
-            Absolute tolerance for the is_tangent function.
-        """
+    def random_tangent_vec_is_tangent_test_data(self):
+        """Generate data to check that random tangent vec returns a tangent vector."""
         random_data = []
 
         # TODO: n_vecs_list or self.n_tangent_vecs_list?
@@ -273,7 +238,6 @@ class _ManifoldTestData(TestData):
                     space_args=space_args,
                     n_samples=n_tangent_vec,
                     base_point=base_point,
-                    is_tangent_atol=is_tangent_atol,
                 )
             )
         return self.generate_tests([], random_data)
@@ -507,31 +471,20 @@ class _VectorSpaceTestData(_ManifoldTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def random_point_is_tangent_test_data(self, is_tangent_atol=gs.atol):
-        """Generate data to check that random point is tangent vector.
-
-        Parameters
-        ----------
-        is_tangent_atol : float
-            Absolute tolerance for the is_tangent function.
-        """
+    def random_point_is_tangent_test_data(self):
+        """Generate data to check that random point is tangent vector."""
         random_data = []
         for space_args, n_points in zip(self.space_args_list, self.n_points_list):
             random_data += [
                 dict(
                     space_args=space_args,
                     n_points=n_points,
-                    is_tangent_atol=is_tangent_atol,
                 )
             ]
 
         return self.generate_tests([], random_data)
 
-    def to_tangent_is_projection_test_data(
-        self,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
+    def to_tangent_is_projection_test_data(self):
         """Generate data to check that to_tangent return projection.
 
         Parameters
@@ -544,10 +497,6 @@ class _VectorSpaceTestData(_ManifoldTestData):
             List of shapes of the random vectors generated, and projected.
         n_vecs_list : list
             List of integers for the number of random vectors generated.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
         """
         random_data = []
         for space_args, shape, n_vecs in zip(
@@ -562,8 +511,6 @@ class _VectorSpaceTestData(_ManifoldTestData):
                     space_args=space_args,
                     vector=vec,
                     base_point=base_point,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
         return self.generate_tests([], random_data)
@@ -1043,10 +990,6 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             List of number of points A to generate on the manifold.
         n_points_b_list : list
             List of number of points B to generate on the manifold.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
         """
         return self.squared_dist_is_symmetric_test_data()
 

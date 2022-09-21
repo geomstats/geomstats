@@ -69,7 +69,6 @@ class GammaDistributions(OpenSet):
             Boolean indicating whether point represents a Gamma
             distribution.
         """
-        point = gs.array(point, gs.float32)
         point_dim = point.shape[-1]
         belongs = point_dim == 2
         belongs = gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
@@ -415,7 +414,7 @@ class GammaMetric(RiemannianMetric):
 
         c111 = gs.where(
             gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
-            (gs.polygamma(2, kappa) + gs.array(kappa, dtype=gs.float32) ** -2)
+            (gs.polygamma(2, kappa) + gs.array(kappa) ** -2)
             / (2 * (gs.polygamma(1, kappa) - 1 / kappa)),
             0.25 * (kappa**2 * gs.polygamma(2, kappa) + 1),
         )

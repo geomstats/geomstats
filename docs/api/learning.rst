@@ -2,14 +2,18 @@
 Learning
 ********
 
-Estimating the mean
-===================
+Estimating the mean (or other central points)
+=============================================
 
 .. automodule:: geomstats.learning.frechet_mean
    :members:
 
 .. automodule:: geomstats.learning.exponential_barycenter
    :members:
+
+.. automodule:: geomstats.learning.geometric_median
+   :members:
+
 
 Clustering
 ==========
@@ -23,6 +27,7 @@ Clustering
 .. automodule:: geomstats.learning.agglomerative_hierarchical_clustering
    :members:
 
+
 Classification
 ==============
 
@@ -32,8 +37,16 @@ Classification
 .. automodule:: geomstats.learning.knn
    :members:
 
+
 Dimension reduction
 ===================
 
 .. automodule:: geomstats.learning.pca
    :members:
+
+
+Graphs
+======
+
+.. automodule:: geomstats.learning.aac
+    :members:

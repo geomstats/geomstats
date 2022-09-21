@@ -21,6 +21,13 @@ from autograd.numpy.linalg import (  # NOQA
 )
 
 from ._common import to_ndarray as _to_ndarray
+from ._dtype import _cast_fout_to_input_dtype
+
+_diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
+
+_logm_vec = _cast_fout_to_input_dtype(
+    target=_np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
+)
 
 
 def _is_symmetric(x, tol=1e-12):
@@ -61,14 +68,14 @@ def logm(x):
         eigvals, eigvecs = _np.linalg.eigh(new_x)
         if (eigvals > 0).all():
             eigvals = _np.log(eigvals)
-            eigvals = _np.vectorize(_np.diag, signature="(n)->(n,n)")(eigvals)
+            eigvals = _diag_vec(eigvals)
             transp_eigvecs = _np.transpose(eigvecs, axes=(0, 2, 1))
             result = _np.matmul(eigvecs, eigvals)
             result = _np.matmul(result, transp_eigvecs)
         else:
-            result = _np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")(new_x)
+            result = _logm_vec(new_x)
     else:
-        result = _np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")(new_x)
+        result = _logm_vec(new_x)
 
     if ndim == 2:
         return result[0]
@@ -94,6 +101,7 @@ def solve_sylvester(a, b, q):
     )(a, b, q)
 
 
+@_cast_fout_to_input_dtype
 def sqrtm(x):
     return _np.vectorize(_scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
 

@@ -287,8 +287,8 @@ class RiemannianMetric(Connection, ABC):
             Point.
         n_vectors : float
             Number of vectors to be generated at base_point.
-            For vectorization purposes n_vectors can be greater than 1 iff base_point
-            constitues of a single point.
+            For vectorization purposes n_vectors can be greater than 1 iff
+            base_point constitues of a single point.
 
         Returns
         -------

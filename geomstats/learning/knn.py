@@ -15,6 +15,7 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
         Number of neighbors to use by default.
     weights : string or callable, optional (default = 'uniform')
         Weight function used in prediction. Possible values:
+
         - 'uniform' : uniform weights.  All points in each neighborhood
           are weighted equally.
         - 'distance' : weight points by the inverse of their distance.

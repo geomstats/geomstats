@@ -201,7 +201,8 @@ class Grassmannian(LevelSet):
 
         Following [Chikuse03]_, :math:`n\_samples * n * p` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
-        the projectors on their first :math:`p` columns follow a uniform distribution.
+        the projectors on their first :math:`p` columns follow a uniform
+        distribution.
 
         Parameters
         ----------
@@ -231,7 +232,8 @@ class Grassmannian(LevelSet):
 
         Following [Chikuse03]_, :math:`n\_samples * n * p` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
-        the projectors on their first :math:`p` columns follow a uniform distribution.
+        the projectors on their first :math:`p` columns follow a uniform
+        distribution.
 
         Parameters
         ----------

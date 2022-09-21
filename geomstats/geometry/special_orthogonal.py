@@ -364,7 +364,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = Matrices.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.0)
-        mask_float = gs.cast(mask, gs.float32) + self.epsilon
+        mask_float = gs.cast(mask, mat.dtype) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
         diag = gs.to_ndarray(diag, to_ndim=2)
         diag = (

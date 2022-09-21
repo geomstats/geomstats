@@ -39,7 +39,7 @@ class LowerTriangularMatrices(VectorSpace):
         # TODO: use default dtype when available
         vector_bases = gs.cast(
             gs.one_hot(tril_idxs, self.n * self.n),
-            dtype=gs.float32,
+            dtype=gs.get_default_dtype(),
         )
         return gs.reshape(vector_bases, [-1, self.n, self.n])
 
