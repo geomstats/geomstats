@@ -75,10 +75,6 @@ def _expected_inverse_sphere_metric_matrix(point):
     return mat
 
 
-# immersion = _sphere_immersion
-# _expected_jacobian_sphere_immersion = _expected_jacobian_sphere_immersion
-
-
 @geomstats.tests.autograd_tf_and_torch_only
 class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
@@ -147,6 +143,15 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
         result = pullback_metric.cometric_matrix(base_point)
         expected = _expected_inverse_sphere_metric_matrix(base_point)
+        self.assertAllClose(result, expected)
+
+    def test_inverse_circle_metric_matrix(self, dim, base_point):
+        pullback_metric = self.Metric(
+            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
+        )
+
+        result = pullback_metric.cometric_matrix(base_point)
+        expected = _expected_inverse_circle_metric_matrix(base_point)
         self.assertAllClose(result, expected)
 
     def test_inner_product_and_sphere_inner_product(

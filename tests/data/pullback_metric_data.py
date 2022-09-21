@@ -105,8 +105,8 @@ class PullbackMetricTestData(TestData):
 
     def circle_metric_matrix_test_data(self):
         smoke_data = [
-            # dict(dim=1, base_point=gs.array([0.0])),
-            # dict(dim=1, base_point=gs.array([1.0])),
+            dict(dim=1, base_point=gs.array([0.0])),
+            dict(dim=1, base_point=gs.array([1.0])),
             dict(dim=1, base_point=gs.array([4.0])),
         ]
         return self.generate_tests(smoke_data)
@@ -132,6 +132,13 @@ class PullbackMetricTestData(TestData):
         smoke_data = [
             dict(dim=2, base_point=gs.array([0.6, -1.0])),
             dict(dim=2, base_point=gs.array([0.8, -0.8])),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def inverse_circle_metric_matrix_test_data(self):
+        smoke_data = [
+            dict(dim=1, base_point=gs.array([0.6])),
+            dict(dim=1, base_point=gs.array([0.8])),
         ]
         return self.generate_tests(smoke_data)
 
