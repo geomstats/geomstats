@@ -27,7 +27,6 @@ class HermitianMatrices(VectorSpace):
             dim=n**2, shape=(n, n), default_point_type="matrix", **kwargs
         )
         self.n = n
-        self.dim = n**2
 
     def _create_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
@@ -100,13 +99,16 @@ class HermitianMatrices(VectorSpace):
         point : array-like, shape=[..., n, n]
            Sample.
         """
+        cdtype = gs.get_default_cdtype()
         size = self.shape
         if n_samples != 1:
             size = (n_samples,) + self.shape
         point = gs.cast(
-            bound * (gs.random.rand(*size) - 0.5) * 2**0.5, dtype=gs.complex128
+            bound * (gs.random.rand(*size) - 0.5) * 2**0.5,
+            dtype=cdtype,
         ) + 1j * gs.cast(
-            bound * (gs.random.rand(*size) - 0.5) * 2**0.5, dtype=gs.complex128
+            bound * (gs.random.rand(*size) - 0.5) * 2**0.5,
+            dtype=cdtype,
         )
         return ComplexMatrices.to_hermitian(point)
 
@@ -131,7 +133,7 @@ class HermitianMatrices(VectorSpace):
 
     @staticmethod
     @geomstats.vectorization.decorator(["vector", "else"])
-    def from_vector(vec, dtype=gs.complex128):
+    def from_vector(vec, dtype=None):
         """Convert a vector into a Hermitian matrix.
 
         Parameters
@@ -147,6 +149,9 @@ class HermitianMatrices(VectorSpace):
         mat : array-like, shape=[..., n, n]
             Hermitian matrix.
         """
+        if dtype is None:
+            dtype = gs.get_default_cdtype()
+
         vec_dim = vec.shape[-1]
         mat_dim = (gs.sqrt(8.0 * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
@@ -235,7 +240,7 @@ class HermitianMatrices(VectorSpace):
             Hermitian matrix.
         """
         eigvals, eigvecs = gs.linalg.eigh(mat)
-        if check_positive and gs.any(gs.cast(eigvals, gs.float32) < 0.0):
+        if check_positive and gs.any(gs.cast(eigvals, gs.get_default_dtype()) < 0.0):
             try:
                 name = function.__name__
             except AttributeError:
