@@ -58,7 +58,7 @@ class PullbackMetric(RiemannianMetric):
         if tangent_immersion is None:
 
             def _tangent_immersion(v, x):
-                return gs.matvec(jacobian_immersion(x), v)
+                return gs.squeeze(gs.matvec(jacobian_immersion(x), v))
 
         self.tangent_immersion = _tangent_immersion
 
@@ -91,8 +91,12 @@ class PullbackMetric(RiemannianMetric):
         @joblib.delayed
         @joblib.wrap_non_picklable_objects
         def pickable_inner_product(i, j):
-            immersed_basis_element_i = gs.matvec(jacobian_immersion, basis_elements[i])
-            immersed_basis_element_j = gs.matvec(jacobian_immersion, basis_elements[j])
+            immersed_basis_element_i = gs.squeeze(
+                gs.matvec(jacobian_immersion, basis_elements[i])
+            )
+            immersed_basis_element_j = gs.squeeze(
+                gs.matvec(jacobian_immersion, basis_elements[j])
+            )
             return self.embedding_metric.inner_product(
                 immersed_basis_element_i,
                 immersed_basis_element_j,
