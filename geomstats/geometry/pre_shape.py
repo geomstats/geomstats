@@ -699,7 +699,8 @@ class PreShapeMetric(RiemannianMetric):
 
     def __init__(self, k_landmarks, m_ambient):
         super(PreShapeMetric, self).__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1, default_point_type="matrix"
+            dim=m_ambient * (k_landmarks - 1) - 1,
+            shape=(k_landmarks, m_ambient),
         )
 
         self.embedding_metric = MatricesMetric(k_landmarks, m_ambient)

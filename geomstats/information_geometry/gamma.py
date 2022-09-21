@@ -575,7 +575,10 @@ class GammaMetric(RiemannianMetric):
         """
         if solver == "geomstats":
             return super(GammaMetric, self).exp(
-                tangent_vec, base_point, n_steps, step, solver
+                tangent_vec,
+                base_point,
+                n_steps,
+                step,
             )
         if solver == "lsoda":
             return self._exp_ivp(tangent_vec, base_point, n_steps)

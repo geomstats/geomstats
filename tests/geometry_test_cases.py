@@ -59,6 +59,26 @@ class ManifoldTestCase(TestCase):
     def Space(self):
         return self.testing_data.Space
 
+    def test_manifold_shape(self, space_args):
+        space = self.Space(*space_args)
+        point = space.random_point()
+
+        if space.metric is None:
+            return
+
+        point_shape = (1,) if point.shape == () else point.shape
+
+        self.assertTrue(
+            space.shape == point_shape,
+            f"Shape is {space.shape}, but random point shape is {point_shape}",
+        )
+
+        msg = (
+            f"Space shape is {space.shape}, "
+            f"whereas space metric shape is {space.metric.shape}",
+        )
+        self.assertTrue(space.shape == space.metric.shape, msg)
+
     def test_random_point_belongs(self, space_args, n_points, atol):
         """Check that a random point belongs to the manifold.
 
@@ -576,6 +596,14 @@ class ConnectionTestCase(TestCase):
     @property
     def Metric(self):
         return self.testing_data.Metric
+
+    def test_manifold_shape(self, connection_args, expected_shape):
+        connection = self.Metric(*connection_args)
+
+        self.assertTrue(
+            connection.shape == expected_shape,
+            f"Shape is {connection.shape}, but random point shape is {expected_shape}",
+        )
 
     def test_exp_shape(self, connection_args, tangent_vec, base_point, expected):
         """Check that exp returns an array of the expected shape.

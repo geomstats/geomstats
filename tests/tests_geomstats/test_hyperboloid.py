@@ -1,6 +1,7 @@
 """Unit tests for the Hyperbolic space."""
 
 import geomstats.backend as gs
+from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.minkowski import Minkowski
@@ -16,8 +17,8 @@ class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
 
     testing_data = HyperboloidTestData()
 
-    def test_belongs(self, dim, coords_type, vec, expected):
-        space = self.Space(dim, coords_type=coords_type)
+    def test_belongs(self, dim, default_coords_type, vec, expected):
+        space = self.Space(dim, default_coords_type=default_coords_type)
         self.assertAllClose(space.belongs(vec), gs.array(expected))
 
     def test_regularize_raises(self, dim, point, expected):
@@ -38,7 +39,7 @@ class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, x_ball)
 
     def test_extrinsic_ball_extrinsic_composition(self, dim, point_intrinsic):
-        x = self.Space(dim, coords_type="intrinsic").to_coordinates(
+        x = self.Space(dim, default_coords_type="intrinsic").to_coordinates(
             point_intrinsic, to_coords_type="extrinsic"
         )
         x_b = self.Space(dim).to_coordinates(x, to_coords_type="ball")
@@ -46,11 +47,11 @@ class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
         self.assertAllClose(x, x2)
 
     def test_extrinsic_half_plane_extrinsic_composition(self, dim, point_intrinsic):
-        x = self.Space(dim, coords_type="intrinsic").to_coordinates(
+        x = self.Space(dim, default_coords_type="intrinsic").to_coordinates(
             point_intrinsic, to_coords_type="extrinsic"
         )
         x_up = self.Space(dim).to_coordinates(x, to_coords_type="half-space")
-        x2 = Hyperbolic.change_coordinates_system(x_up, "half-space", "extrinsic")
+        x2 = _Hyperbolic.change_coordinates_system(x_up, "half-space", "extrinsic")
         self.assertAllClose(x, x2)
 
 
@@ -112,8 +113,8 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_exp_after_log_intrinsic_ball_extrinsic(
         self, dim, x_intrinsic, y_intrinsic
     ):
-        intrinsic_manifold = Hyperboloid(dim=dim, coords_type="intrinsic")
-        extrinsic_manifold = Hyperbolic(dim=dim, coords_type="extrinsic")
+        intrinsic_manifold = Hyperboloid(dim=dim, default_coords_type="intrinsic")
+        extrinsic_manifold = Hyperbolic(dim=dim, default_coords_type="extrinsic")
         ball_manifold = PoincareBall(dim)
         x_extr = intrinsic_manifold.to_coordinates(
             x_intrinsic, to_coords_type="extrinsic"
@@ -148,8 +149,8 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     def test_distance_ball_extrinsic_intrinsic(self, dim, x_intrinsic, y_intrinsic):
 
-        intrinsic_manifold = Hyperboloid(dim, coords_type="intrinsic")
-        extrinsic_manifold = Hyperboloid(dim, coords_type="extrinsic")
+        intrinsic_manifold = Hyperboloid(dim, default_coords_type="intrinsic")
+        extrinsic_manifold = Hyperboloid(dim, default_coords_type="extrinsic")
         x_extr = intrinsic_manifold.to_coordinates(
             x_intrinsic, to_coords_type="extrinsic"
         )

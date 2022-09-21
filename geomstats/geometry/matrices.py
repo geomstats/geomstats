@@ -22,7 +22,6 @@ class Matrices(VectorSpace):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
         kwargs.setdefault("metric", MatricesMetric(m, n))
-        kwargs.setdefault("default_point_type", "matrix")
         super(Matrices, self).__init__(shape=(m, n), **kwargs)
         self.m = m
         self.n = n

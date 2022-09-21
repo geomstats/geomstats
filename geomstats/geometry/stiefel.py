@@ -188,7 +188,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
     def __init__(self, n, p):
         dim = int(p * n - (p * (p + 1) / 2))
         super(StiefelCanonicalMetric, self).__init__(
-            dim=dim, default_point_type="matrix", signature=(dim, 0, 0)
+            dim=dim, signature=(dim, 0, 0), shape=(n, p)
         )
         self.embedding_metric = EuclideanMetric(n * p)
         self.n = n

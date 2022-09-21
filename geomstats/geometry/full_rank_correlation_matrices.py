@@ -262,6 +262,8 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
     """
 
     def __init__(self, n):
+        fiber_bundle = CorrelationMatricesBundle(n=n)
         super(FullRankCorrelationAffineQuotientMetric, self).__init__(
-            fiber_bundle=CorrelationMatricesBundle(n=n)
+            fiber_bundle=fiber_bundle,
+            shape=fiber_bundle.shape,
         )

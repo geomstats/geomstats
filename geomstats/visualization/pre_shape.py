@@ -26,7 +26,7 @@ class KendallSphere:
     ----------
     points : list
         List of points to plot on the Kendall sphere.
-    point_type : str
+    coords_type : str
         Type of the points. Can be either 'pre-shape' (for points in Kendall
         pre-shape space) or 'extrinsic' (for points given as 3x2 matrices).
         Optional, default: 'pre-shape'.
@@ -48,9 +48,9 @@ class KendallSphere:
         https://doi.org/10.1112/blms/16.2.81
     """
 
-    def __init__(self, points=None, point_type="pre-shape"):
+    def __init__(self, points=None, coords_type="pre-shape"):
         self.points = []
-        self.point_type = point_type
+        self.coords_type = coords_type
         self.ax = None
         self.elev, self.azim = None, None
 
@@ -123,11 +123,11 @@ class KendallSphere:
 
     def add_points(self, points):
         """Add points to draw on the Kendall sphere."""
-        if self.point_type == "extrinsic":
+        if self.coords_type == "extrinsic":
             if not gs.all(M32.belongs(points)):
                 raise ValueError("Points do not belong to Matrices(3, 2).")
             points = S32.projection(points)
-        elif self.point_type == "pre-shape" and not gs.all(S32.belongs(points)):
+        elif self.coords_type == "pre-shape" and not gs.all(S32.belongs(points)):
             raise ValueError("Points do not belong to the pre-shape space.")
         points = self.convert_to_spherical_coordinates(points)
         if not isinstance(points, list):
@@ -274,7 +274,7 @@ class KendallDisk:
     ----------
     points : list
         List of points to plot on the Kendall sphere.
-    point_type : str
+    coords_type : str
         Type of the points. Can be either 'pre-shape' (for points in Kendall
         pre-shape space) or 'extrinsic' (for points given as 3x2 matrices).
         Optional, default: 'pre-shape'.
@@ -302,9 +302,9 @@ class KendallDisk:
         https://doi.org/10.1112/blms/16.2.81
     """
 
-    def __init__(self, points=None, point_type="pre-shape"):
+    def __init__(self, points=None, coords_type="pre-shape"):
         self.points = []
-        self.point_type = point_type
+        self.coords_type = coords_type
         self.ax = None
 
         self.pole = gs.array(
@@ -368,11 +368,11 @@ class KendallDisk:
 
     def add_points(self, points):
         """Add points to draw on the Kendall disk."""
-        if self.point_type == "extrinsic":
+        if self.coords_type == "extrinsic":
             if not gs.all(M33.belongs(points)):
                 raise ValueError("Points do not belong to Matrices(3, 3).")
             points = S33.projection(points)
-        elif self.point_type == "pre-shape" and not gs.all(S33.belongs(points)):
+        elif self.coords_type == "pre-shape" and not gs.all(S33.belongs(points)):
             raise ValueError("Points do not belong to the pre-shape space.")
         points = self.convert_to_planar_coordinates(points)
         if not isinstance(points, list):

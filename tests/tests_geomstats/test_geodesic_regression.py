@@ -68,7 +68,6 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         # Set up for special euclidean
         self.se2 = SpecialEuclidean(n=2)
         self.metric_se2 = self.se2.left_canonical_metric
-        self.metric_se2.default_point_type = "matrix"
 
         self.shape_se2 = (3, 3)
         X = gs.random.rand(self.n_samples)
@@ -105,7 +104,6 @@ class TestGeodesicRegression(geomstats.tests.TestCase):
         k_sampling_points = 8
         self.curves_2d = DiscreteCurves(R2, k_sampling_points=k_sampling_points)
         self.metric_curves_2d = self.curves_2d.srv_metric
-        self.metric_curves_2d.default_point_type = "matrix"
 
         self.shape_curves_2d = (k_sampling_points, 2)
         X = gs.random.rand(self.n_samples)

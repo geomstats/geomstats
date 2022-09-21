@@ -8,8 +8,6 @@ import abc
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 
-POINT_TYPES = {1: "vector", 2: "matrix"}
-
 
 class VectorSpace(Manifold, abc.ABC):
     """Abstract class for vector spaces.
@@ -19,9 +17,6 @@ class VectorSpace(Manifold, abc.ABC):
     shape : tuple
         Shape of the elements of the vector space. The dimension is the
         product of these values by default.
-    default_point_type : str, {'vector', 'matrix'}
-        Point type.
-        Optional, default: 'vector'.
     """
 
     def __init__(self, shape, **kwargs):
@@ -187,10 +182,7 @@ class LevelSet(Manifold, abc.ABC):
     ):
         kwargs.setdefault("shape", embedding_space.shape)
         super(LevelSet, self).__init__(
-            dim=dim,
-            default_point_type=embedding_space.default_point_type,
-            default_coords_type=default_coords_type,
-            **kwargs
+            dim=dim, default_coords_type=default_coords_type, **kwargs
         )
         self.embedding_space = embedding_space
         self.embedding_metric = embedding_space.metric
@@ -335,7 +327,6 @@ class OpenSet(Manifold, abc.ABC):
     """
 
     def __init__(self, dim, ambient_space, **kwargs):
-        kwargs.setdefault("default_point_type", ambient_space.default_point_type)
         kwargs.setdefault("shape", ambient_space.shape)
         super().__init__(dim=dim, **kwargs)
         self.ambient_space = ambient_space

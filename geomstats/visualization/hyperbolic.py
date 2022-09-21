@@ -66,10 +66,10 @@ class KleinDisk:
 
 
 class PoincareDisk:
-    def __init__(self, points=None, point_type="extrinsic"):
+    def __init__(self, points=None, coords_type="extrinsic"):
         self.center = gs.array([0.0, 0.0])
         self.points = []
-        self.point_type = point_type
+        self.coords_type = coords_type
         if points is not None:
             self.add_points(points)
 
@@ -90,7 +90,7 @@ class PoincareDisk:
 
     def add_points(self, points):
 
-        if self.point_type == "extrinsic":
+        if self.coords_type == "extrinsic":
             if not gs.all(H2.belongs(points)):
                 raise ValueError("Points do not belong to the hyperbolic space.")
             points = self.convert_to_poincare_coordinates(points)
@@ -119,10 +119,10 @@ class PoincareDisk:
             else:
                 raise ValueError("Points do not have dimension 2.")
 
-    def plot(self, points, ax=None, point_type=None, **point_draw_kwargs):
-        if point_type is None:
-            point_type = "extrinsic"
-        poincare_disk = PoincareDisk(point_type=point_type)
+    def plot(self, points, ax=None, coords_type=None, **point_draw_kwargs):
+        if coords_type is None:
+            coords_type = "extrinsic"
+        poincare_disk = PoincareDisk(coords_type=coords_type)
         ax = poincare_disk.set_ax(ax=ax)
         self.points = []
         poincare_disk.add_points(points)
@@ -133,21 +133,21 @@ class PoincareDisk:
 class PoincareHalfPlane:
     """Class used to plot points in the Poincare Half Plane."""
 
-    def __init__(self, points=None, point_type="half-space"):
+    def __init__(self, points=None, coords_type="half-space"):
         self.points = []
-        self.point_type = point_type
+        self.coords_type = coords_type
         if points is not None:
             self.add_points(points)
 
     def add_points(self, points):
-        if self.point_type == "extrinsic":
+        if self.coords_type == "extrinsic":
             if not gs.all(H2.belongs(points)):
                 raise ValueError(
                     "Points do not belong to the hyperbolic space "
                     "(extrinsic coordinates)"
                 )
             points = self.convert_to_half_plane_coordinates(points)
-        elif self.point_type == "half-space":
+        elif self.coords_type == "half-space":
             if not gs.all(POINCARE_HALF_PLANE.belongs(points)):
                 raise ValueError(
                     "Points do not belong to the hyperbolic space "
@@ -183,10 +183,10 @@ class PoincareHalfPlane:
         points_y = [gs.to_numpy(point[1]) for point in self.points]
         ax.scatter(points_x, points_y, **kwargs)
 
-    def plot(self, points, ax=None, point_type=None, **point_draw_kwargs):
-        if point_type is None:
-            point_type = "half-space"
-        poincare_half_plane = PoincareHalfPlane(point_type=point_type)
+    def plot(self, points, ax=None, coords_type=None, **point_draw_kwargs):
+        if coords_type is None:
+            coords_type = "half-space"
+        poincare_half_plane = PoincareHalfPlane(coords_type=coords_type)
         ax = poincare_half_plane.set_ax(ax=ax)
         self.points = []
         poincare_half_plane.add_points(points)
