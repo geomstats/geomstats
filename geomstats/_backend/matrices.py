@@ -635,3 +635,21 @@ def align_matrices(point, base_point):
         logging.warning("Alignment matrix is not unique.")
     flipped = flip_determinant(transpose(right), det)
     return mul(point, left, transpose(flipped))
+
+
+def norm(vector):
+    """Compute norm of a matrix.
+
+    Norm of a matrix associated to the Frobenius inner product.
+
+    Parameters
+    ----------
+    vector : array-like, shape=[..., dim]
+        Vector.
+
+    Returns
+    -------
+    norm : array-like, shape=[...,]
+        Norm.
+    """
+    return gs.linalg.norm(vector, axis=(-2, -1))

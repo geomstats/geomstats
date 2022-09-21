@@ -188,4 +188,4 @@ class MatricesMetric(EuclideanMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        return gs.linalg.norm(vector, axis=(-2, -1))
+        return gs.matrices.norm(vector)

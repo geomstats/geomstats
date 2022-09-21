@@ -9,7 +9,6 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
@@ -1330,4 +1329,4 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         """
         log_a = SPDMatrices.logm(point_a)
         log_b = SPDMatrices.logm(point_b)
-        return MatricesMetric.norm(log_a - log_b)
+        return gs.matrices.norm(log_a - log_b)
