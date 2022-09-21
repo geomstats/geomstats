@@ -1276,9 +1276,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return radius
 
 
-class SpecialEuclidean(
-    _SpecialEuclidean2Vectors, _SpecialEuclidean3Vectors, _SpecialEuclideanMatrices
-):
+class SpecialEuclidean:
     r"""Class for the special Euclidean groups.
 
     Parameters

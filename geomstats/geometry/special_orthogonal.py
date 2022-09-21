@@ -1711,9 +1711,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         return LieGroup.log(self, point, base_point)
 
 
-class SpecialOrthogonal(
-    _SpecialOrthogonal2Vectors, _SpecialOrthogonal3Vectors, _SpecialOrthogonalMatrices
-):
+class SpecialOrthogonal:
     r"""Class for the special orthogonal groups.
 
     Parameters
