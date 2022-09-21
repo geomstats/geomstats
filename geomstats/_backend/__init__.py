@@ -83,6 +83,8 @@ BACKEND_ATTRIBUTES = {
         "isclose",
         "isnan",
         "is_array",
+        "is_complex",
+        "is_floating",
         "kron",
         "less",
         "less_equal",

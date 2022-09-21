@@ -95,6 +95,14 @@ power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
 
 
+def is_floating(x):
+    return x.dtype.is_floating_point
+
+
+def is_complex(x):
+    return x.dtype.is_complex
+
+
 def matmul(x, y, out=None):
     for array_ in [x, y]:
         if array_.ndim == 1:

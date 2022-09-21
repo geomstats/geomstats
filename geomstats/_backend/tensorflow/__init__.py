@@ -47,6 +47,8 @@ from ._dtype import (
     _modify_func_default_dtype,
     as_dtype,
     get_default_dtype,
+    is_complex,
+    is_floating,
     set_default_dtype,
 )
 
