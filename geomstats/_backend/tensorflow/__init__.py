@@ -46,6 +46,7 @@ from ._dtype import (
     _dyn_update_dtype,
     _modify_func_default_dtype,
     as_dtype,
+    get_default_cdtype,
     get_default_dtype,
     is_complex,
     is_floating,

@@ -10,6 +10,7 @@ from geomstats._backend._dtype_utils import (
     _pre_cast_out_from_dtype,
     _pre_set_default_dtype,
     _update_default_dtypes,
+    get_default_cdtype,
     get_default_dtype,
 )
 

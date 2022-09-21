@@ -75,6 +75,7 @@ BACKEND_ATTRIBUTES = {
         "floor",
         "from_numpy",
         "get_default_dtype",
+        "get_default_cdtype",
         "get_slice",
         "greater",
         "hsplit",

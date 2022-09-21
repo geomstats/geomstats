@@ -8,6 +8,7 @@ from geomstats._backend._dtype_utils import (
     _pre_cast_fout_to_input_dtype,
     _pre_cast_out_from_dtype,
     _pre_set_default_dtype,
+    get_default_cdtype,
     get_default_dtype,
 )
 
