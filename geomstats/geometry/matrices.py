@@ -22,7 +22,7 @@ class Matrices(VectorSpace):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
         kwargs.setdefault("metric", MatricesMetric(m, n))
-        super(Matrices, self).__init__(shape=(m, n), **kwargs)
+        super().__init__(shape=(m, n), **kwargs)
         self.m = m
         self.n = n
 
@@ -714,7 +714,7 @@ class MatricesMetric(EuclideanMetric):
 
     def __init__(self, m, n, **kwargs):
         dimension = m * n
-        super(MatricesMetric, self).__init__(dim=dimension, shape=(m, n))
+        super().__init__(dim=dimension, shape=(m, n))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tangent vectors.

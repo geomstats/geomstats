@@ -185,7 +185,7 @@ class Grassmannian(LevelSet):
 
         kwargs.setdefault("metric", GrassmannianCanonicalMetric(n, p))
         dim = int(p * (n - p))
-        super(Grassmannian, self).__init__(
+        super().__init__(
             dim=dim,
             embedding_space=SymmetricMatrices(n),
             submersion=lambda x: submersion(x, p),
@@ -316,9 +316,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             raise ValueError("p <= n is required.")
 
         dim = int(p * (n - p))
-        super(GrassmannianCanonicalMetric, self).__init__(
-            m=n, n=n, dim=dim, signature=(dim, 0, 0)
-        )
+        super().__init__(m=n, n=n, dim=dim, signature=(dim, 0, 0))
 
         self.n = n
         self.p = p

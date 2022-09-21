@@ -62,7 +62,7 @@ class DiscreteCurves(Manifold):
     ):
         dim = ambient_manifold.dim * k_sampling_points
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
-        super(DiscreteCurves, self).__init__(
+        super().__init__(
             dim=dim,
             shape=(k_sampling_points,) + ambient_manifold.shape,
             **kwargs,
@@ -278,7 +278,7 @@ class ClosedDiscreteCurves(LevelSet):
 
     def __init__(self, ambient_manifold, k_sampling_points=10):
         dim = ambient_manifold.dim * (k_sampling_points - 1)
-        super(ClosedDiscreteCurves, self).__init__(
+        super().__init__(
             dim=dim,
             shape=(k_sampling_points,) + ambient_manifold.shape,
             submersion=None,
@@ -582,7 +582,7 @@ class L2CurvesMetric(RiemannianMetric):
     """
 
     def __init__(self, ambient_manifold, ambient_metric=None):
-        super(L2CurvesMetric, self).__init__(
+        super().__init__(
             dim=math.inf,
             signature=(math.inf, 0, 0),
             shape=(None,) + ambient_manifold.shape,
@@ -833,7 +833,7 @@ class ElasticMetric(RiemannianMetric):
     def __init__(
         self, a, b, ambient_manifold=R2, ambient_metric=None, translation_invariant=True
     ):
-        super(ElasticMetric, self).__init__(
+        super().__init__(
             dim=math.inf,
             signature=(math.inf, 0, 0),
             shape=(None,) + ambient_manifold.shape,
@@ -1229,7 +1229,7 @@ class SRVMetric(ElasticMetric):
     def __init__(
         self, ambient_manifold, ambient_metric=None, translation_invariant=True
     ):
-        super(SRVMetric, self).__init__(
+        super().__init__(
             a=1,
             b=0.5,
             ambient_manifold=ambient_manifold,
@@ -1780,7 +1780,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
     """
 
     def __init__(self, ambient_manifold, k_sampling_points=10):
-        super(SRVShapeBundle, self).__init__(
+        super().__init__(
             ambient_manifold=ambient_manifold,
             k_sampling_points=k_sampling_points,
         )
@@ -2135,7 +2135,7 @@ class SRVQuotientMetric(QuotientMetric):
     def __init__(self, ambient_manifold, k_sampling_points=10):
         dim = ambient_manifold.dim * k_sampling_points
         bundle = SRVShapeBundle(ambient_manifold, dim)
-        super(SRVQuotientMetric, self).__init__(
+        super().__init__(
             fiber_bundle=bundle,
             dim=dim,
             shape=(k_sampling_points,) + ambient_manifold.shape,

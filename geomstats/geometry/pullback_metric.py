@@ -49,7 +49,7 @@ class PullbackMetric(RiemannianMetric):
         jacobian_immersion=None,
         tangent_immersion=None,
     ):
-        super(PullbackMetric, self).__init__(dim=dim)
+        super().__init__(dim=dim)
         self.embedding_metric = EuclideanMetric(embedding_dim)
         self.immersion = immersion
         if jacobian_immersion is None:
@@ -122,7 +122,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
     """
 
     def __init__(self, dim, shape=None):
-        super(PullbackDiffeoMetric, self).__init__(dim=dim, shape=shape)
+        super().__init__(dim=dim, shape=shape)
 
         self._embedding_metric = None
         self._raw_jacobian_diffeomorphism = None

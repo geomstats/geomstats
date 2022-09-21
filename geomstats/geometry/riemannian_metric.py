@@ -37,7 +37,7 @@ class RiemannianMetric(Connection, ABC):
     def __init__(
         self, dim, shape=None, signature=None, default_coords_type="intrinsic"
     ):
-        super(RiemannianMetric, self).__init__(
+        super().__init__(
             dim=dim,
             shape=shape,
             default_coords_type=default_coords_type,

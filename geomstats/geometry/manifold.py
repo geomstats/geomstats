@@ -33,7 +33,7 @@ class Manifold(abc.ABC):
     def __init__(
         self, dim, shape, metric=None, default_coords_type="intrinsic", **kwargs
     ):
-        super(Manifold, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         geomstats.errors.check_integer(dim, "dim")
 
         if not isinstance(shape, tuple):

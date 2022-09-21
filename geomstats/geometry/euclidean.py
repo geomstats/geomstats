@@ -18,7 +18,7 @@ class Euclidean(VectorSpace):
     """
 
     def __init__(self, dim):
-        super(Euclidean, self).__init__(
+        super().__init__(
             shape=(dim,),
             metric=EuclideanMetric(dim, shape=(dim,)),
         )
@@ -75,7 +75,7 @@ class EuclideanMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, shape=None):
-        super(EuclideanMetric, self).__init__(
+        super().__init__(
             dim=dim,
             shape=shape,
             signature=(dim, 0),

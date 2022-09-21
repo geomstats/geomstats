@@ -28,7 +28,7 @@ class _Hyperbolic:
     """
 
     def __init__(self, scale=1, **kwargs):
-        super(_Hyperbolic, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.scale = scale
 
     @staticmethod
@@ -462,7 +462,7 @@ class HyperbolicMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, scale=1, default_coords_type="extrinsic"):
-        super(HyperbolicMetric, self).__init__(
+        super().__init__(
             dim=dim,
             signature=(dim, 0),
             shape=(dim + 1,),

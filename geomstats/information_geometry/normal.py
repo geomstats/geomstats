@@ -20,7 +20,7 @@ class NormalDistributions(PoincareHalfSpace):
     """
 
     def __init__(self):
-        super(NormalDistributions, self).__init__(dim=2)
+        super().__init__(dim=2)
         self.metric = FisherRaoMetric()
 
     @staticmethod
@@ -122,4 +122,4 @@ class FisherRaoMetric(PoincareHalfSpaceMetric):
     """
 
     def __init__(self):
-        super(FisherRaoMetric, self).__init__(dim=2)
+        super().__init__(dim=2)
