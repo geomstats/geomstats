@@ -6,7 +6,7 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricEuclidean,
     SPDMetricLogEuclidean,
 )
-from geomstats.learning.mdm import RiemannianMinimumDistanceToMeanClassifier
+from geomstats.learning.mdm import RiemannianMinimumDistanceToMean
 
 EULER = gs.exp(1.0)
 METRICS = (SPDMetricAffine, SPDMetricLogEuclidean, SPDMetricEuclidean)
@@ -23,7 +23,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         y_train = gs.array([0, 0, 1, 1])
 
         for metric in METRICS:
-            MDM = RiemannianMinimumDistanceToMeanClassifier(metric(n=2))
+            MDM = RiemannianMinimumDistanceToMean(metric(n=2))
             MDM.fit(X_train, y_train)
             bary_a_fit = MDM.mean_estimates_[0]
             bary_b_fit = MDM.mean_estimates_[1]
@@ -55,7 +55,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         y_expected = gs.array([42])
 
         for metric in METRICS:
-            MDM = RiemannianMinimumDistanceToMeanClassifier(metric(n=2))
+            MDM = RiemannianMinimumDistanceToMean(metric(n=2))
             MDM.fit(X_train, y_train)
             y_test = MDM.predict(X_test)
 
@@ -71,7 +71,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         X_test = gs.array([[[1.0, 0], [0, 1]], [[EULER**5, 0], [0, 1]]])
 
         for metric in METRICS:
-            MDM = RiemannianMinimumDistanceToMeanClassifier(metric(n=2))
+            MDM = RiemannianMinimumDistanceToMean(metric(n=2))
             MDM.fit(X_train, y_train)
             proba_test = MDM.predict_proba(X_test)
 
@@ -94,7 +94,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         X_test = gs.array([[[EULER**3, 0], [0, 1]], [[EULER**2, 0], [0, 1]]])
 
         for metric in METRICS:
-            MDM = RiemannianMinimumDistanceToMeanClassifier(metric(n=2))
+            MDM = RiemannianMinimumDistanceToMean(metric(n=2))
             MDM.fit(X_train, y_train)
 
             if metric in [SPDMetricAffine, SPDMetricLogEuclidean]:

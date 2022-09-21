@@ -5,18 +5,12 @@ Lead authors: Daniel Brooks and Quentin Barthelemy.
 
 from scipy.special import softmax
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.metrics import accuracy_score
 
 import geomstats.backend as gs
-from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
 
 
-class RiemannianMinimumDistanceToMeanClassifier(
-    TransformerMixin,
-    ClassifierMixin,
-    BaseEstimator,
-):
+class RiemannianMinimumDistanceToMean(ClassifierMixin, BaseEstimator):
     """Minimum Distance to Mean (MDM) classifier on manifolds.
 
     Classification by nearest centroid. For each of the given classes, a
@@ -127,25 +121,3 @@ class RiemannianMinimumDistanceToMeanClassifier(
             )
             probas.append(softmax(-dist2))
         return gs.array(probas)
-
-    def score(self, X, y, weights=None):
-        """Compute score on the given test data and labels.
-
-        Compute the score defined as accuracy.
-
-        Parameters
-        ----------
-        X : array-like, shape=[n_samples, *metric.shape]
-            Test samples.
-        y : array-like, shape=[n_samples,]
-            True labels for `X`.
-        weights : array-like, shape=[n_samples,]
-            Weights associated to the samples.
-            Optional, default: None, in which case it is equally weighted.
-
-        Returns
-        -------
-        score : float
-            Mean accuracy of ``self.predict(X)`` wrt. `y`.
-        """
-        return accuracy_score(y, self.predict(X), sample_weight=weights)
