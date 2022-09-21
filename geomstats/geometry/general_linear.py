@@ -46,7 +46,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         Parameters
         ----------
         point : array-like, shape=[..., dim_embedding]
-            Point in embedding manifold.
+            Point in an embedding manifold.
 
         Returns
         -------

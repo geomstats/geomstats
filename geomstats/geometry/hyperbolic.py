@@ -12,11 +12,7 @@ from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 
 
 class Hyperbolic(_Hyperbolic, Manifold):
-    """
-    Class for the n-dimensional Hyperbolic space.
-
-    Notes
-    ------
+    r"""Class for the n-dimensional Hyperbolic space.
 
     This class is a common interface to the different models of hyperbolic
     geometry:

@@ -10,8 +10,7 @@ from geomstats.geometry.euclidean import EuclideanMetric
 
 
 class Matrices(VectorSpace):
-    """
-    Class for the space of matrices (m, n).
+    """Class for the space of matrices (m, n).
 
     Parameters
     ----------
@@ -34,8 +33,7 @@ class Matrices(VectorSpace):
         return gs.reshape(gs.eye(n * m), (n * m, m, n))
 
     def belongs(self, point, atol=gs.atol):
-        """
-        Check if point belongs to the Matrices space.
+        """Check if a point belongs to the Matrices space.
 
         Parameters
         ----------
@@ -47,7 +45,7 @@ class Matrices(VectorSpace):
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Matrices space.
+            Boolean evaluating if a point belongs to the Matrices space.
         """
         ndim = point.ndim
         if ndim == 1:
@@ -58,8 +56,7 @@ class Matrices(VectorSpace):
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
-        """
-        Test if matrices a and b are close.
+        """Test if matrices a and b are close.
 
         Parameters
         ----------
@@ -80,8 +77,7 @@ class Matrices(VectorSpace):
 
     @staticmethod
     def mul(*args):
-        """
-        Compute the product of matrices a1, ..., an.
+        """Compute the product of matrices a1, ..., an.
 
         Parameters
         ----------
@@ -102,8 +98,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def bracket(cls, mat_a, mat_b):
-        """
-        Compute the commutator of a and b, i.e. `[a, b] = ab - ba`.
+        """Compute the commutator of a and b, i.e. `[a, b] = ab - ba`.
 
         Parameters
         ----------
@@ -121,8 +116,7 @@ class Matrices(VectorSpace):
 
     @staticmethod
     def transpose(mat):
-        """
-        Return the transpose of matrices.
+        """Return the transpose of matrices.
 
         Parameters
         ----------
@@ -140,8 +134,7 @@ class Matrices(VectorSpace):
 
     @staticmethod
     def diagonal(mat):
-        """
-        Return the diagonal of a matrix as a vector.
+        """Return the diagonal of a matrix as a vector.
 
         Parameters
         ----------
@@ -157,8 +150,7 @@ class Matrices(VectorSpace):
 
     @staticmethod
     def is_square(mat):
-        """
-        Check if a matrix is square.
+        """Check if a matrix is square.
 
         Parameters
         ----------
@@ -176,8 +168,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_diagonal(cls, mat, atol=gs.atol):
-        """
-        Check if a matrix is square and diagonal.
+        """Check if a matrix is square and diagonal.
 
         Parameters
         ----------
@@ -201,8 +192,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_lower_triangular(cls, mat, atol=gs.atol):
-        """
-        Check if a matrix is lower triangular.
+        """Check if a matrix is lower triangular.
 
         Parameters
         ----------
@@ -225,8 +215,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_upper_triangular(cls, mat, atol=gs.atol):
-        """
-        Check if a matrix is upper triangular.
+        """Check if a matrix is upper triangular.
 
         Parameters
         ----------
@@ -249,8 +238,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_strictly_lower_triangular(cls, mat, atol=gs.atol):
-        """
-        Check if a matrix is strictly lower triangular.
+        """Check if a matrix is strictly lower triangular.
 
         Parameters
         ----------
@@ -273,8 +261,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_strictly_upper_triangular(cls, mat, atol=gs.atol):
-        """
-        Check if a matrix is strictly upper triangular.
+        """Check if a matrix is strictly upper triangular.
 
         Parameters
         ----------
@@ -297,8 +284,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_symmetric(cls, mat, atol=gs.atol):
-        """
-        Check if a matrix is symmetric.
+        """Check if a matrix is symmetric.
 
         Parameters
         ----------
@@ -321,8 +307,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_pd(cls, mat):
-        """
-        Check if a matrix is positive definite.
+        """Check if a matrix is positive definite.
 
         Parameters
         ----------
@@ -343,8 +328,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_spd(cls, mat, atol=gs.atol):
-        """
-        Check if a matrix is symmetric positive definite.
+        """Check if a matrix is symmetric positive definite.
 
         Parameters
         ----------
@@ -364,8 +348,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def is_skew_symmetric(cls, mat, atol=gs.atol):
-        """
-        Check if a matrix is skew symmetric.
+        """Check if a matrix is skew symmetric.
 
         Parameters
         ----------
@@ -388,8 +371,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_diagonal(cls, mat):
-        """
-        Make a matrix diagonal.
+        """Make a matrix diagonal.
 
         Make a matrix diagonal by zeroing out non
         diagonal elements.
@@ -407,8 +389,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_lower_triangular(cls, mat):
-        """
-        Make a matrix lower triangular.
+        """Make a matrix lower triangular.
 
         Make a matrix lower triangular by zeroing
         out upper elements.
@@ -427,11 +408,8 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_upper_triangular(cls, mat):
-        """
-        Make a matrix upper triangular.
+        """Make a matrix upper triangular.
 
-        Notes
-        ------
         Make a matrix upper triangular by zeroing
         out lower elements.
 
@@ -451,8 +429,6 @@ class Matrices(VectorSpace):
         """
         Make a matrix strictly lower triangular.
 
-        Notes
-        ------
         Make a matrix stricly lower triangular by zeroing
         out upper and diagonal elements.
 
@@ -470,11 +446,8 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_strictly_upper_triangular(cls, mat):
-        """
-        Make a matrix stritcly upper triangular.
+        """Make a matrix stritcly upper triangular.
 
-        Notes
-        ------
         Make a matrix strictly upper triangular by zeroing
         out lower and diagonal elements.
 
@@ -491,11 +464,8 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_symmetric(cls, mat):
-        """
-        Make a matrix symmetric.
+        """Make a matrix symmetric.
 
-        Notes
-        ------
         Make a matrix suymmetric by averaging it
         with its transpose.
 
@@ -513,11 +483,8 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_skew_symmetric(cls, mat):
-        """
-        Make a matrix skew-symmetric.
+        """Make a matrix skew-symmetric.
 
-        Notes
-        ------
         Make matrix skew-symmetric by averaging it
         with minus its transpose.
 
@@ -535,11 +502,8 @@ class Matrices(VectorSpace):
 
     @classmethod
     def to_lower_triangular_diagonal_scaled(cls, mat, K=2.0):
-        """
-        Make a matrix lower triangular.
+        """Make a matrix lower triangular.
 
-        Notes
-        ------
         Make matrix lower triangular by zeroing out
         upper elements and divide diagonal by factor K.
 
@@ -558,8 +522,7 @@ class Matrices(VectorSpace):
         return slt + diag
 
     def random_point(self, n_samples=1, bound=1.0):
-        """
-        Sample from a uniform distribution in a cube.
+        """Sample from a uniform distribution in a cube.
 
         Parameters
         ----------
@@ -582,8 +545,7 @@ class Matrices(VectorSpace):
 
     @classmethod
     def congruent(cls, mat_1, mat_2):
-        r"""
-        Compute the congruent action of mat_2 on mat_1.
+        r"""Compute the congruent action of mat_2 on mat_1.
 
         Notes
         ------
@@ -629,11 +591,8 @@ class Matrices(VectorSpace):
 
     @staticmethod
     def trace_product(mat_1, mat_2):
-        """
-        Compute trace of the product of two matrices.
+        """Compute trace of the product of two matrices.
 
-        Notes
-        ------
         The `einsum` function is used to avoid computing a matrix product. It
         is also faster than using a sum an element-wise product.
 
@@ -652,11 +611,8 @@ class Matrices(VectorSpace):
         return gs.einsum("...ij,...ji->...", mat_1, mat_2)
 
     def flatten(self, mat):
-        """
-        Return a flattened form of the matrix.
+        """Return a flattened form of the matrix.
 
-        Notes
-        ------
         Flatten a matrix (compatible with vectorization on data axis 0).
         The reverse operation is reshape. These operations are often called
         matrix vectorization / matricization in mathematics
@@ -683,11 +639,8 @@ class Matrices(VectorSpace):
         return gs.reshape(mat, shape)
 
     def reshape(self, vec):
-        """
-        Return a matricized form of the vector.
+        """Return a matricized form of the vector.
 
-        Notes
-        ------
         Matricize a vector (compatible with vectorization on data axis 0).
         The reverse operation is matrices.flatten. These operations are often
         called matrix vectorization / matricization in mathematics
@@ -722,11 +675,8 @@ class Matrices(VectorSpace):
 
     @classmethod
     def align_matrices(cls, point, base_point):
-        """
-        Align matrices.
+        """Align matrices.
 
-        Notes
-        -----
         Find the optimal rotation R in SO(m) such that the base point and
         R.point are well positioned.
 
@@ -761,11 +711,8 @@ class Matrices(VectorSpace):
 
 
 class MatricesMetric(EuclideanMetric):
-    """
-    Euclidean metric on matrices given by Frobenius inner-product.
+    """Euclidean metric on matrices given by Frobenius inner-product.
 
-    Notes
-    ------
     Parameters
     ----------
     m, n : int
@@ -777,8 +724,7 @@ class MatricesMetric(EuclideanMetric):
         super(MatricesMetric, self).__init__(dim=dimension, shape=(m, n))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """
-        Compute Frobenius inner-product of two tangent vectors.
+        """Compute Frobenius inner-product of two tangent vectors.
 
         Parameters
         ----------
@@ -799,8 +745,7 @@ class MatricesMetric(EuclideanMetric):
 
     @staticmethod
     def norm(vector, base_point=None):
-        """
-        Compute norm of a matrix.
+        """Compute norm of a matrix.
 
         Norm of a matrix associated to the Frobenius inner product.
 

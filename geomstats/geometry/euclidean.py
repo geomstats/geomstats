@@ -6,11 +6,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class Euclidean(VectorSpace):
-    """
-    Class for Euclidean spaces.
-
-    Notes
-    ------
+    """Class for Euclidean spaces.
 
     By definition, a Euclidean space is a vector space of a given
     dimension, equipped with a Euclidean metric.
@@ -29,8 +25,7 @@ class Euclidean(VectorSpace):
         )
 
     def get_identity(self):
-        """
-        Get the identity of the group.
+        """Get the identity of the group.
 
         Parameters
         ----------
@@ -52,8 +47,7 @@ class Euclidean(VectorSpace):
         return gs.eye(self.dim)
 
     def exp(self, tangent_vec, base_point=None):
-        """
-        Compute the group exponential, which is simply the addition.
+        """Compute the group exponential, which is simply the addition.
 
         Parameters
         ----------
@@ -73,11 +67,7 @@ class Euclidean(VectorSpace):
 
 
 class EuclideanMetric(RiemannianMetric):
-    """
-    Class for Euclidean metrics.
-
-    Notes
-    ------
+    """Class for Euclidean metrics.
 
     As a Riemannian metric, the Euclidean metric is:
 
@@ -99,8 +89,7 @@ class EuclideanMetric(RiemannianMetric):
         )
 
     def metric_matrix(self, base_point=None):
-        """
-        Compute the inner-product matrix, independent of the base point.
+        """Compute the inner-product matrix, independent of the base point.
 
         Parameters
         ----------
@@ -117,15 +106,14 @@ class EuclideanMetric(RiemannianMetric):
         return mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """
-        Get the inner product between two tangent vectors at a base point.
+        """Get the inner product between two tangent vectors at a base point.
 
         Parameters
         ----------
         tangent_vec_a: array-like, shape=[..., dim]
-            Tangent vector at base point.
+            Tangent vector at base_point.
         tangent_vec_b: array-like, shape=[..., dim]
-            Tangent vector at base point.
+            Tangent vector at base_point.
         base_point: array-like, shape=[..., dim]
             Base point.
             Optional, default: None.
@@ -138,11 +126,7 @@ class EuclideanMetric(RiemannianMetric):
         return gs.dot(tangent_vec_a, tangent_vec_b)
 
     def norm(self, vector, base_point=None):
-        """
-        Compute norm of a vector.
-
-        Notes
-        ------
+        """Compute norm of a vector.
 
         Norm of a vector associated to the inner product
         at the tangent space at a base point.
@@ -166,11 +150,7 @@ class EuclideanMetric(RiemannianMetric):
         return gs.linalg.norm(vector, axis=-1)
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """
-        Compute exp map of a base point in tangent vector direction.
-
-        Notes
-        ------
+        """Compute exp map of a base point in a tangent vector direction.
 
         The Riemannian exponential is vector addition in the Euclidean space.
 
@@ -190,11 +170,7 @@ class EuclideanMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point, **kwargs):
-        """
-        Compute log map using a base point and other point.
-
-        Notes
-        ------
+        """Compute log map using a base point and other point.
 
         The Riemannian logarithm is the subtraction in the Euclidean space.
 
@@ -216,11 +192,7 @@ class EuclideanMetric(RiemannianMetric):
     def parallel_transport(
         self, tangent_vec, base_point=None, direction=None, end_point=None
     ):
-        """
-        Compute the parallel transport of a tangent vector.
-
-        Notes
-        ------
+        r"""Compute the parallel transport of a tangent vector.
 
         On a Euclidean space, the parallel transport of a (tangent) vector returns
         the vector itself.
@@ -228,12 +200,12 @@ class EuclideanMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at base point to be transported.
+            Tangent vector at a base point to be transported.
         base_point : array-like, shape=[..., dim]
             Point on the manifold. Point to transport from.
             Optional, default: None
         direction : array-like, shape=[..., dim]
-            Tangent vector at base point, along which the parallel transport
+            Tangent vector at a base point, along which the parallel transport
             is computed.
             Optional, default: None.
         end_point : array-like, shape=[..., dim]

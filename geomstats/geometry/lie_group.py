@@ -119,9 +119,9 @@ class MatrixLieGroup(Manifold, abc.ABC):
         Parameters
         ----------
         tangent_vector_a : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         tangent_vector_b : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
 
@@ -183,7 +183,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         Returns
         -------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         """
         if base_point is None:
             return self.lie_algebra.projection(vector)
@@ -193,8 +193,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
 
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
-        r"""
-        Exponentiate a left-invariant vector field from a base point.
+        r"""Exponentiate a left-invariant vector field from a base point.
 
         The vector input is not an element of the Lie algebra, but of the
         tangent space at base_point: if :math:`g` denotes `base_point`,
@@ -211,7 +210,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
             Optional, defaults to identity if None.
@@ -229,8 +228,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
 
     @classmethod
     def log(cls, point, base_point=None):
-        r"""
-        Compute a left-invariant vector field bringing base_point to point.
+        r"""Compute a left-invariant vector field bringing base_point to point.
 
         The output is a vector of the tangent space at base_point, so not a Lie
         algebra element if it is not the identity.
@@ -444,7 +442,7 @@ class LieGroup(Manifold, abc.ABC):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-            Tangent vector at base point.
+            Tangent vector at a base point.
 
         Returns
         -------
@@ -461,7 +459,7 @@ class LieGroup(Manifold, abc.ABC):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Base point.
 
@@ -490,7 +488,7 @@ class LieGroup(Manifold, abc.ABC):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Base point.
             Optional, default: self.identity
@@ -607,9 +605,9 @@ class LieGroup(Manifold, abc.ABC):
         Parameters
         ----------
         tangent_vector_a : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         tangent_vector_b : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
 
@@ -671,7 +669,7 @@ class LieGroup(Manifold, abc.ABC):
         Returns
         -------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         """
         if base_point is None:
             return self.lie_algebra.projection(vector)

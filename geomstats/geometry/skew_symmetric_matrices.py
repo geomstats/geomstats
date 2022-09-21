@@ -14,8 +14,7 @@ from geomstats.geometry.matrices import Matrices
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):
-    """
-    Class for skew-symmetric matrices.
+    """Class for skew-symmetric matrices.
 
     Parameters
     ----------
@@ -52,8 +51,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         return gs.array_from_sparse(indices, data, (k + 1, n, n))
 
     def belongs(self, mat, atol=gs.atol):
-        """
-        Evaluate if mat is a skew-symmetric matrix.
+        """Evaluate if mat is a skew-symmetric matrix.
 
         Parameters
         ----------
@@ -74,8 +72,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         return has_right_shape
 
     def random_point(self, n_samples=1, bound=1.0):
-        """
-        Sample from a uniform distribution in a cube.
+        """Sample a uniform distribution in a cube.
 
         Parameters
         ----------
@@ -97,11 +94,8 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
     @classmethod
     def projection(cls, mat):
-        """
-        Compute the skew-symmetric component of a matrix.
+        r"""Compute the skew-symmetric component of a matrix.
 
-        Notes
-        ------
         The skew-symmetric part of a matrix :math:`X` is defined by
 
         .. math::
@@ -120,11 +114,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         return Matrices.to_skew_symmetric(mat)
 
     def basis_representation(self, matrix_representation):
-        """
-        Calculate the coefficients of given matrix in the basis.
-
-        Notes
-        ------
+        """Calculate the coefficients of given matrix in the basis.
 
         Compute a 1d-array that corresponds to the input matrix in the basis
         representation.

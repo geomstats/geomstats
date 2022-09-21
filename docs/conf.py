@@ -2,6 +2,10 @@
 
 import geomstats
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../'))
+
 project = "Geomstats"
 copyright = "2022-2023, Geomstats, Inc."
 author = "Geomstats Team"
@@ -20,6 +24,10 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_gallery.load_style",
 ]
+
+autosummary_generate = True
+autosummary_imported_members = True
+add_module_names = False
 
 # Configure napoleon for numpy docstring
 napoleon_google_docstring = False

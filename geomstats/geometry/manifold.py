@@ -16,8 +16,7 @@ POINT_TYPES = {1: "vector", 2: "matrix"}
 
 
 class Manifold(abc.ABC):
-    """
-    Base class for manifolds.
+    r"""Base class for manifolds.
 
     Parameters
     ----------
@@ -65,8 +64,7 @@ class Manifold(abc.ABC):
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
-        """
-        Evaluate if a point belongs to the manifold.
+        """Evaluate if a point belongs to the manifold. 
 
         Parameters
         ----------
@@ -84,8 +82,7 @@ class Manifold(abc.ABC):
 
     @abc.abstractmethod
     def is_tangent(self, vector, base_point, atol=gs.atol):
-        """
-        Check whether the vector is tangent at base_point.
+        """Check whether the vector is tangent at a base point.
 
         Parameters
         ----------
@@ -100,13 +97,12 @@ class Manifold(abc.ABC):
         Returns
         -------
         is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
+            Boolean denoting if a vector is a tangent vector at the base point.
         """
 
     @abc.abstractmethod
     def to_tangent(self, vector, base_point):
-        """
-        Project a vector to a tangent space of the manifold.
+        """Project a vector to a tangent space of the manifold.
 
         Parameters
         ----------
@@ -118,13 +114,12 @@ class Manifold(abc.ABC):
         Returns
         -------
         tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         """
 
     @abc.abstractmethod
     def random_point(self, n_samples=1, bound=1.0):
-        """
-        Get sample random points on the manifold.
+        """Sample random points on the manifold.
 
         If the manifold is compact, a uniform distribution is used.
 
@@ -144,8 +139,7 @@ class Manifold(abc.ABC):
         """
 
     def regularize(self, point):
-        """
-        Regularize a point to the canonical representation for the manifold.
+        """Regularize a point to the canonical representation for the manifold.
 
         Parameters
         ----------
@@ -175,8 +169,7 @@ class Manifold(abc.ABC):
         self._metric = metric
 
     def random_tangent_vec(self, base_point, n_samples=1):
-        """
-        Generate random tangent vector.
+        """Generate a random tangent vector.
 
         Parameters
         ----------
@@ -189,7 +182,7 @@ class Manifold(abc.ABC):
         Returns
         -------
         tangent_vec : array-like, shape=[..., dim]
-            Tangent vec at base point.
+            Tangent vector at a base point.
         """
         if (
             n_samples > 1

@@ -21,8 +21,7 @@ Four years after the inception of Geomstats in 2018, the
 world of geometric statistics has witnessed some key changes:
 
 * Computational Geometry: Python packages to perform optimizations or learning on manifolds.
-* Computational Mathematics: New packages in computational mathematics have emerged, together 
-with an increase of our contributors' pool, featuring PhD students in applied mathematics that are interested in open-source.
+* Computational Mathematics: New packages in computational mathematics have emerged, together with an increase of our contributors' pool, featuring PhD students in applied mathematics that are interested in open-source.
 * Geometric Deep learning: a fast-growing field, partially supported by the success of graph neural networks.
 
 Geomstats is very popular in practice for computations and canonical

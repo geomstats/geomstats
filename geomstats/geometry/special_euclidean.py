@@ -111,7 +111,7 @@ def _squared_dist(point_a, point_b, metric):
 
 
 def homogeneous_representation(rotation, translation, output_shape, constant=1.0):
-    r"""Embed rotation, translation couples into n+1 square matrices.
+    r"""Embed a rotation, translation couples into n+1 square matrices.
 
     Construct a block matrix of size :math:`n + 1 \times n + 1` of the form
 
@@ -287,7 +287,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         Returns
         -------
         inverse : array-like, shape=[..., n + 1, n + 1]
-            Inverse of point.
+            Inverse of a point.
         """
         n = point.shape[-1] - 1
         transposed_rot = Matrices.transpose(point[..., :n, :n])
@@ -385,7 +385,7 @@ class _SpecialEuclideanVectors(LieGroup):
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean indicating whether point belongs to SE(2) or SE(3).
+            Boolean indicating whether a point belongs to SE(2) or SE(3).
         """
         point_dim = point.shape[-1]
         point_ndim = point.ndim
@@ -573,7 +573,7 @@ class _SpecialEuclideanVectors(LieGroup):
         Parameters
         ----------
         tangent_vec: array-like, shape=[..., 3]
-            Tangent vector at base point.
+            Tangent vector at a base point.
 
         Returns
         -------

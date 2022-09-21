@@ -12,11 +12,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class Minkowski(Euclidean):
-    """
-    Class for Minkowski space.
-
-    Notes
-    -----
+    """Class for the Minkowski space.
 
     This is the Euclidean space endowed with the inner-product of signature (
     dim-1, 1).
@@ -28,11 +24,7 @@ class Minkowski(Euclidean):
     """
 
     def __new__(cls, dim, **kwargs):
-        """
-        Instantiate a Minkowski space.
-        
-        Notes
-        -----
+        """Instantiate a Minkowski space.
 
         This is an instance of the `Euclidean` class endowed with the
         `MinkowskiMetric`.
@@ -43,11 +35,7 @@ class Minkowski(Euclidean):
 
 
 class MinkowskiMetric(RiemannianMetric):
-    """
-    Class for the pseudo-Riemannian Minkowski metric.
-
-    Notes
-    ------
+    """Class for the pseudo-Riemannian Minkowski metric.
 
     The metric is flat: the inner product is independent of the base point.
 
@@ -61,8 +49,7 @@ class MinkowskiMetric(RiemannianMetric):
         super(MinkowskiMetric, self).__init__(dim=dim, signature=(dim - 1, 1))
 
     def metric_matrix(self, base_point=None):
-        """
-        Compute the inner product matrix, independent of the base point.
+        """Compute the inner product matrix, independent of the base point.
 
         Parameters
         ----------
@@ -79,15 +66,14 @@ class MinkowskiMetric(RiemannianMetric):
         return from_vector_to_diagonal_matrix(diagonal)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """
-        Get the inner product between two tangent vectors at a base point.
+        """Get the inner product between two tangent vectors at a base point.
 
         Parameters
         ----------
         tangent_vec_a: array-like, shape=[..., dim]
             Tangent vector at base point.
         tangent_vec_b: array-like, shape=[..., dim]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         base_point: array-like, shape=[..., dim]
             Base point.
             Optional, default: None.
@@ -102,11 +88,7 @@ class MinkowskiMetric(RiemannianMetric):
         return gs.dot(diagonal * tangent_vec_a, tangent_vec_b)
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """
-        Compute the Riemannian exponential of `tangent_vec` at `base_point`.
-
-        Notes
-        ------
+        """Compute the Riemannian exponential of `tangent_vec` at `base_point`.
 
         The Riemannian exponential is the addition in the Minkowski space.
 
@@ -126,11 +108,7 @@ class MinkowskiMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point, **kwargs):
-        """
-        Compute the Riemannian logarithm of `point` at `base_point`.
-
-        Notes
-        ------
+        """Compute the Riemannian logarithm of `point` at `base_point`.
 
         The Riemannian logarithm is the subtraction in the Minkowski space.
 
@@ -150,11 +128,7 @@ class MinkowskiMetric(RiemannianMetric):
         return log
 
     def injectivity_radius(self, base_point):
-        """
-        Compute the radius of the injectivity domain.
-
-        Notes
-        ------
+        """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
         diffeomorphism from the open ball of radius r centered at the base point onto

@@ -22,8 +22,6 @@ class Stiefel(LevelSet):
     """
     Class for Stiefel manifolds St(n,p).
     
-    Notes
-    ------
     A set of all orthonormal p-frames in n-dimensional space,
     where p <= n.
 
@@ -60,11 +58,8 @@ class Stiefel(LevelSet):
 
     @staticmethod
     def to_grassmannian(point):
-        r"""
-        Project a point of St(n, p) to Gr(n, p).
+        r"""Project a point of St(n, p) to Gr(n, p).
 
-        Notes
-        ------
         If :math:`U \in St(n, p)` is an orthonormal frame,
         return the orthogonal projector :math:`P = U U^T`
         onto the subspace of :math:`\mathbb{R}^n` spanned by
@@ -86,8 +81,6 @@ class Stiefel(LevelSet):
         r"""
         Sample on St(n,p) from the uniform distribution.
 
-        Notes
-        ------
         If :math:`Z(p,n) \sim N(0,1)`, then :math:`St(n,p) \sim U`,
         according to Haar measure:
         :math:`St(n,p) := Z(Z^TZ)^{-1/2}`.
@@ -115,11 +108,8 @@ class Stiefel(LevelSet):
         return samples
 
     def random_point(self, n_samples=1, bound=1.0):
-        r"""
-        Sample on St(n,p) from the uniform distribution.
+        r"""Sample on St(n,p) from the uniform distribution.
 
-        Notes
-        ------
         If :math:`Z(p,n) \sim N(0,1)`, then :math:`St(n,p) \sim U`,
         according to Haar measure:
         :math:`St(n,p) := Z(Z^TZ)^{-1/2}`.
@@ -140,11 +130,8 @@ class Stiefel(LevelSet):
         return self.random_uniform(n_samples)
 
     def to_tangent(self, vector, base_point):
-        """
-        Project a vector to a tangent space of the manifold.
+        """Project a vector to a tangent space of the manifold.
 
-        Notes
-        ------
         Inspired by the method of Pymanopt.
 
         Parameters
@@ -157,25 +144,22 @@ class Stiefel(LevelSet):
         Returns
         -------
         tangent_vec : array-like, shape=[..., n, p]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         """
         aux = Matrices.mul(Matrices.transpose(base_point), vector)
         sym_aux = Matrices.to_symmetric(aux)
         return vector - Matrices.mul(base_point, sym_aux)
 
     def projection(self, point):
-        """
-        Project a close enough matrix to the Stiefel manifold.
+        """Project a close enough matrix to the Stiefel manifold.
 
-        Notes
-        ------
         A singular value decomposition is used, and all singular values are
         set to 1 [Absil]_
 
         Parameters
         ----------
         point : array-like, shape=[..., n, p]
-            Point in embedding manifold.
+            Point in an embedding manifold.
 
         Returns
         -------
@@ -193,8 +177,7 @@ class Stiefel(LevelSet):
 
 
 class StiefelCanonicalMetric(RiemannianMetric):
-    """
-    Class that defines the canonical metric for Stiefel manifolds.
+    """Class that defines the canonical metric for Stiefel manifolds.
 
     Parameters
     ----------
@@ -214,11 +197,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
         self.p = p
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """
-        Compute the inner-product of two tangent vectors at a base point.
+       r"""Compute the inner-product of two tangent vectors at a base point.
 
-        Notes
-        ------
         Canonical inner-product on the tangent space at `base_point`,
         which is different from the inner-product induced by the embedding
         (see [RLSMRZ2017]_).
@@ -239,9 +219,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, p]
-            First tangent vector at base point.
+            First tangent vector at a base point.
         tangent_vec_b : array-like, shape=[..., n, p]
-            Second tangent vector at base point.
+            Second tangent vector at a base point.
         base_point : array-like, shape=[..., n, p]
             Point in the Stiefel manifold.
 
@@ -261,8 +241,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return inner_prod
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """
-        Compute the Riemannian exponential of a tangent vector.
+        """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
         ----------
@@ -297,8 +276,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
     @staticmethod
     def _normal_component_qr(point, base_point, matrix_m):
-        """
-        Compute the QR decomposition of the normal component of a point.
+        """Compute the QR decomposition of the normal component of a point.
 
         Parameters
         ----------
@@ -317,8 +295,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
     @staticmethod
     def _orthogonal_completion(matrix_m, matrix_n):
-        """
-        Orthogonal matrix completion.
+        """Orthogonal matrix completion.
 
         Parameters
         ----------
@@ -336,8 +313,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
     @staticmethod
     def _procrustes_preprocessing(p, matrix_v, matrix_m, matrix_n):
-        """
-        Procrustes preprocessing.
+        """Procrustes preprocessing.
 
         Parameters
         ----------
@@ -370,11 +346,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return matrix_v_final
 
     def log(self, point, base_point, max_iter=30, tol=gs.atol, **kwargs):
-        """
-        Compute the Riemannian logarithm of a point.
+        """Compute the Riemannian logarithm of a point.
 
-        Notes
-        ------
         When p=n, the space St(n,n)~O(n) has two non connected sheets: the
         log is only defined for data from the same sheet.
         For p<n, the space St(n,p)~O(n)/O(n-p)~SO(n)/SO(n-p) is connected.
@@ -451,8 +424,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
     @staticmethod
     def retraction(tangent_vec, base_point):
-        """
-        Compute the retraction of a tangent vector.
+        """Compute the retraction of a tangent vector.
 
         This computation is based on the QR-decomposition.
 
@@ -483,11 +455,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
     @staticmethod
     @geomstats.vectorization.decorator(["matrix", "matrix"])
     def lifting(point, base_point):
-        """
-        Compute the lifting of a point.
+        """Compute the lifting of a point.
 
-        Notes
-        ------
         This computation is based on the QR-decomposion.
 
         e.g. :math:`P_x^{-1}(Q) = QR - X`.
@@ -553,11 +522,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return gs.matmul(point, matrix_r) - base_point
 
     def injectivity_radius(self, base_point):
-        """
-        Compute the radius of the injectivity domain.
+        """Compute the radius of the injectivity domain.
 
-        Notes
-        ------
         This is is the supremum of radii r for which the exponential map is a
         diffeomorphism from the open ball of radius r centered at the base point onto
         its image.

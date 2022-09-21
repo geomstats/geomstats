@@ -1,5 +1,5 @@
-:mod:`geomstats.geometry`: Classes and utility functions
-==============================================================
+Geometry
+=========
 
 .. automodule:: geomstats.geometry
     :no-members:
@@ -7,85 +7,277 @@
 
 Manifolds
 -----------
+
 .. currentmodule:: geomstats.geometry
+
+.. currentmodule:: manifold
 
 .. autosummary::
    :nosignatures:
-   :toctree: generated/manifolds/
+   :toctree: generated
+   :recursive:
 
-   manifold.Manifold
-   product_manifold.ProductManifold
-   product_manifold.NFoldManifold
-   euclidean.Euclidean
-   minkowski.Minkowski
-   minkowski.MinkowskiMetric
-   hypersphere._Hypersphere
-   hypersphere.HypersphereMetric
-   hypersphere.Hypersphere
-   hyperbolic.Hyperbolic
-   discretized_curves.DiscreteCurves
-   discretized_curves.ClosedDiscreteCurves
-   discretized_curves.L2CurvesMetric
-   discretized_curves.ElasticMetric
-   discretized_curves.SRVMetric
-   discretized_curves.SRVShapeBundle
-   discretized_curves.SRVQuotientMetric
-   spd_matrices.SPDMatrices
-   skew_symmetric_matrices.SkewSymmetricMatrices
-   stiefel.Stiefel
-   stiefel.StiefelCanonicalMetric
-   lie_group.MatrixLieGroup
-   lie_group.LieGroup
-   lie_algebra.MatrixLieAlgebra
-   matrices.Matrices
-   matrices.MatricesMetric
-   general_linear.GeneralLinear
-   general_linear.SquareMatrices
-   special_euclidean.SpecialEuclideanMatrixCannonicalLeftMetric
-   special_euclidean.SpecialEuclidean
-   special_euclidean.SpecialEuclideanMatrixLieAlgebra
-   special_orthogonal.SpecialOrthogonal
-   graphspace.Graph
-   graphspace.GraphSpace
-   graphspace.GraphSpaceMetric
-   graphspace.FAQMatcher
-   graphspace.IDMatcher
-   grassmannian.Grassmannian
-   grassmannian.GrassmannianCanonicalMetric
-   landmarks.Landmarks
-   landmarks.L2LandmarksMetric
-   poincare_polydisk.PoincarePolydiskTestData
-   poincare_polydisk.PoincarePolydiskMetricTestData
-   lower_triangular_matrices.LowerTriangularMatricesTestData
-   positive_lower_triangular_matrices.PositiveLowerTriangularMatricesTestData
-   positive_lower_triangular_matrices.CholeskyMetricTestData
+   Manifold
+
+.. currentmodule:: geomstats.geometry.product_manifold
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   ProductManifold
+   NFoldManifold
+
+.. currentmodule:: geomstats.geometry.euclidean
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Euclidean
+
+.. currentmodule:: geomstats.geometry.minkowski
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Minkowski
+   MinkowskiMetric
+
+.. currentmodule:: geomstats.geometry.minkowski
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Minkowski
+   MinkowskiMetric
+
+.. currentmodule:: geomstats.geometry.hypersphere
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   HypersphereMetric
+   Hypersphere
+
+.. currentmodule:: geomstats.geometry.hyperbolic
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Hyperbolic
+
+.. currentmodule:: geomstats.geometry.discretized_curves
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   DiscreteCurves
+   ClosedDiscreteCurves
+   L2CurvesMetric
+   ElasticMetric
+   SRVMetric
+   SRVShapeBundle
+   SRVQuotientMetric
+
+.. currentmodule:: geomstats.geometry.spd_matrices
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   SPDMatrices
+
+.. currentmodule:: geomstats.geometry.skew_symmetric_matrices
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   SkewSymmetricMatrices
+
+.. currentmodule:: geomstats.geometry.stiefel
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Stiefel
+   StiefelCanonicalMetric
+
+.. currentmodule:: geomstats.geometry.lie_group
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   MatrixLieGroup
+   LieGroup
+   MatrixLieAlgebra
+
+.. currentmodule:: geomstats.geometry.matrices
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Matrices
+   MatricesMetric
+
+.. currentmodule:: geomstats.geometry.general_linear
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   GeneralLinear
+   SquareMatrices
+
+.. currentmodule:: geomstats.geometry.special_euclidean
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   SpecialEuclideanMatrixCannonicalLeftMetric
+   SpecialEuclidean
+   SpecialEuclideanMatrixLieAlgebra
+   SpecialOrthogonal
+
+.. currentmodule:: geomstats.geometry.graphspace
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Graph
+   GraphSpace
+   GraphSpaceMetric
+   FAQMatcher
+   IDMatcher
+
+.. currentmodule:: geomstats.geometry.grassmannian
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Grassmannian
+   GrassmannianCanonicalMetric
+
+.. currentmodule:: geomstats.geometry.landmarks
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Landmarks
+   L2LandmarksMetric
+
+.. currentmodule:: geomstats.geometry.poincare_polydisk
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   PoincarePolydiskTestData
+   PoincarePolydiskMetricTestData
+
+.. currentmodule:: geomstats.geometry.lower_triangular_matrices
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   LowerTriangularMatricesTestData
+
+.. currentmodule:: geomstats.geometry.positive_lower_triangular_matrices
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   PositiveLowerTriangularMatricesTestData
+   CholeskyMetricTestData
+   
 
 Matrices
 ----------
-.. currentmodule:: geomstats.geometry
+
+.. currentmodule:: geomstats.geometry.riemannian_metric
 
 .. autosummary::
    :nosignatures:
-   :toctree: generated/
-   :template: class.rst
+   :toctree: generated
+   :recursive:
 
-   riemannian_metric.RiemannianMetric
-   product_riemannian_metric.ProductRiemannianMetric
-   product_riemannian_metric.NFoldMetric
-   invariant_metric.InvariantMetric
-   invariant_metric.BiInvariantMetric
-   sasaki_metric.SasakiMetric
-   sub_riemannian_metric.SubRiemannianMetric
+   RiemannianMetric
+
+.. currentmodule:: geomstats.geometry.product_riemannian_metric
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   ProductRiemannianMetric
+
+.. currentmodule:: geomstats.geometry.invariant_metric
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   InvariantMetric
+   BiInvariantMetric
+
+.. currentmodule:: geomstats.geometry.sub_riemannian_metric
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive: 
+   SubRiemannianMetric
 
 Connections
-----------
-.. currentmodule:: geomstats.geometry
+------------
+
+.. currentmodule:: geomstats.geometry.connection
 
 .. autosummary::
    :nosignatures:
-   :toctree: generated/
-   :template: class.rst
+   :toctree: generated
+   :recursive:
 
-   connection.Connection
+   Connection
 
-   
+.. toctree::
+  :hidden:
+
+  generated/*

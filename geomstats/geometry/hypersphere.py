@@ -20,11 +20,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class _Hypersphere(LevelSet):
-    """
-    Private class for the n-dimensional hypersphere.
-
-    Notes
-    ------
+    r"""Private class for the n-dimensional hypersphere.
 
     Class for the n-dimensional hypersphere embedded in the
     (n+1)-dimensional Euclidean space.
@@ -58,8 +54,7 @@ class _Hypersphere(LevelSet):
         )
 
     def projection(self, point):
-        """
-        Project a point on the hypersphere.
+        """Project a point on the hypersphere.
 
         Parameters
         ----------
@@ -77,11 +72,7 @@ class _Hypersphere(LevelSet):
         return projected_point
 
     def to_tangent(self, vector, base_point):
-        """
-        Project a vector to the tangent space.
-        
-        Notes
-        ------
+        """Project a vector to the tangent space.
 
         Project a vector in Euclidean space
         on the tangent space of the hypersphere at a base point.
@@ -91,7 +82,7 @@ class _Hypersphere(LevelSet):
         vector : array-like, shape=[..., dim + 1]
             Vector in Euclidean space.
         base_point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere defining the tangent space,
+            A point on the hypersphere defining the tangent space,
             where the vector will be projected.
 
         Returns
@@ -109,11 +100,7 @@ class _Hypersphere(LevelSet):
 
     @staticmethod
     def angle_to_extrinsic(point_angle):
-        """
-        Convert point from angle to extrinsic coordinates.
-
-        Notes
-        ------
+        """Convert a point from an angle to extrinsic coordinates.
 
         Convert from the angle in radians to the extrinsic coordinates in
         2d plane. Angle 0 corresponds to point [1., 0.] and is expected in [-Pi, Pi).
@@ -135,13 +122,9 @@ class _Hypersphere(LevelSet):
 
     @staticmethod
     def extrinsic_to_angle(point_extrinsic):
-        """
-        Compute the angle of a point in the plane.
+        """Compute the angle of a point in the plane.
 
-        Notes
-        ------
-
-        Convert from the extrinsic coordinates in the 2d plane to angle in
+        Convert from the extrinsic coordinates in the 2d plane to an angle in
         radians. Angle 0 corresponds to point [1., 0.]. This method is only
         implemented in dimension 1.
 
@@ -158,11 +141,7 @@ class _Hypersphere(LevelSet):
         return gs.arctan2(point_extrinsic[..., 1], point_extrinsic[..., 0])
 
     def spherical_to_extrinsic(self, point_spherical):
-        """
-        Convert a point from spherical to extrinsic coordinates.
-
-        Notes
-        ------
+        """Convert a point from spherical coordinates to extrinsic coordinates.
 
         Convert from the spherical coordinates in the hypersphere
         to the extrinsic coordinates in Euclidean space.
@@ -203,14 +182,10 @@ class _Hypersphere(LevelSet):
     def tangent_spherical_to_extrinsic(
         self, tangent_vec_spherical, base_point_spherical
     ):
-        """
-        Convert tangent vector from spherical to extrinsic coordinates.
-
-        Notes
-        ------
+        """Convert a tangent vector from spherical to extrinsic coordinates.
 
         Convert from the spherical coordinates in the hypersphere
-        to the extrinsic coordinates in Euclidean space for a tangent
+        to the corresponding extrinsic coordinates in Euclidean space for a tangent
         vector. Only implemented in dimension 2.
 
         Parameters
@@ -223,7 +198,7 @@ class _Hypersphere(LevelSet):
         Returns
         -------
         tangent_vec_extrinsic : array-like, shape=[..., dim + 1]
-            Tangent vector to the sphere, at base point,
+            Tangent vector to the sphere, at a base point,
             in extrinsic coordinates in Euclidean space.
         """
         if self.dim != 2:
@@ -256,11 +231,7 @@ class _Hypersphere(LevelSet):
         return tangent_vec_extrinsic
 
     def extrinsic_to_spherical(self, point_extrinsic):
-        """
-        Convert a point from extrinsic to spherical coordinates.
-        
-        Notes
-        ------
+        """Convert a point from extrinsic to spherical coordinates.
 
         Convert from the extrinsic coordinates, i.e. embedded in Euclidean
         space of dim 3 to spherical coordinates in the hypersphere.
@@ -296,11 +267,7 @@ class _Hypersphere(LevelSet):
     def tangent_extrinsic_to_spherical(
         self, tangent_vec, base_point=None, base_point_spherical=None
     ):
-        """
-        Convert a tangent vector from extrinsic to spherical coordinates.
-
-        Notes
-        ------
+        r"""Convert a tangent vector from extrinsic to spherical coordinates.
 
         Convert a tangent vector from the extrinsic coordinates in Euclidean
         space to the spherical coordinates in the hypersphere for.
@@ -374,11 +341,7 @@ class _Hypersphere(LevelSet):
         return tangent_vec_spherical
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
-        """
-        Convert a point from intrinsic to extrinsic coordinates.
-
-        Notes
-        ------
+        """Convert a point from intrinsic to extrinsic coordinates.
 
         Convert from the intrinsic coordinates in the hypersphere,
         to the extrinsic coordinates in Euclidean space.
@@ -408,11 +371,7 @@ class _Hypersphere(LevelSet):
         )
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
-        """
-        Convert a point from extrinsic to intrinsic coordinates.
-
-        Notes
-        ------
+        """Convert a point from extrinsic to intrinsic coordinates.
 
         Convert from the extrinsic coordinates in Euclidean space,
         to some intrinsic coordinates in the hypersphere.
@@ -443,8 +402,7 @@ class _Hypersphere(LevelSet):
         return gs.assignment(samples, gs.flatten(new_samples), value_indices)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """
-        Sample in the hypersphere from the uniform distribution.
+        """Sample in the hypersphere from the uniform distribution.
 
         Parameters
         ----------
@@ -461,8 +419,7 @@ class _Hypersphere(LevelSet):
         return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):
-        """
-        Sample in the hypersphere from the uniform distribution.
+        """Sample in the hypersphere from the uniform distribution.
 
         Parameters
         ----------
@@ -496,11 +453,7 @@ class _Hypersphere(LevelSet):
         return samples
 
     def random_von_mises_fisher(self, mu=None, kappa=10, n_samples=1, max_iter=100):
-        """
-        Sample with the von Mises-Fisher distribution.
-
-        Notes
-        ------
+        """Sample with the von Mises-Fisher distribution.
 
         This distribution corresponds to the maximum entropy distribution
         given a mean. In dimension 2, a closed form expression is available.
@@ -593,11 +546,7 @@ class _Hypersphere(LevelSet):
     def random_riemannian_normal(
         self, mean=None, precision=None, n_samples=1, max_iter=100
     ):
-        """
-        Sample from the Riemannian normal distribution.
-
-        Notes
-        ------
+        r"""Sample from the Riemannian normal distribution.
 
         The Riemannian normal distribution, or spherical normal in this case,
         is defined by the probability density function (with respect to the
@@ -700,8 +649,7 @@ class _Hypersphere(LevelSet):
 
 
 class HypersphereMetric(RiemannianMetric):
-    """
-    Class for the Hypersphere Metric.
+    """Class for the Hypersphere Metric.
 
     Parameters
     ----------
@@ -717,8 +665,7 @@ class HypersphereMetric(RiemannianMetric):
         self._space = _Hypersphere(dim=dim)
 
     def metric_matrix(self, base_point=None):
-        """
-        Metric matrix at the tangent space at a base point.
+        """Metric matrix at the tangent space at a base point.
 
         Parameters
         ----------
@@ -734,8 +681,7 @@ class HypersphereMetric(RiemannianMetric):
         return gs.eye(self.dim + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """
-        Compute the inner-product of two tangent vectors at a base point.
+        """Compute the inner-product of two tangent vectors at a base point.
 
         Parameters
         ----------
@@ -758,8 +704,7 @@ class HypersphereMetric(RiemannianMetric):
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
-        """
-        Compute the squared norm of a vector.
+        """Compute the squared norm of a vector.
 
         Squared norm of a vector associated with the inner-product
         at the tangent space at a base point.
@@ -767,7 +712,7 @@ class HypersphereMetric(RiemannianMetric):
         Parameters
         ----------
         vector : array-like, shape=[..., dim + 1]
-            Vector on the tangent space of the hypersphere at base point.
+            Vector on the tangent space of the hypersphere at a base point.
         base_point : array-like, shape=[..., dim + 1], optional
             Point on the hypersphere.
 
@@ -780,8 +725,7 @@ class HypersphereMetric(RiemannianMetric):
         return sq_norm
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """
-        Compute the Riemannian exponential of a tangent vector.
+        """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
         ----------
@@ -794,7 +738,7 @@ class HypersphereMetric(RiemannianMetric):
         -------
         exp : array-like, shape=[..., dim + 1]
             Point on the hypersphere equal to the Riemannian exponential
-            of tangent_vec at the base point.
+            of tangent_vec at a base point.
         """
         hypersphere = Hypersphere(dim=self.dim)
         proj_tangent_vec = hypersphere.to_tangent(tangent_vec, base_point)
@@ -809,8 +753,7 @@ class HypersphereMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point, **kwargs):
-        """
-        Compute the Riemannian logarithm of a point.
+        """Compute the Riemannian logarithm of a point.
 
         Parameters
         ----------
@@ -841,8 +784,7 @@ class HypersphereMetric(RiemannianMetric):
         return log
 
     def dist(self, point_a, point_b):
-        """
-        Compute the geodesic distance between two points.
+        """Compute the geodesic distance between two points.
 
         Parameters
         ----------
@@ -868,8 +810,7 @@ class HypersphereMetric(RiemannianMetric):
         return dist
 
     def squared_dist(self, point_a, point_b, **kwargs):
-        """
-        Compute the squared geodesic distance between two points.
+        """Compute the squared geodesic distance between two points.
 
         Parameters
         ----------
@@ -887,11 +828,7 @@ class HypersphereMetric(RiemannianMetric):
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
     ):
-        """
-        Compute the parallel transport of a tangent vector.
-
-        Notes
-        ------
+        r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
@@ -901,11 +838,11 @@ class HypersphereMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., dim + 1]
-            Tangent vector at base point to be transported.
+            Tangent vector at a base point to be transported.
         base_point : array-like, shape=[..., dim + 1]
             Point on the hypersphere.
         direction : array-like, shape=[..., dim + 1]
-            Tangent vector at base point, along which the parallel transport
+            Tangent vector at a base point, along which the parallel transport
             is computed.
             Optional, default : None.
         end_point : array-like, shape=[..., dim + 1]
@@ -939,11 +876,7 @@ class HypersphereMetric(RiemannianMetric):
         return transported
 
     def christoffels(self, point, point_type="spherical"):
-        """
-        Compute the Christoffel symbols at a point.
-
-        Notes
-        ------
+        """Compute the Christoffel symbols at a point.
 
         Only implemented in dimension 2 and for spherical coordinates.
 
@@ -986,11 +919,7 @@ class HypersphereMetric(RiemannianMetric):
         return christoffel
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
-        """
-        Compute the curvature.
-
-        Notes
-        ------
+        r"""Compute the curvature.
 
         For three tangent vectors at a base point :math:`x,y,z`,
         the curvature is defined by
@@ -1087,8 +1016,7 @@ class HypersphereMetric(RiemannianMetric):
         return coef * sum_term
 
     def normalization_factor(self, variances):
-        """
-        Return the normalization factor of the Gaussian distribution.
+        """Return the normalization factor of the Gaussian distribution.
 
         Parameters
         ----------
@@ -1105,8 +1033,7 @@ class HypersphereMetric(RiemannianMetric):
         return self._normalization_factor_odd_dim(variances)
 
     def norm_factor_gradient(self, variances):
-        """
-        Compute the gradient of the normalization factor.
+        """Compute the gradient of the normalization factor.
 
         Parameters
         ----------
@@ -1133,11 +1060,7 @@ class HypersphereMetric(RiemannianMetric):
         tangent_vec_d=None,
         base_point=None,
     ):
-        """
-        Compute the covariant derivative of the curvature.
-
-        Notes
-        ------
+        r"""Compute the covariant derivative of the curvature.
 
         The derivative of the curvature vanishes since the hypersphere is a
         constant curvature space.
@@ -1162,16 +1085,12 @@ class HypersphereMetric(RiemannianMetric):
         Returns
         -------
         curvature_derivative : array-like, shape=[..., dim]
-            Tangent vector at base point.
+            Tangent vector at a base point.
         """
         return gs.zeros_like(tangent_vec_a)
 
     def injectivity_radius(self, base_point):
-        """
-        Compute the radius of the injectivity domain.
-
-        Notes
-        ------
+        """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
         diffeomorphism from the open ball of radius r centered at the base point onto
@@ -1193,11 +1112,7 @@ class HypersphereMetric(RiemannianMetric):
 
 
 class Hypersphere(_Hypersphere):
-    """
-    Class for the n-dimensional hypersphere.
-
-    Notes
-    ------
+    """Class for the n-dimensional hypersphere.
 
     Class for the n-dimensional hypersphere embedded in the
     (n+1)-dimensional Euclidean space.

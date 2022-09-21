@@ -248,6 +248,7 @@ def load_optical_nerves():
         Indices in 0...10 referencing the index of the monkey to which a given
         optical nerve belongs.
     """
+    
     nerves = pd.read_csv(OPTICAL_NERVES_PATH, sep="\t")
     nerves = nerves.set_index("Filename")
     nerves = nerves.drop(index=["laljn103.12b", "lalj0103.12b"])
@@ -293,6 +294,7 @@ def load_hands():
     bone_list : array-like
         List of bones, as a list of connexions between joints.
     """
+
     data = gs.array(pd.read_csv(HANDS_PATH, sep=" ").values)
     n_landmarks = 22
     dim = 3
