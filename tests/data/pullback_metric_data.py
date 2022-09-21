@@ -57,6 +57,25 @@ class PullbackMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def tangent_circle_immersion_test_data(self):
+        smoke_data = [
+            dict(
+                dim=1,
+                tangent_vec=gs.array([1.0]),
+                point=gs.array([0.0]),
+                expected=gs.array([0.0, 1.0]),
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def jacobian_circle_immersion_test_data(self):
+        smoke_data = [
+            dict(dim=1, pole=gs.array([0.0])),
+            dict(dim=1, pole=gs.array([0.2])),
+            dict(dim=1, pole=gs.array([4.0])),
+        ]
+        return self.generate_tests(smoke_data)
+
     def jacobian_sphere_immersion_test_data(self):
         smoke_data = [
             dict(dim=2, pole=gs.array([0.0, 0.0])),
@@ -81,6 +100,14 @@ class PullbackMetricTestData(TestData):
             dict(dim=2, base_point=gs.array([0.0, 0.0])),
             dict(dim=2, base_point=gs.array([1.0, 1.0])),
             dict(dim=2, base_point=gs.array([0.3, 0.8])),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def circle_metric_matrix_test_data(self):
+        smoke_data = [
+            # dict(dim=1, base_point=gs.array([0.0])),
+            # dict(dim=1, base_point=gs.array([1.0])),
+            dict(dim=1, base_point=gs.array([4.0])),
         ]
         return self.generate_tests(smoke_data)
 

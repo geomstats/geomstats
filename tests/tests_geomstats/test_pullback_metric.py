@@ -102,9 +102,24 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         expected = _expected_jacobian_sphere_immersion(pole)
         self.assertAllClose(result, expected)
 
+    def test_jacobian_circle_immersion(self, dim, pole):
+        pullback_metric = self.Metric(
+            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
+        )
+        result = pullback_metric.jacobian_immersion(pole)
+        expected = _expected_jacobian_circle_immersion(pole)
+        self.assertAllClose(result, expected)
+
     def test_tangent_sphere_immersion(self, dim, tangent_vec, point, expected):
         pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
+        )
+        result = pullback_metric.tangent_immersion(tangent_vec, point)
+        self.assertAllClose(result, expected)
+
+    def test_tangent_circle_immersion(self, dim, tangent_vec, point, expected):
+        pullback_metric = self.Metric(
+            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
         )
         result = pullback_metric.tangent_immersion(tangent_vec, point)
         self.assertAllClose(result, expected)
@@ -115,6 +130,14 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         result = pullback_metric.metric_matrix(base_point)
         expected = _expected_sphere_metric_matrix(base_point)
+        self.assertAllClose(result, expected)
+
+    def test_circle_metric_matrix(self, dim, base_point):
+        pullback_metric = self.Metric(
+            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
+        )
+        result = pullback_metric.metric_matrix(base_point)
+        expected = _expected_circle_metric_matrix(base_point)
         self.assertAllClose(result, expected)
 
     def test_inverse_sphere_metric_matrix(self, dim, base_point):
