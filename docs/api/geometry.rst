@@ -8,9 +8,7 @@ Geometry
 Manifolds
 -----------
 
-.. currentmodule:: geomstats.geometry
-
-.. currentmodule:: manifold
+.. currentmodule:: geomstats.geometry.manifold
 
 .. autosummary::
    :nosignatures:

@@ -2,38 +2,58 @@
 Learning
 ********
 
+.. automodule:: geomstats.learning
+    :no-members:
+    :no-inherited-members:
+
 Estimating the mean
 ===================
 
-.. automodule:: geomstats.learning.frechet_mean
-   :members:
+.. currentmodule:: geomstats.learning
 
-.. automodule:: geomstats.learning.exponential_barycenter
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   frechet_mean
+   exponential_barycenter
 
 Clustering
 ==========
 
-.. automodule:: geomstats.learning.kmeans
-   :members:
+.. currentmodule:: geomstats.learning
 
-.. automodule:: geomstats.learning.online_kmeans
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
 
-.. automodule:: geomstats.learning.agglomerative_hierarchical_clustering
-   :members:
+   kmeans
+   online_kmeans
+   agglomerative_hierarchical_clustering
 
 Classification
 ==============
 
-.. automodule:: geomstats.learning.mdm
-   :members:
+.. currentmodule:: geomstats.learning
 
-.. automodule:: geomstats.learning.knn
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   mdm
+   knn
 
 Dimension reduction
 ===================
 
-.. automodule:: geomstats.learning.pca
-   :members:
+.. currentmodule:: geomstats.learning
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   pca
