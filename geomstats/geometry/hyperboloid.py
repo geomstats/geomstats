@@ -23,14 +23,14 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     n+1)-dimensional Minkowski space. For other representations of
     hyperbolic spaces see the `Hyperbolic` class.
 
-    The coords_type parameter allows to choose the
+    The default_coords_type parameter allows to choose the
     representation of the points as input.
 
     Parameters
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    coords_type : str, {'extrinsic', 'intrinsic'}
+    default_coords_type : str, {'extrinsic', 'intrinsic'}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
     scale : int
@@ -39,20 +39,19 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         Optional, default: 1.
     """
 
-    def __init__(self, dim, coords_type="extrinsic", scale=1, **kwargs):
-        # TODO: coords_type vs default_coords_type?
+    def __init__(self, dim, default_coords_type="extrinsic", scale=1, **kwargs):
         minkowski = Minkowski(dim + 1)
-        kwargs.setdefault("metric", HyperboloidMetric(dim, coords_type, scale))
+        kwargs.setdefault("metric", HyperboloidMetric(dim, default_coords_type, scale))
         super().__init__(
             dim=dim,
             embedding_space=minkowski,
             submersion=minkowski.metric.squared_norm,
             value=-1.0,
             tangent_submersion=minkowski.metric.inner_product,
+            default_coords_type=default_coords_type,
             scale=scale,
             **kwargs
         )
-        self.coords_type = coords_type
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
@@ -78,7 +77,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         point_dim = point.shape[-1]
         if point_dim is not self.dim + 1:
             belongs = False
-            if point_dim is self.dim and self.coords_type == "intrinsic":
+            if point_dim is self.dim and self.default_coords_type == "intrinsic":
                 belongs = True
             if gs.ndim(point) == 2:
                 belongs = gs.tile([belongs], (point.shape[0],))
@@ -125,7 +124,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             Point in hyperbolic space in canonical representation
             in extrinsic coordinates.
         """
-        if self.coords_type == "intrinsic":
+        if self.default_coords_type == "intrinsic":
             point = self.intrinsic_to_extrinsic_coords(point)
 
         sq_norm = self.embedding_metric.squared_norm(point)
@@ -159,7 +158,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             Tangent vector at the base point, equal to the projection of
             the vector in Minkowski space.
         """
-        if self.coords_type == "intrinsic":
+        if self.default_coords_type == "intrinsic":
             base_point = self.intrinsic_to_extrinsic_coords(base_point)
 
         sq_norm = self.embedding_metric.squared_norm(base_point)
@@ -244,7 +243,7 @@ class HyperboloidMetric(HyperbolicMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    coords_type : str, {'extrinsic', 'intrinsic', etc}
+    default_coords_type : str, {'extrinsic', 'intrinsic', etc}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
     scale : int
@@ -253,12 +252,9 @@ class HyperboloidMetric(HyperbolicMetric):
         Optional, default: 1.
     """
 
-    def __init__(self, dim, coords_type="extrinsic", scale=1):
-        super().__init__(dim=dim, scale=scale)
+    def __init__(self, dim, default_coords_type="extrinsic", scale=1):
+        super().__init__(dim=dim, scale=scale, default_coords_type=default_coords_type)
         self.embedding_metric = MinkowskiMetric(dim + 1)
-
-        self.coords_type = coords_type
-
         self.scale = scale
 
     def metric_matrix(self, base_point=None):
@@ -356,7 +352,7 @@ class HyperboloidMetric(HyperbolicMetric):
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
-        If point_type = 'poincare' then base_point belongs
+        If `default_coords_type` is 'poincare' then base_point belongs
         to the Poincare ball and point is a vector in the Euclidean
         space of the same dimension as the ball.
 

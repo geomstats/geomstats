@@ -19,7 +19,7 @@ NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
 PI_2_3 = gs.power(gs.array([2.0 * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.0)
 
-COORDS_TYPE = "ball"
+_COORDS_TYPE = "ball"
 
 
 class PoincareBall(_Hyperbolic, OpenSet):
@@ -44,8 +44,8 @@ class PoincareBall(_Hyperbolic, OpenSet):
             ambient_space=Euclidean(dim),
             scale=scale,
             metric=PoincareBallMetric(dim, scale),
+            default_coords_type=_COORDS_TYPE,
         )
-        self.coords_type = COORDS_TYPE
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
@@ -114,8 +114,11 @@ class PoincareBallMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, scale=1):
-        super().__init__(dim=dim, signature=(dim, 0))
-        self.coords_type = COORDS_TYPE
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            default_coords_type=_COORDS_TYPE,
+        )
         self.scale = scale
 
     def exp(self, tangent_vec, base_point, **kwargs):

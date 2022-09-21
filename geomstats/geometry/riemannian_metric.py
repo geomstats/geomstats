@@ -34,10 +34,13 @@ class RiemannianMetric(Connection, ABC):
         Optional, default: None.
     """
 
-    def __init__(self, dim, shape=None, signature=None):
+    def __init__(
+        self, dim, shape=None, signature=None, default_coords_type="intrinsic"
+    ):
         super().__init__(
             dim=dim,
             shape=shape,
+            default_coords_type=default_coords_type,
         )
         if signature is None:
             signature = (dim, 0)

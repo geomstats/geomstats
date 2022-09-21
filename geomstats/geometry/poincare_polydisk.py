@@ -32,15 +32,14 @@ class PoincarePolydisk(ProductManifold, OpenSet):
     ----------
     n_disks : int
         Number of disks.
-    coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
         Optional, default: \'extrinsic\'.
     """
 
-    def __init__(self, n_disks, coords_type="extrinsic"):
+    def __init__(self, n_disks, default_coords_type="extrinsic"):
         self.n_disks = n_disks
-        self.coords_type = coords_type
-        disk = Hyperboloid(2, coords_type=coords_type)
+        disk = Hyperboloid(2, default_coords_type=default_coords_type)
         list_disks = [
             disk,
         ] * n_disks
@@ -48,8 +47,11 @@ class PoincarePolydisk(ProductManifold, OpenSet):
             manifolds=list_disks,
             default_point_type="matrix",
             ambient_space=Matrices(n_disks, 2),
+            default_coords_type=default_coords_type,
         )
-        self._metric = PoincarePolydiskMetric(n_disks=n_disks, coords_type=coords_type)
+        self._metric = PoincarePolydiskMetric(
+            n_disks=n_disks, default_coords_type=default_coords_type
+        )
 
     @staticmethod
     def intrinsic_to_extrinsic_coords(point_intrinsic):
@@ -100,7 +102,7 @@ class PoincarePolydisk(ProductManifold, OpenSet):
             Tangent vector at base point.
         """
         n_disks = self.n_disks
-        hyperbolic_space = Hyperboloid(2, self.coords_type)
+        hyperbolic_space = Hyperboloid(2, self.default_coords_type)
         tangent_vec = gs.stack(
             [
                 hyperbolic_space.to_tangent(
@@ -127,7 +129,7 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     ----------
     n_disks : int
         Number of disks.
-    coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
         Optional, default: \'extrinsic\'.
 
@@ -138,13 +140,12 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
-    def __init__(self, n_disks, coords_type="extrinsic"):
+    def __init__(self, n_disks, default_coords_type="extrinsic"):
         self.n_disks = n_disks
-        self.coords_type = coords_type
         list_metrics = []
         for i_disk in range(n_disks):
             scale_i = (n_disks - i_disk) ** 0.5
-            metric_i = HyperboloidMetric(2, coords_type, scale_i)
+            metric_i = HyperboloidMetric(2, default_coords_type, scale_i)
             list_metrics.append(metric_i)
         super().__init__(
             metrics=list_metrics,

@@ -4,14 +4,12 @@ Lead author: Thomas Gerald.
 """
 
 import geomstats.errors as errors
-from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 
 
-class Hyperbolic(_Hyperbolic, Manifold):
+class Hyperbolic:
     """Class for the n-dimensional Hyperbolic space.
 
     This class is a common interface to the different models of hyperbolic
@@ -44,7 +42,7 @@ class Hyperbolic(_Hyperbolic, Manifold):
             ["extrinsic", "ball", "half-space"],
         )
         if default_coords_type == "extrinsic":
-            return Hyperboloid(*args, **kwargs)
+            return Hyperboloid(*args, default_coords_type=default_coords_type, **kwargs)
         if default_coords_type == "ball":
             return PoincareBall(*args, **kwargs)
         return PoincareHalfSpace(*args, **kwargs)
