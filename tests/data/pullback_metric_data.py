@@ -7,7 +7,7 @@ class PullbackMetricTestData(TestData):
 
     Metric = PullbackMetric
 
-    def immersion_test_data(self):
+    def sphere_immersion_test_data(self):
         smoke_data = [
             dict(
                 spherical_coords=gs.array([0.0, 0.0]),
@@ -24,11 +24,11 @@ class PullbackMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def immersion_and_spherical_to_extrinsic_test_data(self):
+    def sphere_immersion_and_spherical_to_extrinsic_test_data(self):
         smoke_data = [dict(dim=2, point=gs.array([0.0, 0.0]))]
         return self.generate_tests(smoke_data)
 
-    def tangent_immersion_test_data(self):
+    def tangent_sphere_immersion_test_data(self):
         smoke_data = [
             dict(
                 dim=2,
@@ -57,7 +57,7 @@ class PullbackMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def jacobian_immersion_test_data(self):
+    def jacobian_sphere_immersion_test_data(self):
         smoke_data = [
             dict(dim=2, pole=gs.array([0.0, 0.0])),
             dict(dim=2, pole=gs.array([0.22, 0.1])),
@@ -76,7 +76,7 @@ class PullbackMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def metric_matrix_test_data(self):
+    def sphere_metric_matrix_test_data(self):
         smoke_data = [
             dict(dim=2, base_point=gs.array([0.0, 0.0])),
             dict(dim=2, base_point=gs.array([1.0, 1.0])),
@@ -101,7 +101,7 @@ class PullbackMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def inverse_metric_matrix_test_data(self):
+    def inverse_sphere_metric_matrix_test_data(self):
         smoke_data = [
             dict(dim=2, base_point=gs.array([0.6, -1.0])),
             dict(dim=2, base_point=gs.array([0.8, -0.8])),
