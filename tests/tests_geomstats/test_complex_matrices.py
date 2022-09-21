@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
+from geomstats.geometry.complex_matrices import ComplexMatrices
 from tests.conftest import Parametrizer
 from tests.data.complex_matrices_data import (
     ComplexMatricesMetricTestData,
@@ -12,9 +12,8 @@ from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestC
 
 
 class TestComplexMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
-    space = ComplexMatrices
-
     testing_data = ComplexMatricesTestData()
+    Space = testing_data.Space
 
     def test_belongs(self, m, n, mat, expected):
         self.assertAllClose(
@@ -248,16 +247,16 @@ class TestComplexMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
 
 
 class TestComplexMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    metric = connection = ComplexMatricesMetric
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
     testing_data = ComplexMatricesMetricTestData()
+    Metric = testing_data.Metric
 
     def test_inner_product(self, m, n, tangent_vec_a, tangent_vec_b, expected):
         self.assertAllClose(
-            self.metric(m, n).inner_product(
+            self.Metric(m, n).inner_product(
                 gs.array(tangent_vec_a, dtype=gs.complex128),
                 gs.array(tangent_vec_b, dtype=gs.complex128),
             ),
@@ -266,12 +265,12 @@ class TestComplexMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer
 
     def test_norm(self, m, n, vector, expected):
         self.assertAllClose(
-            self.metric(m, n).norm(gs.array(vector, dtype=gs.complex128)),
+            self.Metric(m, n).norm(gs.array(vector, dtype=gs.complex128)),
             gs.array(expected),
         )
 
     def test_inner_product_norm(self, m, n, mat):
         self.assertAllClose(
-            self.metric(m, n).inner_product(mat, mat),
-            gs.power(self.metric(m, n).norm(mat), 2),
+            self.Metric(m, n).inner_product(mat, mat),
+            gs.power(self.Metric(m, n).norm(mat), 2),
         )

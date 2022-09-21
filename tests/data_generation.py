@@ -517,87 +517,39 @@ class _VectorSpaceTestData(_ManifoldTestData):
 
 
 class _ComplexVectorSpaceTestData(_ComplexManifoldTestData):
-    def _basis_belongs_test_data(self, space_args_list, belongs_atol=gs.atol):
-        """Generate data to check that basis elements belong to vector space.
-
-        Parameters
-        ----------
-        space_args_list : list
-            List of arguments to pass to constructor of the vector space.
-        belongs_atol : float
-            Absolute tolerance of the belongs function.
-        """
+    def basis_belongs_test_data(self):
+        """Generate data to check that basis elements belong to vector space."""
         random_data = [
-            dict(space_args=space_args, belongs_atol=belongs_atol)
-            for space_args in space_args_list
+            dict(space_args=space_args) for space_args in self.space_args_list
         ]
         return self.generate_tests([], random_data)
 
-    def _basis_cardinality_test_data(self, space_args_list):
-        """Generate data to check that the number of basis elements is the dimension.
-
-        Parameters
-        ----------
-        space_args_list : list
-            List of arguments to pass to constructor of the vector space.
-        """
-        random_data = [dict(space_args=space_args) for space_args in space_args_list]
+    def basis_cardinality_test_data(self):
+        """Generate data to check that the number of basis elements is the dimension."""
+        random_data = [
+            dict(space_args=space_args) for space_args in self.space_args_list
+        ]
         return self.generate_tests([], random_data)
 
-    def _random_point_is_tangent_test_data(
-        self, space_args_list, n_points_list, is_tangent_atol=gs.atol
-    ):
-        """Generate data to check that random point is tangent vector.
-
-        Parameters
-        ----------
-        space_args_list : list
-            List of spaces' args on which tests will run.
-        n_points_list : list
-            List of number of points on manifold to generate.
-        is_tangent_atol : float
-            Absolute tolerance for the is_tangent function.
-        """
+    def random_point_is_tangent_test_data(self):
+        """Generate data to check that random point is tangent vector."""
         random_data = []
-        for space_args, n_points in zip(space_args_list, n_points_list):
+        for space_args, n_points in zip(self.space_args_list, self.n_points_list):
             random_data += [
                 dict(
                     space_args=space_args,
                     n_points=n_points,
-                    is_tangent_atol=is_tangent_atol,
                 )
             ]
         return self.generate_tests([], random_data)
 
-    def _to_tangent_is_projection_test_data(
-        self,
-        space_cls,
-        space_args_list,
-        shape_list,
-        n_vecs_list,
-        rtol=gs.rtol,
-        atol=gs.atol,
-    ):
-        """Generate data to check that to_tangent return projection.
-
-        Parameters
-        ----------
-        space_cls : Manifold
-            Class of the space, i.e. a child class of Manifold.
-        space_args_list : list
-            List of spaces' args on which tests will run.
-        shape_list : list
-            List of shapes of the random vectors generated, and projected.
-        n_vecs_list : list
-            List of integers for the number of random vectors generated.
-        rtol : float
-            Relative tolerance to test this property.
-        atol : float
-            Absolute tolerance to test this property.
-        """
+    def to_tangent_is_projection_test_data(self):
+        """Generate data to check that to_tangent return projection."""
         random_data = []
-        for space_args, shape, n_vecs in zip(space_args_list, shape_list, n_vecs_list):
-            space = space_cls(*space_args)
+        for space_args, shape, n_vecs in zip(
+            self.space_args_list, self.shape_list, self.n_vecs_list
+        ):
+            space = self.Space(*space_args)
             vec = gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=gs.complex128)
             vec += 1j * gs.cast(
                 gs.random.normal(size=(n_vecs,) + shape), dtype=gs.complex128
@@ -606,10 +558,8 @@ class _ComplexVectorSpaceTestData(_ComplexManifoldTestData):
             random_data.append(
                 dict(
                     space_args=space_args,
-                    vec=vec,
+                    vector=vec,
                     base_point=base_point,
-                    rtol=rtol,
-                    atol=atol,
                 )
             )
         return self.generate_tests([], random_data)

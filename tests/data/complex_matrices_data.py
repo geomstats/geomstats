@@ -2,7 +2,7 @@ import math
 import random
 
 import geomstats.backend as gs
-from geomstats.geometry.complex_matrices import ComplexMatrices
+from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
 from tests.data_generation import _ComplexVectorSpaceTestData, _RiemannianMetricTestData
 
 SQRT_2 = math.sqrt(2)
@@ -55,6 +55,8 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    Space = ComplexMatrices
+
     def belongs_test_data(self):
         sq_mat = EYE_2
         smoke_data = [
@@ -74,8 +76,8 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
     def equal_test_data(self):
 
         smoke_data = [
-            dict(m=2, n=2, mat_1=EYE_2, mat_2=EYE_2, expected=True),
-            dict(m=2, n=3, mat_1=MAT1_23, mat_2=MAT2_23, expected=False),
+            dict(m=2, n=2, mat1=EYE_2, mat2=EYE_2, expected=True),
+            dict(m=2, n=3, mat1=MAT1_23, mat2=MAT2_23, expected=False),
         ]
         return self.generate_tests(smoke_data)
 
@@ -130,16 +132,16 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
     def congruent_test_data(self):
         smoke_data = [
             dict(
-                mat_1=gs.array([[1.0, 0.0], [2.0, -2]], dtype=gs.complex128),
-                mat_2=gs.array([[0.0, -2.0], [2.0, -3]], dtype=gs.complex128),
+                mat_a=gs.array([[1.0, 0.0], [2.0, -2]], dtype=gs.complex128),
+                mat_b=gs.array([[0.0, -2.0], [2.0, -3]], dtype=gs.complex128),
                 expected=gs.array([[-8.0, -20.0], [-12.0, -26.0]], dtype=gs.complex128),
             ),
             dict(
-                mat_1=[
+                mat_a=[
                     gs.array([[0.0, 1.0], [2.0, -2]], dtype=gs.complex128),
                     gs.array([[1.0, 0.0], [0.0, -1]], dtype=gs.complex128),
                 ],
-                mat_2=[
+                mat_b=[
                     gs.array([[1.0, -2.0], [2.0, -3]], dtype=gs.complex128),
                     gs.array([[0.0, 0.0], [-1.0, -3]], dtype=gs.complex128),
                 ],
@@ -663,53 +665,6 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                 random_data += [dict(m=n, n=n, matrix_type=matrix_type, mat=mat)]
         return self.generate_tests([], random_data)
 
-    def basis_belongs_test_data(self):
-        return self._basis_belongs_test_data(self.space_args_list)
-
-    def basis_cardinality_test_data(self):
-        return self._basis_cardinality_test_data(self.space_args_list)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2, 2), (3, 2)]
-        smoke_n_points_list = [1, 2]
-        belongs_atol = gs.atol * 10000
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-            belongs_atol,
-        )
-
-    def projection_belongs_test_data(self):
-        belongs_atol = gs.atol * 1000
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list, belongs_atol
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        is_tangent_atol = gs.atol * 1000
-        return self._to_tangent_is_tangent_test_data(
-            ComplexMatrices,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-            is_tangent_atol,
-        )
-
-    def to_tangent_is_projection_test_data(self):
-        return self._to_tangent_is_projection_test_data(
-            ComplexMatrices,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_point_is_tangent_test_data(self):
-        return self._random_point_is_tangent_test_data(
-            self.space_args_list, self.n_points_list
-        )
-
     def basis_test_data(self):
         smoke_data = [
             dict(
@@ -761,11 +716,6 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            ComplexMatrices, self.space_args_list, self.n_vecs_list
-        )
-
 
 class ComplexMatricesMetricTestData(_RiemannianMetricTestData):
     m_list = random.sample(range(3, 5), 2)
@@ -781,6 +731,8 @@ class ComplexMatricesMetricTestData(_RiemannianMetricTestData):
     alpha_list = [1] * 2
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
+
+    Metric = ComplexMatricesMetric
 
     def inner_product_test_data(self):
         smoke_data = [
@@ -835,180 +787,3 @@ class ComplexMatricesMetricTestData(_RiemannianMetricTestData):
             dict(m=10, n=10, mat=ComplexMatrices(5, 5).random_point(100)),
         ]
         return self.generate_tests(smoke_data)
-
-    def exp_shape_test_data(self):
-        return self._exp_shape_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-        )
-
-    def log_shape_test_data(self):
-        return self._log_shape_test_data(
-            self.metric_args_list,
-            self.space_list,
-        )
-
-    def squared_dist_is_symmetric_test_data(self):
-        return self._squared_dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-            atol=gs.atol * 1000,
-        )
-
-    def exp_belongs_test_data(self):
-        return self._exp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def log_is_tangent_test_data(self):
-        return self._log_is_tangent_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
-
-    def geodesic_ivp_belongs_test_data(self):
-        return self._geodesic_ivp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def geodesic_bvp_belongs_test_data(self):
-        return self._geodesic_bvp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 10000,
-        )
-
-    def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 10000,
-        )
-
-    def exp_ladder_parallel_transport_test_data(self):
-        return self._exp_ladder_parallel_transport_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_rungs_list,
-            self.alpha_list,
-            self.scheme_list,
-        )
-
-    def exp_geodesic_ivp_test_data(self):
-        return self._exp_geodesic_ivp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_points_list,
-            rtol=gs.rtol * 100000,
-            atol=gs.atol * 100000,
-        )
-
-    def parallel_transport_ivp_is_isometry_test_data(self):
-        return self._parallel_transport_ivp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 1000,
-        )
-
-    def parallel_transport_bvp_is_isometry_test_data(self):
-        return self._parallel_transport_bvp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 1000,
-        )
-
-    def dist_is_symmetric_test_data(self):
-        return self._dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_positive_test_data(self):
-        return self._dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def squared_dist_is_positive_test_data(self):
-        return self._squared_dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_norm_of_log_test_data(self):
-        return self._dist_is_norm_of_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_point_to_itself_is_zero_test_data(self):
-        return self._dist_point_to_itself_is_zero_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def inner_product_is_symmetric_test_data(self):
-        return self._inner_product_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-        )
-
-    def triangle_inequality_of_dist_test_data(self):
-        return self._triangle_inequality_of_dist_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def retraction_lifting_test_data(self):
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 10000,
-        )
