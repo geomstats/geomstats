@@ -22,20 +22,14 @@ class ComplexMatrices(Matrices):
         geomstats.errors.check_integer(m, "m")
         kwargs.setdefault("metric", ComplexMatricesMetric(m, n))
         kwargs.setdefault("default_point_type", "matrix")
-        super(ComplexMatrices, self).__init__(m, n, **kwargs)
-        self.m = m
-        self.n = n
-        self.dim = 2 * m * n
+        super(ComplexMatrices, self).__init__(m, n, dim=2 * m * n, **kwargs)
 
     def _create_basis(self):
         """Create the canonical basis."""
+        cdtype = gs.get_default_cdtype()
         m, n = self.m, self.n
-        basis_real = gs.reshape(
-            gs.cast(gs.eye(n * m), dtype=gs.complex128), (n * m, m, n)
-        )
-        basis_imag = 1j * gs.reshape(
-            gs.cast(gs.eye(n * m), dtype=gs.complex128), (n * m, m, n)
-        )
+        basis_real = gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
+        basis_imag = 1j * gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
         basis = gs.concatenate([basis_real, basis_imag], axis=0)
         return basis
 
@@ -54,10 +48,8 @@ class ComplexMatrices(Matrices):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Matrices space.
         """
-        is_matrix = super(ComplexMatrices, self).belongs(point, atol=gs.atol)
-        is_complex = point.dtype in [gs.complex64, gs.complex128]
-        is_complex = gs.array(is_complex)
-        belongs = gs.logical_and(is_matrix, is_complex)
+        is_matrix = super().belongs(point, atol=gs.atol)
+        belongs = gs.logical_and(is_matrix, gs.is_complex(point))
         return belongs
 
     @staticmethod
@@ -157,12 +149,12 @@ class ComplexMatrices(Matrices):
         point : array-like, shape=[..., m, n]
             Sample.
         """
+        cdtype = gs.get_default_cdtype()
+
         m, n = self.m, self.n
         size = (n_samples, m, n) if n_samples != 1 else (m, n)
-        point = gs.cast(bound * (gs.random.rand(*size) - 0.5), dtype=gs.complex128)
-        point += 1j * gs.cast(
-            bound * (gs.random.rand(*size) - 0.5), dtype=gs.complex128
-        )
+        point = gs.cast(bound * (gs.random.rand(*size) - 0.5), dtype=cdtype)
+        point += 1j * gs.cast(bound * (gs.random.rand(*size) - 0.5), dtype=cdtype)
         return point
 
     def random_tangent_vec(self, base_point, n_samples=1):
@@ -190,11 +182,15 @@ class ComplexMatrices(Matrices):
                 "The number of base points must be the same as the "
                 "number of samples, when different from 1."
             )
+        cdtype = gs.get_default_cdtype()
+
         tangent_vec = gs.cast(
-            gs.random.normal(size=(n_samples,) + self.shape), dtype=gs.complex128
+            gs.random.normal(size=(n_samples,) + self.shape),
+            dtype=cdtype,
         )
         tangent_vec += 1j * gs.cast(
-            gs.random.normal(size=(n_samples,) + self.shape), dtype=gs.complex128
+            gs.random.normal(size=(n_samples,) + self.shape),
+            dtype=cdtype,
         )
         return gs.squeeze(tangent_vec)
 

@@ -5,46 +5,32 @@ import geomstats.backend as gs
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
 from tests.data_generation import _ComplexVectorSpaceTestData, _RiemannianMetricTestData
 
+CDTYPE = gs.get_default_cdtype()
+
 SQRT_2 = math.sqrt(2)
 
-MAT1_11 = gs.array([[-1.0]], dtype=gs.complex128)
-EYE_2 = gs.array([[1.0, 0], [0.0, 1.0]], dtype=gs.complex128)
-MINUS_EYE_2 = gs.array([[-1.0, 0], [0.0, -1.0]], dtype=gs.complex128)
-MAT1_22 = gs.array([[1.0, 2.0], [2.0, 1.0]], dtype=gs.complex128)
-EYE_3 = gs.array([[1.0, 0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=gs.complex128)
-MAT1_23 = gs.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=gs.complex128)
-MAT2_23 = gs.array([[0.0, -2.0, -3.0], [0.0, 1.0, 1.0]], dtype=gs.complex128)
-MAT1_33 = gs.array(
-    [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]], dtype=gs.complex128
-)
-MAT2_33 = gs.array(
-    [[1.0, 2.0, 3.0], [2.0, 4.0, 7.0], [3.0, 5.0, 6.0]], dtype=gs.complex128
-)
-MAT3_33 = gs.array(
-    [[0.0, 1.0, -2.0], [-1.0, 0.0, -3.0], [2.0, 3.0, 0.0]], dtype=gs.complex128
-)
+MAT1_11 = gs.array([[-1.0]], dtype=CDTYPE)
+EYE_2 = gs.array([[1.0, 0], [0.0, 1.0]], dtype=CDTYPE)
+MINUS_EYE_2 = gs.array([[-1.0, 0], [0.0, -1.0]], dtype=CDTYPE)
+MAT1_22 = gs.array([[1.0, 2.0], [2.0, 1.0]], dtype=CDTYPE)
+EYE_3 = gs.array([[1.0, 0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=CDTYPE)
+MAT1_23 = gs.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=CDTYPE)
+MAT2_23 = gs.array([[0.0, -2.0, -3.0], [0.0, 1.0, 1.0]], dtype=CDTYPE)
+MAT1_33 = gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]], dtype=CDTYPE)
+MAT2_33 = gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 7.0], [3.0, 5.0, 6.0]], dtype=CDTYPE)
+MAT3_33 = gs.array([[0.0, 1.0, -2.0], [-1.0, 0.0, -3.0], [2.0, 3.0, 0.0]], dtype=CDTYPE)
 MAT4_33 = gs.array(
-    [[2.0, -1.0, 0.0], [-1.0, 2.0, -1.0], [0.0, -1.0, 2.0]], dtype=gs.complex128
+    [[2.0, -1.0, 0.0], [-1.0, 2.0, -1.0], [0.0, -1.0, 2.0]], dtype=CDTYPE
 )
-MAT5_33 = gs.array(
-    [[2.0, 0.0, 0.0], [1.0, 3.0, 0.0], [8.0, -1.0, 2.0]], dtype=gs.complex128
-)
-MAT6_33 = gs.array(
-    [[1.0, 3.0, 4.0], [0.0, 2.0, 6.0], [0.0, 0.0, 2.0]], dtype=gs.complex128
-)
-MAT7_33 = gs.array(
-    [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [8.0, -1.0, 0.0]], dtype=gs.complex128
-)
-MAT8_33 = gs.array(
-    [[0.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, 0.0, 0.0]], dtype=gs.complex128
-)
-MAT9_33 = gs.array([[4, 0, 1j], [0, 3, 0], [-1j, 0, 4]], dtype=gs.complex128)
-MAT10_33 = gs.array(
-    [[1, 1 + 1j, -3j], [1 - 1j, 0, 4], [3j, 4, -2]], dtype=gs.complex128
-)
-MAT11_33 = gs.array([[1, 1j, 2], [1j, -1j, 2], [4 + 2j, 0, -2]], dtype=gs.complex128)
-MAT12_33 = gs.array([[1, -1j, 4 - 2j], [-1j, 1j, 0], [2, 2, -2]], dtype=gs.complex128)
-MAT13_33 = gs.array([[1, 0, 3 - 1j], [0, 0, 1], [3 + 1j, 1, -2]], dtype=gs.complex128)
+MAT5_33 = gs.array([[2.0, 0.0, 0.0], [1.0, 3.0, 0.0], [8.0, -1.0, 2.0]], dtype=CDTYPE)
+MAT6_33 = gs.array([[1.0, 3.0, 4.0], [0.0, 2.0, 6.0], [0.0, 0.0, 2.0]], dtype=CDTYPE)
+MAT7_33 = gs.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [8.0, -1.0, 0.0]], dtype=CDTYPE)
+MAT8_33 = gs.array([[0.0, 3.0, 4.0], [0.0, 0.0, 6.0], [0.0, 0.0, 0.0]], dtype=CDTYPE)
+MAT9_33 = gs.array([[4, 0, 1j], [0, 3, 0], [-1j, 0, 4]], dtype=CDTYPE)
+MAT10_33 = gs.array([[1, 1 + 1j, -3j], [1 - 1j, 0, 4], [3j, 4, -2]], dtype=CDTYPE)
+MAT11_33 = gs.array([[1, 1j, 2], [1j, -1j, 2], [4 + 2j, 0, -2]], dtype=CDTYPE)
+MAT12_33 = gs.array([[1, -1j, 4 - 2j], [-1j, 1j, 0], [2, 2, -2]], dtype=CDTYPE)
+MAT13_33 = gs.array([[1, 0, 3 - 1j], [0, 0, 1], [3 + 1j, 1, -2]], dtype=CDTYPE)
 
 
 class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
@@ -88,18 +74,18 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                 [[-1.0, 2.0], [-3.0, 4.0]],
                 [[1.0, -2.0], [3.0, -4.0]],
             ],
-            dtype=gs.complex128,
+            dtype=CDTYPE,
         )
         mats_2 = gs.array(
-            [[[2.0], [4.0]], [[1.0], [3.0]], [[1.0], [3.0]]], dtype=gs.complex128
+            [[[2.0], [4.0]], [[1.0], [3.0]], [[1.0], [3.0]]], dtype=CDTYPE
         )
         mat_1_x_mat_2 = gs.array(
-            [[[10.0], [22.0]], [[5.0], [9.0]], [[-5.0], [-9.0]]], dtype=gs.complex128
+            [[[10.0], [22.0]], [[5.0], [9.0]], [[-5.0], [-9.0]]], dtype=CDTYPE
         )
         smoke_data = [
             dict(
                 mat=mats_1,
-                expected=gs.array([[23.0, -26.0], [51.0, -58.0]], dtype=gs.complex128),
+                expected=gs.array([[23.0, -26.0], [51.0, -58.0]], dtype=CDTYPE),
             ),
             dict(mat=(mats_1, mats_2), expected=mat_1_x_mat_2),
         ]
@@ -108,22 +94,22 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
     def bracket_test_data(self):
         smoke_data = [
             dict(
-                mat_a=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                mat_b=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                expected=gs.array([[0.0, 0.0], [0.0, 0.0]], dtype=gs.complex128),
+                mat_a=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                mat_b=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                expected=gs.array([[0.0, 0.0], [0.0, 0.0]], dtype=CDTYPE),
             ),
             dict(
                 mat_a=[
-                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[1.0, 2.0], [0.0, 1.0]], dtype=gs.complex128),
+                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[1.0, 2.0], [0.0, 1.0]], dtype=CDTYPE),
                 ],
                 mat_b=[
-                    gs.array([[2.0, 4.0], [5.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[1.0, 4.0], [5.0, 4.0]], dtype=gs.complex128),
+                    gs.array([[2.0, 4.0], [5.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[1.0, 4.0], [5.0, 4.0]], dtype=CDTYPE),
                 ],
                 expected=[
-                    gs.array([[-2.0, -8.0], [9.0, 2.0]], dtype=gs.complex128),
-                    gs.array([[10.0, 6.0], [0.0, -10.0]], dtype=gs.complex128),
+                    gs.array([[-2.0, -8.0], [9.0, 2.0]], dtype=CDTYPE),
+                    gs.array([[10.0, 6.0], [0.0, -10.0]], dtype=CDTYPE),
                 ],
             ),
         ]
@@ -132,22 +118,22 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
     def congruent_test_data(self):
         smoke_data = [
             dict(
-                mat_a=gs.array([[1.0, 0.0], [2.0, -2]], dtype=gs.complex128),
-                mat_b=gs.array([[0.0, -2.0], [2.0, -3]], dtype=gs.complex128),
-                expected=gs.array([[-8.0, -20.0], [-12.0, -26.0]], dtype=gs.complex128),
+                mat_a=gs.array([[1.0, 0.0], [2.0, -2]], dtype=CDTYPE),
+                mat_b=gs.array([[0.0, -2.0], [2.0, -3]], dtype=CDTYPE),
+                expected=gs.array([[-8.0, -20.0], [-12.0, -26.0]], dtype=CDTYPE),
             ),
             dict(
                 mat_a=[
-                    gs.array([[0.0, 1.0], [2.0, -2]], dtype=gs.complex128),
-                    gs.array([[1.0, 0.0], [0.0, -1]], dtype=gs.complex128),
+                    gs.array([[0.0, 1.0], [2.0, -2]], dtype=CDTYPE),
+                    gs.array([[1.0, 0.0], [0.0, -1]], dtype=CDTYPE),
                 ],
                 mat_b=[
-                    gs.array([[1.0, -2.0], [2.0, -3]], dtype=gs.complex128),
-                    gs.array([[0.0, 0.0], [-1.0, -3]], dtype=gs.complex128),
+                    gs.array([[1.0, -2.0], [2.0, -3]], dtype=CDTYPE),
+                    gs.array([[0.0, 0.0], [-1.0, -3]], dtype=CDTYPE),
                 ],
                 expected=[
-                    gs.array([[-14.0, -23.0], [-22.0, -36.0]], dtype=gs.complex128),
-                    gs.array([[0.0, 0.0], [0.0, -8.0]], dtype=gs.complex128),
+                    gs.array([[-14.0, -23.0], [-22.0, -36.0]], dtype=CDTYPE),
+                    gs.array([[0.0, 0.0], [0.0, -8.0]], dtype=CDTYPE),
                 ],
             ),
         ]
@@ -157,18 +143,18 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
         smoke_data = [
             dict(
                 mat_a=[
-                    gs.array([[1.0, -2.0], [1.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[1.0, 2.0], [0.0, -3.0]], dtype=gs.complex128),
+                    gs.array([[1.0, -2.0], [1.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[1.0, 2.0], [0.0, -3.0]], dtype=CDTYPE),
                 ],
                 mat_b=[
-                    gs.array([[0.0, 4.0], [2.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[1.0, -1.0], [5.0, 4.0]], dtype=gs.complex128),
+                    gs.array([[0.0, 4.0], [2.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[1.0, -1.0], [5.0, 4.0]], dtype=CDTYPE),
                 ],
                 expected=[10.0, -13.0],
             ),
             dict(
-                mat_a=gs.array([[5.0, 8.0], [2.0, 2.0]], dtype=gs.complex128),
-                mat_b=gs.array([[0.0, 0.25], [0.5, 2.0]], dtype=gs.complex128),
+                mat_a=gs.array([[5.0, 8.0], [2.0, 2.0]], dtype=CDTYPE),
+                mat_b=gs.array([[0.0, 0.25], [0.5, 2.0]], dtype=CDTYPE),
                 expected=7.0,
             ),
         ]
@@ -177,20 +163,20 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
     def trace_product_test_data(self):
         smoke_data = [
             dict(
-                mat_a=gs.array([[-2.0, 0.0], [1.0, 2.0]], dtype=gs.complex128),
-                mat_b=gs.array([[0.0, 1.0], [2.0, -2.0]], dtype=gs.complex128),
+                mat_a=gs.array([[-2.0, 0.0], [1.0, 2.0]], dtype=CDTYPE),
+                mat_b=gs.array([[0.0, 1.0], [2.0, -2.0]], dtype=CDTYPE),
                 expected=-3.0 + 0j,
             ),
             dict(
                 mat_a=[
-                    gs.array([[-5.0, 0.0], [-2.0, 0.0]], dtype=gs.complex128),
-                    gs.array([[-2.0, 1.0], [-5.0, -6.0]], dtype=gs.complex128),
+                    gs.array([[-5.0, 0.0], [-2.0, 0.0]], dtype=CDTYPE),
+                    gs.array([[-2.0, 1.0], [-5.0, -6.0]], dtype=CDTYPE),
                 ],
                 mat_b=[
-                    gs.array([[6.0, 5.0], [-3.0, -2.0]], dtype=gs.complex128),
-                    gs.array([[-2.0, 0.0], [4.0, -6.0]], dtype=gs.complex128),
+                    gs.array([[6.0, 5.0], [-3.0, -2.0]], dtype=CDTYPE),
+                    gs.array([[-2.0, 0.0], [4.0, -6.0]], dtype=CDTYPE),
                 ],
-                expected=gs.array([-40.0, 44.0], dtype=gs.complex128),
+                expected=gs.array([-40.0, 44.0], dtype=CDTYPE),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -200,28 +186,28 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=1,
                 n=1,
-                mat=gs.array([[1.0]], dtype=gs.complex128),
-                expected=gs.array([1.0], dtype=gs.complex128),
+                mat=gs.array([[1.0]], dtype=CDTYPE),
+                expected=gs.array([1.0], dtype=CDTYPE),
             ),
             dict(
                 m=2,
                 n=2,
                 mat=EYE_2,
-                expected=gs.array([1.0, 0.0, 0.0, 1.0], dtype=gs.complex128),
+                expected=gs.array([1.0, 0.0, 0.0, 1.0], dtype=CDTYPE),
             ),
             dict(
                 m=2,
                 n=3,
                 mat=MAT1_23,
-                expected=gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=gs.complex128),
+                expected=gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=CDTYPE),
             ),
             dict(
                 m=2,
                 n=2,
                 mat=[EYE_2, MINUS_EYE_2],
                 expected=[
-                    gs.array([1.0, 0.0, 0.0, 1.0], dtype=gs.complex128),
-                    gs.array([-1.0, 0.0, 0.0, -1.0], dtype=gs.complex128),
+                    gs.array([1.0, 0.0, 0.0, 1.0], dtype=CDTYPE),
+                    gs.array([-1.0, 0.0, 0.0, -1.0], dtype=CDTYPE),
                 ],
             ),
         ]
@@ -238,16 +224,14 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
 
     def diagonal_test_data(self):
         smoke_data = [
-            dict(
-                m=2, n=2, mat=EYE_2, expected=gs.array([1.0, 1.0], dtype=gs.complex128)
-            ),
+            dict(m=2, n=2, mat=EYE_2, expected=gs.array([1.0, 1.0], dtype=CDTYPE)),
             dict(
                 m=3,
                 n=3,
                 mat=[MAT1_33, MAT3_33],
                 expected=[
-                    gs.array([1.0, 4.0, 6.0], dtype=gs.complex128),
-                    gs.array([0.0, 0.0, 0.0], dtype=gs.complex128),
+                    gs.array([1.0, 4.0, 6.0], dtype=CDTYPE),
+                    gs.array([0.0, 0.0, 0.0], dtype=CDTYPE),
                 ],
             ),
         ]
@@ -255,7 +239,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
 
     def transpose_test_data(self):
         transpose_MAT3_33 = gs.array(
-            [[0.0, -1.0, 2.0], [1.0, 0.0, 3.0], [-2.0, -3.0, 0.0]], dtype=gs.complex128
+            [[0.0, -1.0, 2.0], [1.0, 0.0, 3.0], [-2.0, -3.0, 0.0]], dtype=CDTYPE
         )
         smoke_data = [
             dict(m=3, n=3, mat=EYE_3, expected=EYE_3),
@@ -450,19 +434,19 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                expected=gs.array([[1.0, 0.0], [0.0, 4.0]], dtype=gs.complex128),
+                mat=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                expected=gs.array([[1.0, 0.0], [0.0, 4.0]], dtype=CDTYPE),
             ),
             dict(
                 m=2,
                 n=2,
                 mat=[
-                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[5.0, 6.0], [7.0, 8.0]], dtype=gs.complex128),
+                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[5.0, 6.0], [7.0, 8.0]], dtype=CDTYPE),
                 ],
                 expected=[
-                    gs.array([[1.0, 0.0], [0.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[5.0, 0.0], [0.0, 8.0]], dtype=gs.complex128),
+                    gs.array([[1.0, 0.0], [0.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[5.0, 0.0], [0.0, 8.0]], dtype=CDTYPE),
                 ],
             ),
         ]
@@ -483,7 +467,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                 mat=[
                     gs.array(
                         [[1.0, 2.0, 3.0], [0.0, 0.0, 0.0], [3.0, 1.0, 1.0]],
-                        dtype=gs.complex128,
+                        dtype=CDTYPE,
                     ),
                     gs.array(
                         [
@@ -491,17 +475,17 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                             [1e100, 1e-100, 1e100],
                             [1e-100, 1e-100, 1e100],
                         ],
-                        dtype=gs.complex128,
+                        dtype=CDTYPE,
                     ),
                 ],
                 expected=[
                     gs.array(
                         [[1.0, 1.0, 3.0], [1.0, 0.0, 0.5], [3.0, 0.5, 1.0]],
-                        dtype=gs.complex128,
+                        dtype=CDTYPE,
                     ),
                     gs.array(
                         [[1e100, res, res], [res, 1e-100, res], [res, res, 1e100]],
-                        dtype=gs.complex128,
+                        dtype=CDTYPE,
                     ),
                 ],
             ),
@@ -530,19 +514,19 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                expected=gs.array([[1.0, 0.0], [3.0, 4.0]], dtype=gs.complex128),
+                mat=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                expected=gs.array([[1.0, 0.0], [3.0, 4.0]], dtype=CDTYPE),
             ),
             dict(
                 m=2,
                 n=2,
                 mat=[
-                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[5.0, 6.0], [7.0, 8.0]], dtype=gs.complex128),
+                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[5.0, 6.0], [7.0, 8.0]], dtype=CDTYPE),
                 ],
                 expected=[
-                    gs.array([[1.0, 0.0], [3.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[5.0, 0.0], [7.0, 8.0]], dtype=gs.complex128),
+                    gs.array([[1.0, 0.0], [3.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[5.0, 0.0], [7.0, 8.0]], dtype=CDTYPE),
                 ],
             ),
         ]
@@ -553,19 +537,19 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                expected=gs.array([[1.0, 2.0], [0.0, 4.0]], dtype=gs.complex128),
+                mat=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                expected=gs.array([[1.0, 2.0], [0.0, 4.0]], dtype=CDTYPE),
             ),
             dict(
                 m=2,
                 n=2,
                 mat=[
-                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[5.0, 6.0], [7.0, 8.0]], dtype=gs.complex128),
+                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[5.0, 6.0], [7.0, 8.0]], dtype=CDTYPE),
                 ],
                 expected=[
-                    gs.array([[1.0, 2.0], [0.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[5.0, 6.0], [0.0, 8.0]], dtype=gs.complex128),
+                    gs.array([[1.0, 2.0], [0.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[5.0, 6.0], [0.0, 8.0]], dtype=CDTYPE),
                 ],
             ),
         ]
@@ -576,19 +560,19 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                expected=gs.array([[0.0, 0.0], [3.0, 0.0]], dtype=gs.complex128),
+                mat=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                expected=gs.array([[0.0, 0.0], [3.0, 0.0]], dtype=CDTYPE),
             ),
             dict(
                 m=2,
                 n=2,
                 mat=[
-                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[5.0, 6.0], [7.0, 8.0]], dtype=gs.complex128),
+                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[5.0, 6.0], [7.0, 8.0]], dtype=CDTYPE),
                 ],
                 expected=[
-                    gs.array([[0.0, 0.0], [3.0, 0.0]], dtype=gs.complex128),
-                    gs.array([[0.0, 0.0], [7.0, 0.0]], dtype=gs.complex128),
+                    gs.array([[0.0, 0.0], [3.0, 0.0]], dtype=CDTYPE),
+                    gs.array([[0.0, 0.0], [7.0, 0.0]], dtype=CDTYPE),
                 ],
             ),
         ]
@@ -599,19 +583,19 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                expected=gs.array([[0.0, 2.0], [0.0, 0.0]], dtype=gs.complex128),
+                mat=gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                expected=gs.array([[0.0, 2.0], [0.0, 0.0]], dtype=CDTYPE),
             ),
             dict(
                 m=2,
                 n=2,
                 mat=[
-                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[5.0, 6.0], [7.0, 8.0]], dtype=gs.complex128),
+                    gs.array([[1.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[5.0, 6.0], [7.0, 8.0]], dtype=CDTYPE),
                 ],
                 expected=[
-                    gs.array([[0.0, 2.0], [0.0, 0.0]], dtype=gs.complex128),
-                    gs.array([[0.0, 6.0], [0.0, 0.0]], dtype=gs.complex128),
+                    gs.array([[0.0, 2.0], [0.0, 0.0]], dtype=CDTYPE),
+                    gs.array([[0.0, 6.0], [0.0, 0.0]], dtype=CDTYPE),
                 ],
             ),
         ]
@@ -622,19 +606,19 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=gs.array([[2.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                expected=gs.array([[1.0, 0.0], [3.0, 2.0]], dtype=gs.complex128),
+                mat=gs.array([[2.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                expected=gs.array([[1.0, 0.0], [3.0, 2.0]], dtype=CDTYPE),
             ),
             dict(
                 m=2,
                 n=2,
                 mat=[
-                    gs.array([[2.0, 2.0], [3.0, 4.0]], dtype=gs.complex128),
-                    gs.array([[6.0, 6.0], [7.0, 8.0]], dtype=gs.complex128),
+                    gs.array([[2.0, 2.0], [3.0, 4.0]], dtype=CDTYPE),
+                    gs.array([[6.0, 6.0], [7.0, 8.0]], dtype=CDTYPE),
                 ],
                 expected=[
-                    gs.array([[1.0, 0], [3.0, 2.0]], dtype=gs.complex128),
-                    gs.array([[3.0, 0.0], [7.0, 4.0]], dtype=gs.complex128),
+                    gs.array([[1.0, 0], [3.0, 2.0]], dtype=CDTYPE),
+                    gs.array([[3.0, 0.0], [7.0, 4.0]], dtype=CDTYPE),
                 ],
             ),
         ]
@@ -656,11 +640,9 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
         random_data = []
         for matrix_type in matrix_types:
             for n in list_n:
-                mat = gs.cast(
-                    gs.random.normal(size=(n_samples, n, n)), dtype=gs.complex128
-                )
+                mat = gs.cast(gs.random.normal(size=(n_samples, n, n)), dtype=CDTYPE)
                 mat += 1j * gs.cast(
-                    gs.random.normal(size=(n_samples, n, n)), dtype=gs.complex128
+                    gs.random.normal(size=(n_samples, n, n)), dtype=CDTYPE
                 )
                 random_data += [dict(m=n, n=n, matrix_type=matrix_type, mat=mat)]
         return self.generate_tests([], random_data)
@@ -674,7 +656,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                     [
                         gs.cast(
                             gs.array_from_sparse([(i, j)], [1], (2, 2)),
-                            dtype=gs.complex128,
+                            dtype=CDTYPE,
                         )
                         for i in range(2)
                         for j in range(2)
@@ -683,7 +665,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                         1j
                         * gs.cast(
                             gs.array_from_sparse([(i, j)], [1], (2, 2)),
-                            dtype=gs.complex128,
+                            dtype=CDTYPE,
                         )
                         for i in range(2)
                         for j in range(2)
@@ -697,7 +679,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                     [
                         gs.cast(
                             gs.array_from_sparse([(i, j)], [1], (2, 3)),
-                            dtype=gs.complex128,
+                            dtype=CDTYPE,
                         )
                         for i in range(2)
                         for j in range(3)
@@ -706,7 +688,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                         1j
                         * gs.cast(
                             gs.array_from_sparse([(i, j)], [1], (2, 3)),
-                            dtype=gs.complex128,
+                            dtype=CDTYPE,
                         )
                         for i in range(2)
                         for j in range(3)
@@ -739,24 +721,22 @@ class ComplexMatricesMetricTestData(_RiemannianMetricTestData):
             dict(
                 m=2,
                 n=2,
-                tangent_vec_a=gs.array(
-                    [[-3.0, 1.0], [-1.0, -2.0]], dtype=gs.complex128
-                ),
-                tangent_vec_b=gs.array([[-9.0, 0.0], [4.0, 2.0]], dtype=gs.complex128),
+                tangent_vec_a=gs.array([[-3.0, 1.0], [-1.0, -2.0]], dtype=CDTYPE),
+                tangent_vec_b=gs.array([[-9.0, 0.0], [4.0, 2.0]], dtype=CDTYPE),
                 expected=19.0 + 0j,
             ),
             dict(
                 m=2,
                 n=2,
                 tangent_vec_a=[
-                    gs.array([[-1.5, 0.0], [2.0, -3.0]], dtype=gs.complex128),
-                    gs.array([[0.5, 7.0], [0.5, -2.0]], dtype=gs.complex128),
+                    gs.array([[-1.5, 0.0], [2.0, -3.0]], dtype=CDTYPE),
+                    gs.array([[0.5, 7.0], [0.5, -2.0]], dtype=CDTYPE),
                 ],
                 tangent_vec_b=[
-                    gs.array([[2.0, 0.0], [2.0, -3.0]], dtype=gs.complex128),
-                    gs.array([[-1.0, 0.0], [1.0, -2.0]], dtype=gs.complex128),
+                    gs.array([[2.0, 0.0], [2.0, -3.0]], dtype=CDTYPE),
+                    gs.array([[-1.0, 0.0], [1.0, -2.0]], dtype=CDTYPE),
                 ],
-                expected=gs.array([10.0, 4.0], dtype=gs.complex128),
+                expected=gs.array([10.0, 4.0], dtype=CDTYPE),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -766,17 +746,17 @@ class ComplexMatricesMetricTestData(_RiemannianMetricTestData):
             dict(
                 m=2,
                 n=2,
-                vector=gs.array([[1.0, 0.0], [0.0, 1.0]], dtype=gs.complex128),
+                vector=gs.array([[1.0, 0.0], [0.0, 1.0]], dtype=CDTYPE),
                 expected=SQRT_2,
             ),
             dict(
                 m=2,
                 n=2,
                 vector=[
-                    gs.array([[3.0, 0.0], [4.0, 0.0]], dtype=gs.complex128),
-                    gs.array([[-3.0, 0.0], [-4.0, 0.0]], dtype=gs.complex128),
+                    gs.array([[3.0, 0.0], [4.0, 0.0]], dtype=CDTYPE),
+                    gs.array([[-3.0, 0.0], [-4.0, 0.0]], dtype=CDTYPE),
                 ],
-                expected=gs.array([5.0, 5.0], dtype=gs.complex128),
+                expected=gs.array([5.0, 5.0], dtype=CDTYPE),
             ),
         ]
         return self.generate_tests(smoke_data)

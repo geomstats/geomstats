@@ -6,6 +6,8 @@ import pytest
 import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 
+CDTYPE = gs.get_default_cdtype()
+
 
 def better_squeeze(array):
     """Delete possible singleton dimension on first axis."""
@@ -265,13 +267,9 @@ class _ComplexManifoldTestData(_ManifoldTestData):
         random_data = [
             dict(
                 space_args=space_args,
-                data=gs.cast(
-                    gs.random.normal(size=(n_points,) + shape), dtype=gs.complex128
-                )
+                data=gs.cast(gs.random.normal(size=(n_points,) + shape), dtype=CDTYPE)
                 + 1j
-                * gs.cast(
-                    gs.random.normal(size=(n_points,) + shape), dtype=gs.complex128
-                ),
+                * gs.cast(gs.random.normal(size=(n_points,) + shape), dtype=CDTYPE),
                 belongs_atol=belongs_atol,
             )
             for space_args, shape, n_points in zip(
@@ -307,10 +305,8 @@ class _ComplexManifoldTestData(_ManifoldTestData):
 
         for space_args, shape, n_vecs in zip(space_args_list, shape_list, n_vecs_list):
             space = space_cls(*space_args)
-            vec = gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=gs.complex128)
-            vec += 1j * gs.cast(
-                gs.random.normal(size=(n_vecs,) + shape), dtype=gs.complex128
-            )
+            vec = gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=CDTYPE)
+            vec += 1j * gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=CDTYPE)
             base_point = space.random_point()
             random_data.append(
                 dict(
@@ -550,10 +546,8 @@ class _ComplexVectorSpaceTestData(_ComplexManifoldTestData):
             self.space_args_list, self.shape_list, self.n_vecs_list
         ):
             space = self.Space(*space_args)
-            vec = gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=gs.complex128)
-            vec += 1j * gs.cast(
-                gs.random.normal(size=(n_vecs,) + shape), dtype=gs.complex128
-            )
+            vec = gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=CDTYPE)
+            vec += 1j * gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=CDTYPE)
             base_point = space.random_point()
             random_data.append(
                 dict(
