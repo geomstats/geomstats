@@ -2,7 +2,6 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
-from geomstats.geometry.matrices import Matrices
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 
 p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
@@ -54,14 +53,14 @@ class GrassmannianCanonicalMetricTestData(_RiemannianMetricTestData):
             dict(
                 n=3,
                 p=2,
-                tangent_vec=Matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz])),
+                tangent_vec=gs.matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz])),
                 base_point=gs.array([p_xy, p_yz]),
                 expected=gs.array([p_yz, p_xy]),
             ),
             dict(
                 n=3,
                 p=2,
-                tangent_vec=Matrices.bracket(
+                tangent_vec=gs.matrices.bracket(
                     pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz])
                 ),
                 base_point=gs.array([p_xy, p_yz]),

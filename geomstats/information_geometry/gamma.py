@@ -12,7 +12,6 @@ from scipy.stats import gamma
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -366,7 +365,7 @@ class GammaMetric(RiemannianMetric):
         mat_diag = gs.transpose(
             gs.array([gs.polygamma(1, kappa) - 1 / kappa, kappa / gamma**2])
         )
-        mat = from_vector_to_diagonal_matrix(mat_diag)
+        mat = gs.matrices.from_vector_to_diagonal_matrix(mat_diag)
         return gs.squeeze(mat)
 
     def christoffels(self, base_point):
@@ -424,7 +423,9 @@ class GammaMetric(RiemannianMetric):
         )
 
         c1 = gs.squeeze(
-            from_vector_to_diagonal_matrix(gs.transpose(gs.array([c111, c122])))
+            gs.matrices.from_vector_to_diagonal_matrix(
+                gs.transpose(gs.array([c111, c122]))
+            )
         )
 
         c2 = gs.squeeze(

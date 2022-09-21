@@ -1,6 +1,5 @@
 """Module exposing the GeneralLinear group class."""
 
-import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
@@ -60,7 +59,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         projected = point + regularization
         if self.positive_det:
             det = gs.linalg.det(point)
-            return utils.flip_determinant(projected, det)
+            return gs.matrices.flip_determinant(projected, det)
         return projected
 
     def belongs(self, point, atol=gs.atol):

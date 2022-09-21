@@ -6,7 +6,6 @@ Lead author: Saiteja Utpala.
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
@@ -72,7 +71,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
             Boolean denoting if mat belongs to cholesky space.
         """
         is_lower_triangular = self.ambient_space.belongs(mat, atol)
-        diagonal = Matrices.diagonal(mat)
+        diagonal = gs.matrices.diagonal(mat)
         is_positive = gs.all(diagonal > 0, axis=-1)
         belongs = gs.logical_and(is_lower_triangular, is_positive)
         return belongs
@@ -93,9 +92,9 @@ class PositiveLowerTriangularMatrices(OpenSet):
         projected: array-like, shape=[..., n, n]
             SPD matrix.
         """
-        vec_diag = gs.abs(Matrices.diagonal(point) - 0.1) + 0.1
+        vec_diag = gs.abs(gs.matrices.diagonal(point) - 0.1) + 0.1
         diag = gs.vec_to_diag(vec_diag)
-        strictly_lower_triangular = Matrices.to_lower_triangular(point)
+        strictly_lower_triangular = gs.matrices.to_lower_triangular(point)
         projection = diag + strictly_lower_triangular
         return projection
 
@@ -158,11 +157,11 @@ class PositiveLowerTriangularMatrices(OpenSet):
             Lower triangular matrix.
         """
         inv_base_point = gs.linalg.inv(base_point)
-        inv_transpose_base_point = Matrices.transpose(inv_base_point)
-        aux = Matrices.to_lower_triangular_diagonal_scaled(
-            Matrices.mul(inv_base_point, tangent_vec, inv_transpose_base_point)
+        inv_transpose_base_point = gs.matrices.transpose(inv_base_point)
+        aux = gs.matrices.to_lower_triangular_diagonal_scaled(
+            gs.matrices.mul(inv_base_point, tangent_vec, inv_transpose_base_point)
         )
-        inverse_differential_gram = Matrices.mul(base_point, aux)
+        inverse_differential_gram = gs.matrices.mul(base_point, aux)
         return inverse_differential_gram
 
 
@@ -207,9 +206,9 @@ class CholeskyMetric(RiemannianMetric):
         ip_diagonal : array-like, shape=[...]
             Inner-product.
         """
-        inv_sqrt_diagonal = gs.power(Matrices.diagonal(base_point), -2)
-        tangent_vec_a_diagonal = Matrices.diagonal(tangent_vec_a)
-        tangent_vec_b_diagonal = Matrices.diagonal(tangent_vec_b)
+        inv_sqrt_diagonal = gs.power(gs.matrices.diagonal(base_point), -2)
+        tangent_vec_a_diagonal = gs.matrices.diagonal(tangent_vec_a)
+        tangent_vec_b_diagonal = gs.matrices.diagonal(tangent_vec_b)
         prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_sqrt_diagonal
         ip_diagonal = gs.sum(prod, axis=-1)
         return ip_diagonal
@@ -283,10 +282,10 @@ class CholeskyMetric(RiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Riemannian exponential.
         """
-        sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
-        sl_tangent_vec = Matrices.to_strictly_lower_triangular(tangent_vec)
-        diag_base_point = Matrices.diagonal(base_point)
-        diag_tangent_vec = Matrices.diagonal(tangent_vec)
+        sl_base_point = gs.matrices.to_strictly_lower_triangular(base_point)
+        sl_tangent_vec = gs.matrices.to_strictly_lower_triangular(tangent_vec)
+        diag_base_point = gs.matrices.diagonal(base_point)
+        diag_tangent_vec = gs.matrices.diagonal(tangent_vec)
         diag_product_expm = gs.exp(gs.divide(diag_tangent_vec, diag_base_point))
 
         sl_exp = sl_base_point + sl_tangent_vec
@@ -313,10 +312,10 @@ class CholeskyMetric(RiemannianMetric):
         log : array-like, shape=[..., n, n]
             Riemannian logarithm.
         """
-        sl_base_point = Matrices.to_strictly_lower_triangular(base_point)
-        sl_point = Matrices.to_strictly_lower_triangular(point)
-        diag_base_point = Matrices.diagonal(base_point)
-        diag_point = Matrices.diagonal(point)
+        sl_base_point = gs.matrices.to_strictly_lower_triangular(base_point)
+        sl_point = gs.matrices.to_strictly_lower_triangular(point)
+        diag_base_point = gs.matrices.diagonal(base_point)
+        diag_point = gs.matrices.diagonal(point)
         diag_product_logm = gs.log(gs.divide(diag_point, diag_base_point))
 
         sl_log = sl_point - sl_base_point
@@ -341,13 +340,13 @@ class CholeskyMetric(RiemannianMetric):
         _ : array-like, shape=[...]
             Riemannian squared distance.
         """
-        log_diag_a = gs.log(Matrices.diagonal(point_a))
-        log_diag_b = gs.log(Matrices.diagonal(point_b))
+        log_diag_a = gs.log(gs.matrices.diagonal(point_a))
+        log_diag_b = gs.log(gs.matrices.diagonal(point_b))
         diag_diff = log_diag_a - log_diag_b
         squared_dist_diag = gs.sum((diag_diff) ** 2, axis=-1)
 
-        sl_a = Matrices.to_strictly_lower_triangular(point_a)
-        sl_b = Matrices.to_strictly_lower_triangular(point_b)
+        sl_a = gs.matrices.to_strictly_lower_triangular(point_a)
+        sl_b = gs.matrices.to_strictly_lower_triangular(point_b)
         sl_diff = sl_a - sl_b
-        squared_dist_sl = Matrices.frobenius_product(sl_diff, sl_diff)
+        squared_dist_sl = gs.matrices.frobenius_product(sl_diff, sl_diff)
         return squared_dist_sl + squared_dist_diag

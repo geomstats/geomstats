@@ -5,7 +5,6 @@ import pytest
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer, TestCase
 from tests.data.quotient_metric_data import QuotientMetricTestData
 
@@ -38,8 +37,8 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     def test_horizontal_projection(self, n, mat, vec):
         bundle = self.Bundle(n)
         horizontal_vec = bundle.horizontal_projection(vec, mat)
-        product = Matrices.mul(horizontal_vec, GeneralLinear.inverse(mat))
-        is_horizontal = Matrices.is_symmetric(product)
+        product = gs.matrices.mul(horizontal_vec, GeneralLinear.inverse(mat))
+        is_horizontal = gs.matrices.is_symmetric(product)
         self.assertTrue(is_horizontal)
 
     def test_vertical_projection(self, n, mat, vec):
@@ -51,7 +50,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
     def test_horizontal_lift_and_tangent_riemannian_submersion(self, n, mat, vec):
         bundle = self.Bundle(n)
-        tangent_vec = Matrices.to_symmetric(vec)
+        tangent_vec = gs.matrices.to_symmetric(vec)
         horizontal = bundle.horizontal_lift(tangent_vec, fiber_point=mat)
         result = bundle.tangent_riemannian_submersion(horizontal, mat)
         self.assertAllClose(result, tangent_vec, atol=1e-2)
@@ -59,7 +58,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     @geomstats.tests.np_and_autograd_only
     def test_is_horizontal(self, n, mat, vec):
         bundle = self.Bundle(n)
-        tangent_vec = Matrices.to_symmetric(vec)
+        tangent_vec = gs.matrices.to_symmetric(vec)
         horizontal = bundle.horizontal_lift(tangent_vec, fiber_point=mat)
         result = bundle.is_horizontal(horizontal, mat, atol=1e-2)
         self.assertTrue(result)
@@ -84,7 +83,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         quotient_metric = self.Metric(bundle)
         base_metric = self.BaseMetric(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vecs = Matrices.to_symmetric(gs.array([vec_a, vec_b])) / 40
+        tangent_vecs = gs.matrices.to_symmetric(gs.array([vec_a, vec_b])) / 40
         result = quotient_metric.inner_product(
             tangent_vecs[0], tangent_vecs[1], fiber_point=mat
         )
@@ -97,7 +96,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         quotient_metric = self.Metric(bundle)
         base_metric = self.BaseMetric(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(vec) / 40
+        tangent_vec = gs.matrices.to_symmetric(vec) / 40
 
         result = quotient_metric.exp(tangent_vec, point)
         expected = base_metric.exp(tangent_vec, point)
@@ -128,7 +127,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     def test_integrability_tensor(self, n, mat, vec):
         bundle = self.Bundle(n)
         point = bundle.riemannian_submersion(mat)
-        tangent_vec = Matrices.to_symmetric(vec) / 20
+        tangent_vec = gs.matrices.to_symmetric(vec) / 20
 
         with pytest.raises(NotImplementedError):
             bundle.integrability_tensor(tangent_vec, tangent_vec, point)

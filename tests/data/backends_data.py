@@ -1,7 +1,6 @@
 import numpy as np
 
 import geomstats.backend as gs
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -73,9 +72,9 @@ class BackendsTestData(TestData):
 
     def _logm_expm_data(self, func_name="linalg.logm"):
         arrays = [
-            Matrices.to_diagonal(rand(3, 3)),
+            gs.matrices.to_diagonal(rand(3, 3)),
             # TODO: uncomment or delete?
-            # Matrices.to_symmetric(rand(3, 3)),
+            # gs.matrices.to_symmetric(rand(3, 3)),
             # rand(3, 3),
         ]
         return [dict(func_name=func_name, a=array) for array in arrays]
@@ -350,12 +349,12 @@ class BackendsTestData(TestData):
             dict(
                 func_name_1="linalg.logm",
                 func_name_2="linalg.expm",
-                a=Matrices.to_diagonal(rand(3, 3)),
+                a=gs.matrices.to_diagonal(rand(3, 3)),
             ),
             dict(
                 func_name_1="linalg.expm",
                 func_name_2="linalg.logm",
-                a=Matrices.to_diagonal(rand(3, 3)),
+                a=gs.matrices.to_diagonal(rand(3, 3)),
             ),
             dict(
                 func_name_1="linalg.logm",
@@ -519,7 +518,7 @@ class DtypesTestData(TestData):
             return SPDMatrices(2).random_point()
 
         def _create_diag():
-            return Matrices.to_diagonal(rand(2, 2))
+            return gs.matrices.to_diagonal(rand(2, 2))
 
         def _create_sym():
             return SymmetricMatrices(2).random_point()

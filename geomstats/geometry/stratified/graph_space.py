@@ -791,8 +791,8 @@ class GraphSpace(PointSet):
                 perm_matrices.append(_get_permutation_matrix(indices_))
             perm_matrices = gs.stack(perm_matrices)
 
-        permuted_graph = Matrices.mul(
-            perm_matrices, graph_to_permute, Matrices.transpose(perm_matrices)
+        permuted_graph = gs.matrices.mul(
+            perm_matrices, graph_to_permute, gs.matrices.transpose(perm_matrices)
         )
         if gs.ndim(permuted_graph) == 3 and gs.shape(permuted_graph)[0] == 1:
             return permuted_graph[0]

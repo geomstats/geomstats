@@ -187,6 +187,17 @@ BACKEND_ATTRIBUTES = {
 }
 
 
+def _lazy_import(name):
+    # https://docs.python.org/3/library/importlib.html#implementing-lazy-imports
+    spec = importlib.util.find_spec(name)
+    loader = importlib.util.LazyLoader(spec.loader)
+    spec.loader = loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    loader.exec_module(module)
+    return module
+
+
 class BackendImporter:
     """Importer class to create the backend module."""
 
@@ -246,7 +257,6 @@ class BackendImporter:
                     raise RuntimeError(error) from None
                 else:
                     setattr(new_submodule, attribute_name, attribute)
-
         return new_module
 
     def find_module(self, fullname, path=None):
@@ -269,6 +279,7 @@ class BackendImporter:
         module.__loader__ = self
         sys.modules[fullname] = module
 
+        setattr(module, "matrices", _lazy_import("geomstats._backend.matrices"))
         module.set_default_dtype("float64")
 
         logging.info("Using {:s} backend".format(_BACKEND))

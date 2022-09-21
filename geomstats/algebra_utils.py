@@ -94,45 +94,6 @@ arctanh_card_close_0 = {
 }
 
 
-def from_vector_to_diagonal_matrix(vector, num_diag=0):
-    """Create diagonal matrices from rows of a matrix.
-
-    Parameters
-    ----------
-    vector : array-like, shape=[m, n]
-    num_diag : int
-        number of diagonal in result matrix. If 0, the result matrix is a
-        diagonal matrix; if positive, the result matrix has an upper-right
-        non-zero diagonal; if negative, the result matrix has a lower-left
-        non-zero diagonal.
-        Optional, Default: 0.
-
-    Returns
-    -------
-    diagonals : array-like, shape=[m, n, n]
-        3-dimensional array where the `i`-th n-by-n array `diagonals[i, :, :]`
-        is a diagonal matrix containing the `i`-th row of `vector`.
-    """
-    num_columns = gs.shape(vector)[-1]
-    identity = gs.eye(num_columns)
-    identity = gs.cast(identity, vector.dtype)
-    diagonals = gs.einsum("...i,ij->...ij", vector, identity)
-    diagonals = gs.to_ndarray(diagonals, to_ndim=3)
-    num_lines = diagonals.shape[0]
-    if num_diag > 0:
-        left_zeros = gs.zeros((num_lines, num_columns, num_diag))
-        lower_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
-        diagonals = gs.concatenate((left_zeros, diagonals), axis=2)
-        diagonals = gs.concatenate((diagonals, lower_zeros), axis=1)
-    elif num_diag < 0:
-        num_diag = gs.abs(num_diag)
-        right_zeros = gs.zeros((num_lines, num_columns, num_diag))
-        upper_zeros = gs.zeros((num_lines, num_diag, num_columns + num_diag))
-        diagonals = gs.concatenate((diagonals, right_zeros), axis=2)
-        diagonals = gs.concatenate((upper_zeros, diagonals), axis=1)
-    return gs.squeeze(diagonals) if gs.ndim(vector) == 1 else diagonals
-
-
 def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
     """Taylor Approximation of an even function around zero.
 
@@ -166,36 +127,6 @@ def taylor_exp_even_func(point, taylor_function, order=5, tol=EPSILON):
     exact = taylor_function["function"](gs.sqrt(point_))
     result = gs.where(gs.abs(point) < tol, approx, exact)
     return result
-
-
-def flip_determinant(matrix, det):
-    """Change sign of the determinant if it is negative.
-
-    For a batch of matrices, multiply the matrices which have negative
-    determinant by a diagonal matrix :math:`diag(1,...,1,-1) from the right.
-    This changes the sign of the last column of the matrix.
-
-    Parameters
-    ----------
-    matrix : array-like, shape=[...,n ,m]
-        Matrix to transform.
-
-    det : array-like, shape=[...]
-        Determinant of matrix, or any other scalar to use as threshold to
-        determine whether to change the sign of the last column of matrix.
-
-    Returns
-    -------
-    matrix_flipped : array-like, shape=[..., n, m]
-        Matrix with the sign of last column changed if det < 0.
-    """
-    if gs.any(det < 0):
-        ones = gs.ones(matrix.shape[-1])
-        reflection_vec = gs.concatenate([ones[:-1], gs.array([-1.0])], axis=0)
-        mask = gs.cast(det < 0, matrix.dtype)
-        sign = mask[..., None] * reflection_vec + (1.0 - mask)[..., None] * ones
-        return gs.einsum("...ij,...j->...ij", matrix, sign)
-    return matrix
 
 
 def rotate_points(points, end_point):

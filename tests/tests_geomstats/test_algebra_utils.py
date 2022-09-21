@@ -59,13 +59,13 @@ class TestAlgebraUtils(geomstats.tests.TestCase):
 
     def test_from_vector_to_diagonal_matrix(self):
         vec = gs.array([1.0, 2.0, 3.0])
-        mat_diag = utils.from_vector_to_diagonal_matrix(vec, -1)
+        mat_diag = gs.matrices.from_vector_to_diagonal_matrix(vec, -1)
         result = mat_diag.shape
         expected = (4, 4)
         self.assertAllClose(result, expected)
 
         vec = gs.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
-        mat_diag = utils.from_vector_to_diagonal_matrix(vec, 0)
+        mat_diag = gs.matrices.from_vector_to_diagonal_matrix(vec, 0)
         expected = gs.array(
             [
                 [[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]],
@@ -74,7 +74,7 @@ class TestAlgebraUtils(geomstats.tests.TestCase):
         )
         self.assertAllClose(mat_diag, expected)
 
-        mat_plus = utils.from_vector_to_diagonal_matrix(vec, 1)
+        mat_plus = gs.matrices.from_vector_to_diagonal_matrix(vec, 1)
         expected = gs.array(
             [
                 [
@@ -93,7 +93,7 @@ class TestAlgebraUtils(geomstats.tests.TestCase):
         )
         self.assertAllClose(mat_plus, expected)
 
-        mat_minus = utils.from_vector_to_diagonal_matrix(vec, -1)
+        mat_minus = gs.matrices.from_vector_to_diagonal_matrix(vec, -1)
         expected = gs.array(
             [
                 [

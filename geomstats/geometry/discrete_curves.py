@@ -8,7 +8,6 @@ import math
 from scipy.interpolate import CubicSpline
 
 import geomstats.backend as gs
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.fiber_bundle import FiberBundle
@@ -1744,9 +1743,9 @@ class SRVMetric(ElasticMetric):
         vec_2 = gs.array([1.0 / 2] * (n_points - 2) + [1.0])
         vec_3 = gs.array([1.0] + [1.0 / 2] * (n_points - 2))
 
-        mat_1 = from_vector_to_diagonal_matrix(vec_1, 0)
-        mat_2 = from_vector_to_diagonal_matrix(vec_2, -1)
-        mat_3 = from_vector_to_diagonal_matrix(vec_3, 1)
+        mat_1 = gs.matrices.from_vector_to_diagonal_matrix(vec_1, 0)
+        mat_2 = gs.matrices.from_vector_to_diagonal_matrix(vec_2, -1)
+        mat_3 = gs.matrices.from_vector_to_diagonal_matrix(vec_3, 1)
         mat_space_deriv = mat_1 - mat_2 + mat_3
 
         space_deriv = n_points * gs.matmul(mat_space_deriv, curve)
@@ -1856,9 +1855,9 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         )
 
         linear_system = (
-            from_vector_to_diagonal_matrix(vec_a[..., :-1], 1)
-            + from_vector_to_diagonal_matrix(vec_b, 0)
-            + from_vector_to_diagonal_matrix(vec_c[..., 1:], -1)
+            gs.matrices.from_vector_to_diagonal_matrix(vec_a[..., :-1], 1)
+            + gs.matrices.from_vector_to_diagonal_matrix(vec_b, 0)
+            + gs.matrices.from_vector_to_diagonal_matrix(vec_c[..., 1:], -1)
         )
         vertical_norm = gs.to_ndarray(gs.linalg.solve(linear_system, vec_d), to_ndim=2)
         n_points = vertical_norm.shape[0]

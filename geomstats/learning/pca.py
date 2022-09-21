@@ -11,7 +11,6 @@ from sklearn.decomposition._base import _BasePCA
 from sklearn.utils.extmath import stable_cumsum, svd_flip
 
 import geomstats.backend as gs
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.learning.frechet_mean import FrechetMean
 
@@ -189,7 +188,7 @@ class TangentPCA(_BasePCA):
         """
         tangent_vecs = self.metric.log(X, base_point=self.base_point_fit)
         if self.point_type == "matrix":
-            if Matrices.is_symmetric(tangent_vecs).all():
+            if gs.matrices.is_symmetric(tangent_vecs).all():
                 X = SymmetricMatrices.to_vector(tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), -1))
@@ -218,7 +217,7 @@ class TangentPCA(_BasePCA):
         """
         scores = self.mean_ + gs.matmul(X, self.components_)
         if self.point_type == "matrix":
-            if Matrices.is_symmetric(self.base_point_fit).all():
+            if gs.matrices.is_symmetric(self.base_point_fit).all():
                 scores = SymmetricMatrices(self.base_point_fit.shape[-1]).from_vector(
                     scores
                 )
@@ -253,7 +252,7 @@ class TangentPCA(_BasePCA):
         tangent_vecs = self.metric.log(X, base_point=base_point)
 
         if self.point_type == "matrix":
-            if Matrices.is_symmetric(tangent_vecs).all():
+            if gs.matrices.is_symmetric(tangent_vecs).all():
                 X = SymmetricMatrices.to_vector(tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), -1))

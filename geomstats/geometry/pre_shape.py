@@ -174,7 +174,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         if not gs.all(self.is_centered(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape" " space")
         vector = self.center(vector)
-        sq_norm = Matrices.frobenius_product(base_point, base_point)
+        sq_norm = gs.matrices.frobenius_product(base_point, base_point)
         inner_prod = self.total_space_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum("...,...ij->...ij", coef, base_point)
@@ -210,10 +210,10 @@ class PreShapeSpace(LevelSet, FiberBundle):
         skew : array-like, shape=[..., m_ambient, m_ambient]
             Vertical component of `tangent_vec`.
         """
-        transposed_point = Matrices.transpose(base_point)
+        transposed_point = gs.matrices.transpose(base_point)
         left_term = gs.matmul(transposed_point, base_point)
-        alignment = gs.matmul(Matrices.transpose(tangent_vec), base_point)
-        right_term = alignment - Matrices.transpose(alignment)
+        alignment = gs.matmul(gs.matrices.transpose(tangent_vec), base_point)
+        right_term = alignment - gs.matrices.transpose(alignment)
         skew = gs.linalg.solve_sylvester(left_term, left_term, right_term)
 
         vertical = -gs.matmul(base_point, skew)
@@ -238,9 +238,9 @@ class PreShapeSpace(LevelSet, FiberBundle):
         is_tangent : bool
             Boolean denoting if tangent vector is horizontal.
         """
-        product = gs.matmul(Matrices.transpose(tangent_vec), base_point)
+        product = gs.matmul(gs.matrices.transpose(tangent_vec), base_point)
         is_tangent = self.is_tangent(tangent_vec, base_point, atol)
-        is_symmetric = Matrices.is_symmetric(product, atol)
+        is_symmetric = gs.matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
 
     def align(self, point, base_point, **kwargs):
@@ -261,7 +261,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         aligned : array-like, shape=[..., k_landmarks, m_ambient]
             R.point.
         """
-        return Matrices.align_matrices(point, base_point)
+        return gs.matrices.align_matrices(point, base_point)
 
     def integrability_tensor_old(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the fundamental tensor A of the submersion (old).
@@ -303,10 +303,10 @@ class PreShapeSpace(LevelSet, FiberBundle):
         horizontal_b = tangent_vec_b - vertical_b
 
         # For the horizontal part of b
-        transposed_point = Matrices.transpose(base_point)
+        transposed_point = gs.matrices.transpose(base_point)
         sigma = gs.matmul(transposed_point, base_point)
-        alignment = gs.matmul(Matrices.transpose(horizontal_a), horizontal_b)
-        right_term = alignment - Matrices.transpose(alignment)
+        alignment = gs.matmul(gs.matrices.transpose(horizontal_a), horizontal_b)
+        right_term = alignment - gs.matrices.transpose(alignment)
         skew_hor = gs.linalg.solve_sylvester(sigma, sigma, right_term)
         vertical = -gs.matmul(base_point, skew_hor)
 
@@ -357,16 +357,16 @@ class PreShapeSpace(LevelSet, FiberBundle):
             in Kendall shape spaces. Unpublished.
         """
         hor_x = self.horizontal_projection(tangent_vec_x, base_point)
-        p_top = Matrices.transpose(base_point)
+        p_top = gs.matrices.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
 
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+                p_top_p, p_top_p, mat_b - gs.matrices.transpose(mat_b)
             )
 
-        e_top_hor_x = gs.matmul(Matrices.transpose(tangent_vec_e), hor_x)
+        e_top_hor_x = gs.matmul(gs.matrices.transpose(tangent_vec_e), hor_x)
         sylv_e_top_hor_x = sylv_p(e_top_hor_x)
 
         p_top_e = gs.matmul(p_top, tangent_vec_e)
@@ -451,16 +451,16 @@ class PreShapeSpace(LevelSet, FiberBundle):
         if not gs.all(self.is_tangent(nabla_x_e, base_point)):
             raise ValueError("Vector nabla_x_e is not tangent")
 
-        p_top = Matrices.transpose(base_point)
+        p_top = gs.matrices.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
-        e_top = Matrices.transpose(tangent_vec_e)
-        x_top = Matrices.transpose(horizontal_vec_x)
-        y_top = Matrices.transpose(horizontal_vec_y)
+        e_top = gs.matrices.transpose(tangent_vec_e)
+        x_top = gs.matrices.transpose(horizontal_vec_x)
+        y_top = gs.matrices.transpose(horizontal_vec_y)
 
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+                p_top_p, p_top_p, mat_b - gs.matrices.transpose(mat_b)
             )
 
         omega_ep = sylv_p(gs.matmul(p_top, tangent_vec_e))
@@ -545,17 +545,17 @@ class PreShapeSpace(LevelSet, FiberBundle):
         if not gs.all(self.is_horizontal(horizontal_vec_z, base_point)):
             raise ValueError("Tangent vector z is not horizontal")
 
-        p_top = Matrices.transpose(base_point)
+        p_top = gs.matrices.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
 
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+                p_top_p, p_top_p, mat_b - gs.matrices.transpose(mat_b)
             )
 
-        z_top = Matrices.transpose(horizontal_vec_z)
-        y_top = Matrices.transpose(horizontal_vec_y)
+        z_top = gs.matrices.transpose(horizontal_vec_z)
+        y_top = gs.matrices.transpose(horizontal_vec_y)
         omega_yz = sylv_p(gs.matmul(z_top, horizontal_vec_y))
         a_y_z = gs.matmul(base_point, omega_yz)
         omega_xy = sylv_p(gs.matmul(y_top, horizontal_vec_x))
@@ -634,24 +634,24 @@ class PreShapeSpace(LevelSet, FiberBundle):
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
             raise ValueError("Tangent vector y is not horizontal")
 
-        p_top = Matrices.transpose(base_point)
+        p_top = gs.matrices.transpose(base_point)
         p_top_p = gs.matmul(p_top, base_point)
 
         def sylv_p(mat_b):
             """Solves Sylvester equation for vertical component."""
             return gs.linalg.solve_sylvester(
-                p_top_p, p_top_p, mat_b - Matrices.transpose(mat_b)
+                p_top_p, p_top_p, mat_b - gs.matrices.transpose(mat_b)
             )
 
-        y_top = Matrices.transpose(horizontal_vec_y)
-        x_top = Matrices.transpose(horizontal_vec_x)
+        y_top = gs.matrices.transpose(horizontal_vec_y)
+        x_top = gs.matrices.transpose(horizontal_vec_x)
         x_y_top = gs.matmul(y_top, horizontal_vec_x)
         omega_xy = sylv_p(x_y_top)
         vertical_vec_v = gs.matmul(base_point, omega_xy)
         omega_xy_x = gs.matmul(horizontal_vec_x, omega_xy)
         omega_xy_y = gs.matmul(horizontal_vec_y, omega_xy)
 
-        v_top = Matrices.transpose(vertical_vec_v)
+        v_top = gs.matrices.transpose(vertical_vec_v)
         x_v_top = gs.matmul(v_top, horizontal_vec_x)
         omega_xv = sylv_p(x_v_top)
         omega_xv_p = gs.matmul(base_point, omega_xv)
@@ -668,7 +668,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         omega_xv_y = gs.matmul(horizontal_vec_y, omega_xv)
         omega_yv_x = gs.matmul(horizontal_vec_x, omega_yv)
         omega_xy_v = gs.matmul(vertical_vec_v, omega_xy)
-        norms = Matrices.frobenius_product(vertical_vec_v, vertical_vec_v)
+        norms = gs.matrices.frobenius_product(vertical_vec_v, vertical_vec_v)
         sq_norm_v_p = gs.einsum("...,...ij->...ij", norms, base_point)
 
         tmp_mat = gs.matmul(p_top, 3.0 * omega_xv_y + 2.0 * omega_yv_x) + gs.matmul(
@@ -1078,9 +1078,9 @@ class KendallShapeMetric(QuotientMetric):
             coef = self.inner_product(speed, state, gamma_t)
             normal = gs.einsum("...,...ij->...ij", coef, gamma_t)
 
-            align = gs.matmul(Matrices.transpose(speed), state)
-            right = align - Matrices.transpose(align)
-            left = gs.matmul(Matrices.transpose(gamma_t), gamma_t)
+            align = gs.matmul(gs.matrices.transpose(speed), state)
+            right = align - gs.matrices.transpose(align)
+            left = gs.matmul(gs.matrices.transpose(gamma_t), gamma_t)
             skew_ = gs.linalg.solve_sylvester(left, left, right)
             vertical_ = -gs.matmul(gamma_t, skew_)
             return vertical_ - normal

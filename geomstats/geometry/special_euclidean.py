@@ -11,7 +11,7 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.general_linear import GeneralLinear, Matrices
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric, _InvariantMetricMatrix
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
@@ -167,7 +167,7 @@ def submersion(point):
     rot = point[..., :n, :n]
     vec = point[..., n, :n]
     scalar = point[..., n, n]
-    submersed_rot = Matrices.mul(rot, Matrices.transpose(rot))
+    submersed_rot = gs.matrices.mul(rot, gs.matrices.transpose(rot))
     return homogeneous_representation(submersed_rot, vec, point.shape, constant=scalar)
 
 
@@ -191,8 +191,8 @@ def tangent_submersion(vector, point):
     skew = vector[..., :n, :n]
     vec = vector[..., n, :n]
     scalar = vector[..., n, n]
-    submersed_rot = Matrices.mul(Matrices.transpose(skew), rot)
-    submersed_rot = Matrices.to_symmetric(submersed_rot)
+    submersed_rot = gs.matrices.mul(gs.matrices.transpose(skew), rot)
+    submersed_rot = gs.matrices.to_symmetric(submersed_rot)
     return homogeneous_representation(submersed_rot, vec, point.shape, constant=scalar)
 
 
@@ -290,7 +290,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             Inverse of point.
         """
         n = point.shape[-1] - 1
-        transposed_rot = Matrices.transpose(point[..., :n, :n])
+        transposed_rot = gs.matrices.transpose(point[..., :n, :n])
         translation = point[..., :n, -1]
         translation = gs.einsum("...ij,...j->...i", transposed_rot, translation)
         return homogeneous_representation(transposed_rot, -translation, point.shape)
@@ -743,7 +743,9 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
             rot_vec**2, utils.cosc_close_0, order=4
         )
         transform = gs.einsum(
-            "...l, ...jk -> ...jk", inv_determinant, Matrices.transpose(exp_transform)
+            "...l, ...jk -> ...jk",
+            inv_determinant,
+            gs.matrices.transpose(exp_transform),
         )
 
         return transform
@@ -1066,7 +1068,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return gs.matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
 
     def exp(self, tangent_vec, base_point=None, n_steps=10, step="rk4", **kwargs):
         """Exponential map associated to the cannonical metric.

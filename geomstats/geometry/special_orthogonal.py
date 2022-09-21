@@ -11,7 +11,6 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -38,7 +37,6 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
     """
 
     def __init__(self, n, **kwargs):
-        matrices = Matrices(n, n)
         gln = GeneralLinear(n, positive_det=True)
         super().__init__(
             dim=int((n * (n - 1)) / 2),
@@ -46,9 +44,9 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             value=gs.eye(n),
             lie_algebra=SkewSymmetricMatrices(n=n),
             embedding_space=gln,
-            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
+            submersion=lambda x: gs.matrices.mul(gs.matrices.transpose(x), x),
             tangent_submersion=lambda v, x: 2
-            * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
+            * gs.matrices.to_symmetric(gs.matrices.mul(gs.matrices.transpose(x), v)),
             **kwargs,
         )
         self.bi_invariant_metric = BiInvariantMetric(group=self)
@@ -69,7 +67,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         inverse : array-like, shape=[..., n, n]
             Inverse.
         """
-        return Matrices.transpose(point)
+        return gs.matrices.transpose(point)
 
     def projection(self, point):
         """Project a matrix on SO(n) by minimizing the Frobenius norm.
@@ -85,11 +83,10 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             Rotation matrix.
         """
         aux_mat = self.submersion(point)
-        # aux_mat = Matrices.mul(Matrices.transpose(point), point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, -1 / 2)
-        rotation_mat = Matrices.mul(point, inv_sqrt_mat)
+        rotation_mat = gs.matrices.mul(point, inv_sqrt_mat)
         det = gs.linalg.det(rotation_mat)
-        return utils.flip_determinant(rotation_mat, det)
+        return gs.matrices.flip_determinant(rotation_mat, det)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in SO(n) from the uniform distribution.
@@ -131,7 +128,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         random_mat = gs.random.normal(size=size)
         rotation_mat, _ = gs.linalg.qr(random_mat)
         det = gs.linalg.det(rotation_mat)
-        return utils.flip_determinant(rotation_mat, det)
+        return gs.matrices.flip_determinant(rotation_mat, det)
 
     def skew_matrix_from_vector(self, vec):
         """Get the skew-symmetric matrix derived from the vector.
@@ -360,20 +357,20 @@ class _SpecialOrthogonalVectors(LieGroup):
         n_mats, _, _ = mat.shape
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
-        rot_mat = Matrices.mul(mat_unitary_u, mat_unitary_v)
+        rot_mat = gs.matrices.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.0)
         mask_float = gs.cast(mask, mat.dtype) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
         diag = gs.to_ndarray(diag, to_ndim=2)
         diag = (
-            gs.to_ndarray(utils.from_vector_to_diagonal_matrix(diag), to_ndim=3)
+            gs.to_ndarray(gs.matrices.from_vector_to_diagonal_matrix(diag), to_ndim=3)
             + self.epsilon
         )
         new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-        aux_mat = Matrices.mul(mat_unitary_u, new_mat_diag_s)
+        aux_mat = gs.matrices.mul(mat_unitary_u, new_mat_diag_s)
         rot_mat = rot_mat + gs.einsum(
-            "...,...jk->...jk", mask_float, Matrices.mul(aux_mat, mat_unitary_v)
+            "...,...jk->...jk", mask_float, gs.matrices.mul(aux_mat, mat_unitary_v)
         )
         return rot_mat
 
@@ -910,7 +907,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         term_1 = gs.eye(self.dim) + gs.einsum("...,...jk->...jk", coef_1, skew_rot_vec)
 
-        squared_skew_rot_vec = Matrices.mul(skew_rot_vec, skew_rot_vec)
+        squared_skew_rot_vec = gs.matrices.mul(skew_rot_vec, skew_rot_vec)
 
         term_2 = gs.einsum("...,...jk->...jk", coef_2, squared_skew_rot_vec)
 

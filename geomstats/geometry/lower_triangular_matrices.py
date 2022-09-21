@@ -5,7 +5,7 @@ Lead author: Saiteja Utpala.
 
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpace
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric
 
 
 class LowerTriangularMatrices(VectorSpace):
@@ -55,7 +55,7 @@ class LowerTriangularMatrices(VectorSpace):
         """
         belongs = super().belongs(point)
         if gs.any(belongs):
-            is_lower_triangular = Matrices.is_lower_triangular(point, atol)
+            is_lower_triangular = gs.matrices.is_lower_triangular(point, atol)
             return gs.logical_and(belongs, is_lower_triangular)
         return belongs
 
@@ -88,7 +88,7 @@ class LowerTriangularMatrices(VectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return Matrices.to_lower_triangular(point)
+        return gs.matrices.to_lower_triangular(point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample a lower triangular matrix with a uniform distribution in a box.
@@ -108,4 +108,4 @@ class LowerTriangularMatrices(VectorSpace):
            Sample.
         """
         sample = super().random_point(n_samples, bound)
-        return Matrices.to_lower_triangular(sample)
+        return gs.matrices.to_lower_triangular(sample)

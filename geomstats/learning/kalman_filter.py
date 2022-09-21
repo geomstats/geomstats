@@ -5,7 +5,6 @@ Lead author: Paul Chauchat.
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
@@ -264,7 +263,7 @@ class Localization:
         tangent_base = gs.array([[0.0, -1.0], [1.0, 0.0]])
         orientation_part = gs.eye(Localization.dim_rot, Localization.dim)
         pos_column = gs.reshape(state[1:], (Localization.group.n, 1))
-        position_wrt_orientation = Matrices.mul(-tangent_base, pos_column)
+        position_wrt_orientation = gs.matrices.mul(-tangent_base, pos_column)
         position_wrt_position = Localization.rotation_matrix(theta)
         last_lines = gs.hstack((position_wrt_orientation, position_wrt_position))
         ad = gs.vstack((orientation_part, last_lines))
@@ -387,7 +386,7 @@ class Localization:
         """
         theta, _, _ = state
         rot = Localization.rotation_matrix(theta)
-        return Matrices.mul(Matrices.transpose(rot), observation_cov, rot)
+        return gs.matrices.mul(gs.matrices.transpose(rot), observation_cov, rot)
 
     @staticmethod
     def observation_model(state):
@@ -430,7 +429,7 @@ class Localization:
         theta, _, _ = state
         rot = Localization.rotation_matrix(theta)
         expected = Localization.observation_model(state)
-        return gs.matvec(Matrices.transpose(rot), observation - expected)
+        return gs.matvec(gs.matrices.transpose(rot), observation - expected)
 
 
 class KalmanFilter:
@@ -479,8 +478,12 @@ class KalmanFilter:
         prop_jac = self.model.propagation_jacobian(self.state, sensor_input)
         noise_jac = self.model.noise_jacobian(self.state, sensor_input)
 
-        prop_cov = Matrices.mul(prop_jac, self.covariance, Matrices.transpose(prop_jac))
-        noise_cov = Matrices.mul(noise_jac, prop_noise, Matrices.transpose(noise_jac))
+        prop_cov = gs.matrices.mul(
+            prop_jac, self.covariance, gs.matrices.transpose(prop_jac)
+        )
+        noise_cov = gs.matrices.mul(
+            noise_jac, prop_noise, gs.matrices.transpose(noise_jac)
+        )
         self.covariance = prop_cov + noise_cov
         self.state = self.model.propagate(self.state, sensor_input)
 
@@ -505,12 +508,14 @@ class KalmanFilter:
             self.state, self.measurement_noise
         )
         obs_jac = self.model.observation_jacobian(self.state, observation)
-        expected_cov = Matrices.mul(
-            obs_jac, self.covariance, Matrices.transpose(obs_jac)
+        expected_cov = gs.matrices.mul(
+            obs_jac, self.covariance, gs.matrices.transpose(obs_jac)
         )
         innovation_cov = expected_cov + obs_cov
-        return Matrices.mul(
-            self.covariance, Matrices.transpose(obs_jac), gs.linalg.inv(innovation_cov)
+        return gs.matrices.mul(
+            self.covariance,
+            gs.matrices.transpose(obs_jac),
+            gs.linalg.inv(innovation_cov),
         )
 
     def update(self, observation):
@@ -530,7 +535,7 @@ class KalmanFilter:
         innovation = self.model.innovation(self.state, observation)
         gain = self.compute_gain(observation)
         obs_jac = self.model.observation_jacobian(self.state, observation)
-        cov_factor = gs.eye(self.model.dim) - Matrices.mul(gain, obs_jac)
-        self.covariance = Matrices.mul(cov_factor, self.covariance)
+        cov_factor = gs.eye(self.model.dim) - gs.matrices.mul(gain, obs_jac)
+        self.covariance = gs.matrices.mul(cov_factor, self.covariance)
         state_upd = gs.matvec(gain, innovation)
         self.state = self.model.group.exp(state_upd, self.state)

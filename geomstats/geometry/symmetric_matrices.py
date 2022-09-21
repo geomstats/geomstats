@@ -7,9 +7,8 @@ import logging
 
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats import algebra_utils
 from geomstats.geometry.base import VectorSpace
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric
 
 
 class SymmetricMatrices(VectorSpace):
@@ -59,7 +58,7 @@ class SymmetricMatrices(VectorSpace):
         """
         belongs = super().belongs(point)
         if gs.any(belongs):
-            is_symmetric = Matrices.is_symmetric(point, atol)
+            is_symmetric = gs.matrices.is_symmetric(point, atol)
             return gs.logical_and(belongs, is_symmetric)
         return belongs
 
@@ -76,7 +75,7 @@ class SymmetricMatrices(VectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return Matrices.to_symmetric(point)
+        return gs.matrices.to_symmetric(point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample a symmetric matrix with a uniform distribution in a box.
@@ -96,7 +95,7 @@ class SymmetricMatrices(VectorSpace):
            Sample.
         """
         sample = super().random_point(n_samples, bound)
-        return Matrices.to_symmetric(sample)
+        return gs.matrices.to_symmetric(sample)
 
     @staticmethod
     def to_vector(mat):
@@ -112,9 +111,9 @@ class SymmetricMatrices(VectorSpace):
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
         """
-        if not gs.all(Matrices.is_symmetric(mat)):
+        if not gs.all(gs.matrices.is_symmetric(mat)):
             logging.warning("non-symmetric matrix encountered.")
-        mat = Matrices.to_symmetric(mat)
+        mat = gs.matrices.to_symmetric(mat)
         return gs.triu_to_vec(mat)
 
     @staticmethod
@@ -146,7 +145,7 @@ class SymmetricMatrices(VectorSpace):
         upper_triangular = gs.stack(
             [gs.array_from_sparse(indices, data, shape) for data in vec]
         )
-        mat = Matrices.to_symmetric(upper_triangular) * mask
+        mat = gs.matrices.to_symmetric(upper_triangular) * mask
         return mat
 
     @classmethod
@@ -231,9 +230,9 @@ class SymmetricMatrices(VectorSpace):
             function = [function]
             return_list = False
         reconstruction = []
-        transp_eigvecs = Matrices.transpose(eigvecs)
+        transp_eigvecs = gs.matrices.transpose(eigvecs)
         for fun in function:
             eigvals_f = fun(eigvals)
-            eigvals_f = algebra_utils.from_vector_to_diagonal_matrix(eigvals_f)
-            reconstruction.append(Matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
+            eigvals_f = gs.matrices.from_vector_to_diagonal_matrix(eigvals_f)
+            reconstruction.append(gs.matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
         return reconstruction if return_list else reconstruction[0]

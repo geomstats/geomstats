@@ -40,7 +40,7 @@ import geomstats.errors
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -69,16 +69,16 @@ def submersion(point, p):
     """
     _, eigvecs = gs.linalg.eigh(point)
     eigvecs = gs.flip(eigvecs, -1)
-    flipped_point = Matrices.mul(Matrices.transpose(eigvecs), point, eigvecs)
+    flipped_point = gs.matrices.mul(gs.matrices.transpose(eigvecs), point, eigvecs)
     b = flipped_point[..., p:, :p]
     d = flipped_point[..., p:, p:]
     a = flipped_point[..., :p, :p] - gs.eye(p)
-    first = d - Matrices.mul(
-        b, GeneralLinear.inverse(a + gs.eye(p)), Matrices.transpose(b)
+    first = d - gs.matrices.mul(
+        b, GeneralLinear.inverse(a + gs.eye(p)), gs.matrices.transpose(b)
     )
-    second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
+    second = a + gs.matrices.mul(a, a) + gs.matrices.mul(gs.matrices.transpose(b), b)
     row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
-    row_2 = gs.concatenate([Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
+    row_2 = gs.concatenate([gs.matrices.transpose(gs.zeros_like(b)), second], axis=-1)
     return gs.concatenate([row_1, row_2], axis=-2)
 
 
@@ -191,7 +191,7 @@ class Grassmannian(LevelSet):
             submersion=lambda x: submersion(x, p),
             value=gs.zeros((n, n)),
             tangent_submersion=lambda v, x: 2
-            * Matrices.to_symmetric(Matrices.mul(x, v))
+            * gs.matrices.to_symmetric(gs.matrices.mul(x, v))
             - v,
             **kwargs
         )
@@ -221,9 +221,9 @@ class Grassmannian(LevelSet):
             New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
         points = gs.random.normal(size=(n_samples, self.n, self.p))
-        full_rank = Matrices.mul(Matrices.transpose(points), points)
-        projector = Matrices.mul(
-            points, GeneralLinear.inverse(full_rank), Matrices.transpose(points)
+        full_rank = gs.matrices.mul(gs.matrices.transpose(points), points)
+        projector = gs.matrices.mul(
+            points, GeneralLinear.inverse(full_rank), gs.matrices.transpose(points)
         )
         return projector[0] if n_samples == 1 else projector
 
@@ -271,8 +271,8 @@ class Grassmannian(LevelSet):
         tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point.
         """
-        sym = Matrices.to_symmetric(vector)
-        return Matrices.bracket(base_point, Matrices.bracket(base_point, sym))
+        sym = gs.matrices.to_symmetric(vector)
+        return gs.matrices.bracket(base_point, gs.matrices.bracket(base_point, sym))
 
     def projection(self, point):
         """Project a matrix to the Grassmann manifold.
@@ -289,11 +289,11 @@ class Grassmannian(LevelSet):
         projected : array-like, shape=[..., n, n]
             Projected point.
         """
-        mat = Matrices.to_symmetric(point)
+        mat = gs.matrices.to_symmetric(point)
         _, eigvecs = gs.linalg.eigh(mat)
         diagonal = gs.array([0.0] * (self.n - self.p) + [1.0] * self.p)
         p_d = gs.einsum("...ij,...j->...ij", eigvecs, diagonal)
-        return Matrices.mul(p_d, Matrices.transpose(eigvecs))
+        return gs.matrices.mul(p_d, gs.matrices.transpose(eigvecs))
 
 
 class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
@@ -340,9 +340,8 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             Riemannian exponential.
         """
         expm = gs.linalg.expm
-        mul = Matrices.mul
-        rot = Matrices.bracket(base_point, -tangent_vec)
-        return mul(expm(rot), base_point, expm(-rot))
+        rot = gs.matrices.bracket(base_point, -tangent_vec)
+        return gs.matrices.mul(expm(rot), base_point, expm(-rot))
 
     def log(self, point, base_point, **kwargs):
         r"""Compute the Riemannian logarithm of point w.r.t. base_point.
@@ -381,7 +380,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
         rot = GLn.compose(sym2, sym1)
-        return Matrices.bracket(GLn.log(rot) / 2, base_point)
+        return gs.matrices.bracket(GLn.log(rot) / 2, base_point)
 
     def parallel_transport(
         self, tangent_vec, base_point, tangent_vec_b=None, end_point=None
@@ -429,9 +428,8 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
                     " geodesic along which to transport."
                 )
         expm = gs.linalg.expm
-        mul = Matrices.mul
-        rot = -Matrices.bracket(base_point, tangent_vec_b)
-        return mul(expm(rot), tangent_vec, expm(-rot))
+        rot = -gs.matrices.bracket(base_point, tangent_vec_b)
+        return gs.matrices.mul(expm(rot), tangent_vec, expm(-rot))
 
     def private_squared_dist(self, point_a, point_b):
         """Compute geodesic distance between two points.
