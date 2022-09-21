@@ -7,7 +7,6 @@ from scipy.stats import dirichlet, multinomial
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import HypersphereMetric
@@ -178,7 +177,7 @@ class MultinomialMetric(RiemannianMetric):
                 "A base point must be given to compute the " "metric matrix"
             )
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        mat = self.n_draws * from_vector_to_diagonal_matrix(1 / base_point)
+        mat = self.n_draws * gs.matrices.from_vector_to_diagonal_matrix(1 / base_point)
         return gs.squeeze(mat)
 
     @staticmethod

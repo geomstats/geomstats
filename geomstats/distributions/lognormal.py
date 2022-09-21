@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
@@ -60,7 +60,7 @@ class _LogNormalSPD:
                 gs.zeros(self.manifold.dim), self.cov, n_samples
             )
             mean_half = self.manifold.powerm(self.mean, 0.5)
-            _samples = Matrices.mul(mean_half, samples_sym, mean_half)
+            _samples = gs.matrices.mul(mean_half, samples_sym, mean_half)
 
         return self.manifold.expm(_samples)
 

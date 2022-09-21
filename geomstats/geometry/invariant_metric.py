@@ -5,7 +5,6 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
 
@@ -75,7 +74,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         symmetric_matrix : array-like, shape=[n, n]
             Symmetric matrix.
         """
-        if Matrices.is_diagonal(self.metric_mat_at_identity):
+        if gs.matrices.is_diagonal(self.metric_mat_at_identity):
             metric_coeffs = gs.diagonal(self.metric_mat_at_identity)
             metric_mat = gs.abs(self.lie_algebra.matrix_representation(metric_coeffs))
             return metric_mat
@@ -100,9 +99,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """
         tan_b = tangent_vec_b
         metric_mat = self.metric_mat_at_identity
-        if Matrices.is_diagonal(metric_mat) and self.lie_algebra is not None:
+        if gs.matrices.is_diagonal(metric_mat) and self.lie_algebra is not None:
             tan_b = tangent_vec_b * self.reshaped_metric_matrix
-        inner_prod = Matrices.frobenius_product(tangent_vec_a, tan_b)
+        inner_prod = gs.matrices.frobenius_product(tangent_vec_a, tan_b)
         return inner_prod
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -155,7 +154,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         -------
         structure_constant : array-like, shape=[...,]
         """
-        bracket = Matrices.bracket(tangent_vec_a, tangent_vec_b)
+        bracket = gs.matrices.bracket(tangent_vec_a, tangent_vec_b)
         return self.inner_product_at_identity(bracket, tangent_vec_c)
 
     def dual_adjoint(self, tangent_vec_a, tangent_vec_b):
@@ -233,7 +232,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
             sign
             / 2
             * (
-                Matrices.bracket(tangent_vec_a, tangent_vec_b)
+                gs.matrices.bracket(tangent_vec_a, tangent_vec_b)
                 - self.dual_adjoint(tangent_vec_a, tangent_vec_b)
                 - self.dual_adjoint(tangent_vec_b, tangent_vec_a)
             )
@@ -306,7 +305,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         curvature : array-like, shape=[..., n, n]
             Tangent vector at identity.
         """
-        bracket = Matrices.bracket(tangent_vec_a, tangent_vec_b)
+        bracket = gs.matrices.bracket(tangent_vec_a, tangent_vec_b)
         bracket_term = self.connection_at_identity(bracket, tangent_vec_c)
 
         left_term = self.connection_at_identity(
@@ -918,9 +917,9 @@ class _InvariantMetricVector(RiemannianMetric):
         )
 
         inv_jacobian = gs.linalg.inv(jacobian)
-        inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
+        inv_jacobian_transposed = gs.matrices.transpose(inv_jacobian)
 
-        metric_mat = Matrices.mul(
+        metric_mat = gs.matrices.mul(
             inv_jacobian_transposed, self.metric_mat_at_identity, inv_jacobian
         )
         return metric_mat
@@ -1285,7 +1284,7 @@ class BiInvariantMetric(_InvariantMetricVector):
         """
         if self.default_point_type == "vector":
             return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
-        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
+        return gs.matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -1351,8 +1350,8 @@ class BiInvariantMetric(_InvariantMetricVector):
                     " geodesic along which to transport."
                 )
         midpoint = self.exp(1.0 / 2.0 * direction, base_point)
-        transposed = Matrices.transpose(tangent_vec)
-        transported_vec = Matrices.mul(midpoint, transposed, midpoint)
+        transposed = gs.matrices.transpose(tangent_vec)
+        transported_vec = gs.matrices.mul(midpoint, transposed, midpoint)
         return (-1.0) * transported_vec
 
     def injectivity_radius(self, base_point):

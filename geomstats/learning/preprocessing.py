@@ -7,7 +7,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -123,9 +122,9 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
         if self.point_type == "vector":
             return tangent_vecs
 
-        if gs.all(Matrices.is_symmetric(tangent_vecs)):
+        if gs.all(gs.matrices.is_symmetric(tangent_vecs)):
             X = SymmetricMatrices.to_vector(tangent_vecs)
-        elif gs.all(Matrices.is_skew_symmetric(tangent_vecs)):
+        elif gs.all(gs.matrices.is_skew_symmetric(tangent_vecs)):
             X = SkewSymmetricMatrices(tangent_vecs.shape[-1]).basis_representation(
                 tangent_vecs
             )
@@ -167,7 +166,7 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
             dim_sym = int(n_base_point * (n_base_point + 1) / 2)
             dim_skew = int(n_base_point * (n_base_point - 1) / 2)
 
-            if gs.all(Matrices.is_symmetric(base_point)) and dim_sym == n_vecs:
+            if gs.all(gs.matrices.is_symmetric(base_point)) and dim_sym == n_vecs:
                 tangent_vecs = SymmetricMatrices(base_point.shape[-1]).from_vector(X)
             elif dim_skew == n_vecs:
                 tangent_vecs = SkewSymmetricMatrices(dim_skew).matrix_representation(X)

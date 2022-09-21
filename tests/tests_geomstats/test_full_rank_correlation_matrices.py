@@ -2,7 +2,6 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer, TestCase, autograd_tf_and_torch_only
 from tests.data.full_rank_correlation_matrices_data import (
     CorrelationMatricesBundleTestData,
@@ -56,8 +55,8 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         base = self.Base(n)
         horizontal_vec = bundle.horizontal_projection(vec, mat)
         inverse = GeneralLinear.inverse(mat)
-        product_1 = Matrices.mul(horizontal_vec, inverse)
-        product_2 = Matrices.mul(inverse, horizontal_vec)
+        product_1 = gs.matrices.mul(horizontal_vec, inverse)
+        product_2 = gs.matrices.mul(inverse, horizontal_vec)
         is_horizontal = gs.all(
             base.is_tangent(product_1 + product_2, mat, atol=gs.atol * 10)
         )

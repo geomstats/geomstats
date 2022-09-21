@@ -2,8 +2,6 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.matrices import Matrices
 from geomstats.learning.kalman_filter import (
     KalmanFilter,
     Localization,
@@ -165,9 +163,9 @@ class TestKalmanFilter(geomstats.tests.TestCase):
             self.kalman.state, increment
         )
         noise_jacobian = self.linear_model.noise_jacobian(self.kalman.state, increment)
-        expected_covariance = Matrices.mul(
+        expected_covariance = gs.matrices.mul(
             state_jacobian, self.kalman.covariance, gs.transpose(state_jacobian)
-        ) + Matrices.mul(
+        ) + gs.matrices.mul(
             noise_jacobian, self.kalman.process_noise, gs.transpose(noise_jacobian)
         )
         expected_state = self.linear_model.propagate(self.kalman.state, increment)
@@ -190,7 +188,9 @@ class TestKalmanFilter(geomstats.tests.TestCase):
             self.prior_cov, self.process_cov, self.obs_cov
         )
         measurement = gs.array([0.6])
-        expected_cov = from_vector_to_diagonal_matrix(gs.array([2.0 / 3.0, 1.0]))
+        expected_cov = gs.matrices.from_vector_to_diagonal_matrix(
+            gs.array([2.0 / 3.0, 1.0])
+        )
         expected_state = gs.array([0.2, 0.0])
         self.kalman.update(measurement)
         self.assertAllClose(expected_state, self.kalman.state)

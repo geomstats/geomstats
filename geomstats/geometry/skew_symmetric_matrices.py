@@ -68,7 +68,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         """
         has_right_shape = self.ambient_space.belongs(mat)
         if gs.all(has_right_shape):
-            return Matrices.is_skew_symmetric(mat=mat, atol=atol)
+            return gs.matrices.is_skew_symmetric(mat=mat, atol=atol)
         return has_right_shape
 
     def random_point(self, n_samples=1, bound=1.0):
@@ -109,7 +109,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         skew_sym : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        return Matrices.to_skew_symmetric(mat)
+        return gs.matrices.to_skew_symmetric(mat)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.

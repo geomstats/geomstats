@@ -4,7 +4,6 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
 from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 
@@ -41,7 +40,7 @@ class StiefelTestData(_LevelSetTestData):
     def to_grassmannian_test_data(self):
 
         point1 = gs.array([[1.0, -1.0], [1.0, 1.0], [0.0, 0.0]]) / gs.sqrt(2.0)
-        batch_points = Matrices.mul(
+        batch_points = gs.matrices.mul(
             GeneralLinear.exp(gs.array([gs.pi * r_z / n for n in [2, 3, 4]])),
             point1,
         )

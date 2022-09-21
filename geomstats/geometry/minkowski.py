@@ -6,7 +6,6 @@ Lead author: Nina Miolane.
 import math
 
 import geomstats.backend as gs
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -63,7 +62,7 @@ class MinkowskiMetric(RiemannianMetric):
         """
         q, p = self.signature
         diagonal = gs.array([-1.0] * p + [1.0] * q)
-        return from_vector_to_diagonal_matrix(diagonal)
+        return gs.matrices.from_vector_to_diagonal_matrix(diagonal)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.

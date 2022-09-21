@@ -7,7 +7,6 @@ import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 
@@ -26,9 +25,9 @@ class FullRankCorrelationMatrices(LevelSet):
         super().__init__(
             dim=int(n * (n - 1) / 2),
             embedding_space=SPDMatrices(n=n),
-            submersion=Matrices.diagonal,
+            submersion=gs.matrices.diagonal,
             value=gs.ones(n),
-            tangent_submersion=lambda v, x: Matrices.diagonal(v),
+            tangent_submersion=lambda v, x: gs.matrices.diagonal(v),
             **kwargs
         )
         self.n = n
@@ -82,7 +81,7 @@ class FullRankCorrelationMatrices(LevelSet):
             Correlation matrix obtained by dividing all elements by the
             diagonal entries.
         """
-        diag_vec = Matrices.diagonal(point) ** (-0.5)
+        diag_vec = gs.matrices.diagonal(point) ** (-0.5)
         return cls.diag_action(diag_vec, point)
 
     def random_point(self, n_samples=1, bound=1.0):
@@ -175,7 +174,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         cor : array_like, shape=[..., n, n]
             Full rank correlation matrix.
         """
-        diagonal = Matrices.diagonal(point) ** (-0.5)
+        diagonal = gs.matrices.diagonal(point) ** (-0.5)
         return point * gs.outer(diagonal, diagonal)
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
@@ -192,8 +191,8 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         -------
         result : array-like, shape=[..., n, n]
         """
-        diagonal_bp = Matrices.diagonal(base_point)
-        diagonal_tv = Matrices.diagonal(tangent_vec)
+        diagonal_bp = gs.matrices.diagonal(base_point)
+        diagonal_tv = gs.matrices.diagonal(tangent_vec)
 
         diagonal = diagonal_tv / diagonal_bp
         aux = base_point * (diagonal[..., None, :] + diagonal[..., :, None])
@@ -242,7 +241,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         """
         if fiber_point is None and base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
-        diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
+        diagonal_point = gs.matrices.diagonal(fiber_point) ** 0.5
         lift = FullRankCorrelationMatrices.diag_action(diagonal_point, tangent_vec)
         hor_lift = self.horizontal_projection(lift, base_point=fiber_point)
         return hor_lift

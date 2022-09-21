@@ -1,5 +1,4 @@
 import geomstats.backend as gs
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -22,7 +21,7 @@ class TestDataLieAlgebra(TestData):
             dict(group=SpecialOrthogonal(3), metric_mat_at_identity=None),
             dict(
                 group=SpecialOrthogonal(3),
-                metric_mat_at_identity=from_vector_to_diagonal_matrix(
+                metric_mat_at_identity=gs.matrices.from_vector_to_diagonal_matrix(
                     gs.array([1.0, 2.0, 3.0])
                 ),
             ),
@@ -34,7 +33,7 @@ class TestDataLieAlgebra(TestData):
             dict(group=SpecialEuclidean(3), metric_mat_at_identity=None),
             dict(
                 group=SpecialEuclidean(3),
-                metric_mat_at_identity=from_vector_to_diagonal_matrix(
+                metric_mat_at_identity=gs.matrices.from_vector_to_diagonal_matrix(
                     gs.cast(gs.arange(1, SpecialEuclidean(3).dim + 1), gs.float32)
                 ),
             ),

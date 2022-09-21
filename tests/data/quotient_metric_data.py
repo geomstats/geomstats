@@ -1,7 +1,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricBuresWasserstein
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -18,11 +18,11 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
 
     @staticmethod
     def riemannian_submersion(point):
-        return Matrices.mul(point, Matrices.transpose(point))
+        return gs.matrices.mul(point, gs.matrices.transpose(point))
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
-        product = Matrices.mul(base_point, Matrices.transpose(tangent_vec))
-        return 2 * Matrices.to_symmetric(product)
+        product = gs.matrices.mul(base_point, gs.matrices.transpose(tangent_vec))
+        return 2 * gs.matrices.to_symmetric(product)
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         if base_point is None:
@@ -35,7 +35,7 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
                     "given."
                 )
         sylvester = gs.linalg.solve_sylvester(base_point, base_point, tangent_vec)
-        return Matrices.mul(sylvester, fiber_point)
+        return gs.matrices.mul(sylvester, fiber_point)
 
     @staticmethod
     def lift(point):

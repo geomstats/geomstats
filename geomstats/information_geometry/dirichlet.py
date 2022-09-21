@@ -12,7 +12,6 @@ from scipy.stats import dirichlet
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -217,7 +216,9 @@ class DirichletMetric(RiemannianMetric):
 
         mat_ones = gs.ones((n_points, self.dim, self.dim))
         poly_sum = gs.polygamma(1, gs.sum(base_point, -1))
-        mat_diag = from_vector_to_diagonal_matrix(gs.polygamma(1, base_point))
+        mat_diag = gs.matrices.from_vector_to_diagonal_matrix(
+            gs.polygamma(1, base_point)
+        )
 
         mat = mat_diag - gs.einsum("i,ijk->ijk", poly_sum, mat_ones)
         return gs.squeeze(mat)
@@ -263,7 +264,7 @@ class DirichletMetric(RiemannianMetric):
             c2 = -c1 * gs.polygamma(2, param_sum) / gs.polygamma(1, param_sum)
 
             mat_ones = gs.ones((n_points, self.dim, self.dim))
-            mat_diag = from_vector_to_diagonal_matrix(
+            mat_diag = gs.matrices.from_vector_to_diagonal_matrix(
                 -gs.polygamma(2, base_point) / gs.polygamma(1, base_point)
             )
             arrays = [
@@ -274,7 +275,7 @@ class DirichletMetric(RiemannianMetric):
             vec_k = gs.tile(gs.hstack(arrays), (n_points, 1))
             val_k = gs.polygamma(2, param_k) / gs.polygamma(1, param_k)
             vec_k = gs.einsum("i,ij->ij", val_k, vec_k)
-            mat_k = from_vector_to_diagonal_matrix(vec_k)
+            mat_k = gs.matrices.from_vector_to_diagonal_matrix(vec_k)
 
             mat = (
                 gs.einsum("i,ijk->ijk", c2, mat_ones)
@@ -336,30 +337,38 @@ class DirichletMetric(RiemannianMetric):
         )
         jac_2_mat = gs.squeeze(gs.tile(jac_2, (self.dim, self.dim, 1, 1, 1)))
         jac_3 = term_3 * term_6 / term_9
-        jac_3_mat = gs.transpose(from_vector_to_diagonal_matrix(gs.transpose(jac_3)))
+        jac_3_mat = gs.transpose(
+            gs.matrices.from_vector_to_diagonal_matrix(gs.transpose(jac_3))
+        )
         jac_3_mat = gs.squeeze(gs.tile(jac_3_mat, (self.dim, self.dim, 1, 1, 1)))
         jac_4 = (
             1
             / term_9**2
             * gs.einsum("k...,j...,i...->kji...", term_5, term_4 - term_3, term_1)
         )
-        jac_4_mat = gs.transpose(from_vector_to_diagonal_matrix(gs.transpose(jac_4)))
+        jac_4_mat = gs.transpose(
+            gs.matrices.from_vector_to_diagonal_matrix(gs.transpose(jac_4))
+        )
         jac_5 = -gs.einsum("j...,i...->ji...", term_7, term_1) / term_9
-        jac_5_mat = from_vector_to_diagonal_matrix(gs.transpose(jac_5))
-        jac_5_mat = gs.transpose(from_vector_to_diagonal_matrix(jac_5_mat))
+        jac_5_mat = gs.matrices.from_vector_to_diagonal_matrix(gs.transpose(jac_5))
+        jac_5_mat = gs.transpose(gs.matrices.from_vector_to_diagonal_matrix(jac_5_mat))
         jac_6 = -gs.einsum("k...,j...->kj...", term_5, term_3) / term_9
-        jac_6_mat = gs.transpose(from_vector_to_diagonal_matrix(gs.transpose(jac_6)))
+        jac_6_mat = gs.transpose(
+            gs.matrices.from_vector_to_diagonal_matrix(gs.transpose(jac_6))
+        )
         jac_6_mat = (
             gs.transpose(
-                from_vector_to_diagonal_matrix(gs.transpose(jac_6_mat, [0, 1, 3, 2])),
+                gs.matrices.from_vector_to_diagonal_matrix(
+                    gs.transpose(jac_6_mat, [0, 1, 3, 2])
+                ),
                 [0, 1, 3, 4, 2],
             )
             if n_dim > 1
-            else from_vector_to_diagonal_matrix(jac_6_mat)
+            else gs.matrices.from_vector_to_diagonal_matrix(jac_6_mat)
         )
-        jac_7 = -from_vector_to_diagonal_matrix(gs.transpose(term_7))
-        jac_7_mat = from_vector_to_diagonal_matrix(jac_7)
-        jac_7_mat = gs.transpose(from_vector_to_diagonal_matrix(jac_7_mat))
+        jac_7 = -gs.matrices.from_vector_to_diagonal_matrix(gs.transpose(term_7))
+        jac_7_mat = gs.matrices.from_vector_to_diagonal_matrix(jac_7)
+        jac_7_mat = gs.transpose(gs.matrices.from_vector_to_diagonal_matrix(jac_7_mat))
 
         jac = (
             1

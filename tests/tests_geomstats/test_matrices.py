@@ -2,13 +2,13 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer
 from tests.data.matrices_data import MatricesMetricTestData, MatricesTestData
 from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
 
 
 class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
+    skip_all = True
 
     testing_data = MatricesTestData()
 
@@ -22,27 +22,28 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         )
 
     def test_mul(self, mat, expected):
-        self.assertAllClose(Matrices.mul(*mat), gs.array(expected))
+        self.assertAllClose(gs.matrices.mul(*mat), gs.array(expected))
 
     def test_bracket(self, mat_a, mat_b, expected):
         self.assertAllClose(
-            Matrices.bracket(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
+            gs.matrices.bracket(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
         )
 
     def test_congruent(self, mat_a, mat_b, expected):
         self.assertAllClose(
-            Matrices.congruent(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
+            gs.matrices.congruent(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
         )
 
     def test_frobenius_product(self, mat_a, mat_b, expected):
         self.assertAllClose(
-            Matrices.frobenius_product(gs.array(mat_a), gs.array(mat_b)),
+            gs.matrices.frobenius_product(gs.array(mat_a), gs.array(mat_b)),
             gs.array(expected),
         )
 
     def test_trace_product(self, mat_a, mat_b, expected):
         self.assertAllClose(
-            Matrices.trace_product(gs.array(mat_a), gs.array(mat_b)), gs.array(expected)
+            gs.matrices.trace_product(gs.array(mat_a), gs.array(mat_b)),
+            gs.array(expected),
         )
 
     def test_flatten(self, m, n, mat, expected):

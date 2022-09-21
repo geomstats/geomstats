@@ -4,7 +4,6 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
 from tests.conftest import Parametrizer, np_autograd_and_torch_only
 from tests.data.pre_shape_data import (
@@ -40,21 +39,21 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
     def test_vertical_projection(self, k_landmarks, m_ambient, tangent_vec, point):
         space = self.Space(k_landmarks, m_ambient)
         vertical = space.vertical_projection(tangent_vec, point)
-        transposed_point = Matrices.transpose(point)
+        transposed_point = gs.matrices.transpose(point)
 
         tmp_expected = gs.matmul(transposed_point, tangent_vec)
-        expected = Matrices.transpose(tmp_expected) - tmp_expected
+        expected = gs.matrices.transpose(tmp_expected) - tmp_expected
 
         tmp_result = gs.matmul(transposed_point, vertical)
-        result = Matrices.transpose(tmp_result) - tmp_result
+        result = gs.matrices.transpose(tmp_result) - tmp_result
         self.assertAllClose(result, expected)
 
     def test_horizontal_projection(self, k_landmarks, m_ambient, tangent_vec, point):
         space = self.Space(k_landmarks, m_ambient)
         horizontal = space.horizontal_projection(tangent_vec, point)
-        transposed_point = Matrices.transpose(point)
+        transposed_point = gs.matrices.transpose(point)
         result = gs.matmul(transposed_point, horizontal)
-        expected = Matrices.transpose(result)
+        expected = gs.matrices.transpose(result)
         self.assertAllClose(result, expected)
 
     def test_horizontal_and_is_tangent(
@@ -68,8 +67,8 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
     def test_alignment_is_symmetric(self, k_landmarks, m_ambient, point, base_point):
         space = self.Space(k_landmarks, m_ambient)
         aligned = space.align(point, base_point)
-        alignment = gs.matmul(Matrices.transpose(aligned), base_point)
-        result = gs.all(Matrices.is_symmetric(alignment))
+        alignment = gs.matmul(gs.matrices.transpose(aligned), base_point)
+        result = gs.all(gs.matrices.is_symmetric(alignment))
         self.assertTrue(result)
 
     @geomstats.tests.np_and_autograd_only
