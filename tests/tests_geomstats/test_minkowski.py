@@ -1,8 +1,7 @@
 """Unit tests for Minkowski space."""
 
 import geomstats.backend as gs
-from geomstats.tests import np_backend
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, np_backend
 from tests.data.minkowski_data import MinkowskiMetricTestData, MinkowskiTestData
 from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
 

@@ -1,10 +1,9 @@
 """Unit tests for special euclidean group in matrix representation."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.special_euclidean import SpecialEuclidean
-from geomstats.tests import tf_backend
-from tests.conftest import Parametrizer, TestCase, np_backend
+from tests.conftest import Parametrizer, TestCase, np_backend, tf_backend
 from tests.data.special_euclidean_data import (
     SpecialEuclidean3VectorsTestData,
     SpecialEuclideanMatrixCanonicalLeftMetricTestData,
@@ -150,7 +149,7 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
 class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
     testing_data = SpecialEuclidean3VectorsTestData()
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_exp_after_log(self, metric, point, base_point, atol):
         """
         Test that the Riemannian right exponential and the
@@ -166,7 +165,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
             atol *= norm
         self.assertAllClose(result, expected, atol=atol)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_exp_after_log_right_with_angles_close_to_pi(
         self,
         metric,
@@ -189,7 +188,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
             or gs.allclose(result, inv_expected, atol=atol)
         )
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_log_after_exp_with_angles_close_to_pi(
         self, metric, tangent_vec, base_point, atol
     ):
@@ -216,7 +215,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
             or gs.allclose(result, inv_expected, atol=atol)
         )
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_log_after_exp(self, metric, tangent_vec, base_point, atol):
         """
         Test that the Riemannian left exponential and the
@@ -235,17 +234,17 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
             atol *= norm
         self.assertAllClose(result, expected, atol=atol)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_exp(self, metric, base_point, tangent_vec, expected):
         result = metric.exp(base_point=base_point, tangent_vec=tangent_vec)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_log(self, metric, point, base_point, expected):
         result = metric.log(point, base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_regularize_extreme_cases(self, point, expected):
         group = SpecialEuclidean(3, "vector")
         result = group.regularize(point)

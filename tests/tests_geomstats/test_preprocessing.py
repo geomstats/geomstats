@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.geometry.spd_matrices as spd
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
@@ -11,7 +11,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.preprocessing import ToTangentSpace
 
 
-class TestToTangentSpace(geomstats.tests.TestCase):
+class TestToTangentSpace(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 
     def setup_method(self):
@@ -42,7 +42,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_estimate_transform_so_group(self):
         point = self.so_matrix.random_uniform()
         points = gs.array([point, point])
@@ -92,7 +92,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(expected, result, atol=1e-4)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_inverse_transform_so(self):
         point = self.so_matrix.random_uniform(10)
         transformer = ToTangentSpace(geometry=self.so_matrix.bi_invariant_metric)

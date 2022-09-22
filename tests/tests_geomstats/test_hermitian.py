@@ -2,9 +2,8 @@
 
 
 import geomstats.backend as gs
-import geomstats.tests
-from geomstats.tests import tf_backend
-from tests.conftest import Parametrizer
+import tests.conftest
+from tests.conftest import Parametrizer, tf_backend
 from tests.data.hermitian_data import HermitianMetricTestData, HermitianTestData
 from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
 
@@ -24,7 +23,7 @@ class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp = tf_backend()
     skip_test_log = tf_backend()
     skip_test_inner_product = tf_backend()
-    skip_test_dist = geomstats.tests.tf_backend()
+    skip_test_dist = tests.conftest.tf_backend()
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True

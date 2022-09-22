@@ -1,7 +1,7 @@
 """Unit tests for the manifold of matrices."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer
 from tests.data.matrices_data import MatricesMetricTestData, MatricesTestData
@@ -108,7 +108,7 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
             self.Space(m, n).to_diagonal(gs.array(mat)), gs.array(expected)
         )
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_to_symmetric(self, m, n, mat, expected):
         self.assertAllClose(
             self.Space(m, n).to_symmetric(gs.array(mat)),

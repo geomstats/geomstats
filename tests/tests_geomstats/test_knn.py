@@ -1,13 +1,13 @@
 """Unit tests for the KNN classifier."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.learning.knn import KNearestNeighborsClassifier
 
 
-@geomstats.tests.np_and_autograd_only
-class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
+@tests.conftest.np_and_autograd_only
+class TestKNearestNeighborsClassifier(tests.conftest.TestCase):
     """Class defining the KNN tests."""
 
     def setup_method(self):

@@ -6,24 +6,24 @@ import numpy as _np
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.grassmannian import Grassmannian
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
-class TestAutodiff(geomstats.tests.TestCase):
+class TestAutodiff(tests.conftest.TestCase):
     def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
         self.n_samples = 2
 
-    @geomstats.tests.np_only
+    @tests.conftest.np_only
     def test_value_and_grad_np_backend(self):
         n = 10
         vector = gs.ones(n)
         with pytest.raises(RuntimeError):
             gs.autodiff.value_and_grad(lambda v: gs.sum(v**2))(vector)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_one_vector_var(self):
         n = 10
         vector = gs.ones(n)
@@ -36,7 +36,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_and_tf_only
     def test_value_and_grad_dist(self):
         space = SpecialEuclidean(3)
         metric = space.metric
@@ -52,7 +52,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_dist_grassmann(self):
         space = Grassmannian(3, 2)
         metric = space.metric
@@ -68,7 +68,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_one_vector_var_np_input(self):
         n = 10
         vector = _np.ones(n)
@@ -80,7 +80,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_two_scalars_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
@@ -94,7 +94,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(grad[0], -2)
         self.assertAllClose(grad[1], 2.0)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_two_vectors_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
@@ -108,7 +108,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(grad[0], gs.array([-2.0, -2.0]))
         self.assertAllClose(grad[1], gs.array([2.0, 2.0]))
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_two_matrix_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
@@ -120,7 +120,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(grad[0], gs.array([[-2.0, -4.0], [4.0, -2.0]]))
         self.assertAllClose(grad[1], gs.array([[2.0, 4.0], [-4.0, 2.0]]))
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_one_vector_var(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -140,7 +140,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_two_vector_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -170,7 +170,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_grad_x, expected_grad_x)
         self.assertAllClose(result_grad_y, expected_grad_y)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_two_matrix_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -200,7 +200,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_grad_x, expected_grad_x)
         self.assertAllClose(result_grad_y, expected_grad_y)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_composed_two_matrix_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -226,7 +226,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_composed_with_dummy_two_matrix_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -257,7 +257,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_chain_rule_one_scalar_var(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -287,7 +287,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad_explicit)
         self.assertAllClose(result_grad, expected_grad_chain_rule)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_chain_rule_one_vector_var(self):
         def fun1_grad(x):
             return 6 * x
@@ -315,7 +315,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad_explicit)
         self.assertAllClose(result_grad, expected_grad_chain_rule)
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_and_tf_only
     def test_custom_gradient_squared_dist(self):
         def squared_dist_grad_a(point_a, point_b, metric):
             return -2 * metric.log(point_b, point_a)
@@ -342,7 +342,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_and_tf_only
     def test_custom_gradient_in_action(self):
         space = SpecialEuclidean(n=2)
         const_metric = space.left_canonical_metric

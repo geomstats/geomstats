@@ -1,7 +1,7 @@
 """Unit tests for the invariant metrics on Lie groups."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer, autograd_backend, np_backend
 from tests.data.invariant_metric_data import InvariantMetricTestData
@@ -58,7 +58,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.eye(group.dim)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_inner_product(
         self,
         group,
@@ -212,7 +212,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
         self.assertAllClose(expected, result, atol=1e-4)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_integrated_exp_and_log_at_id(self, group):
         metric = self.Metric(group=group)
         basis = group.lie_algebra.basis
@@ -256,7 +256,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         with expected:
             group.bi_invariant_metric.log(rotation_mat1, rotation_mat2)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_left_exp_and_exp_from_identity_left_diag_metrics(self, metric_args, point):
         metric = self.Metric(*metric_args)
         left_exp_from_id = metric.left_exp_from_identity(point)
@@ -264,7 +264,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(left_exp_from_id, exp_from_id)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_left_log_and_log_from_identity_left_diag_metrics(self, metric_args, point):
         metric = self.Metric(*metric_args)
         left_log_from_id = metric.left_log_from_identity(point)
@@ -272,7 +272,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(left_log_from_id, log_from_id)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_exp_log_composition_at_identity(self, metric_args, tangent_vec):
         metric = self.Metric(*metric_args)
         result = metric.left_log_from_identity(
@@ -280,7 +280,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, tangent_vec)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_log_exp_composition_at_identity(self, metric_args, point):
         metric = self.Metric(*metric_args)
         result = metric.left_exp_from_identity(

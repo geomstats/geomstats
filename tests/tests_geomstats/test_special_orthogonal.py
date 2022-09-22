@@ -1,5 +1,5 @@
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.conftest import Parametrizer, TestCase, pytorch_backend
 from tests.data.special_orthogonal_data import (
@@ -219,7 +219,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         result = group.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_group_exp_after_log_with_angles_close_to_pi(self, point, base_point):
         """
         This tests that the composition of
@@ -308,7 +308,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             gs.allclose(result, expected) or gs.allclose(result, inv_expected)
         )
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_regularize_extreme_cases(self, point, expected):
         group = SpecialOrthogonal(3, "vector")
         result = group.regularize(point)
@@ -352,7 +352,7 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
         result = metric.log(point, base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_distance_broadcast(self, n):
         group = SpecialOrthogonal(n=n)
         point = group.random_point(5)

@@ -3,7 +3,7 @@
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from tests.conftest import Parametrizer, TestCase
 from tests.data.pullback_metric_data import PullbackMetricTestData
@@ -75,7 +75,7 @@ def _expected_inverse_sphere_metric_matrix(point):
     return mat
 
 
-@geomstats.tests.autograd_tf_and_torch_only
+@tests.conftest.autograd_tf_and_torch_only
 class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
     testing_data = PullbackMetricTestData()
@@ -226,7 +226,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected, atol=1e-1)
 
-    @geomstats.tests.autograd_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_parallel_transport_and_sphere_parallel_transport(
         self, dim, tangent_vec_a, tangent_vec_b, base_point
     ):

@@ -1,7 +1,6 @@
 """Unit tests for the pull-back diffeo metrics."""
 
-from geomstats.tests import autograd_backend, pytorch_backend
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, autograd_backend, pytorch_backend
 from tests.data.pullback_diffeo_metric_data import (
     CircleAsSO2MetricTestData,
     CircleAsSO2PullbackDiffeoMetricTestData,

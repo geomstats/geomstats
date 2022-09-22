@@ -3,7 +3,7 @@
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer, TestCase
@@ -56,7 +56,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         result = bundle.tangent_riemannian_submersion(horizontal, mat)
         self.assertAllClose(result, tangent_vec, atol=1e-2)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_is_horizontal(self, n, mat, vec):
         bundle = self.Bundle(n)
         tangent_vec = Matrices.to_symmetric(vec)
@@ -64,21 +64,21 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         result = bundle.is_horizontal(horizontal, mat, atol=1e-2)
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_is_vertical(self, n, mat, vec):
         bundle = self.Bundle(n)
         vertical = bundle.vertical_projection(vec, mat)
         result = bundle.is_vertical(vertical, mat, atol=1e-2)
         self.assertTrue(result)
 
-    @geomstats.tests.autograd_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_align(self, n, mat, vec):
         bundle = self.Bundle(n)
         aligned = bundle.align(mat, vec, tol=1e-10)
         result = bundle.is_horizontal(vec - aligned, vec, atol=1e-2)
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_inner_product(self, n, mat, vec_a, vec_b):
         bundle = self.Bundle(n)
         quotient_metric = self.Metric(bundle)
@@ -91,7 +91,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         expected = base_metric.inner_product(tangent_vecs[0], tangent_vecs[1], point)
         self.assertAllClose(result, expected, atol=1e-1)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_exp(self, n, mat, vec):
         bundle = self.Bundle(n)
         quotient_metric = self.Metric(bundle)
@@ -103,7 +103,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         expected = base_metric.exp(tangent_vec, point)
         self.assertAllClose(result, expected, atol=1e-1)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_log(self, n, mat, vec):
         bundle = self.Bundle(n)
         quotient_metric = self.Metric(bundle)
@@ -114,7 +114,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         expected = base_metric.log(points[1], points[0])
         self.assertAllClose(result, expected, atol=1e-2)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_squared_dist(self, n, mat, vec):
         bundle = self.Bundle(n)
         quotient_metric = self.Metric(bundle)

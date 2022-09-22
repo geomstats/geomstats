@@ -3,7 +3,7 @@
 from scipy.stats import gamma
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from tests.conftest import Parametrizer
 from tests.data.gamma_data import GammaMetricTestData, GammaTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
@@ -24,7 +24,7 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(self.Space().sample(point, n_samples).shape, expected)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_point_to_pdf(self, point, n_samples):
         point = gs.to_ndarray(point, 2)
         n_points = point.shape[0]
@@ -89,31 +89,31 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
 class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_shape = True
     skip_test_log_shape = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
     skip_test_exp_belongs = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
     skip_test_log_is_tangent = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
     skip_test_dist_is_symmetric = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
     skip_test_dist_is_positive = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
     skip_test_squared_dist_is_symmetric = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
     skip_test_squared_dist_is_positive = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
     skip_test_dist_is_norm_of_log = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
     skip_test_dist_point_to_itself_is_zero = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
     skip_test_exp_after_log = True
     skip_test_log_after_exp = True
@@ -124,27 +124,27 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_triangle_inequality_of_dist = (
-        geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
+        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
 
     testing_data = GammaMetricTestData()
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_metric_matrix_shape(self, point, expected):
         return self.assertAllClose(self.Metric().metric_matrix(point).shape, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_christoffels_vectorization(self, point, expected):
         return self.assertAllClose(self.Metric().christoffels(point), expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_christoffels_shape(self, point, expected):
         return self.assertAllClose(
             self.Metric().christoffels(base_point=point).shape,
             expected,
         )
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_exp_vectorization(self, point, tangent_vecs, exp_solver):
         """Test the case with one initial point and several tangent vectors."""
         end_points = self.Metric().exp(
@@ -154,7 +154,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = (tangent_vecs.shape[0], 2)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_exp_control(self, base_point, tangent_vec, exp_solver):
         """Test exp at a random base point for a tangent vector of controlled norm."""
         end_point = self.Metric().exp(
@@ -166,7 +166,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = gs.any(gs.isnan(end_point))
         self.assertAllClose(result, False)
 
-    @geomstats.tests.autograd_only
+    @tests.conftest.autograd_only
     def test_log_control(self, base_point, tangent_vec, exp_solver, log_method):
         """Test log at a pair of points with controlled geodesic distance."""
         point = self.Metric().exp(
@@ -178,7 +178,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = gs.any(gs.isnan(vec))
         self.assertAllClose(result, False)
 
-    @geomstats.tests.autograd_only
+    @tests.conftest.autograd_only
     def test_exp_after_log_control(
         self, base_point, end_point, exp_solver, log_method, rtol
     ):
@@ -193,7 +193,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = end_point
         self.assertAllClose(result, expected, rtol=rtol)
 
-    @geomstats.tests.autograd_only
+    @tests.conftest.autograd_only
     def test_log_after_exp_control(
         self, base_point, tangent_vec, exp_solver, log_method, rtol
     ):
@@ -208,7 +208,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = back_to_vec
         self.assertAllClose(result, expected, rtol=rtol)
 
-    @geomstats.tests.autograd_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_jacobian_christoffels(self, point):
         n_points = 1 if len(point.shape) == 1 else point.shape[0]
 
@@ -225,7 +225,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.stack(expected, 0)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_geodesic(self, base_point, norm, solver):
         """Check that the norm of the geodesic velocity is constant."""
         n_steps = 1000
@@ -246,7 +246,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = 0.0
         self.assertAllClose(expected, result, rtol=1.0)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_geodesic_shape(self, point, n_vec, norm, time, solver, expected):
         tangent_vec = norm * self.Metric().random_unit_tangent_vec(
             base_point=point, n_vectors=n_vec

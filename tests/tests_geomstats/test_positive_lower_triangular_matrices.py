@@ -1,7 +1,7 @@
 """Unit tests for Positive lower triangular matrices"""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.conftest import Parametrizer
 from tests.data.positive_lower_triangular_matrices_data import (
@@ -36,7 +36,7 @@ class TestPositiveLowerTriangularMatrices(OpenSetTestCase, metaclass=Parametrize
             gs.array(expected),
         )
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_differential_gram_belongs(self, n, tangent_vec, base_point):
         result = self.Space(n).differential_gram(
             gs.array(tangent_vec), gs.array(base_point)
