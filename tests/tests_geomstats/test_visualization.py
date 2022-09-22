@@ -4,8 +4,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
-import geomstats.tests
 import geomstats.visualization as visualization
+import tests.conftest
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
@@ -21,7 +21,7 @@ from geomstats.geometry.special_orthogonal import (
 matplotlib.use("Agg")  # NOQA
 
 
-class TestVisualization(geomstats.tests.TestCase):
+class TestVisualization(tests.conftest.TestCase):
     def setup_method(self):
         self.n_samples = 10
         self.SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
@@ -138,7 +138,7 @@ class TestVisualization(geomstats.tests.TestCase):
         result = [r <= 1.0 for r in radius]
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_plot_points_s1(self):
         points = self.S1.random_uniform(self.n_samples)
         visualization.plot(points, space="S1")

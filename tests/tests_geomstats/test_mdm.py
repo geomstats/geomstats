@@ -1,6 +1,6 @@
 """Methods for testing the MDM classifier module."""
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.spd_matrices import (
     SPDMetricAffine,
     SPDMetricEuclidean,
@@ -12,7 +12,7 @@ EULER = gs.exp(1.0)
 METRICS = (SPDMetricAffine, SPDMetricLogEuclidean, SPDMetricEuclidean)
 
 
-class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
+class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
     """Test of MDM classifier for different metrics."""
 
     def test_fit(self):

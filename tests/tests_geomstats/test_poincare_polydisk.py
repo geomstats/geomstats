@@ -1,7 +1,7 @@
 """Unit tests for the Poincare Polydisk."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 from tests.conftest import Parametrizer, TestCase
 from tests.data.poincare_polydisk_data import (
@@ -32,7 +32,7 @@ class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
         metric = self.Metric(n_disks)
         self.assertAllClose(metric.signature, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_product_distance_extrinsic_representation(
         self, n_disks, point_a_extrinsic, point_b_extrinsic
     ):

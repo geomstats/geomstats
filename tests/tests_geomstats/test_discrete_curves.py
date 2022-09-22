@@ -1,7 +1,7 @@
 """Unit tests for parameterized manifolds."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.discrete_curves import (
     DiscreteCurves,
     ElasticMetric,
@@ -12,8 +12,7 @@ from geomstats.geometry.discrete_curves import (
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.tests import tf_backend
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, tf_backend
 from tests.data.discrete_curves_data import (
     ClosedDiscreteCurvesTestData,
     DiscreteCurvesTestData,
@@ -84,7 +83,7 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
 
     testing_data = ClosedDiscreteCurvesTestData()
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_projection_closed_curves(self, ambient_manifold, curve):
         planar_closed_curve = self.Space(ambient_manifold)
         proj = planar_closed_curve.projection(curve)
@@ -203,7 +202,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = curve
         self.assertAllClose(result, expected, rtol, atol)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_aux_differential_srv_transform(
         self, dim, k_sampling_points, n_curves, curve_fun_a
     ):
@@ -227,7 +226,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = n_curves * (srv_path[1] - srv_path[0])
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_aux_differential_srv_transform_inverse(
         self, dim, k_sampling_points, curve_a
     ):
@@ -519,7 +518,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
     testing_data = SRVShapeBundleTestData()
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_horizontal_and_vertical_projections(
         self, times, n_discretized_curves, curve_a, curve_b
     ):
@@ -555,7 +554,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_horizontal_geodesic(self, k_sampling_points, curve_a, n_times):
         """Test horizontal geodesic.
         Check that the time derivative of the geodesic is
@@ -586,7 +585,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
 class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
     testing_data = SRVQuotientMetricTestData()
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
         """Test quotient distance.
         Check that the quotient distance is the same as the distance

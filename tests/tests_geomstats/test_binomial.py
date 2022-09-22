@@ -3,7 +3,7 @@
 from scipy.stats import binom
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from tests.conftest import Parametrizer
 from tests.data.binomial_data import BinomialTestData
 from tests.geometry_test_cases import OpenSetTestCase
@@ -28,7 +28,7 @@ class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
             self.Space(n_draws).metric.squared_dist(point_a, point_b), expected
         )
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_point_to_pdf(self, n_draws, point, n_samples):
         point = gs.to_ndarray(point, 1)
         n_points = point.shape[0]

@@ -5,11 +5,11 @@ import warnings
 from scipy.stats import norm
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.information_geometry.normal import FisherRaoMetric, NormalDistributions
 
 
-class TestNormalDistributions(geomstats.tests.TestCase):
+class TestNormalDistributions(tests.conftest.TestCase):
     """Class defining the normal distributions tests."""
 
     def setup_method(self):

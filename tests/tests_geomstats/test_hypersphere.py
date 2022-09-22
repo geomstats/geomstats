@@ -3,7 +3,7 @@
 import scipy.special
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
 from tests.conftest import Parametrizer
@@ -85,7 +85,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
                 tangent_vec, base_point, base_point_spherical
             )
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_riemannian_normal_frechet_mean(self, dim):
         space = self.Space(dim)
         mean = space.random_uniform()
@@ -96,7 +96,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
         estimate = estimator.estimate_
         self.assertAllClose(estimate, mean, atol=1e-1)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_riemannian_normal_and_belongs(self, dim, n_points):
         space = self.Space(dim)
         mean = space.random_uniform()

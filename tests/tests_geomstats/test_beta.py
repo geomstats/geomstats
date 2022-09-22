@@ -4,14 +4,12 @@
 from scipy.stats import beta
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from tests.conftest import Parametrizer
 from tests.data.beta_data import BetaDistributionsTestsData, BetaMetricTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-TF_OR_PYTORCH_BACKEND = (
-    geomstats.tests.tf_backend() or geomstats.tests.pytorch_backend()
-)
+TF_OR_PYTORCH_BACKEND = tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
 
 
 class TestBetaDistributions(OpenSetTestCase, metaclass=Parametrizer):
@@ -63,7 +61,7 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = self.Metric().metric_matrix(point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_exp(self, n_samples):
         """Test Exp.
 
