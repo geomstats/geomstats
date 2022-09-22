@@ -41,7 +41,6 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
@@ -296,7 +295,7 @@ class Grassmannian(LevelSet):
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
 
-class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
+class GrassmannianCanonicalMetric(MatricesMetric):
     """Canonical metric of the Grassmann manifold.
 
     Coincides with the Frobenius metric.
