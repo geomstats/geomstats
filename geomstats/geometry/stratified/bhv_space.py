@@ -71,7 +71,8 @@ class Tree(Wald, Point):
         self.lengths = gs.zeros(len(lengths))
         for s, val in zip(splits, lengths):
             self.lengths[top.where[s]] = val
-        super(Tree, self).__init__(topology=top, weights=1 - gs.exp(-self.lengths))
+
+        super().__init__(topology=top, weights=1 - gs.exp(-self.lengths))
         self.n = n_labels
         self.splits = self.topology.split_sets[0]
 
@@ -123,7 +124,7 @@ class TreeSpace(PointSet):
     """
 
     def __init__(self, n_labels):
-        super(TreeSpace).__init__()
+        super().__init__()
         self.n_labels = n_labels
 
     @_vectorize_point((1, "points"))
@@ -218,7 +219,7 @@ class TreeSpace(PointSet):
         return samples
 
 
-class BHVSpace(PointSetMetric):
+class BHVMetric(PointSetMetric):
     """BHV Tree Space for phylogenetic trees.
 
     Parameters
@@ -228,11 +229,14 @@ class BHVSpace(PointSetMetric):
     """
 
     def __init__(self, n_labels):
-        self.n_labels = n_labels
-        super(BHVSpace, self).__init__(space=TreeSpace(n_labels=n_labels))
+        super().__init__(space=TreeSpace(n_labels=n_labels))
+
+    @property
+    def n_labels(self):
+        return self.space.n_labels
 
     @_vectorize_point((1, "point_a"), (2, "point_b"))
-    def dist(self, point_a, point_b, tol=10**-8, squared=False):
+    def dist(self, point_a, point_b, tol=1e-8, squared=False):
         """Compute the distance between two points in BHV Space.
 
         Essentially uses Theorem 2.4 from [OP11].
@@ -254,8 +258,8 @@ class BHVSpace(PointSetMetric):
         dist : float
             The distance between the two points.
         """
-        dist = self._gtp_dist(point_a, point_b, tol, squared)
-        return dist
+        # TODO: split in `dist` and `squared_dist`
+        return self._gtp_dist(point_a, point_b, tol, squared)
 
     # @_vectorize_point((1, "point_a"), (2, "point_b"))
     def geodesic(self, point_a, point_b, tol=10**-8):
@@ -279,8 +283,7 @@ class BHVSpace(PointSetMetric):
             The geodesic between the two points. Takes parameter t, that is the time
             between 0 and 1 at which the corresponding point on the path is returned.
         """
-        geodesic = self._gtp_geodesic(point_a=point_a, point_b=point_b, tol=tol)
-        return geodesic
+        return self._gtp_geodesic(point_a=point_a, point_b=point_b, tol=tol)
 
     def _gtp_dist(self, point_a, point_b, tol=10**-8, squared=False):
         """Compute the distance between two points in BHV Space.
@@ -325,7 +328,7 @@ class BHVSpace(PointSetMetric):
             return sq_dist_common + sq_dist_parts
         return np.sqrt(sq_dist_common + sq_dist_parts)
 
-    def _gtp_geodesic(self, point_a, point_b, tol=10**-8):
+    def _gtp_geodesic(self, point_a, point_b, tol=1e-8):
         """Compute the geodesic between two points in BHV Space.
 
         Essentially uses Theorem 2.4 from [OP11].
@@ -346,8 +349,8 @@ class BHVSpace(PointSetMetric):
             The geodesic between the two points. Takes parameter t, that is the time
             between 0 and 1 at which the corresponding point on the path is returned.
         """
-        sp_a = {split: length for split, length in zip(point_a.splits, point_a.lengths)}
-        sp_b = {split: length for split, length in zip(point_b.splits, point_b.lengths)}
+        sp_a = dict(zip(point_a.splits, point_a.lengths))
+        sp_b = dict(zip(point_b.splits, point_b.lengths))
         common_a, common_b, supports = self._gtp_trees_with_common_support(
             sp_a,
             sp_b,
@@ -392,7 +395,7 @@ class BHVSpace(PointSetMetric):
 
         return geodesic_
 
-    def _gtp_trees_with_common_support(self, splits_a, splits_b, tol=10**-8):
+    def _gtp_trees_with_common_support(self, splits_a, splits_b, tol=1e-8):
         """Compute the support that corresponds to a geodesic for common split sets.
 
         We refer to the splits of the tree corresponding to splits_a as A,
