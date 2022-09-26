@@ -1,7 +1,7 @@
 """Unit tests for ProductManifold."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.product_manifold import ProductManifold
@@ -38,7 +38,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
     testing_data = ProductRiemannianMetricTestData()
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_inner_product_matrix(
         self, manifolds, default_point_type, point, base_point
     ):
@@ -48,7 +48,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         expected = metric.squared_dist(base_point, point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_inner_product_matrix_vector(self, default_point_type):
         euclidean = Euclidean(3)
         minkowski = Minkowski(3)
@@ -59,7 +59,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         result = space.metric.metric_matrix(point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_dist_exp_after_log_norm(
         self, manifolds, default_point_type, n_samples, einsum_str, expected
     ):

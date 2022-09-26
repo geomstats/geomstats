@@ -21,20 +21,14 @@ class _Hyperbolic:
 
     Parameters
     ----------
-    dim : int
-        Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}
-        Default coordinates to represent points in hyperbolic space.
-        Optional, default: 'extrinsic'.
     scale : int
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
         Optional, default: 1.
     """
 
-    def __init__(self, dim, scale=1, **kwargs):
-        super(_Hyperbolic, self).__init__(dim=dim, **kwargs)
-        self.dim = dim
+    def __init__(self, scale=1, **kwargs):
+        super().__init__(**kwargs)
         self.scale = scale
 
     @staticmethod
@@ -354,7 +348,8 @@ class _Hyperbolic:
         -------
         point_to : array-like, shape=[..., dim]
                                or shape=[n_sample, dim + 1]
-            Point in hyperbolic space in coordinates given by to_point_type.
+            Point in hyperbolic space in coordinates given by
+            to_coordinates_system.
         """
         coords_transform = {
             "ball-extrinsic": _Hyperbolic._ball_to_extrinsic_coordinates,
@@ -389,10 +384,10 @@ class _Hyperbolic:
         Returns
         -------
         point_to : array-like, shape=[..., {dim, dim + 1}]
-            Point in hyperbolic space in coordinates given by to_point_type.
+            Point in hyperbolic space in coordinates given by to_coords_type.
         """
         return _Hyperbolic.change_coordinates_system(
-            point, self.coords_type, to_coords_type
+            point, self.default_coords_type, to_coords_type
         )
 
     def from_coordinates(self, point, from_coords_type):
@@ -404,7 +399,7 @@ class _Hyperbolic:
         Parameters
         ----------
         point : array-like, shape=[..., {dim, dim + 1}]
-            Point in hyperbolic space in coordinates from_point_type.
+            Point in hyperbolic space in coordinates from_coords_type.
         from_coords_type : str, {'ball', 'extrinsic', 'intrinsic', ...}
             Coordinates type.
 
@@ -414,7 +409,7 @@ class _Hyperbolic:
             Point in hyperbolic space.
         """
         return _Hyperbolic.change_coordinates_system(
-            point, from_coords_type, self.coords_type
+            point, from_coords_type, self.default_coords_type
         )
 
     def random_point(self, n_samples=1, bound=1.0):
@@ -444,7 +439,7 @@ class _Hyperbolic:
         samples = bound * 2.0 * (gs.random.rand(*size) - 0.5)
 
         samples = _Hyperbolic.change_coordinates_system(
-            samples, "intrinsic", self.coords_type
+            samples, "intrinsic", self.default_coords_type
         )
 
         if n_samples == 1:
@@ -459,19 +454,20 @@ class HyperbolicMetric(RiemannianMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+    default_coords_type : str, {'extrinsic', 'intrinsic', etc}, optional
         Default coordinates to represent points in hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
 
-    default_point_type = "vector"
-    default_coords_type = "extrinsic"
-
-    def __init__(self, dim, scale=1):
-        super(HyperbolicMetric, self).__init__(dim=dim, signature=(dim, 0))
-        self.point_type = HyperbolicMetric.default_point_type
+    def __init__(self, dim, scale=1, default_coords_type="extrinsic"):
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            shape=(dim + 1,),
+            default_coords_type=default_coords_type,
+        )
 
         self.scale = scale
 

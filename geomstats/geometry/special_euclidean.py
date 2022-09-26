@@ -341,7 +341,6 @@ class _SpecialEuclideanVectors(LieGroup):
             self,
             dim=dim,
             shape=(dim,),
-            default_point_type="vector",
             lie_algebra=Euclidean(dim),
         )
 
@@ -350,29 +349,21 @@ class _SpecialEuclideanVectors(LieGroup):
         self.rotations = SpecialOrthogonal(n=n, point_type="vector", epsilon=epsilon)
         self.translations = Euclidean(dim=n)
 
-    def get_identity(self, point_type=None):
+    def get_identity(self):
         """Get the identity of the group.
-
-        Parameters
-        ----------
-        point_type : str, {'vector', 'matrix'}
-            The point_type of the returned value.
-            Optional, default: self.default_point_type
 
         Returns
         -------
         identity : array-like, shape={[dim], [n + 1, n + 1]}
         """
-        if point_type is None:
-            point_type = self.default_point_type
         identity = gs.zeros(self.dim)
         return identity
 
     identity = property(get_identity)
 
-    def get_point_type_shape(self, point_type=None):
+    def get_point_type_shape(self):
         """Get the shape of the instance given the default_point_style."""
-        return self.get_identity(point_type).shape
+        return self.get_identity().shape
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to SE(2) or SE(3).
@@ -665,7 +656,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialEuclidean2Vectors, self).__init__(n=2, epsilon=epsilon)
+        super().__init__(n=2, epsilon=epsilon)
 
     def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
         """Regularize a tangent vector at a base point.
@@ -776,7 +767,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialEuclidean3Vectors, self).__init__(n=3, epsilon=epsilon)
+        super().__init__(n=3, epsilon=epsilon)
 
     def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
         """Regularize a tangent vector at a base point.
@@ -1054,7 +1045,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
                 "group must be an instance of the "
                 "SpecialEclidean class with `point_type=matrix`."
             )
-        super(SpecialEuclideanMatrixCannonicalLeftMetric, self).__init__(group=group)
+        super().__init__(group=group)
         self.n = group.n
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -1285,9 +1276,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return radius
 
 
-class SpecialEuclidean(
-    _SpecialEuclidean2Vectors, _SpecialEuclidean3Vectors, _SpecialEuclideanMatrices
-):
+class SpecialEuclidean:
     r"""Class for the special Euclidean groups.
 
     Parameters
@@ -1340,7 +1329,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SpecialEuclideanMatrixLieAlgebra, self).__init__(dim, n + 1)
+        super().__init__(dim, n + 1)
 
         self.skew = SkewSymmetricMatrices(n)
         self.n = n
@@ -1407,9 +1396,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         point : array-like, shape=[..., n + 1, n + 1]
            Sample.
         """
-        point = super(SpecialEuclideanMatrixLieAlgebra, self).random_point(
-            n_samples, bound
-        )
+        point = super().random_point(n_samples, bound)
         return self.projection(point)
 
     def projection(self, mat):

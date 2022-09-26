@@ -33,7 +33,7 @@ class DirichletDistributions(OpenSet):
     """
 
     def __init__(self, dim):
-        super(DirichletDistributions, self).__init__(
+        super().__init__(
             dim=dim, ambient_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
         )
 
@@ -190,7 +190,7 @@ class DirichletMetric(RiemannianMetric):
     """Class for the Fisher information metric on Dirichlet distributions."""
 
     def __init__(self, dim):
-        super(DirichletMetric, self).__init__(dim=dim)
+        super().__init__(dim=dim)
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix.

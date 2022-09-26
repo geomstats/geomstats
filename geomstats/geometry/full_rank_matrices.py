@@ -22,7 +22,7 @@ class FullRankMatrices(OpenSet):
     def __init__(self, n, k, **kwargs):
         kwargs.setdefault("dim", n * k)
         kwargs.setdefault("metric", MatricesMetric(n, k))
-        super(FullRankMatrices, self).__init__(ambient_space=Matrices(n, k), **kwargs)
+        super().__init__(ambient_space=Matrices(n, k), **kwargs)
         self.rank = min(n, k)
         self.n = n
         self.k = k

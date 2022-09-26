@@ -1,12 +1,12 @@
 """Unit tests for embedding data class."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.datasets.prepare_graph_data import HyperbolicEmbedding
 from geomstats.datasets.utils import load_karate_graph
 
 
-class TestPrepareGraphData(geomstats.tests.TestCase):
+class TestPrepareGraphData(tests.conftest.TestCase):
     """Class for testing embedding."""
 
     def setup_method(self):

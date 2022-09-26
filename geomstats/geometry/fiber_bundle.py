@@ -55,7 +55,7 @@ class FiberBundle(Manifold, ABC):
         **kwargs
     ):
 
-        super(FiberBundle, self).__init__(dim=dim, **kwargs)
+        super().__init__(dim=dim, **kwargs)
         self.group = group
         self.total_space_metric = total_space_metric
 

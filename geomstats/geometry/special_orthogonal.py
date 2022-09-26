@@ -40,7 +40,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
     def __init__(self, n, **kwargs):
         matrices = Matrices(n, n)
         gln = GeneralLinear(n, positive_det=True)
-        super(_SpecialOrthogonalMatrices, self).__init__(
+        super().__init__(
             dim=int((n * (n - 1)) / 2),
             n=n,
             value=gs.eye(n),
@@ -298,16 +298,14 @@ class _SpecialOrthogonalVectors(LieGroup):
         Optional, default: 0.
     """
 
-    def __init__(self, n, shape, epsilon=0.0):
+    def __init__(self, n, epsilon=0.0):
         dim = n * (n - 1) // 2
-        LieGroup.__init__(
-            self, dim=dim, shape=shape, default_point_type="vector", lie_algebra=self
-        )
+        LieGroup.__init__(self, dim=dim, shape=(dim,), lie_algebra=self)
 
         self.n = n
         self.epsilon = epsilon
 
-    def get_identity(self, point_type="vector"):
+    def get_identity(self):
         """Get the identity of the group.
 
         Parameters
@@ -536,8 +534,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal2Vectors, self).__init__(
-            n=2, epsilon=epsilon, shape=(2,)
+        super().__init__(
+            n=2,
+            epsilon=epsilon,
         )
 
     def regularize(self, point):
@@ -703,9 +702,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal3Vectors, self).__init__(
-            n=3, shape=(3,), epsilon=epsilon
-        )
+        super().__init__(n=3, epsilon=epsilon)
 
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.metric = self.bi_invariant_metric
@@ -1714,9 +1711,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         return LieGroup.log(self, point, base_point)
 
 
-class SpecialOrthogonal(
-    _SpecialOrthogonal2Vectors, _SpecialOrthogonal3Vectors, _SpecialOrthogonalMatrices
-):
+class SpecialOrthogonal:
     r"""Class for the special orthogonal groups.
 
     Parameters

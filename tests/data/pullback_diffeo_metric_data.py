@@ -19,7 +19,7 @@ class CircleAsSO2Metric(PullbackDiffeoMetric):
                 "This dummy class using SO(2) metric for S1 has "
                 "a meaning only when dim=1"
             )
-        super(CircleAsSO2Metric, self).__init__(dim=1, shape=(2,))
+        super().__init__(dim=1, shape=(2,))
 
     def define_embedding_metric(self):
         return SpecialOrthogonal(n=2, point_type="matrix").bi_invariant_metric
@@ -40,7 +40,7 @@ class CircleAsSO2(Hypersphere):
                 "This dummy class using SO(2) metric for S1 has "
                 "a meaning only when dim=1"
             )
-        super(CircleAsSO2, self).__init__(1, "extrinsic")
+        super().__init__(1, "extrinsic")
         self._metric = CircleAsSO2Metric(1)
 
 

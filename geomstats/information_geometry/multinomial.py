@@ -32,7 +32,7 @@ class MultinomialDistributions(LevelSet):
     """
 
     def __init__(self, dim, n_draws):
-        super(MultinomialDistributions, self).__init__(
+        super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim + 1),
             submersion=lambda x: gs.sum(x, axis=-1),
@@ -153,7 +153,7 @@ class MultinomialMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, n_draws):
-        super(MultinomialMetric, self).__init__(dim=dim)
+        super().__init__(dim=dim)
         self.n_draws = n_draws
         self.sphere_metric = HypersphereMetric(dim)
 

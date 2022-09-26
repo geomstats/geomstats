@@ -1,7 +1,7 @@
 """Unit tests for parameterized manifolds."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.discrete_curves import (
     DiscreteCurves,
     ElasticMetric,
@@ -12,8 +12,7 @@ from geomstats.geometry.discrete_curves import (
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.tests import tf_backend
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, tf_backend
 from tests.data.discrete_curves_data import (
     ClosedDiscreteCurvesTestData,
     DiscreteCurvesTestData,
@@ -34,11 +33,47 @@ r2 = Euclidean(dim=2)
 r3 = Euclidean(dim=3)
 
 
+def _test_manifold_shape(test_cls, space_args):
+    space = test_cls.Space(*space_args)
+    point = space.random_point()
+
+    msg = f"Shape is {space.shape}, but random point shape is {point.shape}"
+    test_cls.assertTrue(space.shape == point.shape, msg)
+
+    if space.metric is None:
+        return
+
+    msg = (
+        f"Space shape is {space.shape}, "
+        f"whereas space metric shape is {space.metric.shape}",
+    )
+
+    if space.metric.shape[0] is None:
+        test_cls.assertTrue(len(space.shape) == len(space.metric.shape), msg)
+        test_cls.assertTrue(space.shape[1:] == space.metric.shape[1:], msg)
+    else:
+        test_cls.assertTrue(space.shape == space.metric.shape, msg)
+
+
+def _test_metric_manifold_shape(test_cls, connection_args, expected_shape):
+    connection = test_cls.Metric(*connection_args)
+
+    msg = f"Shape is {connection.shape}, but random point shape is {expected_shape}"
+    if connection.shape[0] is None:
+        test_cls.assertTrue(len(connection.shape) == len(expected_shape), msg)
+        test_cls.assertTrue(connection.shape[1:] == expected_shape[1:], msg)
+    else:
+        test_cls.asserttrue(connection.shape == expected_shape, msg)
+
+
 class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     skip_test_projection_belongs = True
     skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = DiscreteCurvesTestData()
+
+    def test_manifold_shape(self, space_args):
+        return _test_manifold_shape(self, space_args)
 
 
 class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
@@ -48,7 +83,7 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
 
     testing_data = ClosedDiscreteCurvesTestData()
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_projection_closed_curves(self, ambient_manifold, curve):
         planar_closed_curve = self.Space(ambient_manifold)
         proj = planar_closed_curve.projection(curve)
@@ -59,6 +94,9 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
         result = proj[-1, :]
         expected = proj[0, :]
         self.assertAllClose(result, expected, rtol=10 * gs.rtol)
+
+    def test_manifold_shape(self, space_args):
+        return _test_manifold_shape(self, space_args)
 
 
 class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -90,6 +128,9 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             expected.append(geod(times))
         expected = gs.stack(expected, axis=1)
         self.assertAllClose(result, expected)
+
+    def test_manifold_shape(self, connection_args, expected_shape):
+        return _test_metric_manifold_shape(self, connection_args, expected_shape)
 
 
 class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -161,7 +202,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = curve
         self.assertAllClose(result, expected, rtol, atol)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_aux_differential_srv_transform(
         self, dim, k_sampling_points, n_curves, curve_fun_a
     ):
@@ -185,7 +226,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = n_curves * (srv_path[1] - srv_path[0])
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_aux_differential_srv_transform_inverse(
         self, dim, k_sampling_points, curve_a
     ):
@@ -363,6 +404,9 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(result, expected)
 
+    def test_manifold_shape(self, connection_args, expected_shape):
+        return _test_metric_manifold_shape(self, connection_args, expected_shape)
+
 
 class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_shape = True
@@ -467,11 +511,14 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = curve
         self.assertAllClose(result, expected, rtol, atol)
 
+    def test_manifold_shape(self, connection_args, expected_shape):
+        return _test_metric_manifold_shape(self, connection_args, expected_shape)
+
 
 class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
     testing_data = SRVShapeBundleTestData()
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_horizontal_and_vertical_projections(
         self, times, n_discretized_curves, curve_a, curve_b
     ):
@@ -507,7 +554,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_horizontal_geodesic(self, k_sampling_points, curve_a, n_times):
         """Test horizontal geodesic.
         Check that the time derivative of the geodesic is
@@ -538,7 +585,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
 class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
     testing_data = SRVQuotientMetricTestData()
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
         """Test quotient distance.
         Check that the quotient distance is the same as the distance

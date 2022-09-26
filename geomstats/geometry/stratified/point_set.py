@@ -172,7 +172,7 @@ class PointSetMetric(ABC):
     """
 
     def __init__(self, space: PointSet, **kwargs):
-        super(PointSetMetric, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.space = space
 
     @abstractmethod

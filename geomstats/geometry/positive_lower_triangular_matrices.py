@@ -30,7 +30,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     def __init__(self, n, **kwargs):
         kwargs.setdefault("metric", CholeskyMetric(n))
-        super(PositiveLowerTriangularMatrices, self).__init__(
+        super().__init__(
             dim=int(n * (n + 1) / 2), ambient_space=LowerTriangularMatrices(n), **kwargs
         )
         self.n = n
@@ -52,9 +52,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         point : array-like, shape=[..., n, n]
            Sample.
         """
-        sample = super(PositiveLowerTriangularMatrices, self).random_point(
-            n_samples, bound
-        )
+        sample = super().random_point(n_samples, bound)
         return self.projection(sample)
 
     def belongs(self, mat, atol=gs.atol):
@@ -188,9 +186,7 @@ class CholeskyMetric(RiemannianMetric):
     def __init__(self, n):
         """ """
         dim = int(n * (n + 1) / 2)
-        super(CholeskyMetric, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
-        )
+        super().__init__(dim=dim, signature=(dim, 0), shape=(n, n))
         self.n = n
 
     @staticmethod

@@ -42,7 +42,7 @@ class Stiefel(LevelSet):
         matrices = Matrices(n, p)
         canonical_metric = StiefelCanonicalMetric(n, p)
         kwargs.setdefault("metric", canonical_metric)
-        super(Stiefel, self).__init__(
+        super().__init__(
             dim=dim,
             embedding_space=matrices,
             submersion=lambda x: matrices.mul(matrices.transpose(x), x),
@@ -187,9 +187,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
     def __init__(self, n, p):
         dim = int(p * n - (p * (p + 1) / 2))
-        super(StiefelCanonicalMetric, self).__init__(
-            dim=dim, default_point_type="matrix", signature=(dim, 0, 0)
-        )
+        super().__init__(dim=dim, signature=(dim, 0, 0), shape=(n, p))
         self.embedding_metric = EuclideanMetric(n * p)
         self.n = n
         self.p = p

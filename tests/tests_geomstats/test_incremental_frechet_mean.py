@@ -9,7 +9,7 @@ from geomstats.geometry.spd_matrices import (
     SPDMetricLogEuclidean,
 )
 from geomstats.learning.incremental_frechet_mean import IncrementalFrechetMean
-from geomstats.tests import TestCase
+from tests.conftest import TestCase
 
 
 class TestIncrementalFrechetMean(TestCase):

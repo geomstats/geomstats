@@ -3,7 +3,7 @@
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.distributions.lognormal import LogNormal
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -14,7 +14,7 @@ from geomstats.geometry.spd_matrices import (
 )
 
 
-class TestLogNormal(geomstats.tests.TestCase):
+class TestLogNormal(tests.conftest.TestCase):
     """Class defining the LogNormal tests."""
 
     def setup_method(self):
