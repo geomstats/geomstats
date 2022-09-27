@@ -17,9 +17,130 @@ import itertools
 import geomstats.backend as gs
 
 
+def _pop_random_elem(ls):
+    """Pops a random element from an array."""
+    random_index = int(gs.random.randint(0, len(ls), (1,)))
+    return ls.pop(random_index)
+
+
+def generate_splits(labels):
+    """Generate random maximal set of compatible splits of set ``labels``.
+
+    This method works inductively on the number of elements in labels.
+    Start with a split of two randomly chosen labels. Then, successively choose
+    a label from the labels and add this as a leaf with a split to the existing
+    tree by attaching it to a random split, thereby dividing this split into two
+    splits and one has to update all the other splits accordingly.
+
+    Parameters
+    ----------
+    labels : list[int]
+        A list of integers, the set of labels that we generate splits for.
+
+    Returns
+    -------
+    splits : list[Split]
+        A list of splits of the set of labels, maximal number of splits.
+    """
+    if len(labels) <= 1:
+        return []
+
+    unused_labels = labels.copy()
+
+    u = _pop_random_elem(unused_labels)
+    v = _pop_random_elem(unused_labels)
+
+    used_labels = [u, v]
+    splits = [Split(part1={u}, part2={v})]
+    while unused_labels:
+        u = _pop_random_elem(unused_labels)
+
+        divided_split = _pop_random_elem(splits)
+
+        updated_splits = [
+            Split(part1={u}, part2=used_labels),
+            Split(part1=divided_split.part1 | {u}, part2=divided_split.part2),
+            Split(part1=divided_split.part1, part2=divided_split.part2 | {u}),
+        ]
+
+        for split in splits:
+            updated_splits.append(
+                Split(
+                    part1=split.get_part_away_from(divided_split),
+                    part2=split.get_part_towards(divided_split) | {u},
+                )
+            )
+
+        used_labels.append(u)
+        splits = updated_splits
+    return splits
+
+
+def check_if_separated(labels, splits):
+    """Check for each pair of labels if exists split that separates them.
+
+    Parameters
+    ----------
+    labels : list[int]
+        A list of integers, the set of labels that we generate splits for.
+    splits : list[Split]
+        A list of splits of the set of labels.
+
+    Returns
+    -------
+    are_separated : bool
+        True if the labels are pair-wise separated by a split else False.
+    """
+    return gs.all(
+        [
+            gs.any([sp.separates(u, v) for sp in splits])
+            for u, v in itertools.combinations(labels, 2)
+        ]
+    )
+
+
+def delete_splits(splits, labels, p_keep, check=True):
+    """Delete splits randomly from a set of splits.
+
+    We require the splits to satisfy the check for if all pair-wise labels are
+    separated. In this way, before deleting a split, this condition is checked
+    to make sure it is not violated.
+
+    Parameters
+    ----------
+    splits : list[Split]
+        A list of splits of the set of labels.
+    labels : list[int]
+        A list of integers, the set of labels that we generate splits for.
+    p_keep : float
+        A float between 0 and 1 determining the probability with which a split
+        is kept and not deleted.
+    check : bool
+        If True, checks if splits still separate all labels. In this case, the split
+        will not be deleted. If False, any split can be randomly deleted.
+
+    Returns
+    -------
+    left_over_splits : list[Split]
+        The list of splits that are not deleted.
+    """
+    if p_keep == 1:
+        return splits
+
+    for i in reversed(range(len(splits))):
+        if gs.random.rand(1) > p_keep:
+            splits_cp = splits.copy()
+            splits_cp.pop(i)
+            if not check:
+                splits = splits_cp
+            elif check_if_separated(splits=splits_cp, labels=labels):
+                splits = splits_cp
+    return splits
+
+
 @functools.total_ordering
 class Split:
-    r"""Class for two-set partitions of sets.
+    r"""Two-set partitions of sets.
 
     Two-set partitions of a smaller subset of :math:`\{0,...,n-1\}` are also allowed,
     where :math:`n` is a positive integer, which is not passed as an argument as it is
@@ -42,7 +163,7 @@ class Split:
     """
 
     def __init__(self, part1, part2):
-        part1, part2 = set(sorted(list(part1))), set(sorted(list(part2)))
+        part1, part2 = set(part1), set(part2)
         if part1 & part2:
             raise ValueError(
                 f"A split consists of disjoint sets, those are not: {part1}, {part2}."
@@ -203,7 +324,7 @@ class Split:
             return self.part2
         return self.part1
 
-    def part_contains(self, subset: set):
+    def part_contains(self, subset):
         """Determine if a subset is contained in either part of a split.
 
         Parameters
@@ -219,7 +340,7 @@ class Split:
         """
         return subset.issubset(self.part1) or subset.issubset(self.part2)
 
-    def restrict_to(self, subset: set):
+    def restrict_to(self, subset):
         r"""Return the restriction of a split to a subset.
 
         Parameters
@@ -261,7 +382,7 @@ class Split:
         return b1 or b2
 
 
-class Topology:
+class BaseTopology:
     r"""The topology of a forest, using a split-based graph-structure representation.
 
     Parameters
@@ -298,9 +419,9 @@ class Topology:
         uv-th entry is ``True`` if the split separates the labels u and v, else
         ``False``.
     """
+    # TODO: do we need all this machinery? can we simplify?
 
     def __init__(self, n_labels, partition, split_sets):
-        """Return a topology with partition and sets of splits of components."""
         self._check_init(n_labels, partition, split_sets)
 
         self.n_labels = n_labels

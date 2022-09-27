@@ -37,6 +37,8 @@ References
 import itertools as it
 
 import networkx as nx
+
+# TODO: only needed for np.inf
 import numpy as np
 
 import geomstats.backend as gs
@@ -45,8 +47,60 @@ from geomstats.geometry.stratified.point_set import (
     PointSet,
     PointSetMetric,
     _vectorize_point,
+    broadcast_lists,
 )
-from geomstats.geometry.stratified.wald_space import Split, Topology, Wald
+from geomstats.geometry.stratified.trees import (
+    BaseTopology,
+    Split,
+    delete_splits,
+    generate_splits,
+)
+from geomstats.geometry.stratified.wald_space import Wald
+
+
+def generate_random_tree(n_labels, p_keep=0.9, btol=1e-8):
+    """Generate a random instance of ``Tree``.
+
+    Parameters
+    ----------
+    p_keep : float between 0 and 1
+        The probability that a sampled edge is kept and not deleted randomly.
+        To be precise, it is not exactly the probability, as some edges cannot be
+        deleted since the requirement that two labels are separated by a split might
+        be violated otherwise.
+        Defaults to 0.9
+    btol: float
+        Tolerance for the boundary of the edge lengths. Defaults to 1e-08.
+    """
+    labels = list(range(n_labels))
+
+    initial_splits = generate_splits(labels)
+    splits = delete_splits(initial_splits, labels, p_keep, check=False)
+
+    x = gs.random.uniform(size=(len(splits),), low=0, high=1)
+    x = gs.minimum(gs.maximum(btol, x), 1 - btol)
+    lengths = gs.maximum(btol, gs.abs(gs.log(1 - x)))
+
+    return Tree(n_labels, splits, lengths)
+
+
+class Topology(BaseTopology):
+    r"""The topology of a tree, using a split-based representation.
+
+    Parameters
+    ----------
+    n_labels : int
+        Number of labels, the set of labels is then :math:`\{0,\dots,n-1\}`.
+    splits : list[Split]
+        The structure of the tree in form of a set of splits of the set of labels.
+    """
+
+    def __init__(self, n_labels, splits):
+        super().__init__(
+            n_labels=n_labels,
+            partition=(tuple(i for i in range(n_labels)),),
+            split_sets=(splits,),
+        )
 
 
 class Tree(Wald, Point):
@@ -63,18 +117,29 @@ class Tree(Wald, Point):
     """
 
     def __init__(self, n_labels, splits, lengths):
+        # TODO: need to inherit from Wald? Can we simplify?
         top = Topology(
             n_labels=n_labels,
-            partition=(tuple(i for i in range(n_labels)),),
-            split_sets=(splits,),
+            splits=splits,
         )
-        self.lengths = gs.zeros(len(lengths))
-        for s, val in zip(splits, lengths):
-            self.lengths[top.where[s]] = val
+        self.lengths = gs.array(
+            [
+                length
+                for _, length in sorted(
+                    zip(splits, lengths), key=lambda x: top.where.get(x[0])
+                )
+            ]
+        )
 
         super().__init__(topology=top, weights=1 - gs.exp(-self.lengths))
-        self.n = n_labels
-        self.splits = self.topology.split_sets[0]
+
+    @property
+    def splits(self):
+        return self.topology.split_sets[0]
+
+    @property
+    def labels(self):
+        return self.topology.partition[0]
 
     def to_array(self):
         """Turn the tree into a numpy array, namely its distance matrix.
@@ -121,6 +186,8 @@ class TreeSpace(PointSet):
     ----------
     n_labels : int
         The number of labels in the trees.
+    splits : list[Split]
+        A list of splits of the set of labels.
     """
 
     def __init__(self, n_labels):
@@ -141,11 +208,10 @@ class TreeSpace(PointSet):
         points_array : array-like, shape=[...]
             Array of the trees that are turned into arrays.
         """
-        results = gs.array([tree.to_array() for tree in points])
-        return results
+        return gs.array([tree.to_array() for tree in points])
 
     @_vectorize_point((1, "point"))
-    def belongs(self, point, atol):
+    def belongs(self, point, atol=gs.atol):
         """Check if a point belongs to Tree space.
 
         Parameters
@@ -161,10 +227,11 @@ class TreeSpace(PointSet):
         belongs : bool
             Boolean denoting if `point` belongs to Tree space.
         """
-        belongs = [gs.all(tree.lengths > atol) for tree in point]
-        return belongs
+        return gs.array([gs.all(tree.lengths > -atol) for tree in point]) & gs.array(
+            [point_.n_labels == self.n_labels for point_ in point]
+        )
 
-    def random_point(self, n_samples=1, p_keep=0.9, btol=1e-08):
+    def random_point(self, n_samples=1, p_keep=0.9, btol=1e-8):
         """Sample a random point in Tree space.
 
         Parameters
@@ -185,61 +252,39 @@ class TreeSpace(PointSet):
         samples : Tree or list of Tree, shape=[n_samples]
             Points sampled in Tree space.
         """
-
-        def tree_from_wald(wald_: Wald):
-            """Construct a tree from a wald that is a tree.
-
-            Parameters
-            ----------
-            wald_ : Wald
-                The wald that is converted into a tree.
-
-            Returns
-            -------
-            tree_ : Tree
-                The resulting tree.
-            """
-            tree_ = Tree(
-                n_labels=wald_.n_labels,
-                splits=wald_.topology.split_sets[0],
-                lengths=gs.maximum(btol, gs.abs(gs.log(1 - wald_.weights))),
-            )
-            return tree_
+        trees = [
+            generate_random_tree(self.n_labels, p_keep, btol) for _ in range(n_samples)
+        ]
 
         if n_samples == 1:
-            wald = Wald.generate_wald(
-                self.n_labels, p_keep, p_new=1, btol=btol, check=False
-            )
-            return tree_from_wald(wald_=wald)
-        waelder = [
-            Wald.generate_wald(self.n_labels, p_keep, p_new=1, btol=btol, check=False)
-            for _ in range(n_samples)
-        ]
-        samples = [tree_from_wald(wald_=wald) for wald in waelder]
-        return samples
+            return trees[0]
+
+        return trees
 
 
 class BHVMetric(PointSetMetric):
-    """BHV Tree Space for phylogenetic trees.
+    """BHV metric for Tree Space for phylogenetic trees.
 
     Parameters
     ----------
     n_labels : int
         The number of labels.
+    tol : float
+        Tolerance for the algorithm, in particular for the decision problem in the
+        GTP algorithm in [OP11]_ to avoid unambiguity.
     """
 
-    def __init__(self, n_labels):
-        super().__init__(space=TreeSpace(n_labels=n_labels))
+    def __init__(self, space, tol=1e-8):
+        # TODO: we don't really need to add space here
+        super().__init__(space=space)
+        self.geodesic_solver = GTPSolver(n_labels=space.n_labels, tol=tol)
 
     @property
     def n_labels(self):
         return self.space.n_labels
 
-    @_vectorize_point((1, "point_a"), (2, "point_b"))
-    def dist(self, point_a, point_b, tol=1e-8, squared=False):
-        """Compute the distance between two points in BHV Space.
-
-        Essentially uses Theorem 2.4 from [OP11].
+    def squared_dist(self, point_a, point_b):
+        """Compute the squared distance between two points.
 
         Parameters
         ----------
@@ -247,25 +292,33 @@ class BHVMetric(PointSetMetric):
             A point in BHV Space.
         point_b : Tree
             A point in BHV Space.
-        tol : float
-            Tolerance for the algorithm, in particular for the decision problem in the
-            GTP algorithm in [OP11] to avoid unambiguity.
-        squared : bool
-            If true, return the squared distance.
+
+        Returns
+        -------
+        squared_dist : float
+            The squared distance between the two points.
+        """
+        return self.geodesic_solver.squared_dist(point_a, point_b)
+
+    def dist(self, point_a, point_b):
+        """Compute the distance between two points.
+
+        Parameters
+        ----------
+        point_a : Tree
+            A point in BHV Space.
+        point_b : Tree
+            A point in BHV Space.
 
         Returns
         -------
         dist : float
             The distance between the two points.
         """
-        # TODO: split in `dist` and `squared_dist`
-        return self._gtp_dist(point_a, point_b, tol, squared)
+        return self.geodesic_solver.dist(point_a, point_b)
 
-    # @_vectorize_point((1, "point_a"), (2, "point_b"))
-    def geodesic(self, point_a, point_b, tol=10**-8):
-        """Compute the geodesic between two points in BHV Space.
-
-        Essentially uses Theorem 2.4 from [OP11].
+    def geodesic(self, point_a, point_b):
+        """Compute the geodesic between two points.
 
         Parameters
         ----------
@@ -273,9 +326,6 @@ class BHVMetric(PointSetMetric):
             A point in BHV Space.
         point_b : Tree
             A point in BHV Space.
-        tol : float
-            Tolerance for the algorithm, in particular for the decision problem in the
-            GTP algorithm in [OP11] to avoid unambiguity.
 
         Returns
         -------
@@ -283,12 +333,77 @@ class BHVMetric(PointSetMetric):
             The geodesic between the two points. Takes parameter t, that is the time
             between 0 and 1 at which the corresponding point on the path is returned.
         """
-        return self._gtp_geodesic(point_a=point_a, point_b=point_b, tol=tol)
+        return self.geodesic_solver.geodesic(point_a=point_a, point_b=point_b)
 
-    def _gtp_dist(self, point_a, point_b, tol=10**-8, squared=False):
-        """Compute the distance between two points in BHV Space.
 
-        Essentially uses Theorem 2.4 from [OP11].
+class GTPSolver:
+    """'Geodesic Tree Path' problem solver [OP11]_.
+
+    Essentially uses Theorem 2.4 from [OP11]_.
+
+    Parameters
+    ----------
+    tol : float
+        Tolerance for the algorithm, in particular for the decision problem in the
+        GTP algorithm in [OP11] to avoid unambiguity.
+    """
+
+    def __init__(self, n_labels, tol=1e-8):
+        self.n_labels = n_labels
+        self.tol = tol
+
+    def _point_squared_dist(self, point_a, point_b):
+        sp_a = {split: length for split, length in zip(point_a.splits, point_a.lengths)}
+        sp_b = {split: length for split, length in zip(point_b.splits, point_b.lengths)}
+        common_a, common_b, supports = self._trees_with_common_support(
+            sp_a,
+            sp_b,
+        )
+        sq_dist_common = sum((common_a[s] - common_b[s]) ** 2 for s in common_a.keys())
+        sq_dist_parts = sum(
+            (
+                gs.sqrt(sum(sp_a[s] ** 2 for s in a))
+                + gs.sqrt(sum(sp_b[s] ** 2 for s in b))
+            )
+            ** 2
+            for supp_a, supp_b in supports.values()
+            for a, b in zip(supp_a, supp_b)
+        )
+
+        return sq_dist_common + sq_dist_parts
+
+    @_vectorize_point((1, "point_a"), (2, "point_b"))
+    def squared_dist(self, point_a, point_b):
+        """Compute the squared distance between two points.
+
+        Parameters
+        ----------
+        point_a : Tree or list[Tree]
+            A point in BHV Space.
+        point_b : Tree or list[Tree]
+            A point in BHV Space.
+
+        Returns
+        -------
+        squared_dist : float or gs.array
+            The squared distance between the two points.
+        """
+        point_a, point_b = broadcast_lists(point_a, point_b)
+
+        sq_dists = gs.array(
+            [
+                self._point_squared_dist(point_a_, point_b_)
+                for point_a_, point_b_ in zip(point_a, point_b)
+            ]
+        )
+
+        if len(sq_dists) == 1:
+            return sq_dists[0]
+
+        return sq_dists
+
+    def dist(self, point_a, point_b):
+        """Compute the distance between two points.
 
         Parameters
         ----------
@@ -296,42 +411,16 @@ class BHVMetric(PointSetMetric):
             A point in BHV Space.
         point_b : Tree
             A point in BHV Space.
-        tol : float
-            Tolerance for the algorithm, in particular for the decision problem in the
-            GTP algorithm in [OP11] to avoid unambiguity.
-        squared : bool
-            If true, return the squared distance.
 
         Returns
         -------
         dist : float
             The distance between the two points.
         """
-        sp_a = {split: length for split, length in zip(point_a.splits, point_a.lengths)}
-        sp_b = {split: length for split, length in zip(point_b.splits, point_b.lengths)}
-        common_a, common_b, supports = self._gtp_trees_with_common_support(
-            sp_a,
-            sp_b,
-            tol,
-        )
-        sq_dist_common = sum((common_a[s] - common_b[s]) ** 2 for s in common_a.keys())
-        sq_dist_parts = sum(
-            (
-                np.sqrt(sum(sp_a[s] ** 2 for s in a))
-                + np.sqrt(sum(sp_b[s] ** 2 for s in b))
-            )
-            ** 2
-            for supp_a, supp_b in supports.values()
-            for a, b in zip(supp_a, supp_b)
-        )
-        if squared:
-            return sq_dist_common + sq_dist_parts
-        return np.sqrt(sq_dist_common + sq_dist_parts)
+        return gs.sqrt(self.squared_dist(point_a, point_b))
 
-    def _gtp_geodesic(self, point_a, point_b, tol=1e-8):
-        """Compute the geodesic between two points in BHV Space.
-
-        Essentially uses Theorem 2.4 from [OP11].
+    def _point_geodesic(self, point_a, point_b):
+        """Compute the geodesic between two points.
 
         Parameters
         ----------
@@ -339,9 +428,6 @@ class BHVMetric(PointSetMetric):
             A point in BHV Space.
         point_b : Tree
             A point in BHV Space.
-        tol : float
-            Tolerance for the algorithm, in particular for the decision problem in the
-            GTP algorithm in [OP11] to avoid unambiguity.
 
         Returns
         -------
@@ -351,29 +437,28 @@ class BHVMetric(PointSetMetric):
         """
         sp_a = dict(zip(point_a.splits, point_a.lengths))
         sp_b = dict(zip(point_b.splits, point_b.lengths))
-        common_a, common_b, supports = self._gtp_trees_with_common_support(
+        common_a, common_b, supports = self._trees_with_common_support(
             sp_a,
             sp_b,
-            tol,
         )
         ratios = {
             part: [
-                np.sqrt(sum(sp_a[s] ** 2 for s in a) / sum(sp_b[s] ** 2 for s in b))
+                gs.sqrt(sum(sp_a[s] ** 2 for s in a) / sum(sp_b[s] ** 2 for s in b))
                 for a, b in zip(supp_a, supp_b)
             ]
             for part, (supp_a, supp_b) in supports.items()
         }
 
-        # @_vectorize_point((1, "t"))
-        def geodesic_(t):
-            if t == 0:
+        def geodesic_t(t):
+            if t == 0.0:
                 return point_a
-            elif t == 1:
+            elif t == 1.0:
                 return point_b
+
             t_ratio = t / (1 - t)
             splits_t = {s: (1 - t) * common_a[s] + t * common_b[s] for s in common_a}
             for part, (supp_a, supp_b) in supports.items():
-                index = np.argmax([t_ratio <= _r for _r in ratios[part] + [np.inf]])
+                index = gs.argmax([t_ratio <= _r for _r in ratios[part] + [np.inf]])
                 splits_t_a = {
                     s: sp_a[s] * (1 - t - t / _r)
                     for a_k, _r in zip(supp_a[index:], ratios[part][index:])
@@ -385,17 +470,62 @@ class BHVMetric(PointSetMetric):
                     for s in b_k
                 }
                 splits_t = {**splits_t, **splits_t_a, **splits_t_b}
-            # TODO: rule out splits that have length < tol
+
+            splits_lengths = [
+                (split, length)
+                for split, length in splits_t.items()
+                if length > self.tol
+            ]
             tree_t = Tree(
                 n_labels=self.n_labels,
-                splits=list(splits_t.keys()),
-                lengths=gs.array(list(splits_t.values())),
+                splits=[sl[0] for sl in splits_lengths],
+                lengths=[sl[1] for sl in splits_lengths],
             )
             return tree_t
 
+        def geodesic_(t):
+            if isinstance(t, (float, int)):
+                t = gs.array([t])
+
+            return [geodesic_t(t_) for t_ in t]
+
         return geodesic_
 
-    def _gtp_trees_with_common_support(self, splits_a, splits_b, tol=1e-8):
+    @_vectorize_point((1, "point_a"), (2, "point_b"))
+    def geodesic(self, point_a, point_b):
+        """Compute the geodesic between two points.
+
+        Parameters
+        ----------
+        point_a : Tree or list[Tree]
+            A point in BHV Space.
+        point_b : Tree or list[Tree]
+            A point in BHV Space.
+
+        Returns
+        -------
+        geodesic : callable
+            The geodesic between the two points. Takes parameter t, that is the time
+            between 0 and 1 at which the corresponding point on the path is returned.
+        """
+
+        # TODO: generalize; also used in spider?
+        def _vec(t, fncs):
+            if len(fncs) == 1:
+                return fncs[0](t)
+
+            return [fnc(t) for fnc in fncs]
+
+        point_a, point_b = broadcast_lists(point_a, point_b)
+
+        fncs = [
+            self._point_geodesic(point_a_, point_b_)
+            for point_a_, point_b_ in zip(point_a, point_b)
+        ]
+
+        return lambda t: _vec(t, fncs=fncs)
+
+    def _trees_with_common_support(self, splits_a, splits_b):
         """Compute the support that corresponds to a geodesic for common split sets.
 
         We refer to the splits of the tree corresponding to splits_a as A,
@@ -415,9 +545,6 @@ class BHVMetric(PointSetMetric):
             The splits in A and their respective lengths.
         splits_b : dict of Split, float
             The splits in B and their respective lengths.
-        tol: float
-            Tolerance for the decision problem to avoid unambiguity.
-            Defaults to 1e-08.
 
         Returns
         -------
@@ -445,13 +572,12 @@ class BHVMetric(PointSetMetric):
 
         cut_splits = (common | easy_a | easy_b) - pendants
 
-        trees_a = self._gtp_cut_tree_at_splits(total_a, cut_splits)
-        trees_b = self._gtp_cut_tree_at_splits(total_b, cut_splits)
+        trees_a = self._cut_tree_at_splits(total_a, cut_splits)
+        trees_b = self._cut_tree_at_splits(total_b, cut_splits)
         supports = {
-            part: self._gtp_trees_with_distinct_support(
+            part: self._trees_with_distinct_support(
                 {s: splits_a[s] for s in trees_a[part]},
                 {s: splits_b[s] for s in trees_b[part]},
-                tol=tol,
             )
             for part in trees_a.keys()
             if trees_a[part] and trees_b[part]
@@ -461,7 +587,7 @@ class BHVMetric(PointSetMetric):
         common_b = {s: splits_b[s] if s in sp_b else 0 for s in common}
         return common_a, common_b, supports
 
-    def _gtp_cut_tree_at_splits(self, splits, cut_splits):
+    def _cut_tree_at_splits(self, splits, cut_splits):
         """Cut a tree, given by splits, at all edges in cut_splits.
 
         Starting with the partition that consists of all labels and is assigned all
@@ -508,7 +634,7 @@ class BHVMetric(PointSetMetric):
             }
         return partition
 
-    def _gtp_trees_with_distinct_support(self, splits_a, splits_b, tol=10**-8):
+    def _trees_with_distinct_support(self, splits_a, splits_b):
         """Compute the support that corresponds to a geodesic for disjoint split sets.
 
         This is essentially the GTP algorithm from [1], starting with a cone path and
@@ -529,9 +655,6 @@ class BHVMetric(PointSetMetric):
             The splits in A and their respective lengths.
         splits_b : dict of Split, float
             The splits in B and their respective lengths.
-        tol: float
-            Tolerance for the decision problem to avoid unambiguity.
-            Defaults to 1e-08.
 
         Returns
         -------
@@ -549,10 +672,10 @@ class BHVMetric(PointSetMetric):
             for pair_a, pair_b in zip(old_support_a, old_support_b):
                 pair_a_w = {s: weights_a[s] for s in pair_a}
                 pair_b_w = {s: weights_b[s] for s in pair_b}
-                value, c1, c2, d1, d2 = self._gtp_solve_extension_problem(
+                value, c1, c2, d1, d2 = self._solve_extension_problem(
                     pair_a_w, pair_b_w
                 )
-                if value >= 1 - tol:
+                if value >= 1 - self.tol:
                     new_support_a += (pair_a,)
                     new_support_b += (pair_b,)
                 else:
@@ -564,7 +687,7 @@ class BHVMetric(PointSetMetric):
                 old_support_a, old_support_b = new_support_a, new_support_b
 
     @staticmethod
-    def _gtp_solve_extension_problem(sq_splits_a, sq_splits_b):
+    def _solve_extension_problem(sq_splits_a, sq_splits_b):
         """Solve the extension problem in [1] for sets of splits with squared weights.
 
         Solving the min weight vertex cover with respect to the incompatibility graph in
