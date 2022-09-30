@@ -445,7 +445,7 @@ class BaseTopology:
         ]
 
         _support = [
-            gs.zeros((self.n_labels, self.n_labels), dtype=bool)
+            gs.zeros((self.n_labels, self.n_labels), dtype=int)
             for _ in self.flatten(self.split_sets)
         ]
         for path_dict in self.paths:
@@ -453,7 +453,9 @@ class BaseTopology:
                 for split in path:
                     _support[self.where[split]][u][v] = True
                     _support[self.where[split]][v][u] = True
-        self.support = [gs.array(m) for m in self.flatten(_support)]
+        self.support = gs.reshape(
+            gs.array([m for m in self.flatten(_support)]), (-1, n_labels, n_labels)
+        )
         self._chart_gradient = None
 
     def _check_init(self, n_labels, partition, split_sets):
@@ -639,8 +641,8 @@ class BaseTopology:
 
         Parameters
         ----------
-        x : array-like
-            Takes a vector of length 'number of total splits' of the structure.
+        x : array-like, [n_splits]
+            Edge weights.
 
         Returns
         -------
@@ -709,3 +711,7 @@ class BaseTopology:
             The flatted list.
         """
         return [y for z in x for y in z]
+
+    @property
+    def n_splits(self):
+        return gs.sum(a=[len(splits) for splits in self.split_sets], dtype=int)

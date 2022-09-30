@@ -1,6 +1,6 @@
 r"""Classes for the Wald Space and elements therein of class Wald and helper classes.
 
-Class ``Structure``.
+Class ``Topology``.
 A structure is a partition into non-empty sets of the set :math:`\{0,\dots,n-1\}`,
 together with a set of splits for each element of the partition, where every split is a
 two-set partition of the respective element.
@@ -9,7 +9,7 @@ the structure of the tree with the labels of the corresponding element of the pa
 
 Class ``Wald``.
 A wald is essentially a phylogenetic forest with weights between zero and one on the
-edges. The forest structure is stored as a ``Structure`` and the edge weights are an
+edges. The forest structure is stored as a ``Topology`` and the edge weights are an
 array of length that is equal to the total number of splits in the structure. These
 elements are the points in Wald space and other phylogenetic forest spaces, like BHV
 space, although the partition is just the whole set of labels in this case.
@@ -29,22 +29,91 @@ Lead author: Jonas Lueg
 
 References
 ----------
-.. [Garba21] Garba, M. K., T. M. W. Nye, J. Lueg and S. F. Huckemann.
-    "Information geometry for phylogenetic trees"
-    Journal of Mathematical Biology, 82(3):19, February 2021a.
-    https://doi.org/10.1007/s00285-021-01553-x.
-.. [Lueg21] Lueg, J., M. K. Garba, T. M. W. Nye, S. F. Huckemann.
-    "Wald Space for Phylogenetic Trees."
-    Geometric Science of Information, Lecture Notes in Computer Science,
-    pages 710–717, Cham, 2021.
-    https://doi.org/10.1007/978-3-030-80209-7_76.
+[Garba21]_  Garba, M. K., T. M. W. Nye, J. Lueg and S. F. Huckemann.
+            "Information geometry for phylogenetic trees"
+            Journal of Mathematical Biology, 82(3):19, February 2021a.
+            https://doi.org/10.1007/s00285-021-01553-x.
+[Lueg21]_   Lueg, J., M. K. Garba, T. M. W. Nye, S. F. Huckemann.
+            "Wald Space for Phylogenetic Trees."
+            Geometric Science of Information, Lecture Notes in Computer Science,
+            pages 710–717, Cham, 2021.
+            https://doi.org/10.1007/978-3-030-80209-7_76.
 """
 
+import scipy
+
 import geomstats.backend as gs
-import geomstats.geometry.spd_matrices as spd
-from geomstats.geometry.stratified.point_set import Point, PointSet, _vectorize_point
+from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricEuclidean
+from geomstats.geometry.stratified.point_set import (
+    Point,
+    PointSet,
+    PointSetMetric,
+    _vectorize_point,
+)
 from geomstats.geometry.stratified.trees import BaseTopology as Topology
-from geomstats.geometry.stratified.trees import delete_splits, generate_splits
+from geomstats.geometry.stratified.trees import Split, delete_splits, generate_splits
+
+
+def make_splits(n_labels):
+    """Generates all possible splits of a collection."""
+    if n_labels <= 1:
+        raise ValueError("`n_labels` must be greater than 1.")
+    if n_labels == 2:
+        yield Split(part1=[0], part2=[1])
+    else:
+        for split in make_splits(n_labels=n_labels - 1):
+            yield Split(part1=split.part1, part2=split.part2.union((n_labels - 1,)))
+            yield Split(part1=split.part1.union((n_labels - 1,)), part2=split.part2)
+        yield Split(part1=list(range(n_labels - 1)), part2=[n_labels - 1])
+
+
+def make_topologies(n_labels):
+    """Generates all possible sets of compatible splits of a collection.
+
+    This only works well for `len(n_labels) < 8`.
+    """
+    if n_labels <= 1:
+        raise ValueError("The collection must have 2 elements or more.")
+    if n_labels in [2, 3]:
+        yield Topology(
+            n_labels=n_labels,
+            partition=(tuple(range(n_labels)),),
+            split_sets=(list(make_splits(n_labels)),),
+        )
+    else:
+        pendant_split = Split(part1=[n_labels - 1], part2=list(range(n_labels - 1)))
+        for st in make_topologies(n_labels - 1):
+            for s in st.split_sets[0]:
+                new_split_set = [pendant_split]
+                a, b = set(s.part1), set(s.part2)
+                for t in st.split_sets[0]:
+                    c, d = set(t.part1), set(t.part2)
+                    if t != s:
+                        # TODO: probably a bug here
+                        if a.issubset(d) or b.issubset(d):
+                            new_split_set.append(
+                                Split(
+                                    part1=t.part1, part2=t.part2.union((n_labels - 1,))
+                                )
+                            )
+                        else:
+                            new_split_set.append(
+                                Split(
+                                    part1=t.part2, part2=t.part1.union((n_labels - 1,))
+                                )
+                            )
+                    else:
+                        new_split_set.append(
+                            Split(part1=s.part1, part2=s.part2.union((n_labels - 1,)))
+                        )
+                        new_split_set.append(
+                            Split(part1=s.part2, part2=s.part1.union((n_labels - 1,)))
+                        )
+                yield Topology(
+                    n_labels=n_labels,
+                    partition=(tuple(range(n_labels)),),
+                    split_sets=(new_split_set,),
+                )
 
 
 def _generate_partition(n_labels, p_new):
@@ -217,15 +286,18 @@ class WaldSpace(PointSet):
 
     Attributes
     ----------
-    ambient :
+    ambient_space : Manifold
         The ambient space, the positive definite n_labels x n_labels matrices that the
         WaldSpace is embedded into.
     """
 
-    def __init__(self, n_labels):
-        super().__init__(equip=False)
+    def __init__(self, n_labels, ambient_space=None):
+        super().__init__()
         self.n_labels = n_labels
-        self.ambient = spd.SPDMatrices(n=self.n_labels)
+
+        if ambient_space is None:
+            ambient_space = SPDMatrices(n=self.n_labels)
+        self.ambient_space = ambient_space
 
     @_vectorize_point((1, "point"))
     def belongs(self, point):
@@ -246,7 +318,8 @@ class WaldSpace(PointSet):
             Boolean denoting if `point` belongs to Wald space.
         """
         is_spd = [
-            self.ambient.belongs(single_point.to_array()) for single_point in point
+            self.ambient_space.belongs(single_point.to_array())
+            for single_point in point
         ]
         is_between_0_1 = [
             gs.all(w.weights > 0) and gs.all(w.weights < 1) for w in point
@@ -254,7 +327,7 @@ class WaldSpace(PointSet):
         results = [is1 and is2 for is1, is2 in zip(is_spd, is_between_0_1)]
         return results
 
-    def random_point(self, n_samples=1, p_tree=0.9, p_keep=0.9, btol=1e-08):
+    def random_point(self, n_samples=1, p_tree=0.9, p_keep=0.9, btol=1e-8):
         """Sample a random point in Wald space.
 
         Parameters
@@ -307,3 +380,123 @@ class WaldSpace(PointSet):
         """
         results = gs.array([wald.to_array() for wald in points])
         return results
+
+
+class WaldSpaceMetric(PointSetMetric):
+    # TODO: delete
+
+    # geodesic algorithms
+
+    # naive needs: s_proj, a_path
+
+    # symmetric needs: s_proj, a_path_t
+
+    # s_proj needs _proj_target_gradient (changes with ambient metric)
+    # _proj_target_gradient needs s_chart_and_gradient
+    # s_chart and s_chart_gradient available in ftools and do not depend in ambient metric
+
+    # straightning-ext needs: a_log, a_exp, s_proj, starting path (e.g. naive)
+    def __init__(self, space, projection_solver):
+        super().__init__(space)
+        self.projection_solver = projection_solver
+        # TODO: geodesic algorithm?
+
+    @property
+    def stratum_metric(self):
+        return self.space.ambient_space.metric
+
+    def dist(self):
+        pass
+
+    def geodesic(self):
+        pass
+
+    def lift(self, point):
+        """Lift a point to the ambient space.
+
+        Returns
+        -------
+        ambient_point : array-like, shape=[..., n_labels, n_labels]
+        """
+        # TODO: is extend a better name?
+        # TODO: here or in space? (probably in space, since not metric dep)
+        return point.corr
+
+    def projection(self, ambient_point, **kwargs):
+        """Projects a point into Wald space."""
+        return self.projection_solver.projection(self, ambient_point, **kwargs)
+
+
+class BaseProjectionSolver:
+    def __init__(self):
+        self._map_ambient_metric_to_target_gradient = {
+            SPDMetricEuclidean: self._euclidean_target_gradient,
+        }
+
+    def _euclidean_target_gradient(self, weights, topology, ambient_point, metric):
+        # TODO: should this be based on lift and lift_grad?
+        corr = topology.corr(weights)
+        grad = topology.corr_gradient(weights)
+
+        target = metric.stratum_metric.squared_dist(corr, ambient_point)
+        target_grad = gs.array(
+            [2 * gs.sum((corr - ambient_point) * grad_) for grad_ in grad]
+        )
+
+        return target, target_grad
+
+    def _proj_target_gradient(self, metric, ambient_point, topology):
+        metric_target_gradient = self._map_ambient_metric_to_target_gradient[
+            type(metric.stratum_metric)
+        ]
+
+        return lambda x: metric_target_gradient(
+            weights=x, topology=topology, ambient_point=ambient_point, metric=metric
+        )
+
+
+class LocalProjectionSolver(BaseProjectionSolver):
+    def __init__(self, btol=1e-10, **kwargs):
+        super().__init__()
+        self._minimize = scipy.optimize.minimize
+
+        self.btol = btol
+        self.optimization_kwargs = dict(
+            jac=True,
+            method="L-BFGS-B",
+            tol=None,
+            options=dict(gtol=1e-5, ftol=2.22e-9),
+        )
+        self.optimization_kwargs.update(kwargs)
+
+    def _get_bounds(self, n_splits):
+        return [(self.btol, 1 - self.btol)] * n_splits
+
+    def projection(self, metric, ambient_point, topology):
+        if len(topology.partition) == topology.n_labels:
+            return Wald(topology=topology, weights=gs.ones(self.n_labels))
+
+        target_and_gradient = self._proj_target_gradient(
+            metric=metric,
+            ambient_point=ambient_point,
+            topology=topology,
+        )
+
+        n_splits = topology.n_splits
+        bounds = self._get_bounds(n_splits)
+
+        x0 = gs.ones(n_splits) * 0.5
+
+        res = self._minimize(
+            target_and_gradient, x0, bounds=bounds, **self.optimization_kwargs
+        )
+
+        if res.status != 0:
+            raise ValueError("Projection failed!")
+
+        x = [
+            _x if self.btol < _x < 1 - self.btol else 0 if _x <= self.btol else 1
+            for _x in res.x
+        ]
+
+        return Wald(topology=topology, weights=x)
