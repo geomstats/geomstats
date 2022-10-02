@@ -3,13 +3,13 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.hermitian import Hermitian, HermitianMetric
-from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
+from tests.data_generation import _ComplexVectorSpaceTestData, _RiemannianMetricTestData
 
 SQRT_2 = math.sqrt(2)
 SQRT_5 = math.sqrt(5)
 
 
-class HermitianTestData(_VectorSpaceTestData):
+class HermitianTestData(_ComplexVectorSpaceTestData):
     Space = Hermitian
 
     n_list = random.sample(range(2, 5), 2)
