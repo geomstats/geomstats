@@ -4,11 +4,13 @@ Lead author: Yann Cabanes.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import VectorSpace
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.base import ComplexVectorSpace
+from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+
+CDTYPE = gs.get_default_cdtype()
 
 
-class Hermitian(VectorSpace):
+class Hermitian(ComplexVectorSpace):
     """Class for Hermitian spaces.
 
     By definition, a Hermitian space is a complex vector space
@@ -33,14 +35,14 @@ class Hermitian(VectorSpace):
         -------
         identity : array-like, shape=[n]
         """
-        identity = gs.zeros(self.dim)
+        identity = gs.zeros(self.dim, dtype=CDTYPE)
         return identity
 
     identity = property(get_identity)
 
     def _create_basis(self):
         """Create the canonical basis."""
-        return gs.eye(self.dim)
+        return gs.eye(self.dim, dtype=CDTYPE)
 
     def exp(self, tangent_vec, base_point=None):
         """Compute the group exponential, which is simply the addition.
@@ -62,7 +64,7 @@ class Hermitian(VectorSpace):
         return tangent_vec + base_point
 
 
-class HermitianMetric(RiemannianMetric):
+class HermitianMetric(ComplexRiemannianMetric):
     """Class for Hermitian metrics.
 
     As a Riemannian metric, the Hermitian metric is:

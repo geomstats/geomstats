@@ -8,11 +8,11 @@ import logging
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
 
 
-class HermitianMatrices(VectorSpace):
+class HermitianMatrices(ComplexVectorSpace):
     """Class for the vector space of Hermitian matrices of size n.
 
     Parameters
@@ -24,9 +24,10 @@ class HermitianMatrices(VectorSpace):
     def __init__(self, n, **kwargs):
         kwargs.setdefault("metric", ComplexMatricesMetric(n, n))
         super(HermitianMatrices, self).__init__(
-            dim=n**2, shape=(n, n), default_point_type="matrix", **kwargs
+            shape=(n, n), default_point_type="matrix", **kwargs
         )
         self.n = n
+        self.dim = n**2
 
     def _create_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
