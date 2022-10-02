@@ -377,6 +377,7 @@ class ComplexMatrices(ComplexVectorSpace):
         is_hpd = gs.logical_and(cls.is_hermitian(mat, atol), cls.is_pd(mat))
         return is_hpd
 
+    @classmethod
     def is_skew_symmetric(cls, mat, atol=gs.atol):
         """Check if a matrix is skew-symmetric.
 
@@ -395,6 +396,7 @@ class ComplexMatrices(ComplexVectorSpace):
         """
         Matrices.is_skew_symmetric(mat, atol=atol)
 
+    @classmethod
     def is_skew_hermitian(cls, mat, atol=gs.atol):
         """Check if a matrix is skew-Hermitian.
 
@@ -547,6 +549,7 @@ class ComplexMatrices(ComplexVectorSpace):
         """
         return 1 / 2 * (mat + cls.transconjugate(mat))
 
+    @classmethod
     def to_skew_symmetric(cls, mat):
         """Make a matrix skew-symmetric.
 
@@ -565,6 +568,7 @@ class ComplexMatrices(ComplexVectorSpace):
         """
         return Matrices.to_skew_symmetric(mat)
 
+    @classmethod
     def to_skew_hermitian(cls, mat):
         """Make a matrix skew-Hermitian.
 
