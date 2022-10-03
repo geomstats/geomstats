@@ -24,17 +24,19 @@ class ComplexRiemannianMetric(RiemannianMetric):
     signature : tuple
         Signature of the metric.
         Optional, default: None.
-    default_point_type : str, {'vector', 'matrix'}
-        Point type.
-        Optional, default: 'vector'.
+    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+        Coordinate type.
+        Optional, default: 'intrinsic'.
     """
 
-    def __init__(self, dim, shape=None, signature=None, default_point_type=None):
+    def __init__(
+        self, dim, shape=None, signature=None, default_coords_type="intrinsic"
+    ):
         super(ComplexRiemannianMetric, self).__init__(
             dim=dim,
             shape=shape,
             signature=signature,
-            default_point_type=default_point_type,
+            default_coords_type=default_coords_type,
         )
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):

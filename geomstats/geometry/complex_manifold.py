@@ -25,26 +25,16 @@ class ComplexManifold(Manifold):
         Optional, default : None.
     metric : ComplexRiemannianMetric
         Metric object to use on the complex manifold.
-    default_point_type : str, {\'vector\', \'matrix\'}
-        Point type.
-        Optional, default: 'vector'.
     default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
         Optional, default: 'intrinsic'.
     """
 
     def __init__(
-        self,
-        dim,
-        shape,
-        metric=None,
-        default_point_type=None,
-        default_coords_type="intrinsic",
-        **kwargs
+        self, dim, shape, metric=None, default_coords_type="intrinsic", **kwargs
     ):
         self.dim = dim
         self.shape = shape
-        self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
         self._metric = metric
 
