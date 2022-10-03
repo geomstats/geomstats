@@ -256,7 +256,7 @@ class _ComplexManifoldTestData(_ManifoldTestData):
     """Class for ComplexManifoldTestData: data to test complex manifold properties."""
 
     def projection_belongs_test_data(self):
-        """Generate data to check that a projected point belongs to the complex manifold."""
+        """Generate data to check that a projected point belongs to the manifold."""
         random_data = [
             dict(
                 space_args=space_args,
