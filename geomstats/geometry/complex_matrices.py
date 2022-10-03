@@ -730,7 +730,8 @@ class ComplexMatrices(ComplexVectorSpace):
         """
         return Matrices.trace_product(mat_1, mat_2)
 
-    def flatten(self, mat):
+    @staticmethod
+    def flatten(mat):
         """Return a flattened form of the matrix.
 
         Flatten a matrix (compatible with vectorization on data axis 0).
@@ -752,7 +753,8 @@ class ComplexMatrices(ComplexVectorSpace):
         """
         return Matrices.flatten(mat)
 
-    def reshape(self, vec):
+    @staticmethod
+    def reshape(vec):
         """Return a matricized form of the vector.
 
         Matricize a vector (compatible with vectorization on data axis 0).
@@ -809,7 +811,8 @@ class ComplexMatricesMetric(HermitianMetric):
         self.dim = m * n
         super(ComplexMatricesMetric, self).__init__(dim=self.dim, shape=(m, n))
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    @staticmethod
+    def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tangent vectors.
 
         Parameters

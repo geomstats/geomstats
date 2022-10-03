@@ -103,7 +103,8 @@ class HermitianMetric(ComplexRiemannianMetric):
         mat = gs.eye(self.dim)
         return mat
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    @staticmethod
+    def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 
         Parameters
@@ -123,7 +124,8 @@ class HermitianMetric(ComplexRiemannianMetric):
         """
         return gs.dot(gs.conj(tangent_vec_a), tangent_vec_b)
 
-    def norm(self, vector, base_point=None):
+    @staticmethod
+    def norm(vector, base_point=None):
         """Compute norm of a vector.
 
         Norm of a vector associated to the inner product
@@ -147,7 +149,8 @@ class HermitianMetric(ComplexRiemannianMetric):
         """
         return gs.linalg.norm(vector, axis=-1)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    @staticmethod
+    def exp(tangent_vec, base_point, **kwargs):
         """Compute exp map of a base point in tangent vector direction.
 
         The Riemannian exponential is vector addition in the Hermitian space.
@@ -167,7 +170,8 @@ class HermitianMetric(ComplexRiemannianMetric):
         exp = base_point + tangent_vec
         return exp
 
-    def log(self, point, base_point, **kwargs):
+    @staticmethod
+    def log(point, base_point, **kwargs):
         """Compute log map using a base point and other point.
 
         The Riemannian logarithm is the subtraction in the Hermitian space.

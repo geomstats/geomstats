@@ -42,9 +42,11 @@ class ComplexManifold(Manifold):
         default_coords_type="intrinsic",
         **kwargs
     ):
-        super(ComplexManifold, self).__init__(
-            dim, shape, metric, default_point_type, default_coords_type, **kwargs
-        )
+        self.dim = dim
+        self.shape = shape
+        self.default_point_type = default_point_type
+        self.default_coords_type = default_coords_type
+        self._metric = metric
 
     @property
     def metric(self):

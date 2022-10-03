@@ -68,7 +68,8 @@ class HermitianMatrices(ComplexVectorSpace):
             return gs.logical_and(belongs, is_hermitian)
         return belongs
 
-    def projection(self, point):
+    @staticmethod
+    def projection(point):
         """Make a matrix Hermitian, by averaging with its transconjugate.
 
         Parameters
@@ -247,7 +248,7 @@ class HermitianMatrices(ComplexVectorSpace):
             except AttributeError:
                 name = function[0].__name__
 
-            logging.warning("Negative eigenvalue encountered in" " {}".format(name))
+            logging.warning(f"Negative eigenvalue encountered in {name}")
 
         return_list = True
         if not isinstance(function, list):
