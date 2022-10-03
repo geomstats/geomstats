@@ -14,7 +14,7 @@ Numpy
 
 .. autosummary::
    :nosignatures:
-   :toctree: generated/backend
+   :toctree: backend
    :recursive:
 
    numpy
@@ -26,7 +26,7 @@ PyTorch
 
 .. autosummary::
    :nosignatures:
-   :toctree: generated/backend
+   :toctree: backend
    :recursive:
 
    pytorch
@@ -38,7 +38,7 @@ Tensorflow
 
 .. autosummary::
    :nosignatures:
-   :toctree: generated/backend
+   :toctree: backend
    :recursive:
 
    tensorflow
