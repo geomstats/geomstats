@@ -10,7 +10,7 @@ CDTYPE = gs.get_default_cdtype()
 
 
 class ComplexRiemannianMetric(RiemannianMetric):
-    """Class for Riemannian and pseudo-Riemannian metrics for Complex manifolds.
+    r"""Class for Riemannian and pseudo-Riemannian metrics for Complex manifolds.
 
     The associated Levi-Civita connection on the tangent bundle.
 
