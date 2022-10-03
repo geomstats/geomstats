@@ -394,7 +394,7 @@ class ComplexMatrices(ComplexVectorSpace):
         is_skew_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is skew-symmetric.
         """
-        Matrices.is_skew_symmetric(mat, atol=atol)
+        return Matrices.is_skew_symmetric(mat, atol=atol)
 
     @classmethod
     def is_skew_hermitian(cls, mat, atol=gs.atol):
