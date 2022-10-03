@@ -10,7 +10,6 @@ from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.manifold import Manifold
 
 CDTYPE = gs.get_default_cdtype()
-POINT_TYPES = {1: "vector", 2: "matrix"}
 
 
 class VectorSpace(Manifold, abc.ABC):
