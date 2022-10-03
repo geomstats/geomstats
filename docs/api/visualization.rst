@@ -3,4 +3,14 @@ Visualization
 *************
 
 .. automodule:: geomstats.visualization
-   :members:
+    :no-members:
+    :no-inherited-members:
+
+.. currentmodule:: geomstats
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   visualization

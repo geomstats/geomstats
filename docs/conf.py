@@ -16,9 +16,14 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
+    "sphinx.ext.autosummary",
     "sphinx.ext.viewcode",
     "sphinx_gallery.load_style",
 ]
+
+autosummary_generate = True
+autosummary_imported_members = True
+add_module_names = False
 
 # Configure napoleon for numpy docstring
 napoleon_google_docstring = False

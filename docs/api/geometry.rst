@@ -2,156 +2,278 @@
 Geometry
 ********
 
-Manifolds
-=========
+:mod:`geomstats.geometry`: Base classes and utility functions
+=============================================================
 
-Manifold
---------
 .. automodule:: geomstats.geometry.manifold
-   :members:
+    :no-members:
+    :no-inherited-members:
 
-Embedded Manifold
------------------
-.. automodule:: geomstats.geometry.embedded_manifold
-  :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
 
-Product Manifold
-----------------
-.. automodule:: geomstats.geometry.product_manifold
-   :members:
+   Manifold
 
-Euclidean Space
----------------
-.. automodule:: geomstats.geometry.euclidean
-   :members:
+.. currentmodule:: geomstats.geometry.product_manifold
 
-Minkowski Space
----------------
-.. automodule:: geomstats.geometry.minkowski
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
 
-Hypersphere
------------
-.. automodule:: geomstats.geometry.hypersphere
-   :members:
+   ProductManifold
+   NFoldManifold
 
-Hyperbolic Space
-----------------
-.. automodule:: geomstats.geometry.hyperbolic
-   :members:
+.. currentmodule:: geomstats.geometry.euclidean
 
-Discretized Curves Space
-------------------------
-.. automodule:: geomstats.geometry.discretized_curves
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
 
-Symmetric-Positive-Definite (SPD) Matrices Space
-------------------------------------------------
-.. automodule:: geomstats.geometry.spd_matrices
-   :members:
+   Euclidean
 
-Skew-Symmetric Matrices Space
------------------------------
-.. automodule:: geomstats.geometry.skew_symmetric_matrices
-   :members:
+.. currentmodule:: geomstats.geometry.minkowski
 
-Stiefel Manifold
-----------------
-.. automodule:: geomstats.geometry.stiefel
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
 
-Lie Groups
+   Minkowski
+   MinkowskiMetric
+
+.. currentmodule:: geomstats.geometry.hypersphere
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+   :template: class-and-metrics.rst
+
+   Hypersphere
+   HypersphereMetric
+
+.. currentmodule:: geomstats.geometry.hyperbolic
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Hyperbolic
+
+.. currentmodule:: geomstats.geometry.discretized_curves
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+   :template: :template: class-and-metrics.rst
+
+   DiscreteCurves
+   ClosedDiscreteCurves
+   L2CurvesMetric
+   ElasticMetric
+   SRVMetric
+   SRVShapeBundle
+   SRVQuotientMetric
+
+.. currentmodule:: geomstats.geometry.spd_matrices
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   SPDMatrices
+
+.. currentmodule:: geomstats.geometry.skew_symmetric_matrices
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   SkewSymmetricMatrices
+
+.. currentmodule:: geomstats.geometry.stiefel
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+   :template: class-and-metrics.rst
+
+   Stiefel
+   StiefelCanonicalMetric
+
+.. currentmodule:: geomstats.geometry.lie_group
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   MatrixLieGroup
+   LieGroup
+   MatrixLieAlgebra
+
+.. currentmodule:: geomstats.geometry.matrices
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+   :template: class-and-metrics.rst
+
+   Matrices
+   MatricesMetric
+
+.. currentmodule:: geomstats.geometry.general_linear
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   GeneralLinear
+   SquareMatrices
+
+.. currentmodule:: geomstats.geometry.special_euclidean
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+   :template: class-and-metrics.rst
+
+   SpecialEuclideanMatrixCannonicalLeftMetric
+   SpecialEuclidean
+   SpecialEuclideanMatrixLieAlgebra
+   SpecialOrthogonal
+
+.. currentmodule:: geomstats.geometry.graphspace
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+   :template: class-and-metrics.rst
+
+   Graph
+   GraphSpace
+   GraphSpaceMetric
+   FAQMatcher
+   IDMatcher
+
+.. currentmodule:: geomstats.geometry.grassmannian
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+   :template: class-and-metrics.rst
+   
+   Grassmannian
+   GrassmannianCanonicalMetric
+
+.. currentmodule:: geomstats.geometry.landmarks
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+   :template: class-and-metrics.rst
+
+   Landmarks
+   L2LandmarksMetric
+
+.. currentmodule:: geomstats.geometry.poincare_polydisk
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   PoincarePolydiskTestData
+   PoincarePolydiskMetricTestData
+
+.. currentmodule:: geomstats.geometry.lower_triangular_matrices
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   LowerTriangularMatricesTestData
+
+.. currentmodule:: geomstats.geometry.positive_lower_triangular_matrices
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   PositiveLowerTriangularMatricesTestData
+   CholeskyMetricTestData
+   
+
+Matrices
 ----------
-.. automodule:: geomstats.geometry.lie_group
-   :members:
 
-Lie Algebra
------------
-.. automodule:: geomstats.geometry.lie_algebra
-   :members:
+.. currentmodule:: geomstats.geometry.riemannian_metric
 
-Matrices Space
---------------
-.. automodule:: geomstats.geometry.matrices
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
 
-General Linear Group
---------------------
-.. automodule:: geomstats.geometry.general_linear
-   :members:
+   RiemannianMetric
 
-Special Euclidean Group
------------------------
-.. automodule:: geomstats.geometry.special_euclidean
-   :members:
+.. currentmodule:: geomstats.geometry.product_riemannian_metric
 
-Special Orthogonal Group
-------------------------
-.. automodule:: geomstats.geometry.special_orthogonal
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
 
-Graph Space
------------
-.. automodule:: geomstats.geometry.stratified.graph_space
-   :members:
+   ProductRiemannianMetric
 
-Grassmannian Manifold
----------------------
-.. automodule:: geomstats.geometry.grassmannian
-   :members:
+.. currentmodule:: geomstats.geometry.invariant_metric
 
-Landmarks Space
----------------
-.. automodule:: geomstats.geometry.landmarks
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
 
-Poincare Polydisk Space
------------------------
-.. automodule:: geomstats.geometry.poincare_polydisk
-   :members:
+   InvariantMetric
+   BiInvariantMetric
 
-Lower Triangular Matrices
--------------------------
-.. automodule:: geomstats.geometry.lower_triangular_matrices
-   :members:
+.. currentmodule:: geomstats.geometry.sub_riemannian_metric
 
-Positive Lower Triangular Matrices
-----------------------------------
-.. automodule:: geomstats.geometry.positive_lower_triangular_matrices
-   :members:
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
 
-
-Metrics
-=======
-
-Riemannian Metric
------------------
-.. automodule:: geomstats.geometry.riemannian_metric
-   :members:
-
-Product Riemannian Metric
--------------------------
-.. automodule:: geomstats.geometry.product_riemannian_metric
-   :members:
-
-Invariant Metric
-----------------
-.. automodule:: geomstats.geometry.invariant_metric
-   :members:
-
-Sasaki Metric
-----------------
-.. automodule:: geomstats.geometry.sasaki_metric
-   :members:
-
-Sub Riemannian Metric
----------------------
-.. automodule:: geomstats.geometry.sub_riemannian_metric
-   :members:
-
+   SubRiemannianMetric
 
 Connections
-===========
+------------
 
-.. automodule:: geomstats.geometry.connection
-   :members:
+.. currentmodule:: geomstats.geometry.connection
+
+.. autosummary::
+   :nosignatures:
+   :toctree: generated
+   :recursive:
+
+   Connection
+
+.. toctree::
+  :hidden:
+
+  generated/*
