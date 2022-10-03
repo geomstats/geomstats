@@ -7,10 +7,15 @@ from scipy.special import softmax
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 import geomstats.backend as gs
+from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
 
 
-class RiemannianMinimumDistanceToMean(ClassifierMixin, BaseEstimator):
+class RiemannianMinimumDistanceToMean(
+    BaseEstimator,
+    ClassifierMixin,
+    TransformerMixin,
+):
     """Minimum Distance to Mean (MDM) classifier on manifolds.
 
     Classification by nearest centroid. For each of the given classes, a
@@ -121,3 +126,28 @@ class RiemannianMinimumDistanceToMean(ClassifierMixin, BaseEstimator):
             )
             probas.append(softmax(-dist2))
         return gs.array(probas)
+
+    def transform(self, X):
+        """Compute distances to each centroid.
+
+        Compute distances to each centroid according to riemannian_metric.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, *metric.shape]
+            Test samples.
+
+        Returns
+        -------
+        dist : ndarray, shape=[n_samples, n_classes]
+            Distances to each centroid.
+        """
+        n_samples = X.shape[0]
+        dists = []
+        for i in range(n_samples):
+            dist = self.riemannian_metric.dist(
+                X[i],
+                self.mean_estimates_,
+            )
+            dists.append(dist)
+        return gs.array(dists)

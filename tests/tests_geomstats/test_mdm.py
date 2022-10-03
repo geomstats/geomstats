@@ -84,6 +84,31 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
 
             self.assertAllClose(proba_test, proba_expected)
 
+    def test_transform(self):
+        """Test the transform method."""
+        X_train_a = gs.array([[1.0, 0], [0, 1]])[None, ...]
+        X_train_b = gs.array([[EULER**10, 0], [0, 1]])[None, ...]
+        X_train = gs.concatenate([X_train_a, X_train_b])
+        y_train = gs.array([1, 2])
+
+        X_test = gs.array([[[1.0, 0], [0, 1]], [[EULER**5, 0], [0, 1]]])
+
+        for metric in METRICS:
+            MDM = RiemannianMinimumDistanceToMean(metric(n=2))
+            MDM.fit(X_train, y_train)
+            dist_test = MDM.transform(X_test)
+
+            if metric in [SPDMetricAffine, SPDMetricLogEuclidean]:
+                dist_expected = gs.array([[0.0, 10.0], [5.0, 5.0]])
+            elif metric in [SPDMetricEuclidean]:
+                dist_expected = gs.array(
+                    [[0.0, 22025.465795], [147.413159, 21878.052636]]
+                )
+            else:
+                raise ValueError("Invalid metric: {}".format(metric))
+
+            self.assertAllClose(dist_test, dist_expected)
+
     def test_score(self):
         """Test the score method."""
         X_train_a = gs.array([[EULER, 0], [0, 1]])[None, ...]
