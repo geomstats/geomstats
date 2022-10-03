@@ -248,7 +248,7 @@ class HermitianMatrices(ComplexVectorSpace):
             except AttributeError:
                 name = function[0].__name__
 
-            logging.warning(f"Negative eigenvalue encountered in {name}")
+            logging.warning("Negative eigenvalue encountered in %s", name)
 
         return_list = True
         if not isinstance(function, list):
