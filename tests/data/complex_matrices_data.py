@@ -650,20 +650,11 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
     def basis_test_data(self):
         smoke_data = [
             dict(
-                n=2,
                 m=2,
+                n=2,
                 expected=gs.array(
                     [
                         gs.cast(
-                            gs.array_from_sparse([(i, j)], [1], (2, 2)),
-                            dtype=CDTYPE,
-                        )
-                        for i in range(2)
-                        for j in range(2)
-                    ]
-                    + [
-                        1j
-                        * gs.cast(
                             gs.array_from_sparse([(i, j)], [1], (2, 2)),
                             dtype=CDTYPE,
                         )
@@ -673,20 +664,11 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                 ),
             ),
             dict(
-                n=2,
-                m=3,
+                m=2,
+                n=3,
                 expected=gs.array(
                     [
                         gs.cast(
-                            gs.array_from_sparse([(i, j)], [1], (2, 3)),
-                            dtype=CDTYPE,
-                        )
-                        for i in range(2)
-                        for j in range(3)
-                    ]
-                    + [
-                        1j
-                        * gs.cast(
                             gs.array_from_sparse([(i, j)], [1], (2, 3)),
                             dtype=CDTYPE,
                         )

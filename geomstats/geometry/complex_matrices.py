@@ -32,9 +32,7 @@ class ComplexMatrices(ComplexVectorSpace):
         """Create the canonical basis."""
         cdtype = gs.get_default_cdtype()
         m, n = self.m, self.n
-        basis_real = gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
-        basis_imag = 1j * gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
-        basis = gs.concatenate([basis_real, basis_imag], axis=0)
+        basis = gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
         return basis
 
     def belongs(self, point, atol=gs.atol):
