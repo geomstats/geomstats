@@ -28,7 +28,7 @@ def main():
     group_1 = mpatches.Patch(color=colors[1], label="Group 1")
     group_2 = mpatches.Patch(color=colors[2], label="Group 2")
 
-    circle = visualization.PoincareDisk(point_type="ball")
+    circle = visualization.PoincareDisk(coords_type="ball")
 
     _, ax = plt.subplots(figsize=(8, 8))
     ax.axes.xaxis.set_visible(False)
@@ -59,7 +59,7 @@ def main():
     labels = kmeans.predict(X=embeddings)
 
     colors = ["g", "c", "m"]
-    circle = visualization.PoincareDisk(point_type="ball")
+    circle = visualization.PoincareDisk(coords_type="ball")
     _, ax2 = plt.subplots(figsize=(8, 8))
     circle.set_ax(ax2)
     circle.draw(ax=ax2)
@@ -107,7 +107,7 @@ def main():
     labels = kmedoid.predict(data=embeddings)
 
     colors = ["g", "c", "m"]
-    circle = visualization.PoincareDisk(point_type="ball")
+    circle = visualization.PoincareDisk(coords_type="ball")
     _, ax2 = plt.subplots(figsize=(8, 8))
     circle.set_ax(ax2)
     circle.draw(ax=ax2)

@@ -177,7 +177,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         if len(data_shape) == 1:
             n_samples = data_shape[0]
             X = gs.reshape(X, (n_samples, 1))
-        super(KernelDensityEstimationClassifier, self).fit(X, y)
+        super().fit(X, y)
 
     def predict(self, X):
         """Predict the class labels for the provided data.
@@ -197,7 +197,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         if len(data_shape) == 1:
             n_samples = data_shape[0]
             X = gs.reshape(X, (n_samples, 1))
-        y_pred = super(KernelDensityEstimationClassifier, self).predict(X)
+        y_pred = super().predict(X)
         return y_pred
 
     def predict_proba(self, X):
@@ -220,5 +220,5 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         if len(data_shape) == 1:
             n_samples = data_shape[0]
             X = gs.reshape(X, (n_samples, 1))
-        probabilities = super(KernelDensityEstimationClassifier, self).predict_proba(X)
+        probabilities = super().predict_proba(X)
         return probabilities

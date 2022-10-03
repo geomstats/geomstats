@@ -5,7 +5,7 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
@@ -13,7 +13,6 @@ from geomstats.geometry.special_euclidean import (
     SpecialEuclideanMatrixLieAlgebra,
 )
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.tests import tf_backend
 from tests.data_generation import (
     TestData,
     _InvariantMetricTestData,
@@ -49,7 +48,7 @@ elements_all = {
     "point_2": point_2,
 }
 elements = elements_all
-if tf_backend():
+if tests.conftest.tf_backend():
     # Tf is extremely slow
     elements = {"point_1": point_1, "point_2": point_2}
 
@@ -398,7 +397,7 @@ class SpecialEuclidean3VectorsTestData(TestData):
         "rot_with_parallel_trans": rot_with_parallel_trans,
     }
     elements = elements_all
-    if geomstats.tests.tf_backend():
+    if tests.conftest.tf_backend():
         # Tf is extremely slow
         elements = {
             "point_1": point_1,
@@ -430,7 +429,7 @@ class SpecialEuclidean3VectorsTestData(TestData):
     # 'left': left_metric,
     # 'right': right_metric}
     metrics = metrics_all
-    if geomstats.tests.tf_backend():
+    if tests.conftest.tf_backend():
         metrics = {"left_diag": left_diag_metric}
 
     angles_close_to_pi_all = [
@@ -439,7 +438,7 @@ class SpecialEuclidean3VectorsTestData(TestData):
         "angle_close_pi_high",
     ]
     angles_close_to_pi = angles_close_to_pi_all
-    if geomstats.tests.tf_backend():
+    if tests.conftest.tf_backend():
         angles_close_to_pi = ["angle_close_pi_low"]
 
     tolerances = {
@@ -590,7 +589,7 @@ class SpecialEuclidean3VectorsTestData(TestData):
             point = self.elements_all[angle_type]
             smoke_data += [dict(point=point, expected=point)]
 
-        if not geomstats.tests.tf_backend():
+        if not tests.conftest.tf_backend():
             angle_type = "angle_pi"
             point = self.elements_all[angle_type]
             smoke_data += [dict(point=point, expected=point)]

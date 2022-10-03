@@ -186,6 +186,13 @@ class TestData:
 class _ManifoldTestData(TestData):
     """Class for ManifoldTestData: data to test manifold properties."""
 
+    def manifold_shape_test_data(self):
+        smoke_data = [
+            dict(space_args=space_args) for space_args in self.space_args_list
+        ]
+
+        return self.generate_tests(smoke_data)
+
     def random_point_belongs_test_data(self):
         """Generate data to check that a random point belongs to the manifold."""
         random_data = [
@@ -625,6 +632,18 @@ class _FiberBundleTestData(TestData):
 
 
 class _ConnectionTestData(TestData):
+    def manifold_shape_test_data(self):
+        smoke_data = []
+        for connection_args, space in zip(self.metric_args_list, self.space_list):
+            smoke_data.append(
+                dict(
+                    connection_args=connection_args,
+                    expected_shape=space.random_point().shape,
+                )
+            )
+
+        return self.generate_tests(smoke_data)
+
     def exp_shape_test_data(self):
         """Generate data to check that exp returns an array of the expected shape."""
         n_samples_list = [3] * len(self.metric_args_list)

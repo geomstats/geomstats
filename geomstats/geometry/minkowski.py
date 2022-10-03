@@ -46,7 +46,7 @@ class MinkowskiMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(MinkowskiMetric, self).__init__(dim=dim, signature=(dim - 1, 1))
+        super().__init__(dim=dim, signature=(dim - 1, 1))
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.

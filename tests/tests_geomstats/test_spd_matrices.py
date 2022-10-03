@@ -1,7 +1,7 @@
 """Unit tests for the manifold of symmetric positive definite matrices."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
@@ -145,7 +145,7 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
         result = metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_parallel_transport(self, n):
         space = SPDMatrices(*n)
         metric = self.Metric(*n)
@@ -216,7 +216,7 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, gs.array(expected))
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_autograd_and_tf_only
     def test_exp_domain(self, n, power_euclidean, tangent_vec, base_point, expected):
         metric = self.Metric(n, power_euclidean)
         result = metric.exp_domain(

@@ -3,12 +3,12 @@
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.wrapped_gaussian_process import WrappedGaussianProcess
 
 
-class TestWrappedGaussianProcess(geomstats.tests.TestCase):
+class TestWrappedGaussianProcess(tests.conftest.TestCase):
     def setup_method(self):
         gs.random.seed(1234)
         self.n_samples = 20

@@ -1,7 +1,7 @@
 """Unit tests for the functions manifolds."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.functions import HilbertSphere
 
 
@@ -15,7 +15,7 @@ def gaussian(x, mu, sig):
     return gs.array([f_sinf])
 
 
-class TestHilbertSphereMetric(geomstats.tests.TestCase):
+class TestHilbertSphereMetric(tests.conftest.TestCase):
     def setup_method(self):
         self.domain = gs.linspace(0, 1, num=50)
         self.f = gaussian(self.domain, 0.5, 0.1)
@@ -47,7 +47,7 @@ class TestHilbertSphereMetric(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(log), gs.shape(self.points))
 
 
-class TestHilbertSphere(geomstats.tests.TestCase):
+class TestHilbertSphere(tests.conftest.TestCase):
     def setup_method(self):
         self.domain = gs.linspace(0, 1, num=50)
         self.manifold = HilbertSphere(self.domain)
@@ -80,7 +80,7 @@ class TestHilbertSphere(geomstats.tests.TestCase):
         result = self.manifold.to_tangent(self.points, self.point_a)
         self.assertAllClose(gs.shape(result), gs.shape(self.points))
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_is_tangent(self):
         tangent_vec = self.manifold.to_tangent(self.point_a, self.point_b)
         result = self.manifold.is_tangent(tangent_vec, self.point_b)

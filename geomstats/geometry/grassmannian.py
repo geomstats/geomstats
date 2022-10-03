@@ -41,7 +41,6 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
@@ -185,7 +184,7 @@ class Grassmannian(LevelSet):
 
         kwargs.setdefault("metric", GrassmannianCanonicalMetric(n, p))
         dim = int(p * (n - p))
-        super(Grassmannian, self).__init__(
+        super().__init__(
             dim=dim,
             embedding_space=SymmetricMatrices(n),
             submersion=lambda x: submersion(x, p),
@@ -296,7 +295,7 @@ class Grassmannian(LevelSet):
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
 
-class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
+class GrassmannianCanonicalMetric(MatricesMetric):
     """Canonical metric of the Grassmann manifold.
 
     Coincides with the Frobenius metric.
@@ -316,9 +315,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             raise ValueError("p <= n is required.")
 
         dim = int(p * (n - p))
-        super(GrassmannianCanonicalMetric, self).__init__(
-            m=n, n=n, dim=dim, signature=(dim, 0, 0)
-        )
+        super().__init__(m=n, n=n, dim=dim, signature=(dim, 0, 0))
 
         self.n = n
         self.p = p

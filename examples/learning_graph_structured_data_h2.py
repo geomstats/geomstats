@@ -185,7 +185,7 @@ def main():
             "iteration %d loss_value %f", epoch, sum(total_loss, 0) / len(total_loss)
         )
 
-    circle = visualization.PoincareDisk(point_type="ball")
+    circle = visualization.PoincareDisk(coords_type="ball")
     plt.figure()
     ax = plt.subplot(111)
     circle.add_points(gs.array([[0, 0]]))

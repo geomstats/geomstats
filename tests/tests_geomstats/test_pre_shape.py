@@ -3,7 +3,7 @@
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
 from tests.conftest import Parametrizer, np_autograd_and_torch_only
@@ -72,7 +72,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         result = gs.all(Matrices.is_symmetric(alignment))
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_integrability_tensor(
         self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):
@@ -109,7 +109,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_integrability_tensor_old(
         self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):
@@ -121,7 +121,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         expected = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_integrability_tensor_derivative_is_alternate(
         self,
         k_landmarks,
@@ -160,7 +160,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         self.assertAllClose(a_y_z + a_z_y, gs.zeros_like(result), atol=gs.atol * 10)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_integrability_tensor_derivative_is_skew_symmetric(
         self,
         k_landmarks,
@@ -209,7 +209,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_integrability_tensor_derivative_reverses_hor_ver(
         self,
         k_landmarks,
@@ -260,7 +260,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         result = scal(nabla_x_a_y_v, ver_w) + scal(a_y_v, nabla_x_w)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_integrability_tensor_derivative_parallel(
         self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, base_point
     ):
@@ -284,7 +284,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         self.assertAllClose(a_y_z, a_y_z_qp, atol=gs.atol * 10)
         self.assertAllClose(nabla_x_a_y_z, nabla_x_a_y_z_qp, atol=gs.atol * 10)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_iterated_integrability_tensor_derivative_parallel(
         self, k_landmarks, m_ambient, hor_x, hor_y, base_point
     ):
@@ -353,7 +353,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.zeros_like(result)
         self.assertAllClose(result, expected, atol=gs.atol * 100)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_curvature_bianchi_identity(
         self,
         k_landmarks,
@@ -415,7 +415,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = kappa > 1.0 - 1e-10
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_kendall_curvature_derivative_bianchi_identity(
         self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, hor_h, base_point
     ):
@@ -445,7 +445,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = metric.curvature_derivative(hor_x, hor_y, hor_y, hor_z, base_point)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_directional_curvature_derivative(
         self, k_landmarks, m_ambient, hor_x, hor_y, base_point
     ):
@@ -479,7 +479,7 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         ).directional_curvature_derivative(hor_x, hor_y, base_point)
         self.assertAllClose(result_connection, expected, atol=gs.atol * 10)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_directional_curvature_derivative_is_quadratic(
         self, k_landmarks, m_ambient, coef_x, coef_y, hor_x, hor_y, base_point
     ):

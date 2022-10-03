@@ -44,7 +44,7 @@ class _Hypersphere(LevelSet):
 
     def __init__(self, dim, default_coords_type="extrinsic"):
 
-        super(_Hypersphere, self).__init__(
+        super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim + 1),
             submersion=lambda x: gs.sum(x**2, axis=-1),
@@ -658,9 +658,7 @@ class HypersphereMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(HypersphereMetric, self).__init__(
-            dim=dim, shape=(dim + 1,), signature=(dim, 0)
-        )
+        super().__init__(dim=dim, shape=(dim + 1,), signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
 
@@ -876,7 +874,7 @@ class HypersphereMetric(RiemannianMetric):
         )
         return transported
 
-    def christoffels(self, point, point_type="spherical"):
+    def christoffels(self, point, coords_type="spherical"):
         """Compute the Christoffel symbols at a point.
 
         Only implemented in dimension 2 and for spherical coordinates.
@@ -886,7 +884,7 @@ class HypersphereMetric(RiemannianMetric):
         point : array-like, shape=[..., dim]
             Point on hypersphere where the Christoffel symbols are computed.
 
-        point_type: str, {'spherical', 'intrinsic', 'extrinsic'}
+        coords_type: str, {'spherical', 'intrinsic', 'extrinsic'}
             Coordinates in which to express the Christoffel symbols.
             Optional, default: 'spherical'.
 
@@ -896,7 +894,7 @@ class HypersphereMetric(RiemannianMetric):
                                          covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """
-        if self.dim != 2 or point_type != "spherical":
+        if self.dim != 2 or coords_type != "spherical":
             raise NotImplementedError(
                 "The Christoffel symbols are only implemented"
                 " for spherical coordinates in the 2-sphere"
@@ -1136,5 +1134,5 @@ class Hypersphere(_Hypersphere):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
-        super(Hypersphere, self).__init__(dim, default_coords_type)
+        super().__init__(dim, default_coords_type)
         self._metric = HypersphereMetric(dim)

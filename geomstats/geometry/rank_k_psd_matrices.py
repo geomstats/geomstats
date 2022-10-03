@@ -30,7 +30,7 @@ class RankKPSDMatrices(Manifold):
 
     def __init__(self, n, k, **kwargs):
         kwargs.setdefault("metric", PSDMetricBuresWasserstein(n, k))
-        super(RankKPSDMatrices, self).__init__(
+        super().__init__(
             **kwargs,
             dim=int(k * n - k * (k + 1) / 2),
             shape=(n, n),
@@ -217,7 +217,7 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
     """Class for the quotient structure on PSD matrices."""
 
     def __init__(self, n, k):
-        super(BuresWassersteinBundle, self).__init__(
+        super().__init__(
             n=n,
             k=k,
             group=SpecialOrthogonal(k),
@@ -318,6 +318,4 @@ class PSDMetricBuresWasserstein(QuotientMetric):
 
     def __init__(self, n, k):
         fiber_bundle = BuresWassersteinBundle(n, k)
-        super(PSDMetricBuresWasserstein, self).__init__(
-            fiber_bundle=fiber_bundle, shape=(n, k)
-        )
+        super().__init__(fiber_bundle=fiber_bundle, shape=(n, n))

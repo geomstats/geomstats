@@ -37,12 +37,7 @@ class QuotientMetric(RiemannianMetric):
                     "or the group acting on the "
                     "total space must be provided to the fiber bundle."
                 )
-        super(QuotientMetric, self).__init__(
-            dim=dim,
-            shape=shape,
-            default_point_type=fiber_bundle.default_point_type,
-            **kwargs
-        )
+        super().__init__(dim=dim, shape=shape, **kwargs)
 
         self.fiber_bundle = fiber_bundle
         self.group = fiber_bundle.group

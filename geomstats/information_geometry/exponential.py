@@ -20,7 +20,7 @@ class ExponentialDistributions(OpenSet):
     """
 
     def __init__(self):
-        super(ExponentialDistributions, self).__init__(
+        super().__init__(
             dim=1, ambient_space=Euclidean(dim=1), metric=ExponentialFisherRaoMetric()
         )
 
@@ -156,7 +156,7 @@ class ExponentialFisherRaoMetric(RiemannianMetric):
     """
 
     def __init__(self):
-        super(ExponentialFisherRaoMetric, self).__init__(dim=1)
+        super().__init__(dim=1)
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Compute squared distance associated with the exponential Fisher Rao metric.

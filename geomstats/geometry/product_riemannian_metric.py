@@ -28,16 +28,25 @@ class ProductRiemannianMetric(RiemannianMetric):
     """
 
     def __init__(self, metrics, default_point_type="vector", n_jobs=1):
+
+        geomstats.errors.check_parameter_accepted_values(
+            default_point_type, "default_point_type", ["vector", "matrix"]
+        )
+        if default_point_type == "vector":
+            shape = (sum([m.shape[0] for m in metrics]),)
+        else:
+            shape = (len(metrics), *metrics[0].shape)
+
         self.n_metrics = len(metrics)
         dims = [metric.dim for metric in metrics]
         signatures = [metric.signature for metric in metrics]
 
         sig_pos = sum(sig[0] for sig in signatures)
         sig_neg = sum(sig[1] for sig in signatures)
-        super(ProductRiemannianMetric, self).__init__(
+        super().__init__(
             dim=sum(dims),
             signature=(sig_pos, sig_neg),
-            default_point_type=default_point_type,
+            shape=shape,
         )
 
         self.metrics = metrics
@@ -45,7 +54,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         self.signatures = signatures
         self.n_jobs = n_jobs
 
-    def metric_matrix(self, base_point=None, point_type=None):
+    def metric_matrix(self, base_point=None):
         """Compute the matrix of the inner-product.
 
         Matrix of the inner-product defined by the Riemmanian metric
@@ -57,9 +66,6 @@ class ProductRiemannianMetric(RiemannianMetric):
             [..., dim]
             Point on the manifold at which to compute the inner-product matrix.
             Optional, default: None.
-        point_type : str, {'vector', 'matrix'}
-            Type of representation used for points.
-            Optional, default: None.
 
         Returns
         -------
@@ -68,9 +74,6 @@ class ProductRiemannianMetric(RiemannianMetric):
             Matrix of the inner-product at the base point.
 
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
 
@@ -78,17 +81,13 @@ class ProductRiemannianMetric(RiemannianMetric):
         cum_dim = 0
         for i in range(self.n_metrics):
             cum_dim_next = cum_dim + self.dims[i]
-            if point_type == "matrix":
-                matrix_next = self.metrics[i].metric_matrix(base_point[:, i])
-            elif point_type == "vector":
+            if self.default_point_type == "vector":
                 matrix_next = self.metrics[i].metric_matrix(
                     base_point[:, cum_dim:cum_dim_next, cum_dim:cum_dim_next]
                 )
             else:
-                raise ValueError(
-                    "invalid point_type argument: {}, expected "
-                    "either matrix of vector".format(point_type)
-                )
+                matrix_next = self.metrics[i].metric_matrix(base_point[:, i])
+
             matrix[:, cum_dim:cum_dim_next, cum_dim:cum_dim_next] = matrix_next
             cum_dim = cum_dim_next
         return matrix[0] if len(base_point) == 1 else matrix
@@ -96,7 +95,7 @@ class ProductRiemannianMetric(RiemannianMetric):
     def is_intrinsic(self, point):
         """Test in a point is represented in intrinsic coordinates.
 
-        This method is only useful for `point_type=vector`.
+        This method is only useful for `point_type == vector`.
 
         Parameters
         ----------
@@ -143,7 +142,10 @@ class ProductRiemannianMetric(RiemannianMetric):
         return out
 
     def inner_product(
-        self, tangent_vec_a, tangent_vec_b, base_point=None, point_type=None
+        self,
+        tangent_vec_a,
+        tangent_vec_b,
+        base_point=None,
     ):
         """Compute the inner-product of two tangent vectors at a base point.
 
@@ -159,9 +161,6 @@ class ProductRiemannianMetric(RiemannianMetric):
         base_point : array-like, shape=[..., dim + 1]
             Point on the manifold.
             Optional, default: None.
-        point_type : str, {'vector', 'matrix'}
-            Type of representation used for points.
-            Optional, default: None.
 
         Returns
         -------
@@ -171,13 +170,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = gs.empty((self.n_metrics, self.dim))
 
-        if point_type is None:
-            point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, "point_type", ["vector", "matrix"]
-        )
-
-        if point_type == "vector":
+        if self.default_point_type == "vector":
             intrinsic = self.is_intrinsic(tangent_vec_b)
             args = {
                 "tangent_vec_a": tangent_vec_a,
@@ -197,7 +190,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         ]
         return sum(inner_products)
 
-    def exp(self, tangent_vec, base_point=None, point_type=None, **kwargs):
+    def exp(self, tangent_vec, base_point=None, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -206,9 +199,6 @@ class ProductRiemannianMetric(RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-            Optional, default: None.
-        point_type : str, {'vector', 'matrix'}
-            Type of representation used for points.
             Optional, default: None.
 
         Returns
@@ -222,13 +212,7 @@ class ProductRiemannianMetric(RiemannianMetric):
                 None,
             ] * self.n_metrics
 
-        if point_type is None:
-            point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, "point_type", ["vector", "matrix"]
-        )
-
-        if point_type == "vector":
+        if self.default_point_type == "vector":
             intrinsic = self.is_intrinsic(base_point)
             args = {"tangent_vec": tangent_vec, "base_point": base_point}
             exp = self._iterate_over_metrics("exp", args, intrinsic)
@@ -243,7 +227,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         )
         return exp[0] if len(tangent_vec) == 1 else exp
 
-    def log(self, point, base_point=None, point_type=None, **kwargs):
+    def log(self, point, base_point=None, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -252,9 +236,6 @@ class ProductRiemannianMetric(RiemannianMetric):
             Point on the manifold.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-            Optional, default: None.
-        point_type : str, {'vector', 'matrix'}
-            Type of representation used for points.
             Optional, default: None.
 
         Returns
@@ -266,13 +247,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None] * self.n_metrics
 
-        if point_type is None:
-            point_type = self.default_point_type
-        geomstats.errors.check_parameter_accepted_values(
-            point_type, "point_type", ["vector", "matrix"]
-        )
-
-        if point_type == "vector":
+        if self.default_point_type == "vector":
             intrinsic = self.is_intrinsic(base_point)
             args = {"point": point, "base_point": base_point}
             logs = self._iterate_over_metrics("log", args, intrinsic)
@@ -307,7 +282,7 @@ class NFoldMetric(RiemannianMetric):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_metric.dim
         base_shape = base_metric.shape
-        super(NFoldMetric, self).__init__(dim=dim, shape=(n_copies, *base_shape))
+        super().__init__(dim=dim, shape=(n_copies, *base_shape))
         self.base_shape = base_shape
         self.base_metric = base_metric
         self.n_copies = n_copies

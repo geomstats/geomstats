@@ -3,7 +3,7 @@
 import warnings
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.information_geometry.categorical import (
     CategoricalDistributions,
     CategoricalMetric,
@@ -11,7 +11,7 @@ from geomstats.information_geometry.categorical import (
 from geomstats.information_geometry.multinomial import MultinomialDistributions
 
 
-class TestCategoricalDistributions(geomstats.tests.TestCase):
+class TestCategoricalDistributions(tests.conftest.TestCase):
     """Class defining the categorical distributions tests."""
 
     def setup_method(self):
@@ -57,7 +57,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = gs.zeros(self.n_points)
         self.assertAllClose(expected, result, atol=1e-05)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_sample(self):
         """Test sample.
 

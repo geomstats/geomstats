@@ -29,7 +29,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         kwargs.setdefault("dim", n**2)
         kwargs.setdefault("metric", ambient_space.metric)
 
-        super(GeneralLinear, self).__init__(
+        super().__init__(
             ambient_space=ambient_space, n=n, lie_algebra=SquareMatrices(n), **kwargs
         )
 
@@ -179,7 +179,7 @@ class SquareMatrices(MatrixLieAlgebra):
     """
 
     def __init__(self, n):
-        super(SquareMatrices, self).__init__(n=n, dim=n**2)
+        super().__init__(n=n, dim=n**2)
         self.mat_space = Matrices(n, n)
 
     def _create_basis(self):

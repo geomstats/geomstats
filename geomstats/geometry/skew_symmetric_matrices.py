@@ -24,7 +24,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
     def __init__(self, n):
         dim = int(n * (n - 1) / 2)
-        super(SkewSymmetricMatrices, self).__init__(dim, n)
+        super().__init__(dim, n)
         self.ambient_space = Matrices(n, n)
 
     def _create_basis(self):
@@ -88,9 +88,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         point : array-like, shape=[..., n, n]
             Sample.
         """
-        return self.projection(
-            super(SkewSymmetricMatrices, self).random_point(n_samples, bound)
-        )
+        return self.projection(super().random_point(n_samples, bound))
 
     @classmethod
     def projection(cls, mat):

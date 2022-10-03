@@ -18,20 +18,13 @@ class Euclidean(VectorSpace):
     """
 
     def __init__(self, dim):
-        super(Euclidean, self).__init__(
+        super().__init__(
             shape=(dim,),
-            default_point_type="vector",
             metric=EuclideanMetric(dim, shape=(dim,)),
         )
 
     def get_identity(self):
         """Get the identity of the group.
-
-        Parameters
-        ----------
-        point_type : str, {'vector', 'matrix'}
-            The point_type of the returned value.
-            Optional, default: self.default_point_type
 
         Returns
         -------
@@ -82,7 +75,7 @@ class EuclideanMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, shape=None):
-        super(EuclideanMetric, self).__init__(
+        super().__init__(
             dim=dim,
             shape=shape,
             signature=(dim, 0),

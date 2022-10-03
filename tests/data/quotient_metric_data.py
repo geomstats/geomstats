@@ -10,7 +10,7 @@ from tests.data_generation import TestData
 
 class BuresWassersteinBundle(GeneralLinear, FiberBundle):
     def __init__(self, n):
-        super(BuresWassersteinBundle, self).__init__(
+        super().__init__(
             n=n,
             group=SpecialOrthogonal(n),
             total_space_metric=MatricesMetric(n, n),

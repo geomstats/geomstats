@@ -232,7 +232,7 @@ class Parametrizer(type):
             else:
                 attrs[attr_name] = pytest.mark.skip("skipped")(test_func)
 
-        return super(Parametrizer, cls).__new__(cls, name, bases, attrs)
+        return super().__new__(cls, name, bases, attrs)
 
 
 class TestCase:

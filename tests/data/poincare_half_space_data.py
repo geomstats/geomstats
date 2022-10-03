@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
@@ -135,7 +135,7 @@ class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
 
         inputs_to_exp = [(gs.array([2.0, 1.0]), gs.array([1.0, 1.0]))]
         smoke_data = []
-        if not geomstats.tests.tf_backend():
+        if not tests.conftest.tf_backend():
             for tangent_vec, base_point in inputs_to_exp:
                 smoke_data.append(
                     dict(
