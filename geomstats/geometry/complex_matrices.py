@@ -730,8 +730,7 @@ class ComplexMatrices(ComplexVectorSpace):
         """
         return Matrices.trace_product(mat_1, mat_2)
 
-    @staticmethod
-    def flatten(mat):
+    def flatten(self, mat):
         """Return a flattened form of the matrix.
 
         Flatten a matrix (compatible with vectorization on data axis 0).
@@ -751,10 +750,9 @@ class ComplexMatrices(ComplexVectorSpace):
         vec : array-like, shape=[..., m * n]
             Flatten copy of mat.
         """
-        return Matrices.flatten(mat)
+        return Matrices.flatten(self, mat)
 
-    @staticmethod
-    def reshape(vec):
+    def reshape(self, vec):
         """Return a matricized form of the vector.
 
         Matricize a vector (compatible with vectorization on data axis 0).
@@ -774,7 +772,7 @@ class ComplexMatrices(ComplexVectorSpace):
         mat : array-like, shape=[..., m, n]
             Matricized copy of vec.
         """
-        return Matrices.reshape(vec)
+        return Matrices.reshape(self, vec)
 
     @classmethod
     def align_matrices(cls, point, base_point):
