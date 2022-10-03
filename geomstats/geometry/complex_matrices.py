@@ -7,7 +7,7 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.hermitian import HermitianMetric
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
 class ComplexMatrices(ComplexVectorSpace):
@@ -850,3 +850,24 @@ class ComplexMatricesMetric(HermitianMetric):
         sq_norm = self.inner_product(vector, vector, base_point)
         sq_norm = gs.real(sq_norm)
         return sq_norm
+
+    @staticmethod
+    def norm(vector, base_point=None):
+        """Compute norm of a complex matrix.
+
+        Norm of a matrix associated to the Frobenius inner product.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        norm : array-like, shape=[...,]
+            Norm.
+        """
+        return MatricesMetric.norm(vector)
