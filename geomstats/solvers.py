@@ -89,6 +89,26 @@ class SCPSolveIVP(ODEIVPSolver):
         self.options = options
 
     def integrate(self, force, initial_state, end_time=1.0):
+        # TODO: parallelize
+        n_points = gs.shape(initial_state)[0] if gs.ndim(initial_state) > 2 else 1
+
+        if n_points > 1:
+            results = []
+            for position, velocity in zip(*initial_state):
+                initial_state_ = gs.stack([position, velocity])
+                results.append(self._integrate_single(force, initial_state_, end_time))
+
+            result = self._merge_results(results)
+
+        else:
+            result = self._integrate_single(force, initial_state, end_time)
+
+        if self.save_result:
+            self.result_ = result
+
+        return result
+
+    def _integrate_single(self, force, initial_state, end_time=1.0):
         # TODO: need to handle single vs multiple point
         # TODO: possible to solve at different time steps (great for geodesic)
         raveled_initial_state = gs.flatten(initial_state)
@@ -107,9 +127,6 @@ class SCPSolveIVP(ODEIVPSolver):
         result = self._ode_result_to_backend_type(result)
         result.y = gs.moveaxis(result.y, 0, -1)
 
-        if self.save_result:
-            self.result_ = result
-
         return result
 
     def _ode_result_to_backend_type(self, ode_result):
@@ -121,6 +138,20 @@ class SCPSolveIVP(ODEIVPSolver):
                 ode_result[key] = gs.array(value)
 
         return ode_result
+
+    def _merge_results(self, results):
+        keys = ["t", "y", "nfev", "njev", "success"]
+        merged_results = {key: [] for key in keys}
+
+        for result in results:
+            for key, value in merged_results.items():
+                merged_results[key].append(result[key])
+
+        merged_results = {key: gs.array(value) for key, value in merged_results.items()}
+        merged_results["t"] = gs.moveaxis(merged_results["t"], 0, 1)
+        merged_results["y"] = gs.moveaxis(merged_results["y"], 0, 1)
+
+        return OdeResult(**merged_results)
 
 
 class LogSolver(metaclass=ABCMeta):
@@ -169,7 +200,7 @@ class ExpODESolver(ExpSolver):
     def _force_raveled_state(self, raveled_initial_state, _, metric):
         # assumes unvectorized
         position = raveled_initial_state[: metric.dim]
-        velocity = raveled_initial_state[metric.dim:]
+        velocity = raveled_initial_state[metric.dim :]
 
         state = gs.stack([position, velocity])
         # TODO: remove dependency on time in `geodesic_equation`?
@@ -184,6 +215,6 @@ class ExpODESolver(ExpSolver):
         y = result.y[-1]
 
         if self.integrator.state_is_raveled:
-            return y[: metric.dim]
+            return y[..., : metric.dim]
 
         return y[0]
