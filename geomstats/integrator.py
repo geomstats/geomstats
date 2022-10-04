@@ -18,10 +18,15 @@ from geomstats.errors import check_parameter_accepted_values
 
 STEP_FUNCTIONS = {
     "euler": "euler_step",
-    "symp_euler": "symplectic_euler_step",
-    "leapfrog": "leapfrog_step",
     "rk4": "rk4_step",
     "rk2": "rk2_step",
+}
+
+
+FEVALS_PER_STEP = {
+    "euler": 1,
+    "rk4": 4,
+    "rk2": 2,
 }
 
 
