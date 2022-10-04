@@ -154,12 +154,6 @@ class SCPSolveIVP(ODEIVPSolver):
         return OdeResult(**merged_results)
 
 
-class LogSolver(metaclass=ABCMeta):
-    @abstractmethod
-    def solve(self, metric, point, base_point):
-        pass
-
-
 class ExpSolver(metaclass=ABCMeta):
     @abstractmethod
     def solve(self, metric, tangent_vec, base_point):
@@ -200,7 +194,7 @@ class ExpODESolver(ExpSolver):
     def _force_raveled_state(self, raveled_initial_state, _, metric):
         # assumes unvectorized
         position = raveled_initial_state[: metric.dim]
-        velocity = raveled_initial_state[metric.dim :]
+        velocity = raveled_initial_state[metric.dim:]
 
         state = gs.stack([position, velocity])
         # TODO: remove dependency on time in `geodesic_equation`?
@@ -218,3 +212,58 @@ class ExpODESolver(ExpSolver):
             return y[..., : metric.dim]
 
         return y[0]
+
+
+class SCPMinimize:
+    def __init__(self, method="L-BFGS-B", **options):
+        # TODO: add save result
+        self.method = method
+        self.options = options
+
+        self.options.setdefault("maxiter", 25)
+
+    def optimize(self, func, x0, jac=True):
+
+        result = scipy.optimize.minimize(
+            func,
+            x0,
+            method=self.method,
+            jac=jac,
+            options=self.options,
+        )
+
+        return result
+
+
+class LogSolver(metaclass=ABCMeta):
+    @abstractmethod
+    def solve(self, metric, point, base_point):
+        pass
+
+
+class LogShootingSolver(LogSolver):
+    def __init__(self, optimizer=None):
+        if optimizer is None:
+            optimizer = SCPMinimize()
+
+        self.optimizer = optimizer
+
+    def objective(self, velocity, metric, point, base_point):
+        delta = metric.exp(velocity, base_point) - point
+        return gs.sum(delta**2)
+
+    def jacobian(self, objective):
+        return gs.autodiff.jacobian(objective)
+
+    def solve(self, metric, point, base_point):
+        # TODO: vectorize here?
+        # TODO: ensure it works with all backends
+
+        objective = lambda velocity: self.objective(velocity, metric, point, base_point)
+
+        jacobian = self.jacobian(objective)
+        tangent_vec = gs.random.rand(*base_point.shape)
+
+        result = self.optimizer.optimize(objective, tangent_vec, jac=jacobian)
+
+        return result
