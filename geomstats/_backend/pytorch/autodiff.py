@@ -2,6 +2,7 @@
 
 import numpy as _np
 import torch as _torch
+from torch.autograd.functional import hessian as _torch_hess
 from torch.autograd.functional import jacobian as _torch_jac
 
 
@@ -94,6 +95,23 @@ def jacobian(func):
         the jacobian of func at x.
     """
     return lambda x: _torch_jac(func, x)
+
+
+def hessian(func):
+    """Return a function that returns the hessian of func.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Hessian is computed.
+
+    Returns
+    -------
+    _ : callable
+        Function taking point as input and returning
+        the hessian of func at point.
+    """
+    return lambda point: _torch_hess(func=lambda x: func(x), inputs=point, strict=True)
 
 
 def value_and_grad(func, to_numpy=False):
