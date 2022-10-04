@@ -187,6 +187,29 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected)
 
+    def test_inner_product_derivative_matrix_s2(self, dim, base_point):
+        metric = self.Metric(
+            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
+        )
+        theta, _ = base_point[0], base_point[1]
+
+        derivative_matrix = metric.inner_product_derivative_matrix(base_point)
+        print(derivative_matrix)
+
+        assert ~gs.allclose(derivative_matrix, gs.zeros((dim, dim, dim)))
+
+        # derivative with respect to theta
+        expected_1 = gs.array([[0, 0], [0, gs.cos(theta)]])
+
+        # derivative with respect to phi
+        # expected_2 = gs.array([[0, 0], [0, 0]])
+
+        assert gs.allclose(derivative_matrix.shape, (2, 2, 2)), derivative_matrix.shape
+        assert gs.allclose(
+            derivative_matrix[0].shape, expected_1.shape
+        ), derivative_matrix[0].shape
+        assert gs.allclose(derivative_matrix[:, :, 0], expected_1), derivative_matrix[0]
+
     @pytest.mark.skip("earlier it was commented.")
     def test_christoffels_and_sphere_christoffels(self, dim, base_point):
         """Test consistency between sphere's christoffels.

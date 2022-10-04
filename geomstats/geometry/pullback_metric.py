@@ -50,6 +50,7 @@ class PullbackMetric(RiemannianMetric):
         tangent_immersion=None,
     ):
         super().__init__(dim=dim)
+        self.embedding_dim = embedding_dim
         self.embedding_metric = EuclideanMetric(embedding_dim)
         self.immersion = immersion
         if jacobian_immersion is None:
@@ -137,7 +138,7 @@ class PullbackMetric(RiemannianMetric):
             hessian_aij[a, :, :] = hessian_a
 
             jacobian_a = gs.autodiff.jacobian(immersion_a)(base_point)
-            jacobian_a = gs.squeeze(jacobian_a, dim=0)
+            jacobian_a = gs.squeeze(jacobian_a, axis=0)
             if len(jacobian_a.shape) == 0:
                 jacobian_a = gs.to_ndarray(jacobian_a, to_ndim=1)
             jacobian_ai[a, :] = jacobian_a

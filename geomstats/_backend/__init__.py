@@ -152,7 +152,7 @@ BACKEND_ATTRIBUTES = {
         "zeros_like",
         "trapz",
     ],
-    "autodiff": ["custom_gradient", "detach", "jacobian", "value_and_grad"],
+    "autodiff": ["custom_gradient", "detach", "hessian", "jacobian", "value_and_grad"],
     "linalg": [
         "cholesky",
         "det",
