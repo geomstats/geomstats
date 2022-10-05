@@ -126,9 +126,6 @@ class PullbackMetric(RiemannianMetric):
         inner_prod_deriv_mat : array-like, shape=[..., dim, dim, dim]
             Inner-product derivative matrix.
         """
-        # hessian_aij = gs.zeros((self.embedding_dim, self.dim, self.dim))
-        # jacobian_ai = gs.zeros((self.embedding_dim, self.dim))
-
         hessian_aij = []
         jacobian_ai = []
         for a in range(self.embedding_dim):
@@ -136,27 +133,15 @@ class PullbackMetric(RiemannianMetric):
             def immersion_a(x):
                 return self.immersion(x)[a]
 
-            # print(immersion_a(gs.array(0.)).shape)
-            # print(immersion_a(gs.array([0.])).shape)
-            # print(immersion_a(gs.array([[0.]])).shape)
             hessian_a = gs.autodiff.hessian(immersion_a)(base_point)
             if self.dim == 1 and hessian_a.ndim > 2:
                 hessian_a = gs.squeeze(hessian_a, axis=-1)
-            # print("HESSIAN")
-            # print(type(hessian_a))
-            # print(hessian_a)
             hessian_aij.append(hessian_a)
-            # hessian_aij[a] = hessian_a
 
             jacobian_a = gs.autodiff.jacobian(immersion_a)(base_point)
             jacobian_a = gs.squeeze(jacobian_a, axis=0)
             if len(jacobian_a.shape) == 0:
                 jacobian_a = gs.to_ndarray(jacobian_a, to_ndim=1)
-            # jacobian_ai.append(jacobian_a)
-            # print(type(jacobian_ai))
-            # print(type(jacobian_a))
-            # print(type(gs.to_numpy(jacobian_a)))
-            # print(jacobian_a.shape)
             jacobian_ai.append(jacobian_a)
 
         hessian_aij = gs.stack(hessian_aij, axis=0)
