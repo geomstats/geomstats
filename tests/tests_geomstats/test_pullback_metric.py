@@ -200,13 +200,9 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         # derivative with respect to phi
         expected_2 = gs.zeros((2, 2))
 
-        self.assertAllClose(derivative_matrix.shape, (2, 2, 2)), derivative_matrix.shape
-        self.assertAllClose(derivative_matrix[:, :, 0], expected_1), derivative_matrix[
-            0
-        ]
-        self.assertAllClose(derivative_matrix[:, :, 1], expected_2), derivative_matrix[
-            1
-        ]
+        self.assertAllClose(derivative_matrix.shape, (2, 2, 2))
+        self.assertAllClose(derivative_matrix[:, :, 0], expected_1)
+        self.assertAllClose(derivative_matrix[:, :, 1], expected_2)
 
     def test_christoffels_and_sphere_christoffels(self, dim, base_point):
         """Test consistency between sphere's christoffels.
@@ -232,22 +228,21 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
         christoffels = pullback_metric.christoffels(base_point)
 
-        self.assertAllClose(christoffels.shape, (2, 2, 2)), christoffels.shape
-        assert ~gs.allclose(christoffels, gs.zeros((2, 2, 2))), "christoffels are zero"
+        self.assertAllClose(christoffels.shape, (2, 2, 2))
 
         expected_1_11 = expected_2_11 = expected_2_22 = expected_1_12 = 0
 
-        self.assertAllClose(christoffels[0, 0, 0], expected_1_11), christoffels[0, 0, 0]
-        self.assertAllClose(christoffels[1, 0, 0], expected_2_11), christoffels[1, 0, 0]
-        self.assertAllClose(christoffels[1, 1, 1], expected_2_22), christoffels[1, 1, 1]
-        self.assertAllClose(christoffels[0, 0, 1], expected_1_12), christoffels[0, 0, 1]
+        self.assertAllClose(christoffels[0, 0, 0], expected_1_11)
+        self.assertAllClose(christoffels[1, 0, 0], expected_2_11)
+        self.assertAllClose(christoffels[1, 1, 1], expected_2_22)
+        self.assertAllClose(christoffels[0, 0, 1], expected_1_12)
 
         expected_1_22 = -gs.sin(theta) * gs.cos(theta)
         expected_2_12 = expected_2_21 = gs.cos(theta) / gs.sin(theta)
 
-        self.assertAllClose(christoffels[0, 1, 1], expected_1_22), christoffels[0, 1, 1]
-        self.assertAllClose(christoffels[1, 0, 1], expected_2_12), christoffels[1, 0, 1]
-        self.assertAllClose(christoffels[1, 1, 0], expected_2_21), christoffels[1, 1, 0]
+        self.assertAllClose(christoffels[0, 1, 1], expected_1_22)
+        self.assertAllClose(christoffels[1, 0, 1], expected_2_12)
+        self.assertAllClose(christoffels[1, 1, 0], expected_2_21)
 
     def test_christoffels_circle(self, dim, base_point):
         """Test consistency between sphere's christoffels.
@@ -263,7 +258,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         result = pullback_metric.christoffels(base_point)
 
-        self.assertAllClose(result.shape, (1, 1, 1)), result.shape
+        self.assertAllClose(result.shape, (1, 1, 1))
         self.assertAllClose(result, gs.zeros((1, 1, 1)))
 
     def test_exp_and_sphere_exp(self, dim, tangent_vec, base_point):
