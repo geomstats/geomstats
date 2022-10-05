@@ -22,7 +22,7 @@ class NormalDistributions(PoincareHalfSpace, InformationManifold):
 
     def __init__(self):
         super().__init__(dim=2)
-        self.metric = FisherRaoMetric()
+        self.metric = NormalMetric()
 
     @staticmethod
     def random_point(n_samples=1, bound=1.0):
@@ -116,7 +116,7 @@ class NormalDistributions(PoincareHalfSpace, InformationManifold):
         return pdf
 
 
-class FisherRaoMetric(PoincareHalfSpaceMetric):
+class NormalMetric(PoincareHalfSpaceMetric):
     """Class for the Fisher information metric on normal distributions.
 
     This is the metric of the Poincare upper half-plane.
