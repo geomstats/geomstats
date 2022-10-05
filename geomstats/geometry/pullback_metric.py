@@ -136,8 +136,12 @@ class PullbackMetric(RiemannianMetric):
             def immersion_a(x):
                 return self.immersion(x)[a]
 
+            # print(immersion_a(gs.array(0.)).shape)
+            # print(immersion_a(gs.array([0.])).shape)
+            # print(immersion_a(gs.array([[0.]])).shape)
             hessian_a = gs.autodiff.hessian(immersion_a)(base_point)
-            hessian_a = gs.squeeze(hessian_a, axis=-1)
+            if self.dim == 1 and hessian_a.ndim > 2:
+                hessian_a = gs.squeeze(hessian_a, axis=-1)
             # print("HESSIAN")
             # print(type(hessian_a))
             # print(hessian_a)

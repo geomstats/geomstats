@@ -322,4 +322,4 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             base_point=immersed_base_point,
             direction=immersed_tangent_vec_b,
         )
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected, atol=1e-4)
