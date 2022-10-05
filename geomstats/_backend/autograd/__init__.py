@@ -58,7 +58,6 @@ from autograd.numpy import (
     shape,
     sort,
     split,
-    squeeze,
     stack,
     std,
     sum,
@@ -134,6 +133,15 @@ tanh = _box_unary_scalar(target=_np.tanh)
 arctan2 = _box_binary_scalar(target=_np.arctan2)
 mod = _box_binary_scalar(target=_np.mod)
 power = _box_binary_scalar(target=_np.power)
+
+
+def squeeze(x, axis=None):
+    if axis is None:
+        return _np.squeeze(x)
+    x_shape = x.shape
+    if x_shape[axis] != 1:
+        return x
+    return _np.squeeze(x, axis=axis)
 
 
 def angle(z, deg=False):

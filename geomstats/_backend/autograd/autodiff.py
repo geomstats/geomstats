@@ -1,5 +1,6 @@
 """Wrapper around autograd functions to be consistent with backends."""
 
+from autograd import hessian as _hessian
 from autograd import jacobian as _jacobian
 from autograd import value_and_grad as _value_and_grad
 from autograd.extend import defvjp as _defvjp
@@ -107,6 +108,23 @@ def jacobian(func):
         the jacobian of func at x.
     """
     return _jacobian(func)
+
+
+def hessian(func):
+    """Return a function that returns the hessian of func.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Hessian is computed.
+
+    Returns
+    -------
+    _ : callable
+        Function taking point as input and returning
+        the hessian of func at point.
+    """
+    return _hessian(func)
 
 
 def value_and_grad(func, to_numpy=False):
