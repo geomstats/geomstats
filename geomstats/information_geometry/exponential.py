@@ -138,7 +138,7 @@ class ExponentialDistributions(OpenSet, InformationManifold):
                 Points at which to compute the probability density function.
             """
             pdf_at_x = [
-                gs.array(expon.pdf(x, loc=0, scale=param))
+                gs.array(param * gs.exp(-param * x))
                 for param in gs.to_ndarray(point, 1)
             ]
 

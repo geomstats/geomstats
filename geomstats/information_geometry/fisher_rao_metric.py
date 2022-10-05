@@ -94,6 +94,7 @@ class FisherRaoMetric(RiemannianMetric):
             * self.information_manifold.point_to_pdf(base_point)(x),
             *self.support
         )[0]
+
         if metric_mat.ndim == 3 and metric_mat.shape[0] == 1:
             return metric_mat[0]
         return metric_mat
