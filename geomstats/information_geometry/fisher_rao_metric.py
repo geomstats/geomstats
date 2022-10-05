@@ -25,6 +25,7 @@ class FisherRaoMetric(RiemannianMetric):
 
     def __init__(self, information_manifold, support):
         self.information_manifold = information_manifold
+        self.shape = information_manifold.shape
         self.support = support
 
     def metric_matrix(self, base_point):

@@ -22,6 +22,7 @@ class NormalDistributions(PoincareHalfSpace, InformationManifold):
 
     def __init__(self):
         super().__init__(dim=2)
+        self.shape = (2,)
         self.metric = NormalMetric()
 
     @staticmethod
