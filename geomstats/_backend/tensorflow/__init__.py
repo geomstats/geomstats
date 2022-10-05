@@ -115,8 +115,7 @@ def from_numpy(x):
 def squeeze(x, axis=None):
     if axis is None:
         return _tf.squeeze(x)
-    x_shape = x.shape
-    if x_shape[axis] != 1:
+    if x.shape[axis] != 1:
         return x
     return _tf.squeeze(x, axis=axis)
 

@@ -261,6 +261,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result.shape, (1, 1, 1))
         self.assertAllClose(result, gs.zeros((1, 1, 1)))
 
+    @tests.conftest.autograd_and_torch_only
     def test_exp_and_sphere_exp(self, dim, tangent_vec, base_point):
         """Test consistency between sphere's Riemannian exp.
 
@@ -270,6 +271,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         The exp map of pullback_metric is defined
         in terms of the spherical coordinates.
         """
+        # Note: this works in tf too, but takes a very long time.
         pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
         )

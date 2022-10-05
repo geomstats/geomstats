@@ -138,8 +138,7 @@ power = _box_binary_scalar(target=_np.power)
 def squeeze(x, axis=None):
     if axis is None:
         return _np.squeeze(x)
-    x_shape = x.shape
-    if x_shape[axis] != 1:
+    if x.shape[axis] != 1:
         return x
     return _np.squeeze(x, axis=axis)
 

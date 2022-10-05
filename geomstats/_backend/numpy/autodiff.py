@@ -48,6 +48,16 @@ def hessian(func):
     )
 
 
+def jacobian_and_hessian(func):
+    """Return an error when using automatic differentiation with numpy."""
+    raise RuntimeError(
+        "Automatic differentiation is not supported with numpy backend. "
+        "Use autograd, pytorch or tensorflow backend instead.\n"
+        "Change backend via the command "
+        "export GEOMSTATS_BACKEND=autograd in a terminal."
+    )
+
+
 def custom_gradient(*grad_funcs):
     """Decorate a function to define its custom gradient(s).
 
