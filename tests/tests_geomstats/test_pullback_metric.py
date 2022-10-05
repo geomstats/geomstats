@@ -288,7 +288,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected, atol=1e-1)
 
-    @tests.conftest.autograd_and_torch_only
+    @tests.conftest.torch_only
     def test_parallel_transport_and_sphere_parallel_transport(
         self, dim, tangent_vec_a, tangent_vec_b, base_point
     ):
@@ -299,6 +299,8 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
         The parallel transport of pullback_metric is defined
         in terms of the spherical coordinates.
+
+        Note: this test passes in autograd and in tf but takes a very long time.
         """
         pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
@@ -321,4 +323,4 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             base_point=immersed_base_point,
             direction=immersed_tangent_vec_b,
         )
-        self.assertAllClose(result, expected, atol=1e-4)
+        self.assertAllClose(result, expected, atol=5e-3)
