@@ -145,24 +145,11 @@ class PullbackMetric(RiemannianMetric):
             jacobian_ai.append(jacobian_a)
 
         hessian_aij = gs.stack(hessian_aij, axis=0)
-        assert hessian_aij.shape == (
-            self.embedding_dim,
-            self.dim,
-            self.dim,
-        ), hessian_aij.shape
         jacobian_ai = gs.stack(jacobian_ai, axis=0)
-        assert jacobian_ai.shape == (self.embedding_dim, self.dim), jacobian_ai.shape
         inner_prod_deriv_mat = gs.einsum(
             "aki,aj->kij", hessian_aij, jacobian_ai
         ) + gs.einsum("akj,ai->kij", hessian_aij, jacobian_ai)
 
-        assert inner_prod_deriv_mat.shape == (
-            self.dim,
-            self.dim,
-            self.dim,
-        )
-
-        # for compatibility with geomstats
         inner_prod_deriv_mat = gs.transpose(inner_prod_deriv_mat, axes=(2, 1, 0))
         return inner_prod_deriv_mat
 
