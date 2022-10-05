@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.information_geometry.fisher_rao_metric import FisherRaoMetric
-from geomstats.information_geometry.normal import NormalDistributions
+from geomstats.information_geometry.normal import NormalDistributions, NormalMetric
 from tests.data_generation import _RiemannianMetricTestData
 
 
@@ -50,5 +50,18 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
                 support=self.support,
                 base_point=gs.array([-1.0, 3.0]),
             ),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def inner_product_and_closed_form_inner_product_test_data(self):
+        smoke_data = [
+            dict(
+                information_manifold=NormalDistributions(),
+                support=(-10, 10),
+                closed_form_metric=NormalMetric(),
+                tangent_vec_a=gs.array([1.0, 2.0]),
+                tangent_vec_b=gs.array([1.0, 2.0]),
+                base_point=gs.array([1.0, 2.0]),
+            )
         ]
         return self.generate_tests(smoke_data)
