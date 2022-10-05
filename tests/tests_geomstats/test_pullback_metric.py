@@ -199,16 +199,13 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         assert ~gs.allclose(derivative_matrix, gs.zeros((dim, dim, dim)))
 
         # derivative with respect to theta
-        expected_1 = gs.array([[0, 0], [0, gs.cos(theta)]])
-
+        expected_1 = gs.array([[0, 0], [0, 2 * gs.cos(theta) * gs.sin(theta)]])
         # derivative with respect to phi
-        # expected_2 = gs.array([[0, 0], [0, 0]])
+        expected_2 = gs.zeros(1)
 
         assert gs.allclose(derivative_matrix.shape, (2, 2, 2)), derivative_matrix.shape
-        assert gs.allclose(
-            derivative_matrix[0].shape, expected_1.shape
-        ), derivative_matrix[0].shape
         assert gs.allclose(derivative_matrix[:, :, 0], expected_1), derivative_matrix[0]
+        assert gs.allclose(derivative_matrix[:, :, 1], expected_2), derivative_matrix[1]
 
     @pytest.mark.skip("earlier it was commented.")
     def test_christoffels_and_sphere_christoffels(self, dim, base_point):
