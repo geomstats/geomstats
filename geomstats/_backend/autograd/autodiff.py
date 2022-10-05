@@ -1,6 +1,6 @@
 """Wrapper around autograd functions to be consistent with backends."""
 
-from autograd import jacobian as _jacobian
+from autograd import hessian, jacobian
 from autograd import value_and_grad as _value_and_grad
 from autograd.extend import defvjp as _defvjp
 from autograd.extend import primitive as _primitive
@@ -92,23 +92,6 @@ def custom_gradient(*grad_funcs):
     return decorator
 
 
-def jacobian(func):
-    """Wrap autograd's jacobian function.
-
-    Parameters
-    ----------
-    func : callable
-        Function whose Jacobian is computed.
-
-    Returns
-    -------
-    _ : callable
-        Function taking x as input and returning
-        the jacobian of func at x.
-    """
-    return _jacobian(func)
-
-
 def value_and_grad(func, to_numpy=False):
     """Wrap autograd value_and_grad function.
 
@@ -161,3 +144,42 @@ def value_and_grad(func, to_numpy=False):
         return value, tuple(all_grads)
 
     return func_with_grad
+
+
+def jacobian_and_hessian(func):
+    """Wrap autograd jacobian and hessian functions.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian and hessian values
+        will be computed.
+
+    Returns
+    -------
+    func_with_jacobian_and_hessian : callable
+        Function that returns func's jacobian and
+        func's hessian values at its inputs args.
+    """
+
+    def _jacobian_and_hessian(*args):
+        """Return func's jacobian and func's hessian values at args.
+
+        Parameters
+        ----------
+        args : list
+            Argument to function func and its gradients.
+
+        Returns
+        -------
+        jacobian : array-like
+            Jacobian of func at input arguments args.
+        hessian : array-like
+            Hessian of func at input arguments args.
+        """
+        jacobian_func = jacobian(func)
+        jacobian_ = jacobian_func(*args)
+        hessian_ = jacobian(jacobian_func)(*args)
+        return jacobian_, hessian_
+
+    return _jacobian_and_hessian

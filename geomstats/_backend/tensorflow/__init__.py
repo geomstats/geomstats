@@ -31,7 +31,7 @@ from tensorflow import (
 from tensorflow import reduce_max as amax
 from tensorflow import reduce_min as amin
 from tensorflow import reduce_prod as prod
-from tensorflow import reshape, searchsorted, sort, squeeze, stack, uint8, zeros_like
+from tensorflow import reshape, searchsorted, sort, stack, uint8, zeros_like
 from tensorflow.experimental.numpy import empty_like, moveaxis
 
 from .._backend_config import tf_atol as atol
@@ -110,6 +110,14 @@ def to_numpy(x):
 
 def from_numpy(x):
     return _tf.convert_to_tensor(x)
+
+
+def squeeze(x, axis=None):
+    if axis is None:
+        return _tf.squeeze(x)
+    if x.shape[axis] != 1:
+        return x
+    return _tf.squeeze(x, axis=axis)
 
 
 def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
