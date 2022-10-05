@@ -14,6 +14,7 @@ from numpy.linalg import (  # NOQA
     solve,
     svd,
 )
+from scipy.linalg import expm
 
 from ._common import atol
 from ._common import to_ndarray as _to_ndarray
@@ -29,10 +30,6 @@ _logm_vec = _cast_fout_to_input_dtype(
 def _is_symmetric(x, tol=atol):
     new_x = _to_ndarray(x, to_ndim=3)
     return (_np.abs(new_x - _np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
-
-
-def expm(x):
-    return _np.vectorize(_scipy.linalg.expm, signature="(n,m)->(n,m)")(x)
 
 
 def logm(x):
