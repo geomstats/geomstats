@@ -126,26 +126,47 @@ class PullbackMetric(RiemannianMetric):
         inner_prod_deriv_mat : array-like, shape=[..., dim, dim, dim]
             Inner-product derivative matrix.
         """
-        hessian_aij = gs.zeros((self.embedding_dim, self.dim, self.dim))
-        jacobian_ai = gs.zeros((self.embedding_dim, self.dim))
+        # hessian_aij = gs.zeros((self.embedding_dim, self.dim, self.dim))
+        # jacobian_ai = gs.zeros((self.embedding_dim, self.dim))
 
+        hessian_aij = []
+        jacobian_ai = []
         for a in range(self.embedding_dim):
 
             def immersion_a(x):
                 return self.immersion(x)[a]
 
             hessian_a = gs.autodiff.hessian(immersion_a)(base_point)
-            hessian_aij[a, :, :] = hessian_a
+            # print("HESSIAN")
+            # print(type(hessian_a))
+            # print(hessian_a)
+            hessian_aij.append(hessian_a)
+            # hessian_aij[a] = hessian_a
 
             jacobian_a = gs.autodiff.jacobian(immersion_a)(base_point)
             jacobian_a = gs.squeeze(jacobian_a, axis=0)
             if len(jacobian_a.shape) == 0:
                 jacobian_a = gs.to_ndarray(jacobian_a, to_ndim=1)
-            jacobian_ai[a, :] = jacobian_a
+            # jacobian_ai.append(jacobian_a)
+            # print(type(jacobian_ai))
+            # print(type(jacobian_a))
+            # print(type(gs.to_numpy(jacobian_a)))
+            # print(jacobian_a.shape)
+            jacobian_ai.append(jacobian_a)
 
+        hessian_aij = gs.stack(hessian_aij, axis=0)
+        assert hessian_aij.shape == (self.embedding_dim, self.dim, self.dim)
+        jacobian_ai = gs.stack(jacobian_ai, axis=0)
+        assert jacobian_ai.shape == (self.embedding_dim, self.dim)
         inner_prod_deriv_mat = gs.einsum(
             "aki,aj->kij", hessian_aij, jacobian_ai
         ) + gs.einsum("akj,ai->kij", hessian_aij, jacobian_ai)
+
+        assert inner_prod_deriv_mat.shape == (
+            self.dim,
+            self.dim,
+            self.dim,
+        )
 
         # for compatibility with geomstats
         inner_prod_deriv_mat = gs.transpose(inner_prod_deriv_mat, axes=(2, 1, 0))

@@ -191,6 +191,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         theta, _ = base_point[0], base_point[1]
 
+        print("WHAT")
         derivative_matrix = metric.inner_product_derivative_matrix(base_point)
 
         assert ~gs.allclose(derivative_matrix, gs.zeros((dim, dim, dim)))
