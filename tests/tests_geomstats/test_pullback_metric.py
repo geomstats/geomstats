@@ -198,7 +198,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         # derivative with respect to theta
         expected_1 = gs.array([[0, 0], [0, 2 * gs.cos(theta) * gs.sin(theta)]])
         # derivative with respect to phi
-        expected_2 = gs.zeros(1)
+        expected_2 = gs.zeros((2, 2))
 
         self.assertAllClose(derivative_matrix.shape, (2, 2, 2)), derivative_matrix.shape
         self.assertAllClose(derivative_matrix[:, :, 0], expected_1), derivative_matrix[
