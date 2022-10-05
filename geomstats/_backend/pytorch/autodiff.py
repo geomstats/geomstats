@@ -137,6 +137,7 @@ def jacobian_and_hessian(func):
         Function that returns func's jacobian and
         func's hessian at its inputs args.
     """
+
     def _jacobian_and_hessian(*args, **kwargs):
         """Return func's jacobian and func's hessian at args.
 
@@ -154,7 +155,6 @@ def jacobian_and_hessian(func):
         hessian : any
             Value of func's hessian at input arguments args.
         """
-
         return jacobian(func)(*args), hessian(func)(*args)
 
     return _jacobian_and_hessian
