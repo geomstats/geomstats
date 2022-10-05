@@ -11,9 +11,10 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
 )
+from geomstats.information_geometry.information_manifold import InformationManifold
 
 
-class NormalDistributions(PoincareHalfSpace):
+class NormalDistributions(PoincareHalfSpace, InformationManifold):
     """Class for the manifold of univariate normal distributions.
 
     This is upper half-plane.

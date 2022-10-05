@@ -11,11 +11,12 @@ from geomstats.information_geometry.dirichlet import (
     DirichletDistributions,
     DirichletMetric,
 )
+from geomstats.information_geometry.information_manifold import InformationManifold
 
 EPSILON = 1e-6
 
 
-class BetaDistributions(DirichletDistributions):
+class BetaDistributions(DirichletDistributions, InformationManifold):
     r"""Class for the manifold of beta distributions.
 
     This is Beta = :math:`R_+^* \times R_+^*`, the upper-right
