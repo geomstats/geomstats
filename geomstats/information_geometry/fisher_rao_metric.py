@@ -24,8 +24,9 @@ class FisherRaoMetric(RiemannianMetric):
     """
 
     def __init__(self, information_manifold, support):
+        dim = information_manifold.dim
+        super().__init__(dim=dim, shape=(dim,), signature=(dim, 0))
         self.information_manifold = information_manifold
-        self.shape = information_manifold.shape
         self.support = support
 
     def metric_matrix(self, base_point):
@@ -88,11 +89,14 @@ class FisherRaoMetric(RiemannianMetric):
             """
             return gs.einsum("...i, ...j -> ...ij", dlog(x), dlog(x))
 
-        return quad_vec(
+        metric_mat = quad_vec(
             lambda x: squared_dlog(x)
             * self.information_manifold.point_to_pdf(base_point)(x),
             *self.support
         )[0]
+        if metric_mat.ndim == 3 and metric_mat.shape[0] == 1:
+            return metric_mat[0]
+        return metric_mat
 
     def inner_product_derivative_matrix(self, base_point):
         r"""Compute the derivative of the inner-product matrix.

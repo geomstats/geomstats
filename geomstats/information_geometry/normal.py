@@ -97,6 +97,8 @@ class NormalDistributions(PoincareHalfSpace, InformationManifold):
         geomstats.errors.check_belongs(point, self)
         means = point[..., 0]
         stds = point[..., 1]
+        means = gs.to_ndarray(means, to_ndim=1)
+        stds = gs.to_ndarray(stds, to_ndim=1)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -107,7 +109,12 @@ class NormalDistributions(PoincareHalfSpace, InformationManifold):
                 Points at which to compute the probability density function.
             """
             pdf_at_x = [
-                gs.array(norm.pdf(x, loc=mean, scale=std))
+                gs.array(
+                    (
+                        (1.0 / gs.sqrt(2 * gs.pi * std**2))
+                        * gs.exp(-((x - mean) ** 2) / (2 * std**2))
+                    )
+                )
                 for mean, std in zip(means, stds)
             ]
             pdf_at_x = gs.stack(pdf_at_x, axis=-1)

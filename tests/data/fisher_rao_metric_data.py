@@ -37,3 +37,18 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
             ),
         ]
         return self.generate_tests(smoke_data)
+
+    def inner_product_matrix_and_its_inverse_test_data(self):
+        smoke_data = [
+            dict(
+                information_manifold=self.information_manifold,
+                support=self.support,
+                base_point=gs.array([1.0, 2.0]),
+            ),
+            dict(
+                information_manifold=self.information_manifold,
+                support=self.support,
+                base_point=gs.array([-1.0, 3.0]),
+            ),
+        ]
+        return self.generate_tests(smoke_data)
