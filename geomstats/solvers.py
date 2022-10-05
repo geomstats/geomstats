@@ -8,6 +8,17 @@ import geomstats.integrator as gs_integrator
 from geomstats.errors import check_parameter_accepted_values
 
 
+def _result_to_backend_type(ode_result):
+    if gs.__name__.endswith("numpy"):
+        return ode_result
+
+    for key, value in ode_result.items():
+        if type(value) is np.ndarray:
+            ode_result[key] = gs.array(value)
+
+    return ode_result
+
+
 class OdeResult(scipy.optimize.OptimizeResult):
     # following scipy
     pass
@@ -109,7 +120,6 @@ class SCPSolveIVP(ODEIVPSolver):
         return result
 
     def _integrate_single(self, force, initial_state, end_time=1.0):
-        # TODO: need to handle single vs multiple point
         # TODO: possible to solve at different time steps (great for geodesic)
         raveled_initial_state = gs.flatten(initial_state)
 
@@ -124,20 +134,10 @@ class SCPSolveIVP(ODEIVPSolver):
             method=self.method,
             **self.options
         )
-        result = self._ode_result_to_backend_type(result)
+        result = _result_to_backend_type(result)
         result.y = gs.moveaxis(result.y, 0, -1)
 
         return result
-
-    def _ode_result_to_backend_type(self, ode_result):
-        if gs.__name__.endswith("numpy"):
-            return ode_result
-
-        for key, value in ode_result.items():
-            if type(value) is np.ndarray:
-                ode_result[key] = gs.array(value)
-
-        return ode_result
 
     def _merge_results(self, results):
         keys = ["t", "y", "nfev", "njev", "success"]
@@ -194,7 +194,7 @@ class ExpODESolver(ExpSolver):
     def _force_raveled_state(self, raveled_initial_state, _, metric):
         # assumes unvectorized
         position = raveled_initial_state[: metric.dim]
-        velocity = raveled_initial_state[metric.dim:]
+        velocity = raveled_initial_state[metric.dim :]
 
         state = gs.stack([position, velocity])
         # TODO: remove dependency on time in `geodesic_equation`?
@@ -215,22 +215,42 @@ class ExpODESolver(ExpSolver):
 
 
 class SCPMinimize:
-    def __init__(self, method="L-BFGS-B", **options):
-        # TODO: add save result
+    def __init__(self, method="L-BFGS-B", save_result=False, **options):
         self.method = method
         self.options = options
+        self.save_result = save_result
 
         self.options.setdefault("maxiter", 25)
 
-    def optimize(self, func, x0, jac=True):
+        self.result_ = None
+
+    def optimize(self, func, x0, jac=None):
+
+        if jac == "autodiff":
+            jac = True
+
+            def func_(x):
+                return gs.autodiff.value_and_grad(func, to_numpy=True)(gs.array(x))
+
+        else:
+
+            def func_(x):
+                return func(gs.array(x))
 
         result = scipy.optimize.minimize(
-            func,
+            func_,
             x0,
             method=self.method,
             jac=jac,
             options=self.options,
         )
+
+        result = _result_to_backend_type(result)
+
+        # TODO: add status verification
+
+        if self.save_result:
+            self.result_ = result
 
         return result
 
@@ -252,18 +272,13 @@ class LogShootingSolver(LogSolver):
         delta = metric.exp(velocity, base_point) - point
         return gs.sum(delta**2)
 
-    def jacobian(self, objective):
-        return gs.autodiff.jacobian(objective)
-
     def solve(self, metric, point, base_point):
         # TODO: vectorize here?
         # TODO: ensure it works with all backends
 
         objective = lambda velocity: self.objective(velocity, metric, point, base_point)
-
-        jacobian = self.jacobian(objective)
         tangent_vec = gs.random.rand(*base_point.shape)
 
-        result = self.optimizer.optimize(objective, tangent_vec, jac=jacobian)
+        result = self.optimizer.optimize(objective, tangent_vec, jac="autodiff")
 
         return result
