@@ -271,7 +271,7 @@ class HyperboloidMetric(HyperbolicMetric):
         inner_prod_mat: array-like, shape=[..., dim+1, dim + 1]
             Inner-product matrix.
         """
-        self.embedding_metric.metric_matrix(base_point)
+        return self.embedding_metric.metric_matrix(base_point)
 
     def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
