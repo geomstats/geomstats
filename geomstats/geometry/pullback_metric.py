@@ -137,6 +137,7 @@ class PullbackMetric(RiemannianMetric):
                 return self.immersion(x)[a]
 
             hessian_a = gs.autodiff.hessian(immersion_a)(base_point)
+            hessian_a = gs.squeeze(hessian_a, axis=-1)
             # print("HESSIAN")
             # print(type(hessian_a))
             # print(hessian_a)
@@ -155,9 +156,13 @@ class PullbackMetric(RiemannianMetric):
             jacobian_ai.append(jacobian_a)
 
         hessian_aij = gs.stack(hessian_aij, axis=0)
-        assert hessian_aij.shape == (self.embedding_dim, self.dim, self.dim)
+        assert hessian_aij.shape == (
+            self.embedding_dim,
+            self.dim,
+            self.dim,
+        ), hessian_aij.shape
         jacobian_ai = gs.stack(jacobian_ai, axis=0)
-        assert jacobian_ai.shape == (self.embedding_dim, self.dim)
+        assert jacobian_ai.shape == (self.embedding_dim, self.dim), jacobian_ai.shape
         inner_prod_deriv_mat = gs.einsum(
             "aki,aj->kij", hessian_aij, jacobian_ai
         ) + gs.einsum("akj,ai->kij", hessian_aij, jacobian_ai)
