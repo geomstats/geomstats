@@ -156,6 +156,13 @@ class PullbackMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def christoffels_circle_test_data(self):
+        smoke_data = [
+            dict(dim=1, base_point=gs.array([0.1])),
+            dict(dim=1, base_point=gs.array([0.7])),
+        ]
+        return self.generate_tests(smoke_data)
+
     def exp_and_sphere_exp_test_data(self):
         smoke_data = [
             dict(

@@ -1,7 +1,5 @@
 """Unit tests for the pull-back metrics."""
 
-import pytest
-
 import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
@@ -194,7 +192,6 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         theta, _ = base_point[0], base_point[1]
 
         derivative_matrix = metric.inner_product_derivative_matrix(base_point)
-        print(derivative_matrix)
 
         assert ~gs.allclose(derivative_matrix, gs.zeros((dim, dim, dim)))
 
@@ -203,11 +200,14 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         # derivative with respect to phi
         expected_2 = gs.zeros(1)
 
-        assert gs.allclose(derivative_matrix.shape, (2, 2, 2)), derivative_matrix.shape
-        assert gs.allclose(derivative_matrix[:, :, 0], expected_1), derivative_matrix[0]
-        assert gs.allclose(derivative_matrix[:, :, 1], expected_2), derivative_matrix[1]
+        self.assertAllClose(derivative_matrix.shape, (2, 2, 2)), derivative_matrix.shape
+        self.assertAllClose(derivative_matrix[:, :, 0], expected_1), derivative_matrix[
+            0
+        ]
+        self.assertAllClose(derivative_matrix[:, :, 1], expected_2), derivative_matrix[
+            1
+        ]
 
-    @pytest.mark.skip("earlier it was commented.")
     def test_christoffels_and_sphere_christoffels(self, dim, base_point):
         """Test consistency between sphere's christoffels.
 
@@ -223,6 +223,23 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         result = pullback_metric.christoffels(base_point)
         expected = Hypersphere(2).metric.christoffels(base_point)
         self.assertAllClose(result, expected)
+
+    def test_christoffels_circle(self, dim, base_point):
+        """Test consistency between sphere's christoffels.
+
+        The christoffels of the class Hypersphere are
+        defined in terms of spherical coordinates.
+
+        The christoffels of pullback_metric are also defined
+        in terms of the spherical coordinates.
+        """
+        pullback_metric = self.Metric(
+            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
+        )
+        result = pullback_metric.christoffels(base_point)
+
+        self.assertAllClose(result.shape, (1, 1, 1)), result.shape
+        self.assertAllClose(result, gs.zeros((1, 1, 1)))
 
     def test_exp_and_sphere_exp(self, dim, tangent_vec, base_point):
         """Test consistency between sphere's Riemannian exp.
