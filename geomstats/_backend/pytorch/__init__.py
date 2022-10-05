@@ -31,6 +31,7 @@ from torch import max as amax
 from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma, quantile
 from torch import repeat_interleave as repeat
 from torch import reshape, stack, trapz, uint8, unique, vstack, zeros, zeros_like
+from torch.special import gammaln  # NOQA
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
@@ -741,3 +742,7 @@ def cross(a, b):
     if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
         a, b = broadcast_arrays(a, b)
     return _torch.cross(*convert_to_wider_dtype([a, b]))
+
+
+def gamma(a):
+    return _torch.exp(gammaln(a))

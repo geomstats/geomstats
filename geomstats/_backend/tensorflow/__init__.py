@@ -64,6 +64,7 @@ erf = _tf.math.erf
 imag = _tf.math.imag
 isnan = _tf.math.is_nan
 polygamma = _tf.math.polygamma
+lgamma = _tf.math.lgamma
 real = _tf.math.real
 set_diag = _tf.linalg.set_diag
 trapz = _tfp.math.trapz
@@ -890,3 +891,7 @@ def matmul(x, y):
 
     x, y = convert_to_wider_dtype([x, y])
     return _tf.linalg.matmul(x, y)
+
+
+def gamma(x):
+    return _tf.exp(_tf.math.lgamma(x))
