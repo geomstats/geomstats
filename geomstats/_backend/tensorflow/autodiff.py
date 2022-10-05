@@ -163,3 +163,95 @@ def jacobian(func):
         return g.jacobian(y, x)
 
     return jac
+
+
+def hessian(func):
+    """Return a function that returns the hessian of func.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Hessian is computed.
+
+    Returns
+    -------
+    hess : callable
+        Function taking x as input and returning
+        the hessian of func at x.
+    """
+
+    def hess(x):
+        """Return the hessian of func at x.
+
+        Parameters
+        ----------
+        x : array-like
+            Input to function func or its hessian.
+
+        Returns
+        -------
+        _ : array-like
+            Value of the hessian of func at x.
+        """
+        # Note: this is a temporary implementation
+        # that uses the jacobian of the gradient.
+        # inspired from https://github.com/tensorflow/tensorflow/issues/29781
+        # waiting for the hessian function to be implemented in GradientTape.
+        if isinstance(x, _np.ndarray):
+            x = _tf.Variable(x)
+
+        with _tf.GradientTape(persistent=True) as g:
+            g.watch(x)
+            y = func(x)
+            grads = g.gradient(y, [x])
+
+        hessians = g.jacobian(grads[0], [x])
+        return hessians[0]
+
+    return hess
+
+
+def jacobian_and_hessian(func):
+    """Return a function that returns the jacobian and hessian of func.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Jacobian and Hessian are computed.
+
+    Returns
+    -------
+    jac_and_hess : callable
+        Function taking x as input and returning
+        the jacobian and hessian of func at x.
+    """
+
+    def jac_and_hess(x):
+        """Return the jacobian and hessian of func at x.
+
+        Parameters
+        ----------
+        x : array-like
+            Input to function func or its jacobian and hessian.
+
+        Returns
+        -------
+        _ : array-like
+            Value of the jacobian and hessian of func at x.
+        """
+        # Note: this is a temporary implementation
+        # that uses the jacobian of the gradient.
+        # inspired from https://github.com/tensorflow/tensorflow/issues/29781
+        # waiting for the hessian function to be implemented in GradientTape.
+        if isinstance(x, _np.ndarray):
+            x = _tf.Variable(x)
+
+        with _tf.GradientTape(persistent=True) as g:
+            g.watch(x)
+            y = func(x)
+            grads = g.gradient(y, [x])
+
+        hessians = g.jacobian(grads[0], [x])
+        return grads[0], hessians[0]
+
+    return jac_and_hess

@@ -126,6 +126,7 @@ class RiemannianMetric(Connection, ABC):
         """
         cometric_mat_at_point = self.cometric_matrix(base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(base_point)
+
         term_1 = gs.einsum(
             "...lk,...jli->...kij", cometric_mat_at_point, metric_derivative_at_point
         )
