@@ -7,7 +7,12 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class FisherRaoMetric(RiemannianMetric):
-    """Class to derive the information metric from the pdf in InformationManifold.
+    r"""Class to derive the information metric from the pdf in InformationManifold.
+
+    Given a statistical manifold with coordinates :math:`\theta`,
+    the Fisher information metric is:
+    :math:`g_{j k}(\theta)=\int_X \frac{\partial \log p(x, \theta)}{\partial \theta_j}
+        \frac{\partial \log p(x, \theta)}{\partial \theta_k} p(x, \theta) d x`
 
     Attributes
     ----------
