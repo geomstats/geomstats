@@ -50,7 +50,7 @@ class ComplexMatrices(ComplexVectorSpace):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Matrices space.
         """
-        is_matrix = super().belongs(point, atol=gs.atol)
+        is_matrix = super().belongs(point, atol=atol)
         belongs = gs.logical_and(is_matrix, gs.is_complex(point))
         return belongs
 
@@ -292,7 +292,7 @@ class ComplexMatrices(ComplexVectorSpace):
         is_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric.
         """
-        return Matrices.is_symmetric(mat, atol=gs.atol)
+        return Matrices.is_symmetric(mat, atol=atol)
 
     @classmethod
     def is_hermitian(cls, mat, atol=gs.atol):
@@ -870,4 +870,4 @@ class ComplexMatricesMetric(HermitianMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        return MatricesMetric.norm(vector)
+        return MatricesMetric.norm(vector, base_point=base_point)
