@@ -2,13 +2,14 @@
 
 Lead author: Alice Le Brigant.
 """
+from geomstats.information_geometry.information_manifold import InformationManifold
 from geomstats.information_geometry.multinomial import (
     MultinomialDistributions,
     MultinomialMetric,
 )
 
 
-class CategoricalDistributions(MultinomialDistributions):
+class CategoricalDistributions(MultinomialDistributions, InformationManifold):
     r"""Class for the manifold of categorical distributions.
 
     This is the set of `n+1`-tuples of positive reals that sum up to one,
