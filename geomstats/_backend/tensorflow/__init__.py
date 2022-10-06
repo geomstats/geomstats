@@ -898,3 +898,7 @@ def matmul(x, y):
 
     x, y = convert_to_wider_dtype([x, y])
     return _tf.linalg.matmul(x, y)
+
+
+def gamma(x):
+    return _tf.exp(_tf.math.lgamma(x))

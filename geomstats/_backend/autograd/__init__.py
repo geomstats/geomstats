@@ -75,7 +75,7 @@ from autograd.numpy import (
     where,
     zeros_like,
 )
-from autograd.scipy.special import erf, polygamma  # NOQA
+from autograd.scipy.special import erf, gamma, polygamma  # NOQA
 from scipy.sparse import coo_matrix as _coo_matrix
 
 from .._backend_config import np_atol as atol
