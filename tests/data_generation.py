@@ -817,7 +817,7 @@ class _ConnectionTestData(TestData):
         return self.generate_tests([], random_data)
 
     def riemann_tensor_shape_test_data(self):
-        """Generate data to check that riemann_tensor returns an array of the expected shape.
+        """Generate data to check the returned shape of riemann_tensor.
 
         Parameters
         ----------
@@ -848,7 +848,7 @@ class _ConnectionTestData(TestData):
         return self.generate_tests([], random_data)
 
     def ricci_tensor_shape_test_data(self):
-        """Generate data to check that ricci_tensor returns an array of the expected shape.
+        """Generate data to check the returned shape of ricci_tensor.
 
         Parameters
         ----------
@@ -879,7 +879,7 @@ class _ConnectionTestData(TestData):
         return self.generate_tests([], random_data)
 
     def scalar_curvature_shape_test_data(self):
-        """Generate data to check that scalar_curvature returns an array of the expected shape.
+        """Generate data to check the returned shape of scalar_curvature.
 
         Parameters
         ----------
