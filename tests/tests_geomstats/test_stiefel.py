@@ -13,6 +13,7 @@ class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
     skip_test_extrinsic_after_intrinsic = True
     skip_test_to_tangent_is_tangent = True
     skip_test_triangle_inequality_of_dist = True
+    skip_test_squared_dist_is_positive = True
 
     testing_data = StiefelTestData()
 

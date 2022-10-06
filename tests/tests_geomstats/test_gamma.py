@@ -49,6 +49,46 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
         expected = gs.squeeze(gs.stack(pdf, axis=0))
         self.assertAllClose(result, expected)
 
+    def test_maximum_likelihood_fit(self, sample, expected):
+        result = self.Space().maximum_likelihood_fit(sample)
+        self.assertAllClose(result, expected)
+
+    def test_natural_to_standard(self, point, expected):
+        result = self.Space().natural_to_standard(point)
+        self.assertAllClose(result, expected)
+
+    def test_natural_to_standard_vectorization(self, point):
+        result = self.Space().natural_to_standard(point).shape
+        expected = point.shape
+        self.assertAllClose(result, expected)
+
+    def test_standard_to_natural(self, point, expected):
+        result = self.Space().standard_to_natural(point)
+        self.assertAllClose(result, expected)
+
+    def test_standard_to_natural_vectorization(self, point):
+        result = self.Space().standard_to_natural(point).shape
+        expected = point.shape
+        self.assertAllClose(result, expected)
+
+    def test_tangent_natural_to_standard(self, vec, point, expected):
+        result = self.Space().tangent_natural_to_standard(vec, point)
+        self.assertAllClose(result, expected)
+
+    def test_tangent_natural_to_standard_vectorization(self, vec, point):
+        result = self.Space().tangent_natural_to_standard(vec, point).shape
+        expected = vec.shape
+        self.assertAllClose(result, expected)
+
+    def test_tangent_standard_to_natural(self, vec, point, expected):
+        result = self.Space().tangent_standard_to_natural(vec, point)
+        self.assertAllClose(result, expected)
+
+    def test_tangent_standard_to_natural_vectorization(self, vec, point):
+        result = self.Space().tangent_standard_to_natural(vec, point).shape
+        expected = vec.shape
+        self.assertAllClose(result, expected)
+
 
 class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_shape = True  # because several base points for one vector
