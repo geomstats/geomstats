@@ -1196,7 +1196,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         return self.generate_tests([], random_data)
 
     def sectional_curvature_shape_test_data(self):
-        """Generate data to check that sectional_curvature returns an array of expected shape.
+        """Generate data to check the returned shape of sectional_curvature.
 
         Parameters
         ----------
