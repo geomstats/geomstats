@@ -508,10 +508,9 @@ def outer(a, b):
 def matvec(A, b):
     if b.ndim == 1:
         return _np.matmul(A, b)
-    else:
-        if A.ndim == 2:
-            return _np.matmul(A, b.T).T
-        return _np.einsum("...ij,...j->...i", A, b)
+    if A.ndim == 2:
+        return _np.matmul(A, b.T).T
+    return _np.einsum("...ij,...j->...i", A, b)
 
 
 def dot(a, b):

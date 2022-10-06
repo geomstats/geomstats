@@ -166,8 +166,7 @@ def split(x, indices_or_sections, axis=0):
 def logical_and(x, y):
     if _torch.is_tensor(x) or _torch.is_tensor(y):
         return x * y
-    else:
-        return x and y
+    return x and y
 
 
 def any(x, axis=None):
