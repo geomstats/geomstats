@@ -146,14 +146,6 @@ class NormalMetric(PoincareHalfSpaceMetric):
         mat : array-like, shape=[..., 2, 2]
             Metric matrix.
         """
-        geomstats.errors.check_belongs(base_point, self.embedding_manifold)
-        stds = base_point[..., 1]
-        stds = gs.to_ndarray(stds, to_ndim=1)
-        mat = gs.stack(
-            [gs.array(((1.0 / std**2) * gs.eye(2),)) for std in stds],
-            axis=-3,
-        )
-        return mat
         stds = base_point[..., 1]
         stds = gs.to_ndarray(stds, to_ndim=1)
         metric_mat = gs.stack(
