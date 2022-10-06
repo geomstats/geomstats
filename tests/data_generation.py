@@ -816,6 +816,97 @@ class _ConnectionTestData(TestData):
             )
         return self.generate_tests([], random_data)
 
+    def riemann_tensor_shape_test_data(self):
+        """Generate data to check that riemann_tensor returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        """
+        random_data = []
+        for n_points, connection_args, space in zip(
+            self.n_points_list,
+            self.connection_args_list,
+            self.space_list,
+        ):
+            base_point = space.random_point(n_points)
+            expected_shape = (
+                (n_points,) + space.shape * 4 if n_points >= 2 else space.shape * 4
+            )
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    base_point=better_squeeze(base_point),
+                    expected=expected_shape,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def ricci_tensor_shape_test_data(self):
+        """Generate data to check that ricci_tensor returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        """
+        random_data = []
+        for n_points, connection_args, space in zip(
+            self.n_points_list,
+            self.connection_args_list,
+            self.space_list,
+        ):
+            base_point = space.random_point(n_points)
+            expected_shape = (
+                (n_points,) + space.shape * 2 if n_points >= 2 else space.shape * 2
+            )
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    base_point=better_squeeze(base_point),
+                    expected=expected_shape,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def scalar_curvature_shape_test_data(self):
+        """Generate data to check that scalar_curvature returns an array of the expected shape.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        """
+        random_data = []
+        for n_points, connection_args, space in zip(
+            self.n_points_list,
+            self.connection_args_list,
+            self.space_list,
+        ):
+            base_point = space.random_point(n_points)
+            expected_shape = expected_shape = (n_points,) if n_points >= 2 else ()
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    base_point=better_squeeze(base_point),
+                    expected=expected_shape,
+                )
+            )
+        return self.generate_tests([], random_data)
+
 
 class _RiemannianMetricTestData(_ConnectionTestData):
     def dist_is_symmetric_test_data(self):
@@ -992,6 +1083,159 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     point_a=point_a,
                     point_b=point_b,
                     point_c=point_c,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def covariant_riemann_tensor_is_skew_symmetric_1_test_data(self):
+        """Generate data to check the first skew symmetry of covariant riemann tensor.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            self.metric_args_list, self.space_list, self.n_points_list
+        ):
+            base_point = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def covariant_riemann_tensor_is_skew_symmetric_2_test_data(self):
+        """Generate data to check the second skew symmetry of covariant riemann tensor.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            self.metric_args_list, self.space_list, self.n_points_list
+        ):
+            base_point = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def covariant_riemann_tensor_bianchi_identity_test_data(self):
+        """Generate data to check the bianchi identity of covariant riemann tensor.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            self.metric_args_list, self.space_list, self.n_points_list
+        ):
+            base_point = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def covariant_riemann_tensor_is_interchange_symmetric_test_data(self):
+        """Generate data to check the interchange symmetry of covariant riemann tensor.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            self.metric_args_list, self.space_list, self.n_points_list
+        ):
+            base_point = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def sectional_curvature_shape_test_data(self):
+        """Generate data to check that sectional_curvature returns an array of expected shape.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of argument to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        """
+        random_data = []
+        for metric_args, n_points, space, shape, n_tangent_vecs in zip(
+            self.metric_args_list,
+            self.n_points_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            base_point = space.random_point(n_points)
+            size = (n_tangent_vecs,) + shape if n_points == 1 else (n_points,) + shape
+            tangent_vec_a = gs.squeeze(
+                space.to_tangent(
+                    gs.random.normal(size=size),
+                    base_point,
+                )
+            )
+            tangent_vec_b = gs.squeeze(
+                space.to_tangent(
+                    gs.random.normal(size=size),
+                    base_point,
+                )
+            )
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                    expected=(n_points,) if n_points >= 2 else (n_tangent_vecs,),
                 )
             )
         return self.generate_tests([], random_data)

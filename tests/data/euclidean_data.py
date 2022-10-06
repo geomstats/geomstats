@@ -29,11 +29,11 @@ class EuclideanTestData(_VectorSpaceTestData):
 
 class EuclideanMetricTestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 7), 5)
-    metric_args_list = [(n,) for n in n_list]
+    connection_args_list = metric_args_list = [(n,) for n in n_list]
     shape_list = metric_args_list
     space_list = [Euclidean(n) for n in n_list]
     n_points_list = random.sample(range(1, 7), 5)
-    n_tangent_vecs_list = random.sample(range(1, 7), 5)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(1, 7), 5)
     n_points_a_list = random.sample(range(1, 7), 5)
     n_points_b_list = [1]
     alpha_list = [1] * 5

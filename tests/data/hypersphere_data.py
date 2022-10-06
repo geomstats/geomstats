@@ -351,6 +351,50 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
     def log_after_exp_test_data(self):
         return super().log_after_exp_test_data(amplitude=gs.pi / 2.0)
 
+    def riemann_tensor_shape_test_data(self):
+        return self._riemann_tensor_shape_test_data(
+            self.metric_args_list, self.space_list
+        )
+
+    def ricci_tensor_shape_test_data(self):
+        return self._ricci_tensor_shape_test_data(
+            self.metric_args_list, self.space_list
+        )
+
+    def scalar_curvature_shape_test_data(self):
+        return self._scalar_curvature_shape_test_data(
+            self.metric_args_list, self.space_list
+        )
+
+    def covariant_riemann_tensor_is_skew_symmetric_1_test_data(self):
+        return self._covariant_riemann_tensor_is_skew_symmetric_1_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def covariant_riemann_tensor_is_skew_symmetric_2_test_data(self):
+        return self._covariant_riemann_tensor_is_skew_symmetric_2_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def covariant_riemann_tensor_bianchi_identity_test_data(self):
+        return self._covariant_riemann_tensor_bianchi_identity_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def covariant_riemann_tensor_is_interchange_symmetric_test_data(self):
+        return self._covariant_riemann_tensor_is_interchange_symmetric_test_data(
+            self.metric_args_list, self.space_list, self.n_points_list
+        )
+
+    def sectional_curvature_shape_test_data(self):
+        return self._sectional_curvature_shape_test_data(
+            self.metric_args_list,
+            self.n_points_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        )
+
     def exp_and_dist_and_projection_to_tangent_space_test_data(self):
         unnorm_base_point = gs.array([16.0, -2.0, -2.5, 84.0, 3.0])
         base_point = unnorm_base_point / gs.linalg.norm(unnorm_base_point)

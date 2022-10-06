@@ -11,7 +11,7 @@ class BetaDistributionsTestsData(_OpenSetTestData):
     shape_list = [(2,)]
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(1, 5), 2)
-    n_vecs_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
     def belongs_test_data(self):
         smoke_data = [
@@ -40,7 +40,7 @@ class BetaDistributionsTestsData(_OpenSetTestData):
 
 class BetaMetricTestData(_RiemannianMetricTestData):
 
-    metric_args_list = [()]
+    connection_args_list = metric_args_list = [()]
     shape_list = [(2,)]
     space_list = [BetaDistributions()]
     n_samples_list = random.sample(range(2, 5), 2)
@@ -71,4 +71,8 @@ class BetaMetricTestData(_RiemannianMetricTestData):
 
     def christoffels_shape_test_data(self):
         smoke_data = [dict(n_samples=10)]
+        return self.generate_tests(smoke_data)
+
+    def sectional_curvature_test_data(self):
+        smoke_data = [dict(n_samples=10, atol=1e-8)]
         return self.generate_tests(smoke_data)
