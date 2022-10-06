@@ -105,6 +105,12 @@ def is_single_matrix_pd(mat):
     """Check if 2D square matrix is positive definite."""
     if mat.shape[0] != mat.shape[1]:
         return False
+    if mat.dtype in [_tf.complex64, _tf.complex128]:
+        is_hermitian = _tf.math.reduce_all(mat == _tf.math.conj(_tf.transpose(mat)))
+        if not is_hermitian:
+            return False
+        eigvals = _tf.linalg.eigvalsh(mat)
+        return _tf.reduce_min(_tf.math.real(eigvals)).numpy() > 0
     try:
         cf = _tf.linalg.cholesky(mat)
         return ~_tf.math.reduce_any(_tf.math.is_nan(cf)).numpy()

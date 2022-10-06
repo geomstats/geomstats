@@ -31,6 +31,7 @@ MAT10_33 = gs.array([[1, 1 + 1j, -3j], [1 - 1j, 0, 4], [3j, 4, -2]], dtype=CDTYP
 MAT11_33 = gs.array([[1, 1j, 2], [1j, -1j, 2], [4 + 2j, 0, -2]], dtype=CDTYPE)
 MAT12_33 = gs.array([[1, -1j, 4 - 2j], [-1j, 1j, 0], [2, 2, -2]], dtype=CDTYPE)
 MAT13_33 = gs.array([[1, 0, 3 - 1j], [0, 0, 1], [3 + 1j, 1, -2]], dtype=CDTYPE)
+MAT14_33 = gs.array([[4, 0, 0.5j], [0, 3, 0], [-1j, 0, 4]], dtype=CDTYPE)
 
 
 class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
@@ -330,7 +331,10 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(m=2, n=3, mat=MAT1_23, expected=False),
             dict(m=2, n=2, mat=[EYE_2, MINUS_EYE_2], expected=[True, False]),
             dict(
-                m=3, n=3, mat=[MAT2_33, MAT3_33, MAT9_33], expected=[False, False, True]
+                m=3,
+                n=3,
+                mat=[MAT2_33, MAT3_33, MAT9_33, MAT14_33],
+                expected=[False, False, True, False],
             ),
         ]
         return self.generate_tests(smoke_data)

@@ -321,13 +321,13 @@ class ComplexMatrices(ComplexVectorSpace):
     def is_pd(cls, mat):
         """Check if a matrix is positive definite.
 
+        If the input matrix is complex,
+        also check if the matrix is Hermitian.
+
         Parameters
         ----------
         mat : array-like, shape=[..., n, n]
             Matrix.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -353,7 +353,7 @@ class ComplexMatrices(ComplexVectorSpace):
         is_spd : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric positive definite.
         """
-        return Matrices.is_spd(mat, atol=gs.atol)
+        return Matrices.is_spd(mat, atol=atol)
 
     @classmethod
     def is_hpd(cls, mat, atol=gs.atol):

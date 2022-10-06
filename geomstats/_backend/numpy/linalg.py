@@ -92,6 +92,12 @@ def is_single_matrix_pd(mat):
     """Check if 2D square matrix is positive definite."""
     if mat.shape[0] != mat.shape[1]:
         return False
+    if mat.dtype in [_np.complex64, _np.complex128]:
+        is_hermitian = _np.all(mat == _np.conj(_np.transpose(mat)))
+        if not is_hermitian:
+            return False
+        eigvals = _np.linalg.eigvalsh(mat)
+        return _np.min(_np.real(eigvals)) > 0
     try:
         _np.linalg.cholesky(mat)
         return True
