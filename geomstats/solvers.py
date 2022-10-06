@@ -161,7 +161,7 @@ class ExpSolver(metaclass=ABCMeta):
         pass
 
 
-class ExpODESolver(ExpSolver):
+class ExpIVPSolver(ExpSolver):
     # TODO: need to check for matrix-valued manifolds
     def __init__(self, integrator=None):
         if integrator is None:
@@ -194,6 +194,7 @@ class ExpODESolver(ExpSolver):
 
     def _force_raveled_state(self, raveled_initial_state, _, metric):
         # assumes unvectorized
+        # TODO: do similar to LogBVPSolver
         position = raveled_initial_state[: metric.dim]
         velocity = raveled_initial_state[metric.dim :]
 
@@ -259,6 +260,32 @@ class SCPMinimize:
         return result
 
 
+class SCPSolveBVP:
+    def __init__(self, tol=1e-3, max_nodes=1000, save_result=False):
+        self.tol = tol
+        self.max_nodes = max_nodes
+        self.save_result = save_result
+
+        self.result_ = None
+
+    def integrate(self, fun, bc, x, y):
+        def bvp(t, state):
+            return fun(t, gs.array(state))
+
+        def bc_(state_0, state_1):
+            return fun(gs.array(state_0), gs.array(state_1))
+
+        result = scipy.integrate.solve_bvp(
+            bvp, bc, x, y, tol=self.tol, max_nodes=self.max_nodes
+        )
+
+        result = _result_to_backend_type(result)
+        if self.save_result:
+            self.result_ = result
+
+        return result
+
+
 class LogSolver(metaclass=ABCMeta):
     @abstractmethod
     def solve(self, metric, point, base_point):
@@ -266,11 +293,18 @@ class LogSolver(metaclass=ABCMeta):
 
 
 class LogShootingSolver(LogSolver):
-    def __init__(self, optimizer=None):
+    def __init__(self, optimizer=None, initialization=None):
         if optimizer is None:
             optimizer = SCPMinimize()
 
+        if initialization is None:
+            initialization = self._default_initialization
+
         self.optimizer = optimizer
+        self.initialization = initialization
+
+    def _default_initialization(self, metric, point, base_point):
+        return gs.flatten(gs.random.rand(*base_point.shape))
 
     def objective(self, velocity, metric, point, base_point):
 
@@ -284,10 +318,79 @@ class LogShootingSolver(LogSolver):
         point, base_point = gs.broadcast_arrays(point, base_point)
 
         objective = lambda velocity: self.objective(velocity, metric, point, base_point)
-        tangent_vec = gs.flatten(gs.random.rand(*base_point.shape))
+        init_tangent_vec = self.initialization(metric, point, base_point)
 
-        res = self.optimizer.optimize(objective, tangent_vec, jac="autodiff")
+        res = self.optimizer.optimize(objective, init_tangent_vec, jac="autodiff")
 
         tangent_vec = gs.reshape(res.x, base_point.shape)
+
+        return tangent_vec
+
+
+class LogBVPSolver(LogSolver):
+    def __init__(self, n_nodes, integrator=None, initialization=None):
+        # TODO: add more control on the discretization
+        if integrator is None:
+            integrator = SCPSolveBVP()
+
+        if initialization is None:
+            initialization = self._default_initialization
+
+        self.n_nodes = n_nodes
+        self.integrator = integrator
+        self.initialization = initialization
+
+    def _default_initialization(self, metric, point, base_point):
+        # TODO: receive discretization instead?
+        dim = metric.dim
+        point_0, point_1 = base_point, point
+
+        # TODO: need to update torch linspace
+        # TODO: need to avoid assignment
+
+        lin_init = gs.zeros([2 * dim, self.n_nodes])
+        lin_init[:dim, :] = gs.transpose(gs.linspace(point_0, point_1, self.n_nodes))
+        lin_init[dim:, :-1] = self.n_nodes * (lin_init[:dim, 1:] - lin_init[:dim, :-1])
+        lin_init[dim:, -1] = lin_init[dim:, -2]
+        return lin_init
+
+    def boundary_condition(self, state_0, state_1, metric, point_0, point_1):
+        pos_0 = state_0[: metric.dim]
+        pos_1 = state_1[: metric.dim]
+        return gs.hstack((pos_0 - point_0, pos_1 - point_1))
+
+    def bvp(self, _, raveled_state, metric):
+        # inputs: n (2*dim) , n_nodes
+
+        # assumes unvectorized
+
+        state = gs.moveaxis(
+            gs.reshape(raveled_state, (metric.dim, metric.dim, -1)), -2, -1
+        )
+
+        eq = metric.geodesic_equation(state, _)
+
+        eq = gs.reshape(gs.moveaxis(eq, -2, -1), (2 * metric.dim, -1))
+
+        return eq
+
+    def solve(self, metric, point, base_point):
+        # TODO: vectorize
+        # TODO: assume known jacobian
+
+        bvp = lambda t, state: self.bvp(t, state, metric)
+        bc = lambda state_0, state_1: self.boundary_condition(
+            state_0, state_1, metric, base_point, point
+        )
+
+        x = gs.linspace(0.0, 1.0, self.n_nodes)
+        y = self.initialization(metric, point, base_point)
+
+        result = self.integrator.integrate(bvp, bc, x, y)
+
+        return self._simplify_result(result, metric)
+
+    def _simplify_result(self, result, metric):
+        _, tangent_vec = gs.reshape(gs.transpose(result.y)[0], (metric.dim, metric.dim))
 
         return tangent_vec
