@@ -133,7 +133,8 @@ class NormalMetric(PoincareHalfSpaceMetric):
     def __init__(self):
         super().__init__(dim=2)
 
-    def metric_matrix(self, base_point=None):
+    @staticmethod
+    def metric_matrix(base_point=None):
         """Compute the metric matrix at the tangent space at base_point.
 
         Parameters
