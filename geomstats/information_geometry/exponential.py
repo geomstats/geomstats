@@ -132,13 +132,16 @@ class ExponentialDistributions(OpenSet, InformationManifold):
         def pdf(x):
             """Generate parameterized function for exponential pdf.
 
+            The pdf is parameterized by the scale parameter of the exponential,
+            which is equal to 1 / lambda, where lambda is the rate parameter.
+
             Parameters
             ----------
             x : array-like, shape=[n_points,]
                 Points at which to compute the probability density function.
             """
             pdf_at_x = [
-                gs.array(param * gs.exp(-param * x))
+                gs.array(gs.exp(-x / param) / param)
                 for param in gs.to_ndarray(point, 1)
             ]
 
