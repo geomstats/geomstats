@@ -278,6 +278,14 @@ class TestSPDMetricEuclideanPower1(RiemannianMetricTestCase, metaclass=Parametri
     skip_test_squared_dist_is_positive = True
     skip_test_squared_dist_is_symmetric = True
     skip_test_triangle_inequality_of_dist = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     # not skip
     skip_test_exp_ladder_parallel_transport = False
