@@ -193,12 +193,11 @@ class ExpIVPSolver(ExpSolver):
         return force_
 
     def _force_raveled_state(self, raveled_initial_state, _, metric):
-        # assumes unvectorized
-        # TODO: do similar to LogBVPSolver
-        position = raveled_initial_state[: metric.dim]
-        velocity = raveled_initial_state[metric.dim :]
+        # input: (n,)
 
-        state = gs.stack([position, velocity])
+        # assumes unvectorize
+        state = gs.reshape(raveled_initial_state, (metric.dim, metric.dim))
+
         # TODO: remove dependency on time in `geodesic_equation`?
         eq = metric.geodesic_equation(state, _)
 
