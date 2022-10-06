@@ -424,10 +424,10 @@ class Connection(ABC):
     def riemann_tensor(self, base_point):
         r"""Compute Riemannian tensor at base_point.
 
-        In the literature the riemannian curvature tensor is noted R_{ijk}^l.
+        In the literature the riemannian curvature tensor is noted :math:`R_{ijk}^l`.
 
         Following tensor index convention (ref. Wikipedia), we have:
-        R_{ijk}^l = dx^l(R(X_j, X_k)X_i)
+        :math:`R_{ijk}^l = dx^l(R(X_j, X_k)X_i)`
 
         Parameters
         ----------
@@ -458,20 +458,18 @@ class Connection(ABC):
         return riemann_curvature
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
-        r"""Compute the curvature.
+        r"""Compute the Riemann curvature map R.
 
-        In the literature the curvature map is noted R.
+        For three tangent vectors at base point :math:`P`:
+        - :math:`X|_P = tangent\_vec\_a`,
+        - :math:`Y|_P = tangent\_vec\_b`,
+        - :math:`Z|_P = tangent\_vec\_c`,
+        the curvature(X, Y, Z, P) is defined by
+        :math:`R(X,Y)Z = \nabla_X \nabla_Y Z - \nabla_Y \nabla_X Z - \nabla_[X, Y]Z`.
 
-        For three vectors fields :math:`X|_P = tangent\_vec\_a,
-        Y|_P = tangent\_vec\_b, Z|_P = tangent\_vec\_c` with tangent vector
-        specified in argument at the base point :math:`P`,
-        the curvature is defined by :math:`R(X,Y)Z = \nabla_X \nabla_Y Z
-        - \nabla_Y \nabla_X Z - \nabla_[X, Y]Z`.
-
-        curvature(X, Y, Z, P) = R(X, Y)Z where X, Y, Z are tangent vectors
-        at base point P.
-
-        dx^l(R(X, Y)Z) = R_{ijk}^l X_j Y_k Z_i with Einstein notation.
+        The output is the tangent vector:
+        :math:`dx^l(R(X, Y)Z) = R_{ijk}^l X_j Y_k Z_i`
+        written with Einstein notation.
 
         Parameters
         ----------
@@ -487,7 +485,7 @@ class Connection(ABC):
         Returns
         -------
         curvature : array-like, shape=[..., {dim, [n, m]}]
-            curvature(X, Y, Z, P)[..., i] = dx^i(R(X, Y)Z)
+            curvature(X, Y, Z, P)[..., l] = dx^l(R(X, Y)Z)
             Tangent vector at `base_point`.
         """
         riemann = self.riemann_tensor(base_point)
@@ -503,9 +501,9 @@ class Connection(ABC):
     def ricci_tensor(self, base_point):
         r"""Compute Ricci curvature tensor at base_point.
 
-        In the literature the Ricci curvature tensor is noted Ric_{ij}.
-
-        Ric_{ij} = R_{ikj}^k with Einstein notation.
+        The Ricci curvature tensor :math:`Ric_{ij}` is defined as:
+        :math:`Ric_{ij} = R_{ikj}^k`
+        with Einstein notation.
 
         Parameters
         ----------
@@ -525,10 +523,12 @@ class Connection(ABC):
     def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the directional curvature (tidal force operator).
 
-        For two vectors fields :math:`X|_P = tangent\_vec\_a`, and :math:`Y|_P
-        = tangent\_vec\_b` with tangent vector specified in argument at
-        the base point :math:`P`, the directional curvature, better known
-        in relativity as the tidal force operator, is defined by
+        For two tangent vectors at base_point :math:`P`:
+        - :math:`X|_P = tangent\_vec\_a`,
+        - :math:`Y|_P = tangent\_vec\_b`,
+        the directional curvature, better known
+        in relativity as the tidal force operator,
+        is defined by
         :math:`R_Y(X) = R(Y,X)Y`.
 
         Parameters
@@ -557,11 +557,13 @@ class Connection(ABC):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math:`H|_P = tangent\_vec\_a, X|_P =
-        tangent\_vec\_b, Y|_P = tangent\_vec\_c, Z|_P = tangent\_vec\_d` with
-        tangent vector value specified in argument at the base point `P`,
-        the covariant derivative of the curvature
-        :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the base point `P`.
+        For four tangent vectors at base_point :math:`P`:
+        - :math:`H|_P = tangent\_vec\_a`,
+        - :math:`X|_P = tangent\_vec\_b`,
+        - :math:`Y|_P = tangent\_vec\_c`,
+        - :math:`Z|_P = tangent\_vec\_d`,
+        the covariant derivative of the curvature is defined as:
+        :math:`(\nabla_H R)(X, Y) Z |_P`.
 
         Parameters
         ----------
@@ -581,19 +583,23 @@ class Connection(ABC):
         curvature_derivative : array-like, shape=[..., dim]
             Tangent vector at base-point.
         """
-        raise NotImplementedError("The curvature is not implemented.")
+        raise NotImplementedError(
+            "The covariant derivative of the curvature is not implemented."
+        )
 
     def directional_curvature_derivative(
         self, tangent_vec_a, tangent_vec_b, base_point=None
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
-        tangent\_vec\_b` with tangent vector value specified in argument at the
-        base point `P`, the covariant derivative (in the direction `X`)
+        For tangent vector fields at base_point :math:`P`:
+        - :math:`X|_P = tangent\_vec\_a`,
+        - :math:`Y|_P = tangent\_vec\_b`,
+        the covariant derivative (in the direction `X`)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)
-        :math:`R_Y(X) = R(Y, X) Y` is a quadratic tensor in `X` and `Y` that
+        :math:`R_Y(X) = R(Y, X) Y`
+        is a quadratic tensor in `X` and `Y` that
         plays an important role in the computation of the moments of the
         empirical Fréchet mean.
 
