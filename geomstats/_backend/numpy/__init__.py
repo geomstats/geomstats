@@ -58,7 +58,6 @@ from numpy import (
     shape,
     sort,
     split,
-    squeeze,
     stack,
     std,
     sum,
@@ -177,6 +176,14 @@ def to_numpy(x):
 
 def from_numpy(x):
     return x
+
+
+def squeeze(x, axis=None):
+    if axis is None:
+        return _np.squeeze(x)
+    if x.shape[axis] != 1:
+        return x
+    return _np.squeeze(x, axis=axis)
 
 
 def _get_wider_dtype(tensor_list):

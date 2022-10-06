@@ -1,7 +1,5 @@
 """Unit tests for the pull-back metrics."""
 
-import pytest
-
 import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
@@ -187,7 +185,25 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected)
 
-    @pytest.mark.skip("earlier it was commented.")
+    def test_inner_product_derivative_matrix_s2(self, dim, base_point):
+        metric = self.Metric(
+            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
+        )
+        theta, _ = base_point[0], base_point[1]
+
+        derivative_matrix = metric.inner_product_derivative_matrix(base_point)
+
+        assert ~gs.allclose(derivative_matrix, gs.zeros((dim, dim, dim)))
+
+        # derivative with respect to theta
+        expected_1 = gs.array([[0, 0], [0, 2 * gs.cos(theta) * gs.sin(theta)]])
+        # derivative with respect to phi
+        expected_2 = gs.zeros((2, 2))
+
+        self.assertAllClose(derivative_matrix.shape, (2, 2, 2))
+        self.assertAllClose(derivative_matrix[:, :, 0], expected_1)
+        self.assertAllClose(derivative_matrix[:, :, 1], expected_2)
+
     def test_christoffels_and_sphere_christoffels(self, dim, base_point):
         """Test consistency between sphere's christoffels.
 
@@ -204,6 +220,48 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         expected = Hypersphere(2).metric.christoffels(base_point)
         self.assertAllClose(result, expected)
 
+    def test_christoffels_sphere(self, dim, base_point):
+        pullback_metric = self.Metric(
+            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
+        )
+        theta, _ = base_point[0], base_point[1]
+
+        christoffels = pullback_metric.christoffels(base_point)
+
+        self.assertAllClose(christoffels.shape, (2, 2, 2))
+
+        expected_1_11 = expected_2_11 = expected_2_22 = expected_1_12 = 0
+
+        self.assertAllClose(christoffels[0, 0, 0], expected_1_11)
+        self.assertAllClose(christoffels[1, 0, 0], expected_2_11)
+        self.assertAllClose(christoffels[1, 1, 1], expected_2_22)
+        self.assertAllClose(christoffels[0, 0, 1], expected_1_12)
+
+        expected_1_22 = -gs.sin(theta) * gs.cos(theta)
+        expected_2_12 = expected_2_21 = gs.cos(theta) / gs.sin(theta)
+
+        self.assertAllClose(christoffels[0, 1, 1], expected_1_22)
+        self.assertAllClose(christoffels[1, 0, 1], expected_2_12)
+        self.assertAllClose(christoffels[1, 1, 0], expected_2_21)
+
+    def test_christoffels_circle(self, dim, base_point):
+        """Test consistency between sphere's christoffels.
+
+        The christoffels of the class Hypersphere are
+        defined in terms of spherical coordinates.
+
+        The christoffels of pullback_metric are also defined
+        in terms of the spherical coordinates.
+        """
+        pullback_metric = self.Metric(
+            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
+        )
+        result = pullback_metric.christoffels(base_point)
+
+        self.assertAllClose(result.shape, (1, 1, 1))
+        self.assertAllClose(result, gs.zeros((1, 1, 1)))
+
+    @tests.conftest.autograd_and_torch_only
     def test_exp_and_sphere_exp(self, dim, tangent_vec, base_point):
         """Test consistency between sphere's Riemannian exp.
 
@@ -213,6 +271,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         The exp map of pullback_metric is defined
         in terms of the spherical coordinates.
         """
+        # Note: this works in tf too, but takes a very long time.
         pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
         )
@@ -226,7 +285,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected, atol=1e-1)
 
-    @tests.conftest.autograd_and_torch_only
+    @tests.conftest.torch_only
     def test_parallel_transport_and_sphere_parallel_transport(
         self, dim, tangent_vec_a, tangent_vec_b, base_point
     ):
@@ -237,6 +296,8 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
         The parallel transport of pullback_metric is defined
         in terms of the spherical coordinates.
+
+        Note: this test passes in autograd and in tf but takes a very long time.
         """
         pullback_metric = self.Metric(
             dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
@@ -259,4 +320,4 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             base_point=immersed_base_point,
             direction=immersed_tangent_vec_b,
         )
-        self.assertAllClose(result, expected, atol=1e-5)
+        self.assertAllClose(result, expected, atol=5e-3)

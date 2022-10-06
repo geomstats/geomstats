@@ -2,7 +2,8 @@
 
 import numpy as _np
 import torch as _torch
-from torch.autograd.functional import jacobian as _torch_jac
+from torch.autograd.functional import hessian as _torch_hessian
+from torch.autograd.functional import jacobian as _torch_jacobian
 
 
 def detach(x):
@@ -85,15 +86,78 @@ def jacobian(func):
     Parameters
     ----------
     func : callable
-        Function whose Jacobian is computed.
+        Function whose jacobian is computed.
 
     Returns
     -------
     _ : callable
-        Function taking x as input and returning
-        the jacobian of func at x.
+        Function taking point as input and returning
+        the jacobian of func at point.
     """
-    return lambda x: _torch_jac(func, x)
+
+    def _jacobian(point):
+        return _torch_jacobian(func=lambda x: func(x), inputs=point)
+
+    return _jacobian
+
+
+def hessian(func):
+    """Return a function that returns the hessian of func.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Hessian is computed.
+
+    Returns
+    -------
+    _ : callable
+        Function taking point as input and returning
+        the hessian of func at point.
+    """
+
+    def _hessian(point):
+        return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
+
+    return _hessian
+
+
+def jacobian_and_hessian(func):
+    """Return a function that returns func's jacobian and hessian.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian and hessian
+        will be computed. It must be real-valued.
+
+    Returns
+    -------
+    func_with_jacobian_and_hessian : callable
+        Function that returns func's jacobian and
+        func's hessian at its inputs args.
+    """
+
+    def _jacobian_and_hessian(*args, **kwargs):
+        """Return func's jacobian and func's hessian at args.
+
+        Parameters
+        ----------
+        args : list
+            Argument to function func and its gradients.
+        kwargs : dict
+            Keyword arguments to function func and its gradients.
+
+        Returns
+        -------
+        jacobian : any
+            Value of func's jacobian at input arguments args.
+        hessian : any
+            Value of func's hessian at input arguments args.
+        """
+        return jacobian(func)(*args), hessian(func)(*args)
+
+    return _jacobian_and_hessian
 
 
 def value_and_grad(func, to_numpy=False):

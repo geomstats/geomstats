@@ -111,6 +111,49 @@ class PullbackMetric(RiemannianMetric):
         metric_mat = gs.reshape(gs.array(out), (-1, self.dim, self.dim))
         return metric_mat[0] if base_point.ndim == 1 else metric_mat
 
+    def inner_product_derivative_matrix(self, base_point=None):
+        r"""Compute the inner-product derivative matrix.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_prod_deriv_mat : array-like, shape=[..., dim, dim, dim]
+            Inner-product derivative matrix.
+        """
+        hessian_aij = []
+        jacobian_ai = []
+        embedding_dim = self.embedding_metric.dim
+        for a in range(embedding_dim):
+
+            def immersion_a(x):
+                return self.immersion(x)[a]
+
+            jacobian_a, hessian_a = gs.autodiff.jacobian_and_hessian(immersion_a)(
+                base_point
+            )
+            if self.dim == 1 and hessian_a.ndim > 2:
+                hessian_a = gs.squeeze(hessian_a, axis=-1)
+            hessian_aij.append(hessian_a)
+
+            jacobian_a = gs.squeeze(jacobian_a, axis=0)
+            if len(jacobian_a.shape) == 0:
+                jacobian_a = gs.to_ndarray(jacobian_a, to_ndim=1)
+            jacobian_ai.append(jacobian_a)
+
+        hessian_aij = gs.stack(hessian_aij, axis=0)
+        jacobian_ai = gs.stack(jacobian_ai, axis=0)
+        inner_prod_deriv_mat = gs.einsum(
+            "aki,aj->kij", hessian_aij, jacobian_ai
+        ) + gs.einsum("akj,ai->kij", hessian_aij, jacobian_ai)
+
+        inner_prod_deriv_mat = gs.transpose(inner_prod_deriv_mat, axes=(2, 1, 0))
+        return inner_prod_deriv_mat
+
 
 class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
     """
