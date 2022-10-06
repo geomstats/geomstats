@@ -47,8 +47,9 @@ class InformationManifoldMixin:
         """
         geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
-        return lambda x: self.pdf(x, point=point)
+        return lambda x: self.pdf(x, point)
 
+    @staticmethod
     def pdf(x, point):
         """Generate parameterized function for pdf.
 
@@ -87,8 +88,9 @@ class InformationManifoldMixin:
         """
         geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
-        return lambda x: self.cdf(x, point=point)
+        return lambda x: self.cdf(x, point)
 
+    @staticmethod
     def cdf(x, point):
         """Generate parameterized function for cdf.
 

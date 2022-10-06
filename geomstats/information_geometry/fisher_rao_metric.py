@@ -138,7 +138,7 @@ class FisherRaoMetric(RiemannianMetric):
             """
             return lambda point: self.information_manifold.point_to_pdf(point)(x)
 
-        def function_to_integrate(x):
+        def _function_to_integrate(x):
             pdf_x = pdf(x)
             pdf_x_at_base_point = pdf_x(base_point)
             pdf_x_derivative = gs.autodiff.jacobian(pdf_x)
@@ -163,4 +163,4 @@ class FisherRaoMetric(RiemannianMetric):
                 )
             )
 
-        return quad_vec(function_to_integrate, *self.support)[0]
+        return quad_vec(_function_to_integrate, *self.support)[0]
