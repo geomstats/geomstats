@@ -1,3 +1,4 @@
+import logging
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
@@ -161,7 +162,7 @@ class ExpSolver(metaclass=ABCMeta):
 
 
 class ExpODESolver(ExpSolver):
-    # TODO: need to handle vectorization and check for matrix-valued manifolds
+    # TODO: need to check for matrix-valued manifolds
     def __init__(self, integrator=None):
         if integrator is None:
             integrator = GSIntegrator()
@@ -247,7 +248,10 @@ class SCPMinimize:
 
         result = _result_to_backend_type(result)
 
-        # TODO: add status verification
+        if result.status == 1:
+            logging.warning(
+                "Maximum number of iterations reached. Result may be innacurate."
+            )
 
         if self.save_result:
             self.result_ = result
@@ -269,16 +273,21 @@ class LogShootingSolver(LogSolver):
         self.optimizer = optimizer
 
     def objective(self, velocity, metric, point, base_point):
+
+        velocity = gs.reshape(velocity, base_point.shape)
         delta = metric.exp(velocity, base_point) - point
         return gs.sum(delta**2)
 
     def solve(self, metric, point, base_point):
-        # TODO: vectorize here?
-        # TODO: ensure it works with all backends
+        # TODO: are we sure optimizing together is a good idea?
+
+        point, base_point = gs.broadcast_arrays(point, base_point)
 
         objective = lambda velocity: self.objective(velocity, metric, point, base_point)
-        tangent_vec = gs.random.rand(*base_point.shape)
+        tangent_vec = gs.flatten(gs.random.rand(*base_point.shape))
 
-        result = self.optimizer.optimize(objective, tangent_vec, jac="autodiff")
+        res = self.optimizer.optimize(objective, tangent_vec, jac="autodiff")
 
-        return result
+        tangent_vec = gs.reshape(res.x, base_point.shape)
+
+        return tangent_vec
