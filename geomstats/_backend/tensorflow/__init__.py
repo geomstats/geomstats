@@ -64,7 +64,6 @@ erf = _tf.math.erf
 imag = _tf.math.imag
 isnan = _tf.math.is_nan
 polygamma = _tf.math.polygamma
-lgamma = _tf.math.lgamma
 real = _tf.math.real
 set_diag = _tf.linalg.set_diag
 trapz = _tfp.math.trapz

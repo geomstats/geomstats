@@ -7,7 +7,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class FisherRaoMetric(RiemannianMetric):
-    r"""Class to derive the information metric from the pdf in InformationManifold.
+    r"""Class to derive the information metric from the pdf in InformationManifoldMixin.
 
     Given a statistical manifold with coordinates :math:`\theta`,
     the Fisher information metric is:
@@ -16,7 +16,7 @@ class FisherRaoMetric(RiemannianMetric):
 
     Attributes
     ----------
-    information_manifold : InformationManifold object
+    information_manifold : InformationManifoldMixin object
         Riemannian Manifold for a parametric family of (real) distributions.
     support : list, shape = (2,)
         Left and right bounds for the support of the distribution.
@@ -24,8 +24,11 @@ class FisherRaoMetric(RiemannianMetric):
     """
 
     def __init__(self, information_manifold, support):
-        dim = information_manifold.dim
-        super().__init__(dim=dim, shape=(dim,), signature=(dim, 0))
+        super().__init__(
+            dim=information_manifold.dim,
+            shape=(information_manifold.dim,),
+            signature=(information_manifold.dim, 0),
+        )
         self.information_manifold = information_manifold
         self.support = support
 
@@ -67,7 +70,7 @@ class FisherRaoMetric(RiemannianMetric):
                 self.information_manifold.point_to_pdf(point)(x)
             )
 
-        def dlog(x):
+        def log_pdf_derivative(x):
             """Compute the derivative of the log-pdf with respect to the parameters.
 
             Parameters
@@ -77,7 +80,7 @@ class FisherRaoMetric(RiemannianMetric):
             """
             return gs.autodiff.jacobian(log_pdf_at_x(x))(base_point)
 
-        def squared_dlog(x):
+        def log_pdf_derivative_squared(x):
             """Compute the square (in matrix terms) of dlog.
 
             This is the variable whose expectance is the Fisher-Rao information.
@@ -87,10 +90,11 @@ class FisherRaoMetric(RiemannianMetric):
             x : float, shape (,)
                 Point on the support of the distribution
             """
-            return gs.einsum("...i, ...j -> ...ij", dlog(x), dlog(x))
+            dlog = log_pdf_derivative(x)
+            return gs.einsum("...i, ...j -> ...ij", dlog, dlog)
 
         metric_mat = quad_vec(
-            lambda x: squared_dlog(x)
+            lambda x: log_pdf_derivative_squared(x)
             * self.information_manifold.point_to_pdf(base_point)(x),
             *self.support
         )[0]
@@ -134,24 +138,29 @@ class FisherRaoMetric(RiemannianMetric):
             """
             return lambda point: self.information_manifold.point_to_pdf(point)(x)
 
-        function = (
-            lambda x: 1
-            / (pdf(x)(base_point) ** 2)
-            * (
-                2
-                * pdf(x)(base_point)
-                * gs.einsum(
-                    "...ij, ...k -> ...ijk",
-                    gs.autodiff.jacobian(gs.autodiff.jacobian(pdf(x)))(base_point),
-                    gs.autodiff.jacobian(pdf(x))(base_point),
-                )
-                + gs.einsum(
-                    "...i, ...j, ...k -> ...ijk",
-                    gs.autodiff.jacobian(pdf(x))(base_point),
-                    gs.autodiff.jacobian(pdf(x))(base_point),
-                    gs.autodiff.jacobian(pdf(x))(base_point),
+        def function_to_integrate(x):
+            pdf_x = pdf(x)
+            pdf_x_at_base_point = pdf_x(base_point)
+            pdf_x_derivative = gs.autodiff.jacobian(pdf_x)
+            pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)
+            return (
+                1
+                / (pdf_x_at_base_point**2)
+                * (
+                    2
+                    * pdf_x_at_base_point
+                    * gs.einsum(
+                        "...ij, ...k -> ...ijk",
+                        gs.autodiff.jacobian(pdf_x_derivative)(base_point),
+                        pdf_x_derivative_at_base_point,
+                    )
+                    + gs.einsum(
+                        "...i, ...j, ...k -> ...ijk",
+                        pdf_x_derivative_at_base_point,
+                        pdf_x_derivative_at_base_point,
+                        pdf_x_derivative_at_base_point,
+                    )
                 )
             )
-        )
 
-        return quad_vec(function, *self.support)[0]
+        return quad_vec(function_to_integrate, *self.support)[0]

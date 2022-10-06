@@ -31,7 +31,7 @@ from torch import max as amax
 from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma, quantile
 from torch import repeat_interleave as repeat
 from torch import reshape, stack, trapz, uint8, unique, vstack, zeros, zeros_like
-from torch.special import gammaln  # NOQA
+from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
@@ -745,4 +745,4 @@ def cross(a, b):
 
 
 def gamma(a):
-    return _torch.exp(gammaln(a))
+    return _torch.exp(_gammaln(a))

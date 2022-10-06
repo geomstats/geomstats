@@ -11,10 +11,10 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
 )
-from geomstats.information_geometry.information_manifold import InformationManifold
+from geomstats.information_geometry.base import InformationManifoldMixin
 
 
-class NormalDistributions(PoincareHalfSpace, InformationManifold):
+class NormalDistributions(InformationManifoldMixin, PoincareHalfSpace):
     """Class for the manifold of univariate normal distributions.
 
     This is upper half-plane.
@@ -22,7 +22,6 @@ class NormalDistributions(PoincareHalfSpace, InformationManifold):
 
     def __init__(self):
         super().__init__(dim=2)
-        self.shape = (2,)
         self.metric = NormalMetric()
 
     @staticmethod
@@ -97,8 +96,8 @@ class NormalDistributions(PoincareHalfSpace, InformationManifold):
         geomstats.errors.check_belongs(point, self)
         means = point[..., 0]
         stds = point[..., 1]
-        means = gs.to_ndarray(means, to_ndim=1)
-        stds = gs.to_ndarray(stds, to_ndim=1)
+        means = gs.to_ndarray(means, to_ndim=2)
+        stds = gs.to_ndarray(stds, to_ndim=2)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -108,18 +107,10 @@ class NormalDistributions(PoincareHalfSpace, InformationManifold):
             x : array-like, shape=[n_points,]
                 Points at which to compute the probability density function.
             """
-            pdf_at_x = [
-                gs.array(
-                    (
-                        (1.0 / gs.sqrt(2 * gs.pi * std**2))
-                        * gs.exp(-((x - mean) ** 2) / (2 * std**2))
-                    )
-                )
-                for mean, std in zip(means, stds)
-            ]
-            pdf_at_x = gs.stack(pdf_at_x, axis=-1)
-
-            return pdf_at_x
+            x = gs.to_ndarray(x, to_ndim=2, axis=-1)
+            return (1.0 / gs.sqrt(2 * gs.pi * stds**2)) * gs.exp(
+                -((x - means) ** 2) / (2 * stds**2)
+            )
 
         return pdf
 

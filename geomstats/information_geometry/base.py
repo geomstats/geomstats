@@ -4,7 +4,7 @@ import geomstats.backend as gs
 import geomstats.errors
 
 
-class InformationManifold:
+class InformationManifoldMixin:
     """Mixin for manifolds of probability distributions."""
 
     def sample(self, point, n_samples=1):
@@ -47,25 +47,26 @@ class InformationManifold:
         """
         geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
+        return lambda x: self.pdf(x, point=point)
 
-        def pdf(x):
-            """Generate parameterized function for pdf.
+    def pdf(x, point):
+        """Generate parameterized function for pdf.
 
-            Parameters
-            ----------
-            x : array-like, shape=[n_points, dim]
-                Points at which to compute the probability
-                density function.
+        Parameters
+        ----------
+        x : array-like, shape=[n_points, dim]
+            Points at which to compute the probability
+            density function.
+        point : array-like, shape=[..., dim]
+            Point representing a probability distribution.
 
-            Returns
-            -------
-            pdf_at_x : array-like, shape=[..., n_points]
-                Values of pdf at x for each value of the parameters provided
-                by point.
-            """
-            raise NotImplementedError("The pdf method has not yet been implemented.")
-
-        return pdf
+        Returns
+        -------
+        pdf_at_x : array-like, shape=[..., n_points]
+            Values of pdf at x for each value of the parameters provided
+            by point.
+        """
+        raise NotImplementedError("The pdf method has not yet been implemented.")
 
     def point_to_cdf(self, point):
         """Compute cdf associated to point.
@@ -86,22 +87,23 @@ class InformationManifold:
         """
         geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
+        return lambda x: self.cdf(x, point=point)
 
-        def cdf(x):
-            """Generate parameterized function for cdf.
+    def cdf(x, point):
+        """Generate parameterized function for cdf.
 
-            Parameters
-            ----------
-            x : array-like, shape=[n_points, dim]
-                Points at which to compute the probability
-                density function.
+        Parameters
+        ----------
+        x : array-like, shape=[n_points, dim]
+            Points at which to compute the probability
+            density function.
+        point : array-like, shape=[..., dim]
+            Point representing a probability distribution.
 
-            Returns
-            -------
-            cdf_at_x : array-like, shape=[..., n_points]
-                Values of cdf at x for each value of the parameters provided
-                by point.
-            """
-            raise NotImplementedError("The cdf method has not yet been implemented.")
-
-        return cdf
+        Returns
+        -------
+        cdf_at_x : array-like, shape=[..., n_points]
+            Values of cdf at x for each value of the parameters provided
+            by point.
+        """
+        raise NotImplementedError("The cdf method has not yet been implemented.")

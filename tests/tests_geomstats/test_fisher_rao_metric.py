@@ -8,8 +8,8 @@ from tests.data.fisher_rao_metric_data import FisherRaoMetricTestData
 from tests.geometry_test_cases import TestCase
 
 
-@tests.conftest.autograd_and_torch_only
-# Note: it also works in tensorflow but it is insanely slow.
+@tests.conftest.autograd_tf_and_torch_only
+# Note: tests in tensorflow are slow.
 class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
     testing_data = FisherRaoMetricTestData()
 
