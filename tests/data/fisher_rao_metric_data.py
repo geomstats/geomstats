@@ -12,10 +12,8 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
     ]
     supports = [(-10, 10)]
     Metric = FisherRaoMetric
-    metric_args_list = [
-        (information_manifold, support)
-        for information_manifold, support in zip(information_manifolds, supports)
-    ]
+    metric_args_list = list(zip(information_manifolds, supports))
+
     shape_list = [metric_args[0].shape for metric_args in metric_args_list]
     space_list = [metric_args[0] for metric_args in metric_args_list]
     n_points_list = [1, 2] * 3
