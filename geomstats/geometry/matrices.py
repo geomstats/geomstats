@@ -312,9 +312,6 @@ class Matrices(VectorSpace):
         ----------
         mat : array-like, shape=[..., n, n]
             Matrix.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
