@@ -132,3 +132,35 @@ class NormalMetric(PoincareHalfSpaceMetric):
 
     def __init__(self):
         super().__init__(dim=2)
+
+    def metric_matrix(self, base_point=None):
+        """Compute the metric matrix at the tangent space at base_point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution (location and scale).
+
+        Returns
+        -------
+        mat : array-like, shape=[..., 2, 2]
+            Metric matrix.
+        """
+        geomstats.errors.check_belongs(base_point, self.embedding_manifold)
+        stds = base_point[..., 1]
+        stds = gs.to_ndarray(stds, to_ndim=1)
+        mat = gs.stack(
+            [gs.array(((1.0 / std**2) * gs.eye(2),)) for std in stds],
+            axis=-3,
+        )
+        return mat
+        stds = base_point[..., 1]
+        stds = gs.to_ndarray(stds, to_ndim=1)
+        metric_mat = gs.stack(
+            [gs.array([[1.0 / std**2, 0.0], [0.0, 2.0 / std**2]]) for std in stds],
+            axis=0,
+        )
+
+        if metric_mat.ndim == 3 and metric_mat.shape[0] == 1:
+            return metric_mat[0]
+        return metric_mat

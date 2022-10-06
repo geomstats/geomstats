@@ -32,3 +32,19 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
         result = gs.matmul(inv_inner_prod_mat, inner_prod_mat)
         expected = gs.eye(information_manifold.dim)
         self.assertAllClose(result, expected)
+
+    def test_metric_matrix_and_closed_form_metric_matrix(
+        self,
+        information_manifold,
+        support,
+        closed_form_metric,
+        base_point,
+    ):
+        metric = self.Metric(information_manifold=information_manifold, support=support)
+        inner_prod_mat = metric.metric_matrix(
+            base_point=base_point,
+        )
+        normal_metric_mat = closed_form_metric.metric_matrix(
+            base_point=base_point,
+        )
+        self.assertAllClose(inner_prod_mat, normal_metric_mat)

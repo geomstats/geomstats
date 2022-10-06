@@ -22,7 +22,7 @@ class ExponentialDistributions(OpenSet, InformationManifold):
 
     def __init__(self):
         super().__init__(
-            dim=1, ambient_space=Euclidean(dim=1), metric=ExponentialFisherRaoMetric()
+            dim=1, ambient_space=Euclidean(dim=1), metric=ExponentialMetric()
         )
 
     def belongs(self, point, atol=gs.atol):
@@ -144,13 +144,14 @@ class ExponentialDistributions(OpenSet, InformationManifold):
                 gs.array(gs.exp(-x / param) / param)
                 for param in gs.to_ndarray(point, 1)
             ]
+            pdf_at_x = gs.stack(pdf_at_x, axis=0)
 
             return pdf_at_x
 
         return pdf
 
 
-class ExponentialFisherRaoMetric(RiemannianMetric):
+class ExponentialMetric(RiemannianMetric):
     """Class for the Fisher information metric on exponential distributions.
 
     References
