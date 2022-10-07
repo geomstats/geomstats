@@ -51,6 +51,28 @@ def _expected_jacobian_sphere_immersion(point):
     return jacobian
 
 
+def _expected_hessian_sphere_immersion(point):
+    theta = point[..., 0]
+    phi = point[..., 1]
+    hessian_immersion_x = gs.array(
+        [
+            [-gs.sin(theta) * gs.cos(phi), -gs.cos(theta) * gs.sin(phi)],
+            [-gs.cos(theta) * gs.sin(phi), -gs.sin(theta) * gs.cos(phi)],
+        ]
+    )
+    hessian_immersion_y = gs.array(
+        [
+            [-gs.sin(theta) * gs.sin(phi), gs.cos(theta) * gs.cos(phi)],
+            [gs.cos(theta) * gs.cos(phi), -gs.sin(theta) * gs.sin(phi)],
+        ]
+    )
+    hessian_immersion_z = gs.array([[-gs.cos(theta), 0.0], [0.0, 0.0]])
+    hessian_immersion = gs.stack(
+        [hessian_immersion_x, hessian_immersion_y, hessian_immersion_z], axis=0
+    )
+    return hessian_immersion
+
+
 def _expected_circle_metric_matrix(point):
     mat = gs.array([[1.0]])
     return mat
@@ -321,3 +343,18 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             direction=immersed_tangent_vec_b,
         )
         self.assertAllClose(result, expected, atol=5e-3)
+
+    def test_hessian_sphere_immersion(self, base_point):
+        """Test the hessian immersion.
+
+        The hessian immersion is the hessian of the immersion
+        function.
+        """
+        pullback_metric = self.Metric(
+            dim=2, embedding_dim=3, immersion=_sphere_immersion
+        )
+        base_point = gs.array([0.3, 1.0])
+        result = pullback_metric.hessian_immersion(base_point)
+        expected = _expected_hessian_sphere_immersion(base_point)
+        self.assertAllClose(result.shape, (3, 2, 2))
+        self.assertAllClose(result, expected)

@@ -5,6 +5,7 @@ Lead author: Nina Miolane.
 import abc
 import itertools
 import math
+from functools import partial
 
 import joblib
 
@@ -61,6 +62,7 @@ class PullbackMetric(RiemannianMetric):
                 return gs.squeeze(gs.matvec(jacobian_immersion(x), v))
 
         self.tangent_immersion = _tangent_immersion
+        self._hessian_immersion = None
 
     def metric_matrix(self, base_point=None, n_jobs=1, **joblib_kwargs):
         r"""Metric matrix at the tangent space at a base point.
@@ -111,6 +113,44 @@ class PullbackMetric(RiemannianMetric):
         metric_mat = gs.reshape(gs.array(out), (-1, self.dim, self.dim))
         return metric_mat[0] if base_point.ndim == 1 else metric_mat
 
+    def _compute_hessian_immersion(self):
+        """Compute the Hessian of the immersion.
+
+        Returns
+        -------
+        hessian_immersion : list of callable
+            List of embedding_dim hessians of the scalar
+            functions defining the components of the immersion.
+        """
+
+        def _immersion(base_point, a):
+            return self.immersion(base_point)[a]
+
+        hessians = []
+        for a in range(self.embedding_metric.dim):
+            hessian_a = gs.autodiff.hessian(partial(_immersion, a=a))  # (base_point)
+            hessians.append(hessian_a)
+        return hessians
+
+    def hessian_immersion(self, base_point):
+        """Compute the Hessian of the immersion.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        hessian_immersion : array-like, shape=[..., embedding_dim, dim, dim]
+            Hessian at the base point
+        """
+        if self._hessian_immersion is None:
+            self._hessian_immersion = self._compute_hessian_immersion()
+
+        hessian_values = [hes(base_point) for hes in self._hessian_immersion]
+        return gs.stack(hessian_values, axis=0)
+
     def inner_product_derivative_matrix(self, base_point=None):
         r"""Compute the inner-product derivative matrix.
 
@@ -125,34 +165,72 @@ class PullbackMetric(RiemannianMetric):
         inner_prod_deriv_mat : array-like, shape=[..., dim, dim, dim]
             Inner-product derivative matrix.
         """
-        hessian_aij = []
-        jacobian_ai = []
         embedding_dim = self.embedding_metric.dim
-        for a in range(embedding_dim):
 
-            def immersion_a(x):
-                return self.immersion(x)[a]
+        jacobian_ai = self.jacobian_immersion(base_point)
+        if self.dim == 1 and jacobian_ai.ndim > 2:
+            jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
+        assert jacobian_ai.shape[-2:] == (embedding_dim, self.dim), jacobian_ai.shape
 
-            jacobian_a, hessian_a = gs.autodiff.jacobian_and_hessian(immersion_a)(
-                base_point
-            )
-            if self.dim == 1 and hessian_a.ndim > 2:
-                hessian_a = gs.squeeze(hessian_a, axis=-1)
-            hessian_aij.append(hessian_a)
+        hessian_aij = self.hessian_immersion(base_point)
+        if self.dim == 1 and hessian_aij.ndim > 3:
+            hessian_aij = gs.squeeze(hessian_aij, axis=-1)
+        assert hessian_aij.shape == (
+            embedding_dim,
+            self.dim,
+            self.dim,
+        ), hessian_aij.shape
 
-            jacobian_a = gs.squeeze(jacobian_a, axis=0)
-            if len(jacobian_a.shape) == 0:
-                jacobian_a = gs.to_ndarray(jacobian_a, to_ndim=1)
-            jacobian_ai.append(jacobian_a)
-
-        hessian_aij = gs.stack(hessian_aij, axis=0)
-        jacobian_ai = gs.stack(jacobian_ai, axis=0)
         inner_prod_deriv_mat = gs.einsum(
-            "aki,aj->kij", hessian_aij, jacobian_ai
-        ) + gs.einsum("akj,ai->kij", hessian_aij, jacobian_ai)
+            "aki,aj->ijk", hessian_aij, jacobian_ai
+        ) + gs.einsum("akj,ai->ijk", hessian_aij, jacobian_ai)
 
-        inner_prod_deriv_mat = gs.transpose(inner_prod_deriv_mat, axes=(2, 1, 0))
         return inner_prod_deriv_mat
+
+    def second_fundamental_form(self, base_point):
+        r"""Compute the second fundamental form.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        second_fundamental_form : array-like, shape=[..., embedding_dim, dim, dim]
+            Second fundamental form.
+        """
+        christoffels = self.christoffels(base_point)
+        dim = self.dim
+        embedding_dim = self.embedding_metric.dim
+        assert christoffels.shape == (dim, dim, dim), christoffels.shape
+
+        jacobian_ai = self.jacobian_immersion(base_point)
+        if self.dim == 1 and jacobian_ai.ndim > 2:
+            jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
+        assert jacobian_ai.shape[-2:] == (embedding_dim, self.dim), jacobian_ai.shape
+
+        hessian_aij = self.hessian_immersion(base_point)
+        if self.dim == 1 and hessian_aij.ndim > 3:
+            hessian_aij = gs.squeeze(hessian_aij, axis=-1)
+        assert hessian_aij.shape == (
+            embedding_dim,
+            self.dim,
+            self.dim,
+        ), hessian_aij.shape
+
+        second_fundamental_form_aij = []
+
+        for a in range(self.embedding_metric.dim):
+            jacobian_a = jacobian_ai[a]
+            hessian_a = hessian_aij[a]
+
+            second_fundamental_form_a = hessian_a - gs.einsum(
+                "kij,k->ij", christoffels, jacobian_a
+            )
+            second_fundamental_form_aij.append(second_fundamental_form_a)
+
+        return gs.stack(second_fundamental_form_aij, axis=0)
 
 
 class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
