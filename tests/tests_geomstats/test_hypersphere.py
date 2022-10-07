@@ -6,7 +6,7 @@ import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, np_backend
 from tests.data.hypersphere_data import HypersphereMetricTestData, HypersphereTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
@@ -269,5 +269,9 @@ class TestHypersphereMetric(HypersphereMetricTestCase, metaclass=Parametrizer):
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature = True
     skip_test_sectional_curvature_shape = True
+    skip_test_riemann_tensor_spherical_coords_shape = np_backend()
+    skip_test_ricci_tensor_spherical_coords_shape = np_backend()
+    skip_test_riemann_tensor_spherical_coords = np_backend()
+    skip_test_ricci_tensor_spherical_coords = np_backend()
 
     testing_data = HypersphereMetricTestData()
