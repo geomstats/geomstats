@@ -454,7 +454,6 @@ class Connection(ABC):
             Riemannian tensor curvature,
             with the contravariant index on the last dimension.
         """
-        dim = self.dim
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         christoffels = self.christoffels(base_point)
         jacobian_christoffels = gs.squeeze(
@@ -466,13 +465,6 @@ class Connection(ABC):
                 axis=0,
             )
         )
-        print(jacobian_christoffels.shape)
-        assert jacobian_christoffels.shape[-4:] == (
-            dim,
-            dim,
-            dim,
-            dim,
-        ), jacobian_christoffels.shape
         prod_christoffels = gs.einsum(
             "...ijk,...klm->...ijlm", christoffels, christoffels
         )
@@ -484,13 +476,6 @@ class Connection(ABC):
         )
         if riemann_curvature.ndim == 5 and riemann_curvature.shape[0] == 1:
             riemann_curvature = riemann_curvature[0]
-        print(riemann_curvature.shape[-4:])
-        assert riemann_curvature.shape[-4:] == (
-            dim,
-            dim,
-            dim,
-            dim,
-        ), riemann_curvature.shape
 
         return riemann_curvature
 
