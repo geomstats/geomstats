@@ -140,6 +140,7 @@ class PullbackMetric(RiemannianMetric):
                 hessian_a = gs.squeeze(hessian_a, axis=-1)
             elif self.dim != 1 and hessian_a.ndim > 2:
                 hessian_a = gs.squeeze(hessian_a)
+            assert hessian_a.shape == (self.dim, self.dim)
 
             hessian_aij.append(hessian_a)
 
@@ -148,15 +149,22 @@ class PullbackMetric(RiemannianMetric):
                 jacobian_a = gs.to_ndarray(jacobian_a, to_ndim=1)
             elif self.dim != 1 and jacobian_a.ndim > 1:
                 jacobian_a = gs.squeeze(jacobian_a)
+            assert jacobian_a.shape == (self.dim,)
             jacobian_ai.append(jacobian_a)
 
         hessian_aij = gs.stack(hessian_aij, axis=0)
         jacobian_ai = gs.stack(jacobian_ai, axis=0)
+        assert hessian_aij.shape == (
+            embedding_dim,
+            self.dim,
+            self.dim,
+        ), hessian_aij.shape
+        assert jacobian_ai.shape == (embedding_dim, self.dim), jacobian_ai.shape
         inner_prod_deriv_mat = gs.einsum(
-            "aki,aj->kij", hessian_aij, jacobian_ai
-        ) + gs.einsum("akj,ai->kij", hessian_aij, jacobian_ai)
+            "aki,aj->ijk", hessian_aij, jacobian_ai
+        ) + gs.einsum("akj,ai->ijk", hessian_aij, jacobian_ai)
 
-        inner_prod_deriv_mat = gs.transpose(inner_prod_deriv_mat, axes=(2, 1, 0))
+        # inner_prod_deriv_mat = gs.transpose(inner_prod_deriv_mat, axes=(2, 1, 0))
         return inner_prod_deriv_mat
 
 

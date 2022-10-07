@@ -184,12 +184,3 @@ class PullbackMetricTestData(TestData):
             ),
         ]
         return self.generate_tests(smoke_data)
-
-    def riemann_tensor_sphere_test_data(self):
-        smoke_data = [
-            dict(
-                dim=2,
-                base_point=gs.array([gs.pi / 2.0, 1.5]),
-            ),
-        ]
-        return self.generate_tests(smoke_data)

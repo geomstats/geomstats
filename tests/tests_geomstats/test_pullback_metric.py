@@ -321,32 +321,3 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             direction=immersed_tangent_vec_b,
         )
         self.assertAllClose(result, expected, atol=5e-3)
-
-    def test_riemann_tensor_sphere(self, dim, base_point):
-        """Test the Riemann tensor on the sphere.
-
-        riemann_tensor[...,i,j,k,l] = R_{ijk}^l
-            Riemannian tensor curvature,
-            with the contravariant index on the last dimension.
-
-        Expected formulas taken from:
-        https://digitalcommons.latech.edu/cgi/viewcontent.cgi?
-        article=1008&context=mathematics-senior-capstone-papers
-        """
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
-        riemann_tensor_ijkl = pullback_metric.riemann_tensor(base_point)
-        theta, _ = base_point[0], base_point[1]
-        expected_212_1 = gs.sin(theta) ** 2
-        expected_221_1 = -gs.sin(theta) ** 2
-        expected_121_2 = 1
-        expected_112_2 = -1
-        result_212_1 = riemann_tensor_ijkl[1, 0, 1, 0]
-        result_221_1 = riemann_tensor_ijkl[1, 1, 0, 0]
-        result_121_2 = riemann_tensor_ijkl[0, 1, 0, 1]
-        result_112_2 = riemann_tensor_ijkl[0, 0, 1, 1]
-        self.assertAllClose(expected_212_1, result_212_1)
-        self.assertAllClose(expected_221_1, result_221_1)
-        self.assertAllClose(expected_121_2, result_121_2)
-        self.assertAllClose(expected_112_2, result_112_2)
