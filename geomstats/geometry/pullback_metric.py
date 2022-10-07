@@ -174,19 +174,25 @@ class PullbackMetric(RiemannianMetric):
         inner_prod_deriv_mat : array-like, shape=[..., dim, dim, dim]
             Inner-product derivative matrix.
         """
-        jacobian_ai = self.jacobian_immersion(base_point)
-        if self.dim == 1 and jacobian_ai.ndim > 2:
-            jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
+        initial_ndim = base_point.ndim
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        inner_prod_deriv_mats = []
+        for point in base_point:
+            jacobian_ai = self.jacobian_immersion(point)
+            if self.dim == 1 and jacobian_ai.ndim > 2:
+                jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
 
-        hessian_aij = self.hessian_immersion(base_point)
-        if self.dim == 1 and hessian_aij.ndim > 3:
-            hessian_aij = gs.squeeze(hessian_aij, axis=-1)
+            hessian_aij = self.hessian_immersion(point)
+            if self.dim == 1 and hessian_aij.ndim > 3:
+                hessian_aij = gs.squeeze(hessian_aij, axis=-1)
 
-        inner_prod_deriv_mat = gs.einsum(
-            "aki,aj->ijk", hessian_aij, jacobian_ai
-        ) + gs.einsum("akj,ai->ijk", hessian_aij, jacobian_ai)
+            inner_prod_deriv_mat = gs.einsum(
+                "aki,aj->ijk", hessian_aij, jacobian_ai
+            ) + gs.einsum("akj,ai->ijk", hessian_aij, jacobian_ai)
+            inner_prod_deriv_mats.append(inner_prod_deriv_mat)
 
-        return inner_prod_deriv_mat
+        inner_prod_deriv_mat = gs.stack(inner_prod_deriv_mats, axis=0)
+        return inner_prod_deriv_mat[0] if initial_ndim == 1 else inner_prod_deriv_mat
 
     def second_fundamental_form(self, base_point):
         r"""Compute the second fundamental form.
@@ -201,28 +207,38 @@ class PullbackMetric(RiemannianMetric):
         second_fundamental_form : array-like, shape=[..., embedding_dim, dim, dim]
             Second fundamental form.
         """
-        christoffels = self.christoffels(base_point)
+        initial_ndim = base_point.ndim
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        second_fundamental_forms = []
+        for point in base_point:
+            christoffels = self.christoffels(point)
 
-        jacobian_ai = self.jacobian_immersion(base_point)
-        if self.dim == 1 and jacobian_ai.ndim > 2:
-            jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
+            jacobian_ai = self.jacobian_immersion(point)
+            if self.dim == 1 and jacobian_ai.ndim > 2:
+                jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
 
-        hessian_aij = self.hessian_immersion(base_point)
-        if self.dim == 1 and hessian_aij.ndim > 3:
-            hessian_aij = gs.squeeze(hessian_aij, axis=-1)
+            hessian_aij = self.hessian_immersion(point)
+            if self.dim == 1 and hessian_aij.ndim > 3:
+                hessian_aij = gs.squeeze(hessian_aij, axis=-1)
 
-        second_fundamental_form_aij = []
+            second_fundamental_form_aij = []
+            for a in range(self.embedding_metric.dim):
+                jacobian_a = jacobian_ai[a]
+                hessian_a = hessian_aij[a]
 
-        for a in range(self.embedding_metric.dim):
-            jacobian_a = jacobian_ai[a]
-            hessian_a = hessian_aij[a]
+                second_fundamental_form_a = hessian_a - gs.einsum(
+                    "kij,k->ij", christoffels, jacobian_a
+                )
+                second_fundamental_form_aij.append(second_fundamental_form_a)
 
-            second_fundamental_form_a = hessian_a - gs.einsum(
-                "kij,k->ij", christoffels, jacobian_a
-            )
-            second_fundamental_form_aij.append(second_fundamental_form_a)
-
-        return gs.stack(second_fundamental_form_aij, axis=0)
+            second_fundamental_forms_aij = gs.stack(second_fundamental_form_aij, axis=0)
+            second_fundamental_forms.append(second_fundamental_forms_aij)
+        second_fundamental_forms = gs.stack(second_fundamental_forms, axis=0)
+        return (
+            second_fundamental_forms[0]
+            if initial_ndim == 1
+            else second_fundamental_forms
+        )
 
     def mean_curvature_vector(self, base_point):
         r"""Compute the mean curvature vector.
