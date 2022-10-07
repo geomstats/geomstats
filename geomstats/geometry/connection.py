@@ -467,7 +467,7 @@ class Connection(ABC):
             )
         )
         print(jacobian_christoffels.shape)
-        assert jacobian_christoffels.shape == (
+        assert jacobian_christoffels.shape[-4:] == (
             dim,
             dim,
             dim,
@@ -484,7 +484,13 @@ class Connection(ABC):
         )
         if riemann_curvature.ndim == 5 and riemann_curvature.shape[0] == 1:
             riemann_curvature = riemann_curvature[0]
-        assert riemann_curvature.shape == (dim, dim, dim, dim), riemann_curvature.shape
+        print(riemann_curvature.shape[-4:])
+        assert riemann_curvature.shape[-4:] == (
+            dim,
+            dim,
+            dim,
+            dim,
+        ), riemann_curvature.shape
 
         return riemann_curvature
 

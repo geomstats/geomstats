@@ -173,6 +173,15 @@ class HypersphereMetricTestCase(RiemannianMetricTestCase):
         result = metric.christoffels(point)
         self.assertAllClose(gs.shape(result), expected)
 
+    def test_riemann_tensor_spherical_coords_shape(self, base_point, expected):
+        """Test the shape of the Riemann tensor on the sphere.
+
+        Note that the base_point is input in spherical coordinates.
+        """
+        metric = self.Metric(dim=2)
+        result = metric.riemann_tensor(base_point).shape
+        self.assertAllClose(expected, result)
+
     def test_riemann_tensor_spherical_coords(self, base_point):
         """Test the Riemann tensor on the sphere.
 
@@ -202,7 +211,19 @@ class HypersphereMetricTestCase(RiemannianMetricTestCase):
         self.assertAllClose(expected_121_2, result_121_2)
         self.assertAllClose(expected_112_2, result_112_2)
 
-    def test_ricci_tensor_spherical_coords(self, base_point):
+    def test_ricci_tensor_spherical_coords_shape(self, base_point, expected):
+        """Test the shape of the Ricci tensor on the sphere.
+
+        ricci_tensor[...,i,j] = R_{ij}
+            Ricci tensor curvature.
+
+        Note that the base_point is input in spherical coordinates.
+        """
+        metric = self.Metric(dim=2)
+        result = metric.ricci_tensor(base_point).shape
+        self.assertAllClose(expected, result)
+
+    def test_ricci_tensor_spherical_coords(self, base_point, expected):
         """Test the Ricci tensor on the sphere.
 
         ricci_tensor[...,i,j] = R_{ij}
@@ -216,9 +237,6 @@ class HypersphereMetricTestCase(RiemannianMetricTestCase):
         """
         metric = self.Metric(dim=2)
         result = metric.ricci_tensor(base_point)
-        theta, _ = base_point[0], base_point[1]
-        expected = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** 2]])
-
         self.assertAllClose(expected, result)
 
     def test_sectional_curvature(

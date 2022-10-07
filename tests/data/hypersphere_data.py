@@ -283,6 +283,21 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         smoke_data = [dict(dim=2, point=point, expected=[2, 2, 2, 2])]
         return self.generate_tests(smoke_data)
 
+    def riemann_tensor_spherical_coords_shape_test_data(self):
+        """Test that the Riemann tensor is of the right shape.
+
+        Note that point is given in spherical coordinates.
+        """
+        base_point = gs.array([gs.pi / 2, gs.pi / 6])
+        base_points = gs.array(
+            [[gs.pi / 3, gs.pi / 5], [gs.pi / 4, gs.pi / 6], [gs.pi / 5, gs.pi / 7]]
+        )
+        smoke_data = [
+            dict(base_point=base_point, expected=(2, 2, 2, 2)),
+            dict(base_point=base_points, expected=(3, 2, 2, 2, 2)),
+        ]
+        return self.generate_tests(smoke_data)
+
     def riemann_tensor_spherical_coords_test_data(self):
         """Test that the Riemann tensor is of the right shape.
 
@@ -292,13 +307,44 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         smoke_data = [dict(base_point=base_point)]
         return self.generate_tests(smoke_data)
 
-    def ricci_tensor_spherical_coords_test_data(self):
+    def ricci_tensor_spherical_coords_shape_test_data(self):
         """Test that the Riemann tensor is of the right shape.
 
         Note that point is given in spherical coordinates.
         """
         base_point = gs.array([gs.pi / 3, gs.pi / 7])
-        smoke_data = [dict(base_point=base_point)]
+        base_points = gs.array(
+            [[gs.pi / 3, gs.pi / 7], [gs.pi / 4, gs.pi / 8], [gs.pi / 5, gs.pi / 9]]
+        )
+        smoke_data = [
+            dict(base_point=base_point, expected=(2, 2)),
+            dict(base_point=base_points, expected=(3, 2, 2)),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def ricci_tensor_spherical_coords_test_data(self):
+        """Test that the Riemann tensor is of the right shape.
+
+        Note that point is given in spherical coordinates.
+        """
+        theta = gs.pi / 3
+        base_point = gs.array([theta, gs.pi / 7])
+        expected = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** 2]])
+
+        base_points = gs.array(
+            [[gs.pi / 3, gs.pi / 7], [gs.pi / 4, gs.pi / 8], [gs.pi / 5, gs.pi / 9]]
+        )
+        expecteds = gs.array(
+            [
+                [[1.0, 0.0], [0.0, gs.sin(gs.pi / 3) ** 2]],
+                [[1.0, 0.0], [0.0, gs.sin(gs.pi / 4) ** 2]],
+                [[1.0, 0.0], [0.0, gs.sin(gs.pi / 5) ** 2]],
+            ]
+        )
+        smoke_data = [
+            dict(base_point=base_point, expected=expected),
+            dict(base_point=base_points, expected=expecteds),
+        ]
         return self.generate_tests(smoke_data)
 
     def sectional_curvature_test_data(self):
@@ -372,11 +418,6 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
 
     def log_after_exp_test_data(self):
         return super().log_after_exp_test_data(amplitude=gs.pi / 2.0)
-
-    # def riemann_tensor_shape_test_data(self):
-    #     return self._riemann_tensor_shape_test_data(
-    #         self.metric_args_list, self.space_list
-    #     )
 
     def ricci_tensor_shape_test_data(self):
         return self._ricci_tensor_shape_test_data(
