@@ -156,7 +156,6 @@ class PullbackMetric(RiemannianMetric):
             "aki,aj->ijk", hessian_aij, jacobian_ai
         ) + gs.einsum("akj,ai->ijk", hessian_aij, jacobian_ai)
 
-        # inner_prod_deriv_mat = gs.transpose(inner_prod_deriv_mat, axes=(2, 1, 0))
         return inner_prod_deriv_mat
 
 
