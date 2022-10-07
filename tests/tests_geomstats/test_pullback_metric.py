@@ -384,11 +384,11 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         result_11 = result[:, 0, 0]
         result_22 = result[:, 1, 1]
 
-        assert gs.allclose(result_11.shape, expected_11.shape), result_11.shape
-        assert gs.allclose(result_22.shape, expected_22.shape), result_22.shape
+        self.assertAllClose(result_11.shape, expected_11.shape), result_11.shape
+        self.assertAllClose(result_22.shape, expected_22.shape), result_22.shape
 
-        assert gs.allclose(result_11, expected_11), result_11
-        assert gs.allclose(result_22, expected_22, atol=1e-5), result_22
+        self.assertAllClose(result_11, expected_11), result_11
+        self.assertAllClose(result_22, expected_22, atol=1e-5), result_22
 
     def test_second_fundamental_form_circle(self, base_point):
         pullback_metric = self.Metric(
@@ -398,10 +398,12 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
         expected = gs.array(
             [
-                -gs.cos(base_point),
-                -gs.sin(base_point),
+                [-gs.cos(base_point)],
+                [-gs.sin(base_point)],
             ]
-        ).reshape((2, 1, 1))
+        )
 
-        assert gs.allclose(result.shape, expected.shape), result.shape
-        assert gs.allclose(result, expected), result
+        print("HELO")
+        print()
+        self.assertAllClose(result.shape, expected.shape), result.shape
+        self.assertAllClose(result, expected), result
