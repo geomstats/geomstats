@@ -124,11 +124,20 @@ class PullbackMetric(RiemannianMetric):
         """
 
         def _immersion(base_point, a):
+            """Compute the component a of the immersion at a base point.
+
+            Parameters
+            ----------
+            base_point : array-like, shape=[..., dim]
+                Base point.
+            a : int
+                Index of the component of the immersion.
+            """
             return self.immersion(base_point)[a]
 
         hessians = []
         for a in range(self.embedding_metric.dim):
-            hessian_a = gs.autodiff.hessian(partial(_immersion, a=a))  # (base_point)
+            hessian_a = gs.autodiff.hessian(partial(_immersion, a=a))
             hessians.append(hessian_a)
         return hessians
 
@@ -165,21 +174,13 @@ class PullbackMetric(RiemannianMetric):
         inner_prod_deriv_mat : array-like, shape=[..., dim, dim, dim]
             Inner-product derivative matrix.
         """
-        embedding_dim = self.embedding_metric.dim
-
         jacobian_ai = self.jacobian_immersion(base_point)
         if self.dim == 1 and jacobian_ai.ndim > 2:
             jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
-        assert jacobian_ai.shape[-2:] == (embedding_dim, self.dim), jacobian_ai.shape
 
         hessian_aij = self.hessian_immersion(base_point)
         if self.dim == 1 and hessian_aij.ndim > 3:
             hessian_aij = gs.squeeze(hessian_aij, axis=-1)
-        assert hessian_aij.shape == (
-            embedding_dim,
-            self.dim,
-            self.dim,
-        ), hessian_aij.shape
 
         inner_prod_deriv_mat = gs.einsum(
             "aki,aj->ijk", hessian_aij, jacobian_ai
@@ -201,23 +202,14 @@ class PullbackMetric(RiemannianMetric):
             Second fundamental form.
         """
         christoffels = self.christoffels(base_point)
-        dim = self.dim
-        embedding_dim = self.embedding_metric.dim
-        assert christoffels.shape == (dim, dim, dim), christoffels.shape
 
         jacobian_ai = self.jacobian_immersion(base_point)
         if self.dim == 1 and jacobian_ai.ndim > 2:
             jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
-        assert jacobian_ai.shape[-2:] == (embedding_dim, self.dim), jacobian_ai.shape
 
         hessian_aij = self.hessian_immersion(base_point)
         if self.dim == 1 and hessian_aij.ndim > 3:
             hessian_aij = gs.squeeze(hessian_aij, axis=-1)
-        assert hessian_aij.shape == (
-            embedding_dim,
-            self.dim,
-            self.dim,
-        ), hessian_aij.shape
 
         second_fundamental_form_aij = []
 

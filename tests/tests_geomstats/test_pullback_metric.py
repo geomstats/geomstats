@@ -384,11 +384,11 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         result_11 = result[:, 0, 0]
         result_22 = result[:, 1, 1]
 
-        self.assertAllClose(result_11.shape, expected_11.shape), result_11.shape
-        self.assertAllClose(result_22.shape, expected_22.shape), result_22.shape
+        self.assertAllClose(result_11.shape, expected_11.shape)
+        self.assertAllClose(result_22.shape, expected_22.shape)
 
-        self.assertAllClose(result_11, expected_11), result_11
-        self.assertAllClose(result_22, expected_22, atol=1e-5), result_22
+        self.assertAllClose(result_11, expected_11)
+        self.assertAllClose(result_22, expected_22, atol=1e-5)
 
     def test_second_fundamental_form_circle(self, base_point):
         pullback_metric = self.Metric(
@@ -403,8 +403,8 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             ]
         )
 
-        self.assertAllClose(result.shape, expected.shape), result.shape
-        self.assertAllClose(result, expected), result
+        self.assertAllClose(result.shape, expected.shape)
+        self.assertAllClose(result, expected)
 
     def test_mean_curvature_vector_norm_sphere(self, base_point):
         pullback_metric = self.Metric(
@@ -414,7 +414,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         result = pullback_metric.mean_curvature_vector(base_point)
         result = gs.linalg.norm(result)
         expected = gs.array(2 / radius)
-        self.assertAllClose(result, expected), result
+        self.assertAllClose(result, expected)
 
     def test_mean_curvature_vector_norm_circle(self, base_point):
         pullback_metric = self.Metric(
@@ -424,4 +424,4 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         result = pullback_metric.mean_curvature_vector(base_point)
         result = gs.linalg.norm(result)
         expected = gs.array(1 / radius)
-        self.assertAllClose(result, expected), result
+        self.assertAllClose(result, expected)
