@@ -231,7 +231,7 @@ class HypersphereTestData(_LevelSetTestData):
 
 class HypersphereMetricTestData(_RiemannianMetricTestData):
     dim_list = random.sample(range(2, 5), 2)
-    metric_args_list = [(n,) for n in dim_list]
+    connection_args_list = metric_args_list = [(n,) for n in dim_list]
     shape_list = [(dim + 1,) for dim in dim_list]
     space_list = [Hypersphere(n) for n in dim_list]
     n_points_list = random.sample(range(1, 5), 2)
@@ -275,8 +275,30 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def christoffels_shape_test_data(self):
+        """Test that the Christoffel symbols are of the right shape.
+
+        Note that point is given in spherical coordinates.
+        """
         point = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
         smoke_data = [dict(dim=2, point=point, expected=[2, 2, 2, 2])]
+        return self.generate_tests(smoke_data)
+
+    def riemann_tensor_spherical_coords_test_data(self):
+        """Test that the Riemann tensor is of the right shape.
+
+        Note that point is given in spherical coordinates.
+        """
+        base_point = gs.array([gs.pi / 2, gs.pi / 6])
+        smoke_data = [dict(base_point=base_point)]
+        return self.generate_tests(smoke_data)
+
+    def ricci_tensor_spherical_coords_test_data(self):
+        """Test that the Riemann tensor is of the right shape.
+
+        Note that point is given in spherical coordinates.
+        """
+        base_point = gs.array([gs.pi / 3, gs.pi / 7])
+        smoke_data = [dict(base_point=base_point)]
         return self.generate_tests(smoke_data)
 
     def sectional_curvature_test_data(self):
@@ -351,10 +373,10 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
     def log_after_exp_test_data(self):
         return super().log_after_exp_test_data(amplitude=gs.pi / 2.0)
 
-    def riemann_tensor_shape_test_data(self):
-        return self._riemann_tensor_shape_test_data(
-            self.metric_args_list, self.space_list
-        )
+    # def riemann_tensor_shape_test_data(self):
+    #     return self._riemann_tensor_shape_test_data(
+    #         self.metric_args_list, self.space_list
+    #     )
 
     def ricci_tensor_shape_test_data(self):
         return self._ricci_tensor_shape_test_data(

@@ -52,6 +52,8 @@ class Connection(ABC):
     def christoffels(self, base_point):
         """Christoffel symbols associated with the connection.
 
+        The contravariant index is on the first dimension.
+
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
@@ -429,6 +431,16 @@ class Connection(ABC):
         Following tensor index convention (ref. Wikipedia), we have:
         :math:`R_{ijk}^l = dx^l(R(X_j, X_k)X_i)`
 
+        which gives :math:`R_{ijk}^lk` as a sum of four terms:
+        :math:`R_{ijk}^l =
+        :math:`\partial_j \Gamma^l_{ki}`
+        :math:`- \partial_k \Gamma^l_{ji}`
+        :math:`+ \Gamma^l_{jm} \Gamma^m_{ki}`
+        :math:`- \Gamma^l_{km} \Gamma^m_{ji}`
+
+        Note that geomstats puts the contravariant index on
+        the first dimension of the Christoffel symbols.
+
         Parameters
         ----------
         base_point :  array-like, shape=[..., {dim, [n, m]}]
@@ -439,13 +451,28 @@ class Connection(ABC):
         riemann_curvature : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]},
                                                     {dim, [n, m]}, {dim, [n, m]}]
             riemann_tensor[...,i,j,k,l] = R_{ijk}^l
-            Riemannian tensor curvature.
+            Riemannian tensor curvature,
+            with the contravariant index on the last dimension.
         """
+        dim = self.dim
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         christoffels = self.christoffels(base_point)
         jacobian_christoffels = gs.squeeze(
-            [gs.autodiff.jacobian(self.christoffels)(point) for point in base_point]
+            gs.stack(
+                [
+                    gs.autodiff.jacobian(self.christoffels)(point)
+                    for point in base_point
+                ],
+                axis=0,
+            )
         )
+        print(jacobian_christoffels.shape)
+        assert jacobian_christoffels.shape == (
+            dim,
+            dim,
+            dim,
+            dim,
+        ), jacobian_christoffels.shape
         prod_christoffels = gs.einsum(
             "...ijk,...klm->...ijlm", christoffels, christoffels
         )
@@ -455,6 +482,10 @@ class Connection(ABC):
             + gs.moveaxis(prod_christoffels, [-4, -3, -2, -1], [-1, -3, -2, -4])
             - gs.moveaxis(prod_christoffels, [-4, -3, -2, -1], [-1, -2, -4, -3])
         )
+        if riemann_curvature.ndim == 5 and riemann_curvature.shape[0] == 1:
+            riemann_curvature = riemann_curvature[0]
+        assert riemann_curvature.shape == (dim, dim, dim, dim), riemann_curvature.shape
+
         return riemann_curvature
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):

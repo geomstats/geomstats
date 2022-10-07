@@ -138,11 +138,16 @@ class PullbackMetric(RiemannianMetric):
             )
             if self.dim == 1 and hessian_a.ndim > 2:
                 hessian_a = gs.squeeze(hessian_a, axis=-1)
+            elif self.dim != 1 and hessian_a.ndim > 2:
+                hessian_a = gs.squeeze(hessian_a)
+
             hessian_aij.append(hessian_a)
 
             jacobian_a = gs.squeeze(jacobian_a, axis=0)
             if len(jacobian_a.shape) == 0:
                 jacobian_a = gs.to_ndarray(jacobian_a, to_ndim=1)
+            elif self.dim != 1 and jacobian_a.ndim > 1:
+                jacobian_a = gs.squeeze(jacobian_a)
             jacobian_ai.append(jacobian_a)
 
         hessian_aij = gs.stack(hessian_aij, axis=0)

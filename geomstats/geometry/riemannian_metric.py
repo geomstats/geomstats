@@ -86,7 +86,11 @@ class RiemannianMetric(Connection, ABC):
         return cometric_matrix
 
     def inner_product_derivative_matrix(self, base_point=None):
-        """Compute derivative of the inner prod matrix at base point.
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        Writing :math:`g_{ij}` the inner-product matrix at base point,
+        this computes :math:`mat_{ijk} = \partial_k g_{ij}`, where the
+        index k of the derivation is put last.
 
         Parameters
         ----------
@@ -96,8 +100,9 @@ class RiemannianMetric(Connection, ABC):
 
         Returns
         -------
-        mat : array-like, shape=[..., dim, dim]
-            Derivative of inverse of inner-product matrix.
+        mat : array-like, shape=[..., dim, dim, dim]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: math:`mat_{ijk} = \partial_k g_{ij}`.
         """
         metric_derivative = gs.autodiff.jacobian(self.metric_matrix)
         return metric_derivative(base_point)
@@ -114,6 +119,9 @@ class RiemannianMetric(Connection, ABC):
         - :math:`p` represents the base point, and
         - :math:`g` represents the Riemannian metric tensor.
 
+        Note that the function computing the derivative of the metric matrix
+        puts the index of the derivation last.
+
         Parameters
         ----------
         base_point: array-like, shape=[..., dim]
@@ -122,7 +130,7 @@ class RiemannianMetric(Connection, ABC):
         Returns
         -------
         christoffels: array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols.
+            Christoffel symbols, where the contravariant index is first.
         """
         cometric_mat_at_point = self.cometric_matrix(base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(base_point)
