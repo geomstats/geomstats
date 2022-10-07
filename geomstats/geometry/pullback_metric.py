@@ -232,6 +232,29 @@ class PullbackMetric(RiemannianMetric):
 
         return gs.stack(second_fundamental_form_aij, axis=0)
 
+    def mean_curvature_vector(self, base_point):
+        r"""Compute the mean curvature vector.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        mean_curvature_vector : array-like, shape=[..., embedding_dim]
+            Mean curvature vector.
+        """
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+
+        mean_curvature = []
+        for point in base_point:
+            second_fund_form = self.second_fundamental_form(point)
+            cometric = self.cometric_matrix(point)
+            mean_curvature.append(gs.einsum("ij,aij->a", cometric, second_fund_form))
+
+        return gs.stack(mean_curvature, axis=0)
+
 
 class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
     """

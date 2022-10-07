@@ -403,7 +403,25 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             ]
         )
 
-        print("HELO")
-        print()
         self.assertAllClose(result.shape, expected.shape), result.shape
+        self.assertAllClose(result, expected), result
+
+    def test_mean_curvature_vector_norm_sphere(self, base_point):
+        pullback_metric = self.Metric(
+            dim=2, embedding_dim=3, immersion=_sphere_immersion
+        )
+        radius = 1
+        result = pullback_metric.mean_curvature_vector(base_point)
+        result = gs.linalg.norm(result)
+        expected = gs.array(2 / radius)
+        self.assertAllClose(result, expected), result
+
+    def test_mean_curvature_vector_norm_circle(self, base_point):
+        pullback_metric = self.Metric(
+            dim=1, embedding_dim=2, immersion=_circle_immersion
+        )
+        radius = 1
+        result = pullback_metric.mean_curvature_vector(base_point)
+        result = gs.linalg.norm(result)
+        expected = gs.array(1 / radius)
         self.assertAllClose(result, expected), result
