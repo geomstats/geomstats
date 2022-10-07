@@ -353,8 +353,39 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         pullback_metric = self.Metric(
             dim=2, embedding_dim=3, immersion=_sphere_immersion
         )
-        base_point = gs.array([0.3, 1.0])
         result = pullback_metric.hessian_immersion(base_point)
         expected = _expected_hessian_sphere_immersion(base_point)
         self.assertAllClose(result.shape, (3, 2, 2))
         self.assertAllClose(result, expected)
+
+    def test_second_fundamental_form_sphere(self, base_point):
+        pullback_metric = self.Metric(
+            dim=2, embedding_dim=3, immersion=_sphere_immersion
+        )
+        theta, phi = base_point[0], base_point[1]
+        radius = 1
+        result = pullback_metric.second_fundamental_form(base_point)
+
+        expected_11 = gs.array(
+            [
+                -radius * gs.sin(theta) * gs.cos(phi),
+                -radius * gs.sin(theta) * gs.sin(phi),
+                -radius * gs.cos(theta),
+            ]
+        )
+        expected_22 = gs.array(
+            [
+                -radius * gs.sin(theta) ** 2 * gs.sin(theta) * gs.cos(phi),
+                -radius * gs.sin(theta) ** 2 * gs.sin(theta) * gs.sin(phi),
+                -radius * gs.sin(theta) ** 2 * gs.cos(theta),
+            ]
+        )
+
+        result_11 = result[:, 0, 0]
+        result_22 = result[:, 1, 1]
+
+        assert gs.allclose(result_11.shape, expected_11.shape), result_11.shape
+        assert gs.allclose(result_22.shape, expected_22.shape), result_22.shape
+
+        assert gs.allclose(result_11, expected_11), result_11
+        assert gs.allclose(result_22, expected_22, atol=1e-5), result_22

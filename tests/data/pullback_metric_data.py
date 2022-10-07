@@ -92,6 +92,13 @@ class PullbackMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def second_fundamental_form_sphere_test_data(self):
+        smoke_data = [
+            dict(base_point=gs.array([0.22, 0.1])),
+            dict(base_point=gs.array([0.1, 0.88])),
+        ]
+        return self.generate_tests(smoke_data)
+
     def parallel_transport_and_sphere_parallel_transport_test_data(self):
         smoke_data = [
             dict(
