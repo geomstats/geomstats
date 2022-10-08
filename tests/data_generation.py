@@ -32,7 +32,7 @@ def _expand_and_repeat_point(point, n_reps=2):
 
 
 def generate_random_vec(shape, dtype=gs.float64):
-    """Generates a normal random vector
+    """Generate a normal random vector
 
     Parameters
     ----------
