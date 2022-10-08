@@ -31,6 +31,28 @@ def _expand_and_repeat_point(point, n_reps=2):
     return _expand_point(point), _repeat_point(point, n_reps=n_reps)
 
 
+def generate_random_vec(shape, dtype=gs.float64):
+    """Generates a normal random vector
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the vector to generate.
+    dtype : dtype
+        Data type of the vector to generate.
+
+    Returns
+    -------
+    random_vec: array-like
+        Generated random vector.
+    """
+    random_vec = gs.random.normal(size=shape)
+    random_vec = gs.cast(random_vec, dtype=dtype)
+    if dtype in [gs.complex64, gs.complex128]:
+        random_vec += 1j * gs.cast(gs.random.normal(size=shape), dtype=dtype)
+    return random_vec
+
+
 class TestData:
     """Class for TestData objects."""
 
@@ -260,9 +282,7 @@ class _ComplexManifoldTestData(_ManifoldTestData):
         random_data = [
             dict(
                 space_args=space_args,
-                point=gs.cast(gs.random.normal(size=(n_points,) + shape), dtype=CDTYPE)
-                + 1j
-                * gs.cast(gs.random.normal(size=(n_points,) + shape), dtype=CDTYPE),
+                point=generate_random_vec(shape=(n_points,) + shape, dtype=CDTYPE),
             )
             for space_args, shape, n_points in zip(
                 self.space_args_list, self.shape_list, self.n_points_list
@@ -278,8 +298,7 @@ class _ComplexManifoldTestData(_ManifoldTestData):
             self.space_args_list, self.shape_list, self.n_vecs_list
         ):
             space = self.Space(*space_args)
-            vec = gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=CDTYPE)
-            vec += 1j * gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=CDTYPE)
+            vec = generate_random_vec(shape=(n_vecs,) + shape, dtype=CDTYPE)
             base_point = space.random_point()
             random_data.append(
                 dict(
@@ -518,8 +537,7 @@ class _ComplexVectorSpaceTestData(_ComplexManifoldTestData):
             self.space_args_list, self.shape_list, self.n_vecs_list
         ):
             space = self.Space(*space_args)
-            vec = gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=CDTYPE)
-            vec += 1j * gs.cast(gs.random.normal(size=(n_vecs,) + shape), dtype=CDTYPE)
+            vec = generate_random_vec(shape=(n_vecs,) + shape, dtype=CDTYPE)
             base_point = space.random_point()
             random_data.append(
                 dict(
@@ -652,8 +670,9 @@ class _ConnectionTestData(TestData):
             self.metric_args_list, self.space_list, self.shape_list, n_samples_list
         ):
             base_point = space.random_point(n_samples)
-            tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_samples,) + tangent_shape), base_point
+            base_point_type = base_point.dtype
+            tangent_vec = generate_random_vec(
+                shape=(n_samples,) + tangent_shape, dtype=base_point_type
             )
             n_points_list = itertools.product([1, n_samples], [1, n_samples])
             expected_shape_list = [space.shape] + [(n_samples,) + space.shape] * 3
@@ -705,9 +724,12 @@ class _ConnectionTestData(TestData):
             self.n_tangent_vecs_list,
         ):
             base_point = space.random_point()
-            tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            base_point_type = base_point.dtype
+
+            random_vec = generate_random_vec(
+                shape=(n_tangent_vecs,) + shape, dtype=base_point_type
             )
+            tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
@@ -753,9 +775,9 @@ class _ConnectionTestData(TestData):
             self.metric_args_list, self.space_list, self.n_points_list, self.shape_list
         ):
             initial_point = space.random_point()
-            initial_tangent_vec = space.to_tangent(
-                gs.random.normal(size=shape), initial_point
-            )
+            initial_point_type = initial_point.dtype
+            random_vec = generate_random_vec(shape=shape, dtype=initial_point_type)
+            initial_tangent_vec = space.to_tangent(random_vec, initial_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
@@ -825,9 +847,12 @@ class _ConnectionTestData(TestData):
             self.n_tangent_vecs_list,
         ):
             base_point = space.random_point()
-            tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + shape) / amplitude, base_point
+            base_point_type = base_point.dtype
+            random_vec = generate_random_vec(
+                shape=(n_tangent_vecs,) + shape, dtype=base_point_type
             )
+            random_vec /= amplitude
+            tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
@@ -858,11 +883,13 @@ class _ConnectionTestData(TestData):
             self.scheme_list,
         ):
             base_point = space.random_point()
-
-            tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            base_point_type = base_point.dtype
+            random_vec = generate_random_vec(
+                shape=(n_tangent_vecs,) + shape, dtype=base_point_type
             )
-            direction = space.to_tangent(gs.random.normal(size=shape), base_point)
+            random_dir = generate_random_vec(shape=shape, dtype=base_point_type)
+            tangent_vec = space.to_tangent(random_vec, base_point)
+            direction = space.to_tangent(random_dir, base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
