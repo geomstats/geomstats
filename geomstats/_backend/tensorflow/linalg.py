@@ -2,7 +2,7 @@
 
 import scipy as _scipy
 import tensorflow as _tf
-from tensorflow.linalg import norm
+from tensorflow.linalg import norm as norm_tf
 
 from .._backend_config import tf_atol as atol
 
@@ -118,3 +118,8 @@ def is_single_matrix_pd(mat):
         if "Cholesky decomposition was not successful" in e.message:
             return False
         raise e
+
+
+def norm(vector, ord="euclidean", axis=None, keepdims=None, name=None):
+    """Compute the norm of vectors, matrices and tensors."""
+    return _tf.math.real(norm_tf(vector, ord, axis, keepdims, name))
