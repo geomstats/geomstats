@@ -46,7 +46,7 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
     """
 
     def __init__(self):
-        super().__init__(dim=2, ambient_space=Euclidean(2), metric=GammaMetric())
+        super().__init__(dim=2, embedding_space=Euclidean(2), metric=GammaMetric())
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold of Gamma distributions.

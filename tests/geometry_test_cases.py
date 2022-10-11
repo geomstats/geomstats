@@ -154,7 +154,7 @@ class ManifoldTestCase(TestCase):
 
 
 class OpenSetTestCase(ManifoldTestCase):
-    def test_to_tangent_is_tangent_in_ambient_space(
+    def test_to_tangent_is_tangent_in_embedding_space(
         self, space_args, vector, base_point, atol
     ):
         """Check that tangent vectors are in ambient space's tangent space.
@@ -175,7 +175,7 @@ class OpenSetTestCase(ManifoldTestCase):
         """
         space = self.Space(*space_args)
         tangent_vec = space.to_tangent(gs.array(vector), gs.array(base_point))
-        result = gs.all(space.ambient_space.is_tangent(tangent_vec, atol))
+        result = gs.all(space.embedding_space.is_tangent(tangent_vec, atol))
         self.assertTrue(result)
 
 

@@ -25,7 +25,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
     def __init__(self, n):
         dim = int(n * (n - 1) / 2)
         super().__init__(dim, n)
-        self.ambient_space = Matrices(n, n)
+        self.embedding_space = Matrices(n, n)
 
     def _create_basis(self):
         """Create the canonical basis."""
@@ -66,7 +66,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         belongs : array-like, shape=[...,]
             Boolean evaluating if matrix is skew symmetric.
         """
-        has_right_shape = self.ambient_space.belongs(mat)
+        has_right_shape = self.embedding_space.belongs(mat)
         if gs.all(has_right_shape):
             return Matrices.is_skew_symmetric(mat=mat, atol=atol)
         return has_right_shape

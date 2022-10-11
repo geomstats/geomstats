@@ -3,10 +3,10 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import (
+    SPDAffineMetric,
+    SPDEuclideanMetric,
+    SPDLogEuclideanMetric,
     SPDMatrices,
-    SPDMetricAffine,
-    SPDMetricEuclidean,
-    SPDMetricLogEuclidean,
 )
 from geomstats.learning.geometric_median import GeometricMedian
 from tests.data_generation import TestData
@@ -28,7 +28,7 @@ class GeometricMedianTestData(TestData):
         )
         expected_0 = gs.array([1.0])
 
-        estimator_1 = GeometricMedian(SPDMetricEuclidean(1))
+        estimator_1 = GeometricMedian(SPDEuclideanMetric(1))
         X_1 = gs.array(
             [
                 [[1.0 - 2 * EPSILON]],
@@ -40,7 +40,7 @@ class GeometricMedianTestData(TestData):
         )
         expected_1 = gs.array([[1.0]])
 
-        estimator_2 = GeometricMedian(SPDMetricAffine(2))
+        estimator_2 = GeometricMedian(SPDAffineMetric(2))
         X_2 = gs.array(
             [
                 [[1.0 + EPSILON, 0.0], [0.0, 1.0 + EPSILON]],
@@ -75,7 +75,7 @@ class GeometricMedianTestData(TestData):
                 space=Hypersphere(4),
             ),
             dict(
-                estimator=GeometricMedian(SPDMetricLogEuclidean(4)),
+                estimator=GeometricMedian(SPDLogEuclideanMetric(4)),
                 space=SPDMatrices(4),
             ),
         ]
