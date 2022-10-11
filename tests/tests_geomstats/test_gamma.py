@@ -4,7 +4,7 @@ from scipy.stats import gamma
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, autograd_backend
 from tests.data.gamma_data import GammaMetricTestData, GammaTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
@@ -126,6 +126,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_triangle_inequality_of_dist = (
         tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
+    test_log_after_exp_control = autograd_backend()
 
     testing_data = GammaMetricTestData()
 
