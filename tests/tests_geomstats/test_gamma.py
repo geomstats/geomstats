@@ -126,7 +126,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_triangle_inequality_of_dist = (
         tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
     )
-    test_log_after_exp_control = autograd_backend()
+    skip_test_log_after_exp_control = autograd_backend()
 
     testing_data = GammaMetricTestData()
 
