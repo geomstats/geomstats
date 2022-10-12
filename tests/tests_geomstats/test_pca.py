@@ -4,7 +4,7 @@ import pytest
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
@@ -18,7 +18,7 @@ class TestTangentPCA(tests.conftest.TestCase):
     def setup_method(self):
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.spd = SPDMatrices(3)
-        self.spd_metric = SPDMetricAffine(3)
+        self.spd_metric = SPDAffineMetric(3)
 
         self.n_samples = 10
 

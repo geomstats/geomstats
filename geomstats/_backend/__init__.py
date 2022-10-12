@@ -74,6 +74,7 @@ BACKEND_ATTRIBUTES = {
         "flip",
         "floor",
         "from_numpy",
+        "gamma",
         "get_default_dtype",
         "get_slice",
         "greater",

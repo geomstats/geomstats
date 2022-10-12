@@ -251,7 +251,7 @@ class _ManifoldTestData(TestData):
 
 
 class _OpenSetTestData(_ManifoldTestData):
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
+    def to_tangent_is_tangent_in_embedding_space_test_data(self):
         """Generate data to check that tangent vectors are in ambient space's
         tangent space.
         """

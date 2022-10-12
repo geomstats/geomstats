@@ -10,7 +10,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricEuclidean
+from geomstats.geometry.spd_matrices import SPDEuclideanMetric, SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -180,7 +180,7 @@ class RankKPSDMatrices(Manifold):
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
 
 
-PSDMetricEuclidean = SPDMetricEuclidean
+PSDEuclideanMetric = SPDEuclideanMetric
 
 
 class PSDMatrices(RankKPSDMatrices, SPDMatrices):

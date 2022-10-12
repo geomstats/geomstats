@@ -9,7 +9,7 @@ from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 
 
 class FullRankCorrelationMatrices(LevelSet):
@@ -156,7 +156,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
     def __init__(self, n):
         super().__init__(
             n=n,
-            total_space_metric=SPDMetricAffine(n),
+            total_space_metric=SPDAffineMetric(n),
             group_dim=n,
             group_action=FullRankCorrelationMatrices.diag_action,
         )

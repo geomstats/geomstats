@@ -3,7 +3,7 @@ from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricBuresWasserstein
+from geomstats.geometry.spd_matrices import SPDBuresWassersteinMetric, SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import TestData
 
@@ -46,7 +46,7 @@ class QuotientMetricTestData(TestData):
 
     Base = SPDMatrices
     Bundle = BuresWassersteinBundle
-    BaseMetric = SPDMetricBuresWasserstein
+    BaseMetric = SPDBuresWassersteinMetric
     Metric = QuotientMetric
 
     def riemannian_submersion_test_data(self):

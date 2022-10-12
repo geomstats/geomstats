@@ -4,6 +4,7 @@ from scipy.stats import gamma
 
 import geomstats.backend as gs
 import tests.conftest
+
 from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
 from tests.data.gamma_data import GammaMetricTestData, GammaTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
@@ -118,6 +119,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
     skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
     skip_test_sectional_curvature_shape = NOT_AUTOGRAD
+    skip_test_log_after_exp_control = autograd_backend()
 
     testing_data = GammaMetricTestData()
 

@@ -10,7 +10,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.stiefel import Stiefel
 from geomstats.learning.frechet_mean import FrechetMean, variance
@@ -331,7 +331,7 @@ class TestFrechetMean(tests.conftest.TestCase):
     def test_estimate_spd(self):
         point = SPDMatrices(3).random_point()
         points = gs.array([point, point])
-        mean = FrechetMean(metric=SPDMetricAffine(3))
+        mean = FrechetMean(metric=SPDAffineMetric(3))
         mean.fit(X=points)
         result = mean.estimate_
         expected = point
@@ -339,7 +339,7 @@ class TestFrechetMean(tests.conftest.TestCase):
 
     def test_estimate_spd_two_samples(self):
         space = SPDMatrices(3)
-        metric = SPDMetricAffine(3)
+        metric = SPDAffineMetric(3)
         point = space.random_point(2)
         mean = FrechetMean(metric)
         mean.fit(point)
@@ -522,7 +522,7 @@ class TestFrechetMean(tests.conftest.TestCase):
 
     def test_batched(self):
         space = SPDMatrices(3)
-        metric = SPDMetricAffine(3)
+        metric = SPDAffineMetric(3)
         point = space.random_point(4)
         mean_batch = FrechetMean(metric, method="batch", verbose=True)
         data = gs.stack([point[:2], point[2:]], axis=1)

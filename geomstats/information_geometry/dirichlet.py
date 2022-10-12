@@ -16,11 +16,12 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.base import InformationManifoldMixin
 
 N_STEPS = 100
 
 
-class DirichletDistributions(OpenSet):
+class DirichletDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of Dirichlet distributions.
 
     This is Dirichlet = :math:`(R_+^*)^dim`, the positive quadrant of the
@@ -34,7 +35,7 @@ class DirichletDistributions(OpenSet):
 
     def __init__(self, dim):
         super().__init__(
-            dim=dim, ambient_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
+            dim=dim, embedding_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
         )
 
     def belongs(self, point, atol=gs.atol):

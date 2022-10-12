@@ -10,9 +10,10 @@ import geomstats.errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.base import InformationManifoldMixin
 
 
-class BinomialDistributions(OpenSet):
+class BinomialDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of binomial distributions.
 
     This is the parameter space of exponential distributions
@@ -22,7 +23,7 @@ class BinomialDistributions(OpenSet):
     def __init__(self, n_draws):
         super().__init__(
             dim=1,
-            ambient_space=Euclidean(dim=1),
+            embedding_space=Euclidean(dim=1),
             metric=BinomialFisherRaoMetric(n_draws),
         )
         self.n_draws = n_draws

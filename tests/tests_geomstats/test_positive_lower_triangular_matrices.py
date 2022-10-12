@@ -47,7 +47,7 @@ class TestPositiveLowerTriangularMatrices(OpenSetTestCase, metaclass=Parametrize
         result = self.Space(n).inverse_differential_gram(
             gs.array(tangent_vec), gs.array(base_point)
         )
-        self.assertAllClose(gs.all(self.Space(n).ambient_space.belongs(result)), True)
+        self.assertAllClose(gs.all(self.Space(n).embedding_space.belongs(result)), True)
 
 
 class TestCholeskyMetric(RiemannianMetricTestCase, metaclass=Parametrizer):

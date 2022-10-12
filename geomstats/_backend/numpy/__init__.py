@@ -76,7 +76,7 @@ from numpy import (
     zeros_like,
 )
 from scipy.sparse import coo_matrix as _coo_matrix  # NOQA
-from scipy.special import erf, polygamma  # NOQA
+from scipy.special import erf, gamma, polygamma  # NOQA
 
 from . import autodiff  # NOQA
 from . import linalg  # NOQA

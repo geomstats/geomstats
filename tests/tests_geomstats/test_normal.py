@@ -6,7 +6,7 @@ from scipy.stats import norm
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.information_geometry.normal import FisherRaoMetric, NormalDistributions
+from geomstats.information_geometry.normal import NormalDistributions, NormalMetric
 
 
 class TestNormalDistributions(tests.conftest.TestCase):
@@ -16,7 +16,7 @@ class TestNormalDistributions(tests.conftest.TestCase):
         """Define the parameters of the tests."""
         warnings.simplefilter("ignore", category=UserWarning)
         self.normal = NormalDistributions()
-        self.metric = FisherRaoMetric()
+        self.metric = NormalMetric()
         self.n_samples = 10
         self.dim = self.normal.dim
 

@@ -10,9 +10,10 @@ import geomstats.errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.base import InformationManifoldMixin
 
 
-class ExponentialDistributions(OpenSet):
+class ExponentialDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of exponential distributions.
 
     This is the parameter space of exponential distributions
@@ -21,7 +22,7 @@ class ExponentialDistributions(OpenSet):
 
     def __init__(self):
         super().__init__(
-            dim=1, ambient_space=Euclidean(dim=1), metric=ExponentialFisherRaoMetric()
+            dim=1, embedding_space=Euclidean(dim=1), metric=ExponentialMetric()
         )
 
     def belongs(self, point, atol=gs.atol):
@@ -131,22 +132,26 @@ class ExponentialDistributions(OpenSet):
         def pdf(x):
             """Generate parameterized function for exponential pdf.
 
+            The pdf is parameterized by the scale parameter of the exponential,
+            which is equal to 1 / lambda, where lambda is the rate parameter.
+
             Parameters
             ----------
             x : array-like, shape=[n_points,]
                 Points at which to compute the probability density function.
             """
             pdf_at_x = [
-                gs.array(expon.pdf(x, loc=0, scale=param))
+                gs.array(gs.exp(-x / param) / param)
                 for param in gs.to_ndarray(point, 1)
             ]
+            pdf_at_x = gs.stack(pdf_at_x, axis=0)
 
             return pdf_at_x
 
         return pdf
 
 
-class ExponentialFisherRaoMetric(RiemannianMetric):
+class ExponentialMetric(RiemannianMetric):
     """Class for the Fisher information metric on exponential distributions.
 
     References
