@@ -752,3 +752,54 @@ class TestBackends(tests.conftest.TestCase):
         )
 
         self.assertAllClose(gs.take(mat, 0, axis=1), gs.array([0, 2]))
+
+    def test_jacobian(self):
+        """Test that jacobians are consistent across backends.
+
+        The jacobian of a function f going from an input space A to an output
+        space B is a matrix of shape (dim_B, dim_A).
+        - The columns index the derivatives wrt. the coordinates of the input space A.
+        - The rows index the coordinates of the output space B.
+        """
+        radius = 4.0
+        embedding_dim, dim = 3, 2
+
+        def _sphere_immersion(point):
+            theta = point[0]
+            phi = point[1]
+            x = gs.sin(theta) * gs.cos(phi)
+            y = gs.sin(theta) * gs.sin(phi)
+            z = gs.cos(theta)
+            return gs.array([radius * x, radius * y, radius * z])
+
+        point = gs.array([gs.pi / 3, gs.pi])
+        theta = point[0]
+        phi = point[1]
+        jacobian_ai = gs.autodiff.jacobian(_sphere_immersion)(point)
+
+        expected_1i = gs.array(
+            [
+                radius * gs.cos(theta) * gs.cos(phi),
+                -radius * gs.sin(theta) * gs.sin(phi),
+            ]
+        )
+        expected_2i = gs.array(
+            [
+                radius * gs.cos(theta) * gs.sin(phi),
+                radius * gs.sin(theta) * gs.cos(phi),
+            ]
+        )
+        expected_3i = gs.array(
+            [
+                -radius * gs.sin(theta),
+                0,
+            ]
+        )
+        expected_ai = gs.stack([expected_1i, expected_2i, expected_3i], axis=0)
+        assert jacobian_ai.shape == (embedding_dim, dim), jacobian_ai.shape
+        assert jacobian_ai.shape == expected_ai.shape
+
+        assert gs.allclose(jacobian_ai, expected_ai), jacobian_ai
+
+    def test_hessian(self):
+        pass
