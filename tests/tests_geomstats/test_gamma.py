@@ -4,8 +4,13 @@ from scipy.stats import gamma
 
 import geomstats.backend as gs
 import tests.conftest
-
-from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
+from tests.conftest import (
+    Parametrizer,
+    autograd_backend,
+    np_backend,
+    pytorch_backend,
+    tf_backend,
+)
 from tests.data.gamma_data import GammaMetricTestData, GammaTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
