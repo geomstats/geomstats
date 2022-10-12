@@ -180,7 +180,7 @@ class RankKPSDMatrices(Manifold):
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
 
 
-PSDMetricEuclidean = SPDEuclideanMetric
+PSDEuclideanMetric = SPDEuclideanMetric
 
 
 class PSDMatrices(RankKPSDMatrices, SPDMatrices):
