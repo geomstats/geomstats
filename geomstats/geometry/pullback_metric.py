@@ -113,7 +113,7 @@ class PullbackMetric(RiemannianMetric):
         metric_mat = gs.reshape(gs.array(out), (-1, self.dim, self.dim))
         return metric_mat[0] if base_point.ndim == 1 else metric_mat
 
-    def _compute_hessian_immersion(self):
+    def _hessian_immersion_func(self):
         """Compute the Hessian of the immersion.
 
         Returns
@@ -135,10 +135,10 @@ class PullbackMetric(RiemannianMetric):
             """
             return self.immersion(base_point)[a]
 
-        hessians = []
-        for a in range(self.embedding_metric.dim):
-            hessian_a = gs.autodiff.hessian(partial(_immersion, a=a))
-            hessians.append(hessian_a)
+        hessians = [
+            gs.autodiff.hessian(partial(_immersion, a=a))
+            for a in range(self.embedding_metric.dim)
+        ]
         return hessians
 
     def hessian_immersion(self, base_point):
@@ -155,13 +155,19 @@ class PullbackMetric(RiemannianMetric):
             Hessian at the base point
         """
         if self._hessian_immersion is None:
-            self._hessian_immersion = self._compute_hessian_immersion()
+            self._hessian_immersion = self._hessian_immersion_func()
 
         hessian_values = [hes(base_point) for hes in self._hessian_immersion]
         return gs.stack(hessian_values, axis=0)
 
     def inner_product_derivative_matrix(self, base_point=None):
         r"""Compute the inner-product derivative matrix.
+
+        The derivative of the metrix matrix is given by
+        :math:`\partial_k g_{ij}(p)`
+        where :math:`p` is the base_point.
+
+        The index k of the derivation is last.
 
         Parameters
         ----------
@@ -197,6 +203,12 @@ class PullbackMetric(RiemannianMetric):
     def second_fundamental_form(self, base_point):
         r"""Compute the second fundamental form.
 
+        In the case of an immersion f, the second fundamental form is
+        given by the formula:
+        :math:`\RN{2}(p)_{ij}^\alpha = \partial_{i j}^2 f^\alpha(p)`
+        :math:`  -\Gamma_{i j}^k(p) \partial_k f^\alpha(p)`
+        at base_point :math:`p`.
+
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
@@ -205,7 +217,8 @@ class PullbackMetric(RiemannianMetric):
         Returns
         -------
         second_fundamental_form : array-like, shape=[..., embedding_dim, dim, dim]
-            Second fundamental form.
+            Second fundamental form :math:`\RN{2}(p)_{ij}^\alpha` where the
+             :math:`\alpha` index is first.
         """
         initial_ndim = base_point.ndim
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -242,6 +255,12 @@ class PullbackMetric(RiemannianMetric):
 
     def mean_curvature_vector(self, base_point):
         r"""Compute the mean curvature vector.
+
+        The mean curvature vector is defined at base point :math:`p` by
+        :math:`H_p^\alpha= \frac{1}{d} (f^{*}g)_{p}^{ij} (\partial_{i j}^2 f^\alpha(p)`
+        :math:`  -\Gamma_{i j}^k(p) \partial_k f^\alpha(p))`
+        where :math:`f^{*}g` is the pullback of the metric :math:`g` by the
+        immersion :math:`f`.
 
         Parameters
         ----------
