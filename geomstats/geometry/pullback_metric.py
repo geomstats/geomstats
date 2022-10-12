@@ -123,7 +123,8 @@ class PullbackMetric(RiemannianMetric):
         Returns
         -------
         inner_prod_deriv_mat : array-like, shape=[..., dim, dim, dim]
-            Inner-product derivative matrix.
+            Inner-product derivative matrix, where the index of the derivation
+            is last: :math:`mat_{ij}_k = \partial_k g_{ij}`.
         """
         hessian_aij = []
         jacobian_ai = []
@@ -138,20 +139,24 @@ class PullbackMetric(RiemannianMetric):
             )
             if self.dim == 1 and hessian_a.ndim > 2:
                 hessian_a = gs.squeeze(hessian_a, axis=-1)
+            elif self.dim != 1 and hessian_a.ndim > 2:
+                hessian_a = gs.squeeze(hessian_a)
+
             hessian_aij.append(hessian_a)
 
             jacobian_a = gs.squeeze(jacobian_a, axis=0)
             if len(jacobian_a.shape) == 0:
                 jacobian_a = gs.to_ndarray(jacobian_a, to_ndim=1)
+            elif self.dim != 1 and jacobian_a.ndim > 1:
+                jacobian_a = gs.squeeze(jacobian_a)
             jacobian_ai.append(jacobian_a)
 
         hessian_aij = gs.stack(hessian_aij, axis=0)
         jacobian_ai = gs.stack(jacobian_ai, axis=0)
         inner_prod_deriv_mat = gs.einsum(
-            "aki,aj->kij", hessian_aij, jacobian_ai
-        ) + gs.einsum("akj,ai->kij", hessian_aij, jacobian_ai)
+            "aki,aj->ijk", hessian_aij, jacobian_ai
+        ) + gs.einsum("akj,ai->ijk", hessian_aij, jacobian_ai)
 
-        inner_prod_deriv_mat = gs.transpose(inner_prod_deriv_mat, axes=(2, 1, 0))
         return inner_prod_deriv_mat
 
 

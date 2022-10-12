@@ -4,9 +4,19 @@ from scipy.stats import gamma
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import Parametrizer, autograd_backend
+from tests.conftest import (
+    Parametrizer,
+    autograd_backend,
+    np_backend,
+    pytorch_backend,
+    tf_backend,
+)
 from tests.data.gamma_data import GammaMetricTestData, GammaTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
+
+TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()
+
+NOT_AUTOGRAD = tf_backend() or pytorch_backend() or np_backend()
 
 
 class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
@@ -87,45 +97,33 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
 
 
 class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    skip_test_exp_shape = True
-    skip_test_log_shape = (
-        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
-    )
-    skip_test_exp_belongs = (
-        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
-    )
-    skip_test_log_is_tangent = (
-        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
-    )
-    skip_test_dist_is_symmetric = (
-        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
-    )
-    skip_test_dist_is_positive = (
-        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
-    )
-    skip_test_squared_dist_is_symmetric = (
-        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
-    )
-    skip_test_squared_dist_is_positive = (
-        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
-    )
-    skip_test_dist_is_norm_of_log = (
-        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
-    )
-    skip_test_dist_point_to_itself_is_zero = (
-        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
-    )
-    skip_test_exp_after_log = True
+    skip_test_exp_shape = True  # because several base points for one vector
+    skip_test_log_shape = NOT_AUTOGRAD
+    skip_test_exp_belongs = TF_OR_PYTORCH_BACKEND
+    skip_test_log_is_tangent = NOT_AUTOGRAD
+    skip_test_dist_is_symmetric = True
+    skip_test_dist_is_positive = NOT_AUTOGRAD
+    skip_test_squared_dist_is_symmetric = True
+    skip_test_squared_dist_is_positive = NOT_AUTOGRAD
+    skip_test_dist_is_norm_of_log = True
+    skip_test_dist_point_to_itself_is_zero = True
     skip_test_log_after_exp = True
+    skip_test_exp_after_log = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_ivp_belongs = True
     skip_test_geodesic_bvp_belongs = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
-    skip_test_triangle_inequality_of_dist = (
-        tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
-    )
+    skip_test_triangle_inequality_of_dist = True
+    skip_test_riemann_tensor_shape = NOT_AUTOGRAD
+    skip_test_ricci_tensor_shape = NOT_AUTOGRAD
+    skip_test_scalar_curvature_shape = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
+    skip_test_sectional_curvature_shape = NOT_AUTOGRAD
     skip_test_log_after_exp_control = autograd_backend()
 
     testing_data = GammaMetricTestData()
@@ -260,3 +258,12 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         result = geod(time).shape
         self.assertAllClose(expected, result)
+
+    @tests.conftest.autograd_only
+    def test_scalar_curvature(self, point, atol):
+        kappa = point[..., 0]
+        expected = (gs.polygamma(1, kappa) + kappa * gs.polygamma(2, kappa)) / (
+            2 * (-1 + kappa * gs.polygamma(1, kappa)) ** 2
+        )
+        result = self.Metric().scalar_curvature(point)
+        self.assertAllClose(expected, result, atol)

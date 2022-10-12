@@ -5,11 +5,13 @@ from scipy.stats import dirichlet
 import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
 from tests.data.dirichlet_data import DirichletMetricTestData, DirichletTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-TF_OR_PYTORCH_BACKEND = tests.conftest.tf_backend() or tests.conftest.pytorch_backend()
+TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()
+
+NOT_AUTOGRAD = tf_backend() or pytorch_backend() or np_backend()
 
 
 class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
@@ -64,6 +66,14 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_triangle_inequality_of_dist = True
+    skip_test_riemann_tensor_shape = NOT_AUTOGRAD
+    skip_test_ricci_tensor_shape = NOT_AUTOGRAD
+    skip_test_scalar_curvature_shape = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
+    skip_test_sectional_curvature_shape = NOT_AUTOGRAD
 
     testing_data = DirichletMetricTestData()
     Space = testing_data.Space
@@ -200,3 +210,16 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_polynomial_init(self, dim, point_a, point_b, expected):
         result = self.Metric(dim).dist(point_a, point_b, init="polynomial")
         self.assertAllClose(expected, result, atol=0, rtol=1e-1)
+
+    @tests.conftest.autograd_only
+    def test_sectional_curvature_is_negative(self, dim, base_point):
+        tangent_vec_a, tangent_vec_b = self.Metric(dim).random_unit_tangent_vec(
+            base_point, 2
+        )
+        result = gs.all(
+            self.Metric(dim).sectional_curvature(
+                tangent_vec_a, tangent_vec_b, base_point
+            )
+            < 0
+        )
+        self.assertAllClose(result, True)

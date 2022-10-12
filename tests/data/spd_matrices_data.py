@@ -400,12 +400,11 @@ class SPDEuclideanMetricTestData(_RiemannianMetricTestData):
 class SPDEuclideanMetricPower1TestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 5), 2)
     power_euclidean_list = [1.0] * 5
-
-    metric_args_list = list(zip(n_list, [1.0] * 5))
+    connection_args_list = metric_args_list = list(zip(n_list, [1.0] * 5))
     shape_list = [(n, n) for n in n_list]
     space_list = [SPDMatrices(n) for n in n_list]
     n_points_list = random.sample(range(1, 5), 2)
-    n_tangent_vecs_list = random.sample(range(1, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
     n_points_b_list = [1]
     alpha_list = [1] * 2

@@ -11,7 +11,7 @@ class GammaTestData(_OpenSetTestData):
     shape_list = [(2,)]
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(1, 5), 3)
-    n_vecs_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
     def belongs_test_data(self):
         smoke_data = [
@@ -186,7 +186,7 @@ class GammaTestData(_OpenSetTestData):
 class GammaMetricTestData(_RiemannianMetricTestData):
     Space = GammaDistributions
     Metric = GammaMetric
-    metric_args_list = []
+    connection_args_list = metric_args_list = [()]
     space_list = [GammaDistributions()]
     space_args_list = []
     n_samples_list = random.sample(range(2, 5), 2)
@@ -460,5 +460,13 @@ class GammaMetricTestData(_RiemannianMetricTestData):
                 solver="vp",
                 expected=(4, 10, 2),
             ),
+        ]
+        return self.generate_tests([], random_data)
+
+    def scalar_curvature_test_data(self):
+        random_data = [
+            dict(point=self.Space().random_point()),
+            dict(point=self.Space().random_point(2)),
+            dict(point=self.Space().random_point(3)),
         ]
         return self.generate_tests([], random_data)
