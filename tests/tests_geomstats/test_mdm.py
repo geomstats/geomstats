@@ -2,14 +2,14 @@
 import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.spd_matrices import (
-    SPDMetricAffine,
-    SPDMetricEuclidean,
-    SPDMetricLogEuclidean,
+    SPDAffineMetric,
+    SPDEuclideanMetric,
+    SPDLogEuclideanMetric,
 )
 from geomstats.learning.mdm import RiemannianMinimumDistanceToMean
 
 EULER = gs.exp(1.0)
-METRICS = (SPDMetricAffine, SPDMetricLogEuclidean, SPDMetricEuclidean)
+METRICS = (SPDAffineMetric, SPDLogEuclideanMetric, SPDEuclideanMetric)
 
 
 class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
@@ -28,10 +28,10 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
             bary_a_fit = MDM.mean_estimates_[0]
             bary_b_fit = MDM.mean_estimates_[1]
 
-            if metric in [SPDMetricAffine, SPDMetricLogEuclidean]:
+            if metric in [SPDAffineMetric, SPDLogEuclideanMetric]:
                 bary_a_expected = gs.array([[EULER, 0], [0, 1]])
                 bary_b_expected = gs.array([[EULER**4, 0], [0, 1]])
-            elif metric in [SPDMetricEuclidean]:
+            elif metric in [SPDEuclideanMetric]:
                 bary_a_expected = gs.array([[0.5 * EULER**2 + 0.5, 0], [0, 1]])
                 bary_b_expected = gs.array([[0.5 * EULER**8 + 0.5, 0], [0, 1]])
             else:
@@ -75,9 +75,9 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
             MDM.fit(X_train, y_train)
             proba_test = MDM.predict_proba(X_test)
 
-            if metric in [SPDMetricAffine, SPDMetricLogEuclidean]:
+            if metric in [SPDAffineMetric, SPDLogEuclideanMetric]:
                 proba_expected = gs.array([[1.0, 0.0], [0.5, 0.5]])
-            elif metric in [SPDMetricEuclidean]:
+            elif metric in [SPDEuclideanMetric]:
                 proba_expected = gs.array([[1.0, 0.0], [1.0, 0.0]])
             else:
                 raise ValueError("Invalid metric: {}".format(metric))
@@ -97,9 +97,9 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
             MDM = RiemannianMinimumDistanceToMean(metric(n=2))
             MDM.fit(X_train, y_train)
 
-            if metric in [SPDMetricAffine, SPDMetricLogEuclidean]:
+            if metric in [SPDAffineMetric, SPDLogEuclideanMetric]:
                 y_expected = gs.array([1, -1])
-            elif metric in [SPDMetricEuclidean]:
+            elif metric in [SPDEuclideanMetric]:
                 y_expected = gs.array([-1, -1])
             else:
                 raise ValueError("Invalid metric: {}".format(metric))

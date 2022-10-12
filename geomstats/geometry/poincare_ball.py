@@ -41,7 +41,7 @@ class PoincareBall(_Hyperbolic, OpenSet):
     def __init__(self, dim, scale=1):
         super().__init__(
             dim=dim,
-            ambient_space=Euclidean(dim),
+            embedding_space=Euclidean(dim),
             scale=scale,
             metric=PoincareBallMetric(dim, scale),
             default_coords_type=_COORDS_TYPE,

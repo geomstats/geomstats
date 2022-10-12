@@ -13,7 +13,7 @@ from tests.geometry_test_cases import OpenSetTestCase
 
 class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
 
-    skip_test_to_tangent_is_tangent_in_ambient_space = True
+    skip_test_to_tangent_is_tangent_in_embedding_space = True
     skip_test_to_tangent_is_tangent = True
 
     testing_data = PoincarePolydiskTestData()

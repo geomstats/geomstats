@@ -4,9 +4,9 @@ import geomstats.backend as gs
 from geomstats.distributions.lognormal import LogNormal
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.spd_matrices import (
+    SPDAffineMetric,
+    SPDLogEuclideanMetric,
     SPDMatrices,
-    SPDMetricAffine,
-    SPDMetricLogEuclidean,
 )
 from geomstats.learning.incremental_frechet_mean import IncrementalFrechetMean
 from tests.conftest import TestCase
@@ -19,8 +19,8 @@ class TestIncrementalFrechetMean(TestCase):
         self.spd_cov_n = (self.n * (self.n + 1)) // 2
         self.samples = 5
         self.spd = SPDMatrices(self.n)
-        self.log_euclidean = SPDMetricLogEuclidean(self.n)
-        self.affine_invariant = SPDMetricAffine(self.n)
+        self.log_euclidean = SPDLogEuclideanMetric(self.n)
+        self.affine_invariant = SPDAffineMetric(self.n)
         self.euclidean = Euclidean(self.n)
 
     def test_ifm_log_euclidean_belongs(self):

@@ -35,7 +35,7 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
 
     def __init__(self, dim):
         super().__init__(
-            dim=dim, ambient_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
+            dim=dim, embedding_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
         )
 
     def belongs(self, point, atol=gs.atol):

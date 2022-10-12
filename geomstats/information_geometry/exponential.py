@@ -22,7 +22,7 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
 
     def __init__(self):
         super().__init__(
-            dim=1, ambient_space=Euclidean(dim=1), metric=ExponentialMetric()
+            dim=1, embedding_space=Euclidean(dim=1), metric=ExponentialMetric()
         )
 
     def belongs(self, point, atol=gs.atol):

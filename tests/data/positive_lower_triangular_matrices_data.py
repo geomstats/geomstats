@@ -117,7 +117,7 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
         random_data = [
             dict(
                 n=n,
-                tangent_vec=self.Space(n).ambient_space.random_point(n_samples),
+                tangent_vec=self.Space(n).embedding_space.random_point(n_samples),
                 base_point=self.Space(n).random_point(n_samples),
             )
             for n, n_samples in zip(n_list, n_samples_list)
@@ -130,7 +130,7 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
         random_data = [
             dict(
                 n=n,
-                tangent_vec=self.Space(n).ambient_space.random_point(n_samples),
+                tangent_vec=self.Space(n).embedding_space.random_point(n_samples),
                 base_point=self.Space(n).random_point(n_samples),
             )
             for n, n_samples in zip(n_list, n_samples_list)
