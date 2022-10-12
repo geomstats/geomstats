@@ -96,7 +96,15 @@ def jacobian(func):
     """
 
     def _jacobian(point):
-        return _torch_jacobian(func=lambda x: func(x), inputs=point)
+        if point.ndim == 1:
+            return _torch_jacobian(func=lambda x: func(x), inputs=point)
+        return _torch.stack(
+            [
+                _torch_jacobian(func=lambda x: func(x), inputs=one_point)
+                for one_point in point
+            ],
+            axis=0,
+        )
 
     return _jacobian
 

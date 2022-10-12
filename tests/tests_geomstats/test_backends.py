@@ -13,6 +13,25 @@ import geomstats.backend as gs
 import tests.conftest
 
 
+def _sphere_immersion(point):
+    radius = 4.0
+    theta = point[0]
+    phi = point[1]
+    x = gs.sin(theta) * gs.cos(phi)
+    y = gs.sin(theta) * gs.sin(phi)
+    z = gs.cos(theta)
+    return gs.array([radius * x, radius * y, radius * z])
+
+
+def _sphere_immersion_1(point):
+    """First component of the sphere immersion function."""
+    radius = 4.0
+    theta = point[0]
+    phi = point[1]
+    x = gs.sin(theta) * gs.cos(phi)
+    return gs.array([radius * x])
+
+
 class TestBackends(tests.conftest.TestCase):
     def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
@@ -764,14 +783,6 @@ class TestBackends(tests.conftest.TestCase):
         radius = 4.0
         embedding_dim, dim = 3, 2
 
-        def _sphere_immersion(point):
-            theta = point[0]
-            phi = point[1]
-            x = gs.sin(theta) * gs.cos(phi)
-            y = gs.sin(theta) * gs.sin(phi)
-            z = gs.cos(theta)
-            return gs.array([radius * x, radius * y, radius * z])
-
         point = gs.array([gs.pi / 3, gs.pi])
         theta = point[0]
         phi = point[1]
@@ -796,10 +807,110 @@ class TestBackends(tests.conftest.TestCase):
             ]
         )
         expected_ai = gs.stack([expected_1i, expected_2i, expected_3i], axis=0)
-        assert jacobian_ai.shape == (embedding_dim, dim), jacobian_ai.shape
-        assert jacobian_ai.shape == expected_ai.shape
+        self.assertAllClose(jacobian_ai.shape, (embedding_dim, dim))
+        self.assertAllClose(jacobian_ai.shape, expected_ai.shape)
+        self.assertAllClose(jacobian_ai, expected_ai)
 
-        assert gs.allclose(jacobian_ai, expected_ai), jacobian_ai
+    def test_jacobian_vectorization(self):
+        """Test that jacobians are correctly vectorized.
+
+        The autodiff jacobian is not vectorized by default in torch, tf and autograd.
+
+        The jacobian of a function f going from an input space A to an output
+        space B is a matrix of shape (dim_B, dim_A).
+        - The columns index the derivatives wrt. the coordinates of the input space A.
+        - The rows index the coordinates of the output space B.
+        """
+        radius = 4.0
+        embedding_dim, dim = 3, 2
+
+        points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 5, gs.pi / 2]])
+        thetas = points[:, 0]
+        phis = points[:, 1]
+        jacobian_ai = gs.autodiff.jacobian(_sphere_immersion)(points)
+
+        expected_1i = gs.stack(
+            [
+                gs.array(
+                    [
+                        radius * gs.cos(theta) * gs.cos(phi),
+                        -radius * gs.sin(theta) * gs.sin(phi),
+                    ]
+                )
+                for theta, phi in zip(thetas, phis)
+            ]
+        )
+        expected_2i = gs.stack(
+            [
+                gs.array(
+                    [
+                        radius * gs.cos(theta) * gs.sin(phi),
+                        radius * gs.sin(theta) * gs.cos(phi),
+                    ]
+                )
+                for theta, phi in zip(thetas, phis)
+            ]
+        )
+        expected_3i = gs.stack(
+            [
+                gs.array(
+                    [
+                        -radius * gs.sin(theta),
+                        0,
+                    ]
+                )
+                for theta in thetas
+            ]
+        )
+        expected_ai = gs.stack([expected_1i, expected_2i, expected_3i], axis=1)
+        self.assertAllClose(jacobian_ai.shape, (len(points), embedding_dim, dim))
+        self.assertAllClose(jacobian_ai.shape, expected_ai.shape)
+        self.assertAllClose(jacobian_ai, expected_ai)
 
     def test_hessian(self):
-        pass
+        radius = 4.0
+        dim = 2
+
+        point = gs.array([gs.pi / 3, gs.pi])
+        theta = point[0]
+        phi = point[1]
+        hessian_1ij = gs.autodiff.hessian(_sphere_immersion_1)(point)
+
+        expected_1ij = radius * gs.array(
+            [
+                [-gs.sin(theta) * gs.cos(phi), -gs.cos(theta) * gs.sin(phi)],
+                [-gs.cos(theta) * gs.sin(phi), -gs.sin(theta) * gs.cos(phi)],
+            ]
+        )
+
+        self.assertAllClose(hessian_1ij.shape, (dim, dim))
+        self.assertAllClose(hessian_1ij.shape, expected_1ij.shape)
+        self.assertAllClose(hessian_1ij, expected_1ij)
+
+    def test_hessian_vectorization(self):
+        """Hessian is not vectorized by default in torch, tf and autograd."""
+        radius = 4.0
+        dim = 2
+
+        points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
+        thetas = points[:, 0]
+        phis = points[:, 1]
+        hessian_1ij = gs.autodiff.hessian(_sphere_immersion_1)(points)
+
+        expected_1ij = gs.stack(
+            [
+                radius
+                * gs.array(
+                    [
+                        [-gs.sin(theta) * gs.cos(phi), -gs.cos(theta) * gs.sin(phi)],
+                        [-gs.cos(theta) * gs.sin(phi), -gs.sin(theta) * gs.cos(phi)],
+                    ]
+                )
+                for theta, phi in zip(thetas, phis)
+            ],
+            axis=0,
+        )
+
+        self.assertAllClose(hessian_1ij.shape, (2, dim, dim))
+        self.assertAllClose(hessian_1ij.shape, expected_1ij.shape)
+        self.assertAllClose(hessian_1ij, expected_1ij)
