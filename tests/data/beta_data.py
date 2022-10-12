@@ -54,6 +54,7 @@ class BetaMetricTestData(_RiemannianMetricTestData):
         "dist_point_to_itself_is_zero": {"atol": 5e-6},
         "dist_is_symmetric": {"atol": 5e-1},
         "dist_is_norm_of_log": {"atol": 5e-1},
+        "sectional_curvature": {"atol": 1e-8},
     }
 
     def metric_matrix_test_data(self):
@@ -74,5 +75,5 @@ class BetaMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def sectional_curvature_test_data(self):
-        smoke_data = [dict(n_samples=10, atol=1e-8)]
+        smoke_data = [dict(n_samples=10)]
         return self.generate_tests(smoke_data)

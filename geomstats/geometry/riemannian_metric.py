@@ -529,23 +529,23 @@ class RiemannianMetric(Connection, ABC):
     def covariant_riemann_tensor(self, base_point):
         r"""Compute purely covariant version of Riemannian tensor at base_point.
 
-        In the literature the covariant riemannian tensor is noted R_{ijkl}.
+        In the literature the covariant riemannian tensor is noted :math:`R_{ijkl}`.
 
         Convention used in the literature (tensor index notation, ref. Wikipedia) is:
-        R_{ijkl} = <R(x_k, x_l)x_j, x_i> where x_i is the i-th basis vector of the
-        tangent space at base point.
+        :math:`R_{ijkl} = <R(x_k, x_l)x_j, x_i>`
+        where :math:`x_i` is the i-th basis vector of the tangent space at base point.
 
+        In other words:
         [cov_riemann_tensor]_{ijkl} = [metric_matrix]_{im} [riemann_tensor]_{jkl}^m
 
         Parameters
         ----------
-        base_point :  array-like, shape=[..., {dim, [n, m]}]
-            Point on the group. Optional, default is the identity.
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
 
         Returns
         -------
-        covariant_tensor : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]},
-                                                    {dim, [n, m]}, {dim, [n, m]}]
+        covariant_tensor : array-like, shape=[..., dim, dim, dim, dim]
             covariant_riemann_tensor[..., i, j, k, l] = R_{ijkl}
             Covariant version of Riemannian curvature tensor.
         """
@@ -574,7 +574,7 @@ class RiemannianMetric(Connection, ABC):
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., n, n]
-            Point in the group. Optional, default is the identity
+            Point in the manifold.
 
         Returns
         -------
@@ -602,14 +602,15 @@ class RiemannianMetric(Connection, ABC):
     def scalar_curvature(self, base_point):
         r"""Compute scalar curvature at base_point.
 
-        In the literature scalar_curvature is noted S.
-
-        S = tr_{metric}(Ricci_tensor) = g^{ij} Ric_{ij} with Einstein notation.
+        In the literature scalar_curvature is noted S and writes:
+        :math:`S = g^{ij} Ric_{ij}`,
+        with Einstein notation, where we recognize the trace of the Ricci
+        tensor according to the Riemannian metric :math:`g`.
 
         Parameters
         ----------
-        base_point :  array-like, shape=[..., {dim, [n, m]}]
-            Point on the group. Optional, default is the identity.
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
 
         Returns
         -------

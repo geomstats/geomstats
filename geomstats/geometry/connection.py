@@ -443,17 +443,21 @@ class Connection(ABC):
 
         Parameters
         ----------
-        base_point :  array-like, shape=[..., {dim, [n, m]}]
-            Point on the group. Optional, default is the identity.
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
 
         Returns
         -------
-        riemann_curvature : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]},
-                                                    {dim, [n, m]}, {dim, [n, m]}]
+        riemann_curvature : array-like, shape=[..., dim, dim,
+                                                    dim, dim]
             riemann_tensor[...,i,j,k,l] = R_{ijk}^l
             Riemannian tensor curvature,
             with the contravariant index on the last dimension.
         """
+        if len(self.shape) > 1:
+            raise NotImplementedError(
+                "Riemann tensor not implemented for manifolds with points of ndim > 1."
+            )
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         christoffels = self.christoffels(base_point)
         jacobian_christoffels = gs.squeeze(
@@ -469,12 +473,12 @@ class Connection(ABC):
             "...ijk,...klm->...ijlm", christoffels, christoffels
         )
         riemann_curvature = (
-            gs.moveaxis(jacobian_christoffels, [-4, -3, -2, -1], [-1, -2, -4, -3])
-            - gs.moveaxis(jacobian_christoffels, [-4, -3, -2, -1], [-1, -3, -4, -2])
-            + gs.moveaxis(prod_christoffels, [-4, -3, -2, -1], [-1, -3, -2, -4])
-            - gs.moveaxis(prod_christoffels, [-4, -3, -2, -1], [-1, -2, -4, -3])
+            gs.einsum("...ijlm->...lmji", jacobian_christoffels)
+            - gs.einsum("...ijlm->...ljmi", jacobian_christoffels)
+            + gs.einsum("...ijlm->...mjli", prod_christoffels)
+            - gs.einsum("...ijlm->...lmji", prod_christoffels)
         )
-        if riemann_curvature.ndim == 5 and riemann_curvature.shape[0] == 1:
+        if riemann_curvature.ndim == 5 and base_point.ndim == 1:
             riemann_curvature = riemann_curvature[0]
 
         return riemann_curvature
@@ -495,18 +499,18 @@ class Connection(ABC):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_a : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_c : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., {dim, [n, m]}]
-            Point on the group. Optional, default is the identity.
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
 
         Returns
         -------
-        curvature : array-like, shape=[..., {dim, [n, m]}]
+        curvature : array-like, shape=[..., dim]
             curvature(X, Y, Z, P)[..., l] = dx^l(R(X, Y)Z)
             Tangent vector at `base_point`.
         """
@@ -523,18 +527,18 @@ class Connection(ABC):
     def ricci_tensor(self, base_point):
         r"""Compute Ricci curvature tensor at base_point.
 
-        The Ricci curvature tensor :math:`Ric_{ij}` is defined as:
-        :math:`Ric_{ij} = R_{ikj}^k`
+        The Ricci curvature tensor :math:`\mathrm{Ric}_{ij}` is defined as:
+        :math:`\mathrm{Ric}_{ij} = R_{ikj}^k`
         with Einstein notation.
 
         Parameters
         ----------
-        base_point :  array-like, shape=[..., {dim, [n, m]}]
-            Point on the group. Optional, default is the identity.
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
 
         Returns
         -------
-        ricci_tensor : array-like, shape=[..., {dim, [n, m]}, {dim, [n, m]}]
+        ricci_tensor : array-like, shape=[..., dim, dim]
             ricci_tensor[...,i,j] = Ric_{ij}
             Ricci tensor curvature.
         """
@@ -589,16 +593,16 @@ class Connection(ABC):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_a : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_c : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_d : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_d : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., {dim, [n, m]}]
-            Point on the group. Optional, default is the identity.
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
 
         Returns
         -------

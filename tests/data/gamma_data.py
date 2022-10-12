@@ -465,8 +465,8 @@ class GammaMetricTestData(_RiemannianMetricTestData):
 
     def scalar_curvature_test_data(self):
         random_data = [
-            dict(point=self.Space().random_point(), atol=gs.atol),
-            dict(point=self.Space().random_point(2), atol=gs.atol),
-            dict(point=self.Space().random_point(3), atol=gs.atol),
+            dict(point=self.Space().random_point()),
+            dict(point=self.Space().random_point(2)),
+            dict(point=self.Space().random_point(3)),
         ]
         return self.generate_tests([], random_data)
