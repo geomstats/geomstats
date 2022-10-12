@@ -22,7 +22,7 @@ ELASTIC_METRICS = ["SRVMetric", "ElasticMetric"]
 
 def _is_metric_in_list(metric_str, metric_names):
     for cmp_str in metric_names:
-        if cmp_str in metric_str:
+        if cmp_str == metric_str:
             return True
 
     return False
