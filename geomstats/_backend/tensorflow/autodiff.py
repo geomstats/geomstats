@@ -142,8 +142,10 @@ def jacobian(func):
         the jacobian of func at x.
     """
 
-    def jac(x):
+    def _jac(x):
         """Return the jacobian of func at x.
+
+        Here, x is a single point of ndim 1.
 
         Parameters
         ----------
@@ -161,6 +163,78 @@ def jacobian(func):
             g.watch(x)
             y = func(x)
         return g.jacobian(y, x)
+
+    return _jac
+
+
+def jacobian_vec(func):
+    """Return a function that returns the jacobian of func.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Jacobian is computed.
+
+    Returns
+    -------
+    jac : callable
+        Function taking x as input and returning
+        the jacobian of func at x.
+    """
+
+    def _jac(x):
+        """Return the jacobian of func at x.
+
+        Here, x is a single point of ndim 1.
+
+        We note that the jacobian function of torch is not vectorized
+        by default, thus we modify its behavior here.
+
+        Default tensorflow behavior:
+
+        If the jacobian for one point of shape (dim,) is of shape (out_dim, dim),
+        then calling the jacobian on several points with shape (n_points, dim) will
+        be of shape (out_dim, dim, n_points, dim).
+
+        Modified behavior:
+
+        Calling the jacobian on points gives a tensor of shape (n_points, out_dim, dim).
+
+        Parameters
+        ----------
+        x : array-like
+            Input to function func or its jacobian.
+
+        Returns
+        -------
+        _ : array-like
+            Value of the jacobian of func at x.
+        """
+        if isinstance(x, _np.ndarray):
+            x = _tf.Variable(x)
+        with _tf.GradientTape() as g:
+            g.watch(x)
+            y = func(x)
+        return g.jacobian(y, x)
+
+    def jac(x):
+        """Return the jacobian of func at x.
+
+        Here, x can be a batch of points.
+
+        Parameters
+        ----------
+        x : array-like
+            Input to function func or its jacobian.
+
+        Returns
+        -------
+        _ : array-like
+            Value of the jacobian of func at x.
+        """
+        if x.ndim == 1:
+            return _jac(x)
+        return _tf.vectorized_map(_jac, x)
 
     return jac
 
@@ -180,7 +254,7 @@ def hessian(func):
         the hessian of func at x.
     """
 
-    def hess(x):
+    def _hess(x):
         """Return the hessian of func at x.
 
         Parameters
@@ -207,6 +281,57 @@ def hessian(func):
 
         hessians = g.jacobian(grads[0], [x])
         return hessians[0]
+
+    return _hess
+
+
+def hessian_vec(func):
+    """Return a function that returns the hessian of func.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Hessian is computed.
+
+    Returns
+    -------
+    hess : callable
+        Function taking x as input and returning
+        the hessian of func at x.
+    """
+
+    def _hess(x):
+        """Return the hessian of func at x.
+
+        Parameters
+        ----------
+        x : array-like
+            Input to function func or its hessian.
+
+        Returns
+        -------
+        _ : array-like
+            Value of the hessian of func at x.
+        """
+        # Note: this is a temporary implementation
+        # that uses the jacobian of the gradient.
+        # inspired from https://github.com/tensorflow/tensorflow/issues/29781
+        # waiting for the hessian function to be implemented in GradientTape.
+        if isinstance(x, _np.ndarray):
+            x = _tf.Variable(x)
+
+        with _tf.GradientTape(persistent=True) as g:
+            g.watch(x)
+            y = func(x)
+            grads = g.gradient(y, [x])
+
+        hessians = g.jacobian(grads[0], [x])
+        return hessians[0]
+
+    def hess(x):
+        if x.ndim == 1:
+            return _hess(x)
+        return _tf.vectorized_map(_hess, x)
 
     return hess
 

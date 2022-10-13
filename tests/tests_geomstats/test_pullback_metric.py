@@ -51,6 +51,28 @@ def _expected_jacobian_sphere_immersion(point):
     return jacobian
 
 
+def _expected_hessian_sphere_immersion(point):
+    theta = point[..., 0]
+    phi = point[..., 1]
+    hessian_immersion_x = gs.array(
+        [
+            [-gs.sin(theta) * gs.cos(phi), -gs.cos(theta) * gs.sin(phi)],
+            [-gs.cos(theta) * gs.sin(phi), -gs.sin(theta) * gs.cos(phi)],
+        ]
+    )
+    hessian_immersion_y = gs.array(
+        [
+            [-gs.sin(theta) * gs.sin(phi), gs.cos(theta) * gs.cos(phi)],
+            [gs.cos(theta) * gs.cos(phi), -gs.sin(theta) * gs.sin(phi)],
+        ]
+    )
+    hessian_immersion_z = gs.array([[-gs.cos(theta), 0.0], [0.0, 0.0]])
+    hessian_immersion = gs.stack(
+        [hessian_immersion_x, hessian_immersion_y, hessian_immersion_z], axis=0
+    )
+    return hessian_immersion
+
+
 def _expected_circle_metric_matrix(point):
     mat = gs.array([[1.0]])
     return mat
@@ -321,3 +343,85 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
             direction=immersed_tangent_vec_b,
         )
         self.assertAllClose(result, expected, atol=5e-3)
+
+    def test_hessian_sphere_immersion(self, base_point):
+        """Test the hessian immersion.
+
+        The hessian immersion is the hessian of the immersion
+        function.
+        """
+        pullback_metric = self.Metric(
+            dim=2, embedding_dim=3, immersion=_sphere_immersion
+        )
+        result = pullback_metric.hessian_immersion(base_point)
+        expected = _expected_hessian_sphere_immersion(base_point)
+        self.assertAllClose(result.shape, (3, 2, 2))
+        self.assertAllClose(result, expected)
+
+    def test_second_fundamental_form_sphere(self, base_point):
+        pullback_metric = self.Metric(
+            dim=2, embedding_dim=3, immersion=_sphere_immersion
+        )
+        theta, phi = base_point[0], base_point[1]
+        radius = 1
+        result = pullback_metric.second_fundamental_form(base_point)
+
+        expected_11 = gs.array(
+            [
+                -radius * gs.sin(theta) * gs.cos(phi),
+                -radius * gs.sin(theta) * gs.sin(phi),
+                -radius * gs.cos(theta),
+            ]
+        )
+        expected_22 = gs.array(
+            [
+                -radius * gs.sin(theta) ** 2 * gs.sin(theta) * gs.cos(phi),
+                -radius * gs.sin(theta) ** 2 * gs.sin(theta) * gs.sin(phi),
+                -radius * gs.sin(theta) ** 2 * gs.cos(theta),
+            ]
+        )
+
+        result_11 = result[:, 0, 0]
+        result_22 = result[:, 1, 1]
+
+        self.assertAllClose(result_11.shape, expected_11.shape)
+        self.assertAllClose(result_22.shape, expected_22.shape)
+
+        self.assertAllClose(result_11, expected_11)
+        self.assertAllClose(result_22, expected_22, atol=1e-5)
+
+    def test_second_fundamental_form_circle(self, base_point):
+        pullback_metric = self.Metric(
+            dim=1, embedding_dim=2, immersion=_circle_immersion
+        )
+        result = pullback_metric.second_fundamental_form(base_point)
+
+        expected = gs.array(
+            [
+                [-gs.cos(base_point)],
+                [-gs.sin(base_point)],
+            ]
+        )
+
+        self.assertAllClose(result.shape, expected.shape)
+        self.assertAllClose(result, expected)
+
+    def test_mean_curvature_vector_norm_sphere(self, base_point):
+        pullback_metric = self.Metric(
+            dim=2, embedding_dim=3, immersion=_sphere_immersion
+        )
+        radius = 1
+        result = pullback_metric.mean_curvature_vector(base_point)
+        result = gs.linalg.norm(result)
+        expected = gs.array(2 / radius)
+        self.assertAllClose(result, expected)
+
+    def test_mean_curvature_vector_norm_circle(self, base_point):
+        pullback_metric = self.Metric(
+            dim=1, embedding_dim=2, immersion=_circle_immersion
+        )
+        radius = 1
+        result = pullback_metric.mean_curvature_vector(base_point)
+        result = gs.linalg.norm(result)
+        expected = gs.array(1 / radius)
+        self.assertAllClose(result, expected)

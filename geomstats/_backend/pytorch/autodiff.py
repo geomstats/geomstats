@@ -101,6 +101,52 @@ def jacobian(func):
     return _jacobian
 
 
+def jacobian_vec(func):
+    """Return a function that returns the jacobian of func.
+
+    We note that the jacobian function of torch is not vectorized
+    by default, thus we modify its behavior here.
+
+    Default pytorch behavior:
+
+    If the jacobian for one point of shape (2,) is of shape (3, 2),
+    then calling the jacobian on 4 points with shape (4, 2) will
+    be of shape (3, 2, 4, 2).
+
+    Modified behavior:
+
+    Calling the jacobian on 4 points gives a tensor of shape (4, 3, 2).
+
+    We use a for-loop to allow this function to be vectorized with
+    respect to several inputs in point, because the flag vectorize=True
+    fails.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian is computed.
+
+    Returns
+    -------
+    _ : callable
+        Function taking point as input and returning
+        the jacobian of func at point.
+    """
+
+    def _jacobian(point):
+        if point.ndim == 1:
+            return _torch_jacobian(func=lambda x: func(x), inputs=point)
+        return _torch.stack(
+            [
+                _torch_jacobian(func=lambda x: func(x), inputs=one_point)
+                for one_point in point
+            ],
+            axis=0,
+        )
+
+    return _jacobian
+
+
 def hessian(func):
     """Return a function that returns the hessian of func.
 
@@ -118,6 +164,39 @@ def hessian(func):
 
     def _hessian(point):
         return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
+
+    return _hessian
+
+
+def hessian_vec(func):
+    """Return a function that returns the hessian of func.
+
+    We modify the default behavior of the hessian function of torch
+    to return a tensor of shape (n_points, dim, dim) when several
+    points are given as inputs.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Hessian is computed.
+
+    Returns
+    -------
+    _ : callable
+        Function taking point as input and returning
+        the hessian of func at point.
+    """
+
+    def _hessian(point):
+        if point.ndim == 1:
+            return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
+        return _torch.stack(
+            [
+                _torch_hessian(func=lambda x: func(x), inputs=one_point, strict=True)
+                for one_point in point
+            ],
+            axis=0,
+        )
 
     return _hessian
 
