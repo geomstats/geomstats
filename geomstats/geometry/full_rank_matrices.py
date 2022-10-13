@@ -22,7 +22,7 @@ class FullRankMatrices(OpenSet):
     def __init__(self, n, k, **kwargs):
         kwargs.setdefault("dim", n * k)
         kwargs.setdefault("metric", MatricesMetric(n, k))
-        super().__init__(ambient_space=Matrices(n, k), **kwargs)
+        super().__init__(embedding_space=Matrices(n, k), **kwargs)
         self.rank = min(n, k)
         self.n = n
         self.k = k
@@ -42,7 +42,7 @@ class FullRankMatrices(OpenSet):
         belongs : Boolean
             Denoting if point is in :math:`R_*^{m\times n}`.
         """
-        has_right_size = self.ambient_space.belongs(point)
+        has_right_size = self.embedding_space.belongs(point)
         has_right_rank = gs.where(
             gs.linalg.matrix_rank(point) == self.rank, True, False
         )
@@ -71,7 +71,7 @@ class FullRankMatrices(OpenSet):
         regularization = gs.einsum(
             "...,ij->...ij",
             gs.where(~belongs, gs.atol, 0.0),
-            gs.eye(self.ambient_space.shape[0], self.ambient_space.shape[1]),
+            gs.eye(self.embedding_space.shape[0], self.embedding_space.shape[1]),
         )
         projected = point + regularization
         return projected

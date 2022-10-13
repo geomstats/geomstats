@@ -36,7 +36,7 @@ class TestRiemannianKMeans(tests.conftest.TestCase):
         n_points = 2
         space = spd_matrices.SPDMatrices(dim)
         data = space.random_point(n_samples=n_points)
-        metric = spd_matrices.SPDMetricAffine(dim)
+        metric = spd_matrices.SPDAffineMetric(dim)
 
         kmeans = RiemannianKMeans(metric, n_clusters=1, init_step_size=1.0)
         kmeans.fit(data)

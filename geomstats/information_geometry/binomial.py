@@ -23,7 +23,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
     def __init__(self, n_draws):
         super().__init__(
             dim=1,
-            ambient_space=Euclidean(dim=1),
+            embedding_space=Euclidean(dim=1),
             metric=BinomialFisherRaoMetric(n_draws),
         )
         self.n_draws = n_draws

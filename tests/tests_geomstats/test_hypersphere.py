@@ -6,7 +6,7 @@ import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, np_backend
 from tests.data.hypersphere_data import HypersphereMetricTestData, HypersphereTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
@@ -173,6 +173,72 @@ class HypersphereMetricTestCase(RiemannianMetricTestCase):
         result = metric.christoffels(point)
         self.assertAllClose(gs.shape(result), expected)
 
+    def test_riemann_tensor_spherical_coords_shape(self, base_point, expected):
+        """Test the shape of the Riemann tensor on the sphere.
+
+        Note that the base_point is input in spherical coordinates.
+        """
+        metric = self.Metric(dim=2)
+        result = metric.riemann_tensor(base_point).shape
+        self.assertAllClose(expected, result)
+
+    def test_riemann_tensor_spherical_coords(self, base_point):
+        """Test the Riemann tensor on the sphere.
+
+        riemann_tensor[...,i,j,k,l] = R_{ijk}^l
+            Riemannian tensor curvature,
+            with the contravariant index on the last dimension.
+
+        Note that the base_point is input in spherical coordinates.
+
+        Expected formulas taken from:
+        https://digitalcommons.latech.edu/cgi/viewcontent.cgi?
+        article=1008&context=mathematics-senior-capstone-papers
+        """
+        metric = self.Metric(dim=2)
+        riemann_tensor_ijk_l = metric.riemann_tensor(base_point)
+        theta, _ = base_point[0], base_point[1]
+        expected_212_1 = gs.sin(theta) ** 2
+        expected_221_1 = -gs.sin(theta) ** 2
+        expected_121_2 = 1
+        expected_112_2 = -1
+        result_212_1 = riemann_tensor_ijk_l[1, 0, 1, 0]
+        result_221_1 = riemann_tensor_ijk_l[1, 1, 0, 0]
+        result_121_2 = riemann_tensor_ijk_l[0, 1, 0, 1]
+        result_112_2 = riemann_tensor_ijk_l[0, 0, 1, 1]
+        self.assertAllClose(expected_212_1, result_212_1)
+        self.assertAllClose(expected_221_1, result_221_1)
+        self.assertAllClose(expected_121_2, result_121_2)
+        self.assertAllClose(expected_112_2, result_112_2)
+
+    def test_ricci_tensor_spherical_coords_shape(self, base_point, expected):
+        """Test the shape of the Ricci tensor on the sphere.
+
+        ricci_tensor[...,i,j] = R_{ij}
+            Ricci tensor curvature.
+
+        Note that the base_point is input in spherical coordinates.
+        """
+        metric = self.Metric(dim=2)
+        result = metric.ricci_tensor(base_point).shape
+        self.assertAllClose(expected, result)
+
+    def test_ricci_tensor_spherical_coords(self, base_point, expected):
+        """Test the Ricci tensor on the sphere.
+
+        ricci_tensor[...,i,j] = R_{ij}
+            Ricci tensor curvature.
+
+        Note that the base_point is input in spherical coordinates.
+
+        Expected formulas taken from:
+        https://digitalcommons.latech.edu/cgi/viewcontent.cgi?
+        article=1008&context=mathematics-senior-capstone-papers
+        """
+        metric = self.Metric(dim=2)
+        result = metric.ricci_tensor(base_point)
+        self.assertAllClose(expected, result)
+
     def test_sectional_curvature(
         self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
@@ -194,5 +260,18 @@ class HypersphereMetricTestCase(RiemannianMetricTestCase):
 class TestHypersphereMetric(HypersphereMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_dist_point_to_itself_is_zero = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature = True
+    skip_test_sectional_curvature_shape = True
+    skip_test_riemann_tensor_spherical_coords_shape = np_backend()
+    skip_test_ricci_tensor_spherical_coords_shape = np_backend()
+    skip_test_riemann_tensor_spherical_coords = np_backend()
+    skip_test_ricci_tensor_spherical_coords = np_backend()
 
     testing_data = HypersphereMetricTestData()

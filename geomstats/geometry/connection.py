@@ -52,6 +52,8 @@ class Connection(ABC):
     def christoffels(self, base_point):
         """Christoffel symbols associated with the connection.
 
+        The contravariant index is on the first dimension.
+
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
@@ -421,40 +423,138 @@ class Connection(ABC):
             "trajectory": trajectory,
         }
 
-    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
-        r"""Compute the curvature.
+    def riemann_tensor(self, base_point):
+        r"""Compute Riemannian tensor at base_point.
 
-        For three vectors fields :math:`X|_P = tangent\_vec\_a,
-        Y|_P = tangent\_vec\_b, Z|_P = tangent\_vec\_c` with tangent vector
-        specified in argument at the base point :math:`P`,
-        the curvature is defined by :math:`R(X,Y)Z = \nabla_{[X,Y]}Z
-        - \nabla_X\nabla_Y Z + \nabla_Y\nabla_X Z`.
+        In the literature the riemannian curvature tensor is noted :math:`R_{ijk}^l`.
+
+        Following tensor index convention (ref. Wikipedia), we have:
+        :math:`R_{ijk}^l = dx^l(R(X_j, X_k)X_i)`
+
+        which gives :math:`R_{ijk}^lk` as a sum of four terms:
+        :math:`R_{ijk}^l =
+        :math:`\partial_j \Gamma^l_{ki}`
+        :math:`- \partial_k \Gamma^l_{ji}`
+        :math:`+ \Gamma^l_{jm} \Gamma^m_{ki}`
+        :math:`- \Gamma^l_{km} \Gamma^m_{ji}`
+
+        Note that geomstats puts the contravariant index on
+        the first dimension of the Christoffel symbols.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
-            Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
-            Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., {dim, [n, m]}]
-            Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., {dim, [n, m]}]
-            Point on the group. Optional, default is the identity.
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
 
         Returns
         -------
-        curvature : array-like, shape=[..., {dim, [n, m]}]
+        riemann_curvature : array-like, shape=[..., dim, dim,
+                                                    dim, dim]
+            riemann_tensor[...,i,j,k,l] = R_{ijk}^l
+            Riemannian tensor curvature,
+            with the contravariant index on the last dimension.
+        """
+        if len(self.shape) > 1:
+            raise NotImplementedError(
+                "Riemann tensor not implemented for manifolds with points of ndim > 1."
+            )
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        christoffels = self.christoffels(base_point)
+        jacobian_christoffels = gs.squeeze(
+            gs.stack(
+                [
+                    gs.autodiff.jacobian(self.christoffels)(point)
+                    for point in base_point
+                ],
+                axis=0,
+            )
+        )
+        prod_christoffels = gs.einsum(
+            "...ijk,...klm->...ijlm", christoffels, christoffels
+        )
+        riemann_curvature = (
+            gs.einsum("...ijlm->...lmji", jacobian_christoffels)
+            - gs.einsum("...ijlm->...ljmi", jacobian_christoffels)
+            + gs.einsum("...ijlm->...mjli", prod_christoffels)
+            - gs.einsum("...ijlm->...lmji", prod_christoffels)
+        )
+        if riemann_curvature.ndim == 5 and base_point.ndim == 1:
+            riemann_curvature = riemann_curvature[0]
+
+        return riemann_curvature
+
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
+        r"""Compute the Riemann curvature map R.
+
+        For three tangent vectors at base point :math:`P`:
+        - :math:`X|_P = tangent\_vec\_a`,
+        - :math:`Y|_P = tangent\_vec\_b`,
+        - :math:`Z|_P = tangent\_vec\_c`,
+        the curvature(X, Y, Z, P) is defined by
+        :math:`R(X,Y)Z = \nabla_X \nabla_Y Z - \nabla_Y \nabla_X Z - \nabla_[X, Y]Z`.
+
+        The output is the tangent vector:
+        :math:`dx^l(R(X, Y)Z) = R_{ijk}^l X_j Y_k Z_i`
+        written with Einstein notation.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., dim]
+            curvature(X, Y, Z, P)[..., l] = dx^l(R(X, Y)Z)
             Tangent vector at `base_point`.
         """
-        raise NotImplementedError("The curvature is not implemented.")
+        riemann = self.riemann_tensor(base_point)
+        curvature = gs.einsum(
+            "...ijkl, ...j, ...k, ...i -> ...l",
+            riemann,
+            tangent_vec_a,
+            tangent_vec_b,
+            tangent_vec_c,
+        )
+        return curvature
+
+    def ricci_tensor(self, base_point):
+        r"""Compute Ricci curvature tensor at base_point.
+
+        The Ricci curvature tensor :math:`\mathrm{Ric}_{ij}` is defined as:
+        :math:`\mathrm{Ric}_{ij} = R_{ikj}^k`
+        with Einstein notation.
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        ricci_tensor : array-like, shape=[..., dim, dim]
+            ricci_tensor[...,i,j] = Ric_{ij}
+            Ricci tensor curvature.
+        """
+        riemann_tensor = self.riemann_tensor(base_point)
+        ricci_tensor = gs.einsum("...ijkj -> ...ik", riemann_tensor)
+        return ricci_tensor
 
     def directional_curvature(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the directional curvature (tidal force operator).
 
-        For two vectors fields :math:`X|_P = tangent\_vec\_a`, and :math:`Y|_P
-        = tangent\_vec\_b` with tangent vector specified in argument at
-        the base point :math:`P`, the directional curvature, better known
-        in relativity as the tidal force operator, is defined by
+        For two tangent vectors at base_point :math:`P`:
+        - :math:`X|_P = tangent\_vec\_a`,
+        - :math:`Y|_P = tangent\_vec\_b`,
+        the directional curvature, better known
+        in relativity as the tidal force operator,
+        is defined by
         :math:`R_Y(X) = R(Y,X)Y`.
 
         Parameters
@@ -483,43 +583,49 @@ class Connection(ABC):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math:`H|_P = tangent\_vec\_a, X|_P =
-        tangent\_vec\_b, Y|_P = tangent\_vec\_c, Z|_P = tangent\_vec\_d` with
-        tangent vector value specified in argument at the base point `P`,
-        the covariant derivative of the curvature
-        :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the base point `P`.
+        For four tangent vectors at base_point :math:`P`:
+        - :math:`H|_P = tangent\_vec\_a`,
+        - :math:`X|_P = tangent\_vec\_b`,
+        - :math:`Y|_P = tangent\_vec\_c`,
+        - :math:`Z|_P = tangent\_vec\_d`,
+        the covariant derivative of the curvature is defined as:
+        :math:`(\nabla_H R)(X, Y) Z |_P`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_a : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_c : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_d : array-like, shape=[..., {dim, [n, m]}]
+        tangent_vec_d : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., {dim, [n, m]}]
-            Point on the group. Optional, default is the identity.
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
 
         Returns
         -------
         curvature_derivative : array-like, shape=[..., dim]
             Tangent vector at base-point.
         """
-        raise NotImplementedError("The curvature is not implemented.")
+        raise NotImplementedError(
+            "The covariant derivative of the curvature is not implemented."
+        )
 
     def directional_curvature_derivative(
         self, tangent_vec_a, tangent_vec_b, base_point=None
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
-        tangent\_vec\_b` with tangent vector value specified in argument at the
-        base point `P`, the covariant derivative (in the direction `X`)
+        For tangent vector fields at base_point :math:`P`:
+        - :math:`X|_P = tangent\_vec\_a`,
+        - :math:`Y|_P = tangent\_vec\_b`,
+        the covariant derivative (in the direction `X`)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)
-        :math:`R_Y(X) = R(Y, X) Y` is a quadratic tensor in `X` and `Y` that
+        :math:`R_Y(X) = R(Y, X) Y`
+        is a quadratic tensor in `X` and `Y` that
         plays an important role in the computation of the moments of the
         empirical Fréchet mean.
 

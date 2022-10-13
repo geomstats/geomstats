@@ -86,7 +86,11 @@ class RiemannianMetric(Connection, ABC):
         return cometric_matrix
 
     def inner_product_derivative_matrix(self, base_point=None):
-        """Compute derivative of the inner prod matrix at base point.
+        r"""Compute derivative of the inner prod matrix at base point.
+
+        Writing :math:`g_{ij}` the inner-product matrix at base point,
+        this computes :math:`mat_{ijk} = \partial_k g_{ij}`, where the
+        index k of the derivation is put last.
 
         Parameters
         ----------
@@ -96,8 +100,9 @@ class RiemannianMetric(Connection, ABC):
 
         Returns
         -------
-        mat : array-like, shape=[..., dim, dim]
-            Derivative of inverse of inner-product matrix.
+        mat : array-like, shape=[..., dim, dim, dim]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: math:`mat_{ijk} = \partial_k g_{ij}`.
         """
         metric_derivative = gs.autodiff.jacobian(self.metric_matrix)
         return metric_derivative(base_point)
@@ -114,6 +119,9 @@ class RiemannianMetric(Connection, ABC):
         - :math:`p` represents the base point, and
         - :math:`g` represents the Riemannian metric tensor.
 
+        Note that the function computing the derivative of the metric matrix
+        puts the index of the derivation last.
+
         Parameters
         ----------
         base_point: array-like, shape=[..., dim]
@@ -122,7 +130,7 @@ class RiemannianMetric(Connection, ABC):
         Returns
         -------
         christoffels: array-like, shape=[..., dim, dim, dim]
-            Christoffel symbols.
+            Christoffel symbols, where the contravariant index is first.
         """
         cometric_mat_at_point = self.cometric_matrix(base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(base_point)
@@ -518,13 +526,46 @@ class RiemannianMetric(Connection, ABC):
 
         return gs.einsum("i, ikl->ikl", 1.0 / gs.sqrt(norms), basis)
 
+    def covariant_riemann_tensor(self, base_point):
+        r"""Compute purely covariant version of Riemannian tensor at base_point.
+
+        In the literature the covariant riemannian tensor is noted :math:`R_{ijkl}`.
+
+        Convention used in the literature (tensor index notation, ref. Wikipedia) is:
+        :math:`R_{ijkl} = <R(x_k, x_l)x_j, x_i>`
+        where :math:`x_i` is the i-th basis vector of the tangent space at base point.
+
+        In other words:
+        [cov_riemann_tensor]_{ijkl} = [metric_matrix]_{im} [riemann_tensor]_{jkl}^m
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        covariant_tensor : array-like, shape=[..., dim, dim, dim, dim]
+            covariant_riemann_tensor[..., i, j, k, l] = R_{ijkl}
+            Covariant version of Riemannian curvature tensor.
+        """
+        riemann_tensor = self.riemann_tensor(base_point)
+        metric = self.metric_matrix(base_point)
+        covariant_tensor = gs.einsum("...ij, ...klmj->...iklm", metric, riemann_tensor)
+        return covariant_tensor
+
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.
 
+        In the literature sectional curvature is noted K.
+
         For two orthonormal tangent vectors :math:`x,y` at a base point,
-        the sectional curvature is defined by :math:`<R(x, y)x, y> =
-        <R_x(y), y>`. For non-orthonormal vectors vectors, it is
-        :math:`<R(x, y)x, y> / \\|x \wedge y\\|^2`.
+        the sectional curvature is defined by :math:`K(x,y) = <R(x, y)x, y>`.
+        For non-orthonormal vectors, it is
+        :math:`K(x,y) = <R(x, y)x, y> / \\|x \wedge y\\|^2`.
+
+        sectional_curvature(X, Y, P) = K(X,Y) where X, Y are tangent vectors
+        at base point P.
 
         Parameters
         ----------
@@ -533,21 +574,22 @@ class RiemannianMetric(Connection, ABC):
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         base_point : array-like, shape=[..., n, n]
-            Point in the group. Optional, default is the identity
+            Point in the manifold.
 
         Returns
         -------
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at `base_point`.
 
-        See Also
-        --------
-        https://en.wikipedia.org/wiki/Sectional_curvature
+        Reference
+        ---------
+        [CF1992] Do Carmo, M. P., & Flaherty Francis, J. (1992).
+        Riemannian geometry (Vol. 6). Boston: Birkhäuser.
         """
         curvature = self.curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_a, base_point
+            tangent_vec_a, tangent_vec_b, tangent_vec_b, base_point
         )
-        sectional = self.inner_product(curvature, tangent_vec_b, base_point)
+        sectional = self.inner_product(curvature, tangent_vec_a, base_point)
         norm_a = self.squared_norm(tangent_vec_a, base_point)
         norm_b = self.squared_norm(tangent_vec_b, base_point)
         inner_ab = self.inner_product(tangent_vec_a, tangent_vec_b, base_point)
@@ -556,3 +598,26 @@ class RiemannianMetric(Connection, ABC):
         condition = gs.isclose(normalization_factor, 0.0)
         normalization_factor = gs.where(condition, EPSILON, normalization_factor)
         return gs.where(~condition, sectional / normalization_factor, 0.0)
+
+    def scalar_curvature(self, base_point):
+        r"""Compute scalar curvature at base_point.
+
+        In the literature scalar_curvature is noted S and writes:
+        :math:`S = g^{ij} Ric_{ij}`,
+        with Einstein notation, where we recognize the trace of the Ricci
+        tensor according to the Riemannian metric :math:`g`.
+
+        Parameters
+        ----------
+        base_point :  array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        curvature : array-like, shape=[...,]
+            Scalar curvature.
+        """
+        ricci_tensor = self.ricci_tensor(base_point)
+        cometric_matrix = self.cometric_matrix(base_point)
+        scalar = gs.einsum("...ij, ...ij -> ...", cometric_matrix, ricci_tensor)
+        return scalar

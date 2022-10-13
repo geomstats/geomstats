@@ -3,11 +3,11 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import (
+    SPDAffineMetric,
+    SPDBuresWassersteinMetric,
+    SPDEuclideanMetric,
+    SPDLogEuclideanMetric,
     SPDMatrices,
-    SPDMetricAffine,
-    SPDMetricBuresWasserstein,
-    SPDMetricEuclidean,
-    SPDMetricLogEuclidean,
 )
 from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 
@@ -190,7 +190,7 @@ class SPDMatricesTestData(_OpenSetTestData):
         return self.generate_tests(smoke_data)
 
 
-class SPDMetricAffineTestData(_RiemannianMetricTestData):
+class SPDAffineMetricTestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 5), 2)
     power_affine_list = [1.0, -0.5]
     metric_args_list = list(zip(n_list, power_affine_list))
@@ -204,7 +204,7 @@ class SPDMetricAffineTestData(_RiemannianMetricTestData):
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
 
-    Metric = SPDMetricAffine
+    Metric = SPDAffineMetric
 
     def inner_product_test_data(self):
         smoke_data = [
@@ -247,7 +247,7 @@ class SPDMetricAffineTestData(_RiemannianMetricTestData):
         return super().log_after_exp_test_data(amplitude=10.0)
 
 
-class SPDMetricBuresWassersteinTestData(_RiemannianMetricTestData):
+class SPDBuresWassersteinMetricTestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 5), 2)
     metric_args_list = [(n,) for n in n_list]
     shape_list = [(n, n) for n in n_list]
@@ -260,7 +260,7 @@ class SPDMetricBuresWassersteinTestData(_RiemannianMetricTestData):
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
 
-    Metric = SPDMetricBuresWasserstein
+    Metric = SPDBuresWassersteinMetric
 
     def inner_product_test_data(self):
         smoke_data = [
@@ -315,7 +315,7 @@ class SPDMetricBuresWassersteinTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
 
-class SPDMetricEuclideanTestData(_RiemannianMetricTestData):
+class SPDEuclideanMetricTestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 5), 2)
     power_euclidean_list = [1.0, -0.5, 0.5, 1.0, 1.0]
     metric_args_list = list(zip(n_list, power_euclidean_list))
@@ -330,7 +330,7 @@ class SPDMetricEuclideanTestData(_RiemannianMetricTestData):
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
 
-    Metric = SPDMetricEuclidean
+    Metric = SPDEuclideanMetric
 
     def inner_product_test_data(self):
         smoke_data = [
@@ -397,25 +397,24 @@ class SPDMetricEuclideanTestData(_RiemannianMetricTestData):
         return super().log_after_exp_test_data(amplitude=10.0)
 
 
-class SPDMetricEuclideanPower1TestData(_RiemannianMetricTestData):
+class SPDEuclideanMetricPower1TestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 5), 2)
     power_euclidean_list = [1.0] * 5
-
-    metric_args_list = list(zip(n_list, [1.0] * 5))
+    connection_args_list = metric_args_list = list(zip(n_list, [1.0] * 5))
     shape_list = [(n, n) for n in n_list]
     space_list = [SPDMatrices(n) for n in n_list]
     n_points_list = random.sample(range(1, 5), 2)
-    n_tangent_vecs_list = random.sample(range(1, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
     n_points_b_list = [1]
     alpha_list = [1] * 2
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
 
-    Metric = SPDMetricEuclidean
+    Metric = SPDEuclideanMetric
 
 
-class SPDMetricLogEuclideanTestData(_RiemannianMetricTestData):
+class SPDLogEuclideanMetricTestData(_RiemannianMetricTestData):
 
     n_list = random.sample(range(2, 4), 2)
     metric_args_list = [(n,) for n in n_list]
@@ -430,7 +429,7 @@ class SPDMetricLogEuclideanTestData(_RiemannianMetricTestData):
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
 
-    Metric = SPDMetricLogEuclidean
+    Metric = SPDLogEuclideanMetric
 
     def inner_product_test_data(self):
         smoke_data = [

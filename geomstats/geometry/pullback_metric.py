@@ -178,7 +178,8 @@ class PullbackMetric(RiemannianMetric):
         Returns
         -------
         inner_prod_deriv_mat : array-like, shape=[..., dim, dim, dim]
-            Inner-product derivative matrix.
+            Inner-product derivative matrix, where the index of the derivation
+            is last: :math:`mat_{ij}_k = \partial_k g_{ij}`.
         """
         initial_ndim = base_point.ndim
         base_point = gs.to_ndarray(base_point, to_ndim=2)

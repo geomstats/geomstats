@@ -8,9 +8,9 @@ from geomstats.distributions.lognormal import LogNormal
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import (
+    SPDAffineMetric,
+    SPDLogEuclideanMetric,
     SPDMatrices,
-    SPDMetricAffine,
-    SPDMetricLogEuclidean,
 )
 
 
@@ -23,8 +23,8 @@ class TestLogNormal(tests.conftest.TestCase):
         self.spd_cov_n = (self.n * (self.n + 1)) // 2
         self.samples = 5
         self.spd = SPDMatrices(self.n)
-        self.log_euclidean = SPDMetricLogEuclidean(self.n)
-        self.affine_invariant = SPDMetricAffine(self.n)
+        self.log_euclidean = SPDLogEuclideanMetric(self.n)
+        self.affine_invariant = SPDAffineMetric(self.n)
         self.euclidean = Euclidean(self.n)
 
     def test_euclidean_belongs(self):

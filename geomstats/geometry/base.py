@@ -312,22 +312,22 @@ class LevelSet(Manifold, abc.ABC):
 class OpenSet(Manifold, abc.ABC):
     """Class for manifolds that are open sets of a vector space.
 
-    In this case, tangent vectors are identified with vectors of the ambient
+    In this case, tangent vectors are identified with vectors of the embedding
     space.
 
     Parameters
     ----------
     dim: int
-        Dimension of the manifold. It is often the same as the ambient space
+        Dimension of the manifold. It is often the same as the embedding space
         dimension but may differ in some cases.
-    ambient_space: VectorSpace
-        Ambient space that contains the manifold.
+    embedding_space: VectorSpace
+        Embedding space that contains the manifold.
     """
 
-    def __init__(self, dim, ambient_space, **kwargs):
-        kwargs.setdefault("shape", ambient_space.shape)
+    def __init__(self, dim, embedding_space, **kwargs):
+        kwargs.setdefault("shape", embedding_space.shape)
         super().__init__(dim=dim, **kwargs)
-        self.ambient_space = ambient_space
+        self.embedding_space = embedding_space
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -347,7 +347,7 @@ class OpenSet(Manifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.ambient_space.belongs(vector, atol)
+        return self.embedding_space.belongs(vector, atol)
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
@@ -364,7 +364,7 @@ class OpenSet(Manifold, abc.ABC):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        return self.ambient_space.projection(vector)
+        return self.embedding_space.projection(vector)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
@@ -385,17 +385,17 @@ class OpenSet(Manifold, abc.ABC):
         samples : array-like, shape=[..., {dim, [n, n]}]
             Points sampled on the hypersphere.
         """
-        sample = self.ambient_space.random_point(n_samples, bound)
+        sample = self.embedding_space.random_point(n_samples, bound)
         return self.projection(sample)
 
     @abc.abstractmethod
     def projection(self, point):
-        """Project a point in ambient manifold on manifold.
+        """Project a point in embedding manifold on manifold.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim]
-            Point in ambient manifold.
+            Point in embedding manifold.
 
         Returns
         -------
