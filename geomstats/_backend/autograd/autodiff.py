@@ -3,7 +3,7 @@
 import autograd as _autograd
 import autograd.numpy as _np
 from autograd import hessian as _hessian
-from autograd import jacobian as _jacobian
+from autograd import jacobian
 from autograd import value_and_grad as _value_and_grad
 from autograd.extend import defvjp as _defvjp
 from autograd.extend import primitive as _primitive
@@ -159,7 +159,7 @@ def _value_and_jacobian(fun, x):
     return ans, _np.reshape(_np.stack(grads), jacobian_shape)
 
 
-def jacobian(func):
+def jacobian_vec(func):
     """Wrap autograd jacobian function.
 
     We note that the jacobian function of autograd is not vectorized
@@ -194,8 +194,8 @@ def jacobian(func):
 
     def _jac(x):
         if x.ndim == 1:
-            return _jacobian(func)(x)
-        return _np.stack([_jacobian(func)(one_x) for one_x in x])
+            return jacobian(func)(x)
+        return _np.stack([jacobian(func)(one_x) for one_x in x])
 
     return _jac
 
@@ -203,12 +203,39 @@ def jacobian(func):
 def hessian(func):
     """Wrap autograd hessian function.
 
+    We note that the hessian function of autograd returns a tensor
+    of shape (1, dim, dim) when one x is given as input.
+
+    For consistency with the other backend, we convert this to a tensor
+    of shape (dim, dim).
+
+    Parameters
+    ----------
+    func : callable
+        Function whose hessian values
+        will be computed.
+
+    Returns
+    -------
+    func_with_hessian : callable
+        Function that returns func's hessian
+        values at its inputs args.
+    """
+
+    def _hess(x):
+        return _hessian(func)(x)[0]
+
+    return _hess
+
+
+def hessian_vec(func):
+    """Wrap autograd hessian function.
+
     We note that the hessian function of autograd is not vectorized
     by default, thus we modify its behavior here.
 
     We force the hessian to return a tensor of shape (n_points, dim, dim)
     when several points are given as inputs.
-
 
     Parameters
     ----------
@@ -246,4 +273,4 @@ def jacobian_and_hessian(func):
         Function that returns func's jacobian and
         func's hessian values at its inputs args.
     """
-    return _value_and_jacobian(_jacobian(func))
+    return _value_and_jacobian(jacobian(func))
