@@ -2,7 +2,7 @@
 
 import autograd as _autograd
 import autograd.numpy as _np
-from autograd import hessian
+from autograd import hessian as _hessian
 from autograd import jacobian as _jacobian
 from autograd import value_and_grad as _value_and_grad
 from autograd.extend import defvjp as _defvjp
@@ -198,6 +198,37 @@ def jacobian(func):
         return _np.stack([_jacobian(func)(one_x) for one_x in x])
 
     return _jac
+
+
+def hessian(func):
+    """Wrap autograd hessian function.
+
+    We note that the hessian function of autograd is not vectorized
+    by default, thus we modify its behavior here.
+
+    We force the hessian to return a tensor of shape (n_points, dim, dim)
+    when several points are given as inputs.
+
+
+    Parameters
+    ----------
+    func : callable
+        Function whose hessian values
+        will be computed.
+
+    Returns
+    -------
+    func_with_hessian : callable
+        Function that returns func's hessian
+        values at its inputs args.
+    """
+
+    def _hess(x):
+        if x.ndim == 1:
+            return _hessian(func)(x)[0]
+        return _np.stack([_hessian(func)(one_x)[0] for one_x in x])
+
+    return _hess
 
 
 def jacobian_and_hessian(func):

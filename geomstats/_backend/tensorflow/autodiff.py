@@ -214,7 +214,7 @@ def hessian(func):
         the hessian of func at x.
     """
 
-    def hess(x):
+    def _hess(x):
         """Return the hessian of func at x.
 
         Parameters
@@ -241,6 +241,11 @@ def hessian(func):
 
         hessians = g.jacobian(grads[0], [x])
         return hessians[0]
+
+    def hess(x):
+        if x.ndim == 1:
+            return _hess(x)
+        return _tf.vectorized_map(_hess, x)
 
     return hess
 

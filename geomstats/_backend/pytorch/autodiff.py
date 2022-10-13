@@ -129,6 +129,10 @@ def jacobian(func):
 def hessian(func):
     """Return a function that returns the hessian of func.
 
+    We modify the default behavior of the hessian function of torch
+    to return a tensor of shape (n_points, dim, dim) when several
+    points are given as inputs.
+
     Parameters
     ----------
     func : callable
@@ -142,7 +146,15 @@ def hessian(func):
     """
 
     def _hessian(point):
-        return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
+        if point.ndim == 1:
+            return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
+        return _torch.stack(
+            [
+                _torch_hessian(func=lambda x: func(x), inputs=one_point, strict=True)
+                for one_point in point
+            ],
+            axis=0,
+        )
 
     return _hessian
 
