@@ -811,8 +811,8 @@ class TestBackends(tests.conftest.TestCase):
         self.assertAllClose(jacobian_ai.shape, expected_ai.shape)
         self.assertAllClose(jacobian_ai, expected_ai)
 
-    def test_jacobian_vectorization(self):
-        """Test that jacobians are correctly vectorized.
+    def test_jacobian_vec(self):
+        """Test that jacobian_vec is correctly vectorized.
 
         The autodiff jacobian is not vectorized by default in torch, tf and autograd.
 
@@ -827,7 +827,7 @@ class TestBackends(tests.conftest.TestCase):
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 5, gs.pi / 2]])
         thetas = points[:, 0]
         phis = points[:, 1]
-        jacobian_ai = gs.autodiff.jacobian(_sphere_immersion)(points)
+        jacobian_ai = gs.autodiff.jacobian_vec(_sphere_immersion)(points)
 
         expected_1i = gs.stack(
             [
@@ -887,7 +887,7 @@ class TestBackends(tests.conftest.TestCase):
         self.assertAllClose(hessian_1ij.shape, expected_1ij.shape)
         self.assertAllClose(hessian_1ij, expected_1ij)
 
-    def test_hessian_vectorization(self):
+    def test_hessian_vec(self):
         """Hessian is not vectorized by default in torch, tf and autograd."""
         radius = 4.0
         dim = 2
@@ -895,7 +895,7 @@ class TestBackends(tests.conftest.TestCase):
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
         thetas = points[:, 0]
         phis = points[:, 1]
-        hessian_1ij = gs.autodiff.hessian(_sphere_immersion_1)(points)
+        hessian_1ij = gs.autodiff.hessian_vec(_sphere_immersion_1)(points)
 
         expected_1ij = gs.stack(
             [

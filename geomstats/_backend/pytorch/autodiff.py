@@ -83,6 +83,27 @@ def custom_gradient(*grad_funcs):
 def jacobian(func):
     """Return a function that returns the jacobian of func.
 
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian is computed.
+
+    Returns
+    -------
+    _ : callable
+        Function taking point as input and returning
+        the jacobian of func at point.
+    """
+
+    def _jacobian(point):
+        return _torch_jacobian(func=lambda x: func(x), inputs=point)
+
+    return _jacobian
+
+
+def jacobian_vec(func):
+    """Return a function that returns the jacobian of func.
+
     We note that the jacobian function of torch is not vectorized
     by default, thus we modify its behavior here.
 
@@ -127,6 +148,27 @@ def jacobian(func):
 
 
 def hessian(func):
+    """Return a function that returns the hessian of func.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose Hessian is computed.
+
+    Returns
+    -------
+    _ : callable
+        Function taking point as input and returning
+        the hessian of func at point.
+    """
+
+    def _hessian(point):
+        return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
+
+    return _hessian
+
+
+def hessian_vec(func):
     """Return a function that returns the hessian of func.
 
     We modify the default behavior of the hessian function of torch
