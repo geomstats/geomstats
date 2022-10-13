@@ -21,13 +21,28 @@ def _sphere_immersion(point):
     return gs.array([radius * x, radius * y, radius * z])
 
 
-def _sphere_immersion_1(point):
-    """First component of the sphere immersion function."""
+def _first_component_of_sphere_immersion(point):
+    """First component of the sphere immersion function.
+
+    This returns a vector of dim 1.
+    """
     radius = 4.0
     theta = point[0]
     phi = point[1]
     x = gs.sin(theta) * gs.cos(phi)
     return gs.array([radius * x])
+
+
+def _first_component_of_sphere_immersion_scalar(point):
+    """First component of the sphere immersion function.
+
+    This returns a scalar.
+    """
+    radius = 4.0
+    theta = point[0]
+    phi = point[1]
+    x = gs.sin(theta) * gs.cos(phi)
+    return radius * x
 
 
 class TestAutodiff(tests.conftest.TestCase):
@@ -488,7 +503,7 @@ class TestAutodiff(tests.conftest.TestCase):
         point = gs.array([gs.pi / 3, gs.pi])
         theta = point[0]
         phi = point[1]
-        hessian_1ij = gs.autodiff.hessian(_sphere_immersion_1)(point)
+        hessian_1ij = gs.autodiff.hessian(_first_component_of_sphere_immersion)(point)
 
         expected_1ij = radius * gs.array(
             [
@@ -510,7 +525,9 @@ class TestAutodiff(tests.conftest.TestCase):
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
         thetas = points[:, 0]
         phis = points[:, 1]
-        hessian_1ij = gs.autodiff.hessian_vec(_sphere_immersion_1)(points)
+        hessian_1ij = gs.autodiff.hessian_vec(_first_component_of_sphere_immersion)(
+            points
+        )
 
         expected_1ij = gs.stack(
             [

@@ -158,8 +158,6 @@ class PullbackMetric(RiemannianMetric):
             self._hessian_immersion = self._hessian_immersion_func()
 
         hessian_values = [hes(base_point) for hes in self._hessian_immersion]
-        print("ha")
-        print(hessian_values)
         return gs.stack(hessian_values, axis=0)
 
     def inner_product_derivative_matrix(self, base_point=None):
@@ -192,8 +190,6 @@ class PullbackMetric(RiemannianMetric):
                 jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
 
             hessian_aij = self.hessian_immersion(point)
-            print("hello")
-            print(hessian_aij.shape)
             if self.dim == 1 and hessian_aij.ndim > 3:
                 hessian_aij = gs.squeeze(hessian_aij, axis=-1)
 
