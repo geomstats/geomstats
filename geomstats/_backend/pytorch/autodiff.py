@@ -83,6 +83,23 @@ def custom_gradient(*grad_funcs):
 def jacobian(func):
     """Return a function that returns the jacobian of func.
 
+    We note that the jacobian function of torch is not vectorized
+    by default, thus we modify its behavior here.
+
+    Default pytorch behavior:
+
+    If the jacobian for one point of shape (2,) is of shape (3, 2),
+    then calling the jacobian on 4 points with shape (4, 2) will
+    be of shape (3, 2, 4, 2).
+
+    Modified behavior:
+
+    Calling the jacobian on 4 points gives a tensor of shape (4, 3, 2).
+
+    We use a for-loop to allow this function to be vectorized with
+    respect to several inputs in point, because the flag vectorize=True
+    fails.
+
     Parameters
     ----------
     func : callable

@@ -142,8 +142,23 @@ def jacobian(func):
         the jacobian of func at x.
     """
 
-    def jac(x):
+    def _jac(x):
         """Return the jacobian of func at x.
+
+        Here, x is a single point of ndim 1.
+
+        We note that the jacobian function of torch is not vectorized
+        by default, thus we modify its behavior here.
+
+        Default tensorflow behavior:
+
+        If the jacobian for one point of shape (2,) is of shape (3, 2),
+        then calling the jacobian on 4 points with shape (4, 2) will
+        be of shape (3, 2, 4, 2).
+
+        Modified behavior:
+
+        Calling the jacobian on 4 points gives a tensor of shape (4, 3, 2).
 
         Parameters
         ----------
@@ -161,6 +176,25 @@ def jacobian(func):
             g.watch(x)
             y = func(x)
         return g.jacobian(y, x)
+
+    def jac(x):
+        """Return the jacobian of func at x.
+
+        Here, x can be a batch of points.
+
+        Parameters
+        ----------
+        x : array-like
+            Input to function func or its jacobian.
+
+        Returns
+        -------
+        _ : array-like
+            Value of the jacobian of func at x.
+        """
+        if x.ndim == 1:
+            return _jac(x)
+        return _tf.vectorized_map(_jac, x)
 
     return jac
 

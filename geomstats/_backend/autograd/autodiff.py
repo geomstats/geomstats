@@ -2,7 +2,8 @@
 
 import autograd as _autograd
 import autograd.numpy as _np
-from autograd import hessian, jacobian
+from autograd import hessian
+from autograd import jacobian as _jacobian
 from autograd import value_and_grad as _value_and_grad
 from autograd.extend import defvjp as _defvjp
 from autograd.extend import primitive as _primitive
@@ -158,6 +159,47 @@ def _value_and_jacobian(fun, x):
     return ans, _np.reshape(_np.stack(grads), jacobian_shape)
 
 
+def jacobian(func):
+    """Wrap autograd jacobian function.
+
+    We note that the jacobian function of autograd is not vectorized
+    by default, thus we modify its behavior here.
+
+    Default autograd behavior:
+
+    If the jacobian for one point of shape (2,) is of shape (3, 2),
+    then calling the jacobian on 4 points with shape (4, 2) will
+    be of shape (3, 2, 4, 2).
+
+    Modified behavior:
+
+    Calling the jacobian on 4 points gives a tensor of shape (4, 3, 2).
+
+    We use a for-loop to allow this function to be vectorized with
+    respect to several inputs in point, because the flag vectorize=True
+    fails.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian values
+        will be computed.
+
+    Returns
+    -------
+    func_with_jacobian : callable
+        Function that returns func's jacobian
+        values at its inputs args.
+    """
+
+    def _jac(x):
+        if x.ndim == 1:
+            return _jacobian(func)(x)
+        return _np.stack([_jacobian(func)(one_x) for one_x in x])
+
+    return _jac
+
+
 def jacobian_and_hessian(func):
     """Wrap autograd jacobian and hessian functions.
 
@@ -173,4 +215,4 @@ def jacobian_and_hessian(func):
         Function that returns func's jacobian and
         func's hessian values at its inputs args.
     """
-    return _value_and_jacobian(jacobian(func))
+    return _value_and_jacobian(_jacobian(func))
