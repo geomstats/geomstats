@@ -45,6 +45,24 @@ def _first_component_of_sphere_immersion_scalar(point):
     return radius * x
 
 
+def _sphere_immersion_at_phi0_from_scalar_input(theta):
+    """Immersion of a one-dim input."""
+    radius = 4.0
+    x = gs.sin(theta)
+    y = 0
+    z = gs.cos(theta)
+    return gs.array([radius * x, radius * y, radius * z])
+
+
+def _sphere_immersion_at_phi0_from_one_dim_input(theta):
+    """Immersion of a one-dim input."""
+    radius = 4.0
+    x = gs.sin(theta[0])
+    y = 0
+    z = gs.cos(theta[0])
+    return gs.array([radius * x, radius * y, radius * z])
+
+
 class TestAutodiff(tests.conftest.TestCase):
     def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
@@ -439,6 +457,91 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(jacobian_ai, expected_ai)
 
     @tests.conftest.autograd_tf_and_torch_only
+    def test_jacobian_of_scalar_function(self):
+        """Test that jacobians are consistent across backends.
+
+        The jacobian of a function f going from an input space A to an output
+        space B is a matrix of shape (dim_B, dim_A).
+        - The columns index the derivatives wrt. the coordinates of the input space A.
+        - The rows index the coordinates of the output space B.
+        """
+        radius = 4.0
+        dim = 2
+
+        point = gs.array([gs.pi / 3, gs.pi])
+        theta = point[0]
+        phi = point[1]
+        jacobian_1i = gs.autodiff.jacobian(_first_component_of_sphere_immersion)(point)
+
+        expected_1i = gs.array(
+            [
+                [
+                    radius * gs.cos(theta) * gs.cos(phi),
+                    -radius * gs.sin(theta) * gs.sin(phi),
+                ]
+            ]
+        )
+
+        self.assertAllClose(jacobian_1i.shape, (1, dim))
+        self.assertAllClose(jacobian_1i, expected_1i)
+
+        jacobian_1i = gs.autodiff.jacobian(_first_component_of_sphere_immersion_scalar)(
+            point
+        )
+
+        expected_1i = gs.array(
+            [
+                radius * gs.cos(theta) * gs.cos(phi),
+                -radius * gs.sin(theta) * gs.sin(phi),
+            ]
+        )
+
+        self.assertAllClose(jacobian_1i.shape, (dim,))
+        self.assertAllClose(jacobian_1i, expected_1i)
+
+    @tests.conftest.autograd_tf_and_torch_only
+    def test_jacobian_of_scalar_input(self):
+        radius = 4.0
+        embedding_dim = 3
+
+        point = gs.array(gs.pi / 3)
+        jacobian_1i = gs.autodiff.jacobian(_sphere_immersion_at_phi0_from_scalar_input)(
+            point
+        )
+
+        expected = gs.array(
+            [
+                radius * gs.cos(point),
+                0,
+                -radius * gs.sin(point),
+            ]
+        )
+
+        self.assertAllClose(jacobian_1i.shape, (embedding_dim,))
+        self.assertAllClose(jacobian_1i, expected)
+
+    @tests.conftest.autograd_tf_and_torch_only
+    def test_jacobian_of_one_dim_input(self):
+        radius = 4.0
+        embedding_dim = 3
+
+        point = gs.array([gs.pi / 3])
+        jacobian_1i = gs.autodiff.jacobian(
+            _sphere_immersion_at_phi0_from_one_dim_input
+        )(point)
+
+        expected = gs.array(
+            [
+                [radius * gs.cos(point[0])],
+                [0],
+                [-radius * gs.sin(point[0])],
+            ]
+        )
+
+        self.assertAllClose(jacobian_1i.shape, (embedding_dim, 1))
+        self.assertAllClose(jacobian_1i, expected)
+
+    @tests.conftest.autograd_tf_and_torch_only
     def test_jacobian_vec(self):
         """Test that jacobian_vec is correctly vectorized.
 
@@ -494,6 +597,123 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(jacobian_ai.shape, (len(points), embedding_dim, dim))
         self.assertAllClose(jacobian_ai.shape, expected_ai.shape)
         self.assertAllClose(jacobian_ai, expected_ai)
+
+    @tests.conftest.autograd_tf_and_torch_only
+    def test_jacobian_vec_of_scalar_function(self):
+        """Test that jacobian_vec is correctly vectorized.
+
+        The autodiff jacobian is not vectorized by default in torch, tf and autograd.
+
+        The jacobian of a function f going from an input space A to an output
+        space B is a matrix of shape (dim_B, dim_A).
+        - The columns index the derivatives wrt. the coordinates of the input space A.
+        - The rows index the coordinates of the output space B.
+        """
+        radius = 4.0
+        dim = 2
+
+        points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 5, gs.pi / 2]])
+        thetas = points[:, 0]
+        phis = points[:, 1]
+        jacobian_1i = gs.autodiff.jacobian_vec(_first_component_of_sphere_immersion)(
+            points
+        )
+
+        expected_1i = gs.stack(
+            [
+                gs.array(
+                    [
+                        [
+                            radius * gs.cos(theta) * gs.cos(phi),
+                            -radius * gs.sin(theta) * gs.sin(phi),
+                        ]
+                    ]
+                )
+                for theta, phi in zip(thetas, phis)
+            ]
+        )
+
+        self.assertAllClose(jacobian_1i.shape, (len(points), 1, dim))
+        self.assertAllClose(jacobian_1i.shape, expected_1i.shape)
+        self.assertAllClose(jacobian_1i, expected_1i)
+
+        jacobian_1i = gs.autodiff.jacobian_vec(
+            _first_component_of_sphere_immersion_scalar
+        )(points)
+
+        expected_1i = gs.stack(
+            [
+                gs.array(
+                    [
+                        radius * gs.cos(theta) * gs.cos(phi),
+                        -radius * gs.sin(theta) * gs.sin(phi),
+                    ]
+                )
+                for theta, phi in zip(thetas, phis)
+            ]
+        )
+
+        self.assertAllClose(jacobian_1i.shape, (len(points), dim))
+        self.assertAllClose(jacobian_1i.shape, expected_1i.shape)
+        self.assertAllClose(jacobian_1i, expected_1i)
+
+    @tests.conftest.autograd_tf_and_torch_only
+    def test_jacobian_vec_of_scalar_input(self):
+        radius = 4.0
+        embedding_dim = 3
+
+        point = gs.array([gs.pi / 3, gs.pi / 6])
+        jacobian_1i = gs.autodiff.jacobian(_sphere_immersion_at_phi0_from_scalar_input)(
+            point
+        )
+
+        expected = gs.array(
+            [
+                radius * gs.cos(point[0]),
+                0,
+                -radius * gs.sin(point[0]),
+            ],
+            [
+                radius * gs.cos(point[1]),
+                0,
+                -radius * gs.sin(point[1]),
+            ],
+        )
+
+        self.assertAllClose(
+            jacobian_1i.shape,
+            (
+                len(point),
+                embedding_dim,
+            ),
+        )
+        self.assertAllClose(jacobian_1i, expected)
+
+    @tests.conftest.autograd_tf_and_torch_only
+    def test_jacobian_vec_of_one_dim_input(self):
+        radius = 4.0
+        embedding_dim = 3
+
+        point = gs.array([[gs.pi / 3], [gs.pi / 6]])
+        jacobian_1i = gs.autodiff.jacobian(
+            _sphere_immersion_at_phi0_from_one_dim_input
+        )(point)
+
+        expected = gs.array(
+            [
+                [radius * gs.cos(point[0, 0])],
+                [0],
+                [-radius * gs.sin(point[0, 0])],
+            ],
+            [
+                [radius * gs.cos(point[1, 0])],
+                [0],
+                [-radius * gs.sin(point[1, 0])],
+            ],
+        )
+
+        self.assertAllClose(jacobian_1i.shape, (len(point), embedding_dim, 1))
+        self.assertAllClose(jacobian_1i, expected)
 
     @tests.conftest.autograd_tf_and_torch_only
     def test_hessian(self):
