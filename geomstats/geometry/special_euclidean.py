@@ -43,7 +43,7 @@ def _squared_dist_grad_point_a(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -67,7 +67,7 @@ def _squared_dist_grad_point_b(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -89,7 +89,7 @@ def _squared_dist(point_a, point_b, metric):
     This is an auxiliary private function that:
 
     - is called by the method `squared_dist` of the class
-      SpecialEuclideanMatrixCannonicalLeftMetric,
+      SpecialEuclideanMatrixCanonicalLeftMetric,
     - has been created to support the implementation
       of custom_gradient in tensorflow backend.
 
@@ -99,7 +99,7 @@ def _squared_dist(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -236,7 +236,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         self.translations = Euclidean(dim=n)
         self.n = n
 
-        self.left_canonical_metric = SpecialEuclideanMatrixCannonicalLeftMetric(
+        self.left_canonical_metric = SpecialEuclideanMatrixCanonicalLeftMetric(
             group=self
         )
         if self._metric is None:
@@ -1021,7 +1021,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         return transform
 
 
-class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
+class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
     """Class for the canonical left-invariant metric on SE(n).
 
     The canonical left-invariant metric is defined by endowing the tangent
@@ -1211,7 +1211,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         This is an auxiliary private function that:
 
         - is called by the method `squared_dist` of the class
-          SpecialEuclideanMatrixCannonicalLeftMetric,
+          SpecialEuclideanMatrixCanonicalLeftMetric,
         - has been created to support the implementation
           of custom_gradient in tensorflow backend.
 
