@@ -56,13 +56,6 @@ class FullRankCorrelationMatrices(LevelSet):
         """
         return point * gs.outer(diagonal_vec, diagonal_vec)
 
-    @property
-    def metric(self):
-        """Riemannian Metric associated to the Manifold."""
-        if self._metric is None:
-            self._metric = FullRankCorrelationAffineQuotientMetric(self.n)
-        return self._metric
-
     @classmethod
     def from_covariance(cls, point):
         r"""Compute the correlation matrix associated to an SPD matrix.
