@@ -59,7 +59,8 @@ class PoincareHalfSpaceTestData(_OpenSetTestData):
 
 class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
     dim_list = random.sample(range(2, 5), 2)
-    metric_args_list = [(dim,) for dim in dim_list]
+    scale_list = [1, 2]
+    metric_args_list = list(zip(dim_list, scale_list))  # [(dim,) for dim in dim_list]
     shape_list = [(dim,) for dim in dim_list]
     space_list = [PoincareHalfSpace(dim) for dim in dim_list]
     n_points_list = random.sample(range(1, 5), 2)
@@ -76,10 +77,11 @@ class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 dim=2,
+                scale=[1, 2],
                 tangent_vec_a=[[1.0, 2.0], [3.0, 4.0]],
                 tangent_vec_b=[[1.0, 2.0], [3.0, 4.0]],
                 base_point=[[0.0, 1.0], [0.0, 5.0]],
-                expected=[5.0, 1.0],
+                expected=[5.0, 2.0],
             )
         ]
         return self.generate_tests(smoke_data)
