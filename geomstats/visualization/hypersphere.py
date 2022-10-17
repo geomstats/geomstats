@@ -16,7 +16,7 @@ class Circle:
     """Class used to draw a circle."""
 
     def __init__(self, n_angles=100, points=None):
-        angles = gs.linspace(0, 2 * gs.pi, n_angles)
+        angles = gs.linspace(0, 2 * gs.pi, n_angles+1)
         self.circle_x = gs.cos(angles)
         self.circle_y = gs.sin(angles)
         self.points = []
@@ -76,11 +76,11 @@ class Sphere:
 
     def __init__(self, n_meridians=40, n_circles_latitude=None, points=None):
         if n_circles_latitude is None:
-            n_circles_latitude = max(n_meridians / 2, 4)
+            n_circles_latitude = max(n_meridians // 2, 4)
 
         u, v = gs.meshgrid(
-            gs.arange(0, 2 * gs.pi, 2 * gs.pi / n_meridians),
-            gs.arange(0, gs.pi, gs.pi / n_circles_latitude),
+            gs.linspace(0, 2 * gs.pi, n_meridians+1),
+            gs.linspace(0, gs.pi, n_circles_latitude+1),
         )
 
         self.center = gs.zeros(3)
