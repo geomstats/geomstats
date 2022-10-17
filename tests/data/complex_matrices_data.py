@@ -40,12 +40,21 @@ MAT14_33 = gs.array([[4, 0, 0.5j], [0, 3, 0], [-1j, 0, 4]], dtype=CDTYPE)
 class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
     m_list = random.sample(range(3, 5), 2)
     n_list = random.sample(range(3, 5), 2)
-    space_args_list = list(zip(m_list, n_list))
+    metric_args_list = list(zip(m_list, n_list))
+    space_args_list = metric_args_list
     shape_list = space_args_list
-    n_points_list = random.sample(range(2, 5), 2)
+    space_list = [ComplexMatrices(m, n) for m, n in metric_args_list]
+    n_points_list = random.sample(range(1, 7), 2)
+    n_tangent_vecs_list = random.sample(range(1, 7), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
+    n_points_a_list = random.sample(range(1, 7), 2)
+    n_points_b_list = [1]
+    alpha_list = [1] * 2
+    n_rungs_list = [1] * 2
+    scheme_list = ["pole"] * 2
 
     Space = ComplexMatrices
+    Metric = ComplexMatricesMetric
 
     def belongs_test_data(self):
         sq_mat = EYE_2
