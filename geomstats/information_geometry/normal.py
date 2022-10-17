@@ -202,6 +202,27 @@ class NormalMetric(PullbackDiffeoMetric):
         """
         return self.diffeomorphism(tangent_vec)
 
+    def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
+        r"""Inverse image of tangent vector.
+
+        This is the inverse image by the tangent map of the diffeomorphism
+        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., 2]
+            Image of a tangent vector at image_point.
+
+        image_point : array-like, shape=[..., 2]
+            Image of a point representing a normal distribution.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 2]
+            Inverse image of image_tangent_vec.
+        """
+        return self.inverse_diffeomorphism(image_tangent_vec)
+
     @staticmethod
     def metric_matrix(base_point=None):
         """Compute the metric matrix at the tangent space at base_point.
