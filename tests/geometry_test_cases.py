@@ -1326,6 +1326,33 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         self.assertAllClose(result, expected)
 
 
+class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
+    def test_inner_product_is_hermitian(
+        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+    ):
+        """Check that the inner product is Hermitian.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        tangent_vec_a : array-like
+            Tangent vector to the manifold at base_point.
+        tangent_vec_b : array-like
+            Tangent vector to the manifold at base_point.
+        base_point : array-like
+            Point on manifold.
+        rtol : float
+            Relative tolerance to test this property.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.Metric(*metric_args)
+        ip_a_b = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        ip_b_a = metric.inner_product(tangent_vec_b, tangent_vec_a, base_point)
+        self.assertAllClose(ip_a_b, gs.conj(ip_b_a), rtol, atol)
+
+
 class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
     def test_innerproduct_is_sum_of_innerproducts(
         self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol

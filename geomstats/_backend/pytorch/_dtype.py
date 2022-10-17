@@ -7,6 +7,7 @@ from geomstats._backend import _backend_config as _config
 from geomstats._backend._dtype_utils import (
     _MAP_FLOAT_TO_COMPLEX,
     _pre_add_default_dtype_by_casting,
+    get_default_cdtype,
     get_default_dtype,
 )
 
@@ -34,7 +35,7 @@ def set_default_dtype(value):
         Possible values are "float32" as "float64".
     """
     _config.DEFAULT_DTYPE = as_dtype(value)
-    _config.DEFAULT_COMPLEX_DTYPE = _MAP_FLOAT_TO_COMPLEX.get(value)
+    _config.DEFAULT_COMPLEX_DTYPE = as_dtype(_MAP_FLOAT_TO_COMPLEX.get(value))
     _torch.set_default_dtype(_config.DEFAULT_DTYPE)
 
     return _config.DEFAULT_DTYPE
