@@ -1,16 +1,17 @@
-"""Module exposing the `Matrices` and `MatricesMetric` class."""
-import logging
-from functools import reduce
+"""Module exposing the `ComplexMatrices` class.
+
+Lead author: Yann Cabanes.
+"""
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
-from geomstats.geometry.base import VectorSpace
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.base import ComplexVectorSpace
+from geomstats.geometry.hermitian import HermitianMetric
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
-class Matrices(VectorSpace):
-    """Class for the space of matrices (m, n).
+class ComplexMatrices(ComplexVectorSpace):
+    """Class for the space of complex matrices (m, n).
 
     Parameters
     ----------
@@ -21,15 +22,18 @@ class Matrices(VectorSpace):
     def __init__(self, m, n, **kwargs):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
-        kwargs.setdefault("metric", MatricesMetric(m, n))
-        super().__init__(shape=(m, n), **kwargs)
+        kwargs.setdefault("metric", ComplexMatricesMetric(m, n))
+        kwargs.setdefault("default_point_type", "matrix")
+        super(ComplexMatrices, self).__init__(shape=(m, n), **kwargs)
         self.m = m
         self.n = n
 
     def _create_basis(self):
         """Create the canonical basis."""
+        cdtype = gs.get_default_cdtype()
         m, n = self.m, self.n
-        return gs.reshape(gs.eye(n * m), (n * m, m, n))
+        basis = gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
+        return basis
 
     def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
@@ -46,12 +50,9 @@ class Matrices(VectorSpace):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Matrices space.
         """
-        ndim = point.ndim
-        if ndim == 1:
-            return False
-        mat_dim_1, mat_dim_2 = point.shape[-2:]
-        belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
-        return belongs if ndim == 2 else gs.tile(gs.array([belongs]), [point.shape[0]])
+        is_matrix = super().belongs(point, atol=atol)
+        belongs = gs.logical_and(is_matrix, gs.is_complex(point))
+        return belongs
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -72,7 +73,7 @@ class Matrices(VectorSpace):
         eq : array-like, shape=[...,]
             Boolean evaluating if the matrices are close.
         """
-        return gs.all(gs.isclose(mat_a, mat_b, atol=atol), (-2, -1))
+        return Matrices.equal(mat_a, mat_b, atol=atol)
 
     @staticmethod
     def mul(*args):
@@ -93,7 +94,7 @@ class Matrices(VectorSpace):
         mul : array-like, shape=[..., dim_1, dim_n]
             Result of the product of matrices.
         """
-        return reduce(gs.matmul, args)
+        return Matrices.mul(*args)
 
     @classmethod
     def bracket(cls, mat_a, mat_b):
@@ -111,7 +112,7 @@ class Matrices(VectorSpace):
         mat_c : array-like, shape=[..., n, n]
             Commutator.
         """
-        return cls.mul(mat_a, mat_b) - cls.mul(mat_b, mat_a)
+        return Matrices.bracket(mat_a, mat_b)
 
     @staticmethod
     def transpose(mat):
@@ -127,9 +128,25 @@ class Matrices(VectorSpace):
         transpose : array-like, shape=[..., n, n]
             Transposed matrix.
         """
-        is_vectorized = gs.ndim(mat) == 3
+        return Matrices.transpose(mat)
+
+    @staticmethod
+    def transconjugate(mat):
+        """Return the transconjugate of matrices.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        transconjugate : array-like, shape=[..., n, n]
+            Transconjugated matrix.
+        """
+        is_vectorized = gs.ndim(gs.array(mat)) == 3
         axes = (0, 2, 1) if is_vectorized else (1, 0)
-        return gs.transpose(mat, axes)
+        return gs.transpose(gs.conj(mat), axes)
 
     @staticmethod
     def diagonal(mat):
@@ -145,7 +162,7 @@ class Matrices(VectorSpace):
         diagonal : array-like, shape=[..., min(m, n)]
             Vector of diagonal coefficients.
         """
-        return gs.diagonal(mat, axis1=-2, axis2=-1)
+        return Matrices.diagonal(mat)
 
     @staticmethod
     def is_square(mat):
@@ -161,9 +178,7 @@ class Matrices(VectorSpace):
         is_square : array-like, shape=[...,]
             Boolean evaluating if the matrix is square.
         """
-        n = mat.shape[-1]
-        m = mat.shape[-2]
-        return m == n
+        return Matrices.is_square(mat)
 
     @classmethod
     def is_diagonal(cls, mat, atol=gs.atol):
@@ -182,12 +197,7 @@ class Matrices(VectorSpace):
         is_diagonal : array-like, shape=[...,]
             Boolean evaluating if the matrix is square and diagonal.
         """
-        is_square = cls.is_square(mat)
-        if not gs.all(is_square):
-            return False
-        diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
-        is_diagonal = gs.all(gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
-        return is_diagonal
+        return Matrices.is_diagonal(mat, atol=atol)
 
     @classmethod
     def is_lower_triangular(cls, mat, atol=gs.atol):
@@ -206,11 +216,7 @@ class Matrices(VectorSpace):
         is_tril : array-like, shape=[...,]
             Boolean evaluating if the matrix is lower triangular
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
-        return cls.equal(mat, gs.tril(mat), atol)
+        return Matrices.is_lower_triangular(mat, atol=atol)
 
     @classmethod
     def is_upper_triangular(cls, mat, atol=gs.atol):
@@ -229,11 +235,7 @@ class Matrices(VectorSpace):
         is_triu : array-like, shape=[...,]
             Boolean evaluating if the matrix is upper triangular.
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
-        return cls.equal(mat, gs.triu(mat), atol)
+        return Matrices.is_upper_triangular(mat, atol=atol)
 
     @classmethod
     def is_strictly_lower_triangular(cls, mat, atol=gs.atol):
@@ -252,11 +254,7 @@ class Matrices(VectorSpace):
         is_strictly_tril : array-like, shape=[...,]
             Boolean evaluating if the matrix is strictly lower triangular
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(mat) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
-        return cls.equal(mat, gs.tril(mat, k=-1), atol)
+        return Matrices.is_strictly_lower_triangular(mat, atol=atol)
 
     @classmethod
     def is_strictly_upper_triangular(cls, mat, atol=gs.atol):
@@ -275,11 +273,7 @@ class Matrices(VectorSpace):
         is_strictly_triu : array-like, shape=[...,]
             Boolean evaluating if the matrix is strictly upper triangular
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
-        return cls.equal(mat, gs.triu(mat, k=1))
+        return Matrices.is_strictly_upper_triangular(mat, atol=atol)
 
     @classmethod
     def is_symmetric(cls, mat, atol=gs.atol):
@@ -298,15 +292,37 @@ class Matrices(VectorSpace):
         is_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric.
         """
+        return Matrices.is_symmetric(mat, atol=atol)
+
+    @classmethod
+    def is_hermitian(cls, mat, atol=gs.atol):
+        """Check if a matrix is Hermitian.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_herm : array-like, shape=[...,]
+            Boolean evaluating if the matrix is symmetric.
+        """
         is_square = cls.is_square(mat)
         if not is_square:
             is_vectorized = gs.ndim(gs.array(mat)) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
-        return cls.equal(mat, cls.transpose(mat), atol)
+        return cls.equal(mat, cls.transconjugate(mat), atol)
 
     @classmethod
     def is_pd(cls, mat):
         """Check if a matrix is positive definite.
+
+        If the input matrix is complex,
+        also check if the matrix is Hermitian.
 
         Parameters
         ----------
@@ -318,9 +334,7 @@ class Matrices(VectorSpace):
         is_pd : array-like, shape=[...,]
             Boolean evaluating if the matrix is positive definite.
         """
-        if mat.ndim == 2:
-            return gs.array(gs.linalg.is_single_matrix_pd(mat))
-        return gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
+        return Matrices.is_pd(mat)
 
     @classmethod
     def is_spd(cls, mat, atol=gs.atol):
@@ -339,12 +353,31 @@ class Matrices(VectorSpace):
         is_spd : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric positive definite.
         """
-        is_spd = gs.logical_and(cls.is_symmetric(mat, atol), cls.is_pd(mat))
-        return is_spd
+        return Matrices.is_spd(mat, atol=atol)
+
+    @classmethod
+    def is_hpd(cls, mat, atol=gs.atol):
+        """Check if a matrix is Hermitian positive definite.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_hpd : array-like, shape=[...,]
+            Boolean evaluating if the matrix is Hermitian positive definite.
+        """
+        is_hpd = gs.logical_and(cls.is_hermitian(mat, atol), cls.is_pd(mat))
+        return is_hpd
 
     @classmethod
     def is_skew_symmetric(cls, mat, atol=gs.atol):
-        """Check if a matrix is skew symmetric.
+        """Check if a matrix is skew-symmetric.
 
         Parameters
         ----------
@@ -359,11 +392,30 @@ class Matrices(VectorSpace):
         is_skew_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is skew-symmetric.
         """
+        return Matrices.is_skew_symmetric(mat, atol=atol)
+
+    @classmethod
+    def is_skew_hermitian(cls, mat, atol=gs.atol):
+        """Check if a matrix is skew-Hermitian.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_skew_herm : array-like, shape=[...,]
+            Boolean evaluating if the matrix is skew-Hermitian.
+        """
         is_square = cls.is_square(mat)
         if not is_square:
             is_vectorized = gs.ndim(gs.array(mat)) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
-        return cls.equal(mat, -cls.transpose(mat), atol)
+        return cls.equal(mat, -cls.transconjugate(mat), atol)
 
     @classmethod
     def to_diagonal(cls, mat):
@@ -381,7 +433,7 @@ class Matrices(VectorSpace):
         -------
         diag : array-like, shape=[..., n, n]
         """
-        return cls.to_upper_triangular(cls.to_lower_triangular(mat))
+        return Matrices.to_diagonal(mat)
 
     @classmethod
     def to_lower_triangular(cls, mat):
@@ -400,7 +452,7 @@ class Matrices(VectorSpace):
         tril : array-like, shape=[..., n, n]
             Lower  triangular matrix.
         """
-        return gs.tril(mat)
+        return Matrices.to_lower_triangular(mat)
 
     @classmethod
     def to_upper_triangular(cls, mat):
@@ -418,7 +470,7 @@ class Matrices(VectorSpace):
         -------
         triu : array-like, shape=[..., n, n]
         """
-        return gs.triu(mat)
+        return Matrices.to_upper_triangular(mat)
 
     @classmethod
     def to_strictly_lower_triangular(cls, mat):
@@ -437,7 +489,7 @@ class Matrices(VectorSpace):
         tril : array-like, shape=[..., n, n]
             Lower  triangular matrix.
         """
-        return gs.tril(mat, k=-1)
+        return Matrices.to_strictly_lower_triangular(mat)
 
     @classmethod
     def to_strictly_upper_triangular(cls, mat):
@@ -455,7 +507,7 @@ class Matrices(VectorSpace):
         -------
         triu : array-like, shape=[..., n, n]
         """
-        return gs.triu(mat, k=1)
+        return Matrices.to_strictly_upper_triangular(mat)
 
     @classmethod
     def to_symmetric(cls, mat):
@@ -474,7 +526,26 @@ class Matrices(VectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return 1 / 2 * (mat + cls.transpose(mat))
+        return Matrices.to_symmetric(mat)
+
+    @classmethod
+    def to_hermitian(cls, mat):
+        """Make a matrix Hermitian.
+
+        Make a matrix Hermitian by averaging it
+        with its transconjugate.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        herm : array-like, shape=[..., n, n]
+            Hermitian matrix.
+        """
+        return 1 / 2 * (mat + cls.transconjugate(mat))
 
     @classmethod
     def to_skew_symmetric(cls, mat):
@@ -493,7 +564,26 @@ class Matrices(VectorSpace):
         skew_sym : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        return 1 / 2 * (mat - cls.transpose(mat))
+        return Matrices.to_skew_symmetric(mat)
+
+    @classmethod
+    def to_skew_hermitian(cls, mat):
+        """Make a matrix skew-Hermitian.
+
+        Make matrix skew-Hermitian by averaging it
+        with minus its transconjugate.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        skew_sym : array-like, shape=[..., n, n]
+            Skew-Hermitian matrix.
+        """
+        return 1 / 2 * (mat - cls.transconjugate(mat))
 
     @classmethod
     def to_lower_triangular_diagonal_scaled(cls, mat, K=2.0):
@@ -512,12 +602,10 @@ class Matrices(VectorSpace):
         tril : array-like, shape=[..., n, n]
             Lower  triangular matrix.
         """
-        slt = cls.to_strictly_lower_triangular(mat)
-        diag = cls.to_diagonal(mat) / K
-        return slt + diag
+        return Matrices.to_lower_triangular_diagonal_scaled(mat, K=K)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample from a uniform distribution in a cube.
+        """Sample from a uniform distribution in a complex cube.
 
         Parameters
         ----------
@@ -533,10 +621,50 @@ class Matrices(VectorSpace):
         point : array-like, shape=[..., m, n]
             Sample.
         """
+        cdtype = gs.get_default_cdtype()
+
         m, n = self.m, self.n
         size = (n_samples, m, n) if n_samples != 1 else (m, n)
-        point = bound * (gs.random.rand(*size) - 0.5)
+        point = gs.cast(bound * (gs.random.rand(*size) - 0.5), dtype=cdtype)
+        point += 1j * gs.cast(bound * (gs.random.rand(*size) - 0.5), dtype=cdtype)
         return point
+
+    def random_tangent_vec(self, base_point, n_samples=1):
+        """Generate random tangent vec.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        base_point :  array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vec at base point.
+        """
+        if (
+            n_samples > 1
+            and base_point.ndim > len(self.shape)
+            and n_samples != len(base_point)
+        ):
+            raise ValueError(
+                "The number of base points must be the same as the "
+                "number of samples, when different from 1."
+            )
+        cdtype = gs.get_default_cdtype()
+
+        tangent_vec = gs.cast(
+            gs.random.normal(size=(n_samples,) + self.shape),
+            dtype=cdtype,
+        )
+        tangent_vec += 1j * gs.cast(
+            gs.random.normal(size=(n_samples,) + self.shape),
+            dtype=cdtype,
+        )
+        return gs.squeeze(tangent_vec)
 
     @classmethod
     def congruent(cls, mat_1, mat_2):
@@ -556,7 +684,7 @@ class Matrices(VectorSpace):
         cong : array-like, shape=[..., n, n]
             Result of the congruent action.
         """
-        return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
+        return cls.mul(mat_2, mat_1, cls.transconjugate(mat_2))
 
     @staticmethod
     def frobenius_product(mat_1, mat_2):
@@ -577,7 +705,7 @@ class Matrices(VectorSpace):
         product : array-like, shape=[...,]
             Frobenius inner-product of mat_1 and mat_2
         """
-        return gs.einsum("...ij,...ij->...", mat_1, mat_2)
+        return gs.einsum("...ij,...ij->...", gs.conj(mat_1), mat_2)
 
     @staticmethod
     def trace_product(mat_1, mat_2):
@@ -598,7 +726,7 @@ class Matrices(VectorSpace):
         product : array-like, shape=[...,]
             Frobenius inner-product of mat_1 and mat_2
         """
-        return gs.einsum("...ij,...ji->...", mat_1, mat_2)
+        return Matrices.trace_product(mat_1, mat_2)
 
     def flatten(self, mat):
         """Return a flattened form of the matrix.
@@ -620,13 +748,7 @@ class Matrices(VectorSpace):
         vec : array-like, shape=[..., m * n]
             Flatten copy of mat.
         """
-        is_data_vectorized = gs.ndim(gs.array(mat)) == 3
-        shape = (
-            (mat.shape[0], self.m * self.n)
-            if is_data_vectorized
-            else (self.m * self.n,)
-        )
-        return gs.reshape(mat, shape)
+        return Matrices.flatten(self, mat)
 
     def reshape(self, vec):
         """Return a matricized form of the vector.
@@ -648,20 +770,7 @@ class Matrices(VectorSpace):
         mat : array-like, shape=[..., m, n]
             Matricized copy of vec.
         """
-        is_data_vectorized_on_axis_0 = gs.ndim(gs.array(vec)) == 2
-        if is_data_vectorized_on_axis_0:
-            vector_size = vec.shape[1]
-            shape = (vec.shape[0], self.m, self.n)
-        else:
-            vector_size = vec.shape[0]
-            shape = (
-                self.m,
-                self.n,
-            )
-
-        if vector_size != self.m * self.n:
-            raise ValueError("Incompatible vector and matrix sizes")
-        return gs.reshape(vec, shape)
+        return Matrices.reshape(self, vec)
 
     @classmethod
     def align_matrices(cls, point, base_point):
@@ -682,26 +791,11 @@ class Matrices(VectorSpace):
         aligned : array-like, shape=[..., m, n]
             R.point.
         """
-        mat = gs.matmul(cls.transpose(point), base_point)
-        left, singular_values, right = gs.linalg.svd(mat, full_matrices=False)
-        det = gs.linalg.det(mat)
-        conditioning = (
-            singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
-        ) / singular_values[..., 0]
-        if gs.any(conditioning < gs.atol):
-            logging.warning(
-                f"Singularity close, ill-conditioned matrix "
-                f"encountered: "
-                f"{conditioning[conditioning < 1e-10]}"
-            )
-        if gs.any(gs.isclose(conditioning, 0.0)):
-            logging.warning("Alignment matrix is not unique.")
-        flipped = flip_determinant(cls.transpose(right), det)
-        return Matrices.mul(point, left, cls.transpose(flipped))
+        return Matrices.align_matrices(point, base_point)
 
 
-class MatricesMetric(EuclideanMetric):
-    """Euclidean metric on matrices given by Frobenius inner-product.
+class ComplexMatricesMetric(HermitianMetric):
+    """Hermitian metric on complex matrices given by Frobenius inner-product.
 
     Parameters
     ----------
@@ -710,10 +804,10 @@ class MatricesMetric(EuclideanMetric):
     """
 
     def __init__(self, m, n, **kwargs):
-        dimension = m * n
-        super().__init__(dim=dimension, shape=(m, n))
+        super(ComplexMatricesMetric, self).__init__(dim=m * n, shape=(m, n))
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    @staticmethod
+    def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tangent vectors.
 
         Parameters
@@ -731,11 +825,34 @@ class MatricesMetric(EuclideanMetric):
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
-        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return ComplexMatrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        sq_norm = self.inner_product(vector, vector, base_point)
+        sq_norm = gs.real(sq_norm)
+        return sq_norm
 
     @staticmethod
     def norm(vector, base_point=None):
-        """Compute norm of a matrix.
+        """Compute norm of a complex matrix.
 
         Norm of a matrix associated to the Frobenius inner product.
 
@@ -752,4 +869,4 @@ class MatricesMetric(EuclideanMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        return gs.linalg.norm(vector, axis=(-2, -1))
+        return MatricesMetric.norm(vector, base_point=base_point)
