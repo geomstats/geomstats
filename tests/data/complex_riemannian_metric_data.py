@@ -22,6 +22,7 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
     complex_riem_metric.metric_matrix = _herm_metric_matrix
 
     metric_args_list = [(2,)]
+    connection_args_list = metric_args_list
     space_list = [herm]
     n_points_a_list = [2]
     n_points_b_list = [1]
