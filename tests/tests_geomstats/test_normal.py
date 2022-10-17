@@ -76,3 +76,15 @@ class TestNormalDistributions(tests.conftest.TestCase):
         expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
 
         self.assertAllClose(result, expected, atol=1e-8)
+
+    def test_normal_metric(self):
+        n_samples = 3
+        base_point = self.normal.random_point(n_samples)
+        vec_a = self.normal.random_tangent_vec(base_point, n_samples)
+        vec_b = self.normal.random_tangent_vec(base_point, n_samples)
+        mat_prod = gs.einsum(
+            "ik,ikj->ij", vec_a, self.normal.metric.metric_matrix(base_point)
+        )
+        result = gs.einsum("ij,ij->i", mat_prod, vec_b)
+        expected = self.normal.metric.inner_product(vec_a, vec_b, base_point)
+        self.assertAllClose(result, expected)
