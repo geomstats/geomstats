@@ -3,7 +3,10 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
-from tests.data_generation import _ComplexVectorSpaceTestData, _RiemannianMetricTestData
+from tests.data_generation import (
+    _ComplexRiemannianMetricTestData,
+    _ComplexVectorSpaceTestData,
+)
 
 CDTYPE = gs.get_default_cdtype()
 
@@ -685,7 +688,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
         return self.generate_tests(smoke_data)
 
 
-class ComplexMatricesMetricTestData(_RiemannianMetricTestData):
+class ComplexMatricesMetricTestData(_ComplexRiemannianMetricTestData):
     m_list = random.sample(range(3, 5), 2)
     n_list = random.sample(range(3, 5), 2)
     metric_args_list = list(zip(m_list, n_list))

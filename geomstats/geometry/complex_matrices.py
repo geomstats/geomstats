@@ -804,8 +804,7 @@ class ComplexMatricesMetric(HermitianMetric):
     """
 
     def __init__(self, m, n, **kwargs):
-        self.dim = m * n
-        super(ComplexMatricesMetric, self).__init__(dim=self.dim, shape=(m, n))
+        super(ComplexMatricesMetric, self).__init__(dim=m * n, shape=(m, n))
 
     @staticmethod
     def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):

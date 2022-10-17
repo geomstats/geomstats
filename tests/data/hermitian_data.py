@@ -3,7 +3,10 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.hermitian import Hermitian, HermitianMetric
-from tests.data_generation import _ComplexVectorSpaceTestData, _RiemannianMetricTestData
+from tests.data_generation import (
+    _ComplexRiemannianMetricTestData,
+    _ComplexVectorSpaceTestData,
+)
 
 SQRT_2 = math.sqrt(2)
 SQRT_5 = math.sqrt(5)
@@ -26,7 +29,7 @@ class HermitianTestData(_ComplexVectorSpaceTestData):
         return self.generate_tests(smoke_data)
 
 
-class HermitianMetricTestData(_RiemannianMetricTestData):
+class HermitianMetricTestData(_ComplexRiemannianMetricTestData):
     n_list = random.sample(range(2, 7), 5)
     metric_args_list = [(n,) for n in n_list]
     shape_list = metric_args_list

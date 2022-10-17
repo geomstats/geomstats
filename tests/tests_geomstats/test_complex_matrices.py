@@ -8,7 +8,10 @@ from tests.data.complex_matrices_data import (
     ComplexMatricesMetricTestData,
     ComplexMatricesTestData,
 )
-from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
+from tests.geometry_test_cases import (
+    ComplexRiemannianMetricTestCase,
+    VectorSpaceTestCase,
+)
 
 CDTYPE = gs.get_default_cdtype()
 
@@ -240,13 +243,16 @@ class TestComplexMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
 
-class TestComplexMatricesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestComplexMatricesMetric(
+    ComplexRiemannianMetricTestCase, metaclass=Parametrizer
+):
+
+    skip_test_inner_product_is_symmetric = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
 
     testing_data = ComplexMatricesMetricTestData()
-    Metric = testing_data.Metric
 
     def test_inner_product(self, m, n, tangent_vec_a, tangent_vec_b, expected):
         self.assertAllClose(

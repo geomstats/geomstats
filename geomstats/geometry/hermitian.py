@@ -98,7 +98,7 @@ class HermitianMetric(ComplexRiemannianMetric):
         inner_prod_mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        mat = gs.eye(self.dim)
+        mat = gs.eye(self.dim, dtype=CDTYPE)
         return mat
 
     @staticmethod

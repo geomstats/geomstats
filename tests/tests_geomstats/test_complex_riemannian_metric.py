@@ -3,12 +3,17 @@
 import tests.conftest
 from tests.conftest import Parametrizer
 from tests.data.complex_riemannian_metric_data import ComplexRiemannianMetricTestData
-from tests.tests_geomstats.test_riemannian_metric import TestRiemannianMetric
+from tests.geometry_test_cases import RiemannianMetricTestCase
 
 
-class TestComlexRiemannianMetric(TestRiemannianMetric, metaclass=Parametrizer):
+class TestComlexRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     skip_test_log = True
+    skip_test_inner_coproduct = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_ladder_parallel_transport = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_parallel_transport_ivp_is_isometry = True
 
     testing_data = ComplexRiemannianMetricTestData()
 

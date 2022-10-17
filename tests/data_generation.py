@@ -1111,6 +1111,37 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         return self.generate_tests([], random_data)
 
 
+class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
+    def inner_product_is_hermitian_test_data(self):
+        """Generate data to check that the inner product is Hermitian."""
+        random_data = []
+        for metric_args, space, shape, n_tangent_vecs in zip(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            base_point = space.random_point()
+            base_point_type = base_point.dtype
+            random_vec_a = generate_random_vec(
+                (n_tangent_vecs,) + shape, base_point_type
+            )
+            random_vec_b = generate_random_vec(
+                (n_tangent_vecs,) + shape, base_point_type
+            )
+            tangent_vec_a = space.to_tangent(random_vec_a)
+            tangent_vec_b = space.to_tangent(random_vec_b)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+
 class _InvariantMetricTestData(_RiemannianMetricTestData):
     def exp_at_identity_of_lie_algebra_belongs_test_data(self):
         random_data = []

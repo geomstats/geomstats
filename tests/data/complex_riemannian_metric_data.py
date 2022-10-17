@@ -1,7 +1,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian import Hermitian, HermitianMetric
-from tests.data.riemannian_metric_data import RiemannianMetricTestData
+from tests.data_generation import _RiemannianMetricTestData
 
 CDTYPE = gs.get_default_cdtype()
 
@@ -12,7 +12,7 @@ def _herm_metric_matrix(base_point):
     return gs.eye(dim, dtype=CDTYPE)
 
 
-class ComplexRiemannianMetricTestData(RiemannianMetricTestData):
+class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
 
     dim = 2
     herm = Hermitian(dim=dim)
@@ -20,6 +20,50 @@ class ComplexRiemannianMetricTestData(RiemannianMetricTestData):
 
     complex_riem_metric = ComplexRiemannianMetric(dim=dim)
     complex_riem_metric.metric_matrix = _herm_metric_matrix
+
+    metric_args_list = [(2,)]
+    space_list = [herm]
+    n_points_a_list = [2]
+    n_points_b_list = [1]
+    n_points_list = [2]
+    shape_list = [(2,)]
+    n_tangent_vecs_list = [2]
+    Metric = HermitianMetric
+
+    def cometric_matrix_test_data(self):
+        random_data = [
+            dict(
+                metric=self.herm_metric,
+                base_point=self.herm.random_point(),
+                expected=gs.eye(self.dim, dtype=CDTYPE),
+            )
+        ]
+        return self.generate_tests(random_data)
+
+    def hamiltonian_test_data(self):
+
+        smoke_data = [
+            dict(
+                metric=self.herm_metric,
+                state=(
+                    gs.array([1.0, 2.0], dtype=CDTYPE),
+                    gs.array([1.0, 2.0], dtype=CDTYPE),
+                ),
+                expected=2.5,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def inner_product_derivative_matrix_test_data(self):
+        base_point = self.herm.random_point()
+        random_data = [
+            dict(
+                metric=self.herm_metric,
+                base_point=base_point,
+                expected=gs.zeros((self.dim,) * 3),
+            )
+        ]
+        return self.generate_tests([], random_data)
 
     def inner_product_test_data(self):
         base_point = self.herm.random_point()
