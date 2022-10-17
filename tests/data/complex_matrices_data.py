@@ -38,17 +38,12 @@ MAT14_33 = gs.array([[4, 0, 0.5j], [0, 3, 0], [-1j, 0, 4]], dtype=CDTYPE)
 
 
 class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
-    n_spaces = 2
     m_list = random.sample(range(3, 5), 2)
     n_list = random.sample(range(3, 5), 2)
     metric_args_list = list(zip(m_list, n_list))
     space_args_list = metric_args_list
     shape_list = space_args_list
     space_list = [ComplexMatrices(m, n) for m, n in metric_args_list]
-    connection_args_list = [
-        (m_list[i_space] * n_list[i_space], (m_list[i_space], n_list[i_space]))
-        for i_space in range(n_spaces)
-    ]
     n_points_list = random.sample(range(1, 7), 2)
     n_tangent_vecs_list = random.sample(range(1, 7), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
@@ -709,6 +704,7 @@ class ComplexMatricesMetricTestData(_ComplexRiemannianMetricTestData):
     space_args_list = metric_args_list
     shape_list = space_args_list
     space_list = [ComplexMatrices(m, n) for m, n in metric_args_list]
+    connection_args_list = [(m * n, (m, n)) for m, n in metric_args_list]
     n_points_list = random.sample(range(1, 7), 2)
     n_tangent_vecs_list = random.sample(range(1, 7), 2)
     n_points_a_list = random.sample(range(1, 7), 2)
