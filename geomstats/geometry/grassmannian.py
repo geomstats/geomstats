@@ -44,43 +44,6 @@ from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-def submersion(point, p):
-    r"""Submersion that defines the Grassmann manifold.
-
-    The Grassmann manifold is defined here as embedded in the set of
-    symmetric matrices, as the pre-image of the function defined around the
-    projector on the space spanned by the first :math:`p` columns of the identity
-    matrix by (see Exercise E.25 in [Pau07]_).
-
-    .. math::
-
-        \begin{pmatrix} I_p + A & B^T \\ B & D \end{pmatrix} \mapsto
-            (D - B(I_p + A)^{-1}B^T, A + A^2 + B^TB
-
-    This map is a submersion and its zero space is the set of orthogonal
-    rank-:math:`p` projectors.
-
-    References
-    ----------
-    .. [Pau07] Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
-        https://www.imo.universite-paris-saclay.fr/~paulin/notescours/
-        cours_geodiff.pdf.
-    """
-    _, eigvecs = gs.linalg.eigh(point)
-    eigvecs = gs.flip(eigvecs, -1)
-    flipped_point = Matrices.mul(Matrices.transpose(eigvecs), point, eigvecs)
-    b = flipped_point[..., p:, :p]
-    d = flipped_point[..., p:, p:]
-    a = flipped_point[..., :p, :p] - gs.eye(p)
-    first = d - Matrices.mul(
-        b, GeneralLinear.inverse(a + gs.eye(p)), Matrices.transpose(b)
-    )
-    second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
-    row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
-    row_2 = gs.concatenate([Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
-    return gs.concatenate([row_1, row_2], axis=-2)
-
-
 def _squared_dist_grad_point_a(point_a, point_b, metric):
     """Compute gradient of squared_dist wrt point_a.
 
@@ -187,13 +150,50 @@ class Grassmannian(LevelSet):
         super().__init__(
             dim=dim,
             embedding_space=SymmetricMatrices(n),
-            submersion=lambda x: submersion(x, p),
             value=gs.zeros((n, n)),
-            tangent_submersion=lambda v, x: 2
-            * Matrices.to_symmetric(Matrices.mul(x, v))
-            - v,
             **kwargs
         )
+
+    def submersion(self, point):
+        r"""Submersion that defines the Grassmann manifold.
+
+        The Grassmann manifold is defined here as embedded in the set of
+        symmetric matrices, as the pre-image of the function defined around the
+        projector on the space spanned by the first :math:`p` columns of the identity
+        matrix by (see Exercise E.25 in [Pau07]_).
+
+        .. math::
+
+            \begin{pmatrix} I_p + A & B^T \\ B & D \end{pmatrix} \mapsto
+                (D - B(I_p + A)^{-1}B^T, A + A^2 + B^TB
+
+        This map is a submersion and its zero space is the set of orthogonal
+        rank-:math:`p` projectors.
+
+        References
+        ----------
+        .. [Pau07] Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
+            https://www.imo.universite-paris-saclay.fr/~paulin/notescours/
+            cours_geodiff.pdf.
+        """
+        p = self.p
+
+        _, eigvecs = gs.linalg.eigh(point)
+        eigvecs = gs.flip(eigvecs, -1)
+        flipped_point = Matrices.mul(Matrices.transpose(eigvecs), point, eigvecs)
+        b = flipped_point[..., p:, :p]
+        d = flipped_point[..., p:, p:]
+        a = flipped_point[..., :p, :p] - gs.eye(p)
+        first = d - Matrices.mul(
+            b, GeneralLinear.inverse(a + gs.eye(p)), Matrices.transpose(b)
+        )
+        second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
+        row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
+        row_2 = gs.concatenate([Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
+        return gs.concatenate([row_1, row_2], axis=-2)
+
+    def tangent_submersion(self, vector, point):
+        return 2 * Matrices.to_symmetric(Matrices.mul(point, vector)) - vector
 
     def random_uniform(self, n_samples=1):
         r"""Sample random points from a uniform distribution.

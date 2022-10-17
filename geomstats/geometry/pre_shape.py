@@ -41,19 +41,21 @@ class PreShapeSpace(LevelSet, FiberBundle):
     """
 
     def __init__(self, k_landmarks, m_ambient):
-        embedding_manifold = Matrices(k_landmarks, m_ambient)
-        embedding_metric = embedding_manifold.metric
         super().__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
-            embedding_space=embedding_manifold,
-            submersion=embedding_metric.squared_norm,
+            embedding_space=Matrices(k_landmarks, m_ambient),
             value=1.0,
-            tangent_submersion=embedding_metric.inner_product,
             total_space_metric=PreShapeMetric(k_landmarks, m_ambient),
         )
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
         self.total_space_metric = PreShapeMetric(k_landmarks, m_ambient)
+
+    def submersion(self, point):
+        return self.embedding_space.metric.squared_norm(point)
+
+    def tangent_submersion(self, vector, point):
+        return self.embedding_space.metric.inner_product(vector, point)
 
     def projection(self, point):
         """Project a point on the pre-shape space.

@@ -40,18 +40,21 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic", scale=1, **kwargs):
-        minkowski = Minkowski(dim + 1)
         kwargs.setdefault("metric", HyperboloidMetric(dim, default_coords_type, scale))
         super().__init__(
             dim=dim,
-            embedding_space=minkowski,
-            submersion=minkowski.metric.squared_norm,
+            embedding_space=Minkowski(dim + 1),
             value=-1.0,
-            tangent_submersion=minkowski.metric.inner_product,
             default_coords_type=default_coords_type,
             scale=scale,
             **kwargs
         )
+
+    def submersion(self, point):
+        return self.embedding_space.metric.squared_norm(point)
+
+    def tangent_submersion(self, vector, point):
+        return self.embedding_space.metric.inner_product(vector, point)
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.

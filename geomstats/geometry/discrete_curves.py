@@ -281,8 +281,6 @@ class ClosedDiscreteCurves(LevelSet):
         super().__init__(
             dim=dim,
             shape=(k_sampling_points,) + ambient_manifold.shape,
-            submersion=None,
-            tangent_submersion=None,
             value=None,
             embedding_space=DiscreteCurves(
                 ambient_manifold=ambient_manifold, k_sampling_points=k_sampling_points
@@ -290,6 +288,12 @@ class ClosedDiscreteCurves(LevelSet):
         )
         self.ambient_manifold = ambient_manifold
         self.ambient_metric = ambient_manifold.metric
+
+    def submersion(self, point):
+        raise NotImplementedError("Submersion not implemented")
+
+    def tangent_submersion(self, vector, point):
+        raise NotImplementedError("Tangent submersion not implemented")
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.

@@ -324,24 +324,23 @@ class LevelSet(Manifold, abc.ABC):
     """
 
     def __init__(
-        self,
-        dim,
-        embedding_space,
-        submersion,
-        value,
-        tangent_submersion,
-        default_coords_type="intrinsic",
-        **kwargs
+        self, dim, embedding_space, value, default_coords_type="intrinsic", **kwargs
     ):
         kwargs.setdefault("shape", embedding_space.shape)
         super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
         self.embedding_space = embedding_space
         self.embedding_metric = embedding_space.metric
-        self.submersion = submersion
         if isinstance(value, float):
             value = gs.array(value)
         self.value = value
-        self.tangent_submersion = tangent_submersion
+
+    @abc.abstractmethod
+    def submersion(self, point):
+        pass
+
+    @abc.abstractmethod
+    def tangent_submersion(self, vector, point):
+        pass
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.

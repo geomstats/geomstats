@@ -15,8 +15,6 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
-EPSILON = 1e-6
-
 
 class Stiefel(LevelSet):
     """Class for Stiefel manifolds St(n,p).
@@ -39,21 +37,22 @@ class Stiefel(LevelSet):
             raise ValueError("p needs to be smaller than n.")
 
         dim = int(p * n - (p * (p + 1) / 2))
-        matrices = Matrices(n, p)
         canonical_metric = StiefelCanonicalMetric(n, p)
         kwargs.setdefault("metric", canonical_metric)
         super().__init__(
-            dim=dim,
-            embedding_space=matrices,
-            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
-            value=gs.eye(p),
-            tangent_submersion=lambda v, x: 2
-            * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
-            **kwargs
+            dim=dim, embedding_space=Matrices(n, p), value=gs.eye(p), **kwargs
         )
         self.canonical_metric = canonical_metric
         self.n = n
         self.p = p
+
+    def submersion(self, point):
+        return Matrices.mul(Matrices.transpose(point), point)
+
+    def tangent_submersion(self, vector, point):
+        return 2 * Matrices.to_symmetric(
+            Matrices.mul(Matrices.transpose(point), vector)
+        )
 
     @staticmethod
     def to_grassmannian(point):

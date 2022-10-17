@@ -47,11 +47,15 @@ class _Hypersphere(LevelSet):
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim + 1),
-            submersion=lambda x: gs.sum(x**2, axis=-1),
             value=1.0,
-            tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1),
             default_coords_type=default_coords_type,
         )
+
+    def submersion(self, point):
+        return gs.sum(point**2, axis=-1)
+
+    def tangent_submersion(self, vector, point):
+        return 2 * gs.sum(point * vector, axis=-1)
 
     def projection(self, point):
         """Project a point on the hypersphere.

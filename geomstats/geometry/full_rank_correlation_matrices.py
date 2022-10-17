@@ -26,12 +26,16 @@ class FullRankCorrelationMatrices(LevelSet):
         super().__init__(
             dim=int(n * (n - 1) / 2),
             embedding_space=SPDMatrices(n=n),
-            submersion=Matrices.diagonal,
             value=gs.ones(n),
-            tangent_submersion=lambda v, x: Matrices.diagonal(v),
             **kwargs
         )
         self.n = n
+
+    def submersion(self, point):
+        return Matrices.diagonal(point)
+
+    def tangent_submersion(self, vector, point):
+        return Matrices.diagonal(vector)
 
     @staticmethod
     def diag_action(diagonal_vec, point):

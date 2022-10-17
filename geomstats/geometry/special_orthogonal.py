@@ -38,22 +38,25 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
     """
 
     def __init__(self, n, **kwargs):
-        matrices = Matrices(n, n)
-        gln = GeneralLinear(n, positive_det=True)
         super().__init__(
             dim=int((n * (n - 1)) / 2),
             n=n,
             value=gs.eye(n),
             lie_algebra=SkewSymmetricMatrices(n=n),
-            embedding_space=gln,
-            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
-            tangent_submersion=lambda v, x: 2
-            * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
+            embedding_space=GeneralLinear(n, positive_det=True),
             **kwargs,
         )
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         if self._metric is None:
             self._metric = self.bi_invariant_metric
+
+    def submersion(self, point):
+        return Matrices.mul(Matrices.transpose(point), point)
+
+    def tangent_submersion(self, vector, point):
+        return 2 * Matrices.to_symmetric(
+            Matrices.mul(Matrices.transpose(point), vector)
+        )
 
     @classmethod
     def inverse(cls, point):
