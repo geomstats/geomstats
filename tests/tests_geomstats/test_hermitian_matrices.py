@@ -2,6 +2,7 @@
 
 
 import geomstats.backend as gs
+import tests.conftest
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
 from tests.conftest import Parametrizer
 from tests.data.hermitian_matrices_data import HermitianMatricesTestData
@@ -27,6 +28,7 @@ class TestHermitianMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         result = HermitianMatrices.expm(gs.array(mat, dtype=CDTYPE))
         self.assertAllClose(result, gs.array(expected, dtype=CDTYPE))
 
+    @tests.conftest.np_autograd_and_torch_only
     def test_powerm(self, mat, power, expected):
         result = HermitianMatrices.powerm(gs.array(mat, dtype=CDTYPE), power)
         self.assertAllClose(result, gs.array(expected, dtype=CDTYPE))

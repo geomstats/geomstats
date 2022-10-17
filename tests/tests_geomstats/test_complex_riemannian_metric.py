@@ -39,7 +39,7 @@ class TestComplexRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         result = metric.hamiltonian(state)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.autograd_and_torch_only
+    @tests.conftest.torch_only
     def test_inner_product_derivative_matrix(self, metric, base_point, expected):
         result = metric.inner_product_derivative_matrix(base_point)
         self.assertAllClose(result, expected)
