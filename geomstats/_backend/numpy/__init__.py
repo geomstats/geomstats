@@ -92,7 +92,7 @@ from ._dtype import (
     get_default_cdtype,
     get_default_dtype,
     is_complex,
-    is_floating,
+    is_float,
     set_default_dtype,
 )
 

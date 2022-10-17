@@ -15,7 +15,7 @@ from geomstats._backend._dtype_utils import (
 from ._common import cast
 
 
-def is_floating(x):
+def is_float(x):
     return x.dtype.kind == "f"
 
 
@@ -32,5 +32,5 @@ set_default_dtype = _pre_set_default_dtype(as_dtype)
 
 
 _add_default_dtype_by_casting = _pre_add_default_dtype_by_casting(cast)
-_cast_fout_to_input_dtype = _pre_cast_fout_to_input_dtype(cast, is_floating)
-_cast_out_from_dtype = _pre_cast_out_from_dtype(cast, is_floating, is_complex)
+_cast_fout_to_input_dtype = _pre_cast_fout_to_input_dtype(cast, is_float)
+_cast_out_from_dtype = _pre_cast_out_from_dtype(cast, is_float, is_complex)

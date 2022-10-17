@@ -86,7 +86,7 @@ BACKEND_ATTRIBUTES = {
         "isnan",
         "is_array",
         "is_complex",
-        "is_floating",
+        "is_float",
         "kron",
         "less",
         "less_equal",

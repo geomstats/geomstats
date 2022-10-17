@@ -173,7 +173,7 @@ def _pre_set_default_dtype(as_dtype):
     return set_default_dtype
 
 
-def _pre_cast_out_from_dtype(cast, is_floating, is_complex):
+def _pre_cast_out_from_dtype(cast, is_float, is_complex):
     def _cast_out_from_dtype(dtype_pos=None, target=None):
         """Cast output based on default dtype.
 
@@ -197,14 +197,14 @@ def _pre_cast_out_from_dtype(cast, is_floating, is_complex):
             def _wrapped(*args, **kwargs):
                 out = func(*args, **kwargs)
 
-                if is_floating(out) or is_complex(out):
+                if is_float(out) or is_complex(out):
                     if dtype_pos is not None and len(args) > dtype_pos:
                         dtype = args[dtype_pos]
                     else:
                         dtype = kwargs.get(
                             "dtype",
                             _config.DEFAULT_DTYPE
-                            if is_floating(out)
+                            if is_float(out)
                             else _config.DEFAULT_COMPLEX_DTYPE,
                         )
 
@@ -260,7 +260,7 @@ def _pre_add_default_dtype_by_casting(cast):
     return _add_default_dtype_by_casting
 
 
-def _pre_cast_fout_to_input_dtype(cast, is_floating):
+def _pre_cast_fout_to_input_dtype(cast, is_float):
     def _cast_fout_to_input_dtype(target=None):
         """Cast out func if float and not accordingly to input.
 
@@ -279,7 +279,7 @@ def _pre_cast_fout_to_input_dtype(cast, is_floating):
             @functools.wraps(func)
             def _wrapped(x, *args, **kwargs):
                 out = func(x, *args, **kwargs)
-                if is_floating(out) and out.dtype != x.dtype:
+                if is_float(out) and out.dtype != x.dtype:
                     return cast(out, x.dtype)
                 return out
 
