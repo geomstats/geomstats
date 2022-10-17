@@ -77,11 +77,11 @@ class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 dim=2,
-                scale=[1, 2],
+                scale=2,
                 tangent_vec_a=[[1.0, 2.0], [3.0, 4.0]],
                 tangent_vec_b=[[1.0, 2.0], [3.0, 4.0]],
                 base_point=[[0.0, 1.0], [0.0, 5.0]],
-                expected=[5.0, 2.0],
+                expected=[10.0, 2.0],
             )
         ]
         return self.generate_tests(smoke_data)
