@@ -4,8 +4,16 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
-from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
+from geomstats.geometry.hypersphere import (
+    Hypersphere,
+    HypersphereMetric,
+    _HypersphereIntrinsic,
+)
+from tests.data_generation import (
+    _LevelSetTestData,
+    _ManifoldTestData,
+    _RiemannianMetricTestData,
+)
 
 
 class HypersphereTestData(_LevelSetTestData):
@@ -430,3 +438,13 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
             )
         ]
         return self.generate_tests(smoke_data)
+
+
+class HypersphereIntrinsicTestData(_ManifoldTestData):
+    space_args_list = [(2,), (3,)]
+    shape_list = [(10, 2), (10, 3)]
+    n_samples_list = random.sample(range(2, 5), 2)
+    n_points_list = random.sample(range(2, 5), 2)
+    n_vecs_list = random.sample(range(2, 5), 2)
+
+    Space = _HypersphereIntrinsic

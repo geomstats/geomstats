@@ -14,7 +14,7 @@ from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-from geomstats.geometry.base import LevelSet
+from geomstats.geometry.base import ImmersedSet, LevelSet
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -646,6 +646,109 @@ class _Hypersphere(LevelSet):
             mean = north_pole
         sample = metric.exp(tangent_sample_at_pt, mean)
         return sample[0] if (n_samples == 1) else sample
+
+
+class _HypersphereIntrinsic(ImmersedSet):
+    """Class for the intrinsic representation of the Hypersphere.
+
+    This is an implementation of the Hypersphere using a parametrization
+    with hyperspherical coordinates.
+
+    It uses hyperspherical coordinates where the first (dim - 1) angles
+    are in [0, pi] and the dim-th angle is in [0, 2pi]
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the sphere.
+    """
+
+    def __init__(self, dim, radius=1.0):
+        super(_HypersphereIntrinsic, self).__init__(
+            dim=dim, embedding_space=Euclidean(dim=dim + 1)
+        )
+        self.radius = radius
+
+    def belongs(self, point, atol=gs.atol):
+        """Check if a point belongs to the hypersphere.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point to be checked.
+
+        Returns
+        -------
+        belongs : array-like, shape=[..., 1]
+            Boolean evaluating if point belongs to the hypersphere.
+        """
+        if point.ndim == 1:
+            return True
+        return gs.array([True] * point.shape)
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check if a vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector to be checked.
+        base_point : array-like, shape=[..., dim]
+            Point on the hypersphere.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : array-like, shape=[..., 1]
+            Boolean evaluating if vector is tangent at base_point.
+        """
+        if vector.ndim == 1:
+            return True
+        return gs.array([True] * vector.shape)
+
+    def immersion(self, point):
+        """Immerse a point in hyperspherical coordinates in Euclidean space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dim]
+            Point in the intrinsic representation, which is the representation
+            in hyperspherical coordinates, where the first (dim - 1) angles
+            are in [0, pi] and the dim-th angle is in [0, 2pi]
+
+        Returns
+        -------
+        immersion : array-like, shape=[n_samples, dim+1]
+            Point in the embedding Euclidean space.
+        """
+        point = []
+        for i_dim in range(self.dim):
+            aux_point = self.radius * gs.cos(point[:, i_dim])
+            for j_dim in range(i_dim - 1):
+                aux_point = gs.einsum(
+                    "...i,...i->...i", aux_point, gs.sin(point[:, j_dim])
+                )
+            point.append(aux_point)
+        return gs.stack(point, axis=-1)
+
+    def random_point(self, n_samples=1):
+        """Sample on the hypersphere.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+
+        Returns
+        -------
+        point : array-like, shape=[..., dim]
+            Point sampled on the hypersphere.
+        """
+        point = gs.random.rand(n_samples, self.dim)
+        return point
 
 
 class HypersphereMetric(RiemannianMetric):

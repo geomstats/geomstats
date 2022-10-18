@@ -7,8 +7,16 @@ import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
 from tests.conftest import Parametrizer, np_backend
-from tests.data.hypersphere_data import HypersphereMetricTestData, HypersphereTestData
-from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
+from tests.data.hypersphere_data import (
+    HypersphereIntrinsicTestData,
+    HypersphereMetricTestData,
+    HypersphereTestData,
+)
+from tests.geometry_test_cases import (
+    LevelSetTestCase,
+    ManifoldTestCase,
+    RiemannianMetricTestCase,
+)
 
 MEAN_ESTIMATION_TOL = 1e-1
 KAPPA_ESTIMATION_TOL = 1e-1
@@ -275,3 +283,8 @@ class TestHypersphereMetric(HypersphereMetricTestCase, metaclass=Parametrizer):
     skip_test_ricci_tensor_spherical_coords = np_backend()
 
     testing_data = HypersphereMetricTestData()
+
+
+class TestHypersphereIntrinsic(ManifoldTestCase, metaclass=Parametrizer):
+
+    testing_data = HypersphereIntrinsicTestData()

@@ -309,6 +309,134 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         """Create a canonical basis."""
 
 
+class ImmersedSet(Manifold, abc.ABC):
+    """Class for manifolds embedded in a vector space by an immersion.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the embedded manifold.
+    embedding_space : VectorSpace
+        Embedding space.
+    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
+        Coordinate type.
+        Optional, default: 'intrinsic'.
+    """
+
+    def __init__(self, dim, embedding_space, default_coords_type="intrinsic", **kwargs):
+        kwargs.setdefault("shape", (dim,))
+        super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
+        self.embedding_space = embedding_space
+        self.embedding_metric = embedding_space.metric
+
+    @abc.abstractmethod
+    def belongs(self, point, atol=gs.atol):
+        """Evaluate if a point belongs to the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point to evaluate.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the manifold.
+        """
+        pass
+
+    @abc.abstractmethod
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        pass
+
+    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+        """Convert from intrinsic to extrinsic coordinates.
+
+        Parameters
+        ----------
+        point_intrinsic : array-like, shape=[..., dim]
+            Point in the embedded manifold in intrinsic coordinates.
+
+        Returns
+        -------
+        point_extrinsic : array-like, shape=[..., dim_embedding]
+            Point in the embedded manifold in extrinsic coordinates.
+        """
+        return self.immersion(point_intrinsic)
+
+    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+        """Convert from extrinsic to intrinsic coordinates.
+
+        Parameters
+        ----------
+        point_extrinsic : array-like, shape=[..., dim_embedding]
+            Point in the embedded manifold in extrinsic coordinates,
+            i. e. in the coordinates of the embedding manifold.
+
+        Returns
+        -------
+        point_intrinsic : array-lie, shape=[..., dim]
+            Point in the embedded manifold in intrinsic coordinates.
+        """
+        raise NotImplementedError("extrinsic_to_intrinsic_coords is not implemented.")
+
+    def projection(self, point):
+        """Project a point to the embedded manifold.
+
+        This is simply point, since we are in intrinsic coordinates.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim_embedding]
+            Point in the embedding manifold.
+
+        Returns
+        -------
+        projected_point : array-like, shape=[..., dim]
+            Point in the embedded manifold.
+        """
+        return point
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        This is simply the vector since we are in intrinsic coordinates.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim_embedding]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point in the embedded manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        return vector
+
+
 class LevelSet(Manifold, abc.ABC):
     """Class for manifolds embedded in a vector space by a submersion.
 
