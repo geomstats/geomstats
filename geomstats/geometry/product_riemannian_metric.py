@@ -168,7 +168,6 @@ class ProductRiemannianMetric(RiemannianMetric):
         """
         if base_point is None:
             base_point = gs.empty((len(self.metrics), self.dim))
-        # TODO Why???
 
         if self.default_point_type == "vector":
             args = {
