@@ -684,7 +684,7 @@ class _HypersphereIntrinsic(ImmersedSet):
         """
         if point.ndim == 1:
             return True
-        return gs.array([True] * point.shape)
+        return gs.array([True] * point.shape[0])
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check if a vector is tangent at base_point.
@@ -706,7 +706,7 @@ class _HypersphereIntrinsic(ImmersedSet):
         """
         if vector.ndim == 1:
             return True
-        return gs.array([True] * vector.shape)
+        return gs.array([True] * vector.shape[0])
 
     def immersion(self, point):
         """Immerse a point in hyperspherical coordinates in Euclidean space.
@@ -723,15 +723,21 @@ class _HypersphereIntrinsic(ImmersedSet):
         immersion : array-like, shape=[n_samples, dim+1]
             Point in the embedding Euclidean space.
         """
-        point = []
+        initial_ndim = point.ndim
+        point = gs.to_ndarray(point, to_ndim=2)
+
+        immersed_point = []
         for i_dim in range(self.dim):
             aux_point = self.radius * gs.cos(point[:, i_dim])
             for j_dim in range(i_dim - 1):
                 aux_point = gs.einsum(
                     "...i,...i->...i", aux_point, gs.sin(point[:, j_dim])
                 )
-            point.append(aux_point)
-        return gs.stack(point, axis=-1)
+            immersed_point.append(aux_point)
+        immersed_point = gs.stack(immersed_point, axis=-1)
+        return (
+            gs.squeeze(immersed_point, axis=0) if initial_ndim == 1 else immersed_point
+        )
 
     def random_point(self, n_samples=1):
         """Sample on the hypersphere.
@@ -749,6 +755,23 @@ class _HypersphereIntrinsic(ImmersedSet):
         """
         point = gs.random.rand(n_samples, self.dim)
         return point
+
+    def random_tangent_vec(self, base_point, n_samples=1):
+        """Sample on the tangent space of the hypersphere.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+
+        Returns
+        -------
+        point : array-like, shape=[..., dim]
+            Point sampled on the hypersphere.
+        """
+        point = gs.random.rand(n_samples, self.dim)
+        return gs.squeeze(point, axis=0) if n_samples == 1 else point
 
 
 class HypersphereMetric(RiemannianMetric):
