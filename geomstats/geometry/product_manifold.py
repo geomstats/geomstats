@@ -3,7 +3,6 @@
 Lead author: Nicolas Guigui.
 """
 
-import joblib
 from math import prod
 from numpy import broadcast_shapes
 
@@ -25,7 +24,7 @@ class ProductManifold(Manifold):
 
     Parameters
     ----------
-    manifolds : list
+    factors : list
         List of manifolds in the product.
     metrics : list
         List of metrics for each manifold
@@ -39,26 +38,30 @@ class ProductManifold(Manifold):
         Optional, default: 1.
     """
 
-    # FIXME (nguigs): This only works for 1d points
-
     def __init__(
-        self, manifolds, metrics=None, default_point_type="vector", n_jobs=1, **kwargs
+            self,
+            factors,
+            metrics=None,
+            default_point_type="vector",
+            n_jobs=1,
+            **kwargs
     ):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, "default_point_type", ["vector", "matrix"]
         )
 
-        factor_dims = [manifold.dim for manifold in manifolds]
-        dim = sum(factor_dims)
+        self.factors = factors
 
-        factor_shapes = [manifold.shape for manifold in manifolds]
+        dim = sum(self.factor_dims)
+
         if default_point_type == "vector":
-            shape = (sum([prod(m.shape) for m in manifolds]),)
+            shape = (sum([prod(factor_shape) for factor_shape in self.factor_shapes]),)
             # need to cast these into vectors
         else:
-            if (factor_shapes.count(factor_shapes[0]) == len(factor_shapes)):
-                if (len(factor_shapes[0]) == 1):
-                    shape = (len(manifolds), *manifolds[0].shape)
+            if (self.factor_shapes.count(self.factor_shapes[0]) ==
+                    len(self.factor_shapes)):
+                if (len(self.factor_shapes[0]) == 1):
+                    shape = (len(self.factors), *self.factors[0].shape)
                 else:
                     raise ValueError(
                         "A default_point_type of \'matrix\' can only be used if all "
@@ -70,16 +73,13 @@ class ProductManifold(Manifold):
                     "manifolds have the same shape."
                 )
 
-        factor_default_coords_types = [
-            manifold.default_coords_type for manifold in manifolds
-        ]
-        if "extrinsic" in factor_default_coords_types:
+        if "extrinsic" in self.factor_default_coords_types:
             default_coords_type = "extrinsic"
         else:
             default_coords_type = "intrinsic"
 
         if metrics is None:
-            metrics = [manifold.metric for manifold in manifolds]
+            metrics = [manifold.metric for manifold in factors]
         kwargs.setdefault(
             "metric",
             ProductRiemannianMetric(
@@ -94,20 +94,30 @@ class ProductManifold(Manifold):
             **kwargs,
         )
 
-        self.manifolds = manifolds
-        self.factor_dims = factor_dims
-        self.factor_shapes = factor_shapes
-        self.factor_default_coords_types = factor_default_coords_types
-
         if self.default_coords_type == "extrinsic":
-            self.factor_embedding_spaces = [
+            factor_embedding_spaces = [
                 manifold.embedding_space if manifold.default_coords_type == "extrinsic"
                 else manifold
-                for manifold in manifolds
+                for manifold in factors
             ]
-            self.embedding_space = ProductManifold(self.factor_embedding_spaces)
+            self.embedding_space = ProductManifold(factor_embedding_spaces)
 
         self.n_jobs = n_jobs
+
+    @property
+    def factor_dims(self):
+        """List containing the dimension of each factor."""
+        return [factor.dim for factor in self.factors]
+
+    @property
+    def factor_shapes(self):
+        """List containing the shape of each factor."""
+        return [factor.shape for factor in self.factors]
+
+    @property
+    def factor_default_coords_types(self):
+        """List containing the default_coords_type of each factor."""
+        return [factor.default_coords_type for factor in self.factors]
 
     @staticmethod
     def _get_method(manifold, method_name, metric_args):
@@ -215,24 +225,21 @@ class ProductManifold(Manifold):
         if self.default_point_type == "vector":
             args_list = [
                 {
-                    key: self._reshape_trailing(arguments[key][j], self.manifolds[j])
+                    key: self._reshape_trailing(arguments[key][j], self.factors[j])
                     for key in arguments
                 }
-                for j in range(len(self.manifolds))
+                for j in range(len(self.factors))
             ]
         elif self.default_point_type == "matrix":
             args_list = [
                 {key: arguments[key][..., j, :] for key in arguments}
-                for j in range(len(self.manifolds))
+                for j in range(len(self.factors))
             ]
 
-        pool = joblib.Parallel(n_jobs=self.n_jobs)
-        out = pool(
-            joblib.delayed(self._get_method)(
-                self.manifolds[i], func, {**args_list[i], **numerical_args}
-            )
-            for i in range(len(self.manifolds))
+        out = [self._get_method(
+            self.factors[i], func, {**args_list[i], **numerical_args}
         )
+            for i in range(len(self.factors))]
 
         if self.default_point_type == 'vector':
             # The individual factors might have matrix type, so their responses must be

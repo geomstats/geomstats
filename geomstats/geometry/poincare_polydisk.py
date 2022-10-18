@@ -44,10 +44,10 @@ class PoincarePolydisk(ProductManifold, OpenSet):
             disk,
         ] * n_disks
         super().__init__(
-            manifolds=list_disks,
+            factors=list_disks,
             default_point_type="matrix",
             embedding_space=Matrices(n_disks, 2),
-            default_coords_type=default_coords_type,
+            default_coords_type=default_coords_type
         )
         self._metric = PoincarePolydiskMetric(
             n_disks=n_disks, default_coords_type=default_coords_type

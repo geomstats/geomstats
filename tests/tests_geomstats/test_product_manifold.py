@@ -60,7 +60,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     def test_inner_product_matrix_vector(self, default_point_type):
         euclidean = Euclidean(3)
         minkowski = Minkowski(3)
-        space = ProductManifold(manifolds=[euclidean, minkowski])
+        space = ProductManifold(factors=[euclidean, minkowski])
         point = space.random_point(1)
         expected = gs.eye(6)
         expected[3, 3] = -1
@@ -71,9 +71,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     def test_dist_exp_after_log_norm(
         self, manifolds, default_point_type, n_samples, einsum_str, expected
     ):
-        space = ProductManifold(
-            manifolds=manifolds, default_point_type=default_point_type
-        )
+        space = ProductManifold(factors=manifolds, default_point_type=default_point_type)
         point = space.random_point(n_samples)
         base_point = space.random_point(n_samples)
 
