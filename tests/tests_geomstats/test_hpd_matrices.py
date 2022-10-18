@@ -34,7 +34,7 @@ class TestHPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
     def test_projection(self, n, mat, expected):
         self.assertAllClose(
             self.Space(n).projection(gs.cast(gs.array(mat), dtype=CDTYPE)),
-            gs.cast(gs.array(expected)),
+            gs.cast(gs.array(expected), dtype=CDTYPE),
         )
 
     def test_logm(self, hpd_mat, expected):
@@ -47,9 +47,7 @@ class TestHPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
         result = self.Space.cholesky_factor(gs.cast(gs.array(hpd_mat), dtype=CDTYPE))
 
         self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
-        self.assertTrue(
-            gs.all(PositiveLowerTriangularMatrices(n).belongs(result), dtype=CDTYPE)
-        )
+        self.assertTrue(gs.all(PositiveLowerTriangularMatrices(n).belongs(result)))
 
     def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
         result = self.Space.differential_cholesky_factor(
@@ -57,9 +55,7 @@ class TestHPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
             gs.cast(gs.array(base_point), dtype=CDTYPE),
         )
         self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
-        self.assertTrue(
-            gs.all(LowerTriangularMatrices(n).belongs(result), dtype=CDTYPE)
-        )
+        self.assertTrue(gs.all(LowerTriangularMatrices(n).belongs(result)))
 
     def test_differential_power(self, power, tangent_vec, base_point, expected):
         result = self.Space.differential_power(
@@ -182,8 +178,8 @@ class TestHPDBuresWassersteinMetric(
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = self.Metric(n)
         result = metric.inner_product(
-            gs.cast(gs.array(tangent_vec_a, dtype=CDTYPE)),
-            gs.cast(gs.array(tangent_vec_b, dtype=CDTYPE)),
+            gs.cast(gs.array(tangent_vec_a), dtype=CDTYPE),
+            gs.cast(gs.array(tangent_vec_b), dtype=CDTYPE),
             gs.cast(gs.array(base_point), dtype=CDTYPE),
         )
         self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
@@ -191,7 +187,7 @@ class TestHPDBuresWassersteinMetric(
     def test_exp(self, n, tangent_vec, base_point, expected):
         metric = self.Metric(n)
         result = metric.exp(
-            gs.cast(gs.array(tangent_vec, dtype=CDTYPE)),
+            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
             gs.cast(gs.array(base_point), dtype=CDTYPE),
         )
         self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
