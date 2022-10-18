@@ -157,7 +157,7 @@ class NormalMetric(PullbackDiffeoMetric):
             Image of base_point in the Poincare upper half-plane.
         """
         image_point = gs.copy(base_point)
-        image_point[..., 0] /= gs.sqrt(2)
+        image_point[..., 0] /= gs.sqrt(2.0)
         return image_point
 
     def inverse_diffeomorphism(self, image_point):
@@ -178,7 +178,7 @@ class NormalMetric(PullbackDiffeoMetric):
             distribution. Coordinates are mean and standard deviation.
         """
         base_point = gs.copy(image_point)
-        base_point[..., 0] *= gs.sqrt(2)
+        base_point[..., 0] *= gs.sqrt(2.0)
         return base_point
 
     def tangent_diffeomorphism(self, tangent_vec, base_point):
