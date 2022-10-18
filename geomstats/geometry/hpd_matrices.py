@@ -240,6 +240,7 @@ class HPDMatrices(OpenSet):
             temp_result,
         ) = cls.aux_differential_power(power, tangent_vec, base_point)
         power_operator = numerator / denominator
+        power_operator = gs.cast(power_operator, dtype=CDTYPE)
         result = power_operator * temp_result
         result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
         return result
@@ -274,6 +275,7 @@ class HPDMatrices(OpenSet):
             temp_result,
         ) = cls.aux_differential_power(power, tangent_vec, base_point)
         power_operator = denominator / numerator
+        power_operator = gs.cast(power_operator, dtype=CDTYPE)
         result = power_operator * temp_result
         result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
         return result
@@ -305,6 +307,7 @@ class HPDMatrices(OpenSet):
             temp_result,
         ) = cls.aux_differential_power(0, tangent_vec, base_point)
         power_operator = numerator / denominator
+        power_operator = gs.cast(power_operator, dtype=CDTYPE)
         result = power_operator * temp_result
         result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
         return result
@@ -336,6 +339,7 @@ class HPDMatrices(OpenSet):
             temp_result,
         ) = cls.aux_differential_power(0, tangent_vec, base_point)
         power_operator = denominator / numerator
+        power_operator = gs.cast(power_operator, dtype=CDTYPE)
         result = power_operator * temp_result
         result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
         return result
@@ -367,6 +371,7 @@ class HPDMatrices(OpenSet):
             temp_result,
         ) = cls.aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = numerator / denominator
+        power_operator = gs.cast(power_operator, dtype=CDTYPE)
         result = power_operator * temp_result
         result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
         return result
@@ -398,6 +403,7 @@ class HPDMatrices(OpenSet):
             temp_result,
         ) = cls.aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = denominator / numerator
+        power_operator = gs.cast(power_operator, dtype=CDTYPE)
         result = power_operator * temp_result
         result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
         return result
@@ -801,7 +807,8 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
         result = (
             ComplexMatrices.frobenius_product(
-                coefficients * rotated_tangent_vec_a, rotated_tangent_vec_b
+                gs.cast(coefficients, dtype=CDTYPE) * rotated_tangent_vec_a,
+                rotated_tangent_vec_b,
             )
             / 2
         )
@@ -829,7 +836,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
             transconj_eigvecs, tangent_vec, eigvecs
         )
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
-        rotated_sylvester = rotated_tangent_vec * coefficients
+        rotated_sylvester = rotated_tangent_vec * gs.cast(coefficients, dtype=CDTYPE)
         rotated_hessian = gs.einsum("...ij,...j->...ij", rotated_sylvester, eigvals)
         rotated_hessian = ComplexMatrices.mul(rotated_hessian, rotated_sylvester)
         hessian = ComplexMatrices.mul(eigvecs, rotated_hessian, transconj_eigvecs)
