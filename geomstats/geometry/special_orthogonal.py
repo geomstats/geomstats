@@ -393,6 +393,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         return -self.regularize(point)
 
     def random_point(self, n_samples=1, bound=1.0):
+        """ Sample of random point uniform wrt parameters, not Haar measure"""
         return gs.squeeze(gs.random.rand(n_samples, 3))
 
     def exp_from_identity(self, tangent_vec):
@@ -1632,7 +1633,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
     def random_uniform(self, n_samples=1):
-        """Sample in SO(3) with the uniform distribution.
+        """Sample in SO(3) uniform wrt parameters - not Haar measure.
 
         Parameters
         ----------
