@@ -41,6 +41,7 @@ class Manifold(abc.ABC):
 
         self.dim = dim
         self.shape = shape
+        self.shape_dim = gs.prod(shape)
         self.default_coords_type = default_coords_type
         self._metric = metric
 
@@ -60,7 +61,7 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., *shape]
             Point to evaluate.
         atol : float
             Absolute tolerance.
@@ -78,9 +79,9 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *shape]
             Point on the manifold.
         atol : float
             Absolute tolerance.
@@ -98,14 +99,14 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *shape]
             Point on the manifold.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *shape]
             Tangent vector at base point.
         """
 
@@ -126,7 +127,7 @@ class Manifold(abc.ABC):
 
         Returns
         -------
-        samples : array-like, shape=[..., {dim, [n, n]}]
+        samples : array-like, shape=[..., *shape]
             Points sampled on the manifold.
         """
 
@@ -135,12 +136,12 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., *shape]
             Point.
 
         Returns
         -------
-        regularized_point : array-like, shape=[..., dim]
+        regularized_point : array-like, shape=[..., *shape]
             Regularized point.
         """
         regularized_point = point
@@ -168,12 +169,12 @@ class Manifold(abc.ABC):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        base_point :  array-like, shape=[..., dim]
+        base_point :  array-like, shape=[..., *shape]
             Point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *shape]
             Tangent vec at base point.
         """
         if (
