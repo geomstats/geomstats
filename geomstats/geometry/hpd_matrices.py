@@ -17,7 +17,6 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 )
 from geomstats.integrator import integrate
 
-
 CDTYPE = gs.get_default_cdtype()
 
 
@@ -55,7 +54,7 @@ class HPDMatrices(OpenSet):
         belongs = ComplexMatrices.is_hpd(mat, atol)
         return belongs
 
-    def projection(self, point):
+    def projection(self, point, atol=gs.atol):
         """Project a matrix to the space of HPD matrices.
 
         First the Hermitian part of point is computed, then the eigenvalues
@@ -65,6 +64,9 @@ class HPDMatrices(OpenSet):
         ----------
         point : array-like, shape=[..., n, n]
             Matrix to project.
+        atol : float
+            Tolerance.
+            Optional, default: backend atol.
 
         Returns
         -------
@@ -73,7 +75,7 @@ class HPDMatrices(OpenSet):
         """
         herm = ComplexMatrices.to_hermitian(point)
         eigvals, eigvecs = gs.linalg.eigh(herm)
-        regularized = gs.where(eigvals < gs.atol, gs.atol, eigvals)
+        regularized = gs.where(eigvals < atol, atol, eigvals)
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
         return ComplexMatrices.mul(
             reconstruction, ComplexMatrices.transconjugate(eigvecs)
@@ -104,7 +106,8 @@ class HPDMatrices(OpenSet):
         mat *= 2
         mat -= 1 + 1j
         mat *= bound
-        hpd_mat = GeneralLinear.exp(ComplexMatrices.to_hermitian(mat))
+        herm_mat = GeneralLinear.exp(ComplexMatrices.to_hermitian(mat))
+        hpd_mat = self.projection(herm_mat)
         return hpd_mat
 
     def random_tangent_vec(self, base_point, n_samples=1):
