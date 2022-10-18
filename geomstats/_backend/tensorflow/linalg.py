@@ -9,7 +9,6 @@ from .._backend_config import tf_atol as atol
 # "Forward-import" primitives. Due to the way the 'linalg' module is exported
 # in TF, this does not work with 'from tensorflow.linalg import ...'.
 det = _tf.linalg.det
-eigh = _tf.linalg.eigh
 expm = _tf.linalg.expm
 inv = _tf.linalg.inv
 sqrtm = _tf.linalg.sqrtm
@@ -20,8 +19,13 @@ def eig(*args, **kwargs):
     raise NotImplementedError
 
 
+def eigh(a):
+    eigvals, eigvecs = _tf.linalg.eigh(a)
+    return _tf.math.real(eigvals), eigvecs
+
+
 def eigvalsh(a):
-    return _tf.linalg.eigvalsh(a)
+    return _tf.math.real(_tf.linalg.eigvalsh(a))
 
 
 def cholesky(a):
@@ -106,7 +110,9 @@ def is_single_matrix_pd(mat):
     if mat.shape[0] != mat.shape[1]:
         return False
     if mat.dtype in [_tf.complex64, _tf.complex128]:
-        is_hermitian = _tf.math.reduce_all(mat == _tf.math.conj(_tf.transpose(mat)))
+        is_hermitian = _tf.math.reduce_all(
+            _tf.abs(mat - _tf.math.conj(_tf.transpose(mat))) < atol
+        )
         if not is_hermitian:
             return False
         eigvals = _tf.linalg.eigvalsh(mat)
