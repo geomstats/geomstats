@@ -1395,12 +1395,15 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
             self.n_tangent_vecs_list,
         ):
             base_point = space.random_point()
-            tangent_vec_a = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            base_point_type = base_point.dtype
+            random_vec_a = generate_random_vec(
+                (n_tangent_vecs,) + shape, base_point_type
             )
-            tangent_vec_b = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            random_vec_b = generate_random_vec(
+                (n_tangent_vecs,) + shape, base_point_type
             )
+            tangent_vec_a = space.to_tangent(random_vec_a)
+            tangent_vec_b = space.to_tangent(random_vec_b)
             random_data.append(
                 dict(
                     metric_args=metric_args,
