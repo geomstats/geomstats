@@ -11,6 +11,7 @@ import types
 
 import geomstats._backend._common as common
 
+
 BACKEND_ATTRIBUTES = {
     "": [
         # Types
@@ -113,6 +114,7 @@ BACKEND_ATTRIBUTES = {
         "quantile",
         "ravel_tril_indices",
         "real",
+        "remainder",
         "repeat",
         "reshape",
         "rtol",
@@ -195,7 +197,6 @@ BACKEND_ATTRIBUTES = {
         "uniform",
     ],
 }
-
 
 class BackendImporter:
     """Importer class to create the backend module."""
