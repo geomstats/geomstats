@@ -92,7 +92,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return utils.flip_determinant(rotation_mat, det)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in SO(n) from the uniform distribution.
+        """Sample in SO(n) using a normal distribution (not the Haar measure).
 
         Parameters
         ----------
@@ -110,7 +110,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):
-        """Sample in SO(n) from the uniform distribution.
+        """Sample in SO(n) using a normal distribution (not the Haar measure).
 
         Parameters
         ----------
@@ -627,6 +627,7 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         return point_prod
 
     def random_point(self, n_samples=1, bound=1.0):
+        """Sample in SO(2) with the uniform distribution."""
         return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):

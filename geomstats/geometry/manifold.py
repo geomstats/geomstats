@@ -111,9 +111,9 @@ class Manifold(abc.ABC):
 
     @abc.abstractmethod
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points on the manifold.
+        """Sample random points on the manifold according to some distribution.
 
-        If the manifold is compact, a uniform distribution is used.
+        If the manifold is compact, preferably a uniform distribution will be used.
 
         Parameters
         ----------
