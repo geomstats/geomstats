@@ -208,11 +208,13 @@ class TestHPDBuresWassersteinMetric(
 
         point = space.random_point(2)
         end_point = space.random_point(2)
-        tan_b = gs.random.rand(*shape)
+        tan_b = gs.cast(gs.random.rand(*shape), dtype=CDTYPE)
+        tan_b += 1j * gs.cast(gs.random.rand(*shape), dtype=CDTYPE)
         tan_b = space.to_tangent(tan_b, point)
 
         # use a vector orthonormal to tan_b
-        tan_a = gs.random.rand(*shape)
+        tan_a = gs.cast(gs.random.rand(*shape), dtype=CDTYPE)
+        tan_a += 1j * gs.cast(gs.random.rand(*shape), dtype=CDTYPE)
         tan_a = space.to_tangent(tan_a, point)
 
         # orthonormalize and move to base_point
