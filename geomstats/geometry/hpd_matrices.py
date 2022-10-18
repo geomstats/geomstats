@@ -886,8 +886,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         trace_a = gs.trace(point_a)
         trace_b = gs.trace(point_b)
         trace_prod = gs.trace(sqrt_product)
-
-        return trace_a + trace_b - 2 * trace_prod
+        return gs.real(trace_a + trace_b - 2 * trace_prod)
 
     def parallel_transport(
         self,
