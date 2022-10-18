@@ -38,14 +38,7 @@ class ProductManifold(Manifold):
         Optional, default: 1.
     """
 
-    def __init__(
-            self,
-            factors,
-            metrics=None,
-            default_point_type="vector",
-            n_jobs=1,
-            **kwargs
-    ):
+    def __init__(self, factors, metrics=None, default_point_type="vector", **kwargs):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, "default_point_type", ["vector", "matrix"]
         )
@@ -56,7 +49,6 @@ class ProductManifold(Manifold):
 
         if default_point_type == "vector":
             shape = (sum([prod(factor_shape) for factor_shape in self.factor_shapes]),)
-            # need to cast these into vectors
         else:
             if (self.factor_shapes.count(self.factor_shapes[0]) ==
                     len(self.factor_shapes)):
@@ -82,9 +74,7 @@ class ProductManifold(Manifold):
             metrics = [manifold.metric for manifold in factors]
         kwargs.setdefault(
             "metric",
-            ProductRiemannianMetric(
-                metrics, n_jobs=n_jobs, default_point_type=default_point_type
-            ),
+            ProductRiemannianMetric(metrics, default_point_type=default_point_type),
         )
 
         super().__init__(
@@ -101,8 +91,6 @@ class ProductManifold(Manifold):
                 for manifold in factors
             ]
             self.embedding_space = ProductManifold(factor_embedding_spaces)
-
-        self.n_jobs = n_jobs
 
     @property
     def factor_dims(self):

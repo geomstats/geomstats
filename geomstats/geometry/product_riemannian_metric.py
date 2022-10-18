@@ -5,7 +5,7 @@ Define the metric of a product manifold endowed with a product metric.
 Lead author: Nicolas Guigui.
 """
 
-import joblib
+from math import prod
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -22,37 +22,64 @@ class ProductRiemannianMetric(RiemannianMetric):
     default_point_type : str, {'vector', 'matrix'}
         Point type.
         Optional, default: 'vector'.
-    n_jobs : int
-        Number of jobs for parallel computing.
-        Optional, default: 1.
     """
 
-    def __init__(self, metrics, default_point_type="vector", n_jobs=1):
-
+    def __init__(self, metrics, default_point_type="vector"):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, "default_point_type", ["vector", "matrix"]
         )
-        if default_point_type == "vector":
-            shape = (sum([m.shape[0] for m in metrics]),)
-        else:
-            shape = (len(metrics), *metrics[0].shape)
-
-        self.n_metrics = len(metrics)
-        dims = [metric.dim for metric in metrics]
-        signatures = [metric.signature for metric in metrics]
-
-        sig_pos = sum(sig[0] for sig in signatures)
-        sig_neg = sum(sig[1] for sig in signatures)
-        super().__init__(
-            dim=sum(dims),
-            signature=(sig_pos, sig_neg),
-            shape=shape,
-        )
 
         self.metrics = metrics
-        self.dims = dims
-        self.signatures = signatures
-        self.n_jobs = n_jobs
+
+        dim = sum(self.factor_dims)
+
+        if default_point_type == "vector":
+            shape = (sum([prod(factor_shape) for factor_shape in self.factor_shapes]),)
+            # need to cast these into vectors
+        else:
+            if (self.factor_shapes.count(self.factor_shapes[0]) ==
+                    len(self.factor_shapes)):
+                if (len(self.factor_shapes[0]) == 1):
+                    shape = (len(self.metrics), *self.metrics[0].shape)
+                else:
+                    raise ValueError(
+                        "A default_point_type of \'matrix\' can only be used if all "
+                        "metrics have vector type."
+                    )
+            else:
+                raise ValueError(
+                    "A default_point_type of \'matrix\' can only be used if all "
+                    "metrics have the same shape."
+                )
+
+        sig_pos = sum(sig[0] for sig in self.factor_signatures)
+        sig_neg = sum(sig[1] for sig in self.factor_signatures)
+
+        super().__init__(
+            dim=dim,
+            signature=(sig_pos, sig_neg),
+            shape=shape
+        )
+
+    @property
+    def factor_dims(self):
+        """List containing the dimension of each factor."""
+        return [metric.dim for metric in self.metrics]
+
+    @property
+    def factor_shapes(self):
+        """List containing the shape of each factor."""
+        return [metric.shape for metric in self.metrics]
+
+    @property
+    def factor_matrix_sizes(self):
+        """List containing the size of the metric matrix for each factor."""
+        return [prod(metric.shape) for metric in self.metrics]
+
+    @property
+    def factor_signatures(self):
+        """List containing the signatures for each factor."""
+        return [metric.signature for metric in self.metrics]
 
     def metric_matrix(self, base_point=None):
         """Compute the matrix of the inner-product.
@@ -77,68 +104,40 @@ class ProductRiemannianMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
 
-        matrix = gs.zeros([len(base_point), self.dim, self.dim])
+        matrix_size = sum(self.factor_matrix_sizes)
+        matrix = gs.zeros([len(base_point), matrix_size, matrix_size])
         cum_dim = 0
-        for i in range(self.n_metrics):
-            cum_dim_next = cum_dim + self.dims[i]
+        for i, metric in enumerate(self.metrics):
+            cum_dim_next = cum_dim + self.factor_matrix_sizes[i]
             if self.default_point_type == "vector":
-                matrix_next = self.metrics[i].metric_matrix(
+                matrix_next = metric.metric_matrix(
                     base_point[:, cum_dim:cum_dim_next, cum_dim:cum_dim_next]
                 )
             else:
-                matrix_next = self.metrics[i].metric_matrix(base_point[:, i])
+                matrix_next = metric.metric_matrix(base_point[:, i])
 
             matrix[:, cum_dim:cum_dim_next, cum_dim:cum_dim_next] = matrix_next
             cum_dim = cum_dim_next
         return matrix[0] if len(base_point) == 1 else matrix
 
-    def is_intrinsic(self, point):
-        """Test in a point is represented in intrinsic coordinates.
-
-        This method is only useful for `point_type == vector`.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point on the product manifold.
-
-        Returns
-        -------
-        intrinsic : array-like, shape=[...,]
-            Whether intrinsic coordinates are used for all manifolds.
-        """
-        if self.default_point_type != "vector":
-            raise ValueError("Invalid default_point_type: 'vector' expected.")
-
-        if point.shape[-1] == self.dim:
-            return True
-        if point.shape[-1] == sum(dim + 1 for dim in self.dims):
-            return False
-        raise ValueError("Input shape does not match the dimension of the manifold")
-
     @staticmethod
     def _get_method(metric, method_name, metric_args):
         return getattr(metric, method_name)(**metric_args)
 
-    def _iterate_over_metrics(self, func, args, intrinsic=False):
+    def _iterate_over_metrics(self, func, args):
 
-        cum_index = (
-            gs.cumsum(self.dims)[:-1]
-            if intrinsic
-            else gs.cumsum(gs.array([k + 1 for k in self.dims]))
-        )
+        cum_index = gs.cumsum(self.factor_matrix_sizes)[:-1]
+
         arguments = {
             key: gs.split(args[key], cum_index, axis=-1) for key in args.keys()
         }
         args_list = [
             {key: arguments[key][j] for key in args.keys()}
-            for j in range(self.n_metrics)
+            for j, _ in enumerate(self.metrics)
         ]
-        pool = joblib.Parallel(n_jobs=self.n_jobs, prefer="threads")
-        out = pool(
-            joblib.delayed(self._get_method)(self.metrics[i], func, args_list[i])
-            for i in range(self.n_metrics)
-        )
+        out = [
+            self._get_method(metric, func, args_list[i])
+            for i, metric in enumerate(self.metrics)]
         return out
 
     def inner_product(
@@ -168,16 +167,16 @@ class ProductRiemannianMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         if base_point is None:
-            base_point = gs.empty((self.n_metrics, self.dim))
+            base_point = gs.empty((len(self.metrics), self.dim))
+        # TODO Why???
 
         if self.default_point_type == "vector":
-            intrinsic = self.is_intrinsic(tangent_vec_b)
             args = {
                 "tangent_vec_a": tangent_vec_a,
                 "tangent_vec_b": tangent_vec_b,
                 "base_point": base_point,
             }
-            inner_prod = self._iterate_over_metrics("inner_product", args, intrinsic)
+            inner_prod = self._iterate_over_metrics("inner_product", args)
             return gs.sum(gs.stack(inner_prod, axis=-2), axis=-2)
 
         inner_products = [
@@ -210,18 +209,17 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [
                 None,
-            ] * self.n_metrics
+            ] * len(self.metrics)
 
         if self.default_point_type == "vector":
-            intrinsic = self.is_intrinsic(base_point)
             args = {"tangent_vec": tangent_vec, "base_point": base_point}
-            exp = self._iterate_over_metrics("exp", args, intrinsic)
+            exp = self._iterate_over_metrics("exp", args)
             return gs.concatenate(exp, -1)
 
         exp = gs.stack(
             [
-                self.metrics[i].exp(tangent_vec[..., i, :], base_point[..., i, :])
-                for i in range(self.n_metrics)
+                metric.exp(tangent_vec[..., i, :], base_point[..., i, :])
+                for i, metric in enumerate(self.metrics)
             ],
             axis=-2,
         )
@@ -245,19 +243,18 @@ class ProductRiemannianMetric(RiemannianMetric):
             of point at the base point.
         """
         if base_point is None:
-            base_point = [None] * self.n_metrics
+            base_point = [None] * len(self.metrics)
 
         if self.default_point_type == "vector":
-            intrinsic = self.is_intrinsic(base_point)
             args = {"point": point, "base_point": base_point}
-            logs = self._iterate_over_metrics("log", args, intrinsic)
+            logs = self._iterate_over_metrics("log", args)
             logs = gs.concatenate(logs, axis=-1)
             return logs
 
         logs = gs.stack(
             [
-                self.metrics[i].log(point[..., i, :], base_point[..., i, :])
-                for i in range(self.n_metrics)
+                metric.log(point[..., i, :], base_point[..., i, :])
+                for i, metric in enumerate(self.metrics)
             ],
             axis=-2,
         )
