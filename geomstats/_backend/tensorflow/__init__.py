@@ -909,7 +909,3 @@ def matmul(x, y):
 
 def gamma(x):
     return _tf.exp(_tf.math.lgamma(x))
-
-
-# def max(x, axis=None):
-#     return _tf.math.reduce_max(x, axis=axis)
