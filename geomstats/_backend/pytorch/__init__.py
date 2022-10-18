@@ -270,6 +270,10 @@ def shape(val):
     return val.shape
 
 
+def max(a, axis=None):
+    return _torch.max(array(a), dim=axis).values
+
+
 def maximum(a, b):
     return _torch.max(array(a), array(b))
 

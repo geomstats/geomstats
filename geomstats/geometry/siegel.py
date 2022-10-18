@@ -20,16 +20,19 @@ References
       https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
-import autograd
-from scipy.linalg import fractional_matrix_power
+# import autograd
+# from scipy.linalg import fractional_matrix_power
 
 import geomstats.backend as gs
-from geomstats.geometry.hermitian_matrices import HermitianMatrices
+from geomstats.geometry.base import OpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+from geomstats.geometry.hermitian_matrices import HermitianMatrices
+
+CDTYPE = gs.get_default_cdtype()
 
 
-class Siegel(ComplexMatrices):
+class Siegel(OpenSet):
     """Class for the Siegel disk.
 
     The Siegel disk is a generalization of the complex Poincare disk
@@ -45,21 +48,12 @@ class Siegel(ComplexMatrices):
             Integer representing the shape of the matrices: n x n.
         """
         kwargs.setdefault("metric", SiegelMetric(n))
-        super(Siegel, self).__init__(m=n, n=n)
+        super().__init__(
+            dim=n**2, embedding_space=ComplexMatrices(m=n, n=n), **kwargs
+        )
         self.n = n
-        # self.dim = n**2
         self.symmetric = symmetric
         self.scale = scale
-        # self.default_point_type = default_point_type
-        # if default_point_type == "matrix":
-        #     self.point_shape = (n, n)
-        #     self.n_dim_point = 2
-        # elif default_point_type == "vector":
-        #     self.point_shape = (n**2,)
-        #     self.n_dim_point = 1
-        # self.metric = SiegelMetric(
-        #     n=n, default_point_type=default_point_type, scale=self.scale
-        # )
 
     def belongs(self, point):
         """Evaluate if a point belongs to the Siegel space.
@@ -78,10 +72,6 @@ class Siegel(ComplexMatrices):
         belongs : array-like, shape=[..., 1]
         """
 
-        if self.symmetric:
-            if not ComplexMatrices.is_symmetric(point):
-                return False
-
         data_type = point.dtype
         point_shape = gs.shape(point)
 
@@ -91,9 +81,7 @@ class Siegel(ComplexMatrices):
 
         identity = gs.zeros(point.shape, dtype=data_type)
         gs.einsum("...ii -> ...i", identity)[...] = 1
-
         point_transconj = ComplexMatrices.transconjugate(point)
-
         aux_1 = gs.einsum("...ij,...jk->...ik", point, point_transconj)
         aux_2 = identity - aux_1
 
@@ -106,26 +94,141 @@ class Siegel(ComplexMatrices):
                 eigenvalues = gs.linalg.eigvalsh(aux_2[i_sample, ...])
                 belongs[i_sample] = (eigenvalues > 0).all()
 
+        if self.symmetric:
+            belongs = gs.logical_and(belongs, ComplexMatrices.is_symmetric(point))
+
         return belongs
+
+    def projection(self, point, atol=gs.atol):
+        """Project a matrix to the Siegel space.
+        First the Hermitian part of point is computed, then the eigenvalues
+        are floored to gs.atol.
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix to project.
+        atol : float
+            Tolerance.
+            Optional, default: backend atol.
+        Returns
+        -------
+        projected: array-like, shape=[..., n, n]
+            HPD matrix.
+        """
+        data_type = point.dtype
+        point_shape = gs.shape(point)
+
+        ndim = len(point_shape)
+        if ndim == 3:
+            n_samples = point_shape[0]
+
+        # identity = gs.zeros(point.shape, dtype=data_type)
+        # gs.einsum("...ii -> ...i", identity)[...] = 1
+        if ndim == 2:
+            identity = gs.eye(self.n, dtype=data_type)
+        elif ndim == 3:
+            identity = gs.stack(
+                [gs.eye(self.n, dtype=data_type) for _ in range(n_samples)], axis=0
+            )
+        point_transconj = ComplexMatrices.transconjugate(point)
+        aux_1 = gs.einsum("...ij,...jk->...ik", point, point_transconj)
+        aux_2 = identity - aux_1
+
+        projected = point
+        eigenvalues = gs.linalg.eigvalsh(aux_2)
+        max_eigenvalues = gs.max(eigenvalues, axis=-1)
+
+        if ndim == 2:
+            if max_eigenvalues >= 1 - atol:
+                projected /= gs.cast((1 - atol) * max_eigenvalues, dtype=data_type)
+
+        elif ndim == 3:
+            for i_sample in range(n_samples):
+                if max_eigenvalues[i_sample] > 1 - atol:
+                    projected /= gs.cast(
+                        (1 - atol) * max_eigenvalues[i_sample], dtype=data_type
+                    )
+
+        if self.symmetric:
+            projected = ComplexMatrices.to_symmetric(projected)
+
+        return projected
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample in HPD(n) from the log-uniform distribution.
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample in the tangent space.
+            Optional, default: 1.
+        Returns
+        -------
+        samples : array-like, shape=[..., n, n]
+            Points sampled in HPD(n).
+        """
+        n = self.n
+        size = (n_samples, n, n) if n_samples != 1 else (n, n)
+
+        mat = gs.cast(gs.random.rand(*size), dtype=CDTYPE)
+        mat += 1j * gs.cast(gs.random.rand(*size), dtype=CDTYPE)
+        mat *= 2
+        mat -= 1 + 1j
+        mat *= bound
+        siegel_mat = self.projection(mat)
+        return siegel_mat
+
+    def random_tangent_vec(self, base_point, n_samples=1):
+        """Sample on the tangent space of HPD(n) from the uniform distribution.
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        base_point : array-like, shape=[..., n, n]
+            Base point of the tangent space.
+            Optional, default: None.
+        Returns
+        -------
+        samples : array-like, shape=[..., n, n]
+            Points sampled in the tangent space at base_point.
+        """
+        n = self.n
+        size = (n_samples, n, n) if n_samples != 1 else (n, n)
+
+        tangent_vec = gs.cast(gs.random.rand(*size), dtype=CDTYPE)
+        tangent_vec += 1j * gs.cast(gs.random.rand(*size), dtype=CDTYPE)
+        tangent_vec *= 2
+        tangent_vec -= 1 + 1j
+
+        return tangent_vec
 
 
 class SiegelMetric(ComplexRiemannianMetric):
     """Class for the Siegel metric."""
 
-    def __init__(self, n, default_point_type="matrix", scale=1):
+    def __init__(self, n, scale=1, **kwargs):
         """Construct the Siegel metric."""
+        dim = int(n**2)
+        super().__init__(
+            dim=dim,
+            shape=(n, n),
+            signature=(dim, 0),
+        )
         self.n = n
-        self.dim = n**2
-        self.signature = (n**2, 0, 0)  # What is the signature ?
+        # self.dim = n**2
+        # self.signature = (n**2, 0, 0)  # What is the signature ?
         assert scale > 0, "The scale should be strictly positive"
         self.scale = scale
-        self.default_point_type = default_point_type
-        if default_point_type == "matrix":
-            self.point_shape = (n, n)
-            self.n_dim_point = 2
-        elif default_point_type == "vector":
-            self.point_shape = (n**2,)
-            self.n_dim_point = 1
+        # self.default_point_type = default_point_type
+        # if default_point_type == "matrix":
+        #     self.point_shape = (n, n)
+        #     self.n_dim_point = 2
+        # elif default_point_type == "vector":
+        #     self.point_shape = (n**2,)
+        #     self.n_dim_point = 1
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Information Geometry inner-product.
@@ -158,14 +261,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         if ndim == 3:
             n_samples = base_point_shape[0]
 
-        # if ndim == 2:
-        #     identity = gs.eye(self.n, dtype=complex)
-        # elif ndim == 3:
-        #     identity = gs.stack(
-        #         [gs.eye(self.n, dtype=complex)
-        #          for i_sample in range(n_samples)],
-        #         axis=0)
-
         identity = gs.zeros(base_point.shape, dtype=data_type)
         gs.einsum("...ii -> ...i", identity)[...] = 1
 
@@ -181,13 +276,9 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         aux_4 = identity - aux_2
 
-        # inv_aux_3 = pinvh(aux_3)
         inv_aux_3 = HermitianMatrices.powerm(aux_3, -1)
-        # inv_aux_3 = gs.linalg.inv(aux_3)
 
-        # inv_aux_4 = pinvh(aux_4)
         inv_aux_4 = HermitianMatrices.powerm(aux_4, -1)
-        # inv_aux_4 = gs.linalg.inv(aux_4)
 
         aux_a = gs.einsum("...ij,...jk->...ik", inv_aux_3, tangent_vec_a)
         aux_b = gs.einsum("...ij,...jk->...ik", inv_aux_4, tangent_vec_b_transconj)
@@ -305,69 +396,38 @@ class SiegelMetric(ComplexRiemannianMetric):
         data_type = tangent_vec.dtype
         identity = gs.zeros(tangent_vec.shape, dtype=data_type)
         gs.einsum("...ii -> ...i", identity)[...] = 1
-
         tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
-
         aux_1 = gs.einsum("...ij,...jk->...ik", tangent_vec, tangent_vec_transconj)
-
         aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
-
-        # aux_3 = gs.linalg.expm(2 * aux_2)
         aux_3 = HermitianMatrices.expm(2 * aux_2)
-
         factor_1 = aux_3 - identity
-
         aux_4 = aux_3 + identity
-
-        # factor_2 = pinvh(aux_4)
         factor_2 = HermitianMatrices.powerm(aux_4, -1)
-
-        # factor_3 = pinvh(aux_2)
         factor_3 = HermitianMatrices.powerm(aux_2, -1)
-
         prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, factor_2)
-
         prod_2 = gs.einsum("...ij,...jk->...ik", prod_1, factor_3)
-
         exp = gs.einsum("...ij,...jk->...ik", prod_2, tangent_vec)
-
         return exp
 
     @staticmethod
     def isometry(point, point_to_zero):
-
         data_type = (point + point_to_zero).dtype
         identity = gs.zeros(point.shape, dtype=data_type)
         gs.einsum("...ii -> ...i", identity)[...] = 1
-
         point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
-
         aux_1 = gs.einsum("...ij,...jk->...ik", point_to_zero, point_to_zero_transconj)
-
         aux_2 = gs.einsum("...ij,...jk->...ik", point_to_zero_transconj, point_to_zero)
-
         aux_3 = identity - aux_1
-
         aux_4 = identity - aux_2
-
         factor_1 = HermitianMatrices.powerm(aux_3, -1 / 2)
-
         factor_4 = HermitianMatrices.powerm(aux_4, 1 / 2)
-
         factor_2 = point - point_to_zero
-
         aux_5 = gs.einsum("...ij,...jk->...ik", point_to_zero_transconj, point)
-
         aux_6 = identity - aux_5
-
         factor_3 = gs.linalg.inv(aux_6)
-
         prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, factor_2)
-
         prod_2 = gs.einsum("...ij,...jk->...ik", prod_1, factor_3)
-
         point_image = gs.einsum("...ij,...jk->...ik", prod_2, factor_4)
-
         return point_image
 
     def exp(self, tangent_vec, base_point):
@@ -404,32 +464,18 @@ class SiegelMetric(ComplexRiemannianMetric):
         data_type = point.dtype
         identity = gs.zeros(point.shape, dtype=data_type)
         gs.einsum("...ii -> ...i", identity)[...] = 1
-
         point_transconj = ComplexMatrices.transconjugate(point)
-
         aux_1 = gs.einsum("...ij,...jk->...ik", point, point_transconj)
-
         aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
-
         num = identity + aux_2
-
         den = identity - aux_2
-
         inv_den = HermitianMatrices.powerm(den, -1)
-
         frac = gs.einsum("...ij,...jk->...ik", num, inv_den)
-
-        # factor_1 = gs.linalg.logm(frac)
         factor_1 = HermitianMatrices.logm(frac)
-
         factor_2 = HermitianMatrices.powerm(aux_2, -1)
-
         prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, factor_2)
-
         log = gs.einsum("...ij,...jk->...ik", prod_1, point)
-
         log *= 0.5
-
         return log
 
     @staticmethod
@@ -437,25 +483,15 @@ class SiegelMetric(ComplexRiemannianMetric):
         data_type = (tangent_vec + base_point).dtype
         identity = gs.zeros(base_point.shape, dtype=data_type)
         gs.einsum("...ii -> ...i", identity)[...] = 1
-
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
-
         aux_1 = gs.einsum("...ij,...jk->...ik", base_point, base_point_transconj)
-
         aux_2 = gs.einsum("...ij,...jk->...ik", base_point_transconj, base_point)
-
         aux_3 = identity - aux_1
-
         aux_4 = identity - aux_2
-
         factor_1 = HermitianMatrices.powerm(aux_3, 1 / 2)
-
         factor_3 = HermitianMatrices.powerm(aux_4, 1 / 2)
-
         prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, tangent_vec)
-
         tangent_vec_at_base_point = gs.einsum("...ij,...jk->...ik", prod_1, factor_3)
-
         return tangent_vec_at_base_point
 
     def log(self, point, base_point):

@@ -43,6 +43,7 @@ from autograd.numpy import (
     less_equal,
     logical_and,
     logical_or,
+    max,
     maximum,
     mean,
     meshgrid,

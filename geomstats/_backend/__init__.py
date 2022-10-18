@@ -97,6 +97,7 @@ BACKEND_ATTRIBUTES = {
         "mat_from_diag_triu_tril",
         "matmul",
         "matvec",
+        "max",
         "maximum",
         "mean",
         "meshgrid",

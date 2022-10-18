@@ -21,7 +21,7 @@ def eig(*args, **kwargs):
 
 
 def eigvalsh(a):
-    return _tf.linalg.eigvalsh(a)
+    return _tf.math.real(_tf.linalg.eigvalsh(a))
 
 
 def cholesky(a):
