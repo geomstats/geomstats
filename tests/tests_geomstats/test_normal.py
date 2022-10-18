@@ -77,6 +77,7 @@ class TestNormalDistributions(tests.conftest.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-8)
 
+    @tests.conftest.np_autograd_and_torch_only
     def test_normal_metric(self):
         n_samples = 3
         base_point = self.normal.random_point(n_samples)
