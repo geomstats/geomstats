@@ -22,7 +22,7 @@ from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric  # NOQA
 
 
-class PoincarePolydisk(ProductManifold, OpenSet):
+class PoincarePolydisk(ProductManifold):
     r"""Class for the Poincare polydisk.
 
     The Poincare polydisk is a direct product of n Poincare disks,
@@ -45,9 +45,7 @@ class PoincarePolydisk(ProductManifold, OpenSet):
         ] * n_disks
         super().__init__(
             factors=list_disks,
-            default_point_type="matrix",
-            embedding_space=Matrices(n_disks, 2),
-            default_coords_type=default_coords_type
+            default_point_type="matrix"
         )
         self._metric = PoincarePolydiskMetric(
             n_disks=n_disks, default_coords_type=default_coords_type
@@ -82,37 +80,6 @@ class PoincarePolydisk(ProductManifold, OpenSet):
             axis=1,
         )
         return point_extrinsic
-
-    def to_tangent(self, vector, base_point):
-        """Project a vector in the tangent space.
-
-        Project a vector in Minkowski space
-        on the tangent space of the hyperbolic space at a base point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., n_disks, dim + 1]
-            Vector.
-        base_point : array-like, shape=[..., n_disks, dim + 1]
-            Base point.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., n_disks, dim + 1]
-            Tangent vector at base point.
-        """
-        n_disks = self.n_disks
-        hyperbolic_space = Hyperboloid(2, self.default_coords_type)
-        tangent_vec = gs.stack(
-            [
-                hyperbolic_space.to_tangent(
-                    vector=vector[..., i_disk, :], base_point=base_point[..., i_disk, :]
-                )
-                for i_disk in range(n_disks)
-            ],
-            axis=1,
-        )
-        return tangent_vec
 
 
 class PoincarePolydiskMetric(ProductRiemannianMetric):
