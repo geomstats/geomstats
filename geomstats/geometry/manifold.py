@@ -168,7 +168,7 @@ class Manifold(abc.ABC):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        base_point :  array-like, shape=[..., dim]
+        base_point :  array-like, shape={[n_samples, dim], [dim,]}
             Point.
 
         Returns
@@ -183,7 +183,7 @@ class Manifold(abc.ABC):
         ):
             raise ValueError(
                 "The number of base points must be the same as the "
-                "number of samples, when different from 1."
+                "number of samples, when the number of base points is different from 1."
             )
         return gs.squeeze(
             self.to_tangent(
