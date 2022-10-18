@@ -114,6 +114,11 @@ def get_default_dtype():
     return _config.DEFAULT_DTYPE
 
 
+def get_default_cdtype():
+    """Get backend default complex dtype."""
+    return _config.DEFAULT_COMPLEX_DTYPE
+
+
 def _dyn_update_dtype(dtype_pos=None, target=None):
     """Update (dynamically) function dtype.
 
