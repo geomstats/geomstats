@@ -105,7 +105,6 @@ class HPDMatrices(OpenSet):
         mat -= 1 + 1j
         mat *= bound
         hpd_mat = GeneralLinear.exp(ComplexMatrices.to_hermitian(mat))
-        print(hpd_mat.shape)
         return hpd_mat
 
     def random_tangent_vec(self, base_point, n_samples=1):
