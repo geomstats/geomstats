@@ -4,6 +4,7 @@ Lead author: Nicolas Guigui.
 """
 
 import joblib
+from math import prod
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -51,7 +52,7 @@ class ProductManifold(Manifold):
 
         factor_shapes = [manifold.shape for manifold in manifolds]
         if default_point_type == "vector":
-            shape = (sum([m.shape[0] for m in manifolds]),)
+            shape = (sum([prod(m.shape) for m in manifolds]),)
             # need to cast these into vectors
         else:
             if (factor_shapes.count(factor_shapes[0]) == len(factor_shapes)):
@@ -113,73 +114,144 @@ class ProductManifold(Manifold):
     def _get_method(manifold, method_name, metric_args):
         return getattr(manifold, method_name)(**metric_args)
 
-    def _iterate_over_manifolds(self, func, args):
-        """Apply a function to each factor of the product.
+    def _validate_args_for_iteration(self, args):
+        """Separate arguments into different types and validate them.
+
+        Parameters
+        ----------
+        args : dict
+            Dict of arguments.
+            Float or int arguments are passed to func for each manifold
+            Array-type arguments must be of type (..., shape)
+
+        Returns
+        -------
+        arguments : dict
+            Dict of arguments with values being lists of array-like arguments.
+            Each array-like argument corresponds to a factor af the manifold.
+            The trailing dimensions of the argument match the shape of the factor
+        numerical_args : dict
+            Dict of arguments with values which are float or int
+        leading_dimensions : tuple
+            Shape of the leading dimensions of arguments, which must all match
         """
+        # TODO division should not be between numerical and non-numerical
+        # TODO booleans, strings, etc could all be passed
+        arguments = {}
+        numerical_args = {}
+        leading_dimensions = []
         if self.default_point_type == "vector":
             cum_index = (
                 gs.cumsum(self.embedding_space.factor_dims)[:-1]
                 if self.default_coords_type == "intrinsic"
                 else gs.cumsum(self.embedding_space.factor_dims)[:-1]
             )
-            arguments = {}
-            float_args = {}
             for key, value in args.items():
-                if not isinstance(value, float):
-                    if value.shape[-1] != self.shape[-1]:
-                        raise ValueError(
-                            f"Argument {key}: {value} could not be broadcast to "
-                            f"shape {self.factor_shapes}"
-                        )
-                    arguments[key] = gs.split(value, cum_index, axis=-1)
+                if isinstance(value, float) or isinstance(value, int):
+                    numerical_args[key] = value
                 else:
-                    float_args[key] = value
+                    msg = (f"Argument {key}: {value} could not be broadcast to "
+                           f"shape {self.factor_shapes}")
+                    if isinstance(value, list):
+                        value = gs.array(value)
+                    if value.shape[-1] != self.shape[-1]:
+                        raise ValueError(msg)
+                    leading_dimensions.append(value.shape[:-1])
+                    arguments[key] = gs.split(value, cum_index, axis=-1)
+
+        elif self.default_point_type == "matrix":
+            for key, value in args.items():
+                if isinstance(value, float) or isinstance(value, int):
+                    numerical_args[key] = value
+                else:
+                    arguments[key] = value
+            for key, value in arguments.items():
+                if value.shape[-2:] != self.shape[-2:]:
+                    raise ValueError(
+                        "Arguments did not have correct trailing dimensions"
+                    )
+                leading_dimensions.append(value.shape[:-2])
+
+        if len(leading_dimensions) == 0:
+            leading_dimensions = tuple()
+        elif leading_dimensions.count(leading_dimensions[0]) == len(leading_dimensions):
+            leading_dimensions = leading_dimensions[0]
+        else:
+            raise ValueError("Not all arguments have the same leading dimensions.")
+        return arguments, numerical_args, leading_dimensions
+
+    def _iterate_over_factors(self, func, args):
+        """Apply a function to each factor of the product.
+
+        If default_point_type is 'vector' then the vector must be split up into
+        sub-vectors for each component, and then those sub-vectors should be broadcast
+        into the correct shape for the individual manifold. These are then passed to the
+        function along with any float or int arguments.
+
+        However, if default_point_type is 'matrix', then we have an array of shape
+        (..., n_manifolds, dim_each). In this case we simply split into n_manifolds
+        arrays, each of shape (dim_each,).
+
+        The returned value will be array-like with all outputs contained in the
+        trailing dimension if default_point_type is vector, or in the two trailing
+        dimensions if default_point_type is matrix.
+
+        Parameters
+        ----------
+        func : str
+            The name of a method which is defined for each factor of the product
+            The method returns an array of shape (..., k)
+        args : dict
+            Dict of arguments.
+            Float or int arguments are passed to func for each manifold
+            Array-type arguments must be of type (..., shape)
+
+        Returns
+        -------
+        out : array-like, shape = [..., {n_manifolds*k, (n_manifolds, k)}]
+        """
+        arguments, numerical_args, leading_dimensions = \
+            self._validate_args_for_iteration(args)
+
+        if self.default_point_type == "vector":
             args_list = [
                 {
-                    key: gs.reshape(arguments[key][j], self.factor_shapes[j])
+                    key: gs.reshape(
+                        arguments[key][j],
+                        leading_dimensions + self.factor_shapes[j])
+                    # TODO
+                    # This code came from https://stackoverflow.com/questions/46183967/how-to-reshape-only-last-dimensions-in-numpy
+                    # There is a warning here that it won't work with tensorflow
+                    # because it won't handle None dimensions
                     for key in arguments
                 }
                 for j in range(len(self.manifolds))
             ]
-            pool = joblib.Parallel(n_jobs=self.n_jobs)
-            out = pool(
-                joblib.delayed(self._get_method)(
-                    self.manifolds[i], func, {**args_list[i], **float_args}
-                )
-                for i in range(len(self.manifolds))
-            )
-            return out
-
         elif self.default_point_type == "matrix":
-            arguments = {}
-            float_args = {}
-            for key, value in args.items():
-                if not isinstance(value, float):
-                    arguments[key] = value
-                else:
-                    float_args[key] = value
             args_list = [
-                {key: value[j] for key in arguments}
+                {key: arguments[key][..., j, :] for key in arguments}
                 for j in range(len(self.manifolds))
             ]
-            pool = joblib.Parallel(n_jobs=self.n_jobs)
-            out = pool(
-                joblib.delayed(self._get_method)(
-                    self.manifolds[i], func, {**args_list[i], **float_args}
-                )
-                for i in range(len(self.manifolds))
-            )
-            return out
 
-    def _flatten_point(self, point_list):
-        """Transform from a list of points from each factor to a single vector.
-        """
-        if self.default_point_type == "matrix":
-            raise NotImplementedError
+        pool = joblib.Parallel(n_jobs=self.n_jobs)
+        out = pool(
+            joblib.delayed(self._get_method)(
+                self.manifolds[i], func, {**args_list[i], **numerical_args}
+            )
+            for i in range(len(self.manifolds))
+        )
+
+        if self.default_point_type == 'vector':
+            # the individual factors might have matrix type, so their responses must be
+            # flattened before proceeding
+            for response in out:
+                if gs.is_array(response):
+                    if len(response.shape) > len(leading_dimensions) + 1:
+                        response.reshape(leading_dimensions + (-1,))
+            out = gs.concatenate(out, axis=-1)
         else:
-            flattened_point_list = [point.flatten for point in point_list]
-            flat_list = [coord for point in flattened_point_list for coord in point]
-            return gs.array(flat_list)
+            out = gs.stack(out, axis=-2)
+        return out
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the manifold.
@@ -194,24 +266,12 @@ class ProductManifold(Manifold):
 
         Returns
         -------
-        belongs : bool
+        belongs : array-like, shape=[...,]
             Boolean evaluating if the point belongs to the manifold.
         """
-        if self.default_point_type == "vector":
-            belongs = self._iterate_over_manifolds(
-                "belongs", {"point": point, "atol": atol}
-            )
-            belongs = gs.stack(belongs, axis=-1)
-
-        else:
-            belongs = gs.stack(
-                [
-                    space.belongs(point[..., i, :], atol)
-                    for i, space in enumerate(self.manifolds)
-                ],
-                axis=-1,
-            )
-
+        belongs = self._iterate_over_factors(
+            "belongs", {"point": point, "atol": atol}
+        )
         belongs = gs.all(belongs, axis=-1)
         return belongs
 
@@ -230,23 +290,15 @@ class ProductManifold(Manifold):
             [n_manifolds, dim_each]}]
             Point in the manifold's canonical representation.
         """
-        point_type = self.default_point_type
-
-        if point_type == "vector":
-            regularized_point = self._iterate_over_manifolds(
-                "regularize", {"point": point}
-            )
-            regularized_point = gs.concatenate(regularized_point, axis=-1)
-        elif point_type == "matrix":
-            regularized_point = [
-                manifold_i.regularize(point[..., i, :])
-                for i, manifold_i in enumerate(self.manifolds)
-            ]
-            regularized_point = gs.stack(regularized_point, axis=1)
+        regularized_point = self._iterate_over_factors(
+            "regularize", {"point": point}
+        )
         return regularized_point
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in the product space from the uniform distribution.
+        """Sample in the product space from the product distribution.
+
+        Each factor has a method random_sample which
 
         Parameters
         ----------
@@ -262,16 +314,9 @@ class ProductManifold(Manifold):
             [n_manifolds, dim_each]}]
             Points sampled from the manifold.
         """
-        if self.default_point_type == "vector":
-            data = self.manifolds[0].random_point(n_samples, bound)
-            if len(self.manifolds) > 1:
-                for space in self.manifolds[1:]:
-                    samples = space.random_point(n_samples, bound)
-                    data = gs.concatenate([data, samples], axis=-1)
-            return data
-
-        point = [space.random_point(n_samples, bound) for space in self.manifolds]
-        samples = gs.stack(point, axis=-2)
+        samples = self._iterate_over_factors(
+            "random_point", {"n_samples": n_samples, "bound": bound}
+        )
         return samples
 
     def projection(self, point):
@@ -289,19 +334,7 @@ class ProductManifold(Manifold):
             [n_manifolds, dim_each]}]
             Projected point.
         """
-        point_type = self.default_point_type
-
-        if point_type == "vector":
-            projected_point = self._iterate_over_manifolds(
-                "projection", {"point": point}
-            )
-            projected_point = gs.concatenate(projected_point, axis=-1)
-        elif point_type == "matrix":
-            projected_point = [
-                manifold_i.projection(point[..., i, :])
-                for i, manifold_i in enumerate(self.manifolds)
-            ]
-            projected_point = gs.stack(projected_point, axis=-2)
+        projected_point = self._iterate_over_factors("projection", {"point": point})
         return projected_point
 
     def to_tangent(self, vector, base_point):
@@ -320,23 +353,13 @@ class ProductManifold(Manifold):
             Tangent vector at base point.
 
         Notes
-        _____
+        -----
         The tangent space of the product manifold is the direct sum of
         tangent spaces.
         """
-        point_type = self.default_point_type
-
-        if point_type == "vector":
-            tangent_vec = self._iterate_over_manifolds(
-                "to_tangent", {"base_point": base_point, "vector": vector}
-            )
-            tangent_vec = gs.concatenate(tangent_vec, axis=-1)
-        elif point_type == "matrix":
-            tangent_vec = [
-                manifold_i.to_tangent(vector[..., i, :], base_point[..., i, :])
-                for i, manifold_i in enumerate(self.manifolds)
-            ]
-            tangent_vec = gs.stack(tangent_vec, axis=-2)
+        tangent_vec = self._iterate_over_factors(
+            "to_tangent", {"base_point": base_point, "vector": vector}
+        )
         return tangent_vec
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
@@ -360,23 +383,9 @@ class ProductManifold(Manifold):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        if self.default_point_type == "vector":
-            is_tangent = self._iterate_over_manifolds(
-                "is_tangent", {"base_point": base_point, "vector": vector, "atol": atol}
-            )
-            is_tangent = gs.stack(is_tangent, axis=-1)
-
-        else:
-            is_tangent = gs.stack(
-                [
-                    space.is_tangent(
-                        vector[..., i, :], base_point[..., i, :], atol=atol
-                    )
-                    for i, space in enumerate(self.manifolds)
-                ],
-                axis=-1,
-            )
-
+        is_tangent = self._iterate_over_factors(
+            "is_tangent", {"base_point": base_point, "vector": vector, "atol": atol}
+        )
         is_tangent = gs.all(is_tangent, axis=-1)
         return is_tangent
 
