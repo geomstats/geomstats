@@ -17,8 +17,6 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 )
 from geomstats.integrator import integrate
 
-# from scipy.linalg import eigh, inv, pinvh
-
 
 CDTYPE = gs.get_default_cdtype()
 
