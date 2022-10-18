@@ -5,6 +5,7 @@ Lead author: Nicolas Guigui.
 
 import joblib
 from math import prod
+from numpy import broadcast_shapes
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -76,9 +77,6 @@ class ProductManifold(Manifold):
             default_coords_type = "extrinsic"
         else:
             default_coords_type = "intrinsic"
-        kwargs.setdefault("default_coords_type", default_coords_type)
-        # TODO this doesn't seem right
-        #  need to be able to over-rule the user supplied input.
 
         if metrics is None:
             metrics = [manifold.metric for manifold in manifolds]
@@ -92,6 +90,7 @@ class ProductManifold(Manifold):
         super().__init__(
             dim=dim,
             shape=shape,
+            default_coords_type=default_coords_type,
             **kwargs,
         )
 
@@ -131,29 +130,25 @@ class ProductManifold(Manifold):
             Each array-like argument corresponds to a factor af the manifold.
             The trailing dimensions of the argument match the shape of the factor
         numerical_args : dict
-            Dict of arguments with values which are float or int
+            Dict of non-array arguments
         leading_dimensions : tuple
             Shape of the leading dimensions of arguments, which must all match
         """
-        # TODO division should not be between numerical and non-numerical
-        # TODO booleans, strings, etc could all be passed
         arguments = {}
         numerical_args = {}
         leading_dimensions = []
         if self.default_point_type == "vector":
             cum_index = (
-                gs.cumsum(self.embedding_space.factor_dims)[:-1]
+                gs.cumsum(self.factor_dims)[:-1]
                 if self.default_coords_type == "intrinsic"
                 else gs.cumsum(self.embedding_space.factor_dims)[:-1]
             )
             for key, value in args.items():
-                if isinstance(value, float) or isinstance(value, int):
+                if not gs.is_array(value):
                     numerical_args[key] = value
                 else:
                     msg = (f"Argument {key}: {value} could not be broadcast to "
                            f"shape {self.factor_shapes}")
-                    if isinstance(value, list):
-                        value = gs.array(value)
                     if value.shape[-1] != self.shape[-1]:
                         raise ValueError(msg)
                     leading_dimensions.append(value.shape[:-1])
@@ -161,7 +156,7 @@ class ProductManifold(Manifold):
 
         elif self.default_point_type == "matrix":
             for key, value in args.items():
-                if isinstance(value, float) or isinstance(value, int):
+                if not gs.is_array(value):
                     numerical_args[key] = value
                 else:
                     arguments[key] = value
@@ -172,13 +167,17 @@ class ProductManifold(Manifold):
                     )
                 leading_dimensions.append(value.shape[:-2])
 
-        if len(leading_dimensions) == 0:
-            leading_dimensions = tuple()
-        elif leading_dimensions.count(leading_dimensions[0]) == len(leading_dimensions):
-            leading_dimensions = leading_dimensions[0]
-        else:
-            raise ValueError("Not all arguments have the same leading dimensions.")
+        leading_dimensions = broadcast_shapes(*leading_dimensions)
         return arguments, numerical_args, leading_dimensions
+
+    def _reshape_trailing(self, argument, manifold):
+        if manifold.default_coords_type == "vector":
+            return argument
+        else:
+            leading_shape = argument.shape[:-1]
+            trailing_shape = manifold.shape
+            new_shape = leading_shape + trailing_shape
+            return gs.reshape(argument, new_shape)
 
     def _iterate_over_factors(self, func, args):
         """Apply a function to each factor of the product.
@@ -203,8 +202,8 @@ class ProductManifold(Manifold):
             The method returns an array of shape (..., k)
         args : dict
             Dict of arguments.
-            Float or int arguments are passed to func for each manifold
             Array-type arguments must be of type (..., shape)
+            Other arguments are passed to each factor unchanged
 
         Returns
         -------
@@ -216,13 +215,7 @@ class ProductManifold(Manifold):
         if self.default_point_type == "vector":
             args_list = [
                 {
-                    key: gs.reshape(
-                        arguments[key][j],
-                        leading_dimensions + self.factor_shapes[j])
-                    # TODO
-                    # This code came from https://stackoverflow.com/questions/46183967/how-to-reshape-only-last-dimensions-in-numpy
-                    # There is a warning here that it won't work with tensorflow
-                    # because it won't handle None dimensions
+                    key: self._reshape_trailing(arguments[key][j], self.manifolds[j])
                     for key in arguments
                 }
                 for j in range(len(self.manifolds))
@@ -242,12 +235,14 @@ class ProductManifold(Manifold):
         )
 
         if self.default_point_type == 'vector':
-            # the individual factors might have matrix type, so their responses must be
-            # flattened before proceeding
+            # The individual factors might have matrix type, so their responses must be
+            # flattened before proceeding. Since it is not straightforward to see which
+            # type has been returned, we are going to have to compare the shape of the
+            # return to the leading shape of all arguments broadcast against each otehr
             for response in out:
                 if gs.is_array(response):
                     if len(response.shape) > len(leading_dimensions) + 1:
-                        response.reshape(leading_dimensions + (-1,))
+                        response.reshape(response.shape[:-2] + (-1,))
             out = gs.concatenate(out, axis=-1)
         else:
             out = gs.stack(out, axis=-2)

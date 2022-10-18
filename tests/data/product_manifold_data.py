@@ -30,7 +30,7 @@ class ProductManifoldTestData(_ManifoldTestData):
         for manifold, default_point in zip(manifolds_list, default_point_list)
     ]
     shape_list = [
-        (n + 1, n + 1) if default_point == "matrix" else (2 * (n + 1),)
+        (2, n + 1) if default_point == "matrix" else (2 * (n + 1),)
         for n, default_point in zip(n_list, default_point_list)
     ]
     n_points_list = random.sample(range(2, 5), 2)
