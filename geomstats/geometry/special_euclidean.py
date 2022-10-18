@@ -43,7 +43,7 @@ def _squared_dist_grad_point_a(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -67,7 +67,7 @@ def _squared_dist_grad_point_b(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -87,10 +87,11 @@ def _squared_dist(point_a, point_b, metric):
     and point_b, as defined by the metric.
 
     This is an auxiliary private function that:
+
     - is called by the method `squared_dist` of the class
-    SpecialEuclideanMatrixCannonicalLeftMetric,
+      SpecialEuclideanMatrixCanonicalLeftMetric,
     - has been created to support the implementation
-    of custom_gradient in tensorflow backend.
+      of custom_gradient in tensorflow backend.
 
     Parameters
     ----------
@@ -98,7 +99,7 @@ def _squared_dist(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -112,13 +113,13 @@ def _squared_dist(point_a, point_b, metric):
 def homogeneous_representation(rotation, translation, output_shape, constant=1.0):
     r"""Embed rotation, translation couples into n+1 square matrices.
 
-    Construct a block matrix of size :math: `n + 1 \times n + 1` of the form
-    .. math::
-        \matvec{cc}{R & t\\
-                    0&c}
+    Construct a block matrix of size :math:`n + 1 \times n + 1` of the form
 
-    where :math: `R` is a square matrix, :math: `t` a vector of size
-    :math: `n`, and :math: `c` a constant (either 0 or 1 should be used).
+    .. math::
+        \begin{pmatrix} R & t \\ 0 & c \end{pmatrix}
+
+    where :math:`R` is a square matrix, :math:`t` a vector of size
+    :math:`n`, and :math:`c` a constant (either 0 or 1 should be used).
 
     Parameters
     ----------
@@ -220,7 +221,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         The Euclidean (Frobenius) inner product.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         super().__init__(
             n=n + 1,
             dim=int((n * (n + 1)) / 2),
@@ -229,15 +230,17 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             value=gs.eye(n + 1),
             tangent_submersion=tangent_submersion,
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
+            **kwargs
         )
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
         self.n = n
 
-        self.left_canonical_metric = SpecialEuclideanMatrixCannonicalLeftMetric(
+        self.left_canonical_metric = SpecialEuclideanMatrixCanonicalLeftMetric(
             group=self
         )
-        self.metric = self.left_canonical_metric
+        if self._metric is None:
+            self._metric = self.left_canonical_metric
 
     @property
     def identity(self):
@@ -338,7 +341,6 @@ class _SpecialEuclideanVectors(LieGroup):
             self,
             dim=dim,
             shape=(dim,),
-            default_point_type="vector",
             lie_algebra=Euclidean(dim),
         )
 
@@ -347,29 +349,21 @@ class _SpecialEuclideanVectors(LieGroup):
         self.rotations = SpecialOrthogonal(n=n, point_type="vector", epsilon=epsilon)
         self.translations = Euclidean(dim=n)
 
-    def get_identity(self, point_type=None):
+    def get_identity(self):
         """Get the identity of the group.
-
-        Parameters
-        ----------
-        point_type : str, {'vector', 'matrix'}
-            The point_type of the returned value.
-            Optional, default: self.default_point_type
 
         Returns
         -------
         identity : array-like, shape={[dim], [n + 1, n + 1]}
         """
-        if point_type is None:
-            point_type = self.default_point_type
         identity = gs.zeros(self.dim)
         return identity
 
     identity = property(get_identity)
 
-    def get_point_type_shape(self, point_type=None):
+    def get_point_type_shape(self):
         """Get the shape of the instance given the default_point_style."""
-        return self.get_identity(point_type).shape
+        return self.get_identity().shape
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to SE(2) or SE(3).
@@ -492,7 +486,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
         Equation
         --------
-        (:math: `(R_1, t_1) \\cdot (R_2, t_2) = (R_1 R_2, R_1 t_2 + t_1)`)
+        (:math:`(R_1, t_1) \\cdot (R_2, t_2) = (R_1 R_2, R_1 t_2 + t_1)`)
 
         Returns
         -------
@@ -662,7 +656,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialEuclidean2Vectors, self).__init__(n=2, epsilon=epsilon)
+        super().__init__(n=2, epsilon=epsilon)
 
     def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
         """Regularize a tangent vector at a base point.
@@ -773,7 +767,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialEuclidean3Vectors, self).__init__(n=3, epsilon=epsilon)
+        super().__init__(n=3, epsilon=epsilon)
 
     def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
         """Regularize a tangent vector at a base point.
@@ -979,12 +973,12 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         mask_close_pi = gs.isclose(angle, gs.pi)
         mask_else = ~mask_close_0 & ~mask_close_pi
 
-        mask_close_0_float = gs.cast(mask_close_0, gs.float32)
-        mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
+        mask_close_0_float = gs.cast(mask_close_0, rot_vec.dtype)
+        mask_close_pi_float = gs.cast(mask_close_pi, rot_vec.dtype)
+        mask_else_float = gs.cast(mask_else, rot_vec.dtype)
 
         mask_0 = gs.isclose(angle, 0.0, atol=1e-7)
-        mask_0_float = gs.cast(mask_0, gs.float32)
+        mask_0_float = gs.cast(mask_0, rot_vec.dtype)
         angle += mask_0_float * gs.ones_like(angle)
 
         coef_1 = -0.5 * gs.ones_like(angle)
@@ -1027,7 +1021,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         return transform
 
 
-class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
+class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
     """Class for the canonical left-invariant metric on SE(n).
 
     The canonical left-invariant metric is defined by endowing the tangent
@@ -1051,7 +1045,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
                 "group must be an instance of the "
                 "SpecialEclidean class with `point_type=matrix`."
             )
-        super(SpecialEuclideanMatrixCannonicalLeftMetric, self).__init__(group=group)
+        super().__init__(group=group)
         self.n = group.n
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -1137,11 +1131,11 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
 
         References
         ----------
-        [Zefran98]  Zefran, M., V. Kumar, and C.B. Croke.
-                    “On the Generation of Smooth Three-Dimensional Rigid Body
-                    Motions.” IEEE Transactions on Robotics and Automation 14,
-                    no. 4 (August 1998): 576–89.
-                    https://doi.org/10.1109/70.704225.
+        .. [Zefran98] Zefran, M., V. Kumar, and C.B. Croke.
+            “On the Generation of Smooth Three-Dimensional Rigid Body Motions.”
+            IEEE Transactions on Robotics and Automation 14,
+            no. 4 (August 1998): 576–89.
+            https://doi.org/10.1109/70.704225.
         """
         max_shape = point.shape if point.ndim == 3 else base_point.shape
         rotation_bp = base_point[..., : self.n, : self.n]
@@ -1161,11 +1155,11 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
 
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`. As the special Euclidean group endowed with its
         canonical left-invariant metric is a symmetric space, parallel
         transport is achieved by a geodesic symmetry, or equivalently, one step
-         of the pole ladder scheme.
+        of the pole ladder scheme.
 
         Parameters
         ----------
@@ -1178,8 +1172,8 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
             is computed.
             Optional, default: None
         end_point : array-like, shape=[..., n + 1, n + 1]
-            Point on the Grassmann manifold to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the Grassmann manifold to transport to. Unused if
+            `tangent_vec_b` is given.
             Optional, default: None
 
         Returns
@@ -1215,10 +1209,11 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         and point_b, as defined by the metric.
 
         This is an auxiliary private function that:
+
         - is called by the method `squared_dist` of the class
-        SpecialEuclideanMatrixCannonicalLeftMetric,
+          SpecialEuclideanMatrixCanonicalLeftMetric,
         - has been created to support the implementation
-        of custom_gradient in tensorflow backend.
+          of custom_gradient in tensorflow backend.
 
         Parameters
         ----------
@@ -1281,9 +1276,7 @@ class SpecialEuclideanMatrixCannonicalLeftMetric(_InvariantMetricMatrix):
         return radius
 
 
-class SpecialEuclidean(
-    _SpecialEuclidean2Vectors, _SpecialEuclidean3Vectors, _SpecialEuclideanMatrices
-):
+class SpecialEuclidean:
     r"""Class for the special Euclidean groups.
 
     Parameters
@@ -1320,10 +1313,11 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
     This is the tangent space at the identity. It is identified with the
     :math:`n + 1 \times n + 1` block matrices of the form:
-    .. math:
-                ((A, t), (0, 0))
 
-    where A is an :math:`n \times n` skew-symmetric matrix, :math: `t` is an
+    .. math::
+        ((A, t), (0, 0))
+
+    where A is an :math:`n \times n` skew-symmetric matrix, :math:`t` is an
     n-dimensional vector.
 
     Parameters
@@ -1335,7 +1329,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SpecialEuclideanMatrixLieAlgebra, self).__init__(dim, n + 1)
+        super().__init__(dim, n + 1)
 
         self.skew = SkewSymmetricMatrices(n)
         self.n = n
@@ -1349,11 +1343,11 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
             (self.skew.dim, n + 1, n + 1),
             0.0,
         )
-        basis = list(basis)
 
-        for row in gs.arange(n):
-            basis.append(gs.array_from_sparse([(row, n)], [1.0], (n + 1, n + 1)))
-        return gs.stack(basis)
+        indices = [(row, row, n) for row in range(n)]
+        add_basis = gs.array_from_sparse(indices, [1.0] * n, (n, n + 1, n + 1))
+
+        return gs.vstack([basis, add_basis])
 
     def belongs(self, mat, atol=ATOL):
         """Evaluate if the rotation part of mat is a skew-symmetric matrix.
@@ -1402,9 +1396,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         point : array-like, shape=[..., n + 1, n + 1]
            Sample.
         """
-        point = super(SpecialEuclideanMatrixLieAlgebra, self).random_point(
-            n_samples, bound
-        )
+        point = super().random_point(n_samples, bound)
         return self.projection(point)
 
     def projection(self, mat):

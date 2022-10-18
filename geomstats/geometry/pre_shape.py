@@ -33,7 +33,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
 
     References
     ----------
-    ..[Nava]  Nava-Yazdani, E., H.-C. Hege, T. J.Sullivan, and C. von Tycowicz.
+    .. [Nava]  Nava-Yazdani, E., H.-C. Hege, T. J.Sullivan, and C. von Tycowicz.
               “Geodesic Analysis in Kendall’s Shape Space with Epidemiological
               Applications.”
               Journal of Mathematical Imaging and Vision 62, no. 4 549–59.
@@ -43,17 +43,17 @@ class PreShapeSpace(LevelSet, FiberBundle):
     def __init__(self, k_landmarks, m_ambient):
         embedding_manifold = Matrices(k_landmarks, m_ambient)
         embedding_metric = embedding_manifold.metric
-        super(PreShapeSpace, self).__init__(
+        super().__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
             embedding_space=embedding_manifold,
             submersion=embedding_metric.squared_norm,
             value=1.0,
             tangent_submersion=embedding_metric.inner_product,
-            ambient_metric=PreShapeMetric(k_landmarks, m_ambient),
+            total_space_metric=PreShapeMetric(k_landmarks, m_ambient),
         )
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
-        self.ambient_metric = PreShapeMetric(k_landmarks, m_ambient)
+        self.total_space_metric = PreShapeMetric(k_landmarks, m_ambient)
 
     def projection(self, point):
         """Project a point on the pre-shape space.
@@ -69,7 +69,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
             Point projected on the pre-shape space.
         """
         centered_point = self.center(point)
-        frob_norm = self.ambient_metric.norm(centered_point)
+        frob_norm = self.total_space_metric.norm(centered_point)
         projected_point = gs.einsum("...,...ij->...ij", 1.0 / frob_norm, centered_point)
 
         return projected_point
@@ -175,7 +175,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
             raise ValueError("The base_point does not belong to the pre-shape" " space")
         vector = self.center(vector)
         sq_norm = Matrices.frobenius_product(base_point, base_point)
-        inner_prod = self.ambient_metric.inner_product(base_point, vector)
+        inner_prod = self.total_space_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum("...,...ij->...ij", coef, base_point)
 
@@ -186,10 +186,12 @@ class PreShapeSpace(LevelSet, FiberBundle):
 
         Compute the vertical component of a tangent vector :math:`w` at a
         base point :math:`x` by solving the sylvester equation:
-        .. math::
-                        `Axx^T + xx^TA = wx^T - xw^T`
 
-        where A is skew-symmetric. Then Ax is the vertical projection of w.
+        .. math::
+            Axx^T + xx^TA = wx^T - xw^T
+
+        where `A` is skew-symmetric.
+        Then `Ax` is the vertical projection of `w`.
 
         Parameters
         ----------
@@ -290,8 +292,8 @@ class PreShapeSpace(LevelSet, FiberBundle):
         References
         ----------
         .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
-        Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
-        459–69. https://doi.org/10.1307/mmj/1028999604.
+            Submersion, Michigan Mathematical Journal 13, no. 4
+            (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
         """
         # Only the horizontal part of a counts
         horizontal_a = self.horizontal_projection(tangent_vec_a, base_point)
@@ -348,11 +350,11 @@ class PreShapeSpace(LevelSet, FiberBundle):
         References
         ----------
         .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
-        Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
-        459–69. https://doi.org/10.1307/mmj/1028999604.
+            Submersion, Michigan Mathematical Journal 13, no. 4
+            (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
 
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
         hor_x = self.horizontal_projection(tangent_vec_x, base_point)
         p_top = Matrices.transpose(base_point)
@@ -392,10 +394,10 @@ class PreShapeSpace(LevelSet, FiberBundle):
         submersion.
         The components :math:`\nabla_X (A_Y E)` and :math:`A_Y E` are
         computed here for the Kendall shape space at base-point
-        :math:`P = base_point` for horizontal vector fields fields :math:
-        `X, Y` extending the values :math:`X|_P = horizontal_vec_x`,
-        :math:`Y|_P = horizontal_vec_y` and a general vector field
-        :math:`E` extending :math:`E|_P = tangent_vec_e` in a neighborhood
+        :math:`P = base\_point` for horizontal vector fields fields :math:
+        `X, Y` extending the values :math:`X|_P = horizontal\_vec\_x`,
+        :math:`Y|_P = horizontal\_vec\_y` and a general vector field
+        :math:`E` extending :math:`E|_P = tangent\_vec\_e` in a neighborhood
         of the base-point P with covariant derivatives
         :math:`\nabla_X Y |_P = nabla_x_y` and
         :math:`\nabla_X E |_P = nabla_x_e`.
@@ -478,7 +480,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
             x_top, tangent_vec_e_sym
         )
 
-        scal_x_a_y_e = self.ambient_metric.inner_product(
+        scal_x_a_y_e = self.total_space_metric.inner_product(
             horizontal_vec_x, a_y_e, base_point
         )
 
@@ -696,8 +698,9 @@ class PreShapeMetric(RiemannianMetric):
     """
 
     def __init__(self, k_landmarks, m_ambient):
-        super(PreShapeMetric, self).__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1, default_point_type="matrix"
+        super().__init__(
+            dim=m_ambient * (k_landmarks - 1) - 1,
+            shape=(k_landmarks, m_ambient),
         )
 
         self.embedding_metric = MatricesMetric(k_landmarks, m_ambient)
@@ -825,8 +828,8 @@ class PreShapeMetric(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math:`H|_P = tangent_vec_a, X|_P =
-        tangent_vec_b, Y|_P = tangent_vec_c, Z|_P = tangent_vec_d` with
+        For four vectors fields :math:`H|_P = tangent\_vec\_a, X|_P =
+        tangent\_vec\_b, Y|_P = tangent\_vec\_c, Z|_P = tangent\_vec\_d` with
         tangent vector value specified in argument at the base point `P`,
         the covariant derivative of the curvature
         :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
@@ -872,8 +875,8 @@ class PreShapeMetric(RiemannianMetric):
             Tangent vector at a base point.
             Optional, default : None.
         end_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space, to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the pre-shape space, to transport to. Unused if
+            `tangent_vec_b` is given.
             Optional, default : None.
 
         Returns
@@ -906,10 +909,10 @@ class PreShapeMetric(RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of the sphere, it does not depend on the base point and is Pi
-        everywhere.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the sphere, it does not depend on the base point and is
+        Pi everywhere.
 
         Parameters
         ----------
@@ -940,8 +943,10 @@ class KendallShapeMetric(QuotientMetric):
 
     def __init__(self, k_landmarks, m_ambient):
         bundle = PreShapeSpace(k_landmarks, m_ambient)
-        super(KendallShapeMetric, self).__init__(
-            fiber_bundle=bundle, dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2)
+        super().__init__(
+            fiber_bundle=bundle,
+            dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2),
+            shape=(k_landmarks, m_ambient),
         )
 
     def directional_curvature_derivative(
@@ -949,8 +954,8 @@ class KendallShapeMetric(QuotientMetric):
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math:`X|_P = tangent_vec_a, Y|_P =
-        tangent_vec_b` with tangent vector value specified in argument at the
+        For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
+        tangent\_vec\_b` with tangent vector value specified in argument at the
         base point `P`, the covariant derivative (in the direction 'X')
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)
@@ -1012,9 +1017,9 @@ class KendallShapeMetric(QuotientMetric):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximation of the solution of the parallel transport of a tangent
-        vector a along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
-        t*direction)`
+        vector a along the geodesic between two points `base_point` and
+        `end_point` or alternatively defined by
+        :math:`t\mapsto exp_{(base\_point)}(t*direction)`
 
         Parameters
         ----------
@@ -1044,11 +1049,11 @@ class KendallShapeMetric(QuotientMetric):
 
         References
         ----------
-        .. [GMTP21]   Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
-                      Pennec. “Parallel Transport on Kendall Shape Spaces.”
-                      5th conference on Geometric Science of Information,
-                      Paris 2021. Lecture Notes in Computer Science.
-                      Springer, 2021. https://hal.inria.fr/hal-03160677.
+        .. [GMTP21] Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
+            Pennec. “Parallel Transport on Kendall Shape Spaces.”
+            5th conference on Geometric Science of Information,
+            Paris 2021. Lecture Notes in Computer Science.
+            Springer, 2021. https://hal.inria.fr/hal-03160677.
 
         See Also
         --------
@@ -1066,8 +1071,8 @@ class KendallShapeMetric(QuotientMetric):
         horizontal_b = self.fiber_bundle.horizontal_projection(direction, base_point)
 
         def force(state, time):
-            gamma_t = self.ambient_metric.exp(time * horizontal_b, base_point)
-            speed = self.ambient_metric.parallel_transport(
+            gamma_t = self.total_space_metric.exp(time * horizontal_b, base_point)
+            speed = self.total_space_metric.parallel_transport(
                 horizontal_b, base_point, time * horizontal_b
             )
             coef = self.inner_product(speed, state, gamma_t)

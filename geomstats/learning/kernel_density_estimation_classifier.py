@@ -56,6 +56,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         Range of parameter space to use by default.
     kernel : string or callable, optional (default = 'distance')
         Kernel function used in prediction. Possible values:
+
         - 'distance' : weight points by the inverse of their distance.
           In this case, closer neighbors of a query point will have a
           greater influence than neighbors which are further away.
@@ -82,6 +83,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         must be square during fit.
     outlier_label : {manual label, 'most_frequent'}, optional (default = None)
         Label for outlier samples (samples with no neighbors in given radius).
+
         - manual label: str or int label (should be the same type as y)
           or list of manual labels if multi-output is used.
         - 'most_frequent' : assign the most frequent label of y to outliers.
@@ -175,7 +177,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         if len(data_shape) == 1:
             n_samples = data_shape[0]
             X = gs.reshape(X, (n_samples, 1))
-        super(KernelDensityEstimationClassifier, self).fit(X, y)
+        super().fit(X, y)
 
     def predict(self, X):
         """Predict the class labels for the provided data.
@@ -195,7 +197,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         if len(data_shape) == 1:
             n_samples = data_shape[0]
             X = gs.reshape(X, (n_samples, 1))
-        y_pred = super(KernelDensityEstimationClassifier, self).predict(X)
+        y_pred = super().predict(X)
         return y_pred
 
     def predict_proba(self, X):
@@ -218,5 +220,5 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         if len(data_shape) == 1:
             n_samples = data_shape[0]
             X = gs.reshape(X, (n_samples, 1))
-        probabilities = super(KernelDensityEstimationClassifier, self).predict_proba(X)
+        probabilities = super().predict_proba(X)
         return probabilities

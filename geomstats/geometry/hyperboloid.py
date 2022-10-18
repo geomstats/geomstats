@@ -23,14 +23,14 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     n+1)-dimensional Minkowski space. For other representations of
     hyperbolic spaces see the `Hyperbolic` class.
 
-    The coords_type parameter allows to choose the
+    The default_coords_type parameter allows to choose the
     representation of the points as input.
 
     Parameters
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    coords_type : str, {'extrinsic', 'intrinsic'}
+    default_coords_type : str, {'extrinsic', 'intrinsic'}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
     scale : int
@@ -39,22 +39,19 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         Optional, default: 1.
     """
 
-    default_coords_type = "extrinsic"
-    default_point_type = "vector"
-
-    def __init__(self, dim, coords_type="extrinsic", scale=1):
+    def __init__(self, dim, default_coords_type="extrinsic", scale=1, **kwargs):
         minkowski = Minkowski(dim + 1)
-        super(Hyperboloid, self).__init__(
+        kwargs.setdefault("metric", HyperboloidMetric(dim, default_coords_type, scale))
+        super().__init__(
             dim=dim,
             embedding_space=minkowski,
             submersion=minkowski.metric.squared_norm,
             value=-1.0,
             tangent_submersion=minkowski.metric.inner_product,
+            default_coords_type=default_coords_type,
             scale=scale,
+            **kwargs
         )
-        self.coords_type = coords_type
-        self.point_type = Hyperboloid.default_point_type
-        self.metric = HyperboloidMetric(self.dim, self.coords_type, self.scale)
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
@@ -80,13 +77,13 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         point_dim = point.shape[-1]
         if point_dim is not self.dim + 1:
             belongs = False
-            if point_dim is self.dim and self.coords_type == "intrinsic":
+            if point_dim is self.dim and self.default_coords_type == "intrinsic":
                 belongs = True
             if gs.ndim(point) == 2:
                 belongs = gs.tile([belongs], (point.shape[0],))
             return belongs
 
-        return super(Hyperboloid, self).belongs(point, atol)
+        return super().belongs(point, atol)
 
     def projection(self, point):
         """Project a point in space on the hyperboloid.
@@ -127,7 +124,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             Point in hyperbolic space in canonical representation
             in extrinsic coordinates.
         """
-        if self.coords_type == "intrinsic":
+        if self.default_coords_type == "intrinsic":
             point = self.intrinsic_to_extrinsic_coords(point)
 
         sq_norm = self.embedding_metric.squared_norm(point)
@@ -161,7 +158,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             Tangent vector at the base point, equal to the projection of
             the vector in Minkowski space.
         """
-        if self.coords_type == "intrinsic":
+        if self.default_coords_type == "intrinsic":
             base_point = self.intrinsic_to_extrinsic_coords(base_point)
 
         sq_norm = self.embedding_metric.squared_norm(base_point)
@@ -246,7 +243,7 @@ class HyperboloidMetric(HyperbolicMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}
+    default_coords_type : str, {'extrinsic', 'intrinsic', etc}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
     scale : int
@@ -255,16 +252,9 @@ class HyperboloidMetric(HyperbolicMetric):
         Optional, default: 1.
     """
 
-    default_point_type = "vector"
-    default_coords_type = "extrinsic"
-
-    def __init__(self, dim, coords_type="extrinsic", scale=1):
-        super(HyperboloidMetric, self).__init__(dim=dim, scale=scale)
+    def __init__(self, dim, default_coords_type="extrinsic", scale=1):
+        super().__init__(dim=dim, scale=scale, default_coords_type=default_coords_type)
         self.embedding_metric = MinkowskiMetric(dim + 1)
-
-        self.coords_type = coords_type
-        self.point_type = HyperbolicMetric.default_point_type
-
         self.scale = scale
 
     def metric_matrix(self, base_point=None):
@@ -281,7 +271,7 @@ class HyperboloidMetric(HyperbolicMetric):
         inner_prod_mat: array-like, shape=[..., dim+1, dim + 1]
             Inner-product matrix.
         """
-        self.embedding_metric.metric_matrix(base_point)
+        return self.embedding_metric.metric_matrix(base_point)
 
     def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -362,7 +352,7 @@ class HyperboloidMetric(HyperbolicMetric):
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
-        If point_type = 'poincare' then base_point belongs
+        If `default_coords_type` is 'poincare' then base_point belongs
         to the Poincare ball and point is a vector in the Euclidean
         space of the same dimension as the ball.
 
@@ -426,7 +416,7 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
 
         Parameters
@@ -447,7 +437,7 @@ class HyperboloidMetric(HyperbolicMetric):
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at exp_(base_point)(tangent_vec_b).
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         if direction is None:
             if end_point is not None:
@@ -473,10 +463,10 @@ class HyperboloidMetric(HyperbolicMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of the hyperbolic space, it does not depend on the base point and
-        is infinite everywhere, because of the negative curvature.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the hyperbolic space, it does not depend on the base
+        point and is infinite everywhere, because of the negative curvature.
 
         Parameters
         ----------

@@ -16,14 +16,15 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.base import InformationManifoldMixin
 
 N_STEPS = 100
 
 
-class DirichletDistributions(OpenSet):
+class DirichletDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of Dirichlet distributions.
 
-    This is :math: Dirichlet = `(R_+^*)^dim`, the positive quadrant of the
+    This is Dirichlet = :math:`(R_+^*)^dim`, the positive quadrant of the
     dim-dimensional Euclidean space.
 
     Attributes
@@ -33,8 +34,8 @@ class DirichletDistributions(OpenSet):
     """
 
     def __init__(self, dim):
-        super(DirichletDistributions, self).__init__(
-            dim=dim, ambient_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
+        super().__init__(
+            dim=dim, embedding_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
         )
 
     def belongs(self, point, atol=gs.atol):
@@ -190,7 +191,7 @@ class DirichletMetric(RiemannianMetric):
     """Class for the Fisher information metric on Dirichlet distributions."""
 
     def __init__(self, dim):
-        super(DirichletMetric, self).__init__(dim=dim)
+        super().__init__(dim=dim)
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix.
@@ -230,8 +231,8 @@ class DirichletMetric(RiemannianMetric):
         References
         ----------
         .. [LPP2021] A. Le Brigant, S. C. Preston, S. Puechmorel. Fisher-Rao
-          geometry of Dirichlet Distributions. Differential Geometry
-          and its Applications, 74, 101702, 2021.
+            geometry of Dirichlet Distributions. Differential Geometry
+            and its Applications, 74, 101702, 2021.
 
         Parameters
         ----------
@@ -880,6 +881,7 @@ class DirichletMetric(RiemannianMetric):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
+
         - an initial point and an initial tangent vector,
         - an initial point and an end point.
 

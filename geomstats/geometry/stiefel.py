@@ -32,7 +32,7 @@ class Stiefel(LevelSet):
         Number of basis vectors in the orthonormal frame.
     """
 
-    def __init__(self, n, p):
+    def __init__(self, n, p, **kwargs):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(p, "p")
         if p > n:
@@ -40,19 +40,20 @@ class Stiefel(LevelSet):
 
         dim = int(p * n - (p * (p + 1) / 2))
         matrices = Matrices(n, p)
-        super(Stiefel, self).__init__(
+        canonical_metric = StiefelCanonicalMetric(n, p)
+        kwargs.setdefault("metric", canonical_metric)
+        super().__init__(
             dim=dim,
             embedding_space=matrices,
             submersion=lambda x: matrices.mul(matrices.transpose(x), x),
             value=gs.eye(p),
             tangent_submersion=lambda v, x: 2
             * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
-            metric=StiefelCanonicalMetric(n, p),
+            **kwargs
         )
-
+        self.canonical_metric = canonical_metric
         self.n = n
         self.p = p
-        self.canonical_metric = self.metric
 
     @staticmethod
     def to_grassmannian(point):
@@ -164,10 +165,10 @@ class Stiefel(LevelSet):
 
         References
         ----------
-        ..[Absil]   Absil, Pierre-Antoine, and Jérôme Malick.
-                    “Projection-like Retractions on Matrix Manifolds.”
-                    SIAM Journal on Optimization 22, no. 1 (January 2012):
-                     135–58. https://doi.org/10.1137/100802529.
+        .. [Absil] Absil, Pierre-Antoine, and Jérôme Malick.
+            “Projection-like Retractions on Matrix Manifolds.”
+            SIAM Journal on Optimization 22, no. 1 (January 2012):
+            135–58. https://doi.org/10.1137/100802529.
         """
         mat_u, _, mat_v = gs.linalg.svd(point)
         return Matrices.mul(mat_u[..., :, : self.p], mat_v)
@@ -186,9 +187,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
     def __init__(self, n, p):
         dim = int(p * n - (p * (p + 1) / 2))
-        super(StiefelCanonicalMetric, self).__init__(
-            dim=dim, default_point_type="matrix", signature=(dim, 0, 0)
-        )
+        super().__init__(dim=dim, signature=(dim, 0, 0), shape=(n, p))
         self.embedding_metric = EuclideanMetric(n * p)
         self.n = n
         self.p = p
@@ -209,9 +208,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
         References
         ----------
         .. [RLSMRZ2017] R Zimmermann. A matrix-algebraic algorithm for the
-          Riemannian logarithm on the Stiefel manifold under the canonical
-          metric. SIAM Journal on Matrix Analysis and Applications 38 (2),
-          322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
+            Riemannian logarithm on the Stiefel manifold under the canonical
+            metric. SIAM Journal on Matrix Analysis and Applications 38 (2),
+            322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
 
         Parameters
         ----------
@@ -353,9 +352,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
         References
         ----------
         .. [ZR2017] Zimmermann, Ralf. "A Matrix-Algebraic Algorithm for the
-          Riemannian Logarithm on the Stiefel Manifold under the Canonical
-          Metric" SIAM J. Matrix Anal. & Appl., 38(2), 322–342, 2017.
-          https://arxiv.org/pdf/1604.05054.pdf
+            Riemannian Logarithm on the Stiefel Manifold under the Canonical
+            Metric" SIAM J. Matrix Anal. & Appl., 38(2), 322–342, 2017.
+            https://arxiv.org/pdf/1604.05054.pdf
 
         Parameters
         ----------
@@ -522,10 +521,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In this case the exact injectivity radius is not known, and we use here a
-        lower bound given by [Rentmeesters2015]_.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In this case the exact injectivity radius is not known, and we use here
+        a lower bound given by [Rentmeesters2015]_.
 
         Parameters
         ----------
@@ -539,8 +538,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         References
         ----------
-        .. [Rentmeesters2015] Rentmeesters, Quentin. “Algorithms for Data Fitting on
-        Some Common Homogeneous Spaces.” UCL - Université Catholique de Louvain, 2013.
-        https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
+        .. [Rentmeesters2015] Rentmeesters, Quentin. “Algorithms for Data
+            Fitting on Some Common Homogeneous Spaces.” UCL - Université
+            Catholique de Louvain, 2013.
+            https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
         """
         return 0.89 * gs.pi

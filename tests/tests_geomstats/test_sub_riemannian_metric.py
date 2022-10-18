@@ -126,6 +126,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
             ]
             return self.generate_tests(smoke_data)
 
+
         def geodesic_test_data(self):
             smoke_data = [
                 dict(
@@ -153,25 +154,25 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
         result = metric.inner_coproduct(cotangent_vec_a, cotangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_hamiltonian(self, metric, cotangent_vec, base_point, expected):
         state = gs.array([base_point, cotangent_vec])
         result = metric.hamiltonian(state)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_symp_grad(self, metric, test_state, expected):
         result = metric.symp_grad(hamiltonian=metric.hamiltonian)(test_state)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_symp_euler(self, metric, test_state, step_size, expected):
         result = metric.symp_euler(hamiltonian=metric.hamiltonian, step_size=step_size)(
             test_state
         )
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_iterate(self, metric, test_state, n_steps, step_size, expected):
         step = metric.symp_euler
         result = metric.iterate(
@@ -179,7 +180,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
         )(test_state)[-10]
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_symp_flow(self, metric, test_state, n_steps, end_time, expected):
         result = metric.symp_flow(
             hamiltonian=metric.hamiltonian, end_time=end_time, n_steps=n_steps
@@ -191,7 +192,7 @@ class TestSubRiemannianMetric(TestCase, metaclass=Parametrizer):
         result = metric.sr_sharp(base_point, cotangent_vec)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_exp(self, metric, cotangent_vec, base_point, n_steps):
         result = metric.exp(cotangent_vec, base_point, n_steps=n_steps)
         expected = base_point + cotangent_vec

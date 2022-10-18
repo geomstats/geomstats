@@ -32,7 +32,7 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
     """
 
     def __init__(self, dim, n, **kwargs):
-        super(MatrixLieAlgebra, self).__init__(shape=(n, n), **kwargs)
+        super().__init__(shape=(n, n), **kwargs)
         geomstats.errors.check_integer(dim, "dim")
         geomstats.errors.check_integer(n, "n")
         self.dim = dim
@@ -64,8 +64,8 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
         References
         ----------
         .. [CM2009a] F. Casas and A. Murua. An efficient algorithm for
-           computing the Baker–Campbell–Hausdorff series and some of its
-           applications. Journal of Mathematical Physics 50, 2009
+            computing the Baker–Campbell–Hausdorff series and some of its
+            applications. Journal of Mathematical Physics 50, 2009
         .. [CM2009b] http://www.ehu.eus/ccwmuura/research/bchHall20.dat
         """
         if order > 15:

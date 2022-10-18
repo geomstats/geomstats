@@ -22,28 +22,25 @@ class SymmetricMatrices(VectorSpace):
     """
 
     def __init__(self, n, **kwargs):
-        super(SymmetricMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            shape=(n, n),
-            metric=MatricesMetric(n, n),
-            default_point_type="matrix",
-        )
+        kwargs.setdefault("metric", MatricesMetric(n, n))
+        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), **kwargs)
         self.n = n
 
     def _create_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
-        basis = []
-        for row in gs.arange(self.n):
-            for col in gs.arange(row, self.n):
+        indices, values = [], []
+        k = -1
+        for row in range(self.n):
+            for col in range(row, self.n):
+                k += 1
                 if row == col:
-                    indices = [(row, row)]
-                    values = [1.0]
+                    indices.append((k, row, row))
+                    values.append(1.0)
                 else:
-                    indices = [(row, col), (col, row)]
-                    values = [1.0, 1.0]
-                basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
-        basis = gs.stack(basis)
-        return basis
+                    indices.extend([(k, row, col), (k, col, row)])
+                    values.extend([1.0, 1.0])
+
+        return gs.array_from_sparse(indices, values, (k + 1, self.n, self.n))
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a matrix is symmetric.
@@ -60,7 +57,7 @@ class SymmetricMatrices(VectorSpace):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        belongs = super(SymmetricMatrices, self).belongs(point)
+        belongs = super().belongs(point)
         if gs.any(belongs):
             is_symmetric = Matrices.is_symmetric(point, atol)
             return gs.logical_and(belongs, is_symmetric)
@@ -98,7 +95,7 @@ class SymmetricMatrices(VectorSpace):
         point : array-like, shape=[..., n, n]
            Sample.
         """
-        sample = super(SymmetricMatrices, self).random_point(n_samples, bound)
+        sample = super().random_point(n_samples, bound)
         return Matrices.to_symmetric(sample)
 
     @staticmethod
@@ -122,16 +119,13 @@ class SymmetricMatrices(VectorSpace):
 
     @staticmethod
     @geomstats.vectorization.decorator(["vector", "else"])
-    def from_vector(vec, dtype=gs.float32):
+    def from_vector(vec):
         """Convert a vector into a symmetric matrix.
 
         Parameters
         ----------
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
-        dtype : dtype, {gs.float32, gs.float64}
-            Data type object to use for the output.
-            Optional. Default: gs.float32.
 
         Returns
         -------
@@ -149,7 +143,6 @@ class SymmetricMatrices(VectorSpace):
         shape = (mat_dim, mat_dim)
         mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
         indices = list(zip(*gs.triu_indices(mat_dim)))
-        vec = gs.cast(vec, dtype)
         upper_triangular = gs.stack(
             [gs.array_from_sparse(indices, data, shape) for data in vec]
         )
@@ -225,7 +218,7 @@ class SymmetricMatrices(VectorSpace):
             Symmetric matrix.
         """
         eigvals, eigvecs = gs.linalg.eigh(mat)
-        if check_positive and gs.any(gs.cast(eigvals, gs.float32) < 0.0):
+        if check_positive and gs.any(eigvals < 0.0):
             try:
                 name = function.__name__
             except AttributeError:

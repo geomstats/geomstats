@@ -11,17 +11,18 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
 )
+from geomstats.information_geometry.base import InformationManifoldMixin
 
 
-class NormalDistributions(PoincareHalfSpace):
+class NormalDistributions(InformationManifoldMixin, PoincareHalfSpace):
     """Class for the manifold of univariate normal distributions.
 
     This is upper half-plane.
     """
 
     def __init__(self):
-        super(NormalDistributions, self).__init__(dim=2)
-        self.metric = FisherRaoMetric()
+        super().__init__(dim=2)
+        self.metric = NormalMetric()
 
     @staticmethod
     def random_point(n_samples=1, bound=1.0):
@@ -95,6 +96,8 @@ class NormalDistributions(PoincareHalfSpace):
         geomstats.errors.check_belongs(point, self)
         means = point[..., 0]
         stds = point[..., 1]
+        means = gs.to_ndarray(means, to_ndim=2)
+        stds = gs.to_ndarray(stds, to_ndim=2)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -104,25 +107,44 @@ class NormalDistributions(PoincareHalfSpace):
             x : array-like, shape=[n_points,]
                 Points at which to compute the probability density function.
             """
-            x = gs.array(x, gs.float32)
-            x = gs.to_ndarray(x, to_ndim=1)
-
-            pdf_at_x = [
-                gs.array(norm.pdf(x, loc=mean, scale=std))
-                for mean, std in zip(means, stds)
-            ]
-            pdf_at_x = gs.stack(pdf_at_x, axis=-1)
-
-            return pdf_at_x
+            x = gs.to_ndarray(x, to_ndim=2, axis=-1)
+            return (1.0 / gs.sqrt(2 * gs.pi * stds**2)) * gs.exp(
+                -((x - means) ** 2) / (2 * stds**2)
+            )
 
         return pdf
 
 
-class FisherRaoMetric(PoincareHalfSpaceMetric):
+class NormalMetric(PoincareHalfSpaceMetric):
     """Class for the Fisher information metric on normal distributions.
 
     This is the metric of the Poincare upper half-plane.
     """
 
     def __init__(self):
-        super(FisherRaoMetric, self).__init__(dim=2)
+        super().__init__(dim=2)
+
+    @staticmethod
+    def metric_matrix(base_point=None):
+        """Compute the metric matrix at the tangent space at base_point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution (location and scale).
+
+        Returns
+        -------
+        mat : array-like, shape=[..., 2, 2]
+            Metric matrix.
+        """
+        stds = base_point[..., 1]
+        stds = gs.to_ndarray(stds, to_ndim=1)
+        metric_mat = gs.stack(
+            [gs.array([[1.0 / std**2, 0.0], [0.0, 2.0 / std**2]]) for std in stds],
+            axis=0,
+        )
+
+        if metric_mat.ndim == 3 and metric_mat.shape[0] == 1:
+            return metric_mat[0]
+        return metric_mat

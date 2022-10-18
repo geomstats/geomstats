@@ -9,7 +9,7 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
@@ -28,11 +28,9 @@ class SPDMatrices(OpenSet):
     """
 
     def __init__(self, n, **kwargs):
-        super(SPDMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            metric=SPDMetricAffine(n),
-            ambient_space=SymmetricMatrices(n),
-            **kwargs
+        kwargs.setdefault("metric", SPDAffineMetric(n))
+        super().__init__(
+            dim=int(n * (n + 1) / 2), embedding_space=SymmetricMatrices(n), **kwargs
         )
         self.n = n
 
@@ -52,7 +50,7 @@ class SPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        is_sym = self.ambient_space.belongs(mat, atol)
+        is_sym = self.embedding_space.belongs(mat, atol)
         is_pd = Matrices.is_pd(mat)
         belongs = gs.logical_and(is_sym, is_pd)
         return belongs
@@ -174,24 +172,25 @@ class SPDMatrices(OpenSet):
         denominator = eigvalues[..., :, None] - eigvalues[..., None, :]
         numerator = powered_eigvalues[..., :, None] - powered_eigvalues[..., None, :]
 
+        null_denominator = gs.abs(denominator) < gs.atol
         if power == 0:
-            numerator = gs.where(denominator == 0, gs.ones_like(numerator), numerator)
+            numerator = gs.where(null_denominator, gs.ones_like(numerator), numerator)
             denominator = gs.where(
-                denominator == 0, eigvalues[..., :, None], denominator
+                null_denominator, eigvalues[..., :, None], denominator
             )
         elif power == math.inf:
             numerator = gs.where(
-                denominator == 0, powered_eigvalues[..., :, None], numerator
+                null_denominator, powered_eigvalues[..., :, None], numerator
             )
             denominator = gs.where(
-                denominator == 0, gs.ones_like(numerator), denominator
+                null_denominator, gs.ones_like(numerator), denominator
             )
         else:
             numerator = gs.where(
-                denominator == 0, power * powered_eigvalues[..., :, None], numerator
+                null_denominator, power * powered_eigvalues[..., :, None], numerator
             )
             denominator = gs.where(
-                denominator == 0, eigvalues[..., :, None], denominator
+                null_denominator, eigvalues[..., :, None], denominator
             )
 
         transp_eigvectors = Matrices.transpose(eigvectors)
@@ -204,7 +203,7 @@ class SPDMatrices(OpenSet):
         r"""Compute the differential of the matrix power function.
 
         Compute the differential of the power function on SPD(n)
-        (:math: `A^p=\exp(p \log(A))`) at base_point applied to tangent_vec.
+        (:math:`A^p=\exp(p \log(A))`) at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -237,7 +236,7 @@ class SPDMatrices(OpenSet):
         r"""Compute the inverse of the differential of the matrix power.
 
         Compute the inverse of the differential of the power
-        function on SPD matrices (:math: `A^p=exp(p log(A))`) at base_point
+        function on SPD matrices (:math:`A^p=\exp(p \log(A))`) at base_point
         applied to tangent_vec.
 
         Parameters
@@ -302,8 +301,7 @@ class SPDMatrices(OpenSet):
         """Compute the inverse of the differential of the matrix logarithm.
 
         Compute the inverse of the differential of the matrix
-        logarithm on SPD matrices at base_point applied to
-        tangent_vec.
+        logarithm on SPD matrices at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -365,8 +363,7 @@ class SPDMatrices(OpenSet):
         """Compute the inverse of the differential of the matrix exponential.
 
         Computes the inverse of the differential of the matrix
-        exponential on SPD matrices at base_point applied to
-        tangent_vec.
+        exponential on SPD matrices at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -424,8 +421,7 @@ class SPDMatrices(OpenSet):
     def cholesky_factor(cls, mat):
         """Compute cholesky factor.
 
-        Compute cholesky factor for a symmetric positive
-        definite matrix.
+        Compute cholesky factor for a symmetric positive definite matrix.
 
         Parameters
         ----------
@@ -466,7 +462,7 @@ class SPDMatrices(OpenSet):
         return differential_cf
 
 
-class SPDMetricAffine(RiemannianMetric):
+class SPDAffineMetric(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold."""
 
     def __init__(self, n, power_affine=1):
@@ -483,12 +479,14 @@ class SPDMetricAffine(RiemannianMetric):
         References
         ----------
         .. [TP2019] Thanwerdas, Pennec. "Is affine-invariance well defined on
-          SPD matrices? A principled continuum of metrics" Proc. of GSI, 2019.
-          https://arxiv.org/abs/1906.01349
+            SPD matrices? A principled continuum of metrics" Proc. of GSI,
+            2019. https://arxiv.org/abs/1906.01349
         """
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricAffine, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+        super().__init__(
+            dim=dim,
+            shape=(n, n),
+            signature=(dim, 0),
         )
         self.n = n
         self.power_affine = power_affine
@@ -683,14 +681,14 @@ class SPDMetricAffine(RiemannianMetric):
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
         Denoting `tangent_vec_a` by `S`, `base_point` by `A`, and `end_point`
-        by `B` or `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1
-        / 2})`. Then the parallel transport to `B` is:
+        by `B` or `B = Exp_A(tangent_vec_b)` and :math:`E = (BA^{- 1})^{( 1
+        / 2)}`. Then the parallel transport to `B` is:
 
-        ..math::
-                        S' = ESE^T
+        .. math::
+            S' = ESE^T
 
         Parameters
         ----------
@@ -724,8 +722,8 @@ class SPDMetricAffine(RiemannianMetric):
     def injectivity_radius(self, base_point):
         """Radius of the largest ball where the exponential is injective.
 
-        Because of the negative curvature of this space, the injectivity radius is
-        infinite everywhere.
+        Because of the negative curvature of this space, the injectivity radius
+        is infinite everywhere.
 
         Parameters
         ----------
@@ -740,7 +738,7 @@ class SPDMetricAffine(RiemannianMetric):
         return math.inf
 
 
-class SPDMetricBuresWasserstein(RiemannianMetric):
+class SPDBuresWassersteinMetric(RiemannianMetric):
     """Class for the Bures-Wasserstein metric on the SPD manifold.
 
     Parameters
@@ -750,30 +748,32 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
     References
     ----------
-    .. [BJL2017]_ Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
-      positive definite matrices" Elsevier, Expositiones Mathematicae,
-      vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
-    .. [MMP2018]_ Malago, Montrucchio, Pistone. "Wasserstein-Riemannian
-      geometry of Gaussian densities"  Information Geometry, vol. 1, 137-179,
-      2018. https://arxiv.org/pdf/1801.09269.pdf
+    .. [BJL2017] Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
+        positive definite matrices" Elsevier, Expositiones Mathematicae,
+        vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
+    .. [MMP2018] Malago, Montrucchio, Pistone. "Wasserstein-Riemannian
+        geometry of Gaussian densities"  Information Geometry, vol. 1, 137-179,
+        2018. https://arxiv.org/pdf/1801.09269.pdf
     """
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricBuresWasserstein, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            shape=(n, n),
         )
         self.n = n
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the Bures-Wasserstein inner-product.
 
-        Compute the inner-product of tangent_vec_a :math: `A` and tangent_vec_b
-        :math: `B` at point base_point :math: `S=PDP^\top` using the
+        Compute the inner-product of tangent_vec_a :math:`A` and tangent_vec_b
+        :math:`B` at point base_point :math:`S=PDP^\top` using the
         Bures-Wasserstein Riemannian metric:
-        ..math::
-        `\frac{1}{2}\sum_{i,j}\frac{[P^\top AP]_{ij}[P^\top BP]_{ij}}{d_i+d_j}`
-        .
+
+        .. math::
+            \frac{1}{2}\sum_{i,j}\frac{[P^\top AP]_{ij}[P^\top BP]_{ij}}{d_i+d_j}
 
         Parameters
         ----------
@@ -875,9 +875,9 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         """
         product = gs.matmul(point_a, point_b)
         sqrt_product = gs.linalg.sqrtm(product)
-        trace_a = gs.trace(point_a, axis1=-2, axis2=-1)
-        trace_b = gs.trace(point_b, axis1=-2, axis2=-1)
-        trace_prod = gs.trace(sqrt_product, axis1=-2, axis2=-1)
+        trace_a = gs.trace(point_a)
+        trace_b = gs.trace(point_b)
+        trace_prod = gs.trace(sqrt_product)
 
         return trace_a + trace_b - 2 * trace_prod
 
@@ -893,9 +893,9 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximation of the solution of the parallel transport of a tangent
-        vector a along the geodesic defined by :math:`t \mapsto exp_(
-        base_point)(t* tangent_vec_b)`. The parallel transport equation is formulated
-        in this case in [TP2021]_.
+        vector a along the geodesic defined by :math:`t \mapsto exp_{(
+        base\_point)}(t* tangent\_vec\_b)`. The parallel transport equation is
+        formulated in this case in [TP2021]_.
 
         Parameters
         ----------
@@ -903,7 +903,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
             Tangent vector at `base_point` to transport.
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector ar `base_point`, initial velocity of the geodesic to
-            transport  along.
+            transport along.
         base_point : array-like, shape=[..., n, n]
             Initial point of the geodesic.
         end_point : array-like, shape=[..., n, n]
@@ -924,8 +924,8 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
         References
         ----------
-        ..[TP2021]      Yann Thanwerdas, Xavier Pennec. O(n)-invariant Riemannian /
-        metrics on SPD matrices. 2021. ⟨hal-03338601v2⟩
+        .. [TP2021] Yann Thanwerdas, Xavier Pennec. O(n)-invariant Riemannian
+            metrics on SPD matrices. 2021. ⟨hal-03338601v2⟩
 
         See Also
         --------
@@ -989,13 +989,15 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         return eigen_values[..., 0] ** 0.5
 
 
-class SPDMetricEuclidean(RiemannianMetric):
+class SPDEuclideanMetric(RiemannianMetric):
     """Class for the Euclidean metric on the SPD manifold."""
 
     def __init__(self, n, power_euclidean=1):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricEuclidean, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            shape=(n, n),
         )
         self.n = n
         self.power_euclidean = power_euclidean
@@ -1163,7 +1165,7 @@ class SPDMetricEuclidean(RiemannianMetric):
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
 
         Parameters
@@ -1190,7 +1192,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         raise NotImplementedError("Parallel transport is only implemented for power 1")
 
 
-class SPDMetricLogEuclidean(RiemannianMetric):
+class SPDLogEuclideanMetric(RiemannianMetric):
     """Class for the Log-Euclidean metric on the SPD manifold.
 
     Parameters
@@ -1201,8 +1203,10 @@ class SPDMetricLogEuclidean(RiemannianMetric):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricLogEuclidean, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            shape=(n, n),
         )
         self.n = n
 
@@ -1286,7 +1290,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     def injectivity_radius(self, base_point):
         """Radius of the largest ball where the exponential is injective.
 
-        Because of this space is flat, the injectivity radius is infinite everywhere.
+        Because of this space is flat, the injectivity radius is infinite
+        everywhere.
 
         Parameters
         ----------
@@ -1299,3 +1304,22 @@ class SPDMetricLogEuclidean(RiemannianMetric):
             Injectivity radius.
         """
         return math.inf
+
+    def dist(self, point_a, point_b):
+        """Compute log euclidean distance.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        dist : array-like, shape=[...,]
+            Distance.
+        """
+        log_a = SPDMatrices.logm(point_a)
+        log_b = SPDMatrices.logm(point_b)
+        return MatricesMetric.norm(log_a - log_b)

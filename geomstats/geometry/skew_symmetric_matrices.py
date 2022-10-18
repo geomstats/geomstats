@@ -24,8 +24,8 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
     def __init__(self, n):
         dim = int(n * (n - 1) / 2)
-        super(SkewSymmetricMatrices, self).__init__(dim, n)
-        self.ambient_space = Matrices(n, n)
+        super().__init__(dim, n)
+        self.embedding_space = Matrices(n, n)
 
     def _create_basis(self):
         """Create the canonical basis."""
@@ -40,13 +40,15 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
                     [[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
                 ]
             )
-        basis = []
-        for row in gs.arange(n - 1):
-            for col in gs.arange(row + 1, n):
-                basis.append(
-                    gs.array_from_sparse([(row, col), (col, row)], [1.0, -1.0], (n, n))
-                )
-        return gs.stack(basis)
+        indices, data = [], []
+        k = -1
+        for row in range(n - 1):
+            for col in range(row + 1, n):
+                k += 1
+                indices.extend([(k, row, col), (k, col, row)])
+                data.extend([1.0, -1.0])
+
+        return gs.array_from_sparse(indices, data, (k + 1, n, n))
 
     def belongs(self, mat, atol=gs.atol):
         """Evaluate if mat is a skew-symmetric matrix.
@@ -64,7 +66,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         belongs : array-like, shape=[...,]
             Boolean evaluating if matrix is skew symmetric.
         """
-        has_right_shape = self.ambient_space.belongs(mat)
+        has_right_shape = self.embedding_space.belongs(mat)
         if gs.all(has_right_shape):
             return Matrices.is_skew_symmetric(mat=mat, atol=atol)
         return has_right_shape
@@ -86,17 +88,16 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         point : array-like, shape=[..., n, n]
             Sample.
         """
-        return self.projection(
-            super(SkewSymmetricMatrices, self).random_point(n_samples, bound)
-        )
+        return self.projection(super().random_point(n_samples, bound))
 
     @classmethod
     def projection(cls, mat):
         r"""Compute the skew-symmetric component of a matrix.
 
-        The skew-symmetric part of a matrix :math: `X` is defined by
-        .. math:
-                    (X - X^T) / 2
+        The skew-symmetric part of a matrix :math:`X` is defined by
+
+        .. math::
+            (X - X^T) / 2
 
         Parameters
         ----------

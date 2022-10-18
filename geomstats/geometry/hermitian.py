@@ -4,11 +4,13 @@ Lead author: Yann Cabanes.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import VectorSpace
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.base import ComplexVectorSpace
+from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+
+CDTYPE = gs.get_default_cdtype()
 
 
-class Hermitian(VectorSpace):
+class Hermitian(ComplexVectorSpace):
     """Class for Hermitian spaces.
 
     By definition, a Hermitian space is a complex vector space
@@ -20,12 +22,9 @@ class Hermitian(VectorSpace):
         Dimension of the Hermitian space.
     """
 
-    def __init__(self, dim):
-        super(Hermitian, self).__init__(
-            shape=(dim,),
-            default_point_type="vector",
-            metric=HermitianMetric(dim, shape=(dim,)),
-        )
+    def __init__(self, dim, **kwargs):
+        kwargs.setdefault("metric", HermitianMetric(dim, shape=(dim,)))
+        super().__init__(shape=(dim,), **kwargs)
 
     def get_identity(self):
         """Get the identity of the group.
@@ -34,14 +33,14 @@ class Hermitian(VectorSpace):
         -------
         identity : array-like, shape=[n]
         """
-        identity = gs.zeros(self.dim)
+        identity = gs.zeros(self.dim, dtype=CDTYPE)
         return identity
 
     identity = property(get_identity)
 
     def _create_basis(self):
         """Create the canonical basis."""
-        return gs.eye(self.dim)
+        return gs.eye(self.dim, dtype=CDTYPE)
 
     def exp(self, tangent_vec, base_point=None):
         """Compute the group exponential, which is simply the addition.
@@ -63,13 +62,14 @@ class Hermitian(VectorSpace):
         return tangent_vec + base_point
 
 
-class HermitianMetric(RiemannianMetric):
+class HermitianMetric(ComplexRiemannianMetric):
     """Class for Hermitian metrics.
 
     As a Riemannian metric, the Hermitian metric is:
+
     - flat: the inner-product is independent of the base point.
     - positive definite: it has signature (dimension, 0, 0),
-    where dimension is the dimension of the Hermitian space.
+      where dimension is the dimension of the Hermitian space.
 
     Parameters
     ----------
@@ -78,7 +78,7 @@ class HermitianMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, shape=None):
-        super(HermitianMetric, self).__init__(
+        super().__init__(
             dim=dim,
             shape=shape,
             signature=(dim, 0),
@@ -98,10 +98,11 @@ class HermitianMetric(RiemannianMetric):
         inner_prod_mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        mat = gs.eye(self.dim)
+        mat = gs.eye(self.dim, dtype=CDTYPE)
         return mat
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    @staticmethod
+    def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 
         Parameters
@@ -119,9 +120,10 @@ class HermitianMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return gs.einsum("...i,...i->...", gs.conj(tangent_vec_a), tangent_vec_b)
+        return gs.dot(gs.conj(tangent_vec_a), tangent_vec_b)
 
-    def norm(self, vector, base_point=None):
+    @staticmethod
+    def norm(vector, base_point=None):
         """Compute norm of a vector.
 
         Norm of a vector associated to the inner product
@@ -145,7 +147,8 @@ class HermitianMetric(RiemannianMetric):
         """
         return gs.linalg.norm(vector, axis=-1)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    @staticmethod
+    def exp(tangent_vec, base_point, **kwargs):
         """Compute exp map of a base point in tangent vector direction.
 
         The Riemannian exponential is vector addition in the Hermitian space.
@@ -165,7 +168,8 @@ class HermitianMetric(RiemannianMetric):
         exp = base_point + tangent_vec
         return exp
 
-    def log(self, point, base_point, **kwargs):
+    @staticmethod
+    def log(point, base_point, **kwargs):
         """Compute log map using a base point and other point.
 
         The Riemannian logarithm is the subtraction in the Hermitian space.

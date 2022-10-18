@@ -18,7 +18,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
     """Class for matrix Lie groups."""
 
     def __init__(self, dim, n, lie_algebra=None, **kwargs):
-        super(MatrixLieGroup, self).__init__(dim=dim, shape=(n, n), **kwargs)
+        super().__init__(dim=dim, shape=(n, n), **kwargs)
         self.lie_algebra = lie_algebra
         self.n = n
         self.left_canonical_metric = InvariantMetric(
@@ -198,7 +198,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
 
         The vector input is not an element of the Lie algebra, but of the
         tangent space at base_point: if :math:`g` denotes `base_point`,
-        :math:`v` the tangent vector, and :math:'V = g^{-1} v' the associated
+        :math:`v` the tangent vector, and :math:`V = g^{-1} v` the associated
         Lie algebra vector, then
 
         .. math::
@@ -279,9 +279,6 @@ class LieGroup(Manifold, abc.ABC):
     ----------
     dim : int
         Dimension of the Lie group.
-    default_point_type : str, {'vector', 'matrix'}
-        Point type.
-        Optional, default: 'vector'.
     lie_algebra : MatrixLieAlgebra
         Lie algebra for matrix groups.
         Optional, default: None.
@@ -298,12 +295,8 @@ class LieGroup(Manifold, abc.ABC):
         product at the identity.
     """
 
-    def __init__(
-        self, dim, shape, default_point_type="vector", lie_algebra=None, **kwargs
-    ):
-        super(LieGroup, self).__init__(
-            dim=dim, shape=shape, default_point_type=default_point_type, **kwargs
-        )
+    def __init__(self, dim, shape, lie_algebra=None, **kwargs):
+        super().__init__(dim=dim, shape=shape, **kwargs)
 
         self.lie_algebra = lie_algebra
         self.left_canonical_metric = InvariantMetric(
@@ -317,14 +310,8 @@ class LieGroup(Manifold, abc.ABC):
         self.metric = self.left_canonical_metric
         self.metrics = []
 
-    def get_identity(self, point_type=None):
+    def get_identity(self):
         """Get the identity of the group.
-
-        Parameters
-        ----------
-        point_type : str, {'matrix', 'vector'}
-            Point type.
-            Optional, default: None.
 
         Returns
         -------
@@ -574,7 +561,7 @@ class LieGroup(Manifold, abc.ABC):
         """
         # TODO (ninamiolane): Build a standalone decorator that *only*
         # deals with point_type None and base_point None
-        identity = self.get_identity(point_type=self.default_point_type)
+        identity = self.get_identity()
         if base_point is None:
             base_point = identity
 
@@ -619,7 +606,7 @@ class LieGroup(Manifold, abc.ABC):
             Lie bracket.
         """
         if base_point is None:
-            base_point = self.get_identity(point_type=self.default_point_type)
+            base_point = self.get_identity()
         inverse_base_point = self.inverse(base_point)
 
         first_term = Matrices.mul(inverse_base_point, tangent_vector_b)

@@ -3,17 +3,19 @@ r"""Geodesic Regression.
 Lead author: Nicolas Guigui.
 
 The generative model of the data is:
-    :math:`Z = Exp_{\beta_0}(\beta_1.X)` and :math:`Y = Exp_Z(\epsilon)`
-    where:
-    - :math:`Exp` denotes the Riemannian exponential,
-    - :math:`\beta_0` is called the intercept,
-    and is a point on the manifold,
-    - :math:`\beta_1` is called the coefficient,
-    and is a tangent vector to the manifold at :math:`\beta_0`,
-    - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
-    - :math:`X` is the input, :math:`Y` is the target.
+:math:`Z = Exp_{\beta_0}(\beta_1.X)` and :math:`Y = Exp_Z(\epsilon)`
+where:
+
+- :math:`Exp` denotes the Riemannian exponential,
+- :math:`\beta_0` is called the intercept,
+  and is a point on the manifold,
+- :math:`\beta_1` is called the coefficient,
+  and is a tangent vector to the manifold at :math:`\beta_0`,
+- :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
+- :math:`X` is the input, :math:`Y` is the target.
 
 The geodesic regression method:
+
 - estimates :math:`\beta_0, \beta_1`,
 - predicts :math:`\hat{y}` from input :math:`X`.
 """
@@ -33,17 +35,19 @@ class GeodesicRegression(BaseEstimator):
     r"""Geodesic Regression.
 
     The generative model of the data is:
-        :math:`Z = Exp_{\beta_0}(\beta_1.X)` and :math:`Y = Exp_Z(\epsilon)`
-        where:
-        - :math:`Exp` denotes the Riemannian exponential,
-        - :math:`\beta_0` is called the intercept,
-        and is a point on the manifold,
-        - :math:`\beta_1` is called the coefficient,
-        and is a tangent vector to the manifold at :math:`\beta_0`,
-        - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
-        - :math:`X` is the input, :math:`Y` is the target.
+    :math:`Z = Exp_{\beta_0}(\beta_1.X)` and :math:`Y = Exp_Z(\epsilon)`
+    where:
+
+    - :math:`Exp` denotes the Riemannian exponential,
+    - :math:`\beta_0` is called the intercept,
+      and is a point on the manifold,
+    - :math:`\beta_1` is called the coefficient,
+      and is a tangent vector to the manifold at :math:`\beta_0`,
+    - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
+    - :math:`X` is the input, :math:`Y` is the target.
 
     The geodesic regression method:
+
     - estimates :math:`\beta_0, \beta_1`,
     - predicts :math:`\hat{y}` from input :math:`X`.
 
@@ -276,13 +280,14 @@ class GeodesicRegression(BaseEstimator):
 
         Set initial parameters for the optimization, depending on the value
         of the attribute `initialization`. The options are:
-            - `random` : pick random numbers from a normal distribution,
-            then project them to the manifold and the tangent space.
-            - `frechet` : compute the Frechet mean of the target points
-            - `data` : pick a random sample from the target points and a
-            tangent vector with random coefficients.
-            - `warm_start`: pick previous values of the parameters if the
-            model was fitted before, otherwise behaves as `random`.
+
+        - `random` : pick random numbers from a normal distribution,
+          then project them to the manifold and the tangent space.
+        - `frechet` : compute the Frechet mean of the target points
+        - `data` : pick a random sample from the target points and a
+          tangent vector with random coefficients.
+        - `warm_start`: pick previous values of the parameters if the
+          model was fitted before, otherwise behaves as `random`.
 
         Parameters
         ----------
