@@ -71,7 +71,8 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     def test_dist_exp_after_log_norm(
         self, manifolds, default_point_type, n_samples, einsum_str, expected
     ):
-        space = ProductManifold(factors=manifolds, default_point_type=default_point_type)
+        space = ProductManifold(
+            factors=manifolds, default_point_type=default_point_type)
         point = space.random_point(n_samples)
         base_point = space.random_point(n_samples)
 
