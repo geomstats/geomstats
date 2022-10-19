@@ -8,13 +8,8 @@ from tests.data_generation import (
     _ComplexRiemannianMetricTestData,
 )
 
-SQRT_2 = math.sqrt(2.0)
-LN_2 = math.log(2.0)
 LN_3 = math.log(3.0)
-EXP_1 = math.exp(1.0)
-EXP_2 = math.exp(2.0)
 EXP_4 = math.exp(4.0)
-SINH_1 = math.sinh(1.0)
 
 
 class SiegelTestData(_ComplexOpenSetTestData):
