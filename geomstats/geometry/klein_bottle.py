@@ -4,13 +4,148 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class KleinBottleMetric(RiemannianMetric):
-    def __init__(self, **kwargs):
+
+    def __init__(self, space, **kwargs):
         super().__init__(dim=2, shape=(2,), default_coords_type="intrinsic")
+        self._space: KleinBottle = space
+
+    def injectivity_radius(self, base_point):
+        return 2**0.5/2
+
+    def parallel_transport(self, tangent_vec, base_point, direction=None, end_point=None):
+        raise NotImplementedError(
+            "The computation of parallel transport is not implemented."
+        )
+
+    def curvature_derivative(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point=None):
+        raise NotImplementedError(
+            "The computation of the curvature derivative is not implemented."
+        )
+
+    def metric_matrix(self, base_point=None):
+        raise NotImplementedError(
+            "The computation of the metric matrix is not implemented."
+        )
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Inner product between two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[..., 2]
+            Tangent vector at base point.
+        tangent_vec_b: array-like, shape=[..., 2]
+            Tangent vector at base point.
+        base_point: array-like, shape=[..., 2]
+            Base point.
+            Optional, default: None, unused.
+
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner-product.
+        """
+        return gs.dot(tangent_vec_a, tangent_vec_b)
+
+    def exp(self, tangent_vec, base_point, **kwargs):
+        """
+        Compute the exponential by adding tangent_vec to base_point and finding canonical representation in the unit
+        square.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 2]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[..., 2]
+            Point on the manifold.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., dim]
+            Point on the manifold.
+        """
+        if base_point.ndim == 1 and tangent_vec.ndim > 1:
+            while base_point.ndim < tangent_vec.ndim:
+                base_point = gs.expand_dims(base_point, 0)
+        base_point_canonical = self._space.regularize(base_point)
+        point = base_point_canonical + tangent_vec
+        point_canonical = self._space.regularize(point)
+        return point_canonical
+
+    def log(self, point, base_point, **kwargs):
+        """
+        Compute the logarithm map by finding the representative of point closest to base_point and returning their
+        difference.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2]
+            Point on the manifold.
+        base_point : array-like, shape=[..., 2]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point.
+        """
+        if base_point.ndim == 1 and point.ndim > 1:
+            while base_point.ndim < point.ndim:
+                base_point = gs.expand_dims(base_point, 0)
+        base_point_canonical, point_minimal = self._closest_representative(base_point, point)
+        return point_minimal - base_point_canonical
+
+    def _closest_representative(self, point1, point2):
+        """
+        Compute the representative of point2 which is closest to point1. Only representatives in the 8 surrounding
+        squares have to be considered.
+
+
+        Parameters
+        ----------
+        point1: array-like, shape [..., 2]
+            Point on the manifold.
+        point2: array-like, shape [..., 2]
+            Point on the manifold.
+
+        Returns
+        -------
+        point1: array-like, shape [...,2]
+            Canonical representation of point1 in unit square.
+        minimizers: array-like, shape [...,2]
+            Representation of point2 with smallest distance to point1.
+        """
+        point1, point2 = gs.broadcast_arrays(point1, point2)
+        shape = point1.shape
+        p1 = self._space.regularize(point1)
+        p1 = gs.reshape(p1, (-1, 2))
+        p2 = self._space.regularize(point2)
+        p2 = gs.reshape(p2, (-1, 2))
+        p2_2 = gs.stack([p2[:, 0], p2[:, 1] - 1], axis=-1)
+        p2_3 = gs.stack([p2[:, 0], p2[:, 1] + 1], axis=-1)
+        p2_4 = gs.stack([p2[:, 0] + 1, 1 - p2[:, 1]], axis=-1)
+        p2_5 = gs.stack([p2[:, 0] + 1, 2 - p2[:, 1]], axis=-1)
+        p2_6 = gs.stack([p2[:, 0] + 1, 0 - p2[:, 1]], axis=-1)
+        p2_7 = gs.stack([p2[:, 0] - 1, 1 - p2[:, 1]], axis=-1)
+        p2_8 = gs.stack([p2[:, 0] - 1, 2 - p2[:, 1]], axis=-1)
+        p2_9 = gs.stack([p2[:, 0] - 1, 0 - p2[:, 1]], axis=-1)
+        p2_total = gs.stack([p2, p2_2, p2_3, p2_4, p2_5, p2_6, p2_7, p2_8, p2_9], axis=0)
+        indices = gs.argmin(gs.sum((p2_total - gs.expand_dims(p1, 0)) ** 2, axis=-1), axis=0)
+        minimizers = gs.empty_like(p1)
+        for i in range(len(indices)):
+            minimizers[i, :] = p2_total[indices[i], i, :]
+        p1 = gs.reshape(p1, shape)
+        minimizers = gs.reshape(minimizers, shape)
+        return p1, minimizers
 
 
 class KleinBottle(Manifold):
     def __init__(self, dim=2, shape=2):
         super().__init__(dim=2, shape=(2,), metric=None)
+        self.metric = None
+
+    def equip_metric(self, metric=None):
+        self.metric = KleinBottleMetric(self)
 
     def random_point(self, n_samples=1, bound=None):
         """Uniformly sample points on the manifold.
@@ -99,7 +234,7 @@ class KleinBottle(Manifold):
         minimal_ndim = len(self.shape)
         correct_shape = point.shape[-minimal_ndim:] == self.shape
         if correct_shape:
-            correct_values = gs.logical_and(point >= 0, point <= 1)
+            correct_values = gs.all(gs.logical_and(point >= 0, point <= 1), axis=-1)
             return correct_values
         if point.ndim > minimal_ndim:
             return gs.tile(gs.array([correct_shape]), [point.shape[0]])
@@ -157,7 +292,7 @@ class KleinBottle(Manifold):
             Regularized point.
         """
         # determine number of steps to take in x direction
-        num_steps = gs.cast(gs.abs(gs.floor(point[..., 0])), gs.int64)
+        num_steps = gs.cast(gs.abs(gs.floor(point[..., [0]])), gs.int64)
         x_canonical = gs.remainder(point[..., 0], 1)
         y_canonical_even = gs.remainder(point[..., 1], 1)
         y_canonical_odd = 1 - y_canonical_even
