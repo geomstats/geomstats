@@ -100,7 +100,7 @@ class HermitianMetric(ComplexRiemannianMetric):
         """
         mat = gs.eye(self.dim, dtype=CDTYPE)
         if base_point is not None and base_point.ndim > 1:
-                mat = gs.broadcast_to(mat, base_point.shape + (self.dim,))
+            mat = gs.broadcast_to(mat, base_point.shape + (self.dim,))
         return mat
 
     @staticmethod

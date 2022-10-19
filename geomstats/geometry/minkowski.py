@@ -65,7 +65,7 @@ class MinkowskiMetric(RiemannianMetric):
         diagonal = gs.array([-1.0] * p + [1.0] * q)
         mat = from_vector_to_diagonal_matrix(diagonal)
         if base_point is not None and base_point.ndim > 1:
-                mat = gs.broadcast_to(mat, base_point.shape + (p + q,))
+            mat = gs.broadcast_to(mat, base_point.shape + (p + q,))
         return mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
