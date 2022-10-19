@@ -35,8 +35,8 @@ class ProductRiemannianMetric(RiemannianMetric):
         self.metrics = metrics
 
         if scales is not None:
-            [geomstats.errors.check_positive(scale, 'Each value in scales')
-             for scale in scales]
+            for scale in scales:
+                geomstats.errors.check_positive(scale, 'Each value in scales')
         self.scales = scales
 
         dim = sum(self.factor_dims)

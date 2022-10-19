@@ -45,8 +45,8 @@ def broadcast_shapes(*args):
 
 def is_positive(arg):
     """Check if arg is a positive number."""
-    if isinstance(arg, int) or isinstance(arg, float):
-        return (arg > 0)
+    if isinstance(arg, (int, float)):
+        return arg > 0
     return False
 
 
@@ -89,7 +89,7 @@ class ProductManifold(Manifold):
         else:
             if (self.factor_shapes.count(self.factor_shapes[0]) ==
                     len(self.factor_shapes)):
-                if (len(self.factor_shapes[0]) == 1):
+                if len(self.factor_shapes[0]) == 1:
                     shape = (len(self.factors), *self.factors[0].shape)
                 else:
                     raise ValueError(
