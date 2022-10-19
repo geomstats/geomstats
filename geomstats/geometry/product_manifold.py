@@ -37,7 +37,7 @@ def broadcast_shapes(*args):
         to NumPy's broadcasting rules.
     """
     if len(args) == 0:
-        return tuple()
+        return ()
     arrays = [gs.empty(x, dtype=[]) for x in args]
     broadcasted_array = gs.broadcast_arrays(*arrays)
     return broadcasted_array[0].shape
@@ -215,6 +215,7 @@ class ProductManifold(Manifold):
 
     @staticmethod
     def _reshape_trailing(argument, manifold):
+        """Convert the trailing dimensions to match the shape of a factor manifold."""
         if manifold.default_coords_type == "vector":
             return argument
         leading_shape = argument.shape[:-1]

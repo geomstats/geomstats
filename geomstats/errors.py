@@ -19,13 +19,22 @@ def check_integer(n, n_name):
     if not (isinstance(n, int) and n > 0):
         if n is not None and n != math.inf:
             raise ValueError(
-                "{} is required to be either"
-                " None, math.inf or a strictly positive integer,"
-                " got {}.".format(n_name, n)
+                f"{n_name} is required to be either"
+                f" None, math.inf or a strictly positive integer,"
+                f" got {n}."
             )
 
 
 def check_positive(param, param_name):
+    """Raise an error if param is not a > 0 number.
+
+    Parameters
+    ----------
+    param : unspecified
+       Parameter to be tested.
+    param_name : string
+       Name of the parameter.
+    """
     if not (isinstance(param, (int, float)) and param > 0):
         raise ValueError(f"{param_name} must be positive.")
 
@@ -44,9 +53,8 @@ def check_belongs(point, manifold, **kwargs):
     """
     if not gs.all(manifold.belongs(point, **kwargs)):
         raise RuntimeError(
-            "Some points do not belong to manifold '%s' of dimension %d."
-            % (type(manifold).__name__, manifold.dim)
-        )
+            f"Some points do not belong to manifold '{type(manifold).__name__}'"
+            f" of dimension {manifold.dim}.")
 
 
 def check_parameter_accepted_values(param, param_name, accepted_values):
@@ -63,9 +71,7 @@ def check_parameter_accepted_values(param, param_name, accepted_values):
     """
     if param not in accepted_values:
         raise ValueError(
-            "Parameter {} needs to be in {}, got: {}".format(
-                param_name, accepted_values, param
-            )
+            f"Parameter {param_name} needs to be in {accepted_values}, got: {param}."
         )
 
 

@@ -139,7 +139,7 @@ class ProductRiemannianMetric(RiemannianMetric):
                 matrix * scale for matrix, scale in zip(factor_matrices, self.scales)]
         # each entry has shape [..., dim_i, dim_i]
         # need to get a bunch of zero matrices of the interlocking shapes to make blocks
-        shapes_dict = dict()
+        shapes_dict = {}
         for i, matrix_i in enumerate(factor_matrices):
             for j, matrix_j in enumerate(factor_matrices):
                 shapes_dict[(i, j)] = matrix_i.shape[:-1] + matrix_j.shape[-1:]
