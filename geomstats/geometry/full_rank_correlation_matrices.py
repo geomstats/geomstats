@@ -7,7 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
@@ -291,6 +291,7 @@ class FullRankCorrelationEuclideanCholeskyMetric(PullbackDiffeoMetric):
         super(FullRankCorrelationEuclideanCholeskyMetric, self).__init__(
             dim=int(n * (n - 1) / 2),
         )
+        self.embedding_metric=MatricesMetric
         self.n = n
 
     def diffeomorphism(self, base_point):
