@@ -81,6 +81,26 @@ class ProductRiemannianMetric(RiemannianMetric):
         """List containing the signatures for each factor."""
         return [metric.signature for metric in self.metrics]
 
+    @staticmethod
+    def _get_method(metric, method_name, metric_args):
+        return getattr(metric, method_name)(**metric_args)
+
+    def _iterate_over_metrics(self, func, args):
+
+        cum_index = gs.cumsum(self.factor_shape_sizes)[:-1]
+
+        arguments = {
+            key: gs.split(args[key], cum_index, axis=-1) for key in args.keys()
+        }
+        args_list = [
+            {key: arguments[key][j] for key in args.keys()}
+            for j, _ in enumerate(self.metrics)
+        ]
+        out = [
+            self._get_method(metric, func, args_list[i])
+            for i, metric in enumerate(self.metrics)]
+        return out
+
     def metric_matrix(self, base_point=None):
         """Compute the matrix of the inner-product.
 
@@ -109,42 +129,22 @@ class ProductRiemannianMetric(RiemannianMetric):
         shapes_dict = dict()
         for i, matrix_i in enumerate(list_of_matrices_for_each_factor):
             for j, matrix_j in enumerate(list_of_matrices_for_each_factor):
-                shapes_dict[(i,j)] = matrix_i.shape[:-1] + matrix_j.shape[-1:]
+                shapes_dict[(i, j)] = matrix_i.shape[:-1] + matrix_j.shape[-1:]
         rows = []
         # concacatenate along axis = -2
         for (i, matrix_i) in enumerate(list_of_matrices_for_each_factor):
             # concatenate along axis = -1
             blocks_to_concatenate = []
             for j, _ in enumerate(list_of_matrices_for_each_factor):
-                if i==j:
+                if i == j:
                     blocks_to_concatenate.append(matrix_i)
                 else:
-                    blocks_to_concatenate.append(gs.zeros(shapes_dict[(i,j)]))
+                    blocks_to_concatenate.append(gs.zeros(shapes_dict[(i, j)]))
             row = gs.concatenate(blocks_to_concatenate, axis=-1)
             rows.append(row)
         metric_matrix = gs.concatenate(rows, axis=-2)
 
         return metric_matrix
-
-    @staticmethod
-    def _get_method(metric, method_name, metric_args):
-        return getattr(metric, method_name)(**metric_args)
-
-    def _iterate_over_metrics(self, func, args):
-
-        cum_index = gs.cumsum(self.factor_shape_sizes)[:-1]
-
-        arguments = {
-            key: gs.split(args[key], cum_index, axis=-1) for key in args.keys()
-        }
-        args_list = [
-            {key: arguments[key][j] for key in args.keys()}
-            for j, _ in enumerate(self.metrics)
-        ]
-        out = [
-            self._get_method(metric, func, args_list[i])
-            for i, metric in enumerate(self.metrics)]
-        return out
 
     def inner_product(
         self,
