@@ -8,6 +8,7 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 
@@ -260,3 +261,73 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
             fiber_bundle=fiber_bundle,
             shape=fiber_bundle.shape,
         )
+
+
+class FullRankCorrelationEuclideanCholeskyMetric(PullbackDiffeoMetric):
+    """Class for the Euclidean-Cholesky metric on correlation matrices.
+
+    The Cholesky decomposition of a full-rank correlation matrix is a lower
+    triangular matrices with positive coefficients on the diagonal.
+    Multiplying on the left by the inverse of the positive diagonal gives a
+    lower triangular matrix with unit diagonal. Forgetting the diagonal, this
+    composition is a smooth diffeomorphism from full-rank correlation matrices
+    to strictly lower triangular matrices, which is a Euclidean space. Thus,
+    any inner product on strictly lower triangular matrices defines a flat
+    complete Riemannian metric on full-rank correlation matrices by pullback.
+
+    Parameters
+    ----------
+    n : int
+        Dimension of correlation matrices.
+
+    References
+    ----------
+    .. [TP2022] Thanwerdas, Pennec. "Theoretically and computationally
+    convenient geometries on full-rank correlation matrices"
+    https://arxiv.org/abs/2201.06282
+    """
+
+    def __init__(self, n):
+        super(FullRankCorrelationEuclideanCholeskyMetric, self).__init__(
+            dim=int(n * (n - 1) / 2),
+        )
+        self.n = n
+
+    def diffeomorphism(self, base_point):
+        chol = gs.linalg.cholesky(base_point)
+        diag = Matrices.to_diagonal(chol)
+        diag_inv = GeneralLinear.inverse(diag)
+        image = gs.matmul(diag_inv, chol)
+        return image
+
+    def tangent_diffeomorphism(self, tangent_vec, base_point):
+        chol = gs.linalg.cholesky(base_point)
+        diag = Matrices.to_diagonal(chol)
+        diag_inv = GeneralLinear.inverse(diag)
+        diag_inv_squared = diag_inv ** 2
+        chol_inv = GeneralLinear.inverse(chol)
+        chol_inv_trans = Matrices.transpose(chol_inv)
+        prod = gs.matmul(chol_inv, tangent_vec)
+        prod = gs.matmul(prod, chol_inv_trans)
+        low_prod = Matrices.to_strictly_lower_triangular(prod)
+        low_prod += Matrices.to_diagonal(prod) / 2
+        tangent_chol = gs.matmul(chol, low_prod)
+        diag_tangent_chol = Matrices.to_diagonal(tangent_chol)
+        term_a = gs.matmul(diag_inv, tangent_chol)
+        term_b = diag_inv_squared * diag_tangent_chol
+        term_b = gs.matmul(term_b, chol)
+        return term_a - term_b
+    def inverse_diffeomorphism(self, image_point):
+        base_point_trans = Matrices.transpose(image_point)
+        product = gs.matmul(image_point, base_point_trans)
+        preimage = CorrelationMatricesBundle.riemannian_submersion(product)
+        return preimage
+
+    def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
+        preimage = self.inverse_diffeomorphism(image_point)
+        tangent_vec_trans = Matrices.transpose(image_tangent_vec)
+        pre_tangent_vec = gs.matmul(image_point, tangent_vec_trans)
+        pre_tangent_vec += Matrices.transpose(pre_tangent_vec)
+        pre_tangent_vec = CorrelationMatricesBundle(self.n).\
+            tangent_riemannian_submersion(pre_tangent_vec, preimage)
+        return pre_tangent_vec

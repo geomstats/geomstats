@@ -410,7 +410,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         :math:`M` into the manifold `N`.
 
         df_p is a linear map from T_pM to T_f(p)N called
-        the tangent immesion
+        the tangent immersion
 
         Parameters
         ----------
