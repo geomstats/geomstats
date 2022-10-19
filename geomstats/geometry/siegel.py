@@ -97,8 +97,10 @@ class Siegel(ComplexOpenSet):
 
     def projection(self, point, atol=gs.atol):
         """Project a matrix to the Siegel space.
+
         First the Hermitian part of point is computed, then the eigenvalues
         are floored to gs.atol.
+
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
@@ -106,6 +108,7 @@ class Siegel(ComplexOpenSet):
         atol : float
             Tolerance.
             Optional, default: backend atol.
+
         Returns
         -------
         projected: array-like, shape=[..., n, n]
@@ -143,6 +146,7 @@ class Siegel(ComplexOpenSet):
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in HPD(n) from the log-uniform distribution.
+
         Parameters
         ----------
         n_samples : int
@@ -151,6 +155,7 @@ class Siegel(ComplexOpenSet):
         bound : float
             Bound of the interval in which to sample in the tangent space.
             Optional, default: 1.
+
         Returns
         -------
         samples : array-like, shape=[..., n, n]
@@ -169,6 +174,7 @@ class Siegel(ComplexOpenSet):
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of HPD(n) from the uniform distribution.
+
         Parameters
         ----------
         n_samples : int
@@ -177,6 +183,7 @@ class Siegel(ComplexOpenSet):
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
             Optional, default: None.
+
         Returns
         -------
         samples : array-like, shape=[..., n, n]
@@ -228,7 +235,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         inner_product : array-like, shape=[..., n, n]
             Inner-product.
         """
-
         data_type = (tangent_vec_a + tangent_vec_b + base_point).dtype
 
         identity = gs.zeros(base_point.shape, dtype=data_type)
@@ -283,7 +289,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         basis_vect : array-like, shape=[n, n] or shape=[n ** 2]
             Basis vector.
         """
-
         dim = self.n**2
         basis_vect = gs.zeros([dim], dtype=data_type)
         basis_vect[index] = 1
@@ -309,7 +314,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         inner_prod_mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-
         data_type = base_point.dtype
         dim = self.n**2
 
@@ -483,7 +487,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         log : array-like, shape=[..., n, n]
             Riemannian logarithm of point at base_point.
         """
-
         point_at_zero = self.isometry(point=point, point_to_zero=base_point)
 
         logarithm_at_zero = self.log_at_zero(point_at_zero)
@@ -520,7 +523,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         Parameters
         ----------
         point_a : array-like, shape=[..., n, n]
-
         point_b : array-like, shape=[..., n, n]
 
         Returns
@@ -620,7 +622,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         Parameters
         ----------
         point_a : array-like, shape=[..., n, n]
-
         point_b : array-like, shape=[..., n, n]
 
         Returns
