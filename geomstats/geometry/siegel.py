@@ -55,7 +55,7 @@ class Siegel(OpenSet):
         self.symmetric = symmetric
         self.scale = scale
 
-    def belongs(self, point):
+    def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the Siegel space.
 
         Evaluate if a point belongs to the Siegel space,
@@ -65,34 +65,33 @@ class Siegel(OpenSet):
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
-                Input point.
+            Point to be checked.
+        atol : float
+            Tolerance.
+            Optional, default: backend atol.
 
         Returns
         -------
-        belongs : array-like, shape=[..., 1]
+        belongs : array-like, shape=[...,]
+            Boolean denoting if mat is belongs to the Siegel space.
         """
-
-        data_type = point.dtype
         point_shape = gs.shape(point)
 
         ndim = len(point_shape)
         if ndim == 3:
             n_samples = point_shape[0]
 
-        identity = gs.zeros(point.shape, dtype=data_type)
-        gs.einsum("...ii -> ...i", identity)[...] = 1
         point_transconj = ComplexMatrices.transconjugate(point)
-        aux_1 = gs.einsum("...ij,...jk->...ik", point, point_transconj)
-        aux_2 = identity - aux_1
+        aux = gs.einsum("...ij,...jk->...ik", point, point_transconj)
 
         if ndim == 2:
-            eigenvalues = gs.linalg.eigvalsh(aux_2)
-            belongs = (eigenvalues > 0).all()
+            eigenvalues = gs.linalg.eigvalsh(aux)
+            belongs = (eigenvalues <= 1 - atol).all()
         elif ndim == 3:
             belongs = gs.zeros([n_samples])
             for i_sample in range(n_samples):
-                eigenvalues = gs.linalg.eigvalsh(aux_2[i_sample, ...])
-                belongs[i_sample] = (eigenvalues > 0).all()
+                eigenvalues = gs.linalg.eigvalsh(aux[i_sample, ...])
+                belongs[i_sample] = (eigenvalues < 1 - atol).all()
 
         if self.symmetric:
             belongs = gs.logical_and(belongs, ComplexMatrices.is_symmetric(point))
@@ -122,21 +121,12 @@ class Siegel(OpenSet):
         if ndim == 3:
             n_samples = point_shape[0]
 
-        # identity = gs.zeros(point.shape, dtype=data_type)
-        # gs.einsum("...ii -> ...i", identity)[...] = 1
-        if ndim == 2:
-            identity = gs.eye(self.n, dtype=data_type)
-        elif ndim == 3:
-            identity = gs.stack(
-                [gs.eye(self.n, dtype=data_type) for _ in range(n_samples)], axis=0
-            )
         point_transconj = ComplexMatrices.transconjugate(point)
-        aux_1 = gs.einsum("...ij,...jk->...ik", point, point_transconj)
-        aux_2 = identity - aux_1
+        aux = gs.einsum("...ij,...jk->...ik", point, point_transconj)
 
         projected = point
-        eigenvalues = gs.linalg.eigvalsh(aux_2)
-        max_eigenvalues = gs.max(eigenvalues, axis=-1)
+        eigenvalues = gs.linalg.eigvalsh(aux)
+        max_eigenvalues = gs.max(eigenvalues, axis=-1) ** 0.5
 
         if ndim == 2:
             if max_eigenvalues >= 1 - atol:
@@ -218,17 +208,8 @@ class SiegelMetric(ComplexRiemannianMetric):
             signature=(dim, 0),
         )
         self.n = n
-        # self.dim = n**2
-        # self.signature = (n**2, 0, 0)  # What is the signature ?
         assert scale > 0, "The scale should be strictly positive"
         self.scale = scale
-        # self.default_point_type = default_point_type
-        # if default_point_type == "matrix":
-        #     self.point_shape = (n, n)
-        #     self.n_dim_point = 2
-        # elif default_point_type == "vector":
-        #     self.point_shape = (n**2,)
-        #     self.n_dim_point = 1
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Information Geometry inner-product.
@@ -251,15 +232,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             Inner-product.
         """
 
-        if isinstance(base_point, autograd.numpy.numpy_boxes.ArrayBox):
-            base_point = base_point._value
-
         data_type = (tangent_vec_a + tangent_vec_b + base_point).dtype
-        base_point_shape = gs.shape(base_point)
-
-        ndim = len(base_point_shape)
-        if ndim == 3:
-            n_samples = base_point_shape[0]
 
         identity = gs.zeros(base_point.shape, dtype=data_type)
         gs.einsum("...ii -> ...i", identity)[...] = 1
@@ -283,12 +256,12 @@ class SiegelMetric(ComplexRiemannianMetric):
         aux_a = gs.einsum("...ij,...jk->...ik", inv_aux_3, tangent_vec_a)
         aux_b = gs.einsum("...ij,...jk->...ik", inv_aux_4, tangent_vec_b_transconj)
         prod_1 = gs.einsum("...ij,...jk->...ik", aux_a, aux_b)
-        trace_1 = 0.5 * gs.trace(prod_1, axis1=-2, axis2=-1)
+        trace_1 = 0.5 * gs.trace(prod_1)
 
         aux_c = gs.einsum("...ij,...jk->...ik", inv_aux_3, tangent_vec_b)
         aux_d = gs.einsum("...ij,...jk->...ik", inv_aux_4, tangent_vec_a_transconj)
         prod_2 = gs.einsum("...ij,...jk->...ik", aux_c, aux_d)
-        trace_2 = 0.5 * gs.trace(prod_2, axis1=-2, axis2=-1)
+        trace_2 = 0.5 * gs.trace(prod_2)
 
         inner_product = trace_1 + trace_2
         inner_product *= self.scale**2
@@ -471,7 +444,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         den = identity - aux_2
         inv_den = HermitianMatrices.powerm(den, -1)
         frac = gs.einsum("...ij,...jk->...ik", num, inv_den)
-        factor_1 = HermitianMatrices.logm(frac)
+        factor_1 = gs.linalg.logm(frac)
         factor_2 = HermitianMatrices.powerm(aux_2, -1)
         prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, factor_2)
         log = gs.einsum("...ij,...jk->...ik", prod_1, point)
@@ -555,7 +528,7 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         Returns
         -------
-        dist : array-like, shape=[..., 1]
+        sq_dist : array-like, shape=[..., 1]
 
         References
         ----------
@@ -619,10 +592,7 @@ class SiegelMetric(ComplexRiemannianMetric):
                     point_shape, dtype=data_type
                 )
             else:
-                # prod_power_one_half[i_sample, ...] = gs.linalg.powerm(
-                #     prod[i_sample],
-                #     1 / 2)
-                prod_power_one_half[i_sample, ...] = fractional_matrix_power(
+                prod_power_one_half[i_sample, ...] = gs.linalg.fractional_matrix_power(
                     prod[i_sample], 1 / 2
                 )
 
@@ -638,7 +608,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         logarithm = gs.linalg.logm(frac)
 
         sq_logarithm = gs.einsum("...ij,...jk->...ik", logarithm, logarithm)
-        sq_dist = gs.trace(sq_logarithm, axis1=-2, axis2=-1)
+        sq_dist = gs.trace(sq_logarithm)
 
         sq_dist *= 0.25
 

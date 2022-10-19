@@ -30,76 +30,6 @@ class TestSiegel(OpenSetTestCase, metaclass=Parametrizer):
             gs.cast(gs.array(expected), dtype=CDTYPE),
         )
 
-    def test_logm(self, mat, expected):
-        self.assertAllClose(
-            self.Space.logm(gs.cast(gs.array(mat), dtype=CDTYPE)),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
-        )
-
-    def test_cholesky_factor(self, n, mat, expected):
-        result = self.Space.cholesky_factor(gs.cast(gs.array(mat), dtype=CDTYPE))
-
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
-        self.assertTrue(gs.all(PositiveLowerTriangularMatrices(n).belongs(result)))
-
-    def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
-        result = self.Space.differential_cholesky_factor(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
-        )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
-        self.assertTrue(gs.all(LowerTriangularMatrices(n).belongs(result)))
-
-    def test_differential_power(self, power, tangent_vec, base_point, expected):
-        result = self.Space.differential_power(
-            power,
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
-        )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
-
-    def test_inverse_differential_power(self, power, tangent_vec, base_point, expected):
-        result = self.Space.inverse_differential_power(
-            power,
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
-        )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
-
-    def test_differential_log(self, tangent_vec, base_point, expected):
-        result = self.Space.differential_log(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
-        )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
-
-    def test_inverse_differential_log(self, tangent_vec, base_point, expected):
-        result = self.Space.inverse_differential_log(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
-        )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
-
-    def test_differential_exp(self, tangent_vec, base_point, expected):
-        result = self.Space.differential_exp(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
-        )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
-
-    def test_inverse_differential_exp(self, tangent_vec, base_point, expected):
-        result = self.Space.inverse_differential_exp(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
-        )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
-
-    def test_cholesky_factor_belongs(self, n, mat):
-        result = self.Space(n).cholesky_factor(gs.cast(gs.array(mat), dtype=CDTYPE))
-        self.assertAllClose(
-            gs.all(PositiveLowerTriangularMatrices(n).belongs(result)), True
-        )
-
 
 class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
@@ -120,9 +50,9 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = SiegelMetricTestData()
 
     def test_inner_product(
-        self, n, power_affine, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, n, scale, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.Metric(n, power_affine)
+        metric = self.Metric(n, scale)
         result = metric.inner_product(
             gs.cast(gs.array(tangent_vec_a), dtype=CDTYPE),
             gs.cast(gs.array(tangent_vec_b), dtype=CDTYPE),
@@ -130,8 +60,8 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected)
 
-    def test_exp(self, n, power_affine, tangent_vec, base_point, expected):
-        metric = self.Metric(n, power_affine)
+    def test_exp(self, n, scale, tangent_vec, base_point, expected):
+        metric = self.Metric(n, scale)
         self.assertAllClose(
             metric.exp(
                 gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
@@ -140,8 +70,8 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
             gs.cast(gs.array(expected), dtype=CDTYPE),
         )
 
-    def test_log(self, n, power_affine, point, base_point, expected):
-        metric = self.Metric(n, power_affine)
+    def test_log(self, n, scale, point, base_point, expected):
+        metric = self.Metric(n, scale)
         self.assertAllClose(
             metric.log(
                 gs.cast(gs.array(point), dtype=CDTYPE),
