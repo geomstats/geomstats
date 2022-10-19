@@ -43,6 +43,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     skip_test_scalar_curvature_shape = True
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
+    skip_test_inner_product_matrix_vector = True
 
     testing_data = ProductRiemannianMetricTestData()
 
