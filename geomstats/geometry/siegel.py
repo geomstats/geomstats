@@ -1,23 +1,30 @@
-"""The Siegel space.
+"""The Siegel manifold.
 
-The Siegel disk representation is used.
-The Siegel disk is a generalization of the Poincare disk in higher dimension.
-Warning: another more restrictive definition of the Siegel disk also exists.
+The Siegel manifold is a generalization of the Poincare disk to complex matrices
+of singular values strictly lower than one.
 It is defined as the set of complex matrices M such that:
 I - M @ M.conj().T is a positive definite matrix.
-See [JV2016] for more details.
+Warning: another more restrictive definition of the Siegel disk also exists
+which add a symmetry condition on the matrices.
+It has been proven in [Cabanes2022] that the submanifold of symmetric Siegel
+matrices is a totally geodesic submanifold of the Siegel space.
 
 Lead author: Yann Cabanes.
 
 References
 ----------
-    .. [Cabanes2022] Yann Cabanes. Multidimensional complex stationary
+.. [Cabanes2022] Yann Cabanes. Multidimensional complex stationary
     centered Gaussian autoregressive time series machine learning
     in Poincaré and Siegel disks: application for audio and radar
     clutter classification, PhD thesis, 2022
-    .. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
-      matrices with Toeplitz structured blocks, 2016.
-      https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+.. [Cabanes2021] Yann Cabanes and Frank Nielsen.
+    New theoreticla tools in the Siegel space for vectorial
+    autoregressive data classification,
+    Geometric Science of Information, 2021.
+    https://franknielsen.github.io/IG/GSI2021-SiegelLogExpClassification.pdf
+.. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+    matrices with Toeplitz structured blocks, 2016.
+    https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
 import geomstats.backend as gs
@@ -30,6 +37,21 @@ CDTYPE = gs.get_default_cdtype()
 
 
 def create_identity_mat(shape, dtype=CDTYPE):
+    """Stack identity matrices.
+
+    Parameters
+    ----------
+    shape : tuple
+        Desired identity matrix shape of form [..., n, n].
+    dtype : dtype
+        Desired dtype.
+        Optional, default: CDTYPE.
+
+    Returns
+    -------
+    identity : array-like, shape=[..., n, n]
+        Stacked identity matrices.
+    """
     ndim = len(shape)
     if ndim == 2:
         identity = gs.eye(shape[-1], dtype=dtype)
@@ -41,20 +63,15 @@ def create_identity_mat(shape, dtype=CDTYPE):
 
 
 class Siegel(ComplexOpenSet):
-    """Class for the Siegel disk.
+    """Class for the Siegel space.
 
-    The Siegel disk is a generalization of the complex Poincare disk
-    to complex matrices with singular values lower than one.
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
     """
 
     def __init__(self, n, symmetric=False, scale=1, **kwargs):
-        """Construct the Siegel disk.
-
-        Parameters
-        ----------
-        n : int
-            Integer representing the shape of the matrices: n x n.
-        """
         kwargs.setdefault("metric", SiegelMetric(n))
         super().__init__(
             dim=n**2, embedding_space=ComplexMatrices(m=n, n=n), **kwargs
@@ -64,11 +81,7 @@ class Siegel(ComplexOpenSet):
         self.scale = scale
 
     def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the Siegel space.
-
-        Evaluate if a point belongs to the Siegel space,
-        i.e. evaluate if:
-        I - M @ M.conj().T > 0.
+        """Check if a matrix belongs to the Siegel space.
 
         Parameters
         ----------
@@ -81,7 +94,7 @@ class Siegel(ComplexOpenSet):
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean denoting if mat is belongs to the Siegel space.
+            Boolean denoting if mat belongs to the Siegel space.
         """
         point_shape = gs.shape(point)
 
@@ -110,9 +123,6 @@ class Siegel(ComplexOpenSet):
     def projection(self, point, atol=gs.atol):
         """Project a matrix to the Siegel space.
 
-        First the Hermitian part of point is computed, then the eigenvalues
-        are floored to gs.atol.
-
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
@@ -124,7 +134,7 @@ class Siegel(ComplexOpenSet):
         Returns
         -------
         projected: array-like, shape=[..., n, n]
-            HPD matrix.
+            Matrix in the Siegel space.
         """
         data_type = point.dtype
         point_shape = gs.shape(point)
@@ -157,7 +167,7 @@ class Siegel(ComplexOpenSet):
         return projected
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in HPD(n) from the log-uniform distribution.
+        """Generate random points in the Siegel space.
 
         Parameters
         ----------
@@ -171,21 +181,21 @@ class Siegel(ComplexOpenSet):
         Returns
         -------
         samples : array-like, shape=[..., n, n]
-            Points sampled in HPD(n).
+            Points sampled in the Siegel space.
         """
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
-        mat = gs.cast(gs.random.rand(*size), dtype=CDTYPE)
-        mat += 1j * gs.cast(gs.random.rand(*size), dtype=CDTYPE)
-        mat -= 0.5 + 0.5j
-        mat /= 2 * n
-        mat *= 1 - gs.atol
-        mat *= bound
-        return mat
+        samples = gs.cast(gs.random.rand(*size), dtype=CDTYPE)
+        samples += 1j * gs.cast(gs.random.rand(*size), dtype=CDTYPE)
+        samples -= 0.5 + 0.5j
+        samples /= 2 * n
+        samples *= 1 - gs.atol
+        samples *= bound
+        return samples
 
     def random_tangent_vec(self, base_point, n_samples=1):
-        """Sample on the tangent space of HPD(n) from the uniform distribution.
+        """Sample on the tangent space of Siegel space from the uniform distribution.
 
         Parameters
         ----------
@@ -204,16 +214,22 @@ class Siegel(ComplexOpenSet):
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
-        tangent_vec = gs.cast(gs.random.rand(*size), dtype=CDTYPE)
-        tangent_vec += 1j * gs.cast(gs.random.rand(*size), dtype=CDTYPE)
-        tangent_vec *= 2
-        tangent_vec -= 1 + 1j
+        samples = gs.cast(gs.random.rand(*size), dtype=CDTYPE)
+        samples += 1j * gs.cast(gs.random.rand(*size), dtype=CDTYPE)
+        samples *= 2
+        samples -= 1 + 1j
 
-        return tangent_vec
+        return samples
 
 
 class SiegelMetric(ComplexRiemannianMetric):
-    """Class for the Siegel metric."""
+    """Class for the Siegel metric.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
 
     def __init__(self, n, scale=1, **kwargs):
         """Construct the Siegel metric."""
@@ -227,10 +243,11 @@ class SiegelMetric(ComplexRiemannianMetric):
         self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the Information Geometry inner-product.
+        """Compute the Siegel inner-product.
 
         Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the Information Geometry Riemannian metric.
+        at point base_point using the Siegel Riemannian metric:
+
 
         Parameters
         ----------
@@ -243,7 +260,7 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         Returns
         -------
-        inner_product : array-like, shape=[..., n, n]
+        inner_product : array-like, shape=[...,]
             Inner-product.
         """
         data_type = (tangent_vec_a + tangent_vec_b + base_point).dtype
@@ -281,101 +298,51 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         return inner_product
 
-    def basis_vector(self, index, point_type="matrix", data_type="complex"):
-        """Create a basis vector.
-
-        Parameters
-        ----------
-        index : int
-            Index of the basis vector to create.
-        point_type : string
-            If point_type is set to 'matrix', of matrix is returned.
-            Else, a vector is returned.
-        data_type = string
-            The data type of the basis vector to create (int, float, complex...).
-
-        Returns
-        -------
-        basis_vect : array-like, shape=[n, n] or shape=[n ** 2]
-            Basis vector.
-        """
-        dim = self.n**2
-        basis_vect = gs.zeros([dim], dtype=data_type)
-        basis_vect[index] = 1
-        if point_type == "matrix":
-            basis_vect = gs.reshape(basis_vect, (self.n, self.n))
-        return basis_vect
-
-    def inner_product_matrix(self, base_point=None, base_point_type="matrix"):
-        """Compute the inner product matrix.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Base point.
-            Optional, defaults to zeros if None.
-
-        base_point_type : string
-            If base_point_type is set to 'matrix', the base point is a matrix.
-            If base_point_type is set to 'vector', the base point is a vector.
-
-        Returns
-        -------
-        inner_prod_mat : array-like, shape=[..., dim, dim]
-            Inner-product matrix.
-        """
-        data_type = base_point.dtype
-        dim = self.n**2
-
-        if base_point is None:
-            base_point = gs.zeros((1, dim))
-
-        if base_point_type == "vector":
-            base_point = gs.reshape(base_point, (-1, self.n, self.n))
-
-        inner_prod_mat = gs.zeros([dim, dim], dtype=data_type)
-        for i_index in range(dim):
-            basis_vector_i = self.basis_vector(
-                i_index, point_type="matrix", data_type=data_type
-            )
-            for j_index in range(dim):
-                basis_vector_j = self.basis_vector(
-                    j_index, point_type="matrix", data_type=data_type
-                )
-                inner_prod_mat[i_index, j_index] = self.inner_product(
-                    basis_vector_i, basis_vector_j, base_point
-                )
-        return inner_prod_mat
-
     @staticmethod
     def tangent_vec_from_base_point_to_zero(tangent_vec, base_point):
+        """Transport a tangent vector from a base point to zero.
 
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at zero.
+        base_point : array-like, shape=[..., n, n]
+            Point on the Siegel space.
+
+        Returns
+        -------
+        tangent_vec_at_zero : array-like, shape=[..., n, n]
+            Tangent vector at zero (null matrix).
+        """
         data_type = (tangent_vec + base_point).dtype
-
         identity = create_identity_mat(base_point.shape, dtype=data_type)
-
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
-
         aux_1 = gs.einsum("...ij,...jk->...ik", base_point, base_point_transconj)
-
         aux_2 = gs.einsum("...ij,...jk->...ik", base_point_transconj, base_point)
-
         aux_3 = identity - aux_1
-
         aux_4 = identity - aux_2
-
         factor_1 = HermitianMatrices.powerm(aux_3, -1 / 2)
-
         factor_3 = HermitianMatrices.powerm(aux_4, -1 / 2)
-
         prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, tangent_vec)
-
         tangent_vec_at_zero = gs.einsum("...ij,...jk->...ik", prod_1, factor_3)
-
         return tangent_vec_at_zero
 
     @staticmethod
     def exp_at_zero(tangent_vec):
+        """Compute the Siegel exponential map at zero.
+
+        Compute the exponential map at zero (null matrix) of tangent_vec.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., n, n]
+            Point on the manifold.
+        """
         data_type = tangent_vec.dtype
         identity = create_identity_mat(tangent_vec.shape, dtype=data_type)
         tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
@@ -393,6 +360,23 @@ class SiegelMetric(ComplexRiemannianMetric):
 
     @staticmethod
     def isometry(point, point_to_zero):
+        """Define an isometry for the Siegel metric.
+
+        Isometry for the Siegel metric sending point_to_zero
+        (parameter of the isometry) on zero.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point on the Siegel space.
+        point_to_zero : array-like, shape=[..., n, n]
+            Point send on zero (null matrix) by the isometry.
+
+        Returns
+        -------
+        point_image : array-like, shape=[..., n, n]
+            Image of point by the isometry.
+        """
         data_type = (point + point_to_zero).dtype
         identity = create_identity_mat(point.shape, dtype=data_type)
         point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
@@ -412,22 +396,21 @@ class SiegelMetric(ComplexRiemannianMetric):
         return point_image
 
     def exp(self, tangent_vec, base_point):
-        """Compute the exponential map.
+        """Compute the Siegel exponential map.
 
-        Compute the Riemannian exponential at point base_point
-        of tangent vector tangent_vec wrt the metric defined in inner_product.
+        Compute the exponential map at base_point of tangent_vec.
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
-            Base point.
+            Point on the manifold.
 
         Returns
         -------
         exp : array-like, shape=[..., n, n]
-            Riemannian exponential.
+            Point on the manifold.
         """
         tangent_vec_at_zero = self.tangent_vec_from_base_point_to_zero(
             tangent_vec=tangent_vec, base_point=base_point
@@ -441,6 +424,20 @@ class SiegelMetric(ComplexRiemannianMetric):
 
     @staticmethod
     def log_at_zero(point):
+        """Compute the Siegel logarithm map at zero.
+
+        Compute the logarithm map at zero (null matrix) of point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point on the Siegel space.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at the base point.
+        """
         data_type = point.dtype
         identity = create_identity_mat(point.shape, dtype=data_type)
         point_transconj = ComplexMatrices.transconjugate(point)
@@ -453,12 +450,26 @@ class SiegelMetric(ComplexRiemannianMetric):
         factor_1 = gs.linalg.logm(frac)
         factor_2 = HermitianMatrices.powerm(aux_2, -1)
         prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, factor_2)
-        log = gs.einsum("...ij,...jk->...ik", prod_1, point)
-        log *= 0.5
-        return log
+        tangent_vec = gs.einsum("...ij,...jk->...ik", prod_1, point)
+        tangent_vec *= 0.5
+        return tangent_vec
 
     @staticmethod
     def tangent_vec_from_zero_to_base_point(tangent_vec, base_point):
+        """Transport a tangent vector from zero to a base point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at zero.
+        base_point : array-like, shape=[..., n, n]
+            Point on the Siegel space.
+
+        Returns
+        -------
+        tangent_vec_at_base_point : array-like, shape=[..., n, n]
+            Tangent vector at the base point.
+        """
         data_type = (tangent_vec + base_point).dtype
         identity = create_identity_mat(tangent_vec.shape, dtype=data_type)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
@@ -473,65 +484,50 @@ class SiegelMetric(ComplexRiemannianMetric):
         return tangent_vec_at_base_point
 
     def log(self, point, base_point):
-        """Compute the Riemannian logarithm map.
+        """Compute the Siegel logarithm map.
 
-        Compute the Riemannian logarithm at point base_point,
+        Compute the Riemannian logarithm at point base_point
         of point wrt the metric defined in inner_product.
-        This gives a tangent vector at point base_point.
+        Return a tangent vector at point base_point.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
-            Point.
+            Point on the Siegel space.
         base_point : array-like, shape=[..., n, n]
-            Base point.
+            Point on the Siegel space.
 
         Returns
         -------
-        log : array-like, shape=[..., n, n]
-            Riemannian logarithm of point at base_point.
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at the base point.
         """
         point_at_zero = self.isometry(point=point, point_to_zero=base_point)
 
         logarithm_at_zero = self.log_at_zero(point_at_zero)
 
-        log = self.tangent_vec_from_zero_to_base_point(
+        tangent_vec = self.tangent_vec_from_zero_to_base_point(
             tangent_vec=logarithm_at_zero, base_point=base_point
         )
 
-        return log
-
-    def squared_norm(self, vector, base_point=None):
-        """Compute the squared norm of a vector at a given base point.
-
-        Squared norm of a vector associated with the inner product
-        at the tangent space at a base point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., n, n]
-
-        base_point : array-like, shape=[..., n, n]
-
-        Returns
-        -------
-        sq_norm : array-like, shape=[..., n, n]
-        """
-        sq_norm = gs.real(self.inner_product(vector, vector, base_point))
-        sq_norm = gs.maximum(sq_norm, 0)
-        return sq_norm
+        return tangent_vec
 
     def squared_dist(self, point_a, point_b):
-        """Compute the squared distance between two points.
+        """Compute the Siegel squared distance.
+
+        Compute the Riemannian squared distance between point_a and point_b.
 
         Parameters
         ----------
         point_a : array-like, shape=[..., n, n]
+            Point.
         point_b : array-like, shape=[..., n, n]
+            Point.
 
         Returns
         -------
-        sq_dist : array-like, shape=[..., 1]
+        squared_dist : array-like, shape=[...]
+            Riemannian squared distance.
 
         References
         ----------
@@ -604,27 +600,10 @@ class SiegelMetric(ComplexRiemannianMetric):
         logarithm = gs.linalg.logm(frac)
 
         sq_logarithm = gs.einsum("...ij,...jk->...ik", logarithm, logarithm)
+
         sq_dist = gs.trace(sq_logarithm)
-
         sq_dist *= 0.25
-
         sq_dist = gs.real(sq_dist)
         sq_dist *= self.scale**2
         sq_dist = gs.maximum(sq_dist, 0)
         return sq_dist
-
-    def dist(self, point_a, point_b):
-        """Compute the geodesic distance between two points.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., n, n]
-        point_b : array-like, shape=[..., n, n]
-
-        Returns
-        -------
-        dist : array-like, shape=[..., 1]
-        """
-        sq_dist = self.squared_dist(point_a, point_b)
-        dist = sq_dist ** (1 / 2)
-        return dist
