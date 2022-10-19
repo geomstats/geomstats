@@ -7,8 +7,10 @@ from tests.data_generation import _ComplexRiemannianMetricTestData, _OpenSetTest
 
 SQRT_2 = math.sqrt(2.0)
 LN_2 = math.log(2.0)
+LN_3 = math.log(3.0)
 EXP_1 = math.exp(1.0)
 EXP_2 = math.exp(2.0)
+EXP_4 = math.exp(4.0)
 SINH_1 = math.sinh(1.0)
 
 
@@ -26,7 +28,7 @@ class SiegelTestData(_OpenSetTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(n=2, mat=[[3.0, -1.0], [-1.0, 3.0]], expected=True),
+            dict(n=2, mat=[[0.2 + 0.2j, -0.1j], [-0.3j, -0.1]], expected=True),
             dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=False),
             dict(
                 n=3,
@@ -35,7 +37,7 @@ class SiegelTestData(_OpenSetTestData):
             ),
             dict(
                 n=2,
-                mat=[[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]],
+                mat=[[[0.1, 0.1 + 0.2j], [0.0, 0.5j]], [[1.0, -1.0], [0.0, 1.0]]],
                 expected=[True, False],
             ),
         ]
@@ -43,11 +45,15 @@ class SiegelTestData(_OpenSetTestData):
 
     def projection_test_data(self):
         smoke_data = [
-            dict(n=2, mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[1.0, 0.0], [0.0, 1.0]]),
+            dict(
+                n=2,
+                mat=[[1.0, 0.0], [0.0, 1.0]],
+                expected=[[1.0 - gs.atol, 0.0], [0.0, 1.0 - gs.atol]],
+            ),
             dict(
                 n=2,
                 mat=[[-1.0, 0.0], [0.0, -2.0]],
-                expected=[[gs.atol, 0.0], [0.0, gs.atol]],
+                expected=[[-(1 - gs.atol) / 2, 0.0], [0.0, -(1 - gs.atol)]],
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -74,10 +80,10 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
             dict(
                 n=3,
                 scale=0.5,
-                tangent_vec_a=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-                tangent_vec_b=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
-                expected=713 / 144,
+                tangent_vec_a=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                tangent_vec_b=[[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]],
+                base_point=[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+                expected=3 / 2,
             )
         ]
         return self.generate_tests(smoke_data)
@@ -88,8 +94,11 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
                 n=2,
                 scale=1.0,
                 tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
-                base_point=[[1.0, 0.0], [0.0, 1.0]],
-                expected=[[EXP_2, 0.0], [0.0, EXP_2]],
+                base_point=[[0.0, 0.0], [0.0, 0.0]],
+                expected=[
+                    [(EXP_4 - 1) / (EXP_4 + 1), 0.0],
+                    [0.0, (EXP_4 - 1) / (EXP_4 + 1)],
+                ],
             )
         ]
         return self.generate_tests(smoke_data)
@@ -99,9 +108,9 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
             dict(
                 n=2,
                 scale=1.0,
-                point=[[1.0, 0.0], [0.0, 1.0]],
-                base_point=[[2.0, 0.0], [0.0, 2.0]],
-                expected=[[-2 * LN_2, 0.0], [0.0, -2 * LN_2]],
+                point=[[0.5, 0.0], [0.0, 0.5]],
+                base_point=[[0.0, 0.0], [0.0, 0.0]],
+                expected=[[LN_3 / 2, 0.0], [0.0, LN_3 / 2]],
             )
         ]
         return self.generate_tests(smoke_data)

@@ -91,7 +91,7 @@ class Siegel(OpenSet):
             belongs = gs.zeros([n_samples])
             for i_sample in range(n_samples):
                 eigenvalues = gs.linalg.eigvalsh(aux[i_sample, ...])
-                belongs[i_sample] = (eigenvalues < 1 - atol).all()
+                belongs[i_sample] = (eigenvalues <= 1 - atol).all()
 
         if self.symmetric:
             belongs = gs.logical_and(belongs, ComplexMatrices.is_symmetric(point))
@@ -121,6 +121,9 @@ class Siegel(OpenSet):
         if ndim == 3:
             n_samples = point_shape[0]
 
+        if self.symmetric:
+            point = ComplexMatrices.to_symmetric(point)
+
         point_transconj = ComplexMatrices.transconjugate(point)
         aux = gs.einsum("...ij,...jk->...ik", point, point_transconj)
 
@@ -130,17 +133,14 @@ class Siegel(OpenSet):
 
         if ndim == 2:
             if max_eigenvalues >= 1 - atol:
-                projected /= gs.cast((1 - atol) * max_eigenvalues, dtype=data_type)
+                projected *= gs.cast((1 - atol) / max_eigenvalues, dtype=data_type)
 
         elif ndim == 3:
             for i_sample in range(n_samples):
                 if max_eigenvalues[i_sample] > 1 - atol:
-                    projected /= gs.cast(
-                        (1 - atol) * max_eigenvalues[i_sample], dtype=data_type
+                    projected *= gs.cast(
+                        (1 - atol) / max_eigenvalues[i_sample], dtype=data_type
                     )
-
-        if self.symmetric:
-            projected = ComplexMatrices.to_symmetric(projected)
 
         return projected
 
@@ -164,11 +164,11 @@ class Siegel(OpenSet):
 
         mat = gs.cast(gs.random.rand(*size), dtype=CDTYPE)
         mat += 1j * gs.cast(gs.random.rand(*size), dtype=CDTYPE)
-        mat *= 2
-        mat -= 1 + 1j
+        mat -= 0.5 + 0.5j
+        mat /= 2 * n
+        mat *= 1 - gs.atol
         mat *= bound
-        siegel_mat = self.projection(mat)
-        return siegel_mat
+        return mat
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of HPD(n) from the uniform distribution.

@@ -1,12 +1,6 @@
 """Unit tests for the Siegel manifold."""
 
 import geomstats.backend as gs
-import tests.conftest
-from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from geomstats.geometry.positive_lower_triangular_matrices import (
-    PositiveLowerTriangularMatrices,
-)
-from geomstats.geometry.siegel import Siegel
 from tests.conftest import Parametrizer
 from tests.data.siegel_data import SiegelMetricTestData, SiegelTestData
 from tests.geometry_test_cases import ComplexRiemannianMetricTestCase, OpenSetTestCase
@@ -36,6 +30,7 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
+    skip_test_geodesic_bvp_belongs = True
     skip_test_geodesic_ivp_belongs = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
