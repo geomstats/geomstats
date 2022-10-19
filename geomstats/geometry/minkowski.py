@@ -64,8 +64,7 @@ class MinkowskiMetric(RiemannianMetric):
         q, p = self.signature
         diagonal = gs.array([-1.0] * p + [1.0] * q)
         mat = from_vector_to_diagonal_matrix(diagonal)
-        if base_point is not None:
-            if base_point.ndim > 1:
+        if base_point is not None and base_point.ndim > 1:
                 mat = gs.broadcast_to(mat, base_point.shape + (p + q,))
         return mat
 
