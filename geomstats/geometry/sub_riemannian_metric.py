@@ -1,4 +1,6 @@
-"""Implementation of sub-Riemannian geometry."""
+"""Implementation of sub-Riemannian geometry.
+
+Lead author: Morten Pedersen."""
 
 import geomstats.backend as gs
 
@@ -8,7 +10,7 @@ class SubRiemannianMetric:
 
     This implementation assumes a bracket-generating distribution of constant dimension.
 
-    Only one of the argumentes 'cometric_matrix' and 'frame' can be different from
+    Only one of the arguments 'cometric_matrix' and 'frame' can be different from
     None. If the frame is supplied, it is assumed orthonormal.
 
     Parameters
@@ -109,7 +111,7 @@ class SubRiemannianMetric:
         ----------
         cotangent_vec_a : array-like, shape=[..., dim]
             Cotangent vector at `base_point`.
-        cotangent_vet_b : array-like, shape=[..., dim]
+        cotangent_vec_b : array-like, shape=[..., dim]
             Cotangent vector at `base_point`.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
@@ -156,13 +158,12 @@ class SubRiemannianMetric:
                 "...i,...ij->...j", momentum, self.frame(position)
             ).reshape((-1, self.dist_dim))
             return (
-                1.0
-                / 2.0
+                0.5
                 * gs.einsum("...ij,...ij->...i", inner_products, inner_products)
             )
 
         position, momentum = state
-        return 1.0 / 2.0 * self.inner_coproduct(momentum, momentum, position)
+        return 0.5 * self.inner_coproduct(momentum, momentum, position)
 
     @staticmethod
     def symp_grad(hamiltonian):
