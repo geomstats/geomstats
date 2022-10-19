@@ -126,7 +126,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         """
         inner_prod = gs.sum(tangent_vec_a * tangent_vec_b, axis=-1)
         inner_prod = inner_prod / base_point[..., -1] ** 2
-        return inner_prod
+        return self.scale * inner_prod
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential.

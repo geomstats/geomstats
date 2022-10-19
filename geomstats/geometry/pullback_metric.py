@@ -304,7 +304,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         self._raw_jacobian_diffeomorphism = None
         self._raw_inverse_jacobian_diffeomorphism = None
 
-        self.shape_dim = math.prod(shape)
+        self.shape_dim = math.prod(shape) if shape is not None else None
         self.embedding_space_shape_dim = math.prod(self.embedding_metric.shape)
 
     @abc.abstractmethod
