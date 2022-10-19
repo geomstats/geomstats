@@ -216,21 +216,17 @@ class HilbertSphere(Manifold):
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
 
-        If the manifold is compact, a uniform distribution is used.
-
         Parameters
         ----------
         n_samples : int
             Number of samples.
             Optional, default: 1.
         bound : float
-            Bound of the interval in which to sample for non compact manifolds.
-            Optional, default: 1.
+            This parameter is ignored
 
         Returns
         -------
         samples : array-like, shape=[..., dim]
-            Points sampled on the Hilbert sphere.
         """
         points = gs.random.rand(n_samples, len(self.domain))
 
