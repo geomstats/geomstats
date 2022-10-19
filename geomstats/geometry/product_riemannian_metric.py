@@ -39,7 +39,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         else:
             if (self.factor_shapes.count(self.factor_shapes[0]) ==
                     len(self.factor_shapes)):
-                if (len(self.factor_shapes[0]) == 1):
+                if len(self.factor_shapes[0]) == 1:
                     shape = (len(self.metrics), *self.metrics[0].shape)
                 else:
                     raise ValueError(
@@ -83,9 +83,11 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     @staticmethod
     def _get_method(metric, method_name, metric_args):
+        """Evaluate a method from metric on a dict of metric_args."""
         return getattr(metric, method_name)(**metric_args)
 
     def _iterate_over_metrics(self, func, args):
+        """Apply a function to each factor of the product."""
 
         cum_index = gs.cumsum(self.factor_shape_sizes)[:-1]
 
