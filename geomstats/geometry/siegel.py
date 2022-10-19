@@ -224,7 +224,6 @@ class SiegelMetric(ComplexRiemannianMetric):
             signature=(dim, 0),
         )
         self.n = n
-        assert scale > 0, "The scale should be strictly positive"
         self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -430,7 +429,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Riemannian exponential.
         """
-
         tangent_vec_at_zero = self.tangent_vec_from_base_point_to_zero(
             tangent_vec=tangent_vec, base_point=base_point
         )
@@ -544,11 +542,8 @@ class SiegelMetric(ComplexRiemannianMetric):
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
         3.2. A second generalized transformation.
         """
-
         if len(point_a.shape) > len(point_b.shape):
-            point_temp = point_a
-            point_a = point_b
-            point_b = point_temp
+            point_a, point_b = point_b, point_a
 
         data_type = (point_a + point_b).dtype
         identity = create_identity_mat(point_b.shape, dtype=data_type)
