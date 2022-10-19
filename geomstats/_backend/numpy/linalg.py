@@ -14,7 +14,7 @@ from numpy.linalg import (  # NOQA
     solve,
     svd,
 )
-from scipy.linalg import expm
+from scipy.linalg import expm, fractional_matrix_power
 
 from ._common import atol
 from ._common import to_ndarray as _to_ndarray

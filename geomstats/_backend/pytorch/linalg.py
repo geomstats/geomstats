@@ -132,3 +132,11 @@ def is_single_matrix_pd(mat):
         return True
     except RuntimeError:
         return False
+
+
+def fractional_matrix_power(mat, power):
+    """Compute the fractional power of a matrix."""
+    mat = mat.numpy()
+    mat_power = _scipy.linalg.fractional_matrix_power(mat, power)
+    mat_power = _torch.tensor(mat_power)
+    return mat_power

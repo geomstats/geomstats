@@ -174,6 +174,7 @@ BACKEND_ATTRIBUTES = {
         "eigh",
         "eigvalsh",
         "expm",
+        "fractional_matrix_power",
         "inv",
         "is_single_matrix_pd",
         "logm",

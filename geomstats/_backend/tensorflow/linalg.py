@@ -123,3 +123,11 @@ def is_single_matrix_pd(mat):
 def norm(vector, ord="euclidean", axis=None, keepdims=None, name=None):
     """Compute the norm of vectors, matrices and tensors."""
     return _tf.math.real(norm_tf(vector, ord, axis, keepdims, name))
+
+
+def fractional_matrix_power(mat, power):
+    """Compute the fractional power of a matrix."""
+    mat = mat.numpy()
+    mat_power = _scipy.linalg.fractional_matrix_power(mat, power)
+    mat_power = _tf.convert_to_tensor(mat_power)
+    return mat_power

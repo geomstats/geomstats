@@ -18,7 +18,7 @@ from autograd.numpy.linalg import (  # NOQA
     solve,
     svd,
 )
-from autograd.scipy.linalg import expm
+from autograd.scipy.linalg import expm, fractional_matrix_power
 
 from ._common import to_ndarray as _to_ndarray
 from ._dtype import _cast_fout_to_input_dtype
