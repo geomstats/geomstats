@@ -3,6 +3,7 @@
 Lead author: Nicolas Guigui.
 """
 
+import sys
 from abc import ABC
 
 from scipy.optimize import minimize
@@ -30,7 +31,7 @@ class FiberBundle(Manifold, ABC):
         Group that acts on the total space by the right.
         Optional. Default : None.
         Either the group or the group action must be given.
-    ambient_metric : RiemannianMetric
+    total_space_metric : RiemannianMetric
         Metric to use in the total space.
         Optional. The `metric` attribute of the total space is used if no
         ambient metric is passed.
@@ -47,18 +48,16 @@ class FiberBundle(Manifold, ABC):
     def __init__(
         self,
         dim: int,
-        base: Manifold = None,
         group: LieGroup = None,
-        ambient_metric: RiemannianMetric = None,
+        total_space_metric: RiemannianMetric = None,
         group_action=None,
         group_dim=None,
         **kwargs
     ):
 
-        super(FiberBundle, self).__init__(dim=dim, **kwargs)
-        self.base = base
+        super().__init__(dim=dim, **kwargs)
         self.group = group
-        self.ambient_metric = ambient_metric
+        self.total_space_metric = total_space_metric
 
         if group_action is None and group is not None:
             group_action = group.compose
@@ -167,7 +166,7 @@ class FiberBundle(Manifold, ABC):
         """
         group = self.group
         group_action = self.group_action
-        initial_distance = self.ambient_metric.squared_dist(point, base_point)
+        initial_distance = self.total_space_metric.squared_dist(point, base_point)
         if isinstance(initial_distance, float) or initial_distance.shape == ():
             n_samples = 1
         else:
@@ -195,7 +194,7 @@ class FiberBundle(Manifold, ABC):
             raise ValueError("Either the group of its action must be known")
 
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda param: self.ambient_metric.squared_dist(wrap(param), base_point),
+            lambda param: self.total_space_metric.squared_dist(wrap(param), base_point),
             to_numpy=True,
         )
 
@@ -230,19 +229,23 @@ class FiberBundle(Manifold, ABC):
         horizontal : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal component of `tangent_vec`.
         """
-        try:
-            return tangent_vec - self.vertical_projection(tangent_vec, base_point)
-        except (RecursionError, NotImplementedError):
-            return self.horizontal_lift(
-                self.tangent_riemannian_submersion(tangent_vec, base_point),
-                fiber_point=base_point,
-            )
+        caller_name = sys._getframe().f_back.f_code.co_name
+        if not caller_name == "vertical_projection":
+            try:
+                return tangent_vec - self.vertical_projection(tangent_vec, base_point)
+            except NotImplementedError:
+                pass
+
+        return self.horizontal_lift(
+            self.tangent_riemannian_submersion(tangent_vec, base_point),
+            fiber_point=base_point,
+        )
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         r"""Project to vertical subspace.
 
-        Compute the vertical component of a tangent vector :math: `w` at a
-        base point :math: `P` by removing the horizontal component.
+        Compute the vertical component of a tangent vector :math:`w` at a
+        base point :math:`P` by removing the horizontal component.
 
         Parameters
         ----------
@@ -256,10 +259,11 @@ class FiberBundle(Manifold, ABC):
         vertical : array-like, shape=[..., {total_space.dim, [n, m]}]
             Vertical component of `tangent_vec`.
         """
-        try:
-            return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
-        except RecursionError:
+        caller_name = sys._getframe().f_back.f_code.co_name
+        if caller_name == "horizontal_projection":
             raise NotImplementedError
+
+        return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
 
     def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
         """Evaluate if the tangent vector is horizontal at base_point.
@@ -310,8 +314,8 @@ class FiberBundle(Manifold, ABC):
         """
         return gs.all(
             gs.isclose(
-                tangent_vec,
-                self.vertical_projection(tangent_vec, base_point),
+                0.0,
+                self.tangent_riemannian_submersion(tangent_vec, base_point),
                 atol=atol,
             ),
             axis=(-2, -1),
@@ -358,11 +362,11 @@ class FiberBundle(Manifold, ABC):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental integrability tensor A is defined for tangent vectors
-        :math: `X = tangent_vec_a` and :math: `Y = tangent_vec_b` of the
+        :math:`X = tangent\_vec\_a` and :math:`Y = tangent\_vec\_b` of the
         total space by [O'Neill]_ as
-        :math: `A_X Y = ver\nabla_{hor X} (hor Y) + hor \nabla_{hor X}( ver Y)`
-        where :math: `hor, ver` are the horizontal and vertical projections
-        and :math: `\nabla` is the connection of the total space.
+        :math:`A_X Y = ver\nabla_{hor X} (hor Y) + hor \nabla_{hor X}( ver Y)`
+        where :math:`hor, ver` are the horizontal and vertical projections
+        and :math:`\nabla` is the connection of the total space.
 
         Parameters
         ----------
@@ -382,8 +386,8 @@ class FiberBundle(Manifold, ABC):
         References
         ----------
         .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
-        Submersion, Michigan Mathematical Journal 13, no. 4 (December 1966):
-        459–69. https://doi.org/10.1307/mmj/1028999604.
+            Submersion, Michigan Mathematical Journal 13, no. 4
+            (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
         """
         raise NotImplementedError
 
@@ -398,17 +402,17 @@ class FiberBundle(Manifold, ABC):
     ):
         r"""Compute the covariant derivative of the integrability tensor A.
 
-        The covariant derivative :math: `\nabla_X (A_Y E)` in total space is
+        The covariant derivative :math:`\nabla_X (A_Y E)` in total space is
         necessary to compute the covariant derivative of the directional
-        curvature in a submersion. The components :math: `\nabla_X (A_Y E)`
-        and :math: `A_Y E` are computed at base-point :math: `P = base_point`
-        for horizontal vector fields :math: `X, Y` extending the values
-        given in argument :math: `X|_P = horizontal_vec_x`,
-        :math: `Y|_P = horizontal_vec_y` and a general vector field
-        :math: `E` extending :math: `E|_x =
-        tangent_vec_e` in a neighborhood of x with covariant derivatives
-        :math: `\nabla_X Y |_P = nabla_x_y` and
-        :math: `\nabla_X E |_P = nabla_x_e`.
+        curvature in a submersion. The components :math:`\nabla_X (A_Y E)`
+        and :math:`A_Y E` are computed at base-point :math:`P = base\_point`
+        for horizontal vector fields :math:`X, Y` extending the values
+        given in argument :math:`X|_P = horizontal_vec_x`,
+        :math:`Y|_P = horizontal\_vec\_y` and a general vector field
+        :math:`E` extending :math:`E|_x =
+        tangent\_vec\_e` in a neighborhood of x with covariant derivatives
+        :math:`\nabla_X Y |_P = nabla_x_y` and
+        :math:`\nabla_X E |_P = nabla_x_e`.
 
         Parameters
         ----------
@@ -428,14 +432,14 @@ class FiberBundle(Manifold, ABC):
         Returns
         -------
         nabla_x_a_y_e : array-like, shape=[..., {total_space.dim, [n, m]}]
-            Tangent vector at `base_point`, result of :math: `\nabla_X
+            Tangent vector at `base_point`, result of :math:`\nabla_X
             (A_Y E)`.
         a_y_e : array-like, shape=[..., {ambient_dim, [n, n]}]
-            Tangent vector at `base_point`, result of :math: `A_Y E`.
+            Tangent vector at `base_point`, result of :math:`A_Y E`.
 
         References
         ----------
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
         raise NotImplementedError

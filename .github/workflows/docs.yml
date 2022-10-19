@@ -13,23 +13,20 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-18.04]
-        python-version: [3.7]
+        os: [ubuntu-latest]
+        python-version: [3.8]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build using Python ${{matrix.python-version}}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{matrix.python-version}}
 
       - name: Install dependencies [pip]
         run:  |
           pip install --upgrade pip setuptools wheel
-          for req in doc-requirements.txt opt-requirements.txt requirements.txt docs/requirements.txt; do
-            pip install -q -r $req
-          done
-          pip install -e .
+          pip install -e .[doc,opt,backends]
 
       - name: Install Pandoc [apt-get]
         run: |

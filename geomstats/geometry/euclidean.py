@@ -18,20 +18,13 @@ class Euclidean(VectorSpace):
     """
 
     def __init__(self, dim):
-        super(Euclidean, self).__init__(
+        super().__init__(
             shape=(dim,),
-            default_point_type="vector",
             metric=EuclideanMetric(dim, shape=(dim,)),
         )
 
     def get_identity(self):
         """Get the identity of the group.
-
-        Parameters
-        ----------
-        point_type : str, {'vector', 'matrix'}
-            The point_type of the returned value.
-            Optional, default: self.default_point_type
 
         Returns
         -------
@@ -70,9 +63,10 @@ class EuclideanMetric(RiemannianMetric):
     """Class for Euclidean metrics.
 
     As a Riemannian metric, the Euclidean metric is:
-    - flat: the inner-product is independent of the base point.
+
+    - flat: the inner-product is independent of the base point;
     - positive definite: it has signature (dimension, 0, 0),
-    where dimension is the dimension of the Euclidean space.
+      where dimension is the dimension of the Euclidean space.
 
     Parameters
     ----------
@@ -81,7 +75,7 @@ class EuclideanMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, shape=None):
-        super(EuclideanMetric, self).__init__(
+        super().__init__(
             dim=dim,
             shape=shape,
             signature=(dim, 0),
@@ -102,6 +96,9 @@ class EuclideanMetric(RiemannianMetric):
             Inner-product matrix.
         """
         mat = gs.eye(self.dim)
+        if base_point is not None:
+            if base_point.ndim == 2:
+                mat = gs.tile(mat, (base_point.shape[0], 1, 1))
         return mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -122,7 +119,7 @@ class EuclideanMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return gs.einsum("...i,...i->...", tangent_vec_a, tangent_vec_b)
+        return gs.dot(tangent_vec_a, tangent_vec_b)
 
     def norm(self, vector, base_point=None):
         """Compute norm of a vector.
@@ -187,3 +184,33 @@ class EuclideanMetric(RiemannianMetric):
         """
         log = point - base_point
         return log
+
+    def parallel_transport(
+        self, tangent_vec, base_point=None, direction=None, end_point=None
+    ):
+        r"""Compute the parallel transport of a tangent vector.
+
+        On a Euclidean space, the parallel transport of a (tangent) vector
+        returns the vector itself.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point to be transported.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold. Point to transport from.
+            Optional, default: None
+        direction : array-like, shape=[..., dim]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
+            Optional, default: None.
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold. Point to transport to.
+            Optional, default: None.
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[..., dim]
+            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+        """
+        return tangent_vec

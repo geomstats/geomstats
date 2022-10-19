@@ -6,24 +6,58 @@ import numpy as _np
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.grassmannian import Grassmannian
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
-class TestAutodiff(geomstats.tests.TestCase):
+def _sphere_immersion(point):
+    radius = 4.0
+    theta = point[0]
+    phi = point[1]
+    x = gs.sin(theta) * gs.cos(phi)
+    y = gs.sin(theta) * gs.sin(phi)
+    z = gs.cos(theta)
+    return gs.array([radius * x, radius * y, radius * z])
+
+
+def _first_component_of_sphere_immersion(point):
+    """First component of the sphere immersion function.
+
+    This returns a vector of dim 1.
+    """
+    radius = 4.0
+    theta = point[0]
+    phi = point[1]
+    x = gs.sin(theta) * gs.cos(phi)
+    return gs.array([radius * x])
+
+
+def _first_component_of_sphere_immersion_scalar(point):
+    """First component of the sphere immersion function.
+
+    This returns a scalar.
+    """
+    radius = 4.0
+    theta = point[0]
+    phi = point[1]
+    x = gs.sin(theta) * gs.cos(phi)
+    return radius * x
+
+
+class TestAutodiff(tests.conftest.TestCase):
     def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
         self.n_samples = 2
 
-    @geomstats.tests.np_only
+    @tests.conftest.np_only
     def test_value_and_grad_np_backend(self):
         n = 10
         vector = gs.ones(n)
         with pytest.raises(RuntimeError):
             gs.autodiff.value_and_grad(lambda v: gs.sum(v**2))(vector)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_one_vector_var(self):
         n = 10
         vector = gs.ones(n)
@@ -36,7 +70,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_and_tf_only
     def test_value_and_grad_dist(self):
         space = SpecialEuclidean(3)
         metric = space.metric
@@ -52,7 +86,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_dist_grassmann(self):
         space = Grassmannian(3, 2)
         metric = space.metric
@@ -68,7 +102,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_one_vector_var_np_input(self):
         n = 10
         vector = _np.ones(n)
@@ -80,7 +114,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_two_scalars_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
@@ -94,7 +128,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(grad[0], -2)
         self.assertAllClose(grad[1], 2.0)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_two_vectors_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
@@ -108,7 +142,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(grad[0], gs.array([-2.0, -2.0]))
         self.assertAllClose(grad[1], gs.array([2.0, 2.0]))
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_value_and_grad_two_matrix_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
@@ -120,7 +154,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(grad[0], gs.array([[-2.0, -4.0], [4.0, -2.0]]))
         self.assertAllClose(grad[1], gs.array([[2.0, 4.0], [-4.0, 2.0]]))
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_one_vector_var(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -140,7 +174,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_two_vector_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -170,7 +204,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_grad_x, expected_grad_x)
         self.assertAllClose(result_grad_y, expected_grad_y)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_two_matrix_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -200,7 +234,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_grad_x, expected_grad_x)
         self.assertAllClose(result_grad_y, expected_grad_y)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_composed_two_matrix_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -226,7 +260,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_composed_with_dummy_two_matrix_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -257,12 +291,12 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_chain_rule_one_scalar_var(self):
         """Assign made-up gradient to test custom_gradient."""
 
         def fun1_grad(x):
-            return 3.0
+            return gs.array(3.0, dtype=x.dtype)
 
         @gs.autodiff.custom_gradient(fun1_grad)
         def fun1(x):
@@ -287,7 +321,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad_explicit)
         self.assertAllClose(result_grad, expected_grad_chain_rule)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_tf_and_torch_only
     def test_custom_gradient_chain_rule_one_vector_var(self):
         def fun1_grad(x):
             return 6 * x
@@ -315,7 +349,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_grad, expected_grad_explicit)
         self.assertAllClose(result_grad, expected_grad_chain_rule)
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_and_tf_only
     def test_custom_gradient_squared_dist(self):
         def squared_dist_grad_a(point_a, point_b, metric):
             return -2 * metric.log(point_b, point_a)
@@ -342,7 +376,7 @@ class TestAutodiff(geomstats.tests.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_and_tf_only
     def test_custom_gradient_in_action(self):
         space = SpecialEuclidean(n=2)
         const_metric = space.left_canonical_metric
@@ -363,3 +397,152 @@ class TestAutodiff(geomstats.tests.TestCase):
         loss, grad = func_with_grad(const_point_b)
         self.assertAllClose(loss, 0.0)
         self.assertAllClose(grad, gs.zeros_like(grad))
+
+    @tests.conftest.autograd_tf_and_torch_only
+    def test_jacobian(self):
+        """Test that jacobians are consistent across backends.
+
+        The jacobian of a function f going from an input space A to an output
+        space B is a matrix of shape (dim_B, dim_A).
+        - The columns index the derivatives wrt. the coordinates of the input space A.
+        - The rows index the coordinates of the output space B.
+        """
+        radius = 4.0
+        embedding_dim, dim = 3, 2
+
+        point = gs.array([gs.pi / 3, gs.pi])
+        theta = point[0]
+        phi = point[1]
+        jacobian_ai = gs.autodiff.jacobian(_sphere_immersion)(point)
+
+        expected_1i = gs.array(
+            [
+                radius * gs.cos(theta) * gs.cos(phi),
+                -radius * gs.sin(theta) * gs.sin(phi),
+            ]
+        )
+        expected_2i = gs.array(
+            [
+                radius * gs.cos(theta) * gs.sin(phi),
+                radius * gs.sin(theta) * gs.cos(phi),
+            ]
+        )
+        expected_3i = gs.array(
+            [
+                -radius * gs.sin(theta),
+                0,
+            ]
+        )
+        expected_ai = gs.stack([expected_1i, expected_2i, expected_3i], axis=0)
+        self.assertAllClose(jacobian_ai.shape, (embedding_dim, dim))
+        self.assertAllClose(jacobian_ai.shape, expected_ai.shape)
+        self.assertAllClose(jacobian_ai, expected_ai)
+
+    @tests.conftest.autograd_tf_and_torch_only
+    def test_jacobian_vec(self):
+        """Test that jacobian_vec is correctly vectorized.
+
+        The autodiff jacobian is not vectorized by default in torch, tf and autograd.
+
+        The jacobian of a function f going from an input space A to an output
+        space B is a matrix of shape (dim_B, dim_A).
+        - The columns index the derivatives wrt. the coordinates of the input space A.
+        - The rows index the coordinates of the output space B.
+        """
+        radius = 4.0
+        embedding_dim, dim = 3, 2
+
+        points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 5, gs.pi / 2]])
+        thetas = points[:, 0]
+        phis = points[:, 1]
+        jacobian_ai = gs.autodiff.jacobian_vec(_sphere_immersion)(points)
+
+        expected_1i = gs.stack(
+            [
+                gs.array(
+                    [
+                        radius * gs.cos(theta) * gs.cos(phi),
+                        -radius * gs.sin(theta) * gs.sin(phi),
+                    ]
+                )
+                for theta, phi in zip(thetas, phis)
+            ]
+        )
+        expected_2i = gs.stack(
+            [
+                gs.array(
+                    [
+                        radius * gs.cos(theta) * gs.sin(phi),
+                        radius * gs.sin(theta) * gs.cos(phi),
+                    ]
+                )
+                for theta, phi in zip(thetas, phis)
+            ]
+        )
+        expected_3i = gs.stack(
+            [
+                gs.array(
+                    [
+                        -radius * gs.sin(theta),
+                        0,
+                    ]
+                )
+                for theta in thetas
+            ]
+        )
+        expected_ai = gs.stack([expected_1i, expected_2i, expected_3i], axis=1)
+        self.assertAllClose(jacobian_ai.shape, (len(points), embedding_dim, dim))
+        self.assertAllClose(jacobian_ai.shape, expected_ai.shape)
+        self.assertAllClose(jacobian_ai, expected_ai)
+
+    @tests.conftest.autograd_tf_and_torch_only
+    def test_hessian(self):
+        radius = 4.0
+        dim = 2
+
+        point = gs.array([gs.pi / 3, gs.pi])
+        theta = point[0]
+        phi = point[1]
+        hessian_1ij = gs.autodiff.hessian(_first_component_of_sphere_immersion)(point)
+
+        expected_1ij = radius * gs.array(
+            [
+                [-gs.sin(theta) * gs.cos(phi), -gs.cos(theta) * gs.sin(phi)],
+                [-gs.cos(theta) * gs.sin(phi), -gs.sin(theta) * gs.cos(phi)],
+            ]
+        )
+
+        self.assertAllClose(hessian_1ij.shape, (dim, dim))
+        self.assertAllClose(hessian_1ij.shape, expected_1ij.shape)
+        self.assertAllClose(hessian_1ij, expected_1ij)
+
+    @tests.conftest.autograd_tf_and_torch_only
+    def test_hessian_vec(self):
+        """Hessian is not vectorized by default in torch, tf and autograd."""
+        radius = 4.0
+        dim = 2
+
+        points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
+        thetas = points[:, 0]
+        phis = points[:, 1]
+        hessian_1ij = gs.autodiff.hessian_vec(_first_component_of_sphere_immersion)(
+            points
+        )
+
+        expected_1ij = gs.stack(
+            [
+                radius
+                * gs.array(
+                    [
+                        [-gs.sin(theta) * gs.cos(phi), -gs.cos(theta) * gs.sin(phi)],
+                        [-gs.cos(theta) * gs.sin(phi), -gs.sin(theta) * gs.cos(phi)],
+                    ]
+                )
+                for theta, phi in zip(thetas, phis)
+            ],
+            axis=0,
+        )
+
+        self.assertAllClose(hessian_1ij.shape, (2, dim, dim))
+        self.assertAllClose(hessian_1ij.shape, expected_1ij.shape)
+        self.assertAllClose(hessian_1ij, expected_1ij)

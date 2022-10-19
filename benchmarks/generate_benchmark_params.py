@@ -45,7 +45,7 @@ def spd_manifold_params(n_samples):
 
     def spd_affine_metric_params():
         params = []
-        metric = "SPDMetricAffine"
+        metric = "SPDAffineMetric"
         power_args = [-0.5, 1, 0.5]
         metric_args = list(product([item for item, in manifold_args], power_args))
         manifold_args_re = [
@@ -59,7 +59,7 @@ def spd_manifold_params(n_samples):
 
     def spd_bures_wasserstein_metric_params():
         params = []
-        metric = "SPDMetricBuresWasserstein"
+        metric = "SPDBuresWassersteinMetric"
         metric_args = manifold_args
         kwargs = {}
         common = manifold, module, metric, n_samples, kwargs
@@ -69,7 +69,7 @@ def spd_manifold_params(n_samples):
 
     def spd_euclidean_metric_params():
         params = []
-        metric = "SPDMetricEuclidean"
+        metric = "SPDEuclideanMetric"
         power_args = [-0.5, 1, 0.5]
         metric_args = list(product([item for item, in manifold_args], power_args))
         manifold_args_re = [
@@ -83,7 +83,7 @@ def spd_manifold_params(n_samples):
 
     def spd_log_euclidean_metric_params():
         params = []
-        metric = "SPDMetricLogEuclidean"
+        metric = "SPDLogEuclideanMetric"
         metric_args = manifold_args
         kwargs = {}
         common = manifold, module, metric, n_samples, kwargs

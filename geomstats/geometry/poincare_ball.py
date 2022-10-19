@@ -19,6 +19,8 @@ NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
 PI_2_3 = gs.power(gs.array([2.0 * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.0)
 
+_COORDS_TYPE = "ball"
+
 
 class PoincareBall(_Hyperbolic, OpenSet):
     """Class for the n-dimensional Poincare ball.
@@ -36,18 +38,14 @@ class PoincareBall(_Hyperbolic, OpenSet):
         Optional, default: 1.
     """
 
-    default_coords_type = "ball"
-    default_point_type = "vector"
-
     def __init__(self, dim, scale=1):
-        super(PoincareBall, self).__init__(
+        super().__init__(
             dim=dim,
-            ambient_space=Euclidean(dim),
+            embedding_space=Euclidean(dim),
             scale=scale,
             metric=PoincareBallMetric(dim, scale),
+            default_coords_type=_COORDS_TYPE,
         )
-        self.coords_type = PoincareBall.default_coords_type
-        self.point_type = PoincareBall.default_point_type
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
@@ -115,13 +113,12 @@ class PoincareBallMetric(RiemannianMetric):
         Optional, default 1.
     """
 
-    default_point_type = "vector"
-    default_coords_type = "ball"
-
     def __init__(self, dim, scale=1):
-        super(PoincareBallMetric, self).__init__(dim=dim, signature=(dim, 0))
-        self.coords_type = PoincareBall.default_coords_type
-        self.point_type = PoincareBall.default_point_type
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            default_coords_type=_COORDS_TYPE,
+        )
         self.scale = scale
 
     def exp(self, tangent_vec, base_point, **kwargs):
@@ -258,9 +255,6 @@ class PoincareBallMetric(RiemannianMetric):
         """Poincaré ball model retraction.
 
         Approximate the exponential map of the Poincare ball
-        .. [1] Nickel et.al, "Poincaré Embedding for
-         Learning Hierarchical Representation", 2017.
-
 
         Parameters
         ----------
@@ -273,6 +267,11 @@ class PoincareBallMetric(RiemannianMetric):
         -------
         point : array-like, shape=[..., dim]
             Retraction point.
+
+        References
+        ----------
+        .. [1] Nickel et.al, "Poincaré Embedding for
+            Learning Hierarchical Representation", 2017.
         """
         ball_manifold = PoincareBall(self.dim, scale=self.scale)
         base_point_belong = ball_manifold.belongs(base_point)
@@ -447,10 +446,10 @@ class PoincareBallMetric(RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of the hyperbolic space, it does not depend on the base point and
-        is infinite everywhere, because of the negative curvature.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the hyperbolic space, it does not depend on the base
+        point and is infinite everywhere, because of the negative curvature.
 
         Parameters
         ----------

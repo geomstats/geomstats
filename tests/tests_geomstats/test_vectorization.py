@@ -1,12 +1,12 @@
 """Unit tests for vectorization functions."""
 
 import geomstats.backend as gs
-import geomstats.tests
 import geomstats.vectorization
+import tests.conftest
 import tests.helper as helper
 
 
-class TestVectorization(geomstats.tests.TestCase):
+class TestVectorization(tests.conftest.TestCase):
     def setup_method(self):
         class Obj:
             def __init__(self):

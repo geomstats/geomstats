@@ -2,8 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
-import geomstats.tests
-from geomstats.geometry.discrete_curves import R2, DiscreteCurves
+import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
@@ -13,7 +12,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.information_geometry.beta import BetaDistributions
 
 
-class TestDatasets(geomstats.tests.TestCase):
+class TestDatasets(tests.conftest.TestCase):
     """Test for data-loading utilities."""
 
     def test_load_cities(self):
@@ -44,7 +43,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_karate_graph(self):
         """Test the correct number of edges and nodes for each graph."""
         graph = data_utils.load_karate_graph()
@@ -52,7 +51,7 @@ class TestDatasets(geomstats.tests.TestCase):
         expected = 68
         self.assertTrue(result == expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_random_graph(self):
         """Test the correct number of edges and nodes for each graph."""
         graph = data_utils.load_random_graph()
@@ -60,7 +59,7 @@ class TestDatasets(geomstats.tests.TestCase):
         expected = 20
         self.assertTrue(result == expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_random_walks_random_graph(self):
         """Test that random walks have the right length and number."""
         graph = data_utils.load_random_graph()
@@ -76,7 +75,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
+    @tests.conftest.np_autograd_and_torch_only
     def test_random_walks_karate_graph(self):
         """Test that random walks have the right length and number."""
         graph = data_utils.load_karate_graph()
@@ -107,7 +106,7 @@ class TestDatasets(geomstats.tests.TestCase):
         result = gs.logical_and(labels >= 0, labels <= 1)
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_leaves(self):
         """Test that leaves data are beta distribution parameters."""
         beta = BetaDistributions()
@@ -192,11 +191,6 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
         result = len(treatments)
         self.assertAllClose(result, expected)
-
-        planar_curves_space = DiscreteCurves(R2)
-
-        result = planar_curves_space.belongs(cells)
-        self.assertTrue(gs.all(result))
 
         result = [line in ["dlm8", "dunn"] for line in cell_lines]
         self.assertTrue(gs.all(result))

@@ -18,12 +18,8 @@ class LowerTriangularMatrices(VectorSpace):
     """
 
     def __init__(self, n, **kwargs):
-        super(LowerTriangularMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            shape=(n, n),
-            metric=MatricesMetric(n, n),
-            default_point_type="matrix",
-        )
+        kwargs.setdefault("metric", MatricesMetric(n, n))
+        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), **kwargs)
         self.n = n
 
     def _create_basis(self):
@@ -35,7 +31,11 @@ class LowerTriangularMatrices(VectorSpace):
             Basis matrices of the space.
         """
         tril_idxs = gs.ravel_tril_indices(self.n)
-        vector_bases = gs.one_hot(tril_idxs, self.n * self.n)
+        # TODO: use default dtype when available
+        vector_bases = gs.cast(
+            gs.one_hot(tril_idxs, self.n * self.n),
+            dtype=gs.get_default_dtype(),
+        )
         return gs.reshape(vector_bases, [-1, self.n, self.n])
 
     def belongs(self, point, atol=gs.atol):
@@ -53,7 +53,7 @@ class LowerTriangularMatrices(VectorSpace):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        belongs = super(LowerTriangularMatrices, self).belongs(point)
+        belongs = super().belongs(point)
         if gs.any(belongs):
             is_lower_triangular = Matrices.is_lower_triangular(point, atol)
             return gs.logical_and(belongs, is_lower_triangular)
@@ -107,5 +107,5 @@ class LowerTriangularMatrices(VectorSpace):
         point : array-like, shape=[..., n, n]
            Sample.
         """
-        sample = super(LowerTriangularMatrices, self).random_point(n_samples, bound)
+        sample = super().random_point(n_samples, bound)
         return Matrices.to_lower_triangular(sample)

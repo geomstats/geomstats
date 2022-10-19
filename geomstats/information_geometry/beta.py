@@ -18,7 +18,7 @@ EPSILON = 1e-6
 class BetaDistributions(DirichletDistributions):
     r"""Class for the manifold of beta distributions.
 
-    This is :math: Beta = `R_+^* \times R_+^*`, the upper-right
+    This is Beta = :math:`R_+^* \times R_+^*`, the upper-right
     quadrant of the Euclidean plane.
 
     Attributes
@@ -30,7 +30,7 @@ class BetaDistributions(DirichletDistributions):
     """
 
     def __init__(self):
-        super(BetaDistributions, self).__init__(dim=2)
+        super().__init__(dim=2)
         self.metric = BetaMetric()
 
     def sample(self, point, n_samples=1):
@@ -89,7 +89,6 @@ class BetaDistributions(DirichletDistributions):
             x : array-like, shape=[n_points,]
                 Points at which to compute the probability density function.
             """
-            x = gs.array(x, gs.float32)
             x = gs.to_ndarray(x, to_ndim=1)
 
             pdf_at_x = [
@@ -127,7 +126,6 @@ class BetaDistributions(DirichletDistributions):
         parameter : array-like, shape=[..., 2]
             Estimate of parameter obtained by maximum likelihood.
         """
-        data = gs.cast(data, gs.float32)
         data = gs.where(data == 1.0, 1.0 - EPSILON, data)
         data = gs.where(data == 0.0, EPSILON, data)
         data = gs.to_ndarray(data, to_ndim=2)
@@ -142,7 +140,7 @@ class BetaMetric(DirichletMetric):
     """Class for the Fisher information metric on beta distributions."""
 
     def __init__(self):
-        super(BetaMetric, self).__init__(dim=2)
+        super().__init__(dim=2)
 
     @staticmethod
     def metric_det(param_a, param_b):

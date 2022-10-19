@@ -1,96 +1,70 @@
 """Numpy based computation backend."""
 
-import math
-
-import numpy as np
+import numpy as _np
 from numpy import (
-    abs,
     all,
     allclose,
     amax,
     amin,
     any,
-    arange,
-    arccos,
-    arccosh,
-    arcsin,
-    arctan2,
-    arctanh,
     argmax,
     argmin,
-    array,
     broadcast_arrays,
     broadcast_to,
-    ceil,
     clip,
+    complex64,
+    complex128,
     concatenate,
-    cos,
-    cosh,
+    conj,
     cross,
     cumprod,
     cumsum,
     diag_indices,
     diagonal,
-    divide,
-    dot,
 )
-from numpy import dtype as ndtype  # NOQA
+from numpy import dtype as _ndtype  # NOQA
 from numpy import (
     einsum,
-    empty,
     empty_like,
     equal,
-    exp,
     expand_dims,
-    eye,
     flip,
     float32,
     float64,
-    floor,
     greater,
     hsplit,
     hstack,
-    imag,
     int32,
     int64,
     isclose,
     isnan,
+    kron,
     less,
     less_equal,
-    linspace,
-    log,
     logical_and,
     logical_or,
-    matmul,
     maximum,
     mean,
     meshgrid,
-    mod,
-    ones,
+    minimum,
+    moveaxis,
     ones_like,
-    outer,
-    power,
+    pad,
     prod,
-    real,
+    quantile,
     repeat,
     reshape,
     searchsorted,
     shape,
-    sign,
-    sin,
-    sinh,
     sort,
     split,
-    sqrt,
-    squeeze,
     stack,
     std,
     sum,
-    tan,
-    tanh,
+    take,
     tile,
-    trace,
     transpose,
+    trapz,
     tril,
     tril_indices,
     triu,
@@ -99,34 +73,104 @@ from numpy import (
     unique,
     vstack,
     where,
-    zeros,
     zeros_like,
 )
-from scipy.sparse import coo_matrix  # NOQA
-from scipy.special import erf, polygamma  # NOQA
+from scipy.sparse import coo_matrix as _coo_matrix  # NOQA
+from scipy.special import erf, gamma, polygamma  # NOQA
 
-from ..constants import np_atol, np_rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from .common import to_ndarray  # NOQA
+from ._common import atol, cast, rtol, to_ndarray
+from ._dtype import (
+    _box_binary_scalar,
+    _box_unary_scalar,
+    _cast_out_from_dtype,
+    _dyn_update_dtype,
+    _modify_func_default_dtype,
+    as_dtype,
+    get_default_cdtype,
+    get_default_dtype,
+    is_complex,
+    is_floating,
+    set_default_dtype,
+)
 
-DTYPES = {
-    ndtype("int32"): 0,
-    ndtype("int64"): 1,
-    ndtype("float32"): 2,
-    ndtype("float64"): 3,
-    ndtype("complex64"): 4,
-    ndtype("complex128"): 5,
+_DTYPES = {
+    _ndtype("int32"): 0,
+    _ndtype("int64"): 1,
+    _ndtype("float32"): 2,
+    _ndtype("float64"): 3,
+    _ndtype("complex64"): 4,
+    _ndtype("complex128"): 5,
 }
 
+ones = _modify_func_default_dtype(target=_np.ones)
+eye = _modify_func_default_dtype(target=_np.eye)
+array = _cast_out_from_dtype(target=_np.array, dtype_pos=1)
+linspace = _dyn_update_dtype(target=_np.linspace, dtype_pos=5)
+zeros = _dyn_update_dtype(target=_np.zeros, dtype_pos=1)
+empty = _dyn_update_dtype(target=_np.empty, dtype_pos=1)
 
-atol = np_atol
-rtol = np_rtol
+
+abs = _box_unary_scalar(target=_np.abs)
+arccos = _box_unary_scalar(target=_np.arccos)
+arccosh = _box_unary_scalar(target=_np.arccosh)
+arcsin = _box_unary_scalar(target=_np.arcsin)
+arctanh = _box_unary_scalar(target=_np.arctanh)
+ceil = _box_unary_scalar(target=_np.ceil)
+cos = _box_unary_scalar(target=_np.cos)
+cosh = _box_unary_scalar(target=_np.cosh)
+exp = _box_unary_scalar(target=_np.exp)
+floor = _box_unary_scalar(target=_np.floor)
+log = _box_unary_scalar(target=_np.log)
+sign = _box_unary_scalar(target=_np.sign)
+sin = _box_unary_scalar(target=_np.sin)
+sinh = _box_unary_scalar(target=_np.sinh)
+sqrt = _box_unary_scalar(target=_np.sqrt)
+tan = _box_unary_scalar(target=_np.tan)
+tanh = _box_unary_scalar(target=_np.tanh)
+
+arctan2 = _box_binary_scalar(target=_np.arctan2)
+mod = _box_binary_scalar(target=_np.mod)
+power = _box_binary_scalar(target=_np.power)
 
 
-def comb(n, k):
-    return math.factorial(n) // math.factorial(k) // math.factorial(n - k)
+def angle(z, deg=False):
+    out = _np.angle(z, deg=deg)
+    if type(z) is float:
+        return cast(out, get_default_dtype())
+
+    return out
+
+
+def imag(x):
+    out = _np.imag(x)
+    if is_array(x):
+        return out
+
+    return get_default_dtype().type(out)
+
+
+def real(x):
+    out = _np.real(x)
+    if is_array(x):
+        return out
+
+    return get_default_dtype().type(out)
+
+
+def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
+
+    if dtype is None and (
+        type(stop) is float or type(step) is float or type(start_or_stop) is float
+    ):
+        dtype = get_default_dtype()
+
+    if stop is None:
+        return _np.arange(start_or_stop, step=step, dtype=dtype)
+
+    return _np.arange(start_or_stop, stop, step=step, dtype=dtype)
 
 
 def to_numpy(x):
@@ -137,14 +181,31 @@ def from_numpy(x):
     return x
 
 
-def convert_to_wider_dtype(tensor_list):
-    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+def squeeze(x, axis=None):
+    if axis is None:
+        return _np.squeeze(x)
+    if x.shape[axis] != 1:
+        return x
+    return _np.squeeze(x, axis=axis)
+
+
+def _get_wider_dtype(tensor_list):
+    dtype_list = [_DTYPES.get(x.dtype, -1) for x in tensor_list]
+    if len(dtype_list) == 1:
+        return dtype_list[0], True
+
     wider_dtype_index = max(dtype_list)
+    wider_dtype = list(_DTYPES.keys())[wider_dtype_index]
 
-    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+    return wider_dtype, False
 
-    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
-    return tensor_list
+
+def convert_to_wider_dtype(tensor_list):
+    wider_dtype, same = _get_wider_dtype(tensor_list)
+    if same:
+        return tensor_list
+
+    return [cast(x, dtype=wider_dtype) for x in tensor_list]
 
 
 def flatten(x):
@@ -152,29 +213,7 @@ def flatten(x):
 
 
 def one_hot(labels, num_classes):
-    return np.eye(num_classes, dtype=np.dtype("uint8"))[labels]
-
-
-def get_mask_i_float(i, n):
-    """Create a 1D array of zeros with one element at one, with floating type.
-
-    Parameters
-    ----------
-    i : int
-        Index of the non-zero element.
-    n: n
-        Length of the created array.
-
-    Returns
-    -------
-    mask_i_float : array-like, shape=[n,]
-        1D array of zeros except at index i, where it is one
-    """
-    range_n = arange(n)
-    i_float = cast(array([i]), int32)[0]
-    mask_i = equal(range_n, i_float)
-    mask_i_float = cast(mask_i, float32)
-    return mask_i_float
+    return eye(num_classes, dtype=_np.dtype("uint8"))[labels]
 
 
 def _is_boolean(x):
@@ -182,7 +221,7 @@ def _is_boolean(x):
         return True
     if isinstance(x, (tuple, list)):
         return _is_boolean(x[0])
-    if isinstance(x, np.ndarray):
+    if isinstance(x, _np.ndarray):
         return x.dtype == bool
     return False
 
@@ -190,7 +229,7 @@ def _is_boolean(x):
 def _is_iterable(x):
     if isinstance(x, (list, tuple)):
         return True
-    if isinstance(x, np.ndarray):
+    if isinstance(x, _np.ndarray):
         return ndim(x) > 0
     return False
 
@@ -323,12 +362,8 @@ def get_slice(x, indices):
 
 def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     if multiple_args:
-        return np.vectorize(pyfunc, signature=signature)(*x)
-    return np.vectorize(pyfunc, signature=signature)(x)
-
-
-def cast(x, dtype):
-    return x.astype(dtype)
+        return _np.vectorize(pyfunc, signature=signature)(*x)
+    return _np.vectorize(pyfunc, signature=signature)(x)
 
 
 def set_diag(x, new_diag):
@@ -382,13 +417,16 @@ def array_from_sparse(indices, data, target_shape):
     a : array, shape=target_shape
         Array of zeros with specified values assigned to specified indices.
     """
-    return array(coo_matrix((data, list(zip(*indices))), target_shape).todense())
+    data = array(data)
+    out = zeros(target_shape, dtype=data.dtype)
+    out.put(_np.ravel_multi_index(_np.array(indices).T, target_shape), data)
+    return out
 
 
 def vec_to_diag(vec):
     """Convert vector to diagonal matrix."""
     d = vec.shape[-1]
-    return np.squeeze(vec[..., None, :] * np.eye(d)[None, :, :])
+    return _np.squeeze(vec[..., None, :] * eye(d, dtype=vec.dtype)[None, :, :])
 
 
 def tril_to_vec(x, k=0):
@@ -419,14 +457,24 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     -------
     mat : array_like, shape=[..., n, n]
     """
+    diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
+
     n = diag.shape[-1]
-    (i,) = np.diag_indices(n, ndim=1)
-    j, k = np.triu_indices(n, k=1)
-    mat = np.zeros(diag.shape + (n,))
+    (i,) = _np.diag_indices(n, ndim=1)
+    j, k = _np.triu_indices(n, k=1)
+    mat = zeros(diag.shape + (n,), dtype=diag.dtype)
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
     return mat
+
+
+def divide(a, b, ignore_div_zero=False):
+    if ignore_div_zero is False:
+        return _np.divide(a, b)
+
+    wider_dtype, _ = _get_wider_dtype([a, b])
+    return _np.divide(a, b, out=zeros(a.shape, dtype=wider_dtype), where=b != 0)
 
 
 def ravel_tril_indices(n, k=0, m=None):
@@ -434,5 +482,49 @@ def ravel_tril_indices(n, k=0, m=None):
         size = (n, n)
     else:
         size = (n, m)
-    idxs = np.tril_indices(n, k, m)
-    return np.ravel_multi_index(idxs, size)
+    idxs = _np.tril_indices(n, k, m)
+    return _np.ravel_multi_index(idxs, size)
+
+
+def is_array(x):
+    return type(x) is _np.ndarray
+
+
+def matmul(*args, **kwargs):
+    for arg in args:
+        if arg.ndim == 1:
+            raise ValueError("ndims must be >=2")
+    return _np.matmul(*args, **kwargs)
+
+
+def outer(a, b):
+    if a.ndim == 2 and b.ndim == 2:
+        return _np.einsum("...i,...j->...ij", a, b)
+
+    out = _np.multiply.outer(a, b)
+    if b.ndim == 2:
+        out = out.swapaxes(-3, -2)
+
+    return out
+
+
+def matvec(A, b):
+    if b.ndim == 1:
+        return _np.matmul(A, b)
+    if A.ndim == 2:
+        return _np.matmul(A, b.T).T
+    return _np.einsum("...ij,...j->...i", A, b)
+
+
+def dot(a, b):
+    if b.ndim == 1:
+        return _np.dot(a, b)
+
+    if a.ndim == 1:
+        return _np.dot(a, b.T)
+
+    return _np.einsum("...i,...i->...", a, b)
+
+
+def trace(a):
+    return _np.trace(a, axis1=-2, axis2=-1)

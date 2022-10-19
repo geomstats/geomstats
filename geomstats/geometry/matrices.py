@@ -1,10 +1,10 @@
 """Module exposing the `Matrices` and `MatricesMetric` class."""
-
+import logging
 from functools import reduce
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
+from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.euclidean import EuclideanMetric
 
@@ -19,13 +19,10 @@ class Matrices(VectorSpace):
     """
 
     def __init__(self, m, n, **kwargs):
-        if "default_point_type" not in kwargs.keys():
-            kwargs["default_point_type"] = "matrix"
-        super(Matrices, self).__init__(
-            shape=(m, n), metric=MatricesMetric(m, n), **kwargs
-        )
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
+        kwargs.setdefault("metric", MatricesMetric(m, n))
+        super().__init__(shape=(m, n), **kwargs)
         self.m = m
         self.n = n
 
@@ -130,7 +127,7 @@ class Matrices(VectorSpace):
         transpose : array-like, shape=[..., n, n]
             Transposed matrix.
         """
-        is_vectorized = gs.ndim(gs.array(mat)) == 3
+        is_vectorized = gs.ndim(mat) == 3
         axes = (0, 2, 1) if is_vectorized else (1, 0)
         return gs.transpose(mat, axes)
 
@@ -257,7 +254,7 @@ class Matrices(VectorSpace):
         """
         is_square = cls.is_square(mat)
         if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
+            is_vectorized = gs.ndim(mat) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.tril(mat, k=-1), atol)
 
@@ -315,9 +312,6 @@ class Matrices(VectorSpace):
         ----------
         mat : array-like, shape=[..., n, n]
             Matrix.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -467,7 +461,7 @@ class Matrices(VectorSpace):
     def to_symmetric(cls, mat):
         """Make a matrix symmetric.
 
-        Make a matrix suymmetric by averaging it
+        Make a matrix symmetric by averaging it
         with its transpose.
 
         Parameters
@@ -546,9 +540,9 @@ class Matrices(VectorSpace):
 
     @classmethod
     def congruent(cls, mat_1, mat_2):
-        """Compute the congruent action of mat_2 on mat_1.
+        r"""Compute the congruent action of mat_2 on mat_1.
 
-        This is :math: `mat_2 mat_1 mat_2^T`.
+        This is :math:`mat\_2 \ mat\_1 \ mat\_2^T`.
 
         Parameters
         ----------
@@ -669,6 +663,42 @@ class Matrices(VectorSpace):
             raise ValueError("Incompatible vector and matrix sizes")
         return gs.reshape(vec, shape)
 
+    @classmethod
+    def align_matrices(cls, point, base_point):
+        """Align matrices.
+
+        Find the optimal rotation R in SO(m) such that the base point and
+        R.point are well positioned.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., m, n]
+            Point on the manifold.
+        base_point : array-like, shape=[..., m, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        aligned : array-like, shape=[..., m, n]
+            R.point.
+        """
+        mat = gs.matmul(cls.transpose(point), base_point)
+        left, singular_values, right = gs.linalg.svd(mat, full_matrices=False)
+        det = gs.linalg.det(mat)
+        conditioning = (
+            singular_values[..., -2] + gs.sign(det) * singular_values[..., -1]
+        ) / singular_values[..., 0]
+        if gs.any(conditioning < gs.atol):
+            logging.warning(
+                f"Singularity close, ill-conditioned matrix "
+                f"encountered: "
+                f"{conditioning[conditioning < 1e-10]}"
+            )
+        if gs.any(gs.isclose(conditioning, 0.0)):
+            logging.warning("Alignment matrix is not unique.")
+        flipped = flip_determinant(cls.transpose(right), det)
+        return Matrices.mul(point, left, cls.transpose(flipped))
+
 
 class MatricesMetric(EuclideanMetric):
     """Euclidean metric on matrices given by Frobenius inner-product.
@@ -681,7 +711,7 @@ class MatricesMetric(EuclideanMetric):
 
     def __init__(self, m, n, **kwargs):
         dimension = m * n
-        super(MatricesMetric, self).__init__(dim=dimension, shape=(m, n))
+        super().__init__(dim=dimension, shape=(m, n))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tangent vectors.
@@ -703,7 +733,8 @@ class MatricesMetric(EuclideanMetric):
         """
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
 
-    def norm(self, vector, base_point=None):
+    @staticmethod
+    def norm(vector, base_point=None):
         """Compute norm of a matrix.
 
         Norm of a matrix associated to the Frobenius inner product.

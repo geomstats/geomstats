@@ -14,8 +14,8 @@ class HeisenbergVectors(LieGroup, VectorSpace):
     """Class for the 3D Heisenberg group in the vector representation.
 
     The 3D Heisenberg group represented as R^3. It is a step-2 Carnot Lie
-    group. It can be equipped with a natural sub-Riemannian structure, and it is
-    it a fundamental example in sub-Riemannian geometry.
+    group. It can be equipped with a natural sub-Riemannian structure, and it
+    is a fundamental example in sub-Riemannian geometry.
 
     Parameters
     ----------
@@ -27,21 +27,14 @@ class HeisenbergVectors(LieGroup, VectorSpace):
     """
 
     def __init__(self, **kwargs):
-        super(HeisenbergVectors, self).__init__(
-            dim=3, shape=(3,), lie_algebra=Euclidean(3)
-        )
+        super().__init__(dim=3, shape=(3,), lie_algebra=Euclidean(3), **kwargs)
 
     def _create_basis(self):
         """Create the canonical basis."""
         return gs.eye(3)
 
-    def get_identity(self, point_type="vector"):
+    def get_identity(self):
         """Get the identity of the 3D Heisenberg group.
-
-        Parameters
-        ----------
-        point_type : str, {'vector', 'matrix'}
-            Point_type of the returned value. Unused here.
 
         Returns
         -------
@@ -100,7 +93,8 @@ class HeisenbergVectors(LieGroup, VectorSpace):
 
         This calculates the differential of the left translation L_(point)
         evaluated at 'point'. Note that it only depends on the point we are
-        left-translating by, not on the point where the differential is evaluated.
+        left-translating by, not on the point where the differential is
+        evaluated.
 
         Parameters
         ----------

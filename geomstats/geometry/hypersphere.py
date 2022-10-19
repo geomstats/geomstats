@@ -43,7 +43,8 @@ class _Hypersphere(LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
-        super(_Hypersphere, self).__init__(
+
+        super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim + 1),
             submersion=lambda x: gs.sum(x**2, axis=-1),
@@ -102,8 +103,8 @@ class _Hypersphere(LevelSet):
         """Convert point from angle to extrinsic coordinates.
 
         Convert from the angle in radians to the extrinsic coordinates in
-        2d plane. Angle 0 corresponds to point [1., 0.] and is expected in [-Pi, Pi).
-        This method is only implemented in dimension 1.
+        2d plane. Angle 0 corresponds to point [1., 0.] and is expected in
+        [-Pi, Pi). This method is only implemented in dimension 1.
 
         Parameters
         ----------
@@ -550,6 +551,7 @@ class _Hypersphere(LevelSet):
         The Riemannian normal distribution, or spherical normal in this case,
         is defined by the probability density function (with respect to the
         Riemannian volume measure) proportional to:
+
         .. math::
                 \exp \Big \left(- \frac{\lambda}{2} \mathtm{arccos}^2(x^T\mu)
                 \Big \right)
@@ -656,7 +658,7 @@ class HypersphereMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(HypersphereMetric, self).__init__(dim=dim, signature=(dim, 0))
+        super().__init__(dim=dim, shape=(dim + 1,), signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
 
@@ -828,7 +830,7 @@ class HypersphereMetric(RiemannianMetric):
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
 
         Parameters
@@ -842,14 +844,15 @@ class HypersphereMetric(RiemannianMetric):
             is computed.
             Optional, default : None.
         end_point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere. Point to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the hypersphere. Point to transport to. Unused if
+            `tangent_vec_b` is given.
             Optional, default : None.
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at
+            `end_point=exp_(base_point)(tangent_vec_b)`.
         """
         if direction is None:
             if end_point is not None:
@@ -862,7 +865,7 @@ class HypersphereMetric(RiemannianMetric):
         theta = gs.linalg.norm(direction, axis=-1)
         eps = gs.where(theta == 0.0, 1.0, theta)
         normalized_b = gs.einsum("...,...i->...i", 1 / eps, direction)
-        pb = gs.einsum("...i,...i->...", tangent_vec, normalized_b)
+        pb = gs.dot(tangent_vec, normalized_b)
         p_orth = tangent_vec - gs.einsum("...,...i->...i", pb, normalized_b)
         transported = (
             -gs.einsum("...,...i->...i", gs.sin(theta) * pb, base_point)
@@ -871,7 +874,7 @@ class HypersphereMetric(RiemannianMetric):
         )
         return transported
 
-    def christoffels(self, point, point_type="spherical"):
+    def christoffels(self, point, coords_type="spherical"):
         """Compute the Christoffel symbols at a point.
 
         Only implemented in dimension 2 and for spherical coordinates.
@@ -881,7 +884,7 @@ class HypersphereMetric(RiemannianMetric):
         point : array-like, shape=[..., dim]
             Point on hypersphere where the Christoffel symbols are computed.
 
-        point_type: str, {'spherical', 'intrinsic', 'extrinsic'}
+        coords_type: str, {'spherical', 'intrinsic', 'extrinsic'}
             Coordinates in which to express the Christoffel symbols.
             Optional, default: 'spherical'.
 
@@ -891,7 +894,7 @@ class HypersphereMetric(RiemannianMetric):
                                          covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """
-        if self.dim != 2 or point_type != "spherical":
+        if self.dim != 2 or coords_type != "spherical":
             raise NotImplementedError(
                 "The Christoffel symbols are only implemented"
                 " for spherical coordinates in the 2-sphere"
@@ -1089,10 +1092,10 @@ class HypersphereMetric(RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of the sphere, it does not depend on the base point and is Pi
-        everywhere.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the sphere, it does not depend on the base point and is
+        Pi everywhere.
 
         Parameters
         ----------
@@ -1131,5 +1134,5 @@ class Hypersphere(_Hypersphere):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
-        super(Hypersphere, self).__init__(dim, default_coords_type)
-        self.metric = HypersphereMetric(dim)
+        super().__init__(dim, default_coords_type)
+        self._metric = HypersphereMetric(dim)

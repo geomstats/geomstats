@@ -7,7 +7,7 @@ For additional guidelines on how to contribute to geomstats, visit:
 https://geomstats.github.io/contributing.html#contributing-code-workflow
 
 To run these tests:
-- Install packages from geomstats/dev-requirements.txt
+- Install packages from geomstats[dev]
 - In command line, run:
 ```nose2 tests.test__my_manifold``` to run all the tests of this file
 - In command line, run:
@@ -15,7 +15,7 @@ To run these tests:
 to run the test `test_dimension` only.
 
 To run these tests using different backends (numpy, pytorch or tensorflow):
-- Install packages from geomstats/opt-requirements.tct
+- Install packages from geomstats[opt]
 In command line, select the backend of interest with:
 ```export GEOMSTATS_BACKEND=numpy```
  or ```export GEOMSTATS_BACKEND=pytorch```
@@ -23,19 +23,19 @@ In command line, select the backend of interest with:
  and repeat the steps from the previous paragraph.
 
 When you submit a PR, the tests are run with the three backends, except if you
-add a decorator such as `@geomstats.tests.np_and_autograd_only` or
-`@geomstats.tests.np_autograd_and_tf_only` etc.
+add a decorator such as `@tests.conftest.np_and_autograd_only` or
+`@tests.conftest.np_autograd_and_tf_only` etc.
 """
 
 # Import the tests module
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 
 # Import the manifold to be tested
 from geomstats.geometry._my_manifold import MyManifold
 
 
-class TestMyManifold(geomstats.tests.TestCase):
+class TestMyManifold(tests.conftest.TestCase):
     """Class testing the methods of MyManifold.
 
     In the class TestMyManifold, each test method:

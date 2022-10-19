@@ -11,17 +11,19 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
 )
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.information_geometry.base import InformationManifoldMixin
 
 
-class NormalDistributions(PoincareHalfSpace):
+class NormalDistributions(InformationManifoldMixin, PoincareHalfSpace):
     """Class for the manifold of univariate normal distributions.
 
     This is upper half-plane.
     """
 
     def __init__(self):
-        super(NormalDistributions, self).__init__(dim=2)
-        self.metric = FisherRaoMetric()
+        super().__init__(dim=2)
+        self.metric = NormalMetric()
 
     @staticmethod
     def random_point(n_samples=1, bound=1.0):
@@ -95,6 +97,8 @@ class NormalDistributions(PoincareHalfSpace):
         geomstats.errors.check_belongs(point, self)
         means = point[..., 0]
         stds = point[..., 1]
+        means = gs.to_ndarray(means, to_ndim=2)
+        stds = gs.to_ndarray(stds, to_ndim=2)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -104,25 +108,142 @@ class NormalDistributions(PoincareHalfSpace):
             x : array-like, shape=[n_points,]
                 Points at which to compute the probability density function.
             """
-            x = gs.array(x, gs.float32)
-            x = gs.to_ndarray(x, to_ndim=1)
-
-            pdf_at_x = [
-                gs.array(norm.pdf(x, loc=mean, scale=std))
-                for mean, std in zip(means, stds)
-            ]
-            pdf_at_x = gs.stack(pdf_at_x, axis=-1)
-
-            return pdf_at_x
+            x = gs.to_ndarray(x, to_ndim=2, axis=-1)
+            return (1.0 / gs.sqrt(2 * gs.pi * stds**2)) * gs.exp(
+                -((x - means) ** 2) / (2 * stds**2)
+            )
 
         return pdf
 
 
-class FisherRaoMetric(PoincareHalfSpaceMetric):
+class NormalMetric(PullbackDiffeoMetric):
     """Class for the Fisher information metric on normal distributions.
 
-    This is the metric of the Poincare upper half-plane.
+    This is the pullback of the metric of the Poincare upper half-plane
+    by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
     """
 
     def __init__(self):
-        super(FisherRaoMetric, self).__init__(dim=2)
+        super().__init__(dim=2)
+
+    def define_embedding_metric(self):
+        r"""Define the metric to pull back.
+
+        This is the metric of the Poincare upper half-plane
+        with a scaling factor of 2.
+
+        Returns
+        -------
+        embedding_metric : RiemannianMetric object
+            The metric of the Poincare upper half-plane.
+        """
+        return PoincareHalfSpaceMetric(dim=2, scale=2)
+
+    def diffeomorphism(self, base_point):
+        r"""Image of base point in the Poincare upper half-plane.
+
+        This is the image by the diffeomorphism
+        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution. Coordinates
+            are mean and standard deviation.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., 2]
+            Image of base_point in the Poincare upper half-plane.
+        """
+        image_point = gs.copy(base_point)
+        image_point[..., 0] /= gs.sqrt(2.0)
+        return image_point
+
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse image of a point in the Poincare upper half-plane.
+
+        This is the inverse image by the diffeomorphism
+        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., 2]
+            Point in the upper half-plane.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., 2]
+            Inverse image of the image point, representing a normal
+            distribution. Coordinates are mean and standard deviation.
+        """
+        base_point = gs.copy(image_point)
+        base_point[..., 0] *= gs.sqrt(2.0)
+        return base_point
+
+    def tangent_diffeomorphism(self, tangent_vec, base_point):
+        r"""Image of tangent vector.
+
+        This is the image by the tangent map of the diffeomorphism
+        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 2]
+            Tangent vector at base point.
+
+        base_point : array-like, shape=[..., 2]
+            Base point representing a normal distribution.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 2]
+            Image tangent vector at image of the base point.
+        """
+        return self.diffeomorphism(tangent_vec)
+
+    def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
+        r"""Inverse image of tangent vector.
+
+        This is the inverse image by the tangent map of the diffeomorphism
+        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., 2]
+            Image of a tangent vector at image_point.
+
+        image_point : array-like, shape=[..., 2]
+            Image of a point representing a normal distribution.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 2]
+            Inverse image of image_tangent_vec.
+        """
+        return self.inverse_diffeomorphism(image_tangent_vec)
+
+    @staticmethod
+    def metric_matrix(base_point=None):
+        """Compute the metric matrix at the tangent space at base_point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution (location and scale).
+
+        Returns
+        -------
+        mat : array-like, shape=[..., 2, 2]
+            Metric matrix.
+        """
+        stds = base_point[..., 1]
+        stds = gs.to_ndarray(stds, to_ndim=1)
+        metric_mat = gs.stack(
+            [gs.array([[1.0 / std**2, 0.0], [0.0, 2.0 / std**2]]) for std in stds],
+            axis=0,
+        )
+
+        if metric_mat.ndim == 3 and metric_mat.shape[0] == 1:
+            return metric_mat[0]
+        return metric_mat

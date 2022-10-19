@@ -46,9 +46,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def __init__(
         self, group, metric_mat_at_identity=None, left_or_right="left", **kwargs
     ):
-        super(_InvariantMetricMatrix, self).__init__(
-            dim=group.dim, default_point_type="matrix", **kwargs
-        )
+        super().__init__(dim=group.dim, shape=group.shape, **kwargs)
 
         self.group = group
         self.lie_algebra = group.lie_algebra
@@ -66,7 +64,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """Reshape diagonal metric matrix to a symmetric matrix of size n.
 
         Reshape a diagonal metric matrix of size `dim x dim` into a symmetric
-        matrix of size `n x n` where :math: `dim= n (n -1) / 2` is the
+        matrix of size `n x n` where :math:`dim= n (n -1) / 2` is the
         dimension of the space of skew symmetric matrices. The
         non-diagonal coefficients in the output matrix correspond to the
         basis matrices of this space. The diagonal is filled with ones.
@@ -141,8 +139,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def structure_constant(self, tangent_vec_a, tangent_vec_b, tangent_vec_c):
         r"""Compute the structure constant of the metric.
 
-        For three tangent vectors :math: `x, y, z` at identity,
-        compute  :math: `<[x,y], z>`.
+        For three tangent vectors :math:`x, y, z` at identity,
+        compute :math:`<[x,y], z>`.
 
         Parameters
         ----------
@@ -163,9 +161,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def dual_adjoint(self, tangent_vec_a, tangent_vec_b):
         r"""Compute the metric dual adjoint map.
 
-        For two tangent vectors at identity :math: `x,y`, this corresponds to
+        For two tangent vectors at identity :math:`x,y`, this corresponds to
         the vector :math:`a` such that
-        :math: `\forall z, <[x,z], y > = <a, z>`.
+        :math:`\forall z, <[x,z], y > = <a, z>`.
 
         Parameters
         ----------
@@ -177,7 +175,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         Returns
         -------
         ad_star : array-like, shape=[..., n, n]
-            Tangent vector at identity corresponding to :math: `ad_x^*(y)`.
+            Tangent vector at identity corresponding to :math:`ad_x^*(y)`.
 
         References
         ----------
@@ -205,9 +203,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def connection_at_identity(self, tangent_vec_a, tangent_vec_b):
         r"""Compute the Levi-Civita connection at identity.
 
-        For two tangent vectors at identity :math: `x,y`, one can associate
-        left (respectively right) invariant vector fields :math: `\tilde{x},
-        \tilde{y}`. Then the vector :math: `(\nabla_\tilde{x}(\tilde{x}))_{
+        For two tangent vectors at identity :math:`x,y`, one can associate
+        left (respectively right) invariant vector fields :math:`\tilde{x},
+        \tilde{y}`. Then the vector :math:`(\nabla_\tilde{x}(\tilde{x}))_{
         Id}` is computed using the lie bracket and the dual adjoint map. This
         is a bilinear map that characterizes the connection [Gallier]_.
 
@@ -244,9 +242,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def connection(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the Levi-Civita connection of invariant vector fields.
 
-        For two tangent vectors at a base point :math: `p, x,y`, one can
+        For two tangent vectors at a base point :math:`p, x,y`, one can
         associate left (respectively right) invariant vector fields :math:
-        `\tilde{x}, \tilde{y}`. Then the vector :math: `(\nabla_\tilde{x}(
+        `\tilde{x}, \tilde{y}`. Then the vector :math:`(\nabla_\tilde{x}(
         \tilde{x}))_{p}` is computed using the invariance of the connection
         and its value at identity [Gallier]_.
 
@@ -289,9 +287,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def curvature_at_identity(self, tangent_vec_a, tangent_vec_b, tangent_vec_c):
         r"""Compute the curvature at identity.
 
-        For three tangent vectors at identity :math: `x,y,z`,
+        For three tangent vectors at identity :math:`x,y,z`,
         the curvature is defined by
-        :math: `R(x, y)z = \nabla_{[x,y]}z
+        :math:`R(x, y)z = \nabla_{[x,y]}z
         - \nabla_x\nabla_y z + \nabla_y\nabla_x z`.
 
         Parameters
@@ -324,9 +322,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None):
         r"""Compute the curvature.
 
-        For three tangent vectors at a base point :math: `x,y,z`,
+        For three tangent vectors at a base point :math:`x,y,z`,
         the curvature is defined by
-        :math: `R(x, y)z = \nabla_{[x,y]}z
+        :math:`R(x, y)z = \nabla_{[x,y]}z
         - \nabla_x\nabla_y z + \nabla_y\nabla_x z`. It is computed using
         the invariance of the connection and its value at identity.
 
@@ -368,8 +366,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def sectional_curvature_at_identity(self, tangent_vec_a, tangent_vec_b):
         """Compute the sectional curvature at identity.
 
-        For two orthonormal tangent vectors at identity :math: `x,y`,
-        the sectional curvature is defined by :math: `< R(x, y)x,
+        For two orthonormal tangent vectors at identity :math:`x,y`,
+        the sectional curvature is defined by :math:`< R(x, y)x,
         y>`. Non-orthonormal vectors can be given.
 
         Parameters
@@ -407,8 +405,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the sectional curvature.
 
-        For two orthonormal tangent vectors at a base point :math: `x,y`,
-        the sectional curvature is defined by :math: `<R(x, y)x,
+        For two orthonormal tangent vectors at a base point :math:`x,y`,
+        the sectional curvature is defined by :math:`<R(x, y)x,
         y>`. Non-orthonormal vectors can be given.
 
         Parameters
@@ -447,8 +445,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature at identity.
 
-        For four tangent vectors at identity :math: `x, y, z, t`,
-        the covariant derivative of the curvature :math: `(\nabla_x R)(y, z)t`
+        For four tangent vectors at identity :math:`x, y, z, t`,
+        the covariant derivative of the curvature :math:`(\nabla_x R)(y, z)t`
         is computed using Leibniz formula.
 
         Parameters
@@ -502,8 +500,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four tangent vectors at a base point :math: `x, y, z, t`,
-        the covariant derivative of the curvature :math: `(\nabla_x R)(y, z)t`
+        For four tangent vectors at a base point :math:`x, y, z, t`,
+        the covariant derivative of the curvature :math:`(\nabla_x R)(y, z)t`
         is computed at the base point using Leibniz formula.
 
         Parameters
@@ -548,19 +546,20 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def exp(self, tangent_vec, base_point=None, n_steps=10, step="rk4", **kwargs):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
-        If :math: `\gamma` is a geodesic, then it satisfies the
+        If :math:`\gamma` is a geodesic, then it satisfies the
         Euler-Poincare equation [Kolev]_:
-        .. math:
 
-                        \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
-                        \dot{X}(t) = ad^*_{X(t)}X(t)
+        .. math::
 
-        where :math: `ad^*` is the dual adjoint map with respect to the
-        metric. For a right-invariant metric, :math: `dR` is used instead of
-        :math: `dL` and :math: `ad^*` is replaced by :math: `-ad^*`. The
+            \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
+            \dot{X}(t) = ad^*_{X(t)}X(t)
+
+        where :math:`ad^*` is the dual adjoint map with respect to the
+        metric. For a right-invariant metric, :math:`dR` is used instead of
+        :math:`dL` and :math:`ad^*` is replaced by :math:`-ad^*`. The
         exponential map is approximated by numerical integration
-        of this equation, with initial conditions :math: `\dot{\gamma}(0)`
-        given by the argument `tangent_vec` and :math: `\gamma(0)` by
+        of this equation, with initial conditions :math:`\dot{\gamma}(0)`
+        given by the argument `tangent_vec` and :math:`\gamma(0)` by
         `base_point`. A Runge-Kutta scheme of order 2 or 4 is used for
         integration.
 
@@ -639,11 +638,12 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         The log is computed by solving an optimization problem.
         The cost function to be optimized is defined by:
-        .. math:
 
-                    L(v) = \Vert exp_x(v) - y \Vert^2
+        .. math::
 
-        where :math: `x,y` are respectively `base_point` and `point`,
+            L(v) = \Vert exp_x(v) - y \Vert^2
+
+        where :math:`x,y` are respectively `base_point` and `point`,
         an extrinsic 2-norm is used, and exp is computed by integration
         of the Euler-Poincare equation [Kolev]_.
 
@@ -692,7 +692,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                 f" antipodal matrices: {point} and {base_point}."
             )
         return self.group.to_tangent(
-            super(_InvariantMetricMatrix, self).log(
+            super().log(
                 point,
                 base_point,
                 n_steps=n_steps,
@@ -718,7 +718,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         Approximate solution for the parallel transport of a tangent vector a
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`. The parallel transport equation is written entirely
         in the Lie algebra and solved with an integration scheme.
 
@@ -760,7 +760,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         References
         ----------
-        [GP21]_    Guigui, Nicolas, and Xavier Pennec. “A Reduced Parallel
+        .. [GP21]  Guigui, Nicolas, and Xavier Pennec. “A Reduced Parallel
                    Transport Equation on Lie Groups with a Left-Invariant
                    Metric.” 5th conference on Geometric Science of Information,
                    Paris 2021. Springer. Lecture Notes in Computer Science.
@@ -813,10 +813,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
         r"""Compute the geodesic ODE associated with the invariant metric.
 
         This is a reduced geodesic equation written entirely in the Lie
-        algebra. It is known as Euler-Poincare equation [Kolev].
-        .. math:
-                        \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
-                        \dot{X}(t) = ad^*_{X(t)}X(t)
+        algebra. It is known as Euler-Poincare equation [Kolev]_.
+
+        .. math::
+            \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
+            \dot{X}(t) = ad^*_{X(t)}X(t)
 
         Parameters
         ----------
@@ -833,9 +834,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         References
         ----------
-        .. [Kolev]   Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
-             Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
-             480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
+        .. [Kolev] Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+            Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
+            480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
         sign = 1.0 if self.left_or_right == "left" else -1.0
         basis = self.normal_basis(self.lie_algebra.basis)
@@ -867,7 +868,7 @@ class _InvariantMetricVector(RiemannianMetric):
     """
 
     def __init__(self, group, left_or_right="left", **kwargs):
-        super(_InvariantMetricVector, self).__init__(dim=group.dim, **kwargs)
+        super().__init__(dim=group.dim, shape=group.shape, **kwargs)
 
         self.group = group
         self.metric_mat_at_identity = gs.eye(group.dim)
@@ -893,7 +894,7 @@ class _InvariantMetricVector(RiemannianMetric):
         inner_prod : array-like, shape=[..., dim]
             Inner-product of the two tangent vectors.
         """
-        return gs.einsum("...i,...i->...", tangent_vec_a, tangent_vec_b)
+        return gs.dot(tangent_vec_a, tangent_vec_b)
 
     def metric_matrix(self, base_point=None):
         """Compute inner product matrix at the tangent space at a base point.
@@ -1144,7 +1145,7 @@ class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
     This class supports both left and right invariant metrics
     which exist on Lie groups.
 
-    If `point_type='vector'`, points are parameterized by the Riemannian
+    If `point_type == 'vector'`, points are parameterized by the Riemannian
     logarithm for the canonical left-invariant metric.
 
     Parameters
@@ -1194,14 +1195,14 @@ class BiInvariantMetric(_InvariantMetricVector):
 
     References
     ----------
-    .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
-                   and Lie Groups: A Computational Perspective.
-                   Geonger International Publishing, 2020.
-                   https://doi.org/10.1007/978-3-030-46040-2.
+    .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
+        and Lie Groups: A Computational Perspective.
+        Geonger International Publishing, 2020.
+        https://doi.org/10.1007/978-3-030-46040-2.
     """
 
     def __init__(self, group):
-        super(BiInvariantMetric, self).__init__(group=group, shape=group.shape)
+        super().__init__(group=group)
         condition = (
             "SpecialOrthogonal" not in group.__str__()
             and "SO" not in group.__str__()
@@ -1210,7 +1211,6 @@ class BiInvariantMetric(_InvariantMetricVector):
         # TODO (nguigs): implement it for SE(3)
         if condition:
             raise ValueError("The bi-invariant metric is only implemented for SO(n)")
-        self.default_point_type = group.default_point_type
 
     def exp(self, tangent_vec, base_point=None, **kwargs):
         """Compute Riemannian exponential of tangent vector from the identity.
@@ -1232,10 +1232,10 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         References
         ----------
-        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
-                       Geometry and Lie Groups: A Computational Perspective.
-                       Geonger International Publishing, 2020.
-                       https://doi.org/10.1007/978-3-030-46040-2.
+        .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential
+            Geometry and Lie Groups: A Computational Perspective.
+            Geonger International Publishing, 2020.
+            https://doi.org/10.1007/978-3-030-46040-2.
         """
         return self.group.exp(tangent_vec, base_point)
 
@@ -1260,10 +1260,10 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         References
         ----------
-        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
-                       Geometry and Lie Groups: A Computational Perspective.
-                       Geonger International Publishing, 2020.
-                       https://doi.org/10.1007/978-3-030-46040-2.
+        .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential
+            Geometry and Lie Groups: A Computational Perspective.
+            Geonger International Publishing, 2020.
+            https://doi.org/10.1007/978-3-030-46040-2.
         """
         log = self.group.log(point, base_point)
         return self.group.to_tangent(log, base_point)
@@ -1284,10 +1284,8 @@ class BiInvariantMetric(_InvariantMetricVector):
             Inner-product of the two tangent vectors.
         """
         if self.default_point_type == "vector":
-            return super(BiInvariantMetric, self).inner_product_at_identity(
-                tangent_vec_a, tangent_vec_b
-            )
-        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+            return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -1310,9 +1308,7 @@ class BiInvariantMetric(_InvariantMetricVector):
         if base_point is None or self.default_point_type == "matrix":
             return self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
-        return super(BiInvariantMetric, self).inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
+        return super().inner_product(tangent_vec_a, tangent_vec_b, base_point)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -1321,7 +1317,7 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic between the base point and an end point, or alternatively
-        defined by :math: `t \mapsto exp_(base_point)(t*direction)`.
+        defined by :math:`t \mapsto exp_{(base\_point)}(t*direction)`.
         As a compact Lie group endowed with its canonical bi-invariant metric is a
         symmetric space, parallel transport is achieved by a geodesic symmetry, or
         equivalently, one step of the pole ladder scheme.
@@ -1343,7 +1339,8 @@ class BiInvariantMetric(_InvariantMetricVector):
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., n, n]
-            Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at
+            `end_point=exp_(base_point)(tangent_vec_b)`.
         """
         if direction is None:
             if end_point is not None:
@@ -1362,9 +1359,10 @@ class BiInvariantMetric(_InvariantMetricVector):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of a bi-invariant metric, it does not depend on the base point.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of a bi-invariant metric, it does not depend on the base
+        point.
 
         Parameters
         ----------

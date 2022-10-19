@@ -16,14 +16,15 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.base import InformationManifoldMixin
 
 N_STEPS = 100
 
 
-class DirichletDistributions(OpenSet):
+class DirichletDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of Dirichlet distributions.
 
-    This is :math: Dirichlet = `(R_+^*)^dim`, the positive quadrant of the
+    This is Dirichlet = :math:`(R_+^*)^dim`, the positive quadrant of the
     dim-dimensional Euclidean space.
 
     Attributes
@@ -33,8 +34,8 @@ class DirichletDistributions(OpenSet):
     """
 
     def __init__(self, dim):
-        super(DirichletDistributions, self).__init__(
-            dim=dim, ambient_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
+        super().__init__(
+            dim=dim, embedding_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
         )
 
     def belongs(self, point, atol=gs.atol):
@@ -126,7 +127,19 @@ class DirichletDistributions(OpenSet):
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for param in point:
-            samples.append(gs.array(dirichlet.rvs(param, size=n_samples)))
+            sample = gs.array(dirichlet.rvs(param, size=n_samples))
+            samples.append(
+                gs.hstack(
+                    (
+                        sample[:, :-1],
+                        gs.transpose(
+                            gs.to_ndarray(
+                                1 - gs.sum(sample[:, :-1], axis=-1), to_ndim=2
+                            )
+                        ),
+                    )
+                )
+            )
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
     def point_to_pdf(self, point):
@@ -166,7 +179,7 @@ class DirichletDistributions(OpenSet):
             """
             pdf_at_x = []
             for param in point:
-                pdf_at_x.append([gs.array(dirichlet.pdf(pt, param)) for pt in x])
+                pdf_at_x.append(gs.array([dirichlet.pdf(pt, param) for pt in x]))
             pdf_at_x = gs.squeeze(gs.stack(pdf_at_x, axis=0))
 
             return pdf_at_x
@@ -178,7 +191,7 @@ class DirichletMetric(RiemannianMetric):
     """Class for the Fisher information metric on Dirichlet distributions."""
 
     def __init__(self, dim):
-        super(DirichletMetric, self).__init__(dim=dim)
+        super().__init__(dim=dim)
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix.
@@ -218,8 +231,8 @@ class DirichletMetric(RiemannianMetric):
         References
         ----------
         .. [LPP2021] A. Le Brigant, S. C. Preston, S. Puechmorel. Fisher-Rao
-          geometry of Dirichlet Distributions. Differential Geometry
-          and its Applications, 74, 101702, 2021.
+            geometry of Dirichlet Distributions. Differential Geometry
+            and its Applications, 74, 101702, 2021.
 
         Parameters
         ----------
@@ -452,7 +465,8 @@ class DirichletMetric(RiemannianMetric):
                     solution = odeint(ivp, initial_state, t_int, ())
                     geod.append(solution[:, : self.dim])
 
-            return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            return gs.where(geod < gs.atol, gs.atol, geod)
 
         return path
 
@@ -635,7 +649,12 @@ class DirichletMetric(RiemannianMetric):
         return dist, curve, velocity
 
     def _geodesic_bvp(
-        self, initial_point, end_point, n_steps=N_STEPS, jacobian=False, init="linear"
+        self,
+        initial_point,
+        end_point,
+        n_steps=N_STEPS,
+        jacobian=False,
+        init="polynomial",
     ):
         """Solve geodesic boundary problem.
 
@@ -803,11 +822,14 @@ class DirichletMetric(RiemannianMetric):
                 geodesic = solution_at_t[: self.dim, :]
                 geod.append(gs.squeeze(gs.transpose(geodesic)))
 
-            return geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)
+            return gs.where(geod < gs.atol, gs.atol, geod)
 
         return path
 
-    def log(self, point, base_point, n_steps=N_STEPS, jacobian=False, init="linear"):
+    def log(
+        self, point, base_point, n_steps=N_STEPS, jacobian=False, init="polynomial"
+    ):
         """Compute the logarithm map.
 
         Compute logarithm map associated to the Fisher information metric by
@@ -859,6 +881,7 @@ class DirichletMetric(RiemannianMetric):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
+
         - an initial point and an initial tangent vector,
         - an initial point and an end point.
 

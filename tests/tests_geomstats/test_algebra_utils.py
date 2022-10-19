@@ -2,11 +2,11 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 
 
-class TestAlgebraUtils(geomstats.tests.TestCase):
+class TestAlgebraUtils(tests.conftest.TestCase):
     def setup_method(self):
         self.functions = [
             utils.cos_close_0,
