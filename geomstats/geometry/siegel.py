@@ -29,6 +29,17 @@ from geomstats.geometry.hermitian_matrices import HermitianMatrices
 CDTYPE = gs.get_default_cdtype()
 
 
+def create_identity_mat(shape, dtype=CDTYPE):
+    ndim = len(shape)
+    if ndim == 2:
+        identity = gs.eye(shape[-1], dtype=dtype)
+    elif ndim == 3:
+        identity = gs.stack(
+            [gs.eye(shape[-1], dtype=dtype) for _ in range(shape[0])], axis=0
+        )
+    return identity
+
+
 class Siegel(ComplexOpenSet):
     """Class for the Siegel disk.
 
@@ -83,12 +94,13 @@ class Siegel(ComplexOpenSet):
 
         if ndim == 2:
             eigenvalues = gs.linalg.eigvalsh(aux)
-            belongs = (eigenvalues <= 1 - atol).all()
+            belongs = gs.all(eigenvalues <= 1 - atol)
         elif ndim == 3:
-            belongs = gs.zeros([n_samples])
+            belongs = []
             for i_sample in range(n_samples):
                 eigenvalues = gs.linalg.eigvalsh(aux[i_sample, ...])
-                belongs[i_sample] = (eigenvalues <= 1 - atol).all()
+                belongs.append(gs.all(eigenvalues <= 1 - atol))
+            belongs = gs.array(belongs)
 
         if self.symmetric:
             belongs = gs.logical_and(belongs, ComplexMatrices.is_symmetric(point))
@@ -237,8 +249,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         """
         data_type = (tangent_vec_a + tangent_vec_b + base_point).dtype
 
-        identity = gs.zeros(base_point.shape, dtype=data_type)
-        gs.einsum("...ii -> ...i", identity)[...] = 1
+        identity = create_identity_mat(base_point.shape, dtype=data_type)
 
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         tangent_vec_a_transconj = ComplexMatrices.transconjugate(tangent_vec_a)
@@ -335,15 +346,14 @@ class SiegelMetric(ComplexRiemannianMetric):
                 inner_prod_mat[i_index, j_index] = self.inner_product(
                     basis_vector_i, basis_vector_j, base_point
                 )
-        inner_prod_mat = inner_prod_mat.real
         return inner_prod_mat
 
     @staticmethod
     def tangent_vec_from_base_point_to_zero(tangent_vec, base_point):
 
         data_type = (tangent_vec + base_point).dtype
-        identity = gs.zeros(base_point.shape, dtype=data_type)
-        gs.einsum("...ii -> ...i", identity)[...] = 1
+
+        identity = create_identity_mat(base_point.shape, dtype=data_type)
 
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
 
@@ -368,8 +378,7 @@ class SiegelMetric(ComplexRiemannianMetric):
     @staticmethod
     def exp_at_zero(tangent_vec):
         data_type = tangent_vec.dtype
-        identity = gs.zeros(tangent_vec.shape, dtype=data_type)
-        gs.einsum("...ii -> ...i", identity)[...] = 1
+        identity = create_identity_mat(tangent_vec.shape, dtype=data_type)
         tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
         aux_1 = gs.einsum("...ij,...jk->...ik", tangent_vec, tangent_vec_transconj)
         aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
@@ -386,8 +395,7 @@ class SiegelMetric(ComplexRiemannianMetric):
     @staticmethod
     def isometry(point, point_to_zero):
         data_type = (point + point_to_zero).dtype
-        identity = gs.zeros(point.shape, dtype=data_type)
-        gs.einsum("...ii -> ...i", identity)[...] = 1
+        identity = create_identity_mat(point.shape, dtype=data_type)
         point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
         aux_1 = gs.einsum("...ij,...jk->...ik", point_to_zero, point_to_zero_transconj)
         aux_2 = gs.einsum("...ij,...jk->...ik", point_to_zero_transconj, point_to_zero)
@@ -436,8 +444,7 @@ class SiegelMetric(ComplexRiemannianMetric):
     @staticmethod
     def log_at_zero(point):
         data_type = point.dtype
-        identity = gs.zeros(point.shape, dtype=data_type)
-        gs.einsum("...ii -> ...i", identity)[...] = 1
+        identity = create_identity_mat(point.shape, dtype=data_type)
         point_transconj = ComplexMatrices.transconjugate(point)
         aux_1 = gs.einsum("...ij,...jk->...ik", point, point_transconj)
         aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
@@ -455,8 +462,7 @@ class SiegelMetric(ComplexRiemannianMetric):
     @staticmethod
     def tangent_vec_from_zero_to_base_point(tangent_vec, base_point):
         data_type = (tangent_vec + base_point).dtype
-        identity = gs.zeros(base_point.shape, dtype=data_type)
-        gs.einsum("...ii -> ...i", identity)[...] = 1
+        identity = create_identity_mat(tangent_vec.shape, dtype=data_type)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         aux_1 = gs.einsum("...ij,...jk->...ik", base_point, base_point_transconj)
         aux_2 = gs.einsum("...ij,...jk->...ik", base_point_transconj, base_point)
@@ -513,7 +519,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         -------
         sq_norm : array-like, shape=[..., n, n]
         """
-        sq_norm = self.inner_product(vector, vector, base_point).real
+        sq_norm = gs.real(self.inner_product(vector, vector, base_point))
         sq_norm = gs.maximum(sq_norm, 0)
         return sq_norm
 
@@ -545,8 +551,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             point_b = point_temp
 
         data_type = (point_a + point_b).dtype
-        identity = gs.zeros(point_b.shape, dtype=data_type)
-        gs.einsum("...ii -> ...i", identity)[...] = 1
+        identity = create_identity_mat(point_b.shape, dtype=data_type)
 
         point_a_transconj = ComplexMatrices.transconjugate(point_a)
         point_b_transconj = ComplexMatrices.transconjugate(point_b)
@@ -581,21 +586,18 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         prod = gs.reshape(prod, (n_samples, point_b_shape[-2], point_b_shape[-1]))
 
-        prod_power_one_half = gs.zeros(
-            (n_samples, point_b_shape[-2], point_b_shape[-1]), dtype=data_type
-        )
+        prod_power_one_half = []
 
         for i_sample in range(n_samples):
             if gs.all(prod[i_sample, ...] == 0):
-                prod_power_one_half[i_sample, ...] = gs.zeros(
-                    point_shape, dtype=data_type
-                )
+                prod_power_one_half.append(gs.zeros(point_shape, dtype=data_type))
             else:
-                prod_power_one_half[i_sample, ...] = gs.linalg.fractional_matrix_power(
-                    prod[i_sample], 1 / 2
+                prod_power_one_half.append(
+                    gs.linalg.fractional_matrix_power(prod[i_sample], 1 / 2)
                 )
+        prod_power_one_half = gs.stack(prod_power_one_half)
 
-        prod_power_one_half = prod_power_one_half.reshape(point_b_shape)
+        prod_power_one_half = gs.reshape(prod_power_one_half, point_b_shape)
 
         num = identity + prod_power_one_half
         den = identity - prod_power_one_half
@@ -611,7 +613,7 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         sq_dist *= 0.25
 
-        sq_dist = sq_dist.real
+        sq_dist = gs.real(sq_dist)
         sq_dist *= self.scale**2
         sq_dist = gs.maximum(sq_dist, 0)
         return sq_dist

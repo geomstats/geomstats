@@ -40,7 +40,10 @@ class SiegelTestData(_ComplexOpenSetTestData):
             ),
             dict(
                 n=2,
-                mat=[[[0.1, 0.1 + 0.2j], [0.0, 0.5j]], [[1.0, -1.0], [0.0, 1.0]]],
+                mat=[
+                    [[0.1 + 0.2j, 0.1 + 0.2j], [0.0 - 0.2j, 0.5j]],
+                    [[1.0 - 1j, -1.0 + 0.2j], [0.4j, 1.0 + 1.2j]],
+                ],
                 expected=[True, False],
             ),
         ]
