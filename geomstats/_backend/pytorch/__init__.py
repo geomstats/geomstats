@@ -271,6 +271,8 @@ def shape(val):
 
 
 def max(a, axis=None):
+    if axis is None:
+        return _torch.max(array(a))
     return _torch.max(array(a), dim=axis).values
 
 
