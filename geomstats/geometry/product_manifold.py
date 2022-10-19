@@ -168,7 +168,10 @@ class ProductManifold(Manifold):
         return regularized_point
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in the product space from the uniform distribution.
+        """Sample in the product space from the product distribution.
+
+        The distribution used is the product of the distributions used by the
+        individual factor manifolds.
 
         Parameters
         ----------
@@ -423,7 +426,10 @@ class NFoldManifold(Manifold):
         return gs.squeeze(reshaped)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in the product space from the uniform distribution.
+        """Sample in the product space from the product distribution.
+
+        The distribution used is the product of the distributions that each copy of the
+        manifold uses in its own random_point method.
 
         Parameters
         ----------
