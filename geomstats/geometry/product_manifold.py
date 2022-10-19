@@ -517,7 +517,7 @@ class NFoldManifold(Manifold):
         vector_, point_ = gs.broadcast_arrays(vector, base_point)
         point_ = gs.reshape(point_, (-1, *self.base_shape))
         vector_ = gs.reshape(vector_, (-1, *self.base_shape))
-        each_tangent = self.base_manifold.is_tangent(vector_, point_)
+        each_tangent = self.base_manifold.is_tangent(vector_, point_, atol=atol)
         reshaped = gs.reshape(each_tangent, (-1, self.n_copies))
         return gs.all(reshaped, axis=1)
 
