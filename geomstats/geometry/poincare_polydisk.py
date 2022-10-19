@@ -41,10 +41,7 @@ class PoincarePolydisk(ProductManifold):
         list_disks = [
             disk,
         ] * n_disks
-        super().__init__(
-            factors=list_disks,
-            default_point_type="matrix"
-        )
+        super().__init__(factors=list_disks, default_point_type="matrix")
         self._metric = PoincarePolydiskMetric(
             n_disks=n_disks, default_coords_type=default_coords_type
         )

@@ -104,18 +104,14 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
             dict(
                 manifolds=smoke_metrics_2,
                 default_point_type="vector",
-                point=ProductManifold(
-                    smoke_manifolds_1, default_point_type="vector").random_point(5),
-                base_point=ProductManifold(
-                    smoke_manifolds_1, default_point_type="vector").random_point(5),
+                point=ProductManifold(smoke_manifolds_1, default_point_type="vector").random_point(5),
+                base_point=ProductManifold(smoke_manifolds_1, default_point_type="vector").random_point(5),
             ),
             dict(
                 manifolds=smoke_metrics_2,
                 default_point_type="matrix",
-                point=ProductManifold(
-                    smoke_manifolds_2, default_point_type="matrix").random_point(5),
-                base_point=ProductManifold(
-                    smoke_manifolds_2, default_point_type="matrix").random_point(5),
+                point=ProductManifold(smoke_manifolds_2, default_point_type="matrix").random_point(5),
+                base_point=ProductManifold(smoke_manifolds_2, default_point_type="matrix").random_point(5),
             ),
         ]
         return self.generate_tests(smoke_data)

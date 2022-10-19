@@ -2,7 +2,7 @@
 
 Define the metric of a product manifold endowed with a product metric.
 
-Lead author: Nicolas Guigui.
+Lead author: Nicolas Guigui, John Harvey.
 """
 
 from math import prod

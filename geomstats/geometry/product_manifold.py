@@ -1,6 +1,6 @@
 """Product of manifolds.
 
-Lead author: Nicolas Guigui.
+Lead author: Nicolas Guigui, John Harvey.
 """
 
 from math import prod
@@ -61,11 +61,9 @@ class ProductManifold(Manifold):
     ----------
     factors : list
         List of manifolds in the product.
-    metrics : list
-        List of metrics for each manifold
-        If a list of positive numbers is given, the metric is obtained from the manifold
-        and scaled by the number.
-        Optional, default value obtained from metric property of manifold
+    metric_scales : list
+        Optional. A list of positive numbers by which to scale the metric on each
+        factor. If not given, no scaling is used.
     default_point_type : {'vector', 'matrix}
         Optional. Vector representation gives the point as a 1-d array.
         Matrix representation allows for a point to be represented by an array of shape
@@ -75,51 +73,34 @@ class ProductManifold(Manifold):
         Optional, default: 1.
     """
 
-    def __init__(self, factors, metrics=None, default_point_type="vector", **kwargs):
+    def __init__(
+            self, factors, metric_scales=None, default_point_type="vector", **kwargs):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, "default_point_type", ["vector", "matrix"]
         )
 
-        self.factors = factors
+        self.factors = tuple(factors)
+        self._factor_dims = [factor.dim for factor in self.factors]
+        self._factor_shapes = [factor.shape for factor in self.factors]
+        self._factor_default_coords_types = [
+            factor.default_coords_type for factor in self.factors]
 
-        dim = sum(self.factor_dims)
+        dim = sum(self._factor_dims)
 
-        if default_point_type == "vector":
-            shape = (sum([prod(factor_shape) for factor_shape in self.factor_shapes]),)
-        else:
-            if (self.factor_shapes.count(self.factor_shapes[0]) ==
-                    len(self.factor_shapes)):
-                if len(self.factor_shapes[0]) == 1:
-                    shape = (len(self.factors), *self.factors[0].shape)
-                else:
-                    raise ValueError(
-                        "A default_point_type of \'matrix\' can only be used if all "
-                        "manifolds have vector type."
-                    )
-            else:
-                raise ValueError(
-                    "A default_point_type of \'matrix\' can only be used if all "
-                    "manifolds have the same shape."
-                )
+        shape = self._find_product_shape(default_point_type)
 
-        if "extrinsic" in self.factor_default_coords_types:
+        if "extrinsic" in self._factor_default_coords_types:
             default_coords_type = "extrinsic"
         else:
             default_coords_type = "intrinsic"
 
-        if metrics is None:
-            metric_scales = None
-            metrics = [manifold.metric for manifold in factors]
-        elif gs.all([is_positive(metric) for metric in metrics]):
-            metric_scales = metrics
-            metrics = [manifold.metric for manifold in factors]
-        else:
-            metric_scales = None
-
-        kwargs.setdefault(
-            "metric",
-            ProductRiemannianMetric(
-                metrics, default_point_type=default_point_type, scales=metric_scales),
+        if metric_scales is not None:
+            for scale in metric_scales:
+                geomstats.errors.check_positive(scale)
+        kwargs["metric"] = ProductRiemannianMetric(
+            [manifold.metric for manifold in factors],
+            default_point_type=default_point_type,
+            scales=metric_scales
         )
 
         super().__init__(
@@ -135,93 +116,76 @@ class ProductManifold(Manifold):
                 else manifold
                 for manifold in factors
             ]
-            self.embedding_space = ProductManifold(factor_embedding_spaces)
+            self.embedding_space = ProductManifold(
+                factor_embedding_spaces, metric_scales=metric_scales)
 
-    @property
-    def factor_dims(self):
-        """List containing the dimension of each factor."""
-        return [factor.dim for factor in self.factors]
+        self.cum_index = (
+            gs.cumsum(self._factor_dims)[:-1]
+            if self.default_coords_type == "intrinsic"
+            else gs.cumsum(self.embedding_space._factor_dims)[:-1]
+        )
 
-    @property
-    def factor_shapes(self):
-        """List containing the shape of each factor."""
-        return [factor.shape for factor in self.factors]
-
-    @property
-    def factor_default_coords_types(self):
-        """List containing the default_coords_type of each factor."""
-        return [factor.default_coords_type for factor in self.factors]
-
-    @staticmethod
-    def _get_method(manifold, method_name, metric_args):
-        return getattr(manifold, method_name)(**metric_args)
-
-    def _validate_args_for_iteration(self, args):
-        """Separate arguments into different types and validate them.
-
-        Parameters
-        ----------
-        args : dict
-            Dict of arguments.
-            Float or int arguments are passed to func for each manifold
-            Array-type arguments must be of type (..., shape)
-
-        Returns
-        -------
-        arguments : dict
-            Dict of arguments with values being lists of array-like arguments.
-            Each array-like argument corresponds to a factor af the manifold.
-            The trailing dimensions of the argument match the shape of the factor
-        numerical_args : dict
-            Dict of non-array arguments
-        leading_dimensions : tuple
-            Shape of the leading dimensions of arguments, which must all match
-        """
-        arguments = {}
-        numerical_args = {}
-        leading_dimensions = []
-        if self.default_point_type == "vector":
-            cum_index = (
-                gs.cumsum(self.factor_dims)[:-1]
-                if self.default_coords_type == "intrinsic"
-                else gs.cumsum(self.embedding_space.factor_dims)[:-1]
-            )
-            for key, value in args.items():
-                if not gs.is_array(value):
-                    numerical_args[key] = value
+    def _find_product_shape(self, default_point_type):
+        if default_point_type == "vector":
+            return (sum([prod(factor_shape) for factor_shape in self._factor_shapes]),)
+        else:
+            if (self._factor_shapes.count(self._factor_shapes[0]) ==
+                    len(self._factor_shapes)):
+                if len(self._factor_shapes[0]) == 1:
+                    return (len(self.factors), *self.factors[0].shape)
                 else:
-                    msg = (f"Argument {key}: {value} could not be broadcast to "
-                           f"shape {self.factor_shapes}")
-                    if value.shape[-1] != self.shape[-1]:
-                        raise ValueError(msg)
-                    leading_dimensions.append(value.shape[:-1])
-                    arguments[key] = gs.split(value, cum_index, axis=-1)
+                    raise ValueError(
+                        "A default_point_type of \'matrix\' can only be used if all "
+                        "manifolds have vector type."
+                    )
+            else:
+                raise ValueError(
+                    "A default_point_type of \'matrix\' can only be used if all "
+                    "manifolds have the same shape."
+                )
+
+    def embed_to_product(self, points, leading_dimensions):
+        """Map a point in each factor to a point in the product."""
+        # TODO Seems somewhat more complicated than necessary
+        if self.default_point_type == 'vector':
+            # The individual factors might have matrix type, so their responses must be
+            # flattened before proceeding. Since it is not straightforward to see which
+            # type has been returned, we are going to have to compare the shape of the
+            # return to the leading shape of all arguments broadcast against each otehr
+            for response in points:
+                if (gs.is_array(response) and
+                        len(response.shape) > len(leading_dimensions) + 1):
+                    response.reshape(response.shape[:-2] + (-1,))
+            return gs.concatenate(points, axis=-1)
+        else:
+            return gs.stack(points, axis=-2)
+
+    def project_from_product(self, point, include_leading_dimensions=False):
+        """Map a point in the product to points in each factor.
+
+        Can also return the shape of the leading_dimensions accompanying point
+        """
+        leading_dimensions = []
+        shape_error_msg = (f"The shape of {point}, which is {point.shape} is not"
+                           f" compatible with the shape of the manifold, {self.shape}")
+
+        if self.default_point_type == "vector":
+            if point.shape[-1] != self.shape[-1]:
+                raise ValueError(shape_error_msg)
+            leading_dimensions.append(point.shape[:-1])
+            projected_points = gs.split(point, self.cum_index, axis=-1)
 
         elif self.default_point_type == "matrix":
-            for key, value in args.items():
-                if not gs.is_array(value):
-                    numerical_args[key] = value
-                else:
-                    arguments[key] = value
-            for key, value in arguments.items():
-                if value.shape[-2:] != self.shape[-2:]:
-                    raise ValueError(
-                        "Arguments did not have correct trailing dimensions"
-                    )
-                leading_dimensions.append(value.shape[:-2])
+            if point.shape[-2:] != self.shape[-2:]:
+                raise ValueError(shape_error_msg)
+            leading_dimensions.append(point.shape[:-2])
+            projected_points = [point[..., j, :] for j in range(len(self.factors))]
 
         leading_dimensions = broadcast_shapes(*leading_dimensions)
-        return arguments, numerical_args, leading_dimensions
 
-    @staticmethod
-    def _reshape_trailing(argument, manifold):
-        """Convert the trailing dimensions to match the shape of a factor manifold."""
-        if manifold.default_coords_type == "vector":
-            return argument
-        leading_shape = argument.shape[:-1]
-        trailing_shape = manifold.shape
-        new_shape = leading_shape + trailing_shape
-        return gs.reshape(argument, new_shape)
+        if include_leading_dimensions:
+            return projected_points, leading_dimensions
+        return projected_points
 
     def _iterate_over_factors(self, func, args):
         """Apply a function to each factor of the product.
@@ -254,40 +218,93 @@ class ProductManifold(Manifold):
         out : array-like, shape = [..., {n_manifolds*k, (n_manifolds, k)}]
         """
         arguments, numerical_args, leading_dimensions = \
-            self._validate_args_for_iteration(args)
+            self._validate_and_prepare_args_for_iteration(args)
 
-        if self.default_point_type == "vector":
-            args_list = [
-                {
-                    key: self._reshape_trailing(arguments[key][j], self.factors[j])
-                    for key in arguments
-                }
-                for j in range(len(self.factors))
-            ]
-        elif self.default_point_type == "matrix":
-            args_list = [
-                {key: arguments[key][..., j, :] for key in arguments}
-                for j in range(len(self.factors))
-            ]
+        args_list = [
+            {key: arguments[key][j] for key in arguments}
+            for j in range(len(self.factors))
+        ]
 
         out = [self._get_method(
-            self.factors[i], func, {**args_list[i], **numerical_args}
+            self.factors[i], func, args_list[i], numerical_args
         )
             for i in range(len(self.factors))]
 
-        if self.default_point_type == 'vector':
-            # The individual factors might have matrix type, so their responses must be
-            # flattened before proceeding. Since it is not straightforward to see which
-            # type has been returned, we are going to have to compare the shape of the
-            # return to the leading shape of all arguments broadcast against each otehr
-            for response in out:
-                if (gs.is_array(response) and
-                        len(response.shape) > len(leading_dimensions) + 1):
-                    response.reshape(response.shape[:-2] + (-1,))
-            out = gs.concatenate(out, axis=-1)
-        else:
-            out = gs.stack(out, axis=-2)
+        out = self._pool_outputs_from_function(out, leading_dimensions)
         return out
+
+    def _validate_and_prepare_args_for_iteration(self, args):
+        """Separate arguments into different types and validate them.
+
+        Parameters
+        ----------
+        args : dict
+            Dict of arguments.
+            Float or int arguments are passed to func for each manifold
+            Array-type arguments must be of type (..., shape)
+
+        Returns
+        -------
+        arguments : dict
+            Dict of arguments with values being lists of array-like arguments.
+            Each array-like argument corresponds to a factor af the manifold.
+            The trailing dimensions of the argument match the shape of the factor
+        numerical_args : dict
+            Dict of non-array arguments
+        leading_dimensions : tuple
+            Shape of the leading dimensions of arguments, which must be broadcastable
+        """
+        arguments = {}
+        numerical_args = {}
+        leading_dimensions = []
+        for key, value in args.items():
+            if not gs.is_array(value):
+                numerical_args[key] = value
+            else:
+                args_to_append, dim_to_append = self.project_from_product(
+                    value, include_leading_dimensions=True)
+                if self.default_point_type == "vector":
+                    arguments[key] = [
+                        self._reshape_trailing(args_to_append[j], self.factors[j])
+                        for j in range(len(self.factors))
+                    ]
+                arguments[key] = args_to_append
+                leading_dimensions.append(dim_to_append)
+
+        leading_dimensions = broadcast_shapes(*leading_dimensions)
+        return arguments, numerical_args, leading_dimensions
+
+    @staticmethod
+    def _reshape_trailing(argument, manifold):
+        """Convert the trailing dimensions to match the shape of a factor manifold."""
+        if manifold.default_coords_type == "vector":
+            return argument
+        leading_shape = argument.shape[:-1]
+        trailing_shape = manifold.shape
+        new_shape = leading_shape + trailing_shape
+        return gs.reshape(argument, new_shape)
+
+    @staticmethod
+    def _get_method(manifold, method_name, array_args, num_args):
+        return getattr(manifold, method_name)(**array_args, **num_args)
+
+    def _pool_outputs_from_function(self, out, leading_dimensions):
+        """Collect outputs for each product to be returned.
+
+        At the moment, this only replicates the existing, non-functional behaviour.
+        This is caused by assuming that everything more or less looks like a point.
+        # TODO Rewrite
+
+        Each element of the output has some shape. If we strip off the
+        leading dimensions we can see the shape of the output
+        If it is empty, we can assume the output is of boolean type or else a simple
+        number
+        If the output is a boolean, we will want to take AND along some particular axis.
+        If the output is a number, we probably want to add them all up. The function
+        which calls _iterate_over_factors should probably tell us
+        If the output is of shape point, we will want to apply embed_to_product
+        """
+        return self.embed_to_product(out, leading_dimensions)
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the manifold.
