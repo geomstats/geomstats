@@ -72,7 +72,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         return [metric.shape for metric in self.metrics]
 
     @property
-    def factor_matrix_sizes(self):
+    def factor_shape_sizes(self):
         """List containing the size of the metric matrix for each factor."""
         return [prod(metric.shape) for metric in self.metrics]
 
@@ -96,29 +96,35 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Returns
         -------
-        matrix : array-like, shape=[..., dim, dim] or
-        [..., dim + n_metrics, dim + n_metrics]
+        matrix : array-like, shape as described below
             Matrix of the inner-product at the base point.
-
+            The matrix is in block diagonal form with a block for each factor
+            Each block is the same size as the metric_matrix for that block, which is
+            [..., shape[0], shape[0]] for a factor with vector-type points or
+            [..., dim, dim] for a factor with matrix-type points
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        list_of_matrices_for_each_factor = self._iterate_over_metrics('metric_matrix', {'base_point': base_point})
+        # each entry has shape [..., dim_i, dim_i]
+        # need to get a bunch of zero matrices of the interlocking shapes to make blocks
+        shapes_dict = dict()
+        for i, matrix_i in enumerate(list_of_matrices_for_each_factor):
+            for j, matrix_j in enumerate(list_of_matrices_for_each_factor):
+                shapes_dict[(i,j)] = matrix_i.shape[:-1] + matrix_j.shape[-1:]
+        rows = []
+        # concacatenate along axis = -2
+        for (i, matrix_i) in enumerate(list_of_matrices_for_each_factor):
+            # concatenate along axis = -1
+            blocks_to_concatenate = []
+            for j, _ in enumerate(list_of_matrices_for_each_factor):
+                if i==j:
+                    blocks_to_concatenate.append(matrix_i)
+                else:
+                    blocks_to_concatenate.append(gs.zeros(shapes_dict[(i,j)]))
+            row = gs.concatenate(blocks_to_concatenate, axis=-1)
+            rows.append(row)
+        metric_matrix = gs.concatenate(rows, axis=-2)
 
-        matrix_size = sum(self.factor_matrix_sizes)
-        matrix = gs.zeros([len(base_point), matrix_size, matrix_size])
-        cum_dim = 0
-        for i, metric in enumerate(self.metrics):
-            cum_dim_next = cum_dim + self.factor_matrix_sizes[i]
-            if self.default_point_type == "vector":
-                matrix_next = metric.metric_matrix(
-                    base_point[:, cum_dim:cum_dim_next, cum_dim:cum_dim_next]
-                )
-            else:
-                matrix_next = metric.metric_matrix(base_point[:, i])
-
-            matrix[:, cum_dim:cum_dim_next, cum_dim:cum_dim_next] = matrix_next
-            cum_dim = cum_dim_next
-        return matrix[0] if len(base_point) == 1 else matrix
+        return metric_matrix
 
     @staticmethod
     def _get_method(metric, method_name, metric_args):
@@ -126,7 +132,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def _iterate_over_metrics(self, func, args):
 
-        cum_index = gs.cumsum(self.factor_matrix_sizes)[:-1]
+        cum_index = gs.cumsum(self.factor_shape_sizes)[:-1]
 
         arguments = {
             key: gs.split(args[key], cum_index, axis=-1) for key in args.keys()

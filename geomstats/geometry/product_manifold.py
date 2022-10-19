@@ -4,7 +4,6 @@ Lead author: Nicolas Guigui.
 """
 
 from math import prod
-from numpy import broadcast_shapes
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -14,6 +13,33 @@ from geomstats.geometry.product_riemannian_metric import (
     ProductRiemannianMetric,
 )
 
+def broadcast_shapes(*args):
+    """
+    Broadcast the input shapes into a single shape.
+
+    This is an adaptation of the version of the function implemented in mumpy 1.20.0
+
+    Parameters
+    ----------
+    `*args` : tuples of ints, or ints
+        The shapes to be broadcast against each other.
+
+    Returns
+    -------
+    tuple
+        Broadcasted shape.
+
+    Raises
+    ------
+    ValueError
+        If the shapes are not compatible and cannot be broadcast according
+        to NumPy's broadcasting rules.
+    """
+    if len(args) == 0:
+        return tuple()
+    arrays = [gs.empty(x, dtype=[]) for x in args]
+    broadcasted_array = gs.broadcast_arrays(*arrays)
+    return broadcasted_array[0].shape
 
 class ProductManifold(Manifold):
     """Class for a product of manifolds M_1 x ... x M_n.
@@ -168,14 +194,14 @@ class ProductManifold(Manifold):
         leading_dimensions = broadcast_shapes(*leading_dimensions)
         return arguments, numerical_args, leading_dimensions
 
-    def _reshape_trailing(self, argument, manifold):
+    @staticmethod
+    def _reshape_trailing(argument, manifold):
         if manifold.default_coords_type == "vector":
             return argument
-        else:
-            leading_shape = argument.shape[:-1]
-            trailing_shape = manifold.shape
-            new_shape = leading_shape + trailing_shape
-            return gs.reshape(argument, new_shape)
+        leading_shape = argument.shape[:-1]
+        trailing_shape = manifold.shape
+        new_shape = leading_shape + trailing_shape
+        return gs.reshape(argument, new_shape)
 
     def _iterate_over_factors(self, func, args):
         """Apply a function to each factor of the product.
@@ -235,9 +261,9 @@ class ProductManifold(Manifold):
             # type has been returned, we are going to have to compare the shape of the
             # return to the leading shape of all arguments broadcast against each otehr
             for response in out:
-                if gs.is_array(response):
-                    if len(response.shape) > len(leading_dimensions) + 1:
-                        response.reshape(response.shape[:-2] + (-1,))
+                if (gs.is_array(response) and
+                        len(response.shape) > len(leading_dimensions) + 1):
+                    response.reshape(response.shape[:-2] + (-1,))
             out = gs.concatenate(out, axis=-1)
         else:
             out = gs.stack(out, axis=-2)
