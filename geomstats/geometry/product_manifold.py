@@ -334,7 +334,8 @@ class ProductManifold(Manifold):
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the product space from the product distribution.
 
-        Each factor has a method random_sample which
+        Each factor has a method random_sample which sets the distribution for that
+        factor.
 
         Parameters
         ----------
