@@ -3,7 +3,10 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.siegel import Siegel, SiegelMetric
-from tests.data_generation import _ComplexRiemannianMetricTestData, _OpenSetTestData
+from tests.data_generation import (
+    _ComplexOpenSetTestData,
+    _ComplexRiemannianMetricTestData,
+)
 
 SQRT_2 = math.sqrt(2.0)
 LN_2 = math.log(2.0)
@@ -14,7 +17,7 @@ EXP_4 = math.exp(4.0)
 SINH_1 = math.sinh(1.0)
 
 
-class SiegelTestData(_OpenSetTestData):
+class SiegelTestData(_ComplexOpenSetTestData):
 
     smoke_space_args_list = [(2,), (3,), (4,), (5,)]
     smoke_n_points_list = [1, 2, 1, 2]

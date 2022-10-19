@@ -20,11 +20,8 @@ References
       https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
-# import autograd
-# from scipy.linalg import fractional_matrix_power
-
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import ComplexOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
@@ -32,7 +29,7 @@ from geomstats.geometry.hermitian_matrices import HermitianMatrices
 CDTYPE = gs.get_default_cdtype()
 
 
-class Siegel(OpenSet):
+class Siegel(ComplexOpenSet):
     """Class for the Siegel disk.
 
     The Siegel disk is a generalization of the complex Poincare disk
