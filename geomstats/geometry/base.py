@@ -522,9 +522,9 @@ class OpenSet(Manifold, abc.ABC):
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
 
-        Points are sampled uniformly from the embedding space (within the given bound)
-        and then projected to the manifold. As a result, this is not a uniform
-        distribution on the manifold itself.
+        Points are sampled from the embedding space using the distribution set
+        for that manifold and then projected to the manifold. As a result, this
+        is not a uniform distribution on the manifold itself.
 
         Parameters
         ----------

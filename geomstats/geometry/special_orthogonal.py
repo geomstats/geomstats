@@ -393,7 +393,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         return -self.regularize(point)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in SO(n) using a normal distribution (not the Haar measure).
+        """Sample in SO(n) using a uniform distribution (not the Haar measure).
 
         Parameters
         ----------
