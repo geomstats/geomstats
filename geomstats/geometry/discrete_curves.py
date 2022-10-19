@@ -14,12 +14,16 @@ from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.landmarks import L2LandmarksMetric
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 R2 = Euclidean(dim=2)
 R3 = Euclidean(dim=3)
+
+
+# flake8: noqa
 
 
 class DiscreteCurves(Manifold):
@@ -1198,7 +1202,7 @@ class ElasticMetric(RiemannianMetric):
         return path
 
 
-class SRVMetric(ElasticMetric):
+class SRVMetric(PullbackDiffeoMetric):
     """Elastic metric defined using the Square Root Velocity Function.
 
     The SRV metric is equivalent to the elastic metric chosen with
@@ -1229,13 +1233,24 @@ class SRVMetric(ElasticMetric):
     def __init__(
         self, ambient_manifold, ambient_metric=None, translation_invariant=True
     ):
-        super().__init__(
-            a=1,
-            b=0.5,
-            ambient_manifold=ambient_manifold,
-            ambient_metric=ambient_metric,
-            translation_invariant=translation_invariant,
-        )
+        self.ambient_manifold = ambient_manifold
+        super().__init__(dim=ambient_manifold.dim)
+        self.ambient_metric = ambient_metric
+        if ambient_metric is None:
+            if hasattr(ambient_manifold, "metric"):
+                self.ambient_metric = ambient_manifold.metric
+            else:
+                raise ValueError(
+                    "Instantiating an object of class "
+                    "ElasticMetric requires either a metric"
+                    " or an ambient manifold"
+                    " equipped with a metric."
+                )
+        self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
+        self.translation_invariant = translation_invariant
+
+    def define_embedding_metric(self):
+        return L2CurvesMetric(ambient_manifold=self.ambient_manifold)
 
     def srv_transform(self, point, tol=gs.atol):
         r"""Square Root Velocity Transform (SRVT).
@@ -1293,20 +1308,14 @@ class SRVMetric(ElasticMetric):
             return gs.squeeze(srv)
         return srv
 
-    def f_transform(self, point):
-        """Compute the F_transform of a curve.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
-
-        Returns
-        -------
-        f : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            F_transform of the curve.
-        """
-        return self.srv_transform(point)
+    def diffeomorphism(self, base_point):
+        if self.translation_invariant:
+            starting_point = gs.zeros(gs.shape(base_point[..., 0, :]))
+        else:
+            starting_point = base_point[..., 0, :]
+        starting_point = gs.expand_dims(starting_point, axis=-2)
+        srv_transform = self.srv_transform(base_point)
+        return gs.concatenate((starting_point, srv_transform), axis=-2)
 
     def srv_transform_inverse(self, srv, starting_sampling_point):
         r"""Inverse of the Square Root Velocity Transform (SRVT).
@@ -1365,25 +1374,10 @@ class SRVMetric(ElasticMetric):
 
         return curve
 
-    def f_transform_inverse(self, f_trans, starting_sampling_point):
-        """Compute the inverse of the F_transform of a transformed curve.
-
-        See [KN2018]_ for details.
-
-        Parameters
-        ----------
-        f_trans : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            f-transform of a discrete curve.
-
-        starting_sampling_point: array-like, shape=[..., ambient_dim]
-            Point of the ambient manifold to use as start of the retrieved curve.
-
-        Returns
-        -------
-        curve : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
-        """
-        return self.srv_transform_inverse(f_trans, starting_sampling_point)
+    def inverse_diffeomorphism(self, image_point):
+        starting_sampling_point = image_point[..., 0, :]
+        srv_transform = image_point[..., 1:, :]
+        return self.srv_transform_inverse(srv_transform, starting_sampling_point)
 
     def aux_differential_srv_transform(self, tangent_vec, point):
         """Compute differential of the square root velocity transform.
@@ -1493,6 +1487,14 @@ class SRVMetric(ElasticMetric):
 
         return gs.squeeze(vec)
 
+    def tangent_diffeomorphism(self, tangent_vec, base_point):
+        return self.aux_differential_srv_transform(tangent_vec, base_point)
+
+    def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
+        return self.aux_differential_srv_transform_inverse(
+            image_tangent_vec, image_point
+        )
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, point):
         """Compute inner product between two tangent vectors.
 
@@ -1521,9 +1523,12 @@ class SRVMetric(ElasticMetric):
                 "is only implemented for discrete curves "
                 "embedded in a Euclidean space."
             )
-        d_srv_vec_a = self.aux_differential_srv_transform(tangent_vec_a, point)
-        d_srv_vec_b = self.aux_differential_srv_transform(tangent_vec_b, point)
-        inner_prod = self.l2_curves_metric.inner_product(d_srv_vec_a, d_srv_vec_b)
+        print(self.ambient_manifold)
+        inner_prod = self.embedding_metric.inner_product(
+            self.tangent_diffeomorphism(tangent_vec_a, point),
+            self.tangent_diffeomorphism(tangent_vec_b, point),
+            self.diffeomorphism(point),
+        )
 
         if not self.translation_invariant:
             inner_prod += self.ambient_metric.inner_product(
