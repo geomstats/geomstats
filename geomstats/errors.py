@@ -25,6 +25,13 @@ def check_integer(n, n_name):
             )
 
 
+def check_positive(param, param_name):
+    try:
+        param > 0
+        pass
+    except:
+        raise ValueError(f"{param_name} must be positive.")
+
 def check_belongs(point, manifold, **kwargs):
     """Raise an error if point does not belong to the input manifold.
 

@@ -19,17 +19,25 @@ class ProductRiemannianMetric(RiemannianMetric):
     ----------
     metrics : list
         List of metrics in the product.
+    scales : list
+        List of positive values to rescale the inner product by on each factor.
+        Note: To rescale the distances by a constant c, use c^2 for the scale
     default_point_type : str, {'vector', 'matrix'}
         Point type.
         Optional, default: 'vector'.
     """
 
-    def __init__(self, metrics, default_point_type="vector"):
+    def __init__(self, metrics, default_point_type="vector", scales=None):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, "default_point_type", ["vector", "matrix"]
         )
 
         self.metrics = metrics
+
+        if scales is not None:
+            [geomstats.errors.check_positive(scale, 'Each value in scales')
+             for scale in scales]
+        self.scales = scales
 
         dim = sum(self.factor_dims)
 
@@ -88,7 +96,6 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def _iterate_over_metrics(self, func, args):
         """Apply a function to each factor of the product."""
-
         cum_index = gs.cumsum(self.factor_shape_sizes)[:-1]
 
         arguments = {
@@ -125,19 +132,23 @@ class ProductRiemannianMetric(RiemannianMetric):
             [..., shape[0], shape[0]] for a factor with vector-type points or
             [..., dim, dim] for a factor with matrix-type points
         """
-        list_of_matrices_for_each_factor = self._iterate_over_metrics('metric_matrix', {'base_point': base_point})
+        factor_matrices = self._iterate_over_metrics(
+            'metric_matrix', {'base_point': base_point})
+        if self.scales is not None:
+            factor_matrices = [
+                matrix * scale for matrix, scale in zip(factor_matrices, self.scales)]
         # each entry has shape [..., dim_i, dim_i]
         # need to get a bunch of zero matrices of the interlocking shapes to make blocks
         shapes_dict = dict()
-        for i, matrix_i in enumerate(list_of_matrices_for_each_factor):
-            for j, matrix_j in enumerate(list_of_matrices_for_each_factor):
+        for i, matrix_i in enumerate(factor_matrices):
+            for j, matrix_j in enumerate(factor_matrices):
                 shapes_dict[(i, j)] = matrix_i.shape[:-1] + matrix_j.shape[-1:]
         rows = []
         # concacatenate along axis = -2
-        for (i, matrix_i) in enumerate(list_of_matrices_for_each_factor):
+        for (i, matrix_i) in enumerate(factor_matrices):
             # concatenate along axis = -1
             blocks_to_concatenate = []
-            for j, _ in enumerate(list_of_matrices_for_each_factor):
+            for j, _ in enumerate(factor_matrices):
                 if i == j:
                     blocks_to_concatenate.append(matrix_i)
                 else:
@@ -184,6 +195,9 @@ class ProductRiemannianMetric(RiemannianMetric):
                 "base_point": base_point,
             }
             inner_prod = self._iterate_over_metrics("inner_product", args)
+            if self.scales is not None:
+                inner_prod = [
+                    product * scale for product, scale in zip(inner_prod, self.scales)]
             return gs.sum(gs.stack(inner_prod, axis=-2), axis=-2)
 
         inner_products = [
@@ -194,6 +208,9 @@ class ProductRiemannianMetric(RiemannianMetric):
             )
             for i, metric in enumerate(self.metrics)
         ]
+        if self.scales is not None:
+            inner_products = [
+                product * scale for product, scale in zip(inner_products, self.scales)]
         return sum(inner_products)
 
     def exp(self, tangent_vec, base_point=None, **kwargs):

@@ -13,6 +13,7 @@ from geomstats.geometry.product_riemannian_metric import (
     ProductRiemannianMetric,
 )
 
+
 def broadcast_shapes(*args):
     """
     Broadcast the input shapes into a single shape.
@@ -41,6 +42,14 @@ def broadcast_shapes(*args):
     broadcasted_array = gs.broadcast_arrays(*arrays)
     return broadcasted_array[0].shape
 
+
+def is_positive(arg):
+    """Check if arg is a positive number."""
+    if isinstance(arg, int) or isinstance(arg, float):
+        return (arg > 0)
+    return False
+
+
 class ProductManifold(Manifold):
     """Class for a product of manifolds M_1 x ... x M_n.
 
@@ -54,6 +63,8 @@ class ProductManifold(Manifold):
         List of manifolds in the product.
     metrics : list
         List of metrics for each manifold
+        If a list of positive numbers is given, the metric is obtained from the manifold
+        and scaled by the number.
         Optional, default value obtained from metric property of manifold
     default_point_type : {'vector', 'matrix}
         Optional. Vector representation gives the point as a 1-d array.
@@ -97,10 +108,18 @@ class ProductManifold(Manifold):
             default_coords_type = "intrinsic"
 
         if metrics is None:
+            metric_scales = None
             metrics = [manifold.metric for manifold in factors]
+        elif gs.all([is_positive(metric) for metric in metrics]):
+            metric_scales = metrics
+            metrics = [manifold.metric for manifold in factors]
+        else:
+            metric_scales = None
+
         kwargs.setdefault(
             "metric",
-            ProductRiemannianMetric(metrics, default_point_type=default_point_type),
+            ProductRiemannianMetric(
+                metrics, default_point_type=default_point_type, scales=metric_scales),
         )
 
         super().__init__(
