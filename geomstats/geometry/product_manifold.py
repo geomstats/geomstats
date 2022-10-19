@@ -209,7 +209,7 @@ class ProductManifold(Manifold):
         If default_point_type is 'vector' then the vector must be split up into
         sub-vectors for each component, and then those sub-vectors should be broadcast
         into the correct shape for the individual manifold. These are then passed to the
-        function along with any float or int arguments.
+        function along with any non-array arguments.
 
         However, if default_point_type is 'matrix', then we have an array of shape
         (..., n_manifolds, dim_each). In this case we simply split into n_manifolds
