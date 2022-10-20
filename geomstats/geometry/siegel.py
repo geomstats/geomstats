@@ -283,15 +283,14 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         aux_a = gs.einsum("...ij,...jk->...ik", inv_aux_3, tangent_vec_a)
         aux_b = gs.einsum("...ij,...jk->...ik", inv_aux_4, tangent_vec_b_transconj)
-        prod_1 = gs.einsum("...ij,...jk->...ik", aux_a, aux_b)
-        trace_1 = 0.5 * gs.trace(prod_1)
+        trace_1 = ComplexMatrices.trace_product(aux_a, aux_b)
 
         aux_c = gs.einsum("...ij,...jk->...ik", inv_aux_3, tangent_vec_b)
         aux_d = gs.einsum("...ij,...jk->...ik", inv_aux_4, tangent_vec_a_transconj)
-        prod_2 = gs.einsum("...ij,...jk->...ik", aux_c, aux_d)
-        trace_2 = 0.5 * gs.trace(prod_2)
+        trace_2 = ComplexMatrices.trace_product(aux_c, aux_d)
 
         inner_product = trace_1 + trace_2
+        inner_product *= 0.5
         inner_product *= self.scale**2
 
         return inner_product
@@ -597,9 +596,7 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         logarithm = gs.linalg.logm(frac)
 
-        sq_logarithm = gs.einsum("...ij,...jk->...ik", logarithm, logarithm)
-
-        sq_dist = gs.trace(sq_logarithm)
+        sq_dist = ComplexMatrices.trace_product(logarithm, logarithm)
         sq_dist *= 0.25
         sq_dist = gs.real(sq_dist)
         sq_dist *= self.scale**2
