@@ -89,8 +89,11 @@ class PositiveReals(OpenSet):
         is_scalar = is_scalar or (len(point_shape) == 2 and point_shape[1] == 1)
         is_real = gs.imag(point) == 0
         point = gs.real(point)
-        is_positive = point > 0
+        is_positive = gs.array(
+            [[gs.all(point[i_point] > 0)] for i_point in range(point_shape[0])]
+        )
         belongs = gs.logical_and(is_scalar and is_real, is_positive)
+        belongs = gs.reshape(belongs, (-1,))
         return belongs
 
     @staticmethod
@@ -195,11 +198,17 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Returns
         -------
-        inner_product : array-like, shape=[..., 1]
+        inner_product : array-like, shape=[...,]
             Inner-product.
         """
         inner_product_matrix = self.inner_product_matrix(base_point=base_point)
         inner_product = tangent_vec_a * inner_product_matrix * tangent_vec_b
+        print("inner_product_1")
+        print(inner_product)
+        print(gs.to_ndarray(inner_product, to_ndim=1))
+        print(gs.reshape(inner_product, (inner_product.shape[0],)))
+        print(gs.reshape(inner_product, (-1,)))
+        inner_product = gs.reshape(inner_product, (-1,))
         return inner_product
 
     def squared_norm(self, vector, base_point):
@@ -284,6 +293,7 @@ class PositiveRealsMetric(RiemannianMetric):
             Riemannian squared distance.
         """
         sq_dist = gs.log(point_b / point_a) ** 2
+        sq_dist = gs.reshape(sq_dist, (-1,))
         sq_dist *= self.scale**2
         return gs.real(sq_dist)
 
@@ -305,5 +315,6 @@ class PositiveRealsMetric(RiemannianMetric):
             Riemannian squared distance.
         """
         dist = gs.abs(gs.log(point_b / point_a))
+        dist = gs.reshape(dist, (-1,))
         dist *= self.scale
         return gs.real(dist)
