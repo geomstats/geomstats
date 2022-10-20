@@ -49,13 +49,6 @@ def all_equal(arg):
     return arg.count(arg[0]) == len(arg)
 
 
-def is_positive(arg):
-    """Check if arg is a positive number."""
-    if isinstance(arg, (int, float)):
-        return arg > 0
-    return False
-
-
 class ProductManifold(Manifold):
     """Class for a product of manifolds M_1 x ... x M_n.
 
