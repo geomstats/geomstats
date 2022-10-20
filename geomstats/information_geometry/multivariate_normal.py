@@ -118,25 +118,40 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
             samples.append(gs.array(multivariate_normal.rvs(loc, cov, size=n_samples)))
         return samples[0] if point.shape[0] == 1 else gs.stack(samples)
 
-    @staticmethod
-    def pdf(x, point):
+    def pdf(self, x, point):
         """Generate parameterized function for pdf.
 
         Parameters
         ----------
-        x : array-like, shape=[n_points, dim]
+        x : array-like, shape=[n_samples, n]
             Points at which to compute the probability
             density function.
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., 2*n]
             Point representing a probability distribution.
 
         Returns
         -------
-        pdf_at_x : array-like, shape=[..., n_points]
+        pdf_at_x : array-like, shape=[..., n_samples]
             Values of pdf at x for each value of the parameters provided
             by point.
         """
-        raise NotImplementedError("The pdf method has not yet been implemented.")
+        geomstats.errors.check_belongs(point, self)
+        if point.ndim > 2:
+            raise NotImplementedError
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+        point = point[:, None, :]
+        x = gs.to_ndarray(x, to_ndim=2, axis=0)
+        x = x[None, :, :]
+        n = self.n
+        location, diagonal = self._unstack_location_diagonal(point)
+        det_cov = gs.squeeze(gs.prod(diagonal, axis=-1))
+        tmp_0 = 1 / gs.sqrt(gs.power((2 * gs.pi), n) * det_cov)
+        tmp_1 = gs.exp(-0.5 * gs.sum(((x - location) ** 2) / diagonal, axis=-1))
+        while tmp_0.ndim < tmp_1.ndim:
+            tmp_0 = tmp_0[..., None]
+        pdf_at_x = tmp_0 * tmp_1
+        pdf_at_x = gs.squeeze(pdf_at_x)
+        return pdf_at_x
 
     @staticmethod
     def cdf(x, point):
@@ -144,15 +159,15 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
 
         Parameters
         ----------
-        x : array-like, shape=[n_points, dim]
-            Points at which to compute the probability
+        x : array-like, shape=[n_samples, n]
+            Points at which to compute the cumulative
             density function.
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., 2*n]
             Point representing a probability distribution.
 
         Returns
         -------
-        cdf_at_x : array-like, shape=[..., n_points]
+        cdf_at_x : array-like, shape=[..., n_samples]
             Values of cdf at x for each value of the parameters provided
             by point.
         """

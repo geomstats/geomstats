@@ -1,5 +1,8 @@
 """Unit tests for the MultivariateDiagonalNormalDistributions manifold."""
 
+from scipy.stats import multivariate_normal
+
+import geomstats.backend as gs
 from tests.conftest import Parametrizer
 from tests.data.multivariate_normal import (
     MultivariateDiagonalNormalDistributionsTestData,
@@ -21,6 +24,23 @@ class TestMultivariateDiagonalNormalDistributions(
 
     def test_sample(self, n, point, n_samples, expected):
         self.assertAllClose(self.Space(n).sample(point, n_samples).shape, expected)
+
+    def test_point_to_pdf(self, n, point, n_samples):
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+        Space = self.Space(n)
+        samples = Space.sample(point[0, :], n_samples)
+        samples = gs.to_ndarray(samples, to_ndim=2, axis=0)
+
+        expected = []
+        for i in range(point.shape[0]):
+            loc, cov = Space._unstack_location_diagonal(point[i, ...])
+            tmp = list()
+            for j in range(samples.shape[0]):
+                x = samples[j, ...]
+                tmp.append(multivariate_normal.pdf(x, mean=loc, cov=cov))
+            expected.append(gs.array(tmp))
+        expected = gs.squeeze(gs.stack(expected, axis=0))
+        self.assertAllClose(Space.pdf(samples, point), expected)
 
 
 class TestMultivariateDiagonalNormalMetric(

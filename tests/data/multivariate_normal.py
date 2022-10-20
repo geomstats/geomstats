@@ -82,6 +82,19 @@ class MultivariateDiagonalNormalDistributionsTestData(_OpenSetTestData):
                 )
         return self.generate_tests(random_data)
 
+    def point_to_pdf_test_data(self):
+        random_data = list()
+        for n, n_samples in zip(self.n_list, self.n_samples_list):
+            for n_points in self.n_points_list:
+                random_data.append(
+                    dict(
+                        n=n,
+                        point=self.Space(n).random_point(n_points),
+                        n_samples=n_samples,
+                    )
+                )
+        return self.generate_tests([], random_data)
+
 
 class MultivariateDiagonalNormalMetricTestData(_RiemannianMetricTestData):
     Space = MultivariateDiagonalNormalDistributions
