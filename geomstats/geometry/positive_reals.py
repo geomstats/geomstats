@@ -177,9 +177,9 @@ class PositiveRealsMetric(RiemannianMetric):
         inner_prod_mat : array-like, shape=[..., 1]
             Inner product matrix.
         """
-        matrix = 1 / base_point**2
-        matrix *= self.scale**2
-        return matrix
+        inner_prod_mat = 1 / base_point**2
+        inner_prod_mat *= self.scale**2
+        return inner_prod_mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the positive reals inner-product.
@@ -203,11 +203,6 @@ class PositiveRealsMetric(RiemannianMetric):
         """
         inner_product_matrix = self.inner_product_matrix(base_point=base_point)
         inner_product = tangent_vec_a * inner_product_matrix * tangent_vec_b
-        print("inner_product_1")
-        print(inner_product)
-        print(gs.to_ndarray(inner_product, to_ndim=1))
-        print(gs.reshape(inner_product, (inner_product.shape[0],)))
-        print(gs.reshape(inner_product, (-1,)))
         inner_product = gs.reshape(inner_product, (-1,))
         return inner_product
 
