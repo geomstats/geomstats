@@ -757,6 +757,7 @@ def gamma(a):
 
 
 def imag(a):
+    a = _torch.tensor(a)
     if a.dtype in [
         _torch.int32,
         _torch.int64,
