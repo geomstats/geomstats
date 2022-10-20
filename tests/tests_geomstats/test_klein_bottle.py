@@ -1,7 +1,7 @@
+import geomstats.backend as gs
 from tests.conftest import Parametrizer
-from tests.data.klein_bottle_data import KleinBottleTestData, KleinBottleMetricTestData
+from tests.data.klein_bottle_data import KleinBottleMetricTestData, KleinBottleTestData
 from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
-import numpy as np
 
 
 class TestKleinBottle(ManifoldTestCase, metaclass=Parametrizer):
@@ -35,7 +35,7 @@ class TestKleinBottle(ManifoldTestCase, metaclass=Parametrizer):
         space = self.Space(*space_args)
         random_point = space.random_point(n_points)
         result = space.belongs(random_point, atol=atol)
-        self.assertAllEqual(result, [True] * n_points)
+        self.assertAllEqual(result, gs.array([True] * n_points))
 
 
 class TestKleinBottleMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -54,4 +54,22 @@ class TestKleinBottleMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_ricci_tensor_shape = True
     skip_test_scalar_curvature_shape = True
 
+    def test_dist(self, point_a, point_b, expected):
+        metric = self.Metric(self.testing_data.space)
+        distance = metric.dist(point_a, point_b)
+        self.assertAllClose(distance, expected)
 
+    def test_diameter(self, points, expected):
+        metric = self.Metric(self.testing_data.space)
+        diam = metric.diameter(points)
+        self.assertAllClose(diam, expected)
+
+    def test_exp(self, base_point, tangent_vec, expected):
+        metric = self.Metric(self.testing_data.space)
+        exp_result = metric.exp(tangent_vec, base_point)
+        self.assertAllClose(exp_result, expected)
+
+    def test_log(self, base_point, point, expected):
+        metric = self.Metric(self.testing_data.space)
+        log_result = metric.log(point, base_point)
+        self.assertAllClose(log_result, expected)

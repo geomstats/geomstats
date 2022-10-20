@@ -73,14 +73,13 @@ class KleinBottleTestData(_ManifoldTestData):
 
 
 class KleinBottleMetricTestData(_RiemannianMetricTestData):
-    import numpy as np
-    np.random.seed(42)
     n_points_list = random.sample(range(1, 5), 2)
 
     n_points_a_list = random.sample(range(1, 5), 2)
     n_points_b_list = n_points_a_list
 
     space_list = [KleinBottle(), KleinBottle()]
+    space = KleinBottle()
     connection_args_list = metric_args_list = [[space] for space in space_list]
     shape_list = [(2,), (2,)]
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
@@ -90,6 +89,9 @@ class KleinBottleMetricTestData(_RiemannianMetricTestData):
 
     def log_after_exp_test_data(self, **kwargs):
         """Generate data to check that exponential and logarithm are inverse.
+
+        Use random tangent vectors with length
+        bounded by injectivity radius of the manifold equipped with the tested metric.
         """
         random_data = []
         for connection_args, space, n_tangent_vecs in zip(
@@ -102,7 +104,12 @@ class KleinBottleMetricTestData(_RiemannianMetricTestData):
             random_vec = space.random_tangent_vec(base_point, n_tangent_vecs)
             random_vec = connection.normalize(random_vec, base_point)
             inj_radius = connection.injectivity_radius(base_point)
-            scale = gs.random.uniform(size=(n_tangent_vecs,) + (1,)*(len(random_vec.shape)-1)) * inj_radius
+            scale = (
+                gs.random.uniform(
+                    size=(n_tangent_vecs,) + (1,) * (len(random_vec.shape) - 1)
+                )
+                * inj_radius
+            )
             random_vec *= scale
             random_data.append(
                 dict(
@@ -111,10 +118,61 @@ class KleinBottleMetricTestData(_RiemannianMetricTestData):
                     base_point=base_point,
                 )
             )
-        smoke_data = [dict(
-            connection_args=self.metric_args_list[0],
-            tangent_vec=gs.array([0.5, -0.4]),
-            base_point=gs.array([0.6, 0.8])
-        )]
-        return self.generate_tests(smoke_data, random_data)
+        return self.generate_tests([], random_data)
 
+    def dist_test_data(self):
+        smoke_data = [
+            dict(
+                point_a=gs.array([0.5, 0.5]),
+                point_b=gs.array([0.0, 0.0]),
+                expected=gs.array([2**0.5 / 2]),
+            ),
+            dict(
+                point_a=gs.array([0.1, 0.12]),
+                point_b=gs.array([0.9, 0.8]),
+                expected=gs.array([(0.2**2 + (0.2 - 0.12) ** 2) ** 0.5]),
+            ),
+            dict(
+                point_a=gs.array([0.2, 0.8]),
+                point_b=gs.array([0.8, 0.8]),
+                expected=gs.array([(0.4**2 + 0.4**2) ** 0.5]),
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def diameter_test_data(self):
+        points = self.space.random_point(10)
+        point1 = gs.array([[0.0, 0.0]])
+        point2 = gs.array([[0.5, 0.5]])
+        points = gs.concatenate([points, point1, point2])
+        smoke_data = [dict(points=points, expected=2**0.5 / 2)]
+        return self.generate_tests(smoke_data)
+
+    def exp_test_data(self):
+        smoke_data = [
+            dict(
+                base_point=gs.array([0.6, 0.3]),
+                tangent_vec=gs.array(
+                    [[1.0, 0.0], [0.0, 1.0], [2.0, 0.0], [2.0, 0.2], [-0.1, 1.1]]
+                ),
+                expected=gs.array(
+                    [[0.6, 0.7], [0.6, 0.3], [0.6, 0.3], [0.6, 0.5], [0.5, 0.4]]
+                ),
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def log_test_data(self):
+        smoke_data = [
+            dict(
+                base_point=gs.array([0.6, 0.3]),
+                point=gs.array([[0.6, 0.7], [0.6, 0.3], [0.6, 0.5]]),
+                expected=gs.array([[0.0, 0.4], [0.0, 0.0], [0.0, 0.2]]),
+            ),
+            dict(
+                base_point=gs.array([0.1, 0.12]),
+                point=gs.array([0.9, 0.8]),
+                expected=gs.array([-0.1 - 0.1, 0.2 - 0.12]),
+            ),
+        ]
+        return self.generate_tests(smoke_data)
