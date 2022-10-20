@@ -343,7 +343,7 @@ class KleinBottle(Manifold):
         num_steps = gs.cast(gs.abs(gs.floor(point[..., [0]])), gs.int64)
         x_canonical = gs.remainder(point[..., 0], 1)
         y_canonical_even = gs.remainder(point[..., 1], 1)
-        y_canonical_odd = 1 - y_canonical_even
+        y_canonical_odd = gs.remainder(1 - y_canonical_even, 1)
         point_even = gs.stack([x_canonical, y_canonical_even], axis=-1)
         point_odd = gs.stack([x_canonical, y_canonical_odd], axis=-1)
         return gs.where(gs.remainder(num_steps, 2) == 0, point_even, point_odd)

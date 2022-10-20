@@ -20,6 +20,13 @@ class TestKleinBottle(ManifoldTestCase, metaclass=Parametrizer):
         regularized_computed = space.regularize(point)
         self.assertAllClose(regularized_computed, regularized)
 
+    def test_regularize_correct_domain(self, points):
+        space = self.Space()
+        regularized_computed = space.regularize(points)
+        greater_zero = gs.all(regularized_computed >= 0)
+        smaller_one = gs.all(regularized_computed < 1)
+        self.assertTrue(greater_zero and smaller_one)
+
     def test_random_point_belongs(self, space_args, n_points, atol):
         """Check that a random point belongs to the manifold.
 

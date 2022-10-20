@@ -68,8 +68,18 @@ class KleinBottleTestData(_ManifoldTestData):
                 regularized=gs.array([[0.1, 0.1], [0.5, 0.6], [0.9, 0.4]]),
                 point=gs.array([[1.1, -0.1], [-0.5, 0.4], [0.9, 0.4]]),
             ),
+            dict(
+                regularized=gs.array([[0.0, 0.0], [0.0, 0.0]]),
+                point=gs.array([[1.0, 1.0], [-1.0, -1.0]]),
+            ),
         ]
         return self.generate_tests(smoke_data)
+
+    def regularize_correct_domain_test_data(self):
+        space = self.Space()
+        smoke_data = [dict(points=gs.array([[1.0, 1.0], [-1.0, -1.0], [2.0, -10.0]]))]
+        random_data = [dict(points=space.random_point(10))]
+        return self.generate_tests(smoke_data, random_data)
 
 
 class KleinBottleMetricTestData(_RiemannianMetricTestData):
