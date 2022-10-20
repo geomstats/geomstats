@@ -433,8 +433,8 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at the base point.
+        log_at_zero : array-like, shape=[..., n, n]
+            Riemannian logarithm at zero (null matrix).
         """
         data_type = point.dtype
         identity = create_identity_mat(point.shape, dtype=data_type)
@@ -448,9 +448,9 @@ class SiegelMetric(ComplexRiemannianMetric):
         factor_1 = gs.linalg.logm(frac)
         factor_2 = HermitianMatrices.powerm(aux_2, -1)
         prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, factor_2)
-        tangent_vec = gs.einsum("...ij,...jk->...ik", prod_1, point)
-        tangent_vec *= 0.5
-        return tangent_vec
+        log_at_zero = gs.einsum("...ij,...jk->...ik", prod_1, point)
+        log_at_zero *= 0.5
+        return log_at_zero
 
     @staticmethod
     def tangent_vec_from_zero_to_base_point(tangent_vec, base_point):
@@ -497,18 +497,18 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at the base point.
+        log : array-like, shape=[..., n, n]
+            Riemannian logarithm at the base point.
         """
         point_at_zero = self.isometry(point=point, point_to_zero=base_point)
 
         logarithm_at_zero = self.log_at_zero(point_at_zero)
 
-        tangent_vec = self.tangent_vec_from_zero_to_base_point(
+        log = self.tangent_vec_from_zero_to_base_point(
             tangent_vec=logarithm_at_zero, base_point=base_point
         )
 
-        return tangent_vec
+        return log
 
     def squared_dist(self, point_a, point_b):
         """Compute the Siegel squared distance.
