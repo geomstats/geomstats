@@ -9,7 +9,9 @@ from scipy.optimize import minimize
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.product_manifold import NFoldManifold
 from geomstats.geometry.product_riemannian_metric import NFoldMetric
-from geomstats.geometry.connection import N_STEPS
+
+# from geomstats.geometry.connection import N_STEPS
+N_STEPS = 10
 
 class Landmarks(NFoldManifold):
     """Class for space of landmarks.
@@ -100,16 +102,55 @@ class KernelLandmarksMetric(RiemannianMetric):
         kernel_mat : [..., k_landmarks, k_landmarks]
         """
         squared_dist = gs.sum(
-            (base_point[..., :, None, :] - base_point) ** 2, axis=-1)
+                (base_point[..., :, None, :] - base_point) ** 2, axis=-1)
         return self.kernel(squared_dist)
-    
+
+    def cometric_matrix(self, base_point=None):
+        """Inner co-product matrix at the cotangent space at a base point.
+
+        This represents the cometric matrix, i.e. the inverse of the
+        metric matrix.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim, dim]
+            Inverse of inner-product matrix.
+        """
+        kernel_matrix = self.kernel_matrix(base_point)
+        cometric_matrix = gs.kron(kernel_matrix,gs.eye(self.ambient_dimension))
+        return cometric_matrix
+
+    def metric_matrix(self, base_point=None):
+        """Metric matrix at the tangent space at a base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
+        """
+        cometric_matrix = self.cometric_matrix(base_point)
+        metric_matrix = gs.linalg.inv(cometric_matrix)
+        return metric_matrix
+
     def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point):
         """Compute inner coproduct between two cotangent vectors at base point.
 
         This is the inner product associated to the cometric matrix.
         
         N.B. Here we override the default implementation to use the kernel matrix 
-        instead of the cometric matric, for simplification.
+        instead of the cometric matrix, for simplification.
         The kernel matrix is (n,n) where n is the number of landmarks,
         and the cometric matrix is (dim,dim)=(n*d,n*d) where d is the ambient dimension.
         The cometric matrix is just the Kronecker product between the kernel matrix and I_d
@@ -136,8 +177,9 @@ class KernelLandmarksMetric(RiemannianMetric):
     def tangent_to_cotangent(self, tangent_vec, base_point):
         r"""Converts tangent vector to cotangent vector
         """
+        inv_kernel_matrix = gs.linalg.inv(self.kernel_matrix(base_point))
         cotangent_vec = gs.einsum(
-                "...ij,...j->...i", self.metric_matrix(base_point), tangent_vec
+                "...ij,...jk->...ik", inv_kernel_matrix, tangent_vec
             )
         return cotangent_vec
     
@@ -145,7 +187,7 @@ class KernelLandmarksMetric(RiemannianMetric):
         r"""Converts cotangent vector to tangent vector
         """
         tangent_vec = gs.einsum(
-                "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec
+                "...ij,...jk->...ik", self.kernel_matrix(base_point), cotangent_vec
             )
         return tangent_vec
 
@@ -272,7 +314,7 @@ class KernelLandmarksMetric(RiemannianMetric):
 
         objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
 
-        cotangent_vec = gs.flatten(gs.random.rand(*max_shape))
+        cotangent_vec = gs.flatten(gs.zeros(max_shape))
 
         res = minimize(
             objective_with_grad,
@@ -303,13 +345,14 @@ class KernelLandmarksMetric(RiemannianMetric):
         return tangent_vec
 
     def geodesic(
-        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
+        self, initial_point, end_point=None, initial_tangent_vec=None, initial_cotangent_vec=None, verbose=False, **exp_kwargs
     ):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
 
         - an initial point and an initial tangent vector,
+        - an initial point and an initial cotangent vector,
         - an initial point and an end point.
 
         Parameters
@@ -318,11 +361,15 @@ class KernelLandmarksMetric(RiemannianMetric):
             Point on the manifold, initial point of the geodesic.
         end_point : array-like, shape=[..., dim], optional
             Point on the manifold, end point of the geodesic. If None,
-            an initial tangent vector must be given.
+            an initial tangent vector or cotangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim],
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
-            If None, an end point must be given and a logarithm is computed.
+            If None, an initial cotangent vector or an end point must be given.
+        initial_cotangent_vec : array-like, shape=[..., dim],
+            Cotangent vector at base point, the initial momentum of the geodesics.
+            Optional, default: None.
+            If None, an initial tangent vector or an end point must be given.
 
         Returns
         -------
@@ -334,31 +381,27 @@ class KernelLandmarksMetric(RiemannianMetric):
         """
         point_type = self.default_point_type
 
-        if end_point is None and initial_tangent_vec is None:
+        if sum(x is not None for x in (end_point, initial_tangent_vec, initial_cotangent_vec))!=1:
             raise ValueError(
-                "Specify an end point or an initial tangent "
+                "Specify one and only one among : end point, initial tangent or initial cotangent "
                 "vector to define the geodesic."
             )
-        if end_point is not None:
-            shooting_cotangent_vec = self.log_as_cotangent(point=end_point, base_point=initial_point)
-            if initial_tangent_vec is not None:
-                shooting_tangent_vec = self.cotangent_to_tangent(shooting_cotangent_vec, initial_point)
-                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
-                    raise RuntimeError(
-                        "The shooting tangent vector is too"
-                        " far from the input initial tangent vector."
-                    )
-            initial_cotangent_vec = shooting_cotangent_vec
+
+        if end_point is None:
+            if initial_cotangent_vec is None:
+                initial_cotangent_vec = self.tangent_to_cotangent(initial_tangent_vec, initial_point)
+        else:
+            initial_cotangent_vec = self.log_as_cotangent(point=end_point, base_point=initial_point, verbose=verbose)
 
         if point_type == "vector":
             if initial_point.ndim!=1 or initial_cotangent_vec.ndim!=1:
                 raise ValueError(
-                "batch mode not implemented here "
+                "batch mode not implemented for KernelLandmarksMetric class"
             )
         else:
             if initial_point.ndim!=2 or initial_cotangent_vec.ndim!=2:
                 raise ValueError(
-                "batch mode not implemented here "
+                "batch mode not implemented for KernelLandmarksMetric class"
             )
 
         def path(t):
