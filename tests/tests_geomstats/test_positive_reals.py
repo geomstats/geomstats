@@ -2,8 +2,6 @@
 
 import geomstats.backend as gs
 
-# import tests.conftest
-# from geomstats.geometry.positive_reals import PositiveReals
 from tests.conftest import Parametrizer
 from tests.data.positive_reals_data import (
     PositiveRealsMetricTestData,
