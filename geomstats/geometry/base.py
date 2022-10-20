@@ -8,6 +8,7 @@ import abc
 import geomstats.backend as gs
 from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.pullback_metric import PullbackMetric  # lazy import stylec
 
 CDTYPE = gs.get_default_cdtype()
 
@@ -327,7 +328,8 @@ class ImmersedSet(Manifold, abc.ABC):
         kwargs.setdefault("shape", (dim,))
         super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
         self.embedding_space = embedding_space
-        self.embedding_metric = embedding_space.metric
+        # self.embedding_metric = embedding_space.metric
+        self.pullback_metric = PullbackMetric(embedding_space, immersion=self.immersion)
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -435,6 +437,21 @@ class ImmersedSet(Manifold, abc.ABC):
             Tangent vector at base point.
         """
         return vector
+
+    def immersion(self, point):
+        """Evaluate the immersion function at a point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point in the embedded manifold.
+
+        Returns
+        -------
+        immersion : array-like, shape=[..., dim_embedding]
+            Immersion of the point.
+        """
+        raise NotImplementedError("immersion is not implemented.")
 
 
 class LevelSet(Manifold, abc.ABC):
