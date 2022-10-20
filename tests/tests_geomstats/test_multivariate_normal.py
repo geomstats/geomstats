@@ -1,15 +1,11 @@
 """Unit tests for the MultivariateDiagonalNormalDistributions manifold."""
 
-from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
+from tests.conftest import Parametrizer
 from tests.data.multivariate_normal import (
     MultivariateDiagonalNormalDistributionsTestData,
     MultivariateDiagonalNormalMetricTestData,
 )
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
-
-TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()
-
-NOT_AUTOGRAD = tf_backend() or pytorch_backend() or np_backend()
 
 
 class TestMultivariateDiagonalNormalDistributions(
