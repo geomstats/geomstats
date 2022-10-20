@@ -255,7 +255,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         Compute the inner-product of tangent_vec_a and tangent_vec_b
         at point base_point using the Siegel Riemannian metric:
 
-
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, n]
