@@ -168,11 +168,19 @@ class KleinBottle(Manifold):
 
     Points are understood to be on the Klein Bottle if they are in the interval
     :math:`[0,1]^2`.
-    Each point in :math:`|mathbb R^^` can be understood as a point on the Klein Bottle
+    Each point in :math:`\mathbb R^2` can be understood as a point on the Klein Bottle
     by considering the equivalence relation
-    :math:`(x_1,y_1) \sim (x_2, y_2) \Leftrightarrow
-    y_1-y_2 \in \mathbb Z \text{ and } x_1-x_2 \in 2\mathbb Z \text{ or }
-    y_1 + y_2 \in \mathbb Z \text{ and } x_1-x_2 \in \mathbb Z\setminus 2\mathbb Z`.
+
+    .. math::
+       :nowrap:
+
+       \begin{align}
+         &  (x_1,y_1) \sim (x_2, y_2) \\
+         \Leftrightarrow \quad &  y_1-y_2 \in \mathbb Z
+                                 \text{ and } x_1-x_2 \in 2\mathbb Z \\
+         \text{ or } \quad &
+        y_1 + y_2 \in \mathbb Z \text{ and } x_1-x_2 \in \mathbb Z\setminus 2\mathbb Z.
+       \end{align}
     """
 
     def __init__(self, dim=2, shape=2):
@@ -287,10 +295,7 @@ class KleinBottle(Manifold):
     def equivalent(point1, point2, atol=gs.atol):
         r"""Evaluate whether two points represent equivalent points on the Klein Bottle.
 
-        This method uses the equivalence
-        :math:`(x_1,y_1) \sim (x_2, y_2) \Leftrightarrow
-        y_1-y_2 \in \mathbb Z \text{ and } x_1-x_2 \in 2\mathbb Z \text{ or }
-        y_1 + y_2 \in \mathbb Z \text{ and } x_1-x_2 \in \mathbb Z\setminus 2\mathbb Z`
+        This method uses the equivalence stated in the class description.
 
         This means points are equivalent if one walks an even number of squares in
         x-direction and any number of squares in y-direction or an uneven number of
