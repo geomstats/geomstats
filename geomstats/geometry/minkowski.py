@@ -63,7 +63,10 @@ class MinkowskiMetric(RiemannianMetric):
         """
         q, p = self.signature
         diagonal = gs.array([-1.0] * p + [1.0] * q)
-        return from_vector_to_diagonal_matrix(diagonal)
+        mat = from_vector_to_diagonal_matrix(diagonal)
+        if base_point is not None and base_point.ndim > 1:
+            mat = gs.broadcast_to(mat, base_point.shape + (p + q,))
+        return mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
