@@ -1,31 +1,47 @@
+"""
+The Klein Bottle manifold.
+
+Lead author: Juliane Braunsmann
+"""
+
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class KleinBottleMetric(RiemannianMetric):
+    """Class for the Klein Bottle Metric.
+
+    Implements exp and log using explicit formulas.
+
+    Parameters
+    ----------
+    space : KleinBottle
+        Underlying manifold.
+    """
 
     def __init__(self, space, **kwargs):
         super().__init__(dim=2, shape=(2,), default_coords_type="intrinsic")
         self._space: KleinBottle = space
 
     def injectivity_radius(self, base_point):
-        return 2**0.5/2
+        """Compute the radius of the injectivity domain.
 
-    def parallel_transport(self, tangent_vec, base_point, direction=None, end_point=None):
-        raise NotImplementedError(
-            "The computation of parallel transport is not implemented."
-        )
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
 
-    def curvature_derivative(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point=None):
-        raise NotImplementedError(
-            "The computation of the curvature derivative is not implemented."
-        )
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point on the manifold. Unused.
 
-    def metric_matrix(self, base_point=None):
-        raise NotImplementedError(
-            "The computation of the metric matrix is not implemented."
-        )
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return 1 / 2
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
@@ -48,9 +64,10 @@ class KleinBottleMetric(RiemannianMetric):
         return gs.dot(tangent_vec_a, tangent_vec_b)
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """
-        Compute the exponential by adding tangent_vec to base_point and finding canonical representation in the unit
-        square.
+        """Exponential map.
+
+        Computed by adding tangent_vec to base_point and finding canonical
+        representation in the unit square.
 
         Parameters
         ----------
@@ -73,9 +90,10 @@ class KleinBottleMetric(RiemannianMetric):
         return point_canonical
 
     def log(self, point, base_point, **kwargs):
-        """
-        Compute the logarithm map by finding the representative of point closest to base_point and returning their
-        difference.
+        """Logarithm map.
+
+        Computed by finding the representative of point closest to base_point and
+        returning their difference.
 
         Parameters
         ----------
@@ -92,14 +110,16 @@ class KleinBottleMetric(RiemannianMetric):
         if base_point.ndim == 1 and point.ndim > 1:
             while base_point.ndim < point.ndim:
                 base_point = gs.expand_dims(base_point, 0)
-        base_point_canonical, point_minimal = self._closest_representative(base_point, point)
+        base_point_canonical, point_minimal = self._closest_representative(
+            base_point, point
+        )
         return point_minimal - base_point_canonical
 
     def _closest_representative(self, point1, point2):
-        """
-        Compute the representative of point2 which is closest to point1. Only representatives in the 8 surrounding
-        squares have to be considered.
+        """Find the representative of point2 which is closest to point1.
 
+        Only representatives in the 8 surrounding
+        squares have to be considered.
 
         Parameters
         ----------
@@ -129,8 +149,12 @@ class KleinBottleMetric(RiemannianMetric):
         p2_7 = gs.stack([p2[:, 0] - 1, 1 - p2[:, 1]], axis=-1)
         p2_8 = gs.stack([p2[:, 0] - 1, 2 - p2[:, 1]], axis=-1)
         p2_9 = gs.stack([p2[:, 0] - 1, 0 - p2[:, 1]], axis=-1)
-        p2_total = gs.stack([p2, p2_2, p2_3, p2_4, p2_5, p2_6, p2_7, p2_8, p2_9], axis=0)
-        indices = gs.argmin(gs.sum((p2_total - gs.expand_dims(p1, 0)) ** 2, axis=-1), axis=0)
+        p2_total = gs.stack(
+            [p2, p2_2, p2_3, p2_4, p2_5, p2_6, p2_7, p2_8, p2_9], axis=0
+        )
+        indices = gs.argmin(
+            gs.sum((p2_total - gs.expand_dims(p1, 0)) ** 2, axis=-1), axis=0
+        )
         minimizers = gs.empty_like(p1)
         for i in range(len(indices)):
             minimizers[i, :] = p2_total[indices[i], i, :]
@@ -140,11 +164,29 @@ class KleinBottleMetric(RiemannianMetric):
 
 
 class KleinBottle(Manifold):
+    r"""Class for the Klein Bottle, a two dimensional manifold which is not orientable.
+
+    Points are understood to be on the Klein Bottle if they are in the interval
+    :math:`[0,1]^2`.
+    Each point in :math:`|mathbb R^^` can be understood as a point on the Klein Bottle
+    by considering the equivalence relation
+    :math:`(x_1,y_1) \sim (x_2, y_2) \Leftrightarrow
+    y_1-y_2 \in \mathbb Z \text{ and } x_1-x_2 \in 2\mathbb Z \text{ or }
+    y_1 + y_2 \in \mathbb Z \text{ and } x_1-x_2 \in \mathbb Z\setminus 2\mathbb Z`.
+    """
+
     def __init__(self, dim=2, shape=2):
         super().__init__(dim=2, shape=(2,), metric=None)
         self.metric = None
 
     def equip_metric(self, metric=None):
+        """Equip the manifold with the specified metric.
+
+        Parameters
+        ----------
+        metric: Metric
+            A metric compatible with the Klein Bottle.
+        """
         self.metric = KleinBottleMetric(self)
 
     def random_point(self, n_samples=1, bound=None):
@@ -168,7 +210,9 @@ class KleinBottle(Manifold):
         return samples
 
     def to_tangent(self, vector, base_point=None):
-        """Project a vector to a tangent space of the manifold. In this case returns the vector itself.
+        """Project a vector to a tangent space of the manifold.
+
+        In this case returns the vector itself.
 
         Parameters
         ----------
@@ -186,7 +230,7 @@ class KleinBottle(Manifold):
         raise ValueError("Vector has the wrong shape.")
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
-        """Evaluate if the point belongs to :math:`\mathbb{R}^2`.
+        r"""Evaluate if the point belongs to :math:`\mathbb R^2`.
 
         This method checks the shape and of the input point.
 
@@ -241,14 +285,16 @@ class KleinBottle(Manifold):
 
     @staticmethod
     def equivalent(point1, point2, atol=gs.atol):
-        """Evaluate whether two points in :math:`\mathbb R^2` represent equivalent points on the Klein Bottle.
+        r"""Evaluate whether two points represent equivalent points on the Klein Bottle.
 
-        This method uses the equivalence :math:`(x_1,y_1) \sim (x_2, y_2) \Leftrightarrow
+        This method uses the equivalence
+        :math:`(x_1,y_1) \sim (x_2, y_2) \Leftrightarrow
         y_1-y_2 \in \mathbb Z \text{ and } x_1-x_2 \in 2\mathbb Z \text{ or }
         y_1 + y_2 \in \mathbb Z \text{ and } x_1-x_2 \in \mathbb Z\setminus 2\mathbb Z`
 
-        This means points are equivalent if one walks an even number of squares in x-direction and any number of squares
-        in y-direction or an uneven number of squares in x-direction and any number of squares in y-direction while
+        This means points are equivalent if one walks an even number of squares in
+        x-direction and any number of squares in y-direction or an uneven number of
+        squares in x-direction and any number of squares in y-direction while
         "mirroring" the y coordinate.
 
         Parameters
@@ -278,8 +324,10 @@ class KleinBottle(Manifold):
         return gs.logical_or(un_mirrored, mirrored)
 
     def regularize(self, point):
-        """Regularize any point in :math:`\mathbb R^2` to its canonical equivalent representation in the square
-        :math:`[0,1]^2``
+        r"""Regularize arbitrary point to canonical equivalent in unit square.
+
+        Regularize any point in :math:`\mathbb R^2` to its canonical equivalent
+        representation in the square :math:`[0,1]^2`.
 
         Parameters
         ----------
@@ -302,6 +350,24 @@ class KleinBottle(Manifold):
 
 
 def is_close_mod(array, divisor, atol):
+    """Determine if values in array are elementwise close to zero modulo divisor.
+
+    Evaluate elementwise to true if the absolute value is close to 0 or divisor.
+
+    Parameters
+    ----------
+    array: array-like, shape [...]
+        Array who values will be considered.
+    divisor: int
+        Divisor in the modulo operation.
+    atol: float
+        Absolute tolerance threshold.
+
+    Return
+    ------
+    is_close_mod_bool: boolean array-like, shape [...]
+        Elementwise result.
+    """
     return gs.logical_or(
-        gs.isclose(array, 0.0, atol), gs.isclose(gs.abs(array), divisor, atol)
+        gs.isclose(gs.abs(array), 0.0, atol), gs.isclose(gs.abs(array), divisor, atol)
     )
