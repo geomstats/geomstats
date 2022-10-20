@@ -3,13 +3,17 @@
 Lead author: XXXX.
 """
 
-from scipy.stats import norm, multivariate_normal
+import math
+
+from scipy.stats import multivariate_normal, norm
 
 import geomstats
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.normal import NormalMetric
 
 
 class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin):
@@ -19,53 +23,13 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
         self.n = n
         self.euclidean_n = Euclidean(dim=n)
         dim = int(2 * n)
-        super().__init__(
-            dim=dim,
-            embedding_space=Euclidean(dim)
-        )
-
-    def _get_location_and_diagonal(self, point):
-        """Extract location and diagonal of the covariance matrix
-        from a given point/tangent vector.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 2*n]
-            Input point from which locations and diagonals are extracted.
-
-        Returns
-        -------
-        location : array-like, shape=[..., n]
-            Locations from the input point.
-        diagonal : array-like, shape=[..., n]
-            Diagonals of covariance matrices from the input point.
-        """
-        location = point[..., :self.n]
-        diagonal = point[..., self.n:]
-        return location, diagonal
-
-    def _set_location_and_diagonal(self, location, diagonal):
-        """Set location and diagonal of the covariance matrix
-        into a point.
-
-        Parameters
-        ----------
-        location : array-like, shape=[..., n]
-            Locations to stack.
-        diagonal : array-like, shape=[..., n]
-            Diagonals of covariance matrices from the input point.
-
-        Returns
-        -------
-        point : array-like, shape=[..., 2*n]
-            Point with locations and diagonals covariance matrices.
-        """
-        point = gs.concatenate([location, diagonal], axis=-1)
-        return point
+        super().__init__(dim=dim, embedding_space=Euclidean(dim))
+        self.metric = MultivariateDiagonalNormalMetric(n=n)
+        self._unstack_location_diagonal = self.metric._unstack_location_diagonal
+        self._stack_location_diagonal = self.metric._stack_location_diagonal
 
     def belongs(self, point, atol=gs.atol):
-        """Evaluate if the point belongs to the
-        multivariate diagonal Normal distribution manifold.
+        """Evaluate if the point belongs to the manifold.
 
         Parameters
         ----------
@@ -79,7 +43,7 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        _, diagonal = self._get_location_and_diagonal(point)
+        _, diagonal = self._unstack_location_diagonal(point)
         belongs = gs.logical_and(belongs, gs.all(diagonal >= atol, axis=-1))
         return belongs
 
@@ -100,20 +64,16 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
         """
         n = self.n
         bound = 1.0
-        location = self.euclidean_n.random_point(
-            n_samples=n_samples, bound=bound)
+        location = self.euclidean_n.random_point(n_samples=n_samples, bound=bound)
         if n_samples == 1:
-            diagonal = gs.array(norm.rvs(size=(n,))**2)
+            diagonal = gs.array(norm.rvs(size=(n,)) ** 2)
         else:
-            diagonal = gs.array(norm.rvs(size=(n_samples, n))**2)
-        point = self._set_location_and_diagonal(location, diagonal)
+            diagonal = gs.array(norm.rvs(size=(n_samples, n)) ** 2)
+        point = self._stack_location_diagonal(location, diagonal)
         return point
 
     def projection(self, point):
-        """Project a 2*n vector on the manifold of
-        diagonal mutlivariate normal distributions.
-
-        The eigenvalues are floored to gs.atol.
+        """Floor the eigenvalues to gs.atol.
 
         Parameters
         ----------
@@ -126,9 +86,9 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
             Point containing locations and diagonals
             of covariance matrices.
         """
-        location, diagonal = self._get_location_and_diagonal(point)
+        location, diagonal = self._unstack_location_diagonal(point)
         regularized = gs.where(diagonal < gs.atol, gs.atol, diagonal)
-        projected = self._set_location_and_diagonal(location, regularized)
+        projected = self._stack_location_diagonal(location, regularized)
         return projected
 
     def sample(self, point, n_samples=1):
@@ -153,11 +113,9 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for p in point:
-            loc, diag = self._get_location_and_diagonal(p)
+            loc, diag = self._unstack_location_diagonal(p)
             cov = gs.vec_to_diag(diag)
-            samples.append(
-                gs.array(multivariate_normal.rvs(loc, cov, size=n_samples))
-            )
+            samples.append(gs.array(multivariate_normal.rvs(loc, cov, size=n_samples)))
         return samples[0] if point.shape[0] == 1 else gs.stack(samples)
 
     @staticmethod
@@ -199,3 +157,187 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
             by point.
         """
         raise NotImplementedError("The cdf method has not yet been implemented.")
+
+
+class MultivariateDiagonalNormalMetric(RiemannianMetric):
+    """Class for the Fisher information metric of diagonal normal distributions."""
+
+    def __init__(self, n):
+        self.n = n
+        dim = int(2 * n)
+        super().__init__(dim=dim)
+        self.univariate_normal_metric = NormalMetric()
+
+    def _unstack_location_diagonal(self, point):
+        """Extract location and diagonal of the covariance matrix from a given point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2*n]
+            Input point from which locations and diagonals are extracted.
+
+        Returns
+        -------
+        location : array-like, shape=[..., n]
+            Locations from the input point.
+        diagonal : array-like, shape=[..., n]
+            Diagonals of covariance matrices from the input point.
+        """
+        location = point[..., : self.n]
+        diagonal = point[..., self.n :]
+        return location, diagonal
+
+    def _stack_location_diagonal(self, location, diagonal):
+        """Set location and diagonal of the covariance matrix into a point.
+
+        Parameters
+        ----------
+        location : array-like, shape=[..., n]
+            Locations to stack.
+        diagonal : array-like, shape=[..., n]
+            Diagonals of covariance matrices from the input point.
+
+        Returns
+        -------
+        point : array-like, shape=[..., 2*n]
+            Point with locations and diagonals covariance matrices.
+        """
+        point = gs.concatenate([location, diagonal], axis=-1)
+        return point
+
+    def _stacked_location_diagonal_to_1d_pairs(self, point, apply_sqrt=False):
+        """Create pairs of 1d locations and stds from nd counterparts.
+
+        Parameters
+        ----------
+        point: array-like, shape=[..., 2*n]
+            Point.
+        apply_sqrt: bool
+            Determine if a square root is applied to the diagonals.
+
+        Returns
+        -------
+        pairs : array-like, shape=[..., n, 2]
+            Pairs of locations and standard deviations.
+        """
+        location, diagonal = self._unstack_location_diagonal(point)
+        if apply_sqrt:
+            diagonal = gs.sqrt(diagonal)
+        point = gs.stack([location, diagonal], axis=-1)
+        return point
+
+    def _1d_pairs_to_stacked_location_diagonal(self, point, apply_square=False):
+        """Create nd locations and diagonal matrices from pairs of 1d counterparts.
+
+        Parameters
+        ----------
+        point: array-like, shape=[..., 2*n]
+            Point.
+        apply_square: bool
+            Determine if a square is applied to the diagonals.
+
+        Returns
+        -------
+        pairs : array-like, shape=[..., n, 2]
+            Pairs of locations and standard deviations.
+
+        """
+        location = point[..., 0]
+        diagonal = point[..., 1]
+        if apply_square:
+            diagonal = gs.power(diagonal, 2)
+        point = gs.concatenate([location, diagonal], axis=-1)
+        return point
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Inner product between two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[..., 2*n]
+            Tangent vector at base point.
+        tangent_vec_b: array-like, shape=[..., 2*n]
+            Tangent vector at base point.
+        base_point: array-like, shape=[..., 2*n]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        inner_product : array-like, shape=[...,]
+            Inner-product.
+        """
+        tangent_vec_a = self._stacked_location_diagonal_to_1d_pairs(tangent_vec_a)
+        tangent_vec_b = self._stacked_location_diagonal_to_1d_pairs(tangent_vec_b)
+        base_point = self._stacked_location_diagonal_to_1d_pairs(
+            base_point, apply_sqrt=True
+        )
+        inner_prod = self.univariate_normal_metric.inner_product(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+        return inner_prod
+
+    def exp(self, tangent_vec, base_point):
+        """Compute the Riemannian exponential.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 2*n]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[..., 2*n]
+            Point.
+
+        Returns
+        -------
+        end_point : array-like, shape=[..., 2*n]
+            Point reached by the geodesic starting from `base_point`
+            with initial velocity `tangent_vec`
+        """
+        tangent_vec = self._stacked_location_diagonal_to_1d_pairs(tangent_vec)
+        base_point = self._stacked_location_diagonal_to_1d_pairs(
+            base_point, apply_sqrt=True
+        )
+        point = self.univariate_normal_metric.exp(tangent_vec, base_point)
+        end_point = self._1d_pairs_to_stacked_location_diagonal(
+            point, apply_square=True
+        )
+        return end_point
+
+    def log(self, point, base_point):
+        """Compute Riemannian logarithm of a point wrt a base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 2*n]
+            Point.
+        base_point : array-like, shape=[..., 2*n]
+            Point.
+
+        Returns
+        -------
+        log : array-like, shape=[..., 2*n]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
+        """
+        point = self._stacked_location_diagonal_to_1d_pairs(point, apply_sqrt=True)
+        base_point = self._stacked_location_diagonal_to_1d_pairs(
+            base_point, apply_sqrt=True
+        )
+        log = self.univariate_normal_metric.log(point, base_point)
+        log = self._1d_pairs_to_stacked_location_diagonal(log)
+        return log
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2*n]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return math.inf
