@@ -307,7 +307,7 @@ class PositiveRealsMetric(RiemannianMetric):
         Returns
         -------
         dist : array-like, shape=[...,]
-            Riemannian squared distance.
+            Riemannian distance.
         """
         dist = gs.abs(gs.log(point_b / point_a))
         dist = gs.reshape(dist, (-1,))
