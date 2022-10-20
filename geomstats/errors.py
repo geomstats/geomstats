@@ -82,3 +82,34 @@ def check_tf_error(exception, name):
 
         return getattr(errors, name)
     return exception
+
+
+def check_point_shape(point, manifold):
+    """Raise an error if the shape of point does not match the shape of manifold.
+
+    If the final elements of the shape of point do not match the shape of manifold,
+    then point cannot be an array of points on the manifold and a ValueError is raised.
+
+    Parameters
+    ----------
+    point : array-like
+        The point to check the shape of.
+    manifold : Manifold
+        The manifold to check the point against
+
+    Raises
+    ------
+    ValueError
+        If the final dimensions of point are not equal to the final dimensions of
+        manifold.
+    """
+    shape_error_msg = (f"The shape of {point}, which is {point.shape}, is not"
+                       f" compatible with the shape of the {type(manifold).__name__}"
+                       f" manifold, which is {manifold.shape}.")
+    representation_type = -1 * len(manifold.shape)
+    if point.shape[representation_type:] != manifold.shape[representation_type:]:
+        raise ShapeError(shape_error_msg)
+
+
+class ShapeError(ValueError):
+    """Raised when there is an incompatibility between shapes."""
