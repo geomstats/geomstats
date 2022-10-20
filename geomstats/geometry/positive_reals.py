@@ -64,7 +64,8 @@ class PositiveReals(OpenSet):
         )
         self.scale = scale
 
-    def belongs(self, point, atol=gs.atol):
+    @staticmethod
+    def belongs(point, atol=gs.atol):
         """Check if a point is a positive real.
 
         Evaluate if a point belongs to the positive real axis,
@@ -86,18 +87,14 @@ class PositiveReals(OpenSet):
         point_shape = point.shape
         is_scalar = len(point_shape) == 1
         is_scalar = is_scalar or (len(point_shape) == 2 and point_shape[1] == 1)
-        # is_real = point == gs.real(point)
         is_real = gs.imag(point) == 0
-        # is_real = point in ["int32", "int64", "float32", "float64", "uint8"]
-        # print('point_3')
-        # print(point + gs.real(point))
         point = gs.real(point)
         is_positive = point > 0
-        # belongs = is_scalar * is_real * is_positive
         belongs = gs.logical_and(is_scalar and is_real, is_positive)
         return belongs
 
-    def projection(self, point, atol=gs.atol):
+    @staticmethod
+    def projection(point, atol=gs.atol):
         """Project a point on the positive reals.
 
         Parameters
@@ -115,7 +112,8 @@ class PositiveReals(OpenSet):
         """
         return gs.where(point <= 0, atol, point)
 
-    def random_point(self, n_samples=1, bound=1.0, atol=gs.atol):
+    @staticmethod
+    def random_point(n_samples=1, bound=1.0, atol=gs.atol):
         """Sample in the positive reals.
 
         Parameters
@@ -202,8 +200,6 @@ class PositiveRealsMetric(RiemannianMetric):
         """
         inner_product_matrix = self.inner_product_matrix(base_point=base_point)
         inner_product = tangent_vec_a * inner_product_matrix * tangent_vec_b
-        # inner_product = gs.to_ndarray(inner_product, to_ndim=0)
-        # inner_product = gs.reshape(inner_product, (-1,))
         return inner_product
 
     def squared_norm(self, vector, base_point):
