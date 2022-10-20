@@ -94,7 +94,6 @@ class KleinBottleMetricTestData(_RiemannianMetricTestData):
     shape_list = [(2,), (2,)]
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
 
-    # Space = KleinBottle
     Metric = KleinBottleMetric
 
     def log_after_exp_test_data(self, **kwargs):

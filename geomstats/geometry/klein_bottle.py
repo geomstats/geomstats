@@ -156,8 +156,8 @@ class KleinBottleMetric(RiemannianMetric):
             gs.sum((p2_total - gs.expand_dims(p1, 0)) ** 2, axis=-1), axis=0
         )
         minimizers = gs.empty_like(p1)
-        for i in range(len(indices)):
-            minimizers[i, :] = p2_total[indices[i], i, :]
+        for i, index in enumerate(indices):
+            minimizers[i, :] = p2_total[index, i, :]
         p1 = gs.reshape(p1, shape)
         minimizers = gs.reshape(minimizers, shape)
         return p1, minimizers
@@ -260,10 +260,10 @@ class KleinBottle(Manifold):
         minimal_ndim = len(self.shape)
         if self.shape[0] == 1 and len(vector.shape) <= 1:
             vector = gs.transpose(gs.to_ndarray(gs.to_ndarray(vector, 1), 2))
-        belongs = vector.shape[-minimal_ndim:] == self.shape
+        belongs_bool = vector.shape[-minimal_ndim:] == self.shape
         if vector.ndim <= minimal_ndim:
-            return belongs
-        return gs.tile(gs.array([belongs]), [vector.shape[0]])
+            return belongs_bool
+        return gs.tile(gs.array([belongs_bool]), [vector.shape[0]])
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the set [0,1]^2.
