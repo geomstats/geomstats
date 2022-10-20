@@ -33,10 +33,8 @@ from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
 
-CDTYPE = gs.get_default_cdtype()
 
-
-def create_identity_mat(shape, dtype=CDTYPE):
+def create_identity_mat(shape, dtype=gs.get_default_cdtype()):
     """Stack identity matrices.
 
     Parameters
@@ -45,7 +43,7 @@ def create_identity_mat(shape, dtype=CDTYPE):
         Desired identity matrix shape of form [..., n, n].
     dtype : dtype
         Desired dtype.
-        Optional, default: CDTYPE.
+        Optional, default: gs.get_default_cdtype().
 
     Returns
     -------
@@ -186,8 +184,8 @@ class Siegel(ComplexOpenSet):
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
-        samples = gs.cast(gs.random.rand(*size), dtype=CDTYPE)
-        samples += 1j * gs.cast(gs.random.rand(*size), dtype=CDTYPE)
+        samples = gs.cast(gs.random.rand(*size), dtype=gs.get_default_cdtype())
+        samples += 1j * gs.cast(gs.random.rand(*size), dtype=gs.get_default_cdtype())
         samples -= 0.5 + 0.5j
         samples /= 2 * n
         samples *= 1 - gs.atol
@@ -214,8 +212,8 @@ class Siegel(ComplexOpenSet):
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
-        samples = gs.cast(gs.random.rand(*size), dtype=CDTYPE)
-        samples += 1j * gs.cast(gs.random.rand(*size), dtype=CDTYPE)
+        samples = gs.cast(gs.random.rand(*size), dtype=gs.get_default_cdtype())
+        samples += 1j * gs.cast(gs.random.rand(*size), dtype=gs.get_default_cdtype())
         samples *= 2
         samples -= 1 + 1j
 
