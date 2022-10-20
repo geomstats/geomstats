@@ -1,7 +1,6 @@
 """Unit tests for the manifold of positive reals."""
 
 import geomstats.backend as gs
-
 from tests.conftest import Parametrizer
 from tests.data.positive_reals_data import (
     PositiveRealsMetricTestData,
