@@ -165,8 +165,7 @@ class ProductManifold(Manifold):
                 if start_of_coords < -1:
                     response.reshape(response.shape[:start_of_coords] + (-1,))
             return gs.concatenate(points, axis=-1)
-        else:
-            return gs.stack(points, axis=-2)
+        return gs.stack(points, axis=-2)
 
     def project_from_product(self, point):
         """Map a point in the product to points in each factor.
@@ -278,6 +277,7 @@ class ProductManifold(Manifold):
 
     @staticmethod
     def _get_method(manifold, method_name, array_args, num_args):
+        """Call manifold.method_name"""
         return getattr(manifold, method_name)(**array_args, **num_args)
 
     def _pool_outputs_from_function(self, outputs):
