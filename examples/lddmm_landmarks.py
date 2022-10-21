@@ -9,6 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
+step = "euler" # step rule for numerical integration
+
 # Setting : 2 configurations of 2 points in 2D
 n_points = 2
 landmark_set_a = gs.array([[0., 0.],[1., .1]])
@@ -41,27 +43,29 @@ for key in metrics:
     # testing exp
     initial_tangent_vec = gs.array([[1., 0.],[-1., 0.]])
     start = time.time()
-    landmarks_ab = metric.geodesic(landmarks_a, initial_tangent_vec=initial_tangent_vec)
+    landmarks_ab = metric.geodesic(landmarks_a, initial_tangent_vec=initial_tangent_vec, step=step)
     end = time.time()
     print("elapsed=", end-start)
-    geod = landmarks_ab(times)
+    geod = gs.to_numpy(landmarks_ab(times))
     plt.figure()
     plt.plot(landmark_set_a[:,0], landmark_set_a[:,1], 'o')
     plt.quiver(landmark_set_a[:,0], landmark_set_a[:,1], 
                 initial_tangent_vec[:,0], initial_tangent_vec[:,1])
     plt.plot(geod[:,:,0], geod[:,:,1])
     plt.title(f"{key},\n geodesic (exp from tangent vector)")
+    plt.axis("equal")
 
     # testing log
     start = time.time()
-    landmarks_ab = metric.geodesic(landmarks_a, landmarks_b)
+    landmarks_ab = metric.geodesic(landmarks_a, landmarks_b, step=step)
     end = time.time()
     print("elapsed=", end-start)
-    geod = landmarks_ab(times)
+    geod = gs.to_numpy(landmarks_ab(times))
     plt.figure()
     plt.plot(landmark_set_a[:,0], landmark_set_a[:,1], 'o')
     plt.plot(landmark_set_b[:,0], landmark_set_b[:,1], 'x')
     plt.plot(geod[:,:,0], geod[:,:,1])
     plt.title(f"{key},\n geodesic (computing log)")
+    plt.axis("equal")
 
 plt.show()

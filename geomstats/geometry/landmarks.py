@@ -214,7 +214,7 @@ class KernelLandmarksMetric(RiemannianMetric):
             stack of h_p (Partial derivative with respect to `position`) 
             and -h_q (Partial derivative with respect to `momentum`)
         """
-        _, gradient = gs.autodiff.value_and_grad(self.hamiltonian)(state)
+        _, gradient = gs.autodiff.value_and_grad(self.hamiltonian, create_graph=True)(state)
         h_q, h_p = gradient
         return gs.stack((h_p, - h_q))
 
