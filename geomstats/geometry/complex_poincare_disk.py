@@ -34,12 +34,12 @@ class ComplexPoincareDisk(ComplexOpenSet):
 
     Parameters
     ----------
-    scale : int or float
+    scale : float
         Scale of the complex Poincaré metric.
-        Optional, default: 1.
+        Optional, default: 1.0.
     """
 
-    def __init__(self, scale=1, **kwargs):
+    def __init__(self, scale=1.0, **kwargs):
         super().__init__(
             dim=1,
             embedding_space=Hermitian(dim=1),
@@ -136,12 +136,12 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
     Parameters
     ----------
-    scale : int or float
+    scale : float
         Scale of the complex Poincaré metric.
-        Optional, default: 1.
+        Optional, default: 1.0.
     """
 
-    def __init__(self, scale=1):
+    def __init__(self, scale=1.0):
         super().__init__(
             dim=1,
             shape=(1,),
