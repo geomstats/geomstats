@@ -288,7 +288,7 @@ class FullRankCorrelationEuclideanCholeskyMetric(PullbackDiffeoMetric):
     """
 
     def __init__(self, n):
-        super(FullRankCorrelationEuclideanCholeskyMetric, self).__init__(
+        super().__init__(
             dim=int(n * (n - 1) / 2),
         )
         self.embedding_metric=MatricesMetric
@@ -318,6 +318,7 @@ class FullRankCorrelationEuclideanCholeskyMetric(PullbackDiffeoMetric):
         term_b = diag_inv_squared * diag_tangent_chol
         term_b = gs.matmul(term_b, chol)
         return term_a - term_b
+
     def inverse_diffeomorphism(self, image_point):
         base_point_trans = Matrices.transpose(image_point)
         product = gs.matmul(image_point, base_point_trans)
