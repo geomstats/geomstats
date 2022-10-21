@@ -1,6 +1,6 @@
 """Statistical Manifold of multivaraite normal distributions with the Fisher metric.
 
-Lead author: XXXX.
+Lead author: Antoine Collas.
 """
 
 import math
