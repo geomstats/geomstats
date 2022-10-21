@@ -95,7 +95,9 @@ class ManifoldTestCase(TestCase):
         random_point = space.random_point(n_points)
         result = gs.all(space.belongs(random_point, atol=atol))
         if random_point.ndim > 1:
-            self.assertAllEqual(result, gs.ones(random_point.shape[:-len(space.shape)]))
+            self.assertAllEqual(
+                result, gs.ones(random_point.shape[: -len(space.shape)])
+            )
         else:
             self.assertTrue(result)
 
@@ -114,7 +116,7 @@ class ManifoldTestCase(TestCase):
         space = self.Space(*space_args)
         belongs = space.belongs(space.projection(gs.array(point)), atol)
         if point.ndim > 1:
-            self.assertAllEqual(belongs, gs.ones(point.shape[:-len(space.shape)]))
+            self.assertAllEqual(belongs, gs.ones(point.shape[: -len(space.shape)]))
         else:
             self.assertTrue(belongs)
 
@@ -136,7 +138,7 @@ class ManifoldTestCase(TestCase):
         tangent_vec = space.to_tangent(gs.array(vector), gs.array(base_point))
         result = space.is_tangent(tangent_vec, gs.array(base_point), atol)
         if tangent_vec.ndim > 1:
-            self.assertAllEqual(result, gs.ones(tangent_vec.shape[:-len(space.shape)]))
+            self.assertAllEqual(result, gs.ones(tangent_vec.shape[: -len(space.shape)]))
         else:
             self.assertTrue(result)
 
@@ -160,7 +162,7 @@ class ManifoldTestCase(TestCase):
         tangent_vec = space.random_tangent_vec(base_point, n_samples)
         result = space.is_tangent(tangent_vec, base_point, atol)
         if tangent_vec.ndim > 1:
-            self.assertAllEqual(result, gs.ones(tangent_vec.shape[:-len(space.shape)]))
+            self.assertAllEqual(result, gs.ones(tangent_vec.shape[: -len(space.shape)]))
         else:
             self.assertTrue(result)
 

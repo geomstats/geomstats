@@ -1,6 +1,6 @@
-import geomstats.backend as gs
 import pytest
 
+import geomstats.backend as gs
 from tests.conftest import Parametrizer
 from tests.data.klein_bottle_data import KleinBottleMetricTestData, KleinBottleTestData
 from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase

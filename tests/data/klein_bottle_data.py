@@ -16,10 +16,7 @@ class KleinBottleTestData(_ManifoldTestData):
 
     def not_belongs_test_data(self):
         random_data = [
-            dict(
-                point=gs.random.rand(3, 4, 2) + 1,
-                expected=gs.zeros((3, 4))
-            )
+            dict(point=gs.random.rand(3, 4, 2) + 1, expected=gs.zeros((3, 4)))
         ]
         return self.generate_tests([], random_data)
 
@@ -39,7 +36,7 @@ class KleinBottleTestData(_ManifoldTestData):
             ),
             dict(
                 point=point_large,
-            )
+            ),
         ]
         return self.generate_tests([], random_data)
 

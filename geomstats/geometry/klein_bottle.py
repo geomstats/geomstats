@@ -262,8 +262,10 @@ class KleinBottle(Manifold):
                 return gs.ones(*point.shape[:-minimal_ndim])
             else:
                 return correct_shape
-        raise ValueError(f'Wrong shape: shape of vector should end with {self.shape} '
-                         f'but is {point.shape}')
+        raise ValueError(
+            f"Wrong shape: shape of vector should end with {self.shape} "
+            f"but is {point.shape}"
+        )
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the set [0,1]^2.
@@ -288,8 +290,10 @@ class KleinBottle(Manifold):
         if correct_shape:
             correct_values = gs.all(gs.logical_and(point >= 0, point <= 1), axis=-1)
             return correct_values
-        raise ValueError(f'Wrong shape: shape of point should end with {self.shape} '
-                         f'but is {point.shape}')
+        raise ValueError(
+            f"Wrong shape: shape of point should end with {self.shape} "
+            f"but is {point.shape}"
+        )
 
     @staticmethod
     def equivalent(point1, point2, atol=gs.atol):
