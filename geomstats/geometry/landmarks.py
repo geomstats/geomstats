@@ -218,16 +218,15 @@ class KernelLandmarksMetric(RiemannianMetric):
         h_q, h_p = gradient
         return gs.stack((h_p, - h_q))
 
-    def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step="euler", **kwargs):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Exponential map on the cotangent bundle.
         
         We redirect to exp_from_cotangent since the cometric is given instead of the metric.
         """
-        cotangent_vec = self.tangent_to_cotangent(tangent_vec, base_point, n_steps, step, **kwargs)
-        return self.exp_from_cotangent(cotangent_vec, base_point)
+        cotangent_vec = self.tangent_to_cotangent(tangent_vec, base_point)
+        return self.exp_from_cotangent(cotangent_vec, base_point, **kwargs)
 
-    def exp_from_cotangent(self, cotangent_vec, base_point, n_steps=N_STEPS, step='euler',
-            point_type=None, **kwargs):
+    def exp_from_cotangent(self, cotangent_vec, base_point, point_type=None, **kwargs):
         """Exponential map on the cotangent bundle.
 
         Exponential map at base_point of cotangent_vec computed by integration
@@ -257,8 +256,7 @@ class KernelLandmarksMetric(RiemannianMetric):
         """
 
         initial_state = gs.stack([base_point, cotangent_vec])
-        flow = integrate(self.hamiltonian_equation, initial_state,
-                            n_steps=n_steps, step=step)
+        flow = integrate(self.hamiltonian_equation, initial_state, **kwargs)
 
         exp = flow[-1][0]
         return exp
@@ -309,7 +307,7 @@ class KernelLandmarksMetric(RiemannianMetric):
             momentum = gs.array(momentum)
             momentum = gs.cast(momentum, dtype=base_point.dtype)
             momentum = gs.reshape(momentum, max_shape)
-            delta = self.exp_from_cotangent(momentum, base_point, n_steps, step) - point
+            delta = self.exp_from_cotangent(momentum, base_point, n_steps=n_steps, step=step) - point
             return gs.sum(delta**2)
 
         objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
@@ -391,7 +389,7 @@ class KernelLandmarksMetric(RiemannianMetric):
             if initial_cotangent_vec is None:
                 initial_cotangent_vec = self.tangent_to_cotangent(initial_tangent_vec, initial_point)
         else:
-            initial_cotangent_vec = self.log_as_cotangent(point=end_point, base_point=initial_point, verbose=verbose)
+            initial_cotangent_vec = self.log_as_cotangent(point=end_point, base_point=initial_point, verbose=verbose, **exp_kwargs)
 
         if point_type == "vector":
             if initial_point.ndim!=1 or initial_cotangent_vec.ndim!=1:
