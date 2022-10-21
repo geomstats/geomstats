@@ -235,12 +235,11 @@ class KleinBottle(Manifold):
         """
         if gs.all(self.is_tangent(vector)):
             return vector
-        raise ValueError("Vector has the wrong shape.")
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         r"""Evaluate if the point belongs to :math:`\mathbb R^2`.
 
-        This method checks the shape and of the input point.
+        This method checks the shape of the input point.
 
         Parameters
         ----------
@@ -255,15 +254,16 @@ class KleinBottle(Manifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the tangent space.
         """
-        # copied from VectorSpace
-        vector = gs.array(vector)
+        point = gs.array(vector)
         minimal_ndim = len(self.shape)
-        if self.shape[0] == 1 and len(vector.shape) <= 1:
-            vector = gs.transpose(gs.to_ndarray(gs.to_ndarray(vector, 1), 2))
-        belongs_bool = vector.shape[-minimal_ndim:] == self.shape
-        if vector.ndim <= minimal_ndim:
-            return belongs_bool
-        return gs.tile(gs.array([belongs_bool]), [vector.shape[0]])
+        correct_shape = point.shape[-minimal_ndim:] == self.shape
+        if correct_shape:
+            if point.ndim > minimal_ndim:
+                return gs.ones(*point.shape[:-minimal_ndim])
+            else:
+                return correct_shape
+        raise ValueError(f'Wrong shape: shape of vector should end with {self.shape} '
+                         f'but is {point.shape}')
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the set [0,1]^2.
@@ -288,8 +288,8 @@ class KleinBottle(Manifold):
         if correct_shape:
             correct_values = gs.all(gs.logical_and(point >= 0, point <= 1), axis=-1)
             return correct_values
-        if point.ndim > minimal_ndim:
-            return gs.tile(gs.array([correct_shape]), [point.shape[0]])
+        raise ValueError(f'Wrong shape: shape of point should end with {self.shape} '
+                         f'but is {point.shape}')
 
     @staticmethod
     def equivalent(point1, point2, atol=gs.atol):
