@@ -302,9 +302,9 @@ class MultivariateDiagonalNormalMetric(RiemannianMetric):
         base_point = self._stacked_location_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
-        point = self.univariate_normal_metric.exp(tangent_vec, base_point)
+        end_point = self.univariate_normal_metric.exp(tangent_vec, base_point)
         end_point = self._1d_pairs_to_stacked_location_diagonal(
-            point, apply_square=True
+            end_point, apply_square=True
         )
         return end_point
 

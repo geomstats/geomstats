@@ -159,7 +159,7 @@ class MultivariateDiagonalNormalMetricTestData(_RiemannianMetricTestData):
                     space=space,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
-                    atol=0
+                    atol=0,
                 )
             )
         return self.generate_tests([], random_data)
@@ -172,15 +172,15 @@ class MultivariateDiagonalNormalMetricTestData(_RiemannianMetricTestData):
             self.shape_list,
             self.n_tangent_vecs_list,
         ):
-            base_point = space.random_point()
-            tangent_vec = space.to_tangent(
-                gs.random.normal(scale=1e-2, size=(n_tangent_vecs,) + shape), base_point
-            )
+            n = space.n
+            base_point = 10 * space.random_point()
+            tangent_vec = space.to_tangent(0.1 * gs.ones((2 * n)), base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
+                    atol=gs.atol,
                 )
             )
         return self.generate_tests([], random_data)
