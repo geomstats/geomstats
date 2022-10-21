@@ -40,7 +40,7 @@ class TestMultivariateDiagonalNormalDistributions(
                 tmp.append(multivariate_normal.pdf(x, mean=loc, cov=cov))
             expected.append(gs.array(tmp))
         expected = gs.squeeze(gs.stack(expected, axis=0))
-        self.assertAllClose(Space.pdf(samples, point), expected)
+        self.assertAllClose(Space.point_to_pdf(point)(samples), expected)
 
 
 class TestMultivariateDiagonalNormalMetric(
