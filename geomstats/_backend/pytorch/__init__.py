@@ -115,7 +115,7 @@ def matmul(x, y, out=None):
 
 
 def to_numpy(x):
-    return x.numpy()
+    return x.detach().numpy()
 
 
 def one_hot(labels, num_classes):
