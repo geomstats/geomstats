@@ -279,6 +279,7 @@ class MultivariateDiagonalNormalMetric(RiemannianMetric):
         inner_prod = self.univariate_normal_metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point
         )
+        inner_prod = gs.sum(inner_prod, axis=-1)
         return inner_prod
 
     def exp(self, tangent_vec, base_point):

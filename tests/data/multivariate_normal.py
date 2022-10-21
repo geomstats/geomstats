@@ -114,6 +114,33 @@ class MultivariateDiagonalNormalMetricTestData(_RiemannianMetricTestData):
         )
     )
 
+    def inner_product_shape_test_data(self):
+        random_data = []
+        for space, shape, n_tangent_vecs in zip(
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            metric = space.metric
+            base_point = space.random_point()
+            tangent_vec_a = space.to_tangent(
+                gs.random.normal(scale=1e-2, size=(n_tangent_vecs,) + shape), base_point
+            )
+            tangent_vec_b = space.to_tangent(
+                gs.random.normal(scale=1e-2, size=(n_tangent_vecs,) + shape), base_point
+            )
+            expected = (tangent_vec_a.shape[0],)
+            random_data.append(
+                dict(
+                    metric=metric,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                    expected=expected,
+                )
+            )
+        return self.generate_tests(random_data)
+
     def exp_belongs_test_data(self):
         random_data = []
         for connection_args, space, shape, n_tangent_vecs in zip(

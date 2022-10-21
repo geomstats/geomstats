@@ -63,3 +63,10 @@ class TestMultivariateDiagonalNormalMetric(
 
     testing_data = MultivariateDiagonalNormalMetricTestData()
     Space = testing_data.Space
+
+    def test_inner_product_shape(
+        self, metric, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        result = result.shape
+        self.assertAllClose(result, expected)
