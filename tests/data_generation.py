@@ -326,6 +326,22 @@ class _OpenSetTestData(_ManifoldTestData):
         return self.generate_tests([], random_data)
 
 
+class _ComplexOpenSetTestData(_ComplexManifoldTestData):
+    def to_tangent_is_tangent_in_embedding_space_test_data(self):
+        """Generate data to check that tangent vectors are in ambient space's
+        tangent space.
+        """
+        random_data = [
+            dict(
+                space_args=space_args,
+                vector=generate_random_vec(shape=shape, dtype=CDTYPE),
+                base_point=self.Space(*space_args).random_point(shape[0]),
+            )
+            for space_args, shape in zip(self.space_args_list, self.shape_list)
+        ]
+        return self.generate_tests([], random_data)
+
+
 class _LevelSetTestData(_ManifoldTestData):
     def intrinsic_after_extrinsic_test_data(self):
         """Generate data to check that changing coordinate system twice
