@@ -597,7 +597,7 @@ class ComplexOpenSet(ComplexManifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.embedding_space.belongs(vector, atol)
+        return OpenSet.is_tangent(self, vector, base_point, atol)
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
@@ -614,7 +614,7 @@ class ComplexOpenSet(ComplexManifold, abc.ABC):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        return self.embedding_space.projection(vector)
+        return OpenSet.to_tangent(self, vector, base_point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
@@ -635,8 +635,7 @@ class ComplexOpenSet(ComplexManifold, abc.ABC):
         samples : array-like, shape=[..., {dim, [n, n]}]
             Points sampled on the hypersphere.
         """
-        sample = self.embedding_space.random_point(n_samples, bound)
-        return self.projection(sample)
+        return OpenSet.random_point(self, n_samples, bound)
 
     @abc.abstractmethod
     def projection(self, point):
