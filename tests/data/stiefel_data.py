@@ -31,6 +31,9 @@ class StiefelTestData(_LevelSetTestData):
     shape_list = space_args_list
     n_points_list = random.sample(range(1, 5), 2)
     n_vecs_list = random.sample(range(1, 5), 2)
+    batch_shape_list = [
+        tuple(random.choices(range(2, 10), k=i)) for i in random.sample(range(1, 5), 3)
+    ]
 
     Space = Stiefel
 

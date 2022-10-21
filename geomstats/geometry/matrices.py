@@ -51,7 +51,11 @@ class Matrices(VectorSpace):
             return False
         mat_dim_1, mat_dim_2 = point.shape[-2:]
         belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
-        return belongs if ndim == 2 else gs.tile(gs.array([belongs]), [point.shape[0]])
+        if ndim == 2:
+            return belongs
+        if belongs:
+            return gs.cast(gs.ones(point.shape[:-2]), bool)
+        return False
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -127,8 +131,10 @@ class Matrices(VectorSpace):
         transpose : array-like, shape=[..., n, n]
             Transposed matrix.
         """
-        is_vectorized = gs.ndim(mat) == 3
-        axes = (0, 2, 1) if is_vectorized else (1, 0)
+        ndim = gs.ndim(mat)
+        axes = list(range(0, ndim))
+        axes[-1] = ndim - 2
+        axes[-2] = ndim - 1
         return gs.transpose(mat, axes)
 
     @staticmethod
@@ -320,7 +326,10 @@ class Matrices(VectorSpace):
         """
         if mat.ndim == 2:
             return gs.array(gs.linalg.is_single_matrix_pd(mat))
-        return gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
+        shape = mat.shape
+        mat = gs.reshape(mat, (-1,) + shape[-2:])
+        is_pd = gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
+        return gs.reshape(is_pd, shape[:-2])
 
     @classmethod
     def is_spd(cls, mat, atol=gs.atol):

@@ -13,6 +13,9 @@ class PoincareBallTestData(_OpenSetTestData):
     n_points_list = random.sample(range(1, 10), 5)
     shape_list = [(n,) for n in n_list]
     n_vecs_list = random.sample(range(1, 10), 5)
+    batch_shape_list = [
+        tuple(random.choices(range(2, 10), k=i)) for i in random.sample(range(1, 5), 3)
+    ]
 
     Space = PoincareBall
 

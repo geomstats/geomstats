@@ -15,6 +15,9 @@ class HypersphereTestData(_LevelSetTestData):
     n_points_list = random.sample(range(1, 5), 2)
     shape_list = [(dim + 1,) for dim in dim_list]
     n_vecs_list = random.sample(range(1, 5), 2)
+    batch_shape_list = [
+        tuple(random.choices(range(2, 10), k=i)) for i in random.sample(range(1, 5), 3)
+    ]
 
     Space = Hypersphere
 

@@ -17,9 +17,12 @@ class HermitianTestData(_ComplexVectorSpaceTestData):
 
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]
-    shape_list = [(n, n) for n in n_list]
+    shape_list = [(n,) for n in n_list]
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
+    batch_shape_list = [
+        tuple(random.choices(range(2, 10), k=i)) for i in random.sample(range(1, 5), 3)
+    ]
 
     def belongs_test_data(self):
         smoke_data = [

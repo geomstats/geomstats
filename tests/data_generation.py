@@ -228,10 +228,10 @@ class _ManifoldTestData(TestData):
         random_data = [
             dict(
                 space_args=space_args,
-                point=gs.random.normal(size=(n_points,) + shape),
+                point=gs.random.normal(size=batch_shape + shape),
             )
-            for space_args, shape, n_points in zip(
-                self.space_args_list, self.shape_list, self.n_points_list
+            for space_args, shape, batch_shape in zip(
+                self.space_args_list, self.shape_list, self.batch_shape_list
             )
         ]
         return self.generate_tests([], random_data)

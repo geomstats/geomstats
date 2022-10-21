@@ -60,6 +60,7 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
+        belongs = gs.cast(gs.ones(point.shape[:-1]) * belongs, bool)
         belongs = gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
         return belongs
 

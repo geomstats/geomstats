@@ -13,6 +13,9 @@ class MinkowskiTestData(_VectorSpaceTestData):
     shape_list = space_args_list
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
+    batch_shape_list = [
+        tuple(random.choices(range(2, 10), k=i)) for i in random.sample(range(1, 5), 3)
+    ]
 
     def belongs_test_data(self):
         smoke_data = [dict(dim=2, point=[-1.0, 3.0], expected=True)]

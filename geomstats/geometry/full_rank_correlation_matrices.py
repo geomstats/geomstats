@@ -54,7 +54,11 @@ class FullRankCorrelationMatrices(LevelSet):
             Symmetric matrix obtained by the action of `diagonal_vec` on
             `point`.
         """
-        return point * gs.outer(diagonal_vec, diagonal_vec)
+        shape = point.shape
+        diagonal_vec = gs.reshape(diagonal_vec, (-1, diagonal_vec.shape[-1]))
+        point = gs.reshape(point, (-1,) + point.shape[-2:])
+        mat = point * gs.outer(diagonal_vec, diagonal_vec)
+        return gs.reshape(mat, shape)
 
     @classmethod
     def from_covariance(cls, point):

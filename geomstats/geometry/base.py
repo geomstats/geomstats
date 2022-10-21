@@ -52,7 +52,9 @@ class VectorSpace(Manifold, abc.ABC):
         belongs = point.shape[-minimal_ndim:] == self.shape
         if point.ndim <= minimal_ndim:
             return belongs
-        return gs.tile(gs.array([belongs]), [point.shape[0]])
+        if belongs:
+            return gs.cast(gs.ones(point.shape[:-minimal_ndim]), bool)
+        return False
 
     @staticmethod
     def projection(point):
@@ -201,7 +203,9 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         belongs = point.shape[-minimal_ndim:] == self.shape
         if point.ndim <= minimal_ndim:
             return belongs
-        return gs.tile(gs.array([belongs]), [point.shape[0]])
+        if belongs:
+            return gs.cast(gs.ones(point.shape[:-minimal_ndim]), bool)
+        return False
 
     @staticmethod
     def projection(point):

@@ -93,9 +93,10 @@ class ManifoldTestCase(TestCase):
         """
         space = self.Space(*space_args)
         random_point = space.random_point(n_points)
-        result = gs.all(space.belongs(random_point, atol=atol))
-        if random_point.ndim > 1:
-            self.assertAllEqual(result, gs.ones(random_point.shape[:-len(space.shape)]))
+        result = space.belongs(random_point, atol=atol)
+        if n_points > 1:
+            self.assertTrue(gs.all(result))
+            self.assertTrue(result.shape[0] == n_points)
         else:
             self.assertTrue(result)
 
@@ -112,9 +113,11 @@ class ManifoldTestCase(TestCase):
             Absolute tolerance for the belongs function.
         """
         space = self.Space(*space_args)
-        belongs = space.belongs(space.projection(gs.array(point)), atol)
-        if point.ndim > 1:
-            self.assertAllEqual(belongs, gs.ones(point.shape[:-len(space.shape)]))
+        projection = space.projection(gs.array(point))
+        belongs = space.belongs(projection, atol)
+        if 1 <= len(space.shape) < point.ndim:
+            self.assertAllEqual(belongs, gs.ones(point.shape[: -len(space.shape)]))
+            self.assertEqual(belongs.shape, point.shape[: -len(space.shape)])
         else:
             self.assertTrue(belongs)
 
@@ -135,8 +138,8 @@ class ManifoldTestCase(TestCase):
         space = self.Space(*space_args)
         tangent_vec = space.to_tangent(gs.array(vector), gs.array(base_point))
         result = space.is_tangent(tangent_vec, gs.array(base_point), atol)
-        if tangent_vec.ndim > 1:
-            self.assertAllEqual(result, gs.ones(tangent_vec.shape[:-len(space.shape)]))
+        if tangent_vec.ndim > len(space.shape):
+            self.assertAllEqual(result, gs.ones(tangent_vec.shape[: -len(space.shape)]))
         else:
             self.assertTrue(result)
 
@@ -159,10 +162,7 @@ class ManifoldTestCase(TestCase):
         space = self.Space(*space_args)
         tangent_vec = space.random_tangent_vec(base_point, n_samples)
         result = space.is_tangent(tangent_vec, base_point, atol)
-        if tangent_vec.ndim > 1:
-            self.assertAllEqual(result, gs.ones(tangent_vec.shape[:-len(space.shape)]))
-        else:
-            self.assertTrue(result)
+        self.assertAllEqual(result, gs.ones(n_samples).squeeze())
 
 
 class OpenSetTestCase(ManifoldTestCase):
@@ -547,7 +547,7 @@ class FiberBundleTestCase(TestCase):
         self.assertAllClose(result, base_point, rtol, atol)
 
     def test_is_tangent_after_tangent_riemannian_submersion(
-        self, space_args, base_cls, tangent_vec, base_point, rtol, atol
+        self, space_args, base_cls, tangent_vec, base_point
     ):
         bundle = self.Space(*space_args)
         projected = bundle.tangent_riemannian_submersion(tangent_vec, base_point)
@@ -558,7 +558,7 @@ class FiberBundleTestCase(TestCase):
             if tangent_vec.shape == bundle.shape
             else gs.array([True] * len(tangent_vec))
         )
-        self.assertAllClose(result, expected, rtol, atol)
+        self.assertAllEqual(result, expected)
 
 
 class ProductManifoldTestCase(ManifoldTestCase):
@@ -736,7 +736,7 @@ class ConnectionTestCase(TestCase):
         result = space.belongs(points, atol)
         expected = gs.array(n_points * [True])
 
-        self.assertAllClose(result, expected)
+        self.assertAllEqual(result, expected)
 
     def test_geodesic_bvp_belongs(
         self,
@@ -776,7 +776,7 @@ class ConnectionTestCase(TestCase):
         result = space.belongs(points, atol)
         expected = gs.array(n_points * [True])
 
-        self.assertAllClose(result, expected)
+        self.assertAllEqual(result, expected)
 
     def test_exp_after_log(self, connection_args, point, base_point, rtol, atol):
         """Check that connection logarithm and exponential are inverse.
@@ -1119,7 +1119,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             atol,
         )
         expected = gs.array(len(result) * [True])
-        self.assertAllClose(result, expected)
+        self.assertAllEqual(result, expected)
 
     def test_parallel_transport_bvp_is_isometry(
         self,
@@ -1171,7 +1171,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             atol,
         )
         expected = gs.array(len(result) * [True])
-        self.assertAllClose(result, expected)
+        self.assertAllEqual(result, expected)
 
     def test_dist_is_norm_of_log(self, metric_args, point_a, point_b, rtol, atol):
         """Check that distance is norm of log.

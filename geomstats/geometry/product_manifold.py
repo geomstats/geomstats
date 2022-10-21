@@ -367,10 +367,12 @@ class NFoldManifold(Manifold):
         belongs : array-like, shape=[..., n_copies, *base_shape]
             Boolean evaluating if the point belongs to the manifold.
         """
+        shape = point.shape
+        batch_shape = shape[: -(len(self.base_shape) + 1)]
         point_ = gs.reshape(point, (-1, *self.base_shape))
         each_belongs = self.base_manifold.belongs(point_, atol=atol)
-        reshaped = gs.reshape(each_belongs, (-1, self.n_copies))
-        return gs.squeeze(gs.all(reshaped, axis=1))
+        reshaped = gs.reshape(each_belongs, batch_shape + (self.n_copies,))
+        return gs.squeeze(gs.all(reshaped, axis=len(batch_shape)))
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -464,9 +466,10 @@ class NFoldManifold(Manifold):
             Projected point.
         """
         if hasattr(self.base_manifold, "projection"):
+            shape = point.shape
             point_ = gs.reshape(point, (-1, *self.base_shape))
             projected = self.base_manifold.projection(point_)
-            reshaped = gs.reshape(projected, (-1, self.n_copies) + self.base_shape)
+            reshaped = gs.reshape(projected, shape)
             return gs.squeeze(reshaped)
         raise NotImplementedError(
             "The base manifold does not implement a projection " "method."

@@ -17,6 +17,9 @@ class DirichletTestData(_OpenSetTestData):
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
+    batch_shape_list = [
+        tuple(random.choices(range(2, 10), k=i)) for i in random.sample(range(1, 5), 3)
+    ]
 
     def belongs_test_data(self):
         smoke_data = [
