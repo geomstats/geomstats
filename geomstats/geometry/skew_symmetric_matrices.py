@@ -72,7 +72,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         return has_right_shape
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample from a uniform distribution in a cube.
+        """Sample from a uniform distribution in a cube and project to skew-symmetric.
 
         Parameters
         ----------
