@@ -239,7 +239,7 @@ def jacobian_and_hessian(func):
     return _jacobian_and_hessian
 
 
-def value_and_grad(func, to_numpy=False):
+def value_and_grad(func, to_numpy=False, create_graph=False):
     """Return a function that returns func's value and gradients' values.
 
     Suitable for use in scipy.optimize with to_numpy=True.
@@ -253,6 +253,8 @@ def value_and_grad(func, to_numpy=False):
         Determines if the outputs value and grad will be cast
         to numpy arrays. Set to "True" when using scipy.optimize.
         Optional, default: False.
+    create_graph : bool
+        allow to apply autodiff again on the gradient (used for 2nd order differentiation, see PyTorch doc)
 
     Returns
     -------
@@ -289,17 +291,8 @@ def value_and_grad(func, to_numpy=False):
         args = new_args
 
         value = func(*args, **kwargs)
-        if value.ndim > 0:
-            value.backward(gradient=_torch.ones_like(one_arg), retain_graph=True)
-        else:
-            value.backward(retain_graph=True)
 
-        all_grads = ()
-        for one_arg in args:
-            all_grads = (
-                *all_grads,
-                _torch.autograd.grad(value, one_arg, retain_graph=True)[0],
-            )
+        all_grads = _torch.autograd.grad(value, args, create_graph=create_graph)
 
         if to_numpy:
             value = detach(value).numpy()
