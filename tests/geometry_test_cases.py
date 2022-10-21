@@ -94,7 +94,10 @@ class ManifoldTestCase(TestCase):
         space = self.Space(*space_args)
         random_point = space.random_point(n_points)
         result = gs.all(space.belongs(random_point, atol=atol))
-        self.assertTrue(result)
+        if random_point.ndim > 1:
+            self.assertAllEqual(result, gs.ones(random_point.shape[:-len(space.shape)]))
+        else:
+            self.assertTrue(result)
 
     def test_projection_belongs(self, space_args, point, atol):
         """Check that a point projected on a manifold belongs to the manifold.
@@ -110,7 +113,10 @@ class ManifoldTestCase(TestCase):
         """
         space = self.Space(*space_args)
         belongs = space.belongs(space.projection(gs.array(point)), atol)
-        self.assertTrue(gs.all(belongs))
+        if point.ndim > 1:
+            self.assertAllEqual(belongs, gs.ones(point.shape[:-len(space.shape)]))
+        else:
+            self.assertTrue(belongs)
 
     def test_to_tangent_is_tangent(self, space_args, vector, base_point, atol):
         """Check that to_tangent returns a tangent vector.
@@ -127,9 +133,12 @@ class ManifoldTestCase(TestCase):
             Absolute tolerance for the is_tangent function.
         """
         space = self.Space(*space_args)
-        tangent = space.to_tangent(gs.array(vector), gs.array(base_point))
-        result = gs.all(space.is_tangent(tangent, gs.array(base_point), atol))
-        self.assertTrue(result)
+        tangent_vec = space.to_tangent(gs.array(vector), gs.array(base_point))
+        result = space.is_tangent(tangent_vec, gs.array(base_point), atol)
+        if tangent_vec.ndim > 1:
+            self.assertAllEqual(result, gs.ones(tangent_vec.shape[:-len(space.shape)]))
+        else:
+            self.assertTrue(result)
 
     def test_random_tangent_vec_is_tangent(
         self, space_args, n_samples, base_point, atol
@@ -150,7 +159,10 @@ class ManifoldTestCase(TestCase):
         space = self.Space(*space_args)
         tangent_vec = space.random_tangent_vec(base_point, n_samples)
         result = space.is_tangent(tangent_vec, base_point, atol)
-        self.assertTrue(gs.all(result))
+        if tangent_vec.ndim > 1:
+            self.assertAllEqual(result, gs.ones(tangent_vec.shape[:-len(space.shape)]))
+        else:
+            self.assertTrue(result)
 
 
 class OpenSetTestCase(ManifoldTestCase):
