@@ -304,7 +304,9 @@ class TestHPDEuclideanMetric(ComplexRiemannianMetricTestCase, metaclass=Parametr
         self, n, power_euclidean, tangent_vec_a, base_point, tangent_vec_b
     ):
         metric = self.Metric(n, power_euclidean)
-        result = metric.parallel_transport(tangent_vec_a, base_point, tangent_vec_b)
+        result = metric.parallel_transport(
+            gs.array(tangent_vec_a), gs.array(base_point), gs.array(tangent_vec_b)
+        )
         self.assertAllClose(result, tangent_vec_a)
 
 

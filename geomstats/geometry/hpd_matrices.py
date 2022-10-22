@@ -1210,7 +1210,7 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         if self.power_euclidean == 1:
-            return tangent_vec
+            return gs.copy(tangent_vec)
         raise NotImplementedError("Parallel transport is only implemented for power 1")
 
 
