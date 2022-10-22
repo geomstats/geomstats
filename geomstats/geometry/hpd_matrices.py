@@ -160,7 +160,7 @@ class HPDMatrices(OpenSet):
         return tangent_vec
 
     @staticmethod
-    def aux_differential_power(power, tangent_vec, base_point):
+    def _aux_differential_power(power, tangent_vec, base_point):
         """Compute the differential of the matrix power.
 
         Auxiliary function to the functions differential_power and
@@ -248,7 +248,7 @@ class HPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(power, tangent_vec, base_point)
+        ) = cls._aux_differential_power(power, tangent_vec, base_point)
         power_operator = numerator / denominator
         power_operator = gs.cast(power_operator, dtype=temp_result.dtype)
         result = power_operator * temp_result
@@ -283,7 +283,7 @@ class HPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(power, tangent_vec, base_point)
+        ) = cls._aux_differential_power(power, tangent_vec, base_point)
         power_operator = denominator / numerator
         power_operator = gs.cast(power_operator, dtype=temp_result.dtype)
         result = power_operator * temp_result
@@ -315,7 +315,7 @@ class HPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(0, tangent_vec, base_point)
+        ) = cls._aux_differential_power(0, tangent_vec, base_point)
         power_operator = numerator / denominator
         power_operator = gs.cast(power_operator, dtype=temp_result.dtype)
         result = power_operator * temp_result
@@ -347,7 +347,7 @@ class HPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(0, tangent_vec, base_point)
+        ) = cls._aux_differential_power(0, tangent_vec, base_point)
         power_operator = denominator / numerator
         power_operator = gs.cast(power_operator, dtype=temp_result.dtype)
         result = power_operator * temp_result
@@ -379,7 +379,7 @@ class HPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(math.inf, tangent_vec, base_point)
+        ) = cls._aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = numerator / denominator
         power_operator = gs.cast(power_operator, dtype=temp_result.dtype)
         result = power_operator * temp_result
@@ -411,7 +411,7 @@ class HPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(math.inf, tangent_vec, base_point)
+        ) = cls._aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = denominator / numerator
         power_operator = gs.cast(power_operator, dtype=temp_result.dtype)
         result = power_operator * temp_result
