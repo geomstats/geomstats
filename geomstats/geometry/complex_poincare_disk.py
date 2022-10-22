@@ -112,7 +112,7 @@ class ComplexPoincareDisk(ComplexOpenSet):
             Optional, default: 1.
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
+            Optional, default: 1.0.
 
         Returns
         -------
@@ -121,13 +121,11 @@ class ComplexPoincareDisk(ComplexOpenSet):
         """
         size = (n_samples, 1) if n_samples != 1 else (1,)
 
-        samples = gs.random.rand(*size, dtype=gs.get_default_cdtype())
-        samples += 1j * gs.random.rand(*size, dtype=gs.get_default_cdtype())
-        samples -= 0.5 + 0.5j
-        samples /= 2
-        samples *= 1 - gs.atol
-        samples *= bound
-        samples = self.projection(samples)
+        modulus = gs.random.rand(*size, dtype=gs.get_default_cdtype())
+        modulus *= 1 - gs.atol
+        modulus *= bound
+        angle = 2 * gs.pi * gs.random.rand(*size, dtype=gs.get_default_cdtype())
+        samples = modulus * gs.exp(1j * angle)
         return samples
 
 
