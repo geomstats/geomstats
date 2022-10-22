@@ -5,9 +5,6 @@ import tests.conftest
 from geomstats.geometry.hpd_matrices import HPDMatrices
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.positive_lower_triangular_matrices import (
-    PositiveLowerTriangularMatrices,
-)
 from tests.conftest import Parametrizer
 from tests.data.hpd_matrices_data import (
     HPDAffineMetricTestData,
