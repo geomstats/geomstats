@@ -71,12 +71,12 @@ class Siegel(ComplexOpenSet):
         If symmetric is True, add a symmetry condition
         on the matrices to belong to the Siegel space.
         Optional, default: False.
-    scale : int or float
+    scale : float
         Scale of the complex Poincare metric.
         Optional, default: 1.
     """
 
-    def __init__(self, n, symmetric=False, scale=1, **kwargs):
+    def __init__(self, n, symmetric=False, scale=1.0, **kwargs):
         kwargs.setdefault("metric", SiegelMetric(n))
         super().__init__(
             dim=n**2, embedding_space=ComplexMatrices(m=n, n=n), **kwargs
@@ -234,12 +234,12 @@ class SiegelMetric(ComplexRiemannianMetric):
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
-    scale : int or float
+    scale : float
         Scale of the complex Poincare metric.
         Optional, default: 1.
     """
 
-    def __init__(self, n, scale=1, **kwargs):
+    def __init__(self, n, scale=1.0, **kwargs):
         dim = int(n**2)
         super().__init__(
             dim=dim,
