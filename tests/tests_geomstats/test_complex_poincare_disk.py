@@ -8,8 +8,6 @@ from tests.data.complex_poincare_disk_data import (
 )
 from tests.geometry_test_cases import ComplexRiemannianMetricTestCase, OpenSetTestCase
 
-CDTYPE = gs.get_default_cdtype()
-
 
 class TestComplexPoincareDisk(OpenSetTestCase, metaclass=Parametrizer):
     """Test of the complex Poincare disk methods."""
@@ -17,14 +15,12 @@ class TestComplexPoincareDisk(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = ComplexPoincareDiskTestData()
 
     def test_belongs(self, point, expected):
-        self.assertAllClose(
-            self.Space().belongs(gs.cast(gs.array(point), dtype=CDTYPE)), expected
-        )
+        self.assertAllClose(self.Space().belongs(gs.array(point)), expected)
 
     def test_projection(self, point, expected):
         self.assertAllClose(
-            self.Space().projection(gs.cast(gs.array(point), dtype=CDTYPE)),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            self.Space().projection(gs.array(point)),
+            gs.array(expected),
         )
 
 
@@ -54,9 +50,9 @@ class TestComplexPoincareDiskMetric(
     ):
         metric = self.Metric(scale)
         result = metric.inner_product(
-            gs.cast(gs.array(tangent_vec_a), dtype=CDTYPE),
-            gs.cast(gs.array(tangent_vec_b), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec_a),
+            gs.array(tangent_vec_b),
+            gs.array(base_point),
         )
         self.assertAllClose(result, expected)
 
@@ -64,18 +60,18 @@ class TestComplexPoincareDiskMetric(
         metric = self.Metric(scale)
         self.assertAllClose(
             metric.exp(
-                gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-                gs.cast(gs.array(base_point), dtype=CDTYPE),
+                gs.array(tangent_vec),
+                gs.array(base_point),
             ),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            gs.array(expected),
         )
 
     def test_log(self, scale, point, base_point, expected):
         metric = self.Metric(scale)
         self.assertAllClose(
             metric.log(
-                gs.cast(gs.array(point), dtype=CDTYPE),
-                gs.cast(gs.array(base_point), dtype=CDTYPE),
+                gs.array(point),
+                gs.array(base_point),
             ),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            gs.array(expected),
         )

@@ -13,6 +13,8 @@ from tests.data_generation import (
 
 LN_3 = math.log(3.0)
 EXP_4 = math.exp(4.0)
+SQRT_2 = math.sqrt(2.0)
+SQRT_8 = math.sqrt(8.0)
 
 
 class ComplexPoincareDiskTestData(_ComplexOpenSetTestData):
@@ -112,10 +114,29 @@ class ComplexPoincareDiskMetricTestData(_ComplexRiemannianMetricTestData):
         smoke_data = [
             dict(
                 scale=1.0,
-                tangent_vec=[[2.0]],
-                base_point=[[0.0]],
+                tangent_vec=[[2.0 + 0j]],
+                base_point=[[0.0 + 0j]],
                 expected=[[(EXP_4 - 1) / (EXP_4 + 1)]],
-            )
+            ),
+            dict(
+                scale=10.0,
+                tangent_vec=[[2.0 + 0j]],
+                base_point=[[0.0 + 0j]],
+                expected=[[(EXP_4 - 1) / (EXP_4 + 1)]],
+            ),
+            dict(
+                scale=1.0,
+                tangent_vec=[[2.0 + 2j]],
+                base_point=[[0.0 + 0j]],
+                expected=[
+                    [
+                        (1 + 1j)
+                        / SQRT_2
+                        * (gs.exp(2 * SQRT_8) - 1)
+                        / (gs.exp(2 * SQRT_8) + 1)
+                    ]
+                ],
+            ),
         ]
         return self.generate_tests(smoke_data)
 
