@@ -102,7 +102,8 @@ class ComplexPoincareDisk(ComplexOpenSet):
             point,
         )
 
-    def random_point(self, n_samples=1, bound=1.0):
+    @staticmethod
+    def random_point(n_samples=1, bound=1.0):
         """Generate random points in the complex unit disk.
 
         Parameters
