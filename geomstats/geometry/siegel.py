@@ -199,7 +199,7 @@ class Siegel(ComplexOpenSet):
         samples *= bound
         return samples
 
-    def random_tangent_vec(self, base_point, n_samples=1):
+    def random_tangent_vec(self, base_point=None, n_samples=1):
         """Sample on the tangent space of Siegel space from the uniform distribution.
 
         Parameters
