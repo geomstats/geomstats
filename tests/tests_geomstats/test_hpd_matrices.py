@@ -18,8 +18,6 @@ from tests.data.hpd_matrices_data import (
 )
 from tests.geometry_test_cases import ComplexRiemannianMetricTestCase, OpenSetTestCase
 
-CDTYPE = gs.get_default_cdtype()
-
 
 class TestHPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
     """Test of HPDMatrices methods."""
@@ -27,82 +25,80 @@ class TestHPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = HPDMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
-        self.assertAllClose(
-            self.Space(n).belongs(gs.cast(gs.array(mat), dtype=CDTYPE)), expected
-        )
+        self.assertAllClose(self.Space(n).belongs(gs.array(mat)), expected)
 
     def test_projection(self, n, mat, expected):
         self.assertAllClose(
-            self.Space(n).projection(gs.cast(gs.array(mat), dtype=CDTYPE)),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            self.Space(n).projection(gs.array(mat)),
+            gs.array(expected),
         )
 
     def test_logm(self, hpd_mat, expected):
         self.assertAllClose(
-            self.Space.logm(gs.cast(gs.array(hpd_mat), dtype=CDTYPE)),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            self.Space.logm(gs.array(hpd_mat)),
+            gs.array(expected),
         )
 
     def test_cholesky_factor(self, n, hpd_mat, expected):
-        result = self.Space.cholesky_factor(gs.cast(gs.array(hpd_mat), dtype=CDTYPE))
+        result = self.Space.cholesky_factor(gs.array(hpd_mat))
 
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
         self.assertTrue(gs.all(PositiveLowerTriangularMatrices(n).belongs(result)))
 
     def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
         result = self.Space.differential_cholesky_factor(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
         self.assertTrue(gs.all(LowerTriangularMatrices(n).belongs(result)))
 
     def test_differential_power(self, power, tangent_vec, base_point, expected):
         result = self.Space.differential_power(
             power,
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_inverse_differential_power(self, power, tangent_vec, base_point, expected):
         result = self.Space.inverse_differential_power(
             power,
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_differential_log(self, tangent_vec, base_point, expected):
         result = self.Space.differential_log(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_inverse_differential_log(self, tangent_vec, base_point, expected):
         result = self.Space.inverse_differential_log(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_differential_exp(self, tangent_vec, base_point, expected):
         result = self.Space.differential_exp(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_inverse_differential_exp(self, tangent_vec, base_point, expected):
         result = self.Space.inverse_differential_exp(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_cholesky_factor_belongs(self, n, mat):
-        result = self.Space(n).cholesky_factor(gs.cast(gs.array(mat), dtype=CDTYPE))
+        result = self.Space(n).cholesky_factor(gs.array(mat))
         self.assertAllClose(
             gs.all(PositiveLowerTriangularMatrices(n).belongs(result)), True
         )
@@ -131,9 +127,9 @@ class TestHPDAffineMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrize
     ):
         metric = self.Metric(n, power_affine)
         result = metric.inner_product(
-            gs.cast(gs.array(tangent_vec_a), dtype=CDTYPE),
-            gs.cast(gs.array(tangent_vec_b), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec_a),
+            gs.array(tangent_vec_b),
+            gs.array(base_point),
         )
         self.assertAllClose(result, expected)
 
@@ -141,20 +137,20 @@ class TestHPDAffineMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrize
         metric = self.Metric(n, power_affine)
         self.assertAllClose(
             metric.exp(
-                gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-                gs.cast(gs.array(base_point), dtype=CDTYPE),
+                gs.array(tangent_vec),
+                gs.array(base_point),
             ),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            gs.array(expected),
         )
 
     def test_log(self, n, power_affine, point, base_point, expected):
         metric = self.Metric(n, power_affine)
         self.assertAllClose(
             metric.log(
-                gs.cast(gs.array(point), dtype=CDTYPE),
-                gs.cast(gs.array(base_point), dtype=CDTYPE),
+                gs.array(point),
+                gs.array(base_point),
             ),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            gs.array(expected),
         )
 
 
@@ -180,25 +176,25 @@ class TestHPDBuresWassersteinMetric(
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = self.Metric(n)
         result = metric.inner_product(
-            gs.cast(gs.array(tangent_vec_a), dtype=CDTYPE),
-            gs.cast(gs.array(tangent_vec_b), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec_a),
+            gs.array(tangent_vec_b),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_exp(self, n, tangent_vec, base_point, expected):
         metric = self.Metric(n)
         result = metric.exp(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_log(self, n, point, base_point, expected):
         metric = self.Metric(n)
         result = metric.log(
-            gs.cast(gs.array(point), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(point),
+            gs.array(base_point),
         )
         self.assertAllClose(result, expected)
 
@@ -210,13 +206,13 @@ class TestHPDBuresWassersteinMetric(
 
         point = space.random_point(2)
         end_point = space.random_point(2)
-        tan_b = gs.cast(gs.random.rand(*shape), dtype=CDTYPE)
-        tan_b += 1j * gs.cast(gs.random.rand(*shape), dtype=CDTYPE)
+        tan_b = gs.random.rand(*shape, dtype=gs.get_default_cdtype())
+        tan_b += 1j * gs.random.rand(*shape, dtype=gs.get_default_cdtype())
         tan_b = space.to_tangent(tan_b, point)
 
         # use a vector orthonormal to tan_b
-        tan_a = gs.cast(gs.random.rand(*shape), dtype=CDTYPE)
-        tan_a += 1j * gs.cast(gs.random.rand(*shape), dtype=CDTYPE)
+        tan_a = gs.random.rand(*shape, dtype=gs.get_default_cdtype())
+        tan_a += 1j * gs.random.rand(*shape, dtype=gs.get_default_cdtype())
         tan_a = space.to_tangent(tan_a, point)
 
         # orthonormalize and move to base_point
@@ -280,29 +276,29 @@ class TestHPDEuclideanMetric(ComplexRiemannianMetricTestCase, metaclass=Parametr
     ):
         metric = self.Metric(n, power_euclidean)
         result = metric.inner_product(
-            gs.cast(gs.array(tangent_vec_a), dtype=CDTYPE),
-            gs.cast(gs.array(tangent_vec_b), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec_a),
+            gs.array(tangent_vec_b),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     @tests.conftest.np_autograd_and_tf_only
     def test_exp_domain(self, n, power_euclidean, tangent_vec, base_point, expected):
         metric = self.Metric(n, power_euclidean)
         result = metric.exp_domain(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            gs.array(tangent_vec),
+            gs.array(base_point),
+            gs.array(expected),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_log(self, n, power_euclidean, point, base_point, expected):
         metric = self.Metric(n)
         result = metric.log(
-            gs.cast(gs.array(point), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(point),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_parallel_transport(
         self, n, power_euclidean, tangent_vec_a, base_point, tangent_vec_b
@@ -374,32 +370,32 @@ class TestHPDLogEuclideanMetric(
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = self.Metric(n)
         result = metric.inner_product(
-            gs.cast(gs.array(tangent_vec_a), dtype=CDTYPE),
-            gs.cast(gs.array(tangent_vec_b), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec_a),
+            gs.array(tangent_vec_b),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_exp(self, n, tangent_vec, base_point, expected):
         metric = self.Metric(n)
         result = metric.exp(
-            gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_log(self, n, point, base_point, expected):
         metric = self.Metric(n)
         result = metric.log(
-            gs.cast(gs.array(point), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(point),
+            gs.array(base_point),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
 
     def test_dist(self, n, point_a, point_b, expected):
         metric = self.Metric(n)
         result = metric.dist(
-            gs.cast(gs.array(point_a), dtype=CDTYPE),
-            gs.cast(gs.array(point_b), dtype=CDTYPE),
+            gs.array(point_a),
+            gs.array(point_b),
         )
-        self.assertAllClose(result, gs.cast(gs.array(expected), dtype=CDTYPE))
+        self.assertAllClose(result, gs.array(expected))
