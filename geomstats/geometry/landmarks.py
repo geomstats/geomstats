@@ -10,8 +10,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.product_manifold import NFoldManifold
 from geomstats.geometry.product_riemannian_metric import NFoldMetric
 
-# from geomstats.geometry.connection import N_STEPS
-N_STEPS = 10
+from geomstats.geometry.connection import N_STEPS
 
 class Landmarks(NFoldManifold):
     """Class for space of landmarks.
@@ -78,14 +77,15 @@ class KernelLandmarksMetric(RiemannianMetric):
 
     def __init__(
             self, ambient_dimension, k_landmarks,
-            kernel=lambda d: gs.exp(-d)):
+            kernel=lambda d: gs.exp(-d), use_keops=False):
         super(KernelLandmarksMetric, self).__init__(
             dim=ambient_dimension * k_landmarks, shape=(k_landmarks, ambient_dimension))
         self.kernel = kernel
         self.ambient_dimension = ambient_dimension
         self.k_landmarks = k_landmarks
+        self.use_keops = use_keops
 
-    def kernel_matrix(self, base_point):
+    def kernel_matrix(self, base_point, use_keops=False):
         r"""Compute the kernel matrix, for a scalar kernel.
 
         .. math:
@@ -101,9 +101,16 @@ class KernelLandmarksMetric(RiemannianMetric):
         -------
         kernel_mat : [..., k_landmarks, k_landmarks]
         """
-        squared_dist = gs.sum(
-                (base_point[..., :, None, :] - base_point) ** 2, axis=-1)
-        return self.kernel(squared_dist)
+        if use_keops:
+            from pykeops.torch import LazyTensor
+            xi = LazyTensor(base_point[..., :, None, :])
+            xj = LazyTensor(base_point[..., None, :, :])
+            squared_dist = ((xi-xj)**2).sum(axis=-1)
+            return (-squared_dist).exp()
+        else:
+            squared_dist = gs.sum(
+                    (base_point[..., :, None, :] - base_point) ** 2, axis=-1)
+            return self.kernel(squared_dist)
 
     def cometric_matrix(self, base_point=None):
         """Inner co-product matrix at the cotangent space at a base point.
@@ -170,9 +177,7 @@ class KernelLandmarksMetric(RiemannianMetric):
         inner_coproduct : float
             Inner coproduct between the two cotangent vectors.
         """
-        return gs.einsum(
-            "...ij,...ik,...kj", cotangent_vec_a, self.kernel_matrix(base_point), cotangent_vec_b
-        )
+        return gs.sum(cotangent_vec_a * (self.kernel_matrix(base_point, use_keops=self.use_keops) @ cotangent_vec_b))
 
     def tangent_to_cotangent(self, tangent_vec, base_point):
         r"""Converts tangent vector to cotangent vector
@@ -219,7 +224,7 @@ class KernelLandmarksMetric(RiemannianMetric):
         return gs.stack((h_p, - h_q))
 
     def exp(self, tangent_vec, base_point, **kwargs):
-        """Exponential map on the cotangent bundle.
+        """Exponential map on the tangent bundle.
         
         We redirect to exp_from_cotangent since the cometric is given instead of the metric.
         """
