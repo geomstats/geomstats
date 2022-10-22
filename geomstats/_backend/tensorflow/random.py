@@ -33,6 +33,8 @@ def randint(low, high=None, size=None):
 
 @_modify_func_default_dtype(copy=False, kw_only=True)
 def rand(*args, dtype=None):
+    if dtype in [_tf.complex64, _tf.complex128]:
+        return _tf.cast(_tf.random.uniform(shape=args), dtype=dtype)
     return _tf.random.uniform(shape=args, dtype=dtype)
 
 
