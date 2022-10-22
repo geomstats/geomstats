@@ -41,10 +41,14 @@ class TestHPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
         )
 
     def test_cholesky_factor(self, n, hpd_mat, expected):
-        result = self.Space.cholesky_factor(gs.array(hpd_mat))
-
+        hpd_mat = gs.array(hpd_mat)
+        result = self.Space.cholesky_factor(hpd_mat)
         self.assertAllClose(result, gs.array(expected))
-        self.assertTrue(gs.all(PositiveLowerTriangularMatrices(n).belongs(result)))
+        is_lower_triangular = LowerTriangularMatrices(n).belongs(result, gs.atol)
+        diagonal = Matrices.diagonal(hpd_mat)
+        is_positive = gs.all(gs.real(diagonal) > 0, axis=-1)
+        is_positive_lower_triangular = gs.logical_and(is_lower_triangular, is_positive)
+        self.assertTrue(gs.all(is_positive_lower_triangular))
 
     def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
         result = self.Space.differential_cholesky_factor(
@@ -104,7 +108,7 @@ class TestHPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
         diagonal = Matrices.diagonal(mat)
         is_positive = gs.all(gs.real(diagonal) > 0, axis=-1)
         is_positive_lower_triangular = gs.logical_and(is_lower_triangular, is_positive)
-        self.assertAllClose(gs.all(is_positive_lower_triangular), True)
+        self.assertTrue(gs.all(is_positive_lower_triangular))
 
 
 class TestHPDAffineMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):

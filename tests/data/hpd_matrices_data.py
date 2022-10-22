@@ -33,10 +33,16 @@ class HPDMatricesTestData(_OpenSetTestData):
     def belongs_test_data(self):
         smoke_data = [
             dict(n=2, mat=[[3.0, -1.0], [-1.0, 3.0]], expected=True),
+            dict(n=2, mat=[[3j, -1.0], [-1.0, 3.0]], expected=False),
             dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=False),
             dict(
                 n=3,
                 mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                expected=False,
+            ),
+            dict(
+                n=3,
+                mat=[[3.0 + 0j, 0j, 1j], [0j, 4.0 + 0j, 0j], [-0.5j, 0j, 6.0 + 0j]],
                 expected=False,
             ),
             dict(
@@ -52,6 +58,11 @@ class HPDMatricesTestData(_OpenSetTestData):
             dict(n=2, mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[1.0, 0.0], [0.0, 1.0]]),
             dict(
                 n=2,
+                mat=[[1.0 + 0.0j, 0.5j], [0.5j, 1.0 + 0.0j]],
+                expected=[[1.0, 0.0], [0.0, 1.0]],
+            ),
+            dict(
+                n=2,
                 mat=[[-1.0, 0.0], [0.0, -2.0]],
                 expected=[[gs.atol, 0.0], [0.0, gs.atol]],
             ),
@@ -60,7 +71,11 @@ class HPDMatricesTestData(_OpenSetTestData):
 
     def logm_test_data(self):
         smoke_data = [
-            dict(hpd_mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[0.0, 0.0], [0.0, 0.0]])
+            dict(hpd_mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[0.0, 0.0], [0.0, 0.0]]),
+            dict(
+                hpd_mat=[[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
+                expected=[[0.0, 0.0], [0.0, 0.0]],
+            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -70,6 +85,17 @@ class HPDMatricesTestData(_OpenSetTestData):
                 n=2,
                 hpd_mat=[[[1.0, 2.0], [2.0, 5.0]], [[1.0, 0.0], [0.0, 1.0]]],
                 expected=[[[1.0, 0.0], [2.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]],
+            ),
+            dict(
+                n=2,
+                hpd_mat=[
+                    [[1.0 + 0j, 2.0 + 0j], [2.0 + 0j, 5.0 + 0j]],
+                    [[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
+                ],
+                expected=[
+                    [[1.0 + 0j, 0], [2.0 + 0j, 1.0 + 0j]],
+                    [[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
+                ],
             ),
             dict(
                 n=3,
@@ -215,7 +241,27 @@ class HPDAffineMetricTestData(_ComplexRiemannianMetricTestData):
                 tangent_vec_b=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
                 base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
                 expected=713 / 144,
-            )
+            ),
+            dict(
+                n=3,
+                power_affine=0.5,
+                tangent_vec_a=[
+                    [2.0 + 0j, 1.0 + 0j, 1.0 + 0j],
+                    [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
+                    [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
+                ],
+                tangent_vec_b=[
+                    [2.0 + 0j, 1.0 + 0j, 1.0 + 0j],
+                    [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
+                    [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
+                ],
+                base_point=[
+                    [1.0 + 0j, 0j, 0],
+                    [0, 2.5 + 0j, 1.5 + 0j],
+                    [0j, 1.5 + 0j, 2.5 + 0j],
+                ],
+                expected=713 / 144,
+            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -227,7 +273,14 @@ class HPDAffineMetricTestData(_ComplexRiemannianMetricTestData):
                 tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
                 base_point=[[1.0, 0.0], [0.0, 1.0]],
                 expected=[[EXP_2, 0.0], [0.0, EXP_2]],
-            )
+            ),
+            dict(
+                n=2,
+                power_affine=1.0,
+                tangent_vec=[[2.0 + 0j, 0j], [0j, 2.0 + 0j]],
+                base_point=[[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
+                expected=[[EXP_2 + 0j, 0j], [0j, EXP_2 + 0j]],
+            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -239,7 +292,14 @@ class HPDAffineMetricTestData(_ComplexRiemannianMetricTestData):
                 point=[[1.0, 0.0], [0.0, 1.0]],
                 base_point=[[2.0, 0.0], [0.0, 2.0]],
                 expected=[[-2 * LN_2, 0.0], [0.0, -2 * LN_2]],
-            )
+            ),
+            dict(
+                n=2,
+                power_affine=1.0,
+                point=[[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
+                base_point=[[2.0 + 0j, 0j], [0j, 2.0 + 0j]],
+                expected=[[-2 * LN_2 + 0j, 0j], [0j, -2 * LN_2 + 0j]],
+            ),
         ]
         return self.generate_tests(smoke_data)
 
