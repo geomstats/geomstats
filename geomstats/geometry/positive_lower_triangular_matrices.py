@@ -75,7 +75,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         """
         is_lower_triangular = self.embedding_space.belongs(mat, atol)
         diagonal = Matrices.diagonal(mat)
-        is_positive = gs.all(gs.real(diagonal) > 0, axis=-1)
+        is_positive = gs.all(diagonal > 0, axis=-1)
         belongs = gs.logical_and(is_lower_triangular, is_positive)
         return belongs
 

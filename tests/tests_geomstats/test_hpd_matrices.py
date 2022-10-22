@@ -4,6 +4,7 @@ import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.hpd_matrices import HPDMatrices
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
@@ -99,9 +100,11 @@ class TestHPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
 
     def test_cholesky_factor_belongs(self, n, mat):
         result = self.Space(n).cholesky_factor(gs.array(mat))
-        self.assertAllClose(
-            gs.all(PositiveLowerTriangularMatrices(n).belongs(result)), True
-        )
+        is_lower_triangular = LowerTriangularMatrices(n).belongs(result, gs.atol)
+        diagonal = Matrices.diagonal(mat)
+        is_positive = gs.all(gs.real(diagonal) > 0, axis=-1)
+        is_positive_lower_triangular = gs.logical_and(is_lower_triangular, is_positive)
+        self.assertAllClose(gs.all(is_positive_lower_triangular), True)
 
 
 class TestHPDAffineMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
