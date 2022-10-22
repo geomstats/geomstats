@@ -25,12 +25,12 @@ class HPDMatrices(OpenSet):
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
-    scale : int or float
+    scale : float
         Scale of the HPD matrices metric.
         Optional, default: 1.
     """
 
-    def __init__(self, n, scale=1, **kwargs):
+    def __init__(self, n, scale=1.0, **kwargs):
         kwargs.setdefault("metric", HPDAffineMetric(n, scale=scale))
         super().__init__(dim=n**2, embedding_space=HermitianMatrices(n), **kwargs)
         self.n = n
@@ -496,12 +496,12 @@ class HPDAffineMetric(ComplexRiemannianMetric):
     power_affine : int
         Power transformation of the classical HPD metric.
         Optional, default: 1.
-    scale : int or float
+    scale : float
         Scale of the HPD matrices metric.
         Optional, default: 1.
     """
 
-    def __init__(self, n, power_affine=1, scale=1):
+    def __init__(self, n, power_affine=1, scale=1.0):
         dim = int(n * (n + 1) / 2)
         super().__init__(
             dim=dim,
