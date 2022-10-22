@@ -21,11 +21,15 @@ def eig(*args, **kwargs):
 
 def eigh(a):
     eigvals, eigvecs = _tf.linalg.eigh(a)
-    return _tf.math.real(eigvals), eigvecs
+    if a.dtype in [_tf.complex64, _tf.complex128]:
+        return _tf.math.real(eigvals), eigvecs
+    return eigvals, eigvecs
 
 
 def eigvalsh(a):
-    return _tf.math.real(_tf.linalg.eigvalsh(a))
+    if a.dtype in [_tf.complex64, _tf.complex128]:
+        return _tf.math.real(_tf.linalg.eigvalsh(a))
+    return _tf.linalg.eigvalsh(a)
 
 
 def cholesky(a):
@@ -128,4 +132,6 @@ def is_single_matrix_pd(mat):
 
 def norm(vector, ord="euclidean", axis=None, keepdims=None, name=None):
     """Compute the norm of vectors, matrices and tensors."""
-    return _tf.math.real(norm_tf(vector, ord, axis, keepdims, name))
+    if vector.dtype in [_tf.complex64, _tf.complex128]:
+        return _tf.math.real(norm_tf(vector, ord, axis, keepdims, name))
+    return norm_tf(vector, ord, axis, keepdims, name)
