@@ -6,8 +6,10 @@ It is defined as the set of complex matrices M such that:
 I - M @ M.conj().T is a positive definite matrix.
 Warning: another more restrictive definition of the Siegel disk also exists
 which add a symmetry condition on the matrices.
-It has been proven in [Cabanes2022] that the submanifold of symmetric Siegel
-matrices is a totally geodesic submanifold of the Siegel space.
+It has been proven in [Cabanes2022] that the sub-manifold of symmetric Siegel
+matrices is a totally geodesic sub-manifold of the Siegel space.
+The sub-manifold of real Siegel matrices is also a totally geodesic sub-manifold
+of the Siegel space.
 
 Lead author: Yann Cabanes.
 
