@@ -5,8 +5,6 @@ from tests.conftest import Parametrizer
 from tests.data.siegel_data import SiegelMetricTestData, SiegelTestData
 from tests.geometry_test_cases import ComplexRiemannianMetricTestCase, OpenSetTestCase
 
-CDTYPE = gs.get_default_cdtype()
-
 
 class TestSiegel(OpenSetTestCase, metaclass=Parametrizer):
     """Test of Siegel methods."""
@@ -14,14 +12,12 @@ class TestSiegel(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = SiegelTestData()
 
     def test_belongs(self, n, mat, expected):
-        self.assertAllClose(
-            self.Space(n).belongs(gs.cast(gs.array(mat), dtype=CDTYPE)), expected
-        )
+        self.assertAllClose(self.Space(n).belongs(gs.array(mat)), expected)
 
     def test_projection(self, n, mat, expected):
         self.assertAllClose(
-            self.Space(n).projection(gs.cast(gs.array(mat), dtype=CDTYPE)),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            self.Space(n).projection(gs.array(mat)),
+            gs.array(expected),
         )
 
 
@@ -49,9 +45,9 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
     ):
         metric = self.Metric(n, scale)
         result = metric.inner_product(
-            gs.cast(gs.array(tangent_vec_a), dtype=CDTYPE),
-            gs.cast(gs.array(tangent_vec_b), dtype=CDTYPE),
-            gs.cast(gs.array(base_point), dtype=CDTYPE),
+            gs.array(tangent_vec_a),
+            gs.array(tangent_vec_b),
+            gs.array(base_point),
         )
         self.assertAllClose(result, expected)
 
@@ -59,18 +55,18 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
         metric = self.Metric(n, scale)
         self.assertAllClose(
             metric.exp(
-                gs.cast(gs.array(tangent_vec), dtype=CDTYPE),
-                gs.cast(gs.array(base_point), dtype=CDTYPE),
+                gs.array(tangent_vec),
+                gs.array(base_point),
             ),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            gs.array(expected),
         )
 
     def test_log(self, n, scale, point, base_point, expected):
         metric = self.Metric(n, scale)
         self.assertAllClose(
             metric.log(
-                gs.cast(gs.array(point), dtype=CDTYPE),
-                gs.cast(gs.array(base_point), dtype=CDTYPE),
+                gs.array(point),
+                gs.array(base_point),
             ),
-            gs.cast(gs.array(expected), dtype=CDTYPE),
+            gs.array(expected),
         )
