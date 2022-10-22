@@ -62,8 +62,7 @@ class HPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an HPD matrix.
         """
-        belongs = ComplexMatrices.is_hpd(mat, atol)
-        return belongs
+        return ComplexMatrices.is_hpd(mat, atol)
 
     def projection(self, point, atol=gs.atol):
         """Project a matrix to the space of HPD matrices.
