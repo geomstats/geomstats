@@ -28,6 +28,16 @@ class HPDMatrices(OpenSet):
     scale : float
         Scale of the HPD matrices metric.
         Optional, default: 1.
+
+    References
+    ----------
+    .. [Cabanes2022] Yann Cabanes. Multidimensional complex stationary
+        centered Gaussian autoregressive time series machine learning
+        in Poincaré and Siegel disks: application for audio and radar
+        clutter classification, PhD thesis, 2022
+    .. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+        matrices with Toeplitz structured blocks, 2016.
+        https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
     def __init__(self, n, scale=1.0, **kwargs):
@@ -497,6 +507,16 @@ class HPDAffineMetric(ComplexRiemannianMetric):
     scale : float
         Scale of the HPD matrices metric.
         Optional, default: 1.
+
+    References
+    ----------
+    .. [Cabanes2022] Yann Cabanes. Multidimensional complex stationary
+        centered Gaussian autoregressive time series machine learning
+        in Poincaré and Siegel disks: application for audio and radar
+        clutter classification, PhD thesis, 2022
+    .. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+        matrices with Toeplitz structured blocks, 2016.
+        https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
     def __init__(self, n, power_affine=1, scale=1.0):
