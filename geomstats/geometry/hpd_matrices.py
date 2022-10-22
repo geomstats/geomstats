@@ -143,11 +143,9 @@ class HPDMatrices(OpenSet):
 
         sqrt_base_point = gs.linalg.sqrtm(base_point)
 
-        tangent_vec_at_id_aux = gs.cast(
-            gs.random.rand(*size), dtype=gs.get_default_cdtype()
-        )
-        tangent_vec_at_id_aux += 1j * gs.cast(
-            gs.random.rand(*size), dtype=gs.get_default_cdtype()
+        tangent_vec_at_id_aux = gs.random.rand(*size, dtype=gs.get_default_cdtype())
+        tangent_vec_at_id_aux += 1j * gs.random.rand(
+            *size, dtype=gs.get_default_cdtype()
         )
         tangent_vec_at_id_aux *= 2
         tangent_vec_at_id_aux -= 1 + 1j
