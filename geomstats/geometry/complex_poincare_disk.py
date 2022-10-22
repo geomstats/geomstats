@@ -103,7 +103,7 @@ class ComplexPoincareDisk(ComplexOpenSet):
         )
 
     @staticmethod
-    def random_point(n_samples=1, bound=1.0):
+    def random_point(n_samples=1, bound=0.8):
         """Generate random points in the complex unit disk.
 
         Parameters
@@ -113,7 +113,7 @@ class ComplexPoincareDisk(ComplexOpenSet):
             Optional, default: 1.
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.
+            Optional, default: 0.8.
 
         Returns
         -------
@@ -123,7 +123,6 @@ class ComplexPoincareDisk(ComplexOpenSet):
         size = (n_samples, 1) if n_samples != 1 else (1,)
 
         modulus = gs.random.rand(*size, dtype=gs.get_default_cdtype())
-        modulus *= 1 - gs.atol
         modulus *= bound
         angle = 2 * gs.pi * gs.random.rand(*size, dtype=gs.get_default_cdtype())
         samples = modulus * gs.exp(1j * angle)
