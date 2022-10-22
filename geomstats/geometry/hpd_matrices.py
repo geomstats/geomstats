@@ -82,7 +82,7 @@ class HPDMatrices(OpenSet):
             reconstruction, ComplexMatrices.transconjugate(eigvecs)
         )
 
-    def random_point(self, n_samples=1, bound=1.0):
+    def random_point(self, n_samples=1, bound=0.1):
         """Sample in HPD(n) from the log-uniform distribution.
 
         Parameters
@@ -101,15 +101,13 @@ class HPDMatrices(OpenSet):
         """
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
-
-        mat = gs.random.rand(*size, dtype=gs.get_default_cdtype())
-        mat += 1j * gs.random.rand(*size, dtype=gs.get_default_cdtype())
-        mat *= 2
-        mat -= 1 + 1j
-        mat *= bound
-        herm_mat = GeneralLinear.exp(ComplexMatrices.to_hermitian(mat))
-        hpd_mat = self.projection(herm_mat)
-        return hpd_mat
+        eye = gs.eye(n, dtype=gs.get_default_cdtype())
+        samples = gs.stack([eye for i_sample in range(n_samples)], axis=0)
+        samples = gs.reshape(samples, size)
+        samples += bound * gs.random.rand(*size, dtype=gs.get_default_cdtype())
+        samples += 1j * bound * gs.random.rand(*size, dtype=gs.get_default_cdtype())
+        samples = self.projection(samples)
+        return samples
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of HPD(n) from the uniform distribution.
