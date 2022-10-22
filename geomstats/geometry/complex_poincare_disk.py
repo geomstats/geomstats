@@ -36,7 +36,7 @@ class ComplexPoincareDisk(ComplexOpenSet):
     ----------
     scale : float
         Scale of the complex Poincaré metric.
-        Optional, default: 1.0.
+        Optional, default: 1.
     """
 
     def __init__(self, scale=1.0, **kwargs):
@@ -112,7 +112,7 @@ class ComplexPoincareDisk(ComplexOpenSet):
             Optional, default: 1.
         bound : float
             Bound of the interval in which to sample in the tangent space.
-            Optional, default: 1.0.
+            Optional, default: 1.
 
         Returns
         -------
@@ -136,7 +136,7 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
     ----------
     scale : float
         Scale of the complex Poincaré metric.
-        Optional, default: 1.0.
+        Optional, default: 1.
     """
 
     def __init__(self, scale=1.0):
