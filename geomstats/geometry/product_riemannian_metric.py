@@ -5,7 +5,7 @@ Define the metric of a product manifold endowed with a product metric.
 Lead author: Nicolas Guigui, John Harvey.
 """
 
-from math import prod
+import math
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -62,7 +62,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         self.factors = metrics
         self._factor_dims = [factor.dim for factor in self.factors]
         self._factor_shapes = [factor.shape for factor in self.factors]
-        self._factor_shape_sizes = [prod(metric.shape) for metric in self.factors]
+        self._factor_shape_sizes = [math.prod(metric.shape) for metric in self.factors]
         self._factor_signatures = [metric.signature for metric in self.factors]
 
         if scales is not None:
@@ -84,7 +84,9 @@ class ProductRiemannianMetric(RiemannianMetric):
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
         if default_point_type == "vector":
-            return (sum([prod(factor_shape) for factor_shape in self._factor_shapes]),)
+            return (
+                sum([math.prod(factor_shape) for factor_shape in self._factor_shapes]),
+            )
         if not all_equal(self._factor_shapes):
             raise ValueError(
                 "A default_point_type of 'matrix' can only be used if all "
@@ -120,7 +122,16 @@ class ProductRiemannianMetric(RiemannianMetric):
             geomstats.errors.check_point_shape(point, factor)
 
         if self.default_point_type == "vector":
-            return gs.concatenate(points, axis=-1)
+            points_ = []
+            for response, factor in zip(points, self.factors):
+                if gs.ndim(response) > len(factor.shape):
+                    response = gs.reshape(response, (-1, math.prod(response.shape[1:])))
+                else:
+                    response = gs.flatten(response)
+
+                points_.append(response)
+
+            return gs.concatenate(points_, axis=-1)
         return gs.stack(points, axis=-2)
 
     def project_from_product(self, point):

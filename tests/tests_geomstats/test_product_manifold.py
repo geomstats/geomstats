@@ -35,34 +35,15 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
             msg=f"Expected `{expected}`, but it is `{space.default_coords_type}`",
         )
 
-    def test_embed_to_product(self, manifolds, factors_points):
-        space = self.Space(manifolds, default_point_type="vector")
+    def test_embed_to_after_project_from(self, space_args, n_points):
+        space = self.Space(*space_args)
 
-        if manifolds[0].default_point_type == "vector":
-            n_points = (
-                1 if gs.ndim(factors_points[0]) == 1 else factors_points[0].shape[0]
-            )
-        else:
-            n_points = (
-                1 if gs.ndim(factors_points[0]) == 2 else factors_points[0].shape[0]
-            )
+        points = space.random_point(n_points)
 
-        points = space.embed_to_product(factors_points)
+        factors_points = space.project_from_product(points)
+        points_ = space.embed_to_product(factors_points)
 
-        if n_points == 1:
-            self.assertTrue(
-                points.shape[0]
-                == sum(factor_point.shape[0] for factor_point in factors_points)
-            )
-            self.assertAllClose(points[0], factors_points[0][0])
-            self.assertAllClose(points[-1], factors_points[-1][-1])
-
-        else:
-            self.assertTrue(points.shape[0] == n_points)
-
-            for i in range(n_points):
-                self.assertAllClose(points[i, 0], factors_points[0][i, 0])
-                self.assertAllClose(points[i, -1], factors_points[-1][i, -1])
+        self.assertAllClose(points, points_)
 
 
 class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):

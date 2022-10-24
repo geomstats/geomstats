@@ -26,24 +26,22 @@ class ProductManifoldTestData(_ManifoldTestData):
         [Hypersphere(dim=3), Hyperboloid(dim=3)],
         [Hypersphere(dim=3), Hyperboloid(dim=3)],
         [Hypersphere(dim=3), Hyperboloid(dim=4)],
-        [Euclidean(dim=2), Euclidean(dim=1), Euclidean(dim=4)],
         [Hypersphere(dim=1), Euclidean(dim=1)],
+        [SpecialOrthogonal(n=2), SpecialOrthogonal(n=3)],
+        [SpecialOrthogonal(n=2), Euclidean(dim=3)],
+        [Euclidean(dim=2), Euclidean(dim=1), Euclidean(dim=4)],
     ]
-    default_point_list = ["vector", "matrix", "vector", "vector", "vector"]
-    default_coords_type_list = [
-        "extrinsic",
-        "extrinsic",
-        "extrinsic",
-        "intrinsic",
-        "extrinsic",
-    ]
+    default_point_list = ["matrix"] + ["vector"] * 6
+    default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"]
 
     shape_list = [
-        (2 * (3 + 1),),
         (2, 3 + 1),
+        (2 * (3 + 1),),
         ((3 + 1) + (4 + 1),),
-        (7,),
         (2 + 1,),
+        (4 + 6,),
+        (4 + 3,),
+        (7,),
     ]
 
     space_args_list = [
@@ -100,19 +98,11 @@ class ProductManifoldTestData(_ManifoldTestData):
 
         return self.generate_tests(smoke_data)
 
-    def embed_to_product_test_data(self):
-        manifolds = smoke_manifolds_1
-
-        random_data = [
-            dict(
-                manifolds=manifolds,
-                factors_points=[manifold.random_point() for manifold in manifolds],
-            ),
-            dict(
-                manifolds=manifolds,
-                factors_points=[manifold.random_point(2) for manifold in manifolds],
-            ),
-        ]
+    def embed_to_after_project_from_test_data(self):
+        random_data = []
+        for space_args in self.space_args_list:
+            for n_points in [1, 2]:
+                random_data.append(dict(space_args=space_args, n_points=n_points))
 
         return self.generate_tests([], random_data)
 
