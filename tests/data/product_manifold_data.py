@@ -185,11 +185,16 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
 
 
 class NFoldManifoldTestData(_ManifoldTestData):
-    n_list = random.sample(range(2, 4), 2)
-    base_list = [SpecialOrthogonal(n) for n in n_list]
-    power_list = random.sample(range(2, 4), 2)
+
+    base_list = [
+        SpecialOrthogonal(2),
+        Euclidean(3),
+    ]
+    power_list = [3, 2]
+    shape_list = [(3, 2, 2), (2, 3)]
+
     space_args_list = list(zip(base_list, power_list))
-    shape_list = [(power, n, n) for n, power in zip(n_list, power_list)]
+
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 

@@ -95,12 +95,14 @@ class ProductManifold(Manifold):
         if metric_scales is not None:
             for scale in metric_scales:
                 geomstats.errors.check_positive(scale)
-        kwargs.setdefault("metric",
-                          ProductRiemannianMetric(
-                              [manifold.metric for manifold in factors],
-                              default_point_type=default_point_type,
-                              scales=metric_scales,
-                          ))
+        kwargs.setdefault(
+            "metric",
+            ProductRiemannianMetric(
+                [manifold.metric for manifold in factors],
+                default_point_type=default_point_type,
+                scales=metric_scales,
+            ),
+        )
 
         super().__init__(
             dim=dim,
@@ -498,12 +500,11 @@ class NFoldManifold(Manifold):
         )
 
         self.base_manifold = base_manifold
-        self.base_shape = base_manifold.shape
         self.n_copies = n_copies
 
-        self.metric = metric
         if metric is None:
-            self.metric = NFoldMetric(base_manifold.metric, n_copies)
+            metric = NFoldMetric(base_manifold.metric, n_copies)
+        self.metric = metric
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the manifold.
@@ -520,7 +521,7 @@ class NFoldManifold(Manifold):
         belongs : array-like, shape=[..., n_copies, *base_shape]
             Boolean evaluating if the point belongs to the manifold.
         """
-        point_ = gs.reshape(point, (-1, *self.base_shape))
+        point_ = gs.reshape(point, (-1, *self.base_manifold.shape))
         each_belongs = self.base_manifold.belongs(point_, atol=atol)
         reshaped = gs.reshape(each_belongs, (-1, self.n_copies))
         return gs.squeeze(gs.all(reshaped, axis=1))
@@ -547,8 +548,8 @@ class NFoldManifold(Manifold):
             Boolean denoting if vector is a tangent vector at the base point.
         """
         vector_, point_ = gs.broadcast_arrays(vector, base_point)
-        point_ = gs.reshape(point_, (-1, *self.base_shape))
-        vector_ = gs.reshape(vector_, (-1, *self.base_shape))
+        point_ = gs.reshape(point_, (-1, *self.base_manifold.shape))
+        vector_ = gs.reshape(vector_, (-1, *self.base_manifold.shape))
         each_tangent = self.base_manifold.is_tangent(vector_, point_, atol=atol)
         reshaped = gs.reshape(each_tangent, (-1, self.n_copies))
         return gs.all(reshaped, axis=1)
@@ -572,10 +573,12 @@ class NFoldManifold(Manifold):
             Tangent vector at base point.
         """
         vector_, point_ = gs.broadcast_arrays(vector, base_point)
-        point_ = gs.reshape(point_, (-1, *self.base_shape))
-        vector_ = gs.reshape(vector_, (-1, *self.base_shape))
+        point_ = gs.reshape(point_, (-1, *self.base_manifold.shape))
+        vector_ = gs.reshape(vector_, (-1, *self.base_manifold.shape))
         each_tangent = self.base_manifold.to_tangent(vector_, point_)
-        reshaped = gs.reshape(each_tangent, (-1, self.n_copies) + self.base_shape)
+        reshaped = gs.reshape(
+            each_tangent, (-1, self.n_copies) + self.base_manifold.shape
+        )
         return gs.squeeze(reshaped)
 
     def random_point(self, n_samples=1, bound=1.0):
@@ -595,7 +598,9 @@ class NFoldManifold(Manifold):
             Points sampled on the product manifold.
         """
         sample = self.base_manifold.random_point(n_samples * self.n_copies, bound)
-        reshaped = gs.reshape(sample, (n_samples, self.n_copies) + self.base_shape)
+        reshaped = gs.reshape(
+            sample, (n_samples, self.n_copies) + self.base_manifold.shape
+        )
         if n_samples > 1:
             return reshaped
         return gs.squeeze(reshaped, axis=0)
@@ -614,9 +619,11 @@ class NFoldManifold(Manifold):
             Projected point.
         """
         if hasattr(self.base_manifold, "projection"):
-            point_ = gs.reshape(point, (-1, *self.base_shape))
+            point_ = gs.reshape(point, (-1, *self.base_manifold.shape))
             projected = self.base_manifold.projection(point_)
-            reshaped = gs.reshape(projected, (-1, self.n_copies) + self.base_shape)
+            reshaped = gs.reshape(
+                projected, (-1, self.n_copies) + self.base_manifold.shape
+            )
             return gs.squeeze(reshaped)
         raise NotImplementedError(
             "The base manifold does not implement a projection " "method."
