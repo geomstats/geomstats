@@ -2,9 +2,8 @@ import copy
 import itertools
 
 import pytest
-
+import geomstats
 import geomstats.backend as gs
-from geomstats.errors import check_parameter_accepted_values
 
 CDTYPE = gs.get_default_cdtype()
 
@@ -169,7 +168,7 @@ class TestData:
             `repeat-first` and `repeat-second` test asymmetric cases, repeating
             only first or second input, respectively.
         """
-        check_parameter_accepted_values(
+        geomstats.utils.errors.check_parameter_accepted_values(
             vectorization_type,
             "vectorization_type",
             ["sym", "repeat-first", "repeat-second"],
@@ -652,10 +651,10 @@ class _FiberBundleTestData(TestData):
 class _ConnectionTestData(TestData):
     def manifold_shape_test_data(self):
         smoke_data = []
-        for connection_args, space in zip(self.metric_args_list, self.space_list):
+        for args, space in zip(self.args_list, self.space_list):
             smoke_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     expected_shape=space.random_point().shape,
                 )
             )
@@ -664,10 +663,10 @@ class _ConnectionTestData(TestData):
 
     def exp_shape_test_data(self):
         """Generate data to check that exp returns an array of the expected shape."""
-        n_samples_list = [3] * len(self.metric_args_list)
+        n_samples_list = [3] * len(self.args_list)
         random_data = []
-        for connection_args, space, tangent_shape, n_samples in zip(
-            self.metric_args_list, self.space_list, self.shape_list, n_samples_list
+        for args, space, tangent_shape, n_samples in zip(
+            self.args_list, self.space_list, self.shape_list, n_samples_list
         ):
             base_point = space.random_point(n_samples)
             base_point_type = base_point.dtype
@@ -681,7 +680,7 @@ class _ConnectionTestData(TestData):
             ):
                 random_data.append(
                     dict(
-                        connection_args=connection_args,
+                        args=args,
                         tangent_vec=better_squeeze(tangent_vec[:n_tangent_vecs]),
                         base_point=better_squeeze(base_point[:n_base_points]),
                         expected=expected_shape,
@@ -691,10 +690,10 @@ class _ConnectionTestData(TestData):
 
     def log_shape_test_data(self):
         """Generate data to check that log returns an array of the expected shape."""
-        n_samples_list = [3] * len(self.metric_args_list)
+        n_samples_list = [3] * len(self.args_list)
         random_data = []
-        for connection_args, space, n_samples in zip(
-            self.metric_args_list, self.space_list, n_samples_list
+        for args, space, n_samples in zip(
+            self.args_list, self.space_list, n_samples_list
         ):
             base_point = space.random_point(n_samples)
             point = space.random_point(n_samples)
@@ -706,7 +705,7 @@ class _ConnectionTestData(TestData):
 
                 random_data.append(
                     dict(
-                        connection_args=connection_args,
+                        args=args,
                         point=better_squeeze(point[:n_points]),
                         base_point=better_squeeze(base_point[:n_base_points]),
                         expected=expected_shape,
@@ -717,8 +716,8 @@ class _ConnectionTestData(TestData):
     def exp_belongs_test_data(self):
         """Generate data to check that exp gives a point on the manifold."""
         random_data = []
-        for connection_args, space, shape, n_tangent_vecs in zip(
-            self.metric_args_list,
+        for args, space, shape, n_tangent_vecs in zip(
+            self.args_list,
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
@@ -732,7 +731,7 @@ class _ConnectionTestData(TestData):
             tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     space=space,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
@@ -745,7 +744,7 @@ class _ConnectionTestData(TestData):
 
         Parameters
         ----------
-        self.metric_args_list : list
+        self.args_list : list
             List of argument to pass to constructor of the connection.
         space_list : list
             List of manifolds on which the connection is defined.
@@ -753,14 +752,14 @@ class _ConnectionTestData(TestData):
             List of number of random data to generate.
         """
         random_data = []
-        for connection_args, space, n_points in zip(
-            self.metric_args_list, self.space_list, self.n_points_list
+        for args, space, n_points in zip(
+            self.args_list, self.space_list, self.n_points_list
         ):
             point = space.random_point(n_points)
             base_point = space.random_point()
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     space=space,
                     point=point,
                     base_point=base_point,
@@ -771,8 +770,8 @@ class _ConnectionTestData(TestData):
     def geodesic_ivp_belongs_test_data(self):
         """Generate data to check that connection geodesics belong to manifold."""
         random_data = []
-        for connection_args, space, n_points, shape in zip(
-            self.metric_args_list, self.space_list, self.n_points_list, self.shape_list
+        for args, space, n_points, shape in zip(
+            self.args_list, self.space_list, self.n_points_list, self.shape_list
         ):
             initial_point = space.random_point()
             initial_point_type = initial_point.dtype
@@ -780,7 +779,7 @@ class _ConnectionTestData(TestData):
             initial_tangent_vec = space.to_tangent(random_vec, initial_point)
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     space=space,
                     n_points=n_points,
                     initial_point=initial_point,
@@ -792,8 +791,8 @@ class _ConnectionTestData(TestData):
     def geodesic_bvp_belongs_test_data(self):
         """Generate data to check that connection geodesics belong to manifold."""
         random_data = []
-        for connection_args, space, n_points in zip(
-            self.metric_args_list,
+        for args, space, n_points in zip(
+            self.args_list,
             self.space_list,
             self.n_points_list,
         ):
@@ -801,7 +800,7 @@ class _ConnectionTestData(TestData):
             end_point = space.random_point()
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     space=space,
                     n_points=n_points,
                     initial_point=initial_point,
@@ -813,14 +812,14 @@ class _ConnectionTestData(TestData):
     def exp_after_log_test_data(self):
         """Generate data to check that logarithm and exponential are inverse."""
         random_data = []
-        for connection_args, space, n_points in zip(
-            self.metric_args_list, self.space_list, self.n_points_list
+        for args, space, n_points in zip(
+            self.args_list, self.space_list, self.n_points_list
         ):
             point = space.random_point(n_points)
             base_point = space.random_point()
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     point=point,
                     base_point=base_point,
                 )
@@ -840,8 +839,8 @@ class _ConnectionTestData(TestData):
             injectivity domain of the exponential map.
         """
         random_data = []
-        for connection_args, space, shape, n_tangent_vecs in zip(
-            self.metric_args_list,
+        for args, space, shape, n_tangent_vecs in zip(
+            self.args_list,
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
@@ -855,7 +854,7 @@ class _ConnectionTestData(TestData):
             tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
                 )
@@ -866,7 +865,7 @@ class _ConnectionTestData(TestData):
         """Generate data to check that end point of ladder matches exponential."""
         random_data = []
         for (
-            connection_args,
+            args,
             space,
             shape,
             n_tangent_vecs,
@@ -874,7 +873,7 @@ class _ConnectionTestData(TestData):
             alpha,
             scheme,
         ) in zip(
-            self.metric_args_list,
+            self.args_list,
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
@@ -892,7 +891,7 @@ class _ConnectionTestData(TestData):
             direction = space.to_tangent(random_dir, base_point)
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     direction=direction,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
@@ -907,8 +906,8 @@ class _ConnectionTestData(TestData):
     def exp_geodesic_ivp_test_data(self):
         """Generate data to check that end point of geodesic matches exponential."""
         random_data = []
-        for connection_args, space, shape, n_tangent_vecs, n_points in zip(
-            self.connection_args_list,
+        for args, space, shape, n_tangent_vecs, n_points in zip(
+            self.args_list,
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
@@ -922,7 +921,7 @@ class _ConnectionTestData(TestData):
             )
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     n_points=n_points,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
@@ -935,7 +934,7 @@ class _ConnectionTestData(TestData):
 
         Parameters
         ----------
-        connection_args_list : list
+        args_list : list
             List of argument to pass to constructor of the connection.
         space_list : list
             List of manifolds on which the connection is defined.
@@ -943,9 +942,9 @@ class _ConnectionTestData(TestData):
             List of shapes for random data to generate.
         """
         random_data = []
-        for n_points, connection_args, space in zip(
+        for n_points, args, space in zip(
             self.n_points_list,
-            self.connection_args_list,
+            self.args_list,
             self.space_list,
         ):
             base_point = space.random_point(n_points)
@@ -954,7 +953,7 @@ class _ConnectionTestData(TestData):
             )
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     base_point=better_squeeze(base_point),
                     expected=expected_shape,
                 )
@@ -966,7 +965,7 @@ class _ConnectionTestData(TestData):
 
         Parameters
         ----------
-        connection_args_list : list
+        args_list : list
             List of argument to pass to constructor of the connection.
         space_list : list
             List of manifolds on which the connection is defined.
@@ -974,9 +973,9 @@ class _ConnectionTestData(TestData):
             List of shapes for random data to generate.
         """
         random_data = []
-        for n_points, connection_args, space in zip(
+        for n_points, args, space in zip(
             self.n_points_list,
-            self.connection_args_list,
+            self.args_list,
             self.space_list,
         ):
             base_point = space.random_point(n_points)
@@ -985,7 +984,7 @@ class _ConnectionTestData(TestData):
             )
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     base_point=better_squeeze(base_point),
                     expected=expected_shape,
                 )
@@ -997,7 +996,7 @@ class _ConnectionTestData(TestData):
 
         Parameters
         ----------
-        connection_args_list : list
+        args_list : list
             List of argument to pass to constructor of the connection.
         space_list : list
             List of manifolds on which the connection is defined.
@@ -1005,16 +1004,16 @@ class _ConnectionTestData(TestData):
             List of shapes for random data to generate.
         """
         random_data = []
-        for n_points, connection_args, space in zip(
+        for n_points, args, space in zip(
             self.n_points_list,
-            self.connection_args_list,
+            self.args_list,
             self.space_list,
         ):
             base_point = space.random_point(n_points)
             expected_shape = expected_shape = (n_points,) if n_points >= 2 else ()
             random_data.append(
                 dict(
-                    connection_args=connection_args,
+                    args=args,
                     base_point=better_squeeze(base_point),
                     expected=expected_shape,
                 )
@@ -1028,7 +1027,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
 
         Parameters
         ----------
-        metric_args_list : list
+        args_list : list
             List of arguments to pass to constructor of the metric.
         space_list : list
             List of spaces on which the metric is defined.
@@ -1046,8 +1045,8 @@ class _RiemannianMetricTestData(_ConnectionTestData):
     def squared_dist_is_symmetric_test_data(self):
         """Generate data to check that the squared geodesic distance is symmetric."""
         random_data = []
-        for metric_args, space, n_points_a, n_points_b in zip(
-            self.metric_args_list,
+        for args, space, n_points_a, n_points_b in zip(
+            self.args_list,
             self.space_list,
             self.n_points_a_list,
             self.n_points_b_list,
@@ -1056,7 +1055,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             point_b = space.random_point(n_points_b)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     point_a=point_a,
                     point_b=point_b,
                 )
@@ -1066,8 +1065,8 @@ class _RiemannianMetricTestData(_ConnectionTestData):
     def squared_dist_is_positive_test_data(self):
         """Generate data to check that the squared geodesic distance is symmetric."""
         random_data = []
-        for metric_args, space, n_points_a, n_points_b in zip(
-            self.metric_args_list,
+        for args, space, n_points_a, n_points_b in zip(
+            self.args_list,
             self.space_list,
             self.n_points_a_list,
             self.n_points_b_list,
@@ -1076,7 +1075,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             point_b = space.random_point(n_points_b)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     point_a=point_a,
                     point_b=point_b,
                 )
@@ -1090,8 +1089,8 @@ class _RiemannianMetricTestData(_ConnectionTestData):
     def inner_product_is_symmetric_test_data(self):
         """Generate data to check that the inner product is symmetric."""
         random_data = []
-        for metric_args, space, shape, n_tangent_vecs in zip(
-            self.metric_args_list,
+        for args, space, shape, n_tangent_vecs in zip(
+            self.args_list,
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
@@ -1105,7 +1104,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
                     base_point=base_point,
@@ -1116,13 +1115,13 @@ class _RiemannianMetricTestData(_ConnectionTestData):
     def dist_point_to_itself_is_zero_test_data(self):
         """Generate data to check that the squared geodesic distance is symmetric."""
         random_data = []
-        for metric_args, space, n_points in zip(
-            self.metric_args_list, self.space_list, self.n_points_list
+        for args, space, n_points in zip(
+            self.args_list, self.space_list, self.n_points_list
         ):
             point = space.random_point(n_points)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     point=point,
                 )
             )
@@ -1131,8 +1130,8 @@ class _RiemannianMetricTestData(_ConnectionTestData):
     def parallel_transport_ivp_is_isometry_test_data(self):
         """Generate data to check that parallel transport is an isometry."""
         random_data = []
-        for metric_args, space, shape, n_tangent_vecs in zip(
-            self.metric_args_list,
+        for args, space, shape, n_tangent_vecs in zip(
+            self.args_list,
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
@@ -1145,7 +1144,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             direction = space.to_tangent(gs.random.normal(size=shape), base_point)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     space=space,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
@@ -1158,8 +1157,8 @@ class _RiemannianMetricTestData(_ConnectionTestData):
     def parallel_transport_bvp_is_isometry_test_data(self):
         """Generate data to check that parallel transport is an isometry."""
         random_data = []
-        for metric_args, space, tangent_shape, n_tangent_vecs in zip(
-            self.metric_args_list,
+        for args, space, tangent_shape, n_tangent_vecs in zip(
+            self.args_list,
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
@@ -1172,7 +1171,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             end_point = space.random_point()
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     space=space,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
@@ -1185,15 +1184,15 @@ class _RiemannianMetricTestData(_ConnectionTestData):
     def triangle_inequality_of_dist_test_data(self):
         """Generate data to check the traingle inequality of geodesic distance."""
         random_data = []
-        for metric_args, space, n_points in zip(
-            self.metric_args_list, self.space_list, self.n_points_list
+        for args, space, n_points in zip(
+            self.args_list, self.space_list, self.n_points_list
         ):
             point_a = space.random_point(n_points)
             point_b = space.random_point(n_points)
             point_c = space.random_point(n_points)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     point_a=point_a,
                     point_b=point_b,
                     point_c=point_c,
@@ -1206,7 +1205,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
 
         Parameters
         ----------
-        metric_args_list : list
+        args_list : list
             List of arguments to pass to constructor of the metric.
         space_list : list
             List of spaces on which the metric is defined.
@@ -1216,13 +1215,13 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             Absolute tolerance to test this property.
         """
         random_data = []
-        for metric_args, space, n_points in zip(
-            self.metric_args_list, self.space_list, self.n_points_list
+        for args, space, n_points in zip(
+            self.args_list, self.space_list, self.n_points_list
         ):
             base_point = space.random_point(n_points)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     base_point=base_point,
                 )
             )
@@ -1233,7 +1232,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
 
         Parameters
         ----------
-        metric_args_list : list
+        args_list : list
             List of arguments to pass to constructor of the metric.
         space_list : list
             List of spaces on which the metric is defined.
@@ -1243,13 +1242,13 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             Absolute tolerance to test this property.
         """
         random_data = []
-        for metric_args, space, n_points in zip(
-            self.metric_args_list, self.space_list, self.n_points_list
+        for args, space, n_points in zip(
+            self.args_list, self.space_list, self.n_points_list
         ):
             base_point = space.random_point(n_points)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     base_point=base_point,
                 )
             )
@@ -1260,7 +1259,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
 
         Parameters
         ----------
-        metric_args_list : list
+        args_list : list
             List of arguments to pass to constructor of the metric.
         space_list : list
             List of spaces on which the metric is defined.
@@ -1270,13 +1269,13 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             Absolute tolerance to test this property.
         """
         random_data = []
-        for metric_args, space, n_points in zip(
-            self.metric_args_list, self.space_list, self.n_points_list
+        for args, space, n_points in zip(
+            self.args_list, self.space_list, self.n_points_list
         ):
             base_point = space.random_point(n_points)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     base_point=base_point,
                 )
             )
@@ -1287,7 +1286,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
 
         Parameters
         ----------
-        metric_args_list : list
+        args_list : list
             List of arguments to pass to constructor of the metric.
         space_list : list
             List of spaces on which the metric is defined.
@@ -1297,13 +1296,13 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             Absolute tolerance to test this property.
         """
         random_data = []
-        for metric_args, space, n_points in zip(
-            self.metric_args_list, self.space_list, self.n_points_list
+        for args, space, n_points in zip(
+            self.args_list, self.space_list, self.n_points_list
         ):
             base_point = space.random_point(n_points)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     base_point=base_point,
                 )
             )
@@ -1314,7 +1313,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
 
         Parameters
         ----------
-        metric_args_list : list
+        args_list : list
             List of argument to pass to constructor of the metric.
         space_list : list
             List of spaces on which the metric is defined.
@@ -1322,8 +1321,8 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             List of shapes for random data to generate.
         """
         random_data = []
-        for metric_args, n_points, space, shape, n_tangent_vecs in zip(
-            self.metric_args_list,
+        for args, n_points, space, shape, n_tangent_vecs in zip(
+            self.args_list,
             self.n_points_list,
             self.space_list,
             self.shape_list,
@@ -1345,7 +1344,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
                     base_point=base_point,
@@ -1359,8 +1358,8 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
     def inner_product_is_hermitian_test_data(self):
         """Generate data to check that the inner product is Hermitian."""
         random_data = []
-        for metric_args, space, shape, n_tangent_vecs in zip(
-            self.metric_args_list,
+        for args, space, shape, n_tangent_vecs in zip(
+            self.args_list,
             self.space_list,
             self.shape_list,
             self.n_tangent_vecs_list,
@@ -1377,7 +1376,7 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
             tangent_vec_b = space.to_tangent(random_vec_b)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
                     base_point=base_point,
@@ -1389,13 +1388,13 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
 class _InvariantMetricTestData(_RiemannianMetricTestData):
     def exp_at_identity_of_lie_algebra_belongs_test_data(self):
         random_data = []
-        for metric_args, group, n_tangent_vecs in zip(
-            self.metric_args_list, self.group_list, self.n_tangent_vecs_list
+        for args, group, n_tangent_vecs in zip(
+            self.args_list, self.group_list, self.n_tangent_vecs_list
         ):
             lie_algebra_point = group.lie_algebra.random_point(n_tangent_vecs)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     group=group,
                     lie_algebra_point=lie_algebra_point,
                 )
@@ -1404,13 +1403,13 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
 
     def log_at_identity_belongs_to_lie_algebra_test_data(self):
         random_data = []
-        for metric_args, group, n_points in zip(
-            self.metric_args_list, self.group_list, self.n_points_list
+        for args, group, n_points in zip(
+            self.args_list, self.group_list, self.n_points_list
         ):
             point = group.random_point(n_points)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     group=group,
                     point=point,
                 )
@@ -1420,13 +1419,13 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
 
     def exp_after_log_at_identity_test_data(self):
         random_data = []
-        for metric_args, group, n_points in zip(
-            self.metric_args_list, self.group_list, self.n_points_list
+        for args, group, n_points in zip(
+            self.args_list, self.group_list, self.n_points_list
         ):
             point = group.random_point(n_points)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     group=group,
                     point=point,
                 )
@@ -1440,8 +1439,8 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
     ):
         random_data = []
 
-        for metric_args, group, shape, n_tangent_vecs in zip(
-            self.metric_args_list,
+        for args, group, shape, n_tangent_vecs in zip(
+            self.args_list,
             self.group_list,
             self.shape_list,
             self.n_tangent_vecs_list,
@@ -1454,7 +1453,7 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
             random_data.append(
                 (
                     dict(
-                        metric_args=metric_args,
+                        args=args,
                         group=group,
                         tangent_vec=tangent_vec,
                     )
@@ -1467,14 +1466,14 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
 class _QuotientMetricTestData(_RiemannianMetricTestData):
     def dist_is_smaller_than_bundle_dist_test_data(self):
         random_data = []
-        for metric_args, bundle, n_points in zip(
-            self.metric_args_list, self.bundle_list, self.n_points_list
+        for args, bundle, n_points in zip(
+            self.args_list, self.bundle_list, self.n_points_list
         ):
             point_a = bundle.random_point(n_points)
             point_b = bundle.random_point(n_points)
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     bundle=bundle,
                     point_a=point_a,
                     point_b=point_b,
@@ -1484,14 +1483,14 @@ class _QuotientMetricTestData(_RiemannianMetricTestData):
 
     def log_is_horizontal_test_data(self):
         random_data = []
-        for metric_args, bundle, n_points in zip(
-            self.metric_args_list, self.bundle_list, self.n_points_list
+        for args, bundle, n_points in zip(
+            self.args_list, self.bundle_list, self.n_points_list
         ):
             point = bundle.random_point(n_points)
             base_point = bundle.random_point()
             random_data.append(
                 dict(
-                    metric_args=metric_args,
+                    args=args,
                     bundle=bundle,
                     point=point,
                     base_point=base_point,

@@ -2,7 +2,8 @@ import math
 import random
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+from geomstats.spaces.equipped import Euclidean
+from geomstats.structure.metric import EuclideanMetric
 from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
 
 SQRT_2 = math.sqrt(2)
@@ -26,11 +27,16 @@ class EuclideanTestData(_VectorSpaceTestData):
         ]
         return self.generate_tests(smoke_data)
 
+"""
+Notes:
+- args_list and shape_list are redundant
+"""
 
 class EuclideanMetricTestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 7), 5)
-    connection_args_list = metric_args_list = [(n,) for n in n_list]
-    shape_list = metric_args_list
+    args_list = [(n,) for n in n_list]
+    # connection_args_list = metric_args_list = [(n,) for n in n_list]
+    shape_list = args_list
     space_list = [Euclidean(n) for n in n_list]
     n_points_list = random.sample(range(1, 7), 5)
     n_tangent_vecs_list = n_vecs_list = random.sample(range(1, 7), 5)
@@ -39,8 +45,9 @@ class EuclideanMetricTestData(_RiemannianMetricTestData):
     alpha_list = [1] * 5
     n_rungs_list = [1] * 5
     scheme_list = ["pole"] * 5
+    Space = Euclidean
 
-    Metric = EuclideanMetric
+    # Metric = EuclideanMetric
 
     def exp_test_data(self):
 

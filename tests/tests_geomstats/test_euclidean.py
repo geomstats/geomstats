@@ -29,41 +29,41 @@ class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = EuclideanMetricTestData()
 
     def test_exp(self, dim, tangent_vec, base_point, expected):
-        metric = self.Metric(dim)
+        space = self.Space(dim)
         self.assertAllClose(
-            metric.exp(gs.array(tangent_vec), gs.array(base_point)), gs.array(expected)
+            space.metric.exp(gs.array(tangent_vec), gs.array(base_point)), gs.array(expected)
         )
 
     def test_log(self, dim, point, base_point, expected):
-        metric = self.Metric(dim)
+        space = self.Space(dim)
         self.assertAllClose(
-            metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
+            space.metric.log(gs.array(point), gs.array(base_point)), gs.array(expected)
         )
 
     def test_inner_product(self, dim, tangent_vec_a, tangent_vec_b, expected):
-        metric = self.Metric(dim)
+        space = self.Space(dim)
         self.assertAllClose(
-            metric.inner_product(gs.array(tangent_vec_a), gs.array(tangent_vec_b)),
+            space.metric.inner_product(gs.array(tangent_vec_a), gs.array(tangent_vec_b)),
             gs.array(expected),
         )
 
     def test_squared_norm(self, dim, vec, expected):
-        metric = self.Metric(dim)
-        self.assertAllClose(metric.squared_norm(gs.array(vec)), gs.array(expected))
+        space = self.Space(dim)
+        self.assertAllClose(space.metric.squared_norm(gs.array(vec)), gs.array(expected))
 
     def test_norm(self, dim, vec, expected):
-        metric = self.Metric(dim)
-        self.assertAllClose(metric.norm(gs.array(vec)), gs.array(expected))
+        space = self.Space(dim)
+        self.assertAllClose(space.metric.norm(gs.array(vec)), gs.array(expected))
 
     def test_metric_matrix(self, dim, expected):
-        self.assertAllClose(self.Metric(dim).metric_matrix(), gs.array(expected))
+        self.assertAllClose(self.Space(dim).metric.metric_matrix(), gs.array(expected))
 
     def test_squared_dist(self, dim, point_a, point_b, expected):
-        metric = self.Metric(dim)
-        result = metric.squared_dist(point_a, point_b)
+        space = self.Space(dim)
+        result = space.metric.squared_dist(point_a, point_b)
         self.assertAllClose(result, gs.array(expected))
 
     def test_dist(self, dim, point_a, point_b, expected):
-        metric = self.Metric(dim)
-        result = metric.dist(point_a, point_b)
+        space = self.Space(dim)
+        result = space.metric.dist(point_a, point_b)
         self.assertAllClose(result, gs.array(expected))

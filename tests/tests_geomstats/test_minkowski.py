@@ -39,28 +39,28 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = MinkowskiMetricTestData()
 
     def test_metric_matrix(self, dim, expected):
-        metric = self.Metric(dim)
-        self.assertAllClose(metric.metric_matrix(), gs.array(expected))
+        space = self.Space(dim)
+        self.assertAllClose(space.metric.metric_matrix(), gs.array(expected))
 
     def test_inner_product(self, dim, point_a, point_b, expected):
-        metric = self.Metric(dim)
+        space = self.Space(dim)
         self.assertAllClose(
-            metric.inner_product(gs.array(point_a), gs.array(point_b)),
+            space.metric.inner_product(gs.array(point_a), gs.array(point_b)),
             gs.array(expected),
         )
 
     def test_squared_norm(self, dim, point, expected):
-        metric = self.Metric(dim)
-        self.assertAllClose(metric.squared_norm(gs.array(point)), gs.array(expected))
+        space = self.Space(dim)
+        self.assertAllClose(space.metric.squared_norm(gs.array(point)), gs.array(expected))
 
     def test_exp(self, dim, tangent_vec, base_point, expected):
-        result = self.Metric(dim).exp(gs.array(tangent_vec), gs.array(base_point))
+        result = self.Space(dim).metric.exp(gs.array(tangent_vec), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_log(self, dim, point, base_point, expected):
-        result = self.Metric(dim).log(gs.array(point), gs.array(base_point))
+        result = self.Space(dim).metric.log(gs.array(point), gs.array(base_point))
         self.assertAllClose(result, gs.array(expected))
 
     def test_squared_dist(self, dim, point_a, point_b, expected):
-        result = self.Metric(dim).squared_dist(gs.array(point_a), gs.array(point_b))
+        result = self.Space(dim).metric.squared_dist(gs.array(point_a), gs.array(point_b))
         self.assertAllClose(result, gs.array(expected))

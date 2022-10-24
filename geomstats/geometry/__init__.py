@@ -1,1 +1,0 @@
-"""The Geometry Package."""

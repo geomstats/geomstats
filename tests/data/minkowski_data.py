@@ -1,7 +1,8 @@
 import math
 import random
 
-from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
+from geomstats.spaces.equipped import Minkowski
+from geomstats.structure.metric import MinkowskiMetric
 from tests.data_generation import _RiemannianMetricTestData, _VectorSpaceTestData
 
 
@@ -20,9 +21,11 @@ class MinkowskiTestData(_VectorSpaceTestData):
 
 
 class MinkowskiMetricTestData(_RiemannianMetricTestData):
+    Space = Minkowski
+
     n_list = random.sample(range(2, 4), 2)
-    metric_args_list = [(n,) for n in n_list]
-    shape_list = metric_args_list
+    args_list = [(n,) for n in n_list]
+    shape_list = args_list
     space_list = [Minkowski(n) for n in n_list]
     n_points_list = random.sample(range(1, 3), 2)
     n_tangent_vecs_list = random.sample(range(1, 3), 2)

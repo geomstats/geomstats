@@ -14,7 +14,7 @@ variables by stacking arrays, e.g. position and velocity in a geodesic
 equation.
 """
 
-from geomstats.errors import check_parameter_accepted_values
+import geomstats
 
 STEP_FUNCTIONS = {
     "euler": "euler_step",
@@ -197,7 +197,7 @@ def integrate(function, initial_state, end_time=1.0, n_steps=10, step="euler"):
         element of the sequence is the same as the vectors passed in
         initial_state.
     """
-    check_parameter_accepted_values(step, "step", STEP_FUNCTIONS)
+    geomstats.errors.check_parameter_accepted_values(step, "step", STEP_FUNCTIONS)
 
     dt = end_time / n_steps
     states = [initial_state]

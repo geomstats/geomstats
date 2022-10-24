@@ -14,7 +14,6 @@ def better_squeeze(array):
 
 
 def _is_isometry(
-    metric,
     space,
     tangent_vec,
     trans_tangent_vec,
@@ -46,8 +45,8 @@ def _is_isometry(
     """
     is_tangent = space.is_tangent(trans_tangent_vec, base_point, is_tangent_atol)
     is_equinormal = gs.isclose(
-        metric.norm(trans_tangent_vec, base_point),
-        metric.norm(tangent_vec, base_point),
+        space.metric.norm(trans_tangent_vec, base_point),
+        space.metric.norm(tangent_vec, base_point),
         rtol,
         atol,
     )
@@ -63,8 +62,8 @@ class ManifoldTestCase(TestCase):
         space = self.Space(*space_args)
         point = space.random_point()
 
-        if space.metric is None:
-            return
+        # if space.metric is None:
+        #     return
 
         point_shape = (1,) if point.shape == () else point.shape
 
@@ -73,11 +72,11 @@ class ManifoldTestCase(TestCase):
             f"Shape is {space.shape}, but random point shape is {point_shape}",
         )
 
-        msg = (
-            f"Space shape is {space.shape}, "
-            f"whereas space metric shape is {space.metric.shape}",
-        )
-        self.assertTrue(space.shape == space.metric.shape, msg)
+        # msg = (
+        #     f"Space shape is {space.shape}, "
+        #     f"whereas space metric shape is {space.metric.shape}",
+        # )
+        # self.assertTrue(space.shape == space.metric.shape, msg)
 
     def test_random_point_belongs(self, space_args, n_points, atol):
         """Check that a random point belongs to the manifold.
@@ -594,24 +593,24 @@ class NFoldManifoldTestCase(ManifoldTestCase):
 
 class ConnectionTestCase(TestCase):
     @property
-    def Metric(self):
-        return self.testing_data.Metric
+    def Space(self):
+        return self.testing_data.Space
 
-    def test_manifold_shape(self, connection_args, expected_shape):
-        connection = self.Metric(*connection_args)
+    def test_manifold_shape(self, args, expected_shape):
+        space = self.Space(*args)
 
         self.assertTrue(
-            connection.shape == expected_shape,
-            f"Shape is {connection.shape}, but random point shape is {expected_shape}",
+            space.shape == expected_shape,
+            f"Shape is {space.shape}, but random point shape is {expected_shape}",
         )
 
-    def test_exp_shape(self, connection_args, tangent_vec, base_point, expected):
+    def test_exp_shape(self, args, tangent_vec, base_point, expected):
         """Check that exp returns an array of the expected shape.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         tangent_vec : array-like
             Tangent vector at base point.
         base_point : array-like
@@ -619,18 +618,18 @@ class ConnectionTestCase(TestCase):
         expected : tuple
             Expected shape for the result of the exp function.
         """
-        connection = self.Metric(*connection_args)
-        exp = connection.exp(gs.array(tangent_vec), gs.array(base_point))
+        space = self.Space(*args)
+        exp = space.metric.exp(gs.array(tangent_vec), gs.array(base_point))
         result = gs.shape(exp)
         self.assertAllClose(result, expected)
 
-    def test_log_shape(self, connection_args, point, base_point, expected):
+    def test_log_shape(self, args, point, base_point, expected):
         """Check that log returns an array of the expected shape.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point : array-like
             Point on the manifold.
         base_point : array-like
@@ -638,18 +637,18 @@ class ConnectionTestCase(TestCase):
         expected : tuple
             Expected shape for the result of the log function.
         """
-        connection = self.Metric(*connection_args)
-        log = connection.log(gs.array(point), gs.array(base_point))
+        space = self.Space(*args)
+        log = space.metric.log(gs.array(point), gs.array(base_point))
         result = gs.shape(log)
         self.assertAllClose(result, expected)
 
-    def test_exp_belongs(self, connection_args, space, tangent_vec, base_point, atol):
+    def test_exp_belongs(self, args, space, tangent_vec, base_point, atol):
         """Check that the connection exponential gives a point on the manifold.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         space : Manifold
             Manifold where connection is defined.
         tangent_vec : array-like
@@ -659,18 +658,18 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance for the belongs function.
         """
-        connection = self.Metric(*connection_args)
-        exp = connection.exp(gs.array(tangent_vec), gs.array(base_point))
+        space = self.Space(*args)
+        exp = space.metric.exp(gs.array(tangent_vec), gs.array(base_point))
         result = gs.all(space.belongs(exp, atol))
         self.assertTrue(result)
 
-    def test_log_is_tangent(self, connection_args, space, point, base_point, atol):
+    def test_log_is_tangent(self, args, space, point, base_point, atol):
         """Check that the connection logarithm gives a tangent vector.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         space : Manifold
             Manifold where connection is defined.
         point : array-like
@@ -680,14 +679,14 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance for the is_tangent function.
         """
-        connection = self.Metric(*connection_args)
-        log = connection.log(gs.array(point), gs.array(base_point))
+        space = self.Space(*args)
+        log = space.metric.log(gs.array(point), gs.array(base_point))
         result = gs.all(space.is_tangent(log, gs.array(base_point), atol))
         self.assertTrue(result)
 
     def test_geodesic_ivp_belongs(
         self,
-        connection_args,
+        args,
         space,
         n_points,
         initial_point,
@@ -700,8 +699,8 @@ class ConnectionTestCase(TestCase):
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         space : Manifold
             Manifold where connection is defined.
         n_points : int
@@ -713,8 +712,8 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance for the belongs function.
         """
-        connection = self.Metric(*connection_args)
-        geodesic = connection.geodesic(
+        space = self.Space(*args)
+        geodesic = space.metric.geodesic(
             initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
         )
 
@@ -728,7 +727,7 @@ class ConnectionTestCase(TestCase):
 
     def test_geodesic_bvp_belongs(
         self,
-        connection_args,
+        args,
         space,
         n_points,
         initial_point,
@@ -741,8 +740,8 @@ class ConnectionTestCase(TestCase):
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         space : Manifold
             Manifold where connection is defined.
         n_points : int
@@ -754,9 +753,9 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance for the belongs function.
         """
-        connection = self.Metric(*connection_args)
+        space = self.Space(*args)
 
-        geodesic = connection.geodesic(initial_point=initial_point, end_point=end_point)
+        geodesic = space.metric.geodesic(initial_point=initial_point, end_point=end_point)
 
         t = gs.linspace(start=0.0, stop=1.0, num=n_points)
         points = geodesic(t)
@@ -766,15 +765,15 @@ class ConnectionTestCase(TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_exp_after_log(self, connection_args, point, base_point, rtol, atol):
+    def test_exp_after_log(self, args, point, base_point, rtol, atol):
         """Check that connection logarithm and exponential are inverse.
 
         This is calling connection logarithm first, then connection exponential.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point : array-like
             Point on the manifold.
         base_point : array-like
@@ -784,20 +783,20 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        connection = self.Metric(*connection_args)
-        log = connection.log(gs.array(point), base_point=gs.array(base_point))
-        result = connection.exp(tangent_vec=log, base_point=gs.array(base_point))
+        space = self.Space(*args)
+        log = space.metric.log(gs.array(point), base_point=gs.array(base_point))
+        result = space.metric.exp(tangent_vec=log, base_point=gs.array(base_point))
         self.assertAllClose(result, point, rtol=rtol, atol=atol)
 
-    def test_log_after_exp(self, connection_args, tangent_vec, base_point, rtol, atol):
+    def test_log_after_exp(self, args, tangent_vec, base_point, rtol, atol):
         """Check that connection exponential and logarithm are inverse.
 
         This is calling connection exponential first, then connection logarithm.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         tangent_vec : array-like
             Tangent vector to the manifold at base_point.
         base_point : array-like
@@ -807,14 +806,14 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        connection = self.Metric(*connection_args)
-        exp = connection.exp(tangent_vec=tangent_vec, base_point=gs.array(base_point))
-        result = connection.log(exp, base_point=gs.array(base_point))
+        space = self.Space(*args)
+        exp = space.metric.exp(tangent_vec=tangent_vec, base_point=gs.array(base_point))
+        result = space.metric.log(exp, base_point=gs.array(base_point))
         self.assertAllClose(result, tangent_vec, rtol=rtol, atol=atol)
 
     def test_exp_ladder_parallel_transport(
         self,
-        connection_args,
+        args,
         direction,
         tangent_vec,
         base_point,
@@ -828,8 +827,8 @@ class ConnectionTestCase(TestCase):
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         direction : array-like
             Tangent vector to the manifold at base_point.
         tangent_vec : array-like
@@ -847,9 +846,9 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        connection = self.Metric(*connection_args)
+        space = self.Space(*args)
 
-        ladder = connection.ladder_parallel_transport(
+        ladder = space.metric.ladder_parallel_transport(
             tangent_vec,
             base_point,
             direction,
@@ -859,19 +858,19 @@ class ConnectionTestCase(TestCase):
         )
 
         result = ladder["end_point"]
-        expected = connection.exp(direction, base_point)
+        expected = space.metric.exp(direction, base_point)
 
         self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
     def test_exp_geodesic_ivp(
-        self, connection_args, n_points, tangent_vec, base_point, rtol, atol
+        self, args, n_points, tangent_vec, base_point, rtol, atol
     ):
         """Check that end point of geodesic matches exponential.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         n_points : int
             Number of points on the geodesic.
         tangent_vec : array-like
@@ -883,8 +882,8 @@ class ConnectionTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        connection = self.Metric(*connection_args)
-        geodesic = connection.geodesic(
+        space = self.Space(*args)
+        geodesic = space.metric.geodesic(
             initial_point=base_point, initial_tangent_vec=tangent_vec
         )
         t = (
@@ -893,71 +892,71 @@ class ConnectionTestCase(TestCase):
             else gs.ones(1)
         )
         points = geodesic(t)
-        multiple_inputs = tangent_vec.ndim > len(connection.shape)
+        multiple_inputs = tangent_vec.ndim > len(space.shape)
         result = points[:, -1] if multiple_inputs else points[-1]
-        expected = connection.exp(tangent_vec, base_point)
+        expected = space.metric.exp(tangent_vec, base_point)
         self.assertAllClose(expected, result, rtol=rtol, atol=atol)
 
-    def test_riemann_tensor_shape(self, connection_args, base_point, expected):
+    def test_riemann_tensor_shape(self, args, base_point, expected):
         """Check that riemann_tensor returns an array of the expected shape.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         base_point : array-like
             Point on the manifold.
         expected : tuple
             Expected shape for the result of the riemann_tensor function.
         """
-        connection = self.Metric(*connection_args)
-        tensor = connection.riemann_tensor(gs.array(base_point))
+        space = self.Space(*args)
+        tensor = space.riemann_tensor(gs.array(base_point))
         result = gs.shape(tensor)
         self.assertAllClose(result, expected)
 
-    def test_ricci_tensor_shape(self, connection_args, base_point, expected):
+    def test_ricci_tensor_shape(self, args, base_point, expected):
         """Check that ricci_tensor returns an array of the expected shape.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         base_point : array-like
             Point on the manifold.
         expected : tuple
             Expected shape for the result of the ricci_tensor function.
         """
-        connection = self.Metric(*connection_args)
-        tensor = connection.ricci_tensor(gs.array(base_point))
+        space = self.Space(*args)
+        tensor = space.ricci_tensor(gs.array(base_point))
         result = gs.shape(tensor)
         self.assertAllClose(result, expected)
 
-    def test_scalar_curvature_shape(self, connection_args, base_point, expected):
+    def test_scalar_curvature_shape(self, args, base_point, expected):
         """Check that scalar_curvature returns an array of the expected shape.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         base_point : array-like
             Point on the manifold.
         expected : tuple
             Expected shape for the result of the ricci_tensor function.
         """
-        connection = self.Metric(*connection_args)
-        tensor = connection.scalar_curvature(gs.array(base_point))
+        space = self.Space(*args)
+        tensor = space.scalar_curvature(gs.array(base_point))
         result = gs.shape(tensor)
         self.assertAllClose(result, expected)
 
 
 class RiemannianMetricTestCase(ConnectionTestCase):
-    def test_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
+    def test_dist_is_symmetric(self, args, point_a, point_b, rtol, atol):
         """Check that the geodesic distance is symmetric.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point_a : array-like
             Point on the manifold.
         point_b : array-like
@@ -967,18 +966,18 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        dist_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
-        dist_b_a = metric.dist(gs.array(point_b), gs.array(point_a))
+        space = self.Space(*args)
+        dist_a_b = space.metric.dist(gs.array(point_a), gs.array(point_b))
+        dist_b_a = space.metric.dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(dist_a_b, dist_b_a, rtol=rtol, atol=atol)
 
-    def test_dist_is_positive(self, metric_args, point_a, point_b, atol):
+    def test_dist_is_positive(self, args, point_a, point_b, atol):
         """Check that the geodesic distance is positive.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point_a : array-like
             Point on the manifold.
         point_b : array-like
@@ -986,18 +985,18 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
+        space = self.Space(*args)
+        sd_a_b = space.metric.dist(gs.array(point_a), gs.array(point_b))
         result = gs.all(sd_a_b > -1 * atol)
         self.assertTrue(result)
 
-    def test_squared_dist_is_symmetric(self, metric_args, point_a, point_b, rtol, atol):
+    def test_squared_dist_is_symmetric(self, args, point_a, point_b, rtol, atol):
         """Check that the squared geodesic distance is symmetric.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point_a : array-like
             Point on the manifold.
         point_b : array-like
@@ -1007,18 +1006,18 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        sd_a_b = metric.squared_dist(gs.array(point_a), gs.array(point_b))
-        sd_b_a = metric.squared_dist(gs.array(point_b), gs.array(point_a))
+        space = self.Space(*args)
+        sd_a_b = space.metric.squared_dist(gs.array(point_a), gs.array(point_b))
+        sd_b_a = space.metric.squared_dist(gs.array(point_b), gs.array(point_a))
         self.assertAllClose(sd_a_b, sd_b_a, rtol=rtol, atol=atol)
 
-    def test_squared_dist_is_positive(self, metric_args, point_a, point_b, atol):
+    def test_squared_dist_is_positive(self, args, point_a, point_b, atol):
         """Check that the squared geodesic distance is positive.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point_a : array-like
             Point on the manifold.
         point_b : array-like
@@ -1026,21 +1025,21 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
+        space = self.Space(*args)
 
-        sd_a_b = metric.dist(gs.array(point_a), gs.array(point_b))
+        sd_a_b = space.metric.dist(gs.array(point_a), gs.array(point_b))
         result = gs.all(sd_a_b > -1 * atol)
         self.assertTrue(result)
 
     def test_inner_product_is_symmetric(
-        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+        self, args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
     ):
         """Check that the inner product is symmetric.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         tangent_vec_a : array-like
             Tangent vector to the manifold at base_point.
         tangent_vec_b : array-like
@@ -1052,14 +1051,14 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        ip_a_b = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        ip_b_a = metric.inner_product(tangent_vec_b, tangent_vec_a, base_point)
+        space = self.Space(*args)
+        ip_a_b = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        ip_b_a = space.metric.inner_product(tangent_vec_b, tangent_vec_a, base_point)
         self.assertAllClose(ip_a_b, ip_b_a, rtol, atol)
 
     def test_parallel_transport_ivp_is_isometry(
         self,
-        metric_args,
+        args,
         space,
         tangent_vec,
         base_point,
@@ -1074,8 +1073,8 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         space : Manifold
             Manifold where metric is defined.
         tangent_vec : array-like
@@ -1091,13 +1090,12 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
+        space = self.Space(*args)
 
-        end_point = metric.exp(direction, base_point)
+        end_point = space.metric.exp(direction, base_point)
 
-        transported = metric.parallel_transport(tangent_vec, base_point, direction)
+        transported = space.metric.parallel_transport(tangent_vec, base_point, direction)
         result = _is_isometry(
-            metric,
             space,
             tangent_vec,
             transported,
@@ -1111,7 +1109,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     def test_parallel_transport_bvp_is_isometry(
         self,
-        metric_args,
+        args,
         space,
         tangent_vec,
         base_point,
@@ -1126,8 +1124,8 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         space : Manifold
             Manifold where metric is defined.
         tangent_vec : array-like
@@ -1143,13 +1141,12 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
+        space = self.Space(*args)
 
-        transported = metric.parallel_transport(
+        transported = space.metric.parallel_transport(
             tangent_vec, base_point, end_point=end_point
         )
         result = _is_isometry(
-            metric,
             space,
             tangent_vec,
             transported,
@@ -1161,13 +1158,13 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         expected = gs.array(len(result) * [True])
         self.assertAllClose(result, expected)
 
-    def test_dist_is_norm_of_log(self, metric_args, point_a, point_b, rtol, atol):
+    def test_dist_is_norm_of_log(self, args, point_a, point_b, rtol, atol):
         """Check that distance is norm of log.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point_a : array-like
             Point on the manifold.
         point_b : array-like
@@ -1177,18 +1174,18 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        log = metric.norm(metric.log(point_a, point_b), point_b)
-        dist = metric.dist(point_a, point_b)
+        space = self.Space(*args)
+        log = space.metric.norm(space.metric.log(point_a, point_b), point_b)
+        dist = space.metric.dist(point_a, point_b)
         self.assertAllClose(log, dist, rtol, atol)
 
-    def test_dist_point_to_itself_is_zero(self, metric_args, point, rtol, atol):
+    def test_dist_point_to_itself_is_zero(self, args, point, rtol, atol):
         """Check that distance is norm of log.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point : array-like
             Point on the manifold.
         rtol : float
@@ -1196,20 +1193,20 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        dist = metric.dist(point, point)
+        space = self.Space(*args)
+        dist = space.metric.dist(point, point)
         expected = gs.zeros_like(dist)
         self.assertAllClose(dist, expected, rtol, atol)
 
     def test_triangle_inequality_of_dist(
-        self, metric_args, point_a, point_b, point_c, atol
+        self, args, point_a, point_b, point_c, atol
     ):
         """Check that distance satisfies traingle inequality.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point_a : array-like
             Point on the manifold.
         point_b : array-like
@@ -1219,27 +1216,27 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        dist_ab = metric.dist(point_a, point_b)
-        dist_bc = metric.dist(point_b, point_c)
-        dist_ac = metric.dist(point_a, point_c)
+        space = self.Space(*args)
+        dist_ab = space.metric.dist(point_a, point_b)
+        dist_bc = space.metric.dist(point_b, point_c)
+        dist_ac = space.metric.dist(point_a, point_c)
         result = gs.all(dist_ab + dist_bc + atol >= dist_ac)
         self.assertTrue(result)
 
     def test_covariant_riemann_tensor_is_skew_symmetric_1(
-        self, metric_args, base_point
+        self, args, base_point
     ):
         """Check that the covariant riemannian tensor verifies first skew symmetry.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         base_point : array-like
             Point on the manifold.
         """
-        metric = self.Metric(*metric_args)
-        covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
+        space = self.Space(*args)
+        covariant_metric_tensor = space.covariant_riemann_tensor(base_point)
         skew_symmetry_1 = covariant_metric_tensor + gs.moveaxis(
             covariant_metric_tensor, [-2, -1], [-1, -2]
         )
@@ -1247,37 +1244,37 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         self.assertAllClose(result, gs.array(True))
 
     def test_covariant_riemann_tensor_is_skew_symmetric_2(
-        self, metric_args, base_point
+        self, args, base_point
     ):
         """Check that the covariant riemannian tensor verifies second skew symmetry.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         base_point : array-like
             Point on the manifold.
         """
-        metric = self.Metric(*metric_args)
-        covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
+        space = self.Space(*args)
+        covariant_metric_tensor = space.covariant_riemann_tensor(base_point)
         skew_symmetry_2 = covariant_metric_tensor + gs.moveaxis(
             covariant_metric_tensor, [-4, -3], [-3, -4]
         )
         result = gs.all(gs.abs(skew_symmetry_2) < gs.atol)
         self.assertAllClose(result, gs.array(True))
 
-    def test_covariant_riemann_tensor_bianchi_identity(self, metric_args, base_point):
+    def test_covariant_riemann_tensor_bianchi_identity(self, args, base_point):
         """Check that the covariant riemannian tensor verifies the Bianchi identity.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         base_point : array-like
             Point on the manifold.
         """
-        metric = self.Metric(*metric_args)
-        covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
+        space = self.Space(*args)
+        covariant_metric_tensor = space.covariant_riemann_tensor(base_point)
         bianchi_identity = (
             covariant_metric_tensor
             + gs.moveaxis(covariant_metric_tensor, [-3, -2, -1], [-2, -1, -3])
@@ -1287,19 +1284,19 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         self.assertAllClose(result, gs.array(True))
 
     def test_covariant_riemann_tensor_is_interchange_symmetric(
-        self, metric_args, base_point
+        self, args, base_point
     ):
         """Check that the covariant riemannian tensor verifies interchange symmetry.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         base_point : array-like
             Point on the manifold.
         """
-        metric = self.Metric(*metric_args)
-        covariant_metric_tensor = metric.covariant_riemann_tensor(base_point)
+        space = self.Space(*args)
+        covariant_metric_tensor = space.covariant_riemann_tensor(base_point)
         interchange_symmetry = covariant_metric_tensor - gs.moveaxis(
             covariant_metric_tensor, [-4, -3, -2, -1], [-2, -1, -4, -3]
         )
@@ -1307,35 +1304,35 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         self.assertAllClose(result, gs.array(True))
 
     def test_sectional_curvature_shape(
-        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, args, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
         """Check that scalar_curvature returns an array of the expected shape.
 
         Parameters
         ----------
-        connection_args : tuple
-            Arguments to pass to constructor of the connection.
+        args : tuple
+            Arguments to pass to constructor of the space.
         base_point : array-like
             Point on the manifold.
         expected : tuple
             Expected shape for the result of the ricci_tensor function.
         """
-        metric = self.Metric(*metric_args)
-        sectional = metric.sectional_curvature(tangent_vec_a, tangent_vec_b, base_point)
+        space = self.Space(*args)
+        sectional = space.sectional_curvature(tangent_vec_a, tangent_vec_b, base_point)
         result = sectional.shape
         self.assertAllClose(result, expected)
 
 
 class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
     def test_inner_product_is_hermitian(
-        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+        self, args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
     ):
         """Check that the inner product is Hermitian.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         tangent_vec_a : array-like
             Tangent vector to the manifold at base_point.
         tangent_vec_b : array-like
@@ -1347,15 +1344,15 @@ class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        ip_a_b = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        ip_b_a = metric.inner_product(tangent_vec_b, tangent_vec_a, base_point)
+        space = self.Space(*args)
+        ip_a_b = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        ip_b_a = space.metric.inner_product(tangent_vec_b, tangent_vec_a, base_point)
         self.assertAllClose(ip_a_b, gs.conj(ip_b_a), rtol, atol)
 
 
 class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
     def test_innerproduct_is_sum_of_innerproducts(
-        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+        self, args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
     ):
         """Check the inner-product of the product metric.
 
@@ -1369,8 +1366,8 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         tangent_vec_a : array-like
             Point on the manifold.
         tangent_vec_b : array-like
@@ -1382,16 +1379,16 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        metrics_list = metric_args[0]
-        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        space = self.Space(*args)
+        metrics_list = args[0]
+        result = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = sum(
-            metric.inner_product(tangent_vec_a[i], tangent_vec_b[i], base_point[i])
+            space.metric.inner_product(tangent_vec_a[i], tangent_vec_b[i], base_point[i])
             for i, metric in enumerate(metrics_list)
         )
         self.assertAllClose(result, expected, rtol, atol)
 
-    def test_metric_matrix_is_block_diagonal(self, metric_args, base_point):
+    def test_metric_matrix_is_block_diagonal(self, args, base_point):
         """Check that the metric matrix has the correct block diagonal form.
 
         Check that the metric matrix of the product metric has a block diagonal
@@ -1406,16 +1403,16 @@ class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
         ----------
         ...
         """
-        metric = self.Metric(*metric_args)
-        result = metric.metric_matrix(base_point)
-        individual_metric_matrices = [metric.matrix for metric in metric_args[0]]
+        space = self.Space(*args)
+        result = space.metric_matrix(base_point)
+        individual_metric_matrices = [space.matrix for metric in args[0]]
         expected = reduce(gs.kron, individual_metric_matrices)
         self.assertAllClose(result, expected)
 
 
 class NFoldMetricTestCase(RiemannianMetricTestCase):
     def test_innerproduct_is_sum_of_innerproducts(
-        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+        self, args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
     ):
         """Check the inner-product of the product metric induced by the n-fold metric.
 
@@ -1429,8 +1426,8 @@ class NFoldMetricTestCase(RiemannianMetricTestCase):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         tangent_vec_a : array-like, shape=[n_copies, *base_shape]
             Tangent vector on the n-fold manifold.
         tangent_vec_b : array-like, shape=[n_copies, *base_shape]
@@ -1442,11 +1439,11 @@ class NFoldMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        base_metric = metric_args[0]
-        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        space = self.Space(*args)
+        base_metric = args[0]
+        result = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = sum(
-            base_metric.inner_product(
+            base_space.metric.inner_product(
                 base_tangent_vec_a, base_tangent_vec_b, base_base_point
             )
             for base_tangent_vec_a, base_tangent_vec_b, base_base_point in zip(
@@ -1458,7 +1455,7 @@ class NFoldMetricTestCase(RiemannianMetricTestCase):
 
 class QuotientMetricTestCase(RiemannianMetricTestCase):
     def test_dist_is_smaller_than_bundle_dist(
-        self, metric_args, bundle, point_a, point_b, atol
+        self, args, bundle, point_a, point_b, atol
     ):
         """Check that the quotient distance is smaller than the distance in the bundle.
 
@@ -1467,8 +1464,8 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         bundle : FuberBundle
             Fiber Bundle object.
         point_a : array-like
@@ -1478,13 +1475,13 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        quotient_distance = metric.dist(point_a, point_b)
+        space = self.Space(*args)
+        quotient_distance = space.metric.dist(point_a, point_b)
         bundle_distance = bundle.total_space_metric(point_a, point_b)
         result = gs.all(bundle_distance - quotient_distance > atol)
         self.assertTrue(result)
 
-    def test_log_is_horizontal(self, metric_args, bundle, point, base_point, atol):
+    def test_log_is_horizontal(self, args, bundle, point, base_point, atol):
         """Check the quotient log is a horizontal tangent vector.
 
         Check that the quotient metric logarithm gives a tangent vector
@@ -1492,8 +1489,8 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         bundle : FuberBundle
             Fiber Bundle object.
         point : array-like
@@ -1503,15 +1500,15 @@ class QuotientMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        log = metric.log(point, base_point)
+        space = self.Space(*args)
+        log = space.metric.log(point, base_point)
         result = gs.all(bundle.is_horizontal(log, base_point, atol))
         self.assertTrue(result)
 
 
 class PullbackMetricTestCase(RiemannianMetricTestCase):
     def test_innerproduct_is_embedding_innerproduct(
-        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+        self, args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
     ):
         """Check that the inner-product correspond to the embedding inner-product.
 
@@ -1523,8 +1520,8 @@ class PullbackMetricTestCase(RiemannianMetricTestCase):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         tangent_vec_a : array-like
             Tangent vector to the manifold at base_point.
         tangent_vec_b : array-like
@@ -1536,11 +1533,11 @@ class PullbackMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        immersion = metric.immersion
-        differential_immersion = metric.tangent_immersion
-        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        expected = metric.embedding_metric(
+        space = self.Space(*args)
+        immersion = space.immersion
+        differential_immersion = space.tangent_immersion
+        result = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        expected = space.embedding_metric(
             differential_immersion(tangent_vec_a, base_point),
             differential_immersion(tangent_vec_b, base_point),
             immersion(base_point),
@@ -1550,18 +1547,18 @@ class PullbackMetricTestCase(RiemannianMetricTestCase):
 
 class PullbackDiffeoMetricTestCase(TestCase):
     @property
-    def Metric(self):
-        return self.testing_data.Metric
+    def Space(self):
+        return self.testing_data.Space
 
-    def test_diffeomorphism_is_reciprocal(self, metric_args, point, rtol, atol):
+    def test_diffeomorphism_is_reciprocal(self, args, point, rtol, atol):
         """Check that the diffeomorphism and its inverse coincide.
 
         Check implementation of diffeomorphism and reciprocal does agree.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point : array-like
             Point on manifold.
         rtol : float
@@ -1569,13 +1566,13 @@ class PullbackDiffeoMetricTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
+        space = self.Space(*args)
 
-        point_bis = metric.inverse_diffeomorphism(metric.diffeomorphism(point))
+        point_bis = space.inverse_diffeomorphism(space.diffeomorphism(point))
         self.assertAllClose(point_bis, point, rtol, atol)
 
     def test_tangent_diffeomorphism_is_reciprocal(
-        self, metric_args, point, tangent_vector, rtol, atol
+        self, args, point, tangent_vector, rtol, atol
     ):
         """Check that the diffeomorphism differential and its inverse coincide.
 
@@ -1583,8 +1580,8 @@ class PullbackDiffeoMetricTestCase(TestCase):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         point : array-like
             Point on manifold.
         tangent_vector : array-like
@@ -1594,18 +1591,18 @@ class PullbackDiffeoMetricTestCase(TestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
+        space = self.Space(*args)
 
-        image_point = metric.diffeomorphism(point)
+        image_point = space.diffeomorphism(point)
 
-        tangent_vector_bis = metric.inverse_tangent_diffeomorphism(
-            metric.tangent_diffeomorphism(tangent_vector, point), image_point
+        tangent_vector_bis = space.inverse_tangent_diffeomorphism(
+            space.tangent_diffeomorphism(tangent_vector, point), image_point
         )
 
         self.assertAllClose(tangent_vector_bis, tangent_vector, rtol, atol)
 
     def test_matrix_innerproduct_and_embedded_innerproduct_coincide(
-        self, metric_args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
+        self, args, tangent_vec_a, tangent_vec_b, base_point, rtol, atol
     ):
         """Check that the inner-product embedded and with metric matrix coincide.
 
@@ -1617,8 +1614,8 @@ class PullbackDiffeoMetricTestCase(TestCase):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         tangent_vec_a : array-like
             Tangent vector to the manifold at base_point.
         tangent_vec_b : array-like
@@ -1635,7 +1632,7 @@ class PullbackDiffeoMetricTestCase(TestCase):
 
 class InvariantMetricTestCase(RiemannianMetricTestCase):
     def test_exp_at_identity_of_lie_algebra_belongs(
-        self, metric_args, group, lie_algebra_point, atol
+        self, args, group, lie_algebra_point, atol
     ):
         """Check that exp of a lie algebra element is in group.
 
@@ -1644,8 +1641,8 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         group : LieGroup
             Lie Group on which invariant metric is defined.
         lie_algebra_point : array-like
@@ -1653,20 +1650,20 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance for the belongs function.
         """
-        metric = self.Metric(*metric_args)
-        exp = metric.exp(lie_algebra_point, group.identity)
+        space = self.Space(*args)
+        exp = space.metric.exp(lie_algebra_point, group.identity)
         result = gs.all(group.belongs(exp, atol))
         self.assertTrue(result)
 
     def test_log_at_identity_belongs_to_lie_algebra(
-        self, metric_args, group, point, atol
+        self, args, group, point, atol
     ):
         """Check that log belongs to lie algebra.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         group : LieGroup
             Lie Group on which invariant metric is defined.
         point : array-like
@@ -1676,18 +1673,18 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance for the belongs function.
         """
-        metric = self.Metric(*metric_args)
-        log = metric.log(point, group.identity)
+        space = self.Space(*args)
+        log = space.metric.log(point, group.identity)
         result = gs.all(group.lie_algebra.belongs(log, atol))
         self.assertTrue(result)
 
-    def test_exp_after_log_at_identity(self, metric_args, group, point, rtol, atol):
+    def test_exp_after_log_at_identity(self, args, group, point, rtol, atol):
         """Check that exp and log at identity are inverse.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         group : LieGroup
             Lie Group on which invariant metric is defined.
         point : array-like
@@ -1699,20 +1696,20 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        log = metric.log(point, group.identity)
-        result = metric.exp(log, group.identity)
+        space = self.Space(*args)
+        log = space.metric.log(point, group.identity)
+        result = space.metric.exp(log, group.identity)
         self.assertAllClose(result, point, rtol, atol)
 
     def test_log_after_exp_at_identity(
-        self, metric_args, group, tangent_vec, rtol, atol
+        self, args, group, tangent_vec, rtol, atol
     ):
         """Check that log and exp at identity are inverse.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        args : tuple
+            Arguments to pass to constructor of the space.
         group : LieGroup
             Lie Group on which invariant metric is defined.
         point : array-like
@@ -1724,7 +1721,7 @@ class InvariantMetricTestCase(RiemannianMetricTestCase):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
-        exp = metric.exp(tangent_vec, group.identity)
-        result = metric.log(exp, group.identity)
+        space = self.Space(*args)
+        exp = space.metric.exp(tangent_vec, group.identity)
+        result = space.metric.log(exp, group.identity)
         self.assertAllClose(result, tangent_vec, rtol, atol)
