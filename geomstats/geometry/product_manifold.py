@@ -167,10 +167,6 @@ class ProductManifold(Manifold):
             check_point_shape(point, factor)
 
         if self.default_point_type == "vector":
-            for response in points:
-                start_of_coords = -1 * len(response.shape)
-                if start_of_coords < -1:
-                    response.reshape(response.shape[:start_of_coords] + (-1,))
             return gs.concatenate(points, axis=-1)
         return gs.stack(points, axis=-2)
 
@@ -283,7 +279,7 @@ class ProductManifold(Manifold):
 
     @staticmethod
     def _get_method(manifold, method_name, array_args, num_args):
-        """Call manifold.method_name"""
+        """Call manifold.method_name."""
         return getattr(manifold, method_name)(**array_args, **num_args)
 
     def _pool_outputs_from_function(self, outputs):
@@ -306,10 +302,16 @@ class ProductManifold(Manifold):
         -------
         pooled_output : array-like, shape {(...,), (..., self.shape)}
         """
+        # TODO: simplify after cleaning gs.squeeze
         if (
-            gs.all([gs.is_array(factor_output) for factor_output in outputs])
+            gs.all(
+                [
+                    gs.is_array(factor_output) or gs.is_bool(factor_output)
+                    for factor_output in outputs
+                ]
+            )
             and all_equal([factor_output.shape for factor_output in outputs])
-            and gs.all([factor_output.dtype == "bool" for factor_output in outputs])
+            and gs.all([gs.is_bool(factor_output) for factor_output in outputs])
         ):
             outputs = gs.stack(outputs)
             outputs = gs.all(outputs, axis=0)

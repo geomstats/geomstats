@@ -120,10 +120,6 @@ class ProductRiemannianMetric(RiemannianMetric):
             geomstats.errors.check_point_shape(point, factor)
 
         if self.default_point_type == "vector":
-            for response in points:
-                start_of_coords = -1 * len(response.shape)
-                if start_of_coords < -1:
-                    response.reshape(response.shape[:start_of_coords] + (-1,))
             return gs.concatenate(points, axis=-1)
         return gs.stack(points, axis=-2)
 
@@ -240,7 +236,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     @staticmethod
     def _get_method(metric, method_name, array_args, num_args):
-        """Call metric.method_name"""
+        """Call metric.method_name."""
         return getattr(metric, method_name)(**array_args, **num_args)
 
     def metric_matrix(self, base_point=None):

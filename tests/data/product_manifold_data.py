@@ -51,7 +51,7 @@ class ProductManifoldTestData(_ManifoldTestData):
         for manifolds, default_point in zip(manifolds_list, default_point_list)
     ]
 
-    n_points_list = random.sample(range(2, 5), 2)
+    n_points_list = [1] + random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
     Space = ProductManifold
@@ -99,6 +99,22 @@ class ProductManifoldTestData(_ManifoldTestData):
         ]
 
         return self.generate_tests(smoke_data)
+
+    def embed_to_product_test_data(self):
+        manifolds = smoke_manifolds_1
+
+        random_data = [
+            dict(
+                manifolds=manifolds,
+                factors_points=[manifold.random_point() for manifold in manifolds],
+            ),
+            dict(
+                manifolds=manifolds,
+                factors_points=[manifold.random_point(2) for manifold in manifolds],
+            ),
+        ]
+
+        return self.generate_tests([], random_data)
 
 
 class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
