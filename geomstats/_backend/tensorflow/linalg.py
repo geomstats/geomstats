@@ -2,7 +2,7 @@
 
 import scipy as _scipy
 import tensorflow as _tf
-from tensorflow.linalg import norm
+from tensorflow.linalg import norm as norm_tf
 
 from .._backend_config import tf_atol as atol
 
@@ -105,6 +105,12 @@ def is_single_matrix_pd(mat):
     """Check if 2D square matrix is positive definite."""
     if mat.shape[0] != mat.shape[1]:
         return False
+    if mat.dtype in [_tf.complex64, _tf.complex128]:
+        is_hermitian = _tf.math.reduce_all(mat == _tf.math.conj(_tf.transpose(mat)))
+        if not is_hermitian:
+            return False
+        eigvals = _tf.linalg.eigvalsh(mat)
+        return _tf.reduce_min(_tf.math.real(eigvals)).numpy() > 0
     try:
         cf = _tf.linalg.cholesky(mat)
         return ~_tf.math.reduce_any(_tf.math.is_nan(cf)).numpy()
@@ -112,3 +118,8 @@ def is_single_matrix_pd(mat):
         if "Cholesky decomposition was not successful" in e.message:
             return False
         raise e
+
+
+def norm(vector, ord="euclidean", axis=None, keepdims=None, name=None):
+    """Compute the norm of vectors, matrices and tensors."""
+    return _tf.math.real(norm_tf(vector, ord, axis, keepdims, name))
