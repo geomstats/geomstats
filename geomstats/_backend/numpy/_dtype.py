@@ -26,6 +26,10 @@ def is_complex(x):
     return x.dtype.kind == "c"
 
 
+def is_bool(x):
+    return x.dtype.kind == "b"
+
+
 def as_dtype(value):
     """Transform string representing dtype in dtype."""
     return _np.dtype(value)

@@ -49,6 +49,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             submersion=lambda x: matrices.mul(matrices.transpose(x), x),
             tangent_submersion=lambda v, x: 2
             * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
+            default_coords_type="extrinsic",
             **kwargs,
         )
         self.bi_invariant_metric = BiInvariantMetric(group=self)
