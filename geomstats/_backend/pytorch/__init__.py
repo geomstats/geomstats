@@ -105,6 +105,10 @@ def is_complex(x):
     return x.dtype.is_complex
 
 
+def is_bool(x):
+    return x.dtype is _torch.bool
+
+
 def matmul(x, y, out=None):
     for array_ in [x, y]:
         if array_.ndim == 1:
