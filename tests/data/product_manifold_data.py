@@ -22,17 +22,35 @@ smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
 
 
 class ProductManifoldTestData(_ManifoldTestData):
-    n_list = random.sample(range(2, 4), 2)
-    default_point_list = ["vector", "matrix"]
-    manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
-    space_args_list = [
-        (manifold, None, default_point)
-        for manifold, default_point in zip(manifolds_list, default_point_list)
+    manifolds_list = [
+        [Hypersphere(dim=3), Hyperboloid(dim=3)],
+        [Hypersphere(dim=3), Hyperboloid(dim=3)],
+        [Hypersphere(dim=3), Hyperboloid(dim=4)],
+        [Euclidean(dim=2), Euclidean(dim=1), Euclidean(dim=4)],
+        [Hypersphere(dim=1), Euclidean(dim=1)],
     ]
+    default_point_list = ["vector", "matrix", "vector", "vector", "vector"]
+    default_coords_type_list = [
+        "extrinsic",
+        "extrinsic",
+        "extrinsic",
+        "intrinsic",
+        "extrinsic",
+    ]
+
     shape_list = [
-        (2, n + 1) if default_point == "matrix" else (2 * (n + 1),)
-        for n, default_point in zip(n_list, default_point_list)
+        (2 * (3 + 1),),
+        (2, 3 + 1),
+        ((3 + 1) + (4 + 1),),
+        (7,),
+        (2 + 1,),
     ]
+
+    space_args_list = [
+        (manifolds, None, default_point)
+        for manifolds, default_point in zip(manifolds_list, default_point_list)
+    ]
+
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -72,6 +90,16 @@ class ProductManifoldTestData(_ManifoldTestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def default_coords_type_test_data(self):
+        smoke_data = [
+            dict(space_args=space_args, expected=default_coords_type)
+            for space_args, default_coords_type in zip(
+                self.space_args_list, self.default_coords_type_list
+            )
+        ]
+
+        return self.generate_tests(smoke_data)
+
 
 class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 3), 1)
@@ -104,14 +132,22 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
             dict(
                 manifolds=smoke_metrics_2,
                 default_point_type="vector",
-                point=ProductManifold(smoke_manifolds_1, default_point_type="vector").random_point(5),
-                base_point=ProductManifold(smoke_manifolds_1, default_point_type="vector").random_point(5),
+                point=ProductManifold(
+                    smoke_manifolds_1, default_point_type="vector"
+                ).random_point(5),
+                base_point=ProductManifold(
+                    smoke_manifolds_1, default_point_type="vector"
+                ).random_point(5),
             ),
             dict(
                 manifolds=smoke_metrics_2,
                 default_point_type="matrix",
-                point=ProductManifold(smoke_manifolds_2, default_point_type="matrix").random_point(5),
-                base_point=ProductManifold(smoke_manifolds_2, default_point_type="matrix").random_point(5),
+                point=ProductManifold(
+                    smoke_manifolds_2, default_point_type="matrix"
+                ).random_point(5),
+                base_point=ProductManifold(
+                    smoke_manifolds_2, default_point_type="matrix"
+                ).random_point(5),
             ),
         ]
         return self.generate_tests(smoke_data)

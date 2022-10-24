@@ -67,7 +67,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         if scales is not None:
             for scale in scales:
-                geomstats.errors.check_positive(scale, 'Each value in scales')
+                geomstats.errors.check_positive(scale, "Each value in scales")
         self.scales = scales
 
         dim = sum(self._factor_dims)
@@ -77,11 +77,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         sig_pos = sum(sig[0] for sig in self._factor_signatures)
         sig_neg = sum(sig[1] for sig in self._factor_signatures)
 
-        super().__init__(
-            dim=dim,
-            signature=(sig_pos, sig_neg),
-            shape=shape
-        )
+        super().__init__(dim=dim, signature=(sig_pos, sig_neg), shape=shape)
 
         self.cum_index = gs.cumsum(self._factor_shape_sizes)[:-1]
 
@@ -91,12 +87,12 @@ class ProductRiemannianMetric(RiemannianMetric):
             return (sum([prod(factor_shape) for factor_shape in self._factor_shapes]),)
         if not all_equal(self._factor_shapes):
             raise ValueError(
-                "A default_point_type of \'matrix\' can only be used if all "
+                "A default_point_type of 'matrix' can only be used if all "
                 "metrics have the same shape."
             )
         if not len(self._factor_shapes[0]) == 1:
             raise ValueError(
-                "A default_point_type of \'matrix\' can only be used if all "
+                "A default_point_type of 'matrix' can only be used if all "
                 "metrics have vector type."
             )
         return (len(self.factors), *self.factors[0].shape)
@@ -123,7 +119,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         for point, factor in zip(points, self.factors):
             geomstats.errors.check_point_shape(point, factor)
 
-        if self.default_point_type == 'vector':
+        if self.default_point_type == "vector":
             for response in points:
                 start_of_coords = -1 * len(response.shape)
                 if start_of_coords < -1:
@@ -204,13 +200,12 @@ class ProductRiemannianMetric(RiemannianMetric):
         # TODO lists, as this may be the form in which they are available. This should
         # TODO be allowed, rather than packing and unpacking them repeatedly.
 
-        args_list, numerical_args = \
-            self._validate_and_prepare_args_for_iteration(args)
+        args_list, numerical_args = self._validate_and_prepare_args_for_iteration(args)
 
-        out = [self._get_method(
-            self.factors[i], func, args_list[i], numerical_args
-        )
-            for i in range(len(self.factors))]
+        out = [
+            self._get_method(self.factors[i], func, args_list[i], numerical_args)
+            for i in range(len(self.factors))
+        ]
 
         return out
 
@@ -268,10 +263,12 @@ class ProductRiemannianMetric(RiemannianMetric):
             Each block is the same size as the metric_matrix for that factor.
         """
         factor_matrices = self._iterate_over_metrics(
-            'metric_matrix', {'base_point': base_point})
+            "metric_matrix", {"base_point": base_point}
+        )
         if self.scales is not None:
             factor_matrices = [
-                matrix * scale for matrix, scale in zip(factor_matrices, self.scales)]
+                matrix * scale for matrix, scale in zip(factor_matrices, self.scales)
+            ]
         metric_matrix = _block_diagonal(factor_matrices)
         return metric_matrix
 
@@ -310,7 +307,8 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         if self.scales is not None:
             inner_products = [
-                product * scale for product, scale in zip(inner_products, self.scales)]
+                product * scale for product, scale in zip(inner_products, self.scales)
+            ]
 
         return sum(inner_products)
 

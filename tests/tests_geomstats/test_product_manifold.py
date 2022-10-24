@@ -28,6 +28,13 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
         result = space.regularize(point)
         self.assertAllClose(result, point)
 
+    def test_default_coords_type(self, space_args, expected):
+        space = self.Space(*space_args)
+        self.assertTrue(
+            space.default_coords_type == expected,
+            msg=f"Expected `{expected}`, but it is `{space.default_coords_type}`",
+        )
+
 
 class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
@@ -69,7 +76,9 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     def test_dist_exp_after_log_norm(
         self, manifolds, default_point_type, n_samples, einsum_str, expected
     ):
-        space = ProductManifold(factors=manifolds, default_point_type=default_point_type)
+        space = ProductManifold(
+            factors=manifolds, default_point_type=default_point_type
+        )
         point = space.random_point(n_samples)
         base_point = space.random_point(n_samples)
 

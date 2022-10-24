@@ -54,7 +54,8 @@ def check_belongs(point, manifold, **kwargs):
     if not gs.all(manifold.belongs(point, **kwargs)):
         raise RuntimeError(
             f"Some points do not belong to manifold '{type(manifold).__name__}'"
-            f" of dimension {manifold.dim}.")
+            f" of dimension {manifold.dim}."
+        )
 
 
 def check_parameter_accepted_values(param, param_name, accepted_values):
@@ -105,9 +106,11 @@ def check_point_shape(point, manifold):
         If the final dimensions of point are not equal to the final dimensions of
         manifold.
     """
-    shape_error_msg = (f"The shape of {point}, which is {point.shape}, is not"
-                       f" compatible with the shape of the {type(manifold).__name__}"
-                       f" object, which is {manifold.shape}.")
+    shape_error_msg = (
+        f"The shape of {point}, which is {point.shape}, is not"
+        f" compatible with the shape of the {type(manifold).__name__}"
+        f" object, which is {manifold.shape}."
+    )
     representation_type = -1 * len(manifold.shape)
     if point.shape[representation_type:] != manifold.shape[representation_type:]:
         raise ShapeError(shape_error_msg)

@@ -7,12 +7,12 @@ from math import prod
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.errors import ShapeError, check_point_shape
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.product_riemannian_metric import (
     NFoldMetric,
     ProductRiemannianMetric,
 )
-from geomstats.errors import ShapeError, check_point_shape
 
 
 def broadcast_shapes(*args):
@@ -70,7 +70,8 @@ class ProductManifold(Manifold):
     """
 
     def __init__(
-            self, factors, metric_scales=None, default_point_type="vector", **kwargs):
+        self, factors, metric_scales=None, default_point_type="vector", **kwargs
+    ):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type, "default_point_type", ["vector", "matrix"]
         )
@@ -79,7 +80,8 @@ class ProductManifold(Manifold):
         self._factor_dims = [factor.dim for factor in self.factors]
         self._factor_shapes = [factor.shape for factor in self.factors]
         self._factor_default_coords_types = [
-            factor.default_coords_type for factor in self.factors]
+            factor.default_coords_type for factor in self.factors
+        ]
 
         dim = sum(self._factor_dims)
 
@@ -93,11 +95,12 @@ class ProductManifold(Manifold):
         if metric_scales is not None:
             for scale in metric_scales:
                 geomstats.errors.check_positive(scale)
-        kwargs["metric"] = ProductRiemannianMetric(
-            [manifold.metric for manifold in factors],
-            default_point_type=default_point_type,
-            scales=metric_scales
-        )
+        kwargs.setdefault("metric",
+                          ProductRiemannianMetric(
+                              [manifold.metric for manifold in factors],
+                              default_point_type=default_point_type,
+                              scales=metric_scales,
+                          ))
 
         super().__init__(
             dim=dim,
@@ -108,12 +111,14 @@ class ProductManifold(Manifold):
 
         if self.default_coords_type == "extrinsic":
             factor_embedding_spaces = [
-                manifold.embedding_space if manifold.default_coords_type == "extrinsic"
+                manifold.embedding_space
+                if hasattr(manifold, "embedding_space")
                 else manifold
                 for manifold in factors
             ]
             self.embedding_space = ProductManifold(
-                factor_embedding_spaces, metric_scales=metric_scales)
+                factor_embedding_spaces, metric_scales=metric_scales
+            )
 
         self.cum_index = (
             gs.cumsum(self._factor_dims)[:-1]
@@ -127,12 +132,12 @@ class ProductManifold(Manifold):
             return (sum([prod(factor_shape) for factor_shape in self._factor_shapes]),)
         if not all_equal(self._factor_shapes):
             raise ValueError(
-                "A default_point_type of \'matrix\' can only be used if all "
+                "A default_point_type of 'matrix' can only be used if all "
                 "manifolds have the same shape."
             )
         if not len(self._factor_shapes[0]) == 1:
             raise ValueError(
-                "A default_point_type of \'matrix\' can only be used if all "
+                "A default_point_type of 'matrix' can only be used if all "
                 "manifolds have vector type."
             )
         return (len(self.factors), *self.factors[0].shape)
@@ -159,7 +164,7 @@ class ProductManifold(Manifold):
         for point, factor in zip(points, self.factors):
             check_point_shape(point, factor)
 
-        if self.default_point_type == 'vector':
+        if self.default_point_type == "vector":
             for response in points:
                 start_of_coords = -1 * len(response.shape)
                 if start_of_coords < -1:
@@ -235,13 +240,12 @@ class ProductManifold(Manifold):
         # TODO The user may prefer to provide the arguments as lists and receive them as
         # TODO lists, as this may be the form in which they are available. This should
         # TODO be allowed, rather than packing and unpacking them repeatedly.
-        args_list, numerical_args = \
-            self._validate_and_prepare_args_for_iteration(args)
+        args_list, numerical_args = self._validate_and_prepare_args_for_iteration(args)
 
-        out = [self._get_method(
-            self.factors[i], func, args_list[i], numerical_args
-        )
-            for i in range(len(self.factors))]
+        out = [
+            self._get_method(self.factors[i], func, args_list[i], numerical_args)
+            for i in range(len(self.factors))
+        ]
 
         out = self._pool_outputs_from_function(out)
         return out
@@ -301,9 +305,9 @@ class ProductManifold(Manifold):
         pooled_output : array-like, shape {(...,), (..., self.shape)}
         """
         if (
-                gs.all([gs.is_array(factor_output) for factor_output in outputs]) and
-                all_equal([factor_output.shape for factor_output in outputs]) and
-                gs.all([factor_output.dtype == "bool" for factor_output in outputs])
+            gs.all([gs.is_array(factor_output) for factor_output in outputs])
+            and all_equal([factor_output.shape for factor_output in outputs])
+            and gs.all([factor_output.dtype == "bool" for factor_output in outputs])
         ):
             outputs = gs.stack(outputs)
             outputs = gs.all(outputs, axis=0)
@@ -314,10 +318,13 @@ class ProductManifold(Manifold):
         except ShapeError:
             raise RuntimeError(
                 "Could not combine outputs - they are not points of the individual"
-                " factors.")
+                " factors."
+            )
         except ValueError:
-            raise RuntimeError("Could not combine outputs, probably because they could"
-                               " not be concatenated or stacked.")
+            raise RuntimeError(
+                "Could not combine outputs, probably because they could"
+                " not be concatenated or stacked."
+            )
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the manifold.
@@ -335,9 +342,7 @@ class ProductManifold(Manifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if the point belongs to the manifold.
         """
-        belongs = self._iterate_over_factors(
-            "belongs", {"point": point, "atol": atol}
-        )
+        belongs = self._iterate_over_factors("belongs", {"point": point, "atol": atol})
         return belongs
 
     def regularize(self, point):
@@ -355,9 +360,7 @@ class ProductManifold(Manifold):
             [n_manifolds, dim_each]}]
             Point in the manifold's canonical representation.
         """
-        regularized_point = self._iterate_over_factors(
-            "regularize", {"point": point}
-        )
+        regularized_point = self._iterate_over_factors("regularize", {"point": point})
         return regularized_point
 
     def random_point(self, n_samples=1, bound=1.0):
