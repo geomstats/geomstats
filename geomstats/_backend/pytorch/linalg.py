@@ -62,24 +62,10 @@ def sqrtm(x):
 
 
 def svd(x, full_matrices=True, compute_uv=True):
-    shape = x.shape
-    batch_shape = shape[:-2]
-    if x.ndim > 3:
-        x = _torch.reshape(x, (-1,) + shape[-2:])
-    is_vectorized = x.ndim == 3
-    axis = (0, 2, 1) if is_vectorized else (1, 0)
     if compute_uv:
-        u, s, v_t = _torch.svd(x, some=not full_matrices, compute_uv=compute_uv)
-        v_t = v_t.permute(axis)
-        if len(batch_shape) > 1:
-            v_t = _torch.reshape(v_t, batch_shape + v_t.shape[1:])
-            s = _torch.reshape(s, batch_shape + s.shape[1:])
-            u = _torch.reshape(u, batch_shape + u.shape[1:])
-        return u, s, v_t
-    s = _torch.svd(x, some=not full_matrices, compute_uv=compute_uv)[1]
-    if x.ndim > 3:
-        return _torch.reshape(s, batch_shape + s.shape[1:])
-    return s
+        return _torch.linalg.svd(x, full_matrices=full_matrices)
+
+    return _torch.linalg.svdvals(x)
 
 
 def norm(x, ord=None, axis=None):
