@@ -162,7 +162,7 @@ class ManifoldTestCase(TestCase):
         space = self.Space(*space_args)
         tangent_vec = space.random_tangent_vec(base_point, n_samples)
         result = space.is_tangent(tangent_vec, base_point, atol)
-        self.assertAllEqual(result, gs.ones(n_samples).squeeze())
+        self.assertAllEqual(result, gs.squeeze(gs.ones(n_samples)))
 
 
 class OpenSetTestCase(ManifoldTestCase):

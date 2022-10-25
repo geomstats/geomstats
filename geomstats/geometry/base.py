@@ -53,7 +53,7 @@ class VectorSpace(Manifold, abc.ABC):
         if point.ndim <= minimal_ndim:
             return belongs
         if belongs:
-            return gs.cast(gs.ones(point.shape[:-minimal_ndim]), bool)
+            return gs.ones(point.shape[:-minimal_ndim], dtype=bool)
         return False
 
     @staticmethod
@@ -204,7 +204,7 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         if point.ndim <= minimal_ndim:
             return belongs
         if belongs:
-            return gs.cast(gs.ones(point.shape[:-minimal_ndim]), bool)
+            return gs.ones(point.shape[:-minimal_ndim], dtype=bool)
         return False
 
     @staticmethod

@@ -54,7 +54,7 @@ class Matrices(VectorSpace):
         if ndim == 2:
             return belongs
         if belongs:
-            return gs.cast(gs.ones(point.shape[:-2]), bool)
+            return gs.ones(point.shape[:-2], dtype=bool)
         return False
 
     @staticmethod
