@@ -5,7 +5,6 @@ Lead author: Alice Le Brigant.
 from scipy.stats import multinomial
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.information_geometry.multinomial import (
     MultinomialDistributions,
     MultinomialMetric,
@@ -57,7 +56,6 @@ class CategoricalDistributions(MultinomialDistributions):
         samples : array-like, shape=[..., n_samples]
             Samples from categorical distributions.
         """
-        geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for param in point:

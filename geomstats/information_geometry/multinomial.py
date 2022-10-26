@@ -6,7 +6,6 @@ Lead author: Alice Le Brigant.
 from scipy.stats import dirichlet, multinomial
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
@@ -39,9 +38,11 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
             submersion=lambda x: gs.sum(x, axis=-1),
             value=1.0,
             tangent_submersion=lambda v, x: gs.sum(v, axis=-1),
+            shape=(dim + 1,),
+            metric=MultinomialMetric(dim=dim, n_draws=n_draws),
+            **kwargs,
         )
         self.n_draws = n_draws
-        self.metric = MultinomialMetric(dim=dim, n_draws=n_draws)
 
     def random_point(self, n_samples=1):
         """Generate parameters of multinomial distributions.
@@ -82,7 +83,6 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         projected_point : array-like, shape=[..., dim + 1]
             Point projected on the simplex.
         """
-        geomstats.errors.check_belongs(point, self.embedding_space)
         point_quadrant = gs.where(point < atol, atol, point)
         norm = gs.sum(point_quadrant, axis=-1)
         projected_point = gs.einsum("...,...i->...i", 1.0 / norm, point_quadrant)
@@ -108,7 +108,6 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
             Tangent vector in the tangent space of the simplex
             at the base point.
         """
-        geomstats.errors.check_belongs(vector, self.embedding_space)
         component_mean = gs.mean(vector, axis=-1)
         return gs.transpose(gs.transpose(vector) - component_mean)
 
@@ -134,11 +133,10 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
             Note that this can be of shape [n_points, n_samples, dim + 1] if
             several points and several samples are provided as inputs.
         """
-        geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for param in point:
-            counts = multinomial.rvs(self.n_draws, param, size=n_samples)
+            counts = gs.from_numpy(multinomial.rvs(self.n_draws, param, size=n_samples))
             if n_samples == 1:
                 samples.append(counts[0])
             else:
