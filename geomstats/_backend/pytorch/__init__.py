@@ -352,10 +352,11 @@ def linspace(start, stop, num=50, dtype=None):
 
 
 def equal(a, b, **kwargs):
-    if a.dtype == _torch.ByteTensor:
-        a = cast(a, _torch.uint8).float()
-    if b.dtype == _torch.ByteTensor:
-        b = cast(b, _torch.uint8).float()
+    if not is_array(a):
+        a = array(a)
+
+    if not is_array(b):
+        b = array(b)
     return _torch.eq(a, b, **kwargs)
 
 
