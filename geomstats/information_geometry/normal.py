@@ -247,3 +247,55 @@ class NormalMetric(PullbackDiffeoMetric):
         if metric_mat.ndim == 3 and metric_mat.shape[0] == 1:
             return metric_mat[0]
         return metric_mat
+
+    def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        r"""Compute the sectional curvature.
+
+        In the literature sectional curvature is noted K.
+        For two orthonormal tangent vectors :math:`x,y` at a base point,
+        the sectional curvature is defined by :math:`K(x,y) = <R(x, y)x, y>`.
+        For non-orthonormal vectors, it is
+        :math:`K(x,y) = <R(x, y)x, y> / \\|x \wedge y\\|^2`.
+        sectional_curvature(X, Y, P) = K(X,Y) where X, Y are tangent vectors
+        at base point P.
+
+        The information manifold of univariate normal distributions has constant
+        sectional curvature given by :math:`K = - 1/2`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., n, n]
+            Point in the manifold.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at `base_point`.
+
+        Reference
+        ---------
+        [CF1992] Do Carmo, M. P., & Flaherty Francis, J. (1992).
+        Riemannian geometry (Vol. 6). Boston: Birkhäuser.
+        """
+        sectional_curv = -0.5
+        if (
+            tangent_vec_a.ndim == 1
+            and tangent_vec_b.ndim == 1
+            and (base_point is None or base_point.ndim == 1)
+        ):
+            return gs.array(sectional_curv)
+
+        n_sec_curv = []
+        if base_point is not None and base_point.ndim == 2:
+            n_sec_curv.append(base_point.shape[0])
+        if tangent_vec_a.ndim == 2:
+            n_sec_curv.append(tangent_vec_a.shape[0])
+        if tangent_vec_b.ndim == 2:
+            n_sec_curv.append(tangent_vec_b.shape[0])
+        n_sec_curv = max(n_sec_curv)
+
+        return gs.tile(sectional_curv, (n_sec_curv,))
