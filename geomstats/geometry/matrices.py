@@ -55,7 +55,7 @@ class Matrices(VectorSpace):
             return belongs
         if belongs:
             return gs.ones(point.shape[:-2], dtype=bool)
-        return False
+        return gs.zeros(point.shape[:-2], dtype=bool)
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -326,8 +326,11 @@ class Matrices(VectorSpace):
         """
         if mat.ndim == 2:
             return gs.array(gs.linalg.is_single_matrix_pd(mat))
+
         shape = mat.shape
-        mat = gs.reshape(mat, (-1,) + shape[-2:])
+        if mat.ndim > 3:
+            mat = gs.reshape(mat, (-1,) + shape[-2:])
+
         is_pd = gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
         return gs.reshape(is_pd, shape[:-2])
 

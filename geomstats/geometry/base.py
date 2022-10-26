@@ -54,7 +54,7 @@ class VectorSpace(Manifold, abc.ABC):
             return belongs
         if belongs:
             return gs.ones(point.shape[:-minimal_ndim], dtype=bool)
-        return False
+        return gs.zeros(point.shape[:-minimal_ndim], dtype=bool)
 
     @staticmethod
     def projection(point):
