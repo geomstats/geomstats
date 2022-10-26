@@ -114,7 +114,6 @@ class HPDMatrices(OpenSet):
         samples = gs.stack([eye for i_sample in range(n_samples)], axis=0)
         samples = gs.reshape(samples, size)
         samples += bound * gs.random.rand(*size, dtype=gs.get_default_cdtype())
-        samples += 1j * bound * gs.random.rand(*size, dtype=gs.get_default_cdtype())
         samples = self.projection(samples)
         return samples
 
@@ -144,9 +143,6 @@ class HPDMatrices(OpenSet):
         sqrt_base_point = gs.linalg.sqrtm(base_point)
 
         tangent_vec_at_id_aux = gs.random.rand(*size, dtype=gs.get_default_cdtype())
-        tangent_vec_at_id_aux += 1j * gs.random.rand(
-            *size, dtype=gs.get_default_cdtype()
-        )
         tangent_vec_at_id_aux *= 2
         tangent_vec_at_id_aux -= 1 + 1j
         tangent_vec_at_id = tangent_vec_at_id_aux + ComplexMatrices.transconjugate(
