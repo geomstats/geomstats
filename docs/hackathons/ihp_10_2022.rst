@@ -48,7 +48,16 @@ Mathematically, this means that ``space.equip_with_metric`` transforms our smoot
     space = Hypersphere(dim=2)
 
 
-We will now ask contributors to add ``_default_metric`` method to their classes, which returns the default metric for a given class (not instantiated). This will be used to equip the manifold when ``equip=True``.
+We will now ask contributors to add ``_default_metric`` method to their classes, which returns the default metric for a given class (not instantiated). This will be used to equip the manifold when ``equip=True``. Metrics that require additional parameters (e.g. ``ElasticMetric``) should also return a dictionary with default values for them.
+
+
+When equipping a space with a metric that requires additional parameters, a keyword-argument syntax should be user:
+
+
+.. code-block:: python
+
+    space.equip_with_metric(ElasticMetric, a=1., b=1.)
+
 
 
 With this (seemingly small) change, we can now have (benign) circularity in our design, i.e. the space "knows" about the metric, and the metric "knows" about the space. This is achieved by requiring the first input argument of a metric to be the space:
