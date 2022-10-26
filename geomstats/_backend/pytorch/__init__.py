@@ -45,6 +45,7 @@ from ._dtype import (
     _box_unary_scalar,
     _preserve_input_dtype,
     as_dtype,
+    get_default_cdtype,
     get_default_dtype,
     set_default_dtype,
 )
@@ -94,6 +95,18 @@ power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 
 
 std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
+
+
+def is_floating(x):
+    return x.dtype.is_floating_point
+
+
+def is_complex(x):
+    return x.dtype.is_complex
+
+
+def is_bool(x):
+    return x.dtype is _torch.bool
 
 
 def matmul(x, y, out=None):
@@ -156,8 +169,8 @@ def split(x, indices_or_sections, axis=0):
 
 
 def logical_and(x, y):
-    if _torch.is_tensor(x):
-        return _torch.logical_and(x, y)
+    if _torch.is_tensor(x) or _torch.is_tensor(y):
+        return x * y
     return x and y
 
 
@@ -339,10 +352,11 @@ def linspace(start, stop, num=50, dtype=None):
 
 
 def equal(a, b, **kwargs):
-    if a.dtype == _torch.ByteTensor:
-        a = cast(a, _torch.uint8).float()
-    if b.dtype == _torch.ByteTensor:
-        b = cast(b, _torch.uint8).float()
+    if not is_array(a):
+        a = array(a)
+
+    if not is_array(b):
+        b = array(b)
     return _torch.eq(a, b, **kwargs)
 
 

@@ -10,21 +10,26 @@ from geomstats._backend._dtype_utils import (
     _pre_cast_out_from_dtype,
     _pre_set_default_dtype,
     _update_default_dtypes,
+    get_default_cdtype,
     get_default_dtype,
 )
 
 
-def _is_floating(x):
+def is_floating(x):
     return x.dtype.is_floating
 
 
-def _is_complex(x):
+def is_complex(x):
     return x.dtype.is_complex
+
+
+def is_bool(x):
+    return x.dtype.is_bool
 
 
 set_default_dtype = _pre_set_default_dtype(as_dtype)
 
-_cast_out_from_dtype = _pre_cast_out_from_dtype(_tf.cast, _is_floating, _is_complex)
+_cast_out_from_dtype = _pre_cast_out_from_dtype(_tf.cast, is_floating, is_complex)
 
 
 def _box_unary_scalar(target=None):

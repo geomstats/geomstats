@@ -9,7 +9,7 @@ import tests.conftest
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
-    SpecialEuclideanMatrixCannonicalLeftMetric,
+    SpecialEuclideanMatrixCanonicalLeftMetric,
     SpecialEuclideanMatrixLieAlgebra,
 )
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -286,7 +286,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
 
-    Metric = SpecialEuclideanMatrixCannonicalLeftMetric
+    Metric = SpecialEuclideanMatrixCanonicalLeftMetric
 
     def left_metric_wrong_group_test_data(self):
         smoke_data = [

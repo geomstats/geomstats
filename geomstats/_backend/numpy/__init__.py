@@ -89,7 +89,11 @@ from ._dtype import (
     _dyn_update_dtype,
     _modify_func_default_dtype,
     as_dtype,
+    get_default_cdtype,
     get_default_dtype,
+    is_bool,
+    is_complex,
+    is_floating,
     set_default_dtype,
 )
 
@@ -508,10 +512,9 @@ def outer(a, b):
 def matvec(A, b):
     if b.ndim == 1:
         return _np.matmul(A, b)
-    else:
-        if A.ndim == 2:
-            return _np.matmul(A, b.T).T
-        return _np.einsum("...ij,...j->...i", A, b)
+    if A.ndim == 2:
+        return _np.matmul(A, b.T).T
+    return _np.einsum("...ij,...j->...i", A, b)
 
 
 def dot(a, b):

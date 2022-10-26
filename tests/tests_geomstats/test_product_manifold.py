@@ -16,8 +16,6 @@ from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
-    skip_test_random_tangent_vec_is_tangent = True
-    skip_test_projection_belongs = True
 
     testing_data = ProductManifoldTestData()
 
@@ -29,6 +27,23 @@ class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
         space = self.Space(manifolds, default_point_type=default_point_type)
         result = space.regularize(point)
         self.assertAllClose(result, point)
+
+    def test_default_coords_type(self, space_args, expected):
+        space = self.Space(*space_args)
+        self.assertTrue(
+            space.default_coords_type == expected,
+            msg=f"Expected `{expected}`, but it is `{space.default_coords_type}`",
+        )
+
+    def test_embed_to_after_project_from(self, space_args, n_points):
+        space = self.Space(*space_args)
+
+        points = space.random_point(n_points)
+
+        factors_points = space.project_from_product(points)
+        points_ = space.embed_to_product(factors_points)
+
+        self.assertAllClose(points, points_)
 
 
 class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -43,6 +58,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     skip_test_scalar_curvature_shape = True
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
+    skip_test_inner_product_matrix_vector = True
 
     testing_data = ProductRiemannianMetricTestData()
 
@@ -60,7 +76,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     def test_inner_product_matrix_vector(self, default_point_type):
         euclidean = Euclidean(3)
         minkowski = Minkowski(3)
-        space = ProductManifold(manifolds=[euclidean, minkowski])
+        space = ProductManifold(factors=[euclidean, minkowski])
         point = space.random_point(1)
         expected = gs.eye(6)
         expected[3, 3] = -1
@@ -72,7 +88,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         self, manifolds, default_point_type, n_samples, einsum_str, expected
     ):
         space = ProductManifold(
-            manifolds=manifolds, default_point_type=default_point_type
+            factors=manifolds, default_point_type=default_point_type
         )
         point = space.random_point(n_samples)
         base_point = space.random_point(n_samples)

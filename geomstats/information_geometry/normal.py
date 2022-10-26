@@ -11,6 +11,7 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
 )
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.information_geometry.base import InformationManifoldMixin
 
 
@@ -115,14 +116,112 @@ class NormalDistributions(InformationManifoldMixin, PoincareHalfSpace):
         return pdf
 
 
-class NormalMetric(PoincareHalfSpaceMetric):
+class NormalMetric(PullbackDiffeoMetric):
     """Class for the Fisher information metric on normal distributions.
 
-    This is the metric of the Poincare upper half-plane.
+    This is the pullback of the metric of the Poincare upper half-plane
+    by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
     """
 
     def __init__(self):
         super().__init__(dim=2)
+
+    def define_embedding_metric(self):
+        r"""Define the metric to pull back.
+
+        This is the metric of the Poincare upper half-plane
+        with a scaling factor of 2.
+
+        Returns
+        -------
+        embedding_metric : RiemannianMetric object
+            The metric of the Poincare upper half-plane.
+        """
+        return PoincareHalfSpaceMetric(dim=2, scale=2)
+
+    def diffeomorphism(self, base_point):
+        r"""Image of base point in the Poincare upper half-plane.
+
+        This is the image by the diffeomorphism
+        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 2]
+            Point representing a normal distribution. Coordinates
+            are mean and standard deviation.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., 2]
+            Image of base_point in the Poincare upper half-plane.
+        """
+        image_point = gs.copy(base_point)
+        image_point[..., 0] /= gs.sqrt(2.0)
+        return image_point
+
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse image of a point in the Poincare upper half-plane.
+
+        This is the inverse image by the diffeomorphism
+        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., 2]
+            Point in the upper half-plane.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., 2]
+            Inverse image of the image point, representing a normal
+            distribution. Coordinates are mean and standard deviation.
+        """
+        base_point = gs.copy(image_point)
+        base_point[..., 0] *= gs.sqrt(2.0)
+        return base_point
+
+    def tangent_diffeomorphism(self, tangent_vec, base_point):
+        r"""Image of tangent vector.
+
+        This is the image by the tangent map of the diffeomorphism
+        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 2]
+            Tangent vector at base point.
+
+        base_point : array-like, shape=[..., 2]
+            Base point representing a normal distribution.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., 2]
+            Image tangent vector at image of the base point.
+        """
+        return self.diffeomorphism(tangent_vec)
+
+    def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
+        r"""Inverse image of tangent vector.
+
+        This is the inverse image by the tangent map of the diffeomorphism
+        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., 2]
+            Image of a tangent vector at image_point.
+
+        image_point : array-like, shape=[..., 2]
+            Image of a point representing a normal distribution.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 2]
+            Inverse image of image_tangent_vec.
+        """
+        return self.inverse_diffeomorphism(image_tangent_vec)
 
     @staticmethod
     def metric_matrix(base_point=None):

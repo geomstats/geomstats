@@ -255,9 +255,8 @@ class TestCase:
 
         elif np_backend() or autograd_backend():
             np.testing.assert_array_equal(a, b)
-
         else:
-            self.assertTrue(gs.equal(a, b))
+            self.assertTrue(gs.all(gs.equal(a, b)))
 
     def assertTrue(self, condition, msg=None):
         assert condition, msg
