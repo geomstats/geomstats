@@ -115,7 +115,7 @@ class ManifoldTestCase(TestCase):
         space = self.Space(*space_args)
         projection = space.projection(gs.array(point))
         belongs = space.belongs(projection, atol)
-        if 1 <= len(space.shape) < point.ndim:
+        if 1 <= len(space.shape) < point.ndim and point.shape[0] > 1:
             self.assertAllEqual(belongs, gs.ones(point.shape[: -len(space.shape)]))
             self.assertEqual(belongs.shape, point.shape[: -len(space.shape)])
         else:
