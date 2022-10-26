@@ -139,7 +139,10 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         samples = []
         for param in point:
             counts = multinomial.rvs(self.n_draws, param, size=n_samples)
-            samples.append(counts[0]) if n_samples == 1 else samples.append(counts)
+            if n_samples == 1:
+                samples.append(counts[0])
+            else:
+                samples.append(counts)
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
 
@@ -419,9 +422,12 @@ class MultinomialMetric(RiemannianMetric):
         Riemannian geometry (Vol. 6). Boston: Birkhäuser.
         """
         sectional_curv = 2 * gs.sqrt(self.n_draws)
-        if tangent_vec_a.ndim == 1 and tangent_vec_b.ndim == 1:
-            if base_point is None or base_point.ndim == 1:
-                return gs.array(sectional_curv)
+        if (
+            tangent_vec_a.ndim == 1
+            and tangent_vec_b.ndim == 1
+            and (base_point is None or base_point.ndim == 1)
+        ):
+            return gs.array(sectional_curv)
 
         n_sec_curv = []
         if base_point is not None and base_point.ndim == 2:
