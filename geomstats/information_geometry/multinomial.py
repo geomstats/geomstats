@@ -430,6 +430,6 @@ class MultinomialMetric(RiemannianMetric):
             n_sec_curv.append(tangent_vec_a.shape[0])
         if tangent_vec_b.ndim == 2:
             n_sec_curv.append(tangent_vec_b.shape[0])
-        n_sec_curv = gs.max(n_sec_curv)
+        n_sec_curv = max(n_sec_curv)
 
-        return gs.reshape(sectional_curv, (n_sec_curv,))
+        return gs.tile(sectional_curv, (n_sec_curv,))
