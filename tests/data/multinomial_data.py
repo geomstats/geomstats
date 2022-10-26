@@ -53,6 +53,32 @@ class MultinomialTestData(_LevelSetTestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def projection_test_data(self):
+        smoke_data = [
+            dict(
+                dim=2,
+                n_draws=4,
+            ),
+            dict(
+                dim=3,
+                n_draws=2,
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def to_tangent_test_data(self):
+        smoke_data = [
+            dict(
+                dim=2,
+                n_draws=4,
+            ),
+            dict(
+                dim=3,
+                n_draws=2,
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
 
 class MultinomialMetricTestData(_RiemannianMetricTestData):
     Space = MultinomialDistributions
@@ -70,6 +96,51 @@ class MultinomialMetricTestData(_RiemannianMetricTestData):
     shape_list = [(dim + 1,) for dim in dim_list]
     n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
+
+    def simplex_to_sphere_and_back_test_data(self):
+        smoke_data = [
+            dict(
+                dim=2,
+                n_draws=4,
+                n_points=3,
+            ),
+            dict(dim=3, n_draws=2, n_points=4),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def tangent_simplex_to_sphere_and_back_test_data(self):
+        smoke_data = [
+            dict(dim=2, n_draws=4, n_points=5),
+            dict(dim=3, n_draws=2, n_points=3),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def tangent_simplex_to_sphere_vectorization_test_data(self):
+        smoke_data = [
+            dict(dim=2, n_draws=4, n_points=3),
+            dict(dim=3, n_draws=2, n_points=2),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def geodesic_test_data(self):
+        smoke_data = [
+            dict(
+                dim=2,
+                n_draws=4,
+            ),
+            dict(
+                dim=3,
+                n_draws=2,
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def geodesic_vectorization_test_data(self):
+        smoke_data = [
+            dict(dim=2, n_draws=4, n_points=2),
+            dict(dim=3, n_draws=2, n_points=2),
+        ]
+        return self.generate_tests(smoke_data)
 
     def sectional_curvature_is_positive_test_data(self):
         random_data = [
