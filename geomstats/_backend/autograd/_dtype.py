@@ -1,6 +1,9 @@
 import autograd.numpy as _np
 
-from geomstats._backend._dtype_utils import _dyn_update_dtype
+from geomstats._backend._dtype_utils import (
+    _dyn_update_dtype,
+    _modify_func_default_dtype,
+)
 from geomstats._backend._dtype_utils import _np_box_binary_scalar as _box_binary_scalar
 from geomstats._backend._dtype_utils import _np_box_unary_scalar as _box_unary_scalar
 from geomstats._backend._dtype_utils import (
@@ -21,6 +24,10 @@ def is_floating(x):
 
 def is_complex(x):
     return x.dtype.kind == "c"
+
+
+def is_bool(x):
+    return x.dtype.kind == "b"
 
 
 def as_dtype(value):

@@ -144,8 +144,10 @@ class ComplexMatrices(ComplexVectorSpace):
         transconjugate : array-like, shape=[..., n, n]
             Transconjugated matrix.
         """
-        is_vectorized = gs.ndim(gs.array(mat)) == 3
-        axes = (0, 2, 1) if is_vectorized else (1, 0)
+        ndim = gs.ndim(mat)
+        axes = list(range(0, ndim))
+        axes[-1] = ndim - 2
+        axes[-2] = ndim - 1
         return gs.transpose(gs.conj(mat), axes)
 
     @staticmethod

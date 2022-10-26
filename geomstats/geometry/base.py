@@ -53,7 +53,9 @@ class VectorSpace(Manifold, abc.ABC):
         belongs = point.shape[-minimal_ndim:] == self.shape
         if point.ndim <= minimal_ndim:
             return belongs
-        return gs.tile(gs.array([belongs]), [point.shape[0]])
+        if belongs:
+            return gs.ones(point.shape[:-minimal_ndim], dtype=bool)
+        return gs.zeros(point.shape[:-minimal_ndim], dtype=bool)
 
     @staticmethod
     def projection(point):
@@ -202,7 +204,9 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         belongs = point.shape[-minimal_ndim:] == self.shape
         if point.ndim <= minimal_ndim:
             return belongs
-        return gs.tile(gs.array([belongs]), [point.shape[0]])
+        if belongs:
+            return gs.ones(point.shape[:-minimal_ndim], dtype=bool)
+        return False
 
     @staticmethod
     def projection(point):
@@ -681,7 +685,9 @@ class OpenSet(ImmersedSet):
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
 
-        If the manifold is compact, a uniform distribution is used.
+        Points are sampled from the embedding space using the distribution set
+        for that manifold and then projected to the manifold. As a result, this
+        is not a uniform distribution on the manifold itself.
 
         Parameters
         ----------
@@ -689,7 +695,7 @@ class OpenSet(ImmersedSet):
             Number of samples.
             Optional, default: 1.
         bound : float
-            Bound of the interval in which to sample for non compact manifolds.
+            Bound of the interval in which to sample for the embedding space.
             Optional, default: 1.
 
         Returns
