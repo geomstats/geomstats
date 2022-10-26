@@ -1,4 +1,4 @@
-"""Unit tests for the categorical manifold."""
+"""Unit tests for the multinomial manifold."""
 
 import geomstats.backend as gs
 from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
@@ -11,7 +11,7 @@ NOT_AUTOGRAD = tf_backend() or pytorch_backend() or np_backend()
 
 
 class TestMultinomialDistributions(LevelSetTestCase, metaclass=Parametrizer):
-    """Class defining the categorical distributions tests."""
+    """Class defining the multinomial distributions tests."""
 
     skip_test_extrinsic_after_intrinsic = True
     skip_test_intrinsic_after_extrinsic = True
