@@ -2,9 +2,9 @@
 
 import scipy as _scipy
 import tensorflow as _tf
-from tensorflow.linalg import norm as norm_tf
 
 from .._backend_config import tf_atol as atol
+from ._dtype import is_complex as _is_complex
 
 # "Forward-import" primitives. Due to the way the 'linalg' module is exported
 # in TF, this does not work with 'from tensorflow.linalg import ...'.
@@ -21,13 +21,13 @@ def eig(*args, **kwargs):
 
 def eigh(a):
     eigvals, eigvecs = _tf.linalg.eigh(a)
-    if a.dtype in [_tf.complex64, _tf.complex128]:
+    if _is_complex(a):
         return _tf.math.real(eigvals), eigvecs
     return eigvals, eigvecs
 
 
 def eigvalsh(a):
-    if a.dtype in [_tf.complex64, _tf.complex128]:
+    if _is_complex(a):
         return _tf.math.real(_tf.linalg.eigvalsh(a))
     return _tf.linalg.eigvalsh(a)
 
@@ -113,7 +113,7 @@ def is_single_matrix_pd(mat):
     """Check if 2D square matrix is positive definite."""
     if mat.shape[0] != mat.shape[1]:
         return False
-    if mat.dtype in [_tf.complex64, _tf.complex128]:
+    if _is_complex(mat):
         is_hermitian = _tf.math.reduce_all(
             _tf.abs(mat - _tf.math.conj(_tf.transpose(mat))) < atol
         )
@@ -132,6 +132,6 @@ def is_single_matrix_pd(mat):
 
 def norm(vector, ord="euclidean", axis=None, keepdims=None, name=None):
     """Compute the norm of vectors, matrices and tensors."""
-    if vector.dtype in [_tf.complex64, _tf.complex128]:
-        return _tf.math.real(norm_tf(vector, ord, axis, keepdims, name))
-    return norm_tf(vector, ord, axis, keepdims, name)
+    if _is_complex(vector):
+        return _tf.math.real(_tf.linalg.norm(vector, ord, axis, keepdims, name))
+    return _tf.linalg.norm(vector, ord, axis, keepdims, name)
