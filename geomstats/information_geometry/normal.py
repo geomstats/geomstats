@@ -252,10 +252,13 @@ class NormalMetric(PullbackDiffeoMetric):
         r"""Compute the sectional curvature.
 
         In the literature sectional curvature is noted K.
+
         For two orthonormal tangent vectors :math:`x,y` at a base point,
         the sectional curvature is defined by :math:`K(x,y) = <R(x, y)x, y>`.
+
         For non-orthonormal vectors, it is
-        :math:`K(x,y) = <R(x, y)x, y> / \\|x \wedge y\\|^2`.
+        :math:`K(x,y) = <R(x, y)y, x> / (<x, x><y, y> - <x, y>^2)`.
+
         sectional_curvature(X, Y, P) = K(X,Y) where X, Y are tangent vectors
         at base point P.
 
@@ -264,22 +267,17 @@ class NormalMetric(PullbackDiffeoMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec_a : array-like, shape=[..., 2]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        tangent_vec_b : array-like, shape=[..., 2]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., n, n]
+        base_point : array-like, shape=[..., 2]
             Point in the manifold.
 
         Returns
         -------
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at `base_point`.
-
-        Reference
-        ---------
-        [CF1992] Do Carmo, M. P., & Flaherty Francis, J. (1992).
-        Riemannian geometry (Vol. 6). Boston: Birkhäuser.
         """
         sectional_curv = -0.5
         if (
