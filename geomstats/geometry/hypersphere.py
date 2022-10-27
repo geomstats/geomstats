@@ -20,7 +20,7 @@ from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class _HypersphereCartesian(LevelSet):
+class _HypersphereExtrinsic(LevelSet):
     """Private class for the n-dimensional hypersphere.
 
     Class for the n-dimensional hypersphere embedded in the
@@ -366,7 +366,7 @@ class _HypersphereCartesian(LevelSet):
             return self.spherical_to_extrinsic(point_intrinsic)
         if self.dim == 1:
             return self.angle_to_extrinsic(point_intrinsic)
-        return _HypersphereSpherical(dim=self.dim).immersion(point_intrinsic)
+        return _HypersphereIntrinsic(dim=self.dim).immersion(point_intrinsic)
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert point from extrinsic to intrinsic coordinates.
@@ -528,7 +528,7 @@ class _HypersphereCartesian(LevelSet):
                     "sampling before n_samples were accepted."
                 )
             coord_x = gs.concatenate(result)
-            coord_rest = _HypersphereCartesian(dim - 1).random_uniform(n_accepted)
+            coord_rest = _HypersphereExtrinsic(dim - 1).random_uniform(n_accepted)
             coord_rest = gs.einsum(
                 "...,...i->...i", gs.sqrt(1 - coord_x**2), coord_rest
             )
@@ -644,7 +644,7 @@ class _HypersphereCartesian(LevelSet):
         return sample[0] if (n_samples == 1) else sample
 
 
-class _HypersphereSpherical(ImmersedSet):
+class _HypersphereIntrinsic(ImmersedSet):
     """Class for the intrinsic representation of the Hypersphere.
 
     This is an implementation of the Hypersphere using a parametrization
@@ -750,7 +750,7 @@ class _HypersphereSpherical(ImmersedSet):
             Points sampled on the hypersphere.
         """
         if self.dim in [1, 2]:
-            samples = _HypersphereCartesian(dim=self.dim).random_uniform(n_samples)
+            samples = _HypersphereExtrinsic(dim=self.dim).random_uniform(n_samples)
             return self.extrinsic_to_intrinsic_coords(samples)
         raise NotImplementedError
 
@@ -801,7 +801,7 @@ class HypersphereMetric(RiemannianMetric):
     def __init__(self, dim):
         super().__init__(dim=dim, shape=(dim + 1,), signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
-        self._space = _HypersphereCartesian(dim=dim)
+        self._space = _HypersphereExtrinsic(dim=dim)
 
     def metric_matrix(self, base_point=None):
         """Metric matrix at the tangent space at a base point.
@@ -1015,82 +1015,6 @@ class HypersphereMetric(RiemannianMetric):
         )
         return transported
 
-    def christoffels(self, point, coords_type="spherical"):
-        """Compute the Christoffel symbols at a point.
-
-        Only implemented in dimension 2 and for spherical coordinates.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point on hypersphere where the Christoffel symbols are computed.
-
-        coords_type: str, {'spherical', 'intrinsic', 'extrinsic'}
-            Coordinates in which to express the Christoffel symbols.
-            Optional, default: 'spherical'.
-
-        Returns
-        -------
-        christoffel : array-like, shape=[..., contravariant index, 1st
-                                         covariant index, 2nd covariant index]
-            Christoffel symbols at point.
-        """
-        if self.dim != 2 or coords_type != "spherical":
-            raise NotImplementedError(
-                "The Christoffel symbols are only implemented"
-                " for spherical coordinates in the 2-sphere"
-            )
-
-        point = gs.to_ndarray(point, to_ndim=2)
-        christoffel = []
-        for sample in point:
-            gamma_0 = gs.array([[0, 0], [0, -gs.sin(sample[0]) * gs.cos(sample[0])]])
-            gamma_1 = gs.array(
-                [
-                    [0, gs.cos(sample[0]) / gs.sin(sample[0])],
-                    [gs.cos(sample[0]) / gs.sin(sample[0]), 0],
-                ]
-            )
-            christoffel.append(gs.stack([gamma_0, gamma_1]))
-
-        christoffel = gs.stack(christoffel)
-        if gs.ndim(christoffel) == 4 and gs.shape(christoffel)[0] == 1:
-            christoffel = gs.squeeze(christoffel, axis=0)
-        return christoffel
-
-    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
-        r"""Compute the curvature.
-
-        For three tangent vectors at a base point :math:`x,y,z`,
-        the curvature is defined by
-        :math:`R(x, y)z = \nabla_{[x,y]}z
-        - \nabla_z\nabla_y z + \nabla_y\nabla_x z`, where :math:`\nabla`
-        is the Levi-Civita connection. In the case of the hypersphere,
-        we have the closed formula
-        :math:`R(x,y)z = \langle x, z \rangle y - \langle y,z \rangle x`.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
-        tangent_vec_c : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
-        base_point :  array-like, shape=[..., dim]
-            Point on the hypersphere.
-
-        Returns
-        -------
-        curvature : array-like, shape=[..., dim]
-            Tangent vector at `base_point`.
-        """
-        inner_ac = self.inner_product(tangent_vec_a, tangent_vec_c)
-        inner_bc = self.inner_product(tangent_vec_b, tangent_vec_c)
-        first_term = gs.einsum("...,...i->...i", inner_bc, tangent_vec_a)
-        second_term = gs.einsum("...,...i->...i", inner_ac, tangent_vec_b)
-        return -first_term + second_term
-
     def _normalization_factor_odd_dim(self, variances):
         """Compute the normalization factor - odd dimension."""
         dim = self.dim
@@ -1192,6 +1116,122 @@ class HypersphereMetric(RiemannianMetric):
         _, grad = gs.autodiff.value_and_grad(func)(variances)
         return _, grad
 
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the sphere, it does not depend on the base point and is
+        Pi everywhere.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim+1]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : float
+            Injectivity radius.
+        """
+        return gs.pi
+
+
+class HypersphereMetricIntrinsic(RiemannianMetric):
+    """Class for the Hypersphere Metric in intrinsic coordinates.
+
+    A Riemannian metric in intrinsic coordinates provides additional
+    methods, such as geometric tensors expressed in the intrinsic
+    coordinate system.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the hypersphere.
+    """
+
+    def __init__(self, dim):
+        super().__init__(dim=dim, shape=(dim + 1,), signature=(dim, 0))
+        self.embedding_metric = EuclideanMetric(dim + 1)
+        self._space = _HypersphereIntrinsic(dim=dim)
+
+    def christoffels(self, point, coords_type="spherical"):
+        """Compute the Christoffel symbols at a point.
+
+        Only implemented in dimension 2 and for spherical coordinates.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point on hypersphere where the Christoffel symbols are computed.
+
+        coords_type: str, {'spherical', 'intrinsic', 'extrinsic'}
+            Coordinates in which to express the Christoffel symbols.
+            Optional, default: 'spherical'.
+
+        Returns
+        -------
+        christoffel : array-like, shape=[..., contravariant index, 1st
+                                         covariant index, 2nd covariant index]
+            Christoffel symbols at point.
+        """
+        if self.dim != 2 or coords_type != "spherical":
+            raise NotImplementedError(
+                "The Christoffel symbols are only implemented"
+                " for spherical coordinates in the 2-sphere"
+            )
+
+        point = gs.to_ndarray(point, to_ndim=2)
+        christoffel = []
+        for sample in point:
+            gamma_0 = gs.array([[0, 0], [0, -gs.sin(sample[0]) * gs.cos(sample[0])]])
+            gamma_1 = gs.array(
+                [
+                    [0, gs.cos(sample[0]) / gs.sin(sample[0])],
+                    [gs.cos(sample[0]) / gs.sin(sample[0]), 0],
+                ]
+            )
+            christoffel.append(gs.stack([gamma_0, gamma_1]))
+
+        christoffel = gs.stack(christoffel)
+        if gs.ndim(christoffel) == 4 and gs.shape(christoffel)[0] == 1:
+            christoffel = gs.squeeze(christoffel, axis=0)
+        return christoffel
+
+    def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
+        r"""Compute the curvature.
+
+        For three tangent vectors at a base point :math:`x,y,z`,
+        the curvature is defined by
+        :math:`R(x, y)z = \nabla_{[x,y]}z
+        - \nabla_z\nabla_y z + \nabla_y\nabla_x z`, where :math:`\nabla`
+        is the Levi-Civita connection. In the case of the hypersphere,
+        we have the closed formula
+        :math:`R(x,y)z = \langle x, z \rangle y - \langle y,z \rangle x`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        tangent_vec_c : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        base_point :  array-like, shape=[..., dim]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        curvature : array-like, shape=[..., dim]
+            Tangent vector at `base_point`.
+        """
+        inner_ac = self.inner_product(tangent_vec_a, tangent_vec_c)
+        inner_bc = self.inner_product(tangent_vec_b, tangent_vec_c)
+        first_term = gs.einsum("...,...i->...i", inner_bc, tangent_vec_a)
+        second_term = gs.einsum("...,...i->...i", inner_ac, tangent_vec_b)
+        return -first_term + second_term
+
     def curvature_derivative(
         self,
         tangent_vec_a,
@@ -1229,29 +1269,8 @@ class HypersphereMetric(RiemannianMetric):
         """
         return gs.zeros_like(tangent_vec_a)
 
-    def injectivity_radius(self, base_point):
-        """Compute the radius of the injectivity domain.
 
-        This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base
-        point onto its image.
-        In the case of the sphere, it does not depend on the base point and is
-        Pi everywhere.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim+1]
-            Point on the manifold.
-
-        Returns
-        -------
-        radius : float
-            Injectivity radius.
-        """
-        return gs.pi
-
-
-class HypersphereCartesian(_HypersphereCartesian):
+class HypersphereExtrinsic(_HypersphereExtrinsic):
     """Class for the n-dimensional hypersphere.
 
     Class for the n-dimensional hypersphere embedded in the
@@ -1306,6 +1325,6 @@ class Hypersphere:
             ["extrinsic", "intrinsic"],
         )
         if default_coords_type == "extrinsic":
-            return HypersphereCartesian(*args, **kwargs)
+            return HypersphereExtrinsic(*args, **kwargs)
         if default_coords_type == "intrinsic":
-            return _HypersphereSpherical(*args, **kwargs)
+            return _HypersphereIntrinsic(*args, **kwargs)

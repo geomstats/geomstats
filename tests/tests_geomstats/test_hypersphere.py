@@ -8,8 +8,8 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
 from tests.conftest import Parametrizer, np_backend
 from tests.data.hypersphere_data import (
+    HypersphereIntrinsicTestData,
     HypersphereMetricTestData,
-    HypersphereSphericalTestData,
     HypersphereTestData,
 )
 from tests.geometry_test_cases import (
@@ -285,6 +285,6 @@ class TestHypersphereMetric(HypersphereMetricTestCase, metaclass=Parametrizer):
     testing_data = HypersphereMetricTestData()
 
 
-class TestHypersphereSpherical(ManifoldTestCase, metaclass=Parametrizer):
+class TestHypersphereIntrinsic(ManifoldTestCase, metaclass=Parametrizer):
 
-    testing_data = HypersphereSphericalTestData()
+    testing_data = HypersphereIntrinsicTestData()
