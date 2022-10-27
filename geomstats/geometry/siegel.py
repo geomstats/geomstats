@@ -535,15 +535,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         -------
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
-
-        References
-        ----------
-        The Kahler mean of Block-Toeplitz matrices
-        with Toeplitz structured blocks
-        B. Jeuris and R. Vandebril
-        2016
-        https://epubs.siam.org/doi/pdf/10.1137/15M102112X
-        3.2. A second generalized transformation.
         """
         if len(point_a.shape) > len(point_b.shape):
             point_a, point_b = point_b, point_a
