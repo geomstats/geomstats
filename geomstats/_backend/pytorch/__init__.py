@@ -27,7 +27,6 @@ from torch import (
     less,
     logical_or,
 )
-from torch import max as amax
 from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma, quantile
 from torch import repeat_interleave as repeat
 from torch import reshape, stack, trapz, uint8, unique, vstack, zeros, zeros_like
@@ -272,6 +271,12 @@ def shape(val):
     if not is_array(val):
         val = array(val)
     return val.shape
+
+
+def amax(a, axis=None):
+    if axis is None:
+        return _torch.max(array(a))
+    return _torch.max(array(a), dim=axis).values
 
 
 def maximum(a, b):
