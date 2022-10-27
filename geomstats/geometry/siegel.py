@@ -134,12 +134,9 @@ class Siegel(ComplexOpenSet):
         projected: array-like, shape=[..., n, n]
             Matrix in the Siegel space.
         """
-        data_type = point.dtype
-        point_shape = gs.shape(point)
-
         ndim = gs.ndim(point)
         if ndim == 3:
-            n_samples = point_shape[0]
+            n_samples = gs.shape(point)[0]
 
         if self.symmetric:
             point = ComplexMatrices.to_symmetric(point)
@@ -147,19 +144,19 @@ class Siegel(ComplexOpenSet):
         point_transconj = ComplexMatrices.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
 
-        projected = point
+        projected = gs.copy(point)
         eigenvalues = gs.linalg.eigvalsh(aux)
         max_eigenvalues = gs.amax(eigenvalues, axis=-1) ** 0.5
 
         if ndim == 2:
             if max_eigenvalues >= 1 - atol:
-                projected *= gs.cast((1 - atol) / max_eigenvalues, dtype=data_type)
+                projected *= gs.cast((1 - atol) / max_eigenvalues, dtype=point.dtype)
 
         elif ndim == 3:
             for i_sample in range(n_samples):
                 if max_eigenvalues[i_sample] > 1 - atol:
                     projected *= gs.cast(
-                        (1 - atol) / max_eigenvalues[i_sample], dtype=data_type
+                        (1 - atol) / max_eigenvalues[i_sample], dtype=point.dtype
                     )
 
         return projected
