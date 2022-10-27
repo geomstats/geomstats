@@ -6,8 +6,6 @@ Lead author: Yann Cabanes.
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-CDTYPE = gs.get_default_cdtype()
-
 
 class ComplexRiemannianMetric(RiemannianMetric):
     r"""Class for Riemannian and pseudo-Riemannian metrics for Complex manifolds.
@@ -108,8 +106,9 @@ class ComplexRiemannianMetric(RiemannianMetric):
                 "Several tangent vectors is only applicable to a single base point."
             )
         random_vector = gs.squeeze(
-            gs.cast(gs.random.rand(n_vectors, *shape), dtype=CDTYPE)
-            + 1j * gs.cast(gs.random.rand(n_vectors, *shape), dtype=CDTYPE)
+            gs.cast(gs.random.rand(n_vectors, *shape), dtype=gs.get_default_cdtype())
+            + 1j
+            * gs.cast(gs.random.rand(n_vectors, *shape), dtype=gs.get_default_cdtype())
         )
         normalized_vector = self.normalize(random_vector, base_point)
         return gs.squeeze(normalized_vector)

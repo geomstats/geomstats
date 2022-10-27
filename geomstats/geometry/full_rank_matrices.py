@@ -85,8 +85,7 @@ class FullRankMatrices(OpenSet):
             Number of samples.
             Optional, default: 1.
         bound: float
-            Bound of the interval in which to sample each matrix entry.
-            Optional, default: 1.
+            This parameter is ignored.
         n_iter : int
             Maximum number of trials to sample a matrix with full rank.
             Optional, default: 100.

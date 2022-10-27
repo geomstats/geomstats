@@ -58,10 +58,11 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
             Boolean indicating whether point represents a Dirichlet
             distribution.
         """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        belongs = gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
-        return belongs
+        belongs = point.shape[-1] == self.dim
+        if not belongs:
+            return gs.zeros(point.shape[:-1], dtype=bool)
+
+        return gs.all(point >= atol, axis=-1)
 
     def random_point(self, n_samples=1, bound=5.0):
         """Sample parameters of Dirichlet distributions.
