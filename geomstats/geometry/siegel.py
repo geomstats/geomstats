@@ -110,7 +110,7 @@ class Siegel(ComplexOpenSet):
             n_samples = point_shape[0]
 
         point_transconj = ComplexMatrices.transconjugate(point)
-        aux = gs.einsum("...ij,...jk->...ik", point, point_transconj)
+        aux = gs.matmul(point, point_transconj)
 
         if ndim == 2:
             eigenvalues = gs.linalg.eigvalsh(aux)
@@ -154,7 +154,7 @@ class Siegel(ComplexOpenSet):
             point = ComplexMatrices.to_symmetric(point)
 
         point_transconj = ComplexMatrices.transconjugate(point)
-        aux = gs.einsum("...ij,...jk->...ik", point, point_transconj)
+        aux = gs.matmul(point, point_transconj)
 
         projected = point
         eigenvalues = gs.linalg.eigvalsh(aux)
@@ -279,9 +279,9 @@ class SiegelMetric(ComplexRiemannianMetric):
         tangent_vec_a_transconj = ComplexMatrices.transconjugate(tangent_vec_a)
         tangent_vec_b_transconj = ComplexMatrices.transconjugate(tangent_vec_b)
 
-        aux_1 = gs.einsum("...ij,...jk->...ik", base_point, base_point_transconj)
+        aux_1 = gs.matmul(base_point, base_point_transconj)
 
-        aux_2 = gs.einsum("...ij,...jk->...ik", base_point_transconj, base_point)
+        aux_2 = gs.matmul(base_point_transconj, base_point)
 
         aux_3 = identity - aux_1
 
@@ -291,12 +291,12 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         inv_aux_4 = HermitianMatrices.powerm(aux_4, -1)
 
-        aux_a = gs.einsum("...ij,...jk->...ik", inv_aux_3, tangent_vec_a)
-        aux_b = gs.einsum("...ij,...jk->...ik", inv_aux_4, tangent_vec_b_transconj)
+        aux_a = gs.matmul(inv_aux_3, tangent_vec_a)
+        aux_b = gs.matmul(inv_aux_4, tangent_vec_b_transconj)
         trace_1 = ComplexMatrices.trace_product(aux_a, aux_b)
 
-        aux_c = gs.einsum("...ij,...jk->...ik", inv_aux_3, tangent_vec_b)
-        aux_d = gs.einsum("...ij,...jk->...ik", inv_aux_4, tangent_vec_a_transconj)
+        aux_c = gs.matmul(inv_aux_3, tangent_vec_b)
+        aux_d = gs.matmul(inv_aux_4, tangent_vec_a_transconj)
         trace_2 = ComplexMatrices.trace_product(aux_c, aux_d)
 
         inner_product = trace_1 + trace_2
@@ -324,14 +324,14 @@ class SiegelMetric(ComplexRiemannianMetric):
         data_type = (tangent_vec + base_point).dtype
         identity = _create_identity_mat(base_point.shape, dtype=data_type)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
-        aux_1 = gs.einsum("...ij,...jk->...ik", base_point, base_point_transconj)
-        aux_2 = gs.einsum("...ij,...jk->...ik", base_point_transconj, base_point)
+        aux_1 = gs.matmul(base_point, base_point_transconj)
+        aux_2 = gs.matmul(base_point_transconj, base_point)
         aux_3 = identity - aux_1
         aux_4 = identity - aux_2
         factor_1 = HermitianMatrices.powerm(aux_3, -1 / 2)
         factor_3 = HermitianMatrices.powerm(aux_4, -1 / 2)
-        prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, tangent_vec)
-        tangent_vec_at_zero = gs.einsum("...ij,...jk->...ik", prod_1, factor_3)
+        prod_1 = gs.matmul(factor_1, tangent_vec)
+        tangent_vec_at_zero = gs.matmul(prod_1, factor_3)
         return tangent_vec_at_zero
 
     @staticmethod
@@ -353,16 +353,16 @@ class SiegelMetric(ComplexRiemannianMetric):
         data_type = tangent_vec.dtype
         identity = _create_identity_mat(tangent_vec.shape, dtype=data_type)
         tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
-        aux_1 = gs.einsum("...ij,...jk->...ik", tangent_vec, tangent_vec_transconj)
+        aux_1 = gs.matmul(tangent_vec, tangent_vec_transconj)
         aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
         aux_3 = HermitianMatrices.expm(2 * aux_2)
         factor_1 = aux_3 - identity
         aux_4 = aux_3 + identity
         factor_2 = HermitianMatrices.powerm(aux_4, -1)
         factor_3 = HermitianMatrices.powerm(aux_2, -1)
-        prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, factor_2)
-        prod_2 = gs.einsum("...ij,...jk->...ik", prod_1, factor_3)
-        exp = gs.einsum("...ij,...jk->...ik", prod_2, tangent_vec)
+        prod_1 = gs.matmul(factor_1, factor_2)
+        prod_2 = gs.matmul(prod_1, factor_3)
+        exp = gs.matmul(prod_2, tangent_vec)
         return exp
 
     @staticmethod
@@ -387,19 +387,19 @@ class SiegelMetric(ComplexRiemannianMetric):
         data_type = (point + point_to_zero).dtype
         identity = _create_identity_mat(point.shape, dtype=data_type)
         point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
-        aux_1 = gs.einsum("...ij,...jk->...ik", point_to_zero, point_to_zero_transconj)
-        aux_2 = gs.einsum("...ij,...jk->...ik", point_to_zero_transconj, point_to_zero)
+        aux_1 = gs.matmul(point_to_zero, point_to_zero_transconj)
+        aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
         aux_3 = identity - aux_1
         aux_4 = identity - aux_2
         factor_1 = HermitianMatrices.powerm(aux_3, -1 / 2)
         factor_4 = HermitianMatrices.powerm(aux_4, 1 / 2)
         factor_2 = point - point_to_zero
-        aux_5 = gs.einsum("...ij,...jk->...ik", point_to_zero_transconj, point)
+        aux_5 = gs.matmul(point_to_zero_transconj, point)
         aux_6 = identity - aux_5
         factor_3 = gs.linalg.inv(aux_6)
-        prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, factor_2)
-        prod_2 = gs.einsum("...ij,...jk->...ik", prod_1, factor_3)
-        point_image = gs.einsum("...ij,...jk->...ik", prod_2, factor_4)
+        prod_1 = gs.matmul(factor_1, factor_2)
+        prod_2 = gs.matmul(prod_1, factor_3)
+        point_image = gs.matmul(prod_2, factor_4)
         return point_image
 
     def exp(self, tangent_vec, base_point):
@@ -448,16 +448,16 @@ class SiegelMetric(ComplexRiemannianMetric):
         data_type = point.dtype
         identity = _create_identity_mat(point.shape, dtype=data_type)
         point_transconj = ComplexMatrices.transconjugate(point)
-        aux_1 = gs.einsum("...ij,...jk->...ik", point, point_transconj)
+        aux_1 = gs.matmul(point, point_transconj)
         aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
         num = identity + aux_2
         den = identity - aux_2
         inv_den = HermitianMatrices.powerm(den, -1)
-        frac = gs.einsum("...ij,...jk->...ik", num, inv_den)
+        frac = gs.matmul(num, inv_den)
         factor_1 = gs.linalg.logm(frac)
         factor_2 = HermitianMatrices.powerm(aux_2, -1)
-        prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, factor_2)
-        log_at_zero = gs.einsum("...ij,...jk->...ik", prod_1, point)
+        prod_1 = gs.matmul(factor_1, factor_2)
+        log_at_zero = gs.matmul(prod_1, point)
         log_at_zero *= 0.5
         return log_at_zero
 
@@ -480,14 +480,14 @@ class SiegelMetric(ComplexRiemannianMetric):
         data_type = (tangent_vec + base_point).dtype
         identity = _create_identity_mat(tangent_vec.shape, dtype=data_type)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
-        aux_1 = gs.einsum("...ij,...jk->...ik", base_point, base_point_transconj)
-        aux_2 = gs.einsum("...ij,...jk->...ik", base_point_transconj, base_point)
+        aux_1 = gs.matmul(base_point, base_point_transconj)
+        aux_2 = gs.matmul(base_point_transconj, base_point)
         aux_3 = identity - aux_1
         aux_4 = identity - aux_2
         factor_1 = HermitianMatrices.powerm(aux_3, 1 / 2)
         factor_3 = HermitianMatrices.powerm(aux_4, 1 / 2)
-        prod_1 = gs.einsum("...ij,...jk->...ik", factor_1, tangent_vec)
-        tangent_vec_at_base_point = gs.einsum("...ij,...jk->...ik", prod_1, factor_3)
+        prod_1 = gs.matmul(factor_1, tangent_vec)
+        tangent_vec_at_base_point = gs.matmul(prod_1, factor_3)
         return tangent_vec_at_base_point
 
     def log(self, point, base_point):
@@ -549,9 +549,9 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         factor_3 = ComplexMatrices.transconjugate(factor_1)
 
-        aux_2 = gs.einsum("...ij,...jk->...ik", point_a_transconj, point_b)
+        aux_2 = gs.matmul(point_a_transconj, point_b)
 
-        aux_3 = gs.einsum("...ij,...jk->...ik", point_a, point_b_transconj)
+        aux_3 = gs.matmul(point_a, point_b_transconj)
 
         aux_4 = identity - aux_2
 
@@ -593,7 +593,7 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         inv_den = gs.linalg.inv(den)
 
-        frac = gs.einsum("...ij,...jk->...ik", num, inv_den)
+        frac = gs.matmul(num, inv_den)
 
         logarithm = gs.linalg.logm(frac)
 
