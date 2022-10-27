@@ -294,9 +294,11 @@ class ClosedDiscreteCurves(LevelSet):
         )
 
     def submersion(self, point):
+        """Submersion."""
         raise NotImplementedError("Submersion not implemented")
 
     def tangent_submersion(self, vector, point):
+        """Tangent submersion."""
         raise NotImplementedError("Tangent submersion not implemented")
 
     def belongs(self, point, atol=gs.atol):

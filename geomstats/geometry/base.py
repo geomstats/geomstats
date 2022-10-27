@@ -343,6 +343,7 @@ class LevelSet(Manifold, abc.ABC):
 
     @property
     def embedding_space(self):
+        """Embedding space."""
         if not hasattr(self, "_embedding_space"):
             self._embedding_space = self._define_embedding_space()
         return self._embedding_space
