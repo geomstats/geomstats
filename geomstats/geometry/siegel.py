@@ -522,11 +522,10 @@ class SiegelMetric(ComplexRiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
-        if len(point_a.shape) > len(point_b.shape):
+        if gs.ndim(point_a) > gs.ndim(point_b):
             point_a, point_b = point_b, point_a
 
-        data_type = (point_a + point_b).dtype
-        identity = _create_identity_mat(point_b.shape, dtype=data_type)
+        identity = _create_identity_mat(point_b.shape, dtype=point_a.dtype)
 
         point_a_transconj = ComplexMatrices.transconjugate(point_a)
         point_b_transconj = ComplexMatrices.transconjugate(point_b)
@@ -552,20 +551,20 @@ class SiegelMetric(ComplexRiemannianMetric):
         )
 
         point_b_shape = point_b.shape
-        point_shape = (point_b_shape[-2], point_b_shape[-1])
+        point_shape = point_b.shape[-2:]
 
         if len(point_b_shape) == 2:
             n_samples = 1
         else:
             n_samples = point_b_shape[0]
 
-        prod = gs.reshape(prod, (n_samples, point_b_shape[-2], point_b_shape[-1]))
+        prod = gs.reshape(prod, (n_samples, *point_shape))
 
         prod_power_one_half = []
 
         for i_sample in range(n_samples):
             if gs.all(prod[i_sample, ...] == 0):
-                prod_power_one_half.append(gs.zeros(point_shape, dtype=data_type))
+                prod_power_one_half.append(gs.zeros(point_shape, dtype=point_a.dtype))
             else:
                 prod_power_one_half.append(
                     gs.linalg.fractional_matrix_power(prod[i_sample], 1 / 2)
