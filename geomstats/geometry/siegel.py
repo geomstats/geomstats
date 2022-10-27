@@ -36,7 +36,7 @@ from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
 
 
-def create_identity_mat(shape, dtype=gs.get_default_cdtype()):
+def _create_identity_mat(shape, dtype=gs.get_default_cdtype()):
     """Stack identity matrices.
 
     Parameters
@@ -273,7 +273,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         """
         data_type = (tangent_vec_a + tangent_vec_b + base_point).dtype
 
-        identity = create_identity_mat(base_point.shape, dtype=data_type)
+        identity = _create_identity_mat(base_point.shape, dtype=data_type)
 
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         tangent_vec_a_transconj = ComplexMatrices.transconjugate(tangent_vec_a)
@@ -322,7 +322,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             Tangent vector at zero (null matrix).
         """
         data_type = (tangent_vec + base_point).dtype
-        identity = create_identity_mat(base_point.shape, dtype=data_type)
+        identity = _create_identity_mat(base_point.shape, dtype=data_type)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         aux_1 = gs.einsum("...ij,...jk->...ik", base_point, base_point_transconj)
         aux_2 = gs.einsum("...ij,...jk->...ik", base_point_transconj, base_point)
@@ -351,7 +351,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             Point on the manifold.
         """
         data_type = tangent_vec.dtype
-        identity = create_identity_mat(tangent_vec.shape, dtype=data_type)
+        identity = _create_identity_mat(tangent_vec.shape, dtype=data_type)
         tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
         aux_1 = gs.einsum("...ij,...jk->...ik", tangent_vec, tangent_vec_transconj)
         aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
@@ -385,7 +385,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             Image of point by the isometry.
         """
         data_type = (point + point_to_zero).dtype
-        identity = create_identity_mat(point.shape, dtype=data_type)
+        identity = _create_identity_mat(point.shape, dtype=data_type)
         point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
         aux_1 = gs.einsum("...ij,...jk->...ik", point_to_zero, point_to_zero_transconj)
         aux_2 = gs.einsum("...ij,...jk->...ik", point_to_zero_transconj, point_to_zero)
@@ -446,7 +446,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             Riemannian logarithm at zero (null matrix).
         """
         data_type = point.dtype
-        identity = create_identity_mat(point.shape, dtype=data_type)
+        identity = _create_identity_mat(point.shape, dtype=data_type)
         point_transconj = ComplexMatrices.transconjugate(point)
         aux_1 = gs.einsum("...ij,...jk->...ik", point, point_transconj)
         aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
@@ -478,7 +478,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             Tangent vector at the base point.
         """
         data_type = (tangent_vec + base_point).dtype
-        identity = create_identity_mat(tangent_vec.shape, dtype=data_type)
+        identity = _create_identity_mat(tangent_vec.shape, dtype=data_type)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         aux_1 = gs.einsum("...ij,...jk->...ik", base_point, base_point_transconj)
         aux_2 = gs.einsum("...ij,...jk->...ik", base_point_transconj, base_point)
@@ -540,7 +540,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             point_a, point_b = point_b, point_a
 
         data_type = (point_a + point_b).dtype
-        identity = create_identity_mat(point_b.shape, dtype=data_type)
+        identity = _create_identity_mat(point_b.shape, dtype=data_type)
 
         point_a_transconj = ComplexMatrices.transconjugate(point_a)
         point_b_transconj = ComplexMatrices.transconjugate(point_b)
