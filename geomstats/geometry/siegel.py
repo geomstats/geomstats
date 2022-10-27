@@ -53,12 +53,8 @@ def _create_identity_mat(shape, dtype):
     """
     ndim = len(shape)
     if ndim == 2:
-        identity = gs.eye(shape[-1], dtype=dtype)
-    elif ndim == 3:
-        identity = gs.stack(
-            [gs.eye(shape[-1], dtype=dtype) for _ in range(shape[0])], axis=0
-        )
-    return identity
+        return gs.eye(shape[-1], dtype=dtype)
+    return gs.stack([gs.eye(shape[-1], dtype=dtype) for _ in range(shape[0])], axis=0)
 
 
 class Siegel(ComplexOpenSet):
