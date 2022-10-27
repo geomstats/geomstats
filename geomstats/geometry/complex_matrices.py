@@ -5,9 +5,9 @@ Lead author: Yann Cabanes.
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.hermitian import HermitianMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.vector_space import ComplexVectorSpace
 
 
 class ComplexMatrices(ComplexVectorSpace):

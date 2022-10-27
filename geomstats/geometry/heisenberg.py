@@ -4,10 +4,10 @@ Lead author: Morten Pedersen.
 """
 
 import geomstats.backend as gs
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from geomstats.geometry.vector_space import VectorSpace
 
 
 class HeisenbergVectors(LieGroup, VectorSpace):

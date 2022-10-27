@@ -8,8 +8,8 @@ import logging
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
+from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
-from geomstats.geometry.vector_space import ComplexVectorSpace
 
 
 class HermitianMatrices(ComplexVectorSpace):

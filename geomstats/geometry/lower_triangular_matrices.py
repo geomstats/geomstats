@@ -4,8 +4,8 @@ Lead author: Saiteja Utpala.
 """
 
 import geomstats.backend as gs
+from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.vector_space import VectorSpace
 
 
 class LowerTriangularMatrices(VectorSpace):
