@@ -7,7 +7,7 @@ import abc
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.pullback_metric import PullbackMetric  # lazy import stylec
+from geomstats.geometry.pullback_metric import PullbackMetric
 
 
 class ImmersedSet(Manifold, abc.ABC):
@@ -33,7 +33,9 @@ class ImmersedSet(Manifold, abc.ABC):
             dim=dim, shape=(dim,), default_coords_type="intrinsic", **kwargs
         )
         self.embedding_space = embedding_space
-        self.pullback_metric = PullbackMetric(embedding_space, immersion=self.immersion)
+        self.pullback_metric = PullbackMetric(
+            dim=dim, embedding_dim=embedding_space.dim, immersion=self.immersion
+        )
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):

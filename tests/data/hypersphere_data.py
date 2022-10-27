@@ -7,7 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.hypersphere import (
     Hypersphere,
     HypersphereMetric,
-    _HypersphereIntrinsic,
+    _HypersphereSpherical,
 )
 from tests.data_generation import (
     _LevelSetTestData,
@@ -447,4 +447,4 @@ class HypersphereSphericalTestData(_ManifoldTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
-    Space = _HypersphereIntrinsic
+    Space = _HypersphereSpherical

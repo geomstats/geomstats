@@ -14,6 +14,7 @@ from scipy.stats import beta
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
+import geomstats.errors as errors
 from geomstats.geometry.base import ImmersedSet, LevelSet
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -44,7 +45,6 @@ class _HypersphereCartesian(LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
-
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim + 1),
@@ -1251,7 +1251,7 @@ class HypersphereMetric(RiemannianMetric):
         return gs.pi
 
 
-class Hypersphere(_HypersphereCartesian):
+class HypersphereCartesian(_HypersphereCartesian):
     """Class for the n-dimensional hypersphere.
 
     Class for the n-dimensional hypersphere embedded in the
@@ -1277,3 +1277,35 @@ class Hypersphere(_HypersphereCartesian):
     def __init__(self, dim, default_coords_type="extrinsic"):
         super().__init__(dim, default_coords_type)
         self._metric = HypersphereMetric(dim)
+
+
+class Hypersphere:
+    """Class for the n-dimensional hypersphere.
+
+    This class is a common interface to the different classes of hyperspheres
+    implemented in the different coordinate systems:
+    - the hypersphere in cartesian coordinates of its embedding Euclidean space
+    (this coordinate system is extrinsic)
+    - the hypersphere in hyperspherical coordinates (this coordinate system is
+    intrinsic)
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the hypersphere.
+    default_coords_type : str, {'extrinsic', 'intrinsic'}
+        Default coordinates to represent points in the hypersphere.
+        Optional, default: 'extrinsic'.
+    """
+
+    def __new__(cls, *args, default_coords_type="extrinsic", **kwargs):
+        """Instantiate class that corresponds to the default_coords_type."""
+        errors.check_parameter_accepted_values(
+            default_coords_type,
+            "default_coords_type",
+            ["extrinsic", "intrinsic"],
+        )
+        if default_coords_type == "extrinsic":
+            return HypersphereCartesian(*args, **kwargs)
+        if default_coords_type == "intrinsic":
+            return _HypersphereSpherical(*args, **kwargs)
