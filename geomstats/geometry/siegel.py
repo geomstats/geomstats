@@ -36,7 +36,7 @@ from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
 
 
-def _create_identity_mat(shape, dtype=gs.get_default_cdtype()):
+def _create_identity_mat(shape, dtype):
     """Stack identity matrices.
 
     Parameters
@@ -45,7 +45,6 @@ def _create_identity_mat(shape, dtype=gs.get_default_cdtype()):
         Desired identity matrix shape of form [..., n, n].
     dtype : dtype
         Desired dtype.
-        Optional, default: gs.get_default_cdtype().
 
     Returns
     -------
