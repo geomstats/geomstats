@@ -4,8 +4,8 @@ Lead author: Yann Cabanes.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+from geomstats.geometry.vector_space import ComplexVectorSpace
 
 
 class Hermitian(ComplexVectorSpace):

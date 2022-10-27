@@ -440,7 +440,7 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
 
-class HypersphereIntrinsicTestData(_ManifoldTestData):
+class HypersphereSphericalTestData(_ManifoldTestData):
     space_args_list = [(2,), (3,)]
     shape_list = [(10, 2), (10, 3)]
     n_samples_list = random.sample(range(2, 5), 2)

@@ -8,8 +8,8 @@ import logging
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.vector_space import VectorSpace
 
 
 class SymmetricMatrices(VectorSpace):

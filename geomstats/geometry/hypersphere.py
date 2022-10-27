@@ -19,15 +19,16 @@ from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class _Hypersphere(LevelSet):
+class _HypersphereCartesian(LevelSet):
     """Private class for the n-dimensional hypersphere.
 
     Class for the n-dimensional hypersphere embedded in the
     (n+1)-dimensional Euclidean space.
 
-    By default, points are parameterized by their extrinsic
-    (n+1)-coordinates. For dimensions 1 and 2, this can be changed with the
-    `default_coords_type` parameter. For dimensions 1 (the circle),
+    The points are parameterized by their extrinsic
+    (n+1)-dimensional cartesian coordinates.
+
+    For dimensions 1 (the circle),
     the intrinsic coordinates correspond angles in radians, with 0. mapping
     to point [1., 0.]. For dimension 2, the intrinsic coordinates are the
     spherical coordinates from the north pole, i.e. where angles [0., 0.]
@@ -365,10 +366,7 @@ class _Hypersphere(LevelSet):
             return self.spherical_to_extrinsic(point_intrinsic)
         if self.dim == 1:
             return self.angle_to_extrinsic(point_intrinsic)
-
-        raise NotImplementedError(
-            "Intrinsic coordinates are only implemented in dimension 1 and 2."
-        )
+        return _HypersphereSpherical(dim=self.dim).immersion(point_intrinsic)
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert point from extrinsic to intrinsic coordinates.
@@ -448,8 +446,6 @@ class _Hypersphere(LevelSet):
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)
 
-        if self.dim in [1, 2] and self.default_coords_type == "intrinsic":
-            return self.extrinsic_to_intrinsic_coords(samples)
         return samples
 
     def random_von_mises_fisher(self, mu=None, kappa=10, n_samples=1, max_iter=100):
@@ -532,7 +528,7 @@ class _Hypersphere(LevelSet):
                     "sampling before n_samples were accepted."
                 )
             coord_x = gs.concatenate(result)
-            coord_rest = _Hypersphere(dim - 1).random_uniform(n_accepted)
+            coord_rest = _HypersphereCartesian(dim - 1).random_uniform(n_accepted)
             coord_rest = gs.einsum(
                 "...,...i->...i", gs.sqrt(1 - coord_x**2), coord_rest
             )
@@ -648,7 +644,7 @@ class _Hypersphere(LevelSet):
         return sample[0] if (n_samples == 1) else sample
 
 
-class _HypersphereIntrinsic(ImmersedSet):
+class _HypersphereSpherical(ImmersedSet):
     """Class for the intrinsic representation of the Hypersphere.
 
     This is an implementation of the Hypersphere using a parametrization
@@ -664,9 +660,7 @@ class _HypersphereIntrinsic(ImmersedSet):
     """
 
     def __init__(self, dim, radius=1.0):
-        super(_HypersphereIntrinsic, self).__init__(
-            dim=dim, embedding_space=Euclidean(dim=dim + 1)
-        )
+        super().__init__(dim=dim, embedding_space=Euclidean(dim=dim + 1))
         self.radius = radius
 
     def belongs(self, point, atol=gs.atol):
@@ -711,6 +705,8 @@ class _HypersphereIntrinsic(ImmersedSet):
     def immersion(self, point):
         """Immerse a point in hyperspherical coordinates in Euclidean space.
 
+        This is used as the intrinsic_to_extrinsic function in the parent class.
+
         Parameters
         ----------
         point : array-like, shape=[n_samples, dim]
@@ -738,6 +734,25 @@ class _HypersphereIntrinsic(ImmersedSet):
         return (
             gs.squeeze(immersed_point, axis=0) if initial_ndim == 1 else immersed_point
         )
+
+    def random_uniform(self, n_samples=1):
+        """Sample in the hypersphere from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., dim]
+            Points sampled on the hypersphere.
+        """
+        if self.dim in [1, 2]:
+            samples = _HypersphereCartesian(dim=self.dim).random_uniform(n_samples)
+            return self.extrinsic_to_intrinsic_coords(samples)
+        raise NotImplementedError
 
     def random_point(self, n_samples=1):
         """Sample on the hypersphere.
@@ -786,7 +801,7 @@ class HypersphereMetric(RiemannianMetric):
     def __init__(self, dim):
         super().__init__(dim=dim, shape=(dim + 1,), signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
-        self._space = _Hypersphere(dim=dim)
+        self._space = _HypersphereCartesian(dim=dim)
 
     def metric_matrix(self, base_point=None):
         """Metric matrix at the tangent space at a base point.
@@ -1236,7 +1251,7 @@ class HypersphereMetric(RiemannianMetric):
         return gs.pi
 
 
-class Hypersphere(_Hypersphere):
+class Hypersphere(_HypersphereCartesian):
     """Class for the n-dimensional hypersphere.
 
     Class for the n-dimensional hypersphere embedded in the
