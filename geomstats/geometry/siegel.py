@@ -183,7 +183,7 @@ class Siegel(ComplexOpenSet):
 
         samples = gs.random.rand(*size, dtype=gs.get_default_cdtype())
         samples -= 0.5 + 0.5j
-        samples /= 2 * n
+        samples *= 2**0.5 / n
         samples *= 1 - gs.atol
         samples *= bound
         return samples
