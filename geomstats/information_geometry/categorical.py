@@ -25,12 +25,13 @@ class CategoricalDistributions(MultinomialDistributions):
         Embedding manifold.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, **kwargs):
+        kwargs.setdefault("metric", CategoricalMetric(dim=dim))
         super().__init__(
             dim=dim,
             n_draws=1,
+            **kwargs
         )
-        self.metric = CategoricalMetric(dim=dim)
 
 
 class CategoricalMetric(MultinomialMetric):
