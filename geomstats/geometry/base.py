@@ -332,9 +332,9 @@ class ImmersedSet(Manifold, abc.ABC):
     """
 
     def __init__(self, dim, embedding_space, **kwargs):
-        super().__init__(
-            dim=dim, shape=(dim,), default_coords_type="intrinsic", **kwargs
-        )
+        kwargs.setdefault("default_coords_type", "intrinsic")
+        kwargs.setdefault("shape", (dim,))
+        super().__init__(dim=dim, **kwargs)
         self.embedding_space = embedding_space
 
         # TODO: remove after resolve circular imports
@@ -620,7 +620,7 @@ class LevelSet(Manifold, abc.ABC):
         """
 
 
-class OpenSet(ImmersedSet):
+class OpenSet(ImmersedSet, abc.ABC):
     """Class for manifolds that are open sets of a vector space.
 
     In this case, tangent vectors are identified with vectors of the embedding
@@ -637,8 +637,7 @@ class OpenSet(ImmersedSet):
 
     def __init__(self, dim, embedding_space, **kwargs):
         kwargs.setdefault("shape", embedding_space.shape)
-        super().__init__(dim=dim, **kwargs)
-        self.embedding_space = embedding_space
+        super().__init__(dim=dim, embedding_space=embedding_space, **kwargs)
 
     def immersion(self, point):
         """Evaluate the immersion function at a point.
@@ -653,7 +652,7 @@ class OpenSet(ImmersedSet):
         immersion : array-like, shape=[..., dim_embedding]
             Immersion of the point.
         """
-        return point
+        return gs.copy(point)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
