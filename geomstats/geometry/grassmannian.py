@@ -147,12 +147,10 @@ class Grassmannian(LevelSet):
 
         kwargs.setdefault("metric", GrassmannianCanonicalMetric(n, p))
         dim = int(p * (n - p))
-        super().__init__(
-            dim=dim,
-            embedding_space=SymmetricMatrices(n),
-            value=gs.zeros((n, n)),
-            **kwargs
-        )
+        super().__init__(dim=dim, **kwargs)
+
+    def _define_embedding_space(self):
+        return SymmetricMatrices(self.n)
 
     def submersion(self, point):
         r"""Submersion that defines the Grassmann manifold.

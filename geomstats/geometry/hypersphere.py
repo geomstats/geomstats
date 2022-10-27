@@ -43,16 +43,17 @@ class _Hypersphere(LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
-
+        self.dim = dim
         super().__init__(
             dim=dim,
-            embedding_space=Euclidean(dim + 1),
-            value=1.0,
             default_coords_type=default_coords_type,
         )
 
+    def _define_embedding_space(self):
+        return Euclidean(self.dim + 1)
+
     def submersion(self, point):
-        return gs.sum(point**2, axis=-1)
+        return gs.sum(point**2, axis=-1) - 1.0
 
     def tangent_submersion(self, vector, point):
         return 2 * gs.sum(point * vector, axis=-1)
@@ -96,7 +97,7 @@ class _Hypersphere(LevelSet):
             at the base point.
         """
         sq_norm = gs.sum(base_point**2, axis=-1)
-        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        inner_prod = self.embedding_space.metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum("...,...j->...j", coef, base_point)
 

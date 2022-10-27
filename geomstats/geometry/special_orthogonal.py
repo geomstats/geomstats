@@ -38,20 +38,27 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
     """
 
     def __init__(self, n, **kwargs):
+        self.n = n
+        self._value = gs.eye(n)
+
         super().__init__(
             dim=int((n * (n - 1)) / 2),
             n=n,
-            value=gs.eye(n),
             lie_algebra=SkewSymmetricMatrices(n=n),
-            embedding_space=GeneralLinear(n, positive_det=True),
             **kwargs,
         )
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         if self._metric is None:
             self._metric = self.bi_invariant_metric
 
-    def submersion(self, point):
+    def _define_embedding_space(self):
+        return GeneralLinear(self.n, positive_det=True)
+
+    def _aux_submersion(self, point):
         return Matrices.mul(Matrices.transpose(point), point)
+
+    def submersion(self, point):
+        return self._aux_submersion(point) - self._value
 
     def tangent_submersion(self, vector, point):
         return 2 * Matrices.to_symmetric(
@@ -87,8 +94,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        aux_mat = self.submersion(point)
-        # aux_mat = Matrices.mul(Matrices.transpose(point), point)
+        aux_mat = self._aux_submersion(point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, -1 / 2)
         rotation_mat = Matrices.mul(point, inv_sqrt_mat)
         det = gs.linalg.det(rotation_mat)

@@ -316,23 +316,18 @@ class LevelSet(Manifold, abc.ABC):
     ----------
     dim : int
         Dimension of the embedded manifold.
-    embedding_space : VectorSpace
-        Embedding space.
     default_coords_type : str, {'intrinsic', 'extrinsic', etc}
         Coordinate type.
         Optional, default: 'intrinsic'.
     """
 
-    def __init__(
-        self, dim, embedding_space, value, default_coords_type="intrinsic", **kwargs
-    ):
-        kwargs.setdefault("shape", embedding_space.shape)
+    def __init__(self, dim, default_coords_type="intrinsic", **kwargs):
+        kwargs.setdefault("shape", self.embedding_space.shape)
         super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
-        self.embedding_space = embedding_space
-        self.embedding_metric = embedding_space.metric
-        if isinstance(value, float):
-            value = gs.array(value)
-        self.value = value
+
+    @abc.abstractmethod
+    def _define_embedding_space(self):
+        pass
 
     @abc.abstractmethod
     def submersion(self, point):
@@ -340,7 +335,14 @@ class LevelSet(Manifold, abc.ABC):
 
     @abc.abstractmethod
     def tangent_submersion(self, vector, point):
+        # TODO: autodiff
         pass
+
+    @property
+    def embedding_space(self):
+        if not hasattr(self, "_embedding_space"):
+            self._embedding_space = self._define_embedding_space()
+        return self._embedding_space
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
@@ -361,12 +363,18 @@ class LevelSet(Manifold, abc.ABC):
         belongs = self.embedding_space.belongs(point, atol)
         if not gs.any(belongs):
             return belongs
-        value = self.value
-        constraint = gs.isclose(self.submersion(point), value, atol=atol)
-        if value.ndim == 2:
-            constraint = gs.all(constraint, axis=(-2, -1))
-        elif value.ndim == 1:
-            constraint = gs.all(constraint, axis=-1)
+
+        submersion_ = self.submersion(point)
+        n = len(submersion_.shape)
+        axis = (
+            tuple(-n + 1 + i for i in range(n - 1))
+            if gs.ndim(point) > len(self.shape)
+            else tuple(-n + i for i in range(n))
+        )
+        constraint = gs.isclose(submersion_, 0.0, atol=atol)
+        if axis:
+            constraint = gs.all(constraint, axis=axis)
+
         return gs.logical_and(belongs, constraint)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
@@ -388,13 +396,21 @@ class LevelSet(Manifold, abc.ABC):
             Boolean denoting if vector is a tangent vector at the base point.
         """
         belongs = self.embedding_space.is_tangent(vector, base_point, atol)
+        if not gs.any(belongs):
+            return belongs
+
         tangent_sub_applied = self.tangent_submersion(vector, base_point)
+        n = len(tangent_sub_applied.shape)
+        axis = (
+            tuple(-n + 1 + i for i in range(n - 1))
+            if gs.ndim(base_point) > len(self.shape)
+            or gs.ndim(vector) > len(self.shape)
+            else tuple(-n + i for i in range(n))
+        )
         constraint = gs.isclose(tangent_sub_applied, 0.0, atol=atol)
-        value = self.value
-        if value.ndim == 2:
-            constraint = gs.all(constraint, axis=(-2, -1))
-        elif value.ndim == 1:
-            constraint = gs.all(constraint, axis=-1)
+        if axis:
+            constraint = gs.all(constraint, axis=axis)
+
         return gs.logical_and(belongs, constraint)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):

@@ -176,16 +176,18 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
     """
 
     def __init__(self, n, **kwargs):
+        self.n = n
+        self._value = gs.eye(n + 1)
+
         super().__init__(
             n=n + 1,
             dim=int((n * (n + 1)) / 2),
-            embedding_space=GeneralLinear(n + 1, positive_det=True),
-            value=gs.eye(n + 1),
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
             **kwargs
         )
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
+        # TODO: remove after solve naming clash
         self.n = n
 
         self.left_canonical_metric = SpecialEuclideanMatrixCanonicalLeftMetric(
@@ -193,6 +195,9 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         )
         if self._metric is None:
             self._metric = self.left_canonical_metric
+
+    def _define_embedding_space(self):
+        return GeneralLinear(self.n + 1, positive_det=True)
 
     def submersion(self, point):
         """Define SE(n) as the pre-image of identity.
@@ -212,8 +217,9 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         vec = point[..., n, :n]
         scalar = point[..., n, n]
         submersed_rot = Matrices.mul(rot, Matrices.transpose(rot))
-        return homogeneous_representation(
-            submersed_rot, vec, point.shape, constant=scalar
+        return (
+            homogeneous_representation(submersed_rot, vec, point.shape, constant=scalar)
+            - self._value
         )
 
     def tangent_submersion(self, vector, point):

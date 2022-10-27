@@ -22,17 +22,16 @@ class FullRankCorrelationMatrices(LevelSet):
     """
 
     def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
-        super().__init__(
-            dim=int(n * (n - 1) / 2),
-            embedding_space=SPDMatrices(n=n),
-            value=gs.ones(n),
-            **kwargs
-        )
         self.n = n
 
+        kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
+        super().__init__(dim=int(n * (n - 1) / 2), **kwargs)
+
+    def _define_embedding_space(self):
+        return SPDMatrices(n=self.n)
+
     def submersion(self, point):
-        return Matrices.diagonal(point)
+        return Matrices.diagonal(point) - gs.ones(self.n)
 
     def tangent_submersion(self, vector, point):
         return Matrices.diagonal(vector)
