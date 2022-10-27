@@ -88,7 +88,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         return has_right_size
 
     def random_point(self, n_samples=1, bound=1.0, n_iter=100):
-        """Sample in GL(n) from the uniform distribution.
+        """Sample in GL(n) from the normal distribution.
 
         Parameters
         ----------
@@ -96,8 +96,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
             Number of samples.
             Optional, default: 1.
         bound: float
-            Bound of the interval in which to sample each matrix entry.
-            Optional, default: 1.
+            This parameter is ignored
         n_iter : int
             Maximum number of trials to sample a matrix with positive det.
             Optional, default: 100.

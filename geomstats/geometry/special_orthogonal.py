@@ -49,6 +49,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             submersion=lambda x: matrices.mul(matrices.transpose(x), x),
             tangent_submersion=lambda v, x: 2
             * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
+            default_coords_type="extrinsic",
             **kwargs,
         )
         self.bi_invariant_metric = BiInvariantMetric(group=self)
@@ -92,7 +93,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return utils.flip_determinant(rotation_mat, det)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in SO(n) from the uniform distribution.
+        """Sample in SO(n) using a normal distribution (not the Haar measure).
 
         Parameters
         ----------
@@ -110,7 +111,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):
-        """Sample in SO(n) from the uniform distribution.
+        """Sample in SO(n) using a normal distribution (not the Haar measure).
 
         Parameters
         ----------
@@ -393,6 +394,21 @@ class _SpecialOrthogonalVectors(LieGroup):
         return -self.regularize(point)
 
     def random_point(self, n_samples=1, bound=1.0):
+        """Sample in SO(n) using a uniform distribution (not the Haar measure).
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Unused.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n, n]
+            Points sampled on the SO(n).
+        """
         return gs.squeeze(gs.random.rand(n_samples, 3))
 
     def exp_from_identity(self, tangent_vec):
@@ -627,6 +643,21 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         return point_prod
 
     def random_point(self, n_samples=1, bound=1.0):
+        """Sample in SO(2) using the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Unused.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n, n]
+            Points sampled on the SO(2).
+        """
         return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):
@@ -1631,7 +1662,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
     def random_uniform(self, n_samples=1):
-        """Sample in SO(3) with the uniform distribution.
+        """Sample in SO(3) uniform wrt parameters - not Haar measure.
 
         Parameters
         ----------
