@@ -194,7 +194,6 @@ class Siegel(ComplexOpenSet):
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
         samples = gs.random.rand(*size, dtype=gs.get_default_cdtype())
-        samples += 1j * gs.random.rand(*size, dtype=gs.get_default_cdtype())
         samples -= 0.5 + 0.5j
         samples /= 2 * n
         samples *= 1 - gs.atol
@@ -222,7 +221,6 @@ class Siegel(ComplexOpenSet):
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
         samples = gs.random.rand(*size, dtype=gs.get_default_cdtype())
-        samples += 1j * gs.random.rand(*size, dtype=gs.get_default_cdtype())
         samples *= 2
         samples -= 1 + 1j
 
