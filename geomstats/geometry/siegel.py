@@ -100,7 +100,7 @@ class Siegel(ComplexOpenSet):
         """
         point_shape = gs.shape(point)
 
-        ndim = len(point_shape)
+        ndim = gs.ndim(point)
         if ndim == 3:
             n_samples = point_shape[0]
 
@@ -137,7 +137,7 @@ class Siegel(ComplexOpenSet):
         data_type = point.dtype
         point_shape = gs.shape(point)
 
-        ndim = len(point_shape)
+        ndim = gs.ndim(point)
         if ndim == 3:
             n_samples = point_shape[0]
 
