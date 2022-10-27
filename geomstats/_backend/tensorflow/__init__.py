@@ -66,7 +66,6 @@ conj = _tf.math.conj
 erf = _tf.math.erf
 imag = _tf.math.imag
 isnan = _tf.math.is_nan
-max = _tf.math.reduce_max
 polygamma = _tf.math.polygamma
 real = _tf.math.real
 set_diag = _tf.linalg.set_diag

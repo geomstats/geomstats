@@ -158,7 +158,7 @@ class Siegel(ComplexOpenSet):
 
         projected = point
         eigenvalues = gs.linalg.eigvalsh(aux)
-        max_eigenvalues = gs.max(eigenvalues, axis=-1) ** 0.5
+        max_eigenvalues = gs.amax(eigenvalues, axis=-1) ** 0.5
 
         if ndim == 2:
             if max_eigenvalues >= 1 - atol:
