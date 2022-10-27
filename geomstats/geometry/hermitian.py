@@ -7,8 +7,6 @@ import geomstats.backend as gs
 from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 
-CDTYPE = gs.get_default_cdtype()
-
 
 class Hermitian(ComplexVectorSpace):
     """Class for Hermitian spaces.
@@ -33,14 +31,14 @@ class Hermitian(ComplexVectorSpace):
         -------
         identity : array-like, shape=[n]
         """
-        identity = gs.zeros(self.dim, dtype=CDTYPE)
+        identity = gs.zeros(self.dim, dtype=gs.get_default_cdtype())
         return identity
 
     identity = property(get_identity)
 
     def _create_basis(self):
         """Create the canonical basis."""
-        return gs.eye(self.dim, dtype=CDTYPE)
+        return gs.eye(self.dim, dtype=gs.get_default_cdtype())
 
     def exp(self, tangent_vec, base_point=None):
         """Compute the group exponential, which is simply the addition.
@@ -98,7 +96,9 @@ class HermitianMetric(ComplexRiemannianMetric):
         inner_prod_mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        mat = gs.eye(self.dim, dtype=CDTYPE)
+        mat = gs.eye(self.dim, dtype=gs.get_default_cdtype())
+        if base_point is not None and base_point.ndim > 1:
+            mat = gs.broadcast_to(mat, base_point.shape + (self.dim,))
         return mat
 
     @staticmethod

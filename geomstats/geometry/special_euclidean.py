@@ -254,7 +254,10 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         return gs.eye(self.n + 1, self.n + 1)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in SE(n) from the uniform distribution.
+        """Sample in SE(n) from the product distribution.
+
+        This method uses the distributions defined on the Euclidean and Special
+        Orthogonal groups.
 
         Parameters
         ----------
@@ -623,7 +626,10 @@ class _SpecialEuclideanVectors(LieGroup):
         return gs.concatenate([rot_vec, log_translation], axis=1)
 
     def random_point(self, n_samples=1, bound=1.0, **kwargs):
-        r"""Sample in SE(n) with the uniform distribution.
+        """Sample in SE(n) from the product distribution.
+
+        This method uses the distributions defined on the Euclidean and Special
+        Orthogonal groups.
 
         Parameters
         ----------

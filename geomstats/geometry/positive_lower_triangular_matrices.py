@@ -46,7 +46,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
             Number of samples.
             Optional, default: 1.
         bound : float
-            Side of hypercube support of the uniform distribution.
+            Side of hypercube support.
             Optional, default: 1.0
 
         Returns

@@ -561,30 +561,29 @@ class RiemannianMetric(Connection, ABC):
 
         For two orthonormal tangent vectors :math:`x,y` at a base point,
         the sectional curvature is defined by :math:`K(x,y) = <R(x, y)x, y>`.
+
         For non-orthonormal vectors, it is
-        :math:`K(x,y) = <R(x, y)x, y> / \\|x \wedge y\\|^2`.
+        :math:`K(x,y) = <R(x, y)y, x> / (<x, x><y, y> - <x, y>^2)`.
 
         sectional_curvature(X, Y, P) = K(X,Y) where X, Y are tangent vectors
         at base point P.
 
+        The information manifold of multinomial distributions has constant
+        sectional curvature given by :math:`K = 2 \sqrt{n}`.
+
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec_a : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., n, n]
+        base_point : array-like, shape=[..., dim]
             Point in the manifold.
 
         Returns
         -------
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at `base_point`.
-
-        Reference
-        ---------
-        [CF1992] Do Carmo, M. P., & Flaherty Francis, J. (1992).
-        Riemannian geometry (Vol. 6). Boston: Birkhäuser.
         """
         curvature = self.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_b, base_point

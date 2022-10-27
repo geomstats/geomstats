@@ -23,6 +23,10 @@ def is_complex(x):
     return x.dtype.is_complex
 
 
+def is_bool(x):
+    return x.dtype.is_bool
+
+
 set_default_dtype = _pre_set_default_dtype(as_dtype)
 
 _cast_out_from_dtype = _pre_cast_out_from_dtype(_tf.cast, is_floating, is_complex)

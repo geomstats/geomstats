@@ -10,8 +10,6 @@ import geomstats.backend as gs
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.manifold import Manifold
 
-CDTYPE = gs.get_default_cdtype()
-
 
 class ComplexManifold(Manifold):
     r"""Class for complex manifolds.
@@ -80,6 +78,10 @@ class ComplexManifold(Manifold):
                 "number of samples, when different from 1."
             )
         vector = gs.cast(
-            gs.random.normal(size=(n_samples,) + self.shape), dtype=CDTYPE
-        ) + 1j * gs.cast(gs.random.normal(size=(n_samples,) + self.shape), dtype=CDTYPE)
+            gs.random.normal(size=(n_samples,) + self.shape),
+            dtype=gs.get_default_cdtype(),
+        ) + 1j * gs.cast(
+            gs.random.normal(size=(n_samples,) + self.shape),
+            dtype=gs.get_default_cdtype(),
+        )
         return gs.squeeze(self.to_tangent(vector, base_point))
