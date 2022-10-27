@@ -50,9 +50,30 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         return Minkowski(self.dim + 1)
 
     def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[...]
+        """
         return self.embedding_space.metric.squared_norm(point) + 1.0
 
     def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim + 1]
+        point : array-like, shape=[..., dim + 1]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[...]
+        """
         return self.embedding_space.metric.inner_product(vector, point)
 
     def belongs(self, point, atol=gs.atol):

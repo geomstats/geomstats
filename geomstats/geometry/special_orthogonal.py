@@ -59,9 +59,30 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return Matrices.mul(Matrices.transpose(point), point)
 
     def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n. n]
+        """
         return self._aux_submersion(point) - self._value
 
     def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n, n]
+        """
         return 2 * Matrices.to_symmetric(
             Matrices.mul(Matrices.transpose(point), vector)
         )

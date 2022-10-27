@@ -54,9 +54,30 @@ class PreShapeSpace(LevelSet, FiberBundle):
         return Matrices(self.k_landmarks, self.m_ambient)
 
     def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_landmarks, m_ambient]
+
+        Returns
+        -------
+        submersion : array-like, shape=[...]
+        """
         return self.embedding_space.metric.squared_norm(point) - 1.0
 
     def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim+1]
+        point : array-like, shape=[..., dim+1]
+
+        Returns
+        -------
+        tangent_submersion : array-like, shape=[...]
+        """
         return self.embedding_space.metric.inner_product(vector, point)
 
     def projection(self, point):

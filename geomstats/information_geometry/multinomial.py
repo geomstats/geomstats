@@ -42,9 +42,30 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         return Euclidean(self.dim + 1)
 
     def submersion(self, point):
-        return gs.sum(point, axis=-1) - 1.
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[...]
+        """
+        return gs.sum(point, axis=-1) - 1.0
 
     def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim + 1]
+        point : Ignored.
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[...]
+        """
         return gs.sum(vector, axis=-1)
 
     def random_point(self, n_samples=1):

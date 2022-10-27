@@ -168,6 +168,14 @@ class Grassmannian(LevelSet):
         This map is a submersion and its zero space is the set of orthogonal
         rank-:math:`p` projectors.
 
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n, n]
+
         References
         ----------
         .. [Pau07] Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
@@ -191,6 +199,17 @@ class Grassmannian(LevelSet):
         return gs.concatenate([row_1, row_2], axis=-2)
 
     def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n, n]
+        """
         return 2 * Matrices.to_symmetric(Matrices.mul(point, vector)) - vector
 
     def random_uniform(self, n_samples=1):

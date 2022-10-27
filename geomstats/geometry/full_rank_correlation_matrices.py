@@ -31,9 +31,30 @@ class FullRankCorrelationMatrices(LevelSet):
         return SPDMatrices(n=self.n)
 
     def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n]
+        """
         return Matrices.diagonal(point) - gs.ones(self.n)
 
     def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : Ignored.
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n]
+        """
         return Matrices.diagonal(vector)
 
     @staticmethod

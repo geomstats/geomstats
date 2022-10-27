@@ -53,9 +53,30 @@ class _Hypersphere(LevelSet):
         return Euclidean(self.dim + 1)
 
     def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[...]
+        """
         return gs.sum(point**2, axis=-1) - 1.0
 
     def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim+1]
+        point : array-like, shape=[..., dim+1]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[...]
+        """
         return 2 * gs.sum(point * vector, axis=-1)
 
     def projection(self, point):

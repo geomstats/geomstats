@@ -335,12 +335,11 @@ class LevelSet(Manifold, abc.ABC):
 
     @abc.abstractmethod
     def submersion(self, point):
-        pass
+        """Submersion that defines the manifold."""
 
     @abc.abstractmethod
     def tangent_submersion(self, vector, point):
-        # TODO: autodiff
-        pass
+        """Tangent submersion."""
 
     @property
     def embedding_space(self):
@@ -368,14 +367,14 @@ class LevelSet(Manifold, abc.ABC):
         if not gs.any(belongs):
             return belongs
 
-        submersion_ = self.submersion(point)
-        n = len(submersion_.shape)
+        submersed_point = self.submersion(point)
+        n = len(submersed_point.shape)
         axis = (
             tuple(-n + 1 + i for i in range(n - 1))
             if gs.ndim(point) > len(self.shape)
             else tuple(-n + i for i in range(n))
         )
-        constraint = gs.isclose(submersion_, 0.0, atol=atol)
+        constraint = gs.isclose(submersed_point, 0.0, atol=atol)
         if axis:
             constraint = gs.all(constraint, axis=axis)
 
@@ -403,15 +402,15 @@ class LevelSet(Manifold, abc.ABC):
         if not gs.any(belongs):
             return belongs
 
-        tangent_sub_applied = self.tangent_submersion(vector, base_point)
-        n = len(tangent_sub_applied.shape)
+        submersed_vector = self.tangent_submersion(vector, base_point)
+        n = len(submersed_vector.shape)
         axis = (
             tuple(-n + 1 + i for i in range(n - 1))
             if gs.ndim(base_point) > len(self.shape)
             or gs.ndim(vector) > len(self.shape)
             else tuple(-n + i for i in range(n))
         )
-        constraint = gs.isclose(tangent_sub_applied, 0.0, atol=atol)
+        constraint = gs.isclose(submersed_vector, 0.0, atol=atol)
         if axis:
             constraint = gs.all(constraint, axis=axis)
 
