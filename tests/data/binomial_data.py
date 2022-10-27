@@ -8,10 +8,10 @@ from tests.data_generation import _OpenSetTestData
 class BinomialTestData(_OpenSetTestData):
     Space = BinomialDistributions
     n_list = random.sample((2, 5), 1)
-    n_samples_list = random.sample(range(10), 3)
+    n_samples_list = random.sample(range(1, 10), 3)
     space_args_list = [(n,) for n in n_list]
     shape_list = [(1,)]
-    n_points_list = random.sample(range(5), 2)
+    n_points_list = random.sample(range(1, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 1)
 
     def belongs_test_data(self):

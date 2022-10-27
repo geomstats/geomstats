@@ -91,6 +91,7 @@ from ._dtype import (
     as_dtype,
     get_default_cdtype,
     get_default_dtype,
+    is_bool,
     is_complex,
     is_floating,
     set_default_dtype,

@@ -217,7 +217,8 @@ class DiscreteCurves(Manifold):
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random curves.
 
-        If the ambient manifold is compact, a uniform distribution is used.
+        Each curve is made of independently sampled points. These points are sampled
+        from the ambient manifold using the distribution set for that manifold.
 
         Parameters
         ----------
@@ -235,7 +236,7 @@ class DiscreteCurves(Manifold):
         Returns
         -------
         samples : array-like, shape=[..., k_sampling_points, {dim, [n, n]}]
-            Points sampled on the hypersphere.
+            Sampled curves.
         """
         sample = self.ambient_manifold.random_point(n_samples * self.k_sampling_points)
         sample = gs.reshape(sample, (n_samples, self.k_sampling_points, -1))
@@ -396,7 +397,8 @@ class ClosedDiscreteCurves(LevelSet):
     def random_point(self, n_samples=1):
         """Sample random curves.
 
-        If the ambient manifold is compact, a uniform distribution is used.
+        Each curve is made of independently sampled points. These points are sampled
+        from the ambient manifold using the distribution set for that manifold.
 
         Parameters
         ----------
