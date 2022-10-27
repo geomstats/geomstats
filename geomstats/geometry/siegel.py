@@ -111,11 +111,7 @@ class Siegel(ComplexOpenSet):
             eigenvalues = gs.linalg.eigvalsh(aux)
             belongs = gs.all(eigenvalues <= 1 - atol)
         elif ndim == 3:
-            belongs = []
-            for i_sample in range(n_samples):
-                eigenvalues = gs.linalg.eigvalsh(aux[i_sample, ...])
-                belongs.append(gs.all(eigenvalues <= 1 - atol))
-            belongs = gs.array(belongs)
+            belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 - atol, axis=-1)
 
         if self.symmetric:
             belongs = gs.logical_and(belongs, ComplexMatrices.is_symmetric(point))
