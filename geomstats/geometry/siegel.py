@@ -99,10 +99,7 @@ class Siegel(ComplexOpenSet):
             Boolean denoting if mat belongs to the Siegel space.
         """
         point_shape = gs.shape(point)
-
         ndim = gs.ndim(point)
-        if ndim == 3:
-            n_samples = point_shape[0]
 
         point_transconj = ComplexMatrices.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
