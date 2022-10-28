@@ -52,6 +52,9 @@ from ._dtype import (
     as_dtype,
     get_default_cdtype,
     get_default_dtype,
+    is_bool,
+    is_complex,
+    is_floating,
     set_default_dtype,
 )
 
@@ -100,18 +103,6 @@ power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 
 
 std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
-
-
-def is_floating(x):
-    return x.dtype.is_floating_point
-
-
-def is_complex(x):
-    return x.dtype.is_complex
-
-
-def is_bool(x):
-    return x.dtype is _torch.bool
 
 
 def matmul(x, y, out=None):

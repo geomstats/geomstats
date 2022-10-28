@@ -1,10 +1,15 @@
 """Tensorflow based linear algebra backend."""
 
+import numpy as _np
 import scipy as _scipy
 import tensorflow as _tf
+from tensorflow import cast as _cast
 
 from .._backend_config import tf_atol as atol
+from ._dtype import get_default_cdtype as _get_default_cdtype
+from ._dtype import get_default_dtype as _get_default_dtype
 from ._dtype import is_complex as _is_complex
+from ._dtype import is_floating as _is_floating
 
 # "Forward-import" primitives. Due to the way the 'linalg' module is exported
 # in TF, this does not work with 'from tensorflow.linalg import ...'.
@@ -137,9 +142,20 @@ def norm(vector, ord="euclidean", axis=None, keepdims=None, name=None):
     return _tf.linalg.norm(vector, ord, axis, keepdims, name)
 
 
-def fractional_matrix_power(mat, power):
+def fractional_matrix_power(A, t):
     """Compute the fractional power of a matrix."""
-    mat = mat.numpy()
-    mat_power = _scipy.linalg.fractional_matrix_power(mat, power)
-    mat_power = _tf.convert_to_tensor(mat_power)
-    return mat_power
+    A = A.numpy()
+    if A.ndim == 2:
+        out = _scipy.linalg.fractional_matrix_power(A, t)
+    else:
+        out = _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])
+    out = _tf.convert_to_tensor(out)
+
+    if _is_floating(out):
+        if out.dtype != _get_default_dtype():
+            return _cast(out, _get_default_dtype())
+    elif _is_complex(out):
+        if out.dtype != _get_default_cdtype():
+            return _cast(out, _get_default_cdtype())
+
+    return out

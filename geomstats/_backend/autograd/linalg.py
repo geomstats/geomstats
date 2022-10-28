@@ -18,11 +18,16 @@ from autograd.numpy.linalg import (  # NOQA
     solve,
     svd,
 )
-from autograd.scipy.linalg import expm, fractional_matrix_power
+from autograd.scipy.linalg import expm
 
 from ._common import atol
+from ._common import cast as _cast
 from ._common import to_ndarray as _to_ndarray
 from ._dtype import _cast_fout_to_input_dtype
+from ._dtype import get_default_cdtype as _get_default_cdtype
+from ._dtype import get_default_dtype as _get_default_dtype
+from ._dtype import is_complex as _is_complex
+from ._dtype import is_floating as _is_floating
 
 _diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
 
@@ -129,3 +134,20 @@ def is_single_matrix_pd(mat):
         if e.args[0] == "Matrix is not positive definite":
             return False
         raise e
+
+
+def fractional_matrix_power(A, t):
+    if A.ndim == 2:
+        out = _ascp.linalg.fractional_matrix_power(A, t)
+
+    else:
+        out = _np.stack([_ascp.linalg.fractional_matrix_power(A_, t) for A_ in A])
+
+    if _is_floating(out):
+        if out.dtype != _get_default_dtype():
+            return _cast(out, _get_default_dtype())
+    elif _is_complex(out):
+        if out.dtype != _get_default_cdtype():
+            return _cast(out, _get_default_cdtype())
+
+    return out

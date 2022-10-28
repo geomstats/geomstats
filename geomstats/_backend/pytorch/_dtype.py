@@ -21,6 +21,18 @@ MAP_DTYPE = {
 }
 
 
+def is_floating(x):
+    return x.dtype.is_floating_point
+
+
+def is_complex(x):
+    return x.dtype.is_complex
+
+
+def is_bool(x):
+    return x.dtype is _torch.bool
+
+
 def as_dtype(value):
     """Transform string representing dtype in dtype."""
     return MAP_DTYPE[value]
