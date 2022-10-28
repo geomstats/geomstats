@@ -304,8 +304,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         tangent_vec_at_zero : array-like, shape=[..., n, n]
             Tangent vector at zero (null matrix).
         """
-        data_type = (tangent_vec + base_point).dtype
-        identity = _create_identity_mat(base_point.shape, dtype=data_type)
+        identity = _create_identity_mat(base_point.shape, dtype=base_point.dtype)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         aux_1 = gs.matmul(base_point, base_point_transconj)
         aux_2 = gs.matmul(base_point_transconj, base_point)
@@ -460,8 +459,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         tangent_vec_at_base_point : array-like, shape=[..., n, n]
             Tangent vector at the base point.
         """
-        data_type = (tangent_vec + base_point).dtype
-        identity = _create_identity_mat(tangent_vec.shape, dtype=data_type)
+        identity = _create_identity_mat(tangent_vec.shape, dtype=base_point.dtype)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         aux_1 = gs.matmul(base_point, base_point_transconj)
         aux_2 = gs.matmul(base_point_transconj, base_point)
