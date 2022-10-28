@@ -1,5 +1,4 @@
-"""Information Manifold of multivariate normal distributions with
-the Fisher information metric.
+"""Information Manifold of multivariate normal distributions with the Fisher metric.
 
 Lead author: Antoine Collas.
 """
@@ -131,8 +130,7 @@ class MultivariateDiagonalNormalDistributions(InformationManifoldMixin, OpenSet)
         return point
 
     def projection(self, point):
-        """Project a point on the manifold of
-        diagonal multivariate normal distributions.
+        """Project a point on the manifold of diagonal multivariate normal distribution.
 
         Floor the eigenvalues of the diagonal covariance matrix to gs.atol.
 
