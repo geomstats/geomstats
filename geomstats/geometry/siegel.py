@@ -140,20 +140,27 @@ class Siegel(ComplexOpenSet):
         point_transconj = ComplexMatrices.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
 
-        projected = gs.copy(point)
         eigenvalues = gs.linalg.eigvalsh(aux)
         max_eigenvalues = gs.amax(eigenvalues, axis=-1) ** 0.5
 
         if ndim == 2:
+            projected = gs.copy(point)
             if max_eigenvalues >= 1 - atol:
                 projected *= gs.cast((1 - atol) / max_eigenvalues, dtype=point.dtype)
 
         elif ndim == 3:
+            projected = []
             for i_sample in range(n_samples):
                 if max_eigenvalues[i_sample] > 1 - atol:
-                    projected[i_sample] *= gs.cast(
-                        (1 - atol) / max_eigenvalues[i_sample], dtype=point.dtype
+                    projected.append(
+                        point[i_sample]
+                        * gs.cast(
+                            (1 - atol) / max_eigenvalues[i_sample], dtype=point.dtype
+                        )
                     )
+                else:
+                    projected.append(point[i_sample])
+            projected = gs.stack(projected)
 
         return projected
 
