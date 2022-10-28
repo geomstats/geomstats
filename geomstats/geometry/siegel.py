@@ -98,19 +98,14 @@ class Siegel(ComplexOpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat belongs to the Siegel space.
         """
-        ndim = gs.ndim(point)
-
         point_transconj = ComplexMatrices.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
 
-        if ndim == 2:
-            eigenvalues = gs.linalg.eigvalsh(aux)
-            belongs = gs.all(eigenvalues <= 1 - atol)
-        elif ndim == 3:
-            belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 - atol, axis=-1)
+        axis = -1 if gs.ndim(point) == 3 else None
+        belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 - atol, axis=axis)
 
         if self.symmetric:
-            belongs = gs.logical_and(belongs, ComplexMatrices.is_symmetric(point))
+            return gs.logical_and(belongs, ComplexMatrices.is_symmetric(point))
 
         return belongs
 
@@ -130,10 +125,6 @@ class Siegel(ComplexOpenSet):
         projected: array-like, shape=[..., n, n]
             Matrix in the Siegel space.
         """
-        ndim = gs.ndim(point)
-        if ndim == 3:
-            n_samples = gs.shape(point)[0]
-
         if self.symmetric:
             point = ComplexMatrices.to_symmetric(point)
 
@@ -143,29 +134,10 @@ class Siegel(ComplexOpenSet):
         eigenvalues = gs.linalg.eigvalsh(aux)
         max_eigenvalues = gs.amax(eigenvalues, axis=-1) ** 0.5
 
-        if ndim == 2:
-            if max_eigenvalues >= 1 - atol:
-                projected = point * gs.cast(
-                    (1 - atol) / max_eigenvalues, dtype=point.dtype
-                )
-            else:
-                projected = point
-
-        elif ndim == 3:
-            projected = []
-            for i_sample in range(n_samples):
-                if max_eigenvalues[i_sample] > 1 - atol:
-                    projected.append(
-                        point[i_sample]
-                        * gs.cast(
-                            (1 - atol) / max_eigenvalues[i_sample], dtype=point.dtype
-                        )
-                    )
-                else:
-                    projected.append(point[i_sample])
-            projected = gs.stack(projected)
-
-        return projected
+        scalars = gs.where(
+            (max_eigenvalues > 1.0 - gs.atol), (1 - atol) / max_eigenvalues, 1.0
+        )
+        return gs.einsum("...,...ij->...ij", scalars, point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Generate random points in the Siegel space.
