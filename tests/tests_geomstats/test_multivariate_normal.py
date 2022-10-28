@@ -33,7 +33,7 @@ class TestMultivariateDiagonalNormalDistributions(
 
         expected = []
         for i in range(point.shape[0]):
-            loc, cov = Space._unstack_location_diagonal(point[i, ...])
+            loc, cov = Space._unstack_location_diagonal(n, point[i, ...])
             tmp = list()
             for j in range(samples.shape[0]):
                 x = samples[j, ...]
