@@ -241,7 +241,8 @@ class SiegelMetric(ComplexRiemannianMetric):
         The expression of the inner product between the vectors`v` and `w`
         at point :math:`\Omega` is :math:`<v, w>_{\Omega}
         = 1/2 * trace((I - \Omega \Omega^{H})^{-1} v (I - \Omega^{H} \Omega)^{-1} w^{H})
-        + 1/2 * trace((I - \Omega \Omega^{H})^{-1} w (I - \Omega^{H} \Omega)^{-1} v^{H})`.
+        + 1/2 * trace((I - \Omega \Omega^{H})^{-1} w (I - \Omega^{H} \Omega)^{-1} v^{H})`
+        where H denotes the conjugate transpose operator.
 
         Parameters
         ----------
