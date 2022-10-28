@@ -69,11 +69,10 @@ class ComplexPoincareDisk(ComplexOpenSet):
             Boolean denoting if point belongs to the
             complex Poincaré disk.
         """
-        point_shape = point.shape
-        is_scalar = len(point_shape) == 1
-        is_scalar = is_scalar or (len(point_shape) == 2 and point_shape[1] == 1)
+        is_scalar = gs.ndim(point) == 1
+        is_scalar = is_scalar or (gs.ndim(point) == 2 and point.shape[1] == 1)
         has_modulus_lower_than_one = gs.array(
-            [[gs.all(gs.abs(point[i_point]) < 1)] for i_point in range(point_shape[0])]
+            [[gs.all(gs.abs(point[i_point]) < 1)] for i_point in range(point.shape[0])]
         )
         belongs = gs.logical_and(is_scalar, has_modulus_lower_than_one)
         belongs = gs.reshape(belongs, (-1,))
