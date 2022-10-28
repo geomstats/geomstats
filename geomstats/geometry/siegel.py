@@ -528,28 +528,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             "...ij,...jk,...kl,...lm->...im", factor_1, factor_2, factor_3, factor_4
         )
 
-        point_b_shape = point_b.shape
-        point_shape = point_b.shape[-2:]
-
-        if len(point_b_shape) == 2:
-            n_samples = 1
-        else:
-            n_samples = point_b_shape[0]
-
-        prod = gs.reshape(prod, (n_samples, *point_shape))
-
-        prod_power_one_half = []
-
-        for i_sample in range(n_samples):
-            if gs.all(prod[i_sample, ...] == 0):
-                prod_power_one_half.append(gs.zeros(point_shape, dtype=point_a.dtype))
-            else:
-                prod_power_one_half.append(
-                    gs.linalg.fractional_matrix_power(prod[i_sample], 1 / 2)
-                )
-        prod_power_one_half = gs.stack(prod_power_one_half)
-
-        prod_power_one_half = gs.reshape(prod_power_one_half, point_b_shape)
+        prod_power_one_half = gs.linalg.fractional_matrix_power(prod, 0.5)
 
         num = identity + prod_power_one_half
         den = identity - prod_power_one_half
