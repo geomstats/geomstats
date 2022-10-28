@@ -4,7 +4,9 @@ import numpy as _np
 import scipy as _scipy
 import torch as _torch
 
+from .._backend_config import np_atol as atol
 from ..numpy import linalg as _gsnplinalg
+from ._dtype import _cast_out_to_input_dtype
 
 
 class _Logm(_torch.autograd.Function):
@@ -62,12 +64,10 @@ def sqrtm(x):
 
 
 def svd(x, full_matrices=True, compute_uv=True):
-    is_vectorized = x.ndim == 3
-    axis = (0, 2, 1) if is_vectorized else (1, 0)
     if compute_uv:
-        u, s, v_t = _torch.svd(x, some=not full_matrices, compute_uv=compute_uv)
-        return u, s, v_t.permute(axis)
-    return _torch.svd(x, some=not full_matrices, compute_uv=compute_uv)[1]
+        return _torch.linalg.svd(x, full_matrices=full_matrices)
+
+    return _torch.linalg.svdvals(x)
 
 
 def norm(x, ord=None, axis=None):
@@ -122,7 +122,9 @@ def is_single_matrix_pd(mat):
     if mat.shape[0] != mat.shape[1]:
         return False
     if mat.dtype in [_torch.complex64, _torch.complex128]:
-        is_hermitian = _torch.all(mat == _torch.conj(_torch.transpose(mat, 0, 1)))
+        is_hermitian = _torch.all(
+            _torch.abs(mat - _torch.conj(_torch.transpose(mat, 0, 1))) < atol
+        )
         if not is_hermitian:
             return False
         eigvals = _torch.linalg.eigvalsh(mat)
@@ -132,3 +134,14 @@ def is_single_matrix_pd(mat):
         return True
     except RuntimeError:
         return False
+
+
+@_cast_out_to_input_dtype
+def fractional_matrix_power(A, t):
+    """Compute the fractional power of a matrix."""
+    if A.ndim == 2:
+        out = _scipy.linalg.fractional_matrix_power(A, t)
+    else:
+        out = _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])
+
+    return _torch.tensor(out)

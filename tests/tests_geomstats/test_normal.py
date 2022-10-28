@@ -89,3 +89,13 @@ class TestNormalDistributions(tests.conftest.TestCase):
         result = gs.einsum("ij,ij->i", mat_prod, vec_b)
         expected = self.normal.metric.inner_product(vec_a, vec_b, base_point)
         self.assertAllClose(result, expected)
+
+    def test_sectional_curvature(self):
+        n_samples = 3
+        base_point = self.normal.random_point(n_samples)
+        vec_a = self.normal.random_tangent_vec(base_point, n_samples)
+        vec_b = self.normal.random_tangent_vec(base_point, n_samples)
+        result = self.normal.metric.sectional_curvature(vec_a, vec_b, base_point)
+
+        expected = gs.tile(gs.array(-1 / 2), (n_samples,))
+        self.assertAllClose(result, expected)
