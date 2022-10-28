@@ -175,13 +175,13 @@ class MultivariateDiagonalNormalDistributions(InformationManifoldMixin, OpenSet)
             x = gs.to_ndarray(x, to_ndim=2, axis=0)
             x = x[None, :, :]
             det_cov = gs.squeeze(gs.prod(diagonal, axis=-1))
-            tmp_0 = 1 / gs.sqrt(gs.power((2 * gs.pi), n) * det_cov)
-            tmp_1 = gs.exp(-0.5 * gs.sum(((x - location) ** 2) / diagonal, axis=-1))
-            while tmp_0.ndim < tmp_1.ndim:
-                tmp_0 = tmp_0[..., None]
-            pdf_at_x = tmp_0 * tmp_1
-            pdf_at_x = gs.squeeze(pdf_at_x)
-            return pdf_at_x
+            pdf_normalization = 1 / gs.sqrt(gs.power((2 * gs.pi), n) * det_cov)
+            pdf = gs.exp(-0.5 * gs.sum(((x - location) ** 2) / diagonal, axis=-1))
+            while pdf_normalization.ndim < pdf.ndim:
+                pdf_normalization = pdf_normalization[..., None]
+            pdf = pdf_normalization * pdf
+            pdf = gs.squeeze(pdf)
+            return pdf
 
         return pdf
 
