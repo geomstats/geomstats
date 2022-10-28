@@ -254,9 +254,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        data_type = (tangent_vec_a + tangent_vec_b + base_point).dtype
-
-        identity = _create_identity_mat(base_point.shape, dtype=data_type)
+        identity = _create_identity_mat(base_point.shape, dtype=base_point.dtype)
 
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         tangent_vec_a_transconj = ComplexMatrices.transconjugate(tangent_vec_a)
@@ -332,8 +330,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Point on the manifold.
         """
-        data_type = tangent_vec.dtype
-        identity = _create_identity_mat(tangent_vec.shape, dtype=data_type)
+        identity = _create_identity_mat(tangent_vec.shape, dtype=tangent_vec.dtype)
         tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
         aux_1 = gs.matmul(tangent_vec, tangent_vec_transconj)
         aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
@@ -366,8 +363,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         point_image : array-like, shape=[..., n, n]
             Image of point by the isometry.
         """
-        data_type = (point + point_to_zero).dtype
-        identity = _create_identity_mat(point.shape, dtype=data_type)
+        identity = _create_identity_mat(point.shape, dtype=point.dtype)
         point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
         aux_1 = gs.matmul(point_to_zero, point_to_zero_transconj)
         aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
@@ -427,8 +423,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         log_at_zero : array-like, shape=[..., n, n]
             Riemannian logarithm at zero (null matrix).
         """
-        data_type = point.dtype
-        identity = _create_identity_mat(point.shape, dtype=data_type)
+        identity = _create_identity_mat(point.shape, dtype=point.dtype)
         point_transconj = ComplexMatrices.transconjugate(point)
         aux_1 = gs.matmul(point, point_transconj)
         aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
