@@ -1,4 +1,5 @@
-"""Statistical Manifold of multivaraite normal distributions with the Fisher metric.
+"""Information Manifold of multivariate normal distributions with
+the Fisher information metric.
 
 Lead author: Antoine Collas.
 """
@@ -17,7 +18,19 @@ from geomstats.information_geometry.normal import NormalMetric
 
 
 class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin):
-    """Class for the manifold of diagonal multivariate normal distributions."""
+    """Class for the manifold of diagonal multivariate normal distributions.
+
+    This is the class for multivariate normal distributions with diagonal
+    covariance matrices and samples on the $n$-dimensional Euclidean space.
+    Each distribution is represented by a vector of size $2n$ where the first
+    $n$ elements contain the mean vector and the $n$ last elements contain
+    the diagonal of the covariance matrix.
+
+    Parameters
+    ----------
+    n : int
+          Dimension of the sample space of the multivariate normal distribution.
+    """
 
     def __init__(self, n):
         self.n = n
@@ -30,6 +43,9 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the manifold.
+
+        First $n$ elements contain the mean vector and the $n$ last
+        elements contain the diagonal of the covariance matrix.
 
         Parameters
         ----------
@@ -48,7 +64,7 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
         return belongs
 
     def random_point(self, n_samples=1):
-        """Sample parameters of normal distributions.
+        """Generate random parameters of multivariate diagonal normal distributions.
 
         Parameters
         ----------
@@ -73,7 +89,10 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
         return point
 
     def projection(self, point):
-        """Floor the eigenvalues to gs.atol.
+        """Project a point on the manifold of
+        diagonal multivariate normal distributions.
+
+        Floor the eigenvalues of the diagonal covariance matrix to gs.atol.
 
         Parameters
         ----------
@@ -92,7 +111,7 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
         return projected
 
     def sample(self, point, n_samples=1):
-        """Sample from the diagonal mutltivariate normal distribution.
+        """Sample from the diagonal multivariate normal distribution.
 
         Parameters
         ----------
@@ -164,7 +183,13 @@ class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin)
 
 
 class MultivariateDiagonalNormalMetric(RiemannianMetric):
-    """Class for the Fisher information metric of diagonal normal distributions."""
+    """Class for the Fisher information metric of diagonal normal distributions.
+
+    Parameters
+    ----------
+    n : int
+          Dimension of the sample space of the multivariate normal distribution.
+    """
 
     def __init__(self, n):
         self.n = n
@@ -210,19 +235,19 @@ class MultivariateDiagonalNormalMetric(RiemannianMetric):
         return point
 
     def _stacked_location_diagonal_to_1d_pairs(self, point, apply_sqrt=False):
-        """Create pairs of 1d locations and stds from nd counterparts.
+        """Create pairs of 1d parameters from nd counterparts.
 
         Parameters
         ----------
         point: array-like, shape=[..., 2*n]
-            Point.
+            Stacked point (e.g. stacked locations and diagonals).
         apply_sqrt: bool
             Determine if a square root is applied to the diagonals.
 
         Returns
         -------
         pairs : array-like, shape=[..., n, 2]
-            Pairs of locations and standard deviations.
+            Pairs of parameters (e.g. locations and variances).
         """
         location, diagonal = self._unstack_location_diagonal(point)
         if apply_sqrt:
@@ -231,20 +256,19 @@ class MultivariateDiagonalNormalMetric(RiemannianMetric):
         return point
 
     def _1d_pairs_to_stacked_location_diagonal(self, point, apply_square=False):
-        """Create nd locations and diagonal matrices from pairs of 1d counterparts.
+        """Create nd stacked parameters from pairs of 1d counterparts.
 
         Parameters
         ----------
-        point: array-like, shape=[..., 2*n]
-            Point.
+        pairs : array-like, shape=[..., n, 2]
+            Pairs of parameters (e.g. locations and variances).
         apply_square: bool
             Determine if a square is applied to the diagonals.
 
         Returns
         -------
-        pairs : array-like, shape=[..., n, 2]
-            Pairs of locations and standard deviations.
-
+        point: array-like, shape=[..., 2*n]
+            Stacked point (e.g. stacked locations and diagonals).
         """
         location = point[..., 0]
         diagonal = point[..., 1]
