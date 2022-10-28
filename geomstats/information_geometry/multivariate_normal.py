@@ -17,7 +17,7 @@ from geomstats.information_geometry.base import InformationManifoldMixin
 from geomstats.information_geometry.normal import NormalMetric
 
 
-class MultivariateDiagonalNormalDistributions(OpenSet, InformationManifoldMixin):
+class MultivariateDiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of diagonal multivariate normal distributions.
 
     This is the class for multivariate normal distributions with diagonal
