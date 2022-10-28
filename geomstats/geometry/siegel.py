@@ -402,9 +402,7 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         exp_zero = self.exp_at_zero(tangent_vec_at_zero)
 
-        exp = self.isometry(point=exp_zero, point_to_zero=-base_point)
-
-        return exp
+        return self.isometry(point=exp_zero, point_to_zero=-base_point)
 
     @staticmethod
     def log_at_zero(point):
