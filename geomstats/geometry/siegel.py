@@ -160,6 +160,14 @@ class Siegel(ComplexOpenSet):
     def random_point(self, n_samples=1, bound=1.0):
         """Generate random points in the Siegel space.
 
+        The Siegel space is the set of complex matrices of singular values
+        strictly lower than one.
+        The Frobenius norm of a matrix is greater than or equal to the spectral norm
+        which corresponds to the largest singular value of a matrix.
+        Then, simulating a matrix with Frobenius norm strictly lower than one,
+        its singular values are also strictly lower than one,
+        therefore this matrix belongs to the Siegel disk.
+
         Parameters
         ----------
         n_samples : int
@@ -179,9 +187,7 @@ class Siegel(ComplexOpenSet):
 
         samples = gs.random.rand(*size, dtype=gs.get_default_cdtype())
         samples -= 0.5 + 0.5j
-        samples *= 2**0.5 / n
-        samples *= 1 - gs.atol
-        samples *= bound
+        samples *= bound * (1 - gs.atol) * 2**0.5 / n
         return samples
 
     def random_tangent_vec(self, base_point=None, n_samples=1):
