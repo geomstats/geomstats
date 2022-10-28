@@ -75,8 +75,9 @@ class MultivariateDiagonalNormalDistributions(InformationManifoldMixin, OpenSet)
         Returns
         -------
         samples : array-like, shape=[..., 2*n]
-            Sample of points representing multivariate diagonal
-            normal distributions.
+            Sample of points representing multivariate diagonal normal distributions.
+            First $n$ elements contain the mean vector and the $n$ last elements
+            contain the diagonal of the covariance matrix.
         """
         n = self.n
         bound = 1.0
@@ -116,7 +117,8 @@ class MultivariateDiagonalNormalDistributions(InformationManifoldMixin, OpenSet)
         Parameters
         ----------
         point : array-like, shape=[..., 2*n]
-            Point on the manifold.
+            Point on the manifold. First $n$ elements contain the mean vector
+            and the $n$ last elements contain the diagonal of the covariance matrix.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
             Optional, default: 1.
@@ -144,6 +146,8 @@ class MultivariateDiagonalNormalDistributions(InformationManifoldMixin, OpenSet)
         ----------
         point : array-like, shape=[..., 2*n]
             Point representing a probability distribution.
+            First $n$ elements contain the mean vector and the $n$ last elements
+            contain the diagonal of the covariance matrix.
 
         Returns
         -------
