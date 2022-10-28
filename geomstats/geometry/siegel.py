@@ -496,11 +496,9 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         logarithm_at_zero = self.log_at_zero(point_at_zero)
 
-        log = self.tangent_vec_from_zero_to_base_point(
+        return self.tangent_vec_from_zero_to_base_point(
             tangent_vec=logarithm_at_zero, base_point=base_point
         )
-
-        return log
 
     def squared_dist(self, point_a, point_b):
         """Compute the Siegel squared distance.
