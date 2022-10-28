@@ -90,7 +90,7 @@ def is_single_matrix_pd(mat):
     if mat.shape[0] != mat.shape[1]:
         return False
     if mat.dtype in [_np.complex64, _np.complex128]:
-        is_hermitian = _np.all(mat == _np.conj(_np.transpose(mat)))
+        is_hermitian = _np.all(_np.abs(mat - _np.conj(_np.transpose(mat))) < atol)
         if not is_hermitian:
             return False
         eigvals = _np.linalg.eigvalsh(mat)
