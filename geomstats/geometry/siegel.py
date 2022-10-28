@@ -151,7 +151,7 @@ class Siegel(ComplexOpenSet):
         elif ndim == 3:
             for i_sample in range(n_samples):
                 if max_eigenvalues[i_sample] > 1 - atol:
-                    projected *= gs.cast(
+                    projected[i_sample] *= gs.cast(
                         (1 - atol) / max_eigenvalues[i_sample], dtype=point.dtype
                     )
 
