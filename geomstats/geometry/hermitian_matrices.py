@@ -214,12 +214,6 @@ class HermitianMatrices(ComplexVectorSpace):
         powerm : array_like, shape=[..., n, n]
             Matrix power of mat.
         """
-        if gs.is_complex(mat):
-            if isinstance(power, list):
-                power = list(gs.cast(gs.array(power), dtype=mat.dtype))
-            else:
-                power += 0j
-
         if isinstance(power, list):
             power_ = [lambda ev, p=p: gs.power(ev, p) for p in power]
         else:
