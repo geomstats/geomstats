@@ -144,9 +144,12 @@ class Siegel(ComplexOpenSet):
         max_eigenvalues = gs.amax(eigenvalues, axis=-1) ** 0.5
 
         if ndim == 2:
-            projected = gs.copy(point)
             if max_eigenvalues >= 1 - atol:
-                projected *= gs.cast((1 - atol) / max_eigenvalues, dtype=point.dtype)
+                projected = point * gs.cast(
+                    (1 - atol) / max_eigenvalues, dtype=point.dtype
+                )
+            else:
+                projected = point
 
         elif ndim == 3:
             projected = []
