@@ -250,8 +250,7 @@ class PositiveRealsMetric(RiemannianMetric):
         exp : array-like, shape=[..., 1]
             Riemannian exponential.
         """
-        exp = base_point * gs.exp(tangent_vec / base_point)
-        return exp
+        return base_point * gs.exp(tangent_vec / base_point)
 
     @staticmethod
     def log(point, base_point):
@@ -273,8 +272,7 @@ class PositiveRealsMetric(RiemannianMetric):
         log : array-like, shape=[..., 1]
             Riemannian logarithm.
         """
-        log = base_point * gs.log(point / base_point)
-        return log
+        return base_point * gs.log(point / base_point)
 
     def squared_dist(self, point_a, point_b):
         """Compute the positive reals squared distance.
