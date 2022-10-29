@@ -757,13 +757,8 @@ def gamma(a):
 
 
 def imag(a):
-    a = _torch.tensor(a)
-    if a.dtype in [
-        _torch.int32,
-        _torch.int64,
-        _torch.float32,
-        _torch.float64,
-        _torch.uint8,
-    ]:
-        return _torch.zeros(a.shape, dtype=a.dtype)
-    return _torch.imag(a)
+    if not _torch.is_tensor(a):
+        a = _torch.tensor(a)
+    if is_complex(a):
+        return _torch.imag(a)
+    return _torch.zeros(a.shape, dtype=a.dtype)
