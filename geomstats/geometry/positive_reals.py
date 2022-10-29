@@ -141,9 +141,7 @@ class PositiveReals(OpenSet):
             Points sampled in the positive reals.
         """
         size = (n_samples, 1) if n_samples != 1 else (1,)
-        samples = bound * gs.random.rand(*size)
-        samples = gs.maximum(samples, atol)
-        return samples
+        return (bound - gs.atol) * gs.random.rand(*size) + gs.atol
 
 
 class PositiveRealsMetric(RiemannianMetric):
