@@ -88,13 +88,12 @@ class PositiveReals(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if point is a positive real.
         """
-        point_shape = point.shape
-        is_scalar = len(point_shape) == 1
-        is_scalar = is_scalar or (len(point_shape) == 2 and point_shape[1] == 1)
+        is_scalar = gs.ndim(point) == 1
+        is_scalar = is_scalar or (gs.ndim(point) == 2 and point.shape[1] == 1)
         is_real = gs.imag(point) == 0
         point = gs.real(point)
         is_positive = gs.array(
-            [[gs.all(point[i_point] > 0)] for i_point in range(point_shape[0])]
+            [[gs.all(point[i_point] > 0)] for i_point in range(point.shape[0])]
         )
         belongs = gs.logical_and(is_scalar and is_real, is_positive)
         belongs = gs.reshape(belongs, (-1,))
