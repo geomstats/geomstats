@@ -7,6 +7,10 @@ This manifold is used as part of a product manifold involving
 complex Poincare disks to classify complex stationary centered
 Gaussian autoregressive time series in [Cabanes2022], [Cabanes_CESAR_2019],
 [Cabanes_GSI_2019] and [Cabanes_RADAR_2019].
+This product manifold is called ProductPositiveRealsAndComplexPoincareDisks
+in geomstats. It is a product manifold of complex type, therefore the manifold
+PositiveReals is compatible with complex input points and vectors even if the
+input values should be reals.
 
 
 Lead author: Yann Cabanes.
@@ -225,8 +229,10 @@ class PositiveRealsMetric(RiemannianMetric):
         sq_norm : array-like, shape=[...,]
             Squared norm.
         """
+        vector = gs.real(vector)
+        base_point = gs.real(base_point)
         sq_norm = self.inner_product(vector, vector, base_point=base_point)
-        return gs.real(sq_norm)
+        return sq_norm
 
     @staticmethod
     def exp(tangent_vec, base_point):
@@ -287,10 +293,12 @@ class PositiveRealsMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Riemannian squared distance.
         """
+        point_a = gs.real(point_a)
+        point_b = gs.real(point_b)
         sq_dist = gs.log(point_b / point_a) ** 2
         sq_dist = gs.reshape(sq_dist, (-1,))
         sq_dist *= self.scale**2
-        return gs.real(sq_dist)
+        return sq_dist
 
     def dist(self, point_a, point_b):
         """Compute the positive reals distance.
@@ -309,7 +317,9 @@ class PositiveRealsMetric(RiemannianMetric):
         dist : array-like, shape=[...,]
             Riemannian distance.
         """
+        point_a = gs.real(point_a)
+        point_b = gs.real(point_b)
         dist = gs.abs(gs.log(point_b / point_a))
         dist = gs.reshape(dist, (-1,))
         dist *= self.scale
-        return gs.real(dist)
+        return dist
