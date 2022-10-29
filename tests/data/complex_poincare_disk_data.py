@@ -25,7 +25,7 @@ class ComplexPoincareDiskTestData(_ComplexOpenSetTestData):
     space_args_list = [(n,) for n in n_list]
     n_points_list = random.sample(range(1, 5), 2)
     shape_list = [(1,) for _ in n_list]
-    n_vecs_list = random.sample(range(1, 10), 2)
+    n_vecs_list = random.sample(range(2, 10), 2)
 
     Space = ComplexPoincareDisk
 
