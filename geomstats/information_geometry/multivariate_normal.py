@@ -12,8 +12,99 @@ import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.information_geometry.base import InformationManifoldMixin
 from geomstats.information_geometry.normal import NormalMetric
+
+
+class MultivariateCenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
+    """Class for the manifold of centered multivariate normal distributions.
+
+    This is the class for multivariate normal distributions with zero mean
+    on the $n$-dimensional Euclidean space. Each distribution is represented by
+    its covariance matrix, i.e. an $n$-by-$n$ symmetric positive-definite matrix.
+
+    Parameters
+    ----------
+    n : int
+        Dimension of the sample space of the multivariate normal distribution.
+    """
+
+    def __init__(self, n):
+        super().__init__(n=n)
+        # self.metric = MultivariateFixedMeanNormalMetric()
+
+    def sample(self, point, n_samples=1):
+        """Sample from a centered multivariate normal distribution.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Symmetric positive definite matrix representing the covariance matrix
+            of a multivariate normal distribution with zero mean.
+        n_samples : int
+            Number of points to sample with each covariance matrix in point.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n_samples, n]
+            Sample from centered multivariate normal distributions.
+        """
+        geomstats.errors.check_belongs(point, self)
+        if point.ndim > 3:
+            raise NotImplementedError
+        point = gs.to_ndarray(point, to_ndim=3)
+        samples = []
+        loc = gs.zeros(self.n)
+        for cov in point:
+            samples.append(gs.array(multivariate_normal.rvs(loc, cov, size=n_samples)))
+        return samples[0] if point.shape[0] == 1 else gs.stack(samples)
+
+    def point_to_pdf(self, point):
+        """Compute pdf associated to point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Symmetric positive definite matrix representing the covariance matrix
+            of a multivariate normal distribution with zero mean.
+
+        Returns
+        -------
+        pdf : function
+            Probability density function of the centered multivariate normal
+            distributions with covariance matrices provided by point.
+        """
+        geomstats.errors.check_belongs(point, self)
+        if point.ndim > 3:
+            raise NotImplementedError
+        point = gs.to_ndarray(point, to_ndim=3, axis=0)
+        point = point[:, None, :]
+        n = self.n
+        location, diagonal = self._unstack_location_diagonal(n, point)
+
+        def pdf(x):
+            """Generate parameterized function for normal pdf.
+
+            Parameters
+            ----------
+            x : array-like, shape=[n_samples, n]
+                Points at which to compute the probability
+                density function.
+            """
+            x = gs.to_ndarray(x, to_ndim=2, axis=0)
+            x = x[None, :, :]
+            det_cov = gs.squeeze(gs.prod(diagonal, axis=-1))
+            pdf_normalization = 1 / gs.sqrt(gs.power((2 * gs.pi), n) * det_cov)
+            pdf = gs.exp(-0.5 * gs.sum(((x - location) ** 2) / diagonal, axis=-1))
+            while pdf_normalization.ndim < pdf.ndim:
+                pdf_normalization = pdf_normalization[..., None]
+            pdf = pdf_normalization * pdf
+            pdf = gs.squeeze(pdf)
+            return pdf
+
+        return pdf
 
 
 class MultivariateDiagonalNormalDistributions(InformationManifoldMixin, OpenSet):

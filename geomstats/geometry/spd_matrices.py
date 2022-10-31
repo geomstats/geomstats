@@ -98,6 +98,12 @@ class SPDMatrices(OpenSet):
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
         mat = bound * (2 * gs.random.rand(*size) - 1)
+        # if n_samples != 1:
+        #    spd_mat = []
+        #    for matrix in mat:
+        #        spd_mat.append(GeneralLinear.exp(Matrices.to_symmetric(matrix)))
+        #    spd_mat = gs.stack(spd_mat)
+        # else:
         spd_mat = GeneralLinear.exp(Matrices.to_symmetric(mat))
 
         return spd_mat
