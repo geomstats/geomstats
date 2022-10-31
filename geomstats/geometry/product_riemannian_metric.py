@@ -92,11 +92,6 @@ class ProductRiemannianMetric(RiemannianMetric):
                 "A default_point_type of 'matrix' can only be used if all "
                 "metrics have the same shape."
             )
-        if not len(self._factor_shapes[0]) == 1:
-            raise ValueError(
-                "A default_point_type of 'matrix' can only be used if all "
-                "metrics have vector type."
-            )
         return (len(self.factors), *self.factors[0].shape)
 
     def embed_to_product(self, points):
@@ -132,7 +127,7 @@ class ProductRiemannianMetric(RiemannianMetric):
                 points_.append(response)
 
             return gs.concatenate(points_, axis=-1)
-        return gs.stack(points, axis=-2)
+        return gs.stack(points, axis=-len(self.shape))
 
     def project_from_product(self, point):
         """Map a point in the product to points in each factor.
@@ -162,7 +157,8 @@ class ProductRiemannianMetric(RiemannianMetric):
             ]
 
         else:
-            projected_points = [point[..., j, :] for j in range(len(self.factors))]
+            point = gs.reshape(point, (-1,) + self.shape)
+            projected_points = [point[:, j, ...] for j in range(len(self.factors))]
 
         return projected_points
 
@@ -341,7 +337,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         if self.default_point_type == "vector":
             return gs.concatenate(exp, -1)
-        return gs.stack(exp, axis=-2)
+        return gs.stack(exp, axis=-len(self.shape))
 
     def log(self, point, base_point=None, **kwargs):
         """Compute the Riemannian logarithm of a point.
@@ -364,7 +360,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         logs = self._iterate_over_metrics("log", args)
         if self.default_point_type == "vector":
             return gs.concatenate(logs, axis=-1)
-        return gs.stack(logs, axis=-2)
+        return gs.stack(logs, axis=-len(self.shape))
 
 
 class NFoldMetric(RiemannianMetric):
