@@ -510,7 +510,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
     """
 
     def __init__(self, n, power_affine=1, scale=1.0):
-        dim = int(n * (n + 1) / 2)
+        dim = n**2
         super().__init__(
             dim=dim,
             shape=(n, n),
@@ -778,7 +778,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
     """
 
     def __init__(self, n):
-        dim = int(n * (n + 1) / 2)
+        dim = n**2
         super().__init__(
             dim=dim,
             signature=(dim, 0),
@@ -1023,7 +1023,7 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
     """Class for the Euclidean metric on the HPD manifold."""
 
     def __init__(self, n, power_euclidean=1):
-        dim = int(n * (n + 1) / 2)
+        dim = n**2
         super().__init__(
             dim=dim,
             signature=(dim, 0),
@@ -1234,7 +1234,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
     """
 
     def __init__(self, n):
-        dim = int(n * (n + 1) / 2)
+        dim = n**2
         super().__init__(
             dim=dim,
             signature=(dim, 0),
