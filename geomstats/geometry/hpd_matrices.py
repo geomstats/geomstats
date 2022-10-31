@@ -46,13 +46,13 @@ class HPDMatrices(OpenSet):
         self.n = n
         self.scale = scale
 
-    def belongs(self, mat, atol=gs.atol):
+    def belongs(self, point, atol=gs.atol):
         """Check if a matrix is Hermitian with positive eigenvalues.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix to be checked.
+        point : array-like, shape=[..., n, n]
+            Point to be checked.
         atol : float
             Tolerance.
             Optional, default: backend atol.
@@ -62,7 +62,7 @@ class HPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an HPD matrix.
         """
-        return ComplexMatrices.is_hpd(mat, atol)
+        return ComplexMatrices.is_hpd(point, atol)
 
     def projection(self, point, atol=gs.atol):
         """Project a matrix to the space of HPD matrices.
