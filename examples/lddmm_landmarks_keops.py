@@ -11,6 +11,22 @@ import time
 
 gs.random.seed(1234)
 
+# optional : using keops for kernel convolutions (to be used with pytorch backend)
+use_keops = True
+# N.B. Usage of keops has no interest in the setting of this example.
+# It is usefull only for landmarks sets > 5000 points approx, and using a GPU.
+# To install keops, on a linux machine use "pip install pykeops"
+# Note : On MacOs, as of Oct 2022, a compiler warning causes the current version 
+# of keops on pip to fail when calling formulas. 
+# You need to install latest release of keops from git using both commands 
+# pip install git+https://github.com/getkeops/keops.git@main#subdirectory=keopscore
+# pip install git+https://github.com/getkeops/keops.git@main#subdirectory=pykeops
+
+if use_keops:
+    print("\nUsing pykeops for kernel convolutions\n")
+else:
+    print("\npykeops is NOT enabled ; see the script to enable it.\n")
+
 step = "euler" # step rule for numerical integration
 n_steps = 10 # number of integration steps
 
@@ -22,14 +38,18 @@ print("Experiment 1 : 2 landmarks in 2D")
 
 # set the space and metrics
 r2 = Euclidean(dim=2)
-gaussian_1 = lambda d: gs.exp(-d)
-gaussian_2 = lambda d: gs.exp(-d/.25**2)
+if use_keops:
+    gaussian_1 = lambda d: (-d).exp()
+    gaussian_2 = lambda d: (-d/.25**2).exp()
+else:
+    gaussian_1 = lambda d: gs.exp(-d)
+    gaussian_2 = lambda d: gs.exp(-d/.25**2)
 
 metrics = { 
     "Kernel metric (gaussian kernel, sigma=1)" : 
-            KernelLandmarksMetric(ambient_dimension=2, k_landmarks=n_points, kernel=gaussian_1),
+            KernelLandmarksMetric(ambient_dimension=2, k_landmarks=n_points, kernel=gaussian_1, use_keops=use_keops),
     "Kernel metric (gaussian kernel, sigma=.25)" : 
-            KernelLandmarksMetric(ambient_dimension=2, k_landmarks=n_points, kernel=gaussian_2)
+            KernelLandmarksMetric(ambient_dimension=2, k_landmarks=n_points, kernel=gaussian_2, use_keops=use_keops)
 }
 
 # set parameters for geodesics computation and plotting
@@ -88,7 +108,7 @@ landmark_set_b = landmark_set_a + .5*(gs.random.rand(N,2)-.5)
 
 metrics = { 
        "Kernel metric (gaussian kernel, sigma=.25)" : 
-            KernelLandmarksMetric(ambient_dimension=2, k_landmarks=n_points, kernel=gaussian_2)
+            KernelLandmarksMetric(ambient_dimension=2, k_landmarks=n_points, kernel=gaussian_2, use_keops=use_keops)
 }
 
 # main loop
