@@ -58,7 +58,7 @@ class L2LandmarksMetric(NFoldMetric):
 
 
 class KernelLandmarksMetric(RiemannianMetric):
-    r"""Kernel metric (in fact the kernel matrix gives the co-metric) for the LDDMM framework on landmark spaces.
+    r"""Kernel metric (in fact the kernel matrix gives the co-metric) on landmark spaces in R^n.
 
     Parameters
     ----------
@@ -95,7 +95,7 @@ class KernelLandmarksMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : landmark configuration :math: `x`
+        base_point : landmark configuration :math: `x` : [..., k_landmarks, ambient_dimension]
 
         Returns
         -------
@@ -112,7 +112,7 @@ class KernelLandmarksMetric(RiemannianMetric):
                     (base_point[..., :, None, :] - base_point) ** 2, axis=-1)
             return self.kernel(squared_dist)
 
-    def cometric_matrix(self, base_point=None):
+    def cometric_matrix(self, base_point):
         """Inner co-product matrix at the cotangent space at a base point.
 
         This represents the cometric matrix, i.e. the inverse of the
@@ -120,31 +120,33 @@ class KernelLandmarksMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dimension]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
         mat : array-like, shape=[..., dim, dim]
+            (with dim=k_landmarks*ambient_dimension)
             Inverse of inner-product matrix.
         """
         kernel_matrix = self.kernel_matrix(base_point)
-        cometric_matrix = gs.kron(kernel_matrix,gs.eye(self.ambient_dimension))
-        return cometric_matrix
+        k_landmarks, ambient_dimension = base_point.shape[-2:]
+        dim = k_landmarks * ambient_dimension
+        shapeout = base_point.shape[:-2] + (dim,dim)
+        return gs.einsum('...ij,...kl->...ikjl', kernel_matrix, gs.eye(self.ambient_dimension)).reshape(shapeout)
 
-    def metric_matrix(self, base_point=None):
+    def metric_matrix(self, base_point):
         """Metric matrix at the tangent space at a base point.
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dimension]
             Base point.
-            Optional, default: None.
 
         Returns
         -------
         mat : array-like, shape=[..., dim, dim]
+            (with dim=k_landmarks*ambient_dimension)
             Inner-product matrix.
         """
         cometric_matrix = self.cometric_matrix(base_point)
@@ -165,11 +167,11 @@ class KernelLandmarksMetric(RiemannianMetric):
 
         Parameters
         ----------
-        cotangent_vec_a : array-like, shape=[..., dim]
+        cotangent_vec_a : array-like, shape=[..., k_landmarks, ambient_dimension]
             Cotangent vector at `base_point`.
-        cotangent_vec_b : array-like, shape=[..., dim]
+        cotangent_vec_b : array-like, shape=[..., k_landmarks, ambient_dimension]
             Cotangent vector at `base_point`.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dimension]
             Point on the manifold.
 
         Returns
@@ -177,7 +179,7 @@ class KernelLandmarksMetric(RiemannianMetric):
         inner_coproduct : float
             Inner coproduct between the two cotangent vectors.
         """
-        return gs.sum(cotangent_vec_a * (self.kernel_matrix(base_point, use_keops=self.use_keops) @ cotangent_vec_b))
+        return gs.sum(cotangent_vec_a * (self.kernel_matrix(base_point, use_keops=self.use_keops) @ cotangent_vec_b),(-1,-2))
 
     def tangent_to_cotangent(self, tangent_vec, base_point):
         r"""Converts tangent vector to cotangent vector
@@ -209,13 +211,13 @@ class KernelLandmarksMetric(RiemannianMetric):
 
         Parameters
         ----------
-        state : array-like, shape=[2, ..., dim]
+        state : array-like, shape=[2, k_landmarks, ambient_dimension]
             stack of position (Point on the manifold) and momentum (Covector at `position`).
         t : time index (unused, but needed for passing the function to the integrator)
 
         Returns
         -------
-        array-like, shape=[2, ..., dim]
+        array-like, shape=[2, k_landmarks, ambient_dimension]
             stack of h_p (Partial derivative with respect to `position`) 
             and -h_q (Partial derivative with respect to `momentum`)
         """
@@ -240,9 +242,11 @@ class KernelLandmarksMetric(RiemannianMetric):
 
         Parameters
         ----------
-        cotangent_vec : array-like, shape=[..., dim]
+        cotangent_vec : array-like, shape=[..., k_landmarks, ambient_dimension] (if point_type='matrix')
+                or shape=[..., dim] with dim=k_landmarks*ambient_dimension (if point_type='vector')
             Cotangent vector at the base point.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dimension] (if point_type='matrix')
+                or shape=[..., dim] with dim=k_landmarks*ambient_dimension (if point_type='vector')
             Point on the manifold.
         n_steps : int
             Number of discrete time steps to take in the integration.
@@ -256,14 +260,38 @@ class KernelLandmarksMetric(RiemannianMetric):
 
         Returns
         -------
-        exp : array-like, shape=[..., dim]
+        exp : array-like, shape=[..., k_landmarks, ambient_dimension] (if point_type='matrix')
+                or shape=[..., dim] with dim=k_landmarks*ambient_dimension (if point_type='vector')
             Point on the manifold.
         """
 
-        initial_state = gs.stack([base_point, cotangent_vec])
-        flow = integrate(self.hamiltonian_equation, initial_state, **kwargs)
+        if point_type=='vector':
+            newshape_cv = cotangent_vec.shape[:-1]+(self.k_landmarks, self.ambient_dimension)
+            cotangent_vec = gs.reshape(cotangent_vec, newshape_cv)
+            newshape_bp = base_point.shape[:-1]+(self.k_landmarks, self.ambient_dimension)
+            base_point = gs.reshape(base_point, newshape_bp)
 
-        exp = flow[-1][0]
+        if gs.ndim(base_point) > gs.ndim(cotangent_vec):
+            cotangent_vec = gs.broadcast_to(cotangent_vec, base_point.shape)
+        elif gs.ndim(base_point) < gs.ndim(cotangent_vec):
+            base_point = gs.broadcast_to(base_point, cotangent_vec.shape)
+        
+        if gs.ndim(base_point)==3: 
+            # here base_point.shape=(batchsize,k_landmarks,ambient_dimension)
+            exp = []
+            for k in range(base_point.shape[0]):
+                initial_state = gs.stack([base_point[k], cotangent_vec[k]])
+                flow = integrate(self.hamiltonian_equation, initial_state, **kwargs)
+                exp.append(flow[-1][0])
+            exp = gs.stack(exp)
+        else:
+            # here base_point.shape=(k_landmarks,ambient_dimension)
+            initial_state = gs.stack([base_point, cotangent_vec])
+            flow = integrate(self.hamiltonian_equation, initial_state, **kwargs)
+            exp = flow[-1][0]
+        if point_type=='vector':
+            newshape = exp.shape[:-2]+(self.dim,)
+            exp = gs.reshape(exp, newshape)
         return exp
     
     def log_as_cotangent(
@@ -283,9 +311,9 @@ class KernelLandmarksMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., k_landmarks, ambient_dimension]
             Point on the manifold.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., k_landmarks, ambient_dimension]
             Point on the manifold.
         n_steps : int
             Number of discrete time steps to take in the integration.
@@ -299,7 +327,7 @@ class KernelLandmarksMetric(RiemannianMetric):
 
         Returns
         -------
-        cotangent_vec : array-like, shape=[..., dim]
+        cotangent_vec : array-like, shape=[..., k_landmarks, ambient_dimension]
             Cotangent vector at the base point.
         """
 
@@ -360,16 +388,16 @@ class KernelLandmarksMetric(RiemannianMetric):
 
         Parameters
         ----------
-        initial_point : array-like, shape=[..., dim]
+        initial_point : array-like, shape=[..., k_landmarks, ambient_dimension]
             Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
+        end_point : array-like, shape=[..., k_landmarks, ambient_dimension], optional
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector or cotangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim],
+        initial_tangent_vec : array-like, shape=[..., k_landmarks, ambient_dimension],
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
             If None, an initial cotangent vector or an end point must be given.
-        initial_cotangent_vec : array-like, shape=[..., dim],
+        initial_cotangent_vec : array-like, shape=[..., k_landmarks, ambient_dimension],
             Cotangent vector at base point, the initial momentum of the geodesics.
             Optional, default: None.
             If None, an initial tangent vector or an end point must be given.
@@ -382,7 +410,7 @@ class KernelLandmarksMetric(RiemannianMetric):
             represents the different initial conditions, and the second
             corresponds to time.
         """
-        point_type = self.default_point_type
+        point_type = 'matrix'
 
         if sum(x is not None for x in (end_point, initial_tangent_vec, initial_cotangent_vec))!=1:
             raise ValueError(
@@ -396,38 +424,31 @@ class KernelLandmarksMetric(RiemannianMetric):
         else:
             initial_cotangent_vec = self.log_as_cotangent(point=end_point, base_point=initial_point, verbose=verbose, **exp_kwargs)
 
-        if point_type == "vector":
-            if initial_point.ndim!=1 or initial_cotangent_vec.ndim!=1:
-                raise ValueError(
-                "batch mode not implemented for KernelLandmarksMetric class"
-            )
-        else:
-            if initial_point.ndim!=2 or initial_cotangent_vec.ndim!=2:
-                raise ValueError(
-                "batch mode not implemented for KernelLandmarksMetric class"
-            )
-
         def path(t):
             """Generate parameterized function for geodesic curve.
 
             Parameters
             ----------
-            t : array-like, shape=[n_points,]
+            t : array-like, shape=[n_time_points,]
                 Times at which to compute points of the geodesics.
             """
             t = gs.array(t)
             t = gs.cast(t, initial_cotangent_vec.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
             if point_type == "vector":
-                cotangent_vecs = gs.einsum("i,...k->...ik", t, initial_cotangent_vec)
+                cotangent_vecs = gs.einsum("i,...k->i...k", t, initial_cotangent_vec)
             else:
-                cotangent_vecs = gs.einsum("i,...kl->...ikl", t, initial_cotangent_vec)
+                cotangent_vecs = gs.einsum("i,...kl->i...kl", t, initial_cotangent_vec)
 
             points_at_time_t = [
                 self.exp_from_cotangent(ctv, initial_point, **exp_kwargs)
                 for ctv in cotangent_vecs
             ]
             points_at_time_t = gs.stack(points_at_time_t, axis=0)
+            # N.B in case of batch mode, here points_at_time_t.shape = (n_time_points,nbatch,...)
+            # and we need to convert to (nbatch,n_time_points,...)
+            if point_type == "vector" and gs.ndim(points_at_time_t)==3 or point_type == "matrix" and gs.ndim(points_at_time_t)==4:
+                points_at_time_t = gs.moveaxis(points_at_time_t,0,1)
 
             return points_at_time_t
 
