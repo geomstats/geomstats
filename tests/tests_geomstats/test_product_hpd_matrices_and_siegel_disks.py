@@ -1,10 +1,5 @@
 """Unit tests for the ProductHPDMatricesAndSiegelDisks manifold."""
 
-import geomstats.backend as gs
-import tests.conftest
-from geomstats.geometry.product_hpd_matrices_and_siegel_disks import (
-    ProductHPDMatricesAndSiegelDisks,
-)
 from tests.conftest import Parametrizer, TestCase
 from tests.data.product_hpd_matrices_and_siegel_disks_data import (
     ProductHPDMatricesAndSiegelDisksMetricTestData,

@@ -52,9 +52,7 @@ class ProductHPDMatricesAndSiegelDisks(ProductManifold):
         hpd_matrices = HPDMatrices(n=n)
         hpd_matrices.metric = HPDAffineMetric(n=n, scale=n_manifolds**0.5)
         siegel_disk = Siegel(n=n)
-        list_manifolds = [hpd_matrices,] + (n_manifolds - 1) * [
-            siegel_disk,
-        ]
+        list_manifolds = [hpd_matrices] + (n_manifolds - 1) * [siegel_disk]
         super(ProductHPDMatricesAndSiegelDisks, self).__init__(
             factors=list_manifolds, **kwargs
         )
@@ -102,12 +100,7 @@ class ProductHPDMatricesAndSiegelDisksMetric(ProductRiemannianMetric):
     """
 
     def __init__(self, n_manifolds, n, **kwargs):
-        metrics = [
-            HPDAffineMetric(n=n),
-        ]
-        metrics += (n_manifolds - 1) * [
-            SiegelMetric(n=n),
-        ]
+        metrics = [HPDAffineMetric(n=n)] + (n_manifolds - 1) * [SiegelMetric(n=n)]
         scales = [
             (n_manifolds - i_manifold) ** 0.5 for i_manifold in range(n_manifolds)
         ]
