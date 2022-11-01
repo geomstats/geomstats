@@ -18,7 +18,7 @@ from scipy.linalg import expm
 
 from ._common import atol
 from ._common import to_ndarray as _to_ndarray
-from ._dtype import _cast_fout_to_input_dtype
+from ._dtype import _cast_fout_to_input_dtype, _cast_out_to_input_dtype
 
 _diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
 
@@ -102,3 +102,11 @@ def is_single_matrix_pd(mat):
         if e.args[0] == "Matrix is not positive definite":
             return False
         raise e
+
+
+@_cast_out_to_input_dtype
+def fractional_matrix_power(A, t):
+    if A.ndim == 2:
+        return _scipy.linalg.fractional_matrix_power(A, t)
+
+    return _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])

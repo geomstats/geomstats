@@ -1,9 +1,11 @@
 """Tensorflow based linear algebra backend."""
 
+import numpy as _np
 import scipy as _scipy
 import tensorflow as _tf
 
 from .._backend_config import tf_atol as atol
+from ._dtype import _cast_out_to_input_dtype
 from ._dtype import is_complex as _is_complex
 
 # "Forward-import" primitives. Due to the way the 'linalg' module is exported
@@ -135,3 +137,14 @@ def norm(vector, ord="euclidean", axis=None, keepdims=None, name=None):
     if _is_complex(vector):
         return _tf.math.real(_tf.linalg.norm(vector, ord, axis, keepdims, name))
     return _tf.linalg.norm(vector, ord, axis, keepdims, name)
+
+
+@_cast_out_to_input_dtype
+def fractional_matrix_power(A, t):
+    """Compute the fractional power of a matrix."""
+    if A.ndim == 2:
+        out = _scipy.linalg.fractional_matrix_power(A, t)
+    else:
+        out = _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])
+
+    return _tf.convert_to_tensor(out)

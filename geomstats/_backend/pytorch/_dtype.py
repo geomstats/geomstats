@@ -7,6 +7,7 @@ from geomstats._backend import _backend_config as _config
 from geomstats._backend._dtype_utils import (
     _MAP_FLOAT_TO_COMPLEX,
     _pre_add_default_dtype_by_casting,
+    _pre_cast_out_to_input_dtype,
     get_default_cdtype,
     get_default_dtype,
 )
@@ -21,9 +22,25 @@ MAP_DTYPE = {
 }
 
 
+def is_floating(x):
+    return x.dtype.is_floating_point
+
+
+def is_complex(x):
+    return x.dtype.is_complex
+
+
+def is_bool(x):
+    return x.dtype is _torch.bool
+
+
 def as_dtype(value):
     """Transform string representing dtype in dtype."""
     return MAP_DTYPE[value]
+
+
+def _dtype_as_str(dtype):
+    return str(dtype).split(".")[-1]
 
 
 def set_default_dtype(value):
@@ -42,6 +59,9 @@ def set_default_dtype(value):
 
 
 _add_default_dtype_by_casting = _pre_add_default_dtype_by_casting(cast)
+_cast_out_to_input_dtype = _pre_cast_out_to_input_dtype(
+    cast, is_floating, is_complex, as_dtype, _dtype_as_str
+)
 
 
 def _preserve_input_dtype(target=None):
