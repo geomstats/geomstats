@@ -3,14 +3,20 @@
 from scipy.stats import multivariate_normal
 
 import geomstats.backend as gs
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, tf_backend
 from tests.data.multivariate_normal import (
     MultivariateCenteredNormalDistributionsTestData,
     MultivariateDiagonalNormalDistributionsTestData,
     MultivariateDiagonalNormalMetricTestData,
     MultivariateGeneralNormalDistributionsTestData,
 )
-from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
+from tests.geometry_test_cases import (
+    ManifoldTestCase,
+    OpenSetTestCase,
+    RiemannianMetricTestCase,
+)
+
+TF_BACKEND = tf_backend()
 
 
 class TestMultivariateCenteredNormalDistributions(
@@ -80,9 +86,10 @@ class TestMultivariateDiagonalNormalDistributions(
 
 
 class TestMultivariateGeneralNormalDistributions(
-    OpenSetTestCase, metaclass=Parametrizer
+    ManifoldTestCase, metaclass=Parametrizer
 ):
     testing_data = MultivariateGeneralNormalDistributionsTestData()
+    skip_test_belongs = TF_BACKEND
 
     def test_belongs(self, n, point, expected):
         self.assertAllClose(self.Space(n).belongs(point), expected)

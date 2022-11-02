@@ -211,7 +211,7 @@ class MultivariateGeneralNormalDistributionsTestData(_OpenSetTestData):
         )
         n = self.n_list[2]
         n_samples = self.n_samples_list[2]
-        point = gs.random.rand(n_samples, n, n)
+        point = gs.random.rand(n_samples, n + n**2)
         random_data.append(
             dict(n=n, point=point, expected=gs.array([False] * n_samples))
         )
