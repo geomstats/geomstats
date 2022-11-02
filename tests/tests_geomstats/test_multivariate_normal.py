@@ -5,10 +5,45 @@ from scipy.stats import multivariate_normal
 import geomstats.backend as gs
 from tests.conftest import Parametrizer
 from tests.data.multivariate_normal import (
+    MultivariateCenteredNormalDistributionsTestData,
     MultivariateDiagonalNormalDistributionsTestData,
     MultivariateDiagonalNormalMetricTestData,
+    MultivariateGeneralNormalDistributionsTestData,
 )
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
+
+
+class TestMultivariateCenteredNormalDistributions(
+    OpenSetTestCase, metaclass=Parametrizer
+):
+    testing_data = MultivariateCenteredNormalDistributionsTestData()
+
+    def test_belongs(self, n, point, expected):
+        self.assertAllClose(self.Space(n).belongs(point), expected)
+
+    def test_random_point_shape(self, point, expected):
+        self.assertAllClose(point.shape, expected)
+
+    def test_sample(self, n, point, n_samples, expected):
+        self.assertAllClose(self.Space(n).sample(point, n_samples).shape, expected)
+
+    def test_point_to_pdf(self, n, point, n_samples):
+        space = self.Space(n)
+        samples = space.sample(space.random_point(), n_samples)
+        result = space.point_to_pdf(point)(samples)
+
+        samples = gs.to_ndarray(samples, to_ndim=2, axis=0)
+        point = gs.to_ndarray(point, to_ndim=3, axis=0)
+        expected = []
+        for i in range(point.shape[0]):
+            tmp = list()
+            loc, cov = gs.zeros(n), point[i]
+            for j in range(samples.shape[0]):
+                x = samples[j]
+                tmp.append(multivariate_normal.pdf(x, mean=loc, cov=cov))
+            expected.append(gs.array(tmp))
+        expected = gs.transpose(gs.squeeze(gs.stack(expected, axis=0)))
+        self.assertAllClose(result, expected)
 
 
 class TestMultivariateDiagonalNormalDistributions(
@@ -26,21 +61,55 @@ class TestMultivariateDiagonalNormalDistributions(
         self.assertAllClose(self.Space(n).sample(point, n_samples).shape, expected)
 
     def test_point_to_pdf(self, n, point, n_samples):
-        point = gs.to_ndarray(point, to_ndim=2, axis=0)
-        Space = self.Space(n)
-        samples = Space.sample(point[0, :], n_samples)
-        samples = gs.to_ndarray(samples, to_ndim=2, axis=0)
+        space = self.Space(n)
+        samples = space.sample(space.random_point(), n_samples)
+        result = space.point_to_pdf(point)(samples)
 
+        samples = gs.to_ndarray(samples, to_ndim=2, axis=0)
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
         expected = []
         for i in range(point.shape[0]):
-            loc, cov = Space._unstack_location_diagonal(n, point[i, ...])
+            loc, cov = space._unstack_location_diagonal(n, point[i, ...])
             tmp = list()
             for j in range(samples.shape[0]):
                 x = samples[j, ...]
                 tmp.append(multivariate_normal.pdf(x, mean=loc, cov=cov))
             expected.append(gs.array(tmp))
         expected = gs.squeeze(gs.stack(expected, axis=0))
-        self.assertAllClose(Space.point_to_pdf(point)(samples), expected)
+        self.assertAllClose(result, expected)
+
+
+class TestMultivariateGeneralNormalDistributions(
+    OpenSetTestCase, metaclass=Parametrizer
+):
+    testing_data = MultivariateGeneralNormalDistributionsTestData()
+
+    def test_belongs(self, n, point, expected):
+        self.assertAllClose(self.Space(n).belongs(point), expected)
+
+    def test_random_point_shape(self, point, expected):
+        self.assertAllClose(point.shape, expected)
+
+    def test_sample(self, n, point, n_samples, expected):
+        self.assertAllClose(self.Space(n).sample(point, n_samples).shape, expected)
+
+    def test_point_to_pdf(self, n, point, n_samples):
+        space = self.Space(n)
+        samples = space.sample(space.random_point(), n_samples)
+        result = space.point_to_pdf(point)(samples)
+
+        samples = gs.to_ndarray(samples, to_ndim=2, axis=0)
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+        expected = []
+        for i in range(point.shape[0]):
+            tmp = list()
+            loc, cov = space.reformat(point[i])
+            for j in range(samples.shape[0]):
+                x = samples[j]
+                tmp.append(multivariate_normal.pdf(x, mean=loc, cov=cov))
+            expected.append(gs.array(tmp))
+        expected = gs.transpose(gs.squeeze(gs.stack(expected, axis=0)))
+        self.assertAllClose(result, expected)
 
 
 class TestMultivariateDiagonalNormalMetric(

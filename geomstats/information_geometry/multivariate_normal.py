@@ -9,12 +9,46 @@ from scipy.stats import multivariate_normal, norm
 
 import geomstats
 import geomstats.backend as gs
+import geomstats.errors as errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.information_geometry.base import InformationManifoldMixin
 from geomstats.information_geometry.normal import NormalMetric
+
+
+class MultivariateNormalDistributions:
+    """Class for the multivariate normal distributions.
+
+    This class is a common interface to the following different situations:
+
+    - centered distributions
+    - distributions with diagonal covariance matrix
+    - general distributions
+
+    Parameters
+    ----------
+    n : int
+        Dimension of the sample space of the multivariate normal distribution.
+    distribution_type : str, {'centered', 'diagonal', 'general'}
+        Type of distributions.
+        Optional, default: 'general'.
+    """
+
+    def __new__(cls, n, distribution_type="general"):
+        """Instantiate class that corresponds to the distribution_type."""
+        errors.check_parameter_accepted_values(
+            distribution_type,
+            "distribution_type",
+            ["centered", "diagonal", "general"],
+        )
+        if distribution_type == "centered":
+            return MultivariateCenteredNormalDistributions(n)
+        if distribution_type == "diagonal":
+            return MultivariateDiagonalNormalDistributions(n)
+        return MultivariateGeneralNormalDistributions
 
 
 class MultivariateCenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
@@ -79,10 +113,8 @@ class MultivariateCenteredNormalDistributions(InformationManifoldMixin, SPDMatri
         geomstats.errors.check_belongs(point, self)
         if point.ndim > 3:
             raise NotImplementedError
-        point = gs.to_ndarray(point, to_ndim=3, axis=0)
-        point = point[:, None, :]
+        point = point[None, :, :] if point.ndim == 2 else point
         n = self.n
-        location, diagonal = self._unstack_location_diagonal(n, point)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -94,15 +126,15 @@ class MultivariateCenteredNormalDistributions(InformationManifoldMixin, SPDMatri
                 density function.
             """
             x = gs.to_ndarray(x, to_ndim=2, axis=0)
-            x = x[None, :, :]
-            det_cov = gs.squeeze(gs.prod(diagonal, axis=-1))
-            pdf_normalization = 1 / gs.sqrt(gs.power((2 * gs.pi), n) * det_cov)
-            pdf = gs.exp(-0.5 * gs.sum(((x - location) ** 2) / diagonal, axis=-1))
-            while pdf_normalization.ndim < pdf.ndim:
-                pdf_normalization = pdf_normalization[..., None]
+            det_cov = gs.linalg.det(point)
+            inv_cov = gs.linalg.inv(point)
+            pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, n) * det_cov)
+            pdf = []
+            for xi in x:
+                pdf.append(gs.exp(-0.5 * gs.transpose(xi) @ inv_cov @ xi))
+            pdf = gs.stack(pdf)
             pdf = pdf_normalization * pdf
-            pdf = gs.squeeze(pdf)
-            return pdf
+            return gs.squeeze(pdf)
 
         return pdf
 
@@ -181,7 +213,8 @@ class MultivariateDiagonalNormalDistributions(InformationManifoldMixin, OpenSet)
         Parameters
         ----------
         point : array-like, shape=[..., 2*n]
-            Point to test.
+            Point to test. First $n$ elements contain the mean vector
+            and the $n$ last elements contain the diagonal of the covariance matrix.
 
         Returns
         -------
@@ -228,7 +261,8 @@ class MultivariateDiagonalNormalDistributions(InformationManifoldMixin, OpenSet)
         Parameters
         ----------
         point : array-like, shape=[..., 2*n]
-            Point to project.
+            Point to project. First $n$ elements contain the mean vector
+            and the $n$ last elements contain the diagonal of the covariance matrix.
 
         Returns
         -------
@@ -469,3 +503,105 @@ class MultivariateDiagonalNormalMetric(RiemannianMetric):
             Injectivity radius.
         """
         return math.inf
+
+
+class MultivariateGeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
+    """Class for the manifold of multivariate normal distributions.
+
+    This is the class for multivariate normal distributions on the $n$-dimensional
+    Euclidean space. Each distribution is represented by the concatenation of its
+    mean vector and its covariance matrix reshaped in a $n^2$-vector.
+
+    Parameters
+    ----------
+    n : int
+        Dimension of the sample space of the multivariate normal distribution.
+    """
+
+    def __init__(self, n):
+        super().__init__(factors=[Euclidean(n), SPDMatrices(n)])
+        self.n = n
+
+    def reformat(self, point):
+        """Reformat point."""
+        point = gs.to_ndarray(point, to_ndim=2)
+        n_points = gs.shape(point)[0]
+        loc = point[:, : self.n]
+        cov = point[:, self.n :].reshape((n_points, self.n, self.n))
+        return gs.squeeze(loc), gs.squeeze(cov)
+
+    def sample(self, point, n_samples=1):
+        """Sample from a multivariate normal distribution.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n + n**2]
+            Point representing a multivariate normal distribution. First $n$
+            elements contain the mean vector and the $n**2$ last elements contain
+            the covariance matrix row by row.
+        n_samples : int
+            Number of points to sample with each parameter in point.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n_samples, n]
+            Sample from multivariate normal distributions.
+        """
+        # geomstats.errors.check_belongs(point, self)
+        locs, covs = self.reformat(point)
+        locs = gs.to_ndarray(locs, to_ndim=2)
+        covs = gs.to_ndarray(covs, to_ndim=3)
+        samples = []
+        for loc, cov in zip(locs, covs):
+            samples.append(gs.array(multivariate_normal.rvs(loc, cov, size=n_samples)))
+        samples = samples[0] if point.shape[0] == 1 else gs.stack(samples)
+        return gs.squeeze(samples)
+
+    def point_to_pdf(self, point):
+        """Compute pdf associated to point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n + n**2]
+            Point representing a multivariate normal distribution. First $n$
+            elements contain the mean vector and the $n**2$ last elements contain
+            the covariance matrix row by row.
+
+        Returns
+        -------
+        pdf : function
+            Probability density function of the multivariate normal
+            distributions with parameters provided by point.
+        """
+        # geomstats.errors.check_belongs(point, self)
+        if point.ndim > 3:
+            raise NotImplementedError
+        n = self.n
+
+        def pdf(x):
+            """Generate parameterized function for normal pdf.
+
+            Parameters
+            ----------
+            x : array-like, shape=[n_samples, n]
+                Points at which to compute the probability
+                density function.
+            """
+            x = gs.to_ndarray(x, to_ndim=2, axis=0)
+            loc, cov = self.reformat(point)
+            loc = gs.to_ndarray(loc, to_ndim=2)
+            cov = gs.to_ndarray(cov, to_ndim=3)
+            det_cov = gs.linalg.det(cov)
+            inv_cov = gs.linalg.inv(cov)
+            pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, n) * det_cov)
+            pdf = []
+            for xi in x:
+                xi0 = xi - loc
+                pdf_at_xi = gs.exp(-0.5 * xi0[:, None, :] @ inv_cov @ xi0[:, :, None])
+                pdf.append(gs.squeeze(pdf_at_xi))
+            pdf = gs.stack(pdf)
+            pdf = pdf_normalization * pdf
+            return gs.squeeze(pdf)
+
+        return pdf
