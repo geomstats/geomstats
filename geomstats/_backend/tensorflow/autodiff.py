@@ -76,7 +76,7 @@ def custom_gradient(*grad_funcs):
     return decorator
 
 
-def value_and_grad(func, to_numpy=False):
+def value_and_grad(func, to_numpy=False, create_graph=False):
     """Return a function that returns both value and gradient.
 
     Suitable for use in scipy.optimize with to_numpy=True.
@@ -90,6 +90,8 @@ def value_and_grad(func, to_numpy=False):
         Determines if the outputs value and grad will be cast
         to numpy arrays. Set to "True" when using scipy.optimize.
         Default: False.
+    create_graph : bool
+        unused argument, set for compatibility with pytorch backend
 
     Returns
     -------
