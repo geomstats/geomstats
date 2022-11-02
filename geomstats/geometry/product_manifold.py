@@ -314,15 +314,12 @@ class ProductManifold(Manifold):
         pooled_output : array-like, shape {(...,), (..., self.shape)}
         """
         # TODO: simplify after cleaning gs.squeeze
+        all_arrays = gs.all([gs.is_array(factor_output) for factor_output in outputs])
         if (
-            gs.all(
-                [
-                    gs.is_array(factor_output) or gs.is_bool(factor_output)
-                    for factor_output in outputs
-                ]
-            )
+            all_arrays
             and all_equal([factor_output.shape for factor_output in outputs])
             and gs.all([gs.is_bool(factor_output) for factor_output in outputs])
+            or (not all_arrays)
         ):
             outputs = gs.stack(outputs)
             outputs = gs.all(outputs, axis=0)
