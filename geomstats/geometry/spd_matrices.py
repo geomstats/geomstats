@@ -34,7 +34,7 @@ class SPDMatrices(OpenSet):
         )
         self.n = n
 
-    def belongs(self, mat, atol=gs.atol):
+    def belongs(self, point, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.
 
         Parameters
@@ -50,8 +50,8 @@ class SPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        is_sym = self.embedding_space.belongs(mat, atol)
-        is_pd = Matrices.is_pd(mat)
+        is_sym = self.embedding_space.belongs(point, atol)
+        is_pd = Matrices.is_pd(point)
         belongs = gs.logical_and(is_sym, is_pd)
         return belongs
 
@@ -98,12 +98,6 @@ class SPDMatrices(OpenSet):
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
         mat = bound * (2 * gs.random.rand(*size) - 1)
-        # if n_samples != 1:
-        #    spd_mat = []
-        #    for matrix in mat:
-        #        spd_mat.append(GeneralLinear.exp(Matrices.to_symmetric(matrix)))
-        #    spd_mat = gs.stack(spd_mat)
-        # else:
         spd_mat = GeneralLinear.exp(Matrices.to_symmetric(mat))
 
         return spd_mat
