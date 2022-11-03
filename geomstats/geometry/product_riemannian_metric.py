@@ -385,7 +385,9 @@ class NFoldMetric(RiemannianMetric):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_metric.dim
         base_shape = base_metric.shape
-        super().__init__(dim=dim, shape=(n_copies, *base_shape))
+        super().__init__(
+            dim=dim, shape=base_shape if n_copies == 1 else (n_copies, *base_shape)
+        )
         self.base_shape = base_shape
         self.base_metric = base_metric
         self.n_copies = n_copies
