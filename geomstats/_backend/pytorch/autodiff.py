@@ -96,7 +96,9 @@ def jacobian(func):
     """
 
     def _jacobian(point):
-        return _torch_jacobian(func=lambda x: func(x), inputs=point)
+        return _torch.squeeze(
+            _torch_jacobian(func=lambda x: func(x), inputs=point), axis=-1
+        )
 
     return _jacobian
 
@@ -124,7 +126,8 @@ def jacobian_vec(func):
     Parameters
     ----------
     func : callable
-        Function whose jacobian is computed.
+        Function whose jacobian is computed. If the function takes a one-dimensional
+        argument x as input, x needs to have shape (1,) and not ().
 
     Returns
     -------
@@ -135,14 +138,17 @@ def jacobian_vec(func):
 
     def _jacobian(point):
         if point.ndim == 1:
-            return _torch_jacobian(func=lambda x: func(x), inputs=point)
-        return _torch.stack(
+            return _torch.squeeze(
+                _torch_jacobian(func=lambda x: func(x), inputs=point), axis=-1
+            )
+        stack_jac = _torch.stack(
             [
                 _torch_jacobian(func=lambda x: func(x), inputs=one_point)
                 for one_point in point
             ],
             axis=0,
         )
+        return _torch.squeeze(stack_jac, axis=-1)
 
     return _jacobian
 
