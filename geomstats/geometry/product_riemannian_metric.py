@@ -381,7 +381,7 @@ class NFoldMetric(RiemannianMetric):
         Number of replication of the base metric.
     """
 
-    def __init__(self, base_metric, n_copies):
+    def __init__(self, base_metric, n_copies, scales=None):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_metric.dim
         base_shape = base_metric.shape
@@ -389,6 +389,10 @@ class NFoldMetric(RiemannianMetric):
         self.base_shape = base_shape
         self.base_metric = base_metric
         self.n_copies = n_copies
+        if scales is not None:
+            for scale in scales:
+                geomstats.errors.check_positive(scale, "Each value in scales")
+        self.scales = scales
 
     def metric_matrix(self, base_point=None):
         """Compute the matrix of the inner-product.
@@ -411,6 +415,9 @@ class NFoldMetric(RiemannianMetric):
         matrices = self.base_metric.metric_matrix(point_)
         dim = self.base_metric.dim
         reshaped = gs.reshape(matrices, (-1, self.n_copies, dim, dim))
+        if self.scales is not None:
+            reshaped = gs.einsum("j,ijkl->ijkl", self.scales, matrices)
+
         return gs.squeeze(reshaped)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -442,6 +449,8 @@ class NFoldMetric(RiemannianMetric):
         vector_b = gs.reshape(tangent_vec_b_, (-1, *self.base_shape))
         inner_each = self.base_metric.inner_product(vector_a, vector_b, point_)
         reshaped = gs.reshape(inner_each, (-1, self.n_copies))
+        if self.scales is not None:
+            reshaped = gs.einsum("j,ij->ij", self.scales, reshaped)
         return gs.squeeze(gs.sum(reshaped, axis=-1))
 
     def exp(self, tangent_vec, base_point, **kwargs):
