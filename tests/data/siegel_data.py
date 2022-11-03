@@ -129,6 +129,13 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
                     [0j, (EXP_4 - 1) / (EXP_4 + 1) * 1j],
                 ],
             ),
+            dict(
+                n=2,
+                scale=1.0,
+                tangent_vec=[[0j, 0j], [0j, 0j]],
+                base_point=[[0j, 0j], [0j, 0j]],
+                expected=[[0j, 0j], [0j, 0j]],
+            ),
         ]
         return self.generate_tests(smoke_data)
 
