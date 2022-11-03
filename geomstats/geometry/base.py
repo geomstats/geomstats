@@ -326,6 +326,8 @@ class LevelSet(Manifold, abc.ABC):
     """
 
     def __init__(self, dim, default_coords_type="intrinsic", **kwargs):
+        self.embedding_space = self._define_embedding_space()
+
         kwargs.setdefault("shape", self.embedding_space.shape)
         super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
 
@@ -340,13 +342,6 @@ class LevelSet(Manifold, abc.ABC):
     @abc.abstractmethod
     def tangent_submersion(self, vector, point):
         """Tangent submersion."""
-
-    @property
-    def embedding_space(self):
-        """Embedding space."""
-        if not hasattr(self, "_embedding_space"):
-            self._embedding_space = self._define_embedding_space()
-        return self._embedding_space
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
