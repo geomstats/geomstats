@@ -1,6 +1,6 @@
 """Information Manifold of multivariate normal distributions with the Fisher metric.
 
-Lead author: Antoine Collas.
+Lead authors: Antoine Collas, Alice Le Brigant.
 """
 
 import math
@@ -13,6 +13,7 @@ import geomstats.errors as errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.product_manifold import ProductManifold
+from geomstats.geometry.product_riemannian_metric import NFoldMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 from geomstats.information_geometry.base import InformationManifoldMixin
@@ -452,7 +453,7 @@ class MultivariateGeneralNormalDistributions(InformationManifoldMixin, ProductMa
         return pdf
 
 
-class MultivariateCenteredNormalMetric(SPDAffineMetric):
+class MultivariateCenteredNormalMetric(NFoldMetric):
     """Class for the Fisher information metric of centered normal distributions.
 
     Parameters
@@ -462,7 +463,11 @@ class MultivariateCenteredNormalMetric(SPDAffineMetric):
     """
 
     def __init__(self, n):
-        super().__init__(n=n)
+        super().__init__(
+            base_metric=SPDAffineMetric(n),
+            n_copies=1,
+            scales=[1 / 2],
+        )
 
 
 class MultivariateDiagonalNormalMetric(RiemannianMetric):
