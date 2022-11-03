@@ -566,12 +566,13 @@ class SiegelMetric(ComplexRiemannianMetric):
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at zero.
         """
-        norm_tangent_vec_a = self.norm(tangent_vec_a, axis=(-2, -1))
+        zero = gs.zeros([self.n, self.n], dtype=tangent_vec_a.dtype)
+        norm_tangent_vec_a = self.norm(tangent_vec_a, base_point=zero)
         scalars = gs.where(norm_tangent_vec_a < atol, 0.0, 1 / norm_tangent_vec_a)
         tangent_vec_a = gs.einsum("...,...ij->...ij", scalars, tangent_vec_a)
-        inner_prod = self.inner_product(tangent_vec_a, tangent_vec_b)
+        inner_prod = self.inner_product(tangent_vec_a, tangent_vec_b, base_point=zero)
         tangent_vec_b -= inner_prod * tangent_vec_a
-        norm_tangent_vec_b = self.norm(tangent_vec_b, axis=(-2, -1))
+        norm_tangent_vec_b = self.norm(tangent_vec_b, base_point=zero)
         scalars = gs.where(norm_tangent_vec_b < atol, 0.0, 1 / norm_tangent_vec_b)
         tangent_vec_b = gs.einsum("...,...ij->...ij", scalars, tangent_vec_b)
         tangent_vec_a_transconj = ComplexMatrices.transconjugate(tangent_vec_a)
@@ -582,7 +583,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         term2 = gs.matmul(tangent_vec_a_transconj, tangent_vec_b)
         term2 -= gs.matmul(tangent_vec_b_transconj, tangent_vec_a)
         norm_term2 = gs.linalg.norm(term2, axis=(-2, -1)) ** 2
-        return -0.5 * (norm_term1 + norm_term2) / self.scale**2
+        return -0.5 * (norm_term1 + norm_term2) * self.scale**2
 
     def sectional_curvature(
         self, tangent_vec_a, tangent_vec_b, base_point=None, atol=gs.atol
@@ -610,14 +611,11 @@ class SiegelMetric(ComplexRiemannianMetric):
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at `base_point`.
         """
-        if base_point is None:
-            return self.sectional_curvature_at_zero(tangent_vec_a, tangent_vec_b)
-        tan_a_at_zero = self.tangent_vec_from_base_point_to_zero(
-            tangent_vec_a, base_point
-        )
-        tan_b_at_zero = self.tangent_vec_from_base_point_to_zero(
-            tangent_vec_b, base_point
-        )
-        return self.sectional_curvature_at_zero(
-            self, tan_a_at_zero, tan_b_at_zero, atol
-        )
+        if base_point is not None:
+            tangent_vec_a = self.tangent_vec_from_base_point_to_zero(
+                tangent_vec_a, base_point
+            )
+            tangent_vec_b = self.tangent_vec_from_base_point_to_zero(
+                tangent_vec_b, base_point
+            )
+        return self.sectional_curvature_at_zero(tangent_vec_a, tangent_vec_b, atol=atol)
