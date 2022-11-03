@@ -227,7 +227,7 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
             ),
             dict(
                 n=3,
-                scale=1/3,
+                scale=1 / 3,
                 tangent_vec_a=[[1j, 0j, 0j], [0j, 0j, 0j], [0j, 0j, 0j]],
                 tangent_vec_b=[[0j, 0j, 1j], [0j, 0j, 0j], [0j, 0j, 0j]],
                 base_point=[[0j, 0j, 0j], [0j, 0j, 0j], [0j, 0j, 0j]],
