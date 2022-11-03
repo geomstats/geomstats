@@ -6,12 +6,13 @@ Hermitian space near each point.
 Lead author: Yann Cabanes.
 """
 
+import abc
+
 import geomstats.backend as gs
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
-from geomstats.geometry.manifold import Manifold
 
 
-class ComplexManifold(Manifold):
+class ComplexManifold(abc.ABC):
     r"""Class for complex manifolds.
 
     Parameters
