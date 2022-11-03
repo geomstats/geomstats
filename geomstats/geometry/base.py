@@ -325,11 +325,15 @@ class LevelSet(Manifold, abc.ABC):
         Optional, default: 'extrinsic'.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
+    def __init__(self, dim, default_coords_type="extrinsic", shape=None, **kwargs):
         self.embedding_space = self._define_embedding_space()
 
-        kwargs.setdefault("shape", self.embedding_space.shape)
-        super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
+        if shape is None:
+            shape = self.embedding_space.shape
+
+        super().__init__(
+            dim=dim, default_coords_type=default_coords_type, shape=shape, **kwargs
+        )
 
     @abc.abstractmethod
     def _define_embedding_space(self):
