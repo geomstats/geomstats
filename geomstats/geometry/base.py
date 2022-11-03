@@ -322,10 +322,10 @@ class LevelSet(Manifold, abc.ABC):
         Dimension of the embedded manifold.
     default_coords_type : str, {'intrinsic', 'extrinsic', etc}
         Coordinate type.
-        Optional, default: 'intrinsic'.
+        Optional, default: 'extrinsic'.
     """
 
-    def __init__(self, dim, default_coords_type="intrinsic", **kwargs):
+    def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
         self.embedding_space = self._define_embedding_space()
 
         kwargs.setdefault("shape", self.embedding_space.shape)
