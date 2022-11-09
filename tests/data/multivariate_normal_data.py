@@ -2,6 +2,7 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.information_geometry.multivariate_normal import (
     MultivariateCenteredNormalDistributions,
+    MultivariateCenteredNormalMetric,
     MultivariateDiagonalNormalDistributions,
     MultivariateDiagonalNormalMetric,
     MultivariateGeneralNormalDistributions,
@@ -262,6 +263,78 @@ class MultivariateGeneralNormalDistributionsTestData(_OpenSetTestData):
                     )
                 )
         return self.generate_tests([], random_data)
+
+
+class MultivariateCenteredNormalMetricTestData(_RiemannianMetricTestData):
+    Space = MultivariateCenteredNormalDistributions
+    Metric = MultivariateCenteredNormalMetric
+
+    n_list = [3, 5, 10]
+    space_list = [MultivariateCenteredNormalDistributions(n) for n in n_list]
+    shape_list = [(n, n) for n in n_list]
+    space_args_list = [(n,) for n in n_list]
+    connection_args_list = [(n,) for n in n_list]
+    n_samples_list = [1, 3, 5]
+    n_points_list = n_points_a_list = n_points_b_list = [1, 3, 5]
+    n_tangent_vecs_list = [1, 3, 5]
+    metric_args_list = list(
+        zip(
+            n_list,
+        )
+    )
+
+    def inner_product_shape_test_data(self):
+        random_data = []
+        for space, shape, n_tangent_vecs in zip(
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            metric = space.metric
+            base_point = space.random_point()
+            tangent_vec_a = space.to_tangent(
+                gs.random.normal(scale=1e-2, size=(n_tangent_vecs,) + shape), base_point
+            )
+            tangent_vec_b = space.to_tangent(
+                gs.random.normal(scale=1e-2, size=(n_tangent_vecs,) + shape), base_point
+            )
+            expected = () if n_tangent_vecs == 1 else (n_tangent_vecs,)
+            random_data.append(
+                dict(
+                    metric=metric,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                    expected=expected,
+                )
+            )
+        return self.generate_tests(random_data)
+
+    def log_after_exp_test_data(self):
+        return super().log_after_exp_test_data(amplitude=10.0)
+
+    def dist_test_data(self):
+        random_data = []
+        for space, n_points_a, n_points_b in zip(
+            self.space_list,
+            self.n_points_a_list,
+            self.n_points_b_list,
+        ):
+            metric = space.metric
+            point_a = space.random_point(n_points_a)
+            point_b = space.random_point(n_points_b)
+            mat = gs.einsum("...ik,...kj->...ij", gs.linalg.inv(point_a), point_b)
+            eigenval, _ = gs.linalg.eig(mat)
+            expected = (1 / 2 * gs.sum(gs.log(eigenval) ** 2, axis=-1)) ** (1 / 2)
+            random_data.append(
+                dict(
+                    metric=metric,
+                    point_a=point_a,
+                    point_b=point_b,
+                    expected=expected,
+                )
+            )
+        return self.generate_tests(random_data)
 
 
 class MultivariateDiagonalNormalMetricTestData(_RiemannianMetricTestData):

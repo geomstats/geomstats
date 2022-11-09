@@ -4,8 +4,9 @@ from scipy.stats import multivariate_normal
 
 import geomstats.backend as gs
 from tests.conftest import Parametrizer, tf_backend
-from tests.data.multivariate_normal import (
+from tests.data.multivariate_normal_data import (
     MultivariateCenteredNormalDistributionsTestData,
+    MultivariateCenteredNormalMetricTestData,
     MultivariateDiagonalNormalDistributionsTestData,
     MultivariateDiagonalNormalMetricTestData,
     MultivariateGeneralNormalDistributionsTestData,
@@ -116,6 +117,45 @@ class TestMultivariateGeneralNormalDistributions(
                 tmp.append(multivariate_normal.pdf(x, mean=loc, cov=cov))
             expected.append(gs.array(tmp))
         expected = gs.transpose(gs.squeeze(gs.stack(expected, axis=0)))
+        self.assertAllClose(result, expected)
+
+
+class TestMultivariateCenteredNormalMetric(
+    RiemannianMetricTestCase, metaclass=Parametrizer
+):
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_geodesic_bvp_belongs = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_ladder_parallel_transport = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_sectional_curvature_shape = True
+
+    testing_data = MultivariateCenteredNormalMetricTestData()
+    Space = testing_data.Space
+
+    def test_inner_product_shape(
+        self, metric, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        result = result.shape
+        self.assertAllClose(result, expected)
+
+    def test_log_after_exp(self, connection_args, tangent_vec, base_point, rtol, atol):
+        connection = self.Metric(*connection_args)
+        exp = connection.exp(tangent_vec=tangent_vec, base_point=gs.array(base_point))
+        result = connection.log(exp, base_point=gs.array(base_point))
+        self.assertAllClose(result, gs.squeeze(tangent_vec), rtol=rtol, atol=atol)
+
+    def test_dist(self, metric, point_a, point_b, expected):
+        result = metric.dist(point_a, point_b)
         self.assertAllClose(result, expected)
 
 
