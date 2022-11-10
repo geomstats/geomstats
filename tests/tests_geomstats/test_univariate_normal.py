@@ -6,7 +6,7 @@ from scipy.stats import norm
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.information_geometry.univariate_normal import (
+from geomstats.information_geometry.normal import (
     UnivariateNormalDistributions,
     UnivariateNormalMetric,
 )
