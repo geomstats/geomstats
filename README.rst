@@ -94,7 +94,7 @@ PyPi. Note that geomstats is only available with Python3.
 Install geomstats via conda
 --------------------------
 
-From a terminal (OS X & Linux), you can install geomstats and its
+From a terminal (OS X & Linux) or an Anaconda prompt (Windows), you can install geomstats and its
 requirements with ``conda`` as follows:
 
 ::
