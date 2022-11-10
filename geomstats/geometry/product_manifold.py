@@ -255,7 +255,6 @@ class ProductManifold(Manifold):
             self._get_method(self.factors[i], func, args_list[i], numerical_args)
             for i in range(len(self.factors))
         ]
-        print(out)
         out = self._pool_outputs_from_function(out)
         return out
 

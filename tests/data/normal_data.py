@@ -1,17 +1,17 @@
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.information_geometry.multivariate_normal import (
-    MultivariateCenteredNormalDistributions,
-    MultivariateCenteredNormalMetric,
-    MultivariateDiagonalNormalDistributions,
-    MultivariateDiagonalNormalMetric,
-    MultivariateGeneralNormalDistributions,
+from geomstats.information_geometry.normal import (
+    CenteredNormalDistributions,
+    CenteredNormalMetric,
+    DiagonalNormalDistributions,
+    DiagonalNormalMetric,
+    GeneralNormalDistributions,
 )
 from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 
 
-class MultivariateCenteredNormalDistributionsTestData(_OpenSetTestData):
-    Space = MultivariateCenteredNormalDistributions
+class CenteredNormalDistributionsTestData(_OpenSetTestData):
+    Space = CenteredNormalDistributions
     n_list = [3, 5, 10]
     space_args_list = [(n,) for n in n_list]
     shape_list = [(n, n) for n in n_list]
@@ -93,8 +93,8 @@ class MultivariateCenteredNormalDistributionsTestData(_OpenSetTestData):
         return self.generate_tests([], random_data)
 
 
-class MultivariateDiagonalNormalDistributionsTestData(_OpenSetTestData):
-    Space = MultivariateDiagonalNormalDistributions
+class DiagonalNormalDistributionsTestData(_OpenSetTestData):
+    Space = DiagonalNormalDistributions
     n_list = [3, 5, 10]
     space_args_list = [(n,) for n in n_list]
     shape_list = [(2 * n,) for n in n_list]
@@ -182,8 +182,8 @@ class MultivariateDiagonalNormalDistributionsTestData(_OpenSetTestData):
         return self.generate_tests([], random_data)
 
 
-class MultivariateGeneralNormalDistributionsTestData(_OpenSetTestData):
-    Space = MultivariateGeneralNormalDistributions
+class GeneralNormalDistributionsTestData(_OpenSetTestData):
+    Space = GeneralNormalDistributions
     n_list = [3, 5, 10]
     space_args_list = [(n,) for n in n_list]
     shape_list = [(n + n**2,) for n in n_list]
@@ -265,12 +265,12 @@ class MultivariateGeneralNormalDistributionsTestData(_OpenSetTestData):
         return self.generate_tests([], random_data)
 
 
-class MultivariateCenteredNormalMetricTestData(_RiemannianMetricTestData):
-    Space = MultivariateCenteredNormalDistributions
-    Metric = MultivariateCenteredNormalMetric
+class CenteredNormalMetricTestData(_RiemannianMetricTestData):
+    Space = CenteredNormalDistributions
+    Metric = CenteredNormalMetric
 
     n_list = [3, 5, 10]
-    space_list = [MultivariateCenteredNormalDistributions(n) for n in n_list]
+    space_list = [CenteredNormalDistributions(n) for n in n_list]
     shape_list = [(n, n) for n in n_list]
     space_args_list = [(n,) for n in n_list]
     connection_args_list = [(n,) for n in n_list]
@@ -337,12 +337,12 @@ class MultivariateCenteredNormalMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(random_data)
 
 
-class MultivariateDiagonalNormalMetricTestData(_RiemannianMetricTestData):
-    Space = MultivariateDiagonalNormalDistributions
-    Metric = MultivariateDiagonalNormalMetric
+class DiagonalNormalMetricTestData(_RiemannianMetricTestData):
+    Space = DiagonalNormalDistributions
+    Metric = DiagonalNormalMetric
 
     n_list = [3, 5, 10]
-    space_list = [MultivariateDiagonalNormalDistributions(n) for n in n_list]
+    space_list = [DiagonalNormalDistributions(n) for n in n_list]
     shape_list = [(2 * n,) for n in n_list]
     space_args_list = [(n,) for n in n_list]
     connection_args_list = [(2 * n,) for n in n_list]
