@@ -17,7 +17,7 @@ From a terminal (OS X & Linux), you can install geomstats and its requirements w
 This method installs the latest version of geomstats that is uploaded on PyPi.
 
 
-**INSTALL GEOMSTATS WITH Conda**
+**INSTALL GEOMSTATS WITH CONDA**
 
 From a terminal (OS X & Linux) or an Anaconda prompt (Windows), you can install geomstats and its
 requirements with ``conda`` as follows:
