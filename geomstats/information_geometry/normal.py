@@ -36,27 +36,27 @@ class NormalDistributions:
 
     Parameters
     ----------
-    n : int
+    sample_dim : int
         Dimension of the sample space of the normal distribution.
     distribution_type : str, {'centered', 'diagonal', 'general'}
         Type of distributions.
         Optional, default: 'general'.
     """
 
-    def __new__(cls, n, distribution_type="general"):
+    def __new__(cls, sample_dim, distribution_type="general"):
         """Instantiate class that corresponds to the distribution_type."""
         errors.check_parameter_accepted_values(
             distribution_type,
             "distribution_type",
             ["centered", "diagonal", "general"],
         )
-        if n == 1:
+        if sample_dim == 1:
             return UnivariateNormalDistributions()
         if distribution_type == "centered":
-            return CenteredNormalDistributions(n)
+            return CenteredNormalDistributions(sample_dim)
         if distribution_type == "diagonal":
-            return DiagonalNormalDistributions(n)
-        return GeneralNormalDistributions(n)
+            return DiagonalNormalDistributions(sample_dim)
+        return GeneralNormalDistributions(sample_dim)
 
 
 class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace):
@@ -104,7 +104,7 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
         Parameters
         ----------
         point : array-like, shape=[..., 2]
-            Point representing a normal distribution (location and scale).
+            Point representing a normal distribution (mean and scale).
         n_samples : int
             Number of points to sample with each pair of parameters in point.
             Optional, default: 1.
@@ -117,8 +117,8 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
         geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
-        for loc, scale in point:
-            samples.append(gs.array(norm.rvs(loc, scale, size=n_samples)))
+        for mean, scale in point:
+            samples.append(gs.array(norm.rvs(mean, scale, size=n_samples)))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
     def point_to_pdf(self, point):
@@ -130,7 +130,7 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
         Parameters
         ----------
         point : array-like, shape=[..., 2]
-            Point representing a normal distribution (location and scale).
+            Point representing a normal distribution (mean and scale).
 
         Returns
         -------
@@ -163,26 +163,27 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
 class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
     """Class for the manifold of centered multivariate normal distributions.
 
-    This is the class for multivariate normal distributions with zero mean
-    on the $n$-dimensional Euclidean space. Each distribution is represented by
-    its covariance matrix, i.e. an $n$-by-$n$ symmetric positive-definite matrix.
+    This is the class for multivariate normal distributions with zero mean.
+    Each distribution is represented by its covariance matrix, i.e. a symmetric
+    positive-definite matrix of size :math:`sample_dim`.
 
     Parameters
     ----------
-    n : int
+    sample_dim : int
         Dimension of the sample space of the multivariate normal distribution.
     """
 
-    def __init__(self, n):
-        super().__init__(n=n)
-        self.metric = CenteredNormalMetric(n=n)
+    def __init__(self, sample_dim):
+        super().__init__(n=sample_dim)
+        self.sample_dim = sample_dim
+        self.metric = CenteredNormalMetric(sample_dim=sample_dim)
 
     def sample(self, point, n_samples=1):
         """Sample from a centered multivariate normal distribution.
 
         Parameters
         ----------
-        point : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., sample_dim, sample_dim]
             Symmetric positive definite matrix representing the covariance matrix
             of a multivariate normal distribution with zero mean.
         n_samples : int
@@ -191,7 +192,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
 
         Returns
         -------
-        samples : array-like, shape=[..., n_samples, n]
+        samples : array-like, shape=[..., n_samples, sample_dim]
             Sample from centered multivariate normal distributions.
         """
         geomstats.errors.check_belongs(point, self)
@@ -199,9 +200,9 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             raise NotImplementedError
         point = gs.to_ndarray(point, to_ndim=3)
         samples = []
-        loc = gs.zeros(self.n)
+        mean = gs.zeros(self.sample_dim)
         for cov in point:
-            samples.append(gs.array(multivariate_normal.rvs(loc, cov, size=n_samples)))
+            samples.append(gs.array(multivariate_normal.rvs(mean, cov, size=n_samples)))
         return samples[0] if point.shape[0] == 1 else gs.stack(samples)
 
     def point_to_pdf(self, point):
@@ -209,7 +210,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
 
         Parameters
         ----------
-        point : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., sample_dim, sample_dim]
             Symmetric positive definite matrix representing the covariance matrix
             of a multivariate normal distribution with zero mean.
 
@@ -223,14 +224,14 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
         if point.ndim > 3:
             raise NotImplementedError
         point = point[None, :, :] if point.ndim == 2 else point
-        n = self.n
+        n = self.sample_dim
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
 
             Parameters
             ----------
-            x : array-like, shape=[n_samples, n]
+            x : array-like, shape=[n_samples, sample_dim]
                 Points at which to compute the probability
                 density function.
             """
@@ -252,78 +253,74 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of diagonal multivariate normal distributions.
 
     This is the class for multivariate normal distributions with diagonal
-    covariance matrices and samples on the $n$-dimensional Euclidean space.
-    Each distribution is represented by a vector of size $2n$ where the first
-    $n$ elements contain the mean vector and the $n$ last elements contain
-    the diagonal of the covariance matrix.
+    covariance matrices. Each distribution is represented by a vector of size
+    :math:`2 * sample_dim` where the first :math:`sample_dim` elements contain
+    the mean vector and the :math:`sample_dim` last elements contain the
+    diagonal of the covariance matrix.
 
     Parameters
     ----------
-    n : int
+    sample_dim : int
           Dimension of the sample space of the multivariate normal distribution.
     """
 
-    def __init__(self, n):
-        self.n = n
-        self.euclidean_n = Euclidean(dim=n)
-        dim = int(2 * n)
+    def __init__(self, sample_dim):
+        self.sample_dim = sample_dim
+        self.sample_space = Euclidean(dim=sample_dim)
+        dim = int(2 * sample_dim)
         super().__init__(dim=dim, embedding_space=Euclidean(dim))
-        self.metric = DiagonalNormalMetric(n=n)
+        self.metric = DiagonalNormalMetric(sample_dim=sample_dim)
 
     @staticmethod
-    def _unstack_location_diagonal(n, point):
-        """Extract location and diagonal of the covariance matrix from a given point.
+    def _unstack_mean_diagonal(sample_dim, point):
+        """Extract mean and diagonal of the covariance matrix from a given point.
 
         Parameters
         ----------
-        n : int
+        sample_dim : int
             Dimension of the sample space of the multivariate normal distribution.
-        point : array-like, shape=[..., 2*n]
-            Input point from which locations and diagonals are extracted.
+        point : array-like, shape=[..., 2 * sample_dim]
+            Input point from which means and diagonals are extracted.
 
         Returns
         -------
-        location : array-like, shape=[..., n]
-            Locations from the input point.
-        diagonal : array-like, shape=[..., n]
+        mean : array-like, shape=[..., sample_dim]
+            Means from the input point.
+        diagonal : array-like, shape=[..., sample_dim]
             Diagonals of covariance matrices from the input point.
         """
-        location = point[..., :n]
-        diagonal = point[..., n:]
-        return location, diagonal
+        mean = point[..., :sample_dim]
+        diagonal = point[..., sample_dim:]
+        return mean, diagonal
 
     @staticmethod
-    def _stack_location_diagonal(location, diagonal):
-        """Set location and diagonal of the covariance matrix into a point.
+    def _stack_mean_diagonal(mean, diagonal):
+        """Set mean and diagonal of the covariance matrix into a point.
 
         Parameters
         ----------
-        n : int
-            Dimension of the sample space of the multivariate normal distribution.
-        location : array-like, shape=[..., n]
-            Locations to stack.
-        diagonal : array-like, shape=[..., n]
+        mean : array-like, shape=[..., sample_dim]
+            Means to stack.
+        diagonal : array-like, shape=[..., sample_dim]
             Diagonals of covariance matrices from the input point.
 
         Returns
         -------
-        point : array-like, shape=[..., 2*n]
-            Point with locations and diagonals covariance matrices.
+        point : array-like, shape=[..., 2 * sample_dim]
+            Point with means and diagonals covariance matrices.
         """
-        point = gs.concatenate([location, diagonal], axis=-1)
+        point = gs.concatenate([mean, diagonal], axis=-1)
         return point
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the manifold.
 
-        First $n$ elements contain the mean vector and the $n$ last
-        elements contain the diagonal of the covariance matrix.
-
         Parameters
         ----------
-        point : array-like, shape=[..., 2*n]
-            Point to test. First $n$ elements contain the mean vector
-            and the $n$ last elements contain the diagonal of the covariance matrix.
+        point : array-like, shape=[..., 2 * sample_dim]
+            Point to test. First :math:`sample_dim` elements contain the
+            mean vector and the last :math:`sample_dim` elements contain
+            the diagonal of the covariance matrix.
 
         Returns
         -------
@@ -332,7 +329,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        _, diagonal = self._unstack_location_diagonal(self.n, point)
+        _, diagonal = self._unstack_mean_diagonal(self.sample_dim, point)
         belongs = gs.logical_and(belongs, gs.all(diagonal >= atol, axis=-1))
         return belongs
 
@@ -347,19 +344,19 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., 2*n]
+        samples : array-like, shape=[..., 2 * sample_dim]
             Sample of points representing multivariate diagonal normal distributions.
-            First $n$ elements contain the mean vector and the $n$ last elements
-            contain the diagonal of the covariance matrix.
+            First :math:`sample_dim` elements contain the mean vector and the last
+            :math:`sample_dim` elements contain the diagonal of the covariance matrix.
         """
-        n = self.n
+        sample_dim = self.sample_dim
         bound = 1.0
-        location = self.euclidean_n.random_point(n_samples=n_samples, bound=bound)
+        mean = self.sample_space.random_point(n_samples=n_samples, bound=bound)
         if n_samples == 1:
-            diagonal = gs.array(norm.rvs(size=(n,)) ** 2)
+            diagonal = gs.array(norm.rvs(size=(sample_dim,)) ** 2)
         else:
-            diagonal = gs.array(norm.rvs(size=(n_samples, n)) ** 2)
-        point = self._stack_location_diagonal(location, diagonal)
+            diagonal = gs.array(norm.rvs(size=(n_samples, sample_dim)) ** 2)
+        point = self._stack_mean_diagonal(mean, diagonal)
         return point
 
     def projection(self, point):
@@ -369,19 +366,20 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 2*n]
-            Point to project. First $n$ elements contain the mean vector
-            and the $n$ last elements contain the diagonal of the covariance matrix.
+        point : array-like, shape=[..., 2 * sample_dim]
+            Point to project. First :math:`sample_dim` elements contain
+            the mean vector and the last :math:`sample_dim` elements contain
+            the diagonal of the covariance matrix.
 
         Returns
         -------
-        projected: array-like, shape=[..., 2*n]
-            Point containing locations and diagonals
+        projected: array-like, shape=[..., 2 * sample_dim]
+            Point containing means and diagonals
             of covariance matrices.
         """
-        location, diagonal = self._unstack_location_diagonal(self.n, point)
+        mean, diagonal = self._unstack_mean_diagonal(self.sample_dim, point)
         regularized = gs.where(diagonal < gs.atol, gs.atol, diagonal)
-        projected = self._stack_location_diagonal(location, regularized)
+        projected = self._stack_mean_diagonal(mean, regularized)
         return projected
 
     def sample(self, point, n_samples=1):
@@ -389,16 +387,17 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 2*n]
-            Point on the manifold. First $n$ elements contain the mean vector
-            and the $n$ last elements contain the diagonal of the covariance matrix.
+        point : array-like, shape=[..., 2 * sample_dim]
+            Point on the manifold. First :math:`sample_dim` elements contain
+            the mean vector and the last :math:`sample_dim` elements contain
+            the diagonal of the covariance matrix.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
             Optional, default: 1.
 
         Returns
         -------
-        samples : array-like, shape=[..., n_samples, n]
+        samples : array-like, shape=[..., n_samples, sample_dim]
             Sample from multivariate normal distributions.
         """
         geomstats.errors.check_belongs(point, self)
@@ -407,9 +406,9 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for p in point:
-            loc, diag = self._unstack_location_diagonal(self.n, p)
+            mean, diag = self._unstack_mean_diagonal(self.sample_dim, p)
             cov = gs.vec_to_diag(diag)
-            samples.append(gs.array(multivariate_normal.rvs(loc, cov, size=n_samples)))
+            samples.append(gs.array(multivariate_normal.rvs(mean, cov, size=n_samples)))
         return samples[0] if point.shape[0] == 1 else gs.stack(samples)
 
     def point_to_pdf(self, point):
@@ -417,10 +416,10 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 2*n]
+        point : array-like, shape=[..., 2 * sample_dim]
             Point representing a probability distribution.
-            First $n$ elements contain the mean vector and the $n$ last elements
-            contain the diagonal of the covariance matrix.
+            First :math:`sample_dim` elements contain the mean vector and the last
+            :math:`sample_dim` elements contain the diagonal of the covariance matrix.
 
         Returns
         -------
@@ -433,15 +432,15 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
             raise NotImplementedError
         point = gs.to_ndarray(point, to_ndim=2, axis=0)
         point = point[:, None, :]
-        n = self.n
-        location, diagonal = self._unstack_location_diagonal(n, point)
+        n = self.sample_dim
+        mean, diagonal = self._unstack_mean_diagonal(n, point)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
 
             Parameters
             ----------
-            x : array-like, shape=[n_samples, n]
+            x : array-like, shape=[n_samples, sample_dim]
                 Points at which to compute the probability
                 density function.
             """
@@ -449,7 +448,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
             x = x[None, :, :]
             det_cov = gs.squeeze(gs.prod(diagonal, axis=-1))
             pdf_normalization = 1 / gs.sqrt(gs.power((2 * gs.pi), n) * det_cov)
-            pdf = gs.exp(-0.5 * gs.sum(((x - location) ** 2) / diagonal, axis=-1))
+            pdf = gs.exp(-0.5 * gs.sum(((x - mean) ** 2) / diagonal, axis=-1))
             while pdf_normalization.ndim < pdf.ndim:
                 pdf_normalization = pdf_normalization[..., None]
             pdf = pdf_normalization * pdf
@@ -462,53 +461,66 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
 class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
     """Class for the manifold of multivariate normal distributions.
 
-    This is the class for multivariate normal distributions on the $n$-dimensional
-    Euclidean space. Each distribution is represented by the concatenation of its
-    mean vector and its covariance matrix reshaped in a $n^2$-vector.
+    This is the class for multivariate normal distributions on the Euclidean space.
+    Each distribution is represented by the concatenation of its mean vector and
+    its covariance matrix reshaped in a vector of size :math:`sample_dim ** 2`.
 
     Parameters
     ----------
-    n : int
+    sample_dim : int
         Dimension of the sample space of the multivariate normal distribution.
     """
 
-    def __init__(self, n):
-        super().__init__(factors=[Euclidean(n), SPDMatrices(n)])
-        self.n = n
+    def __init__(self, sample_dim):
+        super().__init__(factors=[Euclidean(sample_dim), SPDMatrices(sample_dim)])
+        self.sample_dim = sample_dim
 
-    def reformat(self, point):
-        """Reformat point."""
+    def unstack_mean_covariance(self, point):
+        """Extract mean and covariance matrix from a given point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., sample_dim + sample_dim ** 2]
+            Input point from which means and covariance matrices are extracted.
+
+        Returns
+        -------
+        mean : array-like, shape=[..., sample_dim]
+            Means from the input point.
+        diagonal : array-like, shape=[..., sample_dim, sample_dim]
+            Covariance matrices from the input point.
+        """
         point = gs.to_ndarray(point, to_ndim=2)
         n_points = gs.shape(point)[0]
-        loc = point[:, : self.n]
-        cov = point[:, self.n :].reshape((n_points, self.n, self.n))
-        return gs.squeeze(loc), gs.squeeze(cov)
+        mean = point[:, : self.sample_dim]
+        cov = point[:, self.sample_dim :]
+        cov = cov.reshape((n_points, self.sample_dim, self.sample_dim))
+        return gs.squeeze(mean), gs.squeeze(cov)
 
     def sample(self, point, n_samples=1):
         """Sample from a multivariate normal distribution.
 
         Parameters
         ----------
-        point : array-like, shape=[..., n + n**2]
-            Point representing a multivariate normal distribution. First $n$
-            elements contain the mean vector and the $n**2$ last elements contain
-            the covariance matrix row by row.
+        point : array-like, shape=[..., sample_dim + sample_dim ** 2]
+            Point representing a multivariate normal distribution.
+            First :math:`sample_dim` elements contain the mean vector and the last
+            :math:`sample_dim ** 2` elements contain the covariance matrix row by row.
         n_samples : int
             Number of points to sample with each parameter in point.
             Optional, default: 1.
 
         Returns
         -------
-        samples : array-like, shape=[..., n_samples, n]
+        samples : array-like, shape=[..., n_samples, sample_dim]
             Sample from multivariate normal distributions.
         """
-        # geomstats.errors.check_belongs(point, self)
-        locs, covs = self.reformat(point)
-        locs = gs.to_ndarray(locs, to_ndim=2)
+        means, covs = self.unstack_mean_covariance(point)
+        means = gs.to_ndarray(means, to_ndim=2)
         covs = gs.to_ndarray(covs, to_ndim=3)
         samples = []
-        for loc, cov in zip(locs, covs):
-            samples.append(gs.array(multivariate_normal.rvs(loc, cov, size=n_samples)))
+        for mean, cov in zip(means, covs):
+            samples.append(gs.array(multivariate_normal.rvs(mean, cov, size=n_samples)))
         samples = samples[0] if point.shape[0] == 1 else gs.stack(samples)
         return gs.squeeze(samples)
 
@@ -517,10 +529,10 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., n + n**2]
-            Point representing a multivariate normal distribution. First $n$
-            elements contain the mean vector and the $n**2$ last elements contain
-            the covariance matrix row by row.
+        point : array-like, shape=[..., sample_dim + sample_dim ** 2]
+            Point representing a multivariate normal distribution.
+            First :math:`sample_dim` elements contain the mean vector and the last
+            :math:`sample_dim ** 2` elements contain the covariance matrix row by row.
 
         Returns
         -------
@@ -528,30 +540,29 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             Probability density function of the multivariate normal
             distributions with parameters provided by point.
         """
-        # geomstats.errors.check_belongs(point, self)
         if point.ndim > 3:
             raise NotImplementedError
-        n = self.n
+        n = self.sample_dim
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
 
             Parameters
             ----------
-            x : array-like, shape=[n_samples, n]
+            x : array-like, shape=[n_samples, sample_dim]
                 Points at which to compute the probability
                 density function.
             """
             x = gs.to_ndarray(x, to_ndim=2, axis=0)
-            loc, cov = self.reformat(point)
-            loc = gs.to_ndarray(loc, to_ndim=2)
+            mean, cov = self.unstack_mean_covariance(point)
+            mean = gs.to_ndarray(mean, to_ndim=2)
             cov = gs.to_ndarray(cov, to_ndim=3)
             det_cov = gs.linalg.det(cov)
             inv_cov = gs.linalg.inv(cov)
             pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, n) * det_cov)
             pdf = []
             for xi in x:
-                xi0 = xi - loc
+                xi0 = xi - mean
                 pdf_at_xi = gs.exp(-0.5 * xi0[:, None, :] @ inv_cov @ xi0[:, :, None])
                 pdf.append(gs.squeeze(pdf_at_xi))
             pdf = gs.stack(pdf)
@@ -675,7 +686,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         Parameters
         ----------
         base_point : array-like, shape=[..., 2]
-            Point representing a normal distribution (location and scale).
+            Point representing a normal distribution (mean and scale).
 
         Returns
         -------
@@ -749,13 +760,13 @@ class CenteredNormalMetric(NFoldMetric):
 
     Parameters
     ----------
-    n : int
+    sample_dim : int
           Dimension of the sample space of the multivariate normal distribution.
     """
 
-    def __init__(self, n):
+    def __init__(self, sample_dim):
         super().__init__(
-            base_metric=SPDAffineMetric(n),
+            base_metric=SPDAffineMetric(n=sample_dim),
             n_copies=1,
             scales=[1 / 2],
         )
@@ -766,59 +777,59 @@ class DiagonalNormalMetric(RiemannianMetric):
 
     Parameters
     ----------
-    n : int
+    sample_dim : int
           Dimension of the sample space of the multivariate normal distribution.
     """
 
-    def __init__(self, n):
-        self.n = n
-        dim = int(2 * n)
+    def __init__(self, sample_dim):
+        self.sample_dim = sample_dim
+        dim = int(2 * sample_dim)
         super().__init__(dim=dim)
         self.univariate_normal_metric = UnivariateNormalMetric()
         manifold = DiagonalNormalDistributions
-        self._unstack_location_diagonal = manifold._unstack_location_diagonal
+        self._unstack_mean_diagonal = manifold._unstack_mean_diagonal
 
-    def _stacked_location_diagonal_to_1d_pairs(self, point, apply_sqrt=False):
+    def _stacked_mean_diagonal_to_1d_pairs(self, point, apply_sqrt=False):
         """Create pairs of 1d parameters from nd counterparts.
 
         Parameters
         ----------
-        point: array-like, shape=[..., 2*n]
-            Stacked point (e.g. stacked locations and diagonals).
+        point: array-like, shape=[..., 2 * sample_dim]
+            Stacked point (e.g. stacked means and diagonals).
         apply_sqrt: bool
             Determine if a square root is applied to the diagonals.
 
         Returns
         -------
-        pairs : array-like, shape=[..., n, 2]
-            Pairs of parameters (e.g. locations and variances).
+        pairs : array-like, shape=[..., sample_dim, 2]
+            Pairs of parameters (e.g. means and variances).
         """
-        location, diagonal = self._unstack_location_diagonal(self.n, point)
+        mean, diagonal = self._unstack_mean_diagonal(self.sample_dim, point)
         if apply_sqrt:
             diagonal = gs.sqrt(diagonal)
-        point = gs.stack([location, diagonal], axis=-1)
+        point = gs.stack([mean, diagonal], axis=-1)
         return point
 
-    def _1d_pairs_to_stacked_location_diagonal(self, point, apply_square=False):
+    def _1d_pairs_to_stacked_mean_diagonal(self, point, apply_square=False):
         """Create nd stacked parameters from pairs of 1d counterparts.
 
         Parameters
         ----------
-        pairs : array-like, shape=[..., n, 2]
-            Pairs of parameters (e.g. locations and variances).
+        pairs : array-like, shape=[..., sample_dim, 2]
+            Pairs of parameters (e.g. means and variances).
         apply_square: bool
             Determine if a square is applied to the diagonals.
 
         Returns
         -------
-        point: array-like, shape=[..., 2*n]
-            Stacked point (e.g. stacked locations and diagonals).
+        point: array-like, shape=[..., 2 * sample_dim]
+            Stacked point (e.g. stacked means and diagonals).
         """
-        location = point[..., 0]
+        mean = point[..., 0]
         diagonal = point[..., 1]
         if apply_square:
             diagonal = gs.power(diagonal, 2)
-        point = gs.concatenate([location, diagonal], axis=-1)
+        point = gs.concatenate([mean, diagonal], axis=-1)
         return point
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -826,11 +837,11 @@ class DiagonalNormalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a: array-like, shape=[..., 2*n]
+        tangent_vec_a: array-like, shape=[..., 2 * sample_dim]
             Tangent vector at base point.
-        tangent_vec_b: array-like, shape=[..., 2*n]
+        tangent_vec_b: array-like, shape=[..., 2 * sample_dim]
             Tangent vector at base point.
-        base_point: array-like, shape=[..., 2*n]
+        base_point: array-like, shape=[..., 2 * sample_dim]
             Base point.
             Optional, default: None.
 
@@ -839,9 +850,9 @@ class DiagonalNormalMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        tangent_vec_a = self._stacked_location_diagonal_to_1d_pairs(tangent_vec_a)
-        tangent_vec_b = self._stacked_location_diagonal_to_1d_pairs(tangent_vec_b)
-        base_point = self._stacked_location_diagonal_to_1d_pairs(
+        tangent_vec_a = self._stacked_mean_diagonal_to_1d_pairs(tangent_vec_a)
+        tangent_vec_b = self._stacked_mean_diagonal_to_1d_pairs(tangent_vec_b)
+        base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
         inner_prod = self.univariate_normal_metric.inner_product(
@@ -855,23 +866,23 @@ class DiagonalNormalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., 2*n]
+        tangent_vec : array-like, shape=[..., 2 * sample_dim]
             Tangent vector at the base point.
-        base_point : array-like, shape=[..., 2*n]
+        base_point : array-like, shape=[..., 2 * sample_dim]
             Point.
 
         Returns
         -------
-        end_point : array-like, shape=[..., 2*n]
+        end_point : array-like, shape=[..., 2 * sample_dim]
             Point reached by the geodesic starting from `base_point`
             with initial velocity `tangent_vec`.
         """
-        tangent_vec = self._stacked_location_diagonal_to_1d_pairs(tangent_vec)
-        base_point = self._stacked_location_diagonal_to_1d_pairs(
+        tangent_vec = self._stacked_mean_diagonal_to_1d_pairs(tangent_vec)
+        base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
         end_point = self.univariate_normal_metric.exp(tangent_vec, base_point)
-        end_point = self._1d_pairs_to_stacked_location_diagonal(
+        end_point = self._1d_pairs_to_stacked_mean_diagonal(
             end_point, apply_square=True
         )
         return end_point
@@ -881,23 +892,23 @@ class DiagonalNormalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 2*n]
+        point : array-like, shape=[..., 2 * sample_dim]
             Point.
-        base_point : array-like, shape=[..., 2*n]
+        base_point : array-like, shape=[..., 2 * sample_dim]
             Point.
 
         Returns
         -------
-        log : array-like, shape=[..., 2*n]
+        log : array-like, shape=[..., 2 * sample_dim]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        point = self._stacked_location_diagonal_to_1d_pairs(point, apply_sqrt=True)
-        base_point = self._stacked_location_diagonal_to_1d_pairs(
+        point = self._stacked_mean_diagonal_to_1d_pairs(point, apply_sqrt=True)
+        base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
         log = self.univariate_normal_metric.log(point, base_point)
-        log = self._1d_pairs_to_stacked_location_diagonal(log)
+        log = self._1d_pairs_to_stacked_mean_diagonal(log)
         return log
 
     def injectivity_radius(self, base_point):
@@ -905,7 +916,7 @@ class DiagonalNormalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., 2*n]
+        base_point : array-like, shape=[..., 2 * sample_dim]
             Point on the manifold.
 
         Returns

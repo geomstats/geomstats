@@ -23,17 +23,19 @@ TF_BACKEND = tf_backend()
 class TestCenteredNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = CenteredNormalDistributionsTestData()
 
-    def test_belongs(self, n, point, expected):
-        self.assertAllClose(self.Space(n).belongs(point), expected)
+    def test_belongs(self, sample_dim, point, expected):
+        self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
 
     def test_random_point_shape(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
-    def test_sample(self, n, point, n_samples, expected):
-        self.assertAllClose(self.Space(n).sample(point, n_samples).shape, expected)
+    def test_sample(self, sample_dim, point, n_samples, expected):
+        self.assertAllClose(
+            self.Space(sample_dim).sample(point, n_samples).shape, expected
+        )
 
-    def test_point_to_pdf(self, n, point, n_samples):
-        space = self.Space(n)
+    def test_point_to_pdf(self, sample_dim, point, n_samples):
+        space = self.Space(sample_dim)
         samples = space.sample(space.random_point(), n_samples)
         result = space.point_to_pdf(point)(samples)
 
@@ -42,31 +44,31 @@ class TestCenteredNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
         expected = []
         for i in range(point.shape[0]):
             tmp = list()
-            loc, cov = gs.zeros(n), point[i]
+            mean, cov = gs.zeros(sample_dim), point[i]
             for j in range(samples.shape[0]):
                 x = samples[j]
-                tmp.append(multivariate_normal.pdf(x, mean=loc, cov=cov))
+                tmp.append(multivariate_normal.pdf(x, mean=mean, cov=cov))
             expected.append(gs.array(tmp))
         expected = gs.transpose(gs.squeeze(gs.stack(expected, axis=0)))
         self.assertAllClose(result, expected)
 
 
-class TestMultivariateDiagonalNormalDistributions(
-    OpenSetTestCase, metaclass=Parametrizer
-):
+class TestDiagonalNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = DiagonalNormalDistributionsTestData()
 
-    def test_belongs(self, n, point, expected):
-        self.assertAllClose(self.Space(n).belongs(point), expected)
+    def test_belongs(self, sample_dim, point, expected):
+        self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
 
     def test_random_point_shape(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
-    def test_sample(self, n, point, n_samples, expected):
-        self.assertAllClose(self.Space(n).sample(point, n_samples).shape, expected)
+    def test_sample(self, sample_dim, point, n_samples, expected):
+        self.assertAllClose(
+            self.Space(sample_dim).sample(point, n_samples).shape, expected
+        )
 
-    def test_point_to_pdf(self, n, point, n_samples):
-        space = self.Space(n)
+    def test_point_to_pdf(self, sample_dim, point, n_samples):
+        space = self.Space(sample_dim)
         samples = space.sample(space.random_point(), n_samples)
         result = space.point_to_pdf(point)(samples)
 
@@ -74,33 +76,40 @@ class TestMultivariateDiagonalNormalDistributions(
         point = gs.to_ndarray(point, to_ndim=2, axis=0)
         expected = []
         for i in range(point.shape[0]):
-            loc, cov = space._unstack_location_diagonal(n, point[i, ...])
+            mean, cov = space._unstack_mean_diagonal(sample_dim, point[i, ...])
             tmp = list()
             for j in range(samples.shape[0]):
                 x = samples[j, ...]
-                tmp.append(multivariate_normal.pdf(x, mean=loc, cov=cov))
+                tmp.append(multivariate_normal.pdf(x, mean=mean, cov=cov))
             expected.append(gs.array(tmp))
         expected = gs.squeeze(gs.stack(expected, axis=0))
         self.assertAllClose(result, expected)
 
 
-class TestMultivariateGeneralNormalDistributions(
-    ManifoldTestCase, metaclass=Parametrizer
-):
+class TestGeneralNormalDistributions(ManifoldTestCase, metaclass=Parametrizer):
     testing_data = GeneralNormalDistributionsTestData()
     skip_test_belongs = TF_BACKEND
 
-    def test_belongs(self, n, point, expected):
-        self.assertAllClose(self.Space(n).belongs(point), expected)
+    def test_unstack_mean_covariance(
+        self, sample_dim, point, mean_expected, cov_expected
+    ):
+        mean, cov = self.Space(sample_dim).unstack_mean_covariance(point)
+        self.assertAllClose(mean.shape, mean_expected)
+        self.assertAllClose(cov.shape, cov_expected)
+
+    def test_belongs(self, sample_dim, point, expected):
+        self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
 
     def test_random_point_shape(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
-    def test_sample(self, n, point, n_samples, expected):
-        self.assertAllClose(self.Space(n).sample(point, n_samples).shape, expected)
+    def test_sample(self, sample_dim, point, n_samples, expected):
+        self.assertAllClose(
+            self.Space(sample_dim).sample(point, n_samples).shape, expected
+        )
 
-    def test_point_to_pdf(self, n, point, n_samples):
-        space = self.Space(n)
+    def test_point_to_pdf(self, sample_dim, point, n_samples):
+        space = self.Space(sample_dim)
         samples = space.sample(space.random_point(), n_samples)
         result = space.point_to_pdf(point)(samples)
 
@@ -109,18 +118,16 @@ class TestMultivariateGeneralNormalDistributions(
         expected = []
         for i in range(point.shape[0]):
             tmp = list()
-            loc, cov = space.reformat(point[i])
+            mean, cov = space.unstack_mean_covariance(point[i])
             for j in range(samples.shape[0]):
                 x = samples[j]
-                tmp.append(multivariate_normal.pdf(x, mean=loc, cov=cov))
+                tmp.append(multivariate_normal.pdf(x, mean=mean, cov=cov))
             expected.append(gs.array(tmp))
         expected = gs.transpose(gs.squeeze(gs.stack(expected, axis=0)))
         self.assertAllClose(result, expected)
 
 
-class TestMultivariateCenteredNormalMetric(
-    RiemannianMetricTestCase, metaclass=Parametrizer
-):
+class TestCenteredNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_ivp_belongs = True
@@ -157,9 +164,7 @@ class TestMultivariateCenteredNormalMetric(
         self.assertAllClose(result, expected)
 
 
-class TestMultivariateDiagonalNormalMetric(
-    RiemannianMetricTestCase, metaclass=Parametrizer
-):
+class TestDiagonalNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_ivp_belongs = True

@@ -12,67 +12,77 @@ from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 
 class CenteredNormalDistributionsTestData(_OpenSetTestData):
     Space = CenteredNormalDistributions
-    n_list = [3, 5, 10]
-    space_args_list = [(n,) for n in n_list]
-    shape_list = [(n, n) for n in n_list]
+    sample_dim_list = [3, 5, 10]
+    space_args_list = [(sample_dim,) for sample_dim in sample_dim_list]
+    shape_list = [(sample_dim, sample_dim) for sample_dim in sample_dim_list]
     n_samples_list = [1, 3, 5]
     n_points_list = [1, 3, 5]
     n_vecs_list = [1, 3, 5]
 
     def belongs_test_data(self):
-        n = self.n_list[0]
+        sample_dim = self.sample_dim_list[0]
         n_samples = self.n_samples_list[0]
         random_data = [
             dict(
-                n=n,
-                point=self.Space(n).random_point(n_samples=n_samples),
+                sample_dim=sample_dim,
+                point=self.Space(sample_dim).random_point(n_samples=n_samples),
                 expected=gs.array([True] * n_samples),
             )
         ]
-        n = self.n_list[1]
+        sample_dim = self.sample_dim_list[1]
         n_samples = self.n_samples_list[1]
         random_data.append(
             dict(
-                n=n,
-                point=self.Space(n).random_point(n_samples=n_samples),
+                sample_dim=sample_dim,
+                point=self.Space(sample_dim).random_point(n_samples=n_samples),
                 expected=gs.array([True] * n_samples),
             )
         )
-        n = self.n_list[2]
+        sample_dim = self.sample_dim_list[2]
         n_samples = self.n_samples_list[2]
-        point = gs.random.rand(n_samples, n, n)
+        point = gs.random.rand(n_samples, sample_dim, sample_dim)
         random_data.append(
-            dict(n=n, point=point, expected=gs.array([False] * n_samples))
+            dict(
+                sample_dim=sample_dim,
+                point=point,
+                expected=gs.array([False] * n_samples),
+            )
         )
         return self.generate_tests(random_data)
 
     def random_point_shape_test_data(self):
         random_data = list()
-        for n, n_samples in zip(self.n_list, self.n_samples_list):
-            expected = (n, n) if n_samples == 1 else (n_samples, n, n)
+        for sample_dim, n_samples in zip(self.sample_dim_list, self.n_samples_list):
+            if n_samples == 1:
+                expected = (sample_dim, sample_dim)
+            else:
+                expected = (n_samples, sample_dim, sample_dim)
             random_data.append(
-                dict(point=self.Space(n).random_point(n_samples), expected=expected)
+                dict(
+                    point=self.Space(sample_dim).random_point(n_samples),
+                    expected=expected,
+                )
             )
         return self.generate_tests(random_data)
 
     def sample_test_data(self):
         random_data = list()
-        for n, n_samples in zip(self.n_list, self.n_samples_list):
+        for sample_dim, n_samples in zip(self.sample_dim_list, self.n_samples_list):
             for n_points in self.n_points_list:
                 if n_samples == 1:
                     if n_points == 1:
-                        expected = (n,)
+                        expected = (sample_dim,)
                     else:
-                        expected = (n_points, n)
+                        expected = (n_points, sample_dim)
                 else:
                     if n_points == 1:
-                        expected = (n_samples, n)
+                        expected = (n_samples, sample_dim)
                     else:
-                        expected = (n_points, n_samples, n)
+                        expected = (n_points, n_samples, sample_dim)
                 random_data.append(
                     dict(
-                        n=n,
-                        point=self.Space(n).random_point(n_points),
+                        sample_dim=sample_dim,
+                        point=self.Space(sample_dim).random_point(n_points),
                         n_samples=n_samples,
                         expected=expected,
                     )
@@ -81,12 +91,12 @@ class CenteredNormalDistributionsTestData(_OpenSetTestData):
 
     def point_to_pdf_test_data(self):
         random_data = list()
-        for n, n_samples in zip(self.n_list, self.n_samples_list):
+        for sample_dim, n_samples in zip(self.sample_dim_list, self.n_samples_list):
             for n_points in self.n_points_list:
                 random_data.append(
                     dict(
-                        n=n,
-                        point=self.Space(n).random_point(n_points),
+                        sample_dim=sample_dim,
+                        point=self.Space(sample_dim).random_point(n_points),
                         n_samples=n_samples,
                     )
                 )
@@ -95,73 +105,80 @@ class CenteredNormalDistributionsTestData(_OpenSetTestData):
 
 class DiagonalNormalDistributionsTestData(_OpenSetTestData):
     Space = DiagonalNormalDistributions
-    n_list = [3, 5, 10]
-    space_args_list = [(n,) for n in n_list]
-    shape_list = [(2 * n,) for n in n_list]
+    sample_dim_list = [3, 5, 10]
+    space_args_list = [(sample_dim,) for sample_dim in sample_dim_list]
+    shape_list = [(2 * sample_dim,) for sample_dim in sample_dim_list]
     n_samples_list = [1, 3, 5]
     n_points_list = [1, 3, 5]
     n_vecs_list = [1, 3, 5]
 
     def belongs_test_data(self):
         random_data = list()
-        n = self.n_list[0]
+        sample_dim = self.sample_dim_list[0]
         n_samples = self.n_samples_list[0]
         random_data = [
             dict(
-                n=n,
-                point=self.Space(n).random_point(n_samples=n_samples),
+                sample_dim=sample_dim,
+                point=self.Space(sample_dim).random_point(n_samples=n_samples),
                 expected=gs.array([True] * n_samples),
             )
         ]
-        n = self.n_list[1]
+        sample_dim = self.sample_dim_list[1]
         n_samples = self.n_samples_list[1]
         random_data.append(
             dict(
-                n=n,
-                point=self.Space(n).random_point(n_samples=n_samples),
+                sample_dim=sample_dim,
+                point=self.Space(sample_dim).random_point(n_samples=n_samples),
                 expected=gs.array([True] * n_samples),
             )
         )
-        n = self.n_list[2]
-        euc = Euclidean(dim=2 * n)
+        sample_dim = self.sample_dim_list[2]
+        euc = Euclidean(dim=2 * sample_dim)
         n_samples = self.n_samples_list[2]
         point = euc.random_point(n_samples=n_samples)
         point[-1] = -1
         random_data.append(
-            dict(n=n, point=point, expected=gs.array([False] * n_samples))
+            dict(
+                sample_dim=sample_dim,
+                point=point,
+                expected=gs.array([False] * n_samples),
+            )
         )
         return self.generate_tests(random_data)
 
     def random_point_shape_test_data(self):
         random_data = list()
-        for n, n_samples in zip(self.n_list, self.n_samples_list):
+        for sample_dim, n_samples in zip(self.sample_dim_list, self.n_samples_list):
             if n_samples == 1:
-                expected = (2 * n,)
+                expected = (2 * sample_dim,)
             else:
-                expected = (n_samples, 2 * n)
+                expected = (n_samples, 2 * sample_dim)
             random_data.append(
-                dict(point=self.Space(n).random_point(n_samples), expected=expected)
+                dict(
+                    point=self.Space(sample_dim).random_point(n_samples),
+                    expected=expected,
+                )
             )
         return self.generate_tests(random_data)
 
     def sample_test_data(self):
         random_data = list()
-        for n, n_samples in zip(self.n_list, self.n_samples_list):
+        for sample_dim, n_samples in zip(self.sample_dim_list, self.n_samples_list):
             for n_points in self.n_points_list:
                 if n_samples == 1:
                     if n_points == 1:
-                        expected = (n,)
+                        expected = (sample_dim,)
                     else:
-                        expected = (n_points, n)
+                        expected = (n_points, sample_dim)
                 else:
                     if n_points == 1:
-                        expected = (n_samples, n)
+                        expected = (n_samples, sample_dim)
                     else:
-                        expected = (n_points, n_samples, n)
+                        expected = (n_points, n_samples, sample_dim)
                 random_data.append(
                     dict(
-                        n=n,
-                        point=self.Space(n).random_point(n_points),
+                        sample_dim=sample_dim,
+                        point=self.Space(sample_dim).random_point(n_points),
                         n_samples=n_samples,
                         expected=expected,
                     )
@@ -170,12 +187,12 @@ class DiagonalNormalDistributionsTestData(_OpenSetTestData):
 
     def point_to_pdf_test_data(self):
         random_data = list()
-        for n, n_samples in zip(self.n_list, self.n_samples_list):
+        for sample_dim, n_samples in zip(self.sample_dim_list, self.n_samples_list):
             for n_points in self.n_points_list:
                 random_data.append(
                     dict(
-                        n=n,
-                        point=self.Space(n).random_point(n_points),
+                        sample_dim=sample_dim,
+                        point=self.Space(sample_dim).random_point(n_points),
                         n_samples=n_samples,
                     )
                 )
@@ -184,67 +201,99 @@ class DiagonalNormalDistributionsTestData(_OpenSetTestData):
 
 class GeneralNormalDistributionsTestData(_OpenSetTestData):
     Space = GeneralNormalDistributions
-    n_list = [3, 5, 10]
-    space_args_list = [(n,) for n in n_list]
-    shape_list = [(n + n**2,) for n in n_list]
+    sample_dim_list = [3, 5, 10]
+    space_args_list = [(sample_dim,) for sample_dim in sample_dim_list]
+    shape_list = [(sample_dim + sample_dim**2,) for sample_dim in sample_dim_list]
     n_samples_list = [1, 3, 5]
     n_points_list = [1, 3, 5]
     n_vecs_list = [1, 3, 5]
 
+    def unstack_mean_covariance_test_data(self):
+        random_data = list()
+        for sample_dim, n_samples in zip(self.sample_dim_list, self.n_samples_list):
+            if n_samples == 1:
+                mean_expected = (sample_dim,)
+                cov_expected = (
+                    sample_dim,
+                    sample_dim,
+                )
+            else:
+                mean_expected = (n_samples, sample_dim)
+                cov_expected = (n_samples, sample_dim, sample_dim)
+            random_data.append(
+                dict(
+                    sample_dim=sample_dim,
+                    point=self.Space(sample_dim).random_point(n_samples),
+                    mean_expected=mean_expected,
+                    cov_expected=cov_expected,
+                )
+            )
+        return self.generate_tests(random_data)
+
     def belongs_test_data(self):
-        n = self.n_list[0]
+        sample_dim = self.sample_dim_list[0]
         n_samples = self.n_samples_list[0]
         random_data = [
             dict(
-                n=n,
-                point=self.Space(n).random_point(n_samples=n_samples),
+                sample_dim=sample_dim,
+                point=self.Space(sample_dim).random_point(n_samples=n_samples),
                 expected=gs.array([True] * n_samples),
             )
         ]
-        n = self.n_list[1]
+        sample_dim = self.sample_dim_list[1]
         n_samples = self.n_samples_list[1]
         random_data.append(
             dict(
-                n=n,
-                point=self.Space(n).random_point(n_samples=n_samples),
+                sample_dim=sample_dim,
+                point=self.Space(sample_dim).random_point(n_samples=n_samples),
                 expected=gs.array([True] * n_samples),
             )
         )
-        n = self.n_list[2]
+        sample_dim = self.sample_dim_list[2]
         n_samples = self.n_samples_list[2]
-        point = gs.random.rand(n_samples, n + n**2)
+        point = gs.random.rand(n_samples, sample_dim + sample_dim**2)
         random_data.append(
-            dict(n=n, point=point, expected=gs.array([False] * n_samples))
+            dict(
+                sample_dim=sample_dim,
+                point=point,
+                expected=gs.array([False] * n_samples),
+            )
         )
         return self.generate_tests(random_data)
 
     def random_point_shape_test_data(self):
         random_data = list()
-        for n, n_samples in zip(self.n_list, self.n_samples_list):
-            expected = (n + n**2,) if n_samples == 1 else (n_samples, n + n**2)
+        for sample_dim, n_samples in zip(self.sample_dim_list, self.n_samples_list):
+            if n_samples == 1:
+                expected = (sample_dim + sample_dim**2,)
+            else:
+                expected = (n_samples, sample_dim + sample_dim**2)
             random_data.append(
-                dict(point=self.Space(n).random_point(n_samples), expected=expected)
+                dict(
+                    point=self.Space(sample_dim).random_point(n_samples),
+                    expected=expected,
+                )
             )
         return self.generate_tests(random_data)
 
     def sample_test_data(self):
         random_data = list()
-        for n, n_samples in zip(self.n_list, self.n_samples_list):
+        for sample_dim, n_samples in zip(self.sample_dim_list, self.n_samples_list):
             for n_points in self.n_points_list:
                 if n_samples == 1:
                     if n_points == 1:
-                        expected = (n,)
+                        expected = (sample_dim,)
                     else:
-                        expected = (n_points, n)
+                        expected = (n_points, sample_dim)
                 else:
                     if n_points == 1:
-                        expected = (n_samples, n)
+                        expected = (n_samples, sample_dim)
                     else:
-                        expected = (n_points, n_samples, n)
+                        expected = (n_points, n_samples, sample_dim)
                 random_data.append(
                     dict(
-                        n=n,
-                        point=self.Space(n).random_point(n_points),
+                        sample_dim=sample_dim,
+                        point=self.Space(sample_dim).random_point(n_points),
                         n_samples=n_samples,
                         expected=expected,
                     )
@@ -253,12 +302,12 @@ class GeneralNormalDistributionsTestData(_OpenSetTestData):
 
     def point_to_pdf_test_data(self):
         random_data = list()
-        for n, n_samples in zip(self.n_list, self.n_samples_list):
+        for sample_dim, n_samples in zip(self.sample_dim_list, self.n_samples_list):
             for n_points in self.n_points_list:
                 random_data.append(
                     dict(
-                        n=n,
-                        point=self.Space(n).random_point(n_points),
+                        sample_dim=sample_dim,
+                        point=self.Space(sample_dim).random_point(n_points),
                         n_samples=n_samples,
                     )
                 )
@@ -269,17 +318,19 @@ class CenteredNormalMetricTestData(_RiemannianMetricTestData):
     Space = CenteredNormalDistributions
     Metric = CenteredNormalMetric
 
-    n_list = [3, 5, 10]
-    space_list = [CenteredNormalDistributions(n) for n in n_list]
-    shape_list = [(n, n) for n in n_list]
-    space_args_list = [(n,) for n in n_list]
-    connection_args_list = [(n,) for n in n_list]
+    sample_dim_list = [3, 5, 10]
+    space_list = [
+        CenteredNormalDistributions(sample_dim) for sample_dim in sample_dim_list
+    ]
+    shape_list = [(sample_dim, sample_dim) for sample_dim in sample_dim_list]
+    space_args_list = [(sample_dim,) for sample_dim in sample_dim_list]
+    connection_args_list = [(sample_dim,) for sample_dim in sample_dim_list]
     n_samples_list = [1, 3, 5]
     n_points_list = n_points_a_list = n_points_b_list = [1, 3, 5]
     n_tangent_vecs_list = [1, 3, 5]
     metric_args_list = list(
         zip(
-            n_list,
+            sample_dim_list,
         )
     )
 
@@ -341,17 +392,19 @@ class DiagonalNormalMetricTestData(_RiemannianMetricTestData):
     Space = DiagonalNormalDistributions
     Metric = DiagonalNormalMetric
 
-    n_list = [3, 5, 10]
-    space_list = [DiagonalNormalDistributions(n) for n in n_list]
-    shape_list = [(2 * n,) for n in n_list]
-    space_args_list = [(n,) for n in n_list]
-    connection_args_list = [(2 * n,) for n in n_list]
+    sample_dim_list = [3, 5, 10]
+    space_list = [
+        DiagonalNormalDistributions(sample_dim) for sample_dim in sample_dim_list
+    ]
+    shape_list = [(2 * sample_dim,) for sample_dim in sample_dim_list]
+    space_args_list = [(sample_dim,) for sample_dim in sample_dim_list]
+    connection_args_list = [(2 * sample_dim,) for sample_dim in sample_dim_list]
     n_samples_list = [1, 3, 5]
     n_points_list = n_points_a_list = n_points_b_list = [1, 3, 5]
     n_tangent_vecs_list = [1, 3, 5]
     metric_args_list = list(
         zip(
-            n_list,
+            sample_dim_list,
         )
     )
 
@@ -413,9 +466,9 @@ class DiagonalNormalMetricTestData(_RiemannianMetricTestData):
             self.shape_list,
             self.n_tangent_vecs_list,
         ):
-            n = space.n
+            sample_dim = space.sample_dim
             base_point = 10 * space.random_point()
-            tangent_vec = space.to_tangent(0.1 * gs.ones((2 * n)), base_point)
+            tangent_vec = space.to_tangent(0.1 * gs.ones((2 * sample_dim)), base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
