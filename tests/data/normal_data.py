@@ -460,12 +460,7 @@ class DiagonalNormalMetricTestData(_RiemannianMetricTestData):
 
     def log_after_exp_test_data(self):
         random_data = []
-        for connection_args, space, shape, n_tangent_vecs in zip(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-        ):
+        for connection_args, space in zip(self.metric_args_list, self.space_list):
             sample_dim = space.sample_dim
             base_point = 10 * space.random_point()
             tangent_vec = space.to_tangent(0.1 * gs.ones((2 * sample_dim)), base_point)
