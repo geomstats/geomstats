@@ -22,6 +22,7 @@ TF_BACKEND = tf_backend()
 
 class TestCenteredNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = CenteredNormalDistributionsTestData()
+    skip_all = TF_BACKEND
 
     def test_belongs(self, sample_dim, point, expected):
         self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
@@ -55,7 +56,7 @@ class TestCenteredNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
 
 class TestDiagonalNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = DiagonalNormalDistributionsTestData()
-    skip_test_belongs = TF_BACKEND
+    skip_all = TF_BACKEND
 
     def test_belongs(self, sample_dim, point, expected):
         self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
@@ -89,7 +90,7 @@ class TestDiagonalNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
 
 class TestGeneralNormalDistributions(ManifoldTestCase, metaclass=Parametrizer):
     testing_data = GeneralNormalDistributionsTestData()
-    skip_test_belongs = TF_BACKEND
+    skip_all = TF_BACKEND
 
     def test_unstack_mean_covariance(
         self, sample_dim, point, mean_expected, cov_expected
@@ -143,7 +144,7 @@ class TestCenteredNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer)
     skip_test_covariant_riemann_tensor_bianchi_identity = True
     skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
     skip_test_sectional_curvature_shape = True
-    skip_test_dist = TF_BACKEND
+    skip_all = TF_BACKEND
 
     testing_data = CenteredNormalMetricTestData()
     Space = testing_data.Space
@@ -181,6 +182,7 @@ class TestDiagonalNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer)
     skip_test_covariant_riemann_tensor_bianchi_identity = True
     skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
     skip_test_sectional_curvature_shape = True
+    skip_all = TF_BACKEND
 
     testing_data = DiagonalNormalMetricTestData()
     Space = testing_data.Space
