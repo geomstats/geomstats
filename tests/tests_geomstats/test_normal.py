@@ -143,6 +143,7 @@ class TestCenteredNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer)
     skip_test_covariant_riemann_tensor_bianchi_identity = True
     skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
     skip_test_sectional_curvature_shape = True
+    skip_test_dist = TF_BACKEND
 
     testing_data = CenteredNormalMetricTestData()
     Space = testing_data.Space
