@@ -55,6 +55,7 @@ class TestCenteredNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
 
 class TestDiagonalNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = DiagonalNormalDistributionsTestData()
+    skip_test_belongs = TF_BACKEND
 
     def test_belongs(self, sample_dim, point, expected):
         self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
