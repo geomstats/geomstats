@@ -85,6 +85,19 @@ requirements with ``pip3`` as follows:
 This method installs the latest version of geomstats that is uploaded on
 PyPi. Note that geomstats is only available with Python3.
 
+Install geomstats via conda
+--------------------------
+
+From a terminal (OS X & Linux) or an Anaconda prompt (Windows), you can install geomstats and its
+requirements with ``conda`` as follows:
+
+::
+
+    conda install -c conda-forge geomstats
+
+This method installs the latest version of geomstats that is uploaded on
+conda-forge. Note that geomstats is only available with Python3.
+
 Install geomstats via Git
 -------------------------
 
