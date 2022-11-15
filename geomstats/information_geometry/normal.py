@@ -612,8 +612,8 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         image_point : array-like, shape=[..., 2]
             Image of base_point in the Poincare upper half-plane.
         """
-        return gs.transpose(
-            gs.vstack([base_point[..., 0] / gs.sqrt(2.0), base_point[..., 1]])
+        return gs.stack(
+            [base_point[..., 0] / gs.sqrt(2.0), base_point[..., 1]], axis=-1
         )
 
     def inverse_diffeomorphism(self, image_point):
@@ -633,8 +633,8 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
             Inverse image of the image point, representing a normal
             distribution. Coordinates are mean and standard deviation.
         """
-        return gs.transpose(
-            gs.vstack([image_point[..., 0] * gs.sqrt(2.0), image_point[..., 1]])
+        return gs.stack(
+            [image_point[..., 0] * gs.sqrt(2.0), image_point[..., 1]], axis=-1
         )
 
     def tangent_diffeomorphism(self, tangent_vec, base_point):
