@@ -566,20 +566,28 @@ class SiegelMetric(ComplexRiemannianMetric):
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at zero.
         """
+
+        def _scale_by_norm(tangent_vec):
+            norm_tangent_vec = self.norm(tangent_vec, base_point=zero)
+            scalars = gs.where(norm_tangent_vec < atol, 0.0, 1 / norm_tangent_vec)
+            return gs.einsum("...,...ij->...ij", scalars, tangent_vec)
+
         zero = gs.zeros([self.n, self.n], dtype=tangent_vec_a.dtype)
-        norm_tangent_vec_a = self.norm(tangent_vec_a, base_point=zero)
-        scalars = gs.where(norm_tangent_vec_a < atol, 0.0, 1 / norm_tangent_vec_a)
-        tangent_vec_a = gs.einsum("...,...ij->...ij", scalars, tangent_vec_a)
+
+        tangent_vec_a = _scale_by_norm(tangent_vec_a)
+
         inner_prod = self.inner_product(tangent_vec_a, tangent_vec_b, base_point=zero)
+
         tangent_vec_b -= inner_prod * tangent_vec_a
-        norm_tangent_vec_b = self.norm(tangent_vec_b, base_point=zero)
-        scalars = gs.where(norm_tangent_vec_b < atol, 0.0, 1 / norm_tangent_vec_b)
-        tangent_vec_b = gs.einsum("...,...ij->...ij", scalars, tangent_vec_b)
+        tangent_vec_b = _scale_by_norm(tangent_vec_b)
+
         tangent_vec_a_transconj = ComplexMatrices.transconjugate(tangent_vec_a)
         tangent_vec_b_transconj = ComplexMatrices.transconjugate(tangent_vec_b)
+
         term1 = gs.matmul(tangent_vec_a, tangent_vec_b_transconj)
         term1 -= gs.matmul(tangent_vec_b, tangent_vec_a_transconj)
         norm_term1 = gs.linalg.norm(term1, axis=(-2, -1)) ** 2
+
         term2 = gs.matmul(tangent_vec_a_transconj, tangent_vec_b)
         term2 -= gs.matmul(tangent_vec_b_transconj, tangent_vec_a)
         norm_term2 = gs.linalg.norm(term2, axis=(-2, -1)) ** 2
@@ -597,9 +605,9 @@ class SiegelMetric(ComplexRiemannianMetric):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector at `base_point`.
+            Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector at `base_point`.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point. Optional, default is zero
         atol : float
