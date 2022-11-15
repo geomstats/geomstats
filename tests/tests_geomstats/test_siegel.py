@@ -70,3 +70,14 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
             ),
             gs.array(expected),
         )
+
+    def test_sectional_curvature(
+        self, n, scale, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        metric = self.Metric(n, scale)
+        result = metric.sectional_curvature(
+            gs.array(tangent_vec_a),
+            gs.array(tangent_vec_b),
+            gs.array(base_point),
+        )
+        self.assertAllClose(result, expected)
