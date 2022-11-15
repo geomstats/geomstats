@@ -331,8 +331,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         aux_4 = aux_3 + identity
         factor_2 = HermitianMatrices.powerm(aux_4, -1)
         factor_3 = HermitianMatrices.powerm(aux_2, -1)
-        zero = gs.zeros(factor_3.shape, dtype=factor_3.dtype)
-        factor_3 = gs.where(gs.isnan(factor_3), zero, factor_3)
+        factor_3 = gs.where(gs.isnan(factor_3), gs.zeros_like(factor_2), factor_3)
         prod_1 = gs.matmul(factor_1, factor_2)
         prod_2 = gs.matmul(prod_1, factor_3)
         exp = gs.matmul(prod_2, tangent_vec)
@@ -425,8 +424,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         frac = gs.matmul(num, inv_den)
         factor_1 = gs.linalg.logm(frac)
         factor_2 = HermitianMatrices.powerm(aux_2, -1)
-        zero = gs.zeros(factor_2.shape, dtype=factor_2.dtype)
-        factor_2 = gs.where(gs.isnan(factor_2), zero, factor_2)
+        factor_2 = gs.where(gs.isnan(factor_2), gs.zeros_like(factor_2), factor_2)
         prod_1 = gs.matmul(factor_1, factor_2)
         log_at_zero = gs.matmul(prod_1, point)
         log_at_zero *= 0.5
