@@ -85,13 +85,13 @@ def check_tf_error(exception, name):
     return exception
 
 
-def check_point_shape(point, manifold):
-    """Raise an error if the shape of point does not match the shape of a manifold.
+def check_point_shape(point, manifold, suppress_error=False):
+    """Check if the shape of point does not match the shape of a manifold or metric.
 
     If the final elements of the shape of point do not match the shape of manifold
-    (which may be any object with a shape attribute, such as a Riemannian metric, then
+    (which may be any object with a shape attribute, such as a Riemannian metric) then
     point cannot be an array of points on the manifold (or similar) and a ValueError is
-    raised.
+    raised. The error can be suppressed by setting suppress_error to True.
 
     Parameters
     ----------
@@ -99,6 +99,14 @@ def check_point_shape(point, manifold):
         The point to check the shape of.
     manifold : {Manifold, RiemannianMetric}
         The object to check the point against
+    suppress_error : bool
+        Whether to suppress the ShapeError if the shapes do not match. Optional, default
+        is False.
+
+    Returns
+    -------
+    shapes_match : bool
+        Whether the shape of the point matches the shape of the manifold or metric.
 
     Raises
     ------
@@ -106,14 +114,18 @@ def check_point_shape(point, manifold):
         If the final dimensions of point are not equal to the final dimensions of
         manifold.
     """
-    shape_error_msg = (
-        f"The shape of {point}, which is {point.shape}, is not"
-        f" compatible with the shape of the {type(manifold).__name__}"
-        f" object, which is {manifold.shape}."
-    )
     representation_type = -1 * len(manifold.shape)
-    if point.shape[representation_type:] != manifold.shape[representation_type:]:
+    shapes_match = (
+        point.shape[representation_type:] == manifold.shape[representation_type:]
+    )
+    if not suppress_error and not shapes_match:
+        shape_error_msg = (
+            f"The shape of {point}, which is {point.shape}, is not"
+            f" compatible with the shape of the {type(manifold).__name__}"
+            f" object, which is {manifold.shape}."
+        )
         raise ShapeError(shape_error_msg)
+    return shapes_match
 
 
 class ShapeError(ValueError):
