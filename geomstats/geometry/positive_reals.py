@@ -77,7 +77,7 @@ class PositiveReals(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 1]
+        point : array-like, shape=[...,]
             Points to be checked.
         atol : float
             Tolerance.
@@ -102,7 +102,7 @@ class PositiveReals(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 1]
+        point : array-like, shape=[...,]
             Point in ambient manifold.
         atol : float
             Tolerance.
@@ -110,7 +110,7 @@ class PositiveReals(OpenSet):
 
         Returns
         -------
-        projected : array-like, shape=[..., 1]
+        projected : array-like, shape=[...,]
             Projected point.
         """
         return gs.where(point <= 0, atol, point)
@@ -133,7 +133,7 @@ class PositiveReals(OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., 1]
+        samples : array-like, shape=[...,]
             Points sampled in the positive reals.
         """
         size = (n_samples, 1) if n_samples != 1 else (1,)
@@ -167,12 +167,12 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., 1]
+        base_point : array-like, shape=[...,]
             Base point.
 
         Returns
         -------
-        inner_prod_mat : array-like, shape=[..., 1]
+        inner_prod_mat : array-like, shape=[...,]
             Inner product matrix.
         """
         inner_prod_mat = 1 / base_point**2
@@ -187,11 +187,11 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., 1]
+        tangent_vec_a : array-like, shape=[...,]
             Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., 1]
+        tangent_vec_b : array-like, shape=[...,]
             Tangent vector at base point.
-        base_point : array-like, shape=[..., 1]
+        base_point : array-like, shape=[...,]
             Base point.
 
         Returns
@@ -210,14 +210,14 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., 1]
+        tangent_vec : array-like, shape=[...,]
             Tangent vector at base point.
-        base_point : array-like, shape=[..., 1]
+        base_point : array-like, shape=[...,]
             Base point.
 
         Returns
         -------
-        exp : array-like, shape=[..., 1]
+        exp : array-like, shape=[...,]
             Riemannian exponential.
         """
         return base_point * gs.exp(tangent_vec / base_point)
@@ -232,14 +232,14 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 1]
+        point : array-like, shape=[...,]
             Point.
-        base_point : array-like, shape=[..., 1]
+        base_point : array-like, shape=[...,]
             Base point.
 
         Returns
         -------
-        log : array-like, shape=[..., 1]
+        log : array-like, shape=[...,]
             Riemannian logarithm.
         """
         return base_point * gs.log(point / base_point)
@@ -251,9 +251,9 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., 1]
+        point_a : array-like, shape=[...,]
             Point.
-        point_b : array-like, shape=[..., 1]
+        point_b : array-like, shape=[...,]
             Point.
 
         Returns
@@ -273,9 +273,9 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., 1]
+        point_a : array-like, shape=[...,]
             Point.
-        point_b : array-like, shape=[..., 1]
+        point_b : array-like, shape=[...,]
             Point.
 
         Returns
