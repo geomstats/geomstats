@@ -106,3 +106,10 @@ In addition to hackathons, we co-organize international coding challenges.
 * April 2022: international Coding Challenge at the International Conference on Learning Representations (ICLR)
 
 
+
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   hackathons/ihp_10_2022
