@@ -24,15 +24,15 @@ class PositiveRealsTestData(_OpenSetTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(point=[[10]], expected=[True]),
+            dict(point=[[10.0]], expected=[True]),
             dict(point=[[10 + 0j]], expected=[True]),
             dict(point=[[10 + 1j]], expected=[False]),
-            dict(point=[[-10]], expected=[False]),
+            dict(point=[[-10.0]], expected=[False]),
             dict(
                 point=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
                 expected=[False, False, False],
             ),
-            dict(point=[[1], [-1.5]], expected=[True, False]),
+            dict(point=[[1.0], [-1.5]], expected=[True, False]),
         ]
         return self.generate_tests(smoke_data)
 

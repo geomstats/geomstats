@@ -92,9 +92,8 @@ class PositiveReals(OpenSet):
         if not is_scalar:
             return gs.zeros([point.shape[0]], dtype=bool)
         point = gs.reshape(point, (-1,))
-        is_real = gs.imag(point) == 0
-        point = gs.real(point)
-        is_positive = point > 0
+        is_real = gs.abs(gs.imag(point)) < atol
+        is_positive = gs.real(point) > 0
         return gs.logical_and(is_positive, is_real)
 
     @staticmethod
