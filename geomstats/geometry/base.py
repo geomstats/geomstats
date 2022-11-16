@@ -395,12 +395,10 @@ class LevelSet(Manifold, abc.ABC):
             return belongs
 
         submersed_point = self.submersion(point)
-        n = len(submersed_point.shape)
-        axis = (
-            tuple(-n + 1 + i for i in range(n - 1))
-            if gs.ndim(point) > len(self.shape)
-            else tuple(-n + i for i in range(n))
-        )
+
+        n_batch = gs.ndim(point) - len(self.shape)
+        axis = tuple(range(-len(submersed_point.shape) + n_batch, 0))
+
         constraint = gs.isclose(submersed_point, 0.0, atol=atol)
         if axis:
             constraint = gs.all(constraint, axis=axis)
@@ -430,13 +428,10 @@ class LevelSet(Manifold, abc.ABC):
             return belongs
 
         submersed_vector = self.tangent_submersion(vector, base_point)
-        n = len(submersed_vector.shape)
-        axis = (
-            tuple(-n + 1 + i for i in range(n - 1))
-            if gs.ndim(base_point) > len(self.shape)
-            or gs.ndim(vector) > len(self.shape)
-            else tuple(-n + i for i in range(n))
-        )
+
+        n_batch = max(gs.ndim(base_point), gs.ndim(vector)) - len(self.shape)
+        axis = tuple(range(-len(submersed_vector.shape) + n_batch, 0))
+
         constraint = gs.isclose(submersed_vector, 0.0, atol=atol)
         if axis:
             constraint = gs.all(constraint, axis=axis)
