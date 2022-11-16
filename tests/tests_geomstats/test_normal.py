@@ -95,7 +95,7 @@ class TestGeneralNormalDistributions(ManifoldTestCase, metaclass=Parametrizer):
     def test_unstack_mean_covariance(
         self, sample_dim, point, mean_expected, cov_expected
     ):
-        mean, cov = self.Space(sample_dim).unstack_mean_covariance(point)
+        mean, cov = self.Space(sample_dim)._unstack_mean_covariance(point)
         self.assertAllClose(mean.shape, mean_expected)
         self.assertAllClose(cov.shape, cov_expected)
 
@@ -120,7 +120,7 @@ class TestGeneralNormalDistributions(ManifoldTestCase, metaclass=Parametrizer):
         expected = []
         for i in range(point.shape[0]):
             tmp = list()
-            mean, cov = space.unstack_mean_covariance(point[i])
+            mean, cov = space._unstack_mean_covariance(point[i])
             for j in range(samples.shape[0]):
                 x = samples[j]
                 tmp.append(multivariate_normal.pdf(x, mean=mean, cov=cov))

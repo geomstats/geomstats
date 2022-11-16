@@ -196,8 +196,6 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             Sample from centered multivariate normal distributions.
         """
         geomstats.errors.check_belongs(point, self)
-        if point.ndim > 3:
-            raise NotImplementedError
         point = gs.to_ndarray(point, to_ndim=3)
         samples = []
         mean = gs.zeros(self.sample_dim)
@@ -221,10 +219,11 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             distributions with covariance matrices provided by point.
         """
         geomstats.errors.check_belongs(point, self)
-        if point.ndim > 3:
-            raise NotImplementedError
         point = point[None, :, :] if point.ndim == 2 else point
         n = self.sample_dim
+        det_cov = gs.linalg.det(point)
+        inv_cov = gs.linalg.inv(point)
+        pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, n) * det_cov)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -234,11 +233,14 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             x : array-like, shape=[n_samples, sample_dim]
                 Points at which to compute the probability
                 density function.
+
+            Returns
+            -------
+            pdf_at_x: array-like, shape=[..., n_samples]
+                Probability density function at x.
             """
             x = gs.to_ndarray(x, to_ndim=2, axis=0)
-            det_cov = gs.linalg.det(point)
-            inv_cov = gs.linalg.inv(point)
-            pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, n) * det_cov)
+
             pdf = []
             for xi in x:
                 pdf.append(gs.exp(-0.5 * gs.transpose(xi) @ inv_cov @ xi))
@@ -434,6 +436,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         point = point[:, None, :]
         n = self.sample_dim
         mean, diagonal = self._unstack_mean_diagonal(n, point)
+        det_cov = gs.squeeze(gs.prod(diagonal, axis=-1))
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -446,9 +449,8 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
             """
             x = gs.to_ndarray(x, to_ndim=2, axis=0)
             x = x[None, :, :]
-            det_cov = gs.squeeze(gs.prod(diagonal, axis=-1))
-            pdf_normalization = 1 / gs.sqrt(gs.power((2 * gs.pi), n) * det_cov)
             pdf = gs.exp(-0.5 * gs.sum(((x - mean) ** 2) / diagonal, axis=-1))
+            pdf_normalization = 1 / gs.sqrt(gs.power((2 * gs.pi), n) * det_cov)
             while pdf_normalization.ndim < pdf.ndim:
                 pdf_normalization = pdf_normalization[..., None]
             pdf = pdf_normalization * pdf
@@ -475,7 +477,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         super().__init__(factors=[Euclidean(sample_dim), SPDMatrices(sample_dim)])
         self.sample_dim = sample_dim
 
-    def unstack_mean_covariance(self, point):
+    def _unstack_mean_covariance(self, point):
         """Extract mean and covariance matrix from a given point.
 
         Parameters
@@ -515,7 +517,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         samples : array-like, shape=[..., n_samples, sample_dim]
             Sample from multivariate normal distributions.
         """
-        means, covs = self.unstack_mean_covariance(point)
+        means, covs = self._unstack_mean_covariance(point)
         means = gs.to_ndarray(means, to_ndim=2)
         covs = gs.to_ndarray(covs, to_ndim=3)
         samples = []
@@ -543,6 +545,12 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         if point.ndim > 3:
             raise NotImplementedError
         n = self.sample_dim
+        mean, cov = self._unstack_mean_covariance(point)
+        mean = gs.to_ndarray(mean, to_ndim=2)
+        cov = gs.to_ndarray(cov, to_ndim=3)
+        det_cov = gs.linalg.det(cov)
+        inv_cov = gs.linalg.inv(cov)
+        pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, n) * det_cov)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -554,12 +562,6 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
                 density function.
             """
             x = gs.to_ndarray(x, to_ndim=2, axis=0)
-            mean, cov = self.unstack_mean_covariance(point)
-            mean = gs.to_ndarray(mean, to_ndim=2)
-            cov = gs.to_ndarray(cov, to_ndim=3)
-            det_cov = gs.linalg.det(cov)
-            inv_cov = gs.linalg.inv(cov)
-            pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, n) * det_cov)
             pdf = []
             for xi in x:
                 xi0 = xi - mean
