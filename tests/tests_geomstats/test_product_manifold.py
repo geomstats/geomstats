@@ -5,6 +5,7 @@ import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.product_manifold import ProductManifold
+from geomstats.geometry.product_riemannian_metric import NFoldMetric
 from tests.conftest import Parametrizer
 from tests.data.product_manifold_data import (
     NFoldManifoldTestData,
@@ -148,4 +149,21 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         expected = 0.0
         result = space.metric.inner_product(tangent_vec[0], tangent_vec[0], point)
+        self.assertAllClose(result, expected)
+
+    @tests.conftest.np_autograd_and_torch_only
+    def test_inner_product_scales(
+        self, base_metric, n_copies, scales, point, tangent_vec
+    ):
+        metric = NFoldMetric(base_metric=base_metric, n_copies=n_copies, scales=scales)
+        result = metric.inner_product(tangent_vec, tangent_vec, point)
+
+        expected = 0
+        base_shape = base_metric.shape
+        point_reshaped = gs.reshape(point, (-1, n_copies, *base_shape))
+        vec_reshaped = gs.reshape(tangent_vec, (-1, n_copies, *base_shape))
+        for i in range(n_copies):
+            point_i = point_reshaped[:, i]
+            vec_i = vec_reshaped[:, i]
+            expected += scales[i] * base_metric.inner_product(vec_i, vec_i, point_i)
         self.assertAllClose(result, expected)

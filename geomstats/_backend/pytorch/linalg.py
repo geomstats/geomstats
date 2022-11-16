@@ -6,6 +6,7 @@ import torch as _torch
 
 from .._backend_config import np_atol as atol
 from ..numpy import linalg as _gsnplinalg
+from ._dtype import _cast_out_to_input_dtype
 
 
 class _Logm(_torch.autograd.Function):
@@ -133,3 +134,14 @@ def is_single_matrix_pd(mat):
         return True
     except RuntimeError:
         return False
+
+
+@_cast_out_to_input_dtype
+def fractional_matrix_power(A, t):
+    """Compute the fractional power of a matrix."""
+    if A.ndim == 2:
+        out = _scipy.linalg.fractional_matrix_power(A, t)
+    else:
+        out = _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])
+
+    return _torch.tensor(out)
