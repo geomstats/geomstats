@@ -37,3 +37,10 @@ class TestBackends(tests.conftest.TestCase):
             geomstats.errors.check_parameter_accepted_values(
                 param, "left_or_right", accepted_values
             )
+
+    def test_check_point_shape(self):
+        euclidean = Euclidean(5)
+        point = gs.array([1, 2])
+
+        with pytest.raises(geomstats.errors.ShapeError):
+            geomstats.errors.check_point_shape(point, euclidean)
