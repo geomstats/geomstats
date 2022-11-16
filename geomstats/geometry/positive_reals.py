@@ -88,10 +88,9 @@ class PositiveReals(OpenSet):
         belongs : array-like, shape=[...]
             Boolean denoting if point is a positive real.
         """
-        is_scalar = gs.ndim(point) == 1 or (gs.ndim(point) == 2 and point.shape[1] == 1)
+        is_scalar = gs.ndim(point) == 1
         if not is_scalar:
             return gs.zeros([point.shape[0]], dtype=bool)
-        point = gs.reshape(point, (-1,))
         is_real = gs.abs(gs.imag(point)) < atol
         is_positive = gs.real(point) > 0
         return gs.logical_and(is_positive, is_real)
@@ -136,8 +135,7 @@ class PositiveReals(OpenSet):
         samples : array-like, shape=[...]
             Points sampled in the positive reals.
         """
-        size = (n_samples, 1) if n_samples != 1 else (1,)
-        return (bound - atol) * gs.random.rand(*size) + atol
+        return (bound - atol) * gs.random.rand(n_samples) + atol
 
 
 class PositiveRealsMetric(RiemannianMetric):
@@ -156,11 +154,7 @@ class PositiveRealsMetric(RiemannianMetric):
 
     def __init__(self, scale=1.0):
         self.scale = scale
-        super().__init__(
-            dim=1,
-            shape=(1,),
-            signature=(1, 0),
-        )
+        super().__init__(dim=1)
 
     def inner_product_matrix(self, base_point):
         """Compute the inner product matrix at base point.
@@ -201,7 +195,6 @@ class PositiveRealsMetric(RiemannianMetric):
         """
         inner_product_matrix = self.inner_product_matrix(base_point=base_point)
         inner_product = tangent_vec_a * inner_product_matrix * tangent_vec_b
-        inner_product = gs.reshape(inner_product, (-1,))
         return inner_product
 
     @staticmethod
@@ -261,10 +254,7 @@ class PositiveRealsMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
-        sq_dist = gs.log(point_b / point_a) ** 2
-        sq_dist = gs.reshape(sq_dist, (-1,))
-        sq_dist *= self.scale**2
-        return sq_dist
+        return (self.scale * gs.log(point_b / point_a)) ** 2
 
     def dist(self, point_a, point_b):
         """Compute the positive reals distance.
@@ -283,7 +273,4 @@ class PositiveRealsMetric(RiemannianMetric):
         dist : array-like, shape=[...]
             Riemannian distance.
         """
-        dist = gs.abs(gs.log(point_b / point_a))
-        dist = gs.reshape(dist, (-1,))
-        dist *= self.scale
-        return dist
+        return self.scale * gs.abs(gs.log(point_b / point_a))

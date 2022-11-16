@@ -12,6 +12,8 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 class TestPositiveReals(OpenSetTestCase, metaclass=Parametrizer):
     """Test of PositiveReals methods."""
 
+    skip_test_projection_belongs = True
+
     testing_data = PositiveRealsTestData()
 
     def test_belongs(self, point, expected):
@@ -38,6 +40,9 @@ class TestPositiveRealsMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_scalar_curvature_shape = True
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
+    skip_test_exp_belongs = True
+    skip_test_exp_shape = True
+    skip_test_log_shape = True
 
     testing_data = PositiveRealsMetricTestData()
 

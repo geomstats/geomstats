@@ -24,24 +24,24 @@ class PositiveRealsTestData(_OpenSetTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(point=[[10.0]], expected=[True]),
-            dict(point=[[10 + 0j]], expected=[True]),
-            dict(point=[[10 + 1j]], expected=[False]),
-            dict(point=[[-10.0]], expected=[False]),
+            dict(point=[10.0], expected=[True]),
+            dict(point=[10 + 0j], expected=[True]),
+            dict(point=[10 + 1j], expected=[False]),
+            dict(point=[-10.0], expected=[False]),
             dict(
                 point=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
                 expected=[False, False, False],
             ),
-            dict(point=[[1.0], [-1.5]], expected=[True, False]),
+            dict(point=[1.0, -1.5], expected=[True, False]),
         ]
         return self.generate_tests(smoke_data)
 
     def projection_test_data(self):
         smoke_data = [
-            dict(point=[[1.0]], expected=[[1.0]]),
+            dict(point=[1.0], expected=[1.0]),
             dict(
-                point=[[-1.0]],
-                expected=[[gs.atol]],
+                point=[-1.0],
+                expected=[gs.atol],
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -65,15 +65,15 @@ class PositiveRealsMetricTestData(_RiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                tangent_vec_a=[[1.0]],
-                tangent_vec_b=[[2.0]],
-                base_point=[[3.0]],
+                tangent_vec_a=[1.0],
+                tangent_vec_b=[2.0],
+                base_point=[3.0],
                 expected=[2 / 9],
             ),
             dict(
-                tangent_vec_a=[[-2.0]],
-                tangent_vec_b=[[3.0]],
-                base_point=[[4.0]],
+                tangent_vec_a=[-2.0],
+                tangent_vec_b=[3.0],
+                base_point=[4.0],
                 expected=[-3 / 8],
             ),
         ]
@@ -82,19 +82,19 @@ class PositiveRealsMetricTestData(_RiemannianMetricTestData):
     def exp_test_data(self):
         smoke_data = [
             dict(
-                tangent_vec=[[1.0]],
-                base_point=[[1.0]],
-                expected=[[EXP_1]],
+                tangent_vec=[1.0],
+                base_point=[1.0],
+                expected=[EXP_1],
             ),
             dict(
-                tangent_vec=[[4.0]],
-                base_point=[[2.0]],
-                expected=[[2 * EXP_2]],
+                tangent_vec=[4.0],
+                base_point=[2.0],
+                expected=[2 * EXP_2],
             ),
             dict(
-                tangent_vec=[[1.0], [2.0]],
-                base_point=[[1.0]],
-                expected=[[EXP_1], [EXP_2]],
+                tangent_vec=[1.0, 2.0],
+                base_point=[1.0],
+                expected=[EXP_1, EXP_2],
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -102,19 +102,19 @@ class PositiveRealsMetricTestData(_RiemannianMetricTestData):
     def log_test_data(self):
         smoke_data = [
             dict(
-                point=[[4.0]],
-                base_point=[[2.0]],
-                expected=[[2 * LN_2]],
+                point=[4.0],
+                base_point=[2.0],
+                expected=[2 * LN_2],
             ),
             dict(
-                point=[[2.0]],
-                base_point=[[4.0]],
-                expected=[[-4 * LN_2]],
+                point=[2.0],
+                base_point=[4.0],
+                expected=[-4 * LN_2],
             ),
             dict(
-                point=[[1.0], [2.0]],
-                base_point=[[1.0]],
-                expected=[[0], [LN_2]],
+                point=[1.0, 2.0],
+                base_point=[1.0],
+                expected=[0, LN_2],
             ),
         ]
         return self.generate_tests(smoke_data)
