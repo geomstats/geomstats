@@ -200,7 +200,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         return GeneralLinear(self.n + 1, positive_det=True)
 
     def submersion(self, point):
-        """Define SE(n) as the pre-image of identity.
+        """Define SE(n) as the pre-image of 0.
 
         Parameters
         ----------

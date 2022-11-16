@@ -163,7 +163,7 @@ class Grassmannian(LevelSet):
         .. math::
 
             \begin{pmatrix} I_p + A & B^T \\ B & D \end{pmatrix} \mapsto
-                (D - B(I_p + A)^{-1}B^T, A + A^2 + B^TB
+                (D - B(I_p + A)^{-1}B^T, A + A^2 + B^TB)
 
         This map is a submersion and its zero space is the set of orthogonal
         rank-:math:`p` projectors.

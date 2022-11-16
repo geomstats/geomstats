@@ -337,15 +337,42 @@ class LevelSet(Manifold, abc.ABC):
 
     @abc.abstractmethod
     def _define_embedding_space(self):
-        pass
+        """Define embedding space of the manifold.
+
+        Returns
+        -------
+        embedding_space : Manifold
+            Instance of Manifold.
+        """
 
     @abc.abstractmethod
     def submersion(self, point):
-        """Submersion that defines the manifold."""
+        r"""Submersion that defines the manifold.
+
+        :math:`\mathrm{submersion}(x)=0` defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+
+        Returns
+        -------
+        submersed_point : array-like
+        """
 
     @abc.abstractmethod
     def tangent_submersion(self, vector, point):
-        """Tangent submersion."""
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+        point : array-like, shape=[..., dim]
+
+        Returns
+        -------
+        submersed_vector : array-like
+        """
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
