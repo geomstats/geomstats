@@ -205,30 +205,6 @@ class PositiveRealsMetric(RiemannianMetric):
         inner_product = gs.reshape(inner_product, (-1,))
         return inner_product
 
-    def squared_norm(self, vector, base_point):
-        """Compute the square of the norm of a vector.
-
-        Squared norm of a vector associated to the inner product
-        at the tangent space at a base point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., 1]
-            Vector.
-        base_point : array-like, shape=[..., 1]
-            Base point.
-            Optional, default: None.
-
-        Returns
-        -------
-        sq_norm : array-like, shape=[...,]
-            Squared norm.
-        """
-        vector = gs.real(vector)
-        base_point = gs.real(base_point)
-        sq_norm = self.inner_product(vector, vector, base_point=base_point)
-        return sq_norm
-
     @staticmethod
     def exp(tangent_vec, base_point):
         """Compute the positive reals exponential map.
@@ -286,8 +262,6 @@ class PositiveRealsMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Riemannian squared distance.
         """
-        point_a = gs.real(point_a)
-        point_b = gs.real(point_b)
         sq_dist = gs.log(point_b / point_a) ** 2
         sq_dist = gs.reshape(sq_dist, (-1,))
         sq_dist *= self.scale**2
@@ -310,8 +284,6 @@ class PositiveRealsMetric(RiemannianMetric):
         dist : array-like, shape=[...,]
             Riemannian distance.
         """
-        point_a = gs.real(point_a)
-        point_b = gs.real(point_b)
         dist = gs.abs(gs.log(point_b / point_a))
         dist = gs.reshape(dist, (-1,))
         dist *= self.scale
