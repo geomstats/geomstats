@@ -63,17 +63,19 @@ class ProductManifold(Manifold):
     metric_scales : list
         Optional. A list of positive numbers by which to scale the metric on each
         factor. If not given, no scaling is used.
-    default_point_type : {'vector', 'matrix}
-        Optional. Vector representation gives the point as a 1-d array.
-        Matrix representation allows for a point to be represented by an array of shape
-        (n, dim), if each manifold has default_point_type 'vector' with shape (dim,).
+    default_point_type : {None, 'vector', 'matrix}
+        Optional. Default value is None, which will implement as 'vector' unless all
+        factors have the same shape. Vector representation gives the point as a 1-d
+        array. Matrix representation allows for a point to be represented by an array of
+        shape (n, dim), if each manifold has default_point_type 'vector' with shape
+        (dim,).
     """
 
     def __init__(
-        self, factors, metric_scales=None, default_point_type="vector", **kwargs
+        self, factors, metric_scales=None, default_point_type=None, **kwargs
     ):
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, "default_point_type", ["vector", "matrix"]
+            default_point_type, "default_point_type", [None, "vector", "matrix"]
         )
 
         self.factors = tuple(factors)
@@ -130,6 +132,11 @@ class ProductManifold(Manifold):
 
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
+        if default_point_type == None:
+            if all_equal(self._factor_shapes):
+                return (len(self.factors), *self.factors[0].shape)
+            else:
+                default_point_type = "vector"
         if default_point_type == "vector":
             return (
                 sum([math.prod(factor_shape) for factor_shape in self._factor_shapes]),

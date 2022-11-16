@@ -49,14 +49,14 @@ class ProductRiemannianMetric(RiemannianMetric):
     scales : list
         List of positive values to rescale the inner product by on each factor.
         Note: To rescale the distances by a constant c, use c^2 for the scale
-    default_point_type : str, {'vector', 'matrix'}
+    default_point_type : str, {None, 'vector', 'matrix'}
         Point type.
-        Optional, default: 'vector'.
+        Optional, default: None.
     """
 
-    def __init__(self, metrics, default_point_type="vector", scales=None):
+    def __init__(self, metrics, default_point_type=None, scales=None):
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, "default_point_type", ["vector", "matrix"]
+            default_point_type, "default_point_type", [None, "vector", "matrix"]
         )
 
         self.factors = metrics
@@ -83,6 +83,11 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
+        if default_point_type == None:
+            if all_equal(self._factor_shapes):
+                return (len(self.factors), *self.factors[0].shape)
+            else:
+                default_point_type = "vector"
         if default_point_type == "vector":
             return (
                 sum([math.prod(factor_shape) for factor_shape in self._factor_shapes]),
@@ -90,12 +95,12 @@ class ProductRiemannianMetric(RiemannianMetric):
         if not all_equal(self._factor_shapes):
             raise ValueError(
                 "A default_point_type of 'matrix' can only be used if all "
-                "metrics have the same shape."
+                "manifolds have the same shape."
             )
         if not len(self._factor_shapes[0]) == 1:
             raise ValueError(
                 "A default_point_type of 'matrix' can only be used if all "
-                "metrics have vector type."
+                "manifolds have vector type."
             )
         return (len(self.factors), *self.factors[0].shape)
 

@@ -52,7 +52,11 @@ class Manifold(abc.ABC):
         """
         if len(self.shape) == 1:
             return "vector"
-        return "matrix"
+        if len(self.shape) == 2:
+            return "matrix"
+        if len(self.shape) > 2:
+            return "other"
+        raise RuntimeError(f"Shape {self.shape} could not be understood.")
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
