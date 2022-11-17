@@ -200,9 +200,14 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
                 default_point_type="matrix",
                 n_samples=10,
                 einsum_str="..., ...jl->...jl",
-                expected=gs.ones(
-                    10,
-                ),
+                expected=gs.ones(10),
+            ),
+            dict(
+                manifolds=smoke_manifolds_3,
+                default_point_type="other",
+                n_samples=10,
+                einsum_str="..., ...jkl->...jkl",
+                expected=gs.ones(10),
             ),
         ]
         return self.generate_tests(smoke_data)
