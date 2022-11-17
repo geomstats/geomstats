@@ -71,13 +71,11 @@ class ProductManifold(Manifold):
         (dim,). 'other' will behave as `matrix` but for higher dimensions.
     """
 
-    def __init__(
-        self, factors, metric_scales=None, default_point_type=None, **kwargs
-    ):
+    def __init__(self, factors, metric_scales=None, default_point_type=None, **kwargs):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type,
             "default_point_type",
-            [None, "vector", "matrix", "other"]
+            [None, "vector", "matrix", "other"],
         )
 
         self.factors = tuple(factors)
@@ -148,7 +146,7 @@ class ProductManifold(Manifold):
                 "A default_point_type of 'matrix' or 'other' can only be used if all "
                 "manifolds have the same shape."
             )
-        if default_point_type=='matrix' and not len(self._factor_shapes[0]) == 1:
+        if default_point_type == "matrix" and not len(self._factor_shapes[0]) == 1:
             raise ValueError(
                 "A default_point_type of 'matrix' can only be used if all "
                 "manifolds have vector type."
@@ -222,7 +220,8 @@ class ProductManifold(Manifold):
             projected_points = gs.split(point, len(self.factors), axis=splitting_axis)
             projected_points = [
                 gs.squeeze(projected_point, axis=splitting_axis)
-                for projected_point in projected_points]
+                for projected_point in projected_points
+            ]
 
         return projected_points
 
