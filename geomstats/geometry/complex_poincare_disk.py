@@ -180,29 +180,6 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         inner_prod = gs.conj(tangent_vec_a) * inner_product_matrix * tangent_vec_b
         return inner_prod
 
-    def squared_norm(self, vector, base_point):
-        """Compute the square of the norm of a vector.
-
-        Squared norm of a vector associated to the inner product
-        at the tangent space at a base point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[...]
-            Vector.
-        base_point : array-like, shape=[...]
-            Base point.
-            Optional, default: None.
-
-        Returns
-        -------
-        sq_norm : array-like, shape=[...]
-            Squared norm.
-        """
-        sq_norm = self.inner_product(vector, vector, base_point=base_point)
-        sq_norm = gs.real(sq_norm)
-        return sq_norm
-
     @staticmethod
     def exp(tangent_vec, base_point):
         """Compute the complex Poincaré disk exponential map.
