@@ -134,9 +134,8 @@ class ProductManifold(Manifold):
         """Determine an appropriate shape for the product from the factors."""
         if default_point_type is None:
             if all_equal(self._factor_shapes):
-                return (len(self.factors), *self.factors[0].shape)
-            else:
-                default_point_type = "vector"
+                return len(self.factors), *self.factors[0].shape
+            default_point_type = "vector"
         if default_point_type == "vector":
             return (
                 sum([math.prod(factor_shape) for factor_shape in self._factor_shapes]),
@@ -151,7 +150,7 @@ class ProductManifold(Manifold):
                 "A default_point_type of 'matrix' can only be used if all "
                 "manifolds have vector type."
             )
-        return (len(self.factors), *self.factors[0].shape)
+        return len(self.factors), *self.factors[0].shape
 
     def embed_to_product(self, points):
         """Map a point in each factor to a point in the product.
@@ -533,7 +532,7 @@ class NFoldManifold(Manifold):
         n_copies,
         metric=None,
         default_coords_type="intrinsic",
-        **kwargs
+        **kwargs,
     ):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_manifold.dim
