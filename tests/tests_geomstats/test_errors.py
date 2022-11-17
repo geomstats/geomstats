@@ -44,3 +44,8 @@ class TestBackends(tests.conftest.TestCase):
 
         with pytest.raises(geomstats.errors.ShapeError):
             geomstats.errors.check_point_shape(point, euclidean)
+
+        same_shape = geomstats.errors.check_point_shape(
+            point, euclidean, suppress_error=True
+        )
+        self.assertFalse(same_shape)
