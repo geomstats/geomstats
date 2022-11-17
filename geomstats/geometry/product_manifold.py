@@ -179,8 +179,6 @@ class ProductManifold(Manifold):
                 points_.append(response)
 
             return gs.concatenate(points_, axis=-1)
-        if len(self.shape) <= 2:
-            return gs.stack(points, axis=-2)
         return gs.stack(points, axis=-len(self.shape))
 
     def project_from_product(self, point):
