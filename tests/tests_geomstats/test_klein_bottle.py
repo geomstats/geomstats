@@ -1,5 +1,3 @@
-import pytest
-
 import geomstats.backend as gs
 from tests.conftest import Parametrizer
 from tests.data.klein_bottle_data import KleinBottleMetricTestData, KleinBottleTestData
@@ -28,27 +26,6 @@ class TestKleinBottle(ManifoldTestCase, metaclass=Parametrizer):
         greater_zero = gs.all(regularized_computed >= 0)
         smaller_one = gs.all(regularized_computed < 1)
         self.assertTrue(greater_zero and smaller_one)
-
-    def test_not_belongs_error(self, point):
-        space = self.Space()
-        with pytest.raises(ValueError) as exc_info:
-            space.belongs(point)
-        assert str(point.shape) in exc_info.value.args[0]
-        assert str(space.shape) in exc_info.value.args[0]
-
-    def test_is_tangent_wrong_shape(self, point):
-        space = self.Space()
-        with pytest.raises(ValueError) as exc_info:
-            space.is_tangent(point)
-        assert str(point.shape) in exc_info.value.args[0]
-        assert str(space.shape) in exc_info.value.args[0]
-
-    def test_to_tangent_wrong_shape(self, point):
-        space = self.Space()
-        with pytest.raises(ValueError) as exc_info:
-            space.to_tangent(point)
-        assert str(point.shape) in exc_info.value.args[0]
-        assert str(space.shape) in exc_info.value.args[0]
 
     def test_not_belongs(self, point, expected):
         space = self.Space()

@@ -20,9 +20,13 @@ class KleinBottleMetric(RiemannianMetric):
         Underlying manifold.
     """
 
-    def __init__(self, space, **kwargs):
-        super().__init__(dim=2, shape=(2,), default_coords_type="intrinsic")
-        self._space: KleinBottle = space
+    def __init__(self, space):
+        super().__init__(
+            dim=space.dim,
+            shape=space.shape,
+            default_coords_type=space.default_coords_type,
+        )
+        self._space = space
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.
@@ -41,7 +45,7 @@ class KleinBottleMetric(RiemannianMetric):
         radius : float
             Injectivity radius.
         """
-        return 1 / 2
+        return 0.5
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
@@ -183,11 +187,19 @@ class KleinBottle(Manifold):
        \end{align}
     """
 
-    def __init__(self, dim=2, shape=2):
-        super().__init__(dim=2, shape=(2,), metric=None)
-        self.metric = None
+    def __init__(self, equip=True):
+        dim = 2
+        super().__init__(
+            dim=dim, shape=(dim,), metric=None, default_coords_type="intrinsic"
+        )
 
-    def equip_metric(self, metric=None):
+        if equip is True:
+            self.equip_with_metric()
+
+    def _default_metric(self):
+        return KleinBottleMetric
+
+    def equip_with_metric(self, Metric=None):
         """Equip the manifold with the specified metric.
 
         Parameters
@@ -195,7 +207,11 @@ class KleinBottle(Manifold):
         metric: Metric
             A metric compatible with the Klein Bottle.
         """
-        self.metric = KleinBottleMetric(self)
+        if Metric is None:
+            Metric = self._default_metric()
+        self.metric = Metric(self)
+
+        return self.metric
 
     def random_point(self, n_samples=1, bound=None):
         """Uniformly sample points on the manifold.
@@ -233,8 +249,10 @@ class KleinBottle(Manifold):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        if gs.all(self.is_tangent(vector)):
-            return vector
+        if not gs.all(self.is_tangent(vector)):
+            raise ValueError("Cannot handle non tangent vectors")
+
+        return gs.copy(vector)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         r"""Evaluate if the point belongs to :math:`\mathbb R^2`.
@@ -243,7 +261,7 @@ class KleinBottle(Manifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[...]
+        vector : array-like, shape=[..., dim]
             Point to test.
         base_point: unused here
         atol : float
@@ -254,27 +272,25 @@ class KleinBottle(Manifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the tangent space.
         """
-        point = gs.array(vector)
+        # TODO: use errors after merge
         minimal_ndim = len(self.shape)
-        correct_shape = point.shape[-minimal_ndim:] == self.shape
+        correct_shape = vector.shape[-minimal_ndim:] == self.shape
         if correct_shape:
-            if point.ndim > minimal_ndim:
-                return gs.ones(*point.shape[:-minimal_ndim])
+            if vector.ndim > minimal_ndim:
+                return gs.ones(*vector.shape[:-minimal_ndim])
             else:
                 return correct_shape
         raise ValueError(
             f"Wrong shape: shape of vector should end with {self.shape} "
-            f"but is {point.shape}"
+            f"but is {vector.shape}"
         )
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the set [0,1]^2.
 
-        This method checks the shape and values of the input point.
-
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[..., dim]
             Point to test.
         atol : float
             Unused here.
@@ -284,16 +300,7 @@ class KleinBottle(Manifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        point = gs.array(point)
-        minimal_ndim = len(self.shape)
-        correct_shape = point.shape[-minimal_ndim:] == self.shape
-        if correct_shape:
-            correct_values = gs.all(gs.logical_and(point >= 0, point <= 1), axis=-1)
-            return correct_values
-        raise ValueError(
-            f"Wrong shape: shape of point should end with {self.shape} "
-            f"but is {point.shape}"
-        )
+        return gs.all(gs.logical_and(point >= 0, point <= 1), axis=-1)
 
     @staticmethod
     def equivalent(point1, point2, atol=gs.atol):
@@ -350,9 +357,11 @@ class KleinBottle(Manifold):
         """
         # determine number of steps to take in x direction
         num_steps = gs.cast(gs.abs(gs.floor(point[..., [0]])), gs.int64)
-        x_canonical = gs.remainder(point[..., 0], 1)
-        y_canonical_even = gs.remainder(point[..., 1], 1)
-        y_canonical_odd = gs.remainder(1 - y_canonical_even, 1)
+
+        x_canonical = gs.remainder(point[..., 0], 1.0)
+        y_canonical_even = gs.remainder(point[..., 1], 1.0)
+        y_canonical_odd = gs.remainder(1 - y_canonical_even, 1.0)
+
         point_even = gs.stack([x_canonical, y_canonical_even], axis=-1)
         point_odd = gs.stack([x_canonical, y_canonical_odd], axis=-1)
         return gs.where(gs.remainder(num_steps, 2) == 0, point_even, point_odd)

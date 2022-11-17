@@ -20,26 +20,6 @@ class KleinBottleTestData(_ManifoldTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def is_tangent_wrong_shape_test_data(self):
-        return self.not_belongs_error_test_data()
-
-    def to_tangent_wrong_shape_test_data(self):
-        return self.not_belongs_error_test_data()
-
-    def not_belongs_error_test_data(self):
-        space = self.Space()
-        point_small = gs.array(42)
-        point_large = gs.random.rand(8, *space.shape, 3)
-        random_data = [
-            dict(
-                point=point_small,
-            ),
-            dict(
-                point=point_large,
-            ),
-        ]
-        return self.generate_tests([], random_data)
-
     def equivalent_test_data(self):
         smoke_data = [
             dict(
