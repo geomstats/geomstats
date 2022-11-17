@@ -11,6 +11,7 @@ from geomstats.geometry.product_manifold import (
     ProductManifold,
 )
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
+from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
@@ -19,6 +20,9 @@ smoke_metrics_1 = [Hypersphere(dim=2).metric, Hyperboloid(dim=2).metric]
 
 smoke_manifolds_2 = [Euclidean(3), Minkowski(3)]
 smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
+
+smoke_manifolds_3 = [Siegel(2), Siegel(2), Siegel(2)]
+smoke_metrics_3 = [Siegel(2).metric, Siegel(2).metric, Siegel(2).metric]
 
 
 class ProductManifoldTestData(_ManifoldTestData):
@@ -30,9 +34,10 @@ class ProductManifoldTestData(_ManifoldTestData):
         [SpecialOrthogonal(n=2), SpecialOrthogonal(n=3)],
         [SpecialOrthogonal(n=2), Euclidean(dim=3)],
         [Euclidean(dim=2), Euclidean(dim=1), Euclidean(dim=4)],
+        [Siegel(2), Siegel(2), Siegel(2)],
     ]
-    default_point_list = ["matrix"] + ["vector"] * 6
-    default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"]
+    default_point_list = ["matrix"] + ["vector"] * 6 + ["other"]
+    default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"] * 2
 
     shape_list = [
         (2, 3 + 1),
@@ -42,6 +47,7 @@ class ProductManifoldTestData(_ManifoldTestData):
         (4 + 6,),
         (4 + 3,),
         (7,),
+        (3, 2, 2),
     ]
 
     space_args_list = [

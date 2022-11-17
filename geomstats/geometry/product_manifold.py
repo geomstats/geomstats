@@ -73,7 +73,7 @@ class ProductManifold(Manifold):
         self, factors, metric_scales=None, default_point_type="vector", **kwargs
     ):
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, "default_point_type", ["vector", "matrix"]
+            default_point_type, "default_point_type", ["vector", "matrix", "other"]
         )
 
         self.factors = tuple(factors)
@@ -139,7 +139,7 @@ class ProductManifold(Manifold):
                 "A default_point_type of 'matrix' can only be used if all "
                 "manifolds have the same shape."
             )
-        if not len(self._factor_shapes[0]) == 1:
+        if not len(self._factor_shapes[0]) == 1 and default_point_type != "other":
             raise ValueError(
                 "A default_point_type of 'matrix' can only be used if all "
                 "manifolds have vector type."
@@ -179,7 +179,7 @@ class ProductManifold(Manifold):
                 points_.append(response)
 
             return gs.concatenate(points_, axis=-1)
-        return gs.stack(points, axis=-2)
+        return gs.stack(points, axis=-len(self.shape))
 
     def project_from_product(self, point):
         """Map a point in the product to points in each factor.
@@ -208,8 +208,11 @@ class ProductManifold(Manifold):
                 for j in range(len(self.factors))
             ]
 
-        else:
+        elif len(self.shape) <= 2:
             projected_points = [point[..., j, :] for j in range(len(self.factors))]
+
+        else:
+            projected_points = [point[..., j, :, :] for j in range(len(self.factors))]
 
         return projected_points
 

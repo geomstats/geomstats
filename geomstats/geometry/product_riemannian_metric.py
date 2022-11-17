@@ -56,7 +56,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def __init__(self, metrics, default_point_type="vector", scales=None):
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, "default_point_type", ["vector", "matrix"]
+            default_point_type, "default_point_type", ["vector", "matrix", "other"]
         )
 
         self.factors = metrics
@@ -92,7 +92,7 @@ class ProductRiemannianMetric(RiemannianMetric):
                 "A default_point_type of 'matrix' can only be used if all "
                 "metrics have the same shape."
             )
-        if not len(self._factor_shapes[0]) == 1:
+        if not len(self._factor_shapes[0]) == 1 and default_point_type != "other":
             raise ValueError(
                 "A default_point_type of 'matrix' can only be used if all "
                 "metrics have vector type."
