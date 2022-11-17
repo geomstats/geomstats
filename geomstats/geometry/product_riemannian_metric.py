@@ -104,7 +104,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             )
         if default_point_type=='matrix' and not len(self._factor_shapes[0]) == 1:
             raise ValueError(
-                "A default_point_type of 'matrix' or 'other' can only be used if all "
+                "A default_point_type of 'matrix' can only be used if all "
                 "metrics have vector type."
             )
         return (len(self.factors), *self.factors[0].shape)
