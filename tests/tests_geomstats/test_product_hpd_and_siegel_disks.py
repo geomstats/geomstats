@@ -1,7 +1,7 @@
 """Unit tests for the ProductHPDMatricesAndSiegelDisks manifold."""
 
 from tests.conftest import Parametrizer, TestCase
-from tests.data.product_hpd_matrices_and_siegel_disks_data import (
+from tests.data.product_hpd_and_siegel_disks_data import (
     ProductHPDMatricesAndSiegelDisksMetricTestData,
     ProductHPDMatricesAndSiegelDisksTestData,
 )

@@ -1,6 +1,6 @@
 import random
 
-from geomstats.geometry.product_hpd_matrices_and_siegel_disks import (
+from geomstats.geometry.product_hpd_and_siegel_disks import (
     ProductHPDMatricesAndSiegelDisks,
     ProductHPDMatricesAndSiegelDisksMetric,
 )
