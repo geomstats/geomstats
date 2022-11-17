@@ -57,7 +57,7 @@ class ComplexPoincareDisk(ComplexOpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 1]
+        point : array-like, shape=[...]
             Point to be checked.
         atol : float
             Tolerance.
@@ -65,18 +65,13 @@ class ComplexPoincareDisk(ComplexOpenSet):
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
+        belongs : array-like, shape=[...]
             Boolean denoting if point belongs to the
             complex Poincaré disk.
         """
-        is_scalar = gs.ndim(point) == 1
-        is_scalar = is_scalar or (gs.ndim(point) == 2 and point.shape[1] == 1)
-        has_modulus_lower_than_one = gs.array(
-            [[gs.all(gs.abs(point[i_point]) < 1)] for i_point in range(point.shape[0])]
-        )
-        belongs = gs.logical_and(is_scalar, has_modulus_lower_than_one)
-        belongs = gs.reshape(belongs, (-1,))
-        return belongs
+        if not gs.ndim(point) == 1:
+            return gs.zeros([point.shape[0]], dtype=bool)
+        return gs.abs(point) < 1
 
     @staticmethod
     def projection(point):
@@ -84,7 +79,7 @@ class ComplexPoincareDisk(ComplexOpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 1]
+        point : array-like, shape=[...]
             Point to project.
         atol : float
             Tolerance.
@@ -92,7 +87,7 @@ class ComplexPoincareDisk(ComplexOpenSet):
 
         Returns
         -------
-        projected : array-like, shape=[..., 1]
+        projected : array-like, shape=[...]
             Projected point.
         """
         return gs.where(
@@ -116,14 +111,12 @@ class ComplexPoincareDisk(ComplexOpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., 1]
+        samples : array-like, shape=[...]
             Points sampled in the unit disk.
         """
-        size = (n_samples, 1) if n_samples != 1 else (1,)
-
-        modulus = gs.random.rand(*size, dtype=gs.get_default_cdtype())
+        modulus = gs.random.rand(n_samples, dtype=gs.get_default_cdtype())
         modulus *= bound
-        angle = 2 * gs.pi * gs.random.rand(*size, dtype=gs.get_default_cdtype())
+        angle = 2 * gs.pi * gs.random.rand(n_samples, dtype=gs.get_default_cdtype())
         samples = modulus * gs.exp(1j * angle)
         return samples
 
@@ -151,12 +144,12 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., 1]
+        base_point : array-like, shape=[...]
             Base point.
 
         Returns
         -------
-        inner_prod_mat : array-like, shape=[..., 1]
+        inner_prod_mat : array-like, shape=[...]
             Inner product matrix.
         """
         inner_prod_mat = 1 / (1 - gs.abs(base_point) ** 2) ** 2
@@ -172,21 +165,20 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., 1]
+        tangent_vec_a : array-like, shape=[...]
             Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., 1]
+        tangent_vec_b : array-like, shape=[...]
             Tangent vector at base point.
-        base_point : array-like, shape=[..., 1]
+        base_point : array-like, shape=[...]
             Base point.
 
         Returns
         -------
-        inner_product : array-like, shape=[...,]
+        inner_product : array-like, shape=[...]
             Inner-product.
         """
         inner_product_matrix = self.inner_product_matrix(base_point=base_point)
         inner_prod = gs.conj(tangent_vec_a) * inner_product_matrix * tangent_vec_b
-        inner_prod = gs.reshape(inner_prod, (-1,))
         return inner_prod
 
     def squared_norm(self, vector, base_point):
@@ -197,15 +189,15 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., 1]
+        vector : array-like, shape=[...]
             Vector.
-        base_point : array-like, shape=[..., 1]
+        base_point : array-like, shape=[...]
             Base point.
             Optional, default: None.
 
         Returns
         -------
-        sq_norm : array-like, shape=[...,]
+        sq_norm : array-like, shape=[...]
             Squared norm.
         """
         sq_norm = self.inner_product(vector, vector, base_point=base_point)
@@ -218,28 +210,17 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., 1]
+        tangent_vec : array-like, shape=[...]
             Tangent vector at base point.
-        base_point : array-like, shape=[..., 1]
+        base_point : array-like, shape=[...]
             Base point.
 
         Returns
         -------
-        exp : array-like, shape=[..., 1]
+        exp : array-like, shape=[...]
             Riemannian exponential.
         """
-        ndim = max(len(gs.shape(tangent_vec)), len(gs.shape(base_point)))
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        if base_point.shape[0] < tangent_vec.shape[0]:
-            base_point = (
-                gs.cast(gs.ones(tangent_vec.shape), dtype=base_point.dtype) @ base_point
-            )
-        elif base_point.shape[0] > tangent_vec.shape[0]:
-            tangent_vec = (
-                gs.cast(gs.ones(base_point.shape), dtype=tangent_vec.dtype)
-                @ tangent_vec
-            )
+        base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
         theta = gs.cast(gs.angle(tangent_vec), dtype=gs.get_default_cdtype())
         s = 2 * gs.abs(tangent_vec) / (1 - gs.abs(base_point) ** 2)
         num = gs.array(base_point)
@@ -251,8 +232,6 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         den += gs.conj(base_point) * exp_i_theta
         den += (1 - gs.conj(base_point) * exp_i_theta) * exp_minus_s
         exp = num / den
-        if ndim == 1:
-            exp = gs.reshape(exp, (-1,))
         return exp
 
     @staticmethod
@@ -265,9 +244,9 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., 1]
+        point_a : array-like, shape=[...]
             Point.
-        point_b : array-like, shape=[..., 1]
+        point_b : array-like, shape=[...]
             Point.
         atol : float
             Tolerance.
@@ -275,7 +254,7 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
         Returns
         -------
-        tau : array-like, shape=[...,]
+        tau : array-like, shape=[...]
             Coefficient tau.
         """
         num = gs.abs(point_a - point_b)
@@ -295,14 +274,14 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[..., 1]
+        point : array-like, shape=[...]
             Point.
-        base_point : array-like, shape=[..., 1]
+        base_point : array-like, shape=[...]
             Base point.
 
         Returns
         -------
-        log : array-like, shape=[..., 1]
+        log : array-like, shape=[...]
             Riemannian logarithm.
         """
         log = self._tau(base_point, point)
@@ -320,19 +299,18 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., 1]
+        point_a : array-like, shape=[...]
             Point.
-        point_b : array-like, shape=[..., 1]
+        point_b : array-like, shape=[...]
             Point.
 
         Returns
         -------
-        squared_dist : array-like, shape=[...,]
+        squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
         sq_dist = self._tau(point_a, point_b, atol=atol)
         sq_dist = gs.real(sq_dist)
-        sq_dist = gs.reshape(sq_dist, (-1,))
         sq_dist = gs.power(sq_dist, 2)
         sq_dist *= self.scale**2
         return sq_dist
@@ -344,17 +322,17 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., 1]
+        point_a : array-like, shape=[...]
             Point.
-        point_b : array-like, shape=[..., 1]
+        point_b : array-like, shape=[...]
             Point.
+        atol : float
+            Tolerance.
+            Optional, default: backend atol.
 
         Returns
         -------
-        dist : array-like, shape=[...,]
+        dist : array-like, shape=[...]
             Riemannian distance.
         """
-        dist = self._tau(point_a, point_b, atol=atol)
-        dist = gs.reshape(dist, (-1,))
-        dist *= self.scale
-        return dist
+        return self.scale * self._tau(point_a, point_b, atol=atol)
