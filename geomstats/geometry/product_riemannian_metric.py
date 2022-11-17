@@ -49,9 +49,12 @@ class ProductRiemannianMetric(RiemannianMetric):
     scales : list
         List of positive values to rescale the inner product by on each factor.
         Note: To rescale the distances by a constant c, use c^2 for the scale
-    default_point_type : str, {None, 'vector', 'matrix'}
-        Point type.
-        Optional, default: None.
+    default_point_type : {None, 'vector', 'matrix', 'other'}
+        Optional. Default value is None, which will implement as 'vector' unless all
+        factors have the same shape. Vector representation gives the point as a 1-d
+        array. Matrix representation allows for a point to be represented by an array of
+        shape (n, dim), if each manifold has default_point_type 'vector' with shape
+        (dim,). 'other' will behave as None.
     """
 
     def __init__(self, metrics, default_point_type=None, scales=None):
@@ -97,12 +100,12 @@ class ProductRiemannianMetric(RiemannianMetric):
         if not all_equal(self._factor_shapes):
             raise ValueError(
                 "A default_point_type of 'matrix' can only be used if all "
-                "manifolds have the same shape."
+                "metrics have the same shape."
             )
         if not len(self._factor_shapes[0]) == 1:
             raise ValueError(
                 "A default_point_type of 'matrix' can only be used if all "
-                "manifolds have vector type."
+                "metrics have vector type."
             )
         return (len(self.factors), *self.factors[0].shape)
 

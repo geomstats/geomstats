@@ -63,12 +63,12 @@ class ProductManifold(Manifold):
     metric_scales : list
         Optional. A list of positive numbers by which to scale the metric on each
         factor. If not given, no scaling is used.
-    default_point_type : {None, 'vector', 'matrix}
+    default_point_type : {None, 'vector', 'matrix', 'other'}
         Optional. Default value is None, which will implement as 'vector' unless all
         factors have the same shape. Vector representation gives the point as a 1-d
         array. Matrix representation allows for a point to be represented by an array of
         shape (n, dim), if each manifold has default_point_type 'vector' with shape
-        (dim,).
+        (dim,). 'other' will behave as None.
     """
 
     def __init__(
