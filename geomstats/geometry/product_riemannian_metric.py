@@ -137,7 +137,8 @@ class ProductRiemannianMetric(RiemannianMetric):
                 points_.append(response)
 
             return gs.concatenate(points_, axis=-1)
-        return gs.stack(points, axis=-2)
+        stacking_axis = -1 * len(self.shape)
+        return gs.stack(points, axis=stacking_axis)
 
     def project_from_product(self, point):
         """Map a point in the product to points in each factor.
@@ -167,7 +168,11 @@ class ProductRiemannianMetric(RiemannianMetric):
             ]
 
         else:
-            projected_points = [point[..., j, :] for j in range(len(self.factors))]
+            splitting_axis = -1 * len(self.shape)
+            projected_points = gs.split(point, len(self.factors), axis=splitting_axis)
+            projected_points = [
+                gs.squeeze(projected_point, axis=splitting_axis)
+                for projected_point in projected_points]
 
         return projected_points
 
