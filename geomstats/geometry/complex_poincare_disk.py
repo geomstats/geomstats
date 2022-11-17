@@ -280,13 +280,14 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         log : array-like, shape=[...]
             Riemannian logarithm.
         """
-        log = self._tau(base_point, point)
-        log = gs.cast(log, dtype=gs.get_default_cdtype())
-        angle = gs.angle(point - base_point) - gs.angle(1 - gs.conj(base_point) * point)
-        angle = gs.cast(angle, dtype=gs.get_default_cdtype())
-        log *= gs.exp(1j * angle)
-        log *= gs.cast(1 - gs.abs(base_point) ** 2, dtype=gs.get_default_cdtype())
-        return log
+        angle = gs.cast(
+            gs.angle(point - base_point) - gs.angle(1 - gs.conj(base_point) * point),
+            dtype=gs.get_default_cdtype(),
+        )
+        return gs.exp(1j * angle) * gs.cast(
+            (1 - gs.abs(base_point) ** 2) * self._tau(base_point, point),
+            dtype=gs.get_default_cdtype(),
+        )
 
     def squared_dist(self, point_a, point_b, atol=gs.atol):
         """Compute the complex Poincaré disk squared distance.
