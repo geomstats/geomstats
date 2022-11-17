@@ -132,7 +132,7 @@ class ProductRiemannianMetric(RiemannianMetric):
                 points_.append(response)
 
             return gs.concatenate(points_, axis=-1)
-        return gs.stack(points, axis=-2)
+        return gs.stack(points, axis=-len(self.shape))
 
     def project_from_product(self, point):
         """Map a point in the product to points in each factor.
@@ -161,8 +161,11 @@ class ProductRiemannianMetric(RiemannianMetric):
                 for j in range(len(self.factors))
             ]
 
-        else:
+        elif len(self.shape) <= 2:
             projected_points = [point[..., j, :] for j in range(len(self.factors))]
+
+        else:
+            projected_points = [point[..., j, :, :] for j in range(len(self.factors))]
 
         return projected_points
 
@@ -341,7 +344,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         if self.default_point_type == "vector":
             return gs.concatenate(exp, -1)
-        return gs.stack(exp, axis=-2)
+        return gs.stack(exp, axis=-len(self.shape))
 
     def log(self, point, base_point=None, **kwargs):
         """Compute the Riemannian logarithm of a point.
@@ -364,7 +367,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         logs = self._iterate_over_metrics("log", args)
         if self.default_point_type == "vector":
             return gs.concatenate(logs, axis=-1)
-        return gs.stack(logs, axis=-2)
+        return gs.stack(logs, axis=-len(self.shape))
 
 
 class NFoldMetric(RiemannianMetric):

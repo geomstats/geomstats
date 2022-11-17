@@ -72,6 +72,11 @@ class ProductManifoldTestData(_ManifoldTestData):
                 default_point_type="matrix",
                 expected=4,
             ),
+            dict(
+                manifolds=smoke_manifolds_3,
+                default_point_type="other",
+                expected=12,
+            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -159,6 +164,16 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
                 ).random_point(5),
                 base_point=ProductManifold(
                     smoke_manifolds_2, default_point_type="matrix"
+                ).random_point(5),
+            ),
+            dict(
+                manifolds=smoke_metrics_3,
+                default_point_type="other",
+                point=ProductManifold(
+                    smoke_manifolds_3, default_point_type="other"
+                ).random_point(5),
+                base_point=ProductManifold(
+                    smoke_manifolds_3, default_point_type="other"
                 ).random_point(5),
             ),
         ]
