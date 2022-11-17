@@ -54,7 +54,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         factors have the same shape. Vector representation gives the point as a 1-d
         array. Matrix representation allows for a point to be represented by an array of
         shape (n, dim), if each manifold has default_point_type 'vector' with shape
-        (dim,). 'other' will behave as None.
+        (dim,). 'other' will behave as `matrix` but for higher dimensions.
     """
 
     def __init__(self, metrics, default_point_type=None, scales=None):
@@ -88,7 +88,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
-        if default_point_type is None or default_point_type == "other":
+        if default_point_type is None:
             if all_equal(self._factor_shapes):
                 return (len(self.factors), *self.factors[0].shape)
             else:
@@ -99,12 +99,12 @@ class ProductRiemannianMetric(RiemannianMetric):
             )
         if not all_equal(self._factor_shapes):
             raise ValueError(
-                "A default_point_type of 'matrix' can only be used if all "
+                "A default_point_type of 'matrix' or 'other' can only be used if all "
                 "metrics have the same shape."
             )
-        if not len(self._factor_shapes[0]) == 1:
+        if default_point_type=='matrix' and not len(self._factor_shapes[0]) == 1:
             raise ValueError(
-                "A default_point_type of 'matrix' can only be used if all "
+                "A default_point_type of 'matrix' or 'other' can only be used if all "
                 "metrics have vector type."
             )
         return (len(self.factors), *self.factors[0].shape)
