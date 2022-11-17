@@ -88,11 +88,8 @@ class PositiveReals(OpenSet):
         belongs : array-like, shape=[...]
             Boolean denoting if point is a positive real.
         """
-        is_scalar = gs.ndim(point) == 1
-        if not is_scalar:
-            return gs.zeros([point.shape[0]], dtype=bool)
-        is_real = gs.abs(gs.imag(point)) < atol
-        is_positive = gs.real(point) > 0
+        is_real = gs.all(gs.abs(gs.imag(point)) < atol, axis=())
+        is_positive = gs.all(gs.real(point) > 0, axis=())
         return gs.logical_and(is_positive, is_real)
 
     @staticmethod

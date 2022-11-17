@@ -12,8 +12,6 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 class TestPositiveReals(OpenSetTestCase, metaclass=Parametrizer):
     """Test of PositiveReals methods."""
 
-    skip_test_projection_belongs = True
-
     testing_data = PositiveRealsTestData()
 
     def test_belongs(self, point, expected):
