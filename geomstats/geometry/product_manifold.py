@@ -404,8 +404,10 @@ class ProductManifold(Manifold):
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space from the product distribution.
+
         The distribution used is the product of the distributions used by the
         random_tangent_vec methods of each individual factor manifold.
+
         Parameters
         ----------
         base_point : array-like, shape=[..., n, n]
@@ -414,6 +416,7 @@ class ProductManifold(Manifold):
         n_samples : int
             Number of samples.
             Optional, default: 1.
+
         Returns
         -------
         samples : array-like, shape=[..., {dim, embedding_space.dim,
