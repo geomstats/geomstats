@@ -224,10 +224,12 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         s = 2 * gs.abs(tangent_vec) / (1 - gs.abs(base_point) ** 2)
         exp_i_theta = gs.exp(1j * theta)
         exp_minus_s = gs.cast(gs.exp(-s), dtype=gs.get_default_cdtype())
-        num = base_point + exp_i_theta
-        num += (base_point - exp_i_theta) * exp_minus_s
-        den = 1 + gs.conj(base_point) * exp_i_theta
-        den += (1 - gs.conj(base_point) * exp_i_theta) * exp_minus_s
+        num = base_point + exp_i_theta + (base_point - exp_i_theta) * exp_minus_s
+        den = (
+            1
+            + gs.conj(base_point) * exp_i_theta
+            + (1 - gs.conj(base_point) * exp_i_theta) * exp_minus_s
+        )
         return num / den
 
     @staticmethod
