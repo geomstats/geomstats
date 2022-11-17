@@ -150,52 +150,6 @@ def homogeneous_representation(rotation, translation, output_shape, constant=1.0
     return mat
 
 
-def submersion(point):
-    """Define SE(n) as the pre-image of identity.
-
-    Parameters
-    ----------
-    point : array-like, shape=[..., n + 1, n + 1]
-        Point.
-
-    Returns
-    -------
-    submersed_point : array-like, shape=[..., n + 1, n + 1]
-        Submersed Point.
-    """
-    n = point.shape[-1] - 1
-    rot = point[..., :n, :n]
-    vec = point[..., n, :n]
-    scalar = point[..., n, n]
-    submersed_rot = Matrices.mul(rot, Matrices.transpose(rot))
-    return homogeneous_representation(submersed_rot, vec, point.shape, constant=scalar)
-
-
-def tangent_submersion(vector, point):
-    """Define the tangent space of SE(n) as the kernel of this method.
-
-    Parameters
-    ----------
-    vector : array-like, shape=[..., n + 1, n + 1]
-        Point.
-    point : array-like, shape=[..., n + 1, n + 1]
-        Point.
-
-    Returns
-    -------
-    submersed_vector : array-like, shape=[..., n + 1, n + 1]
-        Submersed Vector.
-    """
-    n = point.shape[-1] - 1
-    rot = point[..., :n, :n]
-    skew = vector[..., :n, :n]
-    vec = vector[..., n, :n]
-    scalar = vector[..., n, n]
-    submersed_rot = Matrices.mul(Matrices.transpose(skew), rot)
-    submersed_rot = Matrices.to_symmetric(submersed_rot)
-    return homogeneous_representation(submersed_rot, vec, point.shape, constant=scalar)
-
-
 class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
     """Class for special Euclidean group.
 
@@ -222,18 +176,18 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
     """
 
     def __init__(self, n, **kwargs):
+        self.n = n
+        self._value = gs.eye(n + 1)
+
         super().__init__(
             n=n + 1,
             dim=int((n * (n + 1)) / 2),
-            embedding_space=GeneralLinear(n + 1, positive_det=True),
-            submersion=submersion,
-            value=gs.eye(n + 1),
-            tangent_submersion=tangent_submersion,
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
             **kwargs
         )
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
+        # TODO: remove after solve naming clash
         self.n = n
 
         self.left_canonical_metric = SpecialEuclideanMatrixCanonicalLeftMetric(
@@ -241,6 +195,58 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         )
         if self._metric is None:
             self._metric = self.left_canonical_metric
+
+    def _define_embedding_space(self):
+        return GeneralLinear(self.n + 1, positive_det=True)
+
+    def submersion(self, point):
+        """Define SE(n) as the pre-image of 0.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n + 1, n + 1]
+            Point.
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n + 1, n + 1]
+            Submersed Point.
+        """
+        n = point.shape[-1] - 1
+        rot = point[..., :n, :n]
+        vec = point[..., n, :n]
+        scalar = point[..., n, n]
+        submersed_rot = Matrices.mul(rot, Matrices.transpose(rot))
+        return (
+            homogeneous_representation(submersed_rot, vec, point.shape, constant=scalar)
+            - self._value
+        )
+
+    def tangent_submersion(self, vector, point):
+        """Define the tangent space of SE(n) as the kernel of this method.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n + 1, n + 1]
+            Point.
+        point : array-like, shape=[..., n + 1, n + 1]
+            Point.
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n + 1, n + 1]
+            Submersed Vector.
+        """
+        n = point.shape[-1] - 1
+        rot = point[..., :n, :n]
+        skew = vector[..., :n, :n]
+        vec = vector[..., n, :n]
+        scalar = vector[..., n, n]
+        submersed_rot = Matrices.mul(Matrices.transpose(skew), rot)
+        submersed_rot = Matrices.to_symmetric(submersed_rot)
+        return homogeneous_representation(
+            submersed_rot, vec, point.shape, constant=scalar
+        )
 
     @property
     def identity(self):
