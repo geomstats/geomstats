@@ -69,7 +69,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     ):
         metric = self.Metric(manifolds, default_point_type=default_point_type)
         logs = metric.log(point, base_point)
-        result = metric.inner_product(logs, logs)
+        result = metric.inner_product(logs, logs, base_point)
         expected = metric.squared_dist(base_point, point)
         self.assertAllClose(result, expected)
 
