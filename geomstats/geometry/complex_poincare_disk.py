@@ -256,10 +256,8 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             Coefficient tau.
         """
         num = gs.abs(point_a - point_b)
-        den = gs.abs(1 - point_a * gs.conj(point_b))
-        den = gs.maximum(den, atol)
-        delta = num / den
-        delta = gs.minimum(delta, 1 - atol)
+        den = gs.maximum(gs.abs(1 - point_a * gs.conj(point_b)), atol)
+        delta = gs.minimum(num / den, 1 - atol)
         tau = (1 / 2) * gs.log((1 + delta) / (1 - delta))
         return tau
 
