@@ -56,7 +56,9 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def __init__(self, metrics, default_point_type=None, scales=None):
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, "default_point_type", [None, "vector", "matrix", "other"]
+            default_point_type,
+            "default_point_type",
+            [None, "vector", "matrix", "other"]
         )
 
         self.factors = metrics
@@ -83,7 +85,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
-        if default_point_type == None or default_point_type == "other":
+        if default_point_type is None or default_point_type == "other":
             if all_equal(self._factor_shapes):
                 return (len(self.factors), *self.factors[0].shape)
             else:
