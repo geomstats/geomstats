@@ -114,8 +114,7 @@ class ComplexPoincareDisk(ComplexOpenSet):
         samples : array-like, shape=[...]
             Points sampled in the unit disk.
         """
-        modulus = gs.random.rand(n_samples, dtype=gs.get_default_cdtype())
-        modulus *= bound
+        modulus = bound * gs.random.rand(n_samples, dtype=gs.get_default_cdtype())
         angle = 2 * gs.pi * gs.random.rand(n_samples, dtype=gs.get_default_cdtype())
         samples = modulus * gs.exp(1j * angle)
         return samples
