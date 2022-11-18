@@ -60,7 +60,7 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., *point_shape]
             Point to evaluate.
         atol : float
             Absolute tolerance.
@@ -78,9 +78,9 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
         atol : float
             Absolute tolerance.
@@ -98,14 +98,14 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vector at base point.
         """
 
@@ -126,7 +126,7 @@ class Manifold(abc.ABC):
 
         Returns
         -------
-        samples : array-like, shape=[..., {dim, [n, n]}]
+        samples : array-like, shape=[..., *point_shape]
             Points sampled on the manifold.
         """
 
@@ -140,7 +140,7 @@ class Manifold(abc.ABC):
 
         Returns
         -------
-        regularized_point : array-like, shape=[..., dim]
+        regularized_point : array-like, shape=[..., *point_shape]
             Regularized point.
         """
         regularized_point = point
@@ -168,12 +168,12 @@ class Manifold(abc.ABC):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        base_point :  array-like, shape={[n_samples, dim], [dim,]}
+        base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
             Point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vec at base point.
         """
         if (

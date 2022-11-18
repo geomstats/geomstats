@@ -64,12 +64,12 @@ class ComplexManifold(abc.ABC):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        base_point :  array-like, shape=[..., dim]
+        base_point :  array-like, shape=[..., *point_shape]
             Point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vec at base point.
         """
         if (
