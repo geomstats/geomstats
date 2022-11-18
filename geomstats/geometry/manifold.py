@@ -185,8 +185,7 @@ class Manifold(abc.ABC):
                 "The number of base points must be the same as the "
                 "number of samples, when the number of base points is different from 1."
             )
-        return gs.squeeze(
-            self.to_tangent(
-                gs.random.normal(size=(n_samples,) + self.shape), base_point
-            )
+        batch_size = () if n_samples == 1 else (n_samples,)
+        return self.to_tangent(
+            gs.random.normal(size=batch_size + self.shape), base_point
         )
