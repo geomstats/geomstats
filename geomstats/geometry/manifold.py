@@ -28,6 +28,13 @@ class Manifold(abc.ABC):
     default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
         Optional, default: 'intrinsic'.
+
+    Attributes
+    ----------
+    point_ndim : int
+        Dimension of point array.
+    default_point_type : str
+        Point type: "vector" or "matrix"
     """
 
     def __init__(
@@ -44,15 +51,8 @@ class Manifold(abc.ABC):
         self.default_coords_type = default_coords_type
         self._metric = metric
 
-    @property
-    def default_point_type(self):
-        """Point type.
-
-        `vector` or `matrix`.
-        """
-        if len(self.shape) == 1:
-            return "vector"
-        return "matrix"
+        self.point_ndim = len(self.shape)
+        self.default_point_type = "vector" if self.point_ndim == 1 else "matrix"
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
