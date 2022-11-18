@@ -87,10 +87,13 @@ class VectorSpace(Manifold, abc.ABC):
 
         Returns
         -------
-        is_tangent : bool
+        is_tangent : array-like, shape=[...,]
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.belongs(vector, atol)
+        belongs = self.belongs(vector, atol)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(belongs, base_point.shape[: -self.point_ndim])
+        return belongs
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the vector space.
