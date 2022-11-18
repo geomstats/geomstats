@@ -67,7 +67,7 @@ class VectorSpace(Manifold, abc.ABC):
         point: array-like, shape[..., {dim, [n, n]}]
             Point.
         """
-        return point
+        return gs.copy(point)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -112,7 +112,10 @@ class VectorSpace(Manifold, abc.ABC):
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at base point.
         """
-        return self.projection(vector)
+        tangent_vec = self.projection(vector)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(tangent_vec, base_point.shape)
+        return tangent_vec
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the vector space with a uniform distribution in a box.
