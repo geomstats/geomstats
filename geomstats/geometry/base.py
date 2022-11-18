@@ -9,8 +9,6 @@ import geomstats.backend as gs
 from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.manifold import Manifold
 
-CDTYPE = gs.get_default_cdtype()
-
 
 class VectorSpace(Manifold, abc.ABC):
     """Abstract class for vector spaces.
@@ -196,16 +194,11 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        point = gs.array(point)
-        minimal_ndim = len(self.shape)
-        if self.shape[0] == 1 and len(point.shape) <= 1:
-            point = gs.transpose(gs.to_ndarray(gs.to_ndarray(point, 1), 2))
-        belongs = point.shape[-minimal_ndim:] == self.shape
-        if point.ndim <= minimal_ndim:
-            return belongs
+        belongs = self.shape == point.shape[-self.point_ndim :]
+        shape = point.shape[: -self.point_ndim]
         if belongs:
-            return gs.ones(point.shape[:-minimal_ndim], dtype=bool)
-        return False
+            return gs.ones(shape, dtype=bool)
+        return gs.zeros(shape, dtype=bool)
 
     @staticmethod
     def projection(point):
@@ -224,7 +217,7 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         point: array-like, shape[..., {dim, [n, n]}]
             Point.
         """
-        return point
+        return gs.copy(point)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -247,7 +240,10 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.belongs(vector, atol)
+        belongs = self.belongs(vector, atol)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(belongs, base_point.shape[: -self.point_ndim])
+        return belongs
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the vector space.
@@ -266,7 +262,10 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at base point.
         """
-        return self.projection(vector)
+        tangent_vec = self.projection(vector)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(tangent_vec, base_point.shape)
+        return tangent_vec
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the complex vector space with a uniform distribution in a box.
@@ -288,9 +287,9 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         size = self.shape
         if n_samples != 1:
             size = (n_samples,) + self.shape
-        point = gs.cast(gs.random.rand(*size), dtype=CDTYPE) - 0.5
-        point += 1j * (gs.cast(gs.random.rand(*size), dtype=CDTYPE) - 0.5)
-        point *= 2 * bound
+        point = bound * (
+            gs.random.rand(*size, dtype=gs.get_default_cdtype()) - 0.5 - 0.5j
+        )
         return point
 
     @property
@@ -643,7 +642,10 @@ class ComplexOpenSet(ComplexManifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.embedding_space.belongs(vector, atol)
+        is_tangent = self.embedding_space.belongs(vector, atol)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(is_tangent, base_point.shape[: -self.point_ndim])
+        return is_tangent
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
@@ -660,7 +662,10 @@ class ComplexOpenSet(ComplexManifold, abc.ABC):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        return self.embedding_space.projection(vector)
+        tangent_vec = self.embedding_space.projection(vector)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(tangent_vec, base_point.shape)
+        return tangent_vec
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
