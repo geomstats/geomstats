@@ -540,7 +540,10 @@ class OpenSet(Manifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.embedding_space.belongs(vector, atol)
+        is_tangent = self.embedding_space.belongs(vector, atol)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(is_tangent, base_point.shape[: -self.point_ndim])
+        return is_tangent
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
@@ -557,7 +560,10 @@ class OpenSet(Manifold, abc.ABC):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        return self.embedding_space.projection(vector)
+        tangent_vec = self.embedding_space.projection(vector)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(tangent_vec, base_point.shape)
+        return tangent_vec
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
