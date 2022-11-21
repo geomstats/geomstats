@@ -22,7 +22,7 @@ class BinomialTestData(_OpenSetTestData):
             dict(n_draws=2, point=gs.array([-1.0]), expected=False),
             dict(n_draws=1, point=gs.array([0.1]), expected=True),
             dict(n_draws=7, point=gs.array([-0.8]), expected=False),
-            dict(n_draws=8, point=gs.array([8]), expected=False),
+            dict(n_draws=8, point=gs.array([8.]), expected=False),
             dict(n_draws=2, point=gs.array([-1.0]), expected=False),
             dict(n_draws=1, point=gs.array([5.0]), expected=False),
             dict(n_draws=1, point=gs.array([-0.2]), expected=False),
