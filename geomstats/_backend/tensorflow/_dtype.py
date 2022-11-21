@@ -61,7 +61,7 @@ def _allow_complex_dtype(target=None):
     def _decorator(func):
         @functools.wraps(func)
         def _wrapped(*args, **kwargs):
-            dtype = kwargs.get("dtype", None)
+            dtype = kwargs.get("dtype")
 
             if dtype not in _COMPLEX_DTYPES:
                 return func(*args, **kwargs)
