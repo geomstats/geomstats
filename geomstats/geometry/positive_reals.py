@@ -77,7 +77,7 @@ class PositiveReals(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[..., 1]
             Points to be checked.
         atol : float
             Tolerance.
@@ -88,9 +88,10 @@ class PositiveReals(OpenSet):
         belongs : array-like, shape=[...]
             Boolean denoting if point is a positive real.
         """
-        is_scalar = gs.ndim(point) == 1
+        is_scalar = gs.ndim(point) == 1 or (gs.ndim(point) == 2 and point.shape[1] == 1)
         if not is_scalar:
             return gs.zeros([point.shape[0]], dtype=bool)
+        point = gs.reshape(point, (-1,))
         is_real = gs.abs(gs.imag(point)) < atol
         is_positive = gs.real(point) > 0
         return gs.logical_and(is_positive, is_real)
@@ -101,7 +102,7 @@ class PositiveReals(OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[..., 1]
             Point in ambient manifold.
         atol : float
             Tolerance.
@@ -109,7 +110,7 @@ class PositiveReals(OpenSet):
 
         Returns
         -------
-        projected : array-like, shape=[...]
+        projected : array-like, shape=[..., 1]
             Projected point.
         """
         return gs.where(point <= 0, atol, point)
@@ -132,10 +133,12 @@ class PositiveReals(OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[...]
+        samples : array-like, shape=[..., 1]
             Points sampled in the positive reals.
         """
-        return (bound - atol) * gs.random.rand(n_samples) + atol
+        size = (n_samples, 1) if n_samples != 1 else (1,)
+        return (bound - atol) * gs.random.rand(*size) + atol
+        # return (bound - atol) * gs.random.rand(n_samples) + atol
 
 
 class PositiveRealsMetric(RiemannianMetric):
@@ -161,7 +164,7 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[...]
+        base_point : array-like, shape=[..., 1]
             Base point.
 
         Returns
@@ -181,11 +184,11 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[...]
+        tangent_vec_a : array-like, shape=[..., 1]
             Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[...]
+        tangent_vec_b : array-like, shape=[..., 1]
             Tangent vector at base point.
-        base_point : array-like, shape=[...]
+        base_point : array-like, shape=[..., 1]
             Base point.
 
         Returns
@@ -195,7 +198,7 @@ class PositiveRealsMetric(RiemannianMetric):
         """
         inner_product_matrix = self.inner_product_matrix(base_point=base_point)
         inner_product = tangent_vec_a * inner_product_matrix * tangent_vec_b
-        return inner_product
+        return gs.reshape(inner_product, (-1,))
 
     @staticmethod
     def exp(tangent_vec, base_point):
@@ -203,14 +206,14 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[...]
+        tangent_vec : array-like, shape=[..., 1]
             Tangent vector at base point.
-        base_point : array-like, shape=[...]
+        base_point : array-like, shape=[..., 1]
             Base point.
 
         Returns
         -------
-        exp : array-like, shape=[...]
+        exp : array-like, shape=[..., 1]
             Riemannian exponential.
         """
         return base_point * gs.exp(tangent_vec / base_point)
@@ -225,14 +228,14 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[..., 1]
             Point.
-        base_point : array-like, shape=[...]
+        base_point : array-like, shape=[..., 1]
             Base point.
 
         Returns
         -------
-        log : array-like, shape=[...]
+        log : array-like, shape=[..., 1]
             Riemannian logarithm.
         """
         return base_point * gs.log(point / base_point)
@@ -244,9 +247,9 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[...]
+        point_a : array-like, shape=[..., 1]
             Point.
-        point_b : array-like, shape=[...]
+        point_b : array-like, shape=[..., 1]
             Point.
 
         Returns
@@ -254,7 +257,7 @@ class PositiveRealsMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
-        return (self.scale * gs.log(point_b / point_a)) ** 2
+        return gs.reshape((self.scale * gs.log(point_b / point_a)) ** 2, (-1,))
 
     def dist(self, point_a, point_b):
         """Compute the positive reals distance.
@@ -263,9 +266,9 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[...]
+        point_a : array-like, shape=[..., 1]
             Point.
-        point_b : array-like, shape=[...]
+        point_b : array-like, shape=[..., 1]
             Point.
 
         Returns
@@ -273,4 +276,4 @@ class PositiveRealsMetric(RiemannianMetric):
         dist : array-like, shape=[...]
             Riemannian distance.
         """
-        return self.scale * gs.abs(gs.log(point_b / point_a))
+        return gs.reshape(self.scale * gs.abs(gs.log(point_b / point_a)), (-1,))
