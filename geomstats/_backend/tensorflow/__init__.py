@@ -343,7 +343,7 @@ def _assignment_single_value(x, value, indices, mode="replace", axis=0):
     if use_vectorization:
         full_shape = shape(x)
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1 :])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
         mask = _vectorized_mask_from_indices(
             n_samples, indices, tile_shape, axis, x.dtype
         )
@@ -571,7 +571,7 @@ def outer(x, y):
 
 
 def copy(x):
-    return _tf.Variable(x)
+    return _tf.identity(x)
 
 
 def hstack(x):
