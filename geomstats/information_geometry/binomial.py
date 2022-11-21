@@ -6,7 +6,6 @@ Lead author: Jules Deschamps.
 from scipy.stats import binom
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -33,7 +32,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...,]
+        point : array-like, shape=[..., dim]
             Point to be checked.
         atol : float
             Tolerance to evaluate if point belongs to [0,1].
@@ -45,11 +44,9 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             Boolean indicating whether point represents a binomial
             distribution.
         """
-        belongs = gs.logical_and(atol <= point, point <= 1 - atol)
-        return gs.squeeze(belongs)
+        return gs.squeeze(gs.logical_and(atol <= point, point <= 1), axis=-1)
 
-    @staticmethod
-    def random_point(n_samples=1):
+    def random_point(self, n_samples=1):
         """Sample parameters of binomial distributions.
 
         The uniform distribution on [0, 1] is used.
@@ -62,10 +59,11 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[...,]
+        samples : array-like, shape=[..., dim]
             Sample of points representing binomial distributions.
         """
-        return gs.squeeze(gs.random.rand(n_samples))
+        size = (n_samples, self.dim) if n_samples != 1 else (self.dim,)
+        return gs.random.rand(*size)
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the parameter set.
@@ -75,14 +73,14 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...,]
+        point : array-like, shape=[..., dim]
             Point in ambient space.
         atol : float
             Tolerance to evaluate positivity.
 
         Returns
         -------
-        projected : array-like, shape=[...,]
+        projected : array-like, shape=[..., dim]
             Projected point.
         """
         projected = gs.where(
@@ -91,7 +89,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             + atol * gs.cast((point < atol), point.dtype),
             point,
         )
-        return gs.squeeze(projected)
+        return projected
 
     def sample(self, point, n_samples=1):
         """Sample from the binomial distribution.
@@ -100,7 +98,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...]
+        point : array-like, shape=[..., dim]
             Point representing a binomial distribution.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
@@ -108,13 +106,18 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[...]
+        samples : array-like, shape=[..., n_samples]
             Sample from binomial distributions.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=1)
-        samples = gs.array([binom.rvs(self.n_draws, point) for i in range(n_samples)])
-        return gs.squeeze(gs.transpose(samples))
+
+        def _sample(param):
+            return binom.rvs(self.n_draws, param, size=n_samples)
+
+        n_batch = point.ndim - self.point_ndim
+        if n_batch:
+            return gs.array([_sample(point_) for point_ in point])
+
+        return gs.array(_sample(point))
 
     def point_to_pmf(self, point):
         """Compute pmf associated to point.
@@ -124,7 +127,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...,]
+        point : array-like, shape=[..., dim]
             Point representing a binomial distribution (probability of success).
 
         Returns
@@ -133,7 +136,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the binomial distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
+        n_batch = point.ndim - self.point_ndim
 
         def pmf(k):
             """Generate parameterized function for binomial pmf.
@@ -143,17 +146,19 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             k : array-like, shape=[n_points,]
                 Integers in {0, ..., n_draws} at which to
                 compute the probability mass function.
+
+            Returns
+            -------
+            pmf_at_k : array-like, shape=[..., n_points]
             """
-            k = gs.to_ndarray(k, to_ndim=1)
 
-            pmf_at_k = gs.array(
-                [
-                    gs.array(binom.pmf(k, self.n_draws, param))
-                    for param in gs.to_ndarray(point, 1)
-                ]
-            )
+            def _pmf(param):
+                return binom.pmf(k, self.n_draws, param)
 
-            return gs.squeeze(pmf_at_k)
+            if n_batch:
+                return gs.array([_pmf(param) for param in point])
+
+            return gs.array(_pmf(point))
 
         return pmf
 

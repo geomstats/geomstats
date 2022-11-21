@@ -39,7 +39,7 @@ class Euclidean(VectorSpace):
         """Create the canonical basis."""
         return gs.eye(self.dim)
 
-    def exp(self, tangent_vec, base_point=None):
+    def exp(self, tangent_vec, base_point):
         """Compute the group exponential, which is simply the addition.
 
         Parameters

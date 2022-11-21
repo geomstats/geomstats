@@ -162,7 +162,7 @@ class ManifoldTestCase(TestCase):
         space = self.Space(*space_args)
         tangent_vec = space.random_tangent_vec(base_point, n_samples)
         result = space.is_tangent(tangent_vec, base_point, atol)
-        self.assertAllEqual(result, gs.squeeze(gs.ones(n_samples)))
+        self.assertAllEqual(result, gs.squeeze(gs.ones(n_samples, dtype=bool)))
 
 
 class OpenSetTestCase(ManifoldTestCase):
@@ -186,8 +186,8 @@ class OpenSetTestCase(ManifoldTestCase):
             Absolute tolerance for the is_tangent function.
         """
         space = self.Space(*space_args)
-        tangent_vec = space.to_tangent(gs.array(vector), gs.array(base_point))
-        result = gs.all(space.embedding_space.is_tangent(tangent_vec, atol))
+        tangent_vec = space.to_tangent(vector, base_point)
+        result = gs.all(space.embedding_space.is_tangent(tangent_vec, base_point, atol))
         self.assertTrue(result)
 
 

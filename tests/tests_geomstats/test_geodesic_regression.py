@@ -344,6 +344,8 @@ class TestGeodesicRegression(tests.conftest.TestCase):
 
         objective_with_grad = gs.autodiff.value_and_grad(loss_of_param, to_numpy=True)
         loss_value, loss_grad = objective_with_grad(self.param_se2_guess)
+        # TODO: fix autodiff to output proper type
+        loss_value, loss_grad = gs.array(loss_value), gs.array(loss_grad)
         expected_grad_shape = (
             2,
             self.shape_se2[0] * self.shape_se2[1],

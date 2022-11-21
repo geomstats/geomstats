@@ -1361,12 +1361,12 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
 
         return gs.vstack([basis, add_basis])
 
-    def belongs(self, mat, atol=ATOL):
-        """Evaluate if the rotation part of mat is a skew-symmetric matrix.
+    def belongs(self, point, atol=ATOL):
+        """Evaluate if the rotation part of point is a skew-symmetric matrix.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n + 1, n + 1]
+        point : array-like, shape=[..., n + 1, n + 1]
             Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
@@ -1377,15 +1377,15 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         belongs : array-like, shape=[...,]
             Boolean evaluating if rotation part of matrix is skew symmetric.
         """
-        point_dim1, point_dim2 = mat.shape[-2:]
+        point_dim1, point_dim2 = point.shape[-2:]
         belongs = point_dim1 == point_dim2 == self.n + 1
 
-        rotation = mat[..., : self.n, : self.n]
+        rotation = point[..., : self.n, : self.n]
         rot_belongs = self.skew.belongs(rotation, atol=atol)
 
         belongs = gs.logical_and(belongs, rot_belongs)
 
-        last_line = mat[..., -1, :]
+        last_line = point[..., -1, :]
         all_zeros = ~gs.any(last_line, axis=-1)
 
         belongs = gs.logical_and(belongs, all_zeros)
