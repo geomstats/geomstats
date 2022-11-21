@@ -138,7 +138,6 @@ class PositiveReals(OpenSet):
         """
         size = (n_samples, 1) if n_samples != 1 else (1,)
         return (bound - atol) * gs.random.rand(*size) + atol
-        # return (bound - atol) * gs.random.rand(n_samples) + atol
 
 
 class PositiveRealsMetric(RiemannianMetric):
