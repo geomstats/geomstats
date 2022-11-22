@@ -86,7 +86,6 @@ cos = _box_unary_scalar(target=_torch.cos)
 cosh = _box_unary_scalar(target=_torch.cosh)
 exp = _box_unary_scalar(target=_torch.exp)
 floor = _box_unary_scalar(target=_torch.floor)
-imag = _box_unary_scalar(target=_torch.imag)
 log = _box_unary_scalar(target=_torch.log)
 real = _box_unary_scalar(target=_torch.real)
 sign = _box_unary_scalar(target=_torch.sign)
@@ -762,3 +761,11 @@ def cross(a, b):
 
 def gamma(a):
     return _torch.exp(_gammaln(a))
+
+
+def imag(a):
+    if not _torch.is_tensor(a):
+        a = _torch.tensor(a)
+    if is_complex(a):
+        return _torch.imag(a)
+    return _torch.zeros(a.shape, dtype=a.dtype)
