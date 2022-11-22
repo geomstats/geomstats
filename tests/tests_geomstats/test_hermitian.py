@@ -34,6 +34,7 @@ class TestHermitianMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrize
     skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
     skip_test_covariant_riemann_tensor_bianchi_identity = True
     skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_inner_product_is_symmetric = True
     skip_test_riemann_tensor_shape = True
     skip_test_scalar_curvature_shape = True
     skip_test_ricci_tensor_shape = True

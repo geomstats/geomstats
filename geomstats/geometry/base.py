@@ -9,8 +9,6 @@ import geomstats.backend as gs
 from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.manifold import Manifold
 
-CDTYPE = gs.get_default_cdtype()
-
 
 class VectorSpace(Manifold, abc.ABC):
     """Abstract class for vector spaces.
@@ -25,7 +23,6 @@ class VectorSpace(Manifold, abc.ABC):
     def __init__(self, shape, **kwargs):
         kwargs.setdefault("dim", int(gs.prod(gs.array(shape))))
         super().__init__(shape=shape, **kwargs)
-        self.shape = shape
         self._basis = None
 
     def belongs(self, point, atol=gs.atol):
@@ -35,7 +32,7 @@ class VectorSpace(Manifold, abc.ABC):
 
         Parameters
         ----------
-        point : array-like, shape=[.., {dim, [n, n]}]
+        point : array-like, shape=[.., *point_shape]
             Point to test.
         atol : float
             Unused here.
@@ -45,14 +42,11 @@ class VectorSpace(Manifold, abc.ABC):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        point = gs.array(point)
-        minimal_ndim = len(self.shape)
-        if self.shape[0] == 1 and len(point.shape) <= 1:
-            point = gs.transpose(gs.to_ndarray(gs.to_ndarray(point, 1), 2))
-        belongs = point.shape[-minimal_ndim:] == self.shape
-        if point.ndim <= minimal_ndim:
-            return belongs
-        return gs.tile(gs.array([belongs]), [point.shape[0]])
+        belongs = self.shape == point.shape[-self.point_ndim :]
+        shape = point.shape[: -self.point_ndim]
+        if belongs:
+            return gs.ones(shape, dtype=bool)
+        return gs.zeros(shape, dtype=bool)
 
     @staticmethod
     def projection(point):
@@ -63,15 +57,15 @@ class VectorSpace(Manifold, abc.ABC):
 
         Parameters
         ----------
-        point: array-like, shape[..., {dim, [n, n]}]
+        point: array-like, shape[..., *point_shape]
             Point.
 
         Returns
         -------
-        point: array-like, shape[..., {dim, [n, n]}]
+        point: array-like, shape[..., *point_shape]
             Point.
         """
-        return point
+        return gs.copy(point)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -81,9 +75,9 @@ class VectorSpace(Manifold, abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., {dim, [n, n]}]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., *point_shape]
             Point in the vector space.
         atol : float
             Absolute tolerance.
@@ -91,10 +85,13 @@ class VectorSpace(Manifold, abc.ABC):
 
         Returns
         -------
-        is_tangent : bool
+        is_tangent : array-like, shape=[...,]
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.belongs(vector, atol)
+        belongs = self.belongs(vector, atol)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(belongs, base_point.shape[: -self.point_ndim])
+        return belongs
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the vector space.
@@ -103,17 +100,20 @@ class VectorSpace(Manifold, abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., {dim, [n, n]}]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., *point_shape]
             Point in the vector space
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vector at base point.
         """
-        return self.projection(vector)
+        tangent_vec = self.projection(vector)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(tangent_vec, base_point.shape)
+        return tangent_vec
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the vector space with a uniform distribution in a box.
@@ -129,7 +129,7 @@ class VectorSpace(Manifold, abc.ABC):
 
         Returns
         -------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., *point_shape]
            Sample.
         """
         size = self.shape
@@ -184,7 +184,7 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
 
         Parameters
         ----------
-        point : array-like, shape=[.., {dim, [n, n]}]
+        point : array-like, shape=[.., *point_shape]
             Point to test.
         atol : float
             Unused here.
@@ -194,14 +194,11 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        point = gs.array(point)
-        minimal_ndim = len(self.shape)
-        if self.shape[0] == 1 and len(point.shape) <= 1:
-            point = gs.transpose(gs.to_ndarray(gs.to_ndarray(point, 1), 2))
-        belongs = point.shape[-minimal_ndim:] == self.shape
-        if point.ndim <= minimal_ndim:
-            return belongs
-        return gs.tile(gs.array([belongs]), [point.shape[0]])
+        belongs = self.shape == point.shape[-self.point_ndim :]
+        shape = point.shape[: -self.point_ndim]
+        if belongs:
+            return gs.ones(shape, dtype=bool)
+        return gs.zeros(shape, dtype=bool)
 
     @staticmethod
     def projection(point):
@@ -212,15 +209,15 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
 
         Parameters
         ----------
-        point: array-like, shape[..., {dim, [n, n]}]
+        point: array-like, shape[..., *point_shape]
             Point.
 
         Returns
         -------
-        point: array-like, shape[..., {dim, [n, n]}]
+        point: array-like, shape[..., *point_shape]
             Point.
         """
-        return point
+        return gs.copy(point)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -230,9 +227,9 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., {dim, [n, n]}]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., *point_shape]
             Point in the vector space.
         atol : float
             Absolute tolerance.
@@ -243,7 +240,10 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.belongs(vector, atol)
+        belongs = self.belongs(vector, atol)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(belongs, base_point.shape[: -self.point_ndim])
+        return belongs
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the vector space.
@@ -252,17 +252,20 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., {dim, [n, n]}]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., *point_shape]
             Point in the vector space
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vector at base point.
         """
-        return self.projection(vector)
+        tangent_vec = self.projection(vector)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(tangent_vec, base_point.shape)
+        return tangent_vec
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the complex vector space with a uniform distribution in a box.
@@ -278,15 +281,15 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
 
         Returns
         -------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., *point_shape]
            Sample.
         """
         size = self.shape
         if n_samples != 1:
             size = (n_samples,) + self.shape
-        point = gs.cast(gs.random.rand(*size), dtype=CDTYPE) - 0.5
-        point += 1j * (gs.cast(gs.random.rand(*size), dtype=CDTYPE) - 0.5)
-        point *= 2 * bound
+        point = bound * (
+            gs.random.rand(*size, dtype=gs.get_default_cdtype()) - 0.5 - 0.5j
+        )
         return point
 
     @property
@@ -316,39 +319,66 @@ class LevelSet(Manifold, abc.ABC):
     ----------
     dim : int
         Dimension of the embedded manifold.
-    embedding_space : VectorSpace
-        Embedding space.
     default_coords_type : str, {'intrinsic', 'extrinsic', etc}
         Coordinate type.
-        Optional, default: 'intrinsic'.
+        Optional, default: 'extrinsic'.
     """
 
-    def __init__(
-        self,
-        dim,
-        embedding_space,
-        submersion,
-        value,
-        tangent_submersion,
-        default_coords_type="intrinsic",
-        **kwargs
-    ):
-        kwargs.setdefault("shape", embedding_space.shape)
-        super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
-        self.embedding_space = embedding_space
-        self.embedding_metric = embedding_space.metric
-        self.submersion = submersion
-        if isinstance(value, float):
-            value = gs.array(value)
-        self.value = value
-        self.tangent_submersion = tangent_submersion
+    def __init__(self, dim, default_coords_type="extrinsic", shape=None, **kwargs):
+        self.embedding_space = self._define_embedding_space()
+
+        if shape is None:
+            shape = self.embedding_space.shape
+
+        super().__init__(
+            dim=dim, default_coords_type=default_coords_type, shape=shape, **kwargs
+        )
+
+    @abc.abstractmethod
+    def _define_embedding_space(self):
+        """Define embedding space of the manifold.
+
+        Returns
+        -------
+        embedding_space : Manifold
+            Instance of Manifold.
+        """
+
+    @abc.abstractmethod
+    def submersion(self, point):
+        r"""Submersion that defines the manifold.
+
+        :math:`\mathrm{submersion}(x)=0` defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *point_shape]
+
+        Returns
+        -------
+        submersed_point : array-like
+        """
+
+    @abc.abstractmethod
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *point_shape]
+        point : array-like, shape=[..., *point_shape]
+
+        Returns
+        -------
+        submersed_vector : array-like
+        """
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., *point_shape]
             Point to evaluate.
         atol : float
             Absolute tolerance.
@@ -362,12 +392,16 @@ class LevelSet(Manifold, abc.ABC):
         belongs = self.embedding_space.belongs(point, atol)
         if not gs.any(belongs):
             return belongs
-        value = self.value
-        constraint = gs.isclose(self.submersion(point), value, atol=atol)
-        if value.ndim == 2:
-            constraint = gs.all(constraint, axis=(-2, -1))
-        elif value.ndim == 1:
-            constraint = gs.all(constraint, axis=-1)
+
+        submersed_point = self.submersion(point)
+
+        n_batch = gs.ndim(point) - len(self.shape)
+        axis = tuple(range(-len(submersed_point.shape) + n_batch, 0))
+
+        constraint = gs.isclose(submersed_point, 0.0, atol=atol)
+        if axis:
+            constraint = gs.all(constraint, axis=axis)
+
         return gs.logical_and(belongs, constraint)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
@@ -375,9 +409,9 @@ class LevelSet(Manifold, abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
         atol : float
             Absolute tolerance.
@@ -389,13 +423,18 @@ class LevelSet(Manifold, abc.ABC):
             Boolean denoting if vector is a tangent vector at the base point.
         """
         belongs = self.embedding_space.is_tangent(vector, base_point, atol)
-        tangent_sub_applied = self.tangent_submersion(vector, base_point)
-        constraint = gs.isclose(tangent_sub_applied, 0.0, atol=atol)
-        value = self.value
-        if value.ndim == 2:
-            constraint = gs.all(constraint, axis=(-2, -1))
-        elif value.ndim == 1:
-            constraint = gs.all(constraint, axis=-1)
+        if not gs.any(belongs):
+            return belongs
+
+        submersed_vector = self.tangent_submersion(vector, base_point)
+
+        n_batch = max(gs.ndim(base_point), gs.ndim(vector)) - len(self.shape)
+        axis = tuple(range(-len(submersed_vector.shape) + n_batch, 0))
+
+        constraint = gs.isclose(submersed_vector, 0.0, atol=atol)
+        if axis:
+            constraint = gs.all(constraint, axis=axis)
+
         return gs.logical_and(belongs, constraint)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
@@ -403,12 +442,12 @@ class LevelSet(Manifold, abc.ABC):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[..., dim]
+        point_intrinsic : array-like, shape=[..., *point_shape]
             Point in the embedded manifold in intrinsic coordinates.
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[..., dim_embedding]
+        point_extrinsic : array-like, shape=[..., *embedding_space.point_shape]
             Point in the embedded manifold in extrinsic coordinates.
         """
         raise NotImplementedError("intrinsic_to_extrinsic_coords is not implemented.")
@@ -418,13 +457,13 @@ class LevelSet(Manifold, abc.ABC):
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[..., dim_embedding]
+        point_extrinsic : array-like, shape=[..., *embedding_space.point_shape]
             Point in the embedded manifold in extrinsic coordinates,
             i. e. in the coordinates of the embedding manifold.
 
         Returns
         -------
-        point_intrinsic : array-lie, shape=[..., dim]
+        point_intrinsic : array-lie, shape=[..., *point_shape]
             Point in the embedded manifold in intrinsic coordinates.
         """
         raise NotImplementedError("extrinsic_to_intrinsic_coords is not implemented.")
@@ -435,12 +474,12 @@ class LevelSet(Manifold, abc.ABC):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim_embedding]
+        point : array-like, shape=[..., *embedding_space.point_shape]
             Point in embedding manifold.
 
         Returns
         -------
-        projected : array-like, shape=[..., dim_embedding]
+        projected : array-like, shape=[..., *point_shape]
             Projected point.
         """
 
@@ -450,14 +489,14 @@ class LevelSet(Manifold, abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vector at base point.
         """
 
@@ -487,9 +526,9 @@ class OpenSet(Manifold, abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
         atol : float
             Absolute tolerance.
@@ -500,24 +539,30 @@ class OpenSet(Manifold, abc.ABC):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        return self.embedding_space.belongs(vector, atol)
+        is_tangent = self.embedding_space.belongs(vector, atol)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(is_tangent, base_point.shape[: -self.point_ndim])
+        return is_tangent
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vector at base point.
         """
-        return self.embedding_space.projection(vector)
+        tangent_vec = self.embedding_space.projection(vector)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(tangent_vec, base_point.shape)
+        return tangent_vec
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
@@ -537,7 +582,7 @@ class OpenSet(Manifold, abc.ABC):
 
         Returns
         -------
-        samples : array-like, shape=[..., {dim, [n, n]}]
+        samples : array-like, shape=[..., *point_shape]
             Points sampled on the hypersphere.
         """
         sample = self.embedding_space.random_point(n_samples, bound)
@@ -549,11 +594,112 @@ class OpenSet(Manifold, abc.ABC):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., *point_shape]
             Point in embedding manifold.
 
         Returns
         -------
-        projected : array-like, shape=[..., dim]
+        projected : array-like, shape=[..., *point_shape]
+            Projected point.
+        """
+
+
+class ComplexOpenSet(ComplexManifold, abc.ABC):
+    """Class for manifolds that are open sets of a complex vector space.
+
+    In this case, tangent vectors are identified with vectors of the embedding
+    space.
+
+    Parameters
+    ----------
+    dim: int
+        Dimension of the manifold. It is often the same as the embedding space
+        dimension but may differ in some cases.
+    embedding_space: VectorSpace
+        Embedding space that contains the manifold.
+    """
+
+    def __init__(self, dim, embedding_space, **kwargs):
+        kwargs.setdefault("shape", embedding_space.shape)
+        super().__init__(dim=dim, **kwargs)
+        self.embedding_space = embedding_space
+
+    def is_tangent(self, vector, base_point=None, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *point_shape]
+            Vector.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        is_tangent = self.embedding_space.belongs(vector, atol)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(is_tangent, base_point.shape[: -self.point_ndim])
+        return is_tangent
+
+    def to_tangent(self, vector, base_point=None):
+        """Project a vector to a tangent space of the manifold.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *point_shape]
+            Vector.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *point_shape]
+            Tangent vector at base point.
+        """
+        tangent_vec = self.embedding_space.projection(vector)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(tangent_vec, base_point.shape)
+        return tangent_vec
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample random points on the manifold.
+
+        If the manifold is compact, a uniform distribution is used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., *point_shape]
+            Points sampled on the hypersphere.
+        """
+        sample = self.embedding_space.random_point(n_samples, bound)
+        return self.projection(sample)
+
+    @abc.abstractmethod
+    def projection(self, point):
+        """Project a point in embedding manifold on manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., *point_shape]
+            Point in embedding manifold.
+
+        Returns
+        -------
+        projected : array-like, shape=[..., *point_shape]
             Projected point.
         """
