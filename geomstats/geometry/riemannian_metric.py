@@ -46,6 +46,42 @@ class RiemannianMetric(Connection, ABC):
             signature = (dim, 0)
         self.signature = signature
 
+
+    def __mul__(self, scalar):
+        """Multiply the metric by a scalar.
+        Parameters
+        ----------
+        scalar : float
+            The number by which to multiply the metric.
+
+        Returns
+        -------
+        metric : ScalarProductMetric
+            The metric multiplied by the scalar
+        """
+        from geomstats.geometry.scalar_product_metric import ScalarProductMetric
+        if not isinstance(scalar, (float, int)):
+            raise NotImplementedError
+        return ScalarProductMetric(self, scalar)
+
+    def __rmul__(self, scalar):
+        """Multiply the metric by a scalar.
+        Parameters
+        ----------
+        scalar : float
+            The number by which to multiply the metric.
+
+        Returns
+        -------
+        metric : ScalarProductMetric
+            The metric multiplied by the scalar.
+        """
+        from geomstats.geometry.scalar_product_metric import ScalarProductMetric
+        if not isinstance(scalar, (float, int)):
+            raise NotImplementedError
+        return ScalarProductMetric(self, scalar)
+
+
     def metric_matrix(self, base_point=None):
         """Metric matrix at the tangent space at a base point.
 
