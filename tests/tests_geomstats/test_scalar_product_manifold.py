@@ -27,7 +27,7 @@ class TestScalarProductMetrics(tests.conftest.TestCase):
         new_metric = ScalarProductMetric(space.metric, 2)
         result = new_metric.shape
         expected = (2,)
-        assert(result == expected)
+        assert (result == expected)
 
     def test_equal_distances(self):
         space_1 = PoincareHalfSpace(dim=2, scale=1)

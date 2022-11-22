@@ -27,32 +27,34 @@ INVERSE_LIST = [
 INVERSE_QUADRATIC_LIST = ["normalize", "random_unit_tangent_vec", "normal_basis"]
 
 
-def _wrap_attr(scale, underlying_metric, func):
+def _wrap_attr(scaling_factor, func):
     @wraps(func)
     def response(*args, **kwargs):
-        if func.__name__ in INVARIANT_LIST:
-            scaling_factor = 1
-        elif func.__name__ in SQRT_LIST:
-            scaling_factor = gs.sqrt(scale)
-        elif func.__name__ in LINEAR_LIST:
-            scaling_factor = scale
-        elif func.__name__ in QUADRATIC_LIST:
-            scaling_factor = gs.power(scale, 2)
-        elif func.__name__ in INVERSE_LIST:
-            scaling_factor = 1.0 / scale
-        elif func.__name__ in INVERSE_QUADRATIC_LIST:
-            scaling_factor = 1.0 / gs.power(scale, 2)
-        else:
-            scaling_factor = None
-
         if scaling_factor is None:
             raise AttributeError(
                 f"Object of class 'ScalarProductMetric' cannot transform attribute "
-                f"'{func.__name__}' of the underlying metric.")
+                f"'{func.__name__}' of the underlying metric. This can be fixed by "
+                f"adding '{func.__name__}' to one of the lists at the start of "
+                f"scalar_product_metric.py.")
         res = scaling_factor * func(*args, **kwargs)
         return res
-
     return response
+
+
+def _get_scaling_factor(func_name, scale):
+    if func_name in INVARIANT_LIST:
+        return 1.0
+    elif func_name in SQRT_LIST:
+        return gs.sqrt(scale)
+    elif func_name in LINEAR_LIST:
+        return scale
+    elif func_name in QUADRATIC_LIST:
+        return gs.power(scale, 2)
+    elif func_name in INVERSE_LIST:
+        return 1.0 / scale
+    elif func_name in INVERSE_QUADRATIC_LIST:
+        return 1.0 / gs.power(scale, 2)
+    return None
 
 
 class ScalarProductMetric(RiemannianMetric):
@@ -77,18 +79,24 @@ class ScalarProductMetric(RiemannianMetric):
         """
         self.underlying_metric = underlying_metric
         self.scaling_factor = scaling_factor
-        for attr in dir(self.underlying_metric):
-            if attr in ["underlying_metric", "scaling_factor"]:
+
+        reserved_names = ("underlying_metric", "scaling_factor")
+        for attr_name in dir(self.underlying_metric):
+            if attr_name.startswith('__'):
+                continue
+            if attr_name in reserved_names:
                 raise AttributeError(
-                    f"The underlying metric has an attribute '{attr}' but this name is"
-                    f"reserved for the class 'ScalarProductMetric'")
-            if not attr.startswith('__'):
-                val = getattr(underlying_metric, attr)
-                if not callable(val):
-                    try:
-                        setattr(self, attr, val)
-                    except AttributeError as ex:
-                        if not isinstance(getattr(type(underlying_metric), attr, None), property):
-                            raise ex
-                else:
-                    setattr(self, attr, _wrap_attr(self.scaling_factor, self.underlying_metric, val))
+                    f"The underlying metric has an attribute '{attr_name}' but this "
+                    f"name is reserved for the class 'ScalarProductMetric'.")
+            attr = getattr(underlying_metric, attr_name)
+            if not callable(attr):
+                try:
+                    setattr(self, attr_name, attr)
+                except AttributeError as ex:
+                    if not isinstance(
+                            getattr(type(underlying_metric), attr_name, None),
+                            property):
+                        raise ex
+            else:
+                scaling_factor = _get_scaling_factor(attr_name, self.scaling_factor)
+                setattr(self, attr_name, _wrap_attr(scaling_factor, attr))
