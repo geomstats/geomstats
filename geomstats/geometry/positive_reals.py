@@ -88,13 +88,17 @@ class PositiveReals(OpenSet):
         belongs : array-like, shape=[...]
             Boolean denoting if point is a positive real.
         """
-        is_scalar = gs.ndim(point) == 1 or (gs.ndim(point) == 2 and point.shape[1] == 1)
-        if not is_scalar:
-            return gs.zeros([point.shape[0]], dtype=bool)
-        point = gs.reshape(point, (-1,))
-        is_real = gs.abs(gs.imag(point)) < atol
-        is_positive = gs.real(point) > 0
-        return gs.logical_and(is_positive, is_real)
+        if point.shape[-1] != 1:
+            return gs.zeros(point.shape[:-1], dtype=bool)
+
+        is_real = gs.all(gs.abs(gs.imag(point)) < atol, axis=(-1,))
+        is_positive = gs.all(gs.real(point) > 0, axis=(-1,))
+
+        res = gs.logical_and(is_positive, is_real)
+        if not gs.is_array(res):
+            return gs.array(res)
+
+        return res
 
     @staticmethod
     def projection(point, atol=gs.atol):
