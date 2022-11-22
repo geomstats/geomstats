@@ -55,7 +55,7 @@ def _wrap_attr(scale, underlying_metric, func):
     return response
 
 
-class ScalarProductMetricV1(RiemannianMetric):
+class ScalarProductMetric(RiemannianMetric):
     """Class for scalar products of Riemannian and pseudo-Riemannian metrics.
 
     This class acts as a wrapper for the underlying Riemannian metric. All attributes
