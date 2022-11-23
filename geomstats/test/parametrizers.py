@@ -330,7 +330,7 @@ class DataBasedParametrizer(type):
                 test_data,
             )(test_func)
 
-        for attr_name, attr in all_test_attrs.items():
+        for attr_name, attr_value in all_test_attrs.items():
             if attr_name not in selected_test_attrs:
                 test_func, _ = copy_func(attr_value)
 
