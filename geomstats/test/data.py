@@ -4,9 +4,6 @@ import pytest
 class TestData:
     """Class for TestData objects."""
 
-    def __init__(self, space):
-        self.space = space
-
     def generate_tests(self, smoke_test_data, random_test_data=()):
         """Wrap test data with corresponding markers.
 
