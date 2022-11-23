@@ -27,7 +27,7 @@ class TestScalarProductMetrics(tests.conftest.TestCase):
         new_metric = 2 * space.metric
         result = new_metric.shape
         expected = (2,)
-        assert (result == expected)
+        assert result == expected
 
     def test_equal_distances(self):
         space_1 = PoincareHalfSpace(dim=2, scale=1)
@@ -40,5 +40,20 @@ class TestScalarProductMetrics(tests.conftest.TestCase):
 
         result = rescaled_metric.dist(p, q)
         expected = space_2.metric.dist(p, q)
+
+        self.assertAllClose(result, expected)
+
+    def test_multiple_scaling_same_as_single_scaling(self):
+        space = PoincareHalfSpace(dim=2, scale=1)
+        rescaled_metric_1_ = space.metric * 0.5
+        rescaled_metric_1 = rescaled_metric_1_ * 4
+
+        rescaled_metric_2 = space.metric*2
+
+        p = space.random_point()
+        q = space.random_point()
+
+        result = rescaled_metric_1.dist(p, q)
+        expected = rescaled_metric_2.dist(p, q)
 
         self.assertAllClose(result, expected)
