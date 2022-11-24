@@ -157,6 +157,7 @@ def _get_test_data(test_name, testing_data, test_arg_names, cls_tols, default_va
             has_method = True
             break
 
+    # TODO: this verification should be done somewhere else
     if not has_method:
         raise Exception(
             f"testing_data object doesn't have '{short_name}_test_data' "
@@ -188,14 +189,11 @@ def _get_test_data(test_name, testing_data, test_arg_names, cls_tols, default_va
 
 
 def _dictify_test_data(test_data, arg_names):
-    # TODO: allow multiple markers
-
     tests = []
     for test_datum in test_data:
         if not isinstance(test_datum, dict):
-            marks = test_datum[-1]
             test_datum = dict(zip(arg_names, test_datum[:-1]))
-            test_datum["marks"] = marks
+            test_datum["marks"] = test_datum[-1]
 
         tests.append(test_datum)
 
@@ -261,7 +259,6 @@ def _test_name_to_test_data_name(test_name):
 
 
 def _collect_available_tests(attrs):
-    # TODO: mutability may be hard to follow when reading codes
     return {attr_name: attr for attr_name, attr in attrs.items() if _is_test(attr_name)}
 
 

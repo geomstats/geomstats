@@ -1,37 +1,37 @@
-import pytest
-
-
 class TestData:
     """Class for TestData objects."""
 
-    def generate_tests(self, smoke_test_data, random_test_data=()):
-        """Wrap test data with corresponding markers.
+    def generate_tests(self, test_data, marks=()):
+        """Wrap test data with corresponding marks.
 
         Parameters
         ----------
-        smoke_test_data : list
-            Test data that will be marked as smoke.
-
-        random_test_data : list
-            Test data that will be marked as random.
-            Optional, default: []
+        test_data : list or dict
+        marks : list
+            pytest marks,
 
         Returns
         -------
-        _: list
+        data: list or dict
             Tests.
         """
-        tests = []
-        for test_data, marker in zip(
-            [smoke_test_data, random_test_data], [pytest.mark.smoke, pytest.mark.random]
-        ):
-            for test_datum in test_data:
-                if isinstance(test_datum, dict):
-                    test_datum["marks"] = marker
-                else:
-                    test_datum = list(test_datum)
-                    test_datum.append(marker)
 
-                tests.append(test_datum)
+        tests = []
+        if not isinstance(marks, (list, tuple)):
+            marks = [marks]
+
+        for test_datum in test_data:
+
+            if isinstance(test_datum, dict):
+                if "marks" not in test_datum:
+                    test_datum["marks"] = marks
+                else:
+                    test_datum["marks"].extend(marks)
+
+            else:
+                test_datum = list(test_datum)
+                test_datum.append(marks)
+
+            tests.append(test_datum)
 
         return tests
