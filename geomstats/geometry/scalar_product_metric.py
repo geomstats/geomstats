@@ -46,17 +46,22 @@ def _get_scaling_factor(func_name, scale):
 class ScalarProductMetric(RiemannianMetric):
     """Class for scalar products of Riemannian and pseudo-Riemannian metrics.
 
-    This class acts as a wrapper for the underlying Riemannian metric. All attributes
-    apart from 'underlying_metric' and 'scale' are loaded from the underlying metric at
-    initialization and rescaled by the appropriate factor. Changes to the underlying
-    metric at runtime will not affect the attributes of this object.
-
-    This class multiplies the (0,2) metric tensor 'underlying_metric' by a scalar. Note
-    that this does not scale distances by the scalar. This requires multiplication by
-    the square of the scalar.
+    This class multiplies the (0,2) metric tensor 'underlying_metric' by a scalar
+    'scaling_factor'. Note that this does not scale distances by 'scaling_factor'. That
+    would require multiplication by the square of the scalar.
 
     An object of this type can also be instantiated by the expression
     scaling_factor * underlying_metric.
+
+    This class acts as a wrapper for the underlying Riemannian metric. All public
+    attributes apart from 'underlying_metric' and 'scaling_factor' are loaded from the
+    underlying metric at initialization and rescaled by the appropriate factor. Changes
+    to the underlying metric at runtime will not affect the attributes of this object.
+
+    One exception to this is when the 'underlying_metric' is itself of type
+    ScalarProductMetric. In this case, rather than wrapping the wrapper, the
+    'underlying_metric' of the first ScalarProductMetric object is wrapped a second
+    time with a new 'scaling_factor'.
 
     Parameters
     ----------

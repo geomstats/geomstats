@@ -50,8 +50,8 @@ class RiemannianMetric(Connection, ABC):
         """Multiply the metric by a scalar.
 
         This method multiplies the (0,2) metric tensor by a scalar. Note that this does
-        not scale distances by the scalar. This requires multiplication by the square of
-        the scalar.
+        not scale distances by the scalar. That would require multiplication by the
+        square of the scalar.
 
         Parameters
         ----------
@@ -72,8 +72,8 @@ class RiemannianMetric(Connection, ABC):
         """Multiply the metric by a scalar.
 
         This method multiplies the (0,2) metric tensor by a scalar. Note that this does
-        not scale distances by the scalar. This requires multiplication by the square of
-        the scalar.
+        not scale distances by the scalar. That would require multiplication by the
+        square of the scalar.
 
         Parameters
         ----------
