@@ -5,6 +5,7 @@ Lead author: Morten Pedersen.
 
 import geomstats.backend as gs
 
+
 class SubRiemannianMetric:
     """Class for Sub-Riemannian metrics.
 
@@ -63,9 +64,13 @@ class SubRiemannianMetric:
 
         self.dim = dim
         self.dist_dim = dist_dim
+
         self.cometric_matrix = cometric_matrix
         self.frame = frame
+
         self.default_point_type = default_point_type
+
+        self._def_type = "cometric" if self.frame is None else "frame"
 
     def sr_sharp(self, base_point, cotangent_vec):
         r"""Compute sub-Riemannian sharp map.
@@ -102,6 +107,19 @@ class SubRiemannianMetric:
 
         return gs.einsum("...ij->...i", coefs_on_frame)
 
+    def _get_method(self, method_name):
+        return getattr(self, f"_{method_name}_{self._def_type}")
+
+    def _inner_coproduct_frame(self, cotangent_vec_a, cotangent_vec_b, base_point):
+        sharp = self.sr_sharp(base_point=base_point, cotangent_vec=cotangent_vec_b)
+        return gs.einsum("...i,...i -> ...", cotangent_vec_a, sharp)
+
+    def _inner_coproduct_cometric(self, cotangent_vec_a, cotangent_vec_b, base_point):
+        C_b = gs.einsum(
+            "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
+        )
+        return gs.einsum("...i,...i->...", cotangent_vec_a, C_b)
+
     def inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point):
         """Compute inner coproduct between two cotangent vectors at base point.
 
@@ -121,14 +139,22 @@ class SubRiemannianMetric:
         inner_coproduct : float
             Inner coproduct between the two cotangent vectors.
         """
-        if self.cometric_matrix is not None:
-            C_b = gs.einsum(
-                "...ij,...j->...i", self.cometric_matrix(base_point), cotangent_vec_b
-            )
-            return gs.einsum("...i,...i->...", cotangent_vec_a, C_b)
+        return self._get_method("inner_coproduct")(
+            cotangent_vec_a, cotangent_vec_b, base_point
+        )
 
-        sharp = self.sr_sharp(base_point=base_point, cotangent_vec=cotangent_vec_b)
-        return gs.einsum("...i,...i -> ...", cotangent_vec_a, sharp)
+    def _hamiltonian_frame(self, state):
+        position, momentum = state
+
+        inner_products = gs.einsum(
+            "...i,...ij->...j", momentum, self.frame(position)
+        ).reshape((-1, self.dist_dim))
+
+        return 0.5 * gs.einsum("...ij,...ij->...i", inner_products, inner_products)
+
+    def _hamiltonian_cometric(self, state):
+        position, momentum = state
+        return 0.5 * self.inner_coproduct(momentum, momentum, position)
 
     def hamiltonian(self, state):
         r"""Compute the hamiltonian energy associated to the cometric.
@@ -151,19 +177,7 @@ class SubRiemannianMetric:
         energy :  float
             Hamiltonian energy at `state`.
         """
-        position, momentum = state
-
-        if self.frame is not None:
-            inner_products = gs.einsum(
-                "...i,...ij->...j", momentum, self.frame(position)
-            ).reshape((-1, self.dist_dim))
-            return (
-                0.5
-                * gs.einsum("...ij,...ij->...i", inner_products, inner_products)
-            )
-
-        position, momentum = state
-        return 0.5 * self.inner_coproduct(momentum, momentum, position)
+        return self._get_method("hamiltonian")(state)
 
     @staticmethod
     def symp_grad(hamiltonian):
@@ -193,6 +207,27 @@ class SubRiemannianMetric:
 
         return vector
 
+    def _symp_euler_frame(self, hamiltonian, step_size):
+        def step(state):
+            position, momentum = state
+            dq = self.sr_sharp(base_point=position, cotangent_vec=momentum)
+            y = gs.array([position + step_size * dq, momentum])
+            _, dp = self.symp_grad(hamiltonian)(y)
+            return gs.array([position + step_size * dq, momentum + step_size * dp])
+
+        return step
+
+    def _symp_euler_cometric(self, hamiltonian, step_size):
+        def step(state):
+            r"""Compute an integration step from state."""
+            position, momentum = state
+            dq, _ = self.symp_grad(hamiltonian)(state)
+            y = gs.array([position + step_size * dq, momentum])
+            _, dp = self.symp_grad(hamiltonian)(y)
+            return gs.array([position + step_size * dq, momentum + step_size * dp])
+
+        return step
+
     def symp_euler(self, hamiltonian, step_size):
         r"""Compute a function which calculates a step of symplectic euler integration.
 
@@ -208,26 +243,7 @@ class SubRiemannianMetric:
         step : callable
             Given a state, 'step' returns the next symplectic euler step
         """
-        if self.frame is not None:
-
-            def step(state):
-                position, momentum = state
-                dq = self.sr_sharp(base_point=position, cotangent_vec=momentum)
-                y = gs.array([position + step_size * dq, momentum])
-                _, dp = self.symp_grad(hamiltonian)(y)
-                return gs.array([position + step_size * dq, momentum + step_size * dp])
-
-            return step
-
-        def step(state):
-            r"""Compute an integration step from state."""
-            position, momentum = state
-            dq, _ = self.symp_grad(hamiltonian)(state)
-            y = gs.array([position + step_size * dq, momentum])
-            _, dp = self.symp_grad(hamiltonian)(y)
-            return gs.array([position + step_size * dq, momentum + step_size * dp])
-
-        return step
+        return self._get_method("symp_euler")(hamiltonian, step_size)
 
     @staticmethod
     def iterate(func, n_steps):
