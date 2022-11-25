@@ -1,7 +1,5 @@
 """Implementation of sub-Riemannian geometry."""
-
 import geomstats.backend as gs
-
 
 class SubRiemannianMetric:
     """Class for Sub-Riemannian metrics.
