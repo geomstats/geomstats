@@ -1,5 +1,5 @@
-from geomstats.test.geometry.base import ManifoldTestCase
+from geomstats.test.geometry.base import VectorSpaceTestCase
 
 
-class EuclideanTestCase(ManifoldTestCase):
+class EuclideanTestCase(VectorSpaceTestCase):
     pass

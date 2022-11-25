@@ -1,7 +1,7 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.data.base_data import ManifoldTestData
+from tests2.data.base_data import VectorSpaceTestData
 
 
-class EuclideanTestData(ManifoldTestData):
+class EuclideanTestData(VectorSpaceTestData):
     pass
