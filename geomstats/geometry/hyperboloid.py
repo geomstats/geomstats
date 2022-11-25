@@ -40,18 +40,41 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic", scale=1, **kwargs):
-        minkowski = Minkowski(dim + 1)
+        self.dim = dim
         kwargs.setdefault("metric", HyperboloidMetric(dim, default_coords_type, scale))
         super().__init__(
-            dim=dim,
-            embedding_space=minkowski,
-            submersion=minkowski.metric.squared_norm,
-            value=-1.0,
-            tangent_submersion=minkowski.metric.inner_product,
-            default_coords_type=default_coords_type,
-            scale=scale,
-            **kwargs
+            dim=dim, default_coords_type=default_coords_type, scale=scale, **kwargs
         )
+
+    def _define_embedding_space(self):
+        return Minkowski(self.dim + 1)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[...]
+        """
+        return self.embedding_space.metric.squared_norm(point) + 1.0
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim + 1]
+        point : array-like, shape=[..., dim + 1]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[...]
+        """
+        return self.embedding_space.metric.inner_product(vector, point)
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
@@ -127,7 +150,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         if self.default_coords_type == "intrinsic":
             point = self.intrinsic_to_extrinsic_coords(point)
 
-        sq_norm = self.embedding_metric.squared_norm(point)
+        sq_norm = self.embedding_space.metric.squared_norm(point)
         if not gs.all(sq_norm):
             raise ValueError(
                 "Cannot project a vector of norm 0. in the "
@@ -161,8 +184,8 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         if self.default_coords_type == "intrinsic":
             base_point = self.intrinsic_to_extrinsic_coords(base_point)
 
-        sq_norm = self.embedding_metric.squared_norm(base_point)
-        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        sq_norm = self.embedding_space.metric.squared_norm(base_point)
+        inner_prod = self.embedding_space.metric.inner_product(base_point, vector)
 
         coef = inner_prod / sq_norm
 
@@ -187,7 +210,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        product = self.embedding_metric.inner_product(vector, base_point)
+        product = self.embedding_space.metric.inner_product(vector, base_point)
         return gs.isclose(product, 0.0)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):

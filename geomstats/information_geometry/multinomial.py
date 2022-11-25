@@ -6,7 +6,6 @@ Lead author: Alice Le Brigant.
 from scipy.stats import dirichlet, multinomial
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
@@ -32,16 +31,42 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         Embedding manifold.
     """
 
-    def __init__(self, dim, n_draws):
-        super().__init__(
-            dim=dim,
-            embedding_space=Euclidean(dim + 1),
-            submersion=lambda x: gs.sum(x, axis=-1),
-            value=1.0,
-            tangent_submersion=lambda v, x: gs.sum(v, axis=-1),
-        )
+    def __init__(self, dim, n_draws, **kwargs):
+        self.dim = dim
+
+        kwargs.setdefault("metric", MultinomialMetric(dim=dim, n_draws=n_draws))
+        super().__init__(dim=dim, shape=(dim + 1,), **kwargs)
         self.n_draws = n_draws
-        self.metric = MultinomialMetric(dim=dim, n_draws=n_draws)
+
+    def _define_embedding_space(self):
+        return Euclidean(self.dim + 1)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[...]
+        """
+        return gs.sum(point, axis=-1) - 1.0
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim + 1]
+        point : Ignored.
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[...]
+        """
+        return gs.sum(vector, axis=-1)
 
     def random_point(self, n_samples=1):
         """Generate parameters of multinomial distributions.
@@ -60,8 +85,9 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         samples : array-like, shape=[..., dim + 1]
             Sample of points representing multinomial distributions.
         """
-        samples = dirichlet.rvs(gs.ones(self.dim + 1), size=n_samples)
-        return gs.from_numpy(samples)
+        samples = gs.from_numpy(dirichlet.rvs(gs.ones(self.dim + 1), size=n_samples))
+
+        return samples[0] if n_samples == 1 else samples
 
     def projection(self, point, atol=gs.atol):
         """Project a point on the simplex.
@@ -81,7 +107,6 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         projected_point : array-like, shape=[..., dim + 1]
             Point projected on the simplex.
         """
-        geomstats.errors.check_belongs(point, self.embedding_space)
         point_quadrant = gs.where(point < atol, atol, point)
         norm = gs.sum(point_quadrant, axis=-1)
         projected_point = gs.einsum("...,...i->...i", 1.0 / norm, point_quadrant)
@@ -107,7 +132,6 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
             Tangent vector in the tangent space of the simplex
             at the base point.
         """
-        geomstats.errors.check_belongs(vector, self.embedding_space)
         component_mean = gs.mean(vector, axis=-1)
         return gs.transpose(gs.transpose(vector) - component_mean)
 
@@ -128,15 +152,19 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., n_samples]
+        samples : array-like, shape=[..., n_samples, dim + 1]
             Samples from multinomial distributions.
+            Note that this can be of shape [n_points, n_samples, dim + 1] if
+            several points and several samples are provided as inputs.
         """
-        geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for param in point:
-            counts = multinomial.rvs(self.n_draws, param, size=n_samples)
-            samples.append(gs.argmax(counts, axis=-1))
+            counts = gs.from_numpy(multinomial.rvs(self.n_draws, param, size=n_samples))
+            if n_samples == 1:
+                samples.append(counts[0])
+            else:
+                samples.append(counts)
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
 
@@ -154,7 +182,7 @@ class MultinomialMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, n_draws):
-        super().__init__(dim=dim)
+        super().__init__(dim=dim, shape=(dim + 1,))
         self.n_draws = n_draws
         self.sphere_metric = HypersphereMetric(dim)
 
@@ -379,3 +407,53 @@ class MultinomialMetric(RiemannianMetric):
             return gs.squeeze(geod_at_t)
 
         return path
+
+    def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        r"""Compute the sectional curvature.
+
+        In the literature sectional curvature is noted K.
+
+        For two orthonormal tangent vectors :math:`x,y` at a base point,
+        the sectional curvature is defined by :math:`K(x,y) = <R(x, y)x, y>`.
+
+        For non-orthonormal vectors, it is
+        :math:`K(x,y) = <R(x, y)y, x> / (<x, x><y, y> - <x, y>^2)`.
+
+        sectional_curvature(X, Y, P) = K(X,Y) where X, Y are tangent vectors
+        at base point P.
+
+        The information manifold of multinomial distributions has constant
+        sectional curvature given by :math:`K = 2 \sqrt{n}`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            Tangent vector at `base_point`.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Tangent vector at `base_point`.
+        base_point : array-like, shape=[..., dim + 1]
+            Point in the manifold.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at `base_point`.
+        """
+        sectional_curv = 2 * gs.sqrt(self.n_draws)
+        if (
+            tangent_vec_a.ndim == 1
+            and tangent_vec_b.ndim == 1
+            and (base_point is None or base_point.ndim == 1)
+        ):
+            return gs.array(sectional_curv)
+
+        n_sec_curv = []
+        if base_point is not None and base_point.ndim == 2:
+            n_sec_curv.append(base_point.shape[0])
+        if tangent_vec_a.ndim == 2:
+            n_sec_curv.append(tangent_vec_a.shape[0])
+        if tangent_vec_b.ndim == 2:
+            n_sec_curv.append(tangent_vec_b.shape[0])
+        n_sec_curv = max(n_sec_curv)
+
+        return gs.tile(sectional_curv, (n_sec_curv,))

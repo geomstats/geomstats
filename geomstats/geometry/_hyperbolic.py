@@ -413,13 +413,12 @@ class _Hyperbolic:
         )
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample over the hyperbolic space using uniform distribution.
+        """Sample over the hyperbolic space.
 
-        Sample over the hyperbolic space. The sampling is performed
-        by sampling over uniform distribution, the sampled examples
-        are considered in the intrinsic coordinates system.
-        The function then transforms intrinsic samples into system
-        coordinate selected.
+        Sample over the hyperbolic space. The sampling is performed by sampling from
+        the uniform distribution with respect to the intrinsic co-ordinates. This is
+        not uniform with respect to the volume measure. The function then transforms
+        intrinsic samples into the selected co-ordinate system.
 
         Parameters
         ----------
@@ -427,7 +426,7 @@ class _Hyperbolic:
             Number of samples.
             Optional, default: 1.
         bound: float
-            Bound defining the hypersquare in which to sample uniformly.
+            Bound defining the hypersquare in which to sample.
             Optional, default: 1.
 
         Returns

@@ -619,3 +619,20 @@ class DtypesTestData(TestData):
         ]
 
         return self.generate_tests(smoke_data)
+
+    def random_distrib_complex_test_data(self):
+        smoke_data = [
+            dict(
+                func_name="random.rand",
+                args=(2,),
+            ),
+            dict(func_name="random.uniform", kwargs={"size": (2,)}),
+            dict(func_name="random.normal", kwargs={"size": (2,)}),
+            dict(
+                func_name="random.multivariate_normal",
+                args=(gs.zeros(2), SPDMatrices(2).random_point()),
+                kwargs={"size": (2,)},
+            ),
+        ]
+
+        return self.generate_tests(smoke_data)

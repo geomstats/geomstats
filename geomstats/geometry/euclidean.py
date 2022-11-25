@@ -39,7 +39,7 @@ class Euclidean(VectorSpace):
         """Create the canonical basis."""
         return gs.eye(self.dim)
 
-    def exp(self, tangent_vec, base_point=None):
+    def exp(self, tangent_vec, base_point):
         """Compute the group exponential, which is simply the addition.
 
         Parameters
@@ -97,8 +97,8 @@ class EuclideanMetric(RiemannianMetric):
         """
         mat = gs.eye(self.dim)
         if base_point is not None:
-            if base_point.ndim == 2:
-                mat = gs.tile(mat, (base_point.shape[0], 1, 1))
+            if base_point.ndim > 1:
+                mat = gs.broadcast_to(mat, base_point.shape + (self.dim,))
         return mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
