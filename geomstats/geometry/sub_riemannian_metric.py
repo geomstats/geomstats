@@ -146,9 +146,10 @@ class SubRiemannianMetric:
     def _hamiltonian_frame(self, state):
         position, momentum = state
 
-        inner_products = gs.einsum(
-            "...i,...ij->...j", momentum, self.frame(position)
-        ).reshape((-1, self.dist_dim))
+        inner_products = gs.reshape(
+            gs.einsum("...i,...ij->...j", momentum, self.frame(position)),
+            (-1, self.dist_dim),
+        )
 
         return 0.5 * gs.einsum("...ij,...ij->...i", inner_products, inner_products)
 
