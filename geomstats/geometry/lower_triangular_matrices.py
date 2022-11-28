@@ -31,7 +31,6 @@ class LowerTriangularMatrices(VectorSpace):
             Basis matrices of the space.
         """
         tril_idxs = gs.ravel_tril_indices(self.n)
-        # TODO: use default dtype when available
         vector_bases = gs.cast(
             gs.one_hot(tril_idxs, self.n * self.n),
             dtype=gs.get_default_dtype(),
