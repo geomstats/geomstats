@@ -85,9 +85,7 @@ html_baseurl = "geomstats.github.io"
 htmlhelp_basename = "geomstatsdoc"
 html_last_updated_fmt = "%c"
 html_static_path = ["_static"]
-html_css_files = [
-    "geomstats.css",
-]
+html_css_files = ["geomstats.css"]
 
 latex_elements = {}
 
