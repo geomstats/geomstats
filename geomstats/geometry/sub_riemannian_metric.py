@@ -51,24 +51,20 @@ class SubRiemannianMetric:
     def __init__(
         self,
         dim,
-        dist_dim,
         cometric_matrix=None,
         frame=None,
-        default_point_type="vector",
     ):
-
         if not bool(cometric_matrix is not None) ^ bool(frame is not None):
             raise ValueError(
                 "Either 'cometric_matrix' or 'frame' must be passed," " and not both."
             )
 
         self.dim = dim
-        self.dist_dim = dist_dim
 
         self.cometric_matrix = cometric_matrix
         self.frame = frame
 
-        self.default_point_type = default_point_type
+        self.default_point_type = "vector"
 
         self._def_type = "cometric" if self.frame is None else "frame"
 
@@ -146,12 +142,12 @@ class SubRiemannianMetric:
     def _hamiltonian_frame(self, state):
         position, momentum = state
 
-        inner_products = gs.reshape(
-            gs.einsum("...i,...ij->...j", momentum, self.frame(position)),
-            (-1, self.dist_dim),
-        )
+        inner_products = gs.einsum("...i,...ij->...j", momentum, self.frame(position))
 
-        return 0.5 * gs.einsum("...ij,...ij->...i", inner_products, inner_products)
+        out = 0.5 * gs.einsum("...i,...i->...", inner_products, inner_products)
+        if not gs.is_array(out):
+            return gs.array(out)
+        return out
 
     def _hamiltonian_cometric(self, state):
         position, momentum = state
@@ -196,12 +192,17 @@ class SubRiemannianMetric:
         """
 
         def H_sum(state):
-            r"""Sum each value of the Hamiltonian (relevant for vectorized input)."""
+            """Sum each value of the Hamiltonian (relevant for vectorized input)."""
+            # TODO: nice trick to vectorize the gradient
             return gs.sum(hamiltonian(state))
 
+        # TODO: vectorized grad
+        value_and_grad = gs.autodiff.value_and_grad(H_sum)
+
         def vector(x):
-            r"""Compute symplectic gradient at x."""
-            _, grad = gs.autodiff.value_and_grad(H_sum)(x)
+            """Compute symplectic gradient at x."""
+            # TODO: update after add vectorized grad to backend
+            _, grad = value_and_grad(x)
             h_q = grad[0]
             h_p = grad[1]
             return gs.array([h_p, -h_q])
@@ -322,10 +323,11 @@ class SubRiemannianMetric:
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
-        if 1 in (base_point.ndim, base_point.shape[0]) and cotangent_vec.ndim == 2:
-            base_point = gs.stack([base_point] * cotangent_vec.shape[0])
-            base_point = gs.reshape(base_point, cotangent_vec.shape)
+        # TODO: add log (caveat in docstrings)
+        # TODO: add distance (based on log - also caveat)
+        base_point = gs.broadcast_to(base_point, cotangent_vec.shape)
 
+        # TODO: integrate; allow euler
         initial_state = gs.stack([base_point, cotangent_vec])
 
         flow = self.symp_flow(self.hamiltonian, n_steps=n_steps)

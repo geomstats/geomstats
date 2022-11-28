@@ -16,9 +16,7 @@ heis = HeisenbergVectors()
 def heis_frame(point):
     """Compute the frame spanning the Heisenberg distribution."""
     translations = heis.jacobian_translation(point)
-    if len(translations.shape) == 3:
-        return translations[:, :, 0:2]
-    return translations[:, 0:2]
+    return translations[..., 0:2]
 
 
 def trivial_cometric_matrix(base_point):
@@ -72,9 +70,7 @@ class SubRiemannianMetricTestCase(TestCase):
 class TestSubRiemannianMetricCometric(
     SubRiemannianMetricTestCase, metaclass=Parametrizer
 ):
-    metric = SubRiemannianMetric(
-        dim=3, dist_dim=2, cometric_matrix=trivial_cometric_matrix
-    )
+    metric = SubRiemannianMetric(dim=3, cometric_matrix=trivial_cometric_matrix)
     testing_data = SubRiemannianMetricCometricTestData()
 
     skip_test_geodesic = True
@@ -107,7 +103,7 @@ class TestSubRiemannianMetricCometric(
 
 class TestSubRiemannianMetricFrame(SubRiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = SubRiemannianMetricFrameTestData()
-    metric = SubRiemannianMetric(dim=3, dist_dim=2, frame=heis_frame)
+    metric = SubRiemannianMetric(dim=3, frame=heis_frame)
 
     skip_test_exp = True
     skip_test_hamiltonian = True
