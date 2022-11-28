@@ -185,3 +185,6 @@ class VectorSpaceTestCase(ManifoldTestCase):
     def test_basis_belongs(self, atol):
         result = self.space.belongs(self.space.basis, atol=atol)
         self.assertAllEqual(result, gs.ones_like(result))
+
+    def test_basis(self, expected, atol):
+        self.assertAllClose(self.space.basis, expected, atol=atol)
