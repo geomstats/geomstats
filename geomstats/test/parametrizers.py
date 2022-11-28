@@ -314,6 +314,12 @@ class DataBasedParametrizer(type):
             arg_names = inspect.getfullargspec(test_func)[0]
             args_str = ", ".join(arg_names[1:])
 
+            # TODO: allow marks from data in this case?
+            # no args case (note selection was done above)
+            if len(arg_names) == 1:
+                attrs[attr_name] = test_func
+                continue
+
             test_data = _get_test_data(
                 attr_name,
                 testing_data,
