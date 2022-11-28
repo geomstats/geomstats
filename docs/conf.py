@@ -18,7 +18,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx_gallery.load_style",
-    'sphinx_panels',
+    "sphinx_panels",
 ]
 
 # Configure napoleon for numpy docstring
