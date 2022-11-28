@@ -18,7 +18,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx_gallery.load_style",
-    'sphinx_design',
+    'sphinx_panels',
 ]
 
 # Configure napoleon for numpy docstring
@@ -84,6 +84,10 @@ html_theme = "pydata_sphinx_theme"
 html_baseurl = "geomstats.github.io"
 htmlhelp_basename = "geomstatsdoc"
 html_last_updated_fmt = "%c"
+html_static_path = ["_static"]
+html_css_files = [
+    "geomstats.css",
+]
 
 latex_elements = {}
 
