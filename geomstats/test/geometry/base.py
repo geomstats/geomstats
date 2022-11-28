@@ -1,3 +1,5 @@
+import abc
+
 import pytest
 
 import geomstats.backend as gs
@@ -15,7 +17,7 @@ class ManifoldTestCase(TestCase):
 
     @pytest.mark.vec
     def test_belongs_vec(self, n_reps, atol):
-        # TODO: remove? random_point_belongs is enough
+        # TODO: remove? random_point_belongs is enough?
         point = self.space.random_point()
         res = self.space.belongs(point)
 
@@ -63,16 +65,56 @@ class ManifoldTestCase(TestCase):
         res = self.space.is_tangent(vector, base_point, atol=atol)
         self.assertAllEqual(res, expected)
 
+    @abc.abstractmethod
+    def test_is_tangent_vec(self, n_reps, atol):
+        pass
+
     def test_to_tangent(self, vector, base_point, expected, atol):
         tangent_vec = self.space.to_tangent(vector, base_point)
         self.assertAllClose(tangent_vec, expected, atol=atol)
 
+    @abc.abstractmethod
+    def test_to_tangent_vec(self, n_reps, atol):
+        pass
+
+    @abc.abstractmethod
+    def test_to_tangent_is_tangent(self, n_points, atol):
+        pass
+
 
 class VectorSpaceTestCase(ManifoldTestCase):
-    # TODO: test projection
+    def test_projection(self, point, expected, atol):
+        proj_point = self.space.projection(point)
+        self.assertAllClose(proj_point, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_projection_vec(self, n_reps, atol):
+        # TODO: remove? projection_belongs is enough?
+
+        point = self.space.random_point()
+        proj_point = self.space.projection(point)
+
+        vec_data = generate_vectorization_data(
+            data=[dict(point=point, expected=proj_point, atol=atol)],
+            arg_names=["point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+
+        for datum in vec_data:
+            self.test_projection(**datum)
+
+    @pytest.mark.random
+    def test_projection_belongs(self, n_points, atol):
+        point = self.space.random_point(n_points)
+        proj_point = self.space.projection(point)
+        expected = gs.ones(n_points, dtype=bool)
+
+        self.test_belongs(proj_point, expected, atol)
 
     @pytest.mark.vec
     def test_is_tangent_vec(self, n_reps, atol):
+        # TODO: abstract and move up (in tests, not in space)?
         vec = self.space.random_point()
         point = self.space.random_point()
 
@@ -91,6 +133,7 @@ class VectorSpaceTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_to_tangent_vec(self, n_reps, atol):
+        # TODO: abstract and move up (in tests, not in space)?
         vec = self.space.random_point()
         point = self.space.random_point()
 
@@ -108,6 +151,7 @@ class VectorSpaceTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_to_tangent_is_tangent(self, n_points, atol):
+        # TODO: abstract and move up (in tests, not in space)?
         vec = self.space.random_point(n_points)
         point = self.space.random_point(n_points)
 
@@ -115,3 +159,29 @@ class VectorSpaceTestCase(ManifoldTestCase):
         expected = gs.ones(n_points, dtype=bool)
 
         self.test_is_tangent(tangent_vec, point, expected, atol)
+
+    @pytest.mark.random
+    def test_random_point_is_tangent(self, n_points, atol):
+        # TODO: will we ever require a base point here?
+        points = self.space.random_point(n_points)
+
+        res = self.space.is_tangent(points, atol=atol)
+        self.assertAllEqual(res, gs.ones(n_points, dtype=bool))
+
+    @pytest.mark.random
+    def test_to_tangent_is_projection(self, n_points, atol):
+        vec = self.space.random_point(n_points)
+        result = self.space.to_tangent(vec)
+        expected = self.space.projection(vec)
+
+        self.assertAllClose(result, expected, atol=atol)
+
+    @pytest.mark.mathprop
+    def test_basis_cardinality(self):
+        basis = self.space.basis
+        self.assertEqual(basis.shape[0], self.space.dim)
+
+    @pytest.mark.mathprop
+    def test_basis_belongs(self, atol):
+        result = self.space.belongs(self.space.basis, atol=atol)
+        self.assertAllEqual(result, gs.ones_like(result))
