@@ -7,6 +7,8 @@ import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
+# TODO: remove dependency on Matrices
+
 
 class LowerTriangularMatrices(VectorSpace):
     """Class for the vector space of lower triangular matrices of size n.
@@ -30,6 +32,7 @@ class LowerTriangularMatrices(VectorSpace):
         basis : array-like, shape=[dim, n, n]
             Basis matrices of the space.
         """
+        # TODO: check one_hot
         tril_idxs = gs.ravel_tril_indices(self.n)
         vector_bases = gs.cast(
             gs.one_hot(tril_idxs, self.n * self.n),
@@ -73,6 +76,21 @@ class LowerTriangularMatrices(VectorSpace):
             Vector.
         """
         return gs.tril_to_vec(mat)
+
+    def from_vector(self, vec):
+        """Convert a vector into a lower triangular matrix.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., n, n]
+            Lower triangular matrix.
+        """
+        return gs.einsum("...i,...ijk->...jk", vec, self.basis)
 
     def projection(self, point):
         """Make a square matrix lower triangular by zeroing out other elements.
