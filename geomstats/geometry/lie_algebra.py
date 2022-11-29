@@ -26,17 +26,17 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
     ----------
     dim : int
         Dimension of the Lie algebra as a real vector space.
-    n : int
+    n_la : int
         Amount of rows and columns in the matrix representation of the
         Lie algebra.
     """
 
-    def __init__(self, dim, n, **kwargs):
-        super().__init__(shape=(n, n), **kwargs)
+    def __init__(self, dim, n_la, **kwargs):
+        super().__init__(shape=(n_la, n_la), **kwargs)
         geomstats.errors.check_integer(dim, "dim")
-        geomstats.errors.check_integer(n, "n")
+        geomstats.errors.check_integer(n_la, "n_la")
         self.dim = dim
-        self.n = n
+        self.n_la = n_la
 
     bracket = Matrices.bracket
 
@@ -54,7 +54,7 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
 
         Parameters
         ----------
-        matrix_a, matrix_b : array-like, shape=[..., n, n]
+        matrix_a, matrix_b : array-like, shape=[..., n_la, n_la]
             Matrices.
         order : int
             The order to which the approximation is calculated. Note that this
@@ -95,7 +95,7 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
 
         Parameters
         ----------
-        matrix_representation : array-like, shape=[..., n, n]
+        matrix_representation : array-like, shape=[..., n_la, n_la]
             Matrix.
 
         Returns
@@ -118,7 +118,7 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
 
         Returns
         -------
-        matrix_representation : array-like, shape=[..., n, n]
+        matrix_representation : array-like, shape=[..., n_la, n_la]
             Matrix.
         """
         if self.basis is None:

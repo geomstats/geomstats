@@ -181,7 +181,8 @@ class SquareMatrices(MatrixLieAlgebra):
     """
 
     def __init__(self, n):
-        super().__init__(n=n, dim=n**2)
+        self.n = n
+        super().__init__(n_la=n, dim=n**2)
         self._mat_space = Matrices(n, n)
 
     def _create_basis(self):

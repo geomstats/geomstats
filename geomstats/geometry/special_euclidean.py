@@ -1340,11 +1340,12 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
     """
 
     def __init__(self, n):
+        # TODO: name clashing for n
+        self.n = n
         dim = int(n * (n + 1) / 2)
         super().__init__(dim, n + 1)
 
         self.skew = SkewSymmetricMatrices(n)
-        self.n = n
 
     def _create_basis(self):
         """Create the canonical basis."""
