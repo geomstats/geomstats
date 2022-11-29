@@ -7,8 +7,6 @@ import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
-# TODO: remove dependency on Matrices
-
 
 class LowerTriangularMatrices(VectorSpace):
     """Class for the vector space of lower triangular matrices of size n.
@@ -105,7 +103,7 @@ class LowerTriangularMatrices(VectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return Matrices.to_lower_triangular(point)
+        return gs.tril(point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample a lower triangular matrix with a uniform distribution in a box.
@@ -125,4 +123,4 @@ class LowerTriangularMatrices(VectorSpace):
            Sample.
         """
         sample = super().random_point(n_samples, bound)
-        return Matrices.to_lower_triangular(sample)
+        return gs.tril(sample)
