@@ -72,20 +72,6 @@ class SymmetricMatrices3TestData(TestData):
                 point=gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]]),
                 expected=gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
             ),
-            dict(
-                point=gs.array(
-                    [
-                        [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-                        [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
-                    ]
-                ),
-                expected=gs.array(
-                    [
-                        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-                        [7.0, 8.0, 9.0, 10.0, 11.0, 12.0],
-                    ]
-                ),
-            ),
         ]
         return self.generate_tests(data)
 
@@ -94,20 +80,6 @@ class SymmetricMatrices3TestData(TestData):
             dict(
                 vec=gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
                 expected=gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]]),
-            ),
-            dict(
-                vec=gs.array(
-                    [
-                        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-                        [7.0, 8.0, 9.0, 10.0, 11.0, 12.0],
-                    ]
-                ),
-                expected=gs.array(
-                    [
-                        [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
-                        [[7.0, 8.0, 9.0], [8.0, 10.0, 11.0], [9.0, 11.0, 12.0]],
-                    ]
-                ),
             ),
         ]
         return self.generate_tests(data)

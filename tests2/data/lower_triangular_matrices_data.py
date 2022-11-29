@@ -81,19 +81,5 @@ class LowerTriangularMatrices3TestData(TestData):
                 point=gs.array([[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]]),
                 expected=gs.array([1.0, 0.6, 7.0, -3.0, 0.0, 8.0]),
             ),
-            dict(
-                point=gs.array(
-                    [
-                        [[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]],
-                        [[2.0, 0.0, 0.0], [2.6, 7.0, 0.0], [-3.0, 0.0, 28.0]],
-                    ]
-                ),
-                expected=gs.array(
-                    [
-                        [1.0, 0.6, 7.0, -3.0, 0.0, 8.0],
-                        [2.0, 2.6, 7.0, -3.0, 0.0, 28.0],
-                    ]
-                ),
-            ),
         ]
         return self.generate_tests(data)
