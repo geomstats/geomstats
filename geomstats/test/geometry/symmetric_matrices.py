@@ -7,6 +7,7 @@ from geomstats.test.vectorization import generate_vectorization_data
 
 # TODO: mixins with MatrixVectorSpaces?
 # TODO: use `self.space.ndim` to control vector dimension
+# TODO: check if from vector gives same order as matrix
 
 
 class SymmetricMatricesTestCase(VectorSpaceTestCase):
@@ -48,6 +49,14 @@ class SymmetricMatricesTestCase(VectorSpaceTestCase):
 
         for datum in vec_data:
             self.test_from_vector(**datum)
+
+    @pytest.mark.random
+    def test_to_vector_and_basis(self, n_points, atol):
+        mat = self.space.random_point(n_points)
+        vec = self.space.to_vector(mat)
+
+        res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
+        self.assertAllClose(res, mat, atol=atol)
 
     @pytest.mark.random
     def test_from_vector_after_to_vector(self, n_points, atol):
