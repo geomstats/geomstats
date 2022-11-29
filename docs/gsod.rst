@@ -1,5 +1,102 @@
 .. _gsod:
 
+
+=================================
+Google Season of Docs: Case Study
+=================================
+
+
+Design and Organize Scattered Documentation in Geomstats
+========================================================
+
+* Organization: Geomstats.
+
+The Season of Docs page is at the botton of this page.
+
+* Organization Description: 
+
+Geomstats is an open-source Python package for computations and statistics on nonlinear manifolds, such as hyperspheres, hyperbolic spaces, Lie groups of transformations, among others. As such, the package supports research within the fast growing field of Geometric (Deep) Learning.
+
+The `source code <https://github.com/geomstats/geomstats>`_ is freely available on GitHub. Geomstats is organized into two main modules:
+`geometry` and `learning`. The module `geometry` implements concepts in differential geometry. The module `learning` implements statistics and learning algorithms for data on manifolds. The code is object-oriented and classes inherit from scikit-learn's base classes and mixins.
+
+Geomstats has already found numerous applications, for example in the biomedical fields for machine learning applied to biological shape analysis. Typical usecases can be found within the `notebooks folder <https://github.com/geomstats/geomstats/blob/master/notebooks/>`_.
+
+
+Problem Statement
+=================
+
+Current Geomstats documentation has two main problems:
+- the documentation website lacks a professional design,
+- the documentation is scattered across docstrings, example python scripts, how-to jupyter notebooks, tutorials, arxiv review papers.
+
+As a result, potential new contributors often fail to understand the implementation of the library and renounce in participating to its development.
+
+The goal of this project is to adopt the documentation system of divio, to design and reorganize our scattered documentation.
+
+Proposal Abstract
+=================
+
+Our original organization proposal stated the following goals towards solving the problem stated above:
+
+- Propose and implement a new design for Geomstats documentation website.
+- Audit existing Geomstats documentation across Python scripts, jupyter notebooks, docstrings and pdf documents.
+- Organize existing documentation within the website, using divio documentation principles.
+- Update README.rst and CONTRIBUTING.rst with the aim to better onboard new contributors; Add a checklist for new contributors' first Pull Requests.
+- Add missing references and mathematical formulas to docstrings.
+- Incorporate feedback from documentation testers and Geomstats community.
+
+The original proposal page can be found at the bottom of this webpage.
+
+Project Description
+===================
+
+There were no obstacles to coming up with our Season of Docs proposal. We were discussing our lack of resources in order to improve our documentation for a long time. We were aware of its issues by our frequent discussions with contributors and users. The proposal organically emerged by summarizing all feedback and comments made during these discussions.
+
+
+Budget
+======
+
+The proposed budget is included in the original proposal which is found at the botton of this page.
+
+We found it hard to estimate the amount of work required for each of the tasks, as this is dependent on the qualifications of the candidate. We decided to give general objectives to achieve, as opposed to explicit number of lines or web pages to write.
+
+They were no unexpected expenses. Our estimates were correct. We have other resources on Geomstats that we were able to use, e.g. the salaries of engineers working on the repository.
+
+
+Participants
+============
+
+Jonahh
+Who worked on this project (use usernames if requested by participants)? How did you find and hire your technical writer? How did you find other volunteers or paid participants? What roles did they have? Did anyone drop out? What did you learn about recruiting, communication, and project management?
+
+Timeline
+========
+*_Give a short overview of the timeline of your project (indicate estimated end date or intermediate milestones if project is ongoing).Did the original timeline need adjustment?_*
+
+Results
+========
+*_What was created, updated, or otherwise changed? Include links to published documentation if available. Were there any deliverables in the proposal that did not get created? List those as well. Did this project result in any new or updated processes or procedures in your organization?_*
+
+Metrics
+========
+*_What metrics did you choose to measure the success of the project? Were you able to collect those metrics? Did the metrics correlate well or poorly with the behaviors or outcomes you wanted for the project? Did your metrics change since your proposal? Did you add or remove any metrics? How often do you intend to collect metrics going forward?_*
+
+Analysis
+========
+
+We believe that this project was successful because the documentation seems more accessible. However, we will need to evaluate our metrics (given in the original proposal, see below) over the course of the next year and see the informal feedback gathered through our discussions with contributors and users.
+
+Summary
+=======
+
+The Google Season of Docs was a great experience. It was very interesting to have a technical writer originally external to the project delve into the documentation. It highlights specifically well the problems that can exist within our current documentation website. 
+
+In the future, we would probably think more ahead in terms of the time zones of the different participants. As our participants were spanning several continents, it was sometimes complicated to have continued discussions.
+
+
+*The above case study was conducted based on the project originally proposed, which is given below.*
+
 ===================================
 Google Season of Docs: Project Page
 ===================================
@@ -20,7 +117,6 @@ In this context, Geomstats provides code to fulfill four objectives:
 
 The `source code <https://github.com/geomstats/geomstats>`_ is freely available on GitHub. Geomstats is organized into two main modules:
 `geometry` and `learning`. The module `geometry` implements concepts in differential geometry. The module `learning` implements statistics and learning algorithms for data on manifolds. The code is object-oriented and classes inherit from scikit-learn's base classes and mixins.
-
 
 Geomstats has already found numerous applications, for example in the biomedical fields for machine learning applied to biological shape analysis. Typical usecases can be found within the `notebooks folder <https://github.com/geomstats/geomstats/blob/master/notebooks/>`_.
 
