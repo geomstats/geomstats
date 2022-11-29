@@ -1,12 +1,12 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.data.base_data import VectorSpaceTestData
+from tests2.data.base_data import MatrixVectorSpaceMixinsTestData, VectorSpaceTestData
 
 
-class LowerTriangularMatricesTestData(VectorSpaceTestData):
-    def to_vector_vec_test_data(self):
-        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
-        return self.generate_tests(data)
+class LowerTriangularMatricesTestData(
+    MatrixVectorSpaceMixinsTestData, VectorSpaceTestData
+):
+    pass
 
 
 class LowerTriangularMatrices2TestData(TestData):

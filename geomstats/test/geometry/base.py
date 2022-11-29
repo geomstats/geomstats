@@ -33,6 +33,8 @@ class ManifoldTestCase(TestCase):
 
     @pytest.mark.random
     def test_not_belongs(self, n_points, atol):
+        # TODO: ideally find a way to check one of each in the same output
+
         shape = list(self.space.shape)
         shape[0] += 1
 
@@ -188,3 +190,76 @@ class VectorSpaceTestCase(ManifoldTestCase):
 
     def test_basis(self, expected, atol):
         self.assertAllClose(self.space.basis, expected, atol=atol)
+
+
+class MatrixVectorSpaceTestCaseMixins(TestCase):
+    def test_to_vector(self, point, expected, atol):
+        vec = self.space.to_vector(point)
+        self.assertAllClose(vec, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_to_vector_vec(self, n_reps, atol):
+        point = self.space.random_point()
+        expected = self.space.to_vector(point)
+
+        vec_data = generate_vectorization_data(
+            data=[dict(point=point, expected=expected, atol=atol)],
+            arg_names=["point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+
+        for datum in vec_data:
+            self.test_to_vector(**datum)
+
+    @pytest.mark.random
+    def test_to_vector_and_basis(self, n_points, atol):
+        mat = self.space.random_point(n_points)
+        vec = self.space.to_vector(mat)
+
+        res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
+        self.assertAllClose(res, mat, atol=atol)
+
+    def test_from_vector(self, vec, expected, atol):
+        mat = self.space.from_vector(vec)
+        self.assertAllClose(mat, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_from_vector_vec(self, n_reps, atol):
+        vec = gs.random.rand(self.space.dim)
+        expected = self.space.from_vector(vec)
+
+        vec_data = generate_vectorization_data(
+            data=[dict(vec=vec, expected=expected, atol=atol)],
+            arg_names=["vec"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+
+        for datum in vec_data:
+            self.test_from_vector(**datum)
+
+    @pytest.mark.random
+    def test_from_vector_belongs(self, n_points, atol):
+        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+        point = self.space.from_vector(vec)
+
+        self.test_belongs(point, gs.ones(n_points, dtype=bool), atol)
+
+    @pytest.mark.random
+    def test_from_vector_after_to_vector(self, n_points, atol):
+        mat = self.space.random_point(n_points)
+
+        vec = self.space.to_vector(mat)
+
+        mat_ = self.space.from_vector(vec)
+        self.assertAllClose(mat_, mat, atol=atol)
+
+    @pytest.mark.random
+    def test_to_vector_after_from_vector(self, n_points, atol):
+        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+
+        mat = self.space.from_vector(vec)
+
+        vec_ = self.space.to_vector(mat)
+        self.assertAllClose(vec_, vec, atol=atol)
