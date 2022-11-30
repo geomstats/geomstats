@@ -5,13 +5,15 @@
 Google Season of Docs: Case Study
 =================================
 
+The original proposal submitted to Google Season of Docs page is at the botton of this page.
+
 
 Design and Organize Scattered Documentation in Geomstats
 ========================================================
 
-* Organization: Geomstats.
+* Organization: 
 
-The Season of Docs page is at the botton of this page.
+Geomstats.
 
 * Organization Description: 
 
@@ -20,19 +22,19 @@ Geomstats is an open-source Python package for computations and statistics on no
 The `source code <https://github.com/geomstats/geomstats>`_ is freely available on GitHub. Geomstats is organized into two main modules:
 `geometry` and `learning`. The module `geometry` implements concepts in differential geometry. The module `learning` implements statistics and learning algorithms for data on manifolds. The code is object-oriented and classes inherit from scikit-learn's base classes and mixins.
 
-Geomstats has already found numerous applications, for example in the biomedical fields for machine learning applied to biological shape analysis. Typical usecases can be found within the `notebooks folder <https://github.com/geomstats/geomstats/blob/master/notebooks/>`_.
+Geomstats has found numerous applications, for example in the biomedical fields for machine learning applied to biological shape analysis. Typical usecases can be found within the `notebooks folder <https://github.com/geomstats/geomstats/blob/master/notebooks/>`_.
 
 
 Problem Statement
 =================
 
-Current Geomstats documentation has two main problems:
+Current Geomstats documentation had two main problems:
 - the documentation website lacks a professional design,
 - the documentation is scattered across docstrings, example python scripts, how-to jupyter notebooks, tutorials, arxiv review papers.
 
-As a result, potential new contributors often fail to understand the implementation of the library and renounce in participating to its development.
+As a result, potential new contributors often failed to understand the implementation of the library and renounced in participating to its development.
 
-The goal of this project is to adopt the documentation system of divio, to design and reorganize our scattered documentation.
+The goal of this project was to adopt the documentation system of divio, to design and reorganize our scattered documentation.
 
 Proposal Abstract
 =================
@@ -67,20 +69,71 @@ They were no unexpected expenses. Our estimates were correct. We have other reso
 Participants
 ============
 
-Jonahh
-Who worked on this project (use usernames if requested by participants)? How did you find and hire your technical writer? How did you find other volunteers or paid participants? What roles did they have? Did anyone drop out? What did you learn about recruiting, communication, and project management?
+- @nanjekyejoannah (technical writer)
+- @lpereira95
+- @ninamiolane
+- @Jules-Deschamps 
+- @adelemyers99
+- @SaitejaUtpala
+- @chicken-biryani 
 
-Timeline
-========
-*_Give a short overview of the timeline of your project (indicate estimated end date or intermediate milestones if project is ongoing).Did the original timeline need adjustment?_*
+We found the technical writer through advertizing online about the position. We found volunteers among the current open-source maintainers and contributors. They were part of a slack channel where the technical writer could ask questions, and they were asked to perform code reviews on PRs. 
 
-Results
-========
-*_What was created, updated, or otherwise changed? Include links to published documentation if available. Were there any deliverables in the proposal that did not get created? List those as well. Did this project result in any new or updated processes or procedures in your organization?_*
+Timeline and Results
+====================
+
+The milestones in this document are adopted from the planned project scope documented in the Geomstats GSoD page. The technical writer worked an average of 10 hours every week and attempted most of the planned activities unless was ill or was waiting on some feedback.
+
+In collaboration with the project mentors some scopes were adjusted, for example the documentation had been minimally formatted to Divio, a full revamp wasn't necessary but work went in to improve areas where the Divio principles had not been followed to completion. 
+
+Other tasks that may have required much code modification like docstrings had to be paused and PRs closed, in the future someone else can pick up that work. There is still an open PR of a Divio-related refactor that is pending merge if there are no more reviews.
+
+.. list-table:: Title
+   :widths: 50 25 25
+   :header-rows: 0
+
+   * - Milestone
+     - Date
+     - Result
+    
+   * - Audit existing Geomstats documentation across Python scripts, jupyter notebooks, docstrings and pdf documents.
+     - June 6, 2022
+     - `Documentation Audit <https://github.com/nanjekyejoannah/geomstats/wiki/Reorganizing-the-contribution-guide>`_.
+     
+   * - Propose and implement a new design for Geomstats documentation website.
+     - June 12, 2022
+     - `Discussion <https://github.com/geomstats/geomstats/issues/1574>`_, `Template for issue tracker <https://github.com/geomstats/geomstats/pulls?q=is%3Apr+author%3Ananjekyejoannah+is%3Aclosed>`_ 
+     
+   * - Update README and CONTRIBUTING to better onboard new contributors; Add a checklist for new contributors’ first Pull Requests.
+     - August 1, 2022
+     - `Contributor guide <https://github.com/geomstats/geomstats/pull/1597>`_.
+     
+   * - Add missing references and mathematical formulas to docstrings.
+     - October 5, 2022
+     - `API refactor <https://github.com/geomstats/geomstats/pull/1639>`_. `Split spaces and metrics <https://github.com/geomstats/geomstats/pull/1663>`_. 
+     
+   * - Organize existing documentation within the website, using divio documentation principles.
+     - November 28, 2022
+     - `Contributor guide <https://github.com/geomstats/geomstats/pull/1597>`_.
 
 Metrics
 ========
-*_What metrics did you choose to measure the success of the project? Were you able to collect those metrics? Did the metrics correlate well or poorly with the behaviors or outcomes you wanted for the project? Did your metrics change since your proposal? Did you add or remove any metrics? How often do you intend to collect metrics going forward?_*
+
+The metrics we chose to summarize the success of the project are recalled below:
+- (a) monthly: number of pull requests from new contributors,
+- (b) monthly: percentage of pull requests from new contributors that are merged (within two weeks),
+- (c) monthly: number of contributors with >2 pull requests.
+- (d) standard metrics (number of views, downloads, web traffic to documentation website, time on page), monthly after the documentation is published.
+
+We will consider the project successful if, after publication of the new documentation at least three of the following hold:
+
+- The number of pull requests by new contributors increases by 15%.
+- The percentage of pull requests by new contributors that are merged within two weeks increases by 15%.
+- The number of new contributors with >2 merged pull requests increases by 10% (beginning the quarter after the documentation is published).
+- The standard metrics increase by 10% on average.
+- The number of GitHub forks and stars increases by 10%.
+
+Now that the documentation has been updated, we will track these metrics over the next 6 months to determine whether contributors feel an improvement.
 
 Analysis
 ========
