@@ -2,12 +2,17 @@ import random
 
 import pytest
 
-from geomstats.geometry.special_euclidean import SpecialEuclideanMatrixLieAlgebra
+from geomstats.geometry.special_euclidean import (
+    SpecialEuclideanMatrixLieAlgebra,
+    _SpecialEuclideanMatrices,
+)
 from geomstats.test.geometry.special_euclidean import (
+    SpecialEuclideanMatricesTestCase,
     SpecialEuclideanMatrixLieAlgebraTestCase,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from tests2.data.special_euclidean_data import (
+    SpecialEuclideanMatricesTestData,
     SpecialEuclideanMatrixLieAlgebra2TestData,
     SpecialEuclideanMatrixLieAlgebraTestData,
 )
@@ -17,14 +22,32 @@ from tests2.data.special_euclidean_data import (
     scope="class",
     params=[
         2,
+        # random.randint(3, 5),
+    ],
+)
+def spaces_mlg(request):
+    request.cls.space = _SpecialEuclideanMatrices(n=request.param)
+
+
+@pytest.mark.usefixtures("spaces_mlg")
+class TestSpecialEuclideanMatrices(
+    SpecialEuclideanMatricesTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = SpecialEuclideanMatricesTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        2,
         random.randint(3, 5),
     ],
 )
-def spaces(request):
+def spaces_mla(request):
     request.cls.space = SpecialEuclideanMatrixLieAlgebra(n=request.param)
 
 
-@pytest.mark.usefixtures("spaces")
+@pytest.mark.usefixtures("spaces_mla")
 class TestSpecialEuclideanMatrixLieAlgebra(
     SpecialEuclideanMatrixLieAlgebraTestCase, metaclass=DataBasedParametrizer
 ):

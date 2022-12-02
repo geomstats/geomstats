@@ -1,10 +1,14 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.data.base_data import MatrixLieAlgebraTestData
+from tests2.data.base_data import LevelSetTestData, MatrixLieAlgebraTestData
 
 
 def algebra_useful_matrix(theta, elem_33=0.0):
     return gs.array([[0.0, -theta, 2.0], [theta, 0.0, 3.0], [0.0, 0.0, elem_33]])
+
+
+class SpecialEuclideanMatricesTestData(LevelSetTestData):
+    pass
 
 
 class SpecialEuclideanMatrixLieAlgebraTestData(MatrixLieAlgebraTestData):
