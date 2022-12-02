@@ -3,6 +3,16 @@ import random
 from geomstats.test.data import TestData
 
 
+class _ProjectionMixinsTestData:
+    def projection_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+    def projection_belongs_test_data(self):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+
 class ManifoldTestData(TestData):
     N_VEC_REPS = random.sample(range(2, 5), 1)
     N_SHAPE_POINTS = [1] + random.sample(range(2, 5), 1)
@@ -24,16 +34,6 @@ class ManifoldTestData(TestData):
         data = [dict(n_points=n_points) for n_points in self.N_SHAPE_POINTS]
         return self.generate_tests(data)
 
-
-class VectorSpaceTestData(ManifoldTestData):
-    def projection_vec_test_data(self):
-        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
-        return self.generate_tests(data)
-
-    def projection_belongs_test_data(self):
-        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
-        return self.generate_tests(data)
-
     def is_tangent_vec_test_data(self):
         data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
         return self.generate_tests(data)
@@ -46,6 +46,8 @@ class VectorSpaceTestData(ManifoldTestData):
         data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
         return self.generate_tests(data)
 
+
+class VectorSpaceTestData(_ProjectionMixinsTestData, ManifoldTestData):
     def basis_cardinality_test_data(self):
         return None
 
@@ -120,4 +122,14 @@ class MatrixLieAlgebraTestData(VectorSpaceTestData):
 
     def basis_representation_after_matrix_representation_test_data(self):
         data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+
+class LevelSetTestData(_ProjectionMixinsTestData, ManifoldTestData):
+    def submersion_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+    def tangent_submersion_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
         return self.generate_tests(data)
