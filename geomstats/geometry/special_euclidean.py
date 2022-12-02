@@ -110,7 +110,7 @@ def _squared_dist(point_a, point_b, metric):
     return metric.private_squared_dist(point_a, point_b)
 
 
-def homogeneous_representation(rotation, translation, output_shape, constant=1.0):
+def homogeneous_representation(rotation, translation, constant=1.0):
     r"""Embed rotation, translation couples into n+1 square matrices.
 
     Construct a block matrix of size :math:`n + 1 \times n + 1` of the form
@@ -127,8 +127,6 @@ def homogeneous_representation(rotation, translation, output_shape, constant=1.0
         Square Matrix.
     translation : array-like, shape=[..., n]
         Vector.
-    output_shape : tuple of int
-        Desired output shape. This is need for vectorization.
     constant : float or array-like of shape [...]
         Constant to use at the last line and column of the square matrix.
         Optional, default: 1.
@@ -139,15 +137,38 @@ def homogeneous_representation(rotation, translation, output_shape, constant=1.0
         Square Matrix of size n + 1. It can represent an element of the
         special euclidean group or its Lie algebra.
     """
+    if rotation.ndim > 2 or translation.ndim > 1:
+        if rotation.ndim == 2:
+            rotation = gs.broadcast_to(
+                rotation, (translation.shape[0], *rotation.shape)
+            )
+
+        if translation.ndim == 1:
+            translation = gs.broadcast_to(
+                translation, (rotation.shape[0], *translation.shape)
+            )
+
     mat = gs.concatenate((rotation, translation[..., None]), axis=-1)
-    last_line = gs.zeros(output_shape)[..., -1]
-    if isinstance(constant, float):
-        last_col = constant * gs.ones_like(translation)[..., None, -1]
-    else:
-        last_col = constant[..., None]
-    last_line = gs.concatenate([last_line[..., :-1], last_col], axis=-1)
-    mat = gs.concatenate((mat, last_line[..., None, :]), axis=-2)
-    return mat
+
+    if not gs.is_array(constant) or constant.ndim == 0:
+        constant = gs.array([constant])
+
+    zeros = gs.zeros(mat.shape[:-1])
+    if zeros.ndim > 1 or constant.shape[0] > 1:
+        if zeros.ndim == 1:
+            zeros = gs.broadcast_to(zeros, (constant.shape[0], *zeros.shape))
+
+        if constant.shape[0] == 1:
+            constant = gs.broadcast_to(constant, (zeros.shape[0], *constant.shape))
+        else:
+            constant = constant[..., None]
+
+    last_row = gs.concatenate([zeros, constant], axis=-1)
+
+    if mat.shape == 2 and last_row.shape > 1:
+        mat = gs.broadcast_to(mat, (last_row.shape[0], *mat.shape))
+
+    return gs.concatenate([mat, last_row[..., None, :]], axis=-2)
 
 
 class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
@@ -212,13 +233,13 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         submersed_point : array-like, shape=[..., n + 1, n + 1]
             Submersed Point.
         """
-        n = point.shape[-1] - 1
+        n = self.n
         rot = point[..., :n, :n]
         vec = point[..., n, :n]
         scalar = point[..., n, n]
         submersed_rot = Matrices.mul(rot, Matrices.transpose(rot))
         return (
-            homogeneous_representation(submersed_rot, vec, point.shape, constant=scalar)
+            homogeneous_representation(submersed_rot, vec, constant=scalar)
             - self._value
         )
 
@@ -237,16 +258,15 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         submersed_vector : array-like, shape=[..., n + 1, n + 1]
             Submersed Vector.
         """
-        n = point.shape[-1] - 1
+        n = self.n
         rot = point[..., :n, :n]
         skew = vector[..., :n, :n]
         vec = vector[..., n, :n]
         scalar = vector[..., n, n]
-        submersed_rot = Matrices.mul(Matrices.transpose(skew), rot)
-        submersed_rot = Matrices.to_symmetric(submersed_rot)
-        return homogeneous_representation(
-            submersed_rot, vec, point.shape, constant=scalar
+        submersed_rot = Matrices.to_symmetric(
+            Matrices.mul(Matrices.transpose(skew), rot)
         )
+        return homogeneous_representation(submersed_rot, vec, constant=scalar)
 
     @property
     def identity(self):
@@ -276,12 +296,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         """
         random_translation = self.translations.random_point(n_samples)
         random_rotation = self.rotations.random_uniform(n_samples)
-        output_shape = (
-            (n_samples, self.n + 1, self.n + 1) if n_samples != 1 else (self.n + 1,) * 2
-        )
-        random_point = homogeneous_representation(
-            random_rotation, random_translation, output_shape
-        )
+        random_point = homogeneous_representation(random_rotation, random_translation)
         return random_point
 
     @classmethod
@@ -302,7 +317,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         transposed_rot = Matrices.transpose(point[..., :n, :n])
         translation = point[..., :n, -1]
         translation = gs.einsum("...ij,...j->...i", transposed_rot, translation)
-        return homogeneous_representation(transposed_rot, -translation, point.shape)
+        return homogeneous_representation(transposed_rot, -translation)
 
     def projection(self, mat):
         """Project a matrix on SE(n).
@@ -321,10 +336,10 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         projected : array-like, shape=[..., n + 1, n + 1]
             Rotation-translation matrix in homogeneous representation.
         """
-        n = mat.shape[-1] - 1
+        n = self.n
         projected_rot = self.rotations.projection(mat[..., :n, :n])
         translation = mat[..., :n, -1]
-        return homogeneous_representation(projected_rot, translation, mat.shape)
+        return homogeneous_representation(projected_rot, translation)
 
 
 class _SpecialEuclideanVectors(LieGroup):
@@ -470,17 +485,11 @@ class _SpecialEuclideanVectors(LieGroup):
             Matrix.
         """
         vec = self.regularize(vec)
-        output_shape = (
-            (vec.shape[0], self.n + 1, self.n + 1)
-            if vec.ndim == 2
-            else (self.n + 1,) * 2
-        )
-
         rot_vec = vec[..., : self.rotations.dim]
         trans_vec = vec[..., self.rotations.dim :]
 
         rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
-        return homogeneous_representation(rot_mat, trans_vec, output_shape)
+        return homogeneous_representation(rot_mat, trans_vec)
 
     @geomstats.vectorization.decorator(["else", "vector", "vector"])
     def compose(self, point_a, point_b):
@@ -1115,9 +1124,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
             tangent_vec[..., : self.n, self.n] + base_point[..., : self.n, self.n]
         )
 
-        exp = homogeneous_representation(
-            rotation_exp, translation_exp, tangent_vec.shape, 1.0
-        )
+        exp = homogeneous_representation(rotation_exp, translation_exp, 1.0)
         return exp
 
     def log(self, point, base_point=None, **kwargs):
@@ -1149,7 +1156,6 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
             no. 4 (August 1998): 576–89.
             https://doi.org/10.1109/70.704225.
         """
-        max_shape = point.shape if point.ndim == 3 else base_point.shape
         rotation_bp = base_point[..., : self.n, : self.n]
         rotation_p = point[..., : self.n, : self.n]
         rotation_log = GeneralLinear.log(rotation_p, rotation_bp)
@@ -1157,8 +1163,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
             point[..., : self.n, self.n] - base_point[..., : self.n, self.n]
         )
 
-        log = homogeneous_representation(rotation_log, translation_log, max_shape, 0.0)
-        return log
+        return homogeneous_representation(rotation_log, translation_log, 0.0)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None, **kwargs
@@ -1208,11 +1213,8 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
             rot_a, rot_bp, rot_b
         )
         translation = tangent_vec[..., : self.n, self.n]
-        max_shape = tangent_vec.shape
-        if (direction.ndim == 3) and (tangent_vec.ndim == 2):
-            translation = gs.stack([translation] * direction.shape[0])
-            max_shape = direction.shape
-        return homogeneous_representation(transported_rot, translation, max_shape, 0.0)
+
+        return homogeneous_representation(transported_rot, translation, 0.0)
 
     def private_squared_dist(self, point_a, point_b):
         """Compute geodesic distance between two points.
@@ -1353,7 +1355,6 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         basis = homogeneous_representation(
             self.skew.basis,
             gs.zeros((self.skew.dim, n)),
-            (self.skew.dim, n + 1, n + 1),
             0.0,
         )
 
@@ -1429,9 +1430,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         """
         rotation = mat[..., : self.n, : self.n]
         skew = SkewSymmetricMatrices.projection(rotation)
-        return homogeneous_representation(
-            skew, mat[..., : self.n, self.n], mat.shape, 0.0
-        )
+        return homogeneous_representation(skew, mat[..., : self.n, self.n], 0.0)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.
