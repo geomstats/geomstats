@@ -76,7 +76,7 @@ class ManifoldTestCase(TestCase):
     # with point shape?
 
     def test_belongs(self, point, expected, atol):
-        res = self.space.belongs(point)
+        res = self.space.belongs(point, atol=atol)
         self.assertAllEqual(res, expected)
 
     @pytest.mark.vec
