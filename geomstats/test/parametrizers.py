@@ -6,7 +6,7 @@ import pytest
 import geomstats.backend as gs
 
 
-def copy_func(f, name=None):
+def _copy_func(f, name=None):
     """Return a function with same code, globals, defaults, closure, and
     name (or provide a new name).
 
@@ -34,6 +34,40 @@ def copy_func(f, name=None):
 
 def _get_tolerances(testing_data):
     return testing_data.tolerances if hasattr(testing_data, "tolerances") else {}
+
+
+def _check_test_data_pairing(test_attrs, data_names_ls):
+    not_paired = []
+    for test_name in test_attrs:
+        data_name = _test_name_to_test_data_name(test_name)
+        if data_name not in data_names_ls:
+            not_paired.append(test_name)
+
+    if not_paired:
+        msg = "Need to define data for:"
+        for test_name in not_paired:
+            msg += f"\n\t-{test_name}"
+
+        raise Exception(msg)
+
+
+def _parametrize_test_func(test_func, attr_name, testing_data, default_values):
+    arg_names = inspect.getfullargspec(test_func)[0]
+    args_str = ", ".join(arg_names[1:])
+
+    # TODO: allow marks from data in this case?
+    # no args case (note selection was done above)
+    if len(arg_names) == 1:
+        return test_func
+
+    test_data = _get_test_data(
+        attr_name,
+        testing_data,
+        arg_names,
+        default_values,
+    )
+
+    return pytest.mark.parametrize(args_str, test_data)(test_func)
 
 
 class TestBasedParametrizer(type):
@@ -97,57 +131,38 @@ class TestBasedParametrizer(type):
     """
 
     def __new__(cls, name, bases, attrs):
-        """Decorate the test class' methods with pytest."""
-        for base in bases:
-            test_fn_list = [fn for fn in dir(base) if fn.startswith("test")]
-            for test_fn in test_fn_list:
-                if test_fn not in attrs:
-                    attrs[test_fn] = getattr(base, test_fn)
+        # TODO: use skipif instead? check if collection if performed
+        # skip_all = attrs.get("skip_all", False)
 
-        skip_all = attrs.get("skip_all", False)
+        all_test_attrs = _collect_all_tests(attrs, bases)
 
-        testing_data = locals()["attrs"].get("testing_data", None)
+        testing_data = locals()["attrs"].get("testing_data")
         if testing_data is None:
             raise Exception(
                 "Testing class doesn't have class object" " named 'testing_data'"
             )
-        cls_tols = _get_tolerances(testing_data)
 
-        for attr_name, attr_value in attrs.copy().items():
-            if not (
-                attr_name.startswith("test")
-                and isinstance(attr_value, types.FunctionType)
-            ):
-                continue
+        data_names_ls = _collect_testing_data_tests(testing_data)
+        _check_test_data_pairing(all_test_attrs, data_names_ls)
 
-            test_func, default_values = copy_func(attr_value)
+        # TODO: warn about unused data?
 
-            if (
-                not skip_all
-                and ("skip_" + attr_name, True) not in locals()["attrs"].items()
-            ):
-                arg_names = inspect.getfullargspec(test_func)[0]
-                args_str = ", ".join(arg_names[1:])
+        for attr_name, attr_value in all_test_attrs.copy().items():
+            test_func, default_values = _copy_func(attr_value)
 
-                test_data = _get_test_data(
-                    attr_name,
-                    testing_data,
-                    arg_names,
-                    cls_tols,
-                    default_values,
-                )
-
-                attrs[attr_name] = pytest.mark.parametrize(
-                    args_str,
-                    test_data,
-                )(test_func)
-            else:
+            # TODO: move skips to data?
+            if (f"skip_{attr_name}", True) in locals()["attrs"].items():
                 attrs[attr_name] = pytest.mark.skip("skipped")(test_func)
+            else:
+
+                attrs[attr_name] = _parametrize_test_func(
+                    test_func, attr_name, testing_data, default_values
+                )
 
         return super().__new__(cls, name, bases, attrs)
 
 
-def _get_test_data(test_name, testing_data, test_arg_names, cls_tols, default_values):
+def _get_test_data(test_name, testing_data, test_arg_names, default_values):
     # assumes pairing test-data exists
 
     data_name = _test_name_to_test_data_name(test_name)
@@ -158,6 +173,7 @@ def _get_test_data(test_name, testing_data, test_arg_names, cls_tols, default_va
 
     test_data = _dictify_test_data(test_data, test_arg_names[1:])
 
+    cls_tols = _get_tolerances(testing_data)
     test_data = _handle_tolerances(
         test_name[5:],
         test_arg_names[1:],
@@ -184,7 +200,6 @@ def _dictify_test_data(test_data, arg_names):
 
 
 def _handle_tolerances(func_name, arg_names, test_data, cls_tols):
-
     has_tol = False
     for arg_name in arg_names:
         if arg_name.endswith("tol"):
@@ -256,6 +271,14 @@ def _collect_available_base_tests(bases):
     return base_tests
 
 
+def _collect_all_tests(attrs, bases):
+    test_attrs = _collect_available_tests(attrs)
+    base_attrs = _collect_available_base_tests(bases)
+
+    # order matters
+    return base_attrs | test_attrs
+
+
 def _collect_testing_data_tests(testing_data):
     # TODO: some filtering may occur here
     # TODO: play with `__` for markers? really need this?
@@ -285,11 +308,7 @@ def _filter_test_funcs_given_data(test_attrs, data_names_ls):
 
 class DataBasedParametrizer(type):
     def __new__(cls, name, bases, attrs):
-        test_attrs = _collect_available_tests(attrs)
-        base_attrs = _collect_available_base_tests(bases)
-
-        # order matters
-        all_test_attrs = base_attrs | test_attrs
+        all_test_attrs = _collect_all_tests(attrs, bases)
 
         testing_data = locals()["attrs"].get("testing_data")
         if testing_data is None:
@@ -302,36 +321,15 @@ class DataBasedParametrizer(type):
             all_test_attrs, data_names_ls
         )
 
-        cls_tols = _get_tolerances(testing_data)
-
         for attr_name, attr_value in selected_test_attrs.items():
-            test_func, default_values = copy_func(attr_value)
-
-            arg_names = inspect.getfullargspec(test_func)[0]
-            args_str = ", ".join(arg_names[1:])
-
-            # TODO: allow marks from data in this case?
-            # no args case (note selection was done above)
-            if len(arg_names) == 1:
-                attrs[attr_name] = test_func
-                continue
-
-            test_data = _get_test_data(
-                attr_name,
-                testing_data,
-                arg_names,
-                cls_tols,
-                default_values,
+            test_func, default_values = _copy_func(attr_value)
+            attrs[attr_name] = _parametrize_test_func(
+                test_func, attr_name, testing_data, default_values
             )
-
-            attrs[attr_name] = pytest.mark.parametrize(
-                args_str,
-                test_data,
-            )(test_func)
 
         for attr_name, attr_value in all_test_attrs.items():
             if attr_name not in selected_test_attrs:
-                test_func, _ = copy_func(attr_value)
+                test_func, _ = _copy_func(attr_value)
 
                 attrs[attr_name] = pytest.mark.ignore()(test_func)
 
