@@ -146,35 +146,16 @@ class TestBasedParametrizer(type):
 
 
 def _get_test_data(test_name, testing_data, test_arg_names, cls_tols, default_values):
-    short_name = test_name[5:]
-    suffixes = ["", "_smoke", "_random"]
+    # assumes pairing test-data exists
 
-    data_fn_ls = [f"{short_name}{suffix}_test_data" for suffix in suffixes]
+    data_name = _test_name_to_test_data_name(test_name)
+    test_data = getattr(testing_data, data_name)()
 
-    has_method = False
-    for data_fn_str in data_fn_ls:
-        if hasattr(testing_data, data_fn_str):
-            has_method = True
-            break
-
-    # TODO: this verification should be done somewhere else
-    if not has_method:
-        raise Exception(
-            f"testing_data object doesn't have '{short_name}_test_data' "
-            f"function for pairing with '{test_name}'"
-        )
-
-    test_data = []
-    for data_fn_str in data_fn_ls:
-        if not hasattr(testing_data, data_fn_str):
-            continue
-
-        test_data_ = getattr(testing_data, data_fn_str)()
-        if test_data_ is None:
-            raise Exception(f"'{data_fn_str}' returned None. should be list")
-        test_data.extend(test_data_)
+    if test_data is None:
+        raise Exception(f"'{data_name}' returned None. should be list")
 
     test_data = _dictify_test_data(test_data, test_arg_names[1:])
+
     test_data = _handle_tolerances(
         test_name[5:],
         test_arg_names[1:],
