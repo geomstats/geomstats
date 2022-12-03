@@ -32,6 +32,10 @@ def copy_func(f, name=None):
     return fn, defaults
 
 
+def _get_tolerances(testing_data):
+    return testing_data.tolerances if hasattr(testing_data, "tolerances") else {}
+
+
 class TestBasedParametrizer(type):
     """Metaclass for test classes.
 
@@ -107,9 +111,7 @@ class TestBasedParametrizer(type):
             raise Exception(
                 "Testing class doesn't have class object" " named 'testing_data'"
             )
-        cls_tols = (
-            testing_data.tolerances if hasattr(testing_data, "tolerances") else {}
-        )
+        cls_tols = _get_tolerances(testing_data)
 
         for attr_name, attr_value in attrs.copy().items():
             if not (
@@ -300,6 +302,8 @@ class DataBasedParametrizer(type):
             all_test_attrs, data_names_ls
         )
 
+        cls_tols = _get_tolerances(testing_data)
+
         for attr_name, attr_value in selected_test_attrs.items():
             test_func, default_values = copy_func(attr_value)
 
@@ -316,7 +320,7 @@ class DataBasedParametrizer(type):
                 attr_name,
                 testing_data,
                 arg_names,
-                {},  # TODO: handle tols
+                cls_tols,
                 default_values,
             )
 
