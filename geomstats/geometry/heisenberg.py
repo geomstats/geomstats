@@ -87,7 +87,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         """
         return -point
 
-    def jacobian_translation(self, point, left_or_right="left"):
+    def jacobian_translation(self, point, left=True):
         """Compute the Jacobian matrix of left/right translation by a point.
 
         This calculates the differential of the left translation L_(point)
@@ -99,10 +99,10 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         ----------
         point : array-like, shape=[..., 3]
             Point.
-        left_or_right : str, {'left', 'right'}
+        left : bool
             Indicate whether to calculate the differential of left or right
             translations.
-            Optional, default: 'left'.
+            Optional, default: True.
 
         Returns
         -------
@@ -112,7 +112,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         e31 = gs.array_from_sparse([(2, 0)], [1.0], (3, 3))
         e32 = gs.array_from_sparse([(2, 1)], [1.0], (3, 3))
 
-        if left_or_right == "left":
+        if left:
             return (
                 gs.eye(3)
                 + gs.einsum("..., ij -> ...ij", -point[..., 1] / 2, e31)

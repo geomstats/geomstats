@@ -6,7 +6,6 @@ Lead author: Nina Miolane.
 import abc
 
 import geomstats.backend as gs
-import geomstats.errors as errors
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
@@ -22,11 +21,15 @@ class MatrixLieGroup(Manifold, abc.ABC):
         self.lie_algebra = lie_algebra
         self.n_lg = n_lg
         self.left_canonical_metric = InvariantMetric(
-            group=self, metric_mat_at_identity=gs.eye(self.dim), left_or_right="left"
+            group=self,
+            metric_mat_at_identity=gs.eye(self.dim),
+            left=True,
         )
 
         self.right_canonical_metric = InvariantMetric(
-            group=self, metric_mat_at_identity=gs.eye(self.dim), left_or_right="right"
+            group=self,
+            metric_mat_at_identity=gs.eye(self.dim),
+            left=False,
         )
 
     @property
@@ -70,7 +73,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
         """
         return gs.linalg.inv(point)
 
-    def tangent_translation_map(self, point, left_or_right="left", inverse=False):
+    def tangent_translation_map(self, point, left=True, inverse=False):
         r"""Compute the push-forward map by the left/right translation.
 
         Compute the push-forward map, of the left/right translation by the
@@ -85,10 +88,10 @@ class MatrixLieGroup(Manifold, abc.ABC):
         ----------
         point : array-like, shape=[..., {dim, [n, n]]
             Point.
-        left_or_right : str, {'left', 'right'}
+        left : bool
             Whether to calculate the differential of left or right
             translations.
-            Optional, default: 'left'
+            Optional, default: True
         inverse : bool,
             Whether to inverse the jacobian matrix. If True, the push forward
             by the translation by the inverse of point is returned.
@@ -100,13 +103,9 @@ class MatrixLieGroup(Manifold, abc.ABC):
             Tangent map of the left/right translation by point. It can be
             applied to tangent vectors.
         """
-        # TODO: make "left_or_right" boolean?
-        errors.check_parameter_accepted_values(
-            left_or_right, "left_or_right", ["left", "right"]
-        )
         if inverse:
             point = self.inverse(point)
-        if left_or_right == "left":
+        if left:
             return lambda tangent_vec: self.compose(point, tangent_vec)
         return lambda tangent_vec: self.compose(tangent_vec, point)
 
@@ -300,11 +299,15 @@ class LieGroup(Manifold, abc.ABC):
 
         self.lie_algebra = lie_algebra
         self.left_canonical_metric = InvariantMetric(
-            group=self, metric_mat_at_identity=gs.eye(self.dim), left_or_right="left"
+            group=self,
+            metric_mat_at_identity=gs.eye(self.dim),
+            left=True,
         )
 
         self.right_canonical_metric = InvariantMetric(
-            group=self, metric_mat_at_identity=gs.eye(self.dim), left_or_right="right"
+            group=self,
+            metric_mat_at_identity=gs.eye(self.dim),
+            left=False,
         )
 
         self.metric = self.left_canonical_metric
@@ -355,7 +358,7 @@ class LieGroup(Manifold, abc.ABC):
         """
         raise NotImplementedError("The Lie group inverse is not implemented.")
 
-    def jacobian_translation(self, point, left_or_right="left"):
+    def jacobian_translation(self, point, left=True):
         """Compute the Jacobian of left/right translation by a point.
 
         Compute the Jacobian matrix of the left translation by the point.
@@ -364,22 +367,21 @@ class LieGroup(Manifold, abc.ABC):
         ----------
         point : array-like, shape=[..., {dim, [n, n]]
             Point.
-        left_or_right : str, {'left', 'right'}
+        left : bool
             Indicate whether to calculate the differential of left or right
             translations.
-            Optional, default: 'left'.
+            Optional, default: True.
 
         Returns
         -------
         jacobian : array-like, shape=[..., dim, dim]
             Jacobian of the left/right translation by point.
         """
-        # TODO: replace left_or_right by bool
         raise NotImplementedError(
             "The jacobian of the Lie group translation is not implemented."
         )
 
-    def tangent_translation_map(self, point, left_or_right="left", inverse=False):
+    def tangent_translation_map(self, point, left=True, inverse=False):
         r"""Compute the push-forward map by the left/right translation.
 
         Compute the push-forward map, of the left/right translation by the
@@ -394,10 +396,10 @@ class LieGroup(Manifold, abc.ABC):
         ----------
         point : array-like, shape=[..., {dim, [n, n]]
             Point.
-        left_or_right : str, {'left', 'right'}
+        left: bool
             Whether to calculate the differential of left or right
             translations.
-            Optional, default: 'left'
+            Optional, default: True.
         inverse : bool,
             Whether to inverse the jacobian matrix. If True, the push forward
             by the translation by the inverse of point is returned.
@@ -409,18 +411,14 @@ class LieGroup(Manifold, abc.ABC):
             Tangent map of the left/right translation by point. It can be
             applied to tangent vectors.
         """
-        # TODO: refactor here as above
-        errors.check_parameter_accepted_values(
-            left_or_right, "left_or_right", ["left", "right"]
-        )
         if self.default_point_type == "matrix":
             if inverse:
                 point = self.inverse(point)
-            if left_or_right == "left":
+            if left:
                 return lambda tangent_vec: Matrices.mul(point, tangent_vec)
             return lambda tangent_vec: Matrices.mul(tangent_vec, point)
 
-        jacobian = self.jacobian_translation(point, left_or_right)
+        jacobian = self.jacobian_translation(point, left)
         if inverse:
             jacobian = gs.linalg.inv(jacobian)
         return lambda tangent_vec: gs.einsum("...ij,...j->...i", jacobian, tangent_vec)
@@ -459,7 +457,7 @@ class LieGroup(Manifold, abc.ABC):
         """
         if self.default_point_type == "vector":
             tangent_translation = self.tangent_translation_map(
-                point=base_point, left_or_right="left", inverse=True
+                point=base_point, left=True, inverse=True
             )
 
             tangent_vec_at_id = tangent_translation(tangent_vec)
@@ -533,7 +531,8 @@ class LieGroup(Manifold, abc.ABC):
         """
         if self.default_point_type == "vector":
             tangent_translation = self.tangent_translation_map(
-                point=base_point, left_or_right="left"
+                point=base_point,
+                left=True,
             )
             point_near_id = self.compose(self.inverse(base_point), point)
             log_from_id = self.log_from_identity(point=point_near_id)

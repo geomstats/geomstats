@@ -696,7 +696,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         )
 
     @geomstats.vectorization.decorator(["else", "vector", "else"])
-    def jacobian_translation(self, point, left_or_right="left"):
+    def jacobian_translation(self, point, left=True):
         """Compute the Jacobian matrix resulting from translation.
 
         Compute the matrix of the differential of the left/right translations
@@ -706,18 +706,15 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         ----------
         point: array-like, shape=[..., 3]
             Point.
-        left_or_right: str, {'left', 'right'}
+        left: bool
             Whether to compute the jacobian of the left or right translation.
-            Optional, default: 'left'.
+            Optional, default: True.
 
         Returns
         -------
         jacobian : array-like, shape=[..., 3]
             Jacobian of the left / right translation.
         """
-        if left_or_right not in ("left", "right"):
-            raise ValueError("`left_or_right` must be `left` or `right`.")
-
         point = self.regularize(point)
 
         n_points, _ = point.shape
@@ -803,7 +800,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         rot_metric = InvariantMetric(
             group=rotations,
             metric_mat_at_identity=rot_metric_mat,
-            left_or_right=metric.left_or_right,
+            left=metric.left,
         )
 
         rotations_vec = rotations.regularize_tangent_vec(
@@ -815,7 +812,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         )
 
     @geomstats.vectorization.decorator(["else", "vector", "else"])
-    def jacobian_translation(self, point, left_or_right="left"):
+    def jacobian_translation(self, point, left=True):
         """Compute the Jacobian matrix resulting from translation.
 
         Compute the matrix of the differential of the left/right translations
@@ -825,18 +822,15 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         ----------
         point: array-like, shape=[..., 3]
             Point.
-        left_or_right: str, {'left', 'right'}
+        left: bool
             Whether to compute the jacobian of the left or right translation.
-            Optional, default: 'left'.
+            Optional, default: True.
 
         Returns
         -------
         jacobian : array-like, shape=[..., 3]
             Jacobian of the left / right translation.
         """
-        if left_or_right not in ("left", "right"):
-            raise ValueError("`left_or_right` must be `left` or `right`.")
-
         rotations = self.rotations
         translations = self.translations
         dim_rotations = rotations.dim
@@ -848,14 +842,12 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
 
         rot_vec = point[:, :dim_rotations]
 
-        jacobian_rot = self.rotations.jacobian_translation(
-            point=rot_vec, left_or_right=left_or_right
-        )
+        jacobian_rot = self.rotations.jacobian_translation(point=rot_vec, left=left)
         jacobian_rot = gs.to_ndarray(jacobian_rot, to_ndim=3)
         block_zeros_1 = gs.zeros((n_points, dim_rotations, dim_translations))
         jacobian_block_line_1 = gs.concatenate([jacobian_rot, block_zeros_1], axis=2)
 
-        if left_or_right == "left":
+        if left:
             rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
             jacobian_trans = rot_mat
             block_zeros_2 = gs.zeros((n_points, dim_translations, dim_rotations))
