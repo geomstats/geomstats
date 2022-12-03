@@ -29,9 +29,10 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         kwargs.setdefault("dim", n**2)
         kwargs.setdefault("metric", embedding_space.metric)
 
+        self.n = n
         super().__init__(
             embedding_space=embedding_space,
-            n=n,
+            n_lg=n,
             lie_algebra=SquareMatrices(n),
             **kwargs
         )

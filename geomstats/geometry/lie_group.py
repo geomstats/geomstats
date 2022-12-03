@@ -17,10 +17,10 @@ ATOL = 1e-6
 class MatrixLieGroup(Manifold, abc.ABC):
     """Class for matrix Lie groups."""
 
-    def __init__(self, dim, n, lie_algebra=None, **kwargs):
-        super().__init__(dim=dim, shape=(n, n), **kwargs)
+    def __init__(self, dim, n_lg, lie_algebra=None, **kwargs):
+        super().__init__(dim=dim, shape=(n_lg, n_lg), **kwargs)
         self.lie_algebra = lie_algebra
-        self.n = n
+        self.n_lg = n_lg
         self.left_canonical_metric = InvariantMetric(
             group=self, metric_mat_at_identity=gs.eye(self.dim), left_or_right="left"
         )
@@ -32,7 +32,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
     @property
     def identity(self):
         """Matrix identity."""
-        return gs.eye(self.n)
+        return gs.eye(self.n_lg)
 
     @staticmethod
     def compose(point_a, point_b):

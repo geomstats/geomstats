@@ -201,15 +201,13 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         self._value = gs.eye(n + 1)
 
         super().__init__(
-            n=n + 1,
+            n_lg=n + 1,
             dim=int((n * (n + 1)) / 2),
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
             **kwargs
         )
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
-        # TODO: remove after solve naming clash
-        self.n = n
 
         self.left_canonical_metric = SpecialEuclideanMatrixCanonicalLeftMetric(
             group=self
@@ -267,11 +265,6 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             Matrices.mul(Matrices.transpose(skew), rot)
         )
         return homogeneous_representation(submersed_rot, vec, constant=scalar)
-
-    @property
-    def identity(self):
-        """Return the identity matrix."""
-        return gs.eye(self.n + 1, self.n + 1)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in SE(n) from the product distribution.
@@ -1342,7 +1335,6 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
     """
 
     def __init__(self, n):
-        # TODO: name clashing for n
         self.n = n
         dim = int(n * (n + 1) / 2)
         super().__init__(dim, n + 1)

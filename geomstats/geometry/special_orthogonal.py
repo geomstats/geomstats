@@ -43,7 +43,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
         super().__init__(
             dim=int((n * (n - 1)) / 2),
-            n=n,
+            n_lg=n,
             lie_algebra=SkewSymmetricMatrices(n=n),
             default_coords_type="extrinsic",
             **kwargs,
