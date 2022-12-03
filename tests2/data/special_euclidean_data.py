@@ -7,8 +7,21 @@ def algebra_useful_matrix(theta, elem_33=0.0):
     return gs.array([[0.0, -theta, 2.0], [theta, 0.0, 3.0], [0.0, 0.0, elem_33]])
 
 
+def homogeneous_representation_test_data():
+    rotation = gs.ones((2, 2)) * 2
+    translation = gs.ones((2,)) * 3
+    constant = 1.0
+    expected = gs.array([[2.0, 2.0, 3.0], [2.0, 2.0, 3.0], [0.0, 0.0, 1.0]])
+
+    data = [[rotation, translation, constant, expected]]
+
+    return data
+
+
 class SpecialEuclideanMatricesTestData(LevelSetTestData):
-    pass
+    tolerances = {
+        "projection_belongs": {"atol": 1e-4},
+    }
 
 
 class SpecialEuclideanMatrixLieAlgebraTestData(MatrixLieAlgebraTestData):

@@ -95,19 +95,29 @@ def pytorch_error_msg(a, b, rtol, atol):
     return msg
 
 
+def assert_allclose(a, b, rtol=gs.rtol, atol=gs.atol):
+    # TODO: move to backend
+    if tf_backend():
+        return tf.test.TestCase().assertAllClose(a, b, rtol=rtol, atol=atol)
+    if np_backend() or autograd_backend():
+        return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
+
+    return assert_true(
+        gs.allclose(a, b, rtol=rtol, atol=atol),
+        msg=pytorch_error_msg(a, b, rtol, atol),
+    )
+
+
+def assert_true(condition, msg=None):
+    # TODO: move to backend
+    assert condition, msg
+
+
 class TestCase:
     """Class for Geomstats tests."""
 
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
-        if tf_backend():
-            return tf.test.TestCase().assertAllClose(a, b, rtol=rtol, atol=atol)
-        if np_backend() or autograd_backend():
-            return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
-
-        return self.assertTrue(
-            gs.allclose(a, b, rtol=rtol, atol=atol),
-            msg=pytorch_error_msg(a, b, rtol, atol),
-        )
+        return assert_allclose(a, b, rtol=rtol, atol=atol)
 
     def assertAllEqual(self, a, b):
         if tf_backend():
@@ -119,7 +129,7 @@ class TestCase:
             self.assertTrue(gs.all(gs.equal(a, b)))
 
     def assertTrue(self, condition, msg=None):
-        assert condition, msg
+        return assert_true(condition, msg=msg)
 
     def assertFalse(self, condition, msg=None):
         assert not condition, msg

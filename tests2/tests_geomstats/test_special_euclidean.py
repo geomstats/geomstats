@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+import geomstats.backend as gs
 from geomstats.geometry.special_euclidean import (
     SpecialEuclideanMatrixLieAlgebra,
     _SpecialEuclideanMatrices,
@@ -9,20 +10,39 @@ from geomstats.geometry.special_euclidean import (
 from geomstats.test.geometry.special_euclidean import (
     SpecialEuclideanMatricesTestCase,
     SpecialEuclideanMatrixLieAlgebraTestCase,
+    homogeneous_representation_test_case,
+    homogeneous_representation_vec_test_case,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from tests2.data.special_euclidean_data import (
     SpecialEuclideanMatricesTestData,
     SpecialEuclideanMatrixLieAlgebra2TestData,
     SpecialEuclideanMatrixLieAlgebraTestData,
+    homogeneous_representation_test_data,
 )
+
+
+@pytest.mark.parametrize("n_reps", random.sample(range(2, 5), 1))
+@pytest.mark.parametrize("n", [2] + random.sample(range(3, 6), 1))
+@pytest.mark.vec
+def test_homogeneous_representation_vec(n, n_reps):
+    return homogeneous_representation_vec_test_case(n, n_reps, atol=gs.atol)
+
+
+@pytest.mark.parametrize(
+    "rotation,translation,constant,expected", homogeneous_representation_test_data()
+)
+def test_homogeneous_representation(rotation, translation, constant, expected):
+    return homogeneous_representation_test_case(
+        rotation, translation, constant, expected, atol=gs.atol
+    )
 
 
 @pytest.fixture(
     scope="class",
     params=[
         2,
-        # random.randint(3, 5),
+        random.randint(3, 10),
     ],
 )
 def spaces_mlg(request):
@@ -55,7 +75,7 @@ class TestSpecialEuclideanMatrixLieAlgebra(
 
 
 @pytest.mark.parametrize("n,expected", [(2, 3), (3, 6), (10, 55)])
-def test_dim(n, expected):
+def test_dim_mla(n, expected):
     space = SpecialEuclideanMatrixLieAlgebra(n=n)
     assert space.dim == expected
 
