@@ -308,7 +308,6 @@ class LieGroup(Manifold, abc.ABC):
         )
 
         self.metric = self.left_canonical_metric
-        self.metrics = []
 
     @property
     def identity(self):
@@ -574,17 +573,6 @@ class LieGroup(Manifold, abc.ABC):
         else:
             result = self.log_not_from_identity(point, base_point)
         return result
-
-    def add_metric(self, metric):
-        """Add a metric to the instance's list of metrics.
-
-        Parameters
-        ----------
-        metric : RiemannianMetric
-            Metric to add.
-        """
-        self.metrics.append(metric)
-        # TODO: remove?
 
     def lie_bracket(self, tangent_vector_a, tangent_vector_b, base_point=None):
         """Compute the lie bracket of two tangent vectors.
