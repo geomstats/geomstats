@@ -33,16 +33,15 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         """Create the canonical basis."""
         return gs.eye(3)
 
-    def get_identity(self):
-        """Get the identity of the 3D Heisenberg group.
+    @property
+    def identity(self):
+        """Identity of the 3D Heisenberg group.
 
         Returns
         -------
         _ : array-like, shape=[3,]
         """
         return gs.zeros(self.dim)
-
-    identity = property(get_identity)
 
     def compose(self, point_a, point_b):
         """Compute the group product of elements `point_a` and `point_b`.

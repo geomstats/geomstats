@@ -366,21 +366,9 @@ class _SpecialEuclideanVectors(LieGroup):
         self.rotations = SpecialOrthogonal(n=n, point_type="vector", epsilon=epsilon)
         self.translations = Euclidean(dim=n)
 
-    def get_identity(self):
-        """Get the identity of the group.
-
-        Returns
-        -------
-        identity : array-like, shape={[dim], [n + 1, n + 1]}
-        """
-        identity = gs.zeros(self.dim)
-        return identity
-
-    identity = property(get_identity)
-
-    def get_point_type_shape(self):
-        """Get the shape of the instance given the default_point_style."""
-        return self.get_identity().shape
+    @property
+    def identity(self):
+        return gs.zeros(self.dim)
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to SE(2) or SE(3).
@@ -1234,6 +1222,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
         _ : array-like, shape=[...,]
             Geodesic distance between point_a and point_b.
         """
+        # TODO: rename
         dist = super().squared_dist(point_a, point_b)
         return dist
 

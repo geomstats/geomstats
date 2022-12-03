@@ -100,6 +100,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
             Tangent map of the left/right translation by point. It can be
             applied to tangent vectors.
         """
+        # TODO: make "left_or_right" boolean?
         errors.check_parameter_accepted_values(
             left_or_right, "left_or_right", ["left", "right"]
         )
@@ -166,8 +167,7 @@ class MatrixLieGroup(Manifold, abc.ABC):
             tangent_vec_at_id = vector
         else:
             tangent_vec_at_id = self.compose(self.inverse(base_point), vector)
-        is_tangent = self.lie_algebra.belongs(tangent_vec_at_id, atol)
-        return is_tangent
+        return self.lie_algebra.belongs(tangent_vec_at_id, atol)
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector onto the tangent space at a base point.
@@ -310,8 +310,9 @@ class LieGroup(Manifold, abc.ABC):
         self.metric = self.left_canonical_metric
         self.metrics = []
 
-    def get_identity(self):
-        """Get the identity of the group.
+    @property
+    def identity(self):
+        """Identity of the group.
 
         Returns
         -------
@@ -319,8 +320,6 @@ class LieGroup(Manifold, abc.ABC):
             Identity of the Lie group.
         """
         raise NotImplementedError("The Lie group identity is not implemented.")
-
-    identity = property(get_identity)
 
     def compose(self, point_a, point_b):
         """Perform function composition corresponding to the Lie group.
@@ -376,6 +375,7 @@ class LieGroup(Manifold, abc.ABC):
         jacobian : array-like, shape=[..., dim, dim]
             Jacobian of the left/right translation by point.
         """
+        # TODO: replace left_or_right by bool
         raise NotImplementedError(
             "The jacobian of the Lie group translation is not implemented."
         )
@@ -410,6 +410,7 @@ class LieGroup(Manifold, abc.ABC):
             Tangent map of the left/right translation by point. It can be
             applied to tangent vectors.
         """
+        # TODO: refactor here as above
         errors.check_parameter_accepted_values(
             left_or_right, "left_or_right", ["left", "right"]
         )
@@ -487,7 +488,7 @@ class LieGroup(Manifold, abc.ABC):
         result : array-like, shape=[..., {dim, [n, n]}]
             Group exponential.
         """
-        identity = self.get_identity()
+        identity = self.identity
 
         if base_point is None:
             base_point = identity
@@ -561,7 +562,7 @@ class LieGroup(Manifold, abc.ABC):
         """
         # TODO (ninamiolane): Build a standalone decorator that *only*
         # deals with point_type None and base_point None
-        identity = self.get_identity()
+        identity = self.identity
         if base_point is None:
             base_point = identity
 
@@ -583,6 +584,7 @@ class LieGroup(Manifold, abc.ABC):
             Metric to add.
         """
         self.metrics.append(metric)
+        # TODO: remove?
 
     def lie_bracket(self, tangent_vector_a, tangent_vector_b, base_point=None):
         """Compute the lie bracket of two tangent vectors.
@@ -606,7 +608,7 @@ class LieGroup(Manifold, abc.ABC):
             Lie bracket.
         """
         if base_point is None:
-            base_point = self.get_identity()
+            base_point = self.identity
         inverse_base_point = self.inverse(base_point)
 
         first_term = Matrices.mul(inverse_base_point, tangent_vector_b)

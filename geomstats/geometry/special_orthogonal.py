@@ -336,8 +336,9 @@ class _SpecialOrthogonalVectors(LieGroup):
         self.n = n
         self.epsilon = epsilon
 
-    def get_identity(self):
-        """Get the identity of the group.
+    @property
+    def identity(self):
+        """Identity of the group.
 
         Parameters
         ----------
@@ -350,8 +351,6 @@ class _SpecialOrthogonalVectors(LieGroup):
             Identity.
         """
         return gs.zeros(self.dim)
-
-    identity = property(get_identity)
 
     def belongs(self, point, atol=ATOL):
         """Evaluate if a point belongs to SO(3).
