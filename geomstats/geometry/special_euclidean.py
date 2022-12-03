@@ -165,7 +165,7 @@ def homogeneous_representation(rotation, translation, constant=1.0):
 
     last_row = gs.concatenate([zeros, constant], axis=-1)
 
-    if mat.shape == 2 and last_row.shape > 1:
+    if mat.ndim == 2 and last_row.ndim > 1:
         mat = gs.broadcast_to(mat, (last_row.shape[0], *mat.shape))
 
     return gs.concatenate([mat, last_row[..., None, :]], axis=-2)
