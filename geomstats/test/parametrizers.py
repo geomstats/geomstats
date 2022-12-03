@@ -280,11 +280,22 @@ def _collect_testing_data_tests(testing_data):
 
 
 def _filter_test_funcs_given_data(test_attrs, data_names_ls):
+    # TODO: need to think about skips; probably after
     relevant_test_attrs = dict()
+    assigned_data_names = []
     for attr_name, attr in test_attrs.items():
         data_name = _test_name_to_test_data_name(attr_name)
         if data_name in data_names_ls:
+            assigned_data_names.append(data_name)
             relevant_test_attrs[attr_name] = attr
+
+    if len(assigned_data_names) != len(data_names_ls):
+        missing_tests = set(data_names_ls).difference(assigned_data_names)
+        msg = "Need to define tests for:"
+        for data_name in missing_tests:
+            msg += f"\n\t-{data_name}"
+
+        raise Exception(msg)
 
     return relevant_test_attrs
 
