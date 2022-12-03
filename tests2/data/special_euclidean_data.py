@@ -1,6 +1,10 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.data.base_data import LevelSetTestData, MatrixLieAlgebraTestData
+from tests2.data.base_data import (
+    LevelSetTestData,
+    MatrixLieAlgebraTestData,
+    MatrixLieGroupTestData,
+)
 
 
 def algebra_useful_matrix(theta, elem_33=0.0):
@@ -18,7 +22,7 @@ def homogeneous_representation_test_data():
     return data
 
 
-class SpecialEuclideanMatricesTestData(LevelSetTestData):
+class SpecialEuclideanMatricesTestData(MatrixLieGroupTestData, LevelSetTestData):
     tolerances = {
         "projection_belongs": {"atol": 1e-4},
     }

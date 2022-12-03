@@ -125,6 +125,52 @@ class MatrixLieAlgebraTestData(VectorSpaceTestData):
         return self.generate_tests(data)
 
 
+class MatrixLieGroupTestData(ManifoldTestData):
+    def compose_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+    def inverse_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+    def compose_with_inverse_is_identity_test_data(self):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+    def compose_with_identity_is_point_test_data(self):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+    def exp_after_log_test_data(self):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+    def exp_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+    def log_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+    def exp_after_log_test_data(self):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+    def log_after_exp_test_data(self):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+    def to_tangent_at_identity_belongs_to_lie_algebra_test_data(self):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+    def lie_bracket_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+
 class LevelSetTestData(_ProjectionMixinsTestData, ManifoldTestData):
     def submersion_vec_test_data(self):
         data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]

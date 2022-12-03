@@ -2,7 +2,11 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
 from geomstats.geometry.special_euclidean import homogeneous_representation
-from geomstats.test.geometry.base import LevelSetTestCase, MatrixLieAlgebraTestCase
+from geomstats.test.geometry.base import (
+    LevelSetTestCase,
+    MatrixLieAlgebraTestCase,
+    MatrixLieGroupTestCase,
+)
 from geomstats.test.test_case import assert_allclose
 from geomstats.test.vectorization import generate_vectorization_data
 
@@ -43,8 +47,7 @@ def homogeneous_representation_vec_test_case(n, n_reps, atol):
         homogeneous_representation_test_case(**datum)
 
 
-class SpecialEuclideanMatricesTestCase(LevelSetTestCase):
-    # TODO: inherit from MatrixLieGroup
+class SpecialEuclideanMatricesTestCase(MatrixLieGroupTestCase, LevelSetTestCase):
     pass
 
 
