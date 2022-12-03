@@ -1,3 +1,5 @@
+import pytest
+
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 from tests2.data.base_data import (
@@ -26,6 +28,10 @@ class SpecialEuclideanMatricesTestData(MatrixLieGroupTestData, LevelSetTestData)
     tolerances = {
         "projection_belongs": {"atol": 1e-4},
     }
+
+    def log_after_exp_test_data(self):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data, marks=(pytest.mark.xfail))
 
 
 class SpecialEuclideanMatrixLieAlgebraTestData(MatrixLieAlgebraTestData):
