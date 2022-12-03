@@ -4,12 +4,14 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.special_euclidean import (
+    SpecialEuclidean,
     SpecialEuclideanMatrixLieAlgebra,
     _SpecialEuclideanMatrices,
 )
 from geomstats.test.geometry.special_euclidean import (
     SpecialEuclideanMatricesTestCase,
     SpecialEuclideanMatrixLieAlgebraTestCase,
+    SpecialEuclideanVectorsTestCase,
     homogeneous_representation_test_case,
     homogeneous_representation_vec_test_case,
 )
@@ -18,6 +20,7 @@ from tests2.data.special_euclidean_data import (
     SpecialEuclideanMatricesTestData,
     SpecialEuclideanMatrixLieAlgebra2TestData,
     SpecialEuclideanMatrixLieAlgebraTestData,
+    SpecialEuclideanVectorsTestData,
     homogeneous_representation_test_data,
 )
 
@@ -54,6 +57,24 @@ class TestSpecialEuclideanMatrices(
     SpecialEuclideanMatricesTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SpecialEuclideanMatricesTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        2,
+        3,
+    ],
+)
+def spaces_vectors(request):
+    request.cls.space = SpecialEuclidean(n=request.param, point_type="vector")
+
+
+@pytest.mark.usefixtures("spaces_vectors")
+class TestSpecialEuclideanVectors(
+    SpecialEuclideanVectorsTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = SpecialEuclideanVectorsTestData()
 
 
 @pytest.fixture(

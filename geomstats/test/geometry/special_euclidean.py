@@ -4,8 +4,10 @@ from geomstats.geometry.general_linear import SquareMatrices
 from geomstats.geometry.special_euclidean import homogeneous_representation
 from geomstats.test.geometry.base import (
     LevelSetTestCase,
+    LieGroupTestCase,
     MatrixLieAlgebraTestCase,
     MatrixLieGroupTestCase,
+    _ProjectionTestCaseMixins,
 )
 from geomstats.test.test_case import assert_allclose
 from geomstats.test.vectorization import generate_vectorization_data
@@ -49,6 +51,12 @@ def homogeneous_representation_vec_test_case(n, n_reps, atol):
 
 class SpecialEuclideanMatricesTestCase(MatrixLieGroupTestCase, LevelSetTestCase):
     pass
+
+
+class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCase):
+    def _get_point_to_project(self, n_points):
+        batch_shape = (n_points,) if n_points > 1 else ()
+        return gs.random.normal(size=batch_shape + self.space.shape)
 
 
 class SpecialEuclideanMatrixLieAlgebraTestCase(MatrixLieAlgebraTestCase):
