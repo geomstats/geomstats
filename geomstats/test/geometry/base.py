@@ -222,10 +222,11 @@ class _LieGroupTestCaseMixins:
         self.assertAllEqual(res, expected)
 
     def test_tangent_translation_map(
-        self, point, left_or_right, inverse, tangent_vec, expected, atol
+        self, point, left, inverse, tangent_vec, expected, atol
     ):
-        # TODO: develop after some refactoring?
-        pass
+        # TODO: test vectorization?
+        res = self.space.tangent_translation_map(point, left, inverse)
+        self.assertAllClose(res, expected, atol=atol)
 
     def test_lie_bracket(
         self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
@@ -601,9 +602,10 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
         batch_shape = (n_points,) if n_points > 1 else ()
         return gs.random.normal(size=batch_shape + self.space.shape)
 
-    def test_jacobian_translation(self):
-        # TODO: develop test after refactoring
-        pass
+    def test_jacobian_translation(self, point, left, expected, atol):
+        # TODO: add vectorization test?
+        res = self.space.jacobian_translation(point, left)
+        self.assertAllClose(res, expected, atol=atol)
 
     def test_exp_from_identity(self, tangent_vec, expected, atol):
         res = self.space.exp_from_identity(tangent_vec)
