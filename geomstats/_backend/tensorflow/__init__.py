@@ -31,7 +31,7 @@ from tensorflow import (
 from tensorflow import reduce_max as amax
 from tensorflow import reduce_min as amin
 from tensorflow import reduce_prod as prod
-from tensorflow import reshape, searchsorted, sort, squeeze, stack, uint8, zeros_like
+from tensorflow import reshape, searchsorted, sort, stack, uint8, zeros_like
 from tensorflow.experimental.numpy import empty_like, moveaxis
 
 from .._backend_config import tf_atol as atol
@@ -46,7 +46,11 @@ from ._dtype import (
     _dyn_update_dtype,
     _modify_func_default_dtype,
     as_dtype,
+    get_default_cdtype,
     get_default_dtype,
+    is_bool,
+    is_complex,
+    is_floating,
     set_default_dtype,
 )
 
@@ -62,7 +66,6 @@ _DTYPES = {
 conj = _tf.math.conj
 erf = _tf.math.erf
 imag = _tf.math.imag
-isnan = _tf.math.is_nan
 polygamma = _tf.math.polygamma
 real = _tf.math.real
 set_diag = _tf.linalg.set_diag
@@ -110,6 +113,14 @@ def to_numpy(x):
 
 def from_numpy(x):
     return _tf.convert_to_tensor(x)
+
+
+def squeeze(x, axis=None):
+    if axis is None:
+        return _tf.squeeze(x)
+    if x.shape[axis] != 1:
+        return x
+    return _tf.squeeze(x, axis=axis)
 
 
 def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
@@ -560,7 +571,7 @@ def outer(x, y):
 
 
 def copy(x):
-    return _tf.Variable(x)
+    return _tf.identity(x)
 
 
 def hstack(x):
@@ -626,7 +637,10 @@ def isclose(x, y, rtol=rtol, atol=atol):
     x, y = convert_to_wider_dtype([x, y])
     dtype = x.dtype
 
-    rhs = _tf.constant(atol, dtype=dtype) + _tf.constant(rtol, dtype=dtype) * _tf.abs(y)
+    diff = _tf.abs(_tf.subtract(x, y))
+    rhs = _tf.constant(atol, dtype=dtype)
+    rhs += _tf.constant(rtol, dtype=dtype) * _tf.cast(_tf.abs(y), dtype=dtype)
+    rhs = _tf.cast(rhs, dtype=diff.dtype)
     return _tf.less_equal(_tf.abs(_tf.subtract(x, y)), rhs)
 
 
@@ -865,6 +879,12 @@ def is_array(x):
     return _tf.is_tensor(x)
 
 
+def isnan(x):
+    if is_complex(x):
+        return _tf.math.is_nan(real(x))
+    return _tf.math.is_nan(x)
+
+
 def matvec(A, b):
     A, b = convert_to_wider_dtype([A, b])
     return _tf.linalg.matvec(A, b)
@@ -890,3 +910,7 @@ def matmul(x, y):
 
     x, y = convert_to_wider_dtype([x, y])
     return _tf.linalg.matmul(x, y)
+
+
+def gamma(x):
+    return _tf.exp(_tf.math.lgamma(x))

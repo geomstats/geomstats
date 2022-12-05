@@ -22,18 +22,34 @@ smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
 
 
 class ProductManifoldTestData(_ManifoldTestData):
-    n_list = random.sample(range(2, 4), 2)
-    default_point_list = ["vector", "matrix"]
-    manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
-    space_args_list = [
-        (manifold, None, default_point)
-        for manifold, default_point in zip(manifolds_list, default_point_list)
+    manifolds_list = [
+        [Hypersphere(dim=3), Hyperboloid(dim=3)],
+        [Hypersphere(dim=3), Hyperboloid(dim=3)],
+        [Hypersphere(dim=3), Hyperboloid(dim=4)],
+        [Hypersphere(dim=1), Euclidean(dim=1)],
+        [SpecialOrthogonal(n=2), SpecialOrthogonal(n=3)],
+        [SpecialOrthogonal(n=2), Euclidean(dim=3)],
+        [Euclidean(dim=2), Euclidean(dim=1), Euclidean(dim=4)],
     ]
+    default_point_list = ["matrix"] + ["vector"] * 6
+    default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"]
+
     shape_list = [
-        (n + 1, n + 1) if default_point == "matrix" else (2 * (n + 1),)
-        for n, default_point in zip(n_list, default_point_list)
+        (2, 3 + 1),
+        (2 * (3 + 1),),
+        ((3 + 1) + (4 + 1),),
+        (2 + 1,),
+        (4 + 6,),
+        (4 + 3,),
+        (7,),
     ]
-    n_points_list = random.sample(range(2, 5), 2)
+
+    space_args_list = [
+        (manifolds, None, default_point)
+        for manifolds, default_point in zip(manifolds_list, default_point_list)
+    ]
+
+    n_points_list = [1] + random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
     Space = ProductManifold
@@ -71,6 +87,24 @@ class ProductManifoldTestData(_ManifoldTestData):
             ),
         ]
         return self.generate_tests(smoke_data)
+
+    def default_coords_type_test_data(self):
+        smoke_data = [
+            dict(space_args=space_args, expected=default_coords_type)
+            for space_args, default_coords_type in zip(
+                self.space_args_list, self.default_coords_type_list
+            )
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def embed_to_after_project_from_test_data(self):
+        random_data = []
+        for space_args in self.space_args_list:
+            for n_points in [1, 2]:
+                random_data.append(dict(space_args=space_args, n_points=n_points))
+
+        return self.generate_tests([], random_data)
 
 
 class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
@@ -157,11 +191,17 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
 
 
 class NFoldManifoldTestData(_ManifoldTestData):
-    n_list = random.sample(range(2, 4), 2)
-    base_list = [SpecialOrthogonal(n) for n in n_list]
-    power_list = random.sample(range(2, 4), 2)
+
+    base_list = [
+        SpecialOrthogonal(2),
+        Euclidean(3),
+    ]
+    power_list = [3, 2]
+    shape_list = [(3, 2, 2), (2, 3)]
+    scale_list = [[1, 2, 3], [1, 1]]
+
     space_args_list = list(zip(base_list, power_list))
-    shape_list = [(power, n, n) for n, power in zip(n_list, power_list)]
+
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -228,3 +268,42 @@ class NFoldMetricTestData(_RiemannianMetricTestData):
             dict(space=space, n_samples=4, point=point, tangent_vec=tangent_vec)
         ]
         return self.generate_tests(smoke_data)
+
+    def inner_product_scales_test_data(self):
+        so3 = SpecialOrthogonal(3)
+        r4 = Euclidean(4)
+        point1 = so3.random_point(n_samples=2)
+        vec1 = so3.random_tangent_vec(point1, n_samples=2)
+        point2 = r4.random_point(n_samples=3)
+        vec2 = r4.random_tangent_vec(point2, n_samples=3)
+        random_data = [
+            dict(
+                base_metric=so3.metric,
+                n_copies=2,
+                scales=[1.0, 2.0],
+                point=point1,
+                tangent_vec=vec1,
+            ),
+            dict(
+                base_metric=so3.metric,
+                n_copies=2,
+                scales=[1.0, 2.0],
+                point=gs.stack((point1, point1)),
+                tangent_vec=gs.stack((vec1, vec1)),
+            ),
+            dict(
+                base_metric=r4.metric,
+                n_copies=3,
+                scales=[2.5, 2.0, 1.5],
+                point=point2,
+                tangent_vec=vec2,
+            ),
+            dict(
+                base_metric=r4.metric,
+                n_copies=3,
+                scales=[2.5, 2.0, 1.5],
+                point=gs.stack((point2, point2)),
+                tangent_vec=gs.stack((vec2, vec2)),
+            ),
+        ]
+        return self.generate_tests(random_data)

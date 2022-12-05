@@ -9,7 +9,7 @@ from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 
 
 class FullRankCorrelationMatrices(LevelSet):
@@ -22,16 +22,40 @@ class FullRankCorrelationMatrices(LevelSet):
     """
 
     def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
-        super().__init__(
-            dim=int(n * (n - 1) / 2),
-            embedding_space=SPDMatrices(n=n),
-            submersion=Matrices.diagonal,
-            value=gs.ones(n),
-            tangent_submersion=lambda v, x: Matrices.diagonal(v),
-            **kwargs
-        )
         self.n = n
+
+        kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
+        super().__init__(dim=int(n * (n - 1) / 2), **kwargs)
+
+    def _define_embedding_space(self):
+        return SPDMatrices(n=self.n)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n]
+        """
+        return Matrices.diagonal(point) - gs.ones(self.n)
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : Ignored.
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n]
+        """
+        return Matrices.diagonal(vector)
 
     @staticmethod
     def diag_action(diagonal_vec, point):
@@ -55,13 +79,6 @@ class FullRankCorrelationMatrices(LevelSet):
             `point`.
         """
         return point * gs.outer(diagonal_vec, diagonal_vec)
-
-    @property
-    def metric(self):
-        """Riemannian Metric associated to the Manifold."""
-        if self._metric is None:
-            self._metric = FullRankCorrelationAffineQuotientMetric(self.n)
-        return self._metric
 
     @classmethod
     def from_covariance(cls, point):
@@ -156,7 +173,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
     def __init__(self, n):
         super().__init__(
             n=n,
-            total_space_metric=SPDMetricAffine(n),
+            total_space_metric=SPDAffineMetric(n),
             group_dim=n,
             group_action=FullRankCorrelationMatrices.diag_action,
         )

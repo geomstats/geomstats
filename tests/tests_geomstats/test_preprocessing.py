@@ -56,7 +56,7 @@ class TestToTangentSpace(tests.conftest.TestCase):
     def test_estimate_transform_spd(self):
         point = spd.SPDMatrices(3).random_point()
         points = gs.stack([point, point])
-        transformer = ToTangentSpace(geometry=spd.SPDMetricAffine(3))
+        transformer = ToTangentSpace(geometry=spd.SPDAffineMetric(3))
         transformer.fit(X=points)
         result = transformer.transform(points)
         expected = gs.zeros((2, 6))
@@ -80,13 +80,13 @@ class TestToTangentSpace(tests.conftest.TestCase):
 
     def test_inverse_transform_spd(self):
         point = spd.SPDMatrices(3).random_point(10)
-        transformer = ToTangentSpace(geometry=spd.SPDMetricLogEuclidean(3))
+        transformer = ToTangentSpace(geometry=spd.SPDLogEuclideanMetric(3))
         X = transformer.fit_transform(X=point)
         result = transformer.inverse_transform(X)
         expected = point
         self.assertAllClose(expected, result, atol=1e-4)
 
-        transformer = ToTangentSpace(geometry=spd.SPDMetricAffine(3))
+        transformer = ToTangentSpace(geometry=spd.SPDAffineMetric(3))
         X = transformer.fit_transform(X=point)
         result = transformer.inverse_transform(X)
         expected = point

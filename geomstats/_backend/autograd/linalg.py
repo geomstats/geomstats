@@ -3,8 +3,7 @@
 import functools as _functools
 
 import autograd.numpy as _np
-import autograd.scipy.linalg as _asp
-import scipy as _scipy
+import autograd.scipy as _ascp
 from autograd.extend import defvjp as _defvjp
 from autograd.extend import primitive as _primitive
 from autograd.numpy.linalg import (  # NOQA
@@ -19,25 +18,22 @@ from autograd.numpy.linalg import (  # NOQA
     solve,
     svd,
 )
+from autograd.scipy.linalg import expm
 
+from ._common import atol
 from ._common import to_ndarray as _to_ndarray
-from ._dtype import _cast_fout_to_input_dtype
+from ._dtype import _cast_fout_to_input_dtype, _cast_out_to_input_dtype
 
 _diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
 
 _logm_vec = _cast_fout_to_input_dtype(
-    target=_np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
+    target=_np.vectorize(_ascp.linalg.logm, signature="(n,m)->(n,m)")
 )
 
 
 def _is_symmetric(x, tol=1e-12):
     new_x = _to_ndarray(x, to_ndim=3)
     return (_np.abs(new_x - _np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
-
-
-@_primitive
-def expm(x):
-    return _np.vectorize(_asp.expm, signature="(n,m)->(n,m)")(x)
 
 
 def _adjoint(_ans, x, fn):
@@ -97,17 +93,17 @@ def solve_sylvester(a, b, q):
                 return eigvecs @ tilde_x @ _np.transpose(eigvecs, axes)
 
     return _np.vectorize(
-        _scipy.linalg.solve_sylvester, signature="(m,m),(n,n),(m,n)->(m,n)"
+        _ascp.linalg.solve_sylvester, signature="(m,m),(n,n),(m,n)->(m,n)"
     )(a, b, q)
 
 
 @_cast_fout_to_input_dtype
 def sqrtm(x):
-    return _np.vectorize(_scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
+    return _np.vectorize(_ascp.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
 
 
 def quadratic_assignment(a, b, options):
-    return list(_scipy.optimize.quadratic_assignment(a, b, options=options).col_ind)
+    return list(_ascp.optimize.quadratic_assignment(a, b, options=options).col_ind)
 
 
 def qr(*args, **kwargs):
@@ -120,6 +116,12 @@ def is_single_matrix_pd(mat):
     """Check if a 2D square matrix is positive definite."""
     if mat.shape[0] != mat.shape[1]:
         return False
+    if mat.dtype in [_np.complex64, _np.complex128]:
+        is_hermitian = _np.all(_np.abs(mat - _np.conj(_np.transpose(mat))) < atol)
+        if not is_hermitian:
+            return False
+        eigvals = _np.linalg.eigvalsh(mat)
+        return _np.min(_np.real(eigvals)) > 0
     try:
         _np.linalg.cholesky(mat)
         return True
@@ -127,3 +129,11 @@ def is_single_matrix_pd(mat):
         if e.args[0] == "Matrix is not positive definite":
             return False
         raise e
+
+
+@_cast_out_to_input_dtype
+def fractional_matrix_power(A, t):
+    if A.ndim == 2:
+        return _ascp.linalg.fractional_matrix_power(A, t)
+
+    return _np.stack([_ascp.linalg.fractional_matrix_power(A_, t) for A_ in A])

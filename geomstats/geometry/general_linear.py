@@ -25,12 +25,15 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
     """
 
     def __init__(self, n, positive_det=False, **kwargs):
-        ambient_space = Matrices(n, n)
+        embedding_space = Matrices(n, n)
         kwargs.setdefault("dim", n**2)
-        kwargs.setdefault("metric", ambient_space.metric)
+        kwargs.setdefault("metric", embedding_space.metric)
 
         super().__init__(
-            ambient_space=ambient_space, n=n, lie_algebra=SquareMatrices(n), **kwargs
+            embedding_space=embedding_space,
+            n=n,
+            lie_algebra=SquareMatrices(n),
+            **kwargs
         )
 
         self.positive_det = positive_det
@@ -78,14 +81,14 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if point is in GL(n).
         """
-        has_right_size = self.ambient_space.belongs(point)
+        has_right_size = self.embedding_space.belongs(point)
         if gs.all(has_right_size):
             det = gs.linalg.det(point)
             return det > atol if self.positive_det else gs.abs(det) > atol
         return has_right_size
 
     def random_point(self, n_samples=1, bound=1.0, n_iter=100):
-        """Sample in GL(n) from the uniform distribution.
+        """Sample in GL(n) from the normal distribution.
 
         Parameters
         ----------
@@ -93,8 +96,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
             Number of samples.
             Optional, default: 1.
         bound: float
-            Bound of the interval in which to sample each matrix entry.
-            Optional, default: 1.
+            This parameter is ignored
         n_iter : int
             Maximum number of trials to sample a matrix with positive det.
             Optional, default: 100.

@@ -9,12 +9,12 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 from geomstats.geometry.spd_matrices import SPDMatrices
 from tests.conftest import Parametrizer
 from tests.data.spd_matrices_data import (
+    SPDAffineMetricTestData,
+    SPDBuresWassersteinMetricTestData,
+    SPDEuclideanMetricPower1TestData,
+    SPDEuclideanMetricTestData,
+    SPDLogEuclideanMetricTestData,
     SPDMatricesTestData,
-    SPDMetricAffineTestData,
-    SPDMetricBuresWassersteinTestData,
-    SPDMetricEuclideanPower1TestData,
-    SPDMetricEuclideanTestData,
-    SPDMetricLogEuclideanTestData,
 )
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
@@ -89,14 +89,22 @@ class TestSPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
         )
 
 
-class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestSPDAffineMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_geodesic_ivp_belongs = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
-    testing_data = SPDMetricAffineTestData()
+    testing_data = SPDAffineMetricTestData()
 
     def test_inner_product(
         self, n, power_affine, tangent_vec_a, tangent_vec_b, base_point, expected
@@ -120,13 +128,21 @@ class TestSPDMetricAffine(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
 
 
-class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestSPDBuresWassersteinMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_dist_point_to_itself_is_zero = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
-    testing_data = SPDMetricBuresWassersteinTestData()
+    testing_data = SPDBuresWassersteinMetricTestData()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = self.Metric(n)
@@ -193,10 +209,18 @@ class TestSPDMetricBuresWasserstein(RiemannianMetricTestCase, metaclass=Parametr
         self.assertTrue(gs.all(is_tangent))
 
 
-class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestSPDEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_belongs = True
     skip_test_log_after_exp = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     # ignore (tested below)
     skip_test_geodesic_ivp_belongs = True
@@ -205,7 +229,7 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_parallel_transport_bvp_is_isometry = True
 
-    testing_data = SPDMetricEuclideanTestData()
+    testing_data = SPDEuclideanMetricTestData()
 
     def test_inner_product(
         self, n, power_euclidean, tangent_vec_a, tangent_vec_b, base_point, expected
@@ -237,7 +261,7 @@ class TestSPDMetricEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, tangent_vec_a)
 
 
-class TestSPDMetricEuclideanPower1(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestSPDEuclideanMetricPower1(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_dist_is_norm_of_log = True
     skip_test_dist_is_positive = True
     skip_test_dist_is_symmetric = True
@@ -254,6 +278,14 @@ class TestSPDMetricEuclideanPower1(RiemannianMetricTestCase, metaclass=Parametri
     skip_test_squared_dist_is_positive = True
     skip_test_squared_dist_is_symmetric = True
     skip_test_triangle_inequality_of_dist = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     # not skip
     skip_test_exp_ladder_parallel_transport = False
@@ -261,10 +293,10 @@ class TestSPDMetricEuclideanPower1(RiemannianMetricTestCase, metaclass=Parametri
     skip_test_parallel_transport_ivp_is_isometry = False
     skip_test_geodesic_ivp_belongs = True  # fails to often
 
-    testing_data = SPDMetricEuclideanPower1TestData()
+    testing_data = SPDEuclideanMetricPower1TestData()
 
 
-class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestSPDLogEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -272,8 +304,16 @@ class TestSPDMetricLogEuclidean(RiemannianMetricTestCase, metaclass=Parametrizer
     skip_test_log_after_exp = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_exp_belongs = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
-    testing_data = SPDMetricLogEuclideanTestData()
+    testing_data = SPDLogEuclideanMetricTestData()
 
     def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = self.Metric(n)

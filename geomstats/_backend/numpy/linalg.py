@@ -14,10 +14,11 @@ from numpy.linalg import (  # NOQA
     solve,
     svd,
 )
+from scipy.linalg import expm
 
 from ._common import atol
 from ._common import to_ndarray as _to_ndarray
-from ._dtype import _cast_fout_to_input_dtype
+from ._dtype import _cast_fout_to_input_dtype, _cast_out_to_input_dtype
 
 _diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
 
@@ -29,10 +30,6 @@ _logm_vec = _cast_fout_to_input_dtype(
 def _is_symmetric(x, tol=atol):
     new_x = _to_ndarray(x, to_ndim=3)
     return (_np.abs(new_x - _np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
-
-
-def expm(x):
-    return _np.vectorize(_scipy.linalg.expm, signature="(n,m)->(n,m)")(x)
 
 
 def logm(x):
@@ -92,6 +89,12 @@ def is_single_matrix_pd(mat):
     """Check if 2D square matrix is positive definite."""
     if mat.shape[0] != mat.shape[1]:
         return False
+    if mat.dtype in [_np.complex64, _np.complex128]:
+        is_hermitian = _np.all(_np.abs(mat - _np.conj(_np.transpose(mat))) < atol)
+        if not is_hermitian:
+            return False
+        eigvals = _np.linalg.eigvalsh(mat)
+        return _np.min(_np.real(eigvals)) > 0
     try:
         _np.linalg.cholesky(mat)
         return True
@@ -99,3 +102,11 @@ def is_single_matrix_pd(mat):
         if e.args[0] == "Matrix is not positive definite":
             return False
         raise e
+
+
+@_cast_out_to_input_dtype
+def fractional_matrix_power(A, t):
+    if A.ndim == 2:
+        return _scipy.linalg.fractional_matrix_power(A, t)
+
+    return _np.stack([_scipy.linalg.fractional_matrix_power(A_, t) for A_ in A])

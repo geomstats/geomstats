@@ -16,7 +16,7 @@ class DirichletTestData(_OpenSetTestData):
     shape_list = [(n,) for n in n_list]
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(1, 5), 2)
-    n_vecs_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
     def belongs_test_data(self):
         smoke_data = [
@@ -90,7 +90,7 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
     Metric = DirichletMetric
 
     n_list = random.sample(range(2, 5), 2)
-    metric_args_list = list(
+    connection_args_list = metric_args_list = list(
         zip(
             n_list,
         )
@@ -356,3 +356,11 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
             ),
         ]
         return self.generate_tests(smoke_data)
+
+    def sectional_curvature_is_negative_test_data(self):
+        random_data = [
+            dict(dim=2, base_point=self.Space(2).random_point()),
+            dict(dim=3, base_point=self.Space(3).random_point()),
+            dict(dim=4, base_point=self.Space(4).random_point()),
+        ]
+        return self.generate_tests([], random_data)

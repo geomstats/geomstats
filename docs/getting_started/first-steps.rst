@@ -4,7 +4,9 @@
 First steps
 ===========
 
-The purpose of this guide is to illustrate the possible uses of geomstats.
+The purpose of this guide is to guide through the installation of geomstats and illustrate the possible uses of geomstats.
+Install is possible via ``pip3``, ``conda`` or by cloning the Github repository.
+
 
 **INSTALL GEOMSTATS WITH PIP3**
 
@@ -13,6 +15,20 @@ From a terminal (OS X & Linux), you can install geomstats and its requirements w
     pip3 install geomstats
 
 This method installs the latest version of geomstats that is uploaded on PyPi.
+
+
+**INSTALL GEOMSTATS WITH CONDA**
+
+From a terminal (OS X & Linux) or an Anaconda prompt (Windows), you can install geomstats and its
+requirements with ``conda`` as follows:
+
+::
+
+    conda install -c conda-forge geomstats
+
+This method installs the latest version of geomstats that is uploaded on
+conda-forge. Note that geomstats is only available with Python3.
+
 
 **INSTALL GEOMSTATS FROM GITHUB**
 

@@ -28,13 +28,13 @@ class SPDMatrices(OpenSet):
     """
 
     def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", SPDMetricAffine(n))
+        kwargs.setdefault("metric", SPDAffineMetric(n))
         super().__init__(
-            dim=int(n * (n + 1) / 2), ambient_space=SymmetricMatrices(n), **kwargs
+            dim=int(n * (n + 1) / 2), embedding_space=SymmetricMatrices(n), **kwargs
         )
         self.n = n
 
-    def belongs(self, mat, atol=gs.atol):
+    def belongs(self, point, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.
 
         Parameters
@@ -50,8 +50,8 @@ class SPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        is_sym = self.ambient_space.belongs(mat, atol)
-        is_pd = Matrices.is_pd(mat)
+        is_sym = self.embedding_space.belongs(point, atol)
+        is_pd = Matrices.is_pd(point)
         belongs = gs.logical_and(is_sym, is_pd)
         return belongs
 
@@ -462,7 +462,7 @@ class SPDMatrices(OpenSet):
         return differential_cf
 
 
-class SPDMetricAffine(RiemannianMetric):
+class SPDAffineMetric(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold."""
 
     def __init__(self, n, power_affine=1):
@@ -738,7 +738,7 @@ class SPDMetricAffine(RiemannianMetric):
         return math.inf
 
 
-class SPDMetricBuresWasserstein(RiemannianMetric):
+class SPDBuresWassersteinMetric(RiemannianMetric):
     """Class for the Bures-Wasserstein metric on the SPD manifold.
 
     Parameters
@@ -989,7 +989,7 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         return eigen_values[..., 0] ** 0.5
 
 
-class SPDMetricEuclidean(RiemannianMetric):
+class SPDEuclideanMetric(RiemannianMetric):
     """Class for the Euclidean metric on the SPD manifold."""
 
     def __init__(self, n, power_euclidean=1):
@@ -1192,7 +1192,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         raise NotImplementedError("Parallel transport is only implemented for power 1")
 
 
-class SPDMetricLogEuclidean(RiemannianMetric):
+class SPDLogEuclideanMetric(RiemannianMetric):
     """Class for the Log-Euclidean metric on the SPD manifold.
 
     Parameters

@@ -79,7 +79,9 @@ class SymmetricMatrices(VectorSpace):
         return Matrices.to_symmetric(point)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample a symmetric matrix with a uniform distribution in a box.
+        """Sample a symmetric matrix.
+
+        Samples from a uniform distribution in a box and then converts to symmetric.
 
         Parameters
         ----------

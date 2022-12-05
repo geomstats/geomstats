@@ -6,6 +6,8 @@ import pytest
 import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 
+CDTYPE = gs.get_default_cdtype()
+
 
 def better_squeeze(array):
     """Delete possible singleton dimension on first axis."""
@@ -27,6 +29,28 @@ def _repeat_point(point, n_reps=2):
 
 def _expand_and_repeat_point(point, n_reps=2):
     return _expand_point(point), _repeat_point(point, n_reps=n_reps)
+
+
+def generate_random_vec(shape, dtype=gs.float64):
+    """Generate a normal random vector
+
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the vector to generate.
+    dtype : dtype
+        Data type of the vector to generate.
+
+    Returns
+    -------
+    random_vec: array-like
+        Generated random vector.
+    """
+    random_vec = gs.random.normal(size=shape)
+    random_vec = gs.cast(random_vec, dtype=dtype)
+    if dtype in [gs.complex64, gs.complex128]:
+        random_vec += 1j * gs.cast(gs.random.normal(size=shape), dtype=dtype)
+    return random_vec
 
 
 class TestData:
@@ -250,8 +274,44 @@ class _ManifoldTestData(TestData):
         return self.generate_tests([], random_data)
 
 
+class _ComplexManifoldTestData(_ManifoldTestData):
+    """Class for ComplexManifoldTestData: data to test complex manifold properties."""
+
+    def projection_belongs_test_data(self):
+        """Generate data to check that a projected point belongs to the manifold."""
+        random_data = [
+            dict(
+                space_args=space_args,
+                point=generate_random_vec(shape=(n_points,) + shape, dtype=CDTYPE),
+            )
+            for space_args, shape, n_points in zip(
+                self.space_args_list, self.shape_list, self.n_points_list
+            )
+        ]
+        return self.generate_tests([], random_data)
+
+    def to_tangent_is_tangent_test_data(self):
+        """Generate data to check that to_tangent returns a tangent vector."""
+        random_data = []
+
+        for space_args, shape, n_vecs in zip(
+            self.space_args_list, self.shape_list, self.n_vecs_list
+        ):
+            space = self.Space(*space_args)
+            vec = generate_random_vec(shape=(n_vecs,) + shape, dtype=CDTYPE)
+            base_point = space.random_point()
+            random_data.append(
+                dict(
+                    space_args=space_args,
+                    vector=vec,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+
 class _OpenSetTestData(_ManifoldTestData):
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
+    def to_tangent_is_tangent_in_embedding_space_test_data(self):
         """Generate data to check that tangent vectors are in ambient space's
         tangent space.
         """
@@ -259,6 +319,22 @@ class _OpenSetTestData(_ManifoldTestData):
             dict(
                 space_args=space_args,
                 vector=gs.random.normal(size=shape),
+                base_point=self.Space(*space_args).random_point(shape[0]),
+            )
+            for space_args, shape in zip(self.space_args_list, self.shape_list)
+        ]
+        return self.generate_tests([], random_data)
+
+
+class _ComplexOpenSetTestData(_ComplexManifoldTestData):
+    def to_tangent_is_tangent_in_embedding_space_test_data(self):
+        """Generate data to check that tangent vectors are in ambient space's
+        tangent space.
+        """
+        random_data = [
+            dict(
+                space_args=space_args,
+                vector=generate_random_vec(shape=shape, dtype=CDTYPE),
                 base_point=self.Space(*space_args).random_point(shape[0]),
             )
             for space_args, shape in zip(self.space_args_list, self.shape_list)
@@ -440,7 +516,52 @@ class _VectorSpaceTestData(_ManifoldTestData):
                     base_point=base_point,
                 )
             )
+        return self.generate_tests([], random_data)
 
+
+class _ComplexVectorSpaceTestData(_ComplexManifoldTestData):
+    def basis_belongs_test_data(self):
+        """Generate data to check that basis elements belong to vector space."""
+        random_data = [
+            dict(space_args=space_args) for space_args in self.space_args_list
+        ]
+        return self.generate_tests([], random_data)
+
+    def basis_cardinality_test_data(self):
+        """Generate data to check that the number of basis elements is the dimension."""
+        random_data = [
+            dict(space_args=space_args) for space_args in self.space_args_list
+        ]
+        return self.generate_tests([], random_data)
+
+    def random_point_is_tangent_test_data(self):
+        """Generate data to check that random point is tangent vector."""
+        random_data = []
+        for space_args, n_points in zip(self.space_args_list, self.n_points_list):
+            random_data += [
+                dict(
+                    space_args=space_args,
+                    n_points=n_points,
+                )
+            ]
+        return self.generate_tests([], random_data)
+
+    def to_tangent_is_projection_test_data(self):
+        """Generate data to check that to_tangent return projection."""
+        random_data = []
+        for space_args, shape, n_vecs in zip(
+            self.space_args_list, self.shape_list, self.n_vecs_list
+        ):
+            space = self.Space(*space_args)
+            vec = generate_random_vec(shape=(n_vecs,) + shape, dtype=CDTYPE)
+            base_point = space.random_point()
+            random_data.append(
+                dict(
+                    space_args=space_args,
+                    vector=vec,
+                    base_point=base_point,
+                )
+            )
         return self.generate_tests([], random_data)
 
 
@@ -565,8 +686,9 @@ class _ConnectionTestData(TestData):
             self.metric_args_list, self.space_list, self.shape_list, n_samples_list
         ):
             base_point = space.random_point(n_samples)
-            tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_samples,) + tangent_shape), base_point
+            base_point_type = base_point.dtype
+            tangent_vec = generate_random_vec(
+                shape=(n_samples,) + tangent_shape, dtype=base_point_type
             )
             n_points_list = itertools.product([1, n_samples], [1, n_samples])
             expected_shape_list = [space.shape] + [(n_samples,) + space.shape] * 3
@@ -618,9 +740,12 @@ class _ConnectionTestData(TestData):
             self.n_tangent_vecs_list,
         ):
             base_point = space.random_point()
-            tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            base_point_type = base_point.dtype
+
+            random_vec = generate_random_vec(
+                shape=(n_tangent_vecs,) + shape, dtype=base_point_type
             )
+            tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
@@ -666,9 +791,9 @@ class _ConnectionTestData(TestData):
             self.metric_args_list, self.space_list, self.n_points_list, self.shape_list
         ):
             initial_point = space.random_point()
-            initial_tangent_vec = space.to_tangent(
-                gs.random.normal(size=shape), initial_point
-            )
+            initial_point_type = initial_point.dtype
+            random_vec = generate_random_vec(shape=shape, dtype=initial_point_type)
+            initial_tangent_vec = space.to_tangent(random_vec, initial_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
@@ -738,9 +863,12 @@ class _ConnectionTestData(TestData):
             self.n_tangent_vecs_list,
         ):
             base_point = space.random_point()
-            tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + shape) / amplitude, base_point
+            base_point_type = base_point.dtype
+            random_vec = generate_random_vec(
+                shape=(n_tangent_vecs,) + shape, dtype=base_point_type
             )
+            random_vec /= amplitude
+            tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
@@ -771,11 +899,13 @@ class _ConnectionTestData(TestData):
             self.scheme_list,
         ):
             base_point = space.random_point()
-
-            tangent_vec = space.to_tangent(
-                gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
+            base_point_type = base_point.dtype
+            random_vec = generate_random_vec(
+                shape=(n_tangent_vecs,) + shape, dtype=base_point_type
             )
-            direction = space.to_tangent(gs.random.normal(size=shape), base_point)
+            random_dir = generate_random_vec(shape=shape, dtype=base_point_type)
+            tangent_vec = space.to_tangent(random_vec, base_point)
+            direction = space.to_tangent(random_dir, base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
@@ -812,6 +942,97 @@ class _ConnectionTestData(TestData):
                     n_points=n_points,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def riemann_tensor_shape_test_data(self):
+        """Generate data to check the returned shape of riemann_tensor.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        """
+        random_data = []
+        for n_points, connection_args, space in zip(
+            self.n_points_list,
+            self.connection_args_list,
+            self.space_list,
+        ):
+            base_point = space.random_point(n_points)
+            expected_shape = (
+                (n_points,) + space.shape * 4 if n_points >= 2 else space.shape * 4
+            )
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    base_point=better_squeeze(base_point),
+                    expected=expected_shape,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def ricci_tensor_shape_test_data(self):
+        """Generate data to check the returned shape of ricci_tensor.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        """
+        random_data = []
+        for n_points, connection_args, space in zip(
+            self.n_points_list,
+            self.connection_args_list,
+            self.space_list,
+        ):
+            base_point = space.random_point(n_points)
+            expected_shape = (
+                (n_points,) + space.shape * 2 if n_points >= 2 else space.shape * 2
+            )
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    base_point=better_squeeze(base_point),
+                    expected=expected_shape,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def scalar_curvature_shape_test_data(self):
+        """Generate data to check the returned shape of scalar_curvature.
+
+        Parameters
+        ----------
+        connection_args_list : list
+            List of argument to pass to constructor of the connection.
+        space_list : list
+            List of manifolds on which the connection is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        """
+        random_data = []
+        for n_points, connection_args, space in zip(
+            self.n_points_list,
+            self.connection_args_list,
+            self.space_list,
+        ):
+            base_point = space.random_point(n_points)
+            expected_shape = expected_shape = (n_points,) if n_points >= 2 else ()
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    base_point=better_squeeze(base_point),
+                    expected=expected_shape,
                 )
             )
         return self.generate_tests([], random_data)
@@ -994,6 +1215,250 @@ class _RiemannianMetricTestData(_ConnectionTestData):
                     point_c=point_c,
                 )
             )
+        return self.generate_tests([], random_data)
+
+    def covariant_riemann_tensor_is_skew_symmetric_1_test_data(self):
+        """Generate data to check the first skew symmetry of covariant riemann tensor.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            self.metric_args_list, self.space_list, self.n_points_list
+        ):
+            base_point = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def covariant_riemann_tensor_is_skew_symmetric_2_test_data(self):
+        """Generate data to check the second skew symmetry of covariant riemann tensor.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            self.metric_args_list, self.space_list, self.n_points_list
+        ):
+            base_point = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def covariant_riemann_tensor_bianchi_identity_test_data(self):
+        """Generate data to check the bianchi identity of covariant riemann tensor.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            self.metric_args_list, self.space_list, self.n_points_list
+        ):
+            base_point = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def covariant_riemann_tensor_is_interchange_symmetric_test_data(self):
+        """Generate data to check the interchange symmetry of covariant riemann tensor.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of arguments to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        n_points_list : list
+            List of number of random points to generate.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        random_data = []
+        for metric_args, space, n_points in zip(
+            self.metric_args_list, self.space_list, self.n_points_list
+        ):
+            base_point = space.random_point(n_points)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def sectional_curvature_shape_test_data(self):
+        """Generate data to check the returned shape of sectional_curvature.
+
+        Parameters
+        ----------
+        metric_args_list : list
+            List of argument to pass to constructor of the metric.
+        space_list : list
+            List of spaces on which the metric is defined.
+        shape_list : list
+            List of shapes for random data to generate.
+        """
+        random_data = []
+        for metric_args, n_points, space, shape, n_tangent_vecs in zip(
+            self.metric_args_list,
+            self.n_points_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            base_point = space.random_point(n_points)
+            size = (n_tangent_vecs,) + shape if n_points == 1 else (n_points,) + shape
+            tangent_vec_a = gs.squeeze(
+                space.to_tangent(
+                    gs.random.normal(size=size),
+                    base_point,
+                )
+            )
+            tangent_vec_b = gs.squeeze(
+                space.to_tangent(
+                    gs.random.normal(size=size),
+                    base_point,
+                )
+            )
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                    expected=(n_points,) if n_points >= 2 else (n_tangent_vecs,),
+                )
+            )
+        return self.generate_tests([], random_data)
+
+
+class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
+    def inner_product_is_hermitian_test_data(self):
+        """Generate data to check that the inner product is Hermitian."""
+        random_data = []
+        for metric_args, space, shape, n_tangent_vecs in zip(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            base_point = space.random_point()
+            base_point_type = base_point.dtype
+            random_vec_a = generate_random_vec(
+                (n_tangent_vecs,) + shape, base_point_type
+            )
+            random_vec_b = generate_random_vec(
+                (n_tangent_vecs,) + shape, base_point_type
+            )
+            tangent_vec_a = space.to_tangent(random_vec_a)
+            tangent_vec_b = space.to_tangent(random_vec_b)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def inner_product_is_symmetric_test_data(self):
+        """Generate data to check that the inner product is symmetric."""
+        random_data = []
+        for metric_args, space, shape, n_tangent_vecs in zip(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            base_point = space.random_point()
+            base_point_type = base_point.dtype
+            random_vec_a = generate_random_vec(
+                (n_tangent_vecs,) + shape, base_point_type
+            )
+            random_vec_b = generate_random_vec(
+                (n_tangent_vecs,) + shape, base_point_type
+            )
+            tangent_vec_a = space.to_tangent(random_vec_a)
+            tangent_vec_b = space.to_tangent(random_vec_b)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def parallel_transport_ivp_is_isometry_test_data(self):
+        """Generate data to check that parallel transport is an isometry."""
+        random_data = []
+        for metric_args, space, shape, n_tangent_vecs in zip(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            base_point = space.random_point()
+            base_point_type = base_point.dtype
+
+            tangent_vec = space.to_tangent(
+                generate_random_vec((n_tangent_vecs,) + shape, base_point_type),
+                base_point,
+            )
+            direction = space.to_tangent(
+                generate_random_vec(shape, base_point_type), base_point
+            )
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    space=space,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    direction=direction,
+                )
+            )
+
         return self.generate_tests([], random_data)
 
 

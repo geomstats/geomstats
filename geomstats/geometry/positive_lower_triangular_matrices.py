@@ -31,7 +31,9 @@ class PositiveLowerTriangularMatrices(OpenSet):
     def __init__(self, n, **kwargs):
         kwargs.setdefault("metric", CholeskyMetric(n))
         super().__init__(
-            dim=int(n * (n + 1) / 2), ambient_space=LowerTriangularMatrices(n), **kwargs
+            dim=int(n * (n + 1) / 2),
+            embedding_space=LowerTriangularMatrices(n),
+            **kwargs
         )
         self.n = n
 
@@ -44,7 +46,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
             Number of samples.
             Optional, default: 1.
         bound : float
-            Side of hypercube support of the uniform distribution.
+            Side of hypercube support.
             Optional, default: 1.0
 
         Returns
@@ -71,7 +73,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat belongs to cholesky space.
         """
-        is_lower_triangular = self.ambient_space.belongs(mat, atol)
+        is_lower_triangular = self.embedding_space.belongs(mat, atol)
         diagonal = Matrices.diagonal(mat)
         is_positive = gs.all(diagonal > 0, axis=-1)
         belongs = gs.logical_and(is_lower_triangular, is_positive)

@@ -217,7 +217,8 @@ class DiscreteCurves(Manifold):
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random curves.
 
-        If the ambient manifold is compact, a uniform distribution is used.
+        Each curve is made of independently sampled points. These points are sampled
+        from the ambient manifold using the distribution set for that manifold.
 
         Parameters
         ----------
@@ -235,7 +236,7 @@ class DiscreteCurves(Manifold):
         Returns
         -------
         samples : array-like, shape=[..., k_sampling_points, {dim, [n, n]}]
-            Points sampled on the hypersphere.
+            Sampled curves.
         """
         sample = self.ambient_manifold.random_point(n_samples * self.k_sampling_points)
         sample = gs.reshape(sample, (n_samples, self.k_sampling_points, -1))
@@ -277,19 +278,28 @@ class ClosedDiscreteCurves(LevelSet):
     """
 
     def __init__(self, ambient_manifold, k_sampling_points=10):
+        self.ambient_manifold = ambient_manifold
+        self.k_sampling_points = k_sampling_points
+
         dim = ambient_manifold.dim * (k_sampling_points - 1)
         super().__init__(
             dim=dim,
             shape=(k_sampling_points,) + ambient_manifold.shape,
-            submersion=None,
-            tangent_submersion=None,
-            value=None,
-            embedding_space=DiscreteCurves(
-                ambient_manifold=ambient_manifold, k_sampling_points=k_sampling_points
-            ),
         )
-        self.ambient_manifold = ambient_manifold
-        self.ambient_metric = ambient_manifold.metric
+
+    def _define_embedding_space(self):
+        return DiscreteCurves(
+            ambient_manifold=self.ambient_manifold,
+            k_sampling_points=self.k_sampling_points,
+        )
+
+    def submersion(self, point):
+        """Submersion."""
+        raise NotImplementedError("Submersion not implemented")
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion."""
+        raise NotImplementedError("Tangent submersion not implemented")
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
@@ -396,7 +406,8 @@ class ClosedDiscreteCurves(LevelSet):
     def random_point(self, n_samples=1):
         """Sample random curves.
 
-        If the ambient manifold is compact, a uniform distribution is used.
+        Each curve is made of independently sampled points. These points are sampled
+        from the ambient manifold using the distribution set for that manifold.
 
         Parameters
         ----------
@@ -484,8 +495,8 @@ class ClosedDiscreteCurves(LevelSet):
         -------
         proj : array-like, shape=[..., k_sampling_points, ambient_dim]
         """
-        is_euclidean = isinstance(self.ambient_metric, EuclideanMetric)
-        is_planar = is_euclidean and self.ambient_metric.dim == 2
+        is_euclidean = isinstance(self.ambient_manifold.metric, EuclideanMetric)
+        is_planar = is_euclidean and self.ambient_manifold.metric.dim == 2
 
         if not is_planar:
             raise AssertionError(
@@ -494,10 +505,10 @@ class ClosedDiscreteCurves(LevelSet):
                 "2D Euclidean space."
             )
 
-        dim = self.ambient_metric.dim
+        dim = self.ambient_manifold.metric.dim
         srv_inner_prod = self.embedding_space.l2_curves_metric.inner_product
         srv_norm = self.embedding_space.l2_curves_metric.norm
-        inner_prod = self.ambient_metric.inner_product
+        inner_prod = self.ambient_manifold.metric.inner_product
 
         def closeness_criterion(srv, srv_norms):
             """Compute the closeness criterion from [Sea2011]_.
@@ -521,9 +532,9 @@ class ClosedDiscreteCurves(LevelSet):
             """
             initial_norm = srv_norm(one_srv)
             proj = one_srv
-            proj_norms = self.ambient_metric.norm(proj)
+            proj_norms = self.ambient_manifold.metric.norm(proj)
             residual = closeness_criterion(proj, proj_norms)
-            criteria = self.ambient_metric.norm(residual)
+            criteria = self.ambient_manifold.metric.norm(residual)
 
             nb_iter = 0
 
@@ -556,9 +567,9 @@ class ClosedDiscreteCurves(LevelSet):
 
                 proj -= gs.sum(beta[:, None, None] * basis, axis=0)
                 proj = proj * initial_norm / srv_norm(proj)
-                proj_norms = self.ambient_metric.norm(proj)
+                proj_norms = self.ambient_manifold.metric.norm(proj)
                 residual = closeness_criterion(proj, proj_norms)
-                criteria = self.ambient_metric.norm(residual)
+                criteria = self.ambient_manifold.metric.norm(residual)
 
                 nb_iter += 1
             return proj

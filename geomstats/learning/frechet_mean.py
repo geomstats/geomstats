@@ -10,19 +10,21 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
-from geomstats.geometry.discrete_curves import ElasticMetric
-from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
+from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
+from geomstats.geometry.matrices import MatricesMetric
+from geomstats.geometry.minkowski import MinkowskiMetric
 
 EPSILON = 1e-4
 
-LINEAR_METRICS = ["EuclideanMetric", "MatricesMetric", "MinkowskiMetric"]
+LINEAR_METRICS = [EuclideanMetric, MatricesMetric, MinkowskiMetric]
+ELASTIC_METRICS = [SRVMetric, ElasticMetric]
 
-ELASTIC_METRICS = ["SRVMetric", "ElasticMetric"]
 
-
-def _is_metric_in_list(metric_str, metric_names):
-    for cmp_str in metric_names:
-        if cmp_str in metric_str:
+def _is_metric_in_list(metric, metric_classes):
+    for metric_class in metric_classes:
+        if isinstance(metric, metric_class):
             return True
 
     return False
@@ -32,8 +34,8 @@ def _is_linear_metric(metric_str):
     return _is_metric_in_list(metric_str, LINEAR_METRICS)
 
 
-def _is_elastic_metric(metric_str):
-    return _is_metric_in_list(metric_str, ELASTIC_METRICS)
+def _is_elastic_metric(metric):
+    return _is_metric_in_list(metric, ELASTIC_METRICS)
 
 
 def _scalarmul(scalar, array):
@@ -589,15 +591,13 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-        metric_str = self.metric.__str__()
-
-        if "HypersphereMetric" in metric_str and self.metric.dim == 1:
+        if isinstance(self.metric, HypersphereMetric) and self.metric.dim == 1:
             mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
 
-        elif _is_linear_metric(metric_str):
+        elif _is_linear_metric(self.metric):
             mean = linear_mean(points=X, weights=weights)
 
-        elif _is_elastic_metric(metric_str):
+        elif _is_elastic_metric(self.metric):
             mean = elastic_mean(points=X, weights=weights, metric=self.metric)
 
         else:

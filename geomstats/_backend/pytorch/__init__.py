@@ -26,11 +26,17 @@ from torch import (
     kron,
     less,
     logical_or,
+    mean,
+    meshgrid,
+    moveaxis,
+    ones,
+    ones_like,
+    polygamma,
+    quantile,
 )
-from torch import max as amax
-from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma, quantile
 from torch import repeat_interleave as repeat
 from torch import reshape, stack, trapz, uint8, unique, vstack, zeros, zeros_like
+from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
@@ -44,7 +50,11 @@ from ._dtype import (
     _box_unary_scalar,
     _preserve_input_dtype,
     as_dtype,
+    get_default_cdtype,
     get_default_dtype,
+    is_bool,
+    is_complex,
+    is_floating,
     set_default_dtype,
 )
 
@@ -76,7 +86,6 @@ cos = _box_unary_scalar(target=_torch.cos)
 cosh = _box_unary_scalar(target=_torch.cosh)
 exp = _box_unary_scalar(target=_torch.exp)
 floor = _box_unary_scalar(target=_torch.floor)
-imag = _box_unary_scalar(target=_torch.imag)
 log = _box_unary_scalar(target=_torch.log)
 real = _box_unary_scalar(target=_torch.real)
 sign = _box_unary_scalar(target=_torch.sign)
@@ -155,8 +164,8 @@ def split(x, indices_or_sections, axis=0):
 
 
 def logical_and(x, y):
-    if _torch.is_tensor(x):
-        return _torch.logical_and(x, y)
+    if _torch.is_tensor(x) or _torch.is_tensor(y):
+        return x * y
     return x and y
 
 
@@ -260,6 +269,12 @@ def shape(val):
     return val.shape
 
 
+def amax(a, axis=None):
+    if axis is None:
+        return _torch.max(array(a))
+    return _torch.max(array(a), dim=axis).values
+
+
 def maximum(a, b):
     return _torch.max(array(a), array(b))
 
@@ -338,10 +353,11 @@ def linspace(start, stop, num=50, dtype=None):
 
 
 def equal(a, b, **kwargs):
-    if a.dtype == _torch.ByteTensor:
-        a = cast(a, _torch.uint8).float()
-    if b.dtype == _torch.ByteTensor:
-        b = cast(b, _torch.uint8).float()
+    if not is_array(a):
+        a = array(a)
+
+    if not is_array(b):
+        b = array(b)
     return _torch.eq(a, b, **kwargs)
 
 
@@ -741,3 +757,15 @@ def cross(a, b):
     if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
         a, b = broadcast_arrays(a, b)
     return _torch.cross(*convert_to_wider_dtype([a, b]))
+
+
+def gamma(a):
+    return _torch.exp(_gammaln(a))
+
+
+def imag(a):
+    if not _torch.is_tensor(a):
+        a = _torch.tensor(a)
+    if is_complex(a):
+        return _torch.imag(a)
+    return _torch.zeros(a.shape, dtype=a.dtype)

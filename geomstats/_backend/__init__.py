@@ -74,7 +74,9 @@ BACKEND_ATTRIBUTES = {
         "flip",
         "floor",
         "from_numpy",
+        "gamma",
         "get_default_dtype",
+        "get_default_cdtype",
         "get_slice",
         "greater",
         "hsplit",
@@ -83,6 +85,9 @@ BACKEND_ATTRIBUTES = {
         "isclose",
         "isnan",
         "is_array",
+        "is_complex",
+        "is_floating",
+        "is_bool",
         "kron",
         "less",
         "less_equal",
@@ -152,7 +157,16 @@ BACKEND_ATTRIBUTES = {
         "zeros_like",
         "trapz",
     ],
-    "autodiff": ["custom_gradient", "detach", "jacobian", "value_and_grad"],
+    "autodiff": [
+        "custom_gradient",
+        "detach",
+        "hessian",
+        "hessian_vec",
+        "jacobian",
+        "jacobian_vec",
+        "jacobian_and_hessian",
+        "value_and_grad",
+    ],
     "linalg": [
         "cholesky",
         "det",
@@ -160,6 +174,7 @@ BACKEND_ATTRIBUTES = {
         "eigh",
         "eigvalsh",
         "expm",
+        "fractional_matrix_power",
         "inv",
         "is_single_matrix_pd",
         "logm",
@@ -198,7 +213,7 @@ class BackendImporter:
         try:
             return importlib.import_module(f"geomstats._backend.{backend_name}")
         except ModuleNotFoundError:
-            raise RuntimeError("Unknown backend '{:s}'".format(backend_name))
+            raise RuntimeError(f"Unknown backend '{backend_name}'")
 
     def _create_backend_module(self, backend_name):
         backend = self._import_backend(backend_name)
@@ -212,13 +227,9 @@ class BackendImporter:
                     submodule = getattr(backend, module_name)
                 except AttributeError:
                     raise RuntimeError(
-                        "Backend '{}' exposes no '{}' module".format(
-                            backend_name, module_name
-                        )
+                        f"Backend '{backend_name}' exposes no '{module_name}' module"
                     ) from None
-                new_submodule = types.ModuleType(
-                    "{}.{}".format(self._path, module_name)
-                )
+                new_submodule = types.ModuleType(f"{self._path}.{module_name}")
                 new_submodule.__file__ = submodule.__file__
                 setattr(new_module, module_name, new_submodule)
             else:
@@ -234,15 +245,15 @@ class BackendImporter:
                 except AttributeError:
                     if module_name:
                         error = (
-                            "Module '{}' of backend '{}' has no "
-                            "attribute '{}'".format(
-                                module_name, backend_name, attribute_name
-                            )
+                            f"Module '{module_name}' of backend '{backend_name}' "
+                            f"has no attribute '{attribute_name}'"
                         )
                     else:
-                        error = "Backend '{}' has no attribute '{}'".format(
-                            backend_name, attribute_name
+                        error = (
+                            f"Backend '{backend_name}' has no "
+                            f"attribute '{attribute_name}'"
                         )
+
                     raise RuntimeError(error) from None
                 else:
                     setattr(new_submodule, attribute_name, attribute)
@@ -271,7 +282,7 @@ class BackendImporter:
 
         module.set_default_dtype("float64")
 
-        logging.info("Using {:s} backend".format(_BACKEND))
+        logging.info(f"Using {_BACKEND} backend")
         return module
 
 

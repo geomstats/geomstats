@@ -12,6 +12,8 @@ class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
     skip_test_intrinsic_after_extrinsic = True
     skip_test_extrinsic_after_intrinsic = True
     skip_test_to_tangent_is_tangent = True
+    skip_test_triangle_inequality_of_dist = True
+    skip_test_squared_dist_is_positive = True
 
     testing_data = StiefelTestData()
 
@@ -35,6 +37,16 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
     skip_test_exp_ladder_parallel_transport = True
     skip_test_dist_is_symmetric = True
     skip_test_dist_is_norm_of_log = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
+    skip_test_squared_dist_is_positive = True
+    skip_test_triangle_inequality_of_dist = True
 
     testing_data = StiefelCanonicalMetricTestData()
 

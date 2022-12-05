@@ -5,7 +5,10 @@ import geomstats.backend as gs
 import tests.conftest
 from tests.conftest import Parametrizer, tf_backend
 from tests.data.hermitian_data import HermitianMetricTestData, HermitianTestData
-from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
+from tests.geometry_test_cases import (
+    ComplexRiemannianMetricTestCase,
+    VectorSpaceTestCase,
+)
 
 
 class TestHermitian(VectorSpaceTestCase, metaclass=Parametrizer):
@@ -19,7 +22,7 @@ class TestHermitian(VectorSpaceTestCase, metaclass=Parametrizer):
         self.assertAllClose(self.Space(dim).belongs(gs.array(vec)), gs.array(expected))
 
 
-class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestHermitianMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp = tf_backend()
     skip_test_log = tf_backend()
     skip_test_inner_product = tf_backend()
@@ -27,6 +30,15 @@ class TestHermitianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_inner_product_is_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     testing_data = HermitianMetricTestData()
 

@@ -53,13 +53,21 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_belongs = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     testing_data = PoincareHalfSpaceMetricTestData()
 
     def test_inner_product(
-        self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, dim, scale, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.Metric(dim)
+        metric = self.Metric(dim, scale)
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )
