@@ -37,8 +37,13 @@ class ODEIVPSolver(metaclass=ABCMeta):
     def integrate(self, force, initial_state, end_time):
         pass
 
+    @abstractmethod
+    def integrate_t(self, force, initial_state, t_eval):
+        pass
+
 
 class GSIntegrator(ODEIVPSolver):
+    # TODO: control time
     def __init__(self, n_steps=10, step_type="euler", save_result=False):
         super().__init__(save_result=save_result, state_is_raveled=False, tfirst=False)
         self.step_type = step_type
@@ -69,7 +74,7 @@ class GSIntegrator(ODEIVPSolver):
         n_evals_step = gs_integrator.FEVALS_PER_STEP[self.step_type]
         return n_evals_step * n_steps
 
-    def integrate(self, force, initial_state, end_time=1.0):
+    def _integrate(self, force, initial_state, end_time=1.0):
         dt = end_time / self.n_steps
         states = [initial_state]
         current_state = initial_state
@@ -80,10 +85,39 @@ class GSIntegrator(ODEIVPSolver):
             )
             states.append(current_state)
 
+        return states
+
+    def integrate(self, force, initial_state, end_time=1.0):
+        states = self._integrate(force, initial_state, end_time=end_time)
+
         ts = gs.linspace(0.0, end_time, self.n_steps + 1)
         nfev = self._get_n_fevals(self.n_steps)
 
         result = OdeResult(t=ts, y=gs.array(states), nfev=nfev, njev=0, sucess=True)
+
+        if self.save_result:
+            self.result_ = result
+
+        return result
+
+    def integrate_t(self, force, initial_state, t_eval):
+        # TODO: this is a very naive implementation
+        # based on previous generic implementation in geomstats
+        # resolution gets worst for larger t
+
+        states = []
+        initial_states = [
+            gs.stack([initial_state[0], t * initial_state[1]]) for t in t_eval
+        ]
+        for initial_state_ in initial_states:
+            states_t = self._integrate(force, initial_state_, end_time=1.0)
+            states.append(states_t[-1])
+
+        nfev = self._get_n_fevals(self.n_steps)
+        n_t = len(t_eval)
+        result = OdeResult(
+            t=t_eval, y=gs.stack(states), nfev=n_t * nfev, njev=0, sucess=True
+        )
 
         if self.save_result:
             self.result_ = result
@@ -100,7 +134,7 @@ class SCPSolveIVP(ODEIVPSolver):
         self.method = method
         self.options = options
 
-    def integrate(self, force, initial_state, end_time=1.0):
+    def _integrate(self, force, initial_state, end_time=1.0, t_eval=None):
         # TODO: parallelize
         n_points = gs.shape(initial_state)[0] if gs.ndim(initial_state) > 2 else 1
 
@@ -108,20 +142,31 @@ class SCPSolveIVP(ODEIVPSolver):
             results = []
             for position, velocity in zip(*initial_state):
                 initial_state_ = gs.stack([position, velocity])
-                results.append(self._integrate_single(force, initial_state_, end_time))
+                results.append(
+                    self._integrate_single_point(
+                        force, initial_state_, end_time, t_eval
+                    )
+                )
 
             result = self._merge_results(results)
 
         else:
-            result = self._integrate_single(force, initial_state, end_time)
+            result = self._integrate_single_point(
+                force, initial_state, end_time, t_eval=t_eval
+            )
 
         if self.save_result:
             self.result_ = result
 
         return result
 
-    def _integrate_single(self, force, initial_state, end_time=1.0):
-        # TODO: possible to solve at different time steps (great for geodesic)
+    def integrate(self, force, initial_state, end_time=1.0):
+        return self._integrate(force, initial_state, end_time=end_time)
+
+    def integrate_t(self, force, initial_state, t_eval):
+        return self._integrate(force, initial_state, end_time=t_eval[-1], t_eval=t_eval)
+
+    def _integrate_single_point(self, force, initial_state, end_time=1.0, t_eval=None):
         raveled_initial_state = gs.flatten(initial_state)
 
         def force_(t, state):
@@ -133,6 +178,7 @@ class SCPSolveIVP(ODEIVPSolver):
             (0.0, end_time),
             raveled_initial_state,
             method=self.method,
+            t_eval=t_eval,
             **self.options
         )
         result = _result_to_backend_type(result)
@@ -141,6 +187,7 @@ class SCPSolveIVP(ODEIVPSolver):
         return result
 
     def _merge_results(self, results):
+        # TODO: can "t" and "y" have different shapes?
         keys = ["t", "y", "nfev", "njev", "success"]
         merged_results = {key: [] for key in keys}
 
@@ -148,6 +195,7 @@ class SCPSolveIVP(ODEIVPSolver):
             for key, value in merged_results.items():
                 merged_results[key].append(result[key])
 
+        # TODO: should keys other than "t" and "y" be array?
         merged_results = {key: gs.array(value) for key, value in merged_results.items()}
         merged_results["t"] = gs.moveaxis(merged_results["t"], 0, 1)
         merged_results["y"] = gs.moveaxis(merged_results["y"], 0, 1)
@@ -160,24 +208,52 @@ class ExpSolver(metaclass=ABCMeta):
     def solve(self, metric, tangent_vec, base_point):
         pass
 
+    @abstractmethod
+    def geodesic_ivp(self, metric, tangent_vec, base_point, t):
+        pass
+
 
 class ExpIVPSolver(ExpSolver):
-    # TODO: need to check for matrix-valued manifolds
     def __init__(self, integrator=None):
         if integrator is None:
             integrator = GSIntegrator()
 
         self.integrator = integrator
 
-    def solve(self, metric, tangent_vec, base_point):
+    def _solve(self, metric, tangent_vec, base_point, t_eval=None):
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
         initial_state = gs.stack([base_point, tangent_vec])
 
         force = self._get_force(metric)
-        result = self.integrator.integrate(force, initial_state)
+        if t_eval is None:
+            return self.integrator.integrate(force, initial_state)
 
+        return self.integrator.integrate_t(force, initial_state, t_eval)
+
+    def solve(self, metric, tangent_vec, base_point):
+        result = self._solve(metric, tangent_vec, base_point)
         return self._simplify_result(result, metric)
+
+    def geodesic_ivp(self, metric, tangent_vec, base_point):
+
+        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
+        t_axis = int(len(tangent_vec.shape) > len(metric.shape))
+
+        def path(t):
+            squeeze = False
+            if not gs.is_array(t):
+                t = gs.array([t])
+                squeeze = True
+
+            result = self._solve(metric, tangent_vec, base_point, t_eval=t)
+            result = self._simplify_result_t(result, metric)
+            if squeeze:
+                return gs.squeeze(result, axis=t_axis)
+
+            return result
+
+        return path
 
     def _get_force(self, metric):
         if self.integrator.state_is_raveled:
@@ -213,6 +289,21 @@ class ExpIVPSolver(ExpSolver):
             return y[..., : metric.dim]
 
         return y[0]
+
+    def _simplify_result_t(self, result, metric):
+        # assumes several t
+        y = result.y
+
+        if self.integrator.state_is_raveled:
+            y = y[..., : metric.dim]
+            if gs.ndim(y) > 2:
+                return gs.moveaxis(y, 0, 1)
+            return y
+
+        y = y[:, 0, :, ...]
+        if gs.ndim(y) > 2:
+            return gs.moveaxis(y, 1, 0)
+        return y
 
 
 class SCPMinimize:
