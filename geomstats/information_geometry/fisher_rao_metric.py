@@ -40,7 +40,18 @@ class FisherRaoMetric(RiemannianMetric):
         Compute the inner-product matrix of the Fisher information metric
         at the tangent space at base point.
 
-        :math: `I(\theta) = \mathbb{E}[(\partial_{\theta}(\log(pdf_{\theta}(x))))^2]`
+        .. math::
+            I(\theta) = \mathbb{E}[(\partial_{\theta}(\log(f_{\theta}(x))))^2]
+
+
+        or, in indicial notation
+
+        .. math::
+             I_{ij} = \int \
+             \partial_{i} f_{\theta}(x)\
+             \partial_{j} f_{\theta}(x)\
+             \frac{1}{f_{\theta}(x)}
+
 
         Parameters
         ----------
@@ -109,13 +120,21 @@ class FisherRaoMetric(RiemannianMetric):
         Compute the derivative of the inner-product matrix of
         the Fisher information metric at the tangent space at base point.
 
-        :math: `I(\theta) =
-         \partial_{\theta} \mathbb{E}[(\partial_{\theta}(\log(f_{\theta}(x))))^2]`
+        .. math::
 
-        With further calculations, this is:
-        :math: `int [\frac{2 *
-         \partial_{\theta}^2 f \times \partial_{\theta} f \times f +
-         (\partial_{\theta} f)^3}{f^2}]
+            I(\theta) = \partial_{\theta} \
+            \mathbb{E}[(\partial_{\theta}(\log(f_{\theta}(x))))^2]
+
+        or, in indicial notation:
+
+        .. math::
+            \partial_k I_{ij} = \int\
+            \partial_{ki}^2 f\partial_j f \frac{1}{f} + \
+            \partial_{kj}^2 f\partial_i f \frac{1}{f} - \
+            \partial_i f \partial_j f \partial_k f \frac{1}{f^2}
+
+        with :math:`f = f_{\theta}(x)
+
 
         Parameters
         ----------
@@ -143,18 +162,27 @@ class FisherRaoMetric(RiemannianMetric):
             pdf_x_at_base_point = pdf_x(base_point)
             pdf_x_derivative = gs.autodiff.jacobian(pdf_x)
             pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)
+            pdf_x_hessian_at_base_point = gs.autodiff.jacobian(pdf_x_derivative)(
+                base_point
+            )
             return (
                 1
                 / (pdf_x_at_base_point**2)
                 * (
-                    2
-                    * pdf_x_at_base_point
-                    * gs.einsum(
-                        "...ij, ...k -> ...ijk",
-                        gs.autodiff.jacobian(pdf_x_derivative)(base_point),
-                        pdf_x_derivative_at_base_point,
+                    pdf_x_at_base_point
+                    * (
+                        gs.einsum(
+                            "...ki,...j->...ijk",
+                            pdf_x_hessian_at_base_point,
+                            pdf_x_derivative_at_base_point,
+                        )
+                        + gs.einsum(
+                            "...kj,...i->...ijk",
+                            pdf_x_hessian_at_base_point,
+                            pdf_x_derivative_at_base_point,
+                        )
                     )
-                    + gs.einsum(
+                    - gs.einsum(
                         "...i, ...j, ...k -> ...ijk",
                         pdf_x_derivative_at_base_point,
                         pdf_x_derivative_at_base_point,
