@@ -41,10 +41,17 @@ class FisherRaoMetric(RiemannianMetric):
         at the tangent space at base point.
 
         .. math::
-            I(\theta) = \mathbb{E}[(\partial_{\theta}(\log(f_{\theta}(x))))^2]
+
+            I(\theta) = \mathbb{E}[YY^T]
+
+        where,
+
+        ..math::
+
+            Y = \nabla_{\theta} \log f_{\theta}(x)
 
 
-        or, in indicial notation
+        After manipulation and in indicial notation
 
         .. math::
              I_{ij} = \int \
@@ -122,18 +129,24 @@ class FisherRaoMetric(RiemannianMetric):
 
         .. math::
 
-            I(\theta) = \partial_{\theta} \
-            \mathbb{E}[(\partial_{\theta}(\log(f_{\theta}(x))))^2]
+            I(\theta) = \partial_{\theta} \mathbb{E}[YY^T]
+
+        where,
+
+        ..math::
+
+            Y = \nabla_{\theta} \log f_{\theta}(x)
 
         or, in indicial notation:
 
         .. math::
+
             \partial_k I_{ij} = \int\
             \partial_{ki}^2 f\partial_j f \frac{1}{f} + \
             \partial_{kj}^2 f\partial_i f \frac{1}{f} - \
             \partial_i f \partial_j f \partial_k f \frac{1}{f^2}
 
-        with :math:`f = f_{\theta}(x)
+        with :math:`f = f_{\theta}(x)`
 
 
         Parameters
