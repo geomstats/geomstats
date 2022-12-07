@@ -179,3 +179,22 @@ class ExponentialMetric(RiemannianMetric):
             Squared distance between points point_a and point_b.
         """
         return gs.log(point_a / point_b) ** 2
+
+    def metric_matrix(self, base_point=None):
+        """Compute the metric matrix at the tangent space at base_point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Point representing a binomial distribution.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., 1]
+            Metric matrix.
+        """
+        if base_point is None:
+            raise ValueError(
+                "A base point must be given to compute the " "metric matrix"
+            )
+        return 1 / base_point**2

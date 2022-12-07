@@ -15,7 +15,7 @@ from geomstats.information_geometry.base import InformationManifoldMixin
 class BinomialDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of binomial distributions.
 
-    This is the parameter space of exponential distributions
+    This is the parameter space of binomial distributions
     i.e. the half-line of positive reals.
     """
 
@@ -23,7 +23,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
         super().__init__(
             dim=1,
             embedding_space=Euclidean(dim=1),
-            metric=BinomialFisherRaoMetric(n_draws),
+            metric=BinomialMetric(n_draws),
         )
         self.n_draws = n_draws
 
@@ -163,7 +163,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
         return pmf
 
 
-class BinomialFisherRaoMetric(RiemannianMetric):
+class BinomialMetric(RiemannianMetric):
     """Class for the Fisher information metric on binomial distributions.
 
     References
@@ -196,3 +196,22 @@ class BinomialFisherRaoMetric(RiemannianMetric):
             * self.n_draws
             * (gs.arcsin(gs.sqrt(point_a)) - gs.arcsin(gs.sqrt(point_b))) ** 2
         )
+
+    def metric_matrix(self, base_point=None):
+        """Compute the metric matrix at the tangent space at base_point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Point representing a binomial distribution.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., 1]
+            Metric matrix.
+        """
+        if base_point is None:
+            raise ValueError(
+                "A base point must be given to compute the " "metric matrix"
+            )
+        return self.n_draws / (base_point * (1 - base_point))
