@@ -4,6 +4,7 @@ import geomstats.backend as gs
 from geomstats.information_geometry.exponential import ExponentialDistributions
 from geomstats.information_geometry.fisher_rao_metric import FisherRaoMetric
 from geomstats.information_geometry.normal import (
+    NormalDistributions,
     UnivariateNormalDistributions,
     UnivariateNormalMetric,
 )
@@ -66,5 +67,19 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
                 closed_form_metric=UnivariateNormalMetric(),
                 base_point=gs.array([0.1, 0.8]),
             )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def inner_product_and_closed_form_inner_product_test_data(self):
+        normal_dists = NormalDistributions(sample_dim=1)
+        smoke_data = [
+            dict(
+                information_manifold=normal_dists,
+                support=(-20, 20),
+                closed_form_metric=normal_dists.metric,
+                tangent_vec_a=gs.array([1.0, 2.0]),
+                tangent_vec_b=gs.array([1.0, 2.0]),
+                base_point=gs.array([1.0, 2.0]),
+            ),
         ]
         return self.generate_tests(smoke_data)
