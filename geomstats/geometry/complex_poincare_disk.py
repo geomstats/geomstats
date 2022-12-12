@@ -69,10 +69,10 @@ class ComplexPoincareDisk(ComplexOpenSet):
             Boolean denoting if point belongs to the
             complex Poincaré disk.
         """
-        if not (gs.ndim(point) == 1 or (gs.ndim(point) == 2 and point.shape[1] == 1)):
-            return gs.zeros([point.shape[0]], dtype=bool)
-        point = gs.reshape(point, (-1,))
-        return gs.abs(point) < 1
+        if point.shape[-1] != 1:
+            return gs.zeros(point.shape[:-1], dtype=bool)
+
+        return gs.all(gs.abs(point) < 1, axis=-1)
 
     @staticmethod
     def projection(point):
