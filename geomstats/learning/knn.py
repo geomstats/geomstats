@@ -77,6 +77,8 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
         n_jobs=None,
         **kwargs
     ):
+        self.distance = distance
+        self.distance_params = distance_params
 
         super().__init__(
             n_neighbors=n_neighbors,
