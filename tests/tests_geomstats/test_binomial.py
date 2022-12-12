@@ -40,3 +40,13 @@ class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
             pmf.append(gs.array([binom.pmf(x, n_draws, point[i]) for x in samples]))
         expected = gs.squeeze(gs.stack(pmf, axis=0))
         self.assertAllClose(result, expected)
+
+    def test_geodesic(self, space_args):
+        space = self.Space(*space_args)
+        point_a, point_b = space.random_point(2)
+        path_ab = space.metric.geodesic(initial_point=point_a,end_point=point_b)
+        path_ba = space.metric.geodesic(initial_point=point_b,end_point=point_a)
+        t = 0.5
+        self.assertAllClose(path_ab(t), path_ba(t))
+
+
