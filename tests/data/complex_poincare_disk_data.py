@@ -56,15 +56,17 @@ class ComplexPoincareDiskTestData(_ComplexOpenSetTestData):
     def projection_test_data(self):
         smoke_data = [
             dict(
-                point=[[1.0], [0.0]],
-                expected=[[1.0 - gs.atol], [0.0]],
+                point=gs.array([[1.0], [0.0]]),
+                expected=gs.array([[1.0 - gs.atol], [0.0]]),
             ),
             dict(
-                point=[[-1j], [-2.0 + 2j]],
-                expected=[
-                    [-(1 - gs.atol) * 1j],
-                    [(1 - gs.atol) * (-1 + 1j) / 2**0.5],
-                ],
+                point=gs.array([[-1j], [-2.0 + 2j]]),
+                expected=gs.array(
+                    [
+                        [-(1 - gs.atol) * 1j],
+                        [(1 - gs.atol) * (-1 + 1j) / 2**0.5],
+                    ]
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)

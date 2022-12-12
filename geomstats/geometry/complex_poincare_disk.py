@@ -91,11 +91,12 @@ class ComplexPoincareDisk(ComplexOpenSet):
         projected : array-like, shape=[..., 1]
             Projected point.
         """
-        return gs.where(
+        scalars = gs.where(
             gs.abs(point) >= 1 - gs.atol,
-            gs.cast((1 - gs.atol) / gs.abs(point), dtype=point.dtype) * point,
-            point,
+            gs.cast((1 - gs.atol) / gs.abs(point), dtype=point.dtype),
+            1.0,
         )
+        return scalars * point
 
     @staticmethod
     def random_point(n_samples=1, bound=0.8):
