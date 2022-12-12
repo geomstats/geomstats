@@ -65,16 +65,16 @@ class PositiveRealsMetricTestData(_RiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                tangent_vec_a=[[1.0]],
-                tangent_vec_b=[[2.0]],
-                base_point=[[3.0]],
-                expected=[2 / 9],
+                tangent_vec_a=gs.array([1.0]),
+                tangent_vec_b=gs.array([2.0]),
+                base_point=gs.array([3.0]),
+                expected=2 / 9,
             ),
             dict(
-                tangent_vec_a=[[-2.0]],
-                tangent_vec_b=[[3.0]],
-                base_point=[[4.0]],
-                expected=[-3 / 8],
+                tangent_vec_a=gs.array([-2.0]),
+                tangent_vec_b=gs.array([3.0]),
+                base_point=gs.array([4.0]),
+                expected=-3 / 8,
             ),
         ]
         return self.generate_tests(smoke_data)
