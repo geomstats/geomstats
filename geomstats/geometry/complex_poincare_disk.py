@@ -140,8 +140,8 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         )
         self.scale = scale
 
-    def inner_product_matrix(self, base_point):
-        """Compute the inner product matrix at base point.
+    def metric_matrix(self, base_point):
+        """Compute the metric matrix at base point.
 
         Parameters
         ----------
@@ -156,31 +156,7 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         inner_prod_mat = 1 / (1 - gs.abs(base_point) ** 2) ** 2
         inner_prod_mat = gs.cast(inner_prod_mat, dtype=gs.get_default_cdtype())
         inner_prod_mat *= self.scale**2
-        return inner_prod_mat
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the complex Poincaré disk inner-product.
-
-        Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the Siegel Riemannian metric:
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., 1]
-            Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., 1]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., 1]
-            Base point.
-
-        Returns
-        -------
-        inner_product : array-like, shape=[...]
-            Inner-product.
-        """
-        inner_product_matrix = self.inner_product_matrix(base_point=base_point)
-        inner_prod = gs.conj(tangent_vec_a) * inner_product_matrix * tangent_vec_b
-        return gs.reshape(inner_prod, (-1,))
+        return gs.expand_dims(inner_prod_mat, axis=-1)
 
     @staticmethod
     def exp(tangent_vec, base_point):
