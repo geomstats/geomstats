@@ -14,6 +14,12 @@ class BinomialTestData(_OpenSetTestData):
     n_points_list = random.sample(range(1, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 1)
 
+    def geodesic_test_data(self):
+        random_data = []
+        for space_args in self.space_args_list:
+            random_data.append(dict(space_args=space_args))
+        return self.generate_tests([],random_data)
+
     def belongs_test_data(self):
         smoke_data = [
             dict(n_draws=10, point=gs.array([0.1]), expected=True),

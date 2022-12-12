@@ -198,3 +198,166 @@ class ExponentialMetric(RiemannianMetric):
                 "A base point must be given to compute the " "metric matrix"
             )
         return 1 / base_point**2
+
+    def _geodesic_ivp(self, initial_point, initial_tangent_vec):
+        """Solve geodesic initial value problem.
+
+        Compute the parameterized function for the geodesic starting at
+        initial_point with initial velocity given by initial_tangent_vec.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., 1]
+            Initial point.
+
+        initial_tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at initial point.
+
+        Returns
+        -------
+        path : function
+            Parameterized function for the geodesic curve starting at
+            initial_point with velocity initial_tangent_vec.
+        """
+        n_initial_points = initial_point.shape[0]
+        n_initial_tangent_vecs = initial_tangent_vec.shape[0]
+        if n_initial_points > n_initial_tangent_vecs:
+            raise ValueError(
+                "There cannot be more initial points than " "initial tangent vectors."
+            )
+        if n_initial_tangent_vecs > n_initial_points:
+            if n_initial_points > 1:
+                raise ValueError(
+                    "For several initial tangent vectors, "
+                    "specify either one or the same number of "
+                    "initial points."
+                )
+                
+        base = gs.exp(initial_tangent_vec / initial_point)
+
+        def path(t):
+            """Generate parameterized function for geodesic curve.
+
+            Parameters
+            ----------
+            t : array-like, shape=[n_times,]
+                Times at which to compute points of the geodesics.
+
+            Returns
+            -------
+            geodesic : array-like, shape=[..., n_times, 1]
+                Values of the geodesic at times t.
+            """
+            # t = gs.expand_dims(t,axis=-1)
+            t = gs.reshape(t, (-1,))
+            print('a',t.shape)
+            _base, t = gs.broadcast_arrays(base, gs.transpose(t))
+            return gs.expand_dims(initial_point * _base ** t,axis=-1)
+
+        return path
+
+    def _geodesic_bvp(
+        self,
+        initial_point,
+        end_point
+    ):
+        """Solve geodesic boundary problem.
+
+        Compute the parameterized function for the geodesic starting at
+        initial_point and ending at end_point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., 1]
+            Initial point.
+        end_point : array-like, shape=[..., 1]
+            End point.
+
+        Returns
+        -------
+        path : function
+            Parameterized function for the geodesic curve starting at
+            initial_point and ending at end_point.
+        """
+        n_initial_points = initial_point.shape[0]
+        n_end_points = end_point.shape[0]
+        if n_initial_points > n_end_points:
+            if n_end_points > 1:
+                raise ValueError(
+                    "For several initial points, specify either"
+                    "one or the same number of end points."
+                )
+            end_point = gs.tile(end_point, (n_initial_points, 1))
+        elif n_end_points > n_initial_points:
+            if n_initial_points > 1:
+                raise ValueError(
+                    "For several end points, specify either "
+                    "one or the same number of initial points."
+                )
+        
+        base = end_point / initial_point
+
+        def path(t):
+            """Generate parameterized function for geodesic curve.
+
+            Parameters
+            ----------
+            t : array-like, shape=[n_times,]
+                Times at which to compute points of the geodesics.
+
+            Returns
+            -------
+            geodesic : array-like, shape=[..., n_times, 1]
+                Values of the geodesic at times t.
+            """
+            # t = gs.expand_dims(t,axis=-1)
+            t = gs.reshape(t, (-1,))
+            _base, t = gs.broadcast_arrays(base,gs.transpose(t))
+            return gs.expand_dims(initial_point * _base ** t,axis=-1)
+        
+        return path
+    
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., 1]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., 1], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., 1],
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents time, and the second corresponds to the different
+            initial conditions.
+        """ 
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError(
+                "Specify an end point or an initial tangent "
+                "vector to define the geodesic."
+            )
+        if end_point is not None:
+            if initial_tangent_vec is not None:
+                raise ValueError(
+                    "Cannot specify both an end point " "and an initial tangent vector."
+                )
+            path = self._geodesic_bvp(initial_point,end_point)
+
+        if initial_tangent_vec is not None:
+            path = self._geodesic_ivp(initial_point,initial_tangent_vec)
+
+        return path           
