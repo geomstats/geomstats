@@ -31,10 +31,10 @@ class ComplexPoincareDiskTestData(_ComplexOpenSetTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(point=gs.array([[0.2 + 0.2j]]), expected=gs.array(True)),
-            dict(point=gs.array([[1.0]]), expected=gs.array(False)),
+            dict(point=gs.array([0.2 + 0.2j]), expected=gs.array(True)),
+            dict(point=gs.array([1.0]), expected=gs.array(False)),
             dict(
-                point=gs.array([[0.9 + 0.9j]]),
+                point=gs.array([0.9 + 0.9j]),
                 expected=gs.array(False),
             ),
             dict(

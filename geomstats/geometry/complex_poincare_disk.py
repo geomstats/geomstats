@@ -175,10 +175,16 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             Riemannian exponential.
         """
         base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
-        theta = gs.cast(gs.angle(tangent_vec), dtype=gs.get_default_cdtype())
-        s = 2 * gs.abs(tangent_vec) / (1 - gs.abs(base_point) ** 2)
+
+        theta = gs.cast(gs.angle(tangent_vec), gs.get_default_cdtype())
+        s = gs.cast(
+            2 * gs.abs(tangent_vec) / (1 - gs.abs(base_point) ** 2),
+            gs.get_default_cdtype(),
+        )
+
         exp_i_theta = gs.exp(1j * theta)
-        exp_minus_s = gs.cast(gs.exp(-s), dtype=gs.get_default_cdtype())
+        exp_minus_s = gs.exp(-s)
+
         num = base_point + exp_i_theta + (base_point - exp_i_theta) * exp_minus_s
         den = (
             1
@@ -212,7 +218,7 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         """
         num = gs.abs(point_a - point_b)
         den = gs.maximum(gs.abs(1 - point_a * gs.conj(point_b)), atol)
-        delta = gs.minimum(num / den, 1 - atol)
+        delta = gs.squeeze(gs.minimum(num / den, 1 - atol), axis=-1)
         return (1 / 2) * gs.log((1 + delta) / (1 - delta))
 
     def log(self, point, base_point):
@@ -239,7 +245,11 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             dtype=gs.get_default_cdtype(),
         )
         return gs.exp(1j * angle) * gs.cast(
-            (1 - gs.abs(base_point) ** 2) * self._tau(base_point, point),
+            gs.einsum(
+                "...,...i->...i",
+                self._tau(base_point, point),
+                (1 - gs.abs(base_point) ** 2),
+            ),
             dtype=gs.get_default_cdtype(),
         )
 
@@ -260,7 +270,7 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
-        sq_dist = gs.real(gs.reshape(self._tau(point_a, point_b, atol=atol), (-1,)))
+        sq_dist = self._tau(point_a, point_b, atol=atol)
         return self.scale**2 * gs.power(sq_dist, 2)
 
     def dist(self, point_a, point_b, atol=gs.atol):
@@ -283,4 +293,4 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         dist : array-like, shape=[...]
             Riemannian distance.
         """
-        return self.scale * gs.reshape(self._tau(point_a, point_b, atol=atol), (-1,))
+        return self.scale * self._tau(point_a, point_b, atol=atol)
