@@ -255,7 +255,6 @@ class ProductManifold(Manifold):
             self._get_method(self.factors[i], func, args_list[i], numerical_args)
             for i in range(len(self.factors))
         ]
-
         out = self._pool_outputs_from_function(out)
         return out
 
@@ -314,17 +313,14 @@ class ProductManifold(Manifold):
         pooled_output : array-like, shape {(...,), (..., self.shape)}
         """
         # TODO: simplify after cleaning gs.squeeze
+        all_arrays = gs.all([gs.is_array(factor_output) for factor_output in outputs])
         if (
-            gs.all(
-                [
-                    gs.is_array(factor_output) or gs.is_bool(factor_output)
-                    for factor_output in outputs
-                ]
-            )
+            all_arrays
             and all_equal([factor_output.shape for factor_output in outputs])
             and gs.all([gs.is_bool(factor_output) for factor_output in outputs])
+            or (not all_arrays)
         ):
-            outputs = gs.stack(outputs)
+            outputs = gs.stack([gs.array(factor_output) for factor_output in outputs])
             outputs = gs.all(outputs, axis=0)
             return outputs
 

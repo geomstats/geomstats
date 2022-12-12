@@ -31,32 +31,6 @@ class Matrices(VectorSpace):
         m, n = self.m, self.n
         return gs.reshape(gs.eye(n * m), (n * m, m, n))
 
-    def belongs(self, point, atol=gs.atol):
-        """Check if point belongs to the Matrices space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., m, n]
-            Point to be checked.
-        atol : float
-            Unused here.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Matrices space.
-        """
-        ndim = point.ndim
-        if ndim == 1:
-            return False
-        mat_dim_1, mat_dim_2 = point.shape[-2:]
-        belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
-        if ndim == 2:
-            return belongs
-        if belongs:
-            return gs.ones(point.shape[:-2], dtype=bool)
-        return gs.zeros(point.shape[:-2], dtype=bool)
-
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
         """Test if matrices a and b are close.

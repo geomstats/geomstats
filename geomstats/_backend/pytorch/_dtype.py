@@ -6,8 +6,11 @@ from torch import complex64, complex128, float32, float64
 from geomstats._backend import _backend_config as _config
 from geomstats._backend._dtype_utils import (
     _MAP_FLOAT_TO_COMPLEX,
+    _modify_func_default_dtype,
     _pre_add_default_dtype_by_casting,
+    _pre_allow_complex_dtype,
     _pre_cast_out_to_input_dtype,
+    _update_default_dtypes,
     get_default_cdtype,
     get_default_dtype,
 )
@@ -20,6 +23,8 @@ MAP_DTYPE = {
     "complex64": complex64,
     "complex128": complex128,
 }
+
+_COMPLEX_DTYPES = (complex64, complex128)
 
 
 def is_floating(x):
@@ -55,6 +60,8 @@ def set_default_dtype(value):
     _config.DEFAULT_COMPLEX_DTYPE = as_dtype(_MAP_FLOAT_TO_COMPLEX.get(value))
     _torch.set_default_dtype(_config.DEFAULT_DTYPE)
 
+    _update_default_dtypes()
+
     return _config.DEFAULT_DTYPE
 
 
@@ -62,6 +69,7 @@ _add_default_dtype_by_casting = _pre_add_default_dtype_by_casting(cast)
 _cast_out_to_input_dtype = _pre_cast_out_to_input_dtype(
     cast, is_floating, is_complex, as_dtype, _dtype_as_str
 )
+_allow_complex_dtype = _pre_allow_complex_dtype(cast, _COMPLEX_DTYPES)
 
 
 def _preserve_input_dtype(target=None):

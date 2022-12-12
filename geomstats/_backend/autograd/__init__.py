@@ -398,7 +398,7 @@ def ndim(x):
 
 
 def copy(x):
-    return x.copy()
+    return _np.array(x, copy=True)
 
 
 def array_from_sparse(indices, data, target_shape):

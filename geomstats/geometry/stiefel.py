@@ -15,8 +15,6 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
-EPSILON = 1e-6
-
 
 class Stiefel(LevelSet):
     """Class for Stiefel manifolds St(n,p).
@@ -38,22 +36,45 @@ class Stiefel(LevelSet):
         if p > n:
             raise ValueError("p needs to be smaller than n.")
 
-        dim = int(p * n - (p * (p + 1) / 2))
-        matrices = Matrices(n, p)
-        canonical_metric = StiefelCanonicalMetric(n, p)
-        kwargs.setdefault("metric", canonical_metric)
-        super().__init__(
-            dim=dim,
-            embedding_space=matrices,
-            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
-            value=gs.eye(p),
-            tangent_submersion=lambda v, x: 2
-            * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
-            **kwargs
-        )
-        self.canonical_metric = canonical_metric
         self.n = n
         self.p = p
+        self._value = gs.eye(p)
+
+        dim = int(p * n - (p * (p + 1) / 2))
+        kwargs.setdefault("metric", StiefelCanonicalMetric(n, p))
+        super().__init__(dim=dim, **kwargs)
+
+    def _define_embedding_space(self):
+        return Matrices(self.n, self.p)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n, n]
+        """
+        return Matrices.mul(Matrices.transpose(point), point) - self._value
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n, n]
+        """
+        return 2 * Matrices.to_symmetric(
+            Matrices.mul(Matrices.transpose(point), vector)
+        )
 
     @staticmethod
     def to_grassmannian(point):

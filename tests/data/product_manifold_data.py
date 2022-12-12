@@ -198,6 +198,7 @@ class NFoldManifoldTestData(_ManifoldTestData):
     ]
     power_list = [3, 2]
     shape_list = [(3, 2, 2), (2, 3)]
+    scale_list = [[1, 2, 3], [1, 1]]
 
     space_args_list = list(zip(base_list, power_list))
 
@@ -267,3 +268,42 @@ class NFoldMetricTestData(_RiemannianMetricTestData):
             dict(space=space, n_samples=4, point=point, tangent_vec=tangent_vec)
         ]
         return self.generate_tests(smoke_data)
+
+    def inner_product_scales_test_data(self):
+        so3 = SpecialOrthogonal(3)
+        r4 = Euclidean(4)
+        point1 = so3.random_point(n_samples=2)
+        vec1 = so3.random_tangent_vec(point1, n_samples=2)
+        point2 = r4.random_point(n_samples=3)
+        vec2 = r4.random_tangent_vec(point2, n_samples=3)
+        random_data = [
+            dict(
+                base_metric=so3.metric,
+                n_copies=2,
+                scales=[1.0, 2.0],
+                point=point1,
+                tangent_vec=vec1,
+            ),
+            dict(
+                base_metric=so3.metric,
+                n_copies=2,
+                scales=[1.0, 2.0],
+                point=gs.stack((point1, point1)),
+                tangent_vec=gs.stack((vec1, vec1)),
+            ),
+            dict(
+                base_metric=r4.metric,
+                n_copies=3,
+                scales=[2.5, 2.0, 1.5],
+                point=point2,
+                tangent_vec=vec2,
+            ),
+            dict(
+                base_metric=r4.metric,
+                n_copies=3,
+                scales=[2.5, 2.0, 1.5],
+                point=gs.stack((point2, point2)),
+                tangent_vec=gs.stack((vec2, vec2)),
+            ),
+        ]
+        return self.generate_tests(random_data)
