@@ -4,30 +4,26 @@ import numpy as _np
 from numpy.random import default_rng as _default_rng
 from numpy.random import randint, seed
 
-from ._common import cast as _cast
-from ._dtype import _add_default_dtype_by_casting, _modify_func_default_dtype
+from ._dtype import _allow_complex_dtype, _modify_func_default_dtype
 
-normal = _add_default_dtype_by_casting(target=_np.random.normal)
-multivariate_normal = _add_default_dtype_by_casting(
-    target=_np.random.multivariate_normal
+rand = _modify_func_default_dtype(
+    copy=False, kw_only=True, target=_allow_complex_dtype(target=_np.random.rand)
 )
-uniform = _add_default_dtype_by_casting(target=_np.random.uniform)
+
+uniform = _modify_func_default_dtype(
+    copy=False, kw_only=True, target=_allow_complex_dtype(target=_np.random.uniform)
+)
 
 
-@_modify_func_default_dtype(copy=False, kw_only=True)
-def rand(*size, dtype=None):
-    if dtype in [_np.complex64, _np.complex128]:
-        real = _np.random.rand(*size)
-        imag = 1j * _np.random.rand(*size)
-        out = real + imag
+normal = _modify_func_default_dtype(
+    copy=False, kw_only=True, target=_allow_complex_dtype(target=_np.random.normal)
+)
 
-    else:
-        out = _np.random.rand(*size)
-
-    if out.dtype != dtype:
-        return _cast(out, dtype)
-
-    return out
+multivariate_normal = _modify_func_default_dtype(
+    copy=False,
+    kw_only=True,
+    target=_allow_complex_dtype(target=_np.random.multivariate_normal),
+)
 
 
 def choice(*args, **kwargs):

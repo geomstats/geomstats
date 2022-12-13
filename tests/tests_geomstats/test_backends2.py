@@ -463,3 +463,17 @@ class TestDtypes(TestCase, metaclass=Parametrizer):
             func_b=func_b,
             func_c=func_c,
         )
+
+    def test_random_distrib_complex(self, func_name, args=(), kwargs=None):
+        self._reset_dtype()
+        kwargs = kwargs or {}
+
+        gs_fnc = get_backend_fnc(func_name)
+
+        dtype = gs.as_dtype("complex128")
+        out = gs_fnc(*args, **kwargs, dtype=dtype)
+
+        self.assertDtype(out.dtype, dtype)
+        self.assertTrue(
+            gs.sum(gs.abs(gs.imag(out))) > gs.atol, msg="Zero imaginary part"
+        )

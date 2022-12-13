@@ -331,6 +331,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         aux_4 = aux_3 + identity
         factor_2 = HermitianMatrices.powerm(aux_4, -1)
         factor_3 = HermitianMatrices.powerm(aux_2, -1)
+        factor_3 = gs.where(gs.isnan(factor_3), gs.zeros_like(factor_2), factor_3)
         prod_1 = gs.matmul(factor_1, factor_2)
         prod_2 = gs.matmul(prod_1, factor_3)
         exp = gs.matmul(prod_2, tangent_vec)
@@ -423,6 +424,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         frac = gs.matmul(num, inv_den)
         factor_1 = gs.linalg.logm(frac)
         factor_2 = HermitianMatrices.powerm(aux_2, -1)
+        factor_2 = gs.where(gs.isnan(factor_2), gs.zeros_like(factor_2), factor_2)
         prod_1 = gs.matmul(factor_1, factor_2)
         log_at_zero = gs.matmul(prod_1, point)
         log_at_zero *= 0.5
@@ -545,3 +547,85 @@ class SiegelMetric(ComplexRiemannianMetric):
         sq_dist *= self.scale**2
         sq_dist = gs.maximum(sq_dist, 0)
         return sq_dist
+
+    def sectional_curvature_at_zero(self, tangent_vec_a, tangent_vec_b, atol=gs.atol):
+        """Compute the sectional curvature at zero.
+
+        Non-orthonormal vectors can be given.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at zero.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at zero.
+        atol : float
+            Tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at zero.
+        """
+
+        def _scale_by_norm(tangent_vec):
+            norm_tangent_vec = self.norm(tangent_vec, base_point=zero)
+            scalars = gs.where(norm_tangent_vec < atol, 0.0, 1 / norm_tangent_vec)
+            return gs.einsum("...,...ij->...ij", scalars, tangent_vec)
+
+        zero = gs.zeros([self.n, self.n], dtype=tangent_vec_a.dtype)
+
+        tangent_vec_a = _scale_by_norm(tangent_vec_a)
+
+        inner_prod = self.inner_product(tangent_vec_a, tangent_vec_b, base_point=zero)
+
+        tangent_vec_b -= inner_prod * tangent_vec_a
+        tangent_vec_b = _scale_by_norm(tangent_vec_b)
+
+        tangent_vec_a_transconj = ComplexMatrices.transconjugate(tangent_vec_a)
+        tangent_vec_b_transconj = ComplexMatrices.transconjugate(tangent_vec_b)
+
+        term1 = gs.matmul(tangent_vec_a, tangent_vec_b_transconj)
+        term1 -= gs.matmul(tangent_vec_b, tangent_vec_a_transconj)
+        norm_term1 = gs.linalg.norm(term1, axis=(-2, -1)) ** 2
+
+        term2 = gs.matmul(tangent_vec_a_transconj, tangent_vec_b)
+        term2 -= gs.matmul(tangent_vec_b_transconj, tangent_vec_a)
+        norm_term2 = gs.linalg.norm(term2, axis=(-2, -1)) ** 2
+        return -0.5 * (norm_term1 + norm_term2) * self.scale**2
+
+    def sectional_curvature(
+        self, tangent_vec_a, tangent_vec_b, base_point=None, atol=gs.atol
+    ):
+        """Compute the sectional curvature.
+
+        For two orthonormal tangent vectors at a base point :math:`x,y`,
+        the sectional curvature is defined by :math:`<R(x, y)x,
+        y>`. Non-orthonormal vectors can be given.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point. Optional, default is zero
+        atol : float
+            Tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        sectional_curvature : array-like, shape=[...,]
+            Sectional curvature at `base_point`.
+        """
+        if base_point is not None:
+            tangent_vec_a = self.tangent_vec_from_base_point_to_zero(
+                tangent_vec_a, base_point
+            )
+            tangent_vec_b = self.tangent_vec_from_base_point_to_zero(
+                tangent_vec_b, base_point
+            )
+        return self.sectional_curvature_at_zero(tangent_vec_a, tangent_vec_b, atol=atol)

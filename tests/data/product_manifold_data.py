@@ -11,6 +11,7 @@ from geomstats.geometry.product_manifold import (
     ProductManifold,
 )
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
+from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
@@ -19,6 +20,9 @@ smoke_metrics_1 = [Hypersphere(dim=2).metric, Hyperboloid(dim=2).metric]
 
 smoke_manifolds_2 = [Euclidean(3), Minkowski(3)]
 smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
+
+smoke_manifolds_3 = [Siegel(2), Siegel(2), Siegel(2)]
+smoke_metrics_3 = [Siegel(2).metric, Siegel(2).metric, Siegel(2).metric]
 
 
 class ProductManifoldTestData(_ManifoldTestData):
@@ -30,9 +34,15 @@ class ProductManifoldTestData(_ManifoldTestData):
         [SpecialOrthogonal(n=2), SpecialOrthogonal(n=3)],
         [SpecialOrthogonal(n=2), Euclidean(dim=3)],
         [Euclidean(dim=2), Euclidean(dim=1), Euclidean(dim=4)],
+        [Siegel(2), Siegel(2), Siegel(2)],
     ]
-    default_point_list = ["matrix"] + ["vector"] * 6
-    default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"]
+    default_point_list = ["matrix"] + ["vector"] * 6 + ["other"]
+    default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"] * 2
+
+    if len(manifolds_list) != len(default_point_list) or len(manifolds_list) != len(
+        default_coords_type_list
+    ):
+        raise Exception("One of the lists is incomplete.")
 
     shape_list = [
         (2, 3 + 1),
@@ -42,6 +52,7 @@ class ProductManifoldTestData(_ManifoldTestData):
         (4 + 6,),
         (4 + 3,),
         (7,),
+        (3, 2, 2),
     ]
 
     space_args_list = [
@@ -65,6 +76,11 @@ class ProductManifoldTestData(_ManifoldTestData):
                 manifolds=smoke_manifolds_1,
                 default_point_type="matrix",
                 expected=4,
+            ),
+            dict(
+                manifolds=smoke_manifolds_3,
+                default_point_type="other",
+                expected=12,
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -155,6 +171,16 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
                     smoke_manifolds_2, default_point_type="matrix"
                 ).random_point(5),
             ),
+            dict(
+                manifolds=smoke_metrics_3,
+                default_point_type="other",
+                point=ProductManifold(
+                    smoke_manifolds_3, default_point_type="other"
+                ).random_point(5),
+                base_point=ProductManifold(
+                    smoke_manifolds_3, default_point_type="other"
+                ).random_point(5),
+            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -179,9 +205,14 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
                 default_point_type="matrix",
                 n_samples=10,
                 einsum_str="..., ...jl->...jl",
-                expected=gs.ones(
-                    10,
-                ),
+                expected=gs.ones(10),
+            ),
+            dict(
+                manifolds=smoke_manifolds_3,
+                default_point_type="other",
+                n_samples=10,
+                einsum_str="..., ...jkl->...jkl",
+                expected=gs.ones(10),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -198,6 +229,7 @@ class NFoldManifoldTestData(_ManifoldTestData):
     ]
     power_list = [3, 2]
     shape_list = [(3, 2, 2), (2, 3)]
+    scale_list = [[1, 2, 3], [1, 1]]
 
     space_args_list = list(zip(base_list, power_list))
 
@@ -267,3 +299,42 @@ class NFoldMetricTestData(_RiemannianMetricTestData):
             dict(space=space, n_samples=4, point=point, tangent_vec=tangent_vec)
         ]
         return self.generate_tests(smoke_data)
+
+    def inner_product_scales_test_data(self):
+        so3 = SpecialOrthogonal(3)
+        r4 = Euclidean(4)
+        point1 = so3.random_point(n_samples=2)
+        vec1 = so3.random_tangent_vec(point1, n_samples=2)
+        point2 = r4.random_point(n_samples=3)
+        vec2 = r4.random_tangent_vec(point2, n_samples=3)
+        random_data = [
+            dict(
+                base_metric=so3.metric,
+                n_copies=2,
+                scales=[1.0, 2.0],
+                point=point1,
+                tangent_vec=vec1,
+            ),
+            dict(
+                base_metric=so3.metric,
+                n_copies=2,
+                scales=[1.0, 2.0],
+                point=gs.stack((point1, point1)),
+                tangent_vec=gs.stack((vec1, vec1)),
+            ),
+            dict(
+                base_metric=r4.metric,
+                n_copies=3,
+                scales=[2.5, 2.0, 1.5],
+                point=point2,
+                tangent_vec=vec2,
+            ),
+            dict(
+                base_metric=r4.metric,
+                n_copies=3,
+                scales=[2.5, 2.0, 1.5],
+                point=gs.stack((point2, point2)),
+                tangent_vec=gs.stack((vec2, vec2)),
+            ),
+        ]
+        return self.generate_tests(random_data)

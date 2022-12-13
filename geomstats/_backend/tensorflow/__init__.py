@@ -66,7 +66,6 @@ _DTYPES = {
 conj = _tf.math.conj
 erf = _tf.math.erf
 imag = _tf.math.imag
-isnan = _tf.math.is_nan
 polygamma = _tf.math.polygamma
 real = _tf.math.real
 set_diag = _tf.linalg.set_diag
@@ -572,7 +571,7 @@ def outer(x, y):
 
 
 def copy(x):
-    return _tf.Variable(x)
+    return _tf.identity(x)
 
 
 def hstack(x):
@@ -878,6 +877,12 @@ def linspace(start, stop, num=50, dtype=None):
 
 def is_array(x):
     return _tf.is_tensor(x)
+
+
+def isnan(x):
+    if is_complex(x):
+        return _tf.math.is_nan(real(x))
+    return _tf.math.is_nan(x)
 
 
 def matvec(A, b):

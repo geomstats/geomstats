@@ -19,13 +19,6 @@ Geomstats
 
 **NEWS**:
 
-- Next hackathon will be on October 17-21, 2022 in Paris. Interested? Reach out to us on slack!
-- Google's Season of Docs (SoD) 2022: Geomstats is participating! Interested?
-   - Find out more about being a Google SoD's `writer <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and about Geomstats' `proposal <https://geomstats.github.io/gsod.html>`_.
-   - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_.
-   - Submit your `statement of interest <https://developers.google.com/season-of-docs/docs/tech-writer-statement>`_ via email to nmiolane@gmail.com before May 1st, at 18:00 UTC.
-   - Selected technical writers will be notified no later than May 16th.
-
 - The white papers summarizing the findings from our ICLR 2021 and 2022 challenges of computational differential geometry and topology are available `here (2021) <https://arxiv.org/abs/2108.09810>`__ and `here (2022) <https://arxiv.org/abs/2206.09048>`_.
 
 - Check out our new  `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
@@ -40,6 +33,7 @@ algorithms for data on manifolds.
 
 -  To get an overview of ``geomstats``, see our `introductory
    video <https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3>`__.
+- To understand how ``geomstats`` is built, check out `these slides <https://drive.google.com/file/d/1YxeGeLXrJdVQLBJQ-SYPirQ7V_UisqUw/view?usp=sharing>`__.
 -  To get started with ``geomstats``, see the
    `examples <https://github.com/geomstats/geomstats/tree/master/examples>`__
    and
@@ -90,6 +84,19 @@ requirements with ``pip3`` as follows:
 
 This method installs the latest version of geomstats that is uploaded on
 PyPi. Note that geomstats is only available with Python3.
+
+Install geomstats via conda
+--------------------------
+
+From a terminal (OS X & Linux) or an Anaconda prompt (Windows), you can install geomstats and its
+requirements with ``conda`` as follows:
+
+::
+
+    conda install -c conda-forge geomstats
+
+This method installs the latest version of geomstats that is uploaded on
+conda-forge. Note that geomstats is only available with Python3.
 
 Install geomstats via Git
 -------------------------

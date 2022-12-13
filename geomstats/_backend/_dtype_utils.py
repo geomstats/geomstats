@@ -337,6 +337,40 @@ def _pre_cast_out_to_input_dtype(cast, is_floating, is_complex, as_dtype, dtype_
     return _cast_out_to_input_dtype
 
 
+def _pre_allow_complex_dtype(cast, complex_dtypes):
+    def _allow_complex_dtype(target=None):
+        """Allow complex type by calling the function twice.
+
+        Assumes function do not support dtype.
+
+        How it works?
+        -------------
+        Function is called twice if dtype is complex.
+        Output is casted if not corresponding to expected dtype.
+        """
+
+        def _decorator(func):
+            @functools.wraps(func)
+            def _wrapped(*args, dtype=None, **kwargs):
+                out = func(*args, **kwargs)
+                if dtype in complex_dtypes:
+                    out = out + 1j * func(*args, **kwargs)
+
+                if out.dtype != dtype:
+                    return cast(out, dtype)
+
+                return out
+
+            return _wrapped
+
+        if target is None:
+            return _decorator
+
+        return _decorator(target)
+
+    return _allow_complex_dtype
+
+
 def _np_box_unary_scalar(target=None):
     """Update dtype if input is float in unary operations.
 

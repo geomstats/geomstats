@@ -41,19 +41,44 @@ class PreShapeSpace(LevelSet, FiberBundle):
     """
 
     def __init__(self, k_landmarks, m_ambient):
-        embedding_manifold = Matrices(k_landmarks, m_ambient)
-        embedding_metric = embedding_manifold.metric
-        super().__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1,
-            embedding_space=embedding_manifold,
-            submersion=embedding_metric.squared_norm,
-            value=1.0,
-            tangent_submersion=embedding_metric.inner_product,
-            total_space_metric=PreShapeMetric(k_landmarks, m_ambient),
-        )
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
+
+        super().__init__(
+            dim=m_ambient * (k_landmarks - 1) - 1,
+            total_space_metric=PreShapeMetric(k_landmarks, m_ambient),
+        )
         self.total_space_metric = PreShapeMetric(k_landmarks, m_ambient)
+
+    def _define_embedding_space(self):
+        return Matrices(self.k_landmarks, self.m_ambient)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_landmarks, m_ambient]
+
+        Returns
+        -------
+        submersion : array-like, shape=[...]
+        """
+        return self.embedding_space.metric.squared_norm(point) - 1.0
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim+1]
+        point : array-like, shape=[..., dim+1]
+
+        Returns
+        -------
+        tangent_submersion : array-like, shape=[...]
+        """
+        return self.embedding_space.metric.inner_product(vector, point)
 
     def projection(self, point):
         """Project a point on the pre-shape space.

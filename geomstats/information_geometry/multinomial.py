@@ -32,17 +32,41 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
     """
 
     def __init__(self, dim, n_draws, **kwargs):
-        super().__init__(
-            dim=dim,
-            embedding_space=Euclidean(dim + 1),
-            submersion=lambda x: gs.sum(x, axis=-1),
-            value=1.0,
-            tangent_submersion=lambda v, x: gs.sum(v, axis=-1),
-            shape=(dim + 1,),
-            metric=MultinomialMetric(dim=dim, n_draws=n_draws),
-            **kwargs,
-        )
+        self.dim = dim
+
+        kwargs.setdefault("metric", MultinomialMetric(dim=dim, n_draws=n_draws))
+        super().__init__(dim=dim, shape=(dim + 1,), **kwargs)
         self.n_draws = n_draws
+
+    def _define_embedding_space(self):
+        return Euclidean(self.dim + 1)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[...]
+        """
+        return gs.sum(point, axis=-1) - 1.0
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim + 1]
+        point : Ignored.
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[...]
+        """
+        return gs.sum(vector, axis=-1)
 
     def random_point(self, n_samples=1):
         """Generate parameters of multinomial distributions.

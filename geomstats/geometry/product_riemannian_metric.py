@@ -12,7 +12,7 @@ import geomstats.errors
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-def all_equal(arg):
+def _all_equal(arg):
     """Check if all elements of arg are equal."""
     return arg.count(arg[0]) == len(arg)
 
@@ -49,14 +49,19 @@ class ProductRiemannianMetric(RiemannianMetric):
     scales : list
         List of positive values to rescale the inner product by on each factor.
         Note: To rescale the distances by a constant c, use c^2 for the scale
-    default_point_type : str, {'vector', 'matrix'}
-        Point type.
-        Optional, default: 'vector'.
+    default_point_type : {'auto', 'vector', 'matrix', 'other'}
+        Optional. Default value is 'auto', which will implement as 'vector' unless all
+        factors have the same shape. Vector representation gives the point as a 1-d
+        array. Matrix representation allows for a point to be represented by an array of
+        shape (n, dim), if each manifold has default_point_type 'vector' with shape
+        (dim,). 'other' will behave as `matrix` but for higher dimensions.
     """
 
-    def __init__(self, metrics, default_point_type="vector", scales=None):
+    def __init__(self, metrics, default_point_type="auto", scales=None):
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, "default_point_type", ["vector", "matrix"]
+            default_point_type,
+            "default_point_type",
+            ["auto", "vector", "matrix", "other"],
         )
 
         self.factors = metrics
@@ -83,16 +88,25 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
+        if default_point_type == "auto":
+            if _all_equal(self._factor_shapes):
+                return len(self.factors), *self.factors[0].shape
+            default_point_type = "vector"
         if default_point_type == "vector":
             return (
-                sum([math.prod(factor_shape) for factor_shape in self._factor_shapes]),
+                sum(math.prod(factor_shape) for factor_shape in self._factor_shapes),
             )
-        if not all_equal(self._factor_shapes):
+        if not _all_equal(self._factor_shapes):
             raise ValueError(
-                "A default_point_type of 'matrix' can only be used if all "
+                "A default_point_type of 'matrix' or 'other' can only be used if all "
                 "metrics have the same shape."
             )
-        return (len(self.factors), *self.factors[0].shape)
+        if default_point_type == "matrix" and not len(self._factor_shapes[0]) == 1:
+            raise ValueError(
+                "A default_point_type of 'matrix' can only be used if all "
+                "metrics have vector type."
+            )
+        return len(self.factors), *self.factors[0].shape
 
     def embed_to_product(self, points):
         """Map a point in each factor to a point in the product.
@@ -127,7 +141,8 @@ class ProductRiemannianMetric(RiemannianMetric):
                 points_.append(response)
 
             return gs.concatenate(points_, axis=-1)
-        return gs.stack(points, axis=-len(self.shape))
+        stacking_axis = -1 * len(self.shape)
+        return gs.stack(points, axis=stacking_axis)
 
     def project_from_product(self, point):
         """Map a point in the product to points in each factor.
@@ -157,8 +172,12 @@ class ProductRiemannianMetric(RiemannianMetric):
             ]
 
         else:
-            point = gs.reshape(point, (-1,) + self.shape)
-            projected_points = [point[:, j, ...] for j in range(len(self.factors))]
+            splitting_axis = -1 * len(self.shape)
+            projected_points = gs.split(point, len(self.factors), axis=splitting_axis)
+            projected_points = [
+                gs.squeeze(projected_point, axis=splitting_axis)
+                for projected_point in projected_points
+            ]
 
         return projected_points
 
@@ -377,14 +396,20 @@ class NFoldMetric(RiemannianMetric):
         Number of replication of the base metric.
     """
 
-    def __init__(self, base_metric, n_copies):
+    def __init__(self, base_metric, n_copies, scales=None):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_metric.dim
         base_shape = base_metric.shape
-        super().__init__(dim=dim, shape=(n_copies, *base_shape))
+        super().__init__(
+            dim=dim, shape=base_shape if n_copies == 1 else (n_copies, *base_shape)
+        )
         self.base_shape = base_shape
         self.base_metric = base_metric
         self.n_copies = n_copies
+        if scales is not None:
+            for scale in scales:
+                geomstats.errors.check_positive(scale, "Each value in scales")
+        self.scales = scales
 
     def metric_matrix(self, base_point=None):
         """Compute the matrix of the inner-product.
@@ -407,6 +432,9 @@ class NFoldMetric(RiemannianMetric):
         matrices = self.base_metric.metric_matrix(point_)
         dim = self.base_metric.dim
         reshaped = gs.reshape(matrices, (-1, self.n_copies, dim, dim))
+        if self.scales is not None:
+            reshaped = gs.einsum("j,ijkl->ijkl", self.scales, matrices)
+
         return gs.squeeze(reshaped)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -438,6 +466,8 @@ class NFoldMetric(RiemannianMetric):
         vector_b = gs.reshape(tangent_vec_b_, (-1, *self.base_shape))
         inner_each = self.base_metric.inner_product(vector_a, vector_b, point_)
         reshaped = gs.reshape(inner_each, (-1, self.n_copies))
+        if self.scales is not None:
+            reshaped = gs.einsum("j,ij->ij", self.scales, reshaped)
         return gs.squeeze(gs.sum(reshaped, axis=-1))
 
     def exp(self, tangent_vec, base_point, **kwargs):
