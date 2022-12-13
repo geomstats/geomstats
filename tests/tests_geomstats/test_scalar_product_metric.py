@@ -1,28 +1,10 @@
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.scalar_product_metric import (
-    ScalarProductMetric,
     _get_scaling_factor,
     _wrap_attr,
 )
 from tests.conftest import TestCase
-
-
-class ScalarProductMetricTestCase(TestCase):
-    def test_dist(self):
-        point_a, point_b = self.space.random_point(2)
-
-        dist = self.space.metric.dist(point_a, point_b)
-        scaled_dist = self.scaled_metric.dist(point_a, point_b)
-
-        self.assertAllClose(
-            dist, scaled_dist / gs.sqrt(self.scaled_metric.scaling_factor)
-        )
-
-
-class TestScalarProductMetricEuclidean(ScalarProductMetricTestCase):
-    space = Euclidean(dim=3)
-    scaled_metric = ScalarProductMetric(space.metric, 2.0)
 
 
 class TestWrapper(TestCase):
