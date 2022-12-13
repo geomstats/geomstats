@@ -1,6 +1,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.scalar_product_metric import (
+    ScalarProductMetric,
     _get_scaling_factor,
     _wrap_attr,
 )
@@ -46,14 +47,30 @@ class TestWrapper(TestCase):
 class TestInstantiation(TestCase):
     def test_scalar_metric_multiplication(self):
         space = Euclidean(dim=3)
+        scale = 2.0
 
-        scaled_metric_1 = 2.0 * space.metric
-        scaled_metric_2 = space.metric * 2.0
+        scaled_metric_1 = scale * space.metric
+        scaled_metric_2 = space.metric * scale
 
         point_a, point_b = space.random_point(2)
         dist = space.metric.squared_dist(point_a, point_b)
         dist_1 = scaled_metric_1.squared_dist(point_a, point_b)
         dist_2 = scaled_metric_2.squared_dist(point_a, point_b)
 
-        self.assertAllClose(2.0 * dist, dist_1)
-        self.assertAllClose(2.0 * dist, dist_2)
+        self.assertAllClose(scale * dist, dist_1)
+        self.assertAllClose(scale * dist, dist_2)
+
+    def test_scaling_scalar_metric(self):
+        space = Euclidean(dim=3)
+        scale = 2.0
+
+        scaled_metric_1 = ScalarProductMetric(space.metric, scale)
+        scaled_metric_2 = ScalarProductMetric(scaled_metric_1, scale)
+
+        point_a, point_b = space.random_point(2)
+        dist = space.metric.squared_dist(point_a, point_b)
+        dist_1 = scaled_metric_1.squared_dist(point_a, point_b)
+        dist_2 = scaled_metric_2.squared_dist(point_a, point_b)
+
+        self.assertAllClose(scale * dist, dist_1)
+        self.assertAllClose(scale**2 * dist, dist_2)
