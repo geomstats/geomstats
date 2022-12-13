@@ -1,27 +1,32 @@
-"""Unit tests for the Siegel manifold."""
+"""Unit tests for the complex Poincare disk manifold."""
 
 import geomstats.backend as gs
 from tests.conftest import Parametrizer
-from tests.data.siegel_data import SiegelMetricTestData, SiegelTestData
+from tests.data.complex_poincare_disk_data import (
+    ComplexPoincareDiskMetricTestData,
+    ComplexPoincareDiskTestData,
+)
 from tests.geometry_test_cases import ComplexRiemannianMetricTestCase, OpenSetTestCase
 
 
-class TestSiegel(OpenSetTestCase, metaclass=Parametrizer):
-    """Test of Siegel methods."""
+class TestComplexPoincareDisk(OpenSetTestCase, metaclass=Parametrizer):
+    """Test of the complex Poincare disk methods."""
 
-    testing_data = SiegelTestData()
+    testing_data = ComplexPoincareDiskTestData()
 
-    def test_belongs(self, n, mat, expected):
-        self.assertAllClose(self.Space(n).belongs(gs.array(mat)), expected)
+    def test_belongs(self, point, expected):
+        self.assertAllClose(self.Space().belongs(gs.array(point)), expected)
 
-    def test_projection(self, n, mat, expected):
+    def test_projection(self, point, expected):
         self.assertAllClose(
-            self.Space(n).projection(gs.array(mat)),
+            self.Space().projection(gs.array(point)),
             gs.array(expected),
         )
 
 
-class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
+class TestComplexPoincareDiskMetric(
+    ComplexRiemannianMetricTestCase, metaclass=Parametrizer
+):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
@@ -38,12 +43,12 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
 
-    testing_data = SiegelMetricTestData()
+    testing_data = ComplexPoincareDiskMetricTestData()
 
     def test_inner_product(
-        self, n, scale, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, scale, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.Metric(n, scale)
+        metric = self.Metric(scale)
         result = metric.inner_product(
             gs.array(tangent_vec_a),
             gs.array(tangent_vec_b),
@@ -51,8 +56,8 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected)
 
-    def test_exp(self, n, scale, tangent_vec, base_point, expected):
-        metric = self.Metric(n, scale)
+    def test_exp(self, scale, tangent_vec, base_point, expected):
+        metric = self.Metric(scale)
         self.assertAllClose(
             metric.exp(
                 gs.array(tangent_vec),
@@ -61,8 +66,8 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
             gs.array(expected),
         )
 
-    def test_log(self, n, scale, point, base_point, expected):
-        metric = self.Metric(n, scale)
+    def test_log(self, scale, point, base_point, expected):
+        metric = self.Metric(scale)
         self.assertAllClose(
             metric.log(
                 gs.array(point),
@@ -70,14 +75,3 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
             ),
             gs.array(expected),
         )
-
-    def test_sectional_curvature(
-        self, n, scale, tangent_vec_a, tangent_vec_b, base_point, expected
-    ):
-        metric = self.Metric(n, scale)
-        result = metric.sectional_curvature(
-            gs.array(tangent_vec_a),
-            gs.array(tangent_vec_b),
-            gs.array(base_point),
-        )
-        self.assertAllClose(result, expected)

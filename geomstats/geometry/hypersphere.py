@@ -43,15 +43,41 @@ class _Hypersphere(LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
-
+        self.dim = dim
         super().__init__(
             dim=dim,
-            embedding_space=Euclidean(dim + 1),
-            submersion=lambda x: gs.sum(x**2, axis=-1),
-            value=1.0,
-            tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1),
             default_coords_type=default_coords_type,
         )
+
+    def _define_embedding_space(self):
+        return Euclidean(self.dim + 1)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[...]
+        """
+        return gs.sum(point**2, axis=-1) - 1.0
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim+1]
+        point : array-like, shape=[..., dim+1]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[...]
+        """
+        return 2 * gs.sum(point * vector, axis=-1)
 
     def projection(self, point):
         """Project a point on the hypersphere.
@@ -92,7 +118,7 @@ class _Hypersphere(LevelSet):
             at the base point.
         """
         sq_norm = gs.sum(base_point**2, axis=-1)
-        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        inner_prod = self.embedding_space.metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum("...,...j->...j", coef, base_point)
 

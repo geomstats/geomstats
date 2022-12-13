@@ -37,6 +37,9 @@ class ComplexManifold(abc.ABC):
         self.default_coords_type = default_coords_type
         self._metric = metric
 
+        self.point_ndim = len(self.shape)
+        self.default_point_type = "vector" if self.point_ndim == 1 else "matrix"
+
     @property
     def metric(self):
         """Riemannian metric associated to the complex manifold."""
@@ -61,12 +64,12 @@ class ComplexManifold(abc.ABC):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        base_point :  array-like, shape=[..., dim]
+        base_point :  array-like, shape=[..., *point_shape]
             Point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vec at base point.
         """
         if (
@@ -78,11 +81,8 @@ class ComplexManifold(abc.ABC):
                 "The number of base points must be the same as the "
                 "number of samples, when different from 1."
             )
-        vector = gs.cast(
-            gs.random.normal(size=(n_samples,) + self.shape),
-            dtype=gs.get_default_cdtype(),
-        ) + 1j * gs.cast(
-            gs.random.normal(size=(n_samples,) + self.shape),
-            dtype=gs.get_default_cdtype(),
+        batch_size = () if n_samples == 1 else (n_samples,)
+        vector = gs.random.normal(
+            size=batch_size + self.shape, dtype=gs.get_default_cdtype()
         )
-        return gs.squeeze(self.to_tangent(vector, base_point))
+        return self.to_tangent(vector, base_point)
