@@ -15,36 +15,7 @@ from geomstats.geometry.product_riemannian_metric import (
 )
 
 
-def broadcast_shapes(*args):
-    """
-    Broadcast the input shapes into a single shape.
-
-    This is an adaptation of the version of the function implemented in mumpy 1.20.0
-
-    Parameters
-    ----------
-    `*args` : tuples of ints, or ints
-        The shapes to be broadcast against each other.
-
-    Returns
-    -------
-    tuple
-        Broadcasted shape.
-
-    Raises
-    ------
-    ValueError
-        If the shapes are not compatible and cannot be broadcast according
-        to NumPy's broadcasting rules.
-    """
-    if len(args) == 0:
-        return ()
-    arrays = [gs.empty(x, dtype=[]) for x in args]
-    broadcasted_array = gs.broadcast_arrays(*arrays)
-    return broadcasted_array[0].shape
-
-
-def all_equal(arg):
+def _all_equal(arg):
     """Check if all elements of arg are equal."""
     return arg.count(arg[0]) == len(arg)
 
@@ -135,14 +106,14 @@ class ProductManifold(Manifold):
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
         if default_point_type == "auto":
-            if all_equal(self._factor_shapes):
+            if _all_equal(self._factor_shapes):
                 return len(self.factors), *self.factors[0].shape
             default_point_type = "vector"
         if default_point_type == "vector":
             return (
                 sum([math.prod(factor_shape) for factor_shape in self._factor_shapes]),
             )
-        if not all_equal(self._factor_shapes):
+        if not _all_equal(self._factor_shapes):
             raise ValueError(
                 "A default_point_type of 'matrix' or 'other' can only be used if all "
                 "manifolds have the same shape."
@@ -329,7 +300,7 @@ class ProductManifold(Manifold):
         all_arrays = gs.all([gs.is_array(factor_output) for factor_output in outputs])
         if (
             all_arrays
-            and all_equal([factor_output.shape for factor_output in outputs])
+            and _all_equal([factor_output.shape for factor_output in outputs])
             and gs.all([gs.is_bool(factor_output) for factor_output in outputs])
             or (not all_arrays)
         ):

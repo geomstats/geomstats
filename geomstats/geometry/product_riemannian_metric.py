@@ -12,7 +12,7 @@ import geomstats.errors
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-def all_equal(arg):
+def _all_equal(arg):
     """Check if all elements of arg are equal."""
     return arg.count(arg[0]) == len(arg)
 
@@ -89,14 +89,14 @@ class ProductRiemannianMetric(RiemannianMetric):
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
         if default_point_type == "auto":
-            if all_equal(self._factor_shapes):
+            if _all_equal(self._factor_shapes):
                 return len(self.factors), *self.factors[0].shape
             default_point_type = "vector"
         if default_point_type == "vector":
             return (
                 sum([math.prod(factor_shape) for factor_shape in self._factor_shapes]),
             )
-        if not all_equal(self._factor_shapes):
+        if not _all_equal(self._factor_shapes):
             raise ValueError(
                 "A default_point_type of 'matrix' or 'other' can only be used if all "
                 "metrics have the same shape."
