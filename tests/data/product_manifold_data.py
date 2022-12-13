@@ -11,6 +11,7 @@ from geomstats.geometry.product_manifold import (
     ProductManifold,
 )
 from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
+from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
@@ -19,6 +20,9 @@ smoke_metrics_1 = [Hypersphere(dim=2).metric, Hyperboloid(dim=2).metric]
 
 smoke_manifolds_2 = [Euclidean(3), Minkowski(3)]
 smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
+
+smoke_manifolds_3 = [Siegel(2), Siegel(2), Siegel(2)]
+smoke_metrics_3 = [Siegel(2).metric, Siegel(2).metric, Siegel(2).metric]
 
 
 class ProductManifoldTestData(_ManifoldTestData):
@@ -30,9 +34,15 @@ class ProductManifoldTestData(_ManifoldTestData):
         [SpecialOrthogonal(n=2), SpecialOrthogonal(n=3)],
         [SpecialOrthogonal(n=2), Euclidean(dim=3)],
         [Euclidean(dim=2), Euclidean(dim=1), Euclidean(dim=4)],
+        [Siegel(2), Siegel(2), Siegel(2)],
     ]
-    default_point_list = ["matrix"] + ["vector"] * 6
-    default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"]
+    default_point_list = ["matrix"] + ["vector"] * 6 + ["other"]
+    default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"] * 2
+
+    if len(manifolds_list) != len(default_point_list) or len(manifolds_list) != len(
+        default_coords_type_list
+    ):
+        raise Exception("One of the lists is incomplete.")
 
     shape_list = [
         (2, 3 + 1),
@@ -42,6 +52,7 @@ class ProductManifoldTestData(_ManifoldTestData):
         (4 + 6,),
         (4 + 3,),
         (7,),
+        (3, 2, 2),
     ]
 
     space_args_list = [
@@ -65,6 +76,11 @@ class ProductManifoldTestData(_ManifoldTestData):
                 manifolds=smoke_manifolds_1,
                 default_point_type="matrix",
                 expected=4,
+            ),
+            dict(
+                manifolds=smoke_manifolds_3,
+                default_point_type="other",
+                expected=12,
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -155,6 +171,16 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
                     smoke_manifolds_2, default_point_type="matrix"
                 ).random_point(5),
             ),
+            dict(
+                manifolds=smoke_metrics_3,
+                default_point_type="other",
+                point=ProductManifold(
+                    smoke_manifolds_3, default_point_type="other"
+                ).random_point(5),
+                base_point=ProductManifold(
+                    smoke_manifolds_3, default_point_type="other"
+                ).random_point(5),
+            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -179,9 +205,14 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
                 default_point_type="matrix",
                 n_samples=10,
                 einsum_str="..., ...jl->...jl",
-                expected=gs.ones(
-                    10,
-                ),
+                expected=gs.ones(10),
+            ),
+            dict(
+                manifolds=smoke_manifolds_3,
+                default_point_type="other",
+                n_samples=10,
+                einsum_str="..., ...jkl->...jkl",
+                expected=gs.ones(10),
             ),
         ]
         return self.generate_tests(smoke_data)

@@ -52,7 +52,12 @@ class Manifold(abc.ABC):
         self._metric = metric
 
         self.point_ndim = len(self.shape)
-        self.default_point_type = "vector" if self.point_ndim == 1 else "matrix"
+        if self.point_ndim == 1:
+            self.default_point_type = "vector"
+        elif self.point_ndim == 2:
+            self.default_point_type = "matrix"
+        else:
+            self.default_point_type = "other"
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):

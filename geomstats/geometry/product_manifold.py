@@ -15,36 +15,7 @@ from geomstats.geometry.product_riemannian_metric import (
 )
 
 
-def broadcast_shapes(*args):
-    """
-    Broadcast the input shapes into a single shape.
-
-    This is an adaptation of the version of the function implemented in mumpy 1.20.0
-
-    Parameters
-    ----------
-    `*args` : tuples of ints, or ints
-        The shapes to be broadcast against each other.
-
-    Returns
-    -------
-    tuple
-        Broadcasted shape.
-
-    Raises
-    ------
-    ValueError
-        If the shapes are not compatible and cannot be broadcast according
-        to NumPy's broadcasting rules.
-    """
-    if len(args) == 0:
-        return ()
-    arrays = [gs.empty(x, dtype=[]) for x in args]
-    broadcasted_array = gs.broadcast_arrays(*arrays)
-    return broadcasted_array[0].shape
-
-
-def all_equal(arg):
+def _all_equal(arg):
     """Check if all elements of arg are equal."""
     return arg.count(arg[0]) == len(arg)
 
@@ -63,17 +34,21 @@ class ProductManifold(Manifold):
     metric_scales : list
         Optional. A list of positive numbers by which to scale the metric on each
         factor. If not given, no scaling is used.
-    default_point_type : {'vector', 'matrix}
-        Optional. Vector representation gives the point as a 1-d array.
-        Matrix representation allows for a point to be represented by an array of shape
-        (n, dim), if each manifold has default_point_type 'vector' with shape (dim,).
+    default_point_type : {'auto', 'vector', 'matrix', 'other'}
+        Optional. Default value is 'auto', which will implement as 'vector' unless all
+        factors have the same shape. Vector representation gives the point as a 1-d
+        array. Matrix representation allows for a point to be represented by an array of
+        shape (n, dim), if each manifold has default_point_type 'vector' with shape
+        (dim,). 'other' will behave as `matrix` but for higher dimensions.
     """
 
     def __init__(
-        self, factors, metric_scales=None, default_point_type="vector", **kwargs
+        self, factors, metric_scales=None, default_point_type="auto", **kwargs
     ):
         geomstats.errors.check_parameter_accepted_values(
-            default_point_type, "default_point_type", ["vector", "matrix"]
+            default_point_type,
+            "default_point_type",
+            ["auto", "vector", "matrix", "other"],
         )
 
         self.factors = tuple(factors)
@@ -130,21 +105,25 @@ class ProductManifold(Manifold):
 
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
+        if default_point_type == "auto":
+            if _all_equal(self._factor_shapes):
+                return len(self.factors), *self.factors[0].shape
+            default_point_type = "vector"
         if default_point_type == "vector":
             return (
-                sum([math.prod(factor_shape) for factor_shape in self._factor_shapes]),
+                sum(math.prod(factor_shape) for factor_shape in self._factor_shapes),
             )
-        if not all_equal(self._factor_shapes):
+        if not _all_equal(self._factor_shapes):
             raise ValueError(
-                "A default_point_type of 'matrix' can only be used if all "
+                "A default_point_type of 'matrix' or 'other' can only be used if all "
                 "manifolds have the same shape."
             )
-        if not len(self._factor_shapes[0]) == 1:
+        if default_point_type == "matrix" and not len(self._factor_shapes[0]) == 1:
             raise ValueError(
                 "A default_point_type of 'matrix' can only be used if all "
                 "manifolds have vector type."
             )
-        return (len(self.factors), *self.factors[0].shape)
+        return len(self.factors), *self.factors[0].shape
 
     def embed_to_product(self, points):
         """Map a point in each factor to a point in the product.
@@ -177,9 +156,9 @@ class ProductManifold(Manifold):
                     response = gs.flatten(response)
 
                 points_.append(response)
-
             return gs.concatenate(points_, axis=-1)
-        return gs.stack(points, axis=-2)
+        stacking_axis = -1 * len(self.shape)
+        return gs.stack(points, axis=stacking_axis)
 
     def project_from_product(self, point):
         """Map a point in the product to points in each factor.
@@ -209,7 +188,12 @@ class ProductManifold(Manifold):
             ]
 
         else:
-            projected_points = [point[..., j, :] for j in range(len(self.factors))]
+            splitting_axis = -1 * len(self.shape)
+            projected_points = gs.split(point, len(self.factors), axis=splitting_axis)
+            projected_points = [
+                gs.squeeze(projected_point, axis=splitting_axis)
+                for projected_point in projected_points
+            ]
 
         return projected_points
 
@@ -316,7 +300,7 @@ class ProductManifold(Manifold):
         all_arrays = gs.all([gs.is_array(factor_output) for factor_output in outputs])
         if (
             all_arrays
-            and all_equal([factor_output.shape for factor_output in outputs])
+            and _all_equal([factor_output.shape for factor_output in outputs])
             and gs.all([gs.is_bool(factor_output) for factor_output in outputs])
             or (not all_arrays)
         ):
@@ -378,7 +362,7 @@ class ProductManifold(Manifold):
         """Sample in the product space from the product distribution.
 
         The distribution used is the product of the distributions used by the
-        random_sample methods of each individual factor manifold.
+        random_point methods of each individual factor manifold.
 
         Parameters
         ----------
@@ -396,6 +380,32 @@ class ProductManifold(Manifold):
         """
         samples = self._iterate_over_factors(
             "random_point", {"n_samples": n_samples, "bound": bound}
+        )
+        return samples
+
+    def random_tangent_vec(self, base_point, n_samples=1):
+        """Sample on the tangent space from the product distribution.
+
+        The distribution used is the product of the distributions used by the
+        random_tangent_vec methods of each individual factor manifold.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Base point of the tangent space.
+            Optional, default: None.
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., {dim, embedding_space.dim,
+            [n_manifolds, dim_each]}]
+            Points sampled in the tangent space of the product manifold at base_point.
+        """
+        samples = self._iterate_over_factors(
+            "random_tangent_vec", {"base_point": base_point, "n_samples": n_samples}
         )
         return samples
 
@@ -495,7 +505,7 @@ class NFoldManifold(Manifold):
         n_copies,
         metric=None,
         default_coords_type="intrinsic",
-        **kwargs
+        **kwargs,
     ):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_manifold.dim
