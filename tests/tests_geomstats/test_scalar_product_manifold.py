@@ -2,17 +2,16 @@
 
 This should be rewritten to test all methods available in the PoincareBall and
 PoincareHalfSpace, as these are the ones where scaling is already implemented. Some
-failures are likely but this may reflect errors in the other classes."""
+failures are likely but this may reflect errors in the other classes.
+"""
 
 import geomstats.backend as gs
+import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
-from geomstats.geometry.scalar_product_metric import ScalarProductMetric
-import tests.conftest
 
 
 class TestScalarProductMetrics(tests.conftest.TestCase):
-
     def test_exp(self):
         space = Euclidean(2)
         new_metric = 2 * space.metric
@@ -48,7 +47,7 @@ class TestScalarProductMetrics(tests.conftest.TestCase):
         rescaled_metric_1_ = space.metric * 0.5
         rescaled_metric_1 = rescaled_metric_1_ * 4
 
-        rescaled_metric_2 = space.metric*2
+        rescaled_metric_2 = space.metric * 2
 
         p = space.random_point()
         q = space.random_point()

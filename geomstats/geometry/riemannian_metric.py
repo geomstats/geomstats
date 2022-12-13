@@ -64,6 +64,7 @@ class RiemannianMetric(Connection, ABC):
             The metric multiplied by the scalar
         """
         from geomstats.geometry.scalar_product_metric import ScalarProductMetric
+
         if not isinstance(scalar, (float, int)):
             raise NotImplementedError
         return ScalarProductMetric(self, scalar)

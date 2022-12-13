@@ -9,15 +9,23 @@ from functools import wraps
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-
 SQRT_LIST = ["norm", "dist", "dist_broadcast", "dist_pairwise", "diameter"]
 LINEAR_LIST = [
-    "metric_matrix", "inner_product", "inner_product_derivative_matrix",
-    "squared_norm", "squared_dist", "covariant_riemann_tensor"]
+    "metric_matrix",
+    "inner_product",
+    "inner_product_derivative_matrix",
+    "squared_norm",
+    "squared_dist",
+    "covariant_riemann_tensor",
+]
 QUADRATIC_LIST = []
 INVERSE_LIST = [
-    "cometric_matrix", "inner_coproduct", "hamiltonian", "sectional_curvature",
-    "scalar_curvature"]
+    "cometric_matrix",
+    "inner_coproduct",
+    "hamiltonian",
+    "sectional_curvature",
+    "scalar_curvature",
+]
 INVERSE_QUADRATIC_LIST = ["normalize", "random_unit_tangent_vec", "normal_basis"]
 
 
@@ -26,6 +34,7 @@ def _wrap_attr(scaling_factor, func):
     def response(*args, **kwargs):
         res = scaling_factor * func(*args, **kwargs)
         return res
+
     return response
 
 
@@ -73,9 +82,8 @@ class ScalarProductMetric(RiemannianMetric):
     """
 
     def __init__(self, underlying_metric, scaling_factor):
-        """Load all attributes from the underlying metric.
-        """
-        if hasattr(underlying_metric, '_underlying_metric'):
+        """Load all attributes from the underlying metric."""
+        if hasattr(underlying_metric, "_underlying_metric"):
             self._underlying_metric = underlying_metric._underlying_metric
             self.scaling_factor = scaling_factor * underlying_metric.scaling_factor
         else:
@@ -84,23 +92,27 @@ class ScalarProductMetric(RiemannianMetric):
 
         reserved_names = ("underlying_metric", "scaling_factor")
         for attr_name in dir(self._underlying_metric):
-            if attr_name.startswith('_'):
+            if attr_name.startswith("_"):
                 continue
+
             if attr_name in reserved_names:
                 raise AttributeError(
                     f"The underlying metric has an attribute '{attr_name}' but this "
-                    f"name is reserved for the class 'ScalarProductMetric'.")
+                    f"name is reserved for the class 'ScalarProductMetric'."
+                )
             attr = getattr(self._underlying_metric, attr_name)
             if not callable(attr):
                 try:
                     setattr(self, attr_name, attr)
                 except AttributeError as ex:
                     if not isinstance(
-                            getattr(type(self._underlying_metric), attr_name, None),
-                            property):
+                        getattr(type(self._underlying_metric), attr_name, None),
+                        property,
+                    ):
                         raise ex
             else:
                 scaling_factor = _get_scaling_factor(attr_name, self.scaling_factor)
-                method = attr if scaling_factor is None \
-                    else _wrap_attr(scaling_factor, attr)
+                method = (
+                    attr if scaling_factor is None else _wrap_attr(scaling_factor, attr)
+                )
                 setattr(self, attr_name, method)
