@@ -20,7 +20,7 @@ class _Hyperbolic:
     chosen representation: Hyperboloid, Poincare Ball or Poincare Half-space.
     """
 
-    def __init__(self, scaling_factor=1.0, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     @staticmethod
