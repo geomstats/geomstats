@@ -38,23 +38,54 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
     """
 
     def __init__(self, n, **kwargs):
-        matrices = Matrices(n, n)
-        gln = GeneralLinear(n, positive_det=True)
+        self.n = n
+        self._value = gs.eye(n)
+
         super().__init__(
             dim=int((n * (n - 1)) / 2),
             n=n,
-            value=gs.eye(n),
             lie_algebra=SkewSymmetricMatrices(n=n),
-            embedding_space=gln,
-            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
-            tangent_submersion=lambda v, x: 2
-            * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
             default_coords_type="extrinsic",
             **kwargs,
         )
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         if self._metric is None:
             self._metric = self.bi_invariant_metric
+
+    def _define_embedding_space(self):
+        return GeneralLinear(self.n, positive_det=True)
+
+    def _aux_submersion(self, point):
+        return Matrices.mul(Matrices.transpose(point), point)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n. n]
+        """
+        return self._aux_submersion(point) - self._value
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n, n]
+        """
+        return 2 * Matrices.to_symmetric(
+            Matrices.mul(Matrices.transpose(point), vector)
+        )
 
     @classmethod
     def inverse(cls, point):
@@ -85,8 +116,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        aux_mat = self.submersion(point)
-        # aux_mat = Matrices.mul(Matrices.transpose(point), point)
+        aux_mat = self._aux_submersion(point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, -1 / 2)
         rotation_mat = Matrices.mul(point, inv_sqrt_mat)
         det = gs.linalg.det(rotation_mat)

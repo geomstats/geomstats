@@ -15,10 +15,10 @@ class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
     def test_belongs(self, n_draws, point, expected):
         self.assertAllClose(self.Space(n_draws).belongs(point), expected)
 
-    def test_random_point(self, point, expected):
+    def test_random_point_shape(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
-    def test_sample(self, n_draws, point, n_samples, expected):
+    def test_sample_shape(self, n_draws, point, n_samples, expected):
         self.assertAllClose(
             self.Space(n_draws).sample(point, n_samples).shape, expected
         )

@@ -571,7 +571,7 @@ def outer(x, y):
 
 
 def copy(x):
-    return _tf.Variable(x)
+    return _tf.identity(x)
 
 
 def hstack(x):

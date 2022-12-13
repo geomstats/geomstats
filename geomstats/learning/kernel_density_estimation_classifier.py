@@ -151,6 +151,10 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         if callable(distance):
             distance = wrap(distance)
 
+        self.distance = distance
+        self.distance_params = distance_params
+        self.kernel = kernel
+
         super().__init__(
             radius=radius,
             weights=weights,

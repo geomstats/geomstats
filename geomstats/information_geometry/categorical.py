@@ -28,12 +28,9 @@ class CategoricalDistributions(MultinomialDistributions):
         Embedding manifold.
     """
 
-    def __init__(self, dim):
-        super().__init__(
-            dim=dim,
-            n_draws=1,
-        )
-        self.metric = CategoricalMetric(dim=dim)
+    def __init__(self, dim, **kwargs):
+        kwargs.setdefault("metric", CategoricalMetric(dim=dim))
+        super().__init__(dim=dim, n_draws=1, **kwargs)
 
     def sample(self, point, n_samples=1):
         """Sample from the categorical distribution.
