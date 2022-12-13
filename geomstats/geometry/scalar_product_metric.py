@@ -83,30 +83,25 @@ class ScalarProductMetric(RiemannianMetric):
 
     def __init__(self, underlying_metric, scaling_factor):
         """Load all attributes from the underlying metric."""
-        if hasattr(underlying_metric, "_underlying_metric"):
-            self._underlying_metric = underlying_metric._underlying_metric
+        if hasattr(underlying_metric, "underlying_metric"):
+            self.underlying_metric = underlying_metric.underlying_metric
             self.scaling_factor = scaling_factor * underlying_metric.scaling_factor
         else:
-            self._underlying_metric = underlying_metric
+            self.underlying_metric = underlying_metric
             self.scaling_factor = scaling_factor
 
         reserved_names = ("underlying_metric", "scaling_factor")
-        for attr_name in dir(self._underlying_metric):
-            if attr_name.startswith("_"):
+        for attr_name in dir(self.underlying_metric):
+            if attr_name.startswith("_") or attr_name in reserved_names:
                 continue
 
-            if attr_name in reserved_names:
-                raise AttributeError(
-                    f"The underlying metric has an attribute '{attr_name}' but this "
-                    f"name is reserved for the class 'ScalarProductMetric'."
-                )
-            attr = getattr(self._underlying_metric, attr_name)
+            attr = getattr(self.underlying_metric, attr_name)
             if not callable(attr):
                 try:
                     setattr(self, attr_name, attr)
                 except AttributeError as ex:
                     if not isinstance(
-                        getattr(type(self._underlying_metric), attr_name, None),
+                        getattr(type(self.underlying_metric), attr_name, None),
                         property,
                     ):
                         raise ex
