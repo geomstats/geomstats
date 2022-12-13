@@ -49,19 +49,19 @@ class ProductRiemannianMetric(RiemannianMetric):
     scales : list
         List of positive values to rescale the inner product by on each factor.
         Note: To rescale the distances by a constant c, use c^2 for the scale
-    default_point_type : {None, 'vector', 'matrix', 'other'}
-        Optional. Default value is None, which will implement as 'vector' unless all
+    default_point_type : {'auto', 'vector', 'matrix', 'other'}
+        Optional. Default value is 'auto', which will implement as 'vector' unless all
         factors have the same shape. Vector representation gives the point as a 1-d
         array. Matrix representation allows for a point to be represented by an array of
         shape (n, dim), if each manifold has default_point_type 'vector' with shape
         (dim,). 'other' will behave as `matrix` but for higher dimensions.
     """
 
-    def __init__(self, metrics, default_point_type=None, scales=None):
+    def __init__(self, metrics, default_point_type="auto", scales=None):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type,
             "default_point_type",
-            [None, "vector", "matrix", "other"],
+            ["auto", "vector", "matrix", "other"],
         )
 
         self.factors = metrics
@@ -88,7 +88,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
-        if default_point_type is None:
+        if default_point_type == "auto":
             if all_equal(self._factor_shapes):
                 return len(self.factors), *self.factors[0].shape
             default_point_type = "vector"
