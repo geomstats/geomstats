@@ -66,7 +66,7 @@ class RiemannianMetric(Connection, ABC):
         from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 
         if not isinstance(scalar, float):
-            raise ValueError(f"Expected `float` instead of `{type(scalar)}`")
+            raise NotImplementedError(f"Expected `float` instead of `{type(scalar)}`")
         return ScalarProductMetric(self, scalar)
 
     def __rmul__(self, scalar):
