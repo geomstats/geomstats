@@ -19,12 +19,12 @@ from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
 class Hyperboloid(_Hyperbolic, LevelSet):
     """Class for the n-dimensional hyperboloid space.
 
-    Class for the n-dimensional hyperboloid space as embedded in (
-    n+1)-dimensional Minkowski space. For other representations of
-    hyperbolic spaces see the `Hyperbolic` class.
+    Class for the n-dimensional hyperboloid space as embedded in (n+1)-dimensional
+    Minkowski space as the set of points with squared norm equal to -1. For other
+    representations of hyperbolic spaces see the `Hyperbolic` class.
 
-    The default_coords_type parameter allows to choose the
-    representation of the points as input.
+    The default_coords_type parameter allows to choose the representation of the
+    points as input.
 
     Parameters
     ----------
@@ -33,17 +33,13 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     default_coords_type : str, {'extrinsic', 'intrinsic'}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default: 1.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic", scale=1, **kwargs):
+    def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
         self.dim = dim
-        kwargs.setdefault("metric", HyperboloidMetric(dim, default_coords_type, scale))
+        kwargs.setdefault("metric", HyperboloidMetric(dim, default_coords_type))
         super().__init__(
-            dim=dim, default_coords_type=default_coords_type, scale=scale, **kwargs
+            dim=dim, default_coords_type=default_coords_type, **kwargs
         )
 
     def _define_embedding_space(self):
@@ -269,16 +265,11 @@ class HyperboloidMetric(HyperbolicMetric):
     default_coords_type : str, {'extrinsic', 'intrinsic', etc}
         Default coordinates to represent points in hyperbolic space.
         Optional, default: 'extrinsic'.
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default: 1.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic", scale=1):
-        super().__init__(dim=dim, scale=scale, default_coords_type=default_coords_type)
+    def __init__(self, dim, default_coords_type="extrinsic"):
+        super().__init__(dim=dim, default_coords_type=default_coords_type)
         self.embedding_metric = MinkowskiMetric(dim + 1)
-        self.scale = scale
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix.
@@ -392,7 +383,7 @@ class HyperboloidMetric(HyperbolicMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        angle = self.dist(base_point, point) / self.scale
+        angle = self.dist(base_point, point)
 
         coef_1_ = utils.taylor_exp_even_func(
             angle**2, utils.inv_sinch_close_0, order=4
@@ -429,7 +420,6 @@ class HyperboloidMetric(HyperbolicMetric):
         cosh_angle = gs.clip(cosh_angle, 1.0, 1e24)
 
         dist = gs.arccosh(cosh_angle)
-        dist *= self.scale
         return dist
 
     def parallel_transport(

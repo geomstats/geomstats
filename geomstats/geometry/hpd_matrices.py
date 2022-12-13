@@ -25,9 +25,6 @@ class HPDMatrices(OpenSet):
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
-    scale : float
-        Scale of the HPD matrices metric.
-        Optional, default: 1.
 
     References
     ----------
@@ -40,11 +37,10 @@ class HPDMatrices(OpenSet):
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
-    def __init__(self, n, scale=1.0, **kwargs):
-        kwargs.setdefault("metric", HPDAffineMetric(n, scale=scale))
+    def __init__(self, n, **kwargs):
+        kwargs.setdefault("metric", HPDAffineMetric(n))
         super().__init__(dim=n**2, embedding_space=HermitianMatrices(n), **kwargs)
         self.n = n
-        self.scale = scale
 
     def belongs(self, mat, atol=gs.atol):
         """Check if a matrix is Hermitian with positive eigenvalues.
@@ -494,9 +490,6 @@ class HPDAffineMetric(ComplexRiemannianMetric):
     power_affine : int
         Power transformation of the classical HPD metric.
         Optional, default: 1.
-    scale : float
-        Scale of the HPD matrices metric.
-        Optional, default: 1.
 
     References
     ----------
@@ -509,7 +502,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
-    def __init__(self, n, power_affine=1, scale=1.0):
+    def __init__(self, n, power_affine=1):
         dim = int(n * (n + 1) / 2)
         super().__init__(
             dim=dim,
@@ -518,7 +511,6 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         )
         self.n = n
         self.power_affine = power_affine
-        self.scale = scale
 
     @staticmethod
     def _aux_inner_product(tangent_vec_a, tangent_vec_b, inv_base_point):
@@ -583,7 +575,6 @@ class HPDAffineMetric(ComplexRiemannianMetric):
 
             inner_product = inner_product / (power_affine**2)
 
-        inner_product *= self.scale**2
         return inner_product
 
     @staticmethod

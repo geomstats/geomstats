@@ -91,25 +91,10 @@ class ComplexPoincareDiskMetricTestData(_ComplexRiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                scale=0.5,
-                tangent_vec_a=[[1j]],
-                tangent_vec_b=[[1j]],
-                base_point=[[0j]],
-                expected=[1 / 4],
-            ),
-            dict(
-                scale=1,
                 tangent_vec_a=[[3.0 + 4j]],
                 tangent_vec_b=[[3.0 + 4j]],
                 base_point=[[0.0]],
                 expected=[25],
-            ),
-            dict(
-                scale=2,
-                tangent_vec_a=[[1j], [1j], [1j]],
-                tangent_vec_b=[[1j], [2j], [3j]],
-                base_point=[[0j], [0j], [0j]],
-                expected=[4, 8, 12],
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -117,19 +102,11 @@ class ComplexPoincareDiskMetricTestData(_ComplexRiemannianMetricTestData):
     def exp_test_data(self):
         smoke_data = [
             dict(
-                scale=1.0,
                 tangent_vec=[[2.0 + 0j]],
                 base_point=[[0.0 + 0j]],
                 expected=[[(EXP_4 - 1) / (EXP_4 + 1)]],
             ),
             dict(
-                scale=10.0,
-                tangent_vec=[[2.0 + 0j]],
-                base_point=[[0.0 + 0j]],
-                expected=[[(EXP_4 - 1) / (EXP_4 + 1)]],
-            ),
-            dict(
-                scale=1.0,
                 tangent_vec=[[2.0 + 2j]],
                 base_point=[[0.0 + 0j]],
                 expected=[
@@ -147,7 +124,6 @@ class ComplexPoincareDiskMetricTestData(_ComplexRiemannianMetricTestData):
     def log_test_data(self):
         smoke_data = [
             dict(
-                scale=1.0,
                 point=[[0.5]],
                 base_point=[[0.0]],
                 expected=[[LN_3 / 2]],

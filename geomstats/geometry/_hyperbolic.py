@@ -18,18 +18,10 @@ class _Hyperbolic:
     This class cannot be instantiated in itself, but a public class
     `Hyperbolic` is available, that returns the class that corresponds to the
     chosen representation: Hyperboloid, Poincare Ball or Poincare Half-space.
-
-    Parameters
-    ----------
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default: 1.
     """
 
-    def __init__(self, scale=1, **kwargs):
+    def __init__(self, scaling_factor=1.0, **kwargs):
         super().__init__(**kwargs)
-        self.scale = scale
 
     @staticmethod
     def _extrinsic_to_extrinsic_coordinates(point):
@@ -455,20 +447,15 @@ class HyperbolicMetric(RiemannianMetric):
         Dimension of the hyperbolic space.
     default_coords_type : str, {'extrinsic', 'intrinsic', etc}, optional
         Default coordinates to represent points in hyperbolic space.
-    scale : int, optional
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
     """
 
-    def __init__(self, dim, scale=1, default_coords_type="extrinsic"):
+    def __init__(self, dim, default_coords_type="extrinsic"):
         super().__init__(
             dim=dim,
             signature=(dim, 0),
             shape=(dim + 1,),
             default_coords_type=default_coords_type,
         )
-
-        self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -489,7 +476,6 @@ class HyperbolicMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         inner_prod = self._inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        inner_prod *= self.scale**2
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
@@ -512,14 +498,13 @@ class HyperbolicMetric(RiemannianMetric):
             Squared norm of the vector.
         """
         sq_norm = self._squared_norm(vector)
-        sq_norm *= self.scale**2
         return sq_norm
 
     def _squared_norm(self, vector, base_point=None):
-        """Squared norm with hyperbolic scale 1.
+        """Squared norm.
 
         Squared norm of a vector associated with the inner-product
-        at the tangent space at a base point with scale=1.
+        at the tangent space at a base point.
 
         Parameters
         ----------
@@ -537,7 +522,7 @@ class HyperbolicMetric(RiemannianMetric):
         return super().squared_norm(vector, base_point=base_point)
 
     def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors with scale=1.
+        """Compute the inner-product of two tangent vectors.
 
         Parameters
         ----------

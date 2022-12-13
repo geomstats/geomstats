@@ -65,9 +65,9 @@ class TestPoincareHalfSpaceMetric(RiemannianMetricTestCase, metaclass=Parametriz
     testing_data = PoincareHalfSpaceMetricTestData()
 
     def test_inner_product(
-        self, dim, scale, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.Metric(dim, scale)
+        metric = self.Metric(dim)
         result = metric.inner_product(
             gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
         )

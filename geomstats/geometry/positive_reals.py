@@ -51,22 +51,15 @@ class PositiveReals(OpenSet):
     """Class for the manifold of positive reals.
 
     The real positive axis endowed with the Information geometry metric.
-
-    Parameters
-    ----------
-    scale : float
-        Scale of the positive reals metric.
-        Optional, default: 1.
     """
 
-    def __init__(self, scale=1.0, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(
             dim=1,
             embedding_space=Euclidean(1),
-            metric=PositiveRealsMetric(scale=scale),
+            metric=PositiveRealsMetric(),
             **kwargs
         )
-        self.scale = scale
 
     @staticmethod
     def belongs(point, atol=gs.atol):
@@ -150,16 +143,9 @@ class PositiveRealsMetric(RiemannianMetric):
     It is a particular case in dimension 1
     of the SPD affine-invariant metric
     with a power affine coefficient equal to one.
-
-    Parameters
-    ----------
-    scale : float
-        Scale of the positive reals metric.
-        Optional, default: 1.
     """
 
-    def __init__(self, scale=1.0):
-        self.scale = scale
+    def __init__(self):
         super().__init__(dim=1)
 
     def metric_matrix(self, base_point):
@@ -176,7 +162,6 @@ class PositiveRealsMetric(RiemannianMetric):
             Inner product matrix.
         """
         inner_prod_mat = 1 / base_point**2
-        inner_prod_mat *= self.scale**2
         return gs.expand_dims(inner_prod_mat, axis=-1)
 
     @staticmethod
@@ -237,7 +222,7 @@ class PositiveRealsMetric(RiemannianMetric):
             Riemannian squared distance.
         """
         ratio = gs.squeeze(point_b / point_a, axis=-1)
-        return (self.scale * gs.log(ratio)) ** 2
+        return (gs.log(ratio)) ** 2
 
     def dist(self, point_a, point_b):
         """Compute the positive reals distance.
@@ -257,4 +242,4 @@ class PositiveRealsMetric(RiemannianMetric):
             Riemannian distance.
         """
         ratio = gs.squeeze(point_b / point_a, axis=-1)
-        return self.scale * gs.abs(gs.log(ratio))
+        return gs.abs(gs.log(ratio))
