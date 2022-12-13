@@ -39,6 +39,11 @@ class ProductManifoldTestData(_ManifoldTestData):
     default_point_list = ["matrix"] + ["vector"] * 6 + ["other"]
     default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"] * 2
 
+    if len(manifolds_list) != len(default_point_list) or len(manifolds_list) != len(
+        default_coords_type_list
+    ):
+        raise Exception("One of the lists is incomplete.")
+
     shape_list = [
         (2, 3 + 1),
         (2 * (3 + 1),),
