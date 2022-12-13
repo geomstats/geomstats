@@ -94,7 +94,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             default_point_type = "vector"
         if default_point_type == "vector":
             return (
-                sum([math.prod(factor_shape) for factor_shape in self._factor_shapes]),
+                sum(math.prod(factor_shape) for factor_shape in self._factor_shapes),
             )
         if not _all_equal(self._factor_shapes):
             raise ValueError(
