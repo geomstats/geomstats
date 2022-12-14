@@ -16,11 +16,11 @@ References
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
-from geomstats.geometry.product_manifold import ProductManifold
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric  # NOQA
+from geomstats.geometry.product_manifold import NFoldManifold
+from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 
 
-class PoincarePolydisk(ProductManifold):
+class PoincarePolydisk(NFoldManifold):
     r"""Class for the Poincare polydisk.
 
     The Poincare polydisk is a direct product of n Poincare disks,
@@ -35,15 +35,13 @@ class PoincarePolydisk(ProductManifold):
         Optional, default: \'extrinsic\'.
     """
 
-    def __init__(self, n_disks, default_coords_type="extrinsic"):
+    def __init__(self, n_disks):
         self.n_disks = n_disks
-        disk = Hyperboloid(2, default_coords_type=default_coords_type)
-        list_disks = [
-            disk,
-        ] * n_disks
-        super().__init__(factors=list_disks, default_point_type="matrix")
-        self._metric = PoincarePolydiskMetric(
-            n_disks=n_disks, default_coords_type=default_coords_type
+        super().__init__(
+            base_manifold=Hyperboloid(2),
+            n_copies=n_disks,
+            metric=PoincarePolydiskMetric(n_disks=n_disks),
+            default_coords_type="extrinsic",
         )
 
     @staticmethod
@@ -91,9 +89,6 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     ----------
     n_disks : int
         Number of disks.
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
-        Coordinate type.
-        Optional, default: \'extrinsic\'.
 
     References
     ----------
@@ -102,11 +97,10 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
-    def __init__(self, n_disks, default_coords_type="extrinsic"):
+    def __init__(self, n_disks):
         self.n_disks = n_disks
-        list_metrics = []
-        for i_disk in range(n_disks):
-            scale_i = (n_disks - i_disk) ** 0.5
-            metric_i = scale_i * HyperboloidMetric(2, default_coords_type)
-            list_metrics.append(metric_i)
+        base_metric = HyperboloidMetric(2)
+        list_metrics = [
+            (n_disks - i_disk) ** 0.5 * base_metric for i_disk in range(n_disks)
+        ]
         super().__init__(metrics=list_metrics, default_point_type="matrix")

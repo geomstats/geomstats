@@ -110,7 +110,5 @@ class ScalarProductMetric:
                         raise ex
             else:
                 scale = _get_scaling_factor(attr_name, self.scale)
-                method = (
-                    attr if scale is None else _wrap_attr(scale, attr)
-                )
+                method = attr if scale is None else _wrap_attr(scale, attr)
                 setattr(self, attr_name, method)

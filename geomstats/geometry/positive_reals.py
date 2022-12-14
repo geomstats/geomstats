@@ -55,10 +55,7 @@ class PositiveReals(OpenSet):
 
     def __init__(self, **kwargs):
         super().__init__(
-            dim=1,
-            embedding_space=Euclidean(1),
-            metric=PositiveRealsMetric(),
-            **kwargs
+            dim=1, embedding_space=Euclidean(1), metric=PositiveRealsMetric(), **kwargs
         )
 
     @staticmethod

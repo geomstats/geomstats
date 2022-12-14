@@ -39,10 +39,8 @@ class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
         duplicate_point_a = gs.stack([point_a_extrinsic, point_a_extrinsic], axis=0)
         duplicate_point_b = gs.stack([point_b_extrinsic, point_b_extrinsic], axis=0)
 
-        single_disk = PoincarePolydisk(n_disks=n_disks, default_coords_type="extrinsic")
-        two_disks = PoincarePolydisk(
-            n_disks=2 * n_disks, default_coords_type="extrinsic"
-        )
+        single_disk = PoincarePolydisk(n_disks=n_disks)
+        two_disks = PoincarePolydisk(n_disks=2 * n_disks)
 
         distance_single_disk = single_disk.metric.dist(
             point_a_extrinsic[None, :], point_b_extrinsic[None, :]
