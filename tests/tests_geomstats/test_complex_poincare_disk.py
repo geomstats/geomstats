@@ -45,9 +45,7 @@ class TestComplexPoincareDiskMetric(
 
     testing_data = ComplexPoincareDiskMetricTestData()
 
-    def test_inner_product(
-        self, tangent_vec_a, tangent_vec_b, base_point, expected
-    ):
+    def test_inner_product(self, tangent_vec_a, tangent_vec_b, base_point, expected):
         metric = self.Metric()
         result = metric.inner_product(
             gs.array(tangent_vec_a),

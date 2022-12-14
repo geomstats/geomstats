@@ -38,9 +38,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
         self.dim = dim
         kwargs.setdefault("metric", HyperboloidMetric(dim, default_coords_type))
-        super().__init__(
-            dim=dim, default_coords_type=default_coords_type, **kwargs
-        )
+        super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
 
     def _define_embedding_space(self):
         return Minkowski(self.dim + 1)
