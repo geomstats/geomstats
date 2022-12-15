@@ -130,8 +130,6 @@ class ScalarProductMetric:
         metric : ScalarProductMetric
             The metric multiplied by the scalar
         """
-        from geomstats.geometry.scalar_product_metric import ScalarProductMetric
-
         if not isinstance(scalar, float):
             raise NotImplementedError(f"Expected `float` instead of `{type(scalar)}`")
         return ScalarProductMetric(self, scalar)
