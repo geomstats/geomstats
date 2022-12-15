@@ -18,13 +18,32 @@ Lead author: Yann Cabanes.
 
 References
 ----------
-.. [Cabanes2022] Yann Cabanes. Multidimensional complex stationary
+.. [Cabanes_2022] Yann Cabanes. Multidimensional complex stationary
     centered Gaussian autoregressive time series machine learning
     in Poincaré and Siegel disks: application for audio and radar
-    clutter classification, PhD thesis, 2022
-.. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+    clutter classification, PhD thesis, tel-03708515, 2022.
+    https://theses.hal.science/tel-03708515
+.. [Cabanes_CESAR_2019] Yann Cabanes, Frédéric Barbaresco, Marc Arnaudon et
+    Jérémie Bigot. Unsupervised Machine Learning for Pathological Radar Clutter
+    Clustering: the P-Mean-Shift Algorithm, IEEE, C&ESAR 2019, Rennes, France, 2019.
+    https://hal.archives-ouvertes.fr/hal-02875430
+.. [Cabanes_RADAR_2019] Yann Cabanes, Frédéric Barbaresco, Marc Arnaudon et
+    Jérémie Bigot. Non-Supervised High Resolution Doppler Machine Learning for
+    Pathological Radar Clutter, IEEE, RADAR 2019, Toulon, France, 2019.
+    https://hal.archives-ouvertes.fr/hal-02875415
+.. [Cabanes_GSI_2019] Yann Cabanes, Frédéric Barbaresco, Marc Arnaudon et
+    Jérémie Bigot. Toeplitz Hermitian Positive Definite Matrix Machine Learning
+    based on Fisher Metric, IEEE, GSI 2019, Toulouse, France, 2019.
+    https://hal.archives-ouvertes.fr/hal-02875403
+.. [Le_Brigant_2017] Alice Le Brigant. Probability on the spaces of curves and
+    the associated metric spaces using information geometry; radar applications,
+    PhD thesis, tel-01635258, 2017.
+    https://theses.hal.science/tel-01635258
+.. [Jeuris_2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
     matrices with Toeplitz structured blocks, 2016.
     https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+.. [Yang_2013] Marc Arnaudon, Frédéric Barbaresco and Le Yang. Riemannian Medians
+    and Means With Applications to Radar Signal Processing, IEEE, 2013.
 """
 
 from geomstats.geometry.complex_poincare_disk import (
@@ -67,31 +86,52 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
 class ProductPositiveRealsAndComplexPoincareDisksMetric(ProductRiemannianMetric):
     """Class defining the ProductPositiveRealsAndComplexPoincareDisks metric.
 
-    The positive reals and complex Poincaré disks product metric is a product
-    of the positive reals metric and (n-1) complex Poincaré metrics, each of them
-    being multiplied by a specific constant factor (see [Cabanes2022]_ and [JV2016]_).
-    This metric comes from a model used to represent one-dimensional complex
-    stationary centered Gaussian autoregressive times series.
-    Such a times series can be seen as a realization of
-    a multidimensional complex Gaussian distributions with zero mean,
-    a Toeplitz HPD covariance matrix and a zero relation matrix.
-    The ProductPositiveRealsAndComplexPoincareDisks metric is inspired by
-    information geometry on this specific set of Gaussian distributions.
+        The positive reals and complex Poincaré disks product metric is a product
+        of the positive reals metric and (n-1) complex Poincaré metrics, each of them
+        being multiplied by a specific constant factor (see [Cabanes_2022]_,
+        [Cabanes_CESAR_2019]_, [Cabanes_RADAR_2019]_, [Cabanes_GSI_2019]_, [Le_Brigant_2017],
+        [Jeuris_2016]_ and [Yang_2013]_).
+        This metric comes from a model used to represent one-dimensional complex
+        stationary centered Gaussian autoregressive times series.
+        Such a times series can be seen as a realization of
+        a multidimensional complex Gaussian distributions with zero mean,
+        a Toeplitz HPD covariance matrix and a zero relation matrix.
+        The ProductPositiveRealsAndComplexPoincareDisks metric is inspired by
+        information geometry on this specific set of Gaussian distributions.
 
-    Parameters
-    ----------
-    n_manifolds : int
-        Number of manifolds of the product.
+        Parameters
+        ----------
+        n_manifolds : int
+            Number of manifolds of the product.
 
-    References
-    ----------
-    .. [Cabanes2022] Yann Cabanes. Multidimensional complex stationary
+        References
+        ----------
+    .. [Cabanes_2022] Yann Cabanes. Multidimensional complex stationary
         centered Gaussian autoregressive time series machine learning
         in Poincaré and Siegel disks: application for audio and radar
-        clutter classification, PhD thesis, 2022
-    .. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+        clutter classification, PhD thesis, tel-03708515, 2022.
+        https://theses.hal.science/tel-03708515
+    .. [Cabanes_CESAR_2019] Yann Cabanes, Frédéric Barbaresco, Marc Arnaudon et
+        Jérémie Bigot. Unsupervised Machine Learning for Pathological Radar Clutter
+        Clustering: the P-Mean-Shift Algorithm, IEEE, C&ESAR 2019, Rennes, France, 2019.
+        https://hal.archives-ouvertes.fr/hal-02875430
+    .. [Cabanes_RADAR_2019] Yann Cabanes, Frédéric Barbaresco, Marc Arnaudon et
+        Jérémie Bigot. Non-Supervised High Resolution Doppler Machine Learning for
+        Pathological Radar Clutter, IEEE, RADAR 2019, Toulon, France, 2019.
+        https://hal.archives-ouvertes.fr/hal-02875415
+    .. [Cabanes_GSI_2019] Yann Cabanes, Frédéric Barbaresco, Marc Arnaudon et
+        Jérémie Bigot. Toeplitz Hermitian Positive Definite Matrix Machine Learning
+        based on Fisher Metric, IEEE, GSI 2019, Toulouse, France, 2019.
+        https://hal.archives-ouvertes.fr/hal-02875403
+    .. [Le_Brigant_2017] Alice Le Brigant. Probability on the spaces of curves and
+        the associated metric spaces using information geometry; radar applications,
+        PhD thesis, tel-01635258, 2017.
+        https://theses.hal.science/tel-01635258
+    .. [Jeuris_2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
         matrices with Toeplitz structured blocks, 2016.
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+    .. [Yang_2013] Marc Arnaudon, Frédéric Barbaresco and Le Yang. Riemannian Medians
+        and Means With Applications to Radar Signal Processing, IEEE, 2013.
     """
 
     def __init__(self, n_manifolds, **kwargs):
