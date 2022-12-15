@@ -35,7 +35,7 @@ class PoincareBall(_Hyperbolic, OpenSet):
     """
 
     def __init__(self, dim, **kwargs):
-        if "scale" in kwargs.keys():
+        if "scale" in kwargs:
             raise TypeError(
                 "Argument scale is no longer in use: instantiate the "
                 "manifold without this parameter and then use "
@@ -111,7 +111,7 @@ class PoincareBallMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, **kwargs):
-        if "scale" in kwargs.keys():
+        if "scale" in kwargs:
             raise TypeError(
                 "Argument scale is no longer in use: instantiate scaled "
                 "metrics as `scale * RiemannianMetric`. Note that the "

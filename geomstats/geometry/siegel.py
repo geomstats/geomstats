@@ -71,7 +71,7 @@ class Siegel(ComplexOpenSet):
     """
 
     def __init__(self, n, symmetric=False, **kwargs):
-        if "scale" in kwargs.keys():
+        if "scale" in kwargs:
             raise TypeError(
                 "Argument scale is no longer in use: instantiate the "
                 "manifold without this parameter and then use "
@@ -211,7 +211,7 @@ class SiegelMetric(ComplexRiemannianMetric):
     """
 
     def __init__(self, n, **kwargs):
-        if "scale" in kwargs.keys():
+        if "scale" in kwargs:
             raise TypeError(
                 "Argument scale is no longer in use: instantiate scaled "
                 "metrics as `scale * RiemannianMetric`. Note that the "

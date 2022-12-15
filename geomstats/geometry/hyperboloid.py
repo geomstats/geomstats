@@ -36,7 +36,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
-        if "scale" in kwargs.keys():
+        if "scale" in kwargs:
             raise TypeError(
                 "Argument scale is no longer in use: instantiate the "
                 "manifold without this parameter and then use "
