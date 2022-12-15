@@ -19,7 +19,6 @@ class TestProductPositiveRealsAndComplexPoincareDisks(
 ):
 
     skip_test_to_tangent_is_tangent_in_embedding_space = True
-    skip_test_to_tangent_is_tangent = True
 
     testing_data = ProductPositiveRealsAndComplexPoincareDisksTestData()
 
