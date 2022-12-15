@@ -27,7 +27,11 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
         Dimension of the hyperbolic space.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, **kwargs):
+        if 'scale' in kwargs.keys():
+            raise TypeError("Argument scale is no longer in use: instantiate the "
+                            "manifold without this parameter and then use "
+                            "`scale * metric` to rescale the standard metric.")
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim),
@@ -90,7 +94,11 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         Dimension of the hyperbolic space.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, **kwargs):
+        if 'scale' in kwargs.keys():
+            raise TypeError("Argument scale is no longer in use: instantiate scaled "
+                            "metrics as `scale * RiemannianMetric`. Note that the "
+                            "metric is scaled, not the distance.")
         self.poincare_ball = PoincareBall(dim=dim)
         super().__init__(
             dim=dim,

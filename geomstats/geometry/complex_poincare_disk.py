@@ -34,6 +34,10 @@ class ComplexPoincareDisk(ComplexOpenSet):
     """
 
     def __init__(self, **kwargs):
+        if 'scale' in kwargs.keys():
+            raise TypeError("Argument scale is no longer in use: instantiate the "
+                            "manifold without this parameter and then use "
+                            "`scale * metric` to rescale the standard metric.")
         super().__init__(
             dim=1,
             embedding_space=Hermitian(dim=1),
@@ -118,7 +122,11 @@ class ComplexPoincareDisk(ComplexOpenSet):
 class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
     """Class for the complex Poincaré metric."""
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        if 'scale' in kwargs.keys():
+            raise TypeError("Argument scale is no longer in use: instantiate scaled "
+                            "metrics as `scale * RiemannianMetric`. Note that the "
+                            "metric is scaled, not the distance.")
         super().__init__(
             dim=1,
             shape=(1,),

@@ -7,6 +7,7 @@ Lead author: John Harvey.
 from functools import wraps
 
 import geomstats.backend as gs
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 SQRT_LIST = ["norm", "dist", "dist_broadcast", "dist_pairwise", "diameter"]
 LINEAR_LIST = [
@@ -55,7 +56,7 @@ def _get_scaling_factor(func_name, scale):
     return None
 
 
-class ScalarProductMetric:
+class ScalarProductMetric(RiemannianMetric):
     """Class for scalar products of Riemannian and pseudo-Riemannian metrics.
 
     This class multiplies the (0,2) metric tensor 'underlying_metric' by a scalar
