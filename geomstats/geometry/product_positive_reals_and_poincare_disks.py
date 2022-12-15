@@ -50,9 +50,7 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
     """
 
     def __init__(self, n_manifolds, **kwargs):
-        scaled_positive_reals_metric = n_manifolds**0.5 * PositiveRealsMetric()
-        positive_reals = PositiveReals(metric=scaled_positive_reals_metric)
-
+        positive_reals = PositiveReals()
         complex_poincare_disk = ComplexPoincareDisk()
         factors = [positive_reals] + (n_manifolds - 1) * [complex_poincare_disk]
 
