@@ -37,7 +37,7 @@ class TestWrapper(TestCase):
 
         func_name = "normalize"
         scaling_factor = _get_scaling_factor(func_name, scale)
-        self.assertAllClose(1.0 / gs.power(scale, 2), scaling_factor)
+        self.assertAllClose(1.0 / gs.sqrt(scale), scaling_factor)
 
         func_name = "not_scaled"
         scaling_factor = _get_scaling_factor(func_name, scale)
