@@ -279,7 +279,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         inner_product = trace_1 + trace_2
         inner_product *= 0.5
 
-        return inner_product
+        return gs.real(inner_product)
 
     @staticmethod
     def tangent_vec_from_base_point_to_zero(tangent_vec, base_point):

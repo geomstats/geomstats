@@ -103,9 +103,7 @@ class ProductHPDMatricesAndSiegelDisksMetric(ProductRiemannianMetric):
     """
 
     def __init__(self, n_manifolds, n, **kwargs):
-        scales = [
-            (n_manifolds - i_manifold) ** 0.5 for i_manifold in range(n_manifolds)
-        ]
+        scales = [float(n_manifolds - i_manifold) for i_manifold in range(n_manifolds)]
         metrics = [scales[0] * HPDAffineMetric(n=n)] + [
             scale * SiegelMetric(n=n) for scale in scales[1:]
         ]

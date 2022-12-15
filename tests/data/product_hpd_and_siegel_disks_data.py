@@ -49,3 +49,7 @@ class ProductHPDMatricesAndSiegelDisksMetricTestData(TestData):
             dict(n_manifolds=4, n=3, expected=(36, 0)),
         ]
         return self.generate_tests(smoke_data)
+
+    def squared_dist_test_data(self):
+        smoke_data = [dict(n_manifolds=4, n=2)]
+        return self.generate_tests(smoke_data)
