@@ -11,7 +11,7 @@ class ProductPositiveRealsAndComplexPoincareDisksTestData(_OpenSetTestData):
 
     n_manifolds_list = random.sample(range(2, 6), 2)
     dimension_list = 2 * [1]
-    space_args_list = n_manifolds_list
+    space_args_list = list(zip(n_manifolds_list))
     shape_list = list(zip(n_manifolds_list, dimension_list))
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
@@ -31,7 +31,7 @@ class ProductPositiveRealsAndComplexPoincareDisksMetricTestData(TestData):
 
     n_manifolds_list = random.sample(range(2, 6), 2)
     dimension_list = 2 * [1]
-    space_args_list = n_manifolds_list
+    space_args_list = list(zip(n_manifolds_list))
     space_list = [
         ProductPositiveRealsAndComplexPoincareDisks(*space_args)
         for space_args in space_args_list
