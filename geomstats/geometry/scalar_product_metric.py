@@ -112,3 +112,45 @@ class ScalarProductMetric:
                 scale = _get_scaling_factor(attr_name, self.scale)
                 method = attr if scale is None else _wrap_attr(scale, attr)
                 setattr(self, attr_name, method)
+
+    def __mul__(self, scalar):
+        """Multiply the metric by a scalar.
+
+        This method multiplies the (0,2) metric tensor by a scalar. Note that this does
+        not scale distances by the scalar. That would require multiplication by the
+        square of the scalar.
+
+        Parameters
+        ----------
+        scalar : float
+            The number by which to multiply the metric.
+
+        Returns
+        -------
+        metric : ScalarProductMetric
+            The metric multiplied by the scalar
+        """
+        from geomstats.geometry.scalar_product_metric import ScalarProductMetric
+
+        if not isinstance(scalar, float):
+            raise NotImplementedError(f"Expected `float` instead of `{type(scalar)}`")
+        return ScalarProductMetric(self, scalar)
+
+    def __rmul__(self, scalar):
+        """Multiply the metric by a scalar.
+
+        This method multiplies the (0,2) metric tensor by a scalar. Note that this does
+        not scale distances by the scalar. That would require multiplication by the
+        square of the scalar.
+
+        Parameters
+        ----------
+        scalar : float
+            The number by which to multiply the metric.
+
+        Returns
+        -------
+        metric : ScalarProductMetric
+            The metric multiplied by the scalar.
+        """
+        return self * scalar
