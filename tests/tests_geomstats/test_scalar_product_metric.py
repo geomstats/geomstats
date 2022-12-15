@@ -74,3 +74,9 @@ class TestInstantiation(TestCase):
 
         self.assertAllClose(scale * dist, dist_1)
         self.assertAllClose(scale**2 * dist, dist_2)
+
+    def test_assigning_scalar_metric_to_space(self):
+        space = Euclidean(dim=3)
+        scale = 2.0
+        scaled_metric = ScalarProductMetric(space.metric, scale)
+        space.metric = scaled_metric
