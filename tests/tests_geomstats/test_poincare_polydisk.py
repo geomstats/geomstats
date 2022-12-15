@@ -47,5 +47,5 @@ class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
         )
         distance_two_disks = two_disks.metric.dist(duplicate_point_a, duplicate_point_b)
         result = distance_two_disks
-        expected = distance_single_disk
+        expected = 3 ** 0.5 * distance_single_disk
         self.assertAllClose(result, expected)
