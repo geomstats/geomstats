@@ -86,26 +86,26 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
 class ProductPositiveRealsAndComplexPoincareDisksMetric(ProductRiemannianMetric):
     """Class defining the ProductPositiveRealsAndComplexPoincareDisks metric.
 
-        The positive reals and complex Poincaré disks product metric is a product
-        of the positive reals metric and (n-1) complex Poincaré metrics, each of them
-        being multiplied by a specific constant factor (see [Cabanes_2022]_,
-        [Cabanes_CESAR_2019]_, [Cabanes_RADAR_2019]_, [Cabanes_GSI_2019]_,
-        [Le_Brigant_2017], [Jeuris_2016]_ and [Yang_2013]_).
-        This metric comes from a model used to represent one-dimensional complex
-        stationary centered Gaussian autoregressive times series.
-        Such a times series can be seen as a realization of
-        a multidimensional complex Gaussian distributions with zero mean,
-        a Toeplitz HPD covariance matrix and a zero relation matrix.
-        The ProductPositiveRealsAndComplexPoincareDisks metric is inspired by
-        information geometry on this specific set of Gaussian distributions.
+    The positive reals and complex Poincaré disks product metric is a product
+    of the positive reals metric and (n-1) complex Poincaré metrics, each of them
+    being multiplied by a specific constant factor (see [Cabanes_2022]_,
+    [Cabanes_CESAR_2019]_, [Cabanes_RADAR_2019]_, [Cabanes_GSI_2019]_,
+    [Le_Brigant_2017], [Jeuris_2016]_ and [Yang_2013]_).
+    This metric comes from a model used to represent one-dimensional complex
+    stationary centered Gaussian autoregressive times series.
+    Such a times series can be seen as a realization of
+    a multidimensional complex Gaussian distributions with zero mean,
+    a Toeplitz HPD covariance matrix and a zero relation matrix.
+    The ProductPositiveRealsAndComplexPoincareDisks metric is inspired by
+    information geometry on this specific set of Gaussian distributions.
 
-        Parameters
-        ----------
-        n_manifolds : int
-            Number of manifolds of the product.
+    Parameters
+    ----------
+    n_manifolds : int
+        Number of manifolds of the product.
 
-        References
-        ----------
+    References
+    ----------
     .. [Cabanes_2022] Yann Cabanes. Multidimensional complex stationary
         centered Gaussian autoregressive time series machine learning
         in Poincaré and Siegel disks: application for audio and radar
