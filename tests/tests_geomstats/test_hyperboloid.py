@@ -81,6 +81,49 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected)
 
+    def test_scaled_inner_product(
+        self, dim, tangent_vec_a, tangent_vec_b, base_point
+    ):
+        default_space = Hyperboloid(dim=dim)
+        default_metric = default_space.metric
+        scaled_metric = 2.0 * default_metric
+
+        inner_product_default_metric = default_metric.inner_product(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+        inner_product_scaled_metric = scaled_metric.inner_product(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+        result = inner_product_scaled_metric
+        expected = 2.0 * inner_product_default_metric
+        self.assertAllClose(result, expected)
+
+    def test_scaled_squared_norm(self, dim, tangent_vec, base_point):
+        default_space = Hyperboloid(dim=dim)
+        default_metric = default_space.metric
+        scaled_metric = 2.0 * default_metric
+
+        squared_norm_default_metric = default_metric.squared_norm(
+            tangent_vec, base_point
+        )
+        squared_norm_scaled_metric = scaled_metric.squared_norm(
+            tangent_vec, base_point
+        )
+        result = squared_norm_scaled_metric
+        expected = 2.0 * squared_norm_default_metric
+        self.assertAllClose(result, expected)
+
+    def test_scaled_dist(self, dim, point_a, point_b):
+        default_space = Hyperboloid(dim=dim)
+        default_metric = default_space.metric
+        scaled_metric = 2.0 * default_metric
+
+        distance_default_metric = default_metric.dist(point_a, point_b)
+        distance_scaled_metric = scaled_metric.dist(point_a, point_b)
+        result = distance_scaled_metric
+        expected = gs.sqrt(2.0) * distance_default_metric
+        self.assertAllClose(result, expected)
+
     def test_exp_after_log_intrinsic_ball_extrinsic(
         self, dim, x_intrinsic, y_intrinsic
     ):
