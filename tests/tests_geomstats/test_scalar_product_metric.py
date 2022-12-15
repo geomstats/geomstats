@@ -37,7 +37,7 @@ class TestWrapper(TestCase):
 
         func_name = "normalize"
         scaling_factor = _get_scaling_factor(func_name, scale)
-        self.assertAllClose(1.0 / gs.power(scale, 2), scaling_factor)
+        self.assertAllClose(1.0 / gs.sqrt(scale), scaling_factor)
 
         func_name = "not_scaled"
         scaling_factor = _get_scaling_factor(func_name, scale)
@@ -65,12 +65,24 @@ class TestInstantiation(TestCase):
         scale = 2.0
 
         scaled_metric_1 = ScalarProductMetric(space.metric, scale)
-        scaled_metric_2 = ScalarProductMetric(scaled_metric_1, scale)
+        scaled_metric_2_a = ScalarProductMetric(scaled_metric_1, scale)
+        scaled_metric_2_b = scale * scaled_metric_1
+        scaled_metric_2_c = scaled_metric_1 * scale
 
         point_a, point_b = space.random_point(2)
         dist = space.metric.squared_dist(point_a, point_b)
         dist_1 = scaled_metric_1.squared_dist(point_a, point_b)
-        dist_2 = scaled_metric_2.squared_dist(point_a, point_b)
+        dist_2_a = scaled_metric_2_a.squared_dist(point_a, point_b)
+        dist_2_b = scaled_metric_2_b.squared_dist(point_a, point_b)
+        dist_2_c = scaled_metric_2_c.squared_dist(point_a, point_b)
 
         self.assertAllClose(scale * dist, dist_1)
-        self.assertAllClose(scale**2 * dist, dist_2)
+        self.assertAllClose(scale**2 * dist, dist_2_a)
+        self.assertAllClose(dist_2_b, dist_2_a)
+        self.assertAllClose(dist_2_c, dist_2_a)
+
+    def test_assigning_scalar_metric_to_space(self):
+        space = Euclidean(dim=3)
+        scale = 2.0
+        scaled_metric = ScalarProductMetric(space.metric, scale)
+        space.metric = scaled_metric

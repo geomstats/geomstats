@@ -45,10 +45,8 @@ class TestComplexPoincareDiskMetric(
 
     testing_data = ComplexPoincareDiskMetricTestData()
 
-    def test_inner_product(
-        self, scale, tangent_vec_a, tangent_vec_b, base_point, expected
-    ):
-        metric = self.Metric(scale)
+    def test_inner_product(self, tangent_vec_a, tangent_vec_b, base_point, expected):
+        metric = self.Metric()
         result = metric.inner_product(
             gs.array(tangent_vec_a),
             gs.array(tangent_vec_b),
@@ -56,8 +54,8 @@ class TestComplexPoincareDiskMetric(
         )
         self.assertAllClose(result, expected)
 
-    def test_exp(self, scale, tangent_vec, base_point, expected):
-        metric = self.Metric(scale)
+    def test_exp(self, tangent_vec, base_point, expected):
+        metric = self.Metric()
         self.assertAllClose(
             metric.exp(
                 gs.array(tangent_vec),
@@ -66,8 +64,8 @@ class TestComplexPoincareDiskMetric(
             gs.array(expected),
         )
 
-    def test_log(self, scale, point, base_point, expected):
-        metric = self.Metric(scale)
+    def test_log(self, point, base_point, expected):
+        metric = self.Metric()
         self.assertAllClose(
             metric.log(
                 gs.array(point),

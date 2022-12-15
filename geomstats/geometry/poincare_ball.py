@@ -32,18 +32,19 @@ class PoincareBall(_Hyperbolic, OpenSet):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default: 1.
     """
 
-    def __init__(self, dim, scale=1):
+    def __init__(self, dim, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate the "
+                "manifold without this parameter and then use "
+                "`scale * metric` to rescale the standard metric."
+            )
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim),
-            scale=scale,
-            metric=PoincareBallMetric(dim, scale),
+            metric=PoincareBallMetric(dim),
             default_coords_type=_COORDS_TYPE,
         )
 
@@ -107,19 +108,20 @@ class PoincareBallMetric(RiemannianMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default 1.
     """
 
-    def __init__(self, dim, scale=1):
+    def __init__(self, dim, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate scaled "
+                "metrics as `scale * RiemannianMetric`. Note that the "
+                "metric is scaled, not the distance."
+            )
         super().__init__(
             dim=dim,
             signature=(dim, 0),
             default_coords_type=_COORDS_TYPE,
         )
-        self.scale = scale
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
@@ -203,7 +205,7 @@ class PoincareBallMetric(RiemannianMetric):
         mobius_add : array-like, shape=[..., dim]
             Result of the Mobius addition.
         """
-        ball_manifold = PoincareBall(self.dim, scale=self.scale)
+        ball_manifold = PoincareBall(self.dim)
         if project_first:
             point_a = ball_manifold.projection(point_a)
             point_b = ball_manifold.projection(point_b)
@@ -248,7 +250,6 @@ class PoincareBallMetric(RiemannianMetric):
         norm_function = 1 + 2 * diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
         dist = gs.log(norm_function + gs.sqrt(norm_function**2 - 1))
-        dist *= self.scale
         return dist
 
     def retraction(self, tangent_vec, base_point):
@@ -273,7 +274,7 @@ class PoincareBallMetric(RiemannianMetric):
         .. [1] Nickel et.al, "Poincaré Embedding for
             Learning Hierarchical Representation", 2017.
         """
-        ball_manifold = PoincareBall(self.dim, scale=self.scale)
+        ball_manifold = PoincareBall(self.dim)
         base_point_belong = ball_manifold.belongs(base_point)
 
         if not gs.all(base_point_belong):
