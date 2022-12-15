@@ -89,8 +89,8 @@ class ProductPositiveRealsAndComplexPoincareDisksMetric(ProductRiemannianMetric)
         The positive reals and complex Poincaré disks product metric is a product
         of the positive reals metric and (n-1) complex Poincaré metrics, each of them
         being multiplied by a specific constant factor (see [Cabanes_2022]_,
-        [Cabanes_CESAR_2019]_, [Cabanes_RADAR_2019]_, [Cabanes_GSI_2019]_, [Le_Brigant_2017],
-        [Jeuris_2016]_ and [Yang_2013]_).
+        [Cabanes_CESAR_2019]_, [Cabanes_RADAR_2019]_, [Cabanes_GSI_2019]_,
+        [Le_Brigant_2017], [Jeuris_2016]_ and [Yang_2013]_).
         This metric comes from a model used to represent one-dimensional complex
         stationary centered Gaussian autoregressive times series.
         Such a times series can be seen as a realization of
