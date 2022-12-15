@@ -25,7 +25,7 @@ INVERSE_LIST = [
     "sectional_curvature",
     "scalar_curvature",
 ]
-INVERSE_QUADRATIC_LIST = ["normalize", "random_unit_tangent_vec", "normal_basis"]
+INVERSE_SQRT_LIST = ["normalize", "random_unit_tangent_vec", "normal_basis"]
 
 
 def _wrap_attr(scaling_factor, func):
@@ -50,8 +50,8 @@ def _get_scaling_factor(func_name, scale):
     if func_name in INVERSE_LIST:
         return 1.0 / scale
 
-    if func_name in INVERSE_QUADRATIC_LIST:
-        return 1.0 / gs.power(scale, 2)
+    if func_name in INVERSE_SQRT_LIST:
+        return 1.0 / gs.sqrt(scale)
     return None
 
 
