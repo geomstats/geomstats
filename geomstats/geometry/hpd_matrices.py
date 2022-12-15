@@ -42,13 +42,13 @@ class HPDMatrices(OpenSet):
         super().__init__(dim=n**2, embedding_space=HermitianMatrices(n), **kwargs)
         self.n = n
 
-    def belongs(self, mat, atol=gs.atol):
+    def belongs(self, point, atol=gs.atol):
         """Check if a matrix is Hermitian with positive eigenvalues.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
-            Matrix to be checked.
+        point : array-like, shape=[..., n, n]
+            Point to be checked.
         atol : float
             Tolerance.
             Optional, default: backend atol.
@@ -58,7 +58,7 @@ class HPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an HPD matrix.
         """
-        return ComplexMatrices.is_hpd(mat, atol)
+        return ComplexMatrices.is_hpd(point, atol)
 
     def projection(self, point, atol=gs.atol):
         """Project a matrix to the space of HPD matrices.
@@ -509,7 +509,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
                 "metrics as `scale * RiemannianMetric`. Note that the "
                 "metric is scaled, not the distance."
             )
-        dim = int(n * (n + 1) / 2)
+        dim = n**2
         super().__init__(
             dim=dim,
             shape=(n, n),
@@ -775,7 +775,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
     """
 
     def __init__(self, n):
-        dim = int(n * (n + 1) / 2)
+        dim = n**2
         super().__init__(
             dim=dim,
             signature=(dim, 0),
@@ -1020,7 +1020,7 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
     """Class for the Euclidean metric on the HPD manifold."""
 
     def __init__(self, n, power_euclidean=1):
-        dim = int(n * (n + 1) / 2)
+        dim = n**2
         super().__init__(
             dim=dim,
             signature=(dim, 0),
@@ -1231,7 +1231,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
     """
 
     def __init__(self, n):
-        dim = int(n * (n + 1) / 2)
+        dim = n**2
         super().__init__(
             dim=dim,
             signature=(dim, 0),
