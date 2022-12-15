@@ -40,8 +40,10 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = SiegelMetricTestData()
 
-    def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
-        metric = self.Metric(n)
+    def test_inner_product(
+        self, n, scale, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        metric = scale * self.Metric(n)
         result = metric.inner_product(
             gs.array(tangent_vec_a),
             gs.array(tangent_vec_b),
@@ -49,8 +51,8 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected)
 
-    def test_exp(self, n, tangent_vec, base_point, expected):
-        metric = self.Metric(n)
+    def test_exp(self, n, scale, tangent_vec, base_point, expected):
+        metric = scale * self.Metric(n)
         self.assertAllClose(
             metric.exp(
                 gs.array(tangent_vec),
@@ -59,8 +61,8 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
             gs.array(expected),
         )
 
-    def test_log(self, n, point, base_point, expected):
-        metric = self.Metric(n)
+    def test_log(self, n, scale, point, base_point, expected):
+        metric = scale * self.Metric(n)
         self.assertAllClose(
             metric.log(
                 gs.array(point),
@@ -70,9 +72,9 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
         )
 
     def test_sectional_curvature(
-        self, n, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, n, scale, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.Metric(n)
+        metric = scale * self.Metric(n)
         result = metric.sectional_curvature(
             gs.array(tangent_vec_a),
             gs.array(tangent_vec_b),

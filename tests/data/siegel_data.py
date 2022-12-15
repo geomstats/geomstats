@@ -89,17 +89,19 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
         smoke_data = [
             dict(
                 n=3,
+                scale=0.25,
                 tangent_vec_a=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
                 tangent_vec_b=[[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]],
                 base_point=[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
-                expected=6,
+                expected=3 / 2,
             ),
             dict(
                 n=3,
+                scale=0.25,
                 tangent_vec_a=[[1j, 0j, 0j], [0j, 1j, 0j], [0j, 0j, 1j]],
                 tangent_vec_b=[[1j, 0j, 0j], [0j, 2j, 0j], [0j, 0j, 3j]],
                 base_point=[[0j, 0j, 0j], [0j, 0j, 0j], [0j, 0j, 0j]],
-                expected=6,
+                expected=3 / 2,
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -108,6 +110,7 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
         smoke_data = [
             dict(
                 n=2,
+                scale=1.0,
                 tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
                 base_point=[[0.0, 0.0], [0.0, 0.0]],
                 expected=[
@@ -117,6 +120,7 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
             ),
             dict(
                 n=2,
+                scale=1.0,
                 tangent_vec=[[2j, 0j], [0j, 2j]],
                 base_point=[[0j, 0j], [0j, 0j]],
                 expected=[
@@ -126,6 +130,7 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
             ),
             dict(
                 n=2,
+                scale=1.0,
                 tangent_vec=[[0j, 0j], [0j, 0j]],
                 base_point=[[0j, 0j], [0j, 0j]],
                 expected=[[0j, 0j], [0j, 0j]],
@@ -137,18 +142,21 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
         smoke_data = [
             dict(
                 n=2,
+                scale=1.0,
                 point=[[0.5, 0.0], [0.0, 0.5]],
                 base_point=[[0.0, 0.0], [0.0, 0.0]],
                 expected=[[LN_3 / 2, 0.0], [0.0, LN_3 / 2]],
             ),
             dict(
                 n=2,
+                scale=1.0,
                 point=[[0.5j, 0j], [0j, 0.5j]],
                 base_point=[[0j, 0j], [0j, 0j]],
                 expected=[[LN_3 / 2 * 1j, 0j], [0j, LN_3 / 2 * 1j]],
             ),
             dict(
                 n=2,
+                scale=1.0,
                 point=[[0j, 0j], [0j, 0j]],
                 base_point=[[0j, 0j], [0j, 0j]],
                 expected=[[0j, 0j], [0j, 0j]],
@@ -160,6 +168,7 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
         smoke_data = [
             dict(
                 n=2,
+                scale=1.0,
                 tangent_vec_a=[[1.0, 0.0], [0.0, 0.0]],
                 tangent_vec_b=[[0.0, 0.0], [0.0, 1.0]],
                 base_point=[[0.0, 0.0], [0.0, 0.0]],
@@ -167,6 +176,7 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
             ),
             dict(
                 n=2,
+                scale=1.0,
                 tangent_vec_a=[[1j, 0j], [0j, 1j]],
                 tangent_vec_b=[[-1j, 0j], [0j, -1j]],
                 base_point=[[0j, 0j], [0j, 0j]],
@@ -174,6 +184,7 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
             ),
             dict(
                 n=2,
+                scale=1.0,
                 tangent_vec_a=[[1.0 + 0j, 0j], [0j, 0j]],
                 tangent_vec_b=[[0j, 1j], [0j, 0j]],
                 base_point=[[0j, 0j], [0j, 0j]],
@@ -181,17 +192,59 @@ class SiegelMetricTestData(_ComplexRiemannianMetricTestData):
             ),
             dict(
                 n=2,
+                scale=1.0,
                 tangent_vec_a=[[2 + 0j, 0j], [0j, 0j]],
                 tangent_vec_b=[[0j, 2j], [0j, 0j]],
                 base_point=[[0j, 0j], [0j, 0j]],
                 expected=-1,
             ),
             dict(
+                n=2,
+                scale=4.0,
+                tangent_vec_a=[[0.25 + 0j, 0j], [0j, 0j]],
+                tangent_vec_b=[[0j, 0.25j], [0j, 0j]],
+                base_point=[[0j, 0j], [0j, 0j]],
+                expected=-0.25,
+            ),
+            dict(
                 n=3,
+                scale=0.25,
+                tangent_vec_a=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                tangent_vec_b=[[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]],
+                base_point=[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+                expected=0,
+            ),
+            dict(
+                n=3,
+                scale=0.25,
+                tangent_vec_a=[[1j, 0j, 0j], [0j, 1j, 0j], [0j, 0j, 1j]],
+                tangent_vec_b=[[1j, 0j, 0j], [0j, 2j, 0j], [0j, 0j, 3j]],
+                base_point=[[0j, 0j, 0j], [0j, 0j, 0j], [0j, 0j, 0j]],
+                expected=0,
+            ),
+            dict(
+                n=3,
+                scale=1.0,
                 tangent_vec_a=[[1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
                 tangent_vec_b=[[0.0, 0.0, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
                 base_point=[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
                 expected=-1,
+            ),
+            dict(
+                n=3,
+                scale=4.0,
+                tangent_vec_a=[[1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+                tangent_vec_b=[[0.0, 0.0, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+                base_point=[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+                expected=-0.25,
+            ),
+            dict(
+                n=3,
+                scale=1 / 9,
+                tangent_vec_a=[[1j, 0j, 0j], [0j, 0j, 0j], [0j, 0j, 0j]],
+                tangent_vec_b=[[0j, 0j, 1j], [0j, 0j, 0j], [0j, 0j, 0j]],
+                base_point=[[0j, 0j, 0j], [0j, 0j, 0j], [0j, 0j, 0j]],
+                expected=-9,
             ),
         ]
         return self.generate_tests(smoke_data)
