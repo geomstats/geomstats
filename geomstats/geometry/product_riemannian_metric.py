@@ -39,52 +39,10 @@ def _block_diagonal(factor_matrices):
     return metric_matrix
 
 
-class ProductRiemannianMetric(RiemannianMetric):
-    """Class for product of Riemannian metrics.
-
-    Parameters
-    ----------
-    metrics : list
-        List of metrics in the product.
-    scales : list
-        List of positive values to rescale the inner product by on each factor.
-        Note: To rescale the distances by a constant c, use c^2 for the scale
-    default_point_type : {'auto', 'vector', 'matrix', 'other'}
-        Optional. Default value is 'auto', which will implement as 'vector' unless all
-        factors have the same shape. Vector representation gives the point as a 1-d
-        array. Matrix representation allows for a point to be represented by an array of
-        shape (n, dim), if each manifold has default_point_type 'vector' with shape
-        (dim,). 'other' will behave as `matrix` but for higher dimensions.
-    """
-
-    def __init__(self, metrics, default_point_type="auto", scales=None):
-        geomstats.errors.check_parameter_accepted_values(
-            default_point_type,
-            "default_point_type",
-            ["auto", "vector", "matrix", "other"],
-        )
-
-        self.factors = metrics
-        self._factor_dims = [factor.dim for factor in self.factors]
-        self._factor_shapes = [factor.shape for factor in self.factors]
-        self._factor_shape_sizes = [math.prod(metric.shape) for metric in self.factors]
-        self._factor_signatures = [metric.signature for metric in self.factors]
-
-        if scales is not None:
-            for scale in scales:
-                geomstats.errors.check_positive(scale, "Each value in scales")
-        self.scales = scales
-
-        dim = sum(self._factor_dims)
-
-        shape = self._find_product_shape(default_point_type)
-
-        sig_pos = sum(sig[0] for sig in self._factor_signatures)
-        sig_neg = sum(sig[1] for sig in self._factor_signatures)
-
-        super().__init__(dim=dim, signature=(sig_pos, sig_neg), shape=shape)
-
-        self.cum_index = gs.cumsum(self._factor_shape_sizes)[:-1]
+class _IterateOverFactorsMixins:
+    def __init__(self, *args, pool_outputs=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._pool_outputs = pool_outputs
 
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
@@ -99,12 +57,12 @@ class ProductRiemannianMetric(RiemannianMetric):
         if not _all_equal(self._factor_shapes):
             raise ValueError(
                 "A default_point_type of 'matrix' or 'other' can only be used if all "
-                "metrics have the same shape."
+                "manifolds have the same shape."
             )
         if default_point_type == "matrix" and not len(self._factor_shapes[0]) == 1:
             raise ValueError(
                 "A default_point_type of 'matrix' can only be used if all "
-                "metrics have vector type."
+                "manifolds have vector type."
             )
         return len(self.factors), *self.factors[0].shape
 
@@ -139,7 +97,6 @@ class ProductRiemannianMetric(RiemannianMetric):
                     response = gs.flatten(response)
 
                 points_.append(response)
-
             return gs.concatenate(points_, axis=-1)
         stacking_axis = -1 * len(self.shape)
         return gs.stack(points, axis=stacking_axis)
@@ -191,15 +148,13 @@ class ProductRiemannianMetric(RiemannianMetric):
         new_shape = leading_shape + trailing_shape
         return gs.reshape(argument, new_shape)
 
-    def _iterate_over_metrics(self, func, args):
+    def _iterate_over_factors(self, func, args):
         """Apply a function to each factor of the product.
 
         func is called on each factor of the product.
 
         Array-type arguments are separated out to be passed to func for each factor,
         but other arguments are passed unchanged.
-
-        The results are returned in a list.
 
         Parameters
         ----------
@@ -214,21 +169,19 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Returns
         -------
-        out : list
-            A list of the outputs from each factor, to be processed by the calling
-            function.
+        out : array-like, shape = [..., {(), self.shape}]
         """
         # TODO The user may prefer to provide the arguments as lists and receive them as
         # TODO lists, as this may be the form in which they are available. This should
         # TODO be allowed, rather than packing and unpacking them repeatedly.
-
         args_list, numerical_args = self._validate_and_prepare_args_for_iteration(args)
 
         out = [
             self._get_method(self.factors[i], func, args_list[i], numerical_args)
             for i in range(len(self.factors))
         ]
-
+        if self._pool_outputs:
+            return self._pool_outputs_from_function(out)
         return out
 
     def _validate_and_prepare_args_for_iteration(self, args):
@@ -238,14 +191,14 @@ class ProductRiemannianMetric(RiemannianMetric):
         ----------
         args : dict
             Dict of arguments.
-            Float or int arguments are passed to func for each factor
+            Float or int arguments are passed to func for each manifold
             Array-type arguments must be of type (..., shape)
 
         Returns
         -------
         arguments : list
             List of dicts of arguments with values being array-like.
-            Each element of the list corresponds to a factor af the metric.
+            Each element of the list corresponds to a factor af the manifold.
         numerical_args : dict
             Dict of non-array arguments
         """
@@ -261,9 +214,59 @@ class ProductRiemannianMetric(RiemannianMetric):
         return args_list, numerical_args
 
     @staticmethod
-    def _get_method(metric, method_name, array_args, num_args):
-        """Call metric.method_name."""
-        return getattr(metric, method_name)(**array_args, **num_args)
+    def _get_method(factor, method_name, array_args, num_args):
+        """Call factor.method_name."""
+        return getattr(factor, method_name)(**array_args, **num_args)
+
+
+class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
+    """Class for product of Riemannian metrics.
+
+    Parameters
+    ----------
+    metrics : list
+        List of metrics in the product.
+    scales : list
+        List of positive values to rescale the inner product by on each factor.
+        Note: To rescale the distances by a constant c, use c^2 for the scale
+    default_point_type : {'auto', 'vector', 'matrix', 'other'}
+        Optional. Default value is 'auto', which will implement as 'vector' unless all
+        factors have the same shape. Vector representation gives the point as a 1-d
+        array. Matrix representation allows for a point to be represented by an array of
+        shape (n, dim), if each manifold has default_point_type 'vector' with shape
+        (dim,). 'other' will behave as `matrix` but for higher dimensions.
+    """
+
+    def __init__(self, metrics, default_point_type="auto", scales=None):
+        geomstats.errors.check_parameter_accepted_values(
+            default_point_type,
+            "default_point_type",
+            ["auto", "vector", "matrix", "other"],
+        )
+
+        self.factors = metrics
+        self._factor_dims = [factor.dim for factor in self.factors]
+        self._factor_shapes = [factor.shape for factor in self.factors]
+        self._factor_shape_sizes = [math.prod(metric.shape) for metric in self.factors]
+        self._factor_signatures = [metric.signature for metric in self.factors]
+
+        if scales is not None:
+            for scale in scales:
+                geomstats.errors.check_positive(scale, "Each value in scales")
+        self.scales = scales
+
+        dim = sum(self._factor_dims)
+
+        shape = self._find_product_shape(default_point_type)
+
+        sig_pos = sum(sig[0] for sig in self._factor_signatures)
+        sig_neg = sum(sig[1] for sig in self._factor_signatures)
+
+        super().__init__(
+            pool_outputs=False, dim=dim, signature=(sig_pos, sig_neg), shape=shape
+        )
+
+        self.cum_index = gs.cumsum(self._factor_shape_sizes)[:-1]
 
     def metric_matrix(self, base_point=None):
         """Compute the matrix of the inner-product.
@@ -284,7 +287,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             The matrix is in block diagonal form with a block for each factor.
             Each block is the same size as the metric_matrix for that factor.
         """
-        factor_matrices = self._iterate_over_metrics(
+        factor_matrices = self._iterate_over_factors(
             "metric_matrix", {"base_point": base_point}
         )
         if self.scales is not None:
@@ -325,7 +328,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             "tangent_vec_b": tangent_vec_b,
             "base_point": base_point,
         }
-        inner_products = self._iterate_over_metrics("inner_product", args)
+        inner_products = self._iterate_over_factors("inner_product", args)
 
         if self.scales is not None:
             inner_products = [
@@ -352,7 +355,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         args = {"tangent_vec": tangent_vec, "base_point": base_point}
-        exp = self._iterate_over_metrics("exp", args)
+        exp = self._iterate_over_factors("exp", args)
 
         if self.default_point_type == "vector":
             return gs.concatenate(exp, -1)
@@ -376,7 +379,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             of point at the base point.
         """
         args = {"point": point, "base_point": base_point}
-        logs = self._iterate_over_metrics("log", args)
+        logs = self._iterate_over_factors("log", args)
         if self.default_point_type == "vector":
             return gs.concatenate(logs, axis=-1)
         return gs.stack(logs, axis=-len(self.shape))

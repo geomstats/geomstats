@@ -31,22 +31,21 @@ class ComplexPoincareDisk(ComplexOpenSet):
 
     The Poincaré disk is a representation of the Hyperbolic
     space of dimension 2. Its complex dimension is 1.
-
-    Parameters
-    ----------
-    scale : float
-        Scale of the complex Poincaré metric.
-        Optional, default: 1.
     """
 
-    def __init__(self, scale=1.0, **kwargs):
+    def __init__(self, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate the "
+                "manifold without this parameter and then use "
+                "`scale * metric` to rescale the standard metric."
+            )
         super().__init__(
             dim=1,
             embedding_space=Hermitian(dim=1),
-            metric=ComplexPoincareDiskMetric(scale=scale),
+            metric=ComplexPoincareDiskMetric(),
             **kwargs
         )
-        self.scale = scale
 
     @staticmethod
     def belongs(point, atol=gs.atol):
@@ -123,22 +122,20 @@ class ComplexPoincareDisk(ComplexOpenSet):
 
 
 class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
-    """Class for the complex Poincaré metric.
+    """Class for the complex Poincaré metric."""
 
-    Parameters
-    ----------
-    scale : float
-        Scale of the complex Poincaré metric.
-        Optional, default: 1.
-    """
-
-    def __init__(self, scale=1.0):
+    def __init__(self, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate scaled "
+                "metrics as `scale * RiemannianMetric`. Note that the "
+                "metric is scaled, not the distance."
+            )
         super().__init__(
             dim=1,
             shape=(1,),
             signature=(1, 0),
         )
-        self.scale = scale
 
     def metric_matrix(self, base_point):
         """Compute the metric matrix at base point.
@@ -155,7 +152,6 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         """
         inner_prod_mat = 1 / (1 - gs.abs(base_point) ** 2) ** 2
         inner_prod_mat = gs.cast(inner_prod_mat, dtype=gs.get_default_cdtype())
-        inner_prod_mat *= self.scale**2
         return gs.expand_dims(inner_prod_mat, axis=-1)
 
     @staticmethod
@@ -271,7 +267,7 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
             Riemannian squared distance.
         """
         sq_dist = self._tau(point_a, point_b, atol=atol)
-        return self.scale**2 * gs.power(sq_dist, 2)
+        return gs.power(sq_dist, 2)
 
     def dist(self, point_a, point_b, atol=gs.atol):
         """Compute the complex Poincaré disk distance.
@@ -293,4 +289,4 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         dist : array-like, shape=[...]
             Riemannian distance.
         """
-        return self.scale * self._tau(point_a, point_b, atol=atol)
+        return self._tau(point_a, point_b, atol=atol)

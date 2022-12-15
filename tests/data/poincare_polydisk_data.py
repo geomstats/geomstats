@@ -47,7 +47,7 @@ class PoincarePolydiskMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def product_distance_extrinsic_representation_test_data(self):
+    def product_distance_test_data(self):
         point_a_intrinsic = gs.array([0.01, 0.0])
         point_b_intrinsic = gs.array([0.0, 0.0])
         hyperbolic_space = Hyperboloid(dim=2)
@@ -59,9 +59,16 @@ class PoincarePolydiskMetricTestData(TestData):
         )
         smoke_data = [
             dict(
-                n_disks=1,
+                m_disks=1,
+                n_disks=2,
                 point_a_extrinsic=point_a_extrinsic,
                 point_b_extrinsic=point_b_extrinsic,
-            )
+            ),
+            dict(
+                m_disks=1,
+                n_disks=3,
+                point_a_extrinsic=point_a_extrinsic,
+                point_b_extrinsic=point_b_extrinsic,
+            ),
         ]
         return self.generate_tests(smoke_data)
