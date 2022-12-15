@@ -81,9 +81,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected)
 
-    def test_scaled_inner_product(
-        self, dim, tangent_vec_a, tangent_vec_b, base_point
-    ):
+    def test_scaled_inner_product(self, dim, tangent_vec_a, tangent_vec_b, base_point):
         default_space = Hyperboloid(dim=dim)
         default_metric = default_space.metric
         scaled_metric = 2.0 * default_metric
@@ -106,9 +104,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         squared_norm_default_metric = default_metric.squared_norm(
             tangent_vec, base_point
         )
-        squared_norm_scaled_metric = scaled_metric.squared_norm(
-            tangent_vec, base_point
-        )
+        squared_norm_scaled_metric = scaled_metric.squared_norm(tangent_vec, base_point)
         result = squared_norm_scaled_metric
         expected = 2.0 * squared_norm_default_metric
         self.assertAllClose(result, expected)

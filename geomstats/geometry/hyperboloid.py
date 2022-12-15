@@ -36,10 +36,12 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
-        if 'scale' in kwargs.keys():
-            raise TypeError("Argument scale is no longer in use: instantiate the "
-                            "manifold without this parameter and then use "
-                            "`scale * metric` to rescale the standard metric.")
+        if "scale" in kwargs.keys():
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate the "
+                "manifold without this parameter and then use "
+                "`scale * metric` to rescale the standard metric."
+            )
         self.dim = dim
         kwargs.setdefault("metric", HyperboloidMetric(dim, default_coords_type))
         super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)

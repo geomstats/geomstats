@@ -503,10 +503,12 @@ class HPDAffineMetric(ComplexRiemannianMetric):
     """
 
     def __init__(self, n, power_affine=1, **kwargs):
-        if 'scale' in kwargs.keys():
-            raise TypeError("Argument scale is no longer in use: instantiate scaled "
-                            "metrics as `scale * RiemannianMetric`. Note that the "
-                            "metric is scaled, not the distance.")
+        if "scale" in kwargs.keys():
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate scaled "
+                "metrics as `scale * RiemannianMetric`. Note that the "
+                "metric is scaled, not the distance."
+            )
         dim = int(n * (n + 1) / 2)
         super().__init__(
             dim=dim,

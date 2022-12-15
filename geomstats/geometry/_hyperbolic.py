@@ -21,10 +21,12 @@ class _Hyperbolic:
     """
 
     def __init__(self, **kwargs):
-        if 'scale' in kwargs.keys():
-            raise TypeError("Argument scale is no longer in use: instantiate the "
-                            "manifold without this parameter and then use "
-                            "`scale * metric` to rescale the standard metric.")
+        if "scale" in kwargs.keys():
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate the "
+                "manifold without this parameter and then use "
+                "`scale * metric` to rescale the standard metric."
+            )
         super().__init__(**kwargs)
 
     @staticmethod
@@ -457,10 +459,12 @@ class HyperbolicMetric(RiemannianMetric):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
-        if 'scale' in kwargs.keys():
-            raise TypeError("Argument scale is no longer in use: instantiate scaled "
-                            "metrics as `scale * RiemannianMetric`. Note that the "
-                            "metric is scaled, not the distance.")
+        if "scale" in kwargs.keys():
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate scaled "
+                "metrics as `scale * RiemannianMetric`. Note that the "
+                "metric is scaled, not the distance."
+            )
         super().__init__(
             dim=dim,
             signature=(dim, 0),
