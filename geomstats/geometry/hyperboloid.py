@@ -285,7 +285,7 @@ class HyperboloidMetric(HyperbolicMetric):
         """
         return self.embedding_metric.metric_matrix(base_point)
 
-    def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
 
         Parameters
@@ -307,7 +307,7 @@ class HyperboloidMetric(HyperbolicMetric):
         )
         return inner_prod
 
-    def _squared_norm(self, vector, base_point=None):
+    def squared_norm(self, vector, base_point=None):
         """Compute the squared norm of a vector.
 
         Squared norm of a vector associated with the inner-product

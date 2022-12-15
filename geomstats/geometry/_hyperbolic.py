@@ -441,6 +441,9 @@ class _Hyperbolic:
 class HyperbolicMetric(RiemannianMetric):
     """Class that defines operations using a hyperbolic metric.
 
+    This class does not contain any methods and is only defined to act as a parent
+    class for `HyperboloidMetric`, `PoincareBallMetric` and `PoincareHalfSpaceMetric`.
+
     Parameters
     ----------
     dim : int
@@ -455,90 +458,4 @@ class HyperbolicMetric(RiemannianMetric):
             signature=(dim, 0),
             shape=(dim + 1,),
             default_coords_type=default_coords_type,
-        )
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors at a base point.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
-            First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
-            Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space.
-            Optional, default: None.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[..., 1]
-            Inner-product of the two tangent vectors.
-        """
-        inner_prod = self._inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        return inner_prod
-
-    def squared_norm(self, vector, base_point=None):
-        """Compute the squared norm of a vector.
-
-        Squared norm of a vector associated with the inner-product
-        at the tangent space at a base point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim + 1]
-            Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
-            Optional, default: None.
-
-        Returns
-        -------
-        sq_norm : array-like, shape=[..., 1]
-            Squared norm of the vector.
-        """
-        sq_norm = self._squared_norm(vector)
-        return sq_norm
-
-    def _squared_norm(self, vector, base_point=None):
-        """Squared norm.
-
-        Squared norm of a vector associated with the inner-product
-        at the tangent space at a base point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim + 1]
-            Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
-            Optional, default: None.
-
-        Returns
-        -------
-        sq_norm : array-like, shape=[..., 1]
-            Squared norm of the vector.
-        """
-        return super().squared_norm(vector, base_point=base_point)
-
-    def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
-            First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
-            Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space.
-            Optional, default: None.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[..., 1]
-            Inner-product of the two tangent vectors.
-        """
-        return super().inner_product(
-            tangent_vec_a, tangent_vec_b, base_point=base_point
         )
