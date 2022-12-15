@@ -11,6 +11,7 @@ import abc
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 
 
 class Manifold(abc.ABC):
@@ -159,7 +160,7 @@ class Manifold(abc.ABC):
     @metric.setter
     def metric(self, metric):
         if metric is not None:
-            if not isinstance(metric, RiemannianMetric):
+            if not isinstance(metric, (RiemannianMetric, ScalarProductMetric)):
                 raise ValueError("The argument must be a RiemannianMetric object")
             if metric.dim != self.dim:
                 metric.dim = self.dim

@@ -79,21 +79,21 @@ class ScalarProductMetric:
     ----------
     underlying_metric : RiemannianMetric
         The original metric of the manifold which is being scaled.
-    scaling_factor : float
+    scale : float
         The value by which to scale the metric. Note that this rescales the (0,2)
         metric tensor, so distances are rescaled by the square root of this.
     """
 
-    def __init__(self, underlying_metric, scaling_factor):
+    def __init__(self, underlying_metric, scale):
         """Load all attributes from the underlying metric."""
         if hasattr(underlying_metric, "underlying_metric"):
             self.underlying_metric = underlying_metric.underlying_metric
-            self.scaling_factor = scaling_factor * underlying_metric.scaling_factor
+            self.scale = scale * underlying_metric.scale
         else:
             self.underlying_metric = underlying_metric
-            self.scaling_factor = scaling_factor
+            self.scale = scale
 
-        reserved_names = ("underlying_metric", "scaling_factor")
+        reserved_names = ("underlying_metric", "scale")
         for attr_name in dir(self.underlying_metric):
             if attr_name.startswith("_") or attr_name in reserved_names:
                 continue
@@ -109,8 +109,46 @@ class ScalarProductMetric:
                     ):
                         raise ex
             else:
-                scaling_factor = _get_scaling_factor(attr_name, self.scaling_factor)
-                method = (
-                    attr if scaling_factor is None else _wrap_attr(scaling_factor, attr)
-                )
+                scale = _get_scaling_factor(attr_name, self.scale)
+                method = attr if scale is None else _wrap_attr(scale, attr)
                 setattr(self, attr_name, method)
+
+    def __mul__(self, scalar):
+        """Multiply the metric by a scalar.
+
+        This method multiplies the (0,2) metric tensor by a scalar. Note that this does
+        not scale distances by the scalar. That would require multiplication by the
+        square of the scalar.
+
+        Parameters
+        ----------
+        scalar : float
+            The number by which to multiply the metric.
+
+        Returns
+        -------
+        metric : ScalarProductMetric
+            The metric multiplied by the scalar
+        """
+        if not isinstance(scalar, float):
+            return NotImplemented
+        return ScalarProductMetric(self, scalar)
+
+    def __rmul__(self, scalar):
+        """Multiply the metric by a scalar.
+
+        This method multiplies the (0,2) metric tensor by a scalar. Note that this does
+        not scale distances by the scalar. That would require multiplication by the
+        square of the scalar.
+
+        Parameters
+        ----------
+        scalar : float
+            The number by which to multiply the metric.
+
+        Returns
+        -------
+        metric : ScalarProductMetric
+            The metric multiplied by the scalar.
+        """
+        return self * scalar

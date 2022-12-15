@@ -595,7 +595,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         embedding_metric : RiemannianMetric object
             The metric of the Poincare upper half-plane.
         """
-        return PoincareHalfSpaceMetric(dim=2, scale=2)
+        return 2.0 * PoincareHalfSpaceMetric(dim=2)
 
     def diffeomorphism(self, base_point):
         r"""Image of base point in the Poincare upper half-plane.
