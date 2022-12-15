@@ -509,7 +509,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
                 "metrics as `scale * RiemannianMetric`. Note that the "
                 "metric is scaled, not the distance."
             )
-        dim = int(n * (n + 1) / 2)
+        dim = n**2
         super().__init__(
             dim=dim,
             shape=(n, n),
