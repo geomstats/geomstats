@@ -131,7 +131,7 @@ class ScalarProductMetric:
             The metric multiplied by the scalar
         """
         if not isinstance(scalar, float):
-            raise NotImplementedError(f"Expected `float` instead of `{type(scalar)}`")
+            return NotImplemented
         return ScalarProductMetric(self, scalar)
 
     def __rmul__(self, scalar):
