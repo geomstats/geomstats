@@ -1,6 +1,6 @@
 """Statistical Manifold of Binomial distributions with the Fisher metric.
 
-Lead author: Jules Deschamps.
+Lead authors: Jules Deschamps, Tra My Nguyen.
 """
 
 from scipy.stats import expon
@@ -30,7 +30,7 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...,]
+        point : array-like, shape=[..., 1]
             Point to be checked.
         atol : float
             Tolerance to evaluate positivity.
@@ -42,11 +42,9 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             Boolean indicating whether point represents an exponential
             distribution.
         """
-        belongs = point >= atol
-        return gs.squeeze(belongs)
+        return gs.squeeze(point >= atol, axis=-1)
 
-    @staticmethod
-    def random_point(n_samples=1, bound=1.0):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample parameters of exponential distributions.
 
         The uniform distribution on [0, bound] is used.
@@ -65,7 +63,8 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[n_samples,]
             Sample of points representing exponential distributions.
         """
-        return gs.squeeze(bound * gs.random.rand(n_samples))
+        size = (n_samples, self.dim) if n_samples != 1 else (self.dim,)
+        return bound * gs.random.rand(*size)
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
@@ -74,18 +73,17 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...,]
+        point : array-like, shape=[..., 1]
             Point in ambient space.
         atol : float
             Tolerance to evaluate positivity.
 
         Returns
         -------
-        projected : array-like, shape=[...,]
+        projected : array-like, shape=[..., 1]
             Projected point.
         """
-        projected = gs.where(point < atol, atol, point)
-        return gs.squeeze(projected)
+        return gs.where(point < atol, atol, point)
 
     def sample(self, point, n_samples=1):
         """Sample from the exponential distribution.
@@ -107,8 +105,14 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             Sample from exponential distributions.
         """
         geomstats.errors.check_belongs(point, self)
-        samples = gs.array([expon.rvs(point) for i in range(n_samples)])
-        return gs.squeeze(gs.transpose(samples))
+
+        def _sample(param):
+            return expon.rvs(scale=1 / param, size=n_samples)
+
+        if point.ndim > 1:
+            return gs.array([_sample(point_) for point_ in point])
+
+        return gs.array(_sample(point))
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -118,7 +122,7 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[...,]
+        point : array-like, shape=[..., 1]
             Point representing an exponential distribution (scale).
 
         Returns
@@ -139,14 +143,12 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             ----------
             x : array-like, shape=[n_points,]
                 Points at which to compute the probability density function.
-            """
-            pdf_at_x = [
-                gs.array(gs.exp(-x / param) / param)
-                for param in gs.to_ndarray(point, 1)
-            ]
-            pdf_at_x = gs.stack(pdf_at_x, axis=0)
 
-            return pdf_at_x
+            Returns
+            -------
+            pdf_at_x : array-like, shape=[..., n_points]
+            """
+            return expon.pdf(x, scale=1 / point)
 
         return pdf
 
@@ -168,9 +170,9 @@ class ExponentialMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[...,]
+        point_a : array-like, shape=[..., 1]
             Point representing an exponential distribution (scale parameter).
-        point_b : array-like, shape=[...,] (same shape as point_a)
+        point_b : array-like, shape=[..., 1] (same shape as point_a)
             Point representing a exponential distribution (scale parameter).
 
         Returns
@@ -178,7 +180,7 @@ class ExponentialMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Squared distance between points point_a and point_b.
         """
-        return gs.log(point_a / point_b) ** 2
+        return gs.squeeze(gs.log(point_a / point_b) ** 2, axis=-1)
 
     def metric_matrix(self, base_point=None):
         """Compute the metric matrix at the tangent space at base_point.
@@ -190,14 +192,14 @@ class ExponentialMetric(RiemannianMetric):
 
         Returns
         -------
-        mat : array-like, shape=[..., 1]
+        mat : array-like, shape=[..., 1, 1]
             Metric matrix.
         """
         if base_point is None:
             raise ValueError(
                 "A base point must be given to compute the " "metric matrix"
             )
-        return 1 / base_point**2
+        return gs.expand_dims(1 / base_point**2, axis=-1)
 
     def _geodesic_ivp(self, initial_point, initial_tangent_vec):
         """Solve geodesic initial value problem.
@@ -232,7 +234,7 @@ class ExponentialMetric(RiemannianMetric):
                     "specify either one or the same number of "
                     "initial points."
                 )
-                
+
         base = gs.exp(initial_tangent_vec / initial_point)
 
         def path(t):
@@ -248,19 +250,13 @@ class ExponentialMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, 1]
                 Values of the geodesic at times t.
             """
-            # t = gs.expand_dims(t,axis=-1)
-            t = gs.reshape(t, (-1,))
-            print('a',t.shape)
+            t = gs.reshape(gs.array(t), (-1,))
             _base, t = gs.broadcast_arrays(base, gs.transpose(t))
-            return gs.expand_dims(initial_point * _base ** t,axis=-1)
+            return gs.expand_dims(initial_point * _base**t, axis=-1)
 
         return path
 
-    def _geodesic_bvp(
-        self,
-        initial_point,
-        end_point
-    ):
+    def _geodesic_bvp(self, initial_point, end_point):
         """Solve geodesic boundary problem.
 
         Compute the parameterized function for the geodesic starting at
@@ -281,20 +277,20 @@ class ExponentialMetric(RiemannianMetric):
         """
         n_initial_points = initial_point.shape[0]
         n_end_points = end_point.shape[0]
+
         if n_initial_points > n_end_points:
             if n_end_points > 1:
                 raise ValueError(
                     "For several initial points, specify either"
                     "one or the same number of end points."
                 )
-            end_point = gs.tile(end_point, (n_initial_points, 1))
         elif n_end_points > n_initial_points:
             if n_initial_points > 1:
                 raise ValueError(
                     "For several end points, specify either "
                     "one or the same number of initial points."
                 )
-        
+
         base = end_point / initial_point
 
         def path(t):
@@ -310,14 +306,15 @@ class ExponentialMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, 1]
                 Values of the geodesic at times t.
             """
-            # t = gs.expand_dims(t,axis=-1)
-            t = gs.reshape(t, (-1,))
-            _base, t = gs.broadcast_arrays(base,gs.transpose(t))
-            return gs.expand_dims(initial_point * _base ** t,axis=-1)
-        
+            t = gs.reshape(gs.array(t), (-1,))
+            _base, t = gs.broadcast_arrays(base, gs.transpose(t))
+            return gs.expand_dims(initial_point * _base**t, axis=-1)
+
         return path
-    
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs):
+
+    def geodesic(
+        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
+    ):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
@@ -344,7 +341,7 @@ class ExponentialMetric(RiemannianMetric):
             conditions is passed, the output array's first dimension
             represents time, and the second corresponds to the different
             initial conditions.
-        """ 
+        """
         if end_point is None and initial_tangent_vec is None:
             raise ValueError(
                 "Specify an end point or an initial tangent "
@@ -355,9 +352,45 @@ class ExponentialMetric(RiemannianMetric):
                 raise ValueError(
                     "Cannot specify both an end point " "and an initial tangent vector."
                 )
-            path = self._geodesic_bvp(initial_point,end_point)
+            path = self._geodesic_bvp(initial_point, end_point)
 
         if initial_tangent_vec is not None:
-            path = self._geodesic_ivp(initial_point,initial_tangent_vec)
+            path = self._geodesic_ivp(initial_point, initial_tangent_vec)
 
-        return path           
+        return path
+
+    def exp(self, tangent_vec, base_point):
+        """Compute exp map of a base point in tangent vector direction.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 1]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., 1]
+            End point of the geodesic starting at base_point with
+            initial velocity tangent_vec.
+        """
+        return gs.exp(tangent_vec / base_point) * base_point
+
+    def log(self, end_point, base_point):
+        """Compute log map using a base point and an end point.
+
+        Parameters
+        ----------
+        end_point : array-like, shape=[..., 1]
+            End point.
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., 1]
+            Initial velocity of the geodesic starting at base_point and
+            reaching end_point at time 1.
+        """
+        return base_point * gs.log(end_point / base_point)

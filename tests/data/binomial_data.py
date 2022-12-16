@@ -1,8 +1,11 @@
 import random
 
 import geomstats.backend as gs
-from geomstats.information_geometry.binomial import BinomialDistributions
-from tests.data_generation import _OpenSetTestData
+from geomstats.information_geometry.binomial import (
+    BinomialDistributions,
+    BinomialMetric,
+)
+from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 
 
 class BinomialTestData(_OpenSetTestData):
@@ -13,12 +16,6 @@ class BinomialTestData(_OpenSetTestData):
     shape_list = [(1,)]
     n_points_list = random.sample(range(1, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 1)
-
-    def geodesic_test_data(self):
-        random_data = []
-        for space_args in self.space_args_list:
-            random_data.append(dict(space_args=space_args))
-        return self.generate_tests([],random_data)
 
     def belongs_test_data(self):
         smoke_data = [
@@ -115,6 +112,28 @@ class BinomialTestData(_OpenSetTestData):
         ]
         return self.generate_tests([], random_data)
 
+
+class BinomialMetricTestData(_RiemannianMetricTestData):
+    Space = BinomialDistributions
+    Metric = BinomialMetric
+
+    n_list = random.sample((2, 5), 2)
+    n_samples_list = random.sample(range(1, 10), 3)
+    connection_args_list = metric_args_list = [(n,) for n in n_list]
+    space_list = [BinomialDistributions(n) for n in n_list]
+    space_args_list = [(n,) for n in n_list]
+    shape_list = [(1,) for n in n_list]
+    n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
+
+    tolerances = {
+        "dist_point_to_itself_is_zero": {"atol": 1e-5},
+        "dist_is_symmetric": {"atol": 5e-1},
+        "dist_is_norm_of_log": {"atol": 5e-1},
+        "exp_subspace": {"atol": 1e-4},
+        "triangle_inequality_of_dist": {"atol": 1e-10},
+    }
+
     def squared_dist_test_data(self):
         smoke_data = [
             dict(
@@ -129,5 +148,40 @@ class BinomialTestData(_OpenSetTestData):
                 point_b=gs.array(0.99),
                 expected=gs.array(52.79685863761384),
             ),
+            dict(
+                n_draws=5,
+                point_a=gs.array(0.3),
+                point_b=gs.array([0.2, 0.5]),
+                expected=gs.array([0.26908349, 0.84673057]),
+            ),
+            dict(
+                n_draws=5,
+                point_a=gs.array([0.2, 0.5]),
+                point_b=gs.array(0.3),
+                expected=gs.array([0.26908349, 0.84673057]),
+            ),
         ]
         return self.generate_tests(smoke_data)
+
+    def metric_matrix_test_data(self):
+        smoke_data = [
+            dict(
+                n_draws=5,
+                point=gs.array([0.5]),
+                expected=gs.array([[20.0]]),
+            ),
+            dict(
+                n_draws=7,
+                point=gs.array([[0.1], [0.5], [0.4]]),
+                expected=gs.array(
+                    [[[77.77777777777777]], [[28.0]], [[29.166666666666668]]]
+                ),
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def geodesic_symmetry_test_data(self):
+        random_data = []
+        for space_args in self.space_args_list:
+            random_data.append(dict(space_args=space_args))
+        return self.generate_tests([], random_data)
