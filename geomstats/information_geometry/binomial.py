@@ -101,7 +101,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
         point : array-like, shape=[..., dim]
             Point representing a binomial distribution.
         n_samples : int
-            Number of points to sample with each pair of parameters in point.
+            Number of points to sample with each point.
             Optional, default: 1.
 
         Returns
@@ -151,7 +151,8 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             -------
             pmf_at_k : array-like, shape=[..., n_points]
             """
-            return binom.pmf(k, self.n_draws, point)
+            _point, _k = gs.broadcast_arrays(point, gs.transpose(k))
+            return binom.pmf(_k, self.n_draws, _point)
 
         return pmf
 
@@ -188,7 +189,7 @@ class BinomialMetric(RiemannianMetric):
             4
             * self.n_draws
             * (gs.arcsin(gs.sqrt(point_a)) - gs.arcsin(gs.sqrt(point_b))) ** 2,
-            axis=-1,
+            # axis=-1,
         )
 
     def metric_matrix(self, base_point=None):
@@ -237,12 +238,13 @@ class BinomialMetric(RiemannianMetric):
             raise ValueError(
                 "There cannot be more initial points than " "initial tangent vectors."
             )
-        if n_initial_tangent_vecs > n_initial_points and n_initial_points > 1:
-            raise ValueError(
-                "For several initial tangent vectors, "
-                "specify either one or the same number of "
-                "initial points."
-            )
+        elif n_initial_tangent_vecs > n_initial_points:
+            if n_initial_points > 1:
+                raise ValueError(
+                    "For several initial tangent vectors, "
+                    "specify either one or the same number of "
+                    "initial points."
+                )
 
         c = gs.arcsin(gs.sqrt(initial_point))
         K = initial_tangent_vec / (
@@ -384,7 +386,6 @@ class BinomialMetric(RiemannianMetric):
             End point of the geodesic starting at base_point with
             initial velocity tangent_vec.
         """
-
         return (
             gs.sin(
                 tangent_vec / (2.0 * gs.sqrt(base_point) * gs.sqrt(1 - base_point))
