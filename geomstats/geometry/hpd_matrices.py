@@ -581,7 +581,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
 
             inner_product = inner_product / (power_affine**2)
 
-        return inner_product
+        return gs.real(inner_product)
 
     @staticmethod
     def _aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point):
