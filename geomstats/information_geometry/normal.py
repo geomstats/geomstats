@@ -595,7 +595,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         embedding_metric : RiemannianMetric object
             The metric of the Poincare upper half-plane.
         """
-        return PoincareHalfSpaceMetric(dim=2, scale=2)
+        return 2.0 * PoincareHalfSpaceMetric(dim=2)
 
     def diffeomorphism(self, base_point):
         r"""Image of base point in the Poincare upper half-plane.
@@ -682,7 +682,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         return self.inverse_diffeomorphism(image_tangent_vec)
 
     @staticmethod
-    def metric_matrix(base_point=None):
+    def metric_matrix(base_point):
         """Compute the metric matrix at the tangent space at base_point.
 
         Parameters
@@ -696,15 +696,9 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
             Metric matrix.
         """
         stds = base_point[..., 1]
-        stds = gs.to_ndarray(stds, to_ndim=1)
-        metric_mat = gs.stack(
-            [gs.array([[1.0 / std**2, 0.0], [0.0, 2.0 / std**2]]) for std in stds],
-            axis=0,
-        )
-
-        if metric_mat.ndim == 3 and metric_mat.shape[0] == 1:
-            return metric_mat[0]
-        return metric_mat
+        const = 1 / stds**2
+        mat = gs.array([[1.0, 0], [0, 2]])
+        return gs.einsum("...,ij->...ij", const, mat)
 
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.

@@ -48,3 +48,25 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
             base_point=base_point,
         )
         self.assertAllClose(inner_prod_mat, normal_metric_mat)
+
+    def test_inner_product_and_closed_form_inner_product(
+        self,
+        information_manifold,
+        support,
+        closed_form_metric,
+        tangent_vec_a,
+        tangent_vec_b,
+        base_point,
+    ):
+        metric = self.Metric(information_manifold=information_manifold, support=support)
+        inner_prod_mat = metric.inner_product(
+            tangent_vec_a=tangent_vec_a,
+            tangent_vec_b=tangent_vec_b,
+            base_point=base_point,
+        )
+        normal_metric_mat = closed_form_metric.inner_product(
+            tangent_vec_a=tangent_vec_a,
+            tangent_vec_b=tangent_vec_b,
+            base_point=base_point,
+        )
+        self.assertAllClose(inner_prod_mat, normal_metric_mat)

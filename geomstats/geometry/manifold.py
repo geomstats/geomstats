@@ -11,6 +11,7 @@ import abc
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 
 
 class Manifold(abc.ABC):
@@ -52,7 +53,12 @@ class Manifold(abc.ABC):
         self._metric = metric
 
         self.point_ndim = len(self.shape)
-        self.default_point_type = "vector" if self.point_ndim == 1 else "matrix"
+        if self.point_ndim == 1:
+            self.default_point_type = "vector"
+        elif self.point_ndim == 2:
+            self.default_point_type = "matrix"
+        else:
+            self.default_point_type = "other"
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -154,7 +160,7 @@ class Manifold(abc.ABC):
     @metric.setter
     def metric(self, metric):
         if metric is not None:
-            if not isinstance(metric, RiemannianMetric):
+            if not isinstance(metric, (RiemannianMetric, ScalarProductMetric)):
                 raise ValueError("The argument must be a RiemannianMetric object")
             if metric.dim != self.dim:
                 metric.dim = self.dim
