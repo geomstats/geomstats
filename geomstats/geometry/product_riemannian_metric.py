@@ -9,7 +9,30 @@ import math
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.complex_manifold import ComplexManifold
+from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+
+COMPLEX_OBJECTS = (ComplexRiemannianMetric, ComplexManifold)
+
+
+def _factor_is_complex(factor):
+    if (
+        isinstance(factor, COMPLEX_OBJECTS)
+        or hasattr(factor, "underlying_metric")
+        and isinstance(factor.underlying_metric, COMPLEX_OBJECTS)
+    ):
+        return True
+
+    return False
+
+
+def _has_mixed_fields(factors):
+    bools = [_factor_is_complex(factor) for factor in factors]
+    if len(set(bools)) == 2:
+        return True
+
+    return False
 
 
 def _all_equal(arg):
@@ -40,9 +63,10 @@ def _block_diagonal(factor_matrices):
 
 
 class _IterateOverFactorsMixins:
-    def __init__(self, *args, pool_outputs=False, **kwargs):
+    def __init__(self, *args, pool_outputs=False, has_mixed_fields=False, **kwargs):
         super().__init__(*args, **kwargs)
         self._pool_outputs = pool_outputs
+        self._has_mixed_fields = has_mixed_fields
 
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
@@ -135,6 +159,13 @@ class _IterateOverFactorsMixins:
                 gs.squeeze(projected_point, axis=splitting_axis)
                 for projected_point in projected_points
             ]
+
+        if self._has_mixed_fields:
+            for i, (factor, projected_point) in enumerate(
+                zip(self.factors, projected_points)
+            ):
+                if not _factor_is_complex(factor):
+                    projected_points[i] = gs.real(projected_point)
 
         return projected_points
 
@@ -263,7 +294,11 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         sig_neg = sum(sig[1] for sig in self._factor_signatures)
 
         super().__init__(
-            pool_outputs=False, dim=dim, signature=(sig_pos, sig_neg), shape=shape
+            pool_outputs=False,
+            has_mixed_fields=_has_mixed_fields(self.factors),
+            dim=dim,
+            signature=(sig_pos, sig_neg),
+            shape=shape,
         )
 
         self.cum_index = gs.cumsum(self._factor_shape_sizes)[:-1]
