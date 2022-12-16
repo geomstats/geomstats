@@ -580,7 +580,10 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         tangent_vec_a = _scale_by_norm(tangent_vec_a)
 
-        inner_prod = self.inner_product(tangent_vec_a, tangent_vec_b, base_point=zero)
+        inner_prod = gs.cast(
+            self.inner_product(tangent_vec_a, tangent_vec_b, base_point=zero),
+            dtype=tangent_vec_a.dtype,
+        )
 
         tangent_vec_b -= inner_prod * tangent_vec_a
         tangent_vec_b = _scale_by_norm(tangent_vec_b)
