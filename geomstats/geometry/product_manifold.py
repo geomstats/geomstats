@@ -11,6 +11,7 @@ from geomstats.geometry.product_riemannian_metric import (
     NFoldMetric,
     ProductRiemannianMetric,
     _all_equal,
+    _has_mixed_fields,
     _IterateOverFactorsMixins,
 )
 
@@ -72,6 +73,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         super().__init__(
             pool_outputs=True,
+            has_mixed_fields=_has_mixed_fields(self.factors),
             dim=dim,
             shape=shape,
             default_coords_type=default_coords_type,
