@@ -56,7 +56,7 @@ class ProductManifoldTestData(_ManifoldTestData):
     ]
 
     space_args_list = [
-        (manifolds, None, default_point)
+        (manifolds, default_point)
         for manifolds, default_point in zip(manifolds_list, default_point_list)
     ]
 
@@ -136,7 +136,7 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
         for n, default_point in zip(n_list, default_point_list)
     ]
     space_list = [
-        ProductManifold(manifolds, None, default_point_type)
+        ProductManifold(manifolds, default_point_type=default_point_type)
         for manifolds, default_point_type in zip(manifolds_list, default_point_list)
     ]
     n_points_list = random.sample(range(2, 5), 1)

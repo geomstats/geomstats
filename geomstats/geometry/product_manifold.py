@@ -26,9 +26,6 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
     ----------
     factors : list
         List of manifolds in the product.
-    metric_scales : list
-        Optional. A list of positive numbers by which to scale the metric on each
-        factor. If not given, no scaling is used.
     default_point_type : {'auto', 'vector', 'matrix', 'other'}
         Optional. Default value is 'auto', which will implement as 'vector' unless all
         factors have the same shape. Vector representation gives the point as a 1-d
@@ -37,9 +34,12 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
         (dim,). 'other' will behave as `matrix` but for higher dimensions.
     """
 
-    def __init__(
-        self, factors, metric_scales=None, default_point_type="auto", **kwargs
-    ):
+    def __init__(self, factors, default_point_type="auto", **kwargs):
+        if "metric_scales" in kwargs:
+            raise TypeError(
+                "Argument `metric_scales` is no longer in use: "
+                "use `scale * metric` to achieved the desired behavior"
+            )
         geomstats.errors.check_parameter_accepted_values(
             default_point_type,
             "default_point_type",
@@ -62,15 +62,11 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
         else:
             default_coords_type = "intrinsic"
 
-        if metric_scales is not None:
-            for scale in metric_scales:
-                geomstats.errors.check_positive(scale)
         kwargs.setdefault(
             "metric",
             ProductRiemannianMetric(
                 [manifold.metric for manifold in factors],
                 default_point_type=default_point_type,
-                scales=metric_scales,
             ),
         )
 
@@ -89,9 +85,8 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
                 else manifold
                 for manifold in factors
             ]
-            self.embedding_space = ProductManifold(
-                factor_embedding_spaces, metric_scales=metric_scales
-            )
+            # TODO: need to revisit due to removal of scales
+            self.embedding_space = ProductManifold(factor_embedding_spaces)
 
         self.cum_index = (
             gs.cumsum(self._factor_dims)[:-1]
@@ -327,26 +322,23 @@ class NFoldManifold(Manifold):
         base_manifold,
         n_copies,
         metric=None,
-        default_coords_type="intrinsic",
-        **kwargs,
     ):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_manifold.dim
         shape = (n_copies,) + base_manifold.shape
 
+        if metric is None:
+            metric = NFoldMetric(base_manifold.metric, n_copies)
+
         super().__init__(
             dim=dim,
             shape=shape,
-            default_coords_type=default_coords_type,
-            **kwargs,
+            default_coords_type=base_manifold.default_coords_type,
+            metric=metric,
         )
 
         self.base_manifold = base_manifold
         self.n_copies = n_copies
-
-        if metric is None:
-            metric = NFoldMetric(base_manifold.metric, n_copies)
-        self.metric = metric
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the manifold.

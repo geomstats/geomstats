@@ -17,7 +17,7 @@ import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
 from geomstats.geometry.product_manifold import NFoldManifold
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
+from geomstats.geometry.product_riemannian_metric import NFoldMetric
 
 
 class PoincarePolydisk(NFoldManifold):
@@ -41,7 +41,6 @@ class PoincarePolydisk(NFoldManifold):
             base_manifold=Hyperboloid(2),
             n_copies=n_disks,
             metric=PoincarePolydiskMetric(n_disks=n_disks),
-            default_coords_type="extrinsic",
         )
 
     @staticmethod
@@ -75,7 +74,7 @@ class PoincarePolydisk(NFoldManifold):
         return point_extrinsic
 
 
-class PoincarePolydiskMetric(ProductRiemannianMetric):
+class PoincarePolydiskMetric(NFoldMetric):
     r"""Class defining the Poincare polydisk metric.
 
     The Poincare polydisk metric is a product of n Poincare metrics,
@@ -100,7 +99,5 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     def __init__(self, n_disks):
         self.n_disks = n_disks
         base_metric = HyperboloidMetric(2)
-        list_metrics = [
-            float(n_disks - i_disk) * base_metric for i_disk in range(n_disks)
-        ]
-        super().__init__(metrics=list_metrics, default_point_type="matrix")
+        scales = [float(n_disks - i_disk) for i_disk in range(n_disks)]
+        super().__init__(base_metric, n_copies=n_disks, scales=scales)
