@@ -49,9 +49,7 @@ class ProductHPDMatricesAndSiegelDisks(ProductManifold):
     """
 
     def __init__(self, n_manifolds, n, **kwargs):
-        scaled_hpd_metric = n_manifolds**0.5 * HPDAffineMetric(n=n)
-        hpd_matrices = HPDMatrices(n=n, metric=scaled_hpd_metric)
-
+        hpd_matrices = HPDMatrices(n=n)
         siegel_disk = Siegel(n=n)
         factors = [hpd_matrices] + (n_manifolds - 1) * [siegel_disk]
 
