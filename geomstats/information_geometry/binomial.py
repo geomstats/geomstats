@@ -188,8 +188,7 @@ class BinomialMetric(RiemannianMetric):
         return gs.squeeze(
             4
             * self.n_draws
-            * (gs.arcsin(gs.sqrt(point_a)) - gs.arcsin(gs.sqrt(point_b))) ** 2,
-            # axis=-1,
+            * (gs.arcsin(gs.sqrt(point_a)) - gs.arcsin(gs.sqrt(point_b))) ** 2
         )
 
     def metric_matrix(self, base_point=None):

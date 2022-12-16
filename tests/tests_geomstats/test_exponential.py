@@ -35,7 +35,7 @@ class TestExponential(OpenSetTestCase, metaclass=Parametrizer):
         result = gs.squeeze(pdf(samples))
         pdf = []
         for i in range(n_points):
-            pdf.append(gs.array([expon.pdf(x, scale=point[i]) for x in samples]))
+            pdf.append(gs.array([expon.pdf(x, scale=1/point[i]) for x in samples]))
         expected = gs.squeeze(gs.stack(pdf, axis=0))
         self.assertAllClose(result, expected)
 

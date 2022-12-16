@@ -73,10 +73,6 @@ class ExponentialTestData(_OpenSetTestData):
     def point_to_pdf_test_data(self):
         random_data = [
             dict(
-                point=self.Space().random_point(2),
-                n_samples=3,
-            ),
-            dict(
                 point=self.Space().random_point(1),
                 n_samples=4,
             ),

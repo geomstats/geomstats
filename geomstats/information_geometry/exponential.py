@@ -38,11 +38,11 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
+        belongs : array-like, shape=[..., 1]
             Boolean indicating whether point represents an exponential
             distribution.
         """
-        return gs.squeeze(point >= atol, axis=-1)
+        return gs.squeeze(point >= atol)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample parameters of exponential distributions.
@@ -148,7 +148,8 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             -------
             pdf_at_x : array-like, shape=[..., n_points]
             """
-            return expon.pdf(x, scale=1 / point)
+            _point, _x = gs.broadcast_arrays(point, gs.transpose(x))
+            return expon.pdf(_x, scale=1 / _point)
 
         return pdf
 
@@ -180,7 +181,7 @@ class ExponentialMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Squared distance between points point_a and point_b.
         """
-        return gs.squeeze(gs.log(point_a / point_b) ** 2, axis=-1)
+        return gs.squeeze(gs.log(point_a / point_b) ** 2)
 
     def metric_matrix(self, base_point=None):
         """Compute the metric matrix at the tangent space at base_point.
@@ -251,8 +252,8 @@ class ExponentialMetric(RiemannianMetric):
                 Values of the geodesic at times t.
             """
             t = gs.reshape(gs.array(t), (-1,))
-            _base, t = gs.broadcast_arrays(base, gs.transpose(t))
-            return gs.expand_dims(initial_point * _base**t, axis=-1)
+            _base, _t = gs.broadcast_arrays(base, gs.transpose(t))
+            return gs.expand_dims(initial_point * _base**_t, axis=-1)
 
         return path
 
@@ -307,8 +308,8 @@ class ExponentialMetric(RiemannianMetric):
                 Values of the geodesic at times t.
             """
             t = gs.reshape(gs.array(t), (-1,))
-            _base, t = gs.broadcast_arrays(base, gs.transpose(t))
-            return gs.expand_dims(initial_point * _base**t, axis=-1)
+            _base, _t = gs.broadcast_arrays(base, gs.transpose(t))
+            return gs.expand_dims(initial_point * _base**_t, axis=-1)
 
         return path
 
