@@ -35,17 +35,17 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = InvariantMetricTestData()
 
     def test_inner_product_mat_at_identity_shape(
-        self, group, metric_mat_at_identity, left_or_right
+        self, group, metric_mat_at_identity, left
     ):
-        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left)
         dim = metric.group.dim
         result = metric.metric_mat_at_identity
         self.assertAllClose(gs.shape(result), (dim, dim))
 
     def test_inner_product_matrix_shape(
-        self, group, metric_mat_at_identity, left_or_right, base_point
+        self, group, metric_mat_at_identity, left, base_point
     ):
-        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left)
         base_point = None
         dim = metric.group.dim
         result = metric.metric_matrix(base_point=base_point)
@@ -57,9 +57,9 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(gs.shape(result), (dim, dim))
 
     def test_inner_product_matrix_and_its_inverse(
-        self, group, metric_mat_at_identity, left_or_right
+        self, group, metric_mat_at_identity, left
     ):
-        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left)
         inner_prod_mat = metric.metric_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
         result = gs.matmul(inv_inner_prod_mat, inner_prod_mat)
@@ -71,13 +71,13 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self,
         group,
         metric_mat_at_identity,
-        left_or_right,
+        left,
         tangent_vec_a,
         tangent_vec_b,
         base_point,
         expected,
     ):
-        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left)
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 

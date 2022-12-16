@@ -265,7 +265,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
     def test_left_jacobian_vectorization(self, n_samples):
         group = self.Space(3, point_type="vector")
         points = group.random_uniform(n_samples=n_samples)
-        jacobians = group.jacobian_translation(point=points, left_or_right="left")
+        jacobians = group.jacobian_translation(point=points, left=True)
         self.assertAllClose(gs.shape(jacobians), (n_samples, group.dim, group.dim))
 
     def test_inverse(self, n_samples):
@@ -277,7 +277,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
     def test_left_jacobian_through_its_determinant(self, point, expected):
         group = self.Space(3, point_type="vector")
-        jacobian = group.jacobian_translation(point=point, left_or_right="left")
+        jacobian = group.jacobian_translation(point=point, left=True)
         result = gs.linalg.det(jacobian)
         self.assertAllClose(result, expected)
 
@@ -395,13 +395,13 @@ class TestInvariantMetricOnSO3(TestCase, metaclass=Parametrizer):
     Metric = testing_data.Metric
 
     def test_squared_dist_is_symmetric(
-        self, metric_mat_at_identity, left_or_right, point_1, point_2
+        self, metric_mat_at_identity, left, point_1, point_2
     ):
         group = SpecialOrthogonal(3, "vector")
         metric = self.Metric(
             SpecialOrthogonal(n=3, point_type="vector"),
             metric_mat_at_identity=metric_mat_at_identity,
-            left_or_right=left_or_right,
+            left=left,
         )
         point_1 = group.regularize(point_1)
         point_2 = group.regularize(point_2)
