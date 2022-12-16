@@ -278,12 +278,11 @@ class ExponentialMetric(RiemannianMetric):
         n_initial_points = initial_point.shape[0]
         n_end_points = end_point.shape[0]
 
-        if n_initial_points > n_end_points:
-            if n_end_points > 1:
-                raise ValueError(
-                    "For several initial points, specify either"
-                    "one or the same number of end points."
-                )
+        if n_initial_points > n_end_points > 1:
+            raise ValueError(
+                "For several initial points, specify either"
+                "one or the same number of end points."
+            )
         if n_end_points > n_initial_points > 1:
             raise ValueError(
                 "For several end points, specify either "
