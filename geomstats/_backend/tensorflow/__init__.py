@@ -31,7 +31,7 @@ from tensorflow import (
 from tensorflow import reduce_max as amax
 from tensorflow import reduce_min as amin
 from tensorflow import reduce_prod as prod
-from tensorflow import reshape, searchsorted, sort, stack, uint8, zeros_like
+from tensorflow import reshape, searchsorted, sort, uint8, zeros_like
 from tensorflow.experimental.numpy import empty_like, moveaxis
 
 from .._backend_config import tf_atol as atol
@@ -914,3 +914,8 @@ def matmul(x, y):
 
 def gamma(x):
     return _tf.exp(_tf.math.lgamma(x))
+
+
+def stack(arrays, axis=0):
+    arrays = convert_to_wider_dtype(arrays)
+    return _tf.stack(arrays, axis=axis)
