@@ -9,7 +9,30 @@ import math
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.complex_manifold import ComplexManifold
+from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+
+COMPLEX_OBJECTS = (ComplexRiemannianMetric, ComplexManifold)
+
+
+def _factor_is_complex(factor):
+    if (
+        isinstance(factor, COMPLEX_OBJECTS)
+        or hasattr(factor, "underlying_metric")
+        and isinstance(factor.underlying_metric, COMPLEX_OBJECTS)
+    ):
+        return True
+
+    return False
+
+
+def _has_mixed_fields(factors):
+    bools = [_factor_is_complex(factor) for factor in factors]
+    if len(set(bools)) == 2:
+        return True
+
+    return False
 
 
 def _all_equal(arg):
@@ -40,9 +63,10 @@ def _block_diagonal(factor_matrices):
 
 
 class _IterateOverFactorsMixins:
-    def __init__(self, *args, pool_outputs=False, **kwargs):
+    def __init__(self, *args, pool_outputs=False, has_mixed_fields=False, **kwargs):
         super().__init__(*args, **kwargs)
         self._pool_outputs = pool_outputs
+        self._has_mixed_fields = has_mixed_fields
 
     def _find_product_shape(self, default_point_type):
         """Determine an appropriate shape for the product from the factors."""
@@ -136,6 +160,13 @@ class _IterateOverFactorsMixins:
                 for projected_point in projected_points
             ]
 
+        if self._has_mixed_fields:
+            for i, (factor, projected_point) in enumerate(
+                zip(self.factors, projected_points)
+            ):
+                if not _factor_is_complex(factor):
+                    projected_points[i] = gs.real(projected_point)
+
         return projected_points
 
     @staticmethod
@@ -226,9 +257,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
     ----------
     metrics : list
         List of metrics in the product.
-    scales : list
-        List of positive values to rescale the inner product by on each factor.
-        Note: To rescale the distances by a constant c, use c^2 for the scale
     default_point_type : {'auto', 'vector', 'matrix', 'other'}
         Optional. Default value is 'auto', which will implement as 'vector' unless all
         factors have the same shape. Vector representation gives the point as a 1-d
@@ -237,7 +265,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         (dim,). 'other' will behave as `matrix` but for higher dimensions.
     """
 
-    def __init__(self, metrics, default_point_type="auto", scales=None):
+    def __init__(self, metrics, default_point_type="auto"):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type,
             "default_point_type",
@@ -250,11 +278,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         self._factor_shape_sizes = [math.prod(metric.shape) for metric in self.factors]
         self._factor_signatures = [metric.signature for metric in self.factors]
 
-        if scales is not None:
-            for scale in scales:
-                geomstats.errors.check_positive(scale, "Each value in scales")
-        self.scales = scales
-
         dim = sum(self._factor_dims)
 
         shape = self._find_product_shape(default_point_type)
@@ -263,7 +286,11 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         sig_neg = sum(sig[1] for sig in self._factor_signatures)
 
         super().__init__(
-            pool_outputs=False, dim=dim, signature=(sig_pos, sig_neg), shape=shape
+            pool_outputs=False,
+            has_mixed_fields=_has_mixed_fields(self.factors),
+            dim=dim,
+            signature=(sig_pos, sig_neg),
+            shape=shape,
         )
 
         self.cum_index = gs.cumsum(self._factor_shape_sizes)[:-1]
@@ -290,12 +317,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         factor_matrices = self._iterate_over_factors(
             "metric_matrix", {"base_point": base_point}
         )
-        if self.scales is not None:
-            factor_matrices = [
-                matrix * scale for matrix, scale in zip(factor_matrices, self.scales)
-            ]
-        metric_matrix = _block_diagonal(factor_matrices)
-        return metric_matrix
+        return _block_diagonal(factor_matrices)
 
     def inner_product(
         self,
@@ -329,12 +351,6 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             "base_point": base_point,
         }
         inner_products = self._iterate_over_factors("inner_product", args)
-
-        if self.scales is not None:
-            inner_products = [
-                product * scale for product, scale in zip(inner_products, self.scales)
-            ]
-
         return sum(inner_products)
 
     def exp(self, tangent_vec, base_point=None, **kwargs):

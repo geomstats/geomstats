@@ -7,6 +7,7 @@ Lead author: John Harvey.
 from functools import wraps
 
 import geomstats.backend as gs
+import geomstats.errors
 
 SQRT_LIST = ["norm", "dist", "dist_broadcast", "dist_pairwise", "diameter"]
 LINEAR_LIST = [
@@ -86,6 +87,8 @@ class ScalarProductMetric:
 
     def __init__(self, underlying_metric, scale):
         """Load all attributes from the underlying metric."""
+        geomstats.errors.check_positive(scale, "scale")
+
         if hasattr(underlying_metric, "underlying_metric"):
             self.underlying_metric = underlying_metric.underlying_metric
             self.scale = scale * underlying_metric.scale
