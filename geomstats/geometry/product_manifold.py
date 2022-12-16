@@ -322,26 +322,23 @@ class NFoldManifold(Manifold):
         base_manifold,
         n_copies,
         metric=None,
-        default_coords_type="intrinsic",
-        **kwargs,
     ):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_manifold.dim
         shape = (n_copies,) + base_manifold.shape
 
+        if metric is None:
+            metric = NFoldMetric(base_manifold.metric, n_copies)
+
         super().__init__(
             dim=dim,
             shape=shape,
-            default_coords_type=default_coords_type,
-            **kwargs,
+            default_coords_type=base_manifold.default_coords_type,
+            metric=metric,
         )
 
         self.base_manifold = base_manifold
         self.n_copies = n_copies
-
-        if metric is None:
-            metric = NFoldMetric(base_manifold.metric, n_copies)
-        self.metric = metric
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the manifold.
