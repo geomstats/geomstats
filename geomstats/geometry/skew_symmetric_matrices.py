@@ -23,6 +23,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
     """
 
     def __init__(self, n):
+        self.n = n
         dim = int(n * (n - 1) / 2)
         super().__init__(dim, n)
         self.embedding_space = Matrices(n, n)

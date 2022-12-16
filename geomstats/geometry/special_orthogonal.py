@@ -43,7 +43,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
         super().__init__(
             dim=int((n * (n - 1)) / 2),
-            n=n,
+            n_lg=n,
             lie_algebra=SkewSymmetricMatrices(n=n),
             default_coords_type="extrinsic",
             **kwargs,
@@ -336,8 +336,9 @@ class _SpecialOrthogonalVectors(LieGroup):
         self.n = n
         self.epsilon = epsilon
 
-    def get_identity(self):
-        """Get the identity of the group.
+    @property
+    def identity(self):
+        """Identity of the group.
 
         Parameters
         ----------
@@ -350,8 +351,6 @@ class _SpecialOrthogonalVectors(LieGroup):
             Identity.
         """
         return gs.zeros(self.dim)
-
-    identity = property(get_identity)
 
     def belongs(self, point, atol=ATOL):
         """Evaluate if a point belongs to SO(3).
@@ -869,7 +868,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         base_point = self.regularize(base_point)
 
         tangent_vec_at_id = self.tangent_translation_map(
-            base_point, left_or_right=metric.left_or_right, inverse=True
+            base_point, left=metric.left, inverse=True
         )(tangent_vec)
 
         tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
@@ -877,7 +876,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
         regularized_tangent_vec = self.tangent_translation_map(
-            base_point, left_or_right=metric.left_or_right
+            base_point, left=metric.left
         )(tangent_vec_at_id)
 
         return regularized_tangent_vec
@@ -1638,7 +1637,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         return point_prod
 
-    def jacobian_translation(self, point, left_or_right="left"):
+    def jacobian_translation(self, point, left=True):
         """Compute the jacobian matrix corresponding to translation.
 
         Compute the jacobian matrix of the differential
@@ -1648,19 +1647,15 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         ----------
         point : array-like, shape=[..., 3]
             Point.
-        left_or_right : str, {'left', 'right'}
+        left : bool
             Whether to use left or right invariant metric.
-            Optional, default: 'left'.
+            Optional, default: True.
 
         Returns
         -------
         jacobian : array-like, shape=[..., 3, 3]
             Jacobian.
         """
-        geomstats.errors.check_parameter_accepted_values(
-            left_or_right, "left_or_right", ["left", "right"]
-        )
-
         point = self.regularize(point)
         squared_angle = gs.sum(point**2, axis=-1)
 
@@ -1683,7 +1678,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
         outer_ = gs.outer(point, point)
-        sign = -1.0 if left_or_right == "right" else 1.0
+        sign = 1.0 if left else -1.0
 
         return (
             gs.einsum("...,...ij->...ij", coef_1, gs.eye(self.dim))

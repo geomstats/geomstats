@@ -145,14 +145,6 @@ class VectorSpace(Manifold, abc.ABC):
             self._basis = self._create_basis()
         return self._basis
 
-    @basis.setter
-    def basis(self, basis):
-        if len(basis) < self.dim:
-            raise ValueError(
-                "The basis should have length equal to the " "dimension of the space."
-            )
-        self._basis = basis
-
     @abc.abstractmethod
     def _create_basis(self):
         """Create a canonical basis."""

@@ -23,17 +23,15 @@ class Euclidean(VectorSpace):
             metric=EuclideanMetric(dim, shape=(dim,)),
         )
 
-    def get_identity(self):
-        """Get the identity of the group.
+    @property
+    def identity(self):
+        """Identity of the group.
 
         Returns
         -------
         identity : array-like, shape=[n]
         """
-        identity = gs.zeros(self.dim)
-        return identity
-
-    identity = property(get_identity)
+        return gs.zeros(self.dim)
 
     def _create_basis(self):
         """Create the canonical basis."""
@@ -54,8 +52,6 @@ class Euclidean(VectorSpace):
         point : array-like, shape=[..., n]
             Group exponential.
         """
-        if not self.belongs(tangent_vec):
-            raise ValueError("The update must be of the same dimension")
         return tangent_vec + base_point
 
 
