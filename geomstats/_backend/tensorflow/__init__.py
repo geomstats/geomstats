@@ -585,6 +585,8 @@ def vstack(x):
             new_x.append(_tf.expand_dims(one_x, axis=0))
         else:
             new_x.append(one_x)
+
+    new_x = convert_to_wider_dtype(new_x)
     return _tf.concat(new_x, axis=0)
 
 
