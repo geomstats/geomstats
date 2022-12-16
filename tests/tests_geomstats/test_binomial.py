@@ -4,8 +4,9 @@ from scipy.stats import binom
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
-from tests.data.binomial_data import BinomialTestData, BinomialMetricTestData
+from tests.conftest import (Parametrizer, np_backend, pytorch_backend,
+                            tf_backend)
+from tests.data.binomial_data import BinomialMetricTestData, BinomialTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()

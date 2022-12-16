@@ -237,13 +237,12 @@ class BinomialMetric(RiemannianMetric):
             raise ValueError(
                 "There cannot be more initial points than " "initial tangent vectors."
             )
-        elif n_initial_tangent_vecs > n_initial_points:
-            if n_initial_points > 1:
-                raise ValueError(
-                    "For several initial tangent vectors, "
-                    "specify either one or the same number of "
-                    "initial points."
-                )
+        if n_initial_tangent_vecs > n_initial_points and n_initial_points > 1:
+            raise ValueError(
+                "For several initial tangent vectors, "
+                "specify either one or the same number of "
+                "initial points."
+            )
 
         c = gs.arcsin(gs.sqrt(initial_point))
         K = initial_tangent_vec / (
@@ -295,12 +294,11 @@ class BinomialMetric(RiemannianMetric):
                     "For several initial points, specify either"
                     "one or the same number of end points."
                 )
-        elif n_end_points > n_initial_points:
-            if n_initial_points > 1:
-                raise ValueError(
-                    "For several end points, specify either "
-                    "one or the same number of initial points."
-                )
+        if n_end_points > n_initial_points and n_initial_points > 1:
+            raise ValueError(
+                "For several end points, specify either "
+                "one or the same number of initial points."
+            )
 
         c = gs.arcsin(gs.sqrt(initial_point))
         K = gs.arcsin(gs.sqrt(end_point)) - c

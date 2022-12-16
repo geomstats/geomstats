@@ -4,8 +4,10 @@ from scipy.stats import expon
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
-from tests.data.exponential_data import ExponentialTestData, ExponentialMetricTestData
+from tests.conftest import (Parametrizer, np_backend, pytorch_backend,
+                            tf_backend)
+from tests.data.exponential_data import (ExponentialMetricTestData,
+                                         ExponentialTestData)
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()
@@ -35,7 +37,7 @@ class TestExponential(OpenSetTestCase, metaclass=Parametrizer):
         result = gs.squeeze(pdf(samples))
         pdf = []
         for i in range(n_points):
-            pdf.append(gs.array([expon.pdf(x, scale=1/point[i]) for x in samples]))
+            pdf.append(gs.array([expon.pdf(x, scale=1 / point[i]) for x in samples]))
         expected = gs.squeeze(gs.stack(pdf, axis=0))
         self.assertAllClose(result, expected)
 
