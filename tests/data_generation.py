@@ -931,11 +931,8 @@ class _ConnectionTestData(TestData):
             self.n_points_list,
         ):
             base_point = space.random_point()
-            tangent_vec = gs.squeeze(
-                space.to_tangent(
-                    gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
-                )
-            )
+            size = shape if n_tangent_vecs == 1 else (n_tangent_vecs,) + shape
+            tangent_vec = space.to_tangent(gs.random.normal(size=size), base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
