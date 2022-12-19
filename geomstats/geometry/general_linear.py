@@ -32,7 +32,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         self.n = n
         super().__init__(
             embedding_space=embedding_space,
-            n_lg=n,
+            representation_dim=n,
             lie_algebra=SquareMatrices(n),
             **kwargs
         )
@@ -183,7 +183,7 @@ class SquareMatrices(MatrixLieAlgebra):
 
     def __init__(self, n):
         self.n = n
-        super().__init__(n_la=n, dim=n**2)
+        super().__init__(dim=n**2, representation_dim=n)
         self._mat_space = Matrices(n, n)
 
     def _create_basis(self):

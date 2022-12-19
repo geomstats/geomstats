@@ -201,8 +201,8 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         self._value = gs.eye(n + 1)
 
         super().__init__(
-            n_lg=n + 1,
             dim=int((n * (n + 1)) / 2),
+            representation_dim=n + 1,
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
             **kwargs
         )
@@ -354,8 +354,7 @@ class _SpecialEuclideanVectors(LieGroup):
 
     def __init__(self, n, epsilon=0.0):
         dim = n * (n + 1) // 2
-        LieGroup.__init__(
-            self,
+        super().__init__(
             dim=dim,
             shape=(dim,),
             lie_algebra=Euclidean(dim),
@@ -1318,7 +1317,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
     def __init__(self, n):
         self.n = n
         dim = int(n * (n + 1) / 2)
-        super().__init__(dim, n + 1)
+        super().__init__(dim=dim, representation_dim=n + 1)
 
         self.skew = SkewSymmetricMatrices(n)
 
