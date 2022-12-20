@@ -13,14 +13,14 @@ def array(val, dtype=None):
 
         return cast(val, dtype=dtype)
 
-    elif isinstance(val, _np.ndarray):
+    if isinstance(val, _np.ndarray):
         tensor = from_numpy(val)
         if dtype is not None and tensor.dtype != dtype:
             tensor = cast(tensor, dtype=dtype)
 
         return tensor
 
-    elif isinstance(val, (list, tuple)) and len(val):
+    if isinstance(val, (list, tuple)) and len(val):
         tensors = [array(tensor, dtype=dtype) for tensor in val]
         return _torch.stack(tensors)
 

@@ -69,32 +69,33 @@ def svd(x, full_matrices=True, compute_uv=True, **kwargs):
 
 def solve_sylvester(a, b, q, tol=atol):
     axes = (0, 2, 1) if a.ndim == 3 else (1, 0)
-    if a.shape == b.shape:
-        if _tf.reduce_all(_tf.abs(a - b) < tol) and _tf.reduce_all(
-            _tf.abs(a - _tf.transpose(a, perm=axes)) < tol
-        ):
-            eigvals, eigvecs = eigh(a)
-            if _tf.reduce_all(eigvals >= tol):
-                tilde_q = _tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
-                tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
-                return eigvecs @ tilde_x @ _tf.transpose(eigvecs, perm=axes)
+    if (
+        a.shape == b.shape
+        and _tf.reduce_all(_tf.abs(a - b) < tol)
+        and _tf.reduce_all(_tf.abs(a - _tf.transpose(a, perm=axes)) < tol)
+    ):
+        eigvals, eigvecs = eigh(a)
+        if _tf.reduce_all(eigvals >= tol):
+            tilde_q = _tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
+            tilde_x = tilde_q / (eigvals[..., :, None] + eigvals[..., None, :])
+            return eigvecs @ tilde_x @ _tf.transpose(eigvecs, perm=axes)
 
-            conditions = (
-                a.shape[-1] >= 2
-                and _tf.reduce_all(eigvals[..., 0] >= -tol)
-                and _tf.reduce_all(eigvals[..., 1] >= tol)
-                and _tf.reduce_all(_tf.abs(q + _tf.transpose(q, perm=axes)) < tol)
+        conditions = (
+            a.shape[-1] >= 2
+            and _tf.reduce_all(eigvals[..., 0] >= -tol)
+            and _tf.reduce_all(eigvals[..., 1] >= tol)
+            and _tf.reduce_all(_tf.abs(q + _tf.transpose(q, perm=axes)) < tol)
+        )
+
+        if conditions:
+            tilde_q = _tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
+            safe_denominator = (
+                eigvals[..., :, None]
+                + eigvals[..., None, :]
+                + _tf.eye(a.shape[-1], dtype=eigvals.dtype)
             )
-
-            if conditions:
-                tilde_q = _tf.transpose(eigvecs, perm=axes) @ q @ eigvecs
-                safe_denominator = (
-                    eigvals[..., :, None]
-                    + eigvals[..., None, :]
-                    + _tf.eye(a.shape[-1], dtype=eigvals.dtype)
-                )
-                tilde_x = tilde_q / safe_denominator
-                return eigvecs @ tilde_x @ _tf.transpose(eigvecs, perm=axes)
+            tilde_x = tilde_q / safe_denominator
+            return eigvecs @ tilde_x @ _tf.transpose(eigvecs, perm=axes)
 
     raise RuntimeError(
         "solve_sylvester is only implemented if a = b, a symmetric and either a is "

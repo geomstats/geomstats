@@ -92,9 +92,8 @@ class EuclideanMetric(RiemannianMetric):
             Inner-product matrix.
         """
         mat = gs.eye(self.dim)
-        if base_point is not None:
-            if base_point.ndim > 1:
-                mat = gs.broadcast_to(mat, base_point.shape + (self.dim,))
+        if base_point is not None and base_point.ndim > 1:
+            mat = gs.broadcast_to(mat, base_point.shape + (self.dim,))
         return mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
