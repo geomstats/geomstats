@@ -16,13 +16,12 @@ def check_integer(n, n_name):
     n_name : string
        Name of the parameter.
     """
-    if not (isinstance(n, int) and n > 0):
-        if n is not None and n != math.inf:
-            raise ValueError(
-                f"{n_name} is required to be either"
-                f" None, math.inf or a strictly positive integer,"
-                f" got {n}."
-            )
+    if n is not None and not (isinstance(n, int) and n > 0) and n != math.inf:
+        raise ValueError(
+            f"{n_name} is required to be either"
+            " None, math.inf or a strictly positive integer,"
+            f" got {n}."
+        )
 
 
 def check_positive(param, param_name):

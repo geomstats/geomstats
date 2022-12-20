@@ -2042,8 +2042,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             """
             n_times = repar.shape[0]
             initial_curve = path_of_curves[0]
-            reparametrized_path = []
-            reparametrized_path.append(initial_curve)
+            reparametrized_path = [initial_curve]
             for i in range(1, n_times - 1):
                 spline = CubicSpline(t_space, path_of_curves[i], axis=0)
                 repar_inverse = CubicSpline(repar[i], t_space)

@@ -310,7 +310,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData
 class SpecialEuclideanMatrixCanonicalRightMetricTestData(_InvariantMetricTestData):
     n_list = [2]
     metric_args_list = [
-        (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), "right") for n in n_list
+        (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), False) for n in n_list
     ]
     shape_list = [(n + 1, n + 1) for n in n_list]
     group_list = space_list = [SpecialEuclidean(n) for n in n_list]
@@ -411,12 +411,12 @@ class SpecialEuclidean3VectorsTestData(TestData):
     left_diag_metric = InvariantMetric(
         group=group,
         metric_mat_at_identity=diag_mat_at_identity,
-        left_or_right="left",
+        left=True,
     )
     right_diag_metric = InvariantMetric(
         group=group,
         metric_mat_at_identity=diag_mat_at_identity,
-        left_or_right="right",
+        left=False,
     )
 
     metrics_all = {

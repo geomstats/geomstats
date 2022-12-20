@@ -36,7 +36,7 @@ class TestHilbertSphereMetric(tests.conftest.TestCase):
         exp = self.manifold.metric.exp(self.point_a, self.point_b)
         self.assertAllClose(gs.shape(exp), gs.shape(self.point_b))
         result = self.manifold.belongs(exp, atol=0.1)[0]
-        self.assertTrue(result, "Expected True but got %s" % result)
+        self.assertTrue(result, f"Expected True but got {result}")
         exp = self.manifold.metric.exp(self.points, self.point_b)
         self.assertAllClose(gs.shape(exp), gs.shape(self.points))
 
@@ -61,7 +61,7 @@ class TestHilbertSphere(tests.conftest.TestCase):
     def test_projection(self):
         f_proj = self.manifold.projection(self.f)
         result = self.manifold.belongs(f_proj)
-        self.assertTrue(result, "Expected True but got %s" % result)
+        self.assertTrue(result, f"Expected True but got {result}")
 
     def test_belongs(self):
         result = self.manifold.belongs(self.point_a)

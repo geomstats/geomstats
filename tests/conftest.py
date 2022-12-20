@@ -253,10 +253,10 @@ class TestCase:
         if tf_backend():
             return tf.test.TestCase().assertAllEqual(a, b)
 
-        elif np_backend() or autograd_backend():
-            np.testing.assert_array_equal(a, b)
-        else:
-            self.assertTrue(gs.all(gs.equal(a, b)))
+        if np_backend() or autograd_backend():
+            return np.testing.assert_array_equal(a, b)
+
+        return self.assertTrue(gs.all(gs.equal(a, b)))
 
     def assertTrue(self, condition, msg=None):
         assert condition, msg

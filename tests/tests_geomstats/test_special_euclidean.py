@@ -66,7 +66,7 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(
             gs.shape(regularized_points),
-            (n_samples, *group.get_point_type_shape()),
+            (n_samples, *group.shape),
         )
 
     def test_compose(self, n, point_type, point_1, point_2, expected):
