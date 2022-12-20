@@ -180,10 +180,8 @@ class BinomialMetricTestData(_RiemannianMetricTestData):
         for space_args in self.space_args_list:
             random_data.append(dict(space_args=space_args))
         return self.generate_tests([], random_data)
-    
-        
+  
     # def log_after_exp_test_data(self):
-    #     pass
+        
     
-    # def dist_is_norm_of_log_test_data(self):
-    #     pass
+

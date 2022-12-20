@@ -42,7 +42,7 @@ class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
 
 
 class TestBinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-    skip_test_log_after_exp = True #
+    # skip_test_log_after_exp = True #
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     # skip_test_exp_geodesic_ivp = True #
