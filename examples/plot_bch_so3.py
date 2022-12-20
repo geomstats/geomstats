@@ -60,7 +60,9 @@ def main():
     )
     t_bch = [
         timeit.timeit(
-            lambda: ALGEBRA.baker_campbell_hausdorff(tan_rv_1, tan_rv_2, order=n),
+            lambda order=n: ALGEBRA.baker_campbell_hausdorff(
+                tan_rv_1, tan_rv_2, order=order
+            ),
             number=100,
         )
         for n in orders
