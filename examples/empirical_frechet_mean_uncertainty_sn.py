@@ -170,10 +170,7 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
     plt.plot(theta, asymptotic_modulation_factor, "grey", label="Asymptotic prediction")
     plt.xlabel(r"Standard deviation $\theta$")
     plt.ylabel(r"Modulation factor $\alpha$")
-    plt.title(
-        "Convergence rate modulation factor, "
-        "sphere dim={1}, n={0}".format(n_samples, dim)
-    )
+    plt.title("Convergence rate modulation factor, " f"sphere dim={n_samples}, n={dim}")
     plt.legend(loc="best")
     plt.draw()
     plt.pause(0.01)

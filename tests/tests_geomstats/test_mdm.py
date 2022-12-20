@@ -35,7 +35,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
                 bary_a_expected = gs.array([[0.5 * EULER**2 + 0.5, 0], [0, 1]])
                 bary_b_expected = gs.array([[0.5 * EULER**8 + 0.5, 0], [0, 1]])
             else:
-                raise ValueError("Invalid metric: {}".format(metric))
+                raise ValueError(f"Invalid metric: {metric}")
 
             self.assertAllClose(bary_a_fit, bary_a_expected)
             self.assertAllClose(bary_b_fit, bary_b_expected)
@@ -80,7 +80,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
             elif metric in [SPDEuclideanMetric]:
                 proba_expected = gs.array([[1.0, 0.0], [1.0, 0.0]])
             else:
-                raise ValueError("Invalid metric: {}".format(metric))
+                raise ValueError(f"Invalid metric: {metric}")
 
             self.assertAllClose(proba_test, proba_expected)
 
@@ -102,7 +102,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
             elif metric in [SPDEuclideanMetric]:
                 y_expected = gs.array([-1, -1])
             else:
-                raise ValueError("Invalid metric: {}".format(metric))
+                raise ValueError(f"Invalid metric: {metric}")
 
             accuracy = MDM.score(X_test, y_expected)
             self.assertAllClose(accuracy, 1.0)
