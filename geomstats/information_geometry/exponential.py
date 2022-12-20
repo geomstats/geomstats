@@ -38,7 +38,7 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
 
         Returns
         -------
-        belongs : array-like, shape=[..., 1]
+        belongs : array-like, shape=[...,]
             Boolean indicating whether point represents an exponential
             distribution.
         """
@@ -104,8 +104,6 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples]
             Sample from exponential distributions.
         """
-        geomstats.errors.check_belongs(point, self)
-
         def _sample(param):
             return expon.rvs(scale=1 / param, size=n_samples)
 
@@ -131,8 +129,6 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the exponential distribution with
             scale parameter provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-
         def pdf(x):
             """Generate parameterized function for exponential pdf.
 
@@ -148,8 +144,8 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             -------
             pdf_at_x : array-like, shape=[..., n_points]
             """
-            _point, _x = gs.broadcast_arrays(point, gs.transpose(x))
-            return expon.pdf(_x, scale=1 / _point)
+            _point, _x = gs.broadcast_arrays(point, x)
+            return gs.from_numpy(expon.pdf(_x, scale=1 / _point))
 
         return pdf
 
@@ -183,7 +179,7 @@ class ExponentialMetric(RiemannianMetric):
         """
         return gs.squeeze(gs.log(point_a / point_b) ** 2)
 
-    def metric_matrix(self, base_point=None):
+    def metric_matrix(self, base_point):
         """Compute the metric matrix at the tangent space at base_point.
 
         Parameters
@@ -196,10 +192,6 @@ class ExponentialMetric(RiemannianMetric):
         mat : array-like, shape=[..., 1, 1]
             Metric matrix.
         """
-        if base_point is None:
-            raise ValueError(
-                "A base point must be given to compute the " "metric matrix"
-            )
         return gs.expand_dims(1 / base_point**2, axis=-1)
 
     def _geodesic_ivp(self, initial_point, initial_tangent_vec):
@@ -222,18 +214,7 @@ class ExponentialMetric(RiemannianMetric):
             Parameterized function for the geodesic curve starting at
             initial_point with velocity initial_tangent_vec.
         """
-        n_initial_points = initial_point.shape[0]
-        n_initial_tangent_vecs = initial_tangent_vec.shape[0]
-        if n_initial_points > n_initial_tangent_vecs:
-            raise ValueError(
-                "There cannot be more initial points than " "initial tangent vectors."
-            )
-        if n_initial_tangent_vecs > n_initial_points > 1:
-            raise ValueError(
-                "For several initial tangent vectors, "
-                "specify either one or the same number of "
-                "initial points."
-            )
+        initial_point = gs.broadcast_to(initial_point, initial_tangent_vec.shape)
 
         base = gs.exp(initial_tangent_vec / initial_point)
 
@@ -251,8 +232,8 @@ class ExponentialMetric(RiemannianMetric):
                 Values of the geodesic at times t.
             """
             t = gs.reshape(gs.array(t), (-1,))
-            _base, _t = gs.broadcast_arrays(base, gs.transpose(t))
-            return gs.expand_dims(initial_point * _base**_t, axis=-1)
+            base_aux, t_aux = gs.broadcast_arrays(base, t)
+            return gs.expand_dims(initial_point * base_aux ** t_aux, axis=-1)
 
         return path
 
@@ -275,19 +256,7 @@ class ExponentialMetric(RiemannianMetric):
             Parameterized function for the geodesic curve starting at
             initial_point and ending at end_point.
         """
-        n_initial_points = initial_point.shape[0]
-        n_end_points = end_point.shape[0]
-
-        if n_initial_points > n_end_points > 1:
-            raise ValueError(
-                "For several initial points, specify either"
-                "one or the same number of end points."
-            )
-        if n_end_points > n_initial_points > 1:
-            raise ValueError(
-                "For several end points, specify either "
-                "one or the same number of initial points."
-            )
+        initial_point, end_point = gs.broadcast_arrays(initial_point, end_point)
 
         base = end_point / initial_point
 
@@ -305,8 +274,8 @@ class ExponentialMetric(RiemannianMetric):
                 Values of the geodesic at times t.
             """
             t = gs.reshape(gs.array(t), (-1,))
-            _base, _t = gs.broadcast_arrays(base, gs.transpose(t))
-            return gs.expand_dims(initial_point * _base**_t, axis=-1)
+            base_aux, t_aux = gs.broadcast_arrays(base, t)
+            return gs.expand_dims(initial_point * base_aux ** t_aux, axis=-1)
 
         return path
 
@@ -350,12 +319,9 @@ class ExponentialMetric(RiemannianMetric):
                 raise ValueError(
                     "Cannot specify both an end point " "and an initial tangent vector."
                 )
-            path = self._geodesic_bvp(initial_point, end_point)
+            return self._geodesic_bvp(initial_point, end_point)
 
-        if initial_tangent_vec is not None:
-            path = self._geodesic_ivp(initial_point, initial_tangent_vec)
-
-        return path
+        return self._geodesic_ivp(initial_point, initial_tangent_vec)
 
     def exp(self, tangent_vec, base_point):
         """Compute exp map of a base point in tangent vector direction.
