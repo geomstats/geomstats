@@ -15,7 +15,7 @@ class PositiveRealsTestData(_OpenSetTestData):
     smoke_space_args_list = [(1,), (1,), (1,), (1,)]
     smoke_n_points_list = [1, 2, 1, 2]
     n_list = random.sample(range(2, 5), 2)
-    space_args_list = [(n,) for n in n_list]
+    space_args_list = [() for n in n_list]
     n_points_list = random.sample(range(1, 5), 2)
     shape_list = [(1,) for _ in n_list]
     n_vecs_list = random.sample(range(1, 10), 2)
@@ -49,7 +49,7 @@ class PositiveRealsTestData(_OpenSetTestData):
 
 class PositiveRealsMetricTestData(_RiemannianMetricTestData):
     n_manifolds = 2
-    metric_args_list = list(zip(random.sample(range(2, 5), 2)))
+    metric_args_list = [() for n in range(n_manifolds)]
     shape_list = [(1,) for i_manifold in range(n_manifolds)]
     space_list = [PositiveReals() for i_manifold in range(n_manifolds)]
     n_points_list = random.sample(range(1, 5), 2)
@@ -65,16 +65,16 @@ class PositiveRealsMetricTestData(_RiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                tangent_vec_a=[[1.0]],
-                tangent_vec_b=[[2.0]],
-                base_point=[[3.0]],
-                expected=[2 / 9],
+                tangent_vec_a=gs.array([1.0]),
+                tangent_vec_b=gs.array([2.0]),
+                base_point=gs.array([3.0]),
+                expected=2 / 9,
             ),
             dict(
-                tangent_vec_a=[[-2.0]],
-                tangent_vec_b=[[3.0]],
-                base_point=[[4.0]],
-                expected=[-3 / 8],
+                tangent_vec_a=gs.array([-2.0]),
+                tangent_vec_b=gs.array([3.0]),
+                base_point=gs.array([4.0]),
+                expected=-3 / 8,
             ),
         ]
         return self.generate_tests(smoke_data)

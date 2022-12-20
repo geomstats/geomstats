@@ -840,14 +840,12 @@ class InvariantMetricTestData(TestData):
 
     def squared_dist_is_symmetric_test_data(self):
         smoke_data = []
-        for angle_type_1, angle_type_2, left_or_right in zip(
-            elements, elements, ["left", "right"]
-        ):
+        for angle_type_1, angle_type_2, left in zip(elements, elements, [True, False]):
             smoke_data += [
                 dict(
                     metric_mat_at_identity=9
                     * gs.eye(SpecialOrthogonal(3, "vector").dim),
-                    left_or_right=left_or_right,
+                    left=left,
                     point_1=elements[angle_type_1],
                     point_2=elements[angle_type_2],
                 )

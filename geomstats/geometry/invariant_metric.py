@@ -4,7 +4,6 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 """
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
@@ -25,9 +24,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     metric_mat_at_identity : array-like, shape=[dim, dim]
         Matrix that defines the metric at identity.
         Optional, defaults to identity matrix if None.
-    left_or_right : str, {'left', 'right'}
+    left : bool
         Whether to use a left or right invariant metric.
-        Optional, default: 'left'.
+        Optional, default: True.
 
     References
     ----------
@@ -43,9 +42,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                    https://doi.org/10.1007/978-3-030-46040-2.
     """
 
-    def __init__(
-        self, group, metric_mat_at_identity=None, left_or_right="left", **kwargs
-    ):
+    def __init__(self, group, metric_mat_at_identity=None, left=True, **kwargs):
         super().__init__(dim=group.dim, shape=group.shape, **kwargs)
 
         self.group = group
@@ -53,12 +50,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
         if metric_mat_at_identity is None:
             metric_mat_at_identity = gs.eye(self.group.dim)
 
-        geomstats.errors.check_parameter_accepted_values(
-            left_or_right, "left_or_right", ["left", "right"]
-        )
-
         self.metric_mat_at_identity = metric_mat_at_identity
-        self.left_or_right = left_or_right
+        self.left = left
 
     def reshape_metric_matrix(self):
         """Reshape diagonal metric matrix to a symmetric matrix of size n.
@@ -127,7 +120,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
             return self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
         tangent_translation = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True
+            base_point, left=self.left, inverse=True
         )
         tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
         tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
@@ -228,7 +221,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
-        sign = 1.0 if self.left_or_right == "left" else -1.0
+        sign = 1.0 if self.left else -1.0
         return (
             sign
             / 2
@@ -272,13 +265,13 @@ class _InvariantMetricMatrix(RiemannianMetric):
         if base_point is None:
             return self.connection_at_identity(tangent_vec_a, tangent_vec_b)
         translation_map = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True
+            base_point, left=self.left, inverse=True
         )
         tan_a_at_id = translation_map(tangent_vec_a)
         tan_b_at_id = translation_map(tangent_vec_b)
 
         translation_map = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=False
+            base_point, left=self.left, inverse=False
         )
 
         value_at_id = self.connection_at_identity(tan_a_at_id, tan_b_at_id)
@@ -350,14 +343,14 @@ class _InvariantMetricMatrix(RiemannianMetric):
             )
 
         translation_map = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True
+            base_point, left=self.left, inverse=True
         )
         tan_a_at_id = translation_map(tangent_vec_a)
         tan_b_at_id = translation_map(tangent_vec_b)
         tan_c_at_id = translation_map(tangent_vec_c)
 
         translation_map = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=False
+            base_point, left=self.left, inverse=False
         )
         value_at_id = self.curvature_at_identity(tan_a_at_id, tan_b_at_id, tan_c_at_id)
 
@@ -434,7 +427,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         if base_point is None:
             return self.sectional_curvature_at_identity(tangent_vec_a, tangent_vec_b)
         translation_map = self.group.tangent_translation_map(
-            base_point, inverse=True, left_or_right=self.left_or_right
+            base_point, inverse=True, left=self.left
         )
         tan_a_at_id = translation_map(tangent_vec_a)
         tan_b_at_id = translation_map(tangent_vec_b)
@@ -527,7 +520,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                 tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d
             )
         translation_map = self.group.tangent_translation_map(
-            base_point, inverse=True, left_or_right=self.left_or_right
+            base_point, inverse=True, left=self.left
         )
         tan_a_at_id = translation_map(tangent_vec_a)
         tan_b_at_id = translation_map(tangent_vec_b)
@@ -538,7 +531,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
             tan_a_at_id, tan_b_at_id, tan_c_at_id, tan_d_at_id
         )
         translation_map = self.group.tangent_translation_map(
-            base_point, inverse=False, left_or_right=self.left_or_right
+            base_point, inverse=False, left=self.left
         )
 
         return translation_map(value_at_id)
@@ -593,14 +586,12 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """
         group = self.group
         basis = self.normal_basis(self.lie_algebra.basis)
-        sign = 1.0 if self.left_or_right == "left" else -1.0
+        sign = 1.0 if self.left else -1.0
 
         def lie_acceleration(state, _time):
             """Compute the right-hand side of the geodesic equation."""
             point, vector = state
-            velocity = self.group.tangent_translation_map(
-                point, left_or_right=self.left_or_right
-            )(vector)
+            velocity = self.group.tangent_translation_map(point, left=self.left)(vector)
             coefficients = gs.array(
                 [
                     self.structure_constant(vector, basis_vector, vector)
@@ -615,7 +606,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
             left_angular_vel = tangent_vec
         else:
             left_angular_vel = self.group.tangent_translation_map(
-                base_point, left_or_right=self.left_or_right, inverse=True
+                base_point, left=self.left, inverse=True
             )(tangent_vec)
         if (base_point.ndim == 2 or base_point.shape[0] == 1) and tangent_vec.ndim == 3:
             base_point = gs.stack([base_point] * len(tangent_vec))
@@ -779,7 +770,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         group = self.group
         translation_map = group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True
+            base_point, left=self.left, inverse=True
         )
         left_angular_vel_a = group.to_tangent(translation_map(tangent_vec))
         left_angular_vel_b = group.to_tangent(translation_map(tangent_vec_b_))
@@ -805,7 +796,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         flow = integrate(acceleration, initial_state, n_steps=n_steps, step=step)
         gamma, _, zeta_t = flow[-1]
         transported = group.tangent_translation_map(
-            gamma, left_or_right=self.left_or_right, inverse=False
+            gamma, left=self.left, inverse=False
         )(zeta_t)
         return (transported, gamma) if return_endpoint else transported
 
@@ -838,13 +829,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
             Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
             480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
-        sign = 1.0 if self.left_or_right == "left" else -1.0
+        sign = 1.0 if self.left else -1.0
         basis = self.normal_basis(self.lie_algebra.basis)
 
         point, vector = state
-        velocity = self.group.tangent_translation_map(
-            point, left_or_right=self.left_or_right
-        )(vector)
+        velocity = self.group.tangent_translation_map(point, left=self.left)(vector)
         coefficients = gs.array(
             [
                 self.structure_constant(vector, basis_vector, vector)
@@ -862,21 +851,17 @@ class _InvariantMetricVector(RiemannianMetric):
     ----------
     group : LieGroup
         Group to equip with the invariant metric
-    left_or_right : str, {'left', 'right'}
+    left : bool
         Whether to use a left or right invariant metric.
-        Optional, default: 'left'.
+        Optional, default: True.
     """
 
-    def __init__(self, group, left_or_right="left", **kwargs):
+    def __init__(self, group, left=True, **kwargs):
         super().__init__(dim=group.dim, shape=group.shape, **kwargs)
 
         self.group = group
         self.metric_mat_at_identity = gs.eye(group.dim)
-        self.left_or_right = left_or_right
-
-        geomstats.errors.check_parameter_accepted_values(
-            left_or_right, "left_or_right", ["left", "right"]
-        )
+        self.left = left
 
     @staticmethod
     def inner_product_at_identity(tangent_vec_a, tangent_vec_b):
@@ -913,9 +898,7 @@ class _InvariantMetricVector(RiemannianMetric):
             return self.metric_mat_at_identity
 
         base_point = self.group.regularize(base_point)
-        jacobian = self.group.jacobian_translation(
-            point=base_point, left_or_right=self.left_or_right
-        )
+        jacobian = self.group.jacobian_translation(point=base_point, left=self.left)
 
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
@@ -963,7 +946,7 @@ class _InvariantMetricVector(RiemannianMetric):
         exp : array-like, shape=[..., dim]
             Point in the group.
         """
-        if self.left_or_right == "left":
+        if self.left:
             exp = self.left_exp_from_identity(tangent_vec)
 
         else:
@@ -1001,11 +984,11 @@ class _InvariantMetricVector(RiemannianMetric):
             return self.exp_from_identity(tangent_vec)
 
         tangent_vec_at_id = self.group.tangent_translation_map(
-            point=base_point, left_or_right=self.left_or_right, inverse=True
+            point=base_point, left=self.left, inverse=True
         )(tangent_vec)
         exp_from_id = self.exp_from_identity(tangent_vec_at_id)
 
-        if self.left_or_right == "left":
+        if self.left:
             exp = self.group.compose(base_point, exp_from_id)
 
         else:
@@ -1056,7 +1039,7 @@ class _InvariantMetricVector(RiemannianMetric):
             of point at the identity.
         """
         point = self.group.regularize(point)
-        if self.left_or_right == "left":
+        if self.left:
             log = self.left_log_from_identity(point)
 
         else:
@@ -1095,16 +1078,16 @@ class _InvariantMetricVector(RiemannianMetric):
 
         point = self.group.regularize(point)
 
-        if self.left_or_right == "left":
+        if self.left:
             point_near_id = self.group.compose(self.group.inverse(base_point), point)
 
         else:
             point_near_id = self.group.compose(point, self.group.inverse(base_point))
 
         log_from_id = self.log_from_identity(point_near_id)
-        log = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right
-        )(log_from_id)
+        log = self.group.tangent_translation_map(base_point, left=self.left)(
+            log_from_id
+        )
         return log
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -1129,7 +1112,7 @@ class _InvariantMetricVector(RiemannianMetric):
             return self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
         tangent_translation = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True
+            base_point, left=self.left, inverse=True
         )
         tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
         tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
@@ -1155,17 +1138,15 @@ class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
     metric_mat_at_identity : array-like, shape=[dim, dim]
         Matrix that defines the metric at identity.
         Optional, defaults to identity matrix if None.
-    left_or_right : str, {'left', 'right'}
+    left : bool
         Whether to use a left or right invariant metric.
-        Optional, default: 'left'.
+        Optional, default: True.
     point_type : str, {'vector', 'matrix'}
         Point representation.
         Optional, default: group.default_point_type.
     """
 
-    def __new__(
-        cls, group, metric_mat_at_identity=None, left_or_right="left", point_type=None
-    ):
+    def __new__(cls, group, metric_mat_at_identity=None, left=True, point_type=None):
         """Instantiate a special euclidean group.
 
         Select the object to instantiate depending on the point_type.
@@ -1173,10 +1154,10 @@ class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
         if point_type is None:
             point_type = group.default_point_type
         if point_type == "vector":
-            return _InvariantMetricVector(group, left_or_right=left_or_right)
+            return _InvariantMetricVector(group, left=left)
         return _InvariantMetricMatrix(
             group,
-            left_or_right=left_or_right,
+            left=left,
             metric_mat_at_identity=metric_mat_at_identity,
         )
 

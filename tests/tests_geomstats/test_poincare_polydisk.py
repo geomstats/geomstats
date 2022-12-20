@@ -33,21 +33,19 @@ class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(metric.signature, expected)
 
     @tests.conftest.np_autograd_and_torch_only
-    def test_product_distance_extrinsic_representation(
-        self, n_disks, point_a_extrinsic, point_b_extrinsic
+    def test_product_distance(
+        self, m_disks, n_disks, point_a_extrinsic, point_b_extrinsic
     ):
-        duplicate_point_a = gs.stack([point_a_extrinsic, point_a_extrinsic], axis=0)
-        duplicate_point_b = gs.stack([point_b_extrinsic, point_b_extrinsic], axis=0)
+        stacked_point_a = gs.stack([point_a_extrinsic for n in range(n_disks)], axis=0)
+        stacked_point_b = gs.stack([point_b_extrinsic for n in range(n_disks)], axis=0)
 
-        single_disk = PoincarePolydisk(n_disks=n_disks, default_coords_type="extrinsic")
-        two_disks = PoincarePolydisk(
-            n_disks=2 * n_disks, default_coords_type="extrinsic"
-        )
+        single_disk = PoincarePolydisk(n_disks=m_disks)
+        multiple_disks = PoincarePolydisk(n_disks=m_disks * n_disks)
 
         distance_single_disk = single_disk.metric.dist(
             point_a_extrinsic[None, :], point_b_extrinsic[None, :]
         )
-        distance_two_disks = two_disks.metric.dist(duplicate_point_a, duplicate_point_b)
-        result = distance_two_disks
-        expected = 3**0.5 * distance_single_disk
+        distance_n_disks = multiple_disks.metric.dist(stacked_point_a, stacked_point_b)
+        result = distance_n_disks
+        expected = (n_disks * (n_disks + 1) / 2) ** 0.5 * distance_single_disk
         self.assertAllClose(result, expected)

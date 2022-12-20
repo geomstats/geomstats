@@ -68,19 +68,21 @@ class Siegel(ComplexOpenSet):
         If symmetric is True, add a symmetry condition
         on the matrices to belong to the Siegel space.
         Optional, default: False.
-    scale : float
-        Scale of the complex Poincare metric.
-        Optional, default: 1.
     """
 
-    def __init__(self, n, symmetric=False, scale=1.0, **kwargs):
+    def __init__(self, n, symmetric=False, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate the "
+                "manifold without this parameter and then use "
+                "`scale * metric` to rescale the standard metric."
+            )
         kwargs.setdefault("metric", SiegelMetric(n))
         super().__init__(
             dim=n**2, embedding_space=ComplexMatrices(m=n, n=n), **kwargs
         )
         self.n = n
         self.symmetric = symmetric
-        self.scale = scale
 
     def belongs(self, point, atol=gs.atol):
         """Check if a matrix belongs to the Siegel space.
@@ -206,12 +208,15 @@ class SiegelMetric(ComplexRiemannianMetric):
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
-    scale : float
-        Scale of the complex Poincare metric.
-        Optional, default: 1.
     """
 
-    def __init__(self, n, scale=1.0, **kwargs):
+    def __init__(self, n, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate scaled "
+                "metrics as `scale * RiemannianMetric`. Note that the "
+                "metric is scaled, not the distance."
+            )
         dim = int(n**2)
         super().__init__(
             dim=dim,
@@ -219,7 +224,6 @@ class SiegelMetric(ComplexRiemannianMetric):
             signature=(dim, 0),
         )
         self.n = n
-        self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Siegel inner-product.
@@ -274,9 +278,8 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         inner_product = trace_1 + trace_2
         inner_product *= 0.5
-        inner_product *= self.scale**2
 
-        return inner_product
+        return gs.real(inner_product)
 
     @staticmethod
     def tangent_vec_from_base_point_to_zero(tangent_vec, base_point):
@@ -544,7 +547,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         sq_dist = ComplexMatrices.trace_product(logarithm, logarithm)
         sq_dist *= 0.25
         sq_dist = gs.real(sq_dist)
-        sq_dist *= self.scale**2
         sq_dist = gs.maximum(sq_dist, 0)
         return sq_dist
 
@@ -578,7 +580,10 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         tangent_vec_a = _scale_by_norm(tangent_vec_a)
 
-        inner_prod = self.inner_product(tangent_vec_a, tangent_vec_b, base_point=zero)
+        inner_prod = gs.cast(
+            self.inner_product(tangent_vec_a, tangent_vec_b, base_point=zero),
+            dtype=tangent_vec_a.dtype,
+        )
 
         tangent_vec_b -= inner_prod * tangent_vec_a
         tangent_vec_b = _scale_by_norm(tangent_vec_b)
@@ -593,7 +598,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         term2 = gs.matmul(tangent_vec_a_transconj, tangent_vec_b)
         term2 -= gs.matmul(tangent_vec_b_transconj, tangent_vec_a)
         norm_term2 = gs.linalg.norm(term2, axis=(-2, -1)) ** 2
-        return -0.5 * (norm_term1 + norm_term2) * self.scale**2
+        return -0.5 * (norm_term1 + norm_term2)
 
     def sectional_curvature(
         self, tangent_vec_a, tangent_vec_b, base_point=None, atol=gs.atol

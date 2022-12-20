@@ -51,22 +51,18 @@ class PositiveReals(OpenSet):
     """Class for the manifold of positive reals.
 
     The real positive axis endowed with the Information geometry metric.
-
-    Parameters
-    ----------
-    scale : float
-        Scale of the positive reals metric.
-        Optional, default: 1.
     """
 
-    def __init__(self, scale=1.0, **kwargs):
+    def __init__(self, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate the "
+                "manifold without this parameter and then use "
+                "`scale * metric` to rescale the standard metric."
+            )
         super().__init__(
-            dim=1,
-            embedding_space=Euclidean(1),
-            metric=PositiveRealsMetric(scale=scale),
-            **kwargs
+            dim=1, embedding_space=Euclidean(1), metric=PositiveRealsMetric(), **kwargs
         )
-        self.scale = scale
 
     @staticmethod
     def belongs(point, atol=gs.atol):
@@ -150,19 +146,18 @@ class PositiveRealsMetric(RiemannianMetric):
     It is a particular case in dimension 1
     of the SPD affine-invariant metric
     with a power affine coefficient equal to one.
-
-    Parameters
-    ----------
-    scale : float
-        Scale of the positive reals metric.
-        Optional, default: 1.
     """
 
-    def __init__(self, scale=1.0):
-        self.scale = scale
+    def __init__(self, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate scaled "
+                "metrics as `scale * RiemannianMetric`. Note that the "
+                "metric is scaled, not the distance."
+            )
         super().__init__(dim=1)
 
-    def inner_product_matrix(self, base_point):
+    def metric_matrix(self, base_point):
         """Compute the inner product matrix at base point.
 
         Parameters
@@ -172,36 +167,11 @@ class PositiveRealsMetric(RiemannianMetric):
 
         Returns
         -------
-        inner_prod_mat : array-like, shape=[...]
+        inner_prod_mat : array-like, shape=[..., 1, 1]
             Inner product matrix.
         """
         inner_prod_mat = 1 / base_point**2
-        inner_prod_mat *= self.scale**2
-        return inner_prod_mat
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the positive reals inner-product.
-
-        Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the positive reals Riemannian metric.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., 1]
-            Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., 1]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., 1]
-            Base point.
-
-        Returns
-        -------
-        inner_product : array-like, shape=[...]
-            Inner-product.
-        """
-        inner_product_matrix = self.inner_product_matrix(base_point=base_point)
-        inner_product = tangent_vec_a * inner_product_matrix * tangent_vec_b
-        return gs.reshape(inner_product, (-1,))
+        return gs.expand_dims(inner_prod_mat, axis=-1)
 
     @staticmethod
     def exp(tangent_vec, base_point):
@@ -260,7 +230,8 @@ class PositiveRealsMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
-        return gs.reshape((self.scale * gs.log(point_b / point_a)) ** 2, (-1,))
+        ratio = gs.squeeze(point_b / point_a, axis=-1)
+        return (gs.log(ratio)) ** 2
 
     def dist(self, point_a, point_b):
         """Compute the positive reals distance.
@@ -279,4 +250,5 @@ class PositiveRealsMetric(RiemannianMetric):
         dist : array-like, shape=[...]
             Riemannian distance.
         """
-        return gs.reshape(self.scale * gs.abs(gs.log(point_b / point_a)), (-1,))
+        ratio = gs.squeeze(point_b / point_a, axis=-1)
+        return gs.abs(gs.log(ratio))

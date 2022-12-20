@@ -56,7 +56,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             dict(
                 group=group,
                 metric_mat_at_identity=sym_mat_at_identity,
-                left_or_right="left",
+                left=True,
             )
         ]
         return self.generate_tests(smoke_data)
@@ -68,13 +68,13 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             dict(
                 group=group,
                 metric_mat_at_identity=sym_mat_at_identity,
-                left_or_right="left",
+                left=True,
                 base_point=None,
             ),
             dict(
                 group=group,
                 metric_mat_at_identity=sym_mat_at_identity,
-                left_or_right="left",
+                left=True,
                 base_point=group.identity,
             ),
         ]
@@ -82,9 +82,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
 
     def inner_product_matrix_and_its_inverse_test_data(self):
         group = SpecialEuclidean(n=3, point_type="vector")
-        smoke_data = [
-            dict(group=group, metric_mat_at_identity=None, left_or_right="left")
-        ]
+        smoke_data = [dict(group=group, metric_mat_at_identity=None, left=True)]
         return self.generate_tests(smoke_data)
 
     def inner_product_test_data(self):
@@ -99,7 +97,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             dict(
                 group=group,
                 metric_mat_at_identity=None,
-                left_or_right="left",
+                left=True,
                 tangent_vec_a=tangent_vec_a,
                 tangent_vec_b=tangent_vec_b,
                 base_point=None,
@@ -108,7 +106,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             dict(
                 group=group,
                 metric_mat_at_identity=None,
-                left_or_right="left",
+                left=True,
                 tangent_vec_a=batch_tangent_vec,
                 tangent_vec_b=tangent_vec_b,
                 base_point=None,
@@ -117,7 +115,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             dict(
                 group=group,
                 metric_mat_at_identity=None,
-                left_or_right="left",
+                left=True,
                 tangent_vec_a=group.compose(self.point_1_matrix, tangent_vec_a),
                 tangent_vec_b=group.compose(self.point_1_matrix, tangent_vec_b),
                 base_point=self.point_1_matrix,
@@ -126,7 +124,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             dict(
                 group=group,
                 metric_mat_at_identity=None,
-                left_or_right="left",
+                left=True,
                 tangent_vec_a=group.compose(self.point_1_matrix, batch_tangent_vec),
                 tangent_vec_b=group.compose(self.point_1_matrix, tangent_vec_b),
                 base_point=self.point_1_matrix,
@@ -135,7 +133,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             dict(
                 group=group,
                 metric_mat_at_identity=None,
-                left_or_right="right",
+                left=False,
                 tangent_vec_a=group.compose(tangent_vec_a, self.point_1_matrix),
                 tangent_vec_b=group.compose(tangent_vec_b, self.point_1_matrix),
                 base_point=self.point_1_matrix,
@@ -144,7 +142,7 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
             dict(
                 group=group,
                 metric_mat_at_identity=None,
-                left_or_right="right",
+                left=False,
                 tangent_vec_a=group.compose(batch_tangent_vec, self.point_1_matrix),
                 tangent_vec_b=group.compose(tangent_vec_b, self.point_1_matrix),
                 base_point=self.point_1_matrix,

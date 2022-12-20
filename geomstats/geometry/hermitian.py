@@ -24,17 +24,15 @@ class Hermitian(ComplexVectorSpace):
         kwargs.setdefault("metric", HermitianMetric(dim, shape=(dim,)))
         super().__init__(shape=(dim,), **kwargs)
 
-    def get_identity(self):
-        """Get the identity of the group.
+    @property
+    def identity(self):
+        """Identity of the group.
 
         Returns
         -------
         identity : array-like, shape=[n]
         """
-        identity = gs.zeros(self.dim, dtype=gs.get_default_cdtype())
-        return identity
-
-    identity = property(get_identity)
+        return gs.zeros(self.dim, dtype=gs.get_default_cdtype())
 
     def _create_basis(self):
         """Create the canonical basis."""
