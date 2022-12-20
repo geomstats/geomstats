@@ -16,7 +16,7 @@ def _convert_gs_to_np(value):
     if gs.is_array(value):
         return gs.to_numpy(value)
 
-    elif isinstance(value, (list, tuple)):
+    if isinstance(value, (list, tuple)):
         new_value = []
         for value_ in value:
             new_value.append(_convert_gs_to_np(value_))
@@ -26,7 +26,7 @@ def _convert_gs_to_np(value):
 
         return new_value
 
-    elif isinstance(value, dict):
+    if isinstance(value, dict):
         return {key: _convert_gs_to_np(value_) for key, value_ in value.items()}
 
     return value
