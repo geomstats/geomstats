@@ -225,7 +225,7 @@ class SymmetricMatrices(VectorSpace):
             except AttributeError:
                 name = function[0].__name__
 
-            logging.warning("Negative eigenvalue encountered in" " {}".format(name))
+            logging.warning("Negative eigenvalue encountered in %s", name)
 
         return_list = True
         if not isinstance(function, list):

@@ -221,8 +221,8 @@ def _default_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. "
-            "The mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
@@ -285,14 +285,16 @@ def _batch_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. The "
-            "mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
         logging.info(
-            "n_iter: {}, final dist: {},"
-            "final step size: {}".format(iteration, convergence, init_step_size)
+            "n_iter: %d, final dist: %e, final step size: %e",
+            iteration,
+            convergence,
+            init_step_size,
         )
 
     return estimates
@@ -390,16 +392,17 @@ def _adaptive_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. "
-            "The mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
         logging.info(
-            "n_iter: {}, final variance: {}, final dist: {},"
-            " final_step_size: {}".format(
-                iteration, var, sq_norm_current_tangent_mean, tau
-            )
+            "n_iter: %d, final variance: %e, final dist: %e, final_step_size: %e",
+            iteration,
+            var,
+            sq_norm_current_tangent_mean,
+            tau,
         )
 
     return current_mean
