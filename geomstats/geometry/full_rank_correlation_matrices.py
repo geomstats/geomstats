@@ -55,7 +55,11 @@ class FullRankCorrelationMatrices(LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n]
         """
-        return Matrices.diagonal(vector)
+        submersed_vector = Matrices.diagonal(vector)
+        if point is not None and point.ndim > vector.ndim:
+            return gs.broadcast_to(submersed_vector, point.shape[:-1])
+
+        return submersed_vector
 
     @staticmethod
     def diag_action(diagonal_vec, point):

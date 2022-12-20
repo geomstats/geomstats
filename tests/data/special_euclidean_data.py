@@ -411,12 +411,12 @@ class SpecialEuclidean3VectorsTestData(TestData):
     left_diag_metric = InvariantMetric(
         group=group,
         metric_mat_at_identity=diag_mat_at_identity,
-        left_or_right="left",
+        left=True,
     )
     right_diag_metric = InvariantMetric(
         group=group,
         metric_mat_at_identity=diag_mat_at_identity,
-        left_or_right="right",
+        left=False,
     )
 
     metrics_all = {

@@ -29,9 +29,10 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         kwargs.setdefault("dim", n**2)
         kwargs.setdefault("metric", embedding_space.metric)
 
+        self.n = n
         super().__init__(
             embedding_space=embedding_space,
-            n=n,
+            representation_dim=n,
             lie_algebra=SquareMatrices(n),
             **kwargs
         )
@@ -181,12 +182,13 @@ class SquareMatrices(MatrixLieAlgebra):
     """
 
     def __init__(self, n):
-        super().__init__(n=n, dim=n**2)
-        self.mat_space = Matrices(n, n)
+        self.n = n
+        super().__init__(dim=n**2, representation_dim=n)
+        self._mat_space = Matrices(n, n)
 
     def _create_basis(self):
         """Create the canonical basis of the space of matrices."""
-        return self.mat_space.basis
+        return self._mat_space.basis
 
     def basis_representation(self, matrix_representation):
         """Compute the coefficient in the usual matrix basis.
@@ -203,7 +205,7 @@ class SquareMatrices(MatrixLieAlgebra):
         basis_representation : array-like, shape=[..., dim]
             Representation in the basis.
         """
-        return self.mat_space.flatten(matrix_representation)
+        return self._mat_space.flatten(matrix_representation)
 
     def matrix_representation(self, basis_representation):
         """Compute the matrix representation for the given basis coefficients.
@@ -220,4 +222,4 @@ class SquareMatrices(MatrixLieAlgebra):
         matrix_representation : array-like, shape=[..., n, n]
             Matrix.
         """
-        return self.mat_space.reshape(basis_representation)
+        return self._mat_space.reshape(basis_representation)
