@@ -170,7 +170,7 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
     plt.plot(theta, asymptotic_modulation_factor, "grey", label="Asymptotic prediction")
     plt.xlabel(r"Standard deviation $\theta$")
     plt.ylabel(r"Modulation factor $\alpha$")
-    plt.title("Convergence rate modulation factor, " f"sphere dim={n_samples}, n={dim}")
+    plt.title(f"Convergence rate modulation factor, sphere dim={n_samples}, n={dim}")
     plt.legend(loc="best")
     plt.draw()
 
@@ -188,11 +188,11 @@ def main():
     n_expectation = 10
 
     logging.info(
-        "Var of empirical mean for 1 sample, theta=0.1 " "in S2 (%f, %e)",
+        "Var of empirical mean for 1 sample, theta=0.1 in S2 (%f, %e)",
         *empirical_frechet_var_bubble(1, 0.1, 2, n_expectation=n_expectation),
     )
     logging.info(
-        "Var of empirical mean for 1 sample, theta=0.1 " "in S3 (%f, %e)",
+        "Var of empirical mean for 1 sample, theta=0.1 in S3 (%f, %e)",
         *empirical_frechet_var_bubble(1, 0.1, 3, n_expectation=n_expectation),
     )
 

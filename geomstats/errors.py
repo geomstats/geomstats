@@ -19,7 +19,7 @@ def check_integer(n, n_name):
     if n is not None and not (isinstance(n, int) and n > 0) and n != math.inf:
         raise ValueError(
             f"{n_name} is required to be either"
-            f" None, math.inf or a strictly positive integer,"
+            " None, math.inf or a strictly positive integer,"
             f" got {n}."
         )
 
