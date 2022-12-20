@@ -149,10 +149,9 @@ def get_types(input_types, args, kwargs):
     if len(input_types) > len_total:
         opt_kwargs_types = input_types[len_total:]
         last_input_type = input_types[-1]
-        if "output_" in last_input_type:
-            if last_input_type != "output_scalar":
-                is_scal = False
-                opt_kwargs_types = input_types[len_total:-1]
+        if "output_" in last_input_type and last_input_type != "output_scalar":
+            is_scal = False
+            opt_kwargs_types = input_types[len_total:-1]
     return (args_types, kwargs_types, opt_kwargs_types, is_scal)
 
 
@@ -350,9 +349,11 @@ def adapt_result(result, initial_shapes, args_kwargs_types, is_scal):
         if result.shape[1] == 1:
             result = gs.squeeze(result, axis=1)
 
-    if squeeze_output_dim_0(result, initial_shapes, args_kwargs_types):
-        if result.shape[0] == 1:
-            result = gs.squeeze(result, axis=0)
+    if (
+        squeeze_output_dim_0(result, initial_shapes, args_kwargs_types)
+        and result.shape[0] == 1
+    ):
+        result = gs.squeeze(result, axis=0)
 
     return result
 

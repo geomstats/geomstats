@@ -277,13 +277,12 @@ class TangentPCA(_BasePCA):
                 "min(n_samples, n_features)=%r with "
                 "svd_solver='full'" % (n_components, min(n_samples, n_features))
             )
-        elif n_components >= 1:
-            if not isinstance(n_components, numbers.Integral):
-                raise ValueError(
-                    "n_components=%r must be of type int "
-                    "when greater than or equal to 1, "
-                    "was of type=%r" % (n_components, type(n_components))
-                )
+        elif n_components >= 1 and not isinstance(n_components, numbers.Integral):
+            raise ValueError(
+                "n_components=%r must be of type int "
+                "when greater than or equal to 1, "
+                "was of type=%r" % (n_components, type(n_components))
+            )
 
         # Center data - the mean should be 0 if base_point is the Frechet mean
         self.mean_ = gs.mean(X, axis=0)
