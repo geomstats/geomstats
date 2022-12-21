@@ -6,7 +6,6 @@ Lead authors: Jules Deschamps, Tra My Nguyen.
 from scipy.stats import binom
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -147,8 +146,9 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             -------
             pmf_at_k : array-like, shape=[..., n_points]
             """
-            _point, _k = gs.broadcast_arrays(point, k)
-            return gs.from_numpy(binom.pmf(_k, self.n_draws, _point))
+            k = gs.reshape(gs.array(k), (-1,))
+            point_aux, k_aux = gs.broadcast_arrays(point, k)
+            return gs.from_numpy(binom.pmf(k_aux, self.n_draws, point_aux))
 
         return pmf
 
