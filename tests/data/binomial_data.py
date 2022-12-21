@@ -1,10 +1,15 @@
 import random
 
 import geomstats.backend as gs
-from geomstats.information_geometry.binomial import (BinomialDistributions,
-                                                     BinomialMetric)
-from tests.data_generation import (_OpenSetTestData, _RiemannianMetricTestData,
-                                   generate_random_vec)
+from geomstats.information_geometry.binomial import (
+    BinomialDistributions,
+    BinomialMetric,
+)
+from tests.data_generation import (
+    _OpenSetTestData,
+    _RiemannianMetricTestData,
+    generate_random_vec,
+)
 
 
 class BinomialTestData(_OpenSetTestData):

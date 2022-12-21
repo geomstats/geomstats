@@ -2,7 +2,9 @@ import random
 
 import geomstats.backend as gs
 from geomstats.information_geometry.exponential import (
-    ExponentialDistributions, ExponentialMetric)
+    ExponentialDistributions,
+    ExponentialMetric,
+)
 from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 
 

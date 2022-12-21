@@ -4,7 +4,10 @@ import geomstats.backend as gs
 from geomstats.information_geometry.exponential import ExponentialDistributions
 from geomstats.information_geometry.fisher_rao_metric import FisherRaoMetric
 from geomstats.information_geometry.normal import (
-    NormalDistributions, UnivariateNormalDistributions, UnivariateNormalMetric)
+    NormalDistributions,
+    UnivariateNormalDistributions,
+    UnivariateNormalMetric,
+)
 from tests.data_generation import _RiemannianMetricTestData
 
 
