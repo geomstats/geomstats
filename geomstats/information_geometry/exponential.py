@@ -6,7 +6,6 @@ Lead authors: Jules Deschamps, Tra My Nguyen.
 from scipy.stats import expon
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -144,8 +143,10 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             -------
             pdf_at_x : array-like, shape=[..., n_points]
             """
-            _point, _x = gs.broadcast_arrays(point, x)
-            return gs.from_numpy(expon.pdf(_x, scale=1 / _point))
+            x = gs.reshape(gs.array(x), (-1,))
+            point_aux, x_aux = gs.broadcast_arrays(point, x)
+            pdf_at_x_aux = point_aux * gs.exp(-point_aux * x_aux)
+            return gs.where(x_aux >= 0, pdf_at_x_aux, 0.)
 
         return pdf
 

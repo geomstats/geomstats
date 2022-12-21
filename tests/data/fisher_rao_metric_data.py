@@ -38,7 +38,7 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
             ),
             dict(
                 information_manifold=ExponentialDistributions(),
-                support=(-10, 10),
+                support=(0, 10),
                 base_point=gs.array([1.0]),
             ),
         ]
@@ -53,7 +53,7 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
             ),
             dict(
                 information_manifold=ExponentialDistributions(),
-                support=(-10, 10),
+                support=(0, 10),
                 base_point=gs.array([1.0]),
             ),
         ]
