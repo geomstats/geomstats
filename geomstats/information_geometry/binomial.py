@@ -3,6 +3,7 @@
 Lead authors: Jules Deschamps, Tra My Nguyen.
 """
 
+from scipy.special import factorial
 from scipy.stats import binom
 
 import geomstats.backend as gs
@@ -108,6 +109,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples]
             Sample from binomial distributions.
         """
+
         def _sample(param):
             return binom.rvs(self.n_draws, param, size=n_samples)
 
@@ -133,6 +135,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             Probability mass function of the binomial distribution with
             parameters provided by point.
         """
+
         def pmf(k):
             """Generate parameterized function for binomial pmf.
 
@@ -148,7 +151,14 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             """
             k = gs.reshape(gs.array(k), (-1,))
             point_aux, k_aux = gs.broadcast_arrays(point, k)
-            return gs.from_numpy(binom.pmf(k_aux, self.n_draws, point_aux))
+            return (
+                (
+                    factorial(self.n_draws)
+                    / (factorial(k_aux) * factorial(self.n_draws - k_aux))
+                )
+                * (point_aux**k_aux)
+                * ((1 - point_aux) ** (self.n_draws - k_aux))
+            )
 
         return pmf
 

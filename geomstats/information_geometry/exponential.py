@@ -103,6 +103,7 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples]
             Sample from exponential distributions.
         """
+
         def _sample(param):
             return expon.rvs(scale=1 / param, size=n_samples)
 
@@ -128,6 +129,7 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the exponential distribution with
             scale parameter provided by point.
         """
+
         def pdf(x):
             """Generate parameterized function for exponential pdf.
 
@@ -146,7 +148,7 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             x = gs.reshape(gs.array(x), (-1,))
             point_aux, x_aux = gs.broadcast_arrays(point, x)
             pdf_at_x_aux = point_aux * gs.exp(-point_aux * x_aux)
-            return gs.where(x_aux >= 0, pdf_at_x_aux, 0.)
+            return gs.where(x_aux >= 0, pdf_at_x_aux, 0.0)
 
         return pdf
 
@@ -234,7 +236,7 @@ class ExponentialMetric(RiemannianMetric):
             """
             t = gs.reshape(gs.array(t), (-1,))
             base_aux, t_aux = gs.broadcast_arrays(base, t)
-            return gs.expand_dims(initial_point * base_aux ** t_aux, axis=-1)
+            return gs.expand_dims(initial_point * base_aux**t_aux, axis=-1)
 
         return path
 
@@ -276,7 +278,7 @@ class ExponentialMetric(RiemannianMetric):
             """
             t = gs.reshape(gs.array(t), (-1,))
             base_aux, t_aux = gs.broadcast_arrays(base, t)
-            return gs.expand_dims(initial_point * base_aux ** t_aux, axis=-1)
+            return gs.expand_dims(initial_point * base_aux**t_aux, axis=-1)
 
         return path
 

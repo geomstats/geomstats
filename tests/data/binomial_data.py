@@ -1,12 +1,11 @@
 import random
 
 import geomstats.backend as gs
-from geomstats.information_geometry.binomial import (
-    BinomialDistributions,
-    BinomialMetric,
-)
-from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
-from tests.data_generation import generate_random_vec
+from geomstats.information_geometry.binomial import (BinomialDistributions,
+                                                     BinomialMetric)
+from tests.data_generation import (_OpenSetTestData, _RiemannianMetricTestData,
+                                   generate_random_vec)
+
 
 class BinomialTestData(_OpenSetTestData):
     Space = BinomialDistributions
@@ -180,7 +179,7 @@ class BinomialMetricTestData(_RiemannianMetricTestData):
         for space_args in self.space_args_list:
             random_data.append(dict(space_args=space_args))
         return self.generate_tests([], random_data)
-  
+
     def log_after_exp_test_data(self):
         random_data = []
         for connection_args, space, shape, n_tangent_vecs in zip(
@@ -194,7 +193,11 @@ class BinomialMetricTestData(_RiemannianMetricTestData):
             random_vec = generate_random_vec(
                 shape=(n_tangent_vecs,) + shape, dtype=base_point_type
             )
-            random_vec = random_vec % (gs.pi * gs.sqrt(base_point * (1-base_point))) + (-gs.arcsin(gs.sqrt(base_point))) * 2 * gs.sqrt(base_point * (1-base_point))
+            random_vec = random_vec % (
+                gs.pi * gs.sqrt(base_point * (1 - base_point))
+            ) + (-gs.arcsin(gs.sqrt(base_point))) * 2 * gs.sqrt(
+                base_point * (1 - base_point)
+            )
             tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
@@ -204,6 +207,3 @@ class BinomialMetricTestData(_RiemannianMetricTestData):
                 )
             )
         return self.generate_tests([], random_data)
-
-    
-
