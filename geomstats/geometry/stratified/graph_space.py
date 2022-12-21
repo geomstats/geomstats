@@ -165,8 +165,8 @@ def _vectorize_graph_to_points(*args_positions):
 
         if arg.ndim == 2:
             return [GraphPoint(arg)]
-        else:
-            return [GraphPoint(point) for point in arg]
+
+        return [GraphPoint(point) for point in arg]
 
     return _vectorize_point(*args_positions, manipulate_input=_manipulate_input)
 
@@ -699,7 +699,8 @@ class GraphSpace(PointSet):
         """
         if type(graphs) in [list, tuple]:
             return gs.array([graph.n_nodes == self.n_nodes for graph in graphs])
-        elif type(graphs) is GraphPoint:
+
+        if type(graphs) is GraphPoint:
             return graphs.n_nodes == self.n_nodes
 
         return self.total_space.belongs(graphs, atol=atol)
