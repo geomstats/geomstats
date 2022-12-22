@@ -152,7 +152,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
             """
             k = gs.reshape(gs.array(k), (-1,))
             point_aux, k_aux = gs.broadcast_arrays(point, k)
-            return point_aux ** k_aux * gs.exp(-k_aux) / factorial(k_aux)
+            return point_aux ** k_aux * gs.exp(-point_aux) / factorial(k_aux)
 
         return pmf
 
