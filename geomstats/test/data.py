@@ -15,7 +15,6 @@ class TestData:
         data: list or dict
             Tests.
         """
-
         tests = []
         if not isinstance(marks, (list, tuple)):
             marks = [marks]

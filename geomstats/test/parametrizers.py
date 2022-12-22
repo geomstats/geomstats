@@ -129,7 +129,9 @@ class DataBasedParametrizer(type):
 
 
 def _copy_func(f, name=None):
-    """Return a function with same code, globals, defaults, closure, and
+    """Copy function.
+
+    Return a function with same code, globals, defaults, closure, and
     name (or provide a new name).
 
     Additionally, keyword arguments are transformed into positional arguments for
