@@ -181,9 +181,9 @@ class BinomialMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[...,1]
+        point_a : array-like, shape=[..., 1]
             Point representing a binomial distribution (probability of success).
-        point_b : array-like, shape=[...,1] (same shape as point_a)
+        point_b : array-like, shape=[..., 1]
             Point representing a binomial distribution (probability of success).
 
         Returns

@@ -172,7 +172,7 @@ class ExponentialMetric(RiemannianMetric):
         ----------
         point_a : array-like, shape=[..., 1]
             Point representing an exponential distribution (scale parameter).
-        point_b : array-like, shape=[..., 1] (same shape as point_a)
+        point_b : array-like, shape=[..., 1]
             Point representing a exponential distribution (scale parameter).
 
         Returns
