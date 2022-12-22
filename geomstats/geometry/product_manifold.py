@@ -6,11 +6,10 @@ import math
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
-
+from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 COMPLEX_OBJECTS = (ComplexRiemannianMetric, ComplexManifold)
 

@@ -2,11 +2,8 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.geometry.nfold_manifold import (
-    NFoldManifold,
-    NFoldMetric,
-)
 from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
 
