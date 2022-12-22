@@ -6,7 +6,8 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.product_manifold import (
-    ProductManifold, ProductRiemannianMetric,
+    ProductManifold,
+    ProductRiemannianMetric,
 )
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
