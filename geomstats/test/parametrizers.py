@@ -6,7 +6,7 @@ import pytest
 import geomstats.backend as gs
 
 
-class TestBasedParametrizer(type):
+class Parametrizer(type):
     """Metaclass for test classes.
 
     Note: A test class is a class that inherits from TestCase.

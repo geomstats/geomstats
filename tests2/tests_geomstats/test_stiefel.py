@@ -7,7 +7,7 @@ from geomstats.test.geometry.stiefel import (
     StiefelStaticMethodsTestCase,
     StiefelTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer, TestBasedParametrizer
+from geomstats.test.parametrizers import DataBasedParametrizer, Parametrizer
 from tests2.data.stiefel_data import StiefelStaticMethodsTestData, StiefelTestData
 
 
@@ -42,8 +42,6 @@ class TestStiefel(StiefelTestCase, metaclass=DataBasedParametrizer):
     testing_data = StiefelTestData()
 
 
-class TestStiefelStaticMethods(
-    StiefelStaticMethodsTestCase, metaclass=TestBasedParametrizer
-):
+class TestStiefelStaticMethods(StiefelStaticMethodsTestCase, metaclass=Parametrizer):
     Space = Stiefel
     testing_data = StiefelStaticMethodsTestData()
