@@ -376,6 +376,25 @@ class ManifoldTestCase(TestCase):
 
         self.test_is_tangent(tangent_vec, point, expected, atol)
 
+    def test_regularize(self, point, expected, atol):
+        regularized_point = self.space.regularize(point)
+        self.assertAllClose(regularized_point, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_regularize_vec(self, n_reps, atol):
+        point = self.space.random_point()
+        expected = self.space.regularize(point)
+
+        vec_data = generate_vectorization_data(
+            data=[dict(point=point, expected=expected, atol=atol)],
+            arg_names=["point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+
+        for datum in vec_data:
+            self.test_regularize(**datum)
+
 
 class VectorSpaceTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
     def _get_point_to_project(self, n_points):
