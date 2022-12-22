@@ -26,9 +26,6 @@ coverage:
       pytorch:
         flags:
           - pytorch
-      tensorflow:
-        flags:
-          - tensorflow
     patch:
       default:
         # basic
@@ -54,9 +51,6 @@ coverage:
       pytorch:
         flags:
           - pytorch
-      tensorflow:
-        flags:
-          - tensorflow
 
 
 # Files to ignore
@@ -83,9 +77,3 @@ flags:
       - geomstats/_backend/autograd
       - geomstats/_backend/numpy
       - geomstats/_backend/tensorflow
-
-  tensorflow:
-    ignore:
-      - geomstats/_backend/autograd
-      - geomstats/_backend/numpy
-      - geomstats/_backend/pytorch
