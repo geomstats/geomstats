@@ -50,6 +50,18 @@ class _LieGroupMixinsTestData:
         data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
         return self.generate_tests(data)
 
+    def tangent_translation_map_vec_test_data(self):
+        data = []
+        for inverse in [True, False]:
+            for left in [True, False]:
+                data.extend(
+                    [
+                        dict(n_reps=n_reps, left=left, inverse=inverse)
+                        for n_reps in self.N_VEC_REPS
+                    ]
+                )
+        return self.generate_tests(data)
+
     def lie_bracket_vec_test_data(self):
         data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
         return self.generate_tests(data)
@@ -176,6 +188,12 @@ class MatrixLieGroupTestData(_LieGroupMixinsTestData, ManifoldTestData):
 
 
 class LieGroupTestData(_LieGroupMixinsTestData, ManifoldTestData):
+    def jacobian_translation_vec_test_data(self):
+        data = []
+        for left in [True, False]:
+            data.extend([dict(n_reps=n_reps, left=left) for n_reps in self.N_VEC_REPS])
+        return self.generate_tests(data)
+
     def exp_from_identity_vec_test_data(self):
         data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
         return self.generate_tests(data)
@@ -184,11 +202,11 @@ class LieGroupTestData(_LieGroupMixinsTestData, ManifoldTestData):
         data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
         return self.generate_tests(data)
 
-    def exp_after_log_at_identity_test_data(self):
+    def exp_from_identity_after_log_from_identity_test_data(self):
         data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
         return self.generate_tests(data)
 
-    def log_after_exp_at_identity_test_data(self):
+    def log_from_identity_after_exp_from_identity_test_data(self):
         data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
         return self.generate_tests(data)
 

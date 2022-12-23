@@ -224,9 +224,39 @@ class _LieGroupTestCaseMixins:
     def test_tangent_translation_map(
         self, point, left, inverse, tangent_vec, expected, atol
     ):
-        # TODO: test vectorization?
-        res = self.space.tangent_translation_map(point, left, inverse)
+        res = self.space.tangent_translation_map(point, left=left, inverse=inverse)(
+            tangent_vec
+        )
         self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_tangent_translation_map_vec(self, n_reps, left, inverse, atol):
+        vec = self._get_vec_to_tangent(1)
+        point = self.space.random_point()
+        tangent_vec = self.space.to_tangent(vec, point)
+        expected = self.space.tangent_translation_map(
+            point, left=left, inverse=inverse
+        )(tangent_vec)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    point=point,
+                    tangent_vec=tangent_vec,
+                    left=left,
+                    inverse=inverse,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["point", "tangent_vec"],
+            expected_name="expected",
+            vectorization_type="repeat-second",
+            n_reps=n_reps,
+        )
+
+        for datum in vec_data:
+            self.test_tangent_translation_map(**datum)
 
     def test_lie_bracket(
         self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
@@ -239,7 +269,7 @@ class _LieGroupTestCaseMixins:
     def test_lie_bracket_vec(self, n_reps, atol):
         vec = self._get_vec_to_tangent(2)
         base_point = self.space.random_point()
-        tangent_vec_a, tangent_vec_b = self.space.to_tangent(vec)
+        tangent_vec_a, tangent_vec_b = self.space.to_tangent(vec, base_point)
 
         expected = self.space.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
 
@@ -622,9 +652,23 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
         return gs.random.normal(size=batch_shape + self.space.shape)
 
     def test_jacobian_translation(self, point, left, expected, atol):
-        # TODO: add vectorization test?
-        res = self.space.jacobian_translation(point, left)
+        res = self.space.jacobian_translation(point, left=left)
         self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_jacobian_translation_vec(self, n_reps, left, atol):
+        point = self.space.random_point()
+        expected = self.space.jacobian_translation(point, left=left)
+
+        vec_data = generate_vectorization_data(
+            data=[dict(point=point, left=left, expected=expected, atol=atol)],
+            arg_names=["point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+
+        for datum in vec_data:
+            self.test_jacobian_translation(**datum)
 
     def test_exp_from_identity(self, tangent_vec, expected, atol):
         res = self.space.exp_from_identity(tangent_vec)
@@ -637,7 +681,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
         expected = self.space.exp_from_identity(tangent_vec)
 
         vec_data = generate_vectorization_data(
-            data=[dict(tangent_vec=vec, expected=expected, atol=atol)],
+            data=[dict(tangent_vec=tangent_vec, expected=expected, atol=atol)],
             arg_names=["tangent_vec"],
             expected_name="expected",
             n_reps=n_reps,
@@ -666,7 +710,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
             self.test_log_from_identity(**datum)
 
     @pytest.mark.random
-    def test_exp_after_log_at_identity(self, n_points, atol):
+    def test_exp_from_identity_after_log_from_identity(self, n_points, atol):
         point = self.space.random_point(n_points)
         tangent_vec = self.space.log_from_identity(point)
 
@@ -674,7 +718,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
         self.assertAllClose(point_, point, atol=atol)
 
     @pytest.mark.random
-    def test_log_after_exp_at_identity(self, n_points, atol):
+    def test_log_from_identity_after_exp_from_identity(self, n_points, atol):
         vec = self._get_vec_to_tangent(n_points)
         tangent_vec = self.space.to_tangent(vec, self.space.identity)
 
