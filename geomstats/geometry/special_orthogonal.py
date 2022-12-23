@@ -331,19 +331,16 @@ class _SpecialOrthogonalVectors(LieGroup):
 
     def __init__(self, n, epsilon=0.0):
         dim = n * (n - 1) // 2
-        LieGroup.__init__(self, dim=dim, shape=(dim,), lie_algebra=self)
+        super().__init__(dim=dim, shape=(dim,), lie_algebra=self)
 
         self.n = n
         self.epsilon = epsilon
 
+        self._skew_sym_mat = SkewSymmetricMatrices(self.n)
+
     @property
     def identity(self):
         """Identity of the group.
-
-        Parameters
-        ----------
-        point_type : str, {'vector', 'matrix'}
-            Point_type of the returned value. Unused here.
 
         Returns
         -------
@@ -366,13 +363,12 @@ class _SpecialOrthogonalVectors(LieGroup):
         belongs : array-like, shape=[...,]
             Boolean indicating whether point belongs to SO(3).
         """
-        vec_dim = point.shape[-1]
-        belongs = vec_dim == self.dim
-        if point.ndim == 2:
-            belongs = gs.tile([belongs], (point.shape[0],))
-        return belongs
+        belongs = self.shape == point.shape[-self.point_ndim :]
+        shape = point.shape[: -self.point_ndim]
+        if belongs:
+            return gs.ones(shape, dtype=bool)
+        return gs.zeros(shape, dtype=bool)
 
-    @geomstats.vectorization.decorator(["else", "matrix"])
     def projection(self, point):
         """Project a matrix on SO(2) or SO(3) using the Frobenius norm.
 
@@ -386,22 +382,18 @@ class _SpecialOrthogonalVectors(LieGroup):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
+        # TODO: why receiving (n, n)?
         mat = point
-        n_mats, _, _ = mat.shape
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = Matrices.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.0)
         mask_float = gs.cast(mask, mat.dtype) + self.epsilon
-        diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
-        diag = gs.to_ndarray(diag, to_ndim=2)
-        diag = (
-            gs.to_ndarray(utils.from_vector_to_diagonal_matrix(diag), to_ndim=3)
-            + self.epsilon
-        )
-        new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-        aux_mat = Matrices.mul(mat_unitary_u, new_mat_diag_s)
+        diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
+        diag = utils.from_vector_to_diagonal_matrix(diag) + self.epsilon
+
+        aux_mat = Matrices.mul(mat_unitary_u, diag)
         rot_mat = rot_mat + gs.einsum(
             "...,...jk->...jk", mask_float, Matrices.mul(aux_mat, mat_unitary_v)
         )
@@ -482,7 +474,7 @@ class _SpecialOrthogonalVectors(LieGroup):
     def skew_matrix_from_vector(self, vec):
         """Get the skew-symmetric matrix derived from the vector.
 
-        In 3D, compute the skew-symmetric matrix,known as the cross-product of
+        In 3D, compute the skew-symmetric matrix, known as the cross-product of
         a vector, associated to the vector `vec`.
 
         Parameters
@@ -495,7 +487,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         skew_mat : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        return SkewSymmetricMatrices(self.n).matrix_representation(vec)
+        return self._skew_sym_mat.matrix_representation(vec)
 
     def vector_from_skew_matrix(self, skew_mat):
         """Derive a vector from the skew-symmetric matrix.
@@ -513,10 +505,14 @@ class _SpecialOrthogonalVectors(LieGroup):
         vec : array-like, shape=[..., dim]
             Vector.
         """
-        return SkewSymmetricMatrices(self.n).basis_representation(skew_mat)
+        return self._skew_sym_mat.basis_representation(skew_mat)
 
     def to_tangent(self, vector, base_point=None):
-        return self.regularize_tangent_vec(vector, base_point)
+        tangent_vec = self.regularize_tangent_vec(vector, base_point)
+        if base_point is not None and base_point.ndim > vector.ndim:
+            return gs.broadcast_to(tangent_vec, base_point.shape)
+
+        return tangent_vec
 
     def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
         """Regularize a tangent vector at the identity.
@@ -537,6 +533,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         regularized_vec : array-like, shape=[..., 1]
             Regularized tangent vector.
         """
+        # TODO: remove metric
         return self.regularize(tangent_vec)
 
     def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
@@ -560,6 +557,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         regularized_tangent_vec : array-like, shape=[..., 1]
             Regularized tangent vector.
         """
+        # TODO: remove metric
         return self.regularize_tangent_vec_at_identity(tangent_vec)
 
 
@@ -881,7 +879,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         return regularized_tangent_vec
 
-    @geomstats.vectorization.decorator(["else", "matrix", "output_point"])
     def rotation_vector_from_matrix(self, rot_mat):
         r"""Convert rotation matrix (in 3D) to rotation vector (axis-angle).
 
@@ -912,14 +909,15 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_rot_vec : array-like, shape=[..., 3]
             Rotation vector.
         """
-        n_rot_mats, _, _ = rot_mat.shape
+        is_vec = gs.ndim(rot_mat) > 2
 
         trace = gs.trace(rot_mat)
-        trace = gs.to_ndarray(trace, to_ndim=2, axis=1)
         trace_num = gs.clip(trace, -1, 3)
         angle = gs.arccos(0.5 * (trace_num - 1))
-        rot_mat_transpose = gs.transpose(rot_mat, axes=(0, 2, 1))
+
+        rot_mat_transpose = Matrices.transpose(rot_mat)
         rot_vec_not_pi = self.vector_from_skew_matrix(rot_mat - rot_mat_transpose)
+
         mask_0 = gs.cast(gs.isclose(angle, 0.0), angle.dtype)
         mask_pi = gs.cast(gs.isclose(angle, gs.pi, atol=1e-2), angle.dtype)
         mask_else = (1 - mask_0) * (1 - mask_pi)
@@ -928,22 +926,29 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         denominator = (
             (1 - angle**2 / 6) * mask_0 + 2 * gs.sin(angle) * mask_else + mask_pi
         )
-
-        rot_vec_not_pi = rot_vec_not_pi * numerator / denominator
+        rot_vec_not_pi = gs.einsum(
+            "...,...i->...i", numerator / denominator, rot_vec_not_pi
+        )
 
         vector_outer = 0.5 * (gs.eye(3) + rot_mat)
         vector_outer = gs.set_diag(
-            vector_outer, gs.maximum(0.0, gs.diagonal(vector_outer, axis1=1, axis2=2))
+            vector_outer, gs.maximum(0.0, gs.diagonal(vector_outer, axis1=-2, axis2=-1))
         )
-        squared_diag_comp = gs.diagonal(vector_outer, axis1=1, axis2=2)
+        squared_diag_comp = gs.diagonal(vector_outer, axis1=-2, axis2=-1)
         diag_comp = gs.sqrt(squared_diag_comp)
-        norm_line = gs.linalg.norm(vector_outer, axis=2)
-        max_line_index = gs.argmax(norm_line, axis=1)
-        selected_line = gs.get_slice(vector_outer, (range(n_rot_mats), max_line_index))
-        signs = gs.sign(selected_line)
-        rot_vec_pi = angle * signs * diag_comp
+        norm_line = gs.linalg.norm(vector_outer, axis=-1)
+        max_line_index = gs.argmax(norm_line, axis=-1)
 
-        rot_vec = rot_vec_not_pi + mask_pi * rot_vec_pi
+        if is_vec:
+            selected_line = gs.get_slice(
+                vector_outer, (range(rot_mat.shape[0]), max_line_index)
+            )
+        else:
+            selected_line = vector_outer[..., max_line_index]
+        signs = gs.sign(selected_line)
+        rot_vec_pi = gs.einsum("...,...i,...i->...i", angle, signs, diag_comp)
+
+        rot_vec = rot_vec_not_pi + gs.einsum("...,...i->...i", mask_pi, rot_vec_pi)
 
         return self.regularize(rot_vec)
 
@@ -1793,6 +1798,6 @@ class SpecialOrthogonal:
             return _SpecialOrthogonal3Vectors(epsilon)
         if point_type == "vector":
             raise NotImplementedError(
-                "SO(n) is only implemented in vector representation" " when n = 3."
+                "SO(n) is only implemented in vector representation when n = 2 or 3."
             )
         return _SpecialOrthogonalMatrices(n, **kwargs)
