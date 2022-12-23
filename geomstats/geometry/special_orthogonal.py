@@ -1737,40 +1737,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         return gs.cross(tangent_vector_a, tangent_vector_b)
 
-    def exp(self, tangent_vec, base_point=None):
-        """Compute the group exponential.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., 3]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., 3]
-            Group element.
-
-        Returns
-        -------
-        point : array-like, shape=[..., 3]
-            Group exponential.
-        """
-        return LieGroup.exp(self, tangent_vec, base_point)
-
-    def log(self, point, base_point=None):
-        """Compute the group logarithm.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., 3]
-            Point of the group, i.e. rotation vector.
-        base_point : array-like, shape=[..., 3]
-            Base point for the log, i.e. rotation vector.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., 3]
-            Group logarithm.
-        """
-        return LieGroup.log(self, point, base_point)
-
 
 class SpecialOrthogonal:
     r"""Class for the special orthogonal groups.
