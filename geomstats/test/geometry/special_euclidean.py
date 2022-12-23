@@ -78,9 +78,7 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_matrix_from_vector(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_matrix_from_vector_belongs_to_matrices(self, n_points):
@@ -119,9 +117,7 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
             vectorization_type="repeat-first",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_regularize_tangent_vec(**datum)
+        self._test_vectorization(vec_data)
 
     def test_regularize_tangent_vec_at_identity(self, tangent_vec, expected, atol):
         regularized = self.space.regularize_tangent_vec_at_identity(tangent_vec)
@@ -140,9 +136,7 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_regularize_tangent_vec_at_identity(**datum)
+        self._test_vectorization(vec_data)
 
 
 class SpecialEuclideanMatrixLieAlgebraTestCase(MatrixLieAlgebraTestCase):

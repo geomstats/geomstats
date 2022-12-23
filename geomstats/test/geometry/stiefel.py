@@ -21,9 +21,7 @@ class StiefelTestCase(LevelSetTestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_to_grassmannian(**datum)
+        self._test_vectorization(vec_data)
 
 
 class StiefelStaticMethodsTestCase(TestCase):

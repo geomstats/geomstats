@@ -34,5 +34,4 @@ class EuclideanTestCase(VectorSpaceTestCase):
             n_reps=n_reps,
             vectorization_type="sym",
         )
-        for datum in vec_data:
-            self.test_exp(**datum)
+        self._test_vectorization(vec_data)

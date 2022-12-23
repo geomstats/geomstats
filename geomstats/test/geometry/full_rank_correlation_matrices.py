@@ -32,9 +32,7 @@ class FullRankCorrelationMatricesTestCase(LevelSetTestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_from_covariance(**datum)
+        self._test_vectorization(vec_data)
 
     def test_diag_action(self, diagonal_vec, point, expected, atol):
         res = self.space.diag_action(diagonal_vec, point)
@@ -58,5 +56,4 @@ class FullRankCorrelationMatricesTestCase(LevelSetTestCase):
             n_reps=n_reps,
             vectorization_type="sym",
         )
-        for datum in vec_data:
-            self.test_diag_action(**datum)
+        self._test_vectorization(vec_data)

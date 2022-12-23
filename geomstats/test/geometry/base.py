@@ -60,9 +60,7 @@ class _ProjectionTestCaseMixins:
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_projection(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_projection_belongs(self, n_points, atol):
@@ -91,8 +89,7 @@ class _LieGroupTestCaseMixins:
             n_reps=n_reps,
             vectorization_type="sym",
         )
-        for datum in vec_data:
-            self.test_compose(**datum)
+        self._test_vectorization(vec_data)
 
     def test_inverse(self, point, expected, atol):
         inverse = self.space.inverse(point)
@@ -110,9 +107,7 @@ class _LieGroupTestCaseMixins:
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_inverse(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_compose_with_inverse_is_identity(self, n_points, atol):
@@ -165,8 +160,7 @@ class _LieGroupTestCaseMixins:
             n_reps=n_reps,
             vectorization_type="sym",
         )
-        for datum in vec_data:
-            self.test_exp(**datum)
+        self._test_vectorization(vec_data)
 
     def test_log(self, point, base_point, expected, atol):
         vec = self.space.log(point, base_point)
@@ -187,8 +181,7 @@ class _LieGroupTestCaseMixins:
             n_reps=n_reps,
             vectorization_type="sym",
         )
-        for datum in vec_data:
-            self.test_log(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_exp_after_log(self, n_points, atol):
@@ -254,9 +247,7 @@ class _LieGroupTestCaseMixins:
             vectorization_type="repeat-second",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_tangent_translation_map(**datum)
+        self._test_vectorization(vec_data)
 
     def test_lie_bracket(
         self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
@@ -287,8 +278,7 @@ class _LieGroupTestCaseMixins:
             expected_name="expected",
             n_reps=n_reps,
         )
-        for datum in vec_data:
-            self.test_lie_bracket(**datum)
+        self._test_vectorization(vec_data)
 
 
 class ManifoldTestCase(TestCase):
@@ -313,9 +303,7 @@ class ManifoldTestCase(TestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_belongs(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_not_belongs(self, n_points, atol):
@@ -372,8 +360,7 @@ class ManifoldTestCase(TestCase):
             n_reps=n_reps,
             vectorization_type="sym",
         )
-        for datum in vec_data:
-            self.test_is_tangent(**datum)
+        self._test_vectorization(vec_data)
 
     def test_to_tangent(self, vector, base_point, expected, atol):
         tangent_vec = self.space.to_tangent(vector, base_point)
@@ -393,8 +380,7 @@ class ManifoldTestCase(TestCase):
             n_reps=n_reps,
             vectorization_type="sym",
         )
-        for datum in vec_data:
-            self.test_to_tangent(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_to_tangent_is_tangent(self, n_points, atol):
@@ -421,9 +407,7 @@ class ManifoldTestCase(TestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_regularize(**datum)
+        self._test_vectorization(vec_data)
 
 
 class VectorSpaceTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
@@ -479,9 +463,7 @@ class MatrixVectorSpaceTestCaseMixins:
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_to_vector(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_to_vector_and_basis(self, n_points, atol):
@@ -506,9 +488,7 @@ class MatrixVectorSpaceTestCaseMixins:
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_from_vector(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_from_vector_belongs(self, n_points, atol):
@@ -567,8 +547,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
             n_reps=n_reps,
             vectorization_type="sym",
         )
-        for datum in vec_data:
-            self.test_baker_campbell_hausdorff(**datum)
+        self._test_vectorization(vec_data)
 
     def test_basis_representation(self, point, expected, atol):
         vec = self.space.basis_representation(point)
@@ -585,9 +564,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_basis_representation(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_basis_representation_and_basis(self, n_points, atol):
@@ -612,9 +589,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_matrix_representation(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_matrix_representation_belongs(self, n_points, atol):
@@ -666,9 +641,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_jacobian_translation(**datum)
+        self._test_vectorization(vec_data)
 
     def test_exp_from_identity(self, tangent_vec, expected, atol):
         res = self.space.exp_from_identity(tangent_vec)
@@ -686,9 +659,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_exp_from_identity(**datum)
+        self._test_vectorization(vec_data)
 
     def test_log_from_identity(self, point, expected, atol):
         vec = self.space.log_from_identity(point)
@@ -705,9 +676,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_log_from_identity(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_exp_from_identity_after_log_from_identity(self, n_points, atol):
@@ -761,9 +730,7 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_submersion(**datum)
+        self._test_vectorization(vec_data)
 
     def test_tangent_submersion(self, vector, point, expected, atol):
         submersed_vector = self.space.tangent_submersion(vector, point)
@@ -798,6 +765,4 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
             vectorization_type="sym",
             expected_name="expected",
         )
-
-        for datum in vec_data:
-            self.test_tangent_submersion(**datum)
+        self._test_vectorization(vec_data)

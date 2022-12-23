@@ -33,9 +33,7 @@ class _SpecialOrthogonalTestCaseMixins:
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_skew_matrix_from_vector(**datum)
+        self._test_vectorization(vec_data)
 
     def test_vector_from_skew_matrix(self, mat, expected, atol):
         vec = self.space.vector_from_skew_matrix(mat)
@@ -52,9 +50,7 @@ class _SpecialOrthogonalTestCaseMixins:
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_vector_from_skew_matrix(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_vector_from_skew_matrix_after_skew_matrix_from_vector(
@@ -89,9 +85,7 @@ class _SpecialOrthogonalTestCaseMixins:
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_rotation_vector_from_matrix(**datum)
+        self._test_vectorization(vec_data)
 
     def test_matrix_from_rotation_vector(self, rot_vec, expected, atol):
         rot_mat = self.space.matrix_from_rotation_vector(rot_vec)
@@ -108,9 +102,7 @@ class _SpecialOrthogonalTestCaseMixins:
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_matrix_from_rotation_vector(**datum)
+        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_rotation_vector_from_matrix_after_matrix_from_rotation_vector(
@@ -153,9 +145,7 @@ class SpecialOrthogonalVectorsTestCase(
             expected_name="expected",
             n_reps=n_reps,
         )
-
-        for datum in vec_data:
-            self.test_projection(**datum)
+        self._test_vectorization(vec_data)
 
 
 class SpecialOrthogonal2VectorsTestCase(SpecialOrthogonalVectorsTestCase):
