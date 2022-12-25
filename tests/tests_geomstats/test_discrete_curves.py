@@ -542,7 +542,6 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
     testing_data = SRVShapeBundleTestData()
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_horizontal_and_vertical_projections(
         self, times, n_discretized_curves, curve_a, curve_b
     ):
@@ -578,7 +577,6 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_horizontal_geodesic(self, k_sampling_points, curve_a, n_times):
         """Test horizontal geodesic.
         Check that the time derivative of the geodesic is
@@ -609,7 +607,6 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
 class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
     testing_data = SRVQuotientMetricTestData()
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
         """Test quotient distance.
         Check that the quotient distance is the same as the distance

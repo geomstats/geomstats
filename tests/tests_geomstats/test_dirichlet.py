@@ -78,13 +78,11 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = DirichletMetricTestData()
     Space = testing_data.Space
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_metric_matrix_shape(self, dim, point, expected):
         return self.assertAllClose(
             self.Metric(dim).metric_matrix(point).shape, expected
         )
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_metric_matrix_dim_2(self, point):
         param_a = point[..., 0]
         param_b = point[..., 1]

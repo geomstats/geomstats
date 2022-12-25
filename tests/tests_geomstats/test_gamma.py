@@ -128,7 +128,6 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = GammaMetricTestData()
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_metric_matrix_shape(self, point, expected):
         return self.assertAllClose(self.Metric().metric_matrix(point).shape, expected)
 

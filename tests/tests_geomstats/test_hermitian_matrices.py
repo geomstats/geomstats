@@ -28,7 +28,6 @@ class TestHermitianMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         result = HermitianMatrices.expm(gs.array(mat, dtype=CDTYPE))
         self.assertAllClose(result, gs.array(expected, dtype=CDTYPE))
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_powerm(self, mat, power, expected):
         result = HermitianMatrices.powerm(gs.array(mat, dtype=CDTYPE), power)
         self.assertAllClose(result, gs.array(expected, dtype=CDTYPE))

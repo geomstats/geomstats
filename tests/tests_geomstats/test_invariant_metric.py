@@ -66,7 +66,6 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.eye(group.dim)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_inner_product(
         self,
         group,

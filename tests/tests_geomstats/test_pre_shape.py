@@ -505,7 +505,6 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected, atol=gs.atol * 1000)
 
-    @np_autograd_and_torch_only
     def test_parallel_transport(
         self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):

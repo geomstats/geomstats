@@ -32,7 +32,6 @@ class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
         metric = self.Metric(n_disks)
         self.assertAllClose(metric.signature, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_product_distance(
         self, m_disks, n_disks, point_a_extrinsic, point_b_extrinsic
     ):

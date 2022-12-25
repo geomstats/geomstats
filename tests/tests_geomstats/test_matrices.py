@@ -108,7 +108,6 @@ class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
             self.Space(m, n).to_diagonal(gs.array(mat)), gs.array(expected)
         )
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_to_symmetric(self, m, n, mat, expected):
         self.assertAllClose(
             self.Space(m, n).to_symmetric(gs.array(mat)),

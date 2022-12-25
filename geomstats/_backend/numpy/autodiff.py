@@ -4,6 +4,10 @@ NumPy backend does not offer automatic differentiation.
 The following functions return error messages.
 """
 
+_USE_OTHER_BACKEND_MSG = ("Automatic differentiation is not supported with numpy backend. "
+        "Use autograd or pytorch backend instead.\n"
+        "Change backend via the command "
+        "export GEOMSTATS_BACKEND=autograd in a terminal.")
 
 def detach(x):
     """Return a new tensor detached from the current graph.
@@ -20,62 +24,32 @@ def detach(x):
 
 def value_and_grad(*args, **kwargs):
     """Return an error when using automatic differentiation with numpy."""
-    raise RuntimeError(
-        "Automatic differentiation is not supported with numpy backend. "
-        "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal."
-    )
+    raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
 def jacobian(func):
     """Return an error when using automatic differentiation with numpy."""
-    raise RuntimeError(
-        "Automatic differentiation is not supported with numpy backend. "
-        "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal."
-    )
+    raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
 def jacobian_vec(func):
     """Return an error when using automatic differentiation with numpy."""
-    raise RuntimeError(
-        "Automatic differentiation is not supported with numpy backend. "
-        "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal."
-    )
+    raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
 def hessian(func):
     """Return an error when using automatic differentiation with numpy."""
-    raise RuntimeError(
-        "Automatic differentiation is not supported with numpy backend. "
-        "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal."
-    )
+    raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
 def hessian_vec(func):
     """Return an error when using automatic differentiation with numpy."""
-    raise RuntimeError(
-        "Automatic differentiation is not supported with numpy backend. "
-        "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal."
-    )
+    raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
 def jacobian_and_hessian(func):
     """Return an error when using automatic differentiation with numpy."""
-    raise RuntimeError(
-        "Automatic differentiation is not supported with numpy backend. "
-        "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal."
-    )
+    raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
 def custom_gradient(*grad_funcs):

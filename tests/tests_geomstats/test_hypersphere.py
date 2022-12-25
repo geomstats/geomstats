@@ -85,7 +85,6 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
                 tangent_vec, base_point, base_point_spherical
             )
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_riemannian_normal_frechet_mean(self, dim):
         space = self.Space(dim)
         mean = space.random_uniform()
@@ -96,7 +95,6 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
         estimate = estimator.estimate_
         self.assertAllClose(estimate, mean, atol=1e-1)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_riemannian_normal_and_belongs(self, dim, n_points):
         space = self.Space(dim)
         mean = space.random_uniform()
