@@ -268,7 +268,7 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         result = metric.log(point, base_point)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_regularize_extreme_cases(self, point, expected):
         group = SpecialEuclidean(3, "vector")
         result = group.regularize(point)

@@ -33,19 +33,19 @@ class SubRiemannianMetricTestCase(TestCase):
         )
         self.assertAllClose(result, expected)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_hamiltonian(self, cotangent_vec, base_point, expected):
         state = gs.array([base_point, cotangent_vec])
         result = self.metric.hamiltonian(state)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_exp(self, cotangent_vec, base_point, n_steps):
         result = self.metric.exp(cotangent_vec, base_point, n_steps=n_steps)
         expected = base_point + cotangent_vec
         self.assertAllClose(result, expected)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_geodesic(
         self,
         test_initial_point,
@@ -61,7 +61,7 @@ class SubRiemannianMetricTestCase(TestCase):
         )(test_times)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_symp_grad(self, test_state, expected):
         result = self.metric.symp_grad(hamiltonian=self.metric.hamiltonian)(test_state)
         self.assertAllClose(result, expected)
@@ -75,7 +75,7 @@ class TestSubRiemannianMetricCometric(
 
     skip_test_geodesic = True
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_symp_euler(self, test_state, step_size, expected):
         # TODO: migrate test to integrators?
         result = self.metric.symp_euler(
@@ -83,7 +83,7 @@ class TestSubRiemannianMetricCometric(
         )(test_state)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_iterate(self, test_state, n_steps, step_size, expected):
         # TODO: better way to test this?
         step = self.metric.symp_euler
@@ -92,7 +92,7 @@ class TestSubRiemannianMetricCometric(
         )(test_state)[-10]
         self.assertAllClose(result, expected)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_symp_flow(self, test_state, n_steps, end_time, expected):
         # TODO: need this test?
         result = self.metric.symp_flow(
@@ -110,7 +110,7 @@ class TestSubRiemannianMetricFrame(SubRiemannianMetricTestCase, metaclass=Parame
     skip_test_inner_coproduct = True
     skip_test_symp_grad = True
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_sr_sharp(self, base_point, cotangent_vec, expected):
         result = self.metric.sr_sharp(base_point, cotangent_vec)
         self.assertAllClose(result, expected)

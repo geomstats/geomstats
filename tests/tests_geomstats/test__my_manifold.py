@@ -24,7 +24,7 @@ In command line, select the backend of interest with:
 
 When you submit a PR, the tests are run with the three backends, except if you
 add a decorator such as `@tests.conftest.np_and_autograd_only` or
-`@tests.conftest.np_autograd_and_tf_only` etc.
+`@tests.conftest.np_and_autograd_only` etc.
 """
 
 # Import the tests module

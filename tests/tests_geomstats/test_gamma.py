@@ -131,11 +131,11 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_metric_matrix_shape(self, point, expected):
         return self.assertAllClose(self.Metric().metric_matrix(point).shape, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_christoffels_vectorization(self, point, expected):
         return self.assertAllClose(self.Metric().christoffels(point), expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_christoffels_shape(self, point, expected):
         return self.assertAllClose(
             self.Metric().christoffels(base_point=point).shape,

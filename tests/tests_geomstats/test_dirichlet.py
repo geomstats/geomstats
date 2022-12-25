@@ -5,13 +5,13 @@ from scipy.stats import dirichlet
 import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
+from tests.conftest import Parametrizer, np_backend, pytorch_backend
 from tests.data.dirichlet_data import DirichletMetricTestData, DirichletTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()
+PYTORCH_BACKEND = pytorch_backend()
 
-NOT_AUTOGRAD = tf_backend() or pytorch_backend() or np_backend()
+NOT_AUTOGRAD = pytorch_backend() or np_backend()
 
 
 class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
@@ -48,15 +48,15 @@ class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
 
 class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_shape = True  # because several base points for one vector
-    skip_test_log_shape = TF_OR_PYTORCH_BACKEND
-    skip_test_exp_belongs = TF_OR_PYTORCH_BACKEND
-    skip_test_log_is_tangent = TF_OR_PYTORCH_BACKEND
-    skip_test_dist_is_symmetric = TF_OR_PYTORCH_BACKEND
-    skip_test_dist_is_positive = TF_OR_PYTORCH_BACKEND
+    skip_test_log_shape = PYTORCH_BACKEND
+    skip_test_exp_belongs = PYTORCH_BACKEND
+    skip_test_log_is_tangent = PYTORCH_BACKEND
+    skip_test_dist_is_symmetric = PYTORCH_BACKEND
+    skip_test_dist_is_positive = PYTORCH_BACKEND
     skip_test_squared_dist_is_symmetric = True
-    skip_test_squared_dist_is_positive = TF_OR_PYTORCH_BACKEND
-    skip_test_dist_is_norm_of_log = TF_OR_PYTORCH_BACKEND
-    skip_test_dist_point_to_itself_is_zero = TF_OR_PYTORCH_BACKEND
+    skip_test_squared_dist_is_positive = PYTORCH_BACKEND
+    skip_test_dist_is_norm_of_log = PYTORCH_BACKEND
+    skip_test_dist_point_to_itself_is_zero = PYTORCH_BACKEND
     skip_test_log_after_exp = True
     skip_test_exp_after_log = True
     skip_test_parallel_transport_ivp_is_isometry = True
@@ -97,15 +97,15 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = SymmetricMatrices.from_vector(vector)
         return self.assertAllClose(self.Metric(2).metric_matrix(point), expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_christoffels_vectorization(self, dim, point, expected):
         return self.assertAllClose(self.Metric(dim).christoffels(point), expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_christoffels_shape(self, dim, point, expected):
         return self.assertAllClose(self.Metric(dim).christoffels(point).shape, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_christoffels_dim_2(self, point, expected):
         return self.assertAllClose(self.Metric(2).christoffels(point), expected)
 

@@ -8,7 +8,6 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.invariant_metric import BiInvariantMetric, InvariantMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import tf_backend
 from tests.data_generation import TestData, _InvariantMetricTestData, _LieGroupTestData
 
 
@@ -46,13 +45,6 @@ elements_all = {
 
 
 elements = elements_all
-if tf_backend():
-    # Tf is extremely slow
-    elements = {
-        "angle_in_pi_2pi": angle_in_pi_2pi,
-        "angle_close_pi_low": angle_close_pi_low,
-    }
-
 
 coords = ["extrinsic", "intrinsic"]
 orders = ["xyz", "zyx"]
@@ -71,8 +63,6 @@ angles_close_to_pi_all = [
 
 angles_close_to_pi = angles_close_to_pi_all
 
-if tf_backend():
-    angles_close_to_pi = ["angle_close_pi_low"]
 
 
 class SpecialOrthogonalTestData(_LieGroupTestData):

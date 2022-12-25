@@ -1,7 +1,6 @@
 """Pytest utility classes, functions and fixtures."""
 
 import inspect
-import os
 import types
 
 import numpy as np
