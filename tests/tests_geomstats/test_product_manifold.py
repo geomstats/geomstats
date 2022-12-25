@@ -17,6 +17,7 @@ from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
+    skip_test_projection_belongs = True
 
     testing_data = ProductManifoldTestData()
 
