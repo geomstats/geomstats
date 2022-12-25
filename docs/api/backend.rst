@@ -7,6 +7,3 @@ Backend
 
 .. automodule:: geomstats._backend.pytorch
    :members:
-
-.. automodule:: geomstats._backend.tensorflow
-   :members:

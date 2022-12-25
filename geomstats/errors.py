@@ -75,15 +75,6 @@ def check_parameter_accepted_values(param, param_name, accepted_values):
         )
 
 
-def check_tf_error(exception, name):
-    """Raise error in tensorflow."""
-    if os.environ["GEOMSTATS_BACKEND"] == "tensorflow":
-        from tensorflow import errors
-
-        return getattr(errors, name)
-    return exception
-
-
 def check_point_shape(point, manifold, suppress_error=False):
     """Check if the shape of point does not match the shape of a manifold or metric.
 

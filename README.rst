@@ -10,7 +10,7 @@ Geomstats
      - |Build Status|\ |python|\
    * - **Code coverage (numpy)**
      - |Coverage Status np|\
-   * - **Code coverage (autograd, tensorflow, pytorch)**
+   * - **Code coverage (autograd, pytorch)**
      - |Coverage Status autograd|\ |Coverage Status tf|\ |Coverage Status torch|
    * - **Documentation**
      - |doc|\  |binder|\ |tutorial|\
@@ -128,8 +128,7 @@ Install geomstats : Developers
 ------------------------------
 
 Developers should git clone the master branch of this repository, together with the development requirements
-and the optional requirements to enable ``tensorflow`` and ``pytorch``
-backends:
+and the optional requirements to enable ``pytorch`` backends:
 
 ::
 
@@ -146,13 +145,13 @@ follows our Python style guidelines:
 Choose the backend
 ------------------
 
-Geomstats can run seamlessly with ``numpy``, ``autograd``, ``tensorflow`` or
-``pytorch``. Note that ``autograd``, ``tensorflow`` and ``pytorch`` and requirements are
+Geomstats can run seamlessly with ``numpy``, ``autograd`` or
+``pytorch``. Note that ``autograd`` and ``pytorch`` and requirements are
 optional, as geomstats can be used with ``numpy`` only. By default, the
 ``numpy`` backend is used. The visualizations are only available with
 this backend.
 
-To get the ``autograd``, ``tensorflow`` and ``pytorch`` versions compatible with
+To get the ``autograd`` and ``pytorch`` versions compatible with
 geomstats, install the optional requirements:
 
 ::
@@ -166,7 +165,7 @@ To install only the requirements for a given backend do:
     pip3 install geomstats[<backend_name>]
 
 You can choose your backend by setting the environment variable
-``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd``, ``tensorflow`` or ``pytorch``, and
+``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd`` or ``pytorch``, and
 importing the ``backend`` module. From the command line:
 
 ::
@@ -190,7 +189,7 @@ you need to follow three steps:
 * run the algorithm.
 
 The data should be represented by a ``gs.array``. This structure
-represents numpy arrays, or tensorflow/pytorch tensors, depending on the
+represents numpy arrays, or pytorch tensors, depending on the
 choice of backend.
 
 The following code snippet shows the use of tangent Principal Component
@@ -264,8 +263,6 @@ This work is supported by:
 .. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Coverage Status autograd| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=autograd
-   :target: https://codecov.io/gh/geomstats/geomstats
-.. |Coverage Status tf| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Coverage Status torch| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch
    :target: https://codecov.io/gh/geomstats/geomstats
