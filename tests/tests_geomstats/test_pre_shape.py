@@ -6,7 +6,7 @@ import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
-from tests.conftest import Parametrizer, np_autograd_and_torch_only
+from tests.conftest import Parametrizer
 from tests.data.pre_shape_data import (
     KendallShapeMetricTestData,
     PreShapeMetricTestData,

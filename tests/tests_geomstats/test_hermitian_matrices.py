@@ -2,7 +2,6 @@
 
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
 from tests.conftest import Parametrizer
 from tests.data.hermitian_matrices_data import HermitianMatricesTestData

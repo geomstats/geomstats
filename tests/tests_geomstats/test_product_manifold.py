@@ -63,7 +63,6 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
     testing_data = ProductRiemannianMetricTestData()
 
-    
     def test_inner_product_matrix(
         self, manifolds, default_point_type, point, base_point
     ):

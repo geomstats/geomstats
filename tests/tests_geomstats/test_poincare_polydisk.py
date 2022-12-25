@@ -1,7 +1,6 @@
 """Unit tests for the Poincare Polydisk."""
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 from tests.conftest import Parametrizer, TestCase
 from tests.data.poincare_polydisk_data import (

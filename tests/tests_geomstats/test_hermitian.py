@@ -2,7 +2,6 @@
 
 
 import geomstats.backend as gs
-import tests.conftest
 from tests.conftest import Parametrizer
 from tests.data.hermitian_data import HermitianMetricTestData, HermitianTestData
 from tests.geometry_test_cases import (

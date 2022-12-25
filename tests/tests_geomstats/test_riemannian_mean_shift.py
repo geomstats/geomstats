@@ -12,7 +12,7 @@ from geomstats.learning.riemannian_mean_shift import (
 
 class TestRiemannianMeanShift(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
-    
+
     def test_hypersphere_predict(self):
         gs.random.seed(1234)
 
@@ -39,7 +39,6 @@ class TestRiemannianMeanShift(tests.conftest.TestCase):
 
         self.assertAllClose(expected, result)
 
-    
     def test_single_cluster(self):
         gs.random.seed(10)
 

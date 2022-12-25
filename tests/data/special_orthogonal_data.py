@@ -64,7 +64,6 @@ angles_close_to_pi_all = [
 angles_close_to_pi = angles_close_to_pi_all
 
 
-
 class SpecialOrthogonalTestData(_LieGroupTestData):
     Space = SpecialOrthogonal
 

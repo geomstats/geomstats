@@ -4,10 +4,13 @@ NumPy backend does not offer automatic differentiation.
 The following functions return error messages.
 """
 
-_USE_OTHER_BACKEND_MSG = ("Automatic differentiation is not supported with numpy backend. "
-        "Use autograd or pytorch backend instead.\n"
-        "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal.")
+_USE_OTHER_BACKEND_MSG = (
+    "Automatic differentiation is not supported with numpy backend. "
+    "Use autograd or pytorch backend instead.\n"
+    "Change backend via the command "
+    "export GEOMSTATS_BACKEND=autograd in a terminal."
+)
+
 
 def detach(x):
     """Return a new tensor detached from the current graph.

@@ -1,6 +1,5 @@
 """Unit tests for the Sasaki metric."""
 
-import tests.conftest
 from tests.conftest import Parametrizer
 from tests.data.sasaki_metric_data import SasakiMetricTestData
 from tests.geometry_test_cases import TestCase

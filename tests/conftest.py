@@ -23,6 +23,7 @@ def pytorch_backend():
     """Check if pytorch is set as backend."""
     return gs.__name__.endswith("pytorch")
 
+
 if pytorch_backend():
     import torch
 

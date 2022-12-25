@@ -1,7 +1,6 @@
 """Unit tests for the manifold of matrices."""
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer
 from tests.data.matrices_data import MatricesMetricTestData, MatricesTestData

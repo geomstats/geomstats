@@ -3,7 +3,6 @@
 import scipy.special
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
 from tests.conftest import Parametrizer, np_backend

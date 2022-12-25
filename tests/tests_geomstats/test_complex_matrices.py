@@ -1,7 +1,6 @@
 """Unit tests for the manifold of complex matrices."""
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from tests.conftest import Parametrizer
 from tests.data.complex_matrices_data import (
