@@ -1,7 +1,6 @@
 """Checks and associated errors."""
 
 import math
-import os
 
 import geomstats.backend as gs
 
