@@ -35,7 +35,6 @@ class TestBetaDistributions(OpenSetTestCase, metaclass=Parametrizer):
 
 
 class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-
     skip_test_exp_shape = True  # because several base points for one vector
     skip_test_log_shape = TF_OR_PYTORCH_BACKEND
     skip_test_exp_belongs = TF_OR_PYTORCH_BACKEND
@@ -63,6 +62,7 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
     skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
     skip_test_sectional_curvature_shape = NOT_AUTOGRAD
+    skip_test_estimate_and_belongs_se = True
 
     testing_data = BetaMetricTestData()
     Space = testing_data.Space

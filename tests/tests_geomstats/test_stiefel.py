@@ -47,6 +47,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
     skip_test_sectional_curvature_shape = True
     skip_test_squared_dist_is_positive = True
     skip_test_triangle_inequality_of_dist = True
+    skip_test_dist_is_positive = True
 
     testing_data = StiefelCanonicalMetricTestData()
 
