@@ -9,7 +9,7 @@ Geomstats
    * - **Continuous Integration**
      - |Build Status|\ |python|\
    * - **Code coverage**
-     - |Coverage Status numpy|\ |Coverage Status autograd|\ |Coverage Status tf|\ |Coverage Status torch|
+     - |Coverage Status np|\ |Coverage Status autograd|\ |Coverage Status torch|
    * - **Documentation**
      - |doc|\  |binder|\ |tutorial|\
    * - **Community**
