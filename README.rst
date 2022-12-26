@@ -265,8 +265,6 @@ This work is supported by:
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Coverage Status autograd| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=autograd
    :target: https://codecov.io/gh/geomstats/geomstats
-.. |Coverage Status tf| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow
-   :target: https://codecov.io/gh/geomstats/geomstats
 .. |Coverage Status torch| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
