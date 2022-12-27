@@ -8,10 +8,8 @@ Geomstats
      - |PyPI version|\ |Downloads|\  |Zenodo|\
    * - **Continuous Integration**
      - |Build Status|\ |python|\
-   * - **Code coverage (numpy)**
-     - |Coverage Status np|\
-   * - **Code coverage (autograd, pytorch)**
-     - |Coverage Status autograd|\ |Coverage Status tf|\ |Coverage Status torch|
+   * - **Code coverage (np, autograd, torch)**
+     - |Coverage Status np|\ |Coverage Status autograd|\ |Coverage Status torch|
    * - **Documentation**
      - |doc|\  |binder|\ |tutorial|\
    * - **Community**
