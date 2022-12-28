@@ -331,7 +331,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp, atol=gs.atol * 10)
 
 
-class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True

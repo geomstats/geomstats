@@ -187,7 +187,7 @@ you need to follow three steps:
 * run the algorithm.
 
 The data should be represented by a ``gs.array``. This structure
-represents numpy arrays, or pytorch tensors, depending on the
+represents numpy arrays, autograd or pytorch tensors, depending on the
 choice of backend.
 
 The following code snippet shows the use of tangent Principal Component

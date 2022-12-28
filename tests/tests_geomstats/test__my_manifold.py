@@ -14,7 +14,7 @@ To run these tests:
 ```nose2 tests.test__my_manifold.TestMyManifold.test_dimension```
 to run the test `test_dimension` only.
 
-To run these tests using different backends (numpy orpytorch):
+To run these tests using different backends (numpy or pytorch):
 - Install packages from geomstats[opt]
 In command line, select the backend of interest with:
 ```export GEOMSTATS_BACKEND=numpy```

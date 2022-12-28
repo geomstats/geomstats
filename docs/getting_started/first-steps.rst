@@ -38,7 +38,7 @@ From a terminal (OS X & Linux), you can install geomstats and its requirements v
     cd geomstats
     pip3 install .
 
-This methods installs the `latest GitHub version <https://github.com/geomstats/geomstats>`_. Developers should install this version, together with the development requirements and the optional requirements to enable the ``pytorch`` backend::
+This methods installs the `latest GitHub version <https://github.com/geomstats/geomstats>`_. Developers should install this version, together with the development requirements and the optional requirements to enable the ``autograd`` and ``pytorch`` backends::
 
     pip3 install .[dev,opt]
 
