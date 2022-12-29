@@ -126,7 +126,7 @@ Install geomstats : Developers
 ------------------------------
 
 Developers should git clone the master branch of this repository, together with the development requirements
-and the optional requirements to enable ``pytorch`` backends:
+and the optional requirements to enable ``autograd`` and ``pytorch`` backends:
 
 ::
 
@@ -180,10 +180,10 @@ Getting started
 ---------------
 
 To use ``geomstats`` for learning algorithms on Riemannian manifolds,
-you need to follow three steps: 
+you need to follow three steps:
 
 * instantiate the manifold of interest,
-* instantiate the learning algorithm of interest, 
+* instantiate the learning algorithm of interest,
 * run the algorithm.
 
 The data should be represented by a ``gs.array``. This structure
