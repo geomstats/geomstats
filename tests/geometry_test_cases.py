@@ -653,11 +653,7 @@ class ConnectionTestCase(TestCase):
             Expected shape for the result of the log function.
         """
         connection = self.Metric(*connection_args)
-        print("HELLO")
-        print(point.shape)
-        print(base_point.shape)
         log = connection.log(gs.array(point), gs.array(base_point))
-        print(log.shape)
         result = gs.shape(log)
         self.assertAllClose(result, expected)
 
