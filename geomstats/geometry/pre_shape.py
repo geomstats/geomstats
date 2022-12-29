@@ -796,9 +796,10 @@ class PreShapeMetric(RiemannianMetric):
         flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
         flat_pt = gs.reshape(point, (-1, self.sphere_metric.dim + 1))
         flat_log = self.sphere_metric.log(flat_pt, flat_bp)
-        try:
+
+        if gs.prod(gs.array(flat_log.shape)) == gs.prod(gs.array(base_point.shape)):
             log = gs.reshape(flat_log, base_point.shape)
-        except RuntimeError:
+        else:
             log = gs.reshape(flat_log, point.shape)
         return log
 
