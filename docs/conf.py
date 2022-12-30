@@ -2,6 +2,7 @@
 
 import geomstats
 
+
 project = "Geomstats"
 copyright = "2022-2023, Geomstats, Inc."
 author = "Geomstats Team"
