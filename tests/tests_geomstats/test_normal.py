@@ -4,7 +4,7 @@ import pytest
 from scipy.stats import multivariate_normal
 
 import geomstats.backend as gs
-from tests.conftest import Parametrizer, np_backend, tf_backend
+from tests.conftest import Parametrizer
 from tests.data.normal_data import (
     CenteredNormalDistributionsTestData,
     CenteredNormalMetricTestData,
@@ -18,13 +18,9 @@ from tests.geometry_test_cases import (
     RiemannianMetricTestCase,
 )
 
-TF_BACKEND = tf_backend()
-NP_BACKEND = np_backend()
-
 
 class TestCenteredNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = CenteredNormalDistributionsTestData()
-    skip_all = TF_BACKEND
 
     @pytest.mark.skip(reason="Flaky test.")
     def test_belongs(self, sample_dim, point, expected):
@@ -62,7 +58,6 @@ class TestCenteredNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
 
 class TestDiagonalNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = DiagonalNormalDistributionsTestData()
-    skip_all = TF_BACKEND
 
     @pytest.mark.skip(reason="Flaky test.")
     def test_belongs(self, sample_dim, point, expected):
@@ -100,7 +95,6 @@ class TestDiagonalNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
 
 class TestGeneralNormalDistributions(ManifoldTestCase, metaclass=Parametrizer):
     testing_data = GeneralNormalDistributionsTestData()
-    skip_all = TF_BACKEND
 
     def test_unstack_mean_covariance(
         self, sample_dim, point, mean_expected, cov_expected
@@ -158,8 +152,6 @@ class TestCenteredNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer)
     skip_test_covariant_riemann_tensor_bianchi_identity = True
     skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
     skip_test_sectional_curvature_shape = True
-    skip_test_exp_belongs = True
-    skip_all = TF_BACKEND
 
     testing_data = CenteredNormalMetricTestData()
     Space = testing_data.Space
@@ -200,7 +192,6 @@ class TestDiagonalNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer)
     skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
     skip_test_sectional_curvature_shape = True
     skip_test_log_after_exp = True
-    skip_all = TF_BACKEND
 
     testing_data = DiagonalNormalMetricTestData()
     Space = testing_data.Space

@@ -95,7 +95,7 @@ def _expected_inverse_sphere_metric_matrix(point):
     return mat
 
 
-@tests.conftest.autograd_tf_and_torch_only
+@tests.conftest.autograd_and_torch_only
 class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
     testing_data = PullbackMetricTestData()

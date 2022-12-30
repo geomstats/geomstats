@@ -3,7 +3,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
-from tests.conftest import Parametrizer, TestCase, autograd_tf_and_torch_only
+from tests.conftest import Parametrizer, TestCase, autograd_and_torch_only
 from tests.data.full_rank_correlation_matrices_data import (
     CorrelationMatricesBundleTestData,
     FullRankcorrelationAffineQuotientMetricTestData,
@@ -75,7 +75,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
         result = gs.all(bundle.is_vertical(proj, gs.array(mat)))
         self.assertTrue(result)
 
-    @autograd_tf_and_torch_only
+    @autograd_and_torch_only
     def test_log_after_align_is_horizontal(self, n, point_a, point_b):
         bundle = self.Space(n)
         aligned = bundle.align(point_a, point_b, tol=1e-10)
@@ -97,7 +97,7 @@ class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametriz
     Space = testing_data.Space
     Metric = testing_data.Metric
 
-    @autograd_tf_and_torch_only
+    @autograd_and_torch_only
     def test_exp_log_composition(self, dim, point):
         metric = self.Metric(dim)
         log = metric.log(point[1], point[0])

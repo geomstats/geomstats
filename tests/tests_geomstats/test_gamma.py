@@ -4,19 +4,13 @@ from scipy.stats import gamma
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import (
-    Parametrizer,
-    autograd_backend,
-    np_backend,
-    pytorch_backend,
-    tf_backend,
-)
+from tests.conftest import Parametrizer, autograd_backend, np_backend, pytorch_backend
 from tests.data.gamma_data import GammaMetricTestData, GammaTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()
+PYTORCH_BACKEND = pytorch_backend()
 
-NOT_AUTOGRAD = tf_backend() or pytorch_backend() or np_backend()
+NOT_AUTOGRAD = pytorch_backend() or np_backend()
 
 
 class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
@@ -128,15 +122,14 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = GammaMetricTestData()
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_metric_matrix_shape(self, point, expected):
         return self.assertAllClose(self.Metric().metric_matrix(point).shape, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_christoffels_vectorization(self, point, expected):
         return self.assertAllClose(self.Metric().christoffels(point), expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_christoffels_shape(self, point, expected):
         return self.assertAllClose(
             self.Metric().christoffels(base_point=point).shape,

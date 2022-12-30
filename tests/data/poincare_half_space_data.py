@@ -3,7 +3,6 @@ import random
 import numpy as np
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
@@ -135,16 +134,15 @@ class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
 
         inputs_to_exp = [(gs.array([2.0, 1.0]), gs.array([1.0, 1.0]))]
         smoke_data = []
-        if not tests.conftest.tf_backend():
-            for tangent_vec, base_point in inputs_to_exp:
-                smoke_data.append(
-                    dict(
-                        dim=2,
-                        tangent_vec=tangent_vec,
-                        base_point=base_point,
-                        expected=_exp(tangent_vec, base_point),
-                    )
+        for tangent_vec, base_point in inputs_to_exp:
+            smoke_data.append(
+                dict(
+                    dim=2,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    expected=_exp(tangent_vec, base_point),
                 )
+            )
         return self.generate_tests(smoke_data)
 
     def retraction_lifting_test_data(self):
