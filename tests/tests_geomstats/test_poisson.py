@@ -4,13 +4,13 @@ from scipy.stats import poisson
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
+from tests.conftest import Parametrizer, np_backend, pytorch_backend
 from tests.data.poisson_data import PoissonMetricTestData, PoissonTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()
+TF_OR_PYTORCH_BACKEND = pytorch_backend()
 
-NOT_AUTOGRAD = tf_backend() or pytorch_backend() or np_backend()
+NOT_AUTODIFF = np_backend()
 
 
 class TestPoisson(OpenSetTestCase, metaclass=Parametrizer):
@@ -31,7 +31,8 @@ class TestPoisson(OpenSetTestCase, metaclass=Parametrizer):
         point = gs.to_ndarray(point, 1)
         n_points = point.shape[0]
         pmf = self.Space().point_to_pmf(point)
-        samples = gs.to_ndarray(self.Space().sample(point, n_samples), 1)
+        point_to_sample = point[0] if point.ndim > 1 else point
+        samples = gs.to_ndarray(self.Space().sample(point_to_sample, n_samples), 1)
         result = gs.squeeze(pmf(samples))
         pmf = []
         for i in range(n_points):
@@ -44,14 +45,14 @@ class TestPoissonMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_ladder_parallel_transport = True
-    skip_test_riemann_tensor_shape = NOT_AUTOGRAD
-    skip_test_ricci_tensor_shape = NOT_AUTOGRAD
-    skip_test_scalar_curvature_shape = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
-    skip_test_sectional_curvature_shape = NOT_AUTOGRAD
+    skip_test_riemann_tensor_shape = NOT_AUTODIFF
+    skip_test_ricci_tensor_shape = NOT_AUTODIFF
+    skip_test_scalar_curvature_shape = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTODIFF
+    skip_test_sectional_curvature_shape = NOT_AUTODIFF
     testing_data = PoissonMetricTestData()
     Space = testing_data.Space
 

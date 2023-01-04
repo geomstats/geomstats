@@ -5,7 +5,7 @@ from geomstats.information_geometry.poisson import (
     PoissonDistributions,
     PoissonMetric,
 )
-from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
+from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData, generate_random_vec
 
 
 class PoissonTestData(_OpenSetTestData):
@@ -112,24 +112,24 @@ class PoissonMetricTestData(_RiemannianMetricTestData):
     def squared_dist_test_data(self):
         smoke_data = [
             dict(
-                point_a=gs.array([1, 0.5, 10]),
-                point_b=gs.array([2, 3.5, 70]),
-                expected=gs.array([0.48045301, 3.78656631, 3.78656631]),
+                point_a=gs.array([1, 3, 0.1]),
+                point_b=gs.array([4, 3, 0.9]),
+                expected=gs.array([4., 0., 1.6]),
             ),
             dict(
                 point_a=gs.array(0.1),
-                point_b=gs.array(0.99),
-                expected=gs.array(5.255715612697455),
+                point_b=gs.array(4.9),
+                expected=gs.array(14.4),
             ),
             dict(
                 point_a=gs.array(0.1),
-                point_b=gs.array([0.99, 0.2]),
-                expected=gs.array([5.255715612697455, 0.48045301]),
+                point_b=gs.array([4.9, 0.9]),
+                expected=gs.array([14.4, 1.6]),
             ),
             dict(
-                point_a=gs.array([0.99, 0.2]),
+                point_a=gs.array([4.9, 0.4]),
                 point_b=gs.array(0.1),
-                expected=gs.array([5.255715612697455, 0.48045301]),
+                expected=gs.array([14.4, 0.4]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -138,11 +138,11 @@ class PoissonMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 point=gs.array([0.5]),
-                expected=gs.array([[4.0]]),
+                expected=gs.array([[2]]),
             ),
             dict(
                 point=gs.array([[0.5], [0.2]]),
-                expected=gs.array([[[4.0]], [[25.0]]]),
+                expected=gs.array([[[2]], [[5]]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -151,4 +151,28 @@ class PoissonMetricTestData(_RiemannianMetricTestData):
         random_data = []
         for space_args in self.space_args_list:
             random_data.append(dict(space_args=space_args))
+        return self.generate_tests([], random_data)
+
+    def log_after_exp_test_data(self):
+        random_data = []
+        for connection_args, space, shape, n_tangent_vecs in zip(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            base_point = space.random_point()
+            base_point_type = base_point.dtype
+            random_vec = generate_random_vec(
+                shape=(n_tangent_vecs,) + shape, dtype=base_point_type
+            )
+            random_vec = gs.where(random_vec > 0, random_vec, -random_vec)
+            tangent_vec = space.to_tangent(random_vec, base_point)
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                )
+            )
         return self.generate_tests([], random_data)

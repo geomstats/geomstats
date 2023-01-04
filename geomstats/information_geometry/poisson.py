@@ -151,6 +151,10 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
                 parameters provided by point.
             """
             k = gs.reshape(gs.array(k), (-1,))
+            k_shape = gs.ones_like(k)
+            point_shape = gs.ones_like(point)
+            point_aux = gs.einsum("...i,j->...j", point, k_shape)
+            k_aux = gs.einsum("...i,j->...j", point_shape, k)
             point_aux, k_aux = gs.broadcast_arrays(point, k)
             return point_aux ** k_aux * gs.exp(-point_aux) / factorial(k_aux)
 
@@ -176,7 +180,7 @@ class PoissonMetric(RiemannianMetric):
         ----------
         point_a : array-like, shape=[..., 1]
             Point representing an Poisson distribution (lambda parameter).
-        point_b : array-like, shape=[..., 1] (same shape as point_a)
+        point_b : array-like, shape=[..., 1]
             Point representing a Poisson distribution (lambda parameter).
 
         Returns
@@ -184,7 +188,8 @@ class PoissonMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Squared distance between points point_a and point_b.
         """
-        return gs.squeeze(4 * (point_a - 2 * gs.sqrt(point_a) * gs.sqrt(point_b) + point_b))
+        point_a, point_b = gs.broadcast_arrays(point_a, point_b)
+        return gs.squeeze(4 * (point_a - 2 * gs.sqrt(point_a * point_b) + point_b))
 
     def metric_matrix(self, base_point):
         """Compute the metric matrix at the tangent space at base_point.
@@ -239,7 +244,7 @@ class PoissonMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, 1]
                 Values of the geodesic at times t.
             """
-            t = gs.reshape(gs.array(t), (-1,))
+            # t = gs.reshape(gs.array(t), (-1,))
             return gs.expand_dims((constant_a * t + constant_b) ** 2, axis=-1)
 
         return path
@@ -281,7 +286,7 @@ class PoissonMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, 1]
                 Values of the geodesic at times t.
             """
-            t = gs.reshape(gs.array(t), (-1,))
+            # t = gs.reshape(gs.array(t), (-1,))
             return gs.expand_dims((constant_a * t + constant_b) ** 2, axis=-1)
 
         return path
