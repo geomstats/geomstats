@@ -146,7 +146,7 @@ class RiemannianMetric(Connection, ABC):
             Derivative of the inner-product matrix, where the index
             k of the derivation is last: math:`mat_{ijk} = \partial_k g_{ij}`.
         """
-        metric_derivative = gs.autodiff.jacobian(self.metric_matrix)
+        metric_derivative = gs.autodiff.jacobian_vec(self.metric_matrix)
         return metric_derivative(base_point)
 
     def christoffels(self, base_point):

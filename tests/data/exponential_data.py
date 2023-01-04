@@ -84,6 +84,10 @@ class ExponentialTestData(_OpenSetTestData):
                 point=self.Space().random_point(4),
                 n_samples=1,
             ),
+            dict(
+                point=self.Space().random_point(4),
+                n_samples=4,
+            ),
         ]
         return self.generate_tests([], random_data)
 

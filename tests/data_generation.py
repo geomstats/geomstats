@@ -968,7 +968,7 @@ class _ConnectionTestData(TestData):
             random_data.append(
                 dict(
                     connection_args=connection_args,
-                    base_point=better_squeeze(base_point),
+                    base_point=base_point,
                     expected=expected_shape,
                 )
             )
@@ -999,7 +999,7 @@ class _ConnectionTestData(TestData):
             random_data.append(
                 dict(
                     connection_args=connection_args,
-                    base_point=better_squeeze(base_point),
+                    base_point=base_point,
                     expected=expected_shape,
                 )
             )
@@ -1028,7 +1028,7 @@ class _ConnectionTestData(TestData):
             random_data.append(
                 dict(
                     connection_args=connection_args,
-                    base_point=better_squeeze(base_point),
+                    base_point=base_point,
                     expected=expected_shape,
                 )
             )
@@ -1344,17 +1344,14 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         ):
             base_point = space.random_point(n_points)
             size = (n_tangent_vecs,) + shape if n_points == 1 else (n_points,) + shape
-            tangent_vec_a = gs.squeeze(
-                space.to_tangent(
-                    gs.random.normal(size=size),
-                    base_point,
-                )
+            tangent_vec_a = space.to_tangent(
+                gs.random.normal(size=size),
+                base_point,
             )
-            tangent_vec_b = gs.squeeze(
-                space.to_tangent(
-                    gs.random.normal(size=size),
-                    base_point,
-                )
+
+            tangent_vec_b = space.to_tangent(
+                gs.random.normal(size=size),
+                base_point,
             )
             random_data.append(
                 dict(

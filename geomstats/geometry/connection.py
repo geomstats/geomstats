@@ -458,17 +458,9 @@ class Connection(ABC):
             raise NotImplementedError(
                 "Riemann tensor not implemented for manifolds with points of ndim > 1."
             )
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
         christoffels = self.christoffels(base_point)
-        jacobian_christoffels = gs.squeeze(
-            gs.stack(
-                [
-                    gs.autodiff.jacobian(self.christoffels)(point)
-                    for point in base_point
-                ],
-                axis=0,
-            )
-        )
+        jacobian_christoffels = gs.autodiff.jacobian_vec(self.christoffels)(base_point)
+
         prod_christoffels = gs.einsum(
             "...ijk,...klm->...ijlm", christoffels, christoffels
         )
@@ -478,8 +470,6 @@ class Connection(ABC):
             + gs.einsum("...ijlm->...mjli", prod_christoffels)
             - gs.einsum("...ijlm->...lmji", prod_christoffels)
         )
-        if riemann_curvature.ndim == 5 and base_point.ndim == 1:
-            riemann_curvature = riemann_curvature[0]
 
         return riemann_curvature
 

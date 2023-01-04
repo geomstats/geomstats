@@ -43,7 +43,7 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
         """
         return gs.squeeze(point >= atol)
 
-    def random_point(self, n_samples=1, bound=1.0):
+    def random_point(self, n_samples=1, lower_bound=0.1, upper_bound=1.0):
         """Sample parameters of exponential distributions.
 
         The uniform distribution on [0, bound] is used.
@@ -63,7 +63,7 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             Sample of points representing exponential distributions.
         """
         size = (n_samples, self.dim) if n_samples != 1 else (self.dim,)
-        return bound * gs.random.rand(*size)
+        return (upper_bound - lower_bound) * gs.random.rand(*size) + lower_bound
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
@@ -146,7 +146,10 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             pdf_at_x : array-like, shape=[..., n_points]
             """
             x = gs.reshape(gs.array(x), (-1,))
-            point_aux, x_aux = gs.broadcast_arrays(point, x)
+            x_shape = gs.ones_like(x)
+            point_shape = gs.ones_like(point)
+            point_aux = gs.einsum("...i,j->...j", point, x_shape)
+            x_aux = gs.einsum("...i,j->...j", point_shape, x)
             pdf_at_x_aux = point_aux * gs.exp(-point_aux * x_aux)
             return gs.where(x_aux >= 0, pdf_at_x_aux, 0.0)
 
@@ -172,7 +175,7 @@ class ExponentialMetric(RiemannianMetric):
         ----------
         point_a : array-like, shape=[..., 1]
             Point representing an exponential distribution (scale parameter).
-        point_b : array-like, shape=[..., 1] (same shape as point_a)
+        point_b : array-like, shape=[..., 1]
             Point representing a exponential distribution (scale parameter).
 
         Returns
@@ -180,6 +183,7 @@ class ExponentialMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Squared distance between points point_a and point_b.
         """
+        point_a, point_b = gs.broadcast_arrays(point_a, point_b)
         return gs.squeeze(gs.log(point_a / point_b) ** 2)
 
     def metric_matrix(self, base_point):

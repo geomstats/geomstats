@@ -4,13 +4,11 @@ from scipy.stats import binom
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
+from tests.conftest import Parametrizer, np_backend
 from tests.data.binomial_data import BinomialMetricTestData, BinomialTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()
-
-NOT_AUTOGRAD = tf_backend() or pytorch_backend() or np_backend()
+NOT_AUTODIFF = np_backend()
 
 
 class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
@@ -32,7 +30,10 @@ class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
         point = gs.to_ndarray(point, 1)
         n_points = point.shape[0]
         pmf = self.Space(n_draws).point_to_pmf(point)
-        samples = gs.to_ndarray(self.Space(n_draws).sample(point, n_samples), 1)
+        point_to_sample = point[0] if point.ndim > 1 else point
+        samples = gs.to_ndarray(
+            self.Space(n_draws).sample(point_to_sample, n_samples), 1
+        )
         result = gs.squeeze(pmf(samples))
         pmf = []
         for i in range(n_points):
@@ -45,14 +46,14 @@ class TestBinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_ladder_parallel_transport = True
-    skip_test_riemann_tensor_shape = NOT_AUTOGRAD
-    skip_test_ricci_tensor_shape = NOT_AUTOGRAD
-    skip_test_scalar_curvature_shape = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
-    skip_test_sectional_curvature_shape = NOT_AUTOGRAD
+    skip_test_riemann_tensor_shape = NOT_AUTODIFF
+    skip_test_ricci_tensor_shape = NOT_AUTODIFF
+    skip_test_scalar_curvature_shape = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTODIFF
+    skip_test_sectional_curvature_shape = NOT_AUTODIFF
     testing_data = BinomialMetricTestData()
     Space = testing_data.Space
 
