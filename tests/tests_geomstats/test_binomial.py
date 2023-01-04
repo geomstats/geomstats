@@ -31,7 +31,9 @@ class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
         n_points = point.shape[0]
         pmf = self.Space(n_draws).point_to_pmf(point)
         point_to_sample = point[0] if point.ndim > 1 else point
-        samples = gs.to_ndarray(self.Space(n_draws).sample(point_to_sample, n_samples), 1)
+        samples = gs.to_ndarray(
+            self.Space(n_draws).sample(point_to_sample, n_samples), 1
+        )
         result = gs.squeeze(pmf(samples))
         pmf = []
         for i in range(n_points):

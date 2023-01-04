@@ -149,11 +149,11 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             -------
             pmf_at_k : array-like, shape=[..., n_points]
             """
-            k = gs.reshape(gs.array(k),(-1,))
+            k = gs.reshape(gs.array(k), (-1,))
             k_shape = gs.ones_like(k)
             point_shape = gs.ones_like(point)
-            point_aux = gs.einsum('...i,j->...j',point,k_shape)
-            k_aux = gs.einsum('...i,j->...j',point_shape,k)
+            point_aux = gs.einsum("...i,j->...j", point, k_shape)
+            k_aux = gs.einsum("...i,j->...j", point_shape, k)
             return (
                 (
                     factorial(self.n_draws)
