@@ -108,6 +108,11 @@ class BinomialTestData(_OpenSetTestData):
                 point=self.Space(2).random_point(4),
                 n_samples=1,
             ),
+            dict(
+                n_draws=5,
+                point=self.Space(5).random_point(2),
+                n_samples=3,
+            ),
         ]
         return self.generate_tests([], random_data)
 

@@ -29,7 +29,8 @@ class TestExponential(OpenSetTestCase, metaclass=Parametrizer):
         point = gs.to_ndarray(point, 1)
         n_points = point.shape[0]
         pdf = self.Space().point_to_pdf(point)
-        samples = gs.to_ndarray(self.Space().sample(point, n_samples), 1)
+        point_to_sample = point[0] if point.ndim > 1 else point
+        samples = gs.to_ndarray(self.Space().sample(point_to_sample, n_samples), 1)
         result = gs.squeeze(pdf(samples))
         pdf = []
         for i in range(n_points):
