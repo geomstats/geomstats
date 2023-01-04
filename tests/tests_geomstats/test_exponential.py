@@ -4,11 +4,11 @@ from scipy.stats import expon
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import Parametrizer, np_backend, tf_backend
+from tests.conftest import Parametrizer, np_backend
 from tests.data.exponential_data import ExponentialMetricTestData, ExponentialTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-NOT_AUTODIFF = tf_backend() or np_backend()
+NOT_AUTODIFF = np_backend()
 
 
 class TestExponential(OpenSetTestCase, metaclass=Parametrizer):
