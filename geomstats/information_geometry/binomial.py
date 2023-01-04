@@ -149,8 +149,11 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             -------
             pmf_at_k : array-like, shape=[..., n_points]
             """
-            k = gs.reshape(gs.array(k), (-1,))
-            point_aux, k_aux = gs.broadcast_arrays(point, k)
+            k = gs.reshape(gs.array(k),(-1,))
+            k_shape = gs.ones_like(k)
+            point_shape = gs.ones_like(point)
+            point_aux = gs.einsum('...i,j->...j',point,k_shape)
+            k_aux = gs.einsum('...i,j->...j',point_shape,k)
             return (
                 (
                     factorial(self.n_draws)
@@ -191,6 +194,7 @@ class BinomialMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Squared distance between points point_a and point_b.
         """
+        point_a, point_b = gs.broadcast_arrays(point_a, point_b)
         return gs.squeeze(
             4
             * self.n_draws

@@ -145,8 +145,11 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             -------
             pdf_at_x : array-like, shape=[..., n_points]
             """
-            x = gs.reshape(gs.array(x), (-1,))
-            point_aux, x_aux = gs.broadcast_arrays(point, x)
+            x = gs.reshape(gs.array(x),(-1,))
+            x_shape = gs.ones_like(x)
+            point_shape = gs.ones_like(point)
+            point_aux = gs.einsum('...i,j->...j',point,x_shape)
+            x_aux = gs.einsum('...i,j->...j',point_shape,x)
             pdf_at_x_aux = point_aux * gs.exp(-point_aux * x_aux)
             return gs.where(x_aux >= 0, pdf_at_x_aux, 0.0)
 
@@ -180,6 +183,7 @@ class ExponentialMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Squared distance between points point_a and point_b.
         """
+        point_a, point_b = gs.broadcast_arrays(point_a, point_b)
         return gs.squeeze(gs.log(point_a / point_b) ** 2)
 
     def metric_matrix(self, base_point):
