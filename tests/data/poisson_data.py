@@ -5,7 +5,11 @@ from geomstats.information_geometry.poisson import (
     PoissonDistributions,
     PoissonMetric,
 )
-from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData, generate_random_vec
+from tests.data_generation import (
+    _OpenSetTestData,
+    _RiemannianMetricTestData,
+    generate_random_vec,
+)
 
 
 class PoissonTestData(_OpenSetTestData):
@@ -114,7 +118,7 @@ class PoissonMetricTestData(_RiemannianMetricTestData):
             dict(
                 point_a=gs.array([1, 3, 0.1]),
                 point_b=gs.array([4, 3, 0.9]),
-                expected=gs.array([4., 0., 1.6]),
+                expected=gs.array([4.0, 0.0, 1.6]),
             ),
             dict(
                 point_a=gs.array(0.1),

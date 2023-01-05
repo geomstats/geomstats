@@ -155,7 +155,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
             point_shape = gs.ones_like(point)
             point_aux = gs.einsum("...i,j->...j", point, k_shape)
             k_aux = gs.einsum("...i,j->...j", point_shape, k)
-            return point_aux ** k_aux * gs.exp(-point_aux) / factorial(k_aux)
+            return point_aux**k_aux * gs.exp(-point_aux) / factorial(k_aux)
 
         return pmf
 
