@@ -155,7 +155,6 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
             point_shape = gs.ones_like(point)
             point_aux = gs.einsum("...i,j->...j", point, k_shape)
             k_aux = gs.einsum("...i,j->...j", point_shape, k)
-            point_aux, k_aux = gs.broadcast_arrays(point, k)
             return point_aux ** k_aux * gs.exp(-point_aux) / factorial(k_aux)
 
         return pmf
@@ -244,7 +243,6 @@ class PoissonMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, 1]
                 Values of the geodesic at times t.
             """
-            # t = gs.reshape(gs.array(t), (-1,))
             return gs.expand_dims((constant_a * t + constant_b) ** 2, axis=-1)
 
         return path
@@ -286,7 +284,6 @@ class PoissonMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, 1]
                 Values of the geodesic at times t.
             """
-            # t = gs.reshape(gs.array(t), (-1,))
             return gs.expand_dims((constant_a * t + constant_b) ** 2, axis=-1)
 
         return path
