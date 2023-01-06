@@ -186,7 +186,6 @@ class CholeskyMetric(RiemannianMetric):
     """
 
     def __init__(self, n):
-        """ """
         dim = int(n * (n + 1) / 2)
         super().__init__(dim=dim, signature=(dim, 0), shape=(n, n))
         self.n = n
