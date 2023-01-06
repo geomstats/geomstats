@@ -26,16 +26,25 @@ _logm_vec = _cast_fout_to_input_dtype(
     target=_np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
 )
 
-
 def _is_symmetric(x, tol=atol):
     new_x = _to_ndarray(x, to_ndim=3)
     return (_np.abs(new_x - _np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
+
+def _is_hermitian(x, tol=atol):
+    new_x = _to_ndarray(x, to_ndim=3)
+    return (_np.abs(new_x - _np.conj(_np.transpose(new_x, axes=(0, 2, 1)))) < tol).all()
 
 
 def logm(x):
     ndim = x.ndim
     new_x = _to_ndarray(x, to_ndim=3)
-    if _is_symmetric(new_x):
+    
+    if new_x.dtype in [_np.complex64, _np.complex128]:
+        herm_or_sym = _is_hermitian(new_x)
+    else:
+        herm_or_sym = _is_symmetric(new_x)
+
+    if herm_or_sym:
         eigvals, eigvecs = _np.linalg.eigh(new_x)
         if (eigvals > 0).all():
             eigvals = _np.log(eigvals)
@@ -90,8 +99,7 @@ def is_single_matrix_pd(mat):
     if mat.shape[0] != mat.shape[1]:
         return False
     if mat.dtype in [_np.complex64, _np.complex128]:
-        is_hermitian = _np.all(_np.abs(mat - _np.conj(_np.transpose(mat))) < atol)
-        if not is_hermitian:
+        if not _is_hermitian(mat):
             return False
         eigvals = _np.linalg.eigvalsh(mat)
         return _np.min(_np.real(eigvals)) > 0
