@@ -26,9 +26,11 @@ _logm_vec = _cast_fout_to_input_dtype(
     target=_np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
 )
 
+
 def _is_symmetric(x, tol=atol):
     new_x = _to_ndarray(x, to_ndim=3)
     return (_np.abs(new_x - _np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
+
 
 def _is_hermitian(x, tol=atol):
     new_x = _to_ndarray(x, to_ndim=3)
