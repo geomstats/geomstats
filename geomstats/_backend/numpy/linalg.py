@@ -38,13 +38,8 @@ def _is_hermitian(x, tol=atol):
 def logm(x):
     ndim = x.ndim
     new_x = _to_ndarray(x, to_ndim=3)
-    
-    if new_x.dtype in [_np.complex64, _np.complex128]:
-        herm_or_sym = _is_hermitian(new_x)
-    else:
-        herm_or_sym = _is_symmetric(new_x)
 
-    if herm_or_sym:
+    if _is_symmetric(new_x) and new_x.dtype not in [_np.complex64, _np.complex128]:
         eigvals, eigvecs = _np.linalg.eigh(new_x)
         if (eigvals > 0).all():
             eigvals = _np.log(eigvals)
