@@ -390,7 +390,11 @@ class LevelSet(Manifold, abc.ABC):
         n_batch = gs.ndim(point) - len(self.shape)
         axis = tuple(range(-len(submersed_point.shape) + n_batch, 0))
 
-        constraint = gs.isclose(submersed_point, 0.0, atol=atol)
+        if gs.is_complex(submersed_point):
+            constraint = gs.isclose(submersed_point, 0.0 + 0.0j, atol=atol)
+        else:
+            constraint = gs.isclose(submersed_point, 0.0, atol=atol)
+
         if axis:
             constraint = gs.all(constraint, axis=axis)
 
