@@ -38,7 +38,7 @@ From a terminal (OS X & Linux), you can install geomstats and its requirements v
     cd geomstats
     pip3 install .
 
-This methods installs the `latest GitHub version <https://github.com/geomstats/geomstats>`_. Developers should install this version, together with the development requirements and the optional requirements to enable ``tensorflow`` and ``pytorch`` backends::
+This methods installs the `latest GitHub version <https://github.com/geomstats/geomstats>`_. Developers should install this version, together with the development requirements and the optional requirements to enable the ``autograd`` and ``pytorch`` backends::
 
     pip3 install .[dev,opt]
 
@@ -47,9 +47,9 @@ If you use the flag ``-e``, geomstats will be installed in editable mode, i.e. l
 
 **CHOOSE THE BACKEND**
 
-Geomstats can run seemlessly with ``numpy``, ``tensorflow`` or ``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are optional, as geomstats can be used with ``numpy`` only. By default, the ``numpy`` backend is used. The visualizations are only available with this backend.
+Geomstats can run seemlessly with ``numpy`` or ``pytorch``. Note that ``pytorch`` requirement is optional, as geomstats can be used with ``numpy`` only. By default, the ``numpy`` backend is used. The visualizations are only available with this backend.
 
-To get the ``autograd``, ``tensorflow`` and ``pytorch`` versions compatible with geomstats, install the optional requirements::
+To get the ``autograd`` and ``pytorch`` versions compatible with geomstats, install the optional requirements::
 
     pip3 install geomstats[opt]
 
@@ -57,7 +57,7 @@ To install only the requirements for a given backend do::
 
     pip3 install geomstats[<backend_name>]
 
-You can choose your backend by setting the environment variable ``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd``, ``tensorflow`` or ``pytorch``, and importing the ``backend`` module. From the command line:
+You can choose your backend by setting the environment variable ``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd``  or ``pytorch``, and importing the ``backend`` module. From the command line:
 
 .. code-block:: bash
 
@@ -77,7 +77,7 @@ algorithms on Riemannian manifolds, you need to follow three steps:
 - instantiate the manifold of interest,
 - instantiate the learning algorithm of interest,
 - run the algorithm.
-The data should be represented by the structure ``gs.array``, which represents numpy arrays, tensorflow or pytorch tensors, depending on the choice of backend.
+The data should be represented by the structure ``gs.array``, which represents numpy arrays or pytorch tensors, depending on the choice of backend.
 
 As an example, the following code snippet illustrates the use of K-means
 on simulated data on the 5-dimensional hypersphere.

@@ -12,7 +12,7 @@ from geomstats.geometry.discrete_curves import (
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from tests.conftest import Parametrizer, tf_backend
+from tests.conftest import Parametrizer
 from tests.data.discrete_curves_data import (
     ClosedDiscreteCurvesTestData,
     DiscreteCurvesTestData,
@@ -77,7 +77,6 @@ class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
 
 
 class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
-    skip_test_projection_belongs = tf_backend()
     skip_test_random_tangent_vec_is_tangent = True
     skip_test_to_tangent_is_tangent = True
 
@@ -104,10 +103,6 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_dist_is_norm_of_log = tf_backend()
-    skip_test_dist_is_symmetric = tf_backend()
-    skip_test_squared_dist_is_symmetric = tf_backend()
-    skip_test_inner_product_is_symmetric = tf_backend()
     skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
     skip_test_covariant_riemann_tensor_bianchi_identity = True
@@ -147,12 +142,6 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_geodesic_bvp_belongs = True
     skip_test_geodesic_ivp_belongs = True
-    skip_test_exp_after_log = tf_backend()
-    skip_test_exp_belongs = tf_backend()
-    skip_test_exp_ladder_parallel_transport = tf_backend()
-    skip_test_inner_product_is_symmetric = tf_backend()
-    skip_test_log_after_exp = tf_backend()
-    skip_test_log_is_tangent = tf_backend()
     skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
     skip_test_covariant_riemann_tensor_bianchi_identity = True
@@ -436,8 +425,6 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_inner_product_is_symmetric = True
     skip_test_log_after_exp = True
     skip_test_log_is_tangent = True
-    skip_test_squared_dist_is_positive = tf_backend()
-    skip_test_dist_is_positive = tf_backend()
     skip_test_dist_is_norm_of_log = True
     skip_test_dist_point_to_itself_is_zero = True
     skip_test_triangle_inequality_of_dist = True
@@ -542,7 +529,6 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
     testing_data = SRVShapeBundleTestData()
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_horizontal_and_vertical_projections(
         self, times, n_discretized_curves, curve_a, curve_b
     ):
@@ -578,7 +564,6 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_horizontal_geodesic(self, k_sampling_points, curve_a, n_times):
         """Test horizontal geodesic.
         Check that the time derivative of the geodesic is
@@ -609,7 +594,6 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
 class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
     testing_data = SRVQuotientMetricTestData()
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
         """Test quotient distance.
         Check that the quotient distance is the same as the distance

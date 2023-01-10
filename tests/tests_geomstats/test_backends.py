@@ -17,26 +17,6 @@ class TestBackends(tests.conftest.TestCase):
     def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
 
-    @tests.conftest.tf_only
-    def test_vstack(self):
-        import tensorflow as tf
-
-        tensor_1 = tf.convert_to_tensor([1.0, 2.0, 3.0])
-        tensor_2 = tf.convert_to_tensor([7.0, 8.0, 9.0])
-
-        result = gs.vstack([tensor_1, tensor_2])
-        expected = tf.convert_to_tensor([[1.0, 2.0, 3.0], [7.0, 8.0, 9.0]])
-        self.assertAllClose(result, expected)
-
-        tensor_1 = tf.convert_to_tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
-        tensor_2 = tf.convert_to_tensor([7.0, 8.0, 9.0])
-
-        result = gs.vstack([tensor_1, tensor_2])
-        expected = tf.convert_to_tensor(
-            [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]
-        )
-        self.assertAllClose(result, expected)
-
     def test_cumprod(self):
         result = gs.cumprod(gs.arange(1, 10))
         expected = gs.array(([1, 2, 6, 24, 120, 720, 5040, 40320, 362880]))
@@ -459,7 +439,6 @@ class TestBackends(tests.conftest.TestCase):
         gs_result = gs.isclose(gs_array, 22.0, rtol=1e-8, atol=1e-7)
         self.assertAllCloseToNp(gs_result, np_result)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_where(self):
         # TODO (ninamiolane): Make tf behavior consistent with np
         # Currently, tf returns array, while np returns tuple
@@ -630,7 +609,6 @@ class TestBackends(tests.conftest.TestCase):
 
         self.assertAllClose(result, skew)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_general_sylvester_solve(self):
         a = gs.array([[-3.0, -2.0, 0.0], [-1.0, -1.0, 3.0], [3.0, -5.0, -1.0]])
         b = gs.array([[1.0]])

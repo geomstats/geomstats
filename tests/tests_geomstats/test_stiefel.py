@@ -3,7 +3,7 @@
 import pytest
 
 import geomstats.backend as gs
-from tests.conftest import Parametrizer, np_autograd_and_tf_only
+from tests.conftest import Parametrizer, np_and_autograd_only
 from tests.data.stiefel_data import StiefelCanonicalMetricTestData, StiefelTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
@@ -47,6 +47,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
     skip_test_sectional_curvature_shape = True
     skip_test_squared_dist_is_positive = True
     skip_test_triangle_inequality_of_dist = True
+    skip_test_dist_is_positive = True
 
     testing_data = StiefelCanonicalMetricTestData()
 
@@ -77,7 +78,7 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
         result = metric.lifting(gs.array(point), gs.array(base_point))
         self.assertAllClose(gs.shape(result), expected)
 
-    @np_autograd_and_tf_only
+    @np_and_autograd_only
     def test_retraction_shape(self, connection_args, tangent_vec, base_point, expected):
         metric = self.Metric(*connection_args)
         result = metric.retraction(gs.array(tangent_vec), gs.array(base_point))

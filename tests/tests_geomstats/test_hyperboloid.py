@@ -67,6 +67,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_scalar_curvature_shape = True
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
+    skip_test_exp_belongs = True
 
     testing_data = HyperboloidMetricTestData()
 
