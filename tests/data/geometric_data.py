@@ -228,15 +228,9 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
             random_vec = generate_random_vec(
                 shape=(n_tangent_vecs,) + shape, dtype=base_point_type
             )
-            max_tangent_vec = (
-                2
-                * base_point
-                * gs.sqrt(1 - base_point)
-                * gs.arctanh(gs.sqrt(1 - base_point))
-            )
-            random_vec = gs.where(
-                random_vec > max_tangent_vec, random_vec % max_tangent_vec, random_vec
-            )
+            max_tangent_vec = (gs.arctanh(1e-3) - gs.arctanh(gs.sqrt(1-base_point))) * 2 * base_point * gs.sqrt(1-base_point)
+            min_tangent_vec = - (gs.arctanh(gs.sqrt(1-1e-6)) - gs.arctanh(gs.sqrt(1-base_point))) * 2 * base_point * gs.sqrt(1-base_point)
+            random_vec = gs.where((random_vec > min_tangent_vec) & (random_vec < max_tangent_vec), random_vec, random_vec % (max_tangent_vec-min_tangent_vec) + min_tangent_vec)
             tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
