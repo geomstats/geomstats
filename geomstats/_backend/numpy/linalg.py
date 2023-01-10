@@ -22,10 +22,10 @@ from ._dtype import _cast_fout_to_input_dtype, _cast_out_to_input_dtype
 
 _diag_vec = _np.vectorize(_np.diag, signature="(n)->(n,n)")
 
+
 _logm_vec = _cast_fout_to_input_dtype(
     target=_np.vectorize(_scipy.linalg.logm, signature="(n,m)->(n,m)")
 )
-
 
 
 def _is_symmetric(x, tol=atol):
