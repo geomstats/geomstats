@@ -159,7 +159,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
             point_shape = gs.ones_like(point)
             point_aux = gs.einsum("...i,j->...j", point, k_shape)
             k_aux = gs.einsum("...i,j->...j", point_shape, k)
-            return (1-point_aux) ** (k_aux-1) * point_aux
+            return (1 - point_aux) ** (k_aux - 1) * point_aux
 
         return pmf
 
@@ -192,7 +192,10 @@ class GeometricMetric(RiemannianMetric):
             Squared distance between points point_a and point_b.
         """
         point_a, point_b = gs.broadcast_arrays(point_a, point_b)
-        return gs.squeeze(4 * (gs.arctanh(gs.sqrt(1-point_a))-gs.arctanh(gs.sqrt(1-point_b))) ** 2)
+        return gs.squeeze(
+            4
+            * (gs.arctanh(gs.sqrt(1 - point_a)) - gs.arctanh(gs.sqrt(1 - point_b))) ** 2
+        )
 
     def metric_matrix(self, base_point):
         """Compute the metric matrix at the tangent space at base_point.
@@ -207,7 +210,7 @@ class GeometricMetric(RiemannianMetric):
         mat : array-like, shape=[..., 1, 1]
             Metric matrix.
         """
-        return gs.expand_dims(1 / (base_point ** 2 * (1 - base_point)), axis=-1)
+        return gs.expand_dims(1 / (base_point**2 * (1 - base_point)), axis=-1)
 
     def _geodesic_ivp(self, initial_point, initial_tangent_vec):
         """Solve geodesic initial value problem.
@@ -232,7 +235,9 @@ class GeometricMetric(RiemannianMetric):
         initial_point = gs.broadcast_to(initial_point, initial_tangent_vec.shape)
 
         initial_phase = gs.arctanh(gs.sqrt(1 - initial_point))
-        frequency = - initial_tangent_vec/(2 * initial_point * gs.sqrt(1 - initial_point))
+        frequency = -initial_tangent_vec / (
+            2 * initial_point * gs.sqrt(1 - initial_point)
+        )
 
         def path(t):
             """Generate parameterized function for geodesic curve.
@@ -247,7 +252,9 @@ class GeometricMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, 1]
                 Values of the geodesic at times t.
             """
-            return gs.expand_dims(1 - gs.tanh(frequency * t + initial_phase) ** 2, axis=-1)
+            return gs.expand_dims(
+                1 - gs.tanh(frequency * t + initial_phase) ** 2, axis=-1
+            )
 
         return path
 
@@ -288,7 +295,9 @@ class GeometricMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, 1]
                 Values of the geodesic at times t.
             """
-            return gs.expand_dims(1 - gs.tanh(frequency * t + initial_phase) ** 2, axis=-1)
+            return gs.expand_dims(
+                1 - gs.tanh(frequency * t + initial_phase) ** 2, axis=-1
+            )
 
         return path
 
@@ -355,7 +364,14 @@ class GeometricMetric(RiemannianMetric):
             End point of the geodesic starting at base_point with
             initial velocity tangent_vec.
         """
-        return 1 - gs.tanh(-tangent_vec/(2*base_point*gs.sqrt(1-base_point)) + gs.arctanh(gs.sqrt(1-base_point))) ** 2
+        return (
+            1
+            - gs.tanh(
+                -tangent_vec / (2 * base_point * gs.sqrt(1 - base_point))
+                + gs.arctanh(gs.sqrt(1 - base_point))
+            )
+            ** 2
+        )
 
     def log(self, end_point, base_point):
         """Compute log map using a base point and an end point.
@@ -373,4 +389,9 @@ class GeometricMetric(RiemannianMetric):
             Initial velocity of the geodesic starting at base_point and
             reaching end_point at time 1.
         """
-        return -2 * base_point * gs.sqrt(1-base_point) * (gs.arctanh(gs.sqrt(1-end_point)) - gs.arctanh(gs.sqrt(1-base_point)))
+        return (
+            -2
+            * base_point
+            * gs.sqrt(1 - base_point)
+            * (gs.arctanh(gs.sqrt(1 - end_point)) - gs.arctanh(gs.sqrt(1 - base_point)))
+        )

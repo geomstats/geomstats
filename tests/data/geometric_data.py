@@ -166,7 +166,6 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
             random_data.append(dict(space_args=space_args))
         return self.generate_tests([], random_data)
 
-
     def log_after_exp_test_data(self):
         random_data = []
         for connection_args, space, shape, n_tangent_vecs in zip(
@@ -180,8 +179,15 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
             random_vec = generate_random_vec(
                 shape=(n_tangent_vecs,) + shape, dtype=base_point_type
             )
-            max_tangent_vec = 2 * base_point * gs.sqrt(1-base_point) *  gs.arctanh(gs.sqrt(1-base_point))
-            random_vec = gs.where(random_vec > max_tangent_vec,random_vec % max_tangent_vec,random_vec)
+            max_tangent_vec = (
+                2
+                * base_point
+                * gs.sqrt(1 - base_point)
+                * gs.arctanh(gs.sqrt(1 - base_point))
+            )
+            random_vec = gs.where(
+                random_vec > max_tangent_vec, random_vec % max_tangent_vec, random_vec
+            )
             tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(

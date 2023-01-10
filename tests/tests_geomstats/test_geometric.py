@@ -21,9 +21,7 @@ class TestGeometric(OpenSetTestCase, metaclass=Parametrizer):
         self.assertAllClose(point.shape, expected)
 
     def test_sample_shape(self, point, n_samples, expected):
-        self.assertAllClose(
-            self.Space().sample(point, n_samples).shape, expected
-        )
+        self.assertAllClose(self.Space().sample(point, n_samples).shape, expected)
 
     @tests.conftest.np_and_autograd_only
     def test_point_to_pdf(self, point, n_samples):
@@ -31,9 +29,7 @@ class TestGeometric(OpenSetTestCase, metaclass=Parametrizer):
         n_points = point.shape[0]
         pmf = self.Space().point_to_pmf(point)
         point_to_sample = point[0] if point.ndim > 1 else point
-        samples = gs.to_ndarray(
-            self.Space().sample(point_to_sample, n_samples), 1
-        )
+        samples = gs.to_ndarray(self.Space().sample(point_to_sample, n_samples), 1)
         result = gs.squeeze(pmf(samples))
         pmf = []
         for i in range(n_points):
@@ -58,9 +54,7 @@ class TestGeometricMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     Space = testing_data.Space
 
     def test_squared_dist(self, point_a, point_b, expected):
-        self.assertAllClose(
-            self.Metric().squared_dist(point_a, point_b), expected
-        )
+        self.assertAllClose(self.Metric().squared_dist(point_a, point_b), expected)
 
     def test_metric_matrix(self, point, expected):
         self.assertAllClose(self.Metric().metric_matrix(point), expected)
