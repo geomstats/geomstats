@@ -4,11 +4,9 @@ from scipy.stats import poisson
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import Parametrizer, np_backend, pytorch_backend
+from tests.conftest import Parametrizer, np_backend
 from tests.data.poisson_data import PoissonMetricTestData, PoissonTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
-
-TF_OR_PYTORCH_BACKEND = pytorch_backend()
 
 NOT_AUTODIFF = np_backend()
 
