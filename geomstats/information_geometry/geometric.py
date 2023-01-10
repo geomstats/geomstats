@@ -65,7 +65,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
             Sample of points representing geometric distributions.
         """
         size = (n_samples, self.dim) if n_samples != 1 else (self.dim,)
-        return (1-lower_bound) * gs.random.rand(*size) + lower_bound
+        return (1 - lower_bound) * gs.random.rand(*size) + lower_bound
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
