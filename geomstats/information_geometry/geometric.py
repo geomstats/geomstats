@@ -1,10 +1,9 @@
-"""Statistical Manifold of Poisson distributions with the Fisher metric.
+"""Statistical Manifold of geometric distributions with the Fisher metric.
 
 Lead author: Tra My Nguyen.
 """
 
 from scipy.stats import geom
-from scipy.special import factorial
 
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
@@ -13,10 +12,10 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.information_geometry.base import InformationManifoldMixin
 
 
-class PoissonDistributions(InformationManifoldMixin, OpenSet):
-    """Class for the manifold of Poisson distributions.
+class GeometricDistributions(InformationManifoldMixin, OpenSet):
+    """Class for the manifold of geometric distributions.
 
-    This is the parameter space of Poisson distributions
+    This is the parameter space of geometric distributions
     i.e. the half-line of positive reals.
     """
 
@@ -24,11 +23,11 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
         super().__init__(
             dim=1,
             embedding_space=Euclidean(dim=1),
-            metric=PoissonMetric(),
+            metric=GeometricMetric(),
         )
 
     def belongs(self, point, atol=gs.atol):
-        """Evaluate if a point belongs to the manifold of Poisson distributions.
+        """Evaluate if a point belongs to the manifold of geometric distributions.
 
         Parameters
         ----------
@@ -41,10 +40,10 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean indicating whether point represents an Poisson
+            Boolean indicating whether point represents an geometric
             distribution.
         """
-        return gs.squeeze(point >= atol)
+        return gs.squeeze(gs.logical_and(atol <= point, point <= 1 - atol), axis=-1)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample parameters of Possion distributions.
@@ -57,16 +56,16 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
             Number of samples.
             Optional, default: 1.
         bound : float
-            Right-end ot the segment where Poisson parameters are sampled.
+            Right-end ot the segment where geometric parameters are sampled.
             Optional, default: 1.
 
         Returns
         -------
         samples : array-like, shape=[n_samples,]
-            Sample of points representing Poisson distributions.
+            Sample of points representing geometric distributions.
         """
         size = (n_samples, self.dim) if n_samples != 1 else (self.dim,)
-        return bound * gs.random.rand(*size)
+        return gs.random.rand(*size)
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
@@ -85,18 +84,23 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
         projected : array-like, shape=[..., 1]
             Projected point.
         """
-        return gs.where(point < atol, atol, point)
+        return gs.where(
+            gs.logical_or(point < atol, point > 1 - atol),
+            (1 - atol) * gs.cast(point > 1 - atol, point.dtype)
+            + atol * gs.cast(point < atol, point.dtype),
+            point,
+        )
 
     def sample(self, point, n_samples=1):
-        """Sample from the Poisson distribution.
+        """Sample from the geometric distribution.
 
-        Sample from the Poisson distribution with parameter provided
+        Sample from the geometric distribution with parameter provided
         by point.
 
         Parameters
         ----------
         point : array-like, shape=[..., 1]
-            Point representing an Poisson distribution.
+            Point representing an geometric distribution.
         n_samples : int
             Number of points to sample with each parameter in point.
             Optional, default: 1.
@@ -104,11 +108,11 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
         Returns
         -------
         samples : array-like, shape=[..., n_samples]
-            Sample from Poisson distributions.
+            Sample from geometric distributions.
         """
 
         def _sample(param):
-            return poisson.rvs(param, size=n_samples)
+            return geom.rvs(param, size=n_samples)
 
         if point.ndim > 1:
             return gs.array([_sample(point_) for point_ in point])
@@ -118,36 +122,36 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
     def point_to_pmf(self, point):
         """Compute pmf associated to point.
 
-        Compute the probability mass function of the Poisson
+        Compute the probability mass function of the geometric
         distribution with parameters provided by point.
 
         Parameters
         ----------
         point : array-like, shape=[..., 1]
-            Point representing an Poisson distribution (scale).
+            Point representing an geometric distribution (scale).
 
         Returns
         -------
         pdf : function
-            Probability mass function of the Poisson distribution with
+            Probability mass function of the geometric distribution with
             scale parameter provided by point.
         """
 
         def pmf(k):
-            """Generate parameterized function for Poisson pmf.
+            """Generate parameterized function for geometric pmf.
 
-            Compute the probability mass function of the Poisson
+            Compute the probability mass function of the geometric
             distribution with parameters provided by point.
 
             Parameters
             ----------
             k : array-like, shape=[n_points,]
-                Point representing an Poisson distribution (lambda).
+                Point representing an geometric distribution (lambda).
 
             Returns
             -------
             pmf_at_k : array-like, shape=[..., n_points]
-                Probability mass function of the Poisson distribution with
+                Probability mass function of the geometric distribution with
                 parameters provided by point.
             """
             k = gs.reshape(gs.array(k), (-1,))
@@ -155,13 +159,13 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
             point_shape = gs.ones_like(point)
             point_aux = gs.einsum("...i,j->...j", point, k_shape)
             k_aux = gs.einsum("...i,j->...j", point_shape, k)
-            return point_aux**k_aux * gs.exp(-point_aux) / factorial(k_aux)
+            return (1-point_aux) ** (k_aux-1) * point_aux
 
         return pmf
 
 
-class PoissonMetric(RiemannianMetric):
-    """Class for the Fisher information metric on Poisson distributions.
+class GeometricMetric(RiemannianMetric):
+    """Class for the Fisher information metric on geometric distributions.
 
     References
     ----------
@@ -173,14 +177,14 @@ class PoissonMetric(RiemannianMetric):
         super().__init__(dim=1)
 
     def squared_dist(self, point_a, point_b, **kwargs):
-        """Compute squared distance associated with the Poisson metric.
+        """Compute squared distance associated with the geometric metric.
 
         Parameters
         ----------
         point_a : array-like, shape=[..., 1]
-            Point representing an Poisson distribution (lambda parameter).
+            Point representing an geometric distribution (lambda parameter).
         point_b : array-like, shape=[..., 1]
-            Point representing a Poisson distribution (lambda parameter).
+            Point representing a geometric distribution (lambda parameter).
 
         Returns
         -------
@@ -188,7 +192,7 @@ class PoissonMetric(RiemannianMetric):
             Squared distance between points point_a and point_b.
         """
         point_a, point_b = gs.broadcast_arrays(point_a, point_b)
-        return gs.squeeze(4 * (point_a - 2 * gs.sqrt(point_a * point_b) + point_b))
+        return gs.squeeze(4 * (gs.arctanh(gs.sqrt(1-point_a))-gs.arctanh(gs.sqrt(1-point_b))) ** 2)
 
     def metric_matrix(self, base_point):
         """Compute the metric matrix at the tangent space at base_point.
@@ -196,14 +200,14 @@ class PoissonMetric(RiemannianMetric):
         Parameters
         ----------
         base_point : array-like, shape=[..., 1]
-            Point representing a Poisson distribution.
+            Point representing a geometric distribution.
 
         Returns
         -------
         mat : array-like, shape=[..., 1, 1]
             Metric matrix.
         """
-        return gs.expand_dims(1 / base_point, axis=-1)
+        return gs.expand_dims(1 / (base_point ** 2 * (1 - base_point)), axis=-1)
 
     def _geodesic_ivp(self, initial_point, initial_tangent_vec):
         """Solve geodesic initial value problem.
@@ -227,8 +231,8 @@ class PoissonMetric(RiemannianMetric):
         """
         initial_point = gs.broadcast_to(initial_point, initial_tangent_vec.shape)
 
-        constant_a = initial_tangent_vec / (2 * gs.sqrt(initial_point))
-        constant_b = gs.sqrt(initial_point)
+        initial_phase = gs.arctanh(gs.sqrt(1 - initial_point))
+        frequency = - initial_tangent_vec/(2 * initial_point * gs.sqrt(1 - initial_point))
 
         def path(t):
             """Generate parameterized function for geodesic curve.
@@ -243,7 +247,7 @@ class PoissonMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, 1]
                 Values of the geodesic at times t.
             """
-            return gs.expand_dims((constant_a * t + constant_b) ** 2, axis=-1)
+            return gs.expand_dims(1 - gs.tanh(frequency * t + initial_phase) ** 2, axis=-1)
 
         return path
 
@@ -268,8 +272,8 @@ class PoissonMetric(RiemannianMetric):
         """
         initial_point, end_point = gs.broadcast_arrays(initial_point, end_point)
 
-        constant_a = gs.sqrt(end_point) - gs.sqrt(initial_point)
-        constant_b = gs.sqrt(initial_point)
+        initial_phase = gs.arctanh(gs.sqrt(1 - initial_point))
+        frequency = gs.arctanh(gs.sqrt(1 - end_point)) - initial_phase
 
         def path(t):
             """Generate parameterized function for geodesic curve.
@@ -284,7 +288,7 @@ class PoissonMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, 1]
                 Values of the geodesic at times t.
             """
-            return gs.expand_dims((constant_a * t + constant_b) ** 2, axis=-1)
+            return gs.expand_dims(1 - gs.tanh(frequency * t + initial_phase) ** 2, axis=-1)
 
         return path
 
@@ -351,7 +355,7 @@ class PoissonMetric(RiemannianMetric):
             End point of the geodesic starting at base_point with
             initial velocity tangent_vec.
         """
-        return (tangent_vec / (2 * gs.sqrt(base_point)) + gs.sqrt(base_point)) ** 2
+        return 1 - gs.tanh(-tangent_vec/(2*base_point*gs.sqrt(1-base_point)) + gs.arctanh(gs.sqrt(1-base_point))) ** 2
 
     def log(self, end_point, base_point):
         """Compute log map using a base point and an end point.
@@ -369,4 +373,4 @@ class PoissonMetric(RiemannianMetric):
             Initial velocity of the geodesic starting at base_point and
             reaching end_point at time 1.
         """
-        return 2 * gs.sqrt(base_point) * (gs.sqrt(end_point) - gs.sqrt(base_point))
+        return -2 * base_point * gs.sqrt(1-base_point) * (gs.arctanh(gs.sqrt(1-end_point)) - gs.arctanh(gs.sqrt(1-base_point)))
