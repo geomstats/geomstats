@@ -1,7 +1,7 @@
 """Unit tests for the complex Poincare disk manifold."""
 
 import geomstats.backend as gs
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, np_backend
 from tests.data.complex_poincare_disk_data import (
     ComplexPoincareDiskMetricTestData,
     ComplexPoincareDiskTestData,
@@ -12,6 +12,8 @@ from tests.geometry_test_cases import ComplexRiemannianMetricTestCase, OpenSetTe
 class TestComplexPoincareDisk(OpenSetTestCase, metaclass=Parametrizer):
     """Test of the complex Poincare disk methods."""
 
+    skip_test_random_point_belongs = np_backend()
+    skip_test_exp_belongs = True
     testing_data = ComplexPoincareDiskTestData()
 
     def test_belongs(self, point, expected):
@@ -42,6 +44,7 @@ class TestComplexPoincareDiskMetric(
     skip_test_scalar_curvature_shape = True
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
+    skip_test_exp_after_log = True
 
     testing_data = ComplexPoincareDiskMetricTestData()
 

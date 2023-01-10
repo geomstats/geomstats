@@ -42,7 +42,7 @@ class TestToTangentSpace(tests.conftest.TestCase):
         expected = point
         self.assertAllClose(expected, result)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_transform_so_group(self):
         point = self.so_matrix.random_uniform()
         points = gs.array([point, point])
@@ -92,7 +92,7 @@ class TestToTangentSpace(tests.conftest.TestCase):
         expected = point
         self.assertAllClose(expected, result, atol=1e-4)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_inverse_transform_so(self):
         point = self.so_matrix.random_uniform(10)
         transformer = ToTangentSpace(geometry=self.so_matrix.bi_invariant_metric)

@@ -1,7 +1,6 @@
 """Checks and associated errors."""
 
 import math
-import os
 
 import geomstats.backend as gs
 
@@ -73,15 +72,6 @@ def check_parameter_accepted_values(param, param_name, accepted_values):
         raise ValueError(
             f"Parameter {param_name} needs to be in {accepted_values}, got: {param}."
         )
-
-
-def check_tf_error(exception, name):
-    """Raise error in tensorflow."""
-    if os.environ["GEOMSTATS_BACKEND"] == "tensorflow":
-        from tensorflow import errors
-
-        return getattr(errors, name)
-    return exception
 
 
 def check_point_shape(point, manifold, suppress_error=False):

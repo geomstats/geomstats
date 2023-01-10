@@ -284,7 +284,7 @@ class TestHPDEuclideanMetric(ComplexRiemannianMetricTestCase, metaclass=Parametr
         )
         self.assertAllClose(result, gs.array(expected))
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_exp_domain(self, n, power_euclidean, tangent_vec, base_point, expected):
         metric = self.Metric(n, power_euclidean)
         result = metric.exp_domain(
