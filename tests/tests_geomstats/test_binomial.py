@@ -29,7 +29,7 @@ class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
     def test_point_to_pdf(self, n_draws, point, n_samples):
         point = gs.to_ndarray(point, 1)
         n_points = point.shape[0]
-        pmf = self.Space(n_draws).point_to_pmf(point)
+        pmf = self.Space(n_draws).point_to_pdf(point)
         point_to_sample = point[0] if point.ndim > 1 else point
         samples = gs.to_ndarray(
             self.Space(n_draws).sample(point_to_sample, n_samples), 1
