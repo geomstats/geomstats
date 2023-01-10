@@ -43,7 +43,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
             Boolean indicating whether point represents an geometric
             distribution.
         """
-        return gs.squeeze(gs.logical_and(atol <= point, point <= 1 - atol), axis=-1)
+        return gs.squeeze(gs.logical_and(atol <= point, point <= 1 - atol))
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample parameters of Possion distributions.

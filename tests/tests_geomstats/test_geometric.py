@@ -14,30 +14,30 @@ NOT_AUTODIFF = np_backend()
 class TestGeometric(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = GeometricTestData()
 
-    def test_belongs(self, n_draws, point, expected):
-        self.assertAllClose(self.Space(n_draws).belongs(point), expected)
+    def test_belongs(self, point, expected):
+        self.assertAllClose(self.Space().belongs(point), expected)
 
     def test_random_point_shape(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
-    def test_sample_shape(self, n_draws, point, n_samples, expected):
+    def test_sample_shape(self, point, n_samples, expected):
         self.assertAllClose(
-            self.Space(n_draws).sample(point, n_samples).shape, expected
+            self.Space().sample(point, n_samples).shape, expected
         )
 
     @tests.conftest.np_and_autograd_only
-    def test_point_to_pdf(self, n_draws, point, n_samples):
+    def test_point_to_pdf(self, point, n_samples):
         point = gs.to_ndarray(point, 1)
         n_points = point.shape[0]
-        pmf = self.Space(n_draws).point_to_pmf(point)
+        pmf = self.Space().point_to_pmf(point)
         point_to_sample = point[0] if point.ndim > 1 else point
         samples = gs.to_ndarray(
-            self.Space(n_draws).sample(point_to_sample, n_samples), 1
+            self.Space().sample(point_to_sample, n_samples), 1
         )
         result = gs.squeeze(pmf(samples))
         pmf = []
         for i in range(n_points):
-            pmf.append(gs.array([binom.pmf(x, n_draws, point[i]) for x in samples]))
+            pmf.append(gs.array([geom.pmf(x, point[i]) for x in samples]))
         expected = gs.squeeze(gs.stack(pmf, axis=0))
         self.assertAllClose(result, expected)
 
@@ -57,13 +57,13 @@ class TestGeometricMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = GeometricMetricTestData()
     Space = testing_data.Space
 
-    def test_squared_dist(self, n_draws, point_a, point_b, expected):
+    def test_squared_dist(self, point_a, point_b, expected):
         self.assertAllClose(
-            self.Metric(n_draws).squared_dist(point_a, point_b), expected
+            self.Metric().squared_dist(point_a, point_b), expected
         )
 
-    def test_metric_matrix(self, n_draws, point, expected):
-        self.assertAllClose(self.Metric(n_draws).metric_matrix(point), expected)
+    def test_metric_matrix(self, point, expected):
+        self.assertAllClose(self.Metric().metric_matrix(point), expected)
 
     def test_geodesic_symmetry(self, space_args):
         space = self.Space(*space_args)

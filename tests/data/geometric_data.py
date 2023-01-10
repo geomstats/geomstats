@@ -154,42 +154,40 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
             dict(
                 point=gs.array([[0.2], [0.5], [0.4]]),
                 expected=gs.array(
-                    [[[31.249999999999993]], [[8.0]], [[29.166666666666668]]]
+                    [[[31.249999999999993]], [[8.0]], [[10.416666666666664]]]
                 ),
             ),
         ]
         return self.generate_tests(smoke_data)
 
-    # def geodesic_symmetry_test_data(self):
-    #     random_data = []
-    #     for space_args in self.space_args_list:
-    #         random_data.append(dict(space_args=space_args))
-    #     return self.generate_tests([], random_data)
+    def geodesic_symmetry_test_data(self):
+        random_data = []
+        for space_args in self.space_args_list:
+            random_data.append(dict(space_args=space_args))
+        return self.generate_tests([], random_data)
 
-    # def log_after_exp_test_data(self):
-    #     random_data = []
-    #     for connection_args, space, shape, n_tangent_vecs in zip(
-    #         self.metric_args_list,
-    #         self.space_list,
-    #         self.shape_list,
-    #         self.n_tangent_vecs_list,
-    #     ):
-    #         base_point = space.random_point()
-    #         base_point_type = base_point.dtype
-    #         random_vec = generate_random_vec(
-    #             shape=(n_tangent_vecs,) + shape, dtype=base_point_type
-    #         )
-    #         random_vec = random_vec % (
-    #             gs.pi * gs.sqrt(base_point * (1 - base_point))
-    #         ) + (-gs.arcsin(gs.sqrt(base_point))) * 2 * gs.sqrt(
-    #             base_point * (1 - base_point)
-    #         )
-    #         tangent_vec = space.to_tangent(random_vec, base_point)
-    #         random_data.append(
-    #             dict(
-    #                 connection_args=connection_args,
-    #                 tangent_vec=tangent_vec,
-    #                 base_point=base_point,
-    #             )
-    #         )
-    #     return self.generate_tests([], random_data)
+
+    def log_after_exp_test_data(self):
+        random_data = []
+        for connection_args, space, shape, n_tangent_vecs in zip(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            base_point = space.random_point()
+            base_point_type = base_point.dtype
+            random_vec = generate_random_vec(
+                shape=(n_tangent_vecs,) + shape, dtype=base_point_type
+            )
+            max_tangent_vec = 2 * base_point * gs.sqrt(1-base_point) *  gs.arctanh(gs.sqrt(1-base_point))
+            random_vec = gs.where(random_vec > max_tangent_vec,random_vec % max_tangent_vec,random_vec)
+            tangent_vec = space.to_tangent(random_vec, base_point)
+            random_data.append(
+                dict(
+                    connection_args=connection_args,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
