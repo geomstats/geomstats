@@ -45,10 +45,10 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
         """
         return gs.squeeze(gs.logical_and(atol <= point, point <= 1 - atol))
 
-    def random_point(self, n_samples=1, bound=1.0):
+    def random_point(self, n_samples=1, lower_bound=0.1):
         """Sample parameters of Possion distributions.
 
-        The uniform distribution on (0, bound) is used.
+        The uniform distribution on (lower_bound, 1) is used.
 
         Parameters
         ----------
@@ -65,7 +65,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
             Sample of points representing geometric distributions.
         """
         size = (n_samples, self.dim) if n_samples != 1 else (self.dim,)
-        return gs.random.rand(*size)
+        return (1-lower_bound) * gs.random.rand(*size) + lower_bound
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
@@ -155,11 +155,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
                 parameters provided by point.
             """
             k = gs.reshape(gs.array(k), (-1,))
-            k_shape = gs.ones_like(k)
-            point_shape = gs.ones_like(point)
-            point_aux = gs.einsum("...i,j->...j", point, k_shape)
-            k_aux = gs.einsum("...i,j->...j", point_shape, k)
-            return (1 - point_aux) ** (k_aux - 1) * point_aux
+            return (1 - point) ** (k - 1) * point
 
         return pmf
 
