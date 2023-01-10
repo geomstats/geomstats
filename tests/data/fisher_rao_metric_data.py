@@ -2,6 +2,9 @@
 
 import geomstats.backend as gs
 from geomstats.information_geometry.exponential import ExponentialDistributions
+from geomstats.information_geometry.binomial import BinomialDistributions
+from geomstats.information_geometry.poisson import PoissonDistributions
+from geomstats.information_geometry.geometric import GeometricDistributions
 from geomstats.information_geometry.fisher_rao_metric import FisherRaoMetric
 from geomstats.information_geometry.normal import (
     NormalDistributions,
@@ -41,6 +44,21 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
                 support=(0, 10),
                 base_point=gs.array([1.0]),
             ),
+            dict(
+                information_manifold=BinomialDistributions(10),
+                support=(0, 10),
+                base_point=gs.array([0.5]),
+            ),
+            dict(
+                information_manifold=PoissonDistributions(),
+                support=(0, 10),
+                base_point=gs.array([1.0]),
+            ),
+            dict(
+                information_manifold=GeometricDistributions(),
+                support=(1, 10),
+                base_point=gs.array([0.5]),
+            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -55,6 +73,21 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
                 information_manifold=ExponentialDistributions(),
                 support=(0, 10),
                 base_point=gs.array([1.0]),
+            ),
+            dict(
+                information_manifold=BinomialDistributions(10),
+                support=(0, 10),
+                base_point=gs.array([0.5]),
+            ),
+            dict(
+                information_manifold=PoissonDistributions(),
+                support=(0, 10),
+                base_point=gs.array([1.0]),
+            ),
+            dict(
+                information_manifold=GeometricDistributions(),
+                support=(1, 10),
+                base_point=gs.array([0.5]),
             ),
         ]
         return self.generate_tests(smoke_data)

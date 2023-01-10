@@ -28,7 +28,7 @@ class TestPoisson(OpenSetTestCase, metaclass=Parametrizer):
     def test_point_to_pdf(self, point, n_samples):
         point = gs.to_ndarray(point, 1)
         n_points = point.shape[0]
-        pmf = self.Space().point_to_pmf(point)
+        pmf = self.Space().point_to_pdf(point)
         point_to_sample = point[0] if point.ndim > 1 else point
         samples = gs.to_ndarray(self.Space().sample(point_to_sample, n_samples), 1)
         result = gs.squeeze(pmf(samples))

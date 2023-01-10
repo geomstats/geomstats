@@ -119,7 +119,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
 
         return gs.array(_sample(point))
 
-    def point_to_pmf(self, point):
+    def point_to_pdf(self, point):
         """Compute pmf associated to point.
 
         Compute the probability mass function of the geometric
