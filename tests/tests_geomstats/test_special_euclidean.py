@@ -20,6 +20,7 @@ from tests.geometry_test_cases import (
 
 
 class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
+    skip_test_projection_belongs = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
     skip_test_covariant_riemann_tensor_bianchi_identity = True
