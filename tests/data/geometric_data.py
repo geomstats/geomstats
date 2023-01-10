@@ -24,14 +24,12 @@ class GeometricTestData(_OpenSetTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(point=0.1, expected=True),
-            dict(point=gs.array(-0.8), expected=False),
-            dict(point=8, expected=False),
-            dict(point=-1.0, expected=False),
+            dict(point=gs.array([0.1]), expected=True),
             dict(point=gs.array([5.0]), expected=False),
-            dict(point=gs.array(-2.0), expected=False),
-            dict(point=gs.array([0.9, -1.0]), expected=gs.array([True, False])),
+            dict(point=gs.array([-2.0]), expected=False),
+            dict(point=gs.array([[0.9], [-1.0]]), expected=gs.array([True, False])),
             dict(point=gs.array([[0.1], [0.7]]), expected=gs.array([True, True])),
+            dict(point=gs.array([[-0.1], [3.7]]), expected=gs.array([False, False])),
         ]
         return self.generate_tests(smoke_data)
 
