@@ -40,21 +40,17 @@ class _SpecialOrthogonalMixinsTestData:
 class SpecialOrthogonalVectorsTestData(
     _ProjectionMixinsTestData, _SpecialOrthogonalMixinsTestData, LieGroupTestData
 ):
-    def projection_belongs_test_data(self):
-        return self.generate_tests([], marks=[pytest.mark.skip])
+    pass
 
 
 class SpecialOrthogonal2VectorsTestData(SpecialOrthogonalVectorsTestData):
-    # TODO: add skips
-    def jacobian_translation_vec_test_data(self):
-        return self.generate_tests([], marks=[pytest.mark.skip])
-
-    def tangent_translation_map_vec_test_data(self):
-        return self.generate_tests([], marks=[pytest.mark.skip])
-
-    def lie_bracket_vec_test_data(self):
-        return self.generate_tests([], marks=[pytest.mark.skip])
+    skips = (
+        "test_jacobian_translation_vec",
+        "test_tangent_translation_map_vec",
+        "test_lie_bracket_vec",
+        "test_projection_belongs",
+    )
 
 
 class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
-    pass
+    skips = ("test_projection_belongs",)
