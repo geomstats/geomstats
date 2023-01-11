@@ -9,6 +9,7 @@ import numpy as np
 from scipy.integrate import odeint, solve_bvp
 from scipy.optimize import minimize
 from scipy.stats import gamma
+from scipy.special import gamma
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -167,33 +168,31 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the Gamma distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
+        a_params = gs.expand_dims(point[..., 0], axis=-1)
+        b_params = gs.expand_dims(point[..., 1], axis=-1)
 
         def pdf(x):
             """Generate parameterized function for Gamma pdf.
 
             Parameters
             ----------
-            x : array-like, shape=[n_points, dim]
+            x : array-like, shape=[n_samples,]
                 Points at which to compute the probability
                 density function.
 
             Returns
             -------
-            pdf_at_x : array-like, shape=[..., n_points]
+            pdf_at_x : array-like, shape=[..., n_samples]
                 Values of pdf at x for each value of the parameters provided
                 by point.
             """
-            pdf_at_x = gs.array(
-                [
-                    gamma.pdf(t, a=point[:, 0], scale=point[:, 1] / point[:, 0])
-                    for t in gs.array(x)
-                ]
+            x = gs.reshape(gs.array(x), (-1,))
+            return (
+                b_params**a_params
+                * x ** (a_params - 1)
+                * gs.exp(-b_params * x)
+                / gamma(a_params)
             )
-            pdf_at_x = gs.squeeze(gs.stack(pdf_at_x, axis=0)).transpose()
-
-            return pdf_at_x
 
         return pdf
 

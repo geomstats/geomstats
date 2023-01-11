@@ -138,21 +138,24 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
             Probability density function of the normal distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        means = point[..., 0]
-        stds = point[..., 1]
-        means = gs.to_ndarray(means, to_ndim=2)
-        stds = gs.to_ndarray(stds, to_ndim=2)
+        means = gs.expand_dims(point[..., 0], axis=-1)
+        stds = gs.expand_dims(point[..., 1], axis=-1)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
 
             Parameters
             ----------
-            x : array-like, shape=[n_points,]
+            x : array-like, shape=[n_samples,]
                 Points at which to compute the probability density function.
+
+            Returns
+            -------
+            pdf_at_x : array-like, shape=[..., n_samples]
+                Values of pdf at x for each value of the parameters provided
+                by point.
             """
-            x = gs.to_ndarray(x, to_ndim=2, axis=-1)
+            x = gs.reshape(gs.array(x), (-1,))
             return (1.0 / gs.sqrt(2 * gs.pi * stds**2)) * gs.exp(
                 -((x - means) ** 2) / (2 * stds**2)
             )
