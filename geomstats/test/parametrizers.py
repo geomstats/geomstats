@@ -4,6 +4,7 @@ import types
 import pytest
 
 import geomstats.backend as gs
+from geomstats.test.test_case import autodiff_backend
 
 
 class Parametrizer(type):
@@ -67,6 +68,7 @@ class Parametrizer(type):
     """
 
     def __new__(cls, name, bases, attrs):
+        # TODO: bring skip filtering here
         # TODO: use skipif instead? check if collection if performed
         # skip_all = attrs.get("skip_all", False)
 
@@ -109,8 +111,12 @@ class DataBasedParametrizer(type):
             )
 
         data_names_ls = _collect_testing_data_tests(testing_data)
-        selected_test_attrs = _filter_test_funcs_given_data(
+        test_attrs_with_data = _filter_test_funcs_given_data(
             all_test_attrs, data_names_ls
+        )
+
+        selected_test_attrs, test_attrs_to_skip, _ = _filter_skips_and_ignores(
+            test_attrs_with_data, testing_data
         )
 
         for attr_name, attr_value in selected_test_attrs.items():
@@ -119,8 +125,15 @@ class DataBasedParametrizer(type):
                 test_func, attr_name, testing_data, default_values
             )
 
+        for attr_name, attr_value in test_attrs_to_skip.items():
+            test_func, _ = _copy_func(attr_value)
+            attrs[attr_name] = pytest.mark.skip()(test_func)
+
         for attr_name, attr_value in all_test_attrs.items():
-            if attr_name not in selected_test_attrs:
+            if (
+                attr_name not in selected_test_attrs
+                and attr_name not in test_attrs_to_skip
+            ):
                 test_func, _ = _copy_func(attr_value)
 
                 attrs[attr_name] = pytest.mark.ignore()(test_func)
@@ -336,3 +349,35 @@ def _filter_test_funcs_given_data(test_attrs, data_names_ls):
         raise Exception(msg)
 
     return relevant_test_attrs
+
+
+def _filter_skips_and_ignores(test_attrs, testing_data):
+    selected_test_attrs = {}
+    test_attrs_to_skip = {}
+    test_attrs_to_ignore = {}
+
+    skips = set(testing_data.skips) if hasattr(testing_data, "skips") else []
+
+    skips_if = testing_data.skipif if hasattr(testing_data, "skips_if") else ()
+    for skipif in skips_if:
+        if skipif[1]:
+            skips.append(skipif[0])
+
+    if not autodiff_backend():
+        ignores = (
+            set(testing_data.ignores_if_not_autodiff)
+            if hasattr(testing_data, "ignores_if_not_autodiff")
+            else ()
+        )
+    else:
+        ignores = ()
+
+    for attr_name, attr_value in test_attrs.items():
+        if attr_name in skips:
+            test_attrs_to_skip[attr_name] = attr_value
+        elif attr_name in ignores:
+            test_attrs_to_ignore[attr_name] = attr_value
+        else:
+            selected_test_attrs[attr_name] = attr_value
+
+    return selected_test_attrs, test_attrs_to_skip, test_attrs_to_ignore

@@ -30,6 +30,10 @@ def tf_backend():
     return gs.__name__.endswith("tensorflow")
 
 
+def autodiff_backend():
+    return not np_backend()
+
+
 if tf_backend():
     import tensorflow as tf
 
