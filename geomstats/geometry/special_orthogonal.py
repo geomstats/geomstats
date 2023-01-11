@@ -1735,7 +1735,14 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         bracket : array-like, shape=[..., n, n]
             Lie bracket.
         """
-        return gs.cross(tangent_vector_a, tangent_vector_b)
+        out = gs.cross(tangent_vector_a, tangent_vector_b)
+        if (
+            base_point is not None
+            and base_point.ndim > tangent_vector_a.ndim
+            and base_point.ndim > tangent_vector_b.ndim
+        ):
+            return gs.broadcast_to(out, base_point.shape)
+        return out
 
 
 class SpecialOrthogonal:
