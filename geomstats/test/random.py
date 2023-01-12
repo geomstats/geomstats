@@ -32,3 +32,20 @@ def get_random_tangent_vec(space, base_point):
 
     if isinstance(space, VectorSpace):
         return _get_random_tangent_vec_vector_space(space, base_point)
+
+
+def get_random_quaternion(n_points=1):
+    # https://stackoverflow.com/a/44031492/11011913
+    size = (3, n_points) if n_points > 1 else 3
+    u, v, w = gs.random.uniform(size=size)
+
+    return gs.transpose(
+        gs.array(
+            [
+                gs.sqrt(1 - u) * gs.sin(2 * gs.pi * v),
+                gs.sqrt(1 - u) * gs.cos(2 * gs.pi * v),
+                gs.sqrt(u) * gs.sin(2 * gs.pi * w),
+                gs.sqrt(u) * gs.cos(2 * gs.pi * w),
+            ]
+        )
+    )

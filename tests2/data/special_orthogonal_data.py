@@ -54,3 +54,39 @@ class SpecialOrthogonal2VectorsTestData(SpecialOrthogonalVectorsTestData):
 
 class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
     skips = ("test_projection_belongs",)
+
+    def quaternion_from_matrix_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+    def matrix_from_quaternion_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+    def quaternion_from_matrix_after_matrix_from_quaternion_test_data(self):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+    def matrix_from_quaternion_after_quaternion_from_matrix_test_data(self):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+    def quaternion_from_rotation_vector_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+    def rotation_vector_from_quaternion_vec_test_data(self):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data)
+
+    def quaternion_from_rotation_vector_after_rotation_vector_from_quaternion_test_data(
+        self,
+    ):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
+
+    def rotation_vector_from_quaternion_after_quaternion_from_rotation_vector_test_data(
+        self,
+    ):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data)
