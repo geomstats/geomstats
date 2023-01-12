@@ -14,6 +14,7 @@ from geomstats.test.geometry.base import (
     MatrixLieGroupTestCase,
     _ProjectionTestCaseMixins,
 )
+from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.test_case import assert_allclose
 from geomstats.test.vectorization import generate_vectorization_data
 
@@ -97,9 +98,8 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
 
     @pytest.mark.vec
     def test_regularize_tangent_vec_vec(self, n_reps, atol):
-        vec = self._get_vec_to_tangent(1)
         base_point = self.space.random_point()
-        tangent_vec = self.space.to_tangent(vec, base_point)
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
 
         expected = self.space.regularize_tangent_vec(tangent_vec, base_point)
 
@@ -125,8 +125,7 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
 
     @pytest.mark.vec
     def test_regularize_tangent_vec_at_identity_vec(self, n_reps, atol):
-        vec = self._get_vec_to_tangent(1)
-        tangent_vec = self.space.to_tangent(vec, self.space.identity)
+        tangent_vec = get_random_tangent_vec(self.space, self.space.identity)
 
         expected = self.space.regularize_tangent_vec_at_identity(tangent_vec)
 

@@ -5,19 +5,26 @@ import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 
 
+def get_n_points(space, base_point):
+    if space.point_ndim == base_point.ndim:
+        return 1
+
+    return base_point.shape[0]
+
+
 def _expand_point(point):
     return gs.expand_dims(point, 0)
 
 
-def _repeat_point(point, n_reps=2):
+def repeat_point(point, n_reps=2):
     if not gs.is_array(point):
         return [point] * n_reps
 
     return gs.repeat(_expand_point(point), n_reps, axis=0)
 
 
-def _expand_and_repeat_point(point, n_reps=2):
-    return _expand_point(point), _repeat_point(point, n_reps=n_reps)
+def _expand_andrepeat_point(point, n_reps=2):
+    return _expand_point(point), repeat_point(point, n_reps=n_reps)
 
 
 def _filter_combs(combs, vec_type, threshold):
@@ -42,7 +49,7 @@ def _generate_datum_vectorization_data(
     if expected_name is not None:
         has_expected = True
         expected = datum.get(expected_name)
-        expected_rep = _repeat_point(expected, n_reps=n_reps)
+        expected_rep = repeat_point(expected, n_reps=n_reps)
     else:
         has_expected = False
 
@@ -51,9 +58,9 @@ def _generate_datum_vectorization_data(
         arg = datum.get(arg_name)
         arg_combs = [arg]
         if check_expand:
-            arg_combs.extend(_expand_and_repeat_point(arg, n_reps=n_reps))
+            arg_combs.extend(_expand_andrepeat_point(arg, n_reps=n_reps))
         else:
-            arg_combs.append(_repeat_point(arg, n_reps=n_reps))
+            arg_combs.append(repeat_point(arg, n_reps=n_reps))
 
         args_combs.append(arg_combs)
 

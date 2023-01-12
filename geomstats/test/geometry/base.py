@@ -3,8 +3,9 @@ import abc
 import pytest
 
 import geomstats.backend as gs
+from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.test_case import TestCase
-from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test.vectorization import generate_vectorization_data, repeat_point
 
 # TODO: vec with tangent_vecs may not be being tested sufficiently well
 # i.e. tests may pass but just because it is the repetition of points
@@ -140,9 +141,8 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.vec
     def test_exp_vec(self, n_reps, atol):
-        vec = self._get_vec_to_tangent(1)
         base_point = self.space.random_point()
-        tangent_vec = self.space.to_tangent(vec, base_point)
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
 
         expected = self.space.exp(tangent_vec, base_point)
 
@@ -195,10 +195,8 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.random
     def test_log_after_exp(self, n_points, atol):
-        vec = self._get_vec_to_tangent(n_points)
         base_point = self.space.random_point(n_points)
-
-        tangent_vec = self.space.to_tangent(vec, base_point)
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
 
         point = self.space.exp(tangent_vec, base_point)
         tangent_vec_ = self.space.log(point, base_point)
@@ -207,8 +205,9 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.random
     def test_to_tangent_at_identity_belongs_to_lie_algebra(self, n_points, atol):
-        vec = self._get_vec_to_tangent(n_points)
-        tangent_vec = self.space.to_tangent(vec, self.space.identity)
+        tangent_vec = get_random_tangent_vec(
+            self.space, repeat_point(self.space.identity, n_points)
+        )
 
         res = self.space.lie_algebra.belongs(tangent_vec, atol=atol)
         expected = gs.ones(n_points, dtype=bool)
@@ -224,9 +223,9 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.vec
     def test_tangent_translation_map_vec(self, n_reps, left, inverse, atol):
-        vec = self._get_vec_to_tangent(1)
         point = self.space.random_point()
-        tangent_vec = self.space.to_tangent(vec, point)
+        tangent_vec = get_random_tangent_vec(self.space, point)
+
         expected = self.space.tangent_translation_map(
             point, left=left, inverse=inverse
         )(tangent_vec)
@@ -258,9 +257,10 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.vec
     def test_lie_bracket_vec(self, n_reps, atol):
-        vec = self._get_vec_to_tangent(2)
         base_point = self.space.random_point()
-        tangent_vec_a, tangent_vec_b = self.space.to_tangent(vec, base_point)
+        tangent_vec_a, tangent_vec_b = get_random_tangent_vec(
+            self.space, repeat_point(base_point, 2)
+        )
 
         expected = self.space.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
 
@@ -347,10 +347,9 @@ class ManifoldTestCase(TestCase):
 
     @pytest.mark.vec
     def test_is_tangent_vec(self, n_reps, atol):
-        vec = self._get_vec_to_tangent(1)
         point = self.space.random_point()
+        tangent_vec = get_random_tangent_vec(self.space, point)
 
-        tangent_vec = self.space.to_tangent(vec, point)
         res = self.space.is_tangent(tangent_vec, point)
 
         vec_data = generate_vectorization_data(
@@ -368,7 +367,8 @@ class ManifoldTestCase(TestCase):
 
     @pytest.mark.vec
     def test_to_tangent_vec(self, n_reps, atol):
-        vec = self._get_vec_to_tangent(1)
+        # TODO: check if it makes sense
+        vec = self.space.random_point()
         point = self.space.random_point()
 
         res = self.space.to_tangent(vec, point)
@@ -384,10 +384,9 @@ class ManifoldTestCase(TestCase):
 
     @pytest.mark.random
     def test_to_tangent_is_tangent(self, n_points, atol):
-        vec = self._get_vec_to_tangent(n_points)
         point = self.space.random_point(n_points)
+        tangent_vec = get_random_tangent_vec(self.space, point)
 
-        tangent_vec = self.space.to_tangent(vec, point)
         expected = gs.ones(n_points, dtype=bool)
 
         self.test_is_tangent(tangent_vec, point, expected, atol)
@@ -412,9 +411,6 @@ class ManifoldTestCase(TestCase):
 
 class VectorSpaceTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
     def _get_point_to_project(self, n_points):
-        return self.space.random_point(n_points)
-
-    def _get_vec_to_tangent(self, n_points):
         return self.space.random_point(n_points)
 
     @pytest.mark.random
@@ -622,10 +618,6 @@ class MatrixLieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
     # TODO: exp and log not from identity: are they enough tested with log and exp?
 
-    def _get_vec_to_tangent(self, n_points):
-        batch_shape = (n_points,) if n_points > 1 else ()
-        return gs.random.normal(size=batch_shape + self.space.shape)
-
     def test_jacobian_translation(self, point, left, expected, atol):
         res = self.space.jacobian_translation(point, left=left)
         self.assertAllClose(res, expected, atol=atol)
@@ -649,8 +641,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 
     @pytest.mark.vec
     def test_exp_from_identity_vec(self, n_reps, atol):
-        vec = self._get_vec_to_tangent(1)
-        tangent_vec = self.space.to_tangent(vec, self.space.identity)
+        tangent_vec = get_random_tangent_vec(self.space, self.space.identity)
         expected = self.space.exp_from_identity(tangent_vec)
 
         vec_data = generate_vectorization_data(
@@ -688,8 +679,9 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 
     @pytest.mark.random
     def test_log_from_identity_after_exp_from_identity(self, n_points, atol):
-        vec = self._get_vec_to_tangent(n_points)
-        tangent_vec = self.space.to_tangent(vec, self.space.identity)
+        tangent_vec = get_random_tangent_vec(
+            self.space, repeat_point(self.space.identity, n_points)
+        )
 
         point = self.space.exp_from_identity(tangent_vec)
         tangent_vec_ = self.space.log_from_identity(point)
@@ -702,9 +694,6 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
     # TODO: class to handle `extrinsinc-intrinsic` mixins?
 
     def _get_point_to_project(self, n_points):
-        return self.space.embedding_space.random_point(n_points)
-
-    def _get_vec_to_tangent(self, n_points):
         return self.space.embedding_space.random_point(n_points)
 
     def test_submersion(self, point, expected, atol):
