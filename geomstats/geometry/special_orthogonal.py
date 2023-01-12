@@ -981,7 +981,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         return term_1 + term_2
 
-    @geomstats.vectorization.decorator(["else", "matrix"])
     def quaternion_from_matrix(self, rot_mat):
         """Convert a rotation matrix into a unit quaternion.
 
@@ -996,9 +995,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             Quaternion.
         """
         rot_vec = self.rotation_vector_from_matrix(rot_mat)
-        quaternion = self.quaternion_from_rotation_vector(rot_vec)
-
-        return quaternion
+        return self.quaternion_from_rotation_vector(rot_vec)
 
     def quaternion_from_rotation_vector(self, rot_vec):
         """Convert a rotation vector into a unit quaternion.
@@ -1052,10 +1049,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         rot_vec = gs.einsum("...,...i->...i", coef_isinc, quaternion[..., 1:])
 
-        rot_vec = self.regularize(rot_vec)
-        return rot_vec
+        return self.regularize(rot_vec)
 
-    @geomstats.vectorization.decorator(["else", "vector"])
     def matrix_from_quaternion(self, quaternion):
         """Convert a unit quaternion into a rotation vector.
 
@@ -1069,43 +1064,48 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         rot_mat : array-like, shape=[..., 3]
             Rotation matrix.
         """
-        n_quaternions, _ = quaternion.shape
+        is_vec = quaternion.ndim > 1
 
         w, x, y, z = gs.hsplit(quaternion, 4)
 
-        rot_mat = gs.zeros((n_quaternions,) + (self.n,) * 2)
+        column_1 = gs.array(
+            [
+                w**2 + x**2 - y**2 - z**2,
+                2 * x * y - 2 * w * z,
+                2 * x * z + 2 * w * y,
+            ]
+        )
 
-        for i in range(n_quaternions):
-            # TODO (nina): Vectorize by applying the composition of
-            # quaternions to the identity matrix
-            column_1 = gs.array(
+        column_2 = gs.array(
+            [
+                2 * x * y + 2 * w * z,
+                w**2 - x**2 + y**2 - z**2,
+                2 * y * z - 2 * w * x,
+            ]
+        )
+
+        column_3 = gs.array(
+            [
+                2 * x * z - 2 * w * y,
+                2 * y * z + 2 * w * x,
+                w**2 - x**2 - y**2 + z**2,
+            ]
+        )
+
+        if is_vec:
+            column_1 = gs.moveaxis(column_1, 0, 1)
+            column_2 = gs.moveaxis(column_2, 0, 1)
+            column_3 = gs.moveaxis(column_3, 0, 1)
+
+            rot_mat = gs.stack(
                 [
-                    w[i] ** 2 + x[i] ** 2 - y[i] ** 2 - z[i] ** 2,
-                    2 * x[i] * y[i] - 2 * w[i] * z[i],
-                    2 * x[i] * z[i] + 2 * w[i] * y[i],
+                    gs.transpose(gs.hstack(columns))
+                    for columns in zip(column_1, column_2, column_3)
                 ]
             )
 
-            column_2 = gs.array(
-                [
-                    2 * x[i] * y[i] + 2 * w[i] * z[i],
-                    w[i] ** 2 - x[i] ** 2 + y[i] ** 2 - z[i] ** 2,
-                    2 * y[i] * z[i] - 2 * w[i] * x[i],
-                ]
-            )
-
-            column_3 = gs.array(
-                [
-                    2 * x[i] * z[i] - 2 * w[i] * y[i],
-                    2 * y[i] * z[i] + 2 * w[i] * x[i],
-                    w[i] ** 2 - x[i] ** 2 - y[i] ** 2 + z[i] ** 2,
-                ]
-            )
-
-            mask_i = gs.array_from_sparse([(i,)], [1.0], (n_quaternions,))
-            rot_mat_i = gs.transpose(gs.hstack([column_1, column_2, column_3]))
-            rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
-            rot_mat += gs.einsum("...,...ij->...ij", mask_i, rot_mat_i)
+        else:
+            rot_mat = gs.transpose(gs.hstack([column_1, column_2, column_3]))
 
         return rot_mat
 
