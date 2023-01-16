@@ -7,18 +7,18 @@ from geomstats.test.geometry.base import LieGroupTestCase, _ProjectionTestCaseMi
 from geomstats.test.random import get_random_quaternion
 from geomstats.test.vectorization import generate_vectorization_data
 
-# TODO: update _get to random
-
 
 class _SpecialOrthogonalTestCaseMixins:
-    def _get_vec(self, n_points=1):
+    def _get_random_rotation_vector(self, n_points=1):
         batch_shape = (n_points,) if n_points > 1 else ()
-        return gs.random.normal(size=batch_shape + (self.space.dim,))
+        return self.space.regularize(
+            gs.random.normal(size=batch_shape + (self.space.dim,))
+        )
 
-    def _get_skew_sym_matrix(self, n_points=1):
+    def _get_random_skew_sym_matrix(self, n_points=1):
         return SkewSymmetricMatrices(self.space.n).random_point(n_points)
 
-    def _get_rotation_matrix(self, n_points=1):
+    def _get_random_rotation_matrix(self, n_points=1):
         return SpecialOrthogonal(n=self.space.n).random_point(n_points)
 
     def test_skew_matrix_from_vector(self, vec, expected, atol):
@@ -27,7 +27,7 @@ class _SpecialOrthogonalTestCaseMixins:
 
     @pytest.mark.vec
     def test_skew_matrix_from_vector_vec(self, n_reps, atol):
-        vec = self._get_vec()
+        vec = self._get_random_rotation_vector()
         expected = self.space.skew_matrix_from_vector(vec)
 
         vec_data = generate_vectorization_data(
@@ -44,7 +44,7 @@ class _SpecialOrthogonalTestCaseMixins:
 
     @pytest.mark.vec
     def test_vector_from_skew_matrix_vec(self, n_reps, atol):
-        mat = self._get_skew_sym_matrix()
+        mat = self._get_random_skew_sym_matrix()
         expected = self.space.vector_from_skew_matrix(mat)
 
         vec_data = generate_vectorization_data(
@@ -59,7 +59,7 @@ class _SpecialOrthogonalTestCaseMixins:
     def test_vector_from_skew_matrix_after_skew_matrix_from_vector(
         self, n_points, atol
     ):
-        vec = self._get_vec(n_points)
+        vec = self._get_random_rotation_vector(n_points)
         mat = self.space.skew_matrix_from_vector(vec)
         vec_ = self.space.vector_from_skew_matrix(mat)
         self.assertAllClose(vec_, vec, atol=atol)
@@ -68,7 +68,7 @@ class _SpecialOrthogonalTestCaseMixins:
     def test_skew_matrix_from_vector_after_vector_from_skew_matrix(
         self, n_points, atol
     ):
-        mat = self._get_skew_sym_matrix(n_points)
+        mat = self._get_random_skew_sym_matrix(n_points)
         vec = self.space.vector_from_skew_matrix(mat)
         mat_ = self.space.skew_matrix_from_vector(vec)
         self.assertAllClose(mat_, mat, atol=atol)
@@ -79,7 +79,7 @@ class _SpecialOrthogonalTestCaseMixins:
 
     @pytest.mark.vec
     def test_rotation_vector_from_matrix_vec(self, n_reps, atol):
-        rot_mat = self._get_rotation_matrix()
+        rot_mat = self._get_random_rotation_matrix()
         expected = self.space.rotation_vector_from_matrix(rot_mat)
 
         vec_data = generate_vectorization_data(
@@ -96,7 +96,7 @@ class _SpecialOrthogonalTestCaseMixins:
 
     @pytest.mark.vec
     def test_matrix_from_rotation_vector_vec(self, n_reps, atol):
-        rot_vec = self._get_vec()
+        rot_vec = self._get_random_rotation_vector()
         expected = self.space.matrix_from_rotation_vector(rot_vec)
 
         vec_data = generate_vectorization_data(
@@ -111,7 +111,7 @@ class _SpecialOrthogonalTestCaseMixins:
     def test_rotation_vector_from_matrix_after_matrix_from_rotation_vector(
         self, n_points, atol
     ):
-        vec = self._get_vec(n_points)
+        vec = self._get_random_rotation_vector(n_points)
         mat = self.space.matrix_from_rotation_vector(vec)
         vec_ = self.space.rotation_vector_from_matrix(mat)
         self.assertAllClose(vec, vec_, atol=atol)
@@ -120,7 +120,7 @@ class _SpecialOrthogonalTestCaseMixins:
     def test_matrix_from_rotation_vector_after_rotation_vector_from_matrix(
         self, n_points, atol
     ):
-        mat = self._get_rotation_matrix(n_points)
+        mat = self._get_random_rotation_matrix(n_points)
         vec = self.space.rotation_vector_from_matrix(mat)
         mat_ = self.space.matrix_from_rotation_vector(vec)
         self.assertAllClose(mat, mat_, atol=atol)
@@ -157,17 +157,7 @@ class SpecialOrthogonal2VectorsTestCase(SpecialOrthogonalVectorsTestCase):
 
 class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
     def _assert_quaternion(self, quaternion_, quaternion, atol):
-        if quaternion_.ndim == 1:
-            quaternion_ = gs.expand_dims(quaternion_, axis=0)
-
-        if quaternion.ndim == 1:
-            quaternion = gs.expand_dims(quaternion, axis=0)
-
-        for quaternion_pt_, quaternion_pt in zip(quaternion_, quaternion):
-            try:
-                self.assertAllClose(quaternion_pt_, quaternion_pt, atol=atol)
-            except AssertionError:
-                self.assertAllClose(-quaternion_pt_, quaternion_pt, atol=atol)
+        self.assertAllClose(gs.abs(quaternion_), gs.abs(quaternion), atol=atol)
 
     def _assert_tait_bryan_angles(self, angles_, angles, extrinsic, zyx, atol):
         try:
@@ -191,7 +181,7 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
 
     @pytest.mark.vec
     def test_quaternion_from_matrix_vec(self, n_reps, atol):
-        rot_mat = self._get_rotation_matrix()
+        rot_mat = self._get_random_rotation_matrix()
         expected = self.space.quaternion_from_matrix(rot_mat)
 
         vec_data = generate_vectorization_data(
@@ -229,7 +219,7 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
 
     @pytest.mark.random
     def test_matrix_from_quaternion_after_quaternion_from_matrix(self, n_points, atol):
-        mat = self._get_rotation_matrix(n_points)
+        mat = self._get_random_rotation_matrix(n_points)
         quaternion = self.space.quaternion_from_matrix(mat)
         mat_ = self.space.matrix_from_quaternion(quaternion)
         self.assertAllClose(mat_, mat, atol=atol)
@@ -240,7 +230,7 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
 
     @pytest.mark.vec
     def test_quaternion_from_rotation_vector_vec(self, n_reps, atol):
-        rot_vec = self._get_vec()
+        rot_vec = self._get_random_rotation_vector()
         expected = self.space.quaternion_from_rotation_vector(rot_vec)
 
         vec_data = generate_vectorization_data(
@@ -282,7 +272,7 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
     def test_rotation_vector_from_quaternion_after_quaternion_from_rotation_vector(
         self, n_points, atol
     ):
-        rot_vec = get_random_quaternion(n_points)
+        rot_vec = self._get_random_rotation_vector(n_points)
         quaternion = self.space.quaternion_from_rotation_vector(rot_vec)
         rot_vec_ = self.space.rotation_vector_from_quaternion(quaternion)
         self.assertAllClose(rot_vec_, rot_vec, atol=atol)
@@ -329,7 +319,7 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
 
     @pytest.mark.vec
     def test_tait_bryan_angles_from_matrix_vec(self, n_reps, extrinsic, zyx, atol):
-        rot_mat = self._get_rotation_matrix()
+        rot_mat = self._get_random_rotation_matrix()
         expected = self.space.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic=extrinsic, zyx=zyx
         )
@@ -370,7 +360,7 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
     def test_matrix_from_tait_bryan_angles_after_tait_bryan_angles_from_matrix(
         self, n_points, extrinsic, zyx, atol
     ):
-        mat = self._get_rotation_matrix(n_points)
+        mat = self._get_random_rotation_matrix(n_points)
         angles = self.space.tait_bryan_angles_from_matrix(
             mat, extrinsic=extrinsic, zyx=zyx
         )
@@ -516,7 +506,7 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
     def test_tait_bryan_angles_from_rotation_vector_vec(
         self, n_reps, extrinsic, zyx, atol
     ):
-        rot_vec = self._get_vec()
+        rot_vec = self._get_random_rotation_vector()
         expected = self.space.tait_bryan_angles_from_rotation_vector(
             rot_vec, extrinsic=extrinsic, zyx=zyx
         )
@@ -557,12 +547,11 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
     def test_rotation_vector_from_tait_bryan_angles_after_tait_bryan_angles_from_rotation_vector(
         self, n_points, extrinsic, zyx, atol
     ):
-        rot_vec = self._get_vec(n_points)
+        rot_vec = self._get_random_rotation_vector(n_points)
         angles = self.space.tait_bryan_angles_from_rotation_vector(
             rot_vec, extrinsic=extrinsic, zyx=zyx
         )
         rot_vec_ = self.space.rotation_vector_from_tait_bryan_angles(
             angles, extrinsic=extrinsic, zyx=zyx
         )
-
         self.assertAllClose(rot_vec_, rot_vec, atol=atol)
