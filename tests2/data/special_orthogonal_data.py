@@ -45,6 +45,22 @@ class SpecialOrthogonal2VectorsTestData(SpecialOrthogonalVectorsTestData):
 class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
     skips = ("test_projection_belongs",)
 
+    def _generate_tait_bryan_angles_vec_data(self):
+        data = []
+        for extrinsic in [True, False]:
+            for zyx in [True, False]:
+                for n_reps in self.N_VEC_REPS:
+                    data.append(dict(n_reps=n_reps, extrinsic=extrinsic, zyx=zyx))
+        return self.generate_tests(data)
+
+    def _generate_tait_bryan_angles_random_data(self):
+        data = []
+        for extrinsic in [True, False]:
+            for zyx in [True, False]:
+                for n_points in self.N_RANDOM_POINTS:
+                    data.append(dict(n_points=n_points, extrinsic=extrinsic, zyx=zyx))
+        return self.generate_tests(data)
+
     def quaternion_from_matrix_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -72,3 +88,51 @@ class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
         self,
     ):
         return self.generate_random_data()
+
+    def matrix_from_tait_bryan_angles_vec_test_data(self):
+        return self._generate_tait_bryan_angles_vec_data()
+
+    def tait_bryan_angles_from_matrix_vec_test_data(self):
+        return self._generate_tait_bryan_angles_vec_data()
+
+    def tait_bryan_angles_from_matrix_after_matrix_from_tait_bryan_angles_test_data(
+        self,
+    ):
+        return self._generate_tait_bryan_angles_random_data()
+
+    def matrix_from_tait_bryan_angles_after_tait_bryan_angles_from_matrix_test_data(
+        self,
+    ):
+        return self._generate_tait_bryan_angles_random_data()
+
+    def quaternion_from_tait_bryan_angles_vec_test_data(self):
+        return self._generate_tait_bryan_angles_vec_data()
+
+    def tait_bryan_angles_from_quaternion_vec_test_data(self):
+        return self._generate_tait_bryan_angles_vec_data()
+
+    def quaternion_from_tait_bryan_angles_after_tait_bryan_angles_from_quaternion_test_data(
+        self,
+    ):
+        return self._generate_tait_bryan_angles_random_data()
+
+    def tait_bryan_angles_from_quaternion_after_quaternion_from_tait_bryan_angles_test_data(
+        self,
+    ):
+        return self._generate_tait_bryan_angles_random_data()
+
+    def rotation_vector_from_tait_bryan_angles_vec_test_data(self):
+        return self._generate_tait_bryan_angles_vec_data()
+
+    def tait_bryan_angles_from_rotation_vector_vec_test_data(self):
+        return self._generate_tait_bryan_angles_vec_data()
+
+    def tait_bryan_angles_from_rotation_vector_after_rotation_vector_from_tait_bryan_angles_test_data(
+        self,
+    ):
+        return self._generate_tait_bryan_angles_random_data()
+
+    def rotation_vector_from_tait_bryan_angles_after_tait_bryan_angles_from_rotation_vector_test_data(
+        self,
+    ):
+        return self._generate_tait_bryan_angles_random_data()
