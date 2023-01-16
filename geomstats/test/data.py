@@ -1,5 +1,12 @@
+import random
+
+
 class TestData:
     """Class for TestData objects."""
+
+    N_VEC_REPS = random.sample(range(2, 5), 1)
+    N_SHAPE_POINTS = [1] + random.sample(range(2, 5), 1)
+    N_RANDOM_POINTS = [1] + random.sample(range(2, 5), 1)
 
     def generate_tests(self, test_data, marks=()):
         """Wrap test data with corresponding marks.
@@ -34,3 +41,11 @@ class TestData:
             tests.append(test_datum)
 
         return tests
+
+    def generate_random_data(self, marks=()):
+        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
+        return self.generate_tests(data, marks=marks)
+
+    def generate_vec_data(self, marks=()):
+        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
+        return self.generate_tests(data, marks=marks)

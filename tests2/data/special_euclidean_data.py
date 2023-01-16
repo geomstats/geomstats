@@ -32,30 +32,23 @@ class SpecialEuclideanMatricesTestData(MatrixLieGroupTestData, LevelSetTestData)
     }
 
     def log_after_exp_test_data(self):
-        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
-        return self.generate_tests(data, marks=(pytest.mark.xfail))
+        return self.generate_random_data(marks=(pytest.mark.xfail))
 
 
 class SpecialEuclideanVectorsTestData(_ProjectionMixinsTestData, LieGroupTestData):
-    def lie_bracket_vec_test_data(self):
-        # TODO: try to understand how to make it work
-        return self.generate_tests([])
+    skips = ("test_lie_bracket_vec",)
 
     def matrix_from_vector_vec_test_data(self):
-        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
-        return self.generate_tests(data)
+        return self.generate_vec_data()
 
     def matrix_from_vector_belongs_to_matrices_test_data(self):
-        data = [dict(n_points=n_points) for n_points in self.N_RANDOM_POINTS]
-        return self.generate_tests(data)
+        return self.generate_random_data()
 
     def regularize_tangent_vec_vec_test_data(self):
-        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
-        return self.generate_tests(data)
+        return self.generate_vec_data()
 
     def regularize_tangent_vec_at_identity_vec_test_data(self):
-        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
-        return self.generate_tests(data)
+        return self.generate_vec_data()
 
 
 class SpecialEuclideanMatrixLieAlgebraTestData(MatrixLieAlgebraTestData):

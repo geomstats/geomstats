@@ -7,8 +7,7 @@ from tests2.data.base_data import LevelSetTestData
 
 class StiefelTestData(LevelSetTestData):
     def to_grassmannian_vec_test_data(self):
-        data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
-        return self.generate_tests(data)
+        return self.generate_vec_data()
 
 
 class StiefelStaticMethodsTestData(TestData):
