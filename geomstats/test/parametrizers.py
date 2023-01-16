@@ -6,6 +6,8 @@ import pytest
 import geomstats.backend as gs
 from geomstats.test.test_case import autodiff_backend
 
+# TODO: tolerances - for consistency add prefix "test"? or remove it for other places
+
 
 class Parametrizer(type):
     """Metaclass for test classes.
@@ -119,11 +121,17 @@ class DataBasedParametrizer(type):
             test_attrs_with_data, testing_data
         )
 
+        xfails = testing_data.xfails if hasattr(testing_data, "xfails") else ()
+
         for attr_name, attr_value in selected_test_attrs.items():
             test_func, default_values = _copy_func(attr_value)
-            attrs[attr_name] = _parametrize_test_func(
+            test_func = _parametrize_test_func(
                 test_func, attr_name, testing_data, default_values
             )
+            if attr_name in xfails:
+                test_func = pytest.mark.xfail()(test_func)
+
+            attrs[attr_name] = test_func
 
         for attr_name, attr_value in test_attrs_to_skip.items():
             test_func, _ = _copy_func(attr_value)
