@@ -5,8 +5,6 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.errors
-import geomstats.vectorization
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
@@ -1110,9 +1108,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         return rot_mat
 
     @staticmethod
-    @geomstats.vectorization.decorator(["vector"])
-    def matrix_from_tait_bryan_angles_extrinsic_xyz(tait_bryan_angles):
-        """Convert Tait-Bryan angles to rot mat in extrensic coords (xyz).
+    def _matrix_from_tait_bryan_angles_extrinsic_xyz(tait_bryan_angles):
+        """Convert Tait-Bryan angles to rot mat in extrinsic coords (xyz).
 
         Convert a rotation given in terms of the tait bryan angles,
         [angle_1, angle_2, angle_3] in extrinsic (fixed) coordinate system
@@ -1133,70 +1130,57 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         -------
         rot_mat : array-like, shape=[..., 3, 3]
         """
-        n_tait_bryan_angles, _ = tait_bryan_angles.shape
+        is_vec = tait_bryan_angles.ndim > 1
 
-        rot_mat = []
-        angle_1 = tait_bryan_angles[:, 0]
-        angle_2 = tait_bryan_angles[:, 1]
-        angle_3 = tait_bryan_angles[:, 2]
+        angle_1 = tait_bryan_angles[..., 0]
+        angle_2 = tait_bryan_angles[..., 1]
+        angle_3 = tait_bryan_angles[..., 2]
 
-        # TODO: avoid for loop in vectorization of tait bryan angles
-        for i in range(n_tait_bryan_angles):
-            cos_angle_1 = gs.cos(angle_1[i])
-            sin_angle_1 = gs.sin(angle_1[i])
-            cos_angle_2 = gs.cos(angle_2[i])
-            sin_angle_2 = gs.sin(angle_2[i])
-            cos_angle_3 = gs.cos(angle_3[i])
-            sin_angle_3 = gs.sin(angle_3[i])
+        cos_angle_1 = gs.cos(angle_1)
+        sin_angle_1 = gs.sin(angle_1)
+        cos_angle_2 = gs.cos(angle_2)
+        sin_angle_2 = gs.sin(angle_2)
+        cos_angle_3 = gs.cos(angle_3)
+        sin_angle_3 = gs.sin(angle_3)
 
-            column_1 = gs.array(
-                [
-                    [cos_angle_1 * cos_angle_2],
-                    [cos_angle_2 * sin_angle_1],
-                    [-sin_angle_2],
-                ]
-            )
-            column_2 = gs.array(
-                [
-                    [
-                        (
-                            cos_angle_1 * sin_angle_2 * sin_angle_3
-                            - cos_angle_3 * sin_angle_1
-                        )
-                    ],
-                    [
-                        (
-                            cos_angle_1 * cos_angle_3
-                            + sin_angle_1 * sin_angle_2 * sin_angle_3
-                        )
-                    ],
-                    [cos_angle_2 * sin_angle_3],
-                ]
-            )
-            column_3 = gs.array(
-                [
-                    [
-                        (
-                            sin_angle_1 * sin_angle_3
-                            + cos_angle_1 * cos_angle_3 * sin_angle_2
-                        )
-                    ],
-                    [
-                        (
-                            cos_angle_3 * sin_angle_1 * sin_angle_2
-                            - cos_angle_1 * sin_angle_3
-                        )
-                    ],
-                    [cos_angle_2 * cos_angle_3],
-                ]
+        column_1 = gs.array(
+            [
+                [cos_angle_1 * cos_angle_2],
+                [cos_angle_2 * sin_angle_1],
+                [-sin_angle_2],
+            ]
+        )
+        column_2 = gs.array(
+            [
+                [(cos_angle_1 * sin_angle_2 * sin_angle_3 - cos_angle_3 * sin_angle_1)],
+                [(cos_angle_1 * cos_angle_3 + sin_angle_1 * sin_angle_2 * sin_angle_3)],
+                [cos_angle_2 * sin_angle_3],
+            ]
+        )
+        column_3 = gs.array(
+            [
+                [(sin_angle_1 * sin_angle_3 + cos_angle_1 * cos_angle_3 * sin_angle_2)],
+                [(cos_angle_3 * sin_angle_1 * sin_angle_2 - cos_angle_1 * sin_angle_3)],
+                [cos_angle_2 * cos_angle_3],
+            ]
+        )
+
+        if is_vec:
+            column_1 = gs.moveaxis(column_1, 2, 0)
+            column_2 = gs.moveaxis(column_2, 2, 0)
+            column_3 = gs.moveaxis(column_3, 2, 0)
+
+            rot_mat = gs.stack(
+                [gs.hstack(columns) for columns in zip(column_1, column_2, column_3)]
             )
 
-            rot_mat.append(gs.hstack((column_1, column_2, column_3)))
-        return gs.stack(rot_mat)
+        else:
+            rot_mat = gs.hstack([column_1, column_2, column_3])
+
+        return rot_mat
 
     @staticmethod
-    @geomstats.vectorization.decorator(["vector"])
-    def matrix_from_tait_bryan_angles_extrinsic_zyx(tait_bryan_angles):
+    def _matrix_from_tait_bryan_angles_extrinsic_zyx(tait_bryan_angles):
         """Convert Tait-Bryan angles to rot mat in extrensic coords (zyx).
 
         Convert a rotation given in terms of the tait bryan angles,
@@ -1218,70 +1202,62 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         -------
         rot_mat : array-like, shape=[..., n, n]
         """
-        n_tait_bryan_angles, _ = tait_bryan_angles.shape
+        is_vec = tait_bryan_angles.ndim > 1
 
-        rot_mat = []
-        angle_1 = tait_bryan_angles[:, 0]
-        angle_2 = tait_bryan_angles[:, 1]
-        angle_3 = tait_bryan_angles[:, 2]
+        angle_1 = tait_bryan_angles[..., 0]
+        angle_2 = tait_bryan_angles[..., 1]
+        angle_3 = tait_bryan_angles[..., 2]
 
-        for i in range(n_tait_bryan_angles):
-            cos_angle_1 = gs.cos(angle_1[i])
-            sin_angle_1 = gs.sin(angle_1[i])
-            cos_angle_2 = gs.cos(angle_2[i])
-            sin_angle_2 = gs.sin(angle_2[i])
-            cos_angle_3 = gs.cos(angle_3[i])
-            sin_angle_3 = gs.sin(angle_3[i])
+        cos_angle_1 = gs.cos(angle_1)
+        sin_angle_1 = gs.sin(angle_1)
+        cos_angle_2 = gs.cos(angle_2)
+        sin_angle_2 = gs.sin(angle_2)
+        cos_angle_3 = gs.cos(angle_3)
+        sin_angle_3 = gs.sin(angle_3)
 
-            column_1 = gs.array(
-                [
-                    [cos_angle_2 * cos_angle_3],
-                    [
-                        (
-                            cos_angle_1 * sin_angle_3
-                            + cos_angle_3 * sin_angle_1 * sin_angle_2
-                        )
-                    ],
-                    [
-                        (
-                            sin_angle_1 * sin_angle_3
-                            - cos_angle_1 * cos_angle_3 * sin_angle_2
-                        )
-                    ],
-                ]
+        column_1 = gs.array(
+            [
+                [cos_angle_2 * cos_angle_3],
+                [(cos_angle_1 * sin_angle_3 + cos_angle_3 * sin_angle_1 * sin_angle_2)],
+                [(sin_angle_1 * sin_angle_3 - cos_angle_1 * cos_angle_3 * sin_angle_2)],
+            ]
+        )
+
+        column_2 = gs.array(
+            [
+                [-cos_angle_2 * sin_angle_3],
+                [(cos_angle_1 * cos_angle_3 - sin_angle_1 * sin_angle_2 * sin_angle_3)],
+                [(cos_angle_3 * sin_angle_1 + cos_angle_1 * sin_angle_2 * sin_angle_3)],
+            ]
+        )
+
+        column_3 = gs.array(
+            [
+                [sin_angle_2],
+                [-cos_angle_2 * sin_angle_1],
+                [cos_angle_1 * cos_angle_2],
+            ]
+        )
+
+        if is_vec:
+            column_1 = gs.moveaxis(column_1, 2, 0)
+            column_2 = gs.moveaxis(column_2, 2, 0)
+            column_3 = gs.moveaxis(column_3, 2, 0)
+
+            rot_mat = gs.stack(
+                [gs.hstack(columns) for columns in zip(column_1, column_2, column_3)]
             )
 
-            column_2 = gs.array(
-                [
-                    [-cos_angle_2 * sin_angle_3],
-                    [
-                        (
-                            cos_angle_1 * cos_angle_3
-                            - sin_angle_1 * sin_angle_2 * sin_angle_3
-                        )
-                    ],
-                    [
-                        (
-                            cos_angle_3 * sin_angle_1
-                            + cos_angle_1 * sin_angle_2 * sin_angle_3
-                        )
-                    ],
-                ]
-            )
+        else:
+            rot_mat = gs.hstack([column_1, column_2, column_3])
 
-            column_3 = gs.array(
-                [
-                    [sin_angle_2],
-                    [-cos_angle_2 * sin_angle_1],
-                    [cos_angle_1 * cos_angle_2],
-                ]
-            )
-            rot_mat.append(gs.hstack((column_1, column_2, column_3)))
-        return gs.stack(rot_mat)
+        return rot_mat
 
-    @geomstats.vectorization.decorator(["else", "vector", "else", "else"])
     def matrix_from_tait_bryan_angles(
-        self, tait_bryan_angles, extrinsic_or_intrinsic="extrinsic", order="zyx"
+        self,
+        tait_bryan_angles,
+        extrinsic=True,
+        zyx=True,
     ):
         """Convert Tait-Bryan angles to rot mat in extr or intr coords.
 
@@ -1303,61 +1279,33 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         Parameters
         ----------
         tait_bryan_angles : array-like, shape=[..., 3]
-        extrinsic_or_intrinsic : str, {'extrensic', 'intrinsic'} optional
-            default: 'extrinsic'
-        order : str, {'xyz', 'zyx'}, optional
-            default: 'zyx'
+        extrinsic : bool
+            If False, then 'intrinsic'.
+        zyx : bool
+            If False, then 'xyz'.
 
         Returns
         -------
         rot_mat : array-like, shape=[..., n, n]
         """
-        geomstats.errors.check_parameter_accepted_values(
-            extrinsic_or_intrinsic, "extrinsic_or_intrinsic", ["extrinsic", "intrinsic"]
-        )
-        geomstats.errors.check_parameter_accepted_values(order, "order", ["xyz", "zyx"])
-
-        tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
-
-        extrinsic_zyx = extrinsic_or_intrinsic == "extrinsic" and order == "zyx"
-        intrinsic_xyz = extrinsic_or_intrinsic == "intrinsic" and order == "xyz"
-
-        extrinsic_xyz = extrinsic_or_intrinsic == "extrinsic" and order == "xyz"
-        intrinsic_zyx = extrinsic_or_intrinsic == "intrinsic" and order == "zyx"
-
-        if extrinsic_zyx:
-            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_zyx(
-                tait_bryan_angles
-            )
-        elif intrinsic_xyz:
-            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=1)
-            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_zyx(
+        if extrinsic and zyx:
+            return self._matrix_from_tait_bryan_angles_extrinsic_zyx(tait_bryan_angles)
+        if not extrinsic and not zyx:
+            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=-1)
+            return self._matrix_from_tait_bryan_angles_extrinsic_zyx(
                 tait_bryan_angles_reversed
             )
 
-        elif extrinsic_xyz:
-            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
-                tait_bryan_angles
-            )
-        elif intrinsic_zyx:
-            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=1)
-            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
+        if extrinsic and not zyx:
+            return self._matrix_from_tait_bryan_angles_extrinsic_xyz(tait_bryan_angles)
+
+        if not extrinsic and zyx:
+            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=-1)
+            return self._matrix_from_tait_bryan_angles_extrinsic_xyz(
                 tait_bryan_angles_reversed
             )
 
-        else:
-            raise ValueError(
-                "extrinsic_or_intrinsic should be"
-                " 'extrinsic' or 'intrinsic'"
-                " and order should be 'xyz' or 'zyx'."
-            )
-
-        return rot_mat
-
-    @geomstats.vectorization.decorator(["else", "matrix", "else", "else"])
-    def tait_bryan_angles_from_matrix(
-        self, rot_mat, extrinsic_or_intrinsic="extrinsic", order="zyx"
-    ):
+    def tait_bryan_angles_from_matrix(self, rot_mat, extrinsic=True, zyx=True):
         """Convert rot_mat into Tait-Bryan angles.
 
         Convert a rotation matrix rot_mat into the tait bryan angles,
@@ -1373,24 +1321,21 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         Parameters
         ----------
         rot_mat : array-like, shape=[..., n, n]
-        extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
-            default: 'extrinsic'
-        order : str, {'xyz', 'zyx'}, optional
-            default: 'zyx'
+        extrinsic : bool
+            If False, then 'intrinsic'.
+        zyx : bool
+            If False, then 'xyz'.
 
         Returns
         -------
         tait_bryan_angles : array-like, shape=[..., 3]
         """
         quaternion = self.quaternion_from_matrix(rot_mat)
-        tait_bryan_angles = self.tait_bryan_angles_from_quaternion(
-            quaternion, extrinsic_or_intrinsic=extrinsic_or_intrinsic, order=order
+        return self.tait_bryan_angles_from_quaternion(
+            quaternion, extrinsic=extrinsic, zyx=zyx
         )
 
-        return tait_bryan_angles
-
-    @geomstats.vectorization.decorator(["else", "vector"])
-    def quaternion_from_tait_bryan_angles_intrinsic_xyz(self, tait_bryan_angles):
+    def _quaternion_from_tait_bryan_angles_intrinsic_xyz(self, tait_bryan_angles):
         """Convert Tait-Bryan angles to into unit quaternion.
 
         Convert a rotation given by Tait-Bryan angles in extrinsic
@@ -1405,70 +1350,56 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         quaternion : array-like, shape=[..., 4]
         """
         matrix = self.matrix_from_tait_bryan_angles(
-            tait_bryan_angles, extrinsic_or_intrinsic="intrinsic", order="xyz"
+            tait_bryan_angles, extrinsic=False, zyx=False
         )
-        quaternion = self.quaternion_from_matrix(matrix)
-        return quaternion
+        return self.quaternion_from_matrix(matrix)
 
-    @geomstats.vectorization.decorator(["else", "vector", "else", "else"])
     def quaternion_from_tait_bryan_angles(
-        self, tait_bryan_angles, extrinsic_or_intrinsic="extrinsic", order="zyx"
+        self, tait_bryan_angles, extrinsic=True, zyx=True
     ):
         """Convert a rotation given by Tait-Bryan angles into unit quaternion.
 
         Parameters
         ----------
         tait_bryan_angles : array-like, shape=[..., 3]
-        extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
-            default: 'extrinsic'
-        order : str, {'xyz', 'zyx'}, optional
-            default: 'zyx'
+        extrinsic : bool
+            If False, then 'intrinsic'.
+        zyx : bool
+            If False, then 'xyz'.
 
         Returns
         -------
         quat : array-like, shape=[..., 4]
         """
-        extrinsic_zyx = extrinsic_or_intrinsic == "extrinsic" and order == "zyx"
-        intrinsic_xyz = extrinsic_or_intrinsic == "intrinsic" and order == "xyz"
-
-        extrinsic_xyz = extrinsic_or_intrinsic == "extrinsic" and order == "xyz"
-        intrinsic_zyx = extrinsic_or_intrinsic == "intrinsic" and order == "zyx"
-
-        if extrinsic_zyx:
-            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=1)
-            quat = self.quaternion_from_tait_bryan_angles_intrinsic_xyz(
+        if extrinsic and zyx:
+            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=-1)
+            return self._quaternion_from_tait_bryan_angles_intrinsic_xyz(
                 tait_bryan_angles_reversed
             )
 
-        elif intrinsic_xyz:
-            quat = self.quaternion_from_tait_bryan_angles_intrinsic_xyz(
+        if not extrinsic and not zyx:
+            return self._quaternion_from_tait_bryan_angles_intrinsic_xyz(
                 tait_bryan_angles
             )
 
-        elif extrinsic_xyz:
-            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
+        if extrinsic and not zyx:
+            rot_mat = self._matrix_from_tait_bryan_angles_extrinsic_xyz(
                 tait_bryan_angles
             )
-            quat = self.quaternion_from_matrix(rot_mat)
+            return self.quaternion_from_matrix(rot_mat)
 
-        elif intrinsic_zyx:
-            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=1)
-            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
+        if not extrinsic and zyx:
+            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=-1)
+            rot_mat = self._matrix_from_tait_bryan_angles_extrinsic_xyz(
                 tait_bryan_angles_reversed
             )
-            quat = self.quaternion_from_matrix(rot_mat)
-        else:
-            raise ValueError(
-                "extrinsic_or_intrinsic should be"
-                " 'extrinsic' or 'intrinsic'"
-                " and order should be 'xyz' or 'zyx'."
-            )
+            return self.quaternion_from_matrix(rot_mat)
 
-        return quat
-
-    @geomstats.vectorization.decorator(["else", "vector", "else", "else"])
     def rotation_vector_from_tait_bryan_angles(
-        self, tait_bryan_angles, extrinsic_or_intrinsic="extrinsic", order="zyx"
+        self,
+        tait_bryan_angles,
+        extrinsic=True,
+        zyx=True,
     ):
         """Convert rotation given by angle_1, angle_2, angle_3 into rot. vec.
 
@@ -1477,10 +1408,10 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         Parameters
         ----------
         tait_bryan_angles : array-like, shape=[..., 3]
-        extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
-            default: 'extrinsic'
-        order : str, {'xyz', 'zyx'}, optional
-            default: 'zyx'
+        extrinsic : bool
+            If False, then 'intrinsic'.
+        zyx : bool
+            If False, then 'xyz'.
 
         Returns
         -------
@@ -1488,17 +1419,15 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         """
         quaternion = self.quaternion_from_tait_bryan_angles(
             tait_bryan_angles,
-            extrinsic_or_intrinsic=extrinsic_or_intrinsic,
-            order=order,
+            extrinsic=extrinsic,
+            zyx=zyx,
         )
         rot_vec = self.rotation_vector_from_quaternion(quaternion)
 
-        rot_vec = self.regularize(rot_vec)
-        return rot_vec
+        return self.regularize(rot_vec)
 
     @staticmethod
-    @geomstats.vectorization.decorator(["vector"])
-    def tait_bryan_angles_from_quaternion_intrinsic_zyx(quaternion):
+    def _tait_bryan_angles_from_quaternion_intrinsic_zyx(quaternion):
         """Convert quaternion to tait bryan representation of order zyx.
 
         Parameters
@@ -1513,12 +1442,10 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         angle_1 = gs.arctan2(y * z + w * x, 1.0 / 2.0 - (x**2 + y**2))
         angle_2 = gs.arcsin(-2.0 * (x * z - w * y))
         angle_3 = gs.arctan2(x * y + w * z, 1.0 / 2.0 - (y**2 + z**2))
-        tait_bryan_angles = gs.concatenate([angle_1, angle_2, angle_3], axis=1)
-        return tait_bryan_angles
+        return gs.concatenate([angle_1, angle_2, angle_3], axis=-1)
 
     @staticmethod
-    @geomstats.vectorization.decorator(["vector"])
-    def tait_bryan_angles_from_quaternion_intrinsic_xyz(quaternion):
+    def _tait_bryan_angles_from_quaternion_intrinsic_xyz(quaternion):
         """Convert quaternion to tait bryan representation of order xyz.
 
         Parameters
@@ -1535,65 +1462,46 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         angle_2 = gs.arcsin(2 * (x * z + w * y))
         angle_3 = gs.arctan2(2.0 * (-y * z + w * x), w * w + z * z - x * x - y * y)
 
-        tait_bryan_angles = gs.concatenate([angle_1, angle_2, angle_3], axis=1)
-        return tait_bryan_angles
+        return gs.concatenate([angle_1, angle_2, angle_3], axis=-1)
 
-    @geomstats.vectorization.decorator(["else", "vector", "else", "else"])
-    def tait_bryan_angles_from_quaternion(
-        self, quaternion, extrinsic_or_intrinsic="extrinsic", order="zyx"
-    ):
+    def tait_bryan_angles_from_quaternion(self, quaternion, extrinsic=True, zyx=True):
         """Convert quaternion to a rotation in form angle_1, angle_2, angle_3.
 
         Parameters
         ----------
         quaternion : array-like, shape=[..., 4]
-        extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
-            default: 'extrinsic'
-        order : str, {'xyz', 'zyx'}, optional
-            default: 'zyx'
+        extrinsic : bool
+            If False, then 'intrinsic'.
+        zyx : bool
+            If False, then 'xyz'.
 
         Returns
         -------
         tait_bryan : array-like, shape=[..., 3]
         """
-        extrinsic_zyx = extrinsic_or_intrinsic == "extrinsic" and order == "zyx"
-        intrinsic_xyz = extrinsic_or_intrinsic == "intrinsic" and order == "xyz"
-
-        extrinsic_xyz = extrinsic_or_intrinsic == "extrinsic" and order == "xyz"
-        intrinsic_zyx = extrinsic_or_intrinsic == "intrinsic" and order == "zyx"
-
-        if extrinsic_zyx:
-            tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_xyz(
+        if extrinsic and zyx:
+            tait_bryan = self._tait_bryan_angles_from_quaternion_intrinsic_xyz(
                 quaternion
             )
-            tait_bryan = gs.flip(tait_bryan, axis=1)
-        elif intrinsic_xyz:
-            tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_xyz(
+            return gs.flip(tait_bryan, axis=-1)
+
+        if not extrinsic and not zyx:
+            return self._tait_bryan_angles_from_quaternion_intrinsic_xyz(quaternion)
+
+        if extrinsic and not zyx:
+            tait_bryan = self._tait_bryan_angles_from_quaternion_intrinsic_zyx(
                 quaternion
             )
+            return gs.flip(tait_bryan, axis=-1)
 
-        elif extrinsic_xyz:
-            tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_zyx(
-                quaternion
-            )
-            tait_bryan = gs.flip(tait_bryan, axis=1)
-        elif intrinsic_zyx:
-            tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_zyx(
-                quaternion
-            )
+        if not extrinsic and zyx:
+            return self._tait_bryan_angles_from_quaternion_intrinsic_zyx(quaternion)
 
-        else:
-            raise ValueError(
-                "extrinsic_or_intrinsic should be"
-                " 'extrinsic' or 'intrinsic'"
-                " and order should be 'xyz' or 'zyx'."
-            )
-
-        return tait_bryan
-
-    @geomstats.vectorization.decorator(["else", "vector", "else", "else"])
     def tait_bryan_angles_from_rotation_vector(
-        self, rot_vec, extrinsic_or_intrinsic="extrinsic", order="zyx"
+        self,
+        rot_vec,
+        extrinsic=True,
+        zyx=True,
     ):
         """Convert a rotation vector to a rotation given by Tait-Bryan angles.
 
@@ -1602,21 +1510,19 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         Parameters
         ----------
         rot_vec : array-like, shape=[..., 3]
-        extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
-            default: 'extrinsic'
-        order : str, {'xyz', 'zyx'}, optional
-            default: 'zyx'
+        extrinsic : bool
+            If False, then 'intrinsic'.
+        zyx : bool
+            If False, then 'xyz'.
 
         Returns
         -------
         tait_bryan_angles : array-like, shape=[..., 3]
         """
         quaternion = self.quaternion_from_rotation_vector(rot_vec)
-        tait_bryan_angles = self.tait_bryan_angles_from_quaternion(
-            quaternion, extrinsic_or_intrinsic=extrinsic_or_intrinsic, order=order
+        return self.tait_bryan_angles_from_quaternion(
+            quaternion, extrinsic=extrinsic, zyx=zyx
         )
-
-        return tait_bryan_angles
 
     def compose(self, point_a, point_b):
         """Compose two elements of SO(3).
