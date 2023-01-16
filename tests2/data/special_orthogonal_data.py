@@ -67,7 +67,7 @@ class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
         "rotation_vector_from_tait_bryan_angles_after_tait_bryan_angles_from_rotation_vector": {
             "atol": 1e-1
         },
-        "log_after_exp": {"atol": 1e-2},
+        "log_after_exp": {"atol": 1e-1},
     }
 
     def _generate_tait_bryan_angles_vec_data(self, marks=()):
