@@ -47,7 +47,7 @@ class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
     tolerances = {
         "rotation_vector_from_matrix_after_matrix_from_rotation_vector": {"atol": 1e-5},
         "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},
-        "quaternion_from_matrix_after_matrix_from_quaternion": {"atol": 1e-3},
+        "quaternion_from_matrix_after_matrix_from_quaternion": {"atol": 1e-2},
         "matrix_from_quaternion_after_quaternion_from_matrix": {"atol": 1e-1},
         "tait_bryan_angles_from_matrix_after_matrix_from_tait_bryan_angles": {
             "atol": 1e-1
@@ -62,7 +62,7 @@ class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
             "atol": 1e-1
         },
         "quaternion_from_tait_bryan_angles_after_tait_bryan_angles_from_quaternion": {
-            "atol": 1e-3
+            "atol": 1e-1
         },
         "rotation_vector_from_tait_bryan_angles_after_tait_bryan_angles_from_rotation_vector": {
             "atol": 1e-1

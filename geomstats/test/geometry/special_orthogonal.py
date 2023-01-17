@@ -2,18 +2,23 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import (
+    SpecialOrthogonal,
+    _SpecialOrthogonal2Vectors,
+    _SpecialOrthogonal3Vectors,
+)
 from geomstats.test.geometry.base import LieGroupTestCase, _ProjectionTestCaseMixins
-from geomstats.test.random import get_random_quaternion, get_random_tangent_vec
+from geomstats.test.random import get_random_quaternion
 from geomstats.test.vectorization import generate_vectorization_data
 
 
 class _SpecialOrthogonalTestCaseMixins:
     def _get_random_rotation_vector(self, n_points=1):
-        batch_shape = (n_points,) if n_points > 1 else ()
-        return self.space.regularize(
-            gs.random.normal(size=batch_shape + (self.space.dim,))
-        )
+        if self.n == 2:
+            return _SpecialOrthogonal2Vectors().random_point(n_points)
+
+        if self.n == 3:
+            return _SpecialOrthogonal3Vectors().random_point(n_points)
 
     def _get_random_skew_sym_matrix(self, n_points=1):
         return SkewSymmetricMatrices(self.space.n).random_point(n_points)
@@ -131,6 +136,9 @@ class SpecialOrthogonalVectorsTestCase(
 ):
     # TODO: add test on projection matrix belongs?
 
+    def _get_random_rotation_vector(self, n_points=1):
+        return self.space.random_point(n_points)
+
     def _get_point_to_project(self, n_points):
         batch_shape = (n_points,) if n_points > 1 else ()
         return gs.random.normal(size=batch_shape + self.space.shape)
@@ -174,23 +182,6 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
     def _get_random_angles(self, n_points=1):
         size = (n_points, 3) if n_points > 1 else 3
         return gs.random.uniform(low=-gs.pi, high=gs.pi, size=size)
-
-    @pytest.mark.random
-    def test_log_after_exp(self, n_points, atol):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
-
-        point = self.space.exp(tangent_vec, base_point)
-        tangent_vec_ = self.space.log(point, base_point)
-
-        if n_points == 1:
-            tangent_vec_ = gs.expand_dims(tangent_vec_, axis=0)
-            tangent_vec = gs.expand_dims(tangent_vec, axis=0)
-
-        for tvec_, tvec in zip(tangent_vec_, tangent_vec):
-            if gs.sum(gs.abs(tvec_ - tvec)) > gs.sum(gs.abs(-tvec_ - tvec)):
-                tvec_ = -tvec_
-            self.assertAllClose(tvec_, tvec, atol=atol)
 
     def test_quaternion_from_matrix(self, rot_mat, expected, atol):
         res = self.space.quaternion_from_matrix(rot_mat)

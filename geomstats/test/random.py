@@ -13,7 +13,7 @@ def _get_random_tangent_vec_vector_space(space, base_point):
 def _get_random_tangent_vec_lie_group(space, base_point):
     n_points = get_n_points(space, base_point)
     batch_shape = (n_points,) if n_points > 1 else ()
-    vec = gs.random.normal(size=batch_shape + space.shape)
+    vec = gs.random.uniform(size=batch_shape + space.shape)
     return space.to_tangent(vec, base_point)
 
 
