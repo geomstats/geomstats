@@ -2,33 +2,39 @@ import random
 
 import pytest
 
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import (
+    SpecialOrthogonal,
+    _SpecialOrthogonalMatrices,
+)
 from geomstats.test.geometry.special_orthogonal import (
     SpecialOrthogonal2VectorsTestCase,
     SpecialOrthogonal3VectorsTestCase,
+    SpecialOrthogonalMatricesTestCase,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from tests2.data.special_orthogonal_data import (
     SpecialOrthogonal2VectorsTestData,
     SpecialOrthogonal3VectorsTestData,
+    SpecialOrthogonalMatricesTestData,
 )
 
-# @pytest.fixture(
-#     scope="class",
-#     params=[
-#         2,
-#         # 3,
-#     ],
-# )
-# def spaces(request):
-#     request.cls.space = SpecialOrthogonal(request.param, point_type="vector")
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        random.randint(2, 3),
+        random.randint(4, 6),
+    ],
+)
+def mat_spaces(request):
+    request.cls.space = _SpecialOrthogonalMatrices(n=request.param)
 
 
-# @pytest.mark.usefixtures("spaces")
-# class TestSpecialOrthogonalVectors(
-#     SpecialOrthogonalVectorsTestCase, metaclass=DataBasedParametrizer
-# ):
-#     testing_data = SpecialOrthogonalVectorsTestData()
+@pytest.mark.usefixtures("mat_spaces")
+class TestSpecialOrthogonalMatrices(
+    SpecialOrthogonalMatricesTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = SpecialOrthogonalMatricesTestData()
 
 
 class TestSpecialOrthogonal2Vectors(

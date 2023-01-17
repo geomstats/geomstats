@@ -1,4 +1,9 @@
-from tests2.data.base_data import LieGroupTestData, _ProjectionMixinsTestData
+from tests2.data.base_data import (
+    LevelSetTestData,
+    LieGroupTestData,
+    MatrixLieGroupTestData,
+    _ProjectionMixinsTestData,
+)
 
 
 class _SpecialOrthogonalMixinsTestData:
@@ -25,6 +30,19 @@ class _SpecialOrthogonalMixinsTestData:
 
     def matrix_from_rotation_vector_after_rotation_vector_from_matrix_test_data(self):
         return self.generate_random_data()
+
+
+class SpecialOrthogonalMatricesTestData(
+    _SpecialOrthogonalMixinsTestData, MatrixLieGroupTestData, LevelSetTestData
+):
+    xfails = ("test_log_after_exp",)
+    tolerances = {
+        "projection_belongs": {"atol": 1e-5},
+        "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},
+    }
+
+    def are_antipodals_vec_test_data(self):
+        return self.generate_vec_data()
 
 
 class SpecialOrthogonalVectorsTestData(

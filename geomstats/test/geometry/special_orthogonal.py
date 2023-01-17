@@ -7,18 +7,27 @@ from geomstats.geometry.special_orthogonal import (
     _SpecialOrthogonal2Vectors,
     _SpecialOrthogonal3Vectors,
 )
-from geomstats.test.geometry.base import LieGroupTestCase, _ProjectionTestCaseMixins
+from geomstats.test.geometry.base import (
+    LevelSetTestCase,
+    LieGroupTestCase,
+    MatrixLieGroupTestCase,
+    _ProjectionTestCaseMixins,
+)
 from geomstats.test.random import get_random_quaternion
 from geomstats.test.vectorization import generate_vectorization_data
 
 
 class _SpecialOrthogonalTestCaseMixins:
     def _get_random_rotation_vector(self, n_points=1):
-        if self.n == 2:
+        if self.space.n == 2:
             return _SpecialOrthogonal2Vectors().random_point(n_points)
 
-        if self.n == 3:
+        if self.space.n == 3:
             return _SpecialOrthogonal3Vectors().random_point(n_points)
+
+        raise NotImplementedError(
+            f"Unable to create random orthogonal vector for `n={self.space.n}`"
+        )
 
     def _get_random_skew_sym_matrix(self, n_points=1):
         return SkewSymmetricMatrices(self.space.n).random_point(n_points)
@@ -32,6 +41,9 @@ class _SpecialOrthogonalTestCaseMixins:
 
     @pytest.mark.vec
     def test_skew_matrix_from_vector_vec(self, n_reps, atol):
+        if self.space.n > 3:
+            return
+
         vec = self._get_random_rotation_vector()
         expected = self.space.skew_matrix_from_vector(vec)
 
@@ -64,6 +76,9 @@ class _SpecialOrthogonalTestCaseMixins:
     def test_vector_from_skew_matrix_after_skew_matrix_from_vector(
         self, n_points, atol
     ):
+        if self.space.n > 3:
+            return
+
         vec = self._get_random_rotation_vector(n_points)
         mat = self.space.skew_matrix_from_vector(vec)
         vec_ = self.space.vector_from_skew_matrix(mat)
@@ -84,7 +99,11 @@ class _SpecialOrthogonalTestCaseMixins:
 
     @pytest.mark.vec
     def test_rotation_vector_from_matrix_vec(self, n_reps, atol):
+        if self.space.n > 3:
+            return
+
         rot_mat = self._get_random_rotation_matrix()
+
         expected = self.space.rotation_vector_from_matrix(rot_mat)
 
         vec_data = generate_vectorization_data(
@@ -101,6 +120,9 @@ class _SpecialOrthogonalTestCaseMixins:
 
     @pytest.mark.vec
     def test_matrix_from_rotation_vector_vec(self, n_reps, atol):
+        if self.space.n > 3:
+            return
+
         rot_vec = self._get_random_rotation_vector()
         expected = self.space.matrix_from_rotation_vector(rot_vec)
 
@@ -116,6 +138,9 @@ class _SpecialOrthogonalTestCaseMixins:
     def test_rotation_vector_from_matrix_after_matrix_from_rotation_vector(
         self, n_points, atol
     ):
+        if self.space.n > 3:
+            return
+
         vec = self._get_random_rotation_vector(n_points)
         mat = self.space.matrix_from_rotation_vector(vec)
         vec_ = self.space.rotation_vector_from_matrix(mat)
@@ -125,10 +150,43 @@ class _SpecialOrthogonalTestCaseMixins:
     def test_matrix_from_rotation_vector_after_rotation_vector_from_matrix(
         self, n_points, atol
     ):
+        if self.space.n > 3:
+            return
+
         mat = self._get_random_rotation_matrix(n_points)
         vec = self.space.rotation_vector_from_matrix(mat)
         mat_ = self.space.matrix_from_rotation_vector(vec)
         self.assertAllClose(mat, mat_, atol=atol)
+
+
+class SpecialOrthogonalMatricesTestCase(
+    _SpecialOrthogonalTestCaseMixins, MatrixLieGroupTestCase, LevelSetTestCase
+):
+    def test_are_antipodals(self, rotation_mat1, rotation_mat2, expected, atol):
+        res = self.space.are_antipodals(rotation_mat1, rotation_mat2)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_are_antipodals_vec(self, n_reps, atol):
+        rotation_mat1 = self._get_random_rotation_matrix()
+        rotation_mat2 = self._get_random_rotation_matrix()
+
+        expected = self.space.are_antipodals(rotation_mat1, rotation_mat2)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    rotation_mat1=rotation_mat1,
+                    rotation_mat2=rotation_mat2,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["rotation_mat1", "rotation_mat2"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
 
 
 class SpecialOrthogonalVectorsTestCase(
