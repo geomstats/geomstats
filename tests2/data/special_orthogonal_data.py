@@ -35,7 +35,7 @@ class _SpecialOrthogonalMixinsTestData:
 class SpecialOrthogonalMatricesTestData(
     _SpecialOrthogonalMixinsTestData, MatrixLieGroupTestData, LevelSetTestData
 ):
-    xfails = ("test_log_after_exp",)
+    xfails = ("log_after_exp",)
     tolerances = {
         "projection_belongs": {"atol": 1e-5},
         "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},
@@ -53,15 +53,15 @@ class SpecialOrthogonalVectorsTestData(
 
 class SpecialOrthogonal2VectorsTestData(SpecialOrthogonalVectorsTestData):
     skips = (
-        "test_jacobian_translation_vec",
-        "test_tangent_translation_map_vec",
-        "test_lie_bracket_vec",
-        "test_projection_belongs",
+        "jacobian_translation_vec",
+        "tangent_translation_map_vec",
+        "lie_bracket_vec",
+        "projection_belongs",
     )
 
 
 class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
-    skips = ("test_projection_belongs",)
+    skips = ("projection_belongs",)
     tolerances = {
         "rotation_vector_from_matrix_after_matrix_from_rotation_vector": {"atol": 1e-5},
         "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},

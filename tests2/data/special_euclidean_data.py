@@ -36,7 +36,7 @@ class SpecialEuclideanMatricesTestData(MatrixLieGroupTestData, LevelSetTestData)
 
 
 class SpecialEuclideanVectorsTestData(_ProjectionMixinsTestData, LieGroupTestData):
-    skips = ("test_lie_bracket_vec",)
+    skips = ("lie_bracket_vec",)
 
     def matrix_from_vector_vec_test_data(self):
         return self.generate_vec_data()

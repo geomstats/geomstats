@@ -6,8 +6,6 @@ import pytest
 import geomstats.backend as gs
 from geomstats.test.test_case import autodiff_backend
 
-# TODO: tolerances - for consistency add prefix "test"? or remove it for other places
-
 
 class Parametrizer(type):
     """Metaclass for test classes.
@@ -109,7 +107,7 @@ class DataBasedParametrizer(type):
         testing_data = locals()["attrs"].get("testing_data")
         if testing_data is None:
             raise Exception(
-                "Testing class doesn't have class object" " named 'testing_data'"
+                "Testing class doesn't have class object named 'testing_data'"
             )
 
         data_names_ls = _collect_testing_data_tests(testing_data)
@@ -121,7 +119,11 @@ class DataBasedParametrizer(type):
             test_attrs_with_data, testing_data
         )
 
-        xfails = testing_data.xfails if hasattr(testing_data, "xfails") else ()
+        xfails = (
+            {_name_to_test_name(name) for name in testing_data.xfails}
+            if hasattr(testing_data, "xfails")
+            else ()
+        )
 
         for attr_name, attr_value in selected_test_attrs.items():
             test_func, default_values = _copy_func(attr_value)
@@ -359,17 +361,35 @@ def _filter_test_funcs_given_data(test_attrs, data_names_ls):
     return relevant_test_attrs
 
 
+def _name_to_test_name(name):
+    return f"test_{name}"
+
+
 def _filter_skips_and_ignores(test_attrs, testing_data):
+    """Split data in skips and ignores.
+
+    Notes
+    -----
+    * `skips` are a list of names
+    * `skips_if` are a list of tuples
+        * each element is a tuple
+        * each tuple contains a evaluated condition and a list of names
+    * `ignores_if_not_autodiff` are a list of names
+    * `xfails` are treated separetely (are a list of names)
+    * names should not containt `test_` nor `_test_data`
+    """
     selected_test_attrs = {}
     test_attrs_to_skip = {}
     test_attrs_to_ignore = {}
 
-    skips = set(testing_data.skips) if hasattr(testing_data, "skips") else []
+    skips = list(testing_data.skips) if hasattr(testing_data, "skips") else []
 
     skips_if = testing_data.skipif if hasattr(testing_data, "skips_if") else ()
     for skipif in skips_if:
-        if skipif[1]:
-            skips.append(skipif[0])
+        if skipif[0]:
+            skips.extend(skipif[1])
+
+    skips = {_name_to_test_name(name) for name in skips}
 
     if not autodiff_backend():
         ignores = (
@@ -379,6 +399,8 @@ def _filter_skips_and_ignores(test_attrs, testing_data):
         )
     else:
         ignores = ()
+
+    ignores = {_name_to_test_name(name) for name in ignores}
 
     for attr_name, attr_value in test_attrs.items():
         if attr_name in skips:
