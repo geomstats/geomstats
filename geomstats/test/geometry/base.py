@@ -341,10 +341,6 @@ class ManifoldTestCase(TestCase):
         res = self.space.is_tangent(vector, base_point, atol=atol)
         self.assertAllEqual(res, expected)
 
-    @abc.abstractmethod
-    def _get_vec_to_tangent(self, n_points):
-        raise NotImplementedError("Need to implement `_get_vec_to_tangent`")
-
     @pytest.mark.vec
     def test_is_tangent_vec(self, n_reps, atol):
         point = self.space.random_point()
@@ -755,3 +751,17 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
             expected_name="expected",
         )
         self._test_vectorization(vec_data)
+
+
+class OpenSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
+    def _get_point_to_project(self, n_points):
+        return self.space.embedding_space.random_point(n_points)
+
+    @pytest.mark.random
+    def test_to_tangent_is_tangent_in_embedding_space(self, n_points):
+        base_point = self.space.random_point(n_points)
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        res = self.space.embedding_space.is_tangent(tangent_vec, base_point)
+
+        expected = gs.ones(n_points, dtype=bool)
+        self.assertAllEqual(res, expected)

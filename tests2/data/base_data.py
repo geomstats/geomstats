@@ -176,3 +176,8 @@ class LevelSetTestData(_ProjectionMixinsTestData, ManifoldTestData):
 
     def tangent_submersion_vec_test_data(self):
         return self.generate_vec_data()
+
+
+class OpenSetTestData(_ProjectionMixinsTestData, ManifoldTestData):
+    def to_tangent_is_tangent_in_embedding_space_test_data(self):
+        return self.generate_random_data()
