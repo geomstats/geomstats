@@ -18,3 +18,9 @@ def pytest_collection_modifyitems(session, config, items):
     config.hook.pytest_deselected(items=deselected)
 
     items[:] = selected
+
+
+def pytest_make_parametrize_id(config, val):
+    if isinstance(val, tuple):
+        return "-".join([repr(val_) for val_ in val])
+    return repr(val)
