@@ -16,8 +16,7 @@ References
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
-from geomstats.geometry.product_manifold import NFoldManifold
-from geomstats.geometry.product_riemannian_metric import NFoldMetric
+from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 
 
 class PoincarePolydisk(NFoldManifold):
