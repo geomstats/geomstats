@@ -52,8 +52,7 @@ class SPDMatrices(OpenSet):
         """
         is_sym = self.embedding_space.belongs(point, atol)
         is_pd = Matrices.is_pd(point)
-        belongs = gs.logical_and(is_sym, is_pd)
-        return belongs
+        return gs.logical_and(is_sym, is_pd)
 
     def projection(self, point):
         """Project a matrix to the space of SPD matrices.
@@ -98,9 +97,7 @@ class SPDMatrices(OpenSet):
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
         mat = bound * (2 * gs.random.rand(*size) - 1)
-        spd_mat = GeneralLinear.exp(Matrices.to_symmetric(mat))
-
-        return spd_mat
+        return GeneralLinear.exp(Matrices.to_symmetric(mat))
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of SPD(n) from the uniform distribution.
@@ -132,9 +129,7 @@ class SPDMatrices(OpenSet):
             tangent_vec_at_id_aux
         )
 
-        tangent_vec = Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
-
-        return tangent_vec
+        return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
     @staticmethod
     def aux_differential_power(power, tangent_vec, base_point):

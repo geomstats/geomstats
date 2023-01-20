@@ -1,5 +1,6 @@
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, OpenSet, VectorSpace
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.vectorization import get_n_points
 
 
@@ -23,6 +24,9 @@ def _get_random_tangent_vec_from_embedding_space(space, base_point):
 
 
 def get_random_tangent_vec(space, base_point):
+    if isinstance(space, SPDMatrices):
+        return space.random_tangent_vec(base_point)
+
     if isinstance(space, (LevelSet, OpenSet)):
         return _get_random_tangent_vec_from_embedding_space(space, base_point)
 
