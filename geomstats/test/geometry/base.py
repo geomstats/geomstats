@@ -898,8 +898,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_log_after_align_is_horizontal(self, n_points, atol):
-        point = self.random_point(n_points)
-        base_point = self.random_point(n_points)
+        point = self.space.random_point(n_points)
+        base_point = self.space.random_point(n_points)
 
         aligned_point = self.space.align(point, base_point)
         log = self.space.total_space_metric.log(aligned_point, base_point)
@@ -939,7 +939,7 @@ class FiberBundleTestCase(ManifoldTestCase):
         tangent_vec = get_random_tangent_vec(self.space, base_point)
 
         horizontal = self.space.horizontal_projection(tangent_vec, base_point)
-        expected = gs.ones(n_points, atol=atol)
+        expected = gs.ones(n_points, dtype=bool)
         self.test_is_horizontal(horizontal, base_point, expected, atol)
 
     def test_vertical_projection(self, tangent_vec, base_point, expected, atol):
@@ -974,7 +974,7 @@ class FiberBundleTestCase(ManifoldTestCase):
         tangent_vec = get_random_tangent_vec(self.space, base_point)
 
         vertical = self.space.vertical_projection(tangent_vec, base_point)
-        expected = gs.ones(n_points, atol=atol)
+        expected = gs.ones(n_points, dtype=bool)
         self.test_is_vertical(vertical, base_point, expected, atol)
 
     @pytest.mark.random
@@ -1018,7 +1018,7 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     def test_is_vertical(self, tangent_vec, base_point, expected, atol):
         res = self.space.is_vertical(tangent_vec, base_point, atol=atol)
-        self.assertAllEqual(res, expected, atol=atol)
+        self.assertAllEqual(res, expected)
 
     @pytest.mark.vec
     def test_is_vertical_vec(self, n_reps, atol):
@@ -1078,13 +1078,14 @@ class FiberBundleTestCase(ManifoldTestCase):
         tangent_vec = get_random_tangent_vec(self.space, fiber_point)
 
         horizontal = self.space.horizontal_lift(tangent_vec, fiber_point=fiber_point)
-        expected = gs.ones(n_points, atol=atol)
+        expected = gs.ones(n_points, dtype=bool)
         self.test_is_horizontal(horizontal, fiber_point, expected, atol)
 
     @pytest.mark.random
     def test_tangent_riemannian_submersion_after_horizontal_lift(self, n_points, atol):
-        fiber_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, fiber_point)
+        base_point = self.base.random_point(n_points)
+        tangent_vec = get_random_tangent_vec(self.base, base_point)
+        fiber_point = self.space.lift(base_point)
 
         horizontal = self.space.horizontal_lift(tangent_vec, fiber_point=fiber_point)
         tangent_vec_ = self.space.tangent_riemannian_submersion(horizontal, fiber_point)
