@@ -72,7 +72,7 @@ class FiberBundle(Manifold, ABC):
 
         This is the projection of the fiber bundle, defined on the total
         space, with values in the base manifold. This map is surjective.
-        By default, the base manifold  is not explicit but is identified with a
+        By default, the base manifold is not explicit but is identified with a
         local section of the fiber bundle, so the submersion is the identity
         map.
 
@@ -86,7 +86,7 @@ class FiberBundle(Manifold, ABC):
         projection : array-like, shape=[..., {base_dim, [n, m]}]
             Point of the base manifold.
         """
-        return point
+        return gs.copy(point)
 
     @staticmethod
     def lift(point):
@@ -108,7 +108,7 @@ class FiberBundle(Manifold, ABC):
         lift : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
         """
-        return point
+        return gs.copy(point)
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Project a tangent vector to base manifold.

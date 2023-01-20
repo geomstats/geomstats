@@ -42,7 +42,7 @@ class _ProjectionTestCaseMixins:
     # TODO: should projection be part of manifold? (not only in tests)
 
     @abc.abstractmethod
-    def _get_point_to_project(self, n_points):
+    def _get_point_to_project(self, n_points=1):
         raise NotImplementedError("Need to implement `_get_point_to_project`")
 
     def test_projection(self, point, expected, atol):
@@ -51,12 +51,11 @@ class _ProjectionTestCaseMixins:
 
     @pytest.mark.vec
     def test_projection_vec(self, n_reps, atol):
-        # TODO: mark as unnecessary? projection_belongs is enough?
         point = self._get_point_to_project(1)
-        proj_point = self.space.projection(point)
+        expected = self.space.projection(point)
 
         vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=proj_point, atol=atol)],
+            data=[dict(point=point, expected=expected, atol=atol)],
             arg_names=["point"],
             expected_name="expected",
             n_reps=n_reps,
@@ -205,9 +204,10 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.random
     def test_to_tangent_at_identity_belongs_to_lie_algebra(self, n_points, atol):
-        tangent_vec = get_random_tangent_vec(
-            self.space, repeat_point(self.space.identity, n_points)
-        )
+        identity = self.space.identity
+        if n_points > 1:
+            identity = repeat_point(identity, n_points)
+        tangent_vec = get_random_tangent_vec(self.space, identity)
 
         res = self.space.lie_algebra.belongs(tangent_vec, atol=atol)
         expected = gs.ones(n_points, dtype=bool)
@@ -675,9 +675,11 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 
     @pytest.mark.random
     def test_log_from_identity_after_exp_from_identity(self, n_points, atol):
-        tangent_vec = get_random_tangent_vec(
-            self.space, repeat_point(self.space.identity, n_points)
-        )
+        identity = self.space.identity
+        if n_points > 1:
+            identity = repeat_point(identity, n_points)
+
+        tangent_vec = get_random_tangent_vec(self.space, identity)
 
         point = self.space.exp_from_identity(tangent_vec)
         tangent_vec_ = self.space.log_from_identity(point)
@@ -765,3 +767,429 @@ class OpenSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
 
         expected = gs.ones(n_points, dtype=bool)
         self.assertAllEqual(res, expected)
+
+
+class FiberBundleTestCase(ManifoldTestCase):
+    def _test_belongs_to_base(self, point, expected, atol):
+        res = self.space.belongs(point, atol=atol)
+        self.assertAllEqual(res, expected)
+
+    def test_riemannian_submersion(self, point, expected, atol):
+        res = self.space.riemannian_submersion(point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_riemannian_submersion_vec(self, n_reps, atol):
+        point = self.space.random_point()
+        expected = self.space.riemannian_submersion(point)
+
+        vec_data = generate_vectorization_data(
+            data=[dict(point=point, expected=expected, atol=atol)],
+            arg_names=["point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_riemannian_submersion_belongs_to_base(self, n_points, atol):
+        point = self.space.random_point(n_points)
+
+        proj_point = self.space.riemannian_submersion(point)
+        expected = gs.ones(n_points, dtype=bool)
+
+        self._test_belongs_to_base(proj_point, expected, atol)
+
+    def test_lift(self, point, expected, atol):
+        res = self.space.lift(point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_lift_vec(self, n_reps, atol):
+        point = self.base.random_point()
+        expected = self.space.lift(point)
+
+        vec_data = generate_vectorization_data(
+            data=[dict(point=point, expected=expected, atol=atol)],
+            arg_names=["point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_lift_belongs_to_total_space(self, n_points, atol):
+        point = self.base.random_point(n_points)
+        lifted_point = self.space.lift(point)
+
+        expected = gs.ones(n_points, dtype=bool)
+        self.test_belongs(lifted_point, expected, atol)
+
+    @pytest.mark.random
+    def test_riemannian_submersion_after_lift(self, n_points, atol):
+        point = self.base.random_point(n_points)
+        lifted_point = self.space.lift(point)
+        point_ = self.space.riemannian_submersion(lifted_point)
+
+        self.assertAllClose(point_, point, atol=atol)
+
+    def test_tangent_riemannian_submersion(
+        self, tangent_vec, base_point, expected, atol
+    ):
+        res = self.space.tangent_riemannian_submersion(tangent_vec, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_tangent_riemannian_submersion_vec(self, n_reps, atol):
+        base_point = self.space.random_point()
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+
+        expected = self.space.tangent_riemannian_submersion(tangent_vec, base_point)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["tangent_vec", "base_point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_tangent_riemannian_submersion_is_tangent(self, n_points, atol):
+        base_point = self.space.random_point(n_points)
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+
+        proj_tangent_vector = self.space.tangent_riemannian_submersion(
+            tangent_vec, base_point
+        )
+        proj_point = self.space.riemannian_submersion(base_point)
+
+        res = self.base.is_tangent(proj_tangent_vector, proj_point, atol=atol)
+        expected = gs.ones(n_points, dtype=bool)
+        self.assertAllEqual(res, expected)
+
+    def test_align(self, point, base_point, expected, atol):
+        res = self.space.align(point, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_align_vec(self, n_reps, atol):
+        point = self.space.random_point()
+        base_point = self.space.random_point()
+
+        expected = self.space.align(point, base_point)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(point=point, base_point=base_point, expected=expected, atol=atol)
+            ],
+            arg_names=["point", "base_point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_log_after_align_is_horizontal(self, n_points, atol):
+        point = self.random_point(n_points)
+        base_point = self.random_point(n_points)
+
+        aligned_point = self.space.align(point, base_point)
+        log = self.space.total_space_metric.log(aligned_point, base_point)
+
+        expected = gs.ones(n_points, dtype=bool)
+        self.test_is_horizontal(log, base_point, expected, atol)
+
+    def test_horizontal_projection(self, tangent_vec, base_point, expected, atol):
+        res = self.space.horizontal_projection(tangent_vec, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_horizontal_projection_vec(self, n_reps, atol):
+        base_point = self.space.random_point()
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+
+        expected = self.space.horizontal_projection(tangent_vec, base_point)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["tangent_vec", "base_point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_horizontal_projection_is_horizontal(self, n_points, atol):
+        base_point = self.space.random_point(n_points)
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+
+        horizontal = self.space.horizontal_projection(tangent_vec, base_point)
+        expected = gs.ones(n_points, atol=atol)
+        self.test_is_horizontal(horizontal, base_point, expected, atol)
+
+    def test_vertical_projection(self, tangent_vec, base_point, expected, atol):
+        res = self.space.vertical_projection(tangent_vec, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_vertical_projection_vec(self, n_reps, atol):
+        base_point = self.space.random_point()
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+
+        expected = self.space.vertical_projection(tangent_vec, base_point)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["tangent_vec", "base_point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_vertical_projection_is_vertical(self, n_points, atol):
+        base_point = self.space.random_point(n_points)
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+
+        vertical = self.space.vertical_projection(tangent_vec, base_point)
+        expected = gs.ones(n_points, atol=atol)
+        self.test_is_vertical(vertical, base_point, expected, atol)
+
+    @pytest.mark.random
+    def test_tangent_riemannian_submersion_after_vertical_projection(
+        self, n_points, atol
+    ):
+        base_point = self.space.random_point(n_points)
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+
+        vertical = self.space.vertical_projection(tangent_vec, base_point)
+        res = self.space.tangent_riemannian_submersion(vertical, base_point)
+        expected = gs.zeros_like(res)
+
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_is_horizontal(self, tangent_vec, base_point, expected, atol):
+        res = self.space.is_horizontal(tangent_vec, base_point, atol=atol)
+        self.assertAllEqual(res, expected)
+
+    @pytest.mark.vec
+    def test_is_horizontal_vec(self, n_reps, atol):
+        base_point = self.space.random_point()
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+
+        expected = self.space.is_horizontal(tangent_vec, base_point, atol=atol)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["tangent_vec", "base_point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    def test_is_vertical(self, tangent_vec, base_point, expected, atol):
+        res = self.space.is_vertical(tangent_vec, base_point, atol=atol)
+        self.assertAllEqual(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_is_vertical_vec(self, n_reps, atol):
+        base_point = self.space.random_point()
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+
+        expected = self.space.is_vertical(tangent_vec, base_point, atol=atol)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["tangent_vec", "base_point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    def test_horizontal_lift(
+        self, tangent_vec, expected, atol, base_point=None, fiber_point=None
+    ):
+        res = self.space.horizontal_lift(
+            tangent_vec, base_point=base_point, fiber_point=fiber_point
+        )
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_horizontal_lift_vec(self, n_reps, atol):
+        fiber_point = self.space.random_point()
+        tangent_vec = get_random_tangent_vec(self.space, fiber_point)
+
+        expected = self.space.horizontal_lift(tangent_vec, fiber_point=fiber_point)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    tangent_vec=tangent_vec,
+                    fiber_point=fiber_point,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["tangent_vec", "fiber_point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_horizontal_lift_is_horizontal(self, n_points, atol):
+        fiber_point = self.space.random_point(n_points)
+        tangent_vec = get_random_tangent_vec(self.space, fiber_point)
+
+        horizontal = self.space.horizontal_lift(tangent_vec, fiber_point=fiber_point)
+        expected = gs.ones(n_points, atol=atol)
+        self.test_is_horizontal(horizontal, fiber_point, expected, atol)
+
+    @pytest.mark.random
+    def test_tangent_riemannian_submersion_after_horizontal_lift(self, n_points, atol):
+        fiber_point = self.space.random_point(n_points)
+        tangent_vec = get_random_tangent_vec(self.space, fiber_point)
+
+        horizontal = self.space.horizontal_lift(tangent_vec, fiber_point=fiber_point)
+        tangent_vec_ = self.space.tangent_riemannian_submersion(horizontal, fiber_point)
+
+        self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
+
+    def test_integrability_tensor(
+        self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
+    ):
+        res = self.space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_integrability_tensor_vec(self, n_reps, atol):
+        base_point = self.space.random_point()
+        tangent_vec_a = get_random_tangent_vec(self.space, base_point)
+        tangent_vec_b = get_random_tangent_vec(self.space, base_point)
+
+        expected = self.space.integrability_tensor(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    def test_integrability_tensor_derivative(
+        self,
+        horizontal_vec_x,
+        horizontal_vec_y,
+        nabla_x_y,
+        tangent_vec_e,
+        nabla_x_e,
+        base_point,
+        expected,
+        atol,
+    ):
+        res = self.space.integrability_tensor_derivative(
+            horizontal_vec_x,
+            horizontal_vec_y,
+            nabla_x_y,
+            tangent_vec_e,
+            nabla_x_e,
+            base_point,
+        )
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_integrability_tensor_derivative_vec(self, n_reps, atol):
+        base_point = self.space.random_point()
+        horizontal_vec_x = self.space.horizontal_lift(
+            get_random_tangent_vec(self.space, base_point),
+            fiber_point=base_point,
+        )
+        horizontal_vec_y = self.space.horizontal_lift(
+            get_random_tangent_vec(self.space, base_point),
+            fiber_point=base_point,
+        )
+        nabla_x_y = get_random_tangent_vec(self.space, base_point)
+        tangent_vec_e = get_random_tangent_vec(self.space, base_point)
+        nabla_x_e = get_random_tangent_vec(self.space, base_point)
+
+        expected = self.space.integrability_tensor_derivative(
+            horizontal_vec_x,
+            horizontal_vec_y,
+            nabla_x_y,
+            tangent_vec_e,
+            nabla_x_e,
+            base_point,
+        )
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    horizontal_vec_x=horizontal_vec_x,
+                    horizontal_vec_y=horizontal_vec_y,
+                    nabla_x_y=nabla_x_y,
+                    tangent_vec_e=tangent_vec_e,
+                    nabla_x_e=nabla_x_e,
+                    base_point=base_point,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=[
+                "horizontal_vec_x",
+                "horizontal_vec_y",
+                "nabla_x_y",
+                "tangent_vec_e",
+                "nabla_x_e",
+                "base_point",
+            ],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
