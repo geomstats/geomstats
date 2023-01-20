@@ -121,10 +121,11 @@ def assert_true(condition, msg=None):
 class TestCase:
     """Class for Geomstats tests."""
 
-    def _test_vectorization(self, vec_data):
-        curframe = inspect.currentframe()
-        calframe = inspect.getouterframes(curframe, 2)
-        test_fnc_name = calframe[1][3][:-4]
+    def _test_vectorization(self, vec_data, test_fnc_name=None):
+        if test_fnc_name is None:
+            curframe = inspect.currentframe()
+            calframe = inspect.getouterframes(curframe, 2)
+            test_fnc_name = calframe[1][3][:-4]
 
         test_fnc = getattr(self, test_fnc_name)
 
