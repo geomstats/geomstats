@@ -276,10 +276,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         aux_d = gs.matmul(inv_aux_4, tangent_vec_a_transconj)
         trace_2 = ComplexMatrices.trace_product(aux_c, aux_d)
 
-        inner_product = trace_1 + trace_2
-        inner_product *= 0.5
-
-        return gs.real(inner_product)
+        return (trace_1 + trace_2) * 0.5
 
     @staticmethod
     def tangent_vec_from_base_point_to_zero(tangent_vec, base_point):
