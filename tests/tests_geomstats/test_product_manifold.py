@@ -14,6 +14,7 @@ from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 class TestProductManifold(ManifoldTestCase, metaclass=Parametrizer):
+    skip_test_projection_belongs = True
 
     testing_data = ProductManifoldTestData()
 
@@ -60,7 +61,6 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
     testing_data = ProductRiemannianMetricTestData()
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_inner_product_matrix(
         self, manifolds, default_point_type, point, base_point
     ):
@@ -70,7 +70,6 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         expected = metric.squared_dist(base_point, point)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_inner_product_matrix_vector(self, default_point_type):
         euclidean = Euclidean(3)
         minkowski = Minkowski(3)

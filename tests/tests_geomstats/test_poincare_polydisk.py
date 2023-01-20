@@ -1,7 +1,6 @@
 """Unit tests for the Poincare Polydisk."""
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 from tests.conftest import Parametrizer, TestCase
 from tests.data.poincare_polydisk_data import (
@@ -13,6 +12,7 @@ from tests.geometry_test_cases import OpenSetTestCase
 
 class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
 
+    skip_test_projection_belongs = True
     skip_test_to_tangent_is_tangent_in_embedding_space = True
     skip_test_to_tangent_is_tangent = True
 
@@ -32,7 +32,6 @@ class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
         metric = self.Metric(n_disks)
         self.assertAllClose(metric.signature, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_product_distance(
         self, m_disks, n_disks, point_a_extrinsic, point_b_extrinsic
     ):

@@ -167,7 +167,7 @@ Backends
 
 Geomstats supports several backends, namely: `numpy <https://numpy.org/doc/>`_ , 
 `autograd <https://autograd.readthedocs.io/en/latest/>`_,
-`tensorflow <https://www.tensorflow.org/api_docs>`_, and `pytorch <https://pytorch.org/docs/stable/index.html>`_.
+`pytorch <https://pytorch.org/docs/stable/index.html>`_.
 
 The default backend is `numpy`, install the other backends using:
 

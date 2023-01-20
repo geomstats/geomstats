@@ -1,7 +1,6 @@
 """Unit tests for NFoldManifold, NFoldMetric."""
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.nfold_manifold import NFoldMetric
 from tests.conftest import Parametrizer
 from tests.data.nfold_manifold_data import NFoldManifoldTestData, NFoldMetricTestData
@@ -54,7 +53,6 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = space.metric.inner_product(tangent_vec[0], tangent_vec[0], point)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_inner_product_scales(
         self, base_metric, n_copies, scales, point, tangent_vec
     ):

@@ -30,7 +30,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: [3.8]
-        geomstats-backend : ['autograd','numpy','pytorch','tensorflow']
+        geomstats-backend : ['autograd','numpy','pytorch']
         test-folder : ['tests/tests_geomstats/' , 'tests/tests_scripts']
       fail-fast: false
 

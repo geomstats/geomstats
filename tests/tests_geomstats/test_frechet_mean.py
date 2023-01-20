@@ -202,7 +202,7 @@ class TestFrechetMean(tests.conftest.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_default_gradient_descent_so_matrix(self):
         points = self.so_matrix.random_uniform(2)
         mean_vec = FrechetMean(
@@ -217,7 +217,7 @@ class TestFrechetMean(tests.conftest.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-5)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_and_belongs_default_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
@@ -228,7 +228,7 @@ class TestFrechetMean(tests.conftest.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_and_belongs_adaptive_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
@@ -243,7 +243,7 @@ class TestFrechetMean(tests.conftest.TestCase):
         result = self.so_matrix.belongs(mean.estimate_)
         self.assertTrue(result)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_and_coincide_default_so_vec_and_mat(self):
         point = self.so_matrix.random_uniform(3)
 

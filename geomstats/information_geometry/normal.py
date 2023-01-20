@@ -682,7 +682,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         return self.inverse_diffeomorphism(image_tangent_vec)
 
     @staticmethod
-    def metric_matrix(base_point):
+    def metric_matrix(base_point=None):
         """Compute the metric matrix at the tangent space at base_point.
 
         Parameters
@@ -695,6 +695,10 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         mat : array-like, shape=[..., 2, 2]
             Metric matrix.
         """
+        if base_point is None:
+            raise ValueError(
+                "A base point must be given to compute the " "metric matrix"
+            )
         stds = base_point[..., 1]
         const = 1 / stds**2
         mat = gs.array([[1.0, 0], [0, 2]])
