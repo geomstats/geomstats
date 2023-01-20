@@ -449,7 +449,7 @@ class KalmanFilter:
 
     def __init__(self, model):
         self.model = model
-        self.state = model.group.get_identity()
+        self.state = model.group.identity
         self.covariance = gs.zeros((self.model.dim, self.model.dim))
         self.process_noise = gs.zeros((self.model.dim_noise, self.model.dim_noise))
         self.measurement_noise = gs.zeros((self.model.dim_obs, self.model.dim_obs))

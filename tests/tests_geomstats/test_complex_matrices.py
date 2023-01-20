@@ -1,7 +1,6 @@
 """Unit tests for the manifold of complex matrices."""
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from tests.conftest import Parametrizer
 from tests.data.complex_matrices_data import (
@@ -173,14 +172,12 @@ class TestComplexMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
             gs.array(expected),
         )
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_to_symmetric(self, m, n, mat, expected):
         self.assertAllClose(
             ComplexMatrices(m, n).to_symmetric(gs.array(mat, dtype=CDTYPE)),
             gs.array(expected),
         )
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_to_hermitian(self, m, n, mat, expected):
         self.assertAllClose(
             ComplexMatrices(m, n).to_hermitian(gs.array(mat, dtype=CDTYPE)),

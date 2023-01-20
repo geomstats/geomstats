@@ -227,13 +227,11 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         result = group.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_group_exp_after_log_with_angles_close_to_pi(self, point, base_point):
         """
         This tests that the composition of
         log and exp gives identity.
         """
-        # TODO(nguigs): fix this test for tf
         group = self.Space(3, point_type="vector")
         result = group.exp(group.log(point, base_point), base_point)
         expected = group.regularize(point)
@@ -265,7 +263,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
     def test_left_jacobian_vectorization(self, n_samples):
         group = self.Space(3, point_type="vector")
         points = group.random_uniform(n_samples=n_samples)
-        jacobians = group.jacobian_translation(point=points, left_or_right="left")
+        jacobians = group.jacobian_translation(point=points, left=True)
         self.assertAllClose(gs.shape(jacobians), (n_samples, group.dim, group.dim))
 
     def test_inverse(self, n_samples):
@@ -277,7 +275,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
 
     def test_left_jacobian_through_its_determinant(self, point, expected):
         group = self.Space(3, point_type="vector")
-        jacobian = group.jacobian_translation(point=point, left_or_right="left")
+        jacobian = group.jacobian_translation(point=point, left=True)
         result = gs.linalg.det(jacobian)
         self.assertAllClose(result, expected)
 
@@ -316,7 +314,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             gs.allclose(result, expected) or gs.allclose(result, inv_expected)
         )
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_regularize_extreme_cases(self, point, expected):
         group = SpecialOrthogonal(3, "vector")
         result = group.regularize(point)
@@ -368,7 +366,7 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
         result = metric.log(point, base_point)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_distance_broadcast(self, n):
         group = SpecialOrthogonal(n=n)
         point = group.random_point(5)
@@ -395,13 +393,13 @@ class TestInvariantMetricOnSO3(TestCase, metaclass=Parametrizer):
     Metric = testing_data.Metric
 
     def test_squared_dist_is_symmetric(
-        self, metric_mat_at_identity, left_or_right, point_1, point_2
+        self, metric_mat_at_identity, left, point_1, point_2
     ):
         group = SpecialOrthogonal(3, "vector")
         metric = self.Metric(
             SpecialOrthogonal(n=3, point_type="vector"),
             metric_mat_at_identity=metric_mat_at_identity,
-            left_or_right=left_or_right,
+            left=left,
         )
         point_1 = group.regularize(point_1)
         point_2 = group.regularize(point_2)
