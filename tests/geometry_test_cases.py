@@ -1366,6 +1366,28 @@ class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
         ip_b_a = metric.inner_product(tangent_vec_b, tangent_vec_a, base_point)
         self.assertAllClose(ip_a_b, gs.conj(ip_b_a), rtol, atol)
 
+    def test_inner_product_is_complex(
+        self, metric_args, tangent_vec_a, tangent_vec_b, base_point
+    ):
+        metric = self.Metric(*metric_args)
+        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        self.assertTrue(gs.is_complex(result))
+
+    def test_dist_is_real(self, metric_args, point_a, point_b):
+        metric = self.Metric(*metric_args)
+        result = metric.dist(point_a, point_b)
+        self.assertTrue(not gs.is_complex(result))
+
+    def test_log_is_complex(self, metric_args, point, base_point):
+        metric = self.Metric(*metric_args)
+        result = metric.log(point, base_point)
+        self.assertTrue(gs.is_complex(result))
+
+    def test_exp_is_complex(self, metric_args, tangent_vec, base_point):
+        metric = self.Metric(*metric_args)
+        result = metric.exp(tangent_vec, base_point)
+        self.assertTrue(gs.is_complex(result))
+
 
 class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
     def test_innerproduct_is_sum_of_innerproducts(
