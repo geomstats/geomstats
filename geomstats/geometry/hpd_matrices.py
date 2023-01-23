@@ -7,7 +7,7 @@ import math
 
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import ComplexOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.general_linear import GeneralLinear
@@ -18,7 +18,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 from geomstats.integrator import integrate
 
 
-class HPDMatrices(OpenSet):
+class HPDMatrices(ComplexOpenSet):
     """Class for the manifold of Hermitian positive definite (HPD) matrices.
 
     Parameters
@@ -42,7 +42,8 @@ class HPDMatrices(OpenSet):
         super().__init__(dim=n**2, embedding_space=HermitianMatrices(n), **kwargs)
         self.n = n
 
-    def belongs(self, point, atol=gs.atol):
+    @staticmethod
+    def belongs(point, atol=gs.atol):
         """Check if a matrix is Hermitian with positive eigenvalues.
 
         Parameters
@@ -581,7 +582,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
 
             inner_product = inner_product / (power_affine**2)
 
-        return gs.real(inner_product)
+        return inner_product
 
     @staticmethod
     def _aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point):
