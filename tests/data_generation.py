@@ -1426,10 +1426,9 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
 
     def dist_is_real_test_data(self):
         random_data = []
-        for metric_args, space, shape in zip(
+        for metric_args, space in zip(
             self.metric_args_list,
             self.space_list,
-            self.shape_list,
         ):
             point_a, point_b = space.random_point(2)
             random_data.append(
@@ -1443,10 +1442,9 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
 
     def log_is_complex_test_data(self):
         random_data = []
-        for metric_args, space, shape in zip(
+        for metric_args, space in zip(
             self.metric_args_list,
             self.space_list,
-            self.shape_list,
         ):
             point, base_point = space.random_point(2)
             random_data.append(
