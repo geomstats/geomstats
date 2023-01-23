@@ -433,14 +433,12 @@ def vec_to_diag(vec):
 
 
 def tril_to_vec(x, k=0):
-    """ """
     n = x.shape[-1]
     rows, cols = tril_indices(n, k=k)
     return x[..., rows, cols]
 
 
 def triu_to_vec(x, k=0):
-    """ """
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]
