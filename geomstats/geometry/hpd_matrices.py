@@ -42,7 +42,8 @@ class HPDMatrices(ComplexOpenSet):
         super().__init__(dim=n**2, embedding_space=HermitianMatrices(n), **kwargs)
         self.n = n
 
-    def belongs(self, point, atol=gs.atol):
+    @staticmethod
+    def belongs(point, atol=gs.atol):
         """Check if a matrix is Hermitian with positive eigenvalues.
 
         Parameters

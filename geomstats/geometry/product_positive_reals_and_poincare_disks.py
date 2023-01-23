@@ -51,8 +51,7 @@ from geomstats.geometry.complex_poincare_disk import (
     ComplexPoincareDiskMetric,
 )
 from geomstats.geometry.positive_reals import PositiveReals, PositiveRealsMetric
-from geomstats.geometry.product_manifold import ProductManifold
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric  # NOQA
+from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 
 
 class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
