@@ -5,7 +5,8 @@ import pytest
 import geomstats.backend as gs
 from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.test_case import TestCase
-from geomstats.test.vectorization import generate_vectorization_data, repeat_point
+from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.vectorization import get_batch_shape, repeat_point
 
 # TODO: vec with tangent_vecs may not be being tested sufficiently well
 # i.e. tests may pass but just because it is the repetition of points
@@ -13,29 +14,6 @@ from geomstats.test.vectorization import generate_vectorization_data, repeat_poi
 # TODO: define better where to use pytes.mark.mathprop
 
 # TODO: enumerate tests for which random is not enough
-
-
-def _get_max_ndim_point(*args):
-    point_max_ndim = args[0]
-    for point in args[1:]:
-        if point.ndim > point_max_ndim.ndim:
-            point_max_ndim = point
-
-    return point_max_ndim
-
-
-def _get_n_points(space, *args):
-    point_max_ndim = _get_max_ndim_point(*args)
-
-    if space.point_ndim == point_max_ndim.ndim:
-        return 1
-
-    return gs.prod(point_max_ndim.shape[: -space.point_ndim])
-
-
-def _get_batch_shape(space, *args):
-    point_max_ndim = _get_max_ndim_point(*args)
-    return point_max_ndim.shape[: -space.point_ndim]
 
 
 class _ProjectionTestCaseMixins:
@@ -204,10 +182,9 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.random
     def test_to_tangent_at_identity_belongs_to_lie_algebra(self, n_points, atol):
-        identity = self.space.identity
-        if n_points > 1:
-            identity = repeat_point(identity, n_points)
-        tangent_vec = get_random_tangent_vec(self.space, identity)
+        tangent_vec = get_random_tangent_vec(
+            self.space, repeat_point(self.space.identity, n_points)
+        )
 
         res = self.space.lie_algebra.belongs(tangent_vec, atol=atol)
         expected = gs.ones(n_points, dtype=bool)
@@ -332,7 +309,7 @@ class ManifoldTestCase(TestCase):
         expected_ndim = self.space.point_ndim + int(n_points > 1)
         self.assertEqual(gs.ndim(point), expected_ndim)
 
-        self.assertAllEqual(gs.shape(point)[-self.space.point_ndim :], self.space.shape)
+        self.assertAllEqual(gs.shape(point)[-self.space.point_ndim:], self.space.shape)
 
         if n_points > 1:
             self.assertEqual(gs.shape(point)[0], n_points)
@@ -675,11 +652,9 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 
     @pytest.mark.random
     def test_log_from_identity_after_exp_from_identity(self, n_points, atol):
-        identity = self.space.identity
-        if n_points > 1:
-            identity = repeat_point(identity, n_points)
-
-        tangent_vec = get_random_tangent_vec(self.space, identity)
+        tangent_vec = get_random_tangent_vec(
+            self.space, repeat_point(self.space.identity, n_points)
+        )
 
         point = self.space.exp_from_identity(tangent_vec)
         tangent_vec_ = self.space.log_from_identity(point)
@@ -700,7 +675,7 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
 
     def test_submersion_is_zero(self, point, submersion_shape, atol):
         # TODO: keep?
-        batch_shape = _get_batch_shape(self.space, point)
+        batch_shape = get_batch_shape(self.space, point)
         expected = gs.zeros(batch_shape + submersion_shape)
 
         self.test_submersion(point, expected, atol)
@@ -727,7 +702,7 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
         self, tangent_vector, point, tangent_submersion_shape, atol
     ):
         # TODO: keep?
-        batch_shape = _get_batch_shape(self.space, tangent_vector, point)
+        batch_shape = get_batch_shape(self.space, tangent_vector, point)
         expected = gs.zeros(batch_shape + tangent_submersion_shape)
 
         self.test_tangent_submersion(tangent_vector, point, expected, atol)

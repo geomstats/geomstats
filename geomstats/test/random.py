@@ -1,7 +1,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, OpenSet, VectorSpace
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.test.vectorization import get_n_points
+from geomstats.vectorization import get_n_points
 
 
 def _get_random_tangent_vec(space, base_point):
