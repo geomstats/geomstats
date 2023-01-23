@@ -309,7 +309,7 @@ class ManifoldTestCase(TestCase):
         expected_ndim = self.space.point_ndim + int(n_points > 1)
         self.assertEqual(gs.ndim(point), expected_ndim)
 
-        self.assertAllEqual(gs.shape(point)[-self.space.point_ndim:], self.space.shape)
+        self.assertAllEqual(gs.shape(point)[-self.space.point_ndim :], self.space.shape)
 
         if n_points > 1:
             self.assertEqual(gs.shape(point)[0], n_points)
@@ -746,7 +746,7 @@ class OpenSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
 
 class FiberBundleTestCase(ManifoldTestCase):
     def _test_belongs_to_base(self, point, expected, atol):
-        res = self.space.belongs(point, atol=atol)
+        res = self.base.belongs(point, atol=atol)
         self.assertAllEqual(res, expected)
 
     def test_riemannian_submersion(self, point, expected, atol):
