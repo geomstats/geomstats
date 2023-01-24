@@ -1,23 +1,48 @@
 import copy
 import itertools
 
-from geomstats.errors import check_parameter_accepted_values
 from geomstats.vectorization import repeat_point
 
 
-def _filter_combs(combs, vec_type):
-    MAP_VEC_TYPE = {
-        "repeat-first": 1,
-        "repeat-second": 0,
-    }
-    index = MAP_VEC_TYPE[vec_type]
-    other_index = (index + 1) % 2
+def _filter_combs(n_args, combs, vectorization_type):
+    if vectorization_type == "sym" or n_args == 1:
+        return combs
+
+    repeat_indices = [int(val) for val in vectorization_type.split("-")[1:]]
+    remove_indices = [val for val in range(n_args) if val not in repeat_indices]
 
     for comb in combs.copy():
-        if comb[index] == 1 and comb[index] != comb[other_index]:
-            combs.remove(comb)
+        vals_remove = [comb[remove_index] for remove_index in remove_indices]
+        if max(vals_remove) == 0:
+            continue
+
+        elif min(vals_remove) == 1 and min(comb) == 1:
+            continue
+
+        combs.remove(comb)
 
     return combs
+
+
+def _check_vectorization_type(vectorization_type, n_args):
+    if vectorization_type == "sym" or n_args == 1:
+        return
+
+    try:
+        for val in vectorization_type.split("-")[1:]:
+            int(val)
+
+        if int(val) > n_args:
+            raise ValueError(
+                "Unable to repeat unexisting args for vectorization type "
+                f"`{vectorization_type}` and `n_args = {n_args}"
+            )
+
+    except ValueError:
+        raise ValueError(
+            f"Unable to understand vectorization type `{vectorization_type}`. "
+            "Can handle `sym` and `repeat-(int)` format."
+        )
 
 
 def _generate_datum_vectorization_data(
@@ -71,26 +96,13 @@ def generate_vectorization_data(
     n_reps: int
         Number of times the input points should be repeated.
     vectorization_type: str
-        Possible values are `sym`, `repeat-first`, `repeat-second`.
-        `repeat-first` and `repeat-second` only valid for two argument case.
-        `repeat-first` and `repeat-second` test asymmetric cases, repeating
-        only first or second input, respectively.
+        Possible values are `sym` or the format `repeat-(int)` (e.g. "repeat-0-2").
     """
-    check_parameter_accepted_values(
-        vectorization_type,
-        "vectorization_type",
-        ["sym", "repeat-first", "repeat-second"],
-    )
-
     n_args = len(arg_names)
-    if n_args != 2 and vectorization_type != "sym":
-        raise NotImplementedError(
-            f"`{vectorization_type} only implemented for 2 arguments."
-        )
+    _check_vectorization_type(vectorization_type, n_args)
 
     comb_indices = list(itertools.product(*[range(2)] * n_args))
-    if n_args == 2 and vectorization_type != "sym":
-        comb_indices = _filter_combs(comb_indices, vectorization_type)
+    comb_indices = _filter_combs(n_args, comb_indices, vectorization_type)
 
     new_data = []
     for datum in data:

@@ -114,7 +114,7 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
             ],
             arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
-            vectorization_type="repeat-first",
+            vectorization_type="repeat-0",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)

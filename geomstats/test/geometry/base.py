@@ -65,7 +65,6 @@ class _LieGroupTestCaseMixins:
             arg_names=["point_a", "point_b"],
             expected_name="expected",
             n_reps=n_reps,
-            vectorization_type="sym",
         )
         self._test_vectorization(vec_data)
 
@@ -135,7 +134,6 @@ class _LieGroupTestCaseMixins:
             arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
             n_reps=n_reps,
-            vectorization_type="sym",
         )
         self._test_vectorization(vec_data)
 
@@ -156,7 +154,6 @@ class _LieGroupTestCaseMixins:
             arg_names=["point", "base_point"],
             expected_name="expected",
             n_reps=n_reps,
-            vectorization_type="sym",
         )
         self._test_vectorization(vec_data)
 
@@ -220,7 +217,7 @@ class _LieGroupTestCaseMixins:
             ],
             arg_names=["point", "tangent_vec"],
             expected_name="expected",
-            vectorization_type="repeat-second",
+            vectorization_type="repeat-1",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -330,7 +327,6 @@ class ManifoldTestCase(TestCase):
             arg_names=["vector", "base_point"],
             expected_name="expected",
             n_reps=n_reps,
-            vectorization_type="sym",
         )
         self._test_vectorization(vec_data)
 
@@ -351,7 +347,6 @@ class ManifoldTestCase(TestCase):
             arg_names=["vector", "base_point"],
             expected_name="expected",
             n_reps=n_reps,
-            vectorization_type="sym",
         )
         self._test_vectorization(vec_data)
 
@@ -514,7 +509,6 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
             arg_names=["matrix_a", "matrix_b"],
             expected_name="expected",
             n_reps=n_reps,
-            vectorization_type="sym",
         )
         self._test_vectorization(vec_data)
 
@@ -724,7 +718,6 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
             ],
             arg_names=["vector", "point"],
             n_reps=n_reps,
-            vectorization_type="sym",
             expected_name="expected",
         )
         self._test_vectorization(vec_data)
