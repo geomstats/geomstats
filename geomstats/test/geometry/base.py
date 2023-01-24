@@ -1100,10 +1100,11 @@ class FiberBundleTestCase(ManifoldTestCase):
         tangent_vec_e,
         nabla_x_e,
         base_point,
-        expected,
+        expected_nabla_x_a_y_e,
+        expected_a_y_e,
         atol,
     ):
-        res = self.space.integrability_tensor_derivative(
+        nabla_x_a_y_e, a_y_e = self.space.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             nabla_x_y,
@@ -1111,7 +1112,8 @@ class FiberBundleTestCase(ManifoldTestCase):
             nabla_x_e,
             base_point,
         )
-        self.assertAllClose(res, expected, atol=atol)
+        self.assertAllClose(nabla_x_a_y_e, expected_nabla_x_a_y_e, atol=atol)
+        self.assertAllClose(a_y_e, expected_a_y_e, atol=atol)
 
     @pytest.mark.vec
     def test_integrability_tensor_derivative_vec(self, n_reps, atol):
@@ -1128,7 +1130,7 @@ class FiberBundleTestCase(ManifoldTestCase):
         tangent_vec_e = get_random_tangent_vec(self.space, base_point)
         nabla_x_e = get_random_tangent_vec(self.space, base_point)
 
-        expected = self.space.integrability_tensor_derivative(
+        nabla_x_a_y_e, a_y_e = self.space.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             nabla_x_y,
@@ -1146,7 +1148,8 @@ class FiberBundleTestCase(ManifoldTestCase):
                     tangent_vec_e=tangent_vec_e,
                     nabla_x_e=nabla_x_e,
                     base_point=base_point,
-                    expected=expected,
+                    expected_nabla_x_a_y_e=nabla_x_a_y_e,
+                    expected_a_y_e=a_y_e,
                     atol=atol,
                 )
             ],
@@ -1158,7 +1161,8 @@ class FiberBundleTestCase(ManifoldTestCase):
                 "nabla_x_e",
                 "base_point",
             ],
-            expected_name="expected",
+            expected_name=["expected_nabla_x_a_y_e", "expected_a_y_e"],
             n_reps=n_reps,
+            vectorization_type="basic",
         )
         self._test_vectorization(vec_data)
