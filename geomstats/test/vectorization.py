@@ -25,14 +25,15 @@ def _filter_combs(n_args, combs, vectorization_type):
 
 
 def _check_vectorization_type(vectorization_type, n_args):
-    if vectorization_type == "sym" or n_args == 1:
+    if vectorization_type in ("sym", "basic") or n_args == 1:
         return
 
     try:
+        val = None
         for val in vectorization_type.split("-")[1:]:
             int(val)
 
-        if int(val) > n_args:
+        if val is None or int(val) > n_args:
             raise ValueError(
                 "Unable to repeat unexisting args for vectorization type "
                 f"`{vectorization_type}` and `n_args = {n_args}"
@@ -102,13 +103,20 @@ def generate_vectorization_data(
     n_reps: int
         Number of times the input points should be repeated.
     vectorization_type: str
-        Possible values are `sym` or the format `repeat-(int)` (e.g. "repeat-0-2").
+        Possible values are 'sym', 'basic', or the format 'repeat-(int)'
+        (e.g. "repeat-0-2").
+        'sym': tests all repeation combinations.
+        'basic': tests only no repeation and repeation of all.
+        'repeat-(int)': tests repeation of provided indices.
     """
     n_args = len(arg_names)
     _check_vectorization_type(vectorization_type, n_args)
 
-    comb_indices = list(itertools.product(*[range(2)] * n_args))
-    comb_indices = _filter_combs(n_args, comb_indices, vectorization_type)
+    if vectorization_type == "basic":
+        comb_indices = [tuple(i for _ in range(n_args)) for i in range(2)]
+    else:
+        comb_indices = list(itertools.product(*[range(2)] * n_args))
+        comb_indices = _filter_combs(n_args, comb_indices, vectorization_type)
 
     new_data = []
     for datum in data:
