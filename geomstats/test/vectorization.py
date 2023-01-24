@@ -48,11 +48,15 @@ def _check_vectorization_type(vectorization_type, n_args):
 def _generate_datum_vectorization_data(
     datum, comb_indices, arg_names, expected_name, n_reps=2
 ):
-
     if expected_name is not None:
         has_expected = True
-        expected = datum.get(expected_name)
-        expected_rep = repeat_point(expected, n_reps=n_reps)
+        if type(expected_name) is str:
+            expected_name = [expected_name]
+
+        expected_combs = []
+        for expected_name_ in expected_name:
+            expected = datum.get(expected_name_)
+            expected_combs.append([expected, repeat_point(expected, n_reps=n_reps)])
     else:
         has_expected = False
 
@@ -66,7 +70,9 @@ def _generate_datum_vectorization_data(
         new_datum = copy.copy(datum)
 
         if has_expected:
-            new_datum[expected_name] = expected_rep if 1 in indices else expected
+            rep = int(1 in indices)
+            for expected_i, expected_name_ in enumerate(expected_name):
+                new_datum[expected_name_] = expected_combs[expected_i][rep]
 
         for arg_i, (index, arg_name) in enumerate(zip(indices, arg_names)):
             new_datum[arg_name] = args_combs[arg_i][index]
@@ -91,7 +97,7 @@ def generate_vectorization_data(
         Data. Each to vectorize.
     arg_names: list
         Name of inputs to vectorize.
-    expected_name: str
+    expected_name: str or list of str
         Output name in case it needs to be repeated.
     n_reps: int
         Number of times the input points should be repeated.
