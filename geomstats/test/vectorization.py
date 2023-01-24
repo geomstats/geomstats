@@ -1,16 +1,11 @@
 import copy
 import itertools
 
-import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 from geomstats.vectorization import repeat_point
 
 
-def _expand_and_repeat_point(point, n_reps=2):
-    return gs.expand_dims(point, 0), repeat_point(point, n_reps=n_reps)
-
-
-def _filter_combs(combs, vec_type, threshold):
+def _filter_combs(combs, vec_type):
     MAP_VEC_TYPE = {
         "repeat-first": 1,
         "repeat-second": 0,
@@ -19,14 +14,14 @@ def _filter_combs(combs, vec_type, threshold):
     other_index = (index + 1) % 2
 
     for comb in combs.copy():
-        if comb[index] >= threshold and comb[index] != comb[other_index]:
+        if comb[index] == 1 and comb[index] != comb[other_index]:
             combs.remove(comb)
 
     return combs
 
 
 def _generate_datum_vectorization_data(
-    datum, comb_indices, arg_names, expected_name, check_expand=False, n_reps=2
+    datum, comb_indices, arg_names, expected_name, n_reps=2
 ):
 
     if expected_name is not None:
@@ -39,22 +34,14 @@ def _generate_datum_vectorization_data(
     args_combs = []
     for arg_name in arg_names:
         arg = datum.get(arg_name)
-        arg_combs = [arg]
-        if check_expand:
-            arg_combs.extend(_expand_and_repeat_point(arg, n_reps=n_reps))
-        else:
-            arg_combs.append(repeat_point(arg, n_reps=n_reps))
-
-        args_combs.append(arg_combs)
+        args_combs.append([arg, repeat_point(arg, n_reps=n_reps, expand=True)])
 
     new_data = []
     for indices in comb_indices:
         new_datum = copy.copy(datum)
 
         if has_expected:
-            new_datum[expected_name] = (
-                expected_rep if (1 + int(check_expand)) in indices else expected
-            )
+            new_datum[expected_name] = expected_rep if 1 in indices else expected
 
         for arg_i, (index, arg_name) in enumerate(zip(indices, arg_names)):
             new_datum[arg_name] = args_combs[arg_i][index]
@@ -68,7 +55,6 @@ def generate_vectorization_data(
     data,
     arg_names,
     expected_name=None,
-    check_expand=False,
     n_reps=2,
     vectorization_type="sym",
 ):
@@ -82,8 +68,6 @@ def generate_vectorization_data(
         Name of inputs to vectorize.
     expected_name: str
         Output name in case it needs to be repeated.
-    check_expand: bool
-        If `True`, expanded version of each input will be tested.
     n_reps: int
         Number of times the input points should be repeated.
     vectorization_type: str
@@ -104,12 +88,9 @@ def generate_vectorization_data(
             f"`{vectorization_type} only implemented for 2 arguments."
         )
 
-    n_indices = 2 + int(check_expand)
-    comb_indices = list(itertools.product(*[range(n_indices)] * len(arg_names)))
+    comb_indices = list(itertools.product(*[range(2)] * n_args))
     if n_args == 2 and vectorization_type != "sym":
-        comb_indices = _filter_combs(
-            comb_indices, vectorization_type, threshold=1 + int(check_expand)
-        )
+        comb_indices = _filter_combs(comb_indices, vectorization_type)
 
     new_data = []
     for datum in data:
@@ -119,7 +100,6 @@ def generate_vectorization_data(
                 comb_indices,
                 arg_names,
                 expected_name=expected_name,
-                check_expand=check_expand,
                 n_reps=n_reps,
             )
         )

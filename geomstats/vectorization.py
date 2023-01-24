@@ -79,19 +79,21 @@ def get_batch_shape(space, *point):
     return point_max_ndim.shape[: -space.point_ndim]
 
 
-def repeat_point(point, n_reps=2):
+def repeat_point(point, n_reps=2, expand=False):
     """Repeat point.
 
     Parameters
     ----------
     point : gs.array
     n_reps : int
+    expand : bool
+        Repeat even if n_reps == 1.
 
     Returns
     -------
     rep_point : gs.array
     """
-    if n_reps == 1:
+    if not expand and n_reps == 1:
         return gs.copy(point)
 
     return gs.repeat(gs.expand_dims(point, 0), n_reps, axis=0)
