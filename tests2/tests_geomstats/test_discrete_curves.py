@@ -13,7 +13,7 @@ from tests2.data.discrete_curves_data import DiscreteCurvesTestData
     scope="class",
     params=[
         (2, random.randint(5, 10)),
-        # (3, random.randint(5, 10)),
+        (3, random.randint(5, 10)),
     ],
 )
 def spaces(request):
