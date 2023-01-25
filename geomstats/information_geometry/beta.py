@@ -3,7 +3,6 @@
 Lead author: Alice Le Brigant.
 """
 
-from scipy.special import gamma
 from scipy.stats import beta
 
 import geomstats.backend as gs
@@ -77,8 +76,8 @@ class BetaDistributions(DirichletDistributions):
             Probability density function of the beta distribution with
             parameters provided by point.
         """
-        a_params = gs.expand_dims(point[..., 0], axis=-1)
-        b_params = gs.expand_dims(point[..., 1], axis=-1)
+        alpha = gs.expand_dims(point[..., 0], axis=-1)
+        beta = gs.expand_dims(point[..., 1], axis=-1)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -96,9 +95,9 @@ class BetaDistributions(DirichletDistributions):
             """
             x = gs.reshape(gs.array(x), (-1,))
             return (
-                x ** (a_params - 1)
-                * (1 - x) ** (b_params - 1)
-                / (gamma(a_params) * gamma(b_params) / gamma(a_params + b_params))
+                x ** (alpha - 1)
+                * (1 - x) ** (beta - 1)
+                / (gs.gamma(alpha) * gs.gamma(beta) / gs.gamma(alpha + beta))
             )
 
         return pdf

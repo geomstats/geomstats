@@ -9,7 +9,6 @@ import numpy as np
 from scipy.integrate import odeint, solve_bvp
 from scipy.optimize import minimize
 from scipy.stats import gamma
-from scipy.special import gamma
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -168,9 +167,8 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the Gamma distribution with
             parameters provided by point.
         """
-        a_params = gs.expand_dims(point[..., 0], axis=-1)
-        b_params = gs.expand_dims(point[..., 1], axis=-1)
-
+        kappa = gs.expand_dims(point[..., 0], axis=-1)
+        gamma = gs.expand_dims(point[..., 1], axis=-1)
         def pdf(x):
             """Generate parameterized function for Gamma pdf.
 
@@ -187,13 +185,7 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
                 by point.
             """
             x = gs.reshape(gs.array(x), (-1,))
-            return (
-                b_params**a_params
-                * x ** (a_params - 1)
-                * gs.exp(-b_params * x)
-                / gamma(a_params)
-            )
-
+            return kappa ** kappa * x ** (kappa-1) * gs.exp(-kappa*x/gamma) / (gamma**kappa * gs.gamma(kappa))
         return pdf
 
     @staticmethod
@@ -355,10 +347,6 @@ class GammaMetric(RiemannianMetric):
         mat : array-like, shape=[..., 2, 2]
             Inner-product matrix.
         """
-        if base_point is None:
-            raise ValueError(
-                "A base point must be given to compute the " "metric matrix"
-            )
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
         kappa, gamma = base_point[:, 0], base_point[:, 1]
