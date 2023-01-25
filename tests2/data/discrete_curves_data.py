@@ -1,5 +1,6 @@
 from tests2.data.base_data import (
     FiberBundleTestData,
+    LevelSetTestData,
     ManifoldTestData,
     _ProjectionMixinsTestData,
 )
@@ -54,3 +55,23 @@ class SRVShapeBundleTestData(DiscreteCurvesTestData, FiberBundleTestData):
         for n_times in [20]:
             data.extend([dict(n_points=n_points, n_times=n_times) for n_points in [1]])
         return self.generate_tests(data)
+
+
+class ClosedDiscreteCurvesTestData(LevelSetTestData):
+    skips = (
+        # not implemented
+        "to_tangent_vec",
+        "to_tangent_is_tangent",
+        "submersion_vec",
+        "tangent_submersion_vec",
+        "is_tangent_vec",
+    )
+
+    def srv_projection_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def projection_is_itself_test_data(self):
+        return self.generate_random_data()
+
+    def random_point_is_closed_test_data(self):
+        return self.generate_random_data()
