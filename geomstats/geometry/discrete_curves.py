@@ -1821,6 +1821,9 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             Pointwise norm of the vertical part of tangent_vec.
             Only returned when return_norm is True.
         """
+        if tangent_vec.ndim > point.ndim:
+            point = gs.broadcast_to(point, tangent_vec.shape)
+
         ambient_dim = point.shape[-1]
         a_param = 1
         b_param = 1 / 2
@@ -1951,7 +1954,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             Time parametrized horizontal geodesic.
         """
         initial_curve, end_curve = initial_point, end_point
-        k_sampling_points = initial_curve.shape[0]
+        k_sampling_points = self.k_sampling_points
         t_space = gs.linspace(0.0, 1.0, k_sampling_points)
         spline_end_curve = CubicSpline(t_space, end_curve, axis=0)
 

@@ -933,6 +933,7 @@ class FiberBundleTestCase(ManifoldTestCase):
             arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
             n_reps=n_reps,
+            vectorization_type="repeat-0",
         )
         self._test_vectorization(vec_data)
 

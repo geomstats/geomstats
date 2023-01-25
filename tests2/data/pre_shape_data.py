@@ -3,11 +3,11 @@ from tests2.data.base_data import FiberBundleTestData, LevelSetTestData
 
 class PreShapeSpaceTestData(LevelSetTestData, FiberBundleTestData):
     skips = (
+        # due to lack of base
         "lift_vec",
         "lift_belongs_to_total_space",
         "riemannian_submersion_after_lift",
         "riemannian_submersion_belongs_to_base",
-        "riemannian_submersion_after_horizonal_lift",
         "tangent_riemannian_submersion_is_tangent",
         "tangent_riemannian_submersion_after_horizontal_lift",
     )
