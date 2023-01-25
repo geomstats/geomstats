@@ -28,13 +28,13 @@ class SPDMatrices(OpenSet):
     """
 
     def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", SPDMetricAffine(n))
-        super(SPDMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2), ambient_space=SymmetricMatrices(n), **kwargs
+        kwargs.setdefault("metric", SPDAffineMetric(n))
+        super().__init__(
+            dim=int(n * (n + 1) / 2), embedding_space=SymmetricMatrices(n), **kwargs
         )
         self.n = n
 
-    def belongs(self, mat, atol=gs.atol):
+    def belongs(self, point, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.
 
         Parameters
@@ -50,8 +50,8 @@ class SPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        is_sym = self.ambient_space.belongs(mat, atol)
-        is_pd = Matrices.is_pd(mat)
+        is_sym = self.embedding_space.belongs(point, atol)
+        is_pd = Matrices.is_pd(point)
         belongs = gs.logical_and(is_sym, is_pd)
         return belongs
 
@@ -172,24 +172,25 @@ class SPDMatrices(OpenSet):
         denominator = eigvalues[..., :, None] - eigvalues[..., None, :]
         numerator = powered_eigvalues[..., :, None] - powered_eigvalues[..., None, :]
 
+        null_denominator = gs.abs(denominator) < gs.atol
         if power == 0:
-            numerator = gs.where(denominator == 0, gs.ones_like(numerator), numerator)
+            numerator = gs.where(null_denominator, gs.ones_like(numerator), numerator)
             denominator = gs.where(
-                denominator == 0, eigvalues[..., :, None], denominator
+                null_denominator, eigvalues[..., :, None], denominator
             )
         elif power == math.inf:
             numerator = gs.where(
-                denominator == 0, powered_eigvalues[..., :, None], numerator
+                null_denominator, powered_eigvalues[..., :, None], numerator
             )
             denominator = gs.where(
-                denominator == 0, gs.ones_like(numerator), denominator
+                null_denominator, gs.ones_like(numerator), denominator
             )
         else:
             numerator = gs.where(
-                denominator == 0, power * powered_eigvalues[..., :, None], numerator
+                null_denominator, power * powered_eigvalues[..., :, None], numerator
             )
             denominator = gs.where(
-                denominator == 0, eigvalues[..., :, None], denominator
+                null_denominator, eigvalues[..., :, None], denominator
             )
 
         transp_eigvectors = Matrices.transpose(eigvectors)
@@ -235,7 +236,7 @@ class SPDMatrices(OpenSet):
         r"""Compute the inverse of the differential of the matrix power.
 
         Compute the inverse of the differential of the power
-        function on SPD matrices (:math:`A^p=exp(p log(A))`) at base_point
+        function on SPD matrices (:math:`A^p=\exp(p \log(A))`) at base_point
         applied to tangent_vec.
 
         Parameters
@@ -300,8 +301,7 @@ class SPDMatrices(OpenSet):
         """Compute the inverse of the differential of the matrix logarithm.
 
         Compute the inverse of the differential of the matrix
-        logarithm on SPD matrices at base_point applied to
-        tangent_vec.
+        logarithm on SPD matrices at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -363,8 +363,7 @@ class SPDMatrices(OpenSet):
         """Compute the inverse of the differential of the matrix exponential.
 
         Computes the inverse of the differential of the matrix
-        exponential on SPD matrices at base_point applied to
-        tangent_vec.
+        exponential on SPD matrices at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -422,8 +421,7 @@ class SPDMatrices(OpenSet):
     def cholesky_factor(cls, mat):
         """Compute cholesky factor.
 
-        Compute cholesky factor for a symmetric positive
-        definite matrix.
+        Compute cholesky factor for a symmetric positive definite matrix.
 
         Parameters
         ----------
@@ -464,7 +462,7 @@ class SPDMatrices(OpenSet):
         return differential_cf
 
 
-class SPDMetricAffine(RiemannianMetric):
+class SPDAffineMetric(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold."""
 
     def __init__(self, n, power_affine=1):
@@ -485,8 +483,10 @@ class SPDMetricAffine(RiemannianMetric):
             2019. https://arxiv.org/abs/1906.01349
         """
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricAffine, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+        super().__init__(
+            dim=dim,
+            shape=(n, n),
+            signature=(dim, 0),
         )
         self.n = n
         self.power_affine = power_affine
@@ -722,8 +722,8 @@ class SPDMetricAffine(RiemannianMetric):
     def injectivity_radius(self, base_point):
         """Radius of the largest ball where the exponential is injective.
 
-        Because of the negative curvature of this space, the injectivity radius is
-        infinite everywhere.
+        Because of the negative curvature of this space, the injectivity radius
+        is infinite everywhere.
 
         Parameters
         ----------
@@ -738,7 +738,7 @@ class SPDMetricAffine(RiemannianMetric):
         return math.inf
 
 
-class SPDMetricBuresWasserstein(RiemannianMetric):
+class SPDBuresWassersteinMetric(RiemannianMetric):
     """Class for the Bures-Wasserstein metric on the SPD manifold.
 
     Parameters
@@ -758,8 +758,10 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricBuresWasserstein, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            shape=(n, n),
         )
         self.n = n
 
@@ -987,13 +989,15 @@ class SPDMetricBuresWasserstein(RiemannianMetric):
         return eigen_values[..., 0] ** 0.5
 
 
-class SPDMetricEuclidean(RiemannianMetric):
+class SPDEuclideanMetric(RiemannianMetric):
     """Class for the Euclidean metric on the SPD manifold."""
 
     def __init__(self, n, power_euclidean=1):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricEuclidean, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            shape=(n, n),
         )
         self.n = n
         self.power_euclidean = power_euclidean
@@ -1188,7 +1192,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         raise NotImplementedError("Parallel transport is only implemented for power 1")
 
 
-class SPDMetricLogEuclidean(RiemannianMetric):
+class SPDLogEuclideanMetric(RiemannianMetric):
     """Class for the Log-Euclidean metric on the SPD manifold.
 
     Parameters
@@ -1199,8 +1203,10 @@ class SPDMetricLogEuclidean(RiemannianMetric):
 
     def __init__(self, n):
         dim = int(n * (n + 1) / 2)
-        super(SPDMetricLogEuclidean, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            shape=(n, n),
         )
         self.n = n
 
@@ -1284,7 +1290,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     def injectivity_radius(self, base_point):
         """Radius of the largest ball where the exponential is injective.
 
-        Because of this space is flat, the injectivity radius is infinite everywhere.
+        Because of this space is flat, the injectivity radius is infinite
+        everywhere.
 
         Parameters
         ----------

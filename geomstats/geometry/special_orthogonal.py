@@ -38,22 +38,54 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
     """
 
     def __init__(self, n, **kwargs):
-        matrices = Matrices(n, n)
-        gln = GeneralLinear(n, positive_det=True)
-        super(_SpecialOrthogonalMatrices, self).__init__(
+        self.n = n
+        self._value = gs.eye(n)
+
+        super().__init__(
             dim=int((n * (n - 1)) / 2),
-            n=n,
-            value=gs.eye(n),
+            representation_dim=n,
             lie_algebra=SkewSymmetricMatrices(n=n),
-            embedding_space=gln,
-            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
-            tangent_submersion=lambda v, x: 2
-            * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
+            default_coords_type="extrinsic",
             **kwargs,
         )
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         if self._metric is None:
             self._metric = self.bi_invariant_metric
+
+    def _define_embedding_space(self):
+        return GeneralLinear(self.n, positive_det=True)
+
+    def _aux_submersion(self, point):
+        return Matrices.mul(Matrices.transpose(point), point)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n. n]
+        """
+        return self._aux_submersion(point) - self._value
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n, n]
+        """
+        return 2 * Matrices.to_symmetric(
+            Matrices.mul(Matrices.transpose(point), vector)
+        )
 
     @classmethod
     def inverse(cls, point):
@@ -84,15 +116,14 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        aux_mat = self.submersion(point)
-        # aux_mat = Matrices.mul(Matrices.transpose(point), point)
+        aux_mat = self._aux_submersion(point)
         inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, -1 / 2)
         rotation_mat = Matrices.mul(point, inv_sqrt_mat)
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample in SO(n) from the uniform distribution.
+        """Sample in SO(n) using a normal distribution (not the Haar measure).
 
         Parameters
         ----------
@@ -110,7 +141,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):
-        """Sample in SO(n) from the uniform distribution.
+        """Sample in SO(n) using a normal distribution (not the Haar measure).
 
         Parameters
         ----------
@@ -298,15 +329,16 @@ class _SpecialOrthogonalVectors(LieGroup):
         Optional, default: 0.
     """
 
-    def __init__(self, n, shape, epsilon=0.0):
+    def __init__(self, n, epsilon=0.0):
         dim = n * (n - 1) // 2
-        LieGroup.__init__(self, dim=dim, shape=shape, default_point_type="vector")
+        LieGroup.__init__(self, dim=dim, shape=(dim,), lie_algebra=self)
 
         self.n = n
         self.epsilon = epsilon
 
-    def get_identity(self, point_type="vector"):
-        """Get the identity of the group.
+    @property
+    def identity(self):
+        """Identity of the group.
 
         Parameters
         ----------
@@ -319,8 +351,6 @@ class _SpecialOrthogonalVectors(LieGroup):
             Identity.
         """
         return gs.zeros(self.dim)
-
-    identity = property(get_identity)
 
     def belongs(self, point, atol=ATOL):
         """Evaluate if a point belongs to SO(3).
@@ -362,7 +392,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = Matrices.mul(mat_unitary_u, mat_unitary_v)
         mask = gs.less(gs.linalg.det(rot_mat), 0.0)
-        mask_float = gs.cast(mask, gs.float32) + self.epsilon
+        mask_float = gs.cast(mask, mat.dtype) + self.epsilon
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
         diag = gs.to_ndarray(diag, to_ndim=2)
         diag = (
@@ -393,6 +423,21 @@ class _SpecialOrthogonalVectors(LieGroup):
         return -self.regularize(point)
 
     def random_point(self, n_samples=1, bound=1.0):
+        """Sample in SO(n) using a uniform distribution (not the Haar measure).
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Unused.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n, n]
+            Points sampled on the SO(n).
+        """
         return gs.squeeze(gs.random.rand(n_samples, 3))
 
     def exp_from_identity(self, tangent_vec):
@@ -534,8 +579,9 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal2Vectors, self).__init__(
-            n=2, epsilon=epsilon, shape=(2,)
+        super().__init__(
+            n=2,
+            epsilon=epsilon,
         )
 
     def regularize(self, point):
@@ -626,6 +672,21 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         return point_prod
 
     def random_point(self, n_samples=1, bound=1.0):
+        """Sample in SO(2) using the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Unused.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., n, n]
+            Points sampled on the SO(2).
+        """
         return self.random_uniform(n_samples)
 
     def random_uniform(self, n_samples=1):
@@ -701,9 +762,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
     """
 
     def __init__(self, epsilon=0.0):
-        super(_SpecialOrthogonal3Vectors, self).__init__(
-            n=3, shape=(3,), epsilon=epsilon
-        )
+        super().__init__(n=3, epsilon=epsilon)
 
         self.bi_invariant_metric = BiInvariantMetric(group=self)
         self.metric = self.bi_invariant_metric
@@ -809,7 +868,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         base_point = self.regularize(base_point)
 
         tangent_vec_at_id = self.tangent_translation_map(
-            base_point, left_or_right=metric.left_or_right, inverse=True
+            base_point, left=metric.left, inverse=True
         )(tangent_vec)
 
         tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
@@ -817,7 +876,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
         regularized_tangent_vec = self.tangent_translation_map(
-            base_point, left_or_right=metric.left_or_right
+            base_point, left=metric.left
         )(tangent_vec_at_id)
 
         return regularized_tangent_vec
@@ -1038,7 +1097,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
                 ]
             )
 
-            mask_i = gs.get_mask_i_float(i, n_quaternions)
+            mask_i = gs.array_from_sparse([(i,)], [1.0], (n_quaternions,))
             rot_mat_i = gs.transpose(gs.hstack([column_1, column_2, column_3]))
             rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
             rot_mat += gs.einsum("...,...ij->...ij", mask_i, rot_mat_i)
@@ -1578,7 +1637,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         return point_prod
 
-    def jacobian_translation(self, point, left_or_right="left"):
+    def jacobian_translation(self, point, left=True):
         """Compute the jacobian matrix corresponding to translation.
 
         Compute the jacobian matrix of the differential
@@ -1588,19 +1647,15 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         ----------
         point : array-like, shape=[..., 3]
             Point.
-        left_or_right : str, {'left', 'right'}
+        left : bool
             Whether to use left or right invariant metric.
-            Optional, default: 'left'.
+            Optional, default: True.
 
         Returns
         -------
         jacobian : array-like, shape=[..., 3, 3]
             Jacobian.
         """
-        geomstats.errors.check_parameter_accepted_values(
-            left_or_right, "left_or_right", ["left", "right"]
-        )
-
         point = self.regularize(point)
         squared_angle = gs.sum(point**2, axis=-1)
 
@@ -1623,7 +1678,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
         outer_ = gs.outer(point, point)
-        sign = -1.0 if left_or_right == "right" else 1.0
+        sign = 1.0 if left else -1.0
 
         return (
             gs.einsum("...,...ij->...ij", coef_1, gs.eye(self.dim))
@@ -1632,7 +1687,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         )
 
     def random_uniform(self, n_samples=1):
-        """Sample in SO(3) with the uniform distribution.
+        """Sample in SO(3) uniform wrt parameters - not Haar measure.
 
         Parameters
         ----------
@@ -1712,9 +1767,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         return LieGroup.log(self, point, base_point)
 
 
-class SpecialOrthogonal(
-    _SpecialOrthogonal2Vectors, _SpecialOrthogonal3Vectors, _SpecialOrthogonalMatrices
-):
+class SpecialOrthogonal:
     r"""Class for the special orthogonal groups.
 
     Parameters

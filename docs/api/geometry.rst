@@ -92,7 +92,7 @@ Special Orthogonal Group
 
 Graph Space
 -----------
-.. automodule:: geomstats.geometry.graphspace
+.. automodule:: geomstats.geometry.stratified.graph_space
    :members:
 
 Grassmannian Manifold

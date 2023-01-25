@@ -1,14 +1,14 @@
 """Unit tests for Online k-means."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.online_kmeans import OnlineKMeans
 
 
-@geomstats.tests.np_and_autograd_only
-class TestOnlineKmeans(geomstats.tests.TestCase):
+@tests.conftest.np_and_autograd_only
+class TestOnlineKmeans(tests.conftest.TestCase):
     def setup_method(self):
         gs.random.seed(1234)
 

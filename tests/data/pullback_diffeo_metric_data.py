@@ -19,7 +19,7 @@ class CircleAsSO2Metric(PullbackDiffeoMetric):
                 "This dummy class using SO(2) metric for S1 has "
                 "a meaning only when dim=1"
             )
-        super(CircleAsSO2Metric, self).__init__(dim=1, shape=(2,))
+        super().__init__(dim=1, shape=(2,))
 
     def define_embedding_metric(self):
         return SpecialOrthogonal(n=2, point_type="matrix").bi_invariant_metric
@@ -40,7 +40,7 @@ class CircleAsSO2(Hypersphere):
                 "This dummy class using SO(2) metric for S1 has "
                 "a meaning only when dim=1"
             )
-        super(CircleAsSO2, self).__init__(1, "extrinsic")
+        super().__init__(1, "extrinsic")
         self._metric = CircleAsSO2Metric(1)
 
 
@@ -56,6 +56,8 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
     alpha_list = [1] * 4
     n_rungs_list = [1] * 4
     scheme_list = ["pole"] * 4
+
+    Metric = CircleAsSO2Metric
 
     def inner_product_test_data(self):
         smoke_data = [
@@ -133,7 +135,7 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def exp_after_log_test_data(self):
+    def exp_after_log_smoke_test_data(self):
         # edge case: two very close points, base_point_2 and point_2,
         # form an angle < epsilon
         base_point = gs.array([1.0, 2.0])
@@ -142,43 +144,25 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
         point = point / gs.linalg.norm(point)
         smoke_data = [
             dict(
-                space_args=(1,),
+                connection_args=(1,),
                 point=point,
                 base_point=base_point,
-                rtol=gs.rtol,
-                atol=gs.atol,
             )
         ]
-        return self._exp_after_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            smoke_data,
-            atol=1e-3,
-        )
+        return self.generate_tests(smoke_data)
 
-    def log_after_exp_test_data(self):
+    def log_after_exp_smoke_test_data(self):
         base_point = gs.array([1.0, 0.0])
         tangent_vec = gs.array([0.0, gs.pi / 6])
 
         smoke_data = [
             dict(
-                space_args=(1,),
+                connection_args=(1,),
                 tangent_vec=tangent_vec,
                 base_point=base_point,
-                rtol=gs.rtol * 100,
-                atol=gs.atol * 100,
             )
         ]
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            smoke_data,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 100,
-        )
+        return self.generate_tests(smoke_data)
 
     def exp_and_dist_and_projection_to_tangent_space_test_data(self):
         unnorm_base_point = gs.array(
@@ -218,6 +202,8 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
 
 
 class CircleAsSO2PullbackDiffeoMetricTestData(TestData):
+    Metric = CircleAsSO2Metric
+
     def diffeomorphism_is_reciprocal_test_data(self):
         smoke_data = [
             dict(

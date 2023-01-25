@@ -12,7 +12,7 @@ from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 
 N_DISKS = 4
 
-POINCARE_POLYDISK = PoincarePolydisk(n_disks=N_DISKS, coords_type="extrinsic")
+POINCARE_POLYDISK = PoincarePolydisk(n_disks=N_DISKS)
 METRIC = POINCARE_POLYDISK.metric
 
 

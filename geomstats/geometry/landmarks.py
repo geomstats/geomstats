@@ -3,8 +3,7 @@
 Lead author: Nicolas Guigui.
 """
 
-from geomstats.geometry.product_manifold import NFoldManifold
-from geomstats.geometry.product_riemannian_metric import NFoldMetric
+from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 
 
 class Landmarks(NFoldManifold):
@@ -26,9 +25,7 @@ class Landmarks(NFoldManifold):
         kwargs.setdefault(
             "metric", L2LandmarksMetric(ambient_manifold.metric, k_landmarks)
         )
-        super(Landmarks, self).__init__(
-            base_manifold=ambient_manifold, n_copies=k_landmarks, **kwargs
-        )
+        super().__init__(base_manifold=ambient_manifold, n_copies=k_landmarks, **kwargs)
         self.ambient_manifold = ambient_manifold
         self.k_landmarks = k_landmarks
 
@@ -49,8 +46,6 @@ class L2LandmarksMetric(NFoldMetric):
     """
 
     def __init__(self, ambient_metric, k_landmarks, **kwargs):
-        super(L2LandmarksMetric, self).__init__(
-            base_metric=ambient_metric, n_copies=k_landmarks, **kwargs
-        )
+        super().__init__(base_metric=ambient_metric, n_copies=k_landmarks, **kwargs)
         self.ambient_metric = ambient_metric
         self.k_landmarks = k_landmarks

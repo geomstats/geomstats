@@ -17,7 +17,7 @@ are manifolds. Additional examples are introduced in Geomstats `paper <https://a
    :class: with-shadow
    :width: 1000px
 
-   **Figure**: Shapes in natural sciences can be represented as data points on "manifolds". Images credits: Greg Dunn Neuro Art, British Art Foundation, Ashok Prasad, Matematik Dunyasi, Gabriel Pérez.
+   **Figure**: Shapes in natural sciences can be represented as data points on "manifolds". Images credits: Self Reflected, `Greg Dunn Neuro Art <www.gregadunn.com>`_, British Art Foundation, Ashok Prasad, Matematik Dunyasi, Gabriel Pérez.
 
 Computations and statistics on manifolds require special tools of
 `differential geometry <https://en.wikipedia.org/wiki/Differential_geometry>`_. Computing
@@ -53,7 +53,7 @@ on manifolds, such as supervised and unsupervised learning techniques.
    **Figure**: Parallel transport of a vector X (pink) along a geodesic (green) on the manifold M, e.g. representing a deformation's force acting on the time evolution of an organ shape. Image credits: `Adele Myers <https://ahma2017.wixsite.com/adelemyers>`_.
 
 The code is object-oriented and follows Scikit-Learn's API. The operations are vectorized for batch computation and provide
-support for different execution backends --- namely NumPy, PyTorch, Autograd and TensorFlow.
+support for different execution backends --- namely NumPy, PyTorch and Autograd.
 
 Learn More
 ----------

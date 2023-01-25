@@ -4,7 +4,6 @@ Lead authors: Elodie Maignant and Nicolas Guigui.
 """
 
 import geomstats.backend as gs
-from geomstats.errors import check_tf_error
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
@@ -41,19 +40,44 @@ class PreShapeSpace(LevelSet, FiberBundle):
     """
 
     def __init__(self, k_landmarks, m_ambient):
-        embedding_manifold = Matrices(k_landmarks, m_ambient)
-        embedding_metric = embedding_manifold.metric
-        super(PreShapeSpace, self).__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1,
-            embedding_space=embedding_manifold,
-            submersion=embedding_metric.squared_norm,
-            value=1.0,
-            tangent_submersion=embedding_metric.inner_product,
-            ambient_metric=PreShapeMetric(k_landmarks, m_ambient),
-        )
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
-        self.ambient_metric = PreShapeMetric(k_landmarks, m_ambient)
+
+        super().__init__(
+            dim=m_ambient * (k_landmarks - 1) - 1,
+            total_space_metric=PreShapeMetric(k_landmarks, m_ambient),
+        )
+        self.total_space_metric = PreShapeMetric(k_landmarks, m_ambient)
+
+    def _define_embedding_space(self):
+        return Matrices(self.k_landmarks, self.m_ambient)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_landmarks, m_ambient]
+
+        Returns
+        -------
+        submersion : array-like, shape=[...]
+        """
+        return self.embedding_space.metric.squared_norm(point) - 1.0
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim+1]
+        point : array-like, shape=[..., dim+1]
+
+        Returns
+        -------
+        tangent_submersion : array-like, shape=[...]
+        """
+        return self.embedding_space.metric.inner_product(vector, point)
 
     def projection(self, point):
         """Project a point on the pre-shape space.
@@ -69,7 +93,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
             Point projected on the pre-shape space.
         """
         centered_point = self.center(point)
-        frob_norm = self.ambient_metric.norm(centered_point)
+        frob_norm = self.total_space_metric.norm(centered_point)
         projected_point = gs.einsum("...,...ij->...ij", 1.0 / frob_norm, centered_point)
 
         return projected_point
@@ -175,7 +199,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
             raise ValueError("The base_point does not belong to the pre-shape" " space")
         vector = self.center(vector)
         sq_norm = Matrices.frobenius_product(base_point, base_point)
-        inner_prod = self.ambient_metric.inner_product(base_point, vector)
+        inner_prod = self.total_space_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum("...,...ij->...ij", coef, base_point)
 
@@ -480,7 +504,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
             x_top, tangent_vec_e_sym
         )
 
-        scal_x_a_y_e = self.ambient_metric.inner_product(
+        scal_x_a_y_e = self.total_space_metric.inner_product(
             horizontal_vec_x, a_y_e, base_point
         )
 
@@ -698,8 +722,9 @@ class PreShapeMetric(RiemannianMetric):
     """
 
     def __init__(self, k_landmarks, m_ambient):
-        super(PreShapeMetric, self).__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1, default_point_type="matrix"
+        super().__init__(
+            dim=m_ambient * (k_landmarks - 1) - 1,
+            shape=(k_landmarks, m_ambient),
         )
 
         self.embedding_metric = MatricesMetric(k_landmarks, m_ambient)
@@ -771,9 +796,10 @@ class PreShapeMetric(RiemannianMetric):
         flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
         flat_pt = gs.reshape(point, (-1, self.sphere_metric.dim + 1))
         flat_log = self.sphere_metric.log(flat_pt, flat_bp)
-        try:
+
+        if gs.prod(gs.array(flat_log.shape)) == gs.prod(gs.array(base_point.shape)):
             log = gs.reshape(flat_log, base_point.shape)
-        except (RuntimeError, check_tf_error(ValueError, "InvalidArgumentError")):
+        else:
             log = gs.reshape(flat_log, point.shape)
         return log
 
@@ -874,8 +900,8 @@ class PreShapeMetric(RiemannianMetric):
             Tangent vector at a base point.
             Optional, default : None.
         end_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space, to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the pre-shape space, to transport to. Unused if
+            `tangent_vec_b` is given.
             Optional, default : None.
 
         Returns
@@ -942,7 +968,7 @@ class KendallShapeMetric(QuotientMetric):
 
     def __init__(self, k_landmarks, m_ambient):
         bundle = PreShapeSpace(k_landmarks, m_ambient)
-        super(KendallShapeMetric, self).__init__(
+        super().__init__(
             fiber_bundle=bundle,
             dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2),
             shape=(k_landmarks, m_ambient),
@@ -1016,9 +1042,9 @@ class KendallShapeMetric(QuotientMetric):
         r"""Compute the parallel transport of a tangent vec along a geodesic.
 
         Approximation of the solution of the parallel transport of a tangent
-        vector a along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_{(base\_point)}(
-        t*direction)`
+        vector a along the geodesic between two points `base_point` and
+        `end_point` or alternatively defined by
+        :math:`t\mapsto exp_{(base\_point)}(t*direction)`
 
         Parameters
         ----------
@@ -1048,11 +1074,11 @@ class KendallShapeMetric(QuotientMetric):
 
         References
         ----------
-        .. [GMTP21]   Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
-                      Pennec. “Parallel Transport on Kendall Shape Spaces.”
-                      5th conference on Geometric Science of Information,
-                      Paris 2021. Lecture Notes in Computer Science.
-                      Springer, 2021. https://hal.inria.fr/hal-03160677.
+        .. [GMTP21] Guigui, Nicolas, Elodie Maignant, Alain Trouvé, and Xavier
+            Pennec. “Parallel Transport on Kendall Shape Spaces.”
+            5th conference on Geometric Science of Information,
+            Paris 2021. Lecture Notes in Computer Science.
+            Springer, 2021. https://hal.inria.fr/hal-03160677.
 
         See Also
         --------
@@ -1070,8 +1096,8 @@ class KendallShapeMetric(QuotientMetric):
         horizontal_b = self.fiber_bundle.horizontal_projection(direction, base_point)
 
         def force(state, time):
-            gamma_t = self.ambient_metric.exp(time * horizontal_b, base_point)
-            speed = self.ambient_metric.parallel_transport(
+            gamma_t = self.total_space_metric.exp(time * horizontal_b, base_point)
+            speed = self.total_space_metric.parallel_transport(
                 horizontal_b, base_point, time * horizontal_b
             )
             coef = self.inner_product(speed, state, gamma_t)

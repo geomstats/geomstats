@@ -19,6 +19,8 @@ NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
 PI_2_3 = gs.power(gs.array([2.0 * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.0)
 
+_COORDS_TYPE = "ball"
+
 
 class PoincareBall(_Hyperbolic, OpenSet):
     """Class for the n-dimensional Poincare ball.
@@ -30,24 +32,21 @@ class PoincareBall(_Hyperbolic, OpenSet):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default: 1.
     """
 
-    default_coords_type = "ball"
-    default_point_type = "vector"
-
-    def __init__(self, dim, scale=1):
-        super(PoincareBall, self).__init__(
+    def __init__(self, dim, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate the "
+                "manifold without this parameter and then use "
+                "`scale * metric` to rescale the standard metric."
+            )
+        super().__init__(
             dim=dim,
-            ambient_space=Euclidean(dim),
-            scale=scale,
-            metric=PoincareBallMetric(dim, scale),
+            embedding_space=Euclidean(dim),
+            metric=PoincareBallMetric(dim),
+            default_coords_type=_COORDS_TYPE,
         )
-        self.coords_type = PoincareBall.default_coords_type
-        self.point_type = PoincareBall.default_point_type
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the hyperbolic space.
@@ -109,20 +108,20 @@ class PoincareBallMetric(RiemannianMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default 1.
     """
 
-    default_point_type = "vector"
-    default_coords_type = "ball"
-
-    def __init__(self, dim, scale=1):
-        super(PoincareBallMetric, self).__init__(dim=dim, signature=(dim, 0))
-        self.coords_type = PoincareBall.default_coords_type
-        self.point_type = PoincareBall.default_point_type
-        self.scale = scale
+    def __init__(self, dim, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate scaled "
+                "metrics as `scale * RiemannianMetric`. Note that the "
+                "metric is scaled, not the distance."
+            )
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            default_coords_type=_COORDS_TYPE,
+        )
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
@@ -206,7 +205,7 @@ class PoincareBallMetric(RiemannianMetric):
         mobius_add : array-like, shape=[..., dim]
             Result of the Mobius addition.
         """
-        ball_manifold = PoincareBall(self.dim, scale=self.scale)
+        ball_manifold = PoincareBall(self.dim)
         if project_first:
             point_a = ball_manifold.projection(point_a)
             point_b = ball_manifold.projection(point_b)
@@ -251,7 +250,6 @@ class PoincareBallMetric(RiemannianMetric):
         norm_function = 1 + 2 * diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
         dist = gs.log(norm_function + gs.sqrt(norm_function**2 - 1))
-        dist *= self.scale
         return dist
 
     def retraction(self, tangent_vec, base_point):
@@ -276,7 +274,7 @@ class PoincareBallMetric(RiemannianMetric):
         .. [1] Nickel et.al, "Poincaré Embedding for
             Learning Hierarchical Representation", 2017.
         """
-        ball_manifold = PoincareBall(self.dim, scale=self.scale)
+        ball_manifold = PoincareBall(self.dim)
         base_point_belong = ball_manifold.belongs(base_point)
 
         if not gs.all(base_point_belong):
@@ -449,10 +447,10 @@ class PoincareBallMetric(RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of the hyperbolic space, it does not depend on the base point and
-        is infinite everywhere, because of the negative curvature.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the hyperbolic space, it does not depend on the base
+        point and is infinite everywhere, because of the negative curvature.
 
         Parameters
         ----------

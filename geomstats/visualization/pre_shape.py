@@ -26,7 +26,7 @@ class KendallSphere:
     ----------
     points : list
         List of points to plot on the Kendall sphere.
-    point_type : str
+    coords_type : str
         Type of the points. Can be either 'pre-shape' (for points in Kendall
         pre-shape space) or 'extrinsic' (for points given as 3x2 matrices).
         Optional, default: 'pre-shape'.
@@ -48,9 +48,9 @@ class KendallSphere:
         https://doi.org/10.1112/blms/16.2.81
     """
 
-    def __init__(self, points=None, point_type="pre-shape"):
+    def __init__(self, points=None, coords_type="pre-shape"):
         self.points = []
-        self.point_type = point_type
+        self.coords_type = coords_type
         self.ax = None
         self.elev, self.azim = None, None
 
@@ -66,8 +66,10 @@ class KendallSphere:
             [[0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2], [-1.0, 0.0]]
         ) / gs.sqrt(3.0)
 
-        self.na = self.ub - S32.ambient_metric.inner_product(self.ub, self.ua) * self.ua
-        self.na = self.na / S32.ambient_metric.norm(self.na)
+        self.na = (
+            self.ub - S32.total_space_metric.inner_product(self.ub, self.ua) * self.ua
+        )
+        self.na = self.na / S32.total_space_metric.norm(self.na)
 
         if points is not None:
             self.add_points(points)
@@ -100,13 +102,13 @@ class KendallSphere:
     def convert_to_polar_coordinates(self, points):
         """Assign polar coordinates to given pre-shapes."""
         aligned_points = S32.align(points, self.pole)
-        speeds = S32.ambient_metric.log(aligned_points, self.pole)
+        speeds = S32.total_space_metric.log(aligned_points, self.pole)
 
         coords_theta = gs.arctan2(
-            S32.ambient_metric.inner_product(speeds, self.na),
-            S32.ambient_metric.inner_product(speeds, self.ua),
+            S32.total_space_metric.inner_product(speeds, self.na),
+            S32.total_space_metric.inner_product(speeds, self.ua),
         )
-        coords_phi = 2.0 * S32.ambient_metric.dist(self.pole, aligned_points)
+        coords_phi = 2.0 * S32.total_space_metric.dist(self.pole, aligned_points)
 
         return coords_theta, coords_phi
 
@@ -121,11 +123,11 @@ class KendallSphere:
 
     def add_points(self, points):
         """Add points to draw on the Kendall sphere."""
-        if self.point_type == "extrinsic":
+        if self.coords_type == "extrinsic":
             if not gs.all(M32.belongs(points)):
                 raise ValueError("Points do not belong to Matrices(3, 2).")
             points = S32.projection(points)
-        elif self.point_type == "pre-shape" and not gs.all(S32.belongs(points)):
+        elif self.coords_type == "pre-shape" and not gs.all(S32.belongs(points)):
             raise ValueError("Points do not belong to the pre-shape space.")
         points = self.convert_to_spherical_coordinates(points)
         if not isinstance(points, list):
@@ -272,7 +274,7 @@ class KendallDisk:
     ----------
     points : list
         List of points to plot on the Kendall sphere.
-    point_type : str
+    coords_type : str
         Type of the points. Can be either 'pre-shape' (for points in Kendall
         pre-shape space) or 'extrinsic' (for points given as 3x2 matrices).
         Optional, default: 'pre-shape'.
@@ -300,9 +302,9 @@ class KendallDisk:
         https://doi.org/10.1112/blms/16.2.81
     """
 
-    def __init__(self, points=None, point_type="pre-shape"):
+    def __init__(self, points=None, coords_type="pre-shape"):
         self.points = []
-        self.point_type = point_type
+        self.coords_type = coords_type
         self.ax = None
 
         self.pole = gs.array(
@@ -325,8 +327,10 @@ class KendallDisk:
             [[0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2], [-1.0, 0.0]]
         ) / gs.sqrt(3.0)
 
-        self.na = self.ub - S32.ambient_metric.inner_product(self.ub, self.ua) * self.ua
-        self.na = self.na / S32.ambient_metric.norm(self.na)
+        self.na = (
+            self.ub - S32.total_space_metric.inner_product(self.ub, self.ua) * self.ua
+        )
+        self.na = self.na / S32.total_space_metric.norm(self.na)
 
         if points is not None:
             self.add_points(points)
@@ -344,12 +348,12 @@ class KendallDisk:
         """Assign polar coordinates to given pre-shapes."""
         aligned_points = S33.align(points, self.centre)
         aligned_points2d = aligned_points[..., :, :2]
-        speeds = S32.ambient_metric.log(aligned_points2d, self.pole)
+        speeds = S32.total_space_metric.log(aligned_points2d, self.pole)
 
-        coords_r = S32.ambient_metric.dist(self.pole, aligned_points2d)
+        coords_r = S32.total_space_metric.dist(self.pole, aligned_points2d)
         coords_theta = gs.arctan2(
-            S32.ambient_metric.inner_product(speeds, self.na),
-            S32.ambient_metric.inner_product(speeds, self.ua),
+            S32.total_space_metric.inner_product(speeds, self.na),
+            S32.total_space_metric.inner_product(speeds, self.ua),
         )
 
         return coords_r, coords_theta
@@ -364,11 +368,11 @@ class KendallDisk:
 
     def add_points(self, points):
         """Add points to draw on the Kendall disk."""
-        if self.point_type == "extrinsic":
+        if self.coords_type == "extrinsic":
             if not gs.all(M33.belongs(points)):
                 raise ValueError("Points do not belong to Matrices(3, 3).")
             points = S33.projection(points)
-        elif self.point_type == "pre-shape" and not gs.all(S33.belongs(points)):
+        elif self.coords_type == "pre-shape" and not gs.all(S33.belongs(points)):
             raise ValueError("Points do not belong to the pre-shape space.")
         points = self.convert_to_planar_coordinates(points)
         if not isinstance(points, list):

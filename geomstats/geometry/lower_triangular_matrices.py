@@ -19,12 +19,7 @@ class LowerTriangularMatrices(VectorSpace):
 
     def __init__(self, n, **kwargs):
         kwargs.setdefault("metric", MatricesMetric(n, n))
-        super(LowerTriangularMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2),
-            shape=(n, n),
-            default_point_type="matrix",
-            **kwargs
-        )
+        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), **kwargs)
         self.n = n
 
     def _create_basis(self):
@@ -35,11 +30,11 @@ class LowerTriangularMatrices(VectorSpace):
         basis : array-like, shape=[dim, n, n]
             Basis matrices of the space.
         """
+        # TODO: check one_hot
         tril_idxs = gs.ravel_tril_indices(self.n)
-        # TODO: use default dtype when available
         vector_bases = gs.cast(
             gs.one_hot(tril_idxs, self.n * self.n),
-            dtype=gs.float32,
+            dtype=gs.get_default_dtype(),
         )
         return gs.reshape(vector_bases, [-1, self.n, self.n])
 
@@ -58,7 +53,7 @@ class LowerTriangularMatrices(VectorSpace):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        belongs = super(LowerTriangularMatrices, self).belongs(point)
+        belongs = super().belongs(point)
         if gs.any(belongs):
             is_lower_triangular = Matrices.is_lower_triangular(point, atol)
             return gs.logical_and(belongs, is_lower_triangular)
@@ -80,6 +75,21 @@ class LowerTriangularMatrices(VectorSpace):
         """
         return gs.tril_to_vec(mat)
 
+    def from_vector(self, vec):
+        """Convert a vector into a lower triangular matrix.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., n, n]
+            Lower triangular matrix.
+        """
+        return gs.einsum("...i,...ijk->...jk", vec, self.basis)
+
     def projection(self, point):
         """Make a square matrix lower triangular by zeroing out other elements.
 
@@ -93,7 +103,7 @@ class LowerTriangularMatrices(VectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return Matrices.to_lower_triangular(point)
+        return gs.tril(point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample a lower triangular matrix with a uniform distribution in a box.
@@ -112,5 +122,5 @@ class LowerTriangularMatrices(VectorSpace):
         point : array-like, shape=[..., n, n]
            Sample.
         """
-        sample = super(LowerTriangularMatrices, self).random_point(n_samples, bound)
-        return Matrices.to_lower_triangular(sample)
+        sample = super().random_point(n_samples, bound)
+        return gs.tril(sample)

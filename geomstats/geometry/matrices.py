@@ -22,8 +22,7 @@ class Matrices(VectorSpace):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
         kwargs.setdefault("metric", MatricesMetric(m, n))
-        kwargs.setdefault("default_point_type", "matrix")
-        super(Matrices, self).__init__(shape=(m, n), **kwargs)
+        super().__init__(shape=(m, n), **kwargs)
         self.m = m
         self.n = n
 
@@ -31,28 +30,6 @@ class Matrices(VectorSpace):
         """Create the canonical basis."""
         m, n = self.m, self.n
         return gs.reshape(gs.eye(n * m), (n * m, m, n))
-
-    def belongs(self, point, atol=gs.atol):
-        """Check if point belongs to the Matrices space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., m, n]
-            Point to be checked.
-        atol : float
-            Unused here.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Matrices space.
-        """
-        ndim = point.ndim
-        if ndim == 1:
-            return False
-        mat_dim_1, mat_dim_2 = point.shape[-2:]
-        belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
-        return belongs if ndim == 2 else gs.tile(gs.array([belongs]), [point.shape[0]])
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -128,8 +105,10 @@ class Matrices(VectorSpace):
         transpose : array-like, shape=[..., n, n]
             Transposed matrix.
         """
-        is_vectorized = gs.ndim(gs.array(mat)) == 3
-        axes = (0, 2, 1) if is_vectorized else (1, 0)
+        ndim = gs.ndim(mat)
+        axes = list(range(0, ndim))
+        axes[-1] = ndim - 2
+        axes[-2] = ndim - 1
         return gs.transpose(mat, axes)
 
     @staticmethod
@@ -255,7 +234,7 @@ class Matrices(VectorSpace):
         """
         is_square = cls.is_square(mat)
         if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
+            is_vectorized = gs.ndim(mat) == 3
             return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.tril(mat, k=-1), atol)
 
@@ -313,9 +292,6 @@ class Matrices(VectorSpace):
         ----------
         mat : array-like, shape=[..., n, n]
             Matrix.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
 
         Returns
         -------
@@ -324,7 +300,13 @@ class Matrices(VectorSpace):
         """
         if mat.ndim == 2:
             return gs.array(gs.linalg.is_single_matrix_pd(mat))
-        return gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
+
+        shape = mat.shape
+        if mat.ndim > 3:
+            mat = gs.reshape(mat, (-1,) + shape[-2:])
+
+        is_pd = gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
+        return gs.reshape(is_pd, shape[:-2])
 
     @classmethod
     def is_spd(cls, mat, atol=gs.atol):
@@ -465,7 +447,7 @@ class Matrices(VectorSpace):
     def to_symmetric(cls, mat):
         """Make a matrix symmetric.
 
-        Make a matrix suymmetric by averaging it
+        Make a matrix symmetric by averaging it
         with its transpose.
 
         Parameters
@@ -715,7 +697,7 @@ class MatricesMetric(EuclideanMetric):
 
     def __init__(self, m, n, **kwargs):
         dimension = m * n
-        super(MatricesMetric, self).__init__(dim=dimension, shape=(m, n))
+        super().__init__(dim=dimension, shape=(m, n))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tangent vectors.

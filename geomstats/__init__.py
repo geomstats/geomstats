@@ -16,7 +16,6 @@ import geomstats.geometry.manifold
 import geomstats.geometry.minkowski
 import geomstats.geometry.poincare_polydisk
 import geomstats.geometry.product_manifold
-import geomstats.geometry.product_riemannian_metric
 import geomstats.geometry.riemannian_metric
 import geomstats.geometry.skew_symmetric_matrices
 import geomstats.geometry.spd_matrices

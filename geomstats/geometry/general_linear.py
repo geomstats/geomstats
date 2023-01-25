@@ -25,12 +25,16 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
     """
 
     def __init__(self, n, positive_det=False, **kwargs):
-        ambient_space = Matrices(n, n)
+        embedding_space = Matrices(n, n)
         kwargs.setdefault("dim", n**2)
-        kwargs.setdefault("metric", ambient_space.metric)
+        kwargs.setdefault("metric", embedding_space.metric)
 
-        super(GeneralLinear, self).__init__(
-            ambient_space=ambient_space, n=n, lie_algebra=SquareMatrices(n), **kwargs
+        self.n = n
+        super().__init__(
+            embedding_space=embedding_space,
+            representation_dim=n,
+            lie_algebra=SquareMatrices(n),
+            **kwargs
         )
 
         self.positive_det = positive_det
@@ -78,14 +82,14 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if point is in GL(n).
         """
-        has_right_size = self.ambient_space.belongs(point)
+        has_right_size = self.embedding_space.belongs(point)
         if gs.all(has_right_size):
             det = gs.linalg.det(point)
             return det > atol if self.positive_det else gs.abs(det) > atol
         return has_right_size
 
     def random_point(self, n_samples=1, bound=1.0, n_iter=100):
-        """Sample in GL(n) from the uniform distribution.
+        """Sample in GL(n) from the normal distribution.
 
         Parameters
         ----------
@@ -93,8 +97,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
             Number of samples.
             Optional, default: 1.
         bound: float
-            Bound of the interval in which to sample each matrix entry.
-            Optional, default: 1.
+            This parameter is ignored
         n_iter : int
             Maximum number of trials to sample a matrix with positive det.
             Optional, default: 100.
@@ -179,12 +182,13 @@ class SquareMatrices(MatrixLieAlgebra):
     """
 
     def __init__(self, n):
-        super(SquareMatrices, self).__init__(n=n, dim=n**2)
-        self.mat_space = Matrices(n, n)
+        self.n = n
+        super().__init__(dim=n**2, representation_dim=n)
+        self._mat_space = Matrices(n, n)
 
     def _create_basis(self):
         """Create the canonical basis of the space of matrices."""
-        return self.mat_space.basis
+        return self._mat_space.basis
 
     def basis_representation(self, matrix_representation):
         """Compute the coefficient in the usual matrix basis.
@@ -201,7 +205,7 @@ class SquareMatrices(MatrixLieAlgebra):
         basis_representation : array-like, shape=[..., dim]
             Representation in the basis.
         """
-        return self.mat_space.flatten(matrix_representation)
+        return self._mat_space.flatten(matrix_representation)
 
     def matrix_representation(self, basis_representation):
         """Compute the matrix representation for the given basis coefficients.
@@ -218,4 +222,4 @@ class SquareMatrices(MatrixLieAlgebra):
         matrix_representation : array-like, shape=[..., n, n]
             Matrix.
         """
-        return self.mat_space.reshape(basis_representation)
+        return self._mat_space.reshape(basis_representation)

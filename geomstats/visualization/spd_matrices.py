@@ -19,12 +19,12 @@ class Ellipses:
 
     Parameters
     ----------
-    n_sampling_points : int
+    k_sampling_points : int
         Number of points to sample on the discretized ellipses.
     """
 
-    def __init__(self, n_sampling_points=100):
-        self.n_sampling_points = n_sampling_points
+    def __init__(self, k_sampling_points=100):
+        self.k_sampling_points = k_sampling_points
 
     @staticmethod
     def set_ax(ax=None):
@@ -77,9 +77,9 @@ class Ellipses:
 
         Returns
         -------
-        x_coords : array-like, shape=[n_sampling_points,]
+        x_coords : array-like, shape=[k_sampling_points,]
             x_coords coordinates of the sampling points on the discretized ellipse.
-        Y: array-like, shape = [n_sampling_points,]
+        Y: array-like, shape = [k_sampling_points,]
             y coordinates of the sampling points on the discretized ellipse.
         """
         eigvalues, eigvectors = gs.linalg.eigh(point)
@@ -89,7 +89,7 @@ class Ellipses:
 
         rot_sin = eigvectors[1, 0]
         rot_cos = eigvectors[0, 0]
-        thetas = gs.linspace(0.0, 2 * gs.pi, self.n_sampling_points + 1)
+        thetas = gs.linspace(0.0, 2 * gs.pi, self.k_sampling_points + 1)
 
         x_coords = eigvalue1 * gs.cos(thetas) * rot_cos
         x_coords -= rot_sin * eigvalue2 * gs.sin(thetas)

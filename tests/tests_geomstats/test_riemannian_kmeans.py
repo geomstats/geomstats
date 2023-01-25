@@ -1,14 +1,14 @@
 """Unit tests for Riemannian KMeans."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry import hypersphere, spd_matrices
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.kmeans import RiemannianKMeans
 
 
-@geomstats.tests.np_and_autograd_only
-class TestRiemannianKMeans(geomstats.tests.TestCase):
+@tests.conftest.np_and_autograd_only
+class TestRiemannianKMeans(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 
     def test_hypersphere_kmeans_fit(self):
@@ -36,7 +36,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         n_points = 2
         space = spd_matrices.SPDMatrices(dim)
         data = space.random_point(n_samples=n_points)
-        metric = spd_matrices.SPDMetricAffine(dim)
+        metric = spd_matrices.SPDAffineMetric(dim)
 
         kmeans = RiemannianKMeans(metric, n_clusters=1, init_step_size=1.0)
         kmeans.fit(data)

@@ -41,45 +41,7 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-
-
-def submersion(point, p):
-    r"""Submersion that defines the Grassmann manifold.
-
-    The Grassmann manifold is defined here as embedded in the set of
-    symmetric matrices, as the pre-image of the function defined around the
-    projector on the space spanned by the first :math:`p` columns of the identity
-    matrix by (see Exercise E.25 in [Pau07]_).
-
-    .. math::
-
-        \begin{pmatrix} I_p + A & B^T \\ B & D \end{pmatrix} \mapsto
-            (D - B(I_p + A)^{-1}B^T, A + A^2 + B^TB
-
-    This map is a submersion and its zero space is the set of orthogonal
-    rank-:math:`p` projectors.
-
-    References
-    ----------
-    .. [Pau07] Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
-        https://www.imo.universite-paris-saclay.fr/~paulin/notescours/
-        cours_geodiff.pdf.
-    """
-    _, eigvecs = gs.linalg.eigh(point)
-    eigvecs = gs.flip(eigvecs, -1)
-    flipped_point = Matrices.mul(Matrices.transpose(eigvecs), point, eigvecs)
-    b = flipped_point[..., p:, :p]
-    d = flipped_point[..., p:, p:]
-    a = flipped_point[..., :p, :p] - gs.eye(p)
-    first = d - Matrices.mul(
-        b, GeneralLinear.inverse(a + gs.eye(p)), Matrices.transpose(b)
-    )
-    second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
-    row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
-    row_2 = gs.concatenate([Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
-    return gs.concatenate([row_1, row_2], axis=-2)
 
 
 def _squared_dist_grad_point_a(point_a, point_b, metric):
@@ -94,7 +56,7 @@ def _squared_dist_grad_point_a(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -118,7 +80,7 @@ def _squared_dist_grad_point_b(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -140,9 +102,7 @@ def _squared_dist(point_a, point_b, metric):
     This is an auxiliary private function that:
 
     - is called by the method `squared_dist` of the class
-      SpecialEuclideanMatrixCannonicalLeftMetric,
-    - has been created to support the implementation
-      of custom_gradient in tensorflow backend.
+      SpecialEuclideanMatrixCanonicalLeftMetric,
 
     Parameters
     ----------
@@ -150,7 +110,7 @@ def _squared_dist(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -185,23 +145,78 @@ class Grassmannian(LevelSet):
 
         kwargs.setdefault("metric", GrassmannianCanonicalMetric(n, p))
         dim = int(p * (n - p))
-        super(Grassmannian, self).__init__(
-            dim=dim,
-            embedding_space=SymmetricMatrices(n),
-            submersion=lambda x: submersion(x, p),
-            value=gs.zeros((n, n)),
-            tangent_submersion=lambda v, x: 2
-            * Matrices.to_symmetric(Matrices.mul(x, v))
-            - v,
-            **kwargs
+        super().__init__(dim=dim, **kwargs)
+
+    def _define_embedding_space(self):
+        return SymmetricMatrices(self.n)
+
+    def submersion(self, point):
+        r"""Submersion that defines the Grassmann manifold.
+
+        The Grassmann manifold is defined here as embedded in the set of
+        symmetric matrices, as the pre-image of the function defined around the
+        projector on the space spanned by the first :math:`p` columns of the identity
+        matrix by (see Exercise E.25 in [Pau07]_).
+
+        .. math::
+
+            \begin{pmatrix} I_p + A & B^T \\ B & D \end{pmatrix} \mapsto
+                (D - B(I_p + A)^{-1}B^T, A + A^2 + B^TB)
+
+        This map is a submersion and its zero space is the set of orthogonal
+        rank-:math:`p` projectors.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n, n]
+
+        References
+        ----------
+        .. [Pau07] Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
+            https://www.imo.universite-paris-saclay.fr/~paulin/notescours/
+            cours_geodiff.pdf.
+        """
+        p = self.p
+
+        _, eigvecs = gs.linalg.eigh(point)
+        eigvecs = gs.flip(eigvecs, -1)
+        flipped_point = Matrices.mul(Matrices.transpose(eigvecs), point, eigvecs)
+        b = flipped_point[..., p:, :p]
+        d = flipped_point[..., p:, p:]
+        a = flipped_point[..., :p, :p] - gs.eye(p)
+        first = d - Matrices.mul(
+            b, GeneralLinear.inverse(a + gs.eye(p)), Matrices.transpose(b)
         )
+        second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
+        row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
+        row_2 = gs.concatenate([Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
+        return gs.concatenate([row_1, row_2], axis=-2)
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n, n]
+        """
+        return 2 * Matrices.to_symmetric(Matrices.mul(point, vector)) - vector
 
     def random_uniform(self, n_samples=1):
         r"""Sample random points from a uniform distribution.
 
         Following [Chikuse03]_, :math:`n\_samples * n * p` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
-        the projectors on their first :math:`p` columns follow a uniform distribution.
+        the projectors on their first :math:`p` columns follow a uniform
+        distribution.
 
         Parameters
         ----------
@@ -231,7 +246,8 @@ class Grassmannian(LevelSet):
 
         Following [Chikuse03]_, :math:`n\_samples * n * p` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
-        the projectors on their first :math:`p` columns follow a uniform distribution.
+        the projectors on their first :math:`p` columns follow a uniform
+        distribution.
 
         Parameters
         ----------
@@ -294,7 +310,7 @@ class Grassmannian(LevelSet):
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
 
-class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
+class GrassmannianCanonicalMetric(MatricesMetric):
     """Canonical metric of the Grassmann manifold.
 
     Coincides with the Frobenius metric.
@@ -314,9 +330,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             raise ValueError("p <= n is required.")
 
         dim = int(p * (n - p))
-        super(GrassmannianCanonicalMetric, self).__init__(
-            m=n, n=n, dim=dim, signature=(dim, 0, 0)
-        )
+        super().__init__(m=n, n=n, dim=dim, signature=(dim, 0, 0))
 
         self.n = n
         self.p = p
@@ -443,8 +457,6 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
 
         - is called by the method `squared_dist` of the class
           GrassmannianCanonicalMetric,
-        - has been created to support the implementation
-          of custom_gradient in tensorflow backend.
 
         Parameters
         ----------

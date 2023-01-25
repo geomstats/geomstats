@@ -2,17 +2,18 @@ import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.quotient_metric import QuotientMetric
+from geomstats.geometry.spd_matrices import SPDBuresWassersteinMetric, SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import TestData
 
 
 class BuresWassersteinBundle(GeneralLinear, FiberBundle):
     def __init__(self, n):
-        super(BuresWassersteinBundle, self).__init__(
+        super().__init__(
             n=n,
             group=SpecialOrthogonal(n),
-            ambient_metric=MatricesMetric(n, n),
+            total_space_metric=MatricesMetric(n, n),
         )
 
     @staticmethod
@@ -42,6 +43,12 @@ class BuresWassersteinBundle(GeneralLinear, FiberBundle):
 
 
 class QuotientMetricTestData(TestData):
+
+    Base = SPDMatrices
+    Bundle = BuresWassersteinBundle
+    BaseMetric = SPDBuresWassersteinMetric
+    Metric = QuotientMetric
+
     def riemannian_submersion_test_data(self):
         random_data = [dict(n=2, mat=BuresWassersteinBundle(2).random_point())]
         return self.generate_tests([], random_data)

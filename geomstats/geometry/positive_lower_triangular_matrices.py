@@ -22,7 +22,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     References
     ----------
-    .. [TP2019] . "Riemannian Geometry of Symmetric
+    .. [TP2019] Z Lin. "Riemannian Geometry of Symmetric
         Positive Definite Matrices Via Cholesky Decomposition"
         SIAM journal on Matrix Analysis and Applications , 2019.
         https://arxiv.org/abs/1908.09326
@@ -30,8 +30,10 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     def __init__(self, n, **kwargs):
         kwargs.setdefault("metric", CholeskyMetric(n))
-        super(PositiveLowerTriangularMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2), ambient_space=LowerTriangularMatrices(n), **kwargs
+        super().__init__(
+            dim=int(n * (n + 1) / 2),
+            embedding_space=LowerTriangularMatrices(n),
+            **kwargs
         )
         self.n = n
 
@@ -44,7 +46,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
             Number of samples.
             Optional, default: 1.
         bound : float
-            Side of hypercube support of the uniform distribution.
+            Side of hypercube support.
             Optional, default: 1.0
 
         Returns
@@ -52,9 +54,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         point : array-like, shape=[..., n, n]
            Sample.
         """
-        sample = super(PositiveLowerTriangularMatrices, self).random_point(
-            n_samples, bound
-        )
+        sample = super().random_point(n_samples, bound)
         return self.projection(sample)
 
     def belongs(self, mat, atol=gs.atol):
@@ -73,7 +73,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat belongs to cholesky space.
         """
-        is_lower_triangular = self.ambient_space.belongs(mat, atol)
+        is_lower_triangular = self.embedding_space.belongs(mat, atol)
         diagonal = Matrices.diagonal(mat)
         is_positive = gs.all(diagonal > 0, axis=-1)
         belongs = gs.logical_and(is_lower_triangular, is_positive)
@@ -186,11 +186,8 @@ class CholeskyMetric(RiemannianMetric):
     """
 
     def __init__(self, n):
-        """ """
         dim = int(n * (n + 1) / 2)
-        super(CholeskyMetric, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
-        )
+        super().__init__(dim=dim, signature=(dim, 0), shape=(n, n))
         self.n = n
 
     @staticmethod

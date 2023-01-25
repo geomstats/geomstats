@@ -10,19 +10,21 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
-from geomstats.geometry.discrete_curves import ElasticMetric
-from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
+from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
+from geomstats.geometry.matrices import MatricesMetric
+from geomstats.geometry.minkowski import MinkowskiMetric
 
 EPSILON = 1e-4
 
-LINEAR_METRICS = ["EuclideanMetric", "MatricesMetric", "MinkowskiMetric"]
+LINEAR_METRICS = [EuclideanMetric, MatricesMetric, MinkowskiMetric]
+ELASTIC_METRICS = [SRVMetric, ElasticMetric]
 
-ELASTIC_METRICS = ["SRVMetric", "ElasticMetric"]
 
-
-def _is_metric_in_list(metric_str, metric_names):
-    for cmp_str in metric_names:
-        if cmp_str in metric_str:
+def _is_metric_in_list(metric, metric_classes):
+    for metric_class in metric_classes:
+        if isinstance(metric, metric_class):
             return True
 
     return False
@@ -32,8 +34,8 @@ def _is_linear_metric(metric_str):
     return _is_metric_in_list(metric_str, LINEAR_METRICS)
 
 
-def _is_elastic_metric(metric_str):
-    return _is_metric_in_list(metric_str, ELASTIC_METRICS)
+def _is_elastic_metric(metric):
+    return _is_metric_in_list(metric, ELASTIC_METRICS)
 
 
 def _scalarmul(scalar, array):
@@ -55,7 +57,7 @@ def variance(points, base_point, metric, weights=None):
     ----------
     points : array-like, shape=[n_samples, dim]
         Points.
-    weights : array-like, shape=[...,]
+    weights : array-like, shape=[n_samples,]
         Weights associated to the points.
         Optional, default: None.
 
@@ -90,7 +92,7 @@ def linear_mean(points, weights=None):
     ----------
     points : array-like, shape=[n_samples, dim]
         Points to be averaged.
-    weights : array-like, shape=[...,]
+    weights : array-like, shape=[n_samples,]
         Weights associated to the points.
         Optional, default: None.
 
@@ -118,21 +120,22 @@ def elastic_mean(points, weights=None, metric=None):
     SRV curves are a special case of Elastic curves.
 
     The computation of the mean goes as follows:
+
     - Transform the curves into their SRVs/F-transform representations,
     - Compute the linear mean of the SRVs/F-transform representations,
     - Inverse-transform the mean in curve space.
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, n_sampling_points, dim]
+    points : array-like, shape=[n_samples, k_sampling_points, dim]
         Points on the manifold of curves (i.e. curves) to be averaged.
-    weights : array-like, shape=[...,]
+    weights : array-like, shape=[n_samples,]
         Weights associated to the points (i.e. curves).
         Optional, default: None.
 
     Returns
     -------
-    mean : array-like, shape=[n_sampling_points, dim]
+    mean : array-like, shape=[k_sampling_points, dim]
         Weighted linear mean of the points (i.e. of the curves).
     """
     if isinstance(points, list):
@@ -142,14 +145,14 @@ def elastic_mean(points, weights=None, metric=None):
 
     transformed_linear_mean = linear_mean(transformed, weights=weights)
 
-    starting_point = (
+    starting_sampling_point = (
         FrechetMean(metric.ambient_metric)
         .fit(points[:, 0, :], weights=weights)
         .estimate_
     )
-    starting_point = gs.expand_dims(starting_point, axis=0)
+    starting_sampling_point = gs.expand_dims(starting_sampling_point, axis=0)
     mean = metric.f_transform_inverse(
-        transformed_linear_mean, starting_point=starting_point
+        transformed_linear_mean, starting_sampling_point=starting_sampling_point
     )
     return mean
 
@@ -186,7 +189,7 @@ def _default_gradient_descent(
     while iteration < max_iter:
         logs = metric.log(point=points, base_point=mean)
 
-        var = gs.sum(metric.squared_norm(logs, mean) * weights) / gs.sum(weights)
+        var = gs.sum(metric.squared_norm(logs, mean) * weights) / sum_weights
 
         tangent_mean = _scalarmulsum(weights, logs)
         tangent_mean /= sum_weights
@@ -218,8 +221,8 @@ def _default_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. "
-            "The mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
@@ -282,14 +285,16 @@ def _batch_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. The "
-            "mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
         logging.info(
-            "n_iter: {}, final dist: {},"
-            "final step size: {}".format(iteration, convergence, init_step_size)
+            "n_iter: %d, final dist: %e, final step size: %e",
+            iteration,
+            convergence,
+            init_step_size,
         )
 
     return estimates
@@ -316,22 +321,22 @@ def _adaptive_gradient_descent(
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[n_samples, *metric.shape]
         Points to be averaged.
-    weights : array-like, shape=[..., 1], optional
+    weights : array-like, shape=[n_samples,], optional
         Weights associated to the points.
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
-    init_point : array-like, shape=[{dim, [n, n]}]
+    init_point : array-like, shape=[*metric.shape]
         Initial point.
-        Optional, default : None. In this case the first sample of the input data is
-        used.
+        Optional, default : None. In this case the first sample of the input
+        data is used.
     epsilon : float, optional
         Tolerance for stopping the gradient descent.
 
     Returns
     -------
-    current_mean: array-like, shape=[..., dim]
+    current_mean: array-like, shape=[*metric.shape]
         Weighted Frechet mean of the points.
     """
     n_points = gs.shape(points)[0]
@@ -354,7 +359,7 @@ def _adaptive_gradient_descent(
     iteration = 0
 
     logs = metric.log(point=points, base_point=current_mean)
-    var = gs.sum(metric.squared_norm(logs, current_mean) * weights) / gs.sum(weights)
+    var = gs.sum(metric.squared_norm(logs, current_mean) * weights) / sum_weights
 
     current_tangent_mean = _scalarmulsum(weights, logs)
     current_tangent_mean /= sum_weights
@@ -369,9 +374,7 @@ def _adaptive_gradient_descent(
         next_mean = metric.exp(tangent_vec=shooting_vector, base_point=current_mean)
 
         logs = metric.log(point=points, base_point=next_mean)
-        var = gs.sum(metric.squared_norm(logs, current_mean) * weights) / gs.sum(
-            weights
-        )
+        var = gs.sum(metric.squared_norm(logs, current_mean) * weights) / sum_weights
 
         next_tangent_mean = _scalarmulsum(weights, logs)
         next_tangent_mean /= sum_weights
@@ -389,16 +392,17 @@ def _adaptive_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. "
-            "The mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
         logging.info(
-            "n_iter: {}, final variance: {}, final dist: {},"
-            " final_step_size: {}".format(
-                iteration, var, sq_norm_current_tangent_mean, tau
-            )
+            "n_iter: %d, final variance: %e, final dist: %e, final_step_size: %e",
+            iteration,
+            var,
+            sq_norm_current_tangent_mean,
+            tau,
         )
 
     return current_mean
@@ -413,12 +417,17 @@ def _circle_mean(points):
     the mean is not unique, the algorithm only returns one of the means. Which
     mean is returned depends on numerical rounding errors.
 
+    Parameters
+    ----------
+    points : array-like, shape=[n_samples,]
+        Data set of angles.
+
     Reference
     ---------
-    .. [HH15]     Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
-                 Uniqueness, locus and asymptotics", Annals of the Institute of
-                 Statistical Mathematics 67 (1), 177–193.
-                 https://arxiv.org/abs/1108.2141
+    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
+        circle: Uniqueness, locus and asymptotics", Annals of the Institute of
+        Statistical Mathematics 67 (1), 177–193.
+        https://arxiv.org/abs/1108.2141
     """
     if points.ndim > 1:
         points_ = Hypersphere.extrinsic_to_angle(points)
@@ -443,15 +452,15 @@ def _circle_variances(mean, var, n_samples, points):
         Variance of the angles.
     n_samples : int
         Number of samples.
-    points : array-like, shape=[n,]
+    points : array-like, shape=[n_samples,]
         Data set of ordered angles.
 
     References
     ----------
-    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the circle:
-                 Uniqueness, locus and asymptotics", Annals of the Institute of
-                 Statistical Mathematics 67 (1), 177–193.
-                 https://arxiv.org/abs/1108.2141
+    .. [HH15] Hotz, T. and S. F. Huckemann (2015), "Intrinsic means on the
+        circle: Uniqueness, locus and asymptotics", Annals of the Institute of
+        Statistical Mathematics 67 (1), 177–193.
+        https://arxiv.org/abs/1108.2141
     """
     means = (mean + gs.linspace(0.0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
     means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
@@ -496,17 +505,22 @@ class FrechetMean(BaseEstimator):
         The `adaptive` method uses a Levenberg-Marquardt style adaptation of
         the learning rate. The `batch` method is similar to the default
         method but for batches of equal length of samples. In this case,
-        samples must be of shape [n_samples, n_batch, {dim, [n,n]}].
+        samples must be of shape [n_samples, n_batch, *metric.shape].
         Optional, default: \'default\'.
-    init_point : array-like, shape=[{dim, [n, n]}]
+    init_point : array-like, shape=[*metric.shape]
         Initial point.
-        Optional, default : None. In this case the first sample of the input data is
-        used.
+        Optional, default : None. In this case the first sample of the input
+        data is used.
     init_step_size : float
         Initial step size or learning rate.
     verbose : bool
         Verbose option.
         Optional, default: False.
+
+    Attributes
+    ----------
+    estimate_ : array-like, shape=[*metric.shape]
+        If fit, Frechet mean.
     """
 
     def __init__(
@@ -563,34 +577,30 @@ class FrechetMean(BaseEstimator):
         )
 
     def fit(self, X, y=None, weights=None):
-        """Compute the empirical Frechet mean.
+        """Compute the empirical weighted Frechet mean.
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[n_samples, {dim, [n, n]}]
+        X : array-like, shape=[n_samples, *metric.shape]
             Training input samples.
-        y : array-like, shape=[n_samples,] or [n_samples, n_outputs]
-            Target values (class labels in classification, real numbers in
-            regression).
-            Ignored.
-        weights : array-like, shape=[...]
-            Weights associated to the points.
-            Optional, default: None.
+        y : None
+            Target values. Ignored.
+        weights : array-like, shape=[n_samples,]
+            Weights associated to the samples.
+            Optional, default: None, in which case it is equally weighted.
 
         Returns
         -------
         self : object
             Returns self.
         """
-        metric_str = self.metric.__str__()
-
-        if "HypersphereMetric" in metric_str and self.metric.dim == 1:
+        if isinstance(self.metric, HypersphereMetric) and self.metric.dim == 1:
             mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
 
-        elif _is_linear_metric(metric_str):
+        elif _is_linear_metric(self.metric):
             mean = linear_mean(points=X, weights=weights)
 
-        elif _is_elastic_metric(metric_str):
+        elif _is_elastic_metric(self.metric):
             mean = elastic_mean(points=X, weights=weights, metric=self.metric)
 
         else:

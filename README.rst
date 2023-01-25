@@ -8,23 +8,14 @@ Geomstats
      - |PyPI version|\ |Downloads|\  |Zenodo|\
    * - **Continuous Integration**
      - |Build Status|\ |python|\
-   * - **Code coverage (numpy)**
-     - |Coverage Status np|\
-   * - **Code coverage (autograd, tensorflow, pytorch)**
-     - |Coverage Status autograd|\ |Coverage Status tf|\ |Coverage Status torch|
+   * - **Code coverage (np, autograd, torch)**
+     - |Coverage Status np|\ |Coverage Status autograd|\ |Coverage Status torch|
    * - **Documentation**
      - |doc|\  |binder|\ |tutorial|\
    * - **Community**
      - |contributions|\  |Slack|\  |Twitter|\
 
 **NEWS**:
-
-- Next hackathon will be on October 17-21, 2022 in Paris. Interested? Reach out to us on slack!
-- Google's Season of Docs (SoD) 2022: Geomstats is participating! Interested?
-   - Find out more about being a Google SoD's `writer <https://developers.google.com/season-of-docs/docs/tech-writer-guide>`_ and about Geomstats' `proposal <https://geomstats.github.io/gsod.html>`_.
-   - Feel free to reach out to us, and/or to register your interest on the `SoD 2022 github repository <https://github.com/google/season-of-docs/tree/main/2022-participants>`_.
-   - Submit your `statement of interest <https://developers.google.com/season-of-docs/docs/tech-writer-statement>`_ via email to nmiolane@gmail.com before May 1st, at 18:00 UTC.
-   - Selected technical writers will be notified no later than May 16th.
 
 - The white papers summarizing the findings from our ICLR 2021 and 2022 challenges of computational differential geometry and topology are available `here (2021) <https://arxiv.org/abs/2108.09810>`__ and `here (2022) <https://arxiv.org/abs/2206.09048>`_.
 
@@ -40,6 +31,7 @@ algorithms for data on manifolds.
 
 -  To get an overview of ``geomstats``, see our `introductory
    video <https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3>`__.
+- To understand how ``geomstats`` is built, check out `these slides <https://drive.google.com/file/d/1YxeGeLXrJdVQLBJQ-SYPirQ7V_UisqUw/view?usp=sharing>`__.
 -  To get started with ``geomstats``, see the
    `examples <https://github.com/geomstats/geomstats/tree/master/examples>`__
    and
@@ -91,6 +83,19 @@ requirements with ``pip3`` as follows:
 This method installs the latest version of geomstats that is uploaded on
 PyPi. Note that geomstats is only available with Python3.
 
+Install geomstats via conda
+--------------------------
+
+From a terminal (OS X & Linux) or an Anaconda prompt (Windows), you can install geomstats and its
+requirements with ``conda`` as follows:
+
+::
+
+    conda install -c conda-forge geomstats
+
+This method installs the latest version of geomstats that is uploaded on
+conda-forge. Note that geomstats is only available with Python3.
+
 Install geomstats via Git
 -------------------------
 
@@ -121,8 +126,7 @@ Install geomstats : Developers
 ------------------------------
 
 Developers should git clone the master branch of this repository, together with the development requirements
-and the optional requirements to enable ``tensorflow`` and ``pytorch``
-backends:
+and the optional requirements to enable ``autograd`` and ``pytorch`` backends:
 
 ::
 
@@ -139,13 +143,13 @@ follows our Python style guidelines:
 Choose the backend
 ------------------
 
-Geomstats can run seamlessly with ``numpy``, ``autograd``, ``tensorflow`` or
-``pytorch``. Note that ``autograd``, ``tensorflow`` and ``pytorch`` and requirements are
+Geomstats can run seamlessly with ``numpy``, ``autograd`` or
+``pytorch``. Note that ``autograd`` and ``pytorch`` and requirements are
 optional, as geomstats can be used with ``numpy`` only. By default, the
 ``numpy`` backend is used. The visualizations are only available with
 this backend.
 
-To get the ``autograd``, ``tensorflow`` and ``pytorch`` versions compatible with
+To get the ``autograd`` and ``pytorch`` versions compatible with
 geomstats, install the optional requirements:
 
 ::
@@ -159,7 +163,7 @@ To install only the requirements for a given backend do:
     pip3 install geomstats[<backend_name>]
 
 You can choose your backend by setting the environment variable
-``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd``, ``tensorflow`` or ``pytorch``, and
+``GEOMSTATS_BACKEND`` to ``numpy``, ``autograd`` or ``pytorch``, and
 importing the ``backend`` module. From the command line:
 
 ::
@@ -176,14 +180,14 @@ Getting started
 ---------------
 
 To use ``geomstats`` for learning algorithms on Riemannian manifolds,
-you need to follow three steps: 
+you need to follow three steps:
 
 * instantiate the manifold of interest,
-* instantiate the learning algorithm of interest, 
+* instantiate the learning algorithm of interest,
 * run the algorithm.
 
 The data should be represented by a ``gs.array``. This structure
-represents numpy arrays, or tensorflow/pytorch tensors, depending on the
+represents numpy arrays, autograd or pytorch tensors, depending on the
 choice of backend.
 
 The following code snippet shows the use of tangent Principal Component
@@ -218,7 +222,7 @@ Contributing
 ------------
 
 See our
-`contributing <https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst>`__
+`contributing <https://github.com/geomstats/geomstats/blob/master/docs/contributing/index.rst>`__
 guidelines!
 
 Interested? Contact us and join the next hackathons. Previous Geomstats events include:
@@ -257,8 +261,6 @@ This work is supported by:
 .. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Coverage Status autograd| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=autograd
-   :target: https://codecov.io/gh/geomstats/geomstats
-.. |Coverage Status tf| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Coverage Status torch| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch
    :target: https://codecov.io/gh/geomstats/geomstats

@@ -10,7 +10,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricEuclidean
+from geomstats.geometry.spd_matrices import SPDEuclideanMetric, SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
@@ -30,7 +30,7 @@ class RankKPSDMatrices(Manifold):
 
     def __init__(self, n, k, **kwargs):
         kwargs.setdefault("metric", PSDMetricBuresWasserstein(n, k))
-        super(RankKPSDMatrices, self).__init__(
+        super().__init__(
             **kwargs,
             dim=int(k * n - k * (k + 1) / 2),
             shape=(n, n),
@@ -180,7 +180,7 @@ class RankKPSDMatrices(Manifold):
         return vector_sym - Matrices.mul(rr, vector_sym, rr)
 
 
-PSDMetricEuclidean = SPDMetricEuclidean
+PSDEuclideanMetric = SPDEuclideanMetric
 
 
 class PSDMatrices(RankKPSDMatrices, SPDMatrices):
@@ -217,11 +217,11 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
     """Class for the quotient structure on PSD matrices."""
 
     def __init__(self, n, k):
-        super(BuresWassersteinBundle, self).__init__(
+        super().__init__(
             n=n,
             k=k,
             group=SpecialOrthogonal(k),
-            ambient_metric=MatricesMetric(n, k),
+            total_space_metric=MatricesMetric(n, k),
         )
 
     @staticmethod
@@ -318,6 +318,4 @@ class PSDMetricBuresWasserstein(QuotientMetric):
 
     def __init__(self, n, k):
         fiber_bundle = BuresWassersteinBundle(n, k)
-        super(PSDMetricBuresWasserstein, self).__init__(
-            fiber_bundle=fiber_bundle, shape=(n, k)
-        )
+        super().__init__(fiber_bundle=fiber_bundle, shape=(n, n))

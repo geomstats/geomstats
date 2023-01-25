@@ -4,9 +4,9 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.spd_matrices import (
+    SPDAffineMetric,
+    SPDLogEuclideanMetric,
     SPDMatrices,
-    SPDMetricAffine,
-    SPDMetricLogEuclidean,
 )
 
 
@@ -17,15 +17,15 @@ class _LogNormalSPD:
         n = mean.shape[-1]
         metric = manifold.metric
         if metric is None:
-            manifold.metric = SPDMetricLogEuclidean(n)
+            manifold.metric = SPDLogEuclideanMetric(n)
         else:
-            if not isinstance(metric, SPDMetricLogEuclidean) and not isinstance(
-                metric, SPDMetricAffine
+            if not isinstance(metric, SPDLogEuclideanMetric) and not isinstance(
+                metric, SPDAffineMetric
             ):
                 raise ValueError(
                     "Invalid Metric, "
-                    "Should be of type SPDMetricLogEuclidean"
-                    "or SPDMetricAffine"
+                    "Should be of type SPDLogEuclideanMetric"
+                    "or SPDAffineMetric"
                 )
 
         self.manifold = manifold
@@ -45,7 +45,7 @@ class _LogNormalSPD:
 
     def sample(self, n_samples):
         """Generate samples for SPD manifold."""
-        if isinstance(self.manifold.metric, SPDMetricLogEuclidean):
+        if isinstance(self.manifold.metric, SPDLogEuclideanMetric):
             sym_matrix = self.manifold.logm(self.mean)
             mean_euclidean = gs.hstack(
                 (
@@ -137,7 +137,7 @@ class LogNormal:
     >>> from geomstats.distributions.lognormal import LogNormal
     >>> mean = 2 * gs.eye(3)
     >>> cov  = gs.eye(6)
-    >>> SPDManifold = SPDMatrices(3, metric=SPDMetricAffine(3))
+    >>> SPDManifold = SPDMatrices(3, metric=SPDAffineMetric(3))
     >>> LogNormalSampler = LogNormal(SPDManifold, mean, cov)
     >>> data = LogNormalSampler.sample(5)
 

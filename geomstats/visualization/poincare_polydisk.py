@@ -10,10 +10,10 @@ AX_SCALE = 1.2
 class PoincarePolyDisk:
     """Class used to plot points in the Poincare polydisk."""
 
-    def __init__(self, points=None, point_type="ball", n_disks=2):
+    def __init__(self, points=None, coords_type="ball", n_disks=2):
         self.center = gs.array([0.0, 0.0])
         self.points = []
-        self.point_type = point_type
+        self.coords_type = coords_type
         self.n_disks = n_disks
         if points is not None:
             self.add_points(points)
@@ -29,7 +29,7 @@ class PoincarePolyDisk:
 
     def add_points(self, points):
         """Add points to draw."""
-        if self.point_type == "extrinsic":
+        if self.coords_type == "extrinsic":
             points = self.convert_to_poincare_coordinates(points)
         if not isinstance(points, list):
             points = list(points)

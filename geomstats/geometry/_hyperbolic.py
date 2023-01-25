@@ -18,24 +18,16 @@ class _Hyperbolic:
     This class cannot be instantiated in itself, but a public class
     `Hyperbolic` is available, that returns the class that corresponds to the
     chosen representation: Hyperboloid, Poincare Ball or Poincare Half-space.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}
-        Default coordinates to represent points in hyperbolic space.
-        Optional, default: 'extrinsic'.
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default: 1.
     """
 
-    def __init__(self, dim, scale=1, **kwargs):
-        super(_Hyperbolic, self).__init__(dim=dim, **kwargs)
-        self.dim = dim
-        self.scale = scale
+    def __init__(self, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate the "
+                "manifold without this parameter and then use "
+                "`scale * metric` to rescale the standard metric."
+            )
+        super().__init__(**kwargs)
 
     @staticmethod
     def _extrinsic_to_extrinsic_coordinates(point):
@@ -354,7 +346,8 @@ class _Hyperbolic:
         -------
         point_to : array-like, shape=[..., dim]
                                or shape=[n_sample, dim + 1]
-            Point in hyperbolic space in coordinates given by to_point_type.
+            Point in hyperbolic space in coordinates given by
+            to_coordinates_system.
         """
         coords_transform = {
             "ball-extrinsic": _Hyperbolic._ball_to_extrinsic_coordinates,
@@ -389,10 +382,10 @@ class _Hyperbolic:
         Returns
         -------
         point_to : array-like, shape=[..., {dim, dim + 1}]
-            Point in hyperbolic space in coordinates given by to_point_type.
+            Point in hyperbolic space in coordinates given by to_coords_type.
         """
         return _Hyperbolic.change_coordinates_system(
-            point, self.coords_type, to_coords_type
+            point, self.default_coords_type, to_coords_type
         )
 
     def from_coordinates(self, point, from_coords_type):
@@ -404,7 +397,7 @@ class _Hyperbolic:
         Parameters
         ----------
         point : array-like, shape=[..., {dim, dim + 1}]
-            Point in hyperbolic space in coordinates from_point_type.
+            Point in hyperbolic space in coordinates from_coords_type.
         from_coords_type : str, {'ball', 'extrinsic', 'intrinsic', ...}
             Coordinates type.
 
@@ -414,17 +407,16 @@ class _Hyperbolic:
             Point in hyperbolic space.
         """
         return _Hyperbolic.change_coordinates_system(
-            point, from_coords_type, self.coords_type
+            point, from_coords_type, self.default_coords_type
         )
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample over the hyperbolic space using uniform distribution.
+        """Sample over the hyperbolic space.
 
-        Sample over the hyperbolic space. The sampling is performed
-        by sampling over uniform distribution, the sampled examples
-        are considered in the intrinsic coordinates system.
-        The function then transforms intrinsic samples into system
-        coordinate selected.
+        Sample over the hyperbolic space. The sampling is performed by sampling from
+        the uniform distribution with respect to the intrinsic co-ordinates. This is
+        not uniform with respect to the volume measure. The function then transforms
+        intrinsic samples into the selected co-ordinate system.
 
         Parameters
         ----------
@@ -432,7 +424,7 @@ class _Hyperbolic:
             Number of samples.
             Optional, default: 1.
         bound: float
-            Bound defining the hypersquare in which to sample uniformly.
+            Bound defining the hypersquare in which to sample.
             Optional, default: 1.
 
         Returns
@@ -444,7 +436,7 @@ class _Hyperbolic:
         samples = bound * 2.0 * (gs.random.rand(*size) - 0.5)
 
         samples = _Hyperbolic.change_coordinates_system(
-            samples, "intrinsic", self.coords_type
+            samples, "intrinsic", self.default_coords_type
         )
 
         if n_samples == 1:
@@ -455,110 +447,27 @@ class _Hyperbolic:
 class HyperbolicMetric(RiemannianMetric):
     """Class that defines operations using a hyperbolic metric.
 
+    This class does not contain any methods and is only defined to act as a parent
+    class for `HyperboloidMetric`, `PoincareBallMetric` and `PoincareHalfSpaceMetric`.
+
     Parameters
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+    default_coords_type : str, {'extrinsic', 'intrinsic', etc}, optional
         Default coordinates to represent points in hyperbolic space.
-    scale : int, optional
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
     """
 
-    default_point_type = "vector"
-    default_coords_type = "extrinsic"
-
-    def __init__(self, dim, scale=1):
-        super(HyperbolicMetric, self).__init__(dim=dim, signature=(dim, 0))
-        self.point_type = HyperbolicMetric.default_point_type
-
-        self.scale = scale
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors at a base point.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
-            First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
-            Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space.
-            Optional, default: None.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[..., 1]
-            Inner-product of the two tangent vectors.
-        """
-        inner_prod = self._inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        inner_prod *= self.scale**2
-        return inner_prod
-
-    def squared_norm(self, vector, base_point=None):
-        """Compute the squared norm of a vector.
-
-        Squared norm of a vector associated with the inner-product
-        at the tangent space at a base point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim + 1]
-            Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
-            Optional, default: None.
-
-        Returns
-        -------
-        sq_norm : array-like, shape=[..., 1]
-            Squared norm of the vector.
-        """
-        sq_norm = self._squared_norm(vector)
-        sq_norm *= self.scale**2
-        return sq_norm
-
-    def _squared_norm(self, vector, base_point=None):
-        """Squared norm with hyperbolic scale 1.
-
-        Squared norm of a vector associated with the inner-product
-        at the tangent space at a base point with scale=1.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim + 1]
-            Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space in extrinsic coordinates.
-            Optional, default: None.
-
-        Returns
-        -------
-        sq_norm : array-like, shape=[..., 1]
-            Squared norm of the vector.
-        """
-        return super().squared_norm(vector, base_point=base_point)
-
-    def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors with scale=1.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., dim + 1]
-            First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., dim + 1]
-            Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1]
-            Point in hyperbolic space.
-            Optional, default: None.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[..., 1]
-            Inner-product of the two tangent vectors.
-        """
-        return super().inner_product(
-            tangent_vec_a, tangent_vec_b, base_point=base_point
+    def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate scaled "
+                "metrics as `scale * RiemannianMetric`. Note that the "
+                "metric is scaled, not the distance."
+            )
+        super().__init__(
+            dim=dim,
+            signature=(dim, 0),
+            shape=(dim + 1,),
+            default_coords_type=default_coords_type,
         )

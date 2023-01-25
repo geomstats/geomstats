@@ -16,11 +16,12 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.base import InformationManifoldMixin
 
 N_STEPS = 100
 
 
-class DirichletDistributions(OpenSet):
+class DirichletDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of Dirichlet distributions.
 
     This is Dirichlet = :math:`(R_+^*)^dim`, the positive quadrant of the
@@ -33,8 +34,8 @@ class DirichletDistributions(OpenSet):
     """
 
     def __init__(self, dim):
-        super(DirichletDistributions, self).__init__(
-            dim=dim, ambient_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
+        super().__init__(
+            dim=dim, embedding_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
         )
 
     def belongs(self, point, atol=gs.atol):
@@ -57,10 +58,11 @@ class DirichletDistributions(OpenSet):
             Boolean indicating whether point represents a Dirichlet
             distribution.
         """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        belongs = gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
-        return belongs
+        belongs = point.shape[-1] == self.dim
+        if not belongs:
+            return gs.zeros(point.shape[:-1], dtype=bool)
+
+        return gs.all(point >= atol, axis=-1)
 
     def random_point(self, n_samples=1, bound=5.0):
         """Sample parameters of Dirichlet distributions.
@@ -190,7 +192,7 @@ class DirichletMetric(RiemannianMetric):
     """Class for the Fisher information metric on Dirichlet distributions."""
 
     def __init__(self, dim):
-        super(DirichletMetric, self).__init__(dim=dim)
+        super().__init__(dim=dim)
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix.

@@ -1,13 +1,13 @@
 """Unit tests for TimeSeriesCovariance class."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.datasets.prepare_emg_data import TimeSeriesCovariance
 from geomstats.datasets.utils import load_emg
 
 
-@geomstats.tests.np_and_autograd_only
-class TestPrepareEmgData(geomstats.tests.TestCase):
+@tests.conftest.np_and_autograd_only
+class TestPrepareEmgData(tests.conftest.TestCase):
     """Class for testing the covariance creation from time series."""
 
     def setup_method(self):
@@ -20,7 +20,7 @@ class TestPrepareEmgData(geomstats.tests.TestCase):
         data = data[data.label != "rest"]
         self.emg_data = {
             "time_vec": gs.array(data.time),
-            "raw_data": gs.array(data[["c{}".format(i) for i in range(8)]]),
+            "raw_data": gs.array(data[[f"c{i}" for i in range(8)]]),
             "label": gs.array(data.label),
             "exp": gs.array(data.exp),
         }

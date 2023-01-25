@@ -5,13 +5,13 @@ Thank you for opening this pull request!
 ## Checklist
 
 - [ ] My pull request has a clear and explanatory title.
-- [ ] If neccessary, my code is [vectorized](https://www.geeksforgeeks.org/vectorization-in-python/).
-- [ ] I have added apropriate unit tests.
-- [ ] I have made sure the code passes all unit tests. (refer to comment below)
+- [ ] If necessary, my code is [vectorized](https://www.geeksforgeeks.org/vectorization-in-python/).
+- [ ] I added appropriate unit tests.
+- [ ] I made sure the code passes all unit tests. (refer to comment below)
 - [ ] My PR follows [PEP8](https://peps.python.org/pep-0008/) guidelines. (refer to comment below)
 - [ ] My PR follows [geomstats coding style](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst#coding-style-guidelines) and API.
 - [ ] My code is properly documented and I made sure the documentation renders properly. ([Link](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst#documentation))
-- [ ] I have linked to issues and PRs that are relevant to this PR.
+- [ ] I linked to issues and PRs that are relevant to this PR.
 
 
 <!-- For checking consistency of entire codebase

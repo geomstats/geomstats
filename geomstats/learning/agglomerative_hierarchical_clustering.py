@@ -50,6 +50,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
         Which linkage criterion to use. The linkage criterion determines which
         distance to use between sets of observation. The algorithm will merge
         the pairs of cluster that minimize this criterion.
+
         - average uses the average of the distances of each observation of
           the two sets.
         - complete or maximum linkage uses the maximum distances between
@@ -100,6 +101,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
         linkage="average",
         distance_threshold=None,
     ):
+        self.distance = distance
 
         if isinstance(distance, str):
             affinity = distance

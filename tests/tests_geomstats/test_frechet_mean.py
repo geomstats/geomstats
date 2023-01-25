@@ -3,20 +3,20 @@
 import math
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.discrete_curves import R2, DiscreteCurves, ElasticMetric
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.stiefel import Stiefel
 from geomstats.learning.frechet_mean import FrechetMean, variance
 
 
-class TestFrechetMean(geomstats.tests.TestCase):
+class TestFrechetMean(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 
     def setup_method(self):
@@ -28,6 +28,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.so_matrix = SpecialOrthogonal(n=3)
         self.curves_2d = DiscreteCurves(R2)
+        self.curves_2d_many_sampling_points = DiscreteCurves(R2, k_sampling_points=300)
         self.elastic_metric = ElasticMetric(a=1, b=1, ambient_manifold=R2)
 
     def test_logs_at_mean_curves_2d(self):
@@ -48,7 +49,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
             mean = gs.tile(mean, (2, 1, 1))
 
             logs = metric.log(point=points, base_point=mean)
-            logs_srv = metric.aux_differential_srv_transform(logs, curve=mean)
+            logs_srv = metric.aux_differential_srv_transform(logs, point=mean)
             # Note that the logs are NOT inverse, only the logs_srv are.
             result.append(gs.linalg.norm(logs_srv[1, :] + logs_srv[0, :]))
         result = gs.stack(result)
@@ -127,6 +128,26 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (points.shape[1:]))
 
+    def test_estimate_shape_srv_metric_many_sampling_points(self):
+        points = self.curves_2d_many_sampling_points.random_point(n_samples=1000)
+
+        mean = FrechetMean(
+            metric=self.curves_2d_many_sampling_points.srv_metric, method="default"
+        )
+        mean.fit(points)
+        result = mean.estimate_
+
+        self.assertAllClose(gs.shape(result), (points.shape[1:]))
+
+    def test_estimate_shape_elastic_metric_many_sampling_points(self):
+        points = self.curves_2d_many_sampling_points.random_point(n_samples=1000)
+
+        mean = FrechetMean(metric=self.elastic_metric, method="default")
+        mean.fit(points)
+        result = mean.estimate_
+
+        self.assertAllClose(gs.shape(result), (points.shape[1:]))
+
     def test_estimate_shape_metric(self):
         points = self.curves_2d.random_point(n_samples=2)
 
@@ -181,7 +202,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_default_gradient_descent_so_matrix(self):
         points = self.so_matrix.random_uniform(2)
         mean_vec = FrechetMean(
@@ -196,7 +217,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-5)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_and_belongs_default_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
@@ -207,7 +228,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_and_belongs_adaptive_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
@@ -222,7 +243,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         result = self.so_matrix.belongs(mean.estimate_)
         self.assertTrue(result)
 
-    @geomstats.tests.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_and_coincide_default_so_vec_and_mat(self):
         point = self.so_matrix.random_uniform(3)
 
@@ -310,7 +331,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def test_estimate_spd(self):
         point = SPDMatrices(3).random_point()
         points = gs.array([point, point])
-        mean = FrechetMean(metric=SPDMetricAffine(3))
+        mean = FrechetMean(metric=SPDAffineMetric(3))
         mean.fit(X=points)
         result = mean.estimate_
         expected = point
@@ -318,7 +339,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     def test_estimate_spd_two_samples(self):
         space = SPDMatrices(3)
-        metric = SPDMetricAffine(3)
+        metric = SPDAffineMetric(3)
         point = space.random_point(2)
         mean = FrechetMean(metric)
         mean.fit(point)
@@ -501,7 +522,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     def test_batched(self):
         space = SPDMatrices(3)
-        metric = SPDMetricAffine(3)
+        metric = SPDAffineMetric(3)
         point = space.random_point(4)
         mean_batch = FrechetMean(metric, method="batch", verbose=True)
         data = gs.stack([point[:2], point[2:]], axis=1)
@@ -516,7 +537,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = gs.stack([expected_1, expected_2])
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_stiefel_two_samples(self):
         space = Stiefel(3, 2)
         metric = space.metric
@@ -527,7 +548,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = metric.exp(metric.log(point[0], point[1]) / 2, point[1])
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_stiefel_n_samples(self):
         space = Stiefel(3, 2)
         metric = space.metric

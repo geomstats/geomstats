@@ -1,76 +1,70 @@
 """Pytorch based computation backend."""
 
-import functools as _functools
 from collections.abc import Iterable as _Iterable
 
 import numpy as _np
 import torch as _torch
-from torch import angle, arange, arccos, arccosh, arcsin, arctanh, argmin
-from torch import atan2 as arctan2  # NOQA
+from torch import arange, argmin
 from torch import broadcast_tensors as broadcast_arrays
 from torch import (
-    ceil,
     clip,
+    complex64,
+    complex128,
     conj,
-    cos,
-    cosh,
+    empty,
     empty_like,
     erf,
-    exp,
     eye,
     flatten,
     float32,
     float64,
-    floor,
-)
-from torch import fmod as mod
-from torch import (
     greater,
     hstack,
-    imag,
     int32,
     int64,
     isnan,
     kron,
     less,
-    log,
     logical_or,
+    mean,
+    meshgrid,
+    moveaxis,
+    ones,
+    ones_like,
+    polygamma,
+    quantile,
 )
-from torch import max as amax
-from torch import mean, meshgrid, moveaxis, ones, ones_like, polygamma
-from torch import pow as power
-from torch import real
 from torch import repeat_interleave as repeat
-from torch import (
-    reshape,
-    sign,
-    sin,
-    sinh,
-    stack,
-    std,
-    tan,
-    tanh,
-    trapz,
-    uint8,
-    unique,
-    vstack,
-    zeros,
-    zeros_like,
-)
+from torch import reshape, stack, trapz, uint8, unique, vstack, zeros, zeros_like
+from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
 from .._backend_config import pytorch_rtol as rtol
 from . import autodiff  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
+from ._common import array, cast, from_numpy
+from ._dtype import (
+    _add_default_dtype_by_casting,
+    _box_binary_scalar,
+    _box_unary_scalar,
+    _preserve_input_dtype,
+    as_dtype,
+    get_default_cdtype,
+    get_default_dtype,
+    is_bool,
+    is_complex,
+    is_floating,
+    set_default_dtype,
+)
 
 _DTYPES = {
     int32: 0,
     int64: 1,
     float32: 2,
     float64: 3,
-    _torch.complex64: 4,
-    _torch.complex128: 5,
+    complex64: 4,
+    complex128: 5,
 }
 
 
@@ -81,27 +75,33 @@ def _raise_not_implemented_error(*args, **kwargs):
 searchsorted = _raise_not_implemented_error
 
 
-def _box_scalar(function):
-    @_functools.wraps(function)
-    def wrapper(x):
-        if not _torch.is_tensor(x):
-            x = _torch.tensor(x)
-        return function(x)
+abs = _box_unary_scalar(target=_torch.abs)
+angle = _box_unary_scalar(target=_torch.angle)
+arccos = _box_unary_scalar(target=_torch.arccos)
+arccosh = _box_unary_scalar(target=_torch.arccosh)
+arcsin = _box_unary_scalar(target=_torch.arcsin)
+arctanh = _box_unary_scalar(target=_torch.arctanh)
+ceil = _box_unary_scalar(target=_torch.ceil)
+cos = _box_unary_scalar(target=_torch.cos)
+cosh = _box_unary_scalar(target=_torch.cosh)
+exp = _box_unary_scalar(target=_torch.exp)
+floor = _box_unary_scalar(target=_torch.floor)
+log = _box_unary_scalar(target=_torch.log)
+real = _box_unary_scalar(target=_torch.real)
+sign = _box_unary_scalar(target=_torch.sign)
+sin = _box_unary_scalar(target=_torch.sin)
+sinh = _box_unary_scalar(target=_torch.sinh)
+sqrt = _box_unary_scalar(target=_torch.sqrt)
+tan = _box_unary_scalar(target=_torch.tan)
+tanh = _box_unary_scalar(target=_torch.tanh)
 
-    return wrapper
+
+arctan2 = _box_binary_scalar(target=_torch.atan2)
+mod = _box_binary_scalar(target=_torch.fmod, box_x2=False)
+power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 
 
-abs = _box_scalar(abs)
-ceil = _box_scalar(ceil)
-cos = _box_scalar(cos)
-cosh = _box_scalar(cosh)
-exp = _box_scalar(exp)
-imag = _box_scalar(imag)
-log = _box_scalar(log)
-real = _box_scalar(real)
-sin = _box_scalar(sin)
-sinh = _box_scalar(sinh)
-tan = _box_scalar(tan)
+std = _preserve_input_dtype(_add_default_dtype_by_casting(target=_torch.std))
 
 
 def matmul(x, y, out=None):
@@ -115,15 +115,6 @@ def matmul(x, y, out=None):
 
 def to_numpy(x):
     return x.numpy()
-
-
-def from_numpy(x, dtype=None):
-    tensor = _torch.from_numpy(x)
-
-    if dtype is not None and tensor.dtype != dtype:
-        tensor = cast(tensor, dtype=dtype)
-
-    return tensor
 
 
 def one_hot(labels, num_classes):
@@ -159,10 +150,6 @@ def less_equal(x, y, **kwargs):
     return _torch.le(x, y, **kwargs)
 
 
-def empty(shape, dtype=float64):
-    return _torch.empty(*shape, dtype=dtype)
-
-
 def split(x, indices_or_sections, axis=0):
     if isinstance(indices_or_sections, int):
         indices_or_sections = x.shape[axis] // indices_or_sections
@@ -177,8 +164,8 @@ def split(x, indices_or_sections, axis=0):
 
 
 def logical_and(x, y):
-    if _torch.is_tensor(x):
-        return _torch.logical_and(x, y)
+    if _torch.is_tensor(x) or _torch.is_tensor(y):
+        return x * y
     return x and y
 
 
@@ -199,12 +186,6 @@ def any(x, axis=None):
     return any(_torch.any(x.bool(), axis[0]), new_axis)
 
 
-def cast(x, dtype):
-    if _torch.is_tensor(x):
-        return x.to(dtype=dtype)
-    return array(x, dtype=dtype)
-
-
 def flip(x, axis):
     if isinstance(axis, int):
         axis = [axis]
@@ -216,24 +197,6 @@ def flip(x, axis):
 def concatenate(seq, axis=0, out=None):
     seq = convert_to_wider_dtype(seq)
     return _torch.cat(seq, dim=axis, out=out)
-
-
-def array(val, dtype=None):
-
-    if _torch.is_tensor(val):
-        if dtype is None or val.dtype == dtype:
-            return val.clone()
-        else:
-            return cast(val, dtype=dtype)
-
-    elif isinstance(val, _np.ndarray):
-        return from_numpy(val, dtype=dtype)
-
-    elif isinstance(val, (list, tuple)) and len(val):
-        tensors = [array(tensor, dtype=dtype) for tensor in val]
-        return stack(tensors)
-
-    return _torch.tensor(val, dtype=dtype)
 
 
 def all(x, axis=None):
@@ -306,6 +269,12 @@ def shape(val):
     return val.shape
 
 
+def amax(a, axis=None):
+    if axis is None:
+        return _torch.max(array(a))
+    return _torch.max(array(a), dim=axis).values
+
+
 def maximum(a, b):
     return _torch.max(array(a), array(b))
 
@@ -329,12 +298,6 @@ def broadcast_to(x, shape):
     return x.expand(shape)
 
 
-def sqrt(x):
-    if not isinstance(x, _torch.Tensor):
-        x = _torch.tensor(x).float()
-    return _torch.sqrt(x)
-
-
 def isclose(x, y, rtol=rtol, atol=atol):
     if not _torch.is_tensor(x):
         x = _torch.tensor(x)
@@ -343,14 +306,14 @@ def isclose(x, y, rtol=rtol, atol=atol):
     return _torch.isclose(x, y, atol=atol, rtol=rtol)
 
 
-def sum(x, axis=None, keepdims=None, **kwargs):
+def sum(x, axis=None, keepdims=None, dtype=None):
     if axis is None:
         if keepdims is None:
-            return _torch.sum(x, **kwargs)
-        return _torch.sum(x, keepdim=keepdims, **kwargs)
+            return _torch.sum(x, dtype=dtype)
+        return _torch.sum(x, keepdim=keepdims, dtype=dtype)
     if keepdims is None:
-        return _torch.sum(x, dim=axis, **kwargs)
-    return _torch.sum(x, dim=axis, keepdim=keepdims, **kwargs)
+        return _torch.sum(x, dim=axis, dtype=dtype)
+    return _torch.sum(x, dim=axis, keepdim=keepdims, dtype=dtype)
 
 
 def einsum(equation, *inputs):
@@ -371,6 +334,8 @@ def transpose(x, axes=None):
 
 
 def squeeze(x, axis=None):
+    if not is_array(x):
+        return x
     if axis is None:
         return _torch.squeeze(x)
     return _torch.squeeze(x, dim=axis)
@@ -383,15 +348,16 @@ def trace(x):
     return _torch.einsum("...ii", x)
 
 
-def linspace(start, stop, num):
-    return _torch.linspace(start=start, end=stop, steps=num)
+def linspace(start, stop, num=50, dtype=None):
+    return _torch.linspace(start=start, end=stop, steps=num, dtype=dtype)
 
 
 def equal(a, b, **kwargs):
-    if a.dtype == _torch.ByteTensor:
-        a = cast(a, _torch.uint8).float()
-    if b.dtype == _torch.ByteTensor:
-        b = cast(b, _torch.uint8).float()
+    if not is_array(a):
+        a = array(a)
+
+    if not is_array(b):
+        b = array(b)
     return _torch.eq(a, b, **kwargs)
 
 
@@ -475,6 +441,9 @@ def prod(x, axis=None):
 
 
 def where(condition, x=None, y=None):
+    if not _torch.is_tensor(condition):
+        condition = array(condition)
+
     if x is None and y is None:
         return _torch.where(condition)
     if not _torch.is_tensor(x):
@@ -483,28 +452,6 @@ def where(condition, x=None, y=None):
         y = _torch.tensor(y)
     y = cast(y, x.dtype)
     return _torch.where(condition, x, y)
-
-
-def get_mask_i_float(i, n):
-    """Create a 1D array of zeros with one element at one, with floating type.
-
-    Parameters
-    ----------
-    i : int
-        Index of the non-zero element.
-    n: n
-        Length of the created array.
-
-    Returns
-    -------
-    mask_i_float : array-like, shape=[n,]
-        1D array of zeros except at index i, where it is one
-    """
-    range_n = arange(cast(array(n), int32))
-    i_float = cast(array(i), int32)
-    mask_i = equal(range_n, i_float)
-    mask_i_float = cast(mask_i, float32)
-    return mask_i_float
 
 
 def _is_boolean(x):
@@ -627,18 +574,18 @@ def copy(x):
     return x.clone()
 
 
-def cumsum(x, axis=None):
+def cumsum(x, axis=None, dtype=None):
     if not _torch.is_tensor(x):
-        x = array(x)
+        x = array(x, dtype=dtype)
     if axis is None:
-        return x.flatten().cumsum(dim=0)
-    return _torch.cumsum(x, dim=axis)
+        return x.flatten().cumsum(dim=0, dtype=dtype)
+    return _torch.cumsum(x, dim=axis, dtype=dtype)
 
 
-def cumprod(x, axis=None):
+def cumprod(x, axis=None, dtype=None):
     if axis is None:
         axis = 0
-    return _torch.cumprod(x, axis)
+    return _torch.cumprod(x, axis, dtype=dtype)
 
 
 def array_from_sparse(indices, data, target_shape):
@@ -662,7 +609,7 @@ def array_from_sparse(indices, data, target_shape):
     """
     return _torch.sparse.FloatTensor(
         _torch.LongTensor(indices).t(),
-        _torch.FloatTensor(cast(data, float32)),
+        array(data),
         _torch.Size(target_shape),
     ).to_dense()
 
@@ -705,10 +652,12 @@ def mat_from_diag_triu_tril(diag, tri_upp, tri_low):
     -------
     mat : array_like, shape=[..., n, n]
     """
+    diag, tri_upp, tri_low = convert_to_wider_dtype([diag, tri_upp, tri_low])
+
     n = diag.shape[-1]
     (i,) = diag_indices(n, ndim=1)
     j, k = triu_indices(n, k=1)
-    mat = _torch.zeros((diag.shape + (n,)))
+    mat = _torch.zeros((diag.shape + (n,)), dtype=diag.dtype)
     mat[..., i, i] = diag
     mat[..., j, k] = tri_upp
     mat[..., k, j] = tri_low
@@ -775,6 +724,7 @@ def outer(a, b):
 
 
 def matvec(A, b):
+    A, b = convert_to_wider_dtype([A, b])
 
     if A.ndim == 2 and b.ndim == 1:
         return _torch.mv(A, b)
@@ -789,6 +739,8 @@ def matvec(A, b):
 
 
 def dot(a, b):
+    a, b = convert_to_wider_dtype([a, b])
+
     if a.ndim == 1 and b.ndim == 1:
         return _torch.dot(a, b)
 
@@ -804,4 +756,16 @@ def dot(a, b):
 def cross(a, b):
     if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
         a, b = broadcast_arrays(a, b)
-    return _torch.cross(a, b)
+    return _torch.cross(*convert_to_wider_dtype([a, b]))
+
+
+def gamma(a):
+    return _torch.exp(_gammaln(a))
+
+
+def imag(a):
+    if not _torch.is_tensor(a):
+        a = _torch.tensor(a)
+    if is_complex(a):
+        return _torch.imag(a)
+    return _torch.zeros(a.shape, dtype=a.dtype)

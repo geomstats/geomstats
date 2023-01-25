@@ -16,6 +16,7 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.information_geometry.base import InformationManifoldMixin
 
 warnings.filterwarnings("error")
 
@@ -37,7 +38,7 @@ change of variable, either for a point or a vector.
 """
 
 
-class GammaDistributions(OpenSet):
+class GammaDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of Gamma distributions.
 
     This is :math: Gamma = `(R_+^*)^2`, the positive quadrant of the
@@ -45,9 +46,7 @@ class GammaDistributions(OpenSet):
     """
 
     def __init__(self):
-        super(GammaDistributions, self).__init__(
-            dim=2, ambient_space=Euclidean(2), metric=GammaMetric()
-        )
+        super().__init__(dim=2, embedding_space=Euclidean(2), metric=GammaMetric())
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold of Gamma distributions.
@@ -69,7 +68,6 @@ class GammaDistributions(OpenSet):
             Boolean indicating whether point represents a Gamma
             distribution.
         """
-        point = gs.array(point, gs.float32)
         point_dim = point.shape[-1]
         belongs = point_dim == 2
         belongs = gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
@@ -340,7 +338,7 @@ class GammaMetric(RiemannianMetric):
     """
 
     def __init__(self):
-        super(GammaMetric, self).__init__(dim=2)
+        super().__init__(dim=2)
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix.
@@ -415,7 +413,7 @@ class GammaMetric(RiemannianMetric):
 
         c111 = gs.where(
             gs.polygamma(1, kappa) - 1 / kappa > gs.atol,
-            (gs.polygamma(2, kappa) + gs.array(kappa, dtype=gs.float32) ** -2)
+            (gs.polygamma(2, kappa) + gs.array(kappa) ** -2)
             / (2 * (gs.polygamma(1, kappa) - 1 / kappa)),
             0.25 * (kappa**2 * gs.polygamma(2, kappa) + 1),
         )
@@ -575,8 +573,11 @@ class GammaMetric(RiemannianMetric):
             initial velocity tangent_vec and stopping at time 1.
         """
         if solver == "geomstats":
-            return super(GammaMetric, self).exp(
-                tangent_vec, base_point, n_steps, step, solver
+            return super().exp(
+                tangent_vec,
+                base_point,
+                n_steps,
+                step,
             )
         if solver == "lsoda":
             return self._exp_ivp(tangent_vec, base_point, n_steps)
@@ -627,7 +628,7 @@ class GammaMetric(RiemannianMetric):
         """
         try:
             if method == "geodesic_shooting":
-                return super(GammaMetric, self).log(
+                return super().log(
                     point, base_point, n_steps, step, max_iter, verbose, tol
                 )
             if method == "ode_bvp":
@@ -684,7 +685,7 @@ class GammaMetric(RiemannianMetric):
             initial conditions.
         """
         if solver == "geomstats":
-            return super(GammaMetric, self).geodesic(
+            return super().geodesic(
                 initial_point, end_point, initial_tangent_vec, n_steps=n_steps
             )
         if solver == "vp":

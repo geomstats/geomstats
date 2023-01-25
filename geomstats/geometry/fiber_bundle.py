@@ -3,6 +3,7 @@
 Lead author: Nicolas Guigui.
 """
 
+import sys
 from abc import ABC
 
 from scipy.optimize import minimize
@@ -30,7 +31,7 @@ class FiberBundle(Manifold, ABC):
         Group that acts on the total space by the right.
         Optional. Default : None.
         Either the group or the group action must be given.
-    ambient_metric : RiemannianMetric
+    total_space_metric : RiemannianMetric
         Metric to use in the total space.
         Optional. The `metric` attribute of the total space is used if no
         ambient metric is passed.
@@ -48,15 +49,15 @@ class FiberBundle(Manifold, ABC):
         self,
         dim: int,
         group: LieGroup = None,
-        ambient_metric: RiemannianMetric = None,
+        total_space_metric: RiemannianMetric = None,
         group_action=None,
         group_dim=None,
         **kwargs
     ):
 
-        super(FiberBundle, self).__init__(dim=dim, **kwargs)
+        super().__init__(dim=dim, **kwargs)
         self.group = group
-        self.ambient_metric = ambient_metric
+        self.total_space_metric = total_space_metric
 
         if group_action is None and group is not None:
             group_action = group.compose
@@ -165,7 +166,7 @@ class FiberBundle(Manifold, ABC):
         """
         group = self.group
         group_action = self.group_action
-        initial_distance = self.ambient_metric.squared_dist(point, base_point)
+        initial_distance = self.total_space_metric.squared_dist(point, base_point)
         if isinstance(initial_distance, float) or initial_distance.shape == ():
             n_samples = 1
         else:
@@ -193,7 +194,7 @@ class FiberBundle(Manifold, ABC):
             raise ValueError("Either the group of its action must be known")
 
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda param: self.ambient_metric.squared_dist(wrap(param), base_point),
+            lambda param: self.total_space_metric.squared_dist(wrap(param), base_point),
             to_numpy=True,
         )
 
@@ -228,13 +229,17 @@ class FiberBundle(Manifold, ABC):
         horizontal : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal component of `tangent_vec`.
         """
-        try:
-            return tangent_vec - self.vertical_projection(tangent_vec, base_point)
-        except (RecursionError, NotImplementedError):
-            return self.horizontal_lift(
-                self.tangent_riemannian_submersion(tangent_vec, base_point),
-                fiber_point=base_point,
-            )
+        caller_name = sys._getframe().f_back.f_code.co_name
+        if not caller_name == "vertical_projection":
+            try:
+                return tangent_vec - self.vertical_projection(tangent_vec, base_point)
+            except NotImplementedError:
+                pass
+
+        return self.horizontal_lift(
+            self.tangent_riemannian_submersion(tangent_vec, base_point),
+            fiber_point=base_point,
+        )
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         r"""Project to vertical subspace.
@@ -254,10 +259,11 @@ class FiberBundle(Manifold, ABC):
         vertical : array-like, shape=[..., {total_space.dim, [n, m]}]
             Vertical component of `tangent_vec`.
         """
-        try:
-            return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
-        except RecursionError:
+        caller_name = sys._getframe().f_back.f_code.co_name
+        if caller_name == "horizontal_projection":
             raise NotImplementedError
+
+        return tangent_vec - self.horizontal_projection(tangent_vec, base_point)
 
     def is_horizontal(self, tangent_vec, base_point, atol=gs.atol):
         """Evaluate if the tangent vector is horizontal at base_point.

@@ -1,13 +1,12 @@
 """Unit tests for Riemannian KMedoids."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry import hypersphere
 from geomstats.learning.kmedoids import RiemannianKMedoids
 
 
-@geomstats.tests.np_autograd_and_torch_only
-class TestRiemannianKMedoids(geomstats.tests.TestCase):
+class TestRiemannianKMedoids(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 
     def test_hypersphere_kmedoids_fit(self):

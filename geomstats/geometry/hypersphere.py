@@ -43,15 +43,41 @@ class _Hypersphere(LevelSet):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
-
-        super(_Hypersphere, self).__init__(
+        self.dim = dim
+        super().__init__(
             dim=dim,
-            embedding_space=Euclidean(dim + 1),
-            submersion=lambda x: gs.sum(x**2, axis=-1),
-            value=1.0,
-            tangent_submersion=lambda v, x: 2 * gs.sum(x * v, axis=-1),
             default_coords_type=default_coords_type,
         )
+
+    def _define_embedding_space(self):
+        return Euclidean(self.dim + 1)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim + 1]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[...]
+        """
+        return gs.sum(point**2, axis=-1) - 1.0
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim+1]
+        point : array-like, shape=[..., dim+1]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[...]
+        """
+        return 2 * gs.sum(point * vector, axis=-1)
 
     def projection(self, point):
         """Project a point on the hypersphere.
@@ -92,7 +118,7 @@ class _Hypersphere(LevelSet):
             at the base point.
         """
         sq_norm = gs.sum(base_point**2, axis=-1)
-        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        inner_prod = self.embedding_space.metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum("...,...j->...j", coef, base_point)
 
@@ -103,8 +129,8 @@ class _Hypersphere(LevelSet):
         """Convert point from angle to extrinsic coordinates.
 
         Convert from the angle in radians to the extrinsic coordinates in
-        2d plane. Angle 0 corresponds to point [1., 0.] and is expected in [-Pi, Pi).
-        This method is only implemented in dimension 1.
+        2d plane. Angle 0 corresponds to point [1., 0.] and is expected in
+        [-Pi, Pi). This method is only implemented in dimension 1.
 
         Parameters
         ----------
@@ -658,9 +684,7 @@ class HypersphereMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(HypersphereMetric, self).__init__(
-            dim=dim, shape=(dim + 1,), signature=(dim, 0)
-        )
+        super().__init__(dim=dim, shape=(dim + 1,), signature=(dim, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
         self._space = _Hypersphere(dim=dim)
 
@@ -678,7 +702,7 @@ class HypersphereMetric(RiemannianMetric):
         mat : array-like, shape=[..., dim + 1, dim + 1]
             Inner-product matrix.
         """
-        return gs.eye(self.dim + 1)
+        return self.embedding_metric.metric_matrix(base_point)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -846,14 +870,15 @@ class HypersphereMetric(RiemannianMetric):
             is computed.
             Optional, default : None.
         end_point : array-like, shape=[..., dim + 1]
-            Point on the hypersphere. Point to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the hypersphere. Point to transport to. Unused if
+            `tangent_vec_b` is given.
             Optional, default : None.
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., dim + 1]
-            Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at
+            `end_point=exp_(base_point)(tangent_vec_b)`.
         """
         if direction is None:
             if end_point is not None:
@@ -875,7 +900,7 @@ class HypersphereMetric(RiemannianMetric):
         )
         return transported
 
-    def christoffels(self, point, point_type="spherical"):
+    def christoffels(self, point, coords_type="spherical"):
         """Compute the Christoffel symbols at a point.
 
         Only implemented in dimension 2 and for spherical coordinates.
@@ -885,7 +910,7 @@ class HypersphereMetric(RiemannianMetric):
         point : array-like, shape=[..., dim]
             Point on hypersphere where the Christoffel symbols are computed.
 
-        point_type: str, {'spherical', 'intrinsic', 'extrinsic'}
+        coords_type: str, {'spherical', 'intrinsic', 'extrinsic'}
             Coordinates in which to express the Christoffel symbols.
             Optional, default: 'spherical'.
 
@@ -895,7 +920,7 @@ class HypersphereMetric(RiemannianMetric):
                                          covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """
-        if self.dim != 2 or point_type != "spherical":
+        if self.dim != 2 or coords_type != "spherical":
             raise NotImplementedError(
                 "The Christoffel symbols are only implemented"
                 " for spherical coordinates in the 2-sphere"
@@ -1093,10 +1118,10 @@ class HypersphereMetric(RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of the sphere, it does not depend on the base point and is Pi
-        everywhere.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the sphere, it does not depend on the base point and is
+        Pi everywhere.
 
         Parameters
         ----------
@@ -1135,5 +1160,5 @@ class Hypersphere(_Hypersphere):
     """
 
     def __init__(self, dim, default_coords_type="extrinsic"):
-        super(Hypersphere, self).__init__(dim, default_coords_type)
+        super().__init__(dim, default_coords_type)
         self._metric = HypersphereMetric(dim)

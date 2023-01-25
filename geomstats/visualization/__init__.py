@@ -57,7 +57,7 @@ def tutorial_matplotlib():
     )
 
 
-def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
+def plot(points, ax=None, space=None, coords_type=None, **point_draw_kwargs):
     """Plot points in one of the implemented manifolds.
 
     The implemented manifolds are:
@@ -78,7 +78,7 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
     space: str, optional, {'SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
         'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
         'poincare_polydisk', 'S32', 'M32', 'S33', 'M33', 'SPD2'}
-    point_type: str, optional, {'extrinsic', 'ball', 'half-space', 'pre-shape'}
+    coords_type: str, optional, {'extrinsic', 'ball', 'half-space', 'pre-shape'}
     """
     if space not in IMPLEMENTED:
         raise NotImplementedError(
@@ -128,19 +128,19 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
         sphere.draw(ax, **point_draw_kwargs)
 
     elif space == "H2_poincare_disk":
-        if point_type is None:
-            point_type = "extrinsic"
-        poincare_disk = PoincareDisk(point_type=point_type)
+        if coords_type is None:
+            coords_type = "extrinsic"
+        poincare_disk = PoincareDisk(coords_type=coords_type)
         ax = poincare_disk.set_ax(ax=ax)
         poincare_disk.add_points(points)
         poincare_disk.draw(ax, **point_draw_kwargs)
         plt.axis("off")
 
     elif space == "poincare_polydisk":
-        if point_type is None:
-            point_type = "extrinsic"
+        if coords_type is None:
+            coords_type = "extrinsic"
         n_disks = points.shape[1]
-        poincare_poly_disk = PoincarePolyDisk(point_type=point_type, n_disks=n_disks)
+        poincare_poly_disk = PoincarePolyDisk(coords_type=coords_type, n_disks=n_disks)
         n_columns = int(gs.ceil(n_disks**0.5))
         n_rows = int(gs.ceil(n_disks / n_columns))
 
@@ -156,9 +156,9 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
             poincare_poly_disk.draw(ax, **point_draw_kwargs)
 
     elif space == "H2_poincare_half_plane":
-        if point_type is None:
-            point_type = "half-space"
-        poincare_half_plane = PoincareHalfPlane(point_type=point_type)
+        if coords_type is None:
+            coords_type = "half-space"
+        poincare_half_plane = PoincareHalfPlane(coords_type=coords_type)
         ax = poincare_half_plane.set_ax(ax=ax)
         poincare_half_plane.add_points(points)
         poincare_half_plane.draw(ax, **point_draw_kwargs)
@@ -183,7 +183,7 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
         ax = sphere.ax
 
     elif space == "M32":
-        sphere = KendallSphere(point_type="extrinsic")
+        sphere = KendallSphere(coords_type="extrinsic")
         sphere.add_points(points)
         sphere.draw()
         sphere.draw_points()
@@ -197,7 +197,7 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
         ax = disk.ax
 
     elif space == "M33":
-        disk = KendallDisk(point_type="extrinsic")
+        disk = KendallDisk(coords_type="extrinsic")
         disk.add_points(points)
         disk.draw()
         disk.draw_points()

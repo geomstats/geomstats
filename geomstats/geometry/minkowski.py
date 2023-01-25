@@ -46,7 +46,7 @@ class MinkowskiMetric(RiemannianMetric):
     """
 
     def __init__(self, dim):
-        super(MinkowskiMetric, self).__init__(dim=dim, signature=(dim - 1, 1))
+        super().__init__(dim=dim, signature=(dim - 1, 1))
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.
@@ -63,7 +63,10 @@ class MinkowskiMetric(RiemannianMetric):
         """
         q, p = self.signature
         diagonal = gs.array([-1.0] * p + [1.0] * q)
-        return from_vector_to_diagonal_matrix(diagonal)
+        mat = from_vector_to_diagonal_matrix(diagonal)
+        if base_point is not None and base_point.ndim > 1:
+            mat = gs.broadcast_to(mat, base_point.shape + (p + q,))
+        return mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
@@ -131,10 +134,10 @@ class MinkowskiMetric(RiemannianMetric):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of the Minkowski space, it does not depend on the base point and
-        is infinite everywhere, because of the flat curvature.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of the Minkowski space, it does not depend on the base
+        point and is infinite everywhere, because of the flat curvature.
 
         Parameters
         ----------

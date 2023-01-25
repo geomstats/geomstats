@@ -1,7 +1,7 @@
 """Unit tests for Kalman filter."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.matrices import Matrices
 from geomstats.learning.kalman_filter import (
@@ -11,7 +11,7 @@ from geomstats.learning.kalman_filter import (
 )
 
 
-class TestKalmanFilter(geomstats.tests.TestCase):
+class TestKalmanFilter(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 
     def setup_method(self):

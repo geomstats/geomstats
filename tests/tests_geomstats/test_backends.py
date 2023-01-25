@@ -17,26 +17,6 @@ class TestBackends(tests.conftest.TestCase):
     def setup_method(self):
         warnings.simplefilter("ignore", category=ImportWarning)
 
-    @tests.conftest.tf_only
-    def test_vstack(self):
-        import tensorflow as tf
-
-        tensor_1 = tf.convert_to_tensor([1.0, 2.0, 3.0])
-        tensor_2 = tf.convert_to_tensor([7.0, 8.0, 9.0])
-
-        result = gs.vstack([tensor_1, tensor_2])
-        expected = tf.convert_to_tensor([[1.0, 2.0, 3.0], [7.0, 8.0, 9.0]])
-        self.assertAllClose(result, expected)
-
-        tensor_1 = tf.convert_to_tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
-        tensor_2 = tf.convert_to_tensor([7.0, 8.0, 9.0])
-
-        result = gs.vstack([tensor_1, tensor_2])
-        expected = tf.convert_to_tensor(
-            [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]
-        )
-        self.assertAllClose(result, expected)
-
     def test_cumprod(self):
         result = gs.cumprod(gs.arange(1, 10))
         expected = gs.array(([1, 2, 6, 24, 120, 720, 5040, 40320, 362880]))
@@ -55,11 +35,6 @@ class TestBackends(tests.conftest.TestCase):
 
         result = gs.cumsum(gs.arange(10).reshape(2, 5), axis=1)
         expected = gs.array(([[0, 1, 3, 6, 10], [5, 11, 18, 26, 35]]))
-        self.assertAllClose(result, expected)
-
-    def test_array_from_sparse(self):
-        expected = gs.array([[0, 1, 0], [0, 0, 2]])
-        result = gs.array_from_sparse([(0, 1), (1, 2)], [1, 2], (2, 3))
         self.assertAllClose(result, expected)
 
     def test_einsum_dtypes(self):
@@ -464,7 +439,6 @@ class TestBackends(tests.conftest.TestCase):
         gs_result = gs.isclose(gs_array, 22.0, rtol=1e-8, atol=1e-7)
         self.assertAllCloseToNp(gs_result, np_result)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_where(self):
         # TODO (ninamiolane): Make tf behavior consistent with np
         # Currently, tf returns array, while np returns tuple
@@ -635,7 +609,6 @@ class TestBackends(tests.conftest.TestCase):
 
         self.assertAllClose(result, skew)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_general_sylvester_solve(self):
         a = gs.array([[-3.0, -2.0, 0.0], [-1.0, -1.0, 3.0], [3.0, -5.0, -1.0]])
         b = gs.array([[1.0]])
@@ -703,6 +676,16 @@ class TestBackends(tests.conftest.TestCase):
         result = gs.prod(vec)
         expected = gs.cumprod(vec)[-1]
         self.assertAllClose(result, expected)
+
+    def test_quantile(self):
+        vec = gs.random.rand(10, 10)
+        q = gs.random.rand(1)
+        expected = _np.quantile(vec, q=q)
+        result = gs.quantile(vec, q=q)
+        expected1 = _np.quantile(vec, q=q, axis=1)
+        result1 = gs.quantile(vec, q=q, axis=1)
+        self.assertAllClose(result, expected)
+        self.assertAllClose(result1, expected1)
 
     def test_is_single_matrix_pd(self):
         pd = gs.eye(3)

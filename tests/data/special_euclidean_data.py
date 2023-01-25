@@ -5,14 +5,13 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
+    SpecialEuclideanMatrixCanonicalLeftMetric,
     SpecialEuclideanMatrixLieAlgebra,
 )
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.tests import tf_backend
 from tests.data_generation import (
     TestData,
     _InvariantMetricTestData,
@@ -48,9 +47,6 @@ elements_all = {
     "point_2": point_2,
 }
 elements = elements_all
-if tf_backend():
-    # Tf is extremely slow
-    elements = {"point_1": point_1, "point_2": point_2}
 
 elements_matrices_all = {
     key: SpecialEuclidean(2, point_type="vector").matrix_from_vector(elements_all[key])
@@ -60,6 +56,8 @@ elements_matrices = elements_matrices_all
 
 
 class SpecialEuclideanTestData(_LieGroupTestData):
+    Space = SpecialEuclidean
+
     n_list = random.sample(range(2, 4), 2)
     space_args_list = [(n,) for n in n_list] + [(2, "vector"), (3, "vector")]
     shape_list = [(n + 1, n + 1) for n in n_list] + [(3,)] + [(6,)]
@@ -170,58 +168,6 @@ class SpecialEuclideanTestData(_LieGroupTestData):
         ]
         return self.generate_tests([], random_data)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2, True), (3, True), (2, False)]
-        smoke_n_points_list = [1, 2, 1]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=1e-2,
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            SpecialEuclidean,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            SpecialEuclidean,
-            self.space_args_list,
-            self.n_vecs_list,
-            is_tangent_atol=gs.atol * 100,
-        )
-
-    def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            SpecialEuclidean,
-            self.space_args_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            amplitude=100,
-            atol=gs.atol * 10000,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            SpecialEuclidean,
-            self.space_args_list,
-            self.n_points_list,
-            atol=gs.atol * 10000,
-        )
-
     def regularize_test_data(self):
         smoke_data = [
             dict(
@@ -237,36 +183,11 @@ class SpecialEuclideanTestData(_LieGroupTestData):
         smoke_data = [dict(n=2, point_type="vector", n_samples=3)]
         return self.generate_tests(smoke_data)
 
-    def compose_inverse_point_with_point_is_identity_test_data(self):
-        return self._compose_inverse_point_with_point_is_identity_test_data(
-            SpecialEuclidean, self.space_args_list, self.n_points_list
-        )
-
-    def compose_point_with_inverse_point_is_identity_test_data(self):
-        return self._compose_point_with_inverse_point_is_identity_test_data(
-            SpecialEuclidean, self.space_args_list, self.n_points_list
-        )
-
-    def compose_point_with_identity_is_point_test_data(self):
-        return self._compose_point_with_identity_is_point_test_data(
-            SpecialEuclidean, self.space_args_list, self.n_points_list
-        )
-
-    def compose_identity_with_point_is_point_test_data(self):
-        return self._compose_identity_with_point_is_point_test_data(
-            SpecialEuclidean, self.space_args_list, self.n_points_list
-        )
-
-    def to_tangent_at_identity_belongs_to_lie_algebra_test_data(self):
-        return self._to_tangent_at_identity_belongs_to_lie_algebra_test_data(
-            self.space_args_list, self.shape_list, self.n_vecs_list
-        )
-
     def compose_test_data(self):
         smoke_data = [
             dict(
                 n=2,
-                point_typ="vector",
+                point_type="vector",
                 point_1=elements_all["translation_small"],
                 point_2=elements_all["translation_large"],
                 expected=elements_all["translation_small"]
@@ -309,8 +230,14 @@ class SpecialEuclideanTestData(_LieGroupTestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def log_after_exp_test_data(self):
+        return super().log_after_exp_test_data(amplitude=100.0)
+
 
 class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
+
+    Space = SpecialEuclideanMatrixLieAlgebra
+
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]
     shape_list = [(n + 1, n + 1) for n in n_list]
@@ -341,73 +268,12 @@ class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def matrix_representation_after_basis_representation_test_data(self):
-        return self._matrix_representation_after_basis_representation_test_data(
-            SpecialEuclideanMatrixLieAlgebra,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def basis_representation_after_matrix_representation_test_data(self):
-        return self._basis_representation_after_matrix_representation_test_data(
-            SpecialEuclideanMatrixLieAlgebra,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def basis_belongs_test_data(self):
-        return self._basis_belongs_test_data(self.space_args_list)
-
-    def basis_cardinality_test_data(self):
-        return self._basis_cardinality_test_data(self.space_args_list)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            SpecialEuclideanMatrixLieAlgebra,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            SpecialEuclideanMatrixLieAlgebra, self.space_args_list, self.n_vecs_list
-        )
-
-    def to_tangent_is_projection_test_data(self):
-        return self._to_tangent_is_projection_test_data(
-            SpecialEuclideanMatrixLieAlgebra,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_point_is_tangent_test_data(self):
-        return self._random_point_is_tangent_test_data(
-            self.space_args_list, self.n_points_list
-        )
-
 
 class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData):
     n_list = random.sample(range(2, 5), 2)
     metric_args_list = [(SpecialEuclidean(n),) for n in n_list]
     shape_list = [(n + 1, n + 1) for n in n_list]
-    space_list = [SpecialEuclidean(n) for n in n_list]
+    group_list = space_list = [SpecialEuclidean(n) for n in n_list]
     n_points_list = [2, 3]
     n_tangent_vecs_list = [2, 3]
     n_points_a_list = [2, 3]
@@ -415,6 +281,8 @@ class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData
     alpha_list = [1] * 2
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
+
+    Metric = SpecialEuclideanMatrixCanonicalLeftMetric
 
     def left_metric_wrong_group_test_data(self):
         smoke_data = [
@@ -428,214 +296,20 @@ class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData
         ]
         return self.generate_tests(smoke_data)
 
-    def exp_shape_test_data(self):
-        return self._exp_shape_test_data(
-            self.metric_args_list, self.space_list, self.shape_list
-        )
-
-    def log_shape_test_data(self):
-        return self._log_shape_test_data(
-            self.metric_args_list,
-            self.space_list,
-        )
-
-    def squared_dist_is_symmetric_test_data(self):
-        return self._squared_dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-            atol=gs.atol * 1000,
-        )
-
-    def exp_belongs_test_data(self):
-        return self._exp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def log_is_tangent_test_data(self):
-        return self._log_is_tangent_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
-
-    def geodesic_ivp_belongs_test_data(self):
-        return self._geodesic_ivp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 100,
-        )
-
-    def geodesic_bvp_belongs_test_data(self):
-        return self._geodesic_bvp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 100,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 100,
-        )
-
     def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            amplitude=10,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 100,
-        )
-
-    def exp_ladder_parallel_transport_test_data(self):
-        return self._exp_ladder_parallel_transport_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_rungs_list,
-            self.alpha_list,
-            self.scheme_list,
-        )
-
-    def exp_geodesic_ivp_test_data(self):
-        return self._exp_geodesic_ivp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_points_list,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 100,
-        )
-
-    def parallel_transport_ivp_is_isometry_test_data(self):
-        return self._parallel_transport_ivp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 1000,
-        )
-
-    def parallel_transport_bvp_is_isometry_test_data(self):
-        return self._parallel_transport_bvp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 1000,
-        )
-
-    def dist_is_symmetric_test_data(self):
-        return self._dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_positive_test_data(self):
-        return self._dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def squared_dist_is_positive_test_data(self):
-        return self._squared_dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_norm_of_log_test_data(self):
-        return self._dist_is_norm_of_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_point_to_itself_is_zero_test_data(self):
-        return self._dist_point_to_itself_is_zero_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def inner_product_is_symmetric_test_data(self):
-        return self._inner_product_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-        )
-
-    def triangle_inequality_of_dist_test_data(self):
-        return self._triangle_inequality_of_dist_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def exp_at_identity_of_lie_algebra_belongs_test_data(self):
-        return self._exp_at_identity_of_lie_algebra_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_tangent_vecs_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def log_at_identity_belongs_to_lie_algebra_test_data(self):
-        return self._log_at_identity_belongs_to_lie_algebra_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def exp_after_log_at_identity_test_data(self):
-        return self._exp_after_log_at_identity_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            atol=gs.atol * 100,
-        )
+        return super().log_after_exp_test_data(amplitude=10.0)
 
     def log_after_exp_at_identity_test_data(self):
-        return self._log_after_exp_at_identity_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            amplitude=10.0,
-            atol=gs.atol * 100,
-        )
+        return super().log_after_exp_at_identity_test_data(amplitude=10.0)
 
 
 class SpecialEuclideanMatrixCanonicalRightMetricTestData(_InvariantMetricTestData):
     n_list = [2]
     metric_args_list = [
-        (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), "right") for n in n_list
+        (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), False) for n in n_list
     ]
     shape_list = [(n + 1, n + 1) for n in n_list]
-    space_list = [SpecialEuclidean(n) for n in n_list]
+    group_list = space_list = [SpecialEuclidean(n) for n in n_list]
     n_points_list = random.sample(range(1, 3), 1)
     n_tangent_vecs_list = random.sample(range(1, 3), 1)
     n_points_a_list = random.sample(range(1, 3), 1)
@@ -644,202 +318,18 @@ class SpecialEuclideanMatrixCanonicalRightMetricTestData(_InvariantMetricTestDat
     n_rungs_list = [1] * 1
     scheme_list = ["pole"] * 1
 
-    def exp_shape_test_data(self):
-        return self._exp_shape_test_data(
-            self.metric_args_list, self.space_list, self.shape_list
-        )
+    Metric = InvariantMetric
 
-    def log_shape_test_data(self):
-        return self._log_shape_test_data(
-            self.metric_args_list,
-            self.space_list,
-        )
-
-    def squared_dist_is_symmetric_test_data(self):
-        return self._squared_dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-            atol=gs.atol * 1000,
-        )
-
-    def exp_belongs_test_data(self):
-        return self._exp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            belongs_atol=1e-3,
-        )
-
-    def log_is_tangent_test_data(self):
-        return self._log_is_tangent_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
-
-    def geodesic_ivp_belongs_test_data(self):
-        return self._geodesic_ivp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=1e-3,
-        )
-
-    def geodesic_bvp_belongs_test_data(self):
-        return self._geodesic_bvp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            belongs_atol=1e-3,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            rtol=gs.rtol * 100000,
-            atol=gs.atol * 100000,
-        )
+    tolerances = {
+        "exp_after_log_at_identity": {"atol": 1e-2},
+        "log_after_exp_at_identity": {"atol": 1e-1},
+    }
 
     def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            amplitude=100.0,
-            rtol=gs.rtol * 10000,
-            atol=gs.atol * 100000,
-        )
-
-    def exp_ladder_parallel_transport_test_data(self):
-        return self._exp_ladder_parallel_transport_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_rungs_list,
-            self.alpha_list,
-            self.scheme_list,
-        )
-
-    def exp_geodesic_ivp_test_data(self):
-        return self._exp_geodesic_ivp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_points_list,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 100,
-        )
-
-    def parallel_transport_ivp_is_isometry_test_data(self):
-        return self._parallel_transport_ivp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 1000,
-        )
-
-    def parallel_transport_bvp_is_isometry_test_data(self):
-        return self._parallel_transport_bvp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 1000,
-        )
-
-    def dist_is_symmetric_test_data(self):
-        return self._dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_positive_test_data(self):
-        return self._dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def squared_dist_is_positive_test_data(self):
-        return self._squared_dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_norm_of_log_test_data(self):
-        return self._dist_is_norm_of_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_point_to_itself_is_zero_test_data(self):
-        return self._dist_point_to_itself_is_zero_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def inner_product_is_symmetric_test_data(self):
-        return self._inner_product_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-        )
-
-    def triangle_inequality_of_dist_test_data(self):
-        return self._triangle_inequality_of_dist_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            atol=gs.atol * 1000,
-        )
-
-    def exp_at_identity_of_lie_algebra_belongs_test_data(self):
-        return self._exp_at_identity_of_lie_algebra_belongs_test_data(
-            self.metric_args_list, self.space_list, self.n_tangent_vecs_list
-        )
-
-    def log_at_identity_belongs_to_lie_algebra_test_data(self):
-        return self._log_at_identity_belongs_to_lie_algebra_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def exp_after_log_at_identity_test_data(self):
-        return self._exp_after_log_at_identity_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            atol=1e-3,
-        )
+        return super().log_after_exp_test_data(amplitude=100.0)
 
     def log_after_exp_at_identity_test_data(self):
-        return self._log_after_exp_at_identity_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            amplitude=100.0,
-            atol=1e-1,
-        )
+        return super().log_after_exp_at_identity_test_data(amplitude=100.0)
 
     def right_exp_coincides_test_data(self):
         smoke_data = [
@@ -903,13 +393,6 @@ class SpecialEuclidean3VectorsTestData(TestData):
         "rot_with_parallel_trans": rot_with_parallel_trans,
     }
     elements = elements_all
-    if geomstats.tests.tf_backend():
-        # Tf is extremely slow
-        elements = {
-            "point_1": point_1,
-            "point_2": point_2,
-            "angle_close_pi_low": angle_close_pi_low,
-        }
 
     # Metrics - only diagonals
     diag_mat_at_identity = gs.eye(6) * gs.array([2.0, 2.0, 2.0, 3.0, 3.0, 3.0])
@@ -917,12 +400,12 @@ class SpecialEuclidean3VectorsTestData(TestData):
     left_diag_metric = InvariantMetric(
         group=group,
         metric_mat_at_identity=diag_mat_at_identity,
-        left_or_right="left",
+        left=True,
     )
     right_diag_metric = InvariantMetric(
         group=group,
         metric_mat_at_identity=diag_mat_at_identity,
-        left_or_right="right",
+        left=False,
     )
 
     metrics_all = {
@@ -935,8 +418,6 @@ class SpecialEuclidean3VectorsTestData(TestData):
     # 'left': left_metric,
     # 'right': right_metric}
     metrics = metrics_all
-    if geomstats.tests.tf_backend():
-        metrics = {"left_diag": left_diag_metric}
 
     angles_close_to_pi_all = [
         "angle_close_pi_low",
@@ -944,8 +425,14 @@ class SpecialEuclidean3VectorsTestData(TestData):
         "angle_close_pi_high",
     ]
     angles_close_to_pi = angles_close_to_pi_all
-    if geomstats.tests.tf_backend():
-        angles_close_to_pi = ["angle_close_pi_low"]
+
+    tolerances = {
+        "log_after_exp": {"atol": 1e-6},
+        "exp_after_log": {"atol": 1e-4},
+        "log_after_exp_with_angles_close_to_pi": {"atol": 1e-6},
+        "exp_after_log_with_angles_close_to_pi": {"atol": 1e-8},
+        "exp_after_log_right_with_angles_close_to_pi": {"atol": 1e-8},
+    }
 
     def exp_after_log_right_with_angles_close_to_pi_test_data(self):
         smoke_data = []
@@ -1087,51 +574,50 @@ class SpecialEuclidean3VectorsTestData(TestData):
             point = self.elements_all[angle_type]
             smoke_data += [dict(point=point, expected=point)]
 
-        if not geomstats.tests.tf_backend():
-            angle_type = "angle_pi"
-            point = self.elements_all[angle_type]
-            smoke_data += [dict(point=point, expected=point)]
+        angle_type = "angle_pi"
+        point = self.elements_all[angle_type]
+        smoke_data += [dict(point=point, expected=point)]
 
-            angle_type = "angle_close_pi_high"
-            point = self.elements_all[angle_type]
+        angle_type = "angle_close_pi_high"
+        point = self.elements_all[angle_type]
 
-            norm = gs.linalg.norm(point[:3])
-            expected_rot = gs.concatenate(
-                [point[:3] / norm * (norm - 2 * gs.pi), gs.zeros(3)], axis=0
-            )
-            expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
-            expected = expected_rot + expected_trans
-            smoke_data += [dict(point=point, expected=expected)]
+        norm = gs.linalg.norm(point[:3])
+        expected_rot = gs.concatenate(
+            [point[:3] / norm * (norm - 2 * gs.pi), gs.zeros(3)], axis=0
+        )
+        expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
+        expected = expected_rot + expected_trans
+        smoke_data += [dict(point=point, expected=expected)]
 
-            in_pi_2pi = ["angle_in_pi_2pi", "angle_close_2pi_low"]
+        in_pi_2pi = ["angle_in_pi_2pi", "angle_close_2pi_low"]
 
-            for angle_type in in_pi_2pi:
-                point = self.elements_all[angle_type]
-                angle = gs.linalg.norm(point[:3])
-                new_angle = gs.pi - (angle - gs.pi)
-
-                expected_rot = gs.concatenate(
-                    [-new_angle * (point[:3] / angle), gs.zeros(3)], axis=0
-                )
-                expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
-                expected = expected_rot + expected_trans
-                smoke_data += [dict(point=point, expected=expected)]
-
-            angle_type = "angle_2pi"
-            point = self.elements_all[angle_type]
-
-            expected = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
-            smoke_data += [dict(point=point, expected=expected)]
-
-            angle_type = "angle_close_2pi_high"
+        for angle_type in in_pi_2pi:
             point = self.elements_all[angle_type]
             angle = gs.linalg.norm(point[:3])
-            new_angle = angle - 2 * gs.pi
+            new_angle = gs.pi - (angle - gs.pi)
 
             expected_rot = gs.concatenate(
-                [new_angle * point[:3] / angle, gs.zeros(3)], axis=0
+                [-new_angle * (point[:3] / angle), gs.zeros(3)], axis=0
             )
             expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
             expected = expected_rot + expected_trans
             smoke_data += [dict(point=point, expected=expected)]
+
+        angle_type = "angle_2pi"
+        point = self.elements_all[angle_type]
+
+        expected = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
+        smoke_data += [dict(point=point, expected=expected)]
+
+        angle_type = "angle_close_2pi_high"
+        point = self.elements_all[angle_type]
+        angle = gs.linalg.norm(point[:3])
+        new_angle = angle - 2 * gs.pi
+
+        expected_rot = gs.concatenate(
+            [new_angle * point[:3] / angle, gs.zeros(3)], axis=0
+        )
+        expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
+        expected = expected_rot + expected_trans
+        smoke_data += [dict(point=point, expected=expected)]
         return self.generate_tests(smoke_data)
