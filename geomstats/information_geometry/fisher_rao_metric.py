@@ -13,7 +13,7 @@ class FisherRaoMetric(RiemannianMetric):
     the Fisher information metric is:
     :math:`g_{j k}(\theta)=\int_X \frac{\partial \log p(x, \theta)}{\partial \theta_j}
         \frac{\partial \log p(x, \theta)}{\partial \theta_k} p(x, \theta) d x`
-
+f
     Attributes
     ----------
     information_manifold : InformationManifoldMixin object
@@ -89,21 +89,17 @@ class FisherRaoMetric(RiemannianMetric):
         def _function_to_integrate(x):
             pdf_x = pdf(x)
             pdf_x_at_base_point = pdf_x(base_point)
-            pdf_x_derivative = gs.autodiff.jacobian(pdf_x)
-            pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)
-            return (
+            pdf_x_derivative = gs.autodiff.jacobian_vec(pdf_x)
+            pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)       
+            return (gs.einsum("...ij,k->...ij",
                 gs.einsum(
-                    "...i,...j->...ij",
+                    "...ki,...kj->...ij",
                     pdf_x_derivative_at_base_point,
                     pdf_x_derivative_at_base_point,
-                )
-                / pdf_x_at_base_point
+                ),
+                1 / pdf_x_at_base_point)
             )
-
         metric_mat = quad_vec(_function_to_integrate, *self.support)[0]
-
-        if metric_mat.ndim == 3 and metric_mat.shape[0] == 1:
-            return metric_mat[0]
         return metric_mat
 
     def inner_product_derivative_matrix(self, base_point):
