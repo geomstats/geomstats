@@ -291,6 +291,17 @@ class ClosedDiscreteCurves(LevelSet):
             k_sampling_points=self.k_sampling_points,
         )
 
+    def _assert_is_planar(self):
+        is_euclidean = isinstance(self.ambient_manifold, Euclidean)
+        is_planar = is_euclidean and self.ambient_manifold.dim == 2
+
+        if not is_planar:
+            raise AssertionError(
+                "The projection is only implemented "
+                "for discrete curves embedded in a "
+                "2D Euclidean space."
+            )
+
     def submersion(self, point):
         """Submersion."""
         raise NotImplementedError("Submersion not implemented")
@@ -450,24 +461,17 @@ class ClosedDiscreteCurves(LevelSet):
         -------
         proj : array-like, shape=[..., k_sampling_points, ambient_dim]
         """
-        is_euclidean = isinstance(self.ambient_manifold, Euclidean)
-        is_planar = is_euclidean and self.ambient_manifold.dim == 2
+        self._assert_is_planar()
 
-        if not is_planar:
-            raise AssertionError(
-                "The projection is only implemented "
-                "for discrete curves embedded in a "
-                "2D Euclidean space."
-            )
-        point_ndim = point.ndim
+        is_vec = point.ndim > 2
 
         srv_metric = self.embedding_space.srv_metric
         srv = srv_metric.srv_transform(point)
         srv_proj = self.srv_projection(srv, atol=atol, max_iter=max_iter)
 
-        point = gs.to_ndarray(point, to_ndim=3)
-        proj = srv_metric.srv_transform_inverse(srv_proj, point[:, 0])
-        return proj if point_ndim == 3 else gs.squeeze(proj)
+        return srv_metric.srv_transform_inverse(
+            srv_proj, point[:, 0] if is_vec else point[0]
+        )
 
     def srv_projection(self, srv, atol=gs.atol, max_iter=1000):
         """Project a point in the srv space into the space of closed curves srv.
@@ -493,15 +497,7 @@ class ClosedDiscreteCurves(LevelSet):
         -------
         proj : array-like, shape=[..., k_sampling_points, ambient_dim]
         """
-        is_euclidean = isinstance(self.ambient_manifold.metric, EuclideanMetric)
-        is_planar = is_euclidean and self.ambient_manifold.metric.dim == 2
-
-        if not is_planar:
-            raise AssertionError(
-                "The projection is only implemented "
-                "for discrete curves embedded in a"
-                "2D Euclidean space."
-            )
+        self._assert_is_planar()
 
         dim = self.ambient_manifold.metric.dim
         srv_inner_prod = self.embedding_space.l2_curves_metric.inner_product
@@ -529,7 +525,7 @@ class ClosedDiscreteCurves(LevelSet):
             Details can be found in [Sea2011]_ Section 4.2.
             """
             initial_norm = srv_norm(one_srv)
-            proj = one_srv
+            proj = gs.copy(one_srv)
             proj_norms = self.ambient_manifold.metric.norm(proj)
             residual = closeness_criterion(proj, proj_norms)
             criteria = self.ambient_manifold.metric.norm(residual)
@@ -572,13 +568,10 @@ class ClosedDiscreteCurves(LevelSet):
                 nb_iter += 1
             return proj
 
-        srv_ndim = srv.ndim
-        srv = gs.to_ndarray(srv, to_ndim=3)
+        if srv.ndim > 2:
+            return gs.stack([one_srv_projection(one_srv) for one_srv in srv])
 
-        for i_srv, one_srv in enumerate(srv):
-            srv[i_srv] = one_srv_projection(one_srv)
-
-        return srv if srv_ndim == 3 else gs.squeeze(srv)
+        return one_srv_projection(srv)
 
 
 class L2CurvesMetric(RiemannianMetric):
