@@ -6,7 +6,6 @@ from geomstats.geometry import hypersphere
 from geomstats.learning.kmedoids import RiemannianKMedoids
 
 
-@tests.conftest.np_autograd_and_torch_only
 class TestRiemannianKMedoids(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 

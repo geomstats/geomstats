@@ -3,8 +3,7 @@
 Lead author: Nicolas Guigui.
 """
 
-from geomstats.geometry.product_manifold import NFoldManifold
-from geomstats.geometry.product_riemannian_metric import NFoldMetric
+from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 
 
 class Landmarks(NFoldManifold):

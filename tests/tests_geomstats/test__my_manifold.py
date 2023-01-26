@@ -14,17 +14,16 @@ To run these tests:
 ```nose2 tests.test__my_manifold.TestMyManifold.test_dimension```
 to run the test `test_dimension` only.
 
-To run these tests using different backends (numpy, pytorch or tensorflow):
+To run these tests using different backends (numpy or pytorch):
 - Install packages from geomstats[opt]
 In command line, select the backend of interest with:
 ```export GEOMSTATS_BACKEND=numpy```
  or ```export GEOMSTATS_BACKEND=pytorch```
- or ```export GEOMSTATS_BACKEND=tensorflow```
  and repeat the steps from the previous paragraph.
 
 When you submit a PR, the tests are run with the three backends, except if you
 add a decorator such as `@tests.conftest.np_and_autograd_only` or
-`@tests.conftest.np_autograd_and_tf_only` etc.
+`@tests.conftest.np_and_autograd_only` etc.
 """
 
 # Import the tests module
@@ -76,7 +75,7 @@ class TestMyManifold(tests.conftest.TestCase):
         Note that arrays are defined using geomstats backend
         through the prefix `gs.`.
         This allows the code to be tested simultaneously in numpy,
-        pytorch and tensorflow. `gs.` is the equivalent of numpy's `np.` and
+        and pytorch. `gs.` is the equivalent of numpy's `np.` and
         most of numpy's functions are available with `gs.`.
         """
         point = gs.array([1.0, 2.0, 3.0])
@@ -102,8 +101,8 @@ class TestMyManifold(tests.conftest.TestCase):
 
         Note that arrays are defined using geomstats backend
         through the prefix `gs.`.
-        This allows the code to be tested simultaneously in numpy,
-        pytorch and tensorflow. `gs.` is the equivalent of numpy's `np.` and
+        This allows the code to be tested simultaneously in numpy
+        and pytorch. `gs.` is the equivalent of numpy's `np.` and
         most of numpy's functions are available with `gs.`.
         """
         vector = gs.array([1.0, 2.0, 3.0, 4.0])

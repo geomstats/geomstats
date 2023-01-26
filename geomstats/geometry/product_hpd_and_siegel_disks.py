@@ -28,8 +28,7 @@ References
 """
 
 from geomstats.geometry.hpd_matrices import HPDAffineMetric, HPDMatrices
-from geomstats.geometry.product_manifold import ProductManifold
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric  # NOQA
+from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.siegel import Siegel, SiegelMetric
 
 

@@ -1,13 +1,13 @@
 """Unit tests for the multinomial manifold."""
 
 import geomstats.backend as gs
-from tests.conftest import Parametrizer, np_backend, pytorch_backend, tf_backend
+from tests.conftest import Parametrizer, np_backend, pytorch_backend
 from tests.data.multinomial_data import MultinomialMetricTestData, MultinomialTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
-TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()
+PYTORCH_BACKEND = pytorch_backend()
 
-NOT_AUTOGRAD = tf_backend() or pytorch_backend() or np_backend()
+NOT_AUTOGRAD = pytorch_backend() or np_backend()
 
 
 class TestMultinomialDistributions(LevelSetTestCase, metaclass=Parametrizer):
@@ -50,8 +50,6 @@ class TestMultinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_log_after_exp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
-    skip_test_geodesic_ivp_belongs = tf_backend()
-    skip_test_geodesic_bvp_belongs = tf_backend()
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_riemann_tensor_shape = True
@@ -61,8 +59,6 @@ class TestMultinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
     skip_test_covariant_riemann_tensor_bianchi_identity = True
     skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
-    skip_test_sectional_curvature_shape = tf_backend()
-    skip_test_sectional_curvature_is_positive = tf_backend()
 
     testing_data = MultinomialMetricTestData()
     Space = testing_data.Space

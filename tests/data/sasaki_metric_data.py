@@ -10,7 +10,7 @@ class SasakiMetricTestData(TestData):
     dim = 2
     sas_sphere_metric = SasakiMetric(
         HypersphereMetric(dim=dim),
-        os.cpu_count() if (os.environ["GEOMSTATS_BACKEND"] != "tensorflow") else 1,
+        os.cpu_count(),
     )
 
     # fix elements in TS

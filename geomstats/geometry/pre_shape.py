@@ -4,7 +4,6 @@ Lead authors: Elodie Maignant and Nicolas Guigui.
 """
 
 import geomstats.backend as gs
-from geomstats.errors import check_tf_error
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
@@ -735,9 +734,10 @@ class PreShapeMetric(RiemannianMetric):
         flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
         flat_pt = gs.reshape(point, (-1, self.sphere_metric.dim + 1))
         flat_log = self.sphere_metric.log(flat_pt, flat_bp)
-        try:
+
+        if gs.prod(gs.array(flat_log.shape)) == gs.prod(gs.array(base_point.shape)):
             log = gs.reshape(flat_log, base_point.shape)
-        except (RuntimeError, check_tf_error(ValueError, "InvalidArgumentError")):
+        else:
             log = gs.reshape(flat_log, point.shape)
         return log
 

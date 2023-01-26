@@ -227,13 +227,11 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
         result = group.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_group_exp_after_log_with_angles_close_to_pi(self, point, base_point):
         """
         This tests that the composition of
         log and exp gives identity.
         """
-        # TODO(nguigs): fix this test for tf
         group = self.Space(3, point_type="vector")
         result = group.exp(group.log(point, base_point), base_point)
         expected = group.regularize(point)
@@ -316,7 +314,7 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
             gs.allclose(result, expected) or gs.allclose(result, inv_expected)
         )
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_regularize_extreme_cases(self, point, expected):
         group = SpecialOrthogonal(3, "vector")
         result = group.regularize(point)
@@ -368,7 +366,7 @@ class TestBiInvariantMetric(InvariantMetricTestCase, metaclass=Parametrizer):
         result = metric.log(point, base_point)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_distance_broadcast(self, n):
         group = SpecialOrthogonal(n=n)
         point = group.random_point(5)

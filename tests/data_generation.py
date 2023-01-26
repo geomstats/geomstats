@@ -931,11 +931,8 @@ class _ConnectionTestData(TestData):
             self.n_points_list,
         ):
             base_point = space.random_point()
-            tangent_vec = gs.squeeze(
-                space.to_tangent(
-                    gs.random.normal(size=(n_tangent_vecs,) + shape), base_point
-                )
-            )
+            size = shape if n_tangent_vecs == 1 else (n_tangent_vecs,) + shape
+            tangent_vec = space.to_tangent(gs.random.normal(size=size), base_point)
             random_data.append(
                 dict(
                     connection_args=connection_args,
@@ -971,7 +968,7 @@ class _ConnectionTestData(TestData):
             random_data.append(
                 dict(
                     connection_args=connection_args,
-                    base_point=better_squeeze(base_point),
+                    base_point=base_point,
                     expected=expected_shape,
                 )
             )
@@ -1002,7 +999,7 @@ class _ConnectionTestData(TestData):
             random_data.append(
                 dict(
                     connection_args=connection_args,
-                    base_point=better_squeeze(base_point),
+                    base_point=base_point,
                     expected=expected_shape,
                 )
             )
@@ -1031,7 +1028,7 @@ class _ConnectionTestData(TestData):
             random_data.append(
                 dict(
                     connection_args=connection_args,
-                    base_point=better_squeeze(base_point),
+                    base_point=base_point,
                     expected=expected_shape,
                 )
             )
@@ -1347,17 +1344,14 @@ class _RiemannianMetricTestData(_ConnectionTestData):
         ):
             base_point = space.random_point(n_points)
             size = (n_tangent_vecs,) + shape if n_points == 1 else (n_points,) + shape
-            tangent_vec_a = gs.squeeze(
-                space.to_tangent(
-                    gs.random.normal(size=size),
-                    base_point,
-                )
+            tangent_vec_a = space.to_tangent(
+                gs.random.normal(size=size),
+                base_point,
             )
-            tangent_vec_b = gs.squeeze(
-                space.to_tangent(
-                    gs.random.normal(size=size),
-                    base_point,
-                )
+
+            tangent_vec_b = space.to_tangent(
+                gs.random.normal(size=size),
+                base_point,
             )
             random_data.append(
                 dict(
@@ -1396,6 +1390,88 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
                     metric_args=metric_args,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def inner_product_is_complex_test_data(self):
+        """Generate data to check that the inner product is Hermitian."""
+        random_data = []
+        for metric_args, space, shape, n_tangent_vecs in zip(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            base_point = space.random_point()
+            base_point_type = base_point.dtype
+            random_vec_a = generate_random_vec(
+                (n_tangent_vecs,) + shape, base_point_type
+            )
+            random_vec_b = generate_random_vec(
+                (n_tangent_vecs,) + shape, base_point_type
+            )
+            tangent_vec_a = space.to_tangent(random_vec_a)
+            tangent_vec_b = space.to_tangent(random_vec_b)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def dist_is_real_test_data(self):
+        random_data = []
+        for metric_args, space in zip(
+            self.metric_args_list,
+            self.space_list,
+        ):
+            point_a, point_b = space.random_point(2)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    point_a=point_a,
+                    point_b=point_b,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def log_is_complex_test_data(self):
+        random_data = []
+        for metric_args, space in zip(
+            self.metric_args_list,
+            self.space_list,
+        ):
+            point, base_point = space.random_point(2)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    point=point,
+                    base_point=base_point,
+                )
+            )
+        return self.generate_tests([], random_data)
+
+    def exp_is_complex_test_data(self):
+        random_data = []
+        for metric_args, space, shape, n_tangent_vecs in zip(
+            self.metric_args_list,
+            self.space_list,
+            self.shape_list,
+            self.n_tangent_vecs_list,
+        ):
+            base_point = space.random_point()
+            base_point_type = base_point.dtype
+            random_vec = generate_random_vec((n_tangent_vecs,) + shape, base_point_type)
+            tangent_vec = space.to_tangent(random_vec)
+            random_data.append(
+                dict(
+                    metric_args=metric_args,
+                    tangent_vec=tangent_vec,
                     base_point=base_point,
                 )
             )

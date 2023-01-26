@@ -57,7 +57,7 @@ class TestEstimators(tests.conftest.TestCase):
         X_trans = trans.fit_transform(X)
         self.assertAllClose(X_trans, gs.sqrt(X))
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_template_classifier(self):
         X, y = self.data
         clf = TemplateClassifier()

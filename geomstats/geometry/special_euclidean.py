@@ -89,8 +89,6 @@ def _squared_dist(point_a, point_b, metric):
 
     - is called by the method `squared_dist` of the class
       SpecialEuclideanMatrixCanonicalLeftMetric,
-    - has been created to support the implementation
-      of custom_gradient in tensorflow backend.
 
     Parameters
     ----------
@@ -1192,8 +1190,6 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
 
         - is called by the method `squared_dist` of the class
           SpecialEuclideanMatrixCanonicalLeftMetric,
-        - has been created to support the implementation
-          of custom_gradient in tensorflow backend.
 
         Parameters
         ----------
