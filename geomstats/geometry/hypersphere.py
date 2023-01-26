@@ -93,9 +93,7 @@ class _Hypersphere(LevelSet):
             Point projected on the hypersphere.
         """
         norm = gs.linalg.norm(point, axis=-1)
-        projected_point = gs.einsum("...,...i->...i", 1.0 / norm, point)
-
-        return projected_point
+        return gs.einsum("...,...i->...i", 1.0 / norm, point)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to the tangent space.
@@ -120,9 +118,7 @@ class _Hypersphere(LevelSet):
         sq_norm = gs.sum(base_point**2, axis=-1)
         inner_prod = self.embedding_space.metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
-        tangent_vec = vector - gs.einsum("...,...j->...j", coef, base_point)
-
-        return tangent_vec
+        return vector - gs.einsum("...,...j->...j", coef, base_point)
 
     @staticmethod
     def angle_to_extrinsic(point_angle):
@@ -134,7 +130,7 @@ class _Hypersphere(LevelSet):
 
         Parameters
         ----------
-        point_angle : array-like, shape=[...]
+        point_angle : array-like, shape=[..., 1]
             Point on the circle, i.e. an angle in radians in [-Pi, Pi].
 
         Returns
@@ -144,7 +140,7 @@ class _Hypersphere(LevelSet):
         """
         cos = gs.cos(point_angle)
         sin = gs.sin(point_angle)
-        return gs.stack([cos, sin], axis=-1)
+        return gs.hstack([cos, sin])
 
     @staticmethod
     def extrinsic_to_angle(point_extrinsic):
@@ -164,7 +160,10 @@ class _Hypersphere(LevelSet):
         point_angle : array_like, shape=[..., 2]
             Point on the circle, i.e. an angle in radians in [-Pi, Pi].
         """
-        return gs.arctan2(point_extrinsic[..., 1], point_extrinsic[..., 0])
+        return gs.expand_dims(
+            gs.arctan2(point_extrinsic[..., 1], point_extrinsic[..., 0]),
+            axis=-1,
+        )
 
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
@@ -201,6 +200,7 @@ class _Hypersphere(LevelSet):
         )
 
         if not gs.all(self.belongs(point_extrinsic)):
+            # TODO: why is this here?
             raise ValueError("Points do not belong to the manifold.")
 
         return point_extrinsic
@@ -250,11 +250,7 @@ class _Hypersphere(LevelSet):
         )
         jac = gs.transpose(jac, axes)
 
-        tangent_vec_extrinsic = gs.einsum(
-            "...ij,...j->...i", jac, tangent_vec_spherical
-        )
-
-        return tangent_vec_extrinsic
+        return gs.einsum("...ij,...j->...i", jac, tangent_vec_spherical)
 
     def extrinsic_to_spherical(self, point_extrinsic):
         """Convert point from extrinsic to spherical coordinates.
@@ -302,9 +298,9 @@ class _Hypersphere(LevelSet):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., dim + 1]
             Tangent vector to the sphere, in spherical coordinates.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim + 1]
             Point on the sphere. Unused if `base_point_spherical` is given.
             Optional, default : None.
         base_point_spherical : array-like, shape=[..., dim]
@@ -362,9 +358,7 @@ class _Hypersphere(LevelSet):
         theta_criterion = gs.einsum("...,...ij->...ij", theta, gs.ones_like(jac))
         jac = gs.where(gs.abs(theta_criterion) < gs.atol, jac_close_0, jac)
 
-        tangent_vec_spherical = gs.einsum("...ij,...j->...i", jac, tangent_vec)
-
-        return tangent_vec_spherical
+        return gs.einsum("...ij,...j->...i", jac, tangent_vec)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert point from intrinsic to extrinsic coordinates.
