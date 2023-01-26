@@ -2,7 +2,7 @@
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.discrete_curves import R2, DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -11,7 +11,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.learning.polynomial_regression import PolynomialRegression
 
 
-class TestPolynomialRegression(geomstats.tests.TestCase):
+class TestPolynomialRegression(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 
     def setup_method(self):
@@ -89,7 +89,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
         self.se2 = SpecialEuclidean(n=2)
         self.order_se2 = 2
         self.metric_se2 = self.se2.left_canonical_metric
-        self.metric_se2.default_point_type = "matrix"
+        # self.metric_se2.default_point_type = "matrix"
 
         self.shape_se2 = (3, 3)
         X = gs.random.rand(self.n_samples)
@@ -148,7 +148,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
         self.X_curves_2d = X - gs.mean(X)
 
         self.intercept_curves_2d_true = self.curves_2d.random_point(
-            n_sampling_points=n_sampling_points
+            n_samples=n_sampling_points
         )
         self.coef_curves_2d_true = self.curves_2d.to_tangent(
             5.0 * gs.random.rand(*((self.order_curves_2d,) + self.shape_curves_2d)),
@@ -175,7 +175,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
                 (-1,) + self.shape_curves_2d,
             ),
             # self.X_curves_2d[:, None, None] * self.coef_curves_2d_true[None],
-            intercept_curves_2d_true_repeated,
+            intercept_curves_2d_true_repeated.squeeze(),
         )
 
         self.param_curves_2d_true = gs.vstack(
@@ -242,7 +242,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.0))
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_only
     def test_loss_se2(self):
         """Test that the loss is 0 at the true parameters."""
         pr = PolynomialRegression(
@@ -259,7 +259,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.0))
 
-    @geomstats.tests.autograd_only
+    @tests.conftest.autograd_only
     def test_loss_curves_2d(self):
         """Test that the loss is 0 at the true parameters."""
         pr = PolynomialRegression(
@@ -281,7 +281,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.0))
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_value_and_grad_loss_euclidean(self):
         pr = PolynomialRegression(
             self.eucl,
@@ -329,7 +329,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
         self.assertFalse(gs.all(gs.isclose(loss_grad, gs.zeros(expected_grad_shape))))
         self.assertTrue(gs.all(~gs.isnan(loss_grad)))
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_value_and_grad_loss_hypersphere(self):
         pr = PolynomialRegression(
             self.sphere,
@@ -381,7 +381,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
         self.assertFalse(gs.all(gs.isclose(loss_grad, gs.zeros(expected_grad_shape))))
         self.assertTrue(gs.all(~gs.isnan(loss_grad)))
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_only
     def test_value_and_grad_loss_se2(self):
 
         pr = PolynomialRegression(
@@ -424,7 +424,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
         self.assertFalse(gs.all(gs.isclose(loss_grad, gs.zeros(expected_grad_shape))))
         self.assertTrue(gs.all(~gs.isnan(loss_grad)))
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_loss_minimization_extrinsic_euclidean(self):
         """Minimize loss from noiseless data."""
         pr = PolynomialRegression(self.eucl, order=self.order_eucl, regularization=0)
@@ -472,7 +472,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
             transported_coef_hat, self.coef_eucl_true, atol=1000 * gs.atol
         )
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_loss_minimization_extrinsic_hypersphere(self):
         """Minimize loss from noiseless data."""
         pr = PolynomialRegression(
@@ -519,7 +519,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=0.6)
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_only
     def test_loss_minimization_extrinsic_se2(self):
         pr = PolynomialRegression(
             self.se2,
@@ -577,7 +577,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(transported_coef_hat, self.coef_se2_true, atol=0.6)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_fit_extrinsic_euclidean(self):
         pr = PolynomialRegression(
             self.eucl,
@@ -615,7 +615,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=1e-3)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_fit_extrinsic_hypersphere(self):
         pr = PolynomialRegression(
             self.sphere,
@@ -652,7 +652,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=0.6)
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_only
     def test_fit_extrinsic_se2(self):
         pr = PolynomialRegression(
             self.se2,
@@ -687,7 +687,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(transported_coef_hat, self.coef_se2_true, atol=0.6)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_fit_riemannian_euclidean(self):
         pr = PolynomialRegression(
             self.eucl,
@@ -724,7 +724,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=0.5)
 
-    @geomstats.tests.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_fit_riemannian_hypersphere(self):
         pr = PolynomialRegression(
             self.sphere,
@@ -761,7 +761,7 @@ class TestPolynomialRegression(geomstats.tests.TestCase):
 
         self.assertAllClose(transported_coef_hat, self.coef_sphere_true, atol=0.6)
 
-    @geomstats.tests.autograd_and_tf_only
+    @tests.conftest.autograd_only
     def test_fit_riemannian_se2(self):
         pr = PolynomialRegression(
             self.se2,
