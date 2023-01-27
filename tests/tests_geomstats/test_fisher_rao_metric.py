@@ -85,5 +85,5 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
     ):
         metric = self.Metric(information_manifold=information_manifold, support=support)
         inner_prod_deriv_mat = metric.inner_product_derivative_matrix(base_point=base_point)
-        normal_inner_prod_deriv_mat = closed_form_derivative(base_point=base_point)
+        normal_inner_prod_deriv_mat = closed_form_derivative(base_point)
         self.assertAllClose(inner_prod_deriv_mat, normal_inner_prod_deriv_mat)

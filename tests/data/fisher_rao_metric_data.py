@@ -281,12 +281,34 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
     def inner_product_derivative_and_closed_form_inner_product_derivative_test_data(self):
         smoke_data = [
             dict(
+                information_manifold=ExponentialDistributions(),
+                support=(0,100),
+                closed_form_derivative=lambda p: gs.expand_dims(gs.expand_dims(-2/p**3,axis=-1),axis=-1),
+                base_point=gs.array([0.5])
+            ),
+            dict(
+                information_manifold=ExponentialDistributions(),
+                support=(0,200),
+                closed_form_derivative=lambda p: gs.expand_dims(gs.expand_dims(-2/p**3,axis=-1),axis=-1),
+                base_point=gs.array([[0.2],[0.5]])
+            ),
+            dict(
                 information_manifold=UnivariateNormalDistributions(),
                 support=(-20, 20),
-                closed_form_derivative=(lambda point: gs.array([[[0,-2/point[1]]]]) if point.ndim == 1 else gs.array([])),
-                tangent_vec_a=gs.array([1.0, 2.0]),
-                tangent_vec_b=gs.array([1.0, 2.0]),
+                closed_form_derivative=lambda p: gs.array([[[0,-2/p[1]**3], [0,0]],
+                                                            [[0,0], [0,-4/p[1]**3]]]) if p.ndim == 1 
+                                            else gs.array([[[[0,-2/p_[1]**3], [0,0]],
+                                                            [[0,0], [0,-4/p_[1]**3]]] for p_ in p]),
                 base_point=gs.array([1.0, 2.0]),
+            ),
+            dict(
+                information_manifold=UnivariateNormalDistributions(),
+                support=(-20, 20),
+                closed_form_derivative=lambda p: gs.array([[[0,-2/p[1]**3], [0,0]],
+                                                            [[0,0], [0,-4/p[1]**3]]]) if p.ndim == 1 
+                                            else gs.array([[[[0,-2/p_[1]**3], [0,0]],
+                                                            [[0,0], [0,-4/p_[1]**3]]] for p_ in p]),
+                base_point=gs.array([[1.0, 2.0],[3.0,1.0]]),
             ),
         ]
         return self.generate_tests(smoke_data)
