@@ -197,13 +197,13 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 information_manifold=UnivariateNormalDistributions(),
-                support=(-10, 10),
+                support=(-20, 20),
                 closed_form_metric=UnivariateNormalMetric(),
                 base_point=gs.array([0.1, 0.8]),
             ),
             dict(
                 information_manifold=UnivariateNormalDistributions(),
-                support=(-10, 10),
+                support=(-20, 20),
                 closed_form_metric=UnivariateNormalMetric(),
                 base_point=gs.array([[0.1, 0.8],[0.2, 0.5]]),
             ),
@@ -271,6 +271,19 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
                 information_manifold=normal_dists,
                 support=(-20, 20),
                 closed_form_metric=normal_dists.metric,
+                tangent_vec_a=gs.array([1.0, 2.0]),
+                tangent_vec_b=gs.array([1.0, 2.0]),
+                base_point=gs.array([1.0, 2.0]),
+            ),
+        ]
+        return self.generate_tests(smoke_data)
+
+    def inner_product_derivative_and_closed_form_inner_product_derivative_test_data(self):
+        smoke_data = [
+            dict(
+                information_manifold=UnivariateNormalDistributions(),
+                support=(-20, 20),
+                closed_form_derivative=(lambda point: gs.array([[[0,-2/point[1]]]]) if point.ndim == 1 else gs.array([])),
                 tangent_vec_a=gs.array([1.0, 2.0]),
                 tangent_vec_b=gs.array([1.0, 2.0]),
                 base_point=gs.array([1.0, 2.0]),

@@ -52,7 +52,7 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
         normal_metric_mat = closed_form_metric.metric_matrix(
             base_point=base_point,
         )
-        self.assertAllClose(inner_prod_mat, normal_metric_mat,atol=1e-11)
+        self.assertAllClose(inner_prod_mat, normal_metric_mat)
 
     def test_inner_product_and_closed_form_inner_product(
         self,
@@ -75,3 +75,15 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
             base_point=base_point,
         )
         self.assertAllClose(inner_prod_mat, normal_metric_mat)
+
+    def test_inner_product_derivative_and_closed_form_inner_product_derivative(
+        self,
+        information_manifold,
+        support,
+        closed_form_derivative,
+        base_point,
+    ):
+        metric = self.Metric(information_manifold=information_manifold, support=support)
+        inner_prod_deriv_mat = metric.inner_product_derivative_matrix(base_point=base_point)
+        normal_inner_prod_deriv_mat = closed_form_derivative(base_point=base_point)
+        self.assertAllClose(inner_prod_deriv_mat, normal_inner_prod_deriv_mat)

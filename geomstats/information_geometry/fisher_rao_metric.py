@@ -150,24 +150,15 @@ f
             x : float, shape (,)
                 Point on the support of the distribution
             """
-            # print('\nx =',x)
             return lambda point: self.information_manifold.point_to_pdf(point)(x)
 
         def _function_to_integrate(x):
             pdf_x = pdf(x)
             pdf_x_at_base_point = pdf_x(base_point)
-            print('pdf_x',pdf_x_at_base_point.shape,pdf_x_at_base_point)
             pdf_x_derivative = gs.autodiff.jacobian_vec(pdf_x)
             pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)
-            print('jacob',pdf_x_derivative_at_base_point.shape,pdf_x_derivative_at_base_point)
-            pdf_x_hessian = gs.autodiff.jacobian_vec(pdf_x_derivative)
-            pdf_x_hessian_at_base_point = pdf_x_hessian(base_point)
-            print('jacob jacob',pdf_x_hessian_at_base_point.shape,pdf_x_hessian_at_base_point)
             pdf_x_hessian = gs.autodiff.hessian_vec(pdf_x)
             pdf_x_hessian_at_base_point = pdf_x_hessian(base_point)
-            print('hessian',pdf_x_hessian_at_base_point.shape,pdf_x_hessian_at_base_point)
-            # pdf_x_jacobian_,pdf_x_hessian_ = gs.autodiff.jacobian_and_hessian(pdf_x)(base_point)
-            # print('d',pdf_x_jacobian_,'e',pdf_x_hessian_)
 
             return gs.einsum(
                     "...n,...ijk->...ijk",
