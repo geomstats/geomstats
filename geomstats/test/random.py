@@ -1,5 +1,6 @@
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet, OpenSet, VectorSpace
+from geomstats.geometry.hypersphere import _Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.vectorization import get_n_points
 
@@ -9,6 +10,12 @@ def _get_random_tangent_vec(space, base_point):
     batch_shape = (n_points,) if n_points > 1 else ()
     vec = gs.random.uniform(size=batch_shape + space.shape)
     return space.to_tangent(vec, base_point)
+
+
+def _get_random_tangent_vec_hypersphere_intrinsic(space, base_point):
+    n_points = get_n_points(space, base_point)
+    batch_shape = (n_points,) if n_points > 1 else ()
+    return gs.random.uniform(size=batch_shape + (space.dim,))
 
 
 def _get_random_tangent_vec_vector_space(space, base_point):
@@ -24,6 +31,9 @@ def _get_random_tangent_vec_from_embedding_space(space, base_point):
 
 
 def get_random_tangent_vec(space, base_point):
+    if isinstance(space, _Hypersphere) and space.default_coords_type == "intrinsic":
+        return _get_random_tangent_vec_hypersphere_intrinsic(space, base_point)
+
     if isinstance(space, SPDMatrices):
         return space.random_tangent_vec(base_point)
 

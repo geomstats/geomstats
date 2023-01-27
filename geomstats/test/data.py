@@ -49,3 +49,7 @@ class TestData:
     def generate_vec_data(self, marks=()):
         data = [dict(n_reps=n_reps) for n_reps in self.N_VEC_REPS]
         return self.generate_tests(data, marks=marks)
+
+    def generate_shape_data(self, marks=()):
+        data = [dict(n_points=n_points) for n_points in self.N_SHAPE_POINTS]
+        return self.generate_tests(data, marks=marks)

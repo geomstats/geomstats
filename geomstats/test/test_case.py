@@ -150,8 +150,8 @@ class TestCase:
     def assertFalse(self, condition, msg=None):
         assert not condition, msg
 
-    def assertEqual(self, a, b):
-        assert a == b
+    def assertEqual(self, a, b, msg=None):
+        assert a == b, msg
 
     def assertAllCloseToNp(self, a, np_a, rtol=gs.rtol, atol=gs.atol):
         are_same_shape = np.all(a.shape == np_a.shape)

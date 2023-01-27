@@ -66,8 +66,7 @@ class ManifoldTestData(TestData):
         return self.generate_random_data()
 
     def random_point_shape_test_data(self):
-        data = [dict(n_points=n_points) for n_points in self.N_SHAPE_POINTS]
-        return self.generate_tests(data)
+        return self.generate_shape_data()
 
     def is_tangent_vec_test_data(self):
         return self.generate_vec_data()

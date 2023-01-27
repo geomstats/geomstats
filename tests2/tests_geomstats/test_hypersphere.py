@@ -21,6 +21,7 @@ from tests2.data.hypersphere_data import (
     params=[
         1,
         2,
+        3,
     ],
 )
 def coords_transform_spaces(request):
