@@ -138,17 +138,15 @@ class TestPolynomialRegression(tests.conftest.TestCase):
 
         # Set up for discrete curves
         n_sampling_points = 8
-        self.curves_2d = DiscreteCurves(R2)
+        self.curves_2d = DiscreteCurves(R2, k_sampling_points=n_sampling_points)
         self.order_curves_2d = 3
         self.metric_curves_2d = self.curves_2d.srv_metric
-        self.metric_curves_2d.default_point_type = "matrix"
 
         self.shape_curves_2d = (n_sampling_points, 2)
         X = gs.random.rand(self.n_samples)
         self.X_curves_2d = X - gs.mean(X)
 
         self.intercept_curves_2d_true = self.curves_2d.random_point(
-            n_samples=n_sampling_points
         )
         self.coef_curves_2d_true = self.curves_2d.to_tangent(
             5.0 * gs.random.rand(*((self.order_curves_2d,) + self.shape_curves_2d)),
@@ -175,7 +173,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
                 (-1,) + self.shape_curves_2d,
             ),
             # self.X_curves_2d[:, None, None] * self.coef_curves_2d_true[None],
-            intercept_curves_2d_true_repeated.squeeze(),
+            intercept_curves_2d_true_repeated,
         )
 
         self.param_curves_2d_true = gs.vstack(
