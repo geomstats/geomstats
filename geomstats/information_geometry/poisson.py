@@ -17,7 +17,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of Poisson distributions.
 
     This is the parameter space of Poisson distributions
-    i.e. the half-line of positive reals.
+    i.e. [the half-line of positive reals].
     """
 
     def __init__(self):
@@ -71,7 +71,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
 
-        The last coordinate is floored to `gs.atol` if it is non-positive.
+        Return a point belonging to the half-line of positive reals within the given tolerance.
 
         Parameters
         ----------
@@ -141,12 +141,12 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
 
             Parameters
             ----------
-            k : array-like, shape=[n_points,]
+            k : array-like, shape=[n_samples,]
                 Point representing an Poisson distribution (lambda).
 
             Returns
             -------
-            pmf_at_k : array-like, shape=[..., n_points]
+            pmf_at_k : array-like, shape=[..., n_samples]
                 Probability mass function of the Poisson distribution with
                 parameters provided by point.
             """
@@ -311,8 +311,8 @@ class PoissonMetric(RiemannianMetric):
         path : callable
             Time parameterized geodesic curve. If a batch of initial
             conditions is passed, the output array's first dimension
-            represents time, and the second corresponds to the different
-            initial conditions.
+            corresponds to the different initial conditions, and the 
+            second represents time.
         """
         if end_point is None and initial_tangent_vec is None:
             raise ValueError(

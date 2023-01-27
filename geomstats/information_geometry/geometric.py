@@ -16,7 +16,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
     """Class for the manifold of geometric distributions.
 
     This is the parameter space of geometric distributions
-    i.e. the half-line of positive reals.
+    i.e. [0,1] segment.
     """
 
     def __init__(self):
@@ -46,7 +46,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
         return gs.squeeze(gs.logical_and(atol <= point, point <= 1 - atol))
 
     def random_point(self, n_samples=1):
-        """Sample parameters of Possion distributions.
+        """Sample parameters of geometric distributions.
 
         The uniform distribution on (0, 1) is used.
 
@@ -70,14 +70,14 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
 
-        The last coordinate is floored to `gs.atol` if it is non-positive.
+        Return a new point belonging to [0,1] segment within the given tolerance.
 
         Parameters
         ----------
         point : array-like, shape=[..., 1]
             Point in ambient space.
         atol : float
-            Tolerance to evaluate positivity.
+            Tolerance to evaluate the position with respect to [0,1] interval.
 
         Returns
         -------
@@ -145,12 +145,12 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
 
             Parameters
             ----------
-            k : array-like, shape=[n_points,]
+            k : array-like, shape=[n_samples,]
                 Point representing an geometric distribution (lambda).
 
             Returns
             -------
-            pmf_at_k : array-like, shape=[..., n_points]
+            pmf_at_k : array-like, shape=[..., n_samples]
                 Probability mass function of the geometric distribution with
                 parameters provided by point.
             """
@@ -178,9 +178,9 @@ class GeometricMetric(RiemannianMetric):
         Parameters
         ----------
         point_a : array-like, shape=[..., 1]
-            Point representing an geometric distribution (lambda parameter).
+            Point representing an geometric distribution.
         point_b : array-like, shape=[..., 1]
-            Point representing a geometric distribution (lambda parameter).
+            Point representing a geometric distribution.
 
         Returns
         -------
@@ -194,7 +194,7 @@ class GeometricMetric(RiemannianMetric):
         )
 
     def metric_matrix(self, base_point):
-        """Compute the metric matrix at the tangent space at base_point.
+        """Compute the metric matrix at base_point.
 
         Parameters
         ----------
@@ -324,8 +324,8 @@ class GeometricMetric(RiemannianMetric):
         path : callable
             Time parameterized geodesic curve. If a batch of initial
             conditions is passed, the output array's first dimension
-            represents time, and the second corresponds to the different
-            initial conditions.
+            corresponds to the different initial conditions, and the 
+            second represents time.
         """
         if end_point is None and initial_tangent_vec is None:
             raise ValueError(
