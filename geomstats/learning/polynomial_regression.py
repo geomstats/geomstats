@@ -32,8 +32,6 @@ import geomstats.errors
 from geomstats.geometry.matrices import Matrices
 from geomstats.learning.frechet_mean import FrechetMean
 
-# from test_geodesic_regression import TestGeodesicRegression
-
 
 class PolynomialRegression(BaseEstimator):
     r"""PolynomialRegression.
@@ -543,15 +541,13 @@ class PolynomialRegression(BaseEstimator):
         self : array-like, shape=[...,]
             Array of predicted cluster indices for each sample.
         """
-        times = gs.copy(X)
-
-        if self.center_X:
-            times = times - self.mean_
-
         if self.coef_ is None:
             raise RuntimeError("Fit method must be called before predict.")
 
-        return self._model(times, self.coef_, self.intercept_)
+        if self.center_X:
+            X -= self.mean_
+
+        return self._model(X, self.coef_, self.intercept_)
 
     def score(self, X, y, weights=None):
         """Compute training score.
