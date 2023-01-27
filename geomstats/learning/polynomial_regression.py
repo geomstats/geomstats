@@ -1,7 +1,6 @@
 r"""Polynomial Regression.
 
 Lead author: Arka Mallela.
-Last updated: 7-15-22
 
 The generative model of the data is:
 :math:`Z = Exp_{\beta_0}(\sum_{k=1}^{N}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
@@ -150,11 +149,6 @@ class PolynomialRegression(BaseEstimator):
         X_copy = X[:, None]
 
         # Pads additional dimensions as needed
-        # X_copy = (
-        #     X[:, None]
-        #     if self.metric.default_point_type == "vector"
-        #     else X[:, None, None]
-        # )
         # generate exponentiated matrix - N (samples) x k (order)
         # This is a matrix where columns are powers of X
         X_powers = gs.hstack([X_copy**k for k in range(1, self.order + 1)])
