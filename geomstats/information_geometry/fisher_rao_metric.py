@@ -9,18 +9,18 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 class FisherRaoMetric(RiemannianMetric):
     r"""Class to derive the information metric from the pdf in InformationManifoldMixin.
 
-    Given a statistical manifold with coordinates :math:`\theta`,
-    the Fisher information metric is:
-    :math:`g_{j k}(\theta)=\int_X \frac{\partial \log p(x, \theta)}{\partial \theta_j}
-        \frac{\partial \log p(x, \theta)}{\partial \theta_k} p(x, \theta) d x`
-f
-    Attributes
-    ----------
-    information_manifold : InformationManifoldMixin object
-        Riemannian Manifold for a parametric family of (real) distributions.
-    support : list, shape = (2,)
-        Left and right bounds for the support of the distribution.
-        But this is just to help integration, bounds should be as large as needed.
+        Given a statistical manifold with coordinates :math:`\theta`,
+        the Fisher information metric is:
+        :math:`g_{j k}(\theta)=\int_X \frac{\partial \log p(x, \theta)}{\partial \theta_j}
+            \frac{\partial \log p(x, \theta)}{\partial \theta_k} p(x, \theta) d x`
+    f
+        Attributes
+        ----------
+        information_manifold : InformationManifoldMixin object
+            Riemannian Manifold for a parametric family of (real) distributions.
+        support : list, shape = (2,)
+            Left and right bounds for the support of the distribution.
+            But this is just to help integration, bounds should be as large as needed.
     """
 
     def __init__(self, information_manifold, support):
@@ -91,14 +91,16 @@ f
             pdf_x_at_base_point = pdf_x(base_point)
             pdf_x_derivative = gs.autodiff.jacobian_vec(pdf_x)
             pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)
-            return (gs.einsum("...ij,...k->...ij",
+            return gs.einsum(
+                "...ij,...k->...ij",
                 gs.einsum(
                     "...ki,...kj->...ij",
                     pdf_x_derivative_at_base_point,
                     pdf_x_derivative_at_base_point,
                 ),
-                1 / pdf_x_at_base_point)
+                1 / pdf_x_at_base_point,
             )
+
         metric_mat = quad_vec(_function_to_integrate, *self.support)[0]
         return metric_mat
 
@@ -161,28 +163,28 @@ f
             pdf_x_hessian_at_base_point = pdf_x_hessian(base_point)
 
             return gs.einsum(
+                "...n,...ijk->...ijk",
+                1 / (pdf_x_at_base_point**2),
+                gs.einsum(
                     "...n,...ijk->...ijk",
-                    1 / (pdf_x_at_base_point**2),
+                    pdf_x_at_base_point,
                     gs.einsum(
-                        "...n,...ijk->...ijk",
-                        pdf_x_at_base_point,
-                        gs.einsum(
-                            "...ki,...nj->...ijk",
-                            pdf_x_hessian_at_base_point,
-                            pdf_x_derivative_at_base_point,
-                        )
-                        + gs.einsum(
-                            "...kj,...ni->...ijk",
-                            pdf_x_hessian_at_base_point,
-                            pdf_x_derivative_at_base_point,
-                        )
-                    )
-                    - gs.einsum(
-                        "...ni, ...nj, ...nk -> ...ijk",
-                        pdf_x_derivative_at_base_point,
-                        pdf_x_derivative_at_base_point,
+                        "...ki,...nj->...ijk",
+                        pdf_x_hessian_at_base_point,
                         pdf_x_derivative_at_base_point,
                     )
+                    + gs.einsum(
+                        "...kj,...ni->...ijk",
+                        pdf_x_hessian_at_base_point,
+                        pdf_x_derivative_at_base_point,
+                    ),
                 )
+                - gs.einsum(
+                    "...ni, ...nj, ...nk -> ...ijk",
+                    pdf_x_derivative_at_base_point,
+                    pdf_x_derivative_at_base_point,
+                    pdf_x_derivative_at_base_point,
+                ),
+            )
 
         return quad_vec(_function_to_integrate, *self.support)[0]

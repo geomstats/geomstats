@@ -169,6 +169,7 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
         """
         kappa = gs.expand_dims(point[..., 0], axis=-1)
         gamma = gs.expand_dims(point[..., 1], axis=-1)
+
         def pdf(x):
             """Generate parameterized function for Gamma pdf.
 
@@ -185,7 +186,13 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
                 by point.
             """
             x = gs.reshape(gs.array(x), (-1,))
-            return kappa ** kappa * x ** (kappa-1) * gs.exp(-kappa*x/gamma) / (gamma**kappa * gs.gamma(kappa))
+            return (
+                kappa**kappa
+                * x ** (kappa - 1)
+                * gs.exp(-kappa * x / gamma)
+                / (gamma**kappa * gs.gamma(kappa))
+            )
+
         return pdf
 
     @staticmethod
