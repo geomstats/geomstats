@@ -142,7 +142,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
             Parameters
             ----------
             k : array-like, shape=[n_samples,]
-                Point representing an Poisson distribution (lambda).
+                Point in the sample space, i.e. an integer.
 
             Returns
             -------

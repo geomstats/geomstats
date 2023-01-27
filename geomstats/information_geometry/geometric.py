@@ -146,7 +146,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
             Parameters
             ----------
             k : array-like, shape=[n_samples,]
-                Point representing an geometric distribution (lambda).
+                Point in the sample space, i.e. an integer.
 
             Returns
             -------
