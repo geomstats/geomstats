@@ -222,7 +222,7 @@ Contributing
 ------------
 
 See our
-`contributing <https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst>`__
+`contributing <https://github.com/geomstats/geomstats/blob/master/docs/contributing/index.rst>`__
 guidelines!
 
 Interested? Contact us and join the next hackathons. Previous Geomstats events include:
