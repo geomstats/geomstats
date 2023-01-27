@@ -121,7 +121,7 @@ class _Hypersphere(LevelSet):
         return vector - gs.einsum("...,...j->...j", coef, base_point)
 
     @staticmethod
-    def angle_to_extrinsic(point_angle):
+    def _angle_to_extrinsic(point_angle):
         """Convert point from angle to extrinsic coordinates.
 
         Convert from the angle in radians to the extrinsic coordinates in
@@ -143,7 +143,7 @@ class _Hypersphere(LevelSet):
         return gs.hstack([cos, sin])
 
     @staticmethod
-    def extrinsic_to_angle(point_extrinsic):
+    def _extrinsic_to_angle(point_extrinsic):
         """Compute the angle of a point in the plane.
 
         Convert from the extrinsic coordinates in the 2d plane to angle in
@@ -152,12 +152,12 @@ class _Hypersphere(LevelSet):
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[...]
+        point_extrinsic : array-like, shape=[..., 2]
             Point on the circle, in extrinsic coordinates in Euclidean space.
 
         Returns
         -------
-        point_angle : array_like, shape=[..., 2]
+        point_angle : array_like, shape=[..., 1]
             Point on the circle, i.e. an angle in radians in [-Pi, Pi].
         """
         return gs.expand_dims(
@@ -165,7 +165,7 @@ class _Hypersphere(LevelSet):
             axis=-1,
         )
 
-    def spherical_to_extrinsic(self, point_spherical):
+    def _spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
 
         Convert from the spherical coordinates in the hypersphere
@@ -176,21 +176,14 @@ class _Hypersphere(LevelSet):
 
         Parameters
         ----------
-        point_spherical : array-like, shape=[..., dim]
+        point_spherical : array-like, shape=[..., 2]
             Point on the sphere, in spherical coordinates.
 
         Returns
         -------
-        point_extrinsic : array_like, shape=[..., dim + 1]
+        point_extrinsic : array_like, shape=[..., 3]
             Point on the sphere, in extrinsic coordinates in Euclidean space.
         """
-        if self.dim != 2:
-            raise NotImplementedError(
-                "The conversion from spherical coordinates"
-                " to extrinsic coordinates is implemented"
-                " only in dimension 2."
-            )
-
         theta = point_spherical[..., 0]
         phi = point_spherical[..., 1]
 
@@ -216,14 +209,14 @@ class _Hypersphere(LevelSet):
 
         Parameters
         ----------
-        tangent_vec_spherical : array-like, shape=[..., dim]
+        tangent_vec_spherical : array-like, shape=[..., 2]
             Tangent vector to the sphere, in spherical coordinates.
-        base_point_spherical : array-like, shape=[..., dim]
+        base_point_spherical : array-like, shape=[..., 2]
             Point on the sphere, in spherical coordinates.
 
         Returns
         -------
-        tangent_vec_extrinsic : array-like, shape=[..., dim + 1]
+        tangent_vec_extrinsic : array-like, shape=[..., 3]
             Tangent vector to the sphere, at base point,
             in extrinsic coordinates in Euclidean space.
         """
@@ -252,7 +245,7 @@ class _Hypersphere(LevelSet):
 
         return gs.einsum("...ij,...j->...i", jac, tangent_vec_spherical)
 
-    def extrinsic_to_spherical(self, point_extrinsic):
+    def _extrinsic_to_spherical(self, point_extrinsic):
         """Convert point from extrinsic to spherical coordinates.
 
         Convert from the extrinsic coordinates, i.e. embedded in Euclidean
@@ -263,22 +256,15 @@ class _Hypersphere(LevelSet):
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[..., dim]
+        point_extrinsic : array-like, shape=[..., 3]
             Point on the sphere, in extrinsic coordinates.
 
         Returns
         -------
-        point_spherical : array_like, shape=[..., dim + 1]
+        point_spherical : array_like, shape=[..., 2]
             Point on the sphere, in spherical coordinates relative to the
             north pole.
         """
-        if self.dim != 2:
-            raise NotImplementedError(
-                "The conversion from to extrinsic coordinates "
-                "spherical coordinates is implemented"
-                " only in dimension 2."
-            )
-
         theta = gs.arccos(point_extrinsic[..., -1])
         x = point_extrinsic[..., 0]
         y = point_extrinsic[..., 1]
@@ -298,19 +284,19 @@ class _Hypersphere(LevelSet):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim + 1]
+        tangent_vec : array-like, shape=[..., 3]
             Tangent vector to the sphere, in spherical coordinates.
-        base_point : array-like, shape=[..., dim + 1]
+        base_point : array-like, shape=[..., 3]
             Point on the sphere. Unused if `base_point_spherical` is given.
             Optional, default : None.
-        base_point_spherical : array-like, shape=[..., dim]
+        base_point_spherical : array-like, shape=[..., 2]
             Point on the sphere, in spherical coordinates. Either
             `base_point` or `base_point_spherical` must be given.
             Optional, default : None.
 
         Returns
         -------
-        tangent_vec_spherical : array-like, shape=[..., dim + 1]
+        tangent_vec_spherical : array-like, shape=[..., 2]
             Tangent vector to the sphere, at base point,
             in spherical coordinates relative to the north pole [0., 0., 1.].
         """
@@ -326,7 +312,7 @@ class _Hypersphere(LevelSet):
                 "extrinsic or in spherical coordinates."
             )
         if base_point_spherical is None and base_point is not None:
-            base_point_spherical = self.extrinsic_to_spherical(base_point)
+            base_point_spherical = self._extrinsic_to_spherical(base_point)
 
         axes = (2, 0, 1) if base_point_spherical.ndim == 2 else (0, 1)
         theta = base_point_spherical[..., 0]
@@ -382,9 +368,9 @@ class _Hypersphere(LevelSet):
             Euclidean space.
         """
         if self.dim == 2:
-            return self.spherical_to_extrinsic(point_intrinsic)
+            return self._spherical_to_extrinsic(point_intrinsic)
         if self.dim == 1:
-            return self.angle_to_extrinsic(point_intrinsic)
+            return self._angle_to_extrinsic(point_intrinsic)
 
         raise NotImplementedError(
             "Intrinsic coordinates are only implemented in dimension 1 and 2."
@@ -408,9 +394,9 @@ class _Hypersphere(LevelSet):
             Point on the hypersphere, in intrinsic coordinates.
         """
         if self.dim == 2:
-            return self.extrinsic_to_spherical(point_extrinsic)
+            return self._extrinsic_to_spherical(point_extrinsic)
         if self.dim == 1:
-            return self.extrinsic_to_angle(point_extrinsic)
+            return self._extrinsic_to_angle(point_extrinsic)
 
         raise NotImplementedError(
             "Intrinsic coordinates are only implemented in dimension 1 and 2."
@@ -510,6 +496,8 @@ class _Hypersphere(LevelSet):
             in Euclidean space of dimension dim + 1.
         """
         dim = self.dim
+        if dim == 1:
+            raise NotImplementedError("Not implemented for dim == 1")
 
         if dim == 2:
             angle = 2.0 * gs.pi * gs.random.rand(n_samples)
