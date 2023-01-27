@@ -146,8 +146,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         X = gs.random.rand(self.n_samples)
         self.X_curves_2d = X - gs.mean(X)
 
-        self.intercept_curves_2d_true = self.curves_2d.random_point(
-        )
+        self.intercept_curves_2d_true = self.curves_2d.random_point()
         self.coef_curves_2d_true = self.curves_2d.to_tangent(
             5.0 * gs.random.rand(*((self.order_curves_2d,) + self.shape_curves_2d)),
             self.intercept_curves_2d_true,
