@@ -10,7 +10,7 @@ where:
 - :math:`Exp` denotes the Riemannian exponential,
 - :math:`\beta_0` is called the intercept,
   and is a point on the manifold,
-- :math:`\beta_k` is called the coefficient, of :math:`X^k' power term
+- :math:`\beta_k` is called the coefficient, of :math:`X^k` power term
   and is a tangent vector to the manifold at :math:`\beta_0`,
 - :math:`N` denotes the order of the polynomial,
 - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
@@ -193,13 +193,7 @@ class PolynomialRegression(BaseEstimator):
             Loss.
         """
         # Split parameters (per order)
-        intercept, coef = self.split_parameters(param)
-
-        intercept = gs.reshape(intercept, shape)
-        # print(f"AFTER intercept SHAPE is {intercept.shape}")
-
-        coef = gs.reshape(coef, (self.order,) + shape)
-        # print(f"AFTER coef SHAPE is {coef.shape}")
+        intercept, coef = self._split_parameters(param)
 
         intercept = gs.cast(intercept, dtype=y.dtype)
         coef = gs.cast(coef, dtype=y.dtype)
@@ -220,7 +214,8 @@ class PolynomialRegression(BaseEstimator):
 
         return 1.0 / 2.0 * gs.sum(weights * distances) + penalty
 
-    def split_parameters(self, param):
+    @staticmethod
+    def _split_parameters(param):
         """Split parameter matrix into intercept and coeff.
 
         Split parameters (order + 1 x dim) into intercept (1 x dim)
@@ -240,11 +235,9 @@ class PolynomialRegression(BaseEstimator):
         coef : array-like, shape=[{order, dim, [n,n]}]
             Initial value for the coefficient matrix.
         """
-        param = gs.reshape(param, (self.order + 1, -1))
-        intercept, coef = gs.split(param, [1], axis=0)  # split 1st row off as intercept
-        return gs.squeeze(intercept), coef
+        return param[0, :], param[1:, :]
 
-    def combine_parameters(self, intercept, coef):
+    def _combine_parameters(self, intercept, coef):
         """Combine  intercept and coeff into param.
 
         Split parameters (order + 1 x dim) into intercept (1 x dim)
@@ -335,7 +328,7 @@ class PolynomialRegression(BaseEstimator):
         intercept_hat = self.space.projection(intercept_init)
         coef_init = gs.reshape(coef_init, (self.order,) + shape)
         coef_hat = self.space.to_tangent(coef_init, intercept_hat)
-        initial_guess = self.combine_parameters(intercept_hat, coef_hat)
+        initial_guess = self._combine_parameters(intercept_hat, coef_hat)
 
         objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self._loss(X, y, param, shape, weights), to_numpy=True
@@ -350,7 +343,7 @@ class PolynomialRegression(BaseEstimator):
             tol=self.tol,
         )
 
-        intercept_hat, coef_hat = self.split_parameters(gs.array(res.x))
+        intercept_hat, coef_hat = self._split_parameters(gs.array(res.x))
         intercept_hat = gs.reshape(intercept_hat, shape)
         intercept_hat = gs.cast(intercept_hat, dtype=y.dtype)
         coef_hat = gs.reshape(coef_hat, (self.order,) + shape)
@@ -397,7 +390,7 @@ class PolynomialRegression(BaseEstimator):
         )
         if isinstance(init, str):
             if init == "random":
-                return self.split_parameters(
+                return self._split_parameters(
                     gs.random.normal(size=(1 + self.order,) + shape)
                 )
             if init == "frechet":
@@ -410,7 +403,7 @@ class PolynomialRegression(BaseEstimator):
             if init == "warm_start":
                 if self.intercept_ is not None:
                     return self.intercept_, self.coef_
-                return self.split_parameters(
+                return self._split_parameters(
                     gs.random.normal(size=(1 + self.order,) + shape)
                 )
             raise ValueError(
@@ -465,7 +458,7 @@ class PolynomialRegression(BaseEstimator):
 
         intercept_hat = intercept_hat_new = self.space.projection(intercept_init)
         coef_hat = coef_hat_new = self.space.to_tangent(coef_init, intercept_hat)
-        param = self.combine_parameters(intercept_hat, coef_hat)
+        param = self._combine_parameters(intercept_hat, coef_hat)
         current_loss = [math.inf]
         current_grad = gs.zeros_like(param)
         current_iter = i = 0
@@ -489,7 +482,7 @@ class PolynomialRegression(BaseEstimator):
                     logging.info(f"Tolerance threshold reached at iter {current_iter}")
                 break
 
-            grad_intercept, grad_coef = self.split_parameters(grad)
+            grad_intercept, grad_coef = self._split_parameters(grad)
 
             riem_grad_intercept = self.space.to_tangent(
                 gs.reshape(grad_intercept, shape), intercept_hat
@@ -508,7 +501,7 @@ class PolynomialRegression(BaseEstimator):
                 intercept_hat_new,
             )
 
-            param = self.combine_parameters(intercept_hat_new, coef_hat_new)
+            param = self._combine_parameters(intercept_hat_new, coef_hat_new)
 
             current_loss.append(loss)
             current_grad = grad
