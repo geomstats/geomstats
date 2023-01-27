@@ -90,7 +90,7 @@ f
             pdf_x = pdf(x)
             pdf_x_at_base_point = pdf_x(base_point)
             pdf_x_derivative = gs.autodiff.jacobian_vec(pdf_x)
-            pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)  
+            pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)
             return (gs.einsum("...ij,...k->...ij",
                 gs.einsum(
                     "...ki,...kj->...ij",
@@ -100,7 +100,6 @@ f
                 1 / pdf_x_at_base_point)
             )
         metric_mat = quad_vec(_function_to_integrate, *self.support)[0]
-        print(type(metric_mat))
         return metric_mat
 
     def inner_product_derivative_matrix(self, base_point):
@@ -111,7 +110,7 @@ f
 
         .. math::
 
-            I(\theta) = \partial_{\theta} \mathbb{E}[YY^T]
+            \partial_{\theta} I(\theta) = \partial_{\theta} \mathbb{E}[YY^T]
 
         where,
 
@@ -138,8 +137,9 @@ f
 
         Returns
         -------
-        mat : array-like, shape=[..., dim, dim]
-            Derivative of the inner-product matrix.
+        mat : array-like, shape=[..., dim, dim, dim]
+            Derivative of the inner-product matrix, where the index
+            k of the derivation is last: math:`mat_{ijk} = \partial_k g_{ij}`.
         """
 
         def pdf(x):
@@ -150,58 +150,48 @@ f
             x : float, shape (,)
                 Point on the support of the distribution
             """
+            # print('\nx =',x)
             return lambda point: self.information_manifold.point_to_pdf(point)(x)
 
         def _function_to_integrate(x):
             pdf_x = pdf(x)
             pdf_x_at_base_point = pdf_x(base_point)
+            print('pdf_x',pdf_x_at_base_point.shape,pdf_x_at_base_point)
             pdf_x_derivative = gs.autodiff.jacobian_vec(pdf_x)
             pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)
-            print('d',pdf_x_derivative_at_base_point.shape,pdf_x_derivative_at_base_point)
-            pdf_x_hessian_at_base_point = gs.autodiff.hessian_vec(pdf_x_derivative)(
-                base_point
-            )
-            print('e',pdf_x_hessian_at_base_point.shape,pdf_x_hessian_at_base_point)
-            print('f1', gs.einsum(
-                            "...ki,...j->...ijk",
-                            pdf_x_hessian_at_base_point,
-                            pdf_x_derivative_at_base_point,
-                        ))
-            print('f2',gs.einsum(
-                            "...kj,...i->...ijk",
-                            pdf_x_hessian_at_base_point,
-                            pdf_x_derivative_at_base_point,
-                        ))
-            print('f3',gs.einsum(
-                        "...i, ...j, ...k -> ...ijk",
-                        pdf_x_derivative_at_base_point,
-                        pdf_x_derivative_at_base_point,
-                        pdf_x_derivative_at_base_point,
-                    ))
-            return (
-                1
-                / (pdf_x_at_base_point**2)
-                * (
-                    pdf_x_at_base_point
-                    * (
+            print('jacob',pdf_x_derivative_at_base_point.shape,pdf_x_derivative_at_base_point)
+            pdf_x_hessian = gs.autodiff.jacobian_vec(pdf_x_derivative)
+            pdf_x_hessian_at_base_point = pdf_x_hessian(base_point)
+            print('jacob jacob',pdf_x_hessian_at_base_point.shape,pdf_x_hessian_at_base_point)
+            pdf_x_hessian = gs.autodiff.hessian_vec(pdf_x)
+            pdf_x_hessian_at_base_point = pdf_x_hessian(base_point)
+            print('hessian',pdf_x_hessian_at_base_point.shape,pdf_x_hessian_at_base_point)
+            # pdf_x_jacobian_,pdf_x_hessian_ = gs.autodiff.jacobian_and_hessian(pdf_x)(base_point)
+            # print('d',pdf_x_jacobian_,'e',pdf_x_hessian_)
+
+            return gs.einsum(
+                    "...n,...ijk->...ijk",
+                    1 / (pdf_x_at_base_point**2),
+                    gs.einsum(
+                        "...n,...ijk->...ijk",
+                        pdf_x_at_base_point,
                         gs.einsum(
-                            "...ki,...j->...ijk",
+                            "...ki,...nj->...ijk",
                             pdf_x_hessian_at_base_point,
                             pdf_x_derivative_at_base_point,
                         )
                         + gs.einsum(
-                            "...kj,...i->...ijk",
+                            "...kj,...ni->...ijk",
                             pdf_x_hessian_at_base_point,
                             pdf_x_derivative_at_base_point,
                         )
                     )
                     - gs.einsum(
-                        "...i, ...j, ...k -> ...ijk",
+                        "...ni, ...nj, ...nk -> ...ijk",
                         pdf_x_derivative_at_base_point,
                         pdf_x_derivative_at_base_point,
                         pdf_x_derivative_at_base_point,
                     )
                 )
-            )
 
         return quad_vec(_function_to_integrate, *self.support)[0]
