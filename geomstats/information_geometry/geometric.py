@@ -324,7 +324,7 @@ class GeometricMetric(RiemannianMetric):
         path : callable
             Time parameterized geodesic curve. If a batch of initial
             conditions is passed, the output array's first dimension
-            corresponds to the different initial conditions, and the 
+            corresponds to the different initial conditions, and the
             second represents time.
         """
         if end_point is None and initial_tangent_vec is None:

@@ -165,7 +165,7 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests([], random_data)
 
     def exp_belongs_test_data(self):
-        """ Redefine data generation for test_exp_belongs by limiting tangent vector
+        """Redefine data generation for test_exp_belongs by limiting tangent vector
         to a specific range so that results of exp are not too close to zero.
         """
         random_data = []
@@ -210,7 +210,7 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests([], random_data)
 
     def geodesic_ivp_belongs_test_data(self):
-        """ Redefine data generation for test_geodesic_ivp_belongs by limiting tangent vector
+        """Redefine data generation for test_geodesic_ivp_belongs by limiting tangent vector
         to a specific range so that results of geodesic_ivp are not too close to zero.
         """
         random_data = []
@@ -253,7 +253,7 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests([], random_data)
 
     def log_after_exp_test_data(self):
-        """ Redefine data generation for test_log_after_exp by limiting tangent 
+        """Redefine data generation for test_log_after_exp by limiting tangent
         vector to a specific range so that results of exp are not too close to zero.
         """
         random_data = []
