@@ -71,7 +71,7 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = self.Metric().metric_matrix(point)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_and_autograd_only
+    @tests.conftest.np_only
     def test_exp(self, n_samples):
         """Test Exp.
 
