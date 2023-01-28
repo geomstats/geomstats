@@ -102,7 +102,7 @@ def projection_to_three_d(projections, points):
 
 
 def two_d_to_projection(vector):
-    """Takes 2D point on manifold and gets its corresponding projection.
+    """Take 2D point on manifold and gets its corresponding projection.
 
     INPUT: Point on manifold as a 2x1 vector
 
