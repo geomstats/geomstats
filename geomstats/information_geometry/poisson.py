@@ -71,7 +71,8 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
 
-        Return a point belonging to the half-line of positive reals within the given tolerance.
+        Return a point belonging to the half-line of positive reals
+        within the given tolerance.
 
         Parameters
         ----------
