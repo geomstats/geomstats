@@ -37,6 +37,7 @@ References
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.euclidean import EuclideanMetric
