@@ -296,7 +296,7 @@ class Grassmannian:
         )
         return projector[0] if n_samples == 1 else projector
 
-    def random_point(self, n_samples=1, bound=1.0):
+    def random_point(self, n_samples=1):
         """Sample random points from a uniform distribution.
 
         Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
@@ -321,7 +321,8 @@ class Grassmannian:
         """
         return self.random_uniform(n_samples)
 
-    def to_tangent(self, vector, base_point):
+    @staticmethod
+    def to_tangent(vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
         Compute the bracket (commutator) of the base_point with
@@ -383,7 +384,7 @@ class Grassmannian:
                 "Cannot handle sizes of k larger than 1 at this time.\
                 Cannot handle n larger than 3 at this time."
             )
-            return -1
+            return
         if n == 2:
             points = 10000
             projections = self.random_uniform(points)
@@ -428,7 +429,6 @@ class Grassmannian:
                 x, y, z = np.matmul(bunch_of_projections[i], vector) / np.linalg.norm(
                     np.matmul(bunch_of_projections[i], vector)
                 )
-                # print("The coords are: ",x,y,z)
                 ax.plot(x, y, abs(z), "sk", alpha=0.3)
 
             ax.set_xlim([-1, 1])
@@ -464,12 +464,11 @@ class Grassmannian:
                 "Cannot handle sizes of k larger than 1 at this time.\
                  Cannot handle n larger than 3 at this time."
             )
-            return -1
+            return
 
         # Plotting for 2d
         if n == 2:
             projections = self.random_uniform(100)
-            # draw_points(self,projections,True)
             self.plot(ticks)
             plot_me = projection_to_two_d(projections, np.shape(projections)[0])
             for i in range(np.shape(plot_me)[0]):
@@ -498,7 +497,6 @@ class Grassmannian:
                 x, y, z = np.matmul(bunch_of_projections[i], vector) / np.linalg.norm(
                     np.matmul(bunch_of_projections[i], vector)
                 )
-                # print("The coords are: ",x,y,z)
                 ax.plot(x, y, abs(z), "sk")
 
             # plot points on manifold
@@ -507,7 +505,6 @@ class Grassmannian:
                 x, y, z = np.matmul(bunch_two[i], vector) / np.linalg.norm(
                     np.matmul(bunch_two[i], vector)
                 )
-                # print("The coords are: ",x,y,z)
                 ax.plot(x, y, abs(z), "sm", alpha=0.3)
 
             ax.set_xlim([-1, 1])
