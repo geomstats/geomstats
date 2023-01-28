@@ -3,8 +3,8 @@
 Lead author: Tra My Nguyen.
 """
 
-from scipy.stats import poisson
 from scipy.special import factorial
+from scipy.stats import poisson
 
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
