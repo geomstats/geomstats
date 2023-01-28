@@ -35,11 +35,10 @@ References
                 83–101. https://doi.org/10.1016/j.laa.2014.10.003.
 """
 
-
-import geomstats.backend as gs
-import geomstats.errors
 import matplotlib.pyplot as plt
 import numpy as np
+import geomstats.backend as gs
+import geomstats.errors
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
