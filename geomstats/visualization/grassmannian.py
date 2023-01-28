@@ -35,7 +35,6 @@ References
                 83–101. https://doi.org/10.1016/j.laa.2014.10.003.
 """
 
-import sys
 
 import geomstats.backend as gs
 import geomstats.errors
