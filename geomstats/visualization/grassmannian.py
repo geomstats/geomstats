@@ -537,7 +537,7 @@ class Grassmannian:
         """WIP DONT USE!!!!!! ONLY WORKS IN 2D BUT MIGHT NOT EVEN WORK RIGHT
         SO FOR FUTURE DIRECTIONS"""
 
-        self.plot(self, True)
+        self.plot(True)
         projection = self.random_uniform(1)
         point = projection_to_two_d(projection, 1)
 

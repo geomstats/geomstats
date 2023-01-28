@@ -40,3 +40,4 @@ class TestVisualizationGrassmanian(tests.conftest.TestCase):
     def teardown_method():
         
         plt.close()
+
