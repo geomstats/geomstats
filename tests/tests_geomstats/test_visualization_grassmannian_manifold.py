@@ -32,7 +32,7 @@ class TestVisualizationGrassmanian(tests.conftest.TestCase):
 
     def test_plot_2d_render(self):
         """Test plot rendering function for 2D.
-        
+
         Test the plotting function of Grassmannian for 2 dimensions
         when it's regularly sampled
         """
