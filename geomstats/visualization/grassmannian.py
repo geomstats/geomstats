@@ -56,9 +56,7 @@ def projection_to_two_d(projections, points):
     or a single projection matrix
 
     OUTPUT: Points on manifold but in a Euclidean representation
-
     """
-
     storage = []
 
     if points == 1:
@@ -83,9 +81,7 @@ def projection_to_three_d(projections, points):
     INPUT: Array of 3x3 projection matricies or a single projection matrix
 
     OUTPUT: Points on manifold but in a Euclidean representation
-
     """
-
     storage = []
 
     vector = np.random.rand(3, 1)
@@ -113,9 +109,7 @@ def two_d_to_projection(vector):
     OUTPUT: Projection matrix for point
 
     WOULD BE USED FOR TANGENT REPRESENTATIONS
-
     """
-
     x = vector[0]
     theta = np.arccos(x)
     projection = np.zeros((2, 2))
@@ -380,9 +374,7 @@ class Grassmannian:
         if you want labels
 
         OUTPUT: None, plots manifold using MatPlotLib
-
         """
-
         n = self.n  # Size of space
         k = self.k  # Subspace size
         if k > 1 or n > 3:
@@ -463,9 +455,7 @@ class Grassmannian:
         if you want labels
 
         OUTPUT: None, plots manifold using MatPlotLib
-
         """
-
         n = self.n  # Size of space
         k = self.k  # Subspace size
         if k > 1 or n > 3:
@@ -537,7 +527,6 @@ class Grassmannian:
         Warning: Under construction, do not use.
         Only functions in 2D in limited cases.
         """
-
         self.plot(True)
         projection = self.random_uniform(1)
         point = projection_to_two_d(projection, 1)
