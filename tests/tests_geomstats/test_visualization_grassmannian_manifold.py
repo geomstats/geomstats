@@ -8,7 +8,6 @@ matplotlib.use("Agg")  # NOQA
 
 
 class TestVisualizationGrassmannian(tests.conftest.TestCase):
-    
     """
     Test class specifically to test Grassmannian
     manifold by plotting 2D and 3D figure
