@@ -6,7 +6,7 @@ import numpy as np
 from geomstats.geometry.stiefel import Stiefel
 
 import tests.conftest
-from stiefel_manifold import Arrow2D, StiefelCircle, StiefelSphere
+from geomstats.visualization.stiefel_manifold import Arrow2D, StiefelCircle, StiefelSphere
 
 matplotlib.use("Agg")  # NOQA
 
