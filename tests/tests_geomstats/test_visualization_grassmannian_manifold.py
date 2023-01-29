@@ -40,7 +40,6 @@ class TestVisualizationGrassmannian(tests.conftest.TestCase):
 
         self.grassmannian31.plot(True)
 
-
     @staticmethod
     def teardown_method():
         plt.close()
