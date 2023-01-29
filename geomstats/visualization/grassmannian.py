@@ -45,6 +45,7 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def projection_to_two_d(projections, points):
     """Take Grassmannian projection matrix -> plotable 2D point.
 
