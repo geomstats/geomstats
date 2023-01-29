@@ -1,3 +1,4 @@
+"""Stiefel manifold visualization test module."""
 # import geomstats.backend as gs
 import matplotlib
 import matplotlib.pyplot as plt
@@ -5,13 +6,16 @@ import numpy as np
 from geomstats.geometry.stiefel import Stiefel
 
 import tests.conftest
-from geomstats.visualization.stiefel_manifold import Arrow2D, StiefelCircle, StiefelSphere
+from stiefel_manifold import Arrow2D, StiefelCircle, StiefelSphere
 
 matplotlib.use("Agg")  # NOQA
 
 
 class TestStiefelManifold(tests.conftest.TestCase):
+    """Class to test all the functions for S(2,2)."""
+
     def setup_method(self):
+        """Initialize variables."""
         self.n_samples = 10
         self.v21 = Stiefel(2, 1)
         self.v22 = Stiefel(2, 2)
@@ -25,37 +29,40 @@ class TestStiefelManifold(tests.conftest.TestCase):
         plt.figure()
 
     def test_stiefel_sphere_set_ax(self):
+        """Set ax for sphere."""
         self.St_sph.set_ax(ax=None)
 
     def test_stiefel_sphere_set_view(self):
+        """Set view for sphere."""
         self.St_sph.set_view()
 
     def test_stiefel_sphere_draw(self):
+        """Draw a stiefel manifold."""
         self.St_sph.draw()
 
     def test_stiefel_sphere_coordinates_transformation(self):
-        # makes random points from distribution
+        """Makes random points from distribution."""
         points = self.v31.random_uniform(10)[2, :, 0]
         self.St_sph.coordinates_transformation(points)
 
     def test_stiefel_sphere_add_points(self):
-        # take, add points from random distribution on manifold, visualize
+        """Take, add points from random distribution on manifold, visualize."""
         points = self.v31.random_uniform(10)
         self.St_sph.add_points(points)
         self.St_sph.draw_points(self.sph_ax)
 
     def test_stiefel_sphere_draw_points(self):
-        # take points from random distribution on manifold and visualize
+        """Take points from random distribution on manifold and visualize."""
         points = self.v31.random_uniform(10)
         self.St_sph.draw_points(points)
 
     def test_stiefel_sphere_clear_points(self):
-        # clear points, draw points to verify points were cleared
+        """Clear points, draw points to verify points were cleared."""
         self.St_sph.clear_points()
         self.St_sph.draw_points(self.sph_ax)
 
     def test_stiefel_sphere_draw_mesh(self):
-        # take point from random distribution and draw mesh using class method
+        """Take point from random distribution and draw mesh."""
         point = self.v31.random_uniform(10)[2, :, 0]
         self.St_sph.draw_mesh(point)
 
@@ -73,13 +80,13 @@ class TestStiefelManifold(tests.conftest.TestCase):
 
     def test_stiefel_circle_draw_line_to_point(self):
         """Generate a vector on a random point."""
-        p_1 = self.v22.random_uniform(1)
-        if np.linalg.det(p_1) > 0:
-            v_1 = p_1[:, 1]
-            p_1 = p_1[:, 0]
+        point = self.v22.random_uniform(1)
+        if np.linalg.det(point) > 0:
+            v_1 = point[:, 1]
+            p_1 = point[:, 0]
         else:
-            v_1 = p_1[:, 0]
-            p_1 = p_1[:, 1]
+            v_1 = point[:, 0]
+            p_1 = point[:, 1]
 
         self.St_cir.draw_line_to_point(ax=self.cir_ax, point=p_1, line=v_1)
 
@@ -111,10 +118,11 @@ class TestStiefelManifold(tests.conftest.TestCase):
 
     def test_stiefel_circle_plot_rendering(self):
         """Test drawing the manifold with regularly sampled data."""
+        self.St_cir.plot_rendering(self.v21, 100)
         self.St_cir.plot_rendering(self.v22, 100)
 
     def test_stiefel_circle_plot_geodesic(self):
-        """Test visualizing a (discretised) geodesic"""
+        """Test visualizing a (discretised) geodesic."""
         ini_point = self.v22.random_uniform(1)
         end_point = self.v22.random_uniform(1)
         self.St_cir.plot_geodesic(ini_point, end_point)
@@ -134,4 +142,5 @@ class TestStiefelManifold(tests.conftest.TestCase):
 
     @staticmethod
     def teardown_method():
+        """Close the plot."""
         plt.close()
