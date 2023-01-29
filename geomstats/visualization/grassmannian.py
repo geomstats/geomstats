@@ -291,7 +291,7 @@ class Grassmannian:
         return projector[0] if n_samples == 1 else projector
 
     @staticmethod
-    def to_tangent( vector, base_point):
+    def to_tangent(vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
         Compute the bracket (commutator) of the base_point with
