@@ -37,7 +37,6 @@ class TestVisualizationGrassmannian(tests.conftest.TestCase):
         Test to see if the plot function returns a 3d plot
         with a manifold that has a regularly sampled data.
         """
-
         self.grassmannian31.plot(True)
 
     @staticmethod
