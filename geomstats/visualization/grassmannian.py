@@ -37,14 +37,13 @@ References
 
 import geomstats.backend as gs
 import geomstats.errors
-import matplotlib.pyplot as plt
-import numpy as np
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-
+import matplotlib.pyplot as plt
+import numpy as np
 
 def projection_to_two_d(projections, points):
     """Take Grassmannian projection matrix -> plotable 2D point.
