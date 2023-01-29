@@ -1,7 +1,7 @@
 """Unit tests for visualization."""
-from geomstats.visualization.grassmannian import Grassmannian
 import matplotlib
 import matplotlib.pyplot as plt
+
 import tests.conftest
 
 matplotlib.use("Agg")  # NOQA

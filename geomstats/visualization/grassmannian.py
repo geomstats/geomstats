@@ -35,6 +35,9 @@ References
                 83–101. https://doi.org/10.1016/j.laa.2014.10.003.
 """
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.euclidean import EuclideanMetric
@@ -42,8 +45,6 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-import matplotlib.pyplot as plt
-import numpy as np
 
 
 def projection_to_two_d(projections, points):
