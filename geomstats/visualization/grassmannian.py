@@ -106,7 +106,6 @@ def two_d_to_projection(vector):
 
     """
     x = vector[0]
-    # y = vector[1]
     theta = np.arccos(x)
     projection = np.zeros((2, 2))
     projection[0][0] = (np.cos(theta)) ** 2
@@ -291,31 +290,7 @@ class Grassmannian:
         )
         return projector[0] if n_samples == 1 else projector
 
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points from a uniform distribution.
-
-        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
-        from a standard normal distribution and reshaped to matrices,
-        the projectors on their first k columns follow a uniform distribution.
-
-        Parameters
-        ----------
-        n_samples : int
-            The number of points to sample
-            Optional. default: 1.
-
-        Returns
-        -------
-        projectors : array-like, shape=[..., n, n]
-            Points following a uniform distribution.
-
-        References
-        ----------
-        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
-        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
-        """
-        return self.random_uniform(n_samples)
-
+    @staticmethod
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
 
@@ -419,7 +394,6 @@ class Grassmannian:
                 x, y, z = np.matmul(bunch_of_projections[i], vector) / np.linalg.norm(
                     np.matmul(bunch_of_projections[i], vector)
                 )
-                # print("The coords are: ",x,y,z)
                 ax.plot(x, y, abs(z), "sk", alpha=0.3)
 
             ax.set_xlim([-1, 1])
@@ -433,6 +407,7 @@ class Grassmannian:
             ax.set_yticks([])
             ax.set_zticks([])
             plt.show()
+        return None
 
     def plot_rendering(self, ticks):
         """Plot Grassmannian using the projection matricies with randomly sampled data.
@@ -458,7 +433,6 @@ class Grassmannian:
         # Plotting for 2d
         if n == 2:
             projections = self.random_uniform(100)
-            # draw_points(self,projections,True)
             self.plot(ticks)
             plot_me = projection_to_two_d(projections, np.shape(projections)[0])
             for i in range(np.shape(plot_me)[0]):
@@ -487,7 +461,6 @@ class Grassmannian:
                 x, y, z = np.matmul(bunch_of_projections[i], vector) / np.linalg.norm(
                     np.matmul(bunch_of_projections[i], vector)
                 )
-                # print("The coords are: ",x,y,z)
                 ax.plot(x, y, abs(z), "sk")
 
             # plot points on manifold
@@ -496,7 +469,6 @@ class Grassmannian:
                 x, y, z = np.matmul(bunch_two[i], vector) / np.linalg.norm(
                     np.matmul(bunch_two[i], vector)
                 )
-                # print("The coords are: ",x,y,z)
                 ax.plot(x, y, abs(z), "sm", alpha=0.3)
 
             ax.set_xlim([-1, 1])
@@ -510,7 +482,8 @@ class Grassmannian:
             ax.set_yticks([])
             ax.set_zticks([])
             plt.show()
-
+        return None
+        
     def plot_tangent_space(self):
         """DONT USE!!!!!! WIP!! ONLY WORKS IN 2D."""
         self.plot(True)

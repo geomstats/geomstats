@@ -30,26 +30,16 @@ class TestVisualizationGrassmannian(tests.conftest.TestCase):
         with grid existing or not based on the boolean value
         passed onto the function.
         """
-        # points = self.grassmannian31.random_uniform(self.n_samples)
         self.grassmannian31.plot(True)
 
-    # def test_plot_3d(self):
-    #     self.tick= False
-    #     points = self.grassmannian31.random_uniform(self.n_samples)
-    #     self.grassmannian31.plot(False)
     def test_plot_rendering_3d(self):
         """
         Test to see if the plot function returns a 3d plot
         with a manifold that has a regularly sampled data.
         """
-        # self.tick = True
-        # points = self.grassmannian31.random_uniform(self.n_samples)
+
         self.grassmannian31.plot(True)
 
-    # def test_plot_rendering_3d(self):
-    #     self.tick= False
-    #     points = self.grassmannian31.random_uniform(self.n_samples)
-    #     self.grassmannian31.plot(False)
 
     @staticmethod
     def teardown_method():
