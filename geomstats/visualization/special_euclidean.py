@@ -73,8 +73,9 @@ class SpecialEuclidean2:
         )
         ax.scatter(translation[:, 0], translation[:, 1], s=16, **kwargs)
 
+    @staticmethod
     def plot_geodesic(
-        self, initial_point, initial_tangent_vec, METRIC=METRIC_SE2, N_STEPS=40
+        initial_point, initial_tangent_vec, METRIC=METRIC_SE2, N_STEPS=40
     ):
         """Plot geodesic of SE(2).
 
@@ -170,8 +171,9 @@ class SpecialEuclidean3:
             translation[:, 0], translation[:, 1], translation[:, 2], s=20, **kwargs
         )
 
+    @staticmethod
     def plot_geodesic(
-        self, initial_point, initial_tangent_vec, METRIC=METRIC_SE3, N_STEPS=40
+        initial_point, initial_tangent_vec, METRIC=METRIC_SE3, N_STEPS=40
     ):
         """Plot geodesic of SE(3).
 
