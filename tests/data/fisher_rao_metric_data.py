@@ -1,16 +1,18 @@
 """Test data for the fisher rao metric."""
 
 import geomstats.backend as gs
-from geomstats.information_geometry.binomial import BinomialDistributions
-from geomstats.information_geometry.exponential import ExponentialDistributions
+from geomstats.information_geometry.binomial import BinomialDistributions, BinomialMetric
+from geomstats.information_geometry.exponential import ExponentialDistributions, ExponentialMetric
+from geomstats.information_geometry.gamma import GammaDistributions, GammaMetric
+from geomstats.information_geometry.beta import BetaDistributions, BetaMetric
 from geomstats.information_geometry.fisher_rao_metric import FisherRaoMetric
-from geomstats.information_geometry.geometric import GeometricDistributions
+from geomstats.information_geometry.geometric import GeometricDistributions, GeometricMetric
 from geomstats.information_geometry.normal import (
     NormalDistributions,
     UnivariateNormalDistributions,
     UnivariateNormalMetric,
 )
-from geomstats.information_geometry.poisson import PoissonDistributions
+from geomstats.information_geometry.poisson import PoissonDistributions, PoissonMetric
 from tests.data_generation import _RiemannianMetricTestData
 
 
