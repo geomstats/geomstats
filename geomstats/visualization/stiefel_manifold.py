@@ -119,10 +119,8 @@ class StiefelSphere:
         coords_theta = gs.linspace(0.0, 2.0 * gs.pi, n_theta)
         coords_phi = gs.linspace(0.0, gs.pi, n_phi)
 
-        coords_x = gs.to_numpy(0.5 * gs.outer(gs.sin(coords_phi),
-                                              gs.cos(coords_theta)))
-        coords_y = gs.to_numpy(0.5 * gs.outer(gs.sin(coords_phi),
-                                              gs.sin(coords_theta)))
+        coords_x = gs.to_numpy(0.5 * gs.outer(gs.sin(coords_phi), gs.cos(coords_theta)))
+        coords_y = gs.to_numpy(0.5 * gs.outer(gs.sin(coords_phi), gs.sin(coords_theta)))
         coords_z = gs.to_numpy(
             0.5 * gs.outer(gs.cos(coords_phi), gs.ones_like(coords_theta))
         )
@@ -167,8 +165,8 @@ class StiefelSphere:
         """Add given points to point list.
 
         Parameters
-         ----------
-         points : array-like, shape=[..., 2, 2]
+        ----------
+        points : array-like, shape=[..., 2, 2]
             Add the given points to the object.
         """
         if not isinstance(points, list):
@@ -286,8 +284,7 @@ class StiefelCircle:
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
-        plt.setp(ax, xlim=(-ax_s, ax_s),
-                 ylim=(-ax_s, ax_s), xlabel="X", ylabel="Y")
+        plt.setp(ax, xlim=(-ax_s, ax_s), ylim=(-ax_s, ax_s), xlabel="X", ylabel="Y")
         return ax
 
     def add_points(self, points):
@@ -313,8 +310,7 @@ class StiefelCircle:
         if points is None:
             points = self.points
         points = gs.array(points)
-        ax.plot(points[:, 0], points[:, 1], marker="o",
-                linestyle="None", **plot_kwargs)
+        ax.plot(points[:, 0], points[:, 1], marker="o", linestyle="None", **plot_kwargs)
 
     def draw_line_to_point(self, ax, point, line, **point_draw_kwargs):
         """Draw the tangent space of a Stiefel Manifold."""
@@ -325,8 +321,7 @@ class StiefelCircle:
         def tan1_space(x):
             return (v_1[1] / v_1[0]) * (x - p_1[0]) + p_1[1]
 
-        ax.plot(x1_range, tan1_space(x1_range), "-",
-                linewidth=1, **point_draw_kwargs)
+        ax.plot(x1_range, tan1_space(x1_range), "-", linewidth=1, **point_draw_kwargs)
 
     def draw_curve(self, alpha=1, zorder=0, **kwargs):
         """Draw a curve on the Kendall disk."""
@@ -356,10 +351,8 @@ class StiefelCircle:
             if y0 == 0
             else (-x0 / y0) * (x - x0) + y0
         )
-        x_range = x0 * np.ones(10) if y0 == 0 \
-            else np.linspace(x0 - 0.9, x0 + 0.9, 10)
-        ax.plot(x_range, tangent_space(x_range),
-                "-", linewidth=1, **point_draw_kwargs)
+        x_range = x0 * np.ones(10) if y0 == 0 else np.linspace(x0 - 0.9, x0 + 0.9, 10)
+        ax.plot(x_range, tangent_space(x_range), "-", linewidth=1, **point_draw_kwargs)
         ax.legend()
 
     def plot_rendering(self, St_2, N):
@@ -375,8 +368,7 @@ class StiefelCircle:
         None
         """
         if St_2.n != 2:
-            raise \
-                ValueError("Dimension n of the Stiefel Instance needs to be 2")
+            raise ValueError("Dimension n of the Stiefel Instance needs to be 2")
 
         # (2,1)
         if St_2.p == 1:
