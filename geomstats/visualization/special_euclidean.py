@@ -73,7 +73,9 @@ class SpecialEuclidean2:
         )
         ax.scatter(translation[:, 0], translation[:, 1], s=16, **kwargs)
 
-    def plot_geodesic(self, initial_point, initial_tangent_vec, METRIC, N_STEPS):
+    def plot_geodesic(
+        self, initial_point, initial_tangent_vec, METRIC=METRIC_SE2, N_STEPS=40
+    ):
         """Plot geodesic of SE(2).
 
         Parameters
@@ -87,7 +89,7 @@ class SpecialEuclidean2:
         N_STEPS : array-like, shape=[..., dim]
             Number of samples on the geodesic to plot.
         """
-        geodesic = METRIC_SE2.geodesic(
+        geodesic = METRIC.geodesic(
             initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
         )
         t = gs.linspace(-3.0, 3.0, N_STEPS)
@@ -168,7 +170,9 @@ class SpecialEuclidean3:
             translation[:, 0], translation[:, 1], translation[:, 2], s=20, **kwargs
         )
 
-    def plot_geodesic(self, initial_point, initial_tangent_vec, METRIC, N_STEPS):
+    def plot_geodesic(
+        self, initial_point, initial_tangent_vec, METRIC=METRIC_SE3, N_STEPS=40
+    ):
         """Plot geodesic of SE(3).
 
         Parameters
@@ -182,7 +186,7 @@ class SpecialEuclidean3:
         N_STEPS : array-like, shape=[..., dim]
             Number of samples on the geodesic to plot.
         """
-        geodesic = METRIC_SE3.geodesic(
+        geodesic = METRIC.geodesic(
             initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
         )
         t = gs.linspace(-3.0, 3.0, N_STEPS)
