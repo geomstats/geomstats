@@ -106,7 +106,6 @@ class TestStiefelManifold(tests.conftest.TestCase):
 
         self.St_cir.add_points(group1_points_to_circle[:, :, 0])
         self.St_cir.draw_curve(color="b", lw=3, label="geodesic line")
-        self.St_cir.draw_curve()
 
     def test_stifel_circle_draw_tangent_space(self):
         """Drawing tangent space of a random point."""

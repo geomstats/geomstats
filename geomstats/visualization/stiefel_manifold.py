@@ -293,7 +293,7 @@ class StiefelCircle:
     def add_points(self, points):
         """Add points to the list."""
         if not gs.all(S1.belongs(points)):
-            raise ValueError("Points do  not belong to the circle.")
+            raise ValueError("Points do not belong to the circle.")
         if not isinstance(points, list):
             points = list(points)
         self.points.extend(points)
@@ -394,7 +394,7 @@ class StiefelCircle:
             points_to_circle = np.zeros((N, 2))
 
             for i in range(N):
-                if det[i] > 0:
+                if det[i] >= 0:
                     points_to_circle[i, :] = points[i][:, 0]
                 elif det[i] < 0:
                     points_to_circle[i, :] = points[i][:, 1]
