@@ -1,7 +1,10 @@
+import random
+
 import pytest
 import scipy
 
 import geomstats.backend as gs
+from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.test.geometry.base import LevelSetTestCase, ManifoldTestCase
 from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.test_case import TestCase
@@ -335,9 +338,53 @@ class _HypersphereTestCaseMixins:
 
 
 class HypersphereExtrinsicTestCase(_HypersphereTestCaseMixins, LevelSetTestCase):
+    def _get_random_kappa(self, size=1):
+        sample = gs.random.uniform(low=1.0, high=10000.0, size=(size,))
+        if size == 1:
+            return sample[0]
+        return sample
+
+    def _get_random_precision(self, precision_type="array"):
+        if precision_type is None:
+            return None
+
+        precision = gs.random.uniform(low=1.0, high=10.0, size=(1,))[0]
+        if precision_type is float:
+            return precision
+
+        return precision * gs.eye(self.space.dim)
+
+    def _fit_frechet_mean(self, sample):
+        estimator = FrechetMean(self.space.metric, method="adaptive")
+        estimator.fit(sample)
+
+        return estimator.estimate_
+
+    @pytest.mark.random
+    def test_replace_values(self, n_points, atol):
+        points = self.space.random_point(n_points)
+        new_points = self.space.random_point(n_points)
+
+        n_indices = random.randint(1, n_points)
+        indices_int = [
+            (index,) for index in random.sample(range(0, n_points), n_indices)
+        ]
+        if n_indices:
+            indices = gs.array_from_sparse(
+                indices_int, [True for _ in range(n_indices)], (n_points,)
+            )
+        else:
+            indices = gs.zeros(n_points, dtype=bool)
+
+        replaced_points = self.space._replace_values(
+            points, new_points[indices], indices
+        )
+
+        self.assertAllClose(replaced_points[indices], new_points[indices], atol=atol)
+
     @pytest.mark.random
     def test_random_von_mises_fisher_sample_mean(
-        self, n_samples, kappa, atol, random_mu=True, max_iter=100
+        self, n_samples, atol, random_mu=True, max_iter=100
     ):
         if random_mu:
             mu = self.space.random_point()
@@ -345,6 +392,8 @@ class HypersphereExtrinsicTestCase(_HypersphereTestCaseMixins, LevelSetTestCase)
         else:
             mu = None
             expected = gs.array([1.0] + [0.0] * self.space.dim)
+
+        kappa = self._get_random_kappa()
 
         try:
             point = self.space.random_von_mises_fisher(
@@ -378,9 +427,10 @@ class HypersphereExtrinsicTestCase(_HypersphereTestCaseMixins, LevelSetTestCase)
 
     @pytest.mark.random
     def test_random_von_mises_fisher_belongs(
-        self, n_points, random_mu, kappa, atol, max_iter=100
+        self, n_points, random_mu, atol, max_iter=100
     ):
         mu = self.space.random_point() if random_mu else None
+        kappa = self._get_random_kappa()
 
         try:
             point = self.space.random_von_mises_fisher(
@@ -393,10 +443,9 @@ class HypersphereExtrinsicTestCase(_HypersphereTestCaseMixins, LevelSetTestCase)
         self.test_belongs(point, expected, atol)
 
     @pytest.mark.shape
-    def test_random_von_mises_fisher_shape(
-        self, n_points, random_mu, kappa, max_iter=100
-    ):
+    def test_random_von_mises_fisher_shape(self, n_points, random_mu, max_iter=100):
         mu = self.space.random_point() if random_mu else None
+        kappa = self._get_random_kappa()
 
         try:
             point = self.space.random_von_mises_fisher(
@@ -412,6 +461,58 @@ class HypersphereExtrinsicTestCase(_HypersphereTestCaseMixins, LevelSetTestCase)
 
         if n_points > 1:
             self.assertEqual(gs.shape(point)[0], n_points)
+
+    @pytest.mark.random
+    def test_random_riemannian_normal_belongs(
+        self, n_samples, random_mean, precision_type, atol, max_iter=100
+    ):
+        mean = self.space.random_point() if random_mean else None
+        precision = self._get_random_precision(precision_type)
+
+        sample = self.space.random_riemannian_normal(
+            mean=mean, precision=precision, n_samples=n_samples, max_iter=max_iter
+        )
+
+        expected = gs.ones(n_samples, dtype=bool)
+        self.test_belongs(sample, expected, atol)
+
+    @pytest.mark.shape
+    def test_random_riemannian_normal_shape(
+        self, n_samples, random_mean, precision_type, atol, max_iter=100
+    ):
+        mean = self.space.random_point() if random_mean else None
+        precision = self._get_random_precision(precision_type)
+
+        point = self.space.random_riemannian_normal(
+            mean=mean, precision=precision, n_samples=n_samples, max_iter=max_iter
+        )
+
+        expected_ndim = self.space.point_ndim + int(n_samples > 1)
+        self.assertEqual(gs.ndim(point), expected_ndim)
+
+        self.assertAllEqual(gs.shape(point)[-self.space.point_ndim :], self.space.shape)
+
+        if n_samples > 1:
+            self.assertEqual(gs.shape(point)[0], n_samples)
+
+    @pytest.mark.random
+    def test_random_riemannian_normal_frechet_mean(
+        self, n_samples, random_mean, atol, max_iter=100
+    ):
+        if random_mean:
+            expected = mean = self.space.random_point()
+        else:
+            mean = None
+            expected = gs.array([0.0] * self.space.dim + [1.0])  # north pole
+
+        precision = self._get_random_precision()
+
+        sample = self.space.random_riemannian_normal(
+            mean=mean, precision=precision, n_samples=n_samples, max_iter=max_iter
+        )
+        estimate_ = self._fit_frechet_mean(sample)
+
+        self.assertAllClose(estimate_, expected, atol=atol)
 
 
 class HypersphereIntrinsicTestCase(_HypersphereTestCaseMixins, ManifoldTestCase):

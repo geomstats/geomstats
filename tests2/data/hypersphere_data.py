@@ -1,4 +1,5 @@
-import geomstats.backend as gs
+import random
+
 from geomstats.test.data import TestData
 from tests2.data.base_data import LevelSetTestData, ManifoldTestData
 
@@ -55,13 +56,32 @@ class HypersphereExtrinsicTestData(_HypersphereMixinsTestData, LevelSetTestData)
     tolerances = {
         "random_von_mises_fisher_sample_mean": {"atol": 1e-2},
         "random_von_mises_fisher_sample_kappa": {"atol": 1e-1},
+        "random_riemannian_normal_frechet_mean": {"atol": 1e-1},
     }
+    xfails = ("random_riemannian_normal_frechet_mean",)
 
-    def _get_random_kappa(self, size=1):
-        sample = gs.random.uniform(low=1.0, high=10000.0, size=(size,))
-        if size == 1:
-            return sample[0]
-        return sample
+    def replace_values_test_data(self):
+        return self.generate_tests([dict(n_points=random.randint(2, 10))])
+
+    def random_von_mises_fisher_sample_mean_test_data(self):
+        n_samples = 1000
+        data = []
+        for _ in range(2):
+            # to test different kappa
+            data.append(dict(n_samples=n_samples))
+
+        data.append(
+            dict(
+                n_samples=n_samples,
+                random_mu=False,
+            )
+        )
+
+        return self.generate_tests(data)
+
+    def random_von_mises_fisher_sample_kappa_test_data(self):
+        data = [dict(n_samples=5000)]
+        return self.generate_tests(data)
 
     def random_von_mises_fisher_belongs_test_data(self):
         data = []
@@ -71,7 +91,6 @@ class HypersphereExtrinsicTestData(_HypersphereMixinsTestData, LevelSetTestData)
                     dict(
                         n_points=n_points,
                         random_mu=random_mu,
-                        kappa=self._get_random_kappa(),
                     )
                     for n_points in self.N_RANDOM_POINTS
                 ]
@@ -87,7 +106,6 @@ class HypersphereExtrinsicTestData(_HypersphereMixinsTestData, LevelSetTestData)
                     dict(
                         n_points=n_points,
                         random_mu=random_mu,
-                        kappa=self._get_random_kappa(),
                     )
                     for n_points in self.N_SHAPE_POINTS
                 ]
@@ -95,24 +113,32 @@ class HypersphereExtrinsicTestData(_HypersphereMixinsTestData, LevelSetTestData)
 
         return self.generate_tests(data)
 
-    def random_von_mises_fisher_sample_mean_test_data(self):
-        n_samples = 10000
+    def random_riemannian_normal_belongs_test_data(self):
         data = []
-        for kappa in self._get_random_kappa(size=2):
-            data.append(dict(n_samples=n_samples, kappa=kappa))
-
-        data.append(
-            dict(
-                n_samples=n_samples,
-                kappa=self._get_random_kappa(),
-                random_mu=False,
-            )
-        )
+        for random_mean, precision_type in zip(
+            [True, False, False],
+            [None, float, "array"],
+        ):
+            for n_samples in self.N_RANDOM_POINTS:
+                data.append(
+                    dict(
+                        n_samples=n_samples,
+                        random_mean=random_mean,
+                        precision_type=precision_type,
+                    )
+                )
 
         return self.generate_tests(data)
 
-    def random_von_mises_fisher_sample_kappa_test_data(self):
-        data = [dict(n_samples=50000)]
+    def random_riemannian_normal_shape_test_data(self):
+        return self.random_riemannian_normal_belongs_test_data()
+
+    def random_riemannian_normal_frechet_mean_test_data(self):
+        data = []
+        n_samples = 5000
+        for random_mean in [True, False]:
+            data.append(dict(n_samples=n_samples, random_mean=random_mean))
+
         return self.generate_tests(data)
 
 

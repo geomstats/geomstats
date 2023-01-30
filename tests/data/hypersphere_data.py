@@ -122,6 +122,24 @@ class HypersphereTestData(_LevelSetTestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def sample_von_mises_fisher_mean_test_data(self):
+        dim_list = random.sample(range(2, 10), 5)
+        smoke_data = [
+            dict(
+                dim=dim,
+                mean=self.Space(dim).random_point(),
+                kappa=1000.0,
+                n_points=10000,
+            )
+            for dim in dim_list
+        ]
+        return self.generate_tests(smoke_data)
+
+    def sample_random_von_mises_fisher_kappa_test_data(self):
+        dim_list = random.sample(range(2, 8), 5)
+        smoke_data = [dict(dim=dim, kappa=1.0, n_points=50000) for dim in dim_list]
+        return self.generate_tests(smoke_data)
+
     def tangent_extrinsic_to_spherical_raises_test_data(self):
         smoke_data = []
         dim_list = [2, 3]
@@ -185,29 +203,11 @@ class HypersphereTestData(_LevelSetTestData):
         return self.generate_tests(smoke_data)
 
     def riemannian_normal_frechet_mean_test_data(self):
-        smoke_data = [dict(dim=3), dict(dim=4)]
+        smoke_data = [dict(dim=1), dict(dim=3), dict(dim=4)]
         return self.generate_tests(smoke_data)
 
     def riemannian_normal_and_belongs_test_data(self):
         smoke_data = [dict(dim=3, n_points=1), dict(dim=4, n_points=10)]
-        return self.generate_tests(smoke_data)
-
-    def sample_von_mises_fisher_mean_test_data(self):
-        dim_list = random.sample(range(2, 10), 5)
-        smoke_data = [
-            dict(
-                dim=dim,
-                mean=self.Space(dim).random_point(),
-                kappa=1000.0,
-                n_points=10000,
-            )
-            for dim in dim_list
-        ]
-        return self.generate_tests(smoke_data)
-
-    def sample_random_von_mises_fisher_kappa_test_data(self):
-        dim_list = random.sample(range(2, 8), 5)
-        smoke_data = [dict(dim=dim, kappa=1.0, n_points=50000) for dim in dim_list]
         return self.generate_tests(smoke_data)
 
     def intrinsic_after_extrinsic_test_data(self):
