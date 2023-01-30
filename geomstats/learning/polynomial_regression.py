@@ -229,7 +229,7 @@ class PolynomialRegression(BaseEstimator):
         coef : array-like, shape=[{order, dim, [n,n]}]
             Initial value for the coefficient matrix.
         """
-        return param[0, :], param[1:, :]
+        return param[0], param[1:]
 
     def _combine_parameters(self, intercept, coef):
         """Combine  intercept and coeff into param.
