@@ -6,21 +6,22 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.special_linear import SpecialLinear, TracelessMatrices
 from tests.conftest import TestCase
-from tests.data_generation import LieGroupTestData, MatrixLieAlgebraTestData
-from tests.parametrizers import LieGroupParametrizer, MatrixLieAlgebraParametrizer
+from tests.data_generation import _LieGroupTestData, _MatrixLieAlgebraTestData
+
+# from tests.parametrizers import LieGroupParametrizer, MatrixLieAlgebraParametrizer
 
 
 # TODO: very similar to GeneralLinear tests (simplify common points)
 
 
-class TestSpecialLinear(TestCase, metaclass=LieGroupParametrizer):
+class TestSpecialLinear(TestCase):
     space = group = SpecialLinear
 
     # skips due to tolerance issues
     skip_test_exp_log_composition = True
     skip_test_log_exp_composition = True
 
-    class TestDataSpecialLinear(LieGroupTestData):
+    class TestDataSpecialLinear(_LieGroupTestData):
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
 
@@ -34,16 +35,23 @@ class TestSpecialLinear(TestCase, metaclass=LieGroupParametrizer):
                 dict(n=3, mat=gs.eye(3), expected=True),
                 dict(n=3, mat=2 * gs.eye(3), expected=False),
                 dict(n=3, mat=-1 * gs.eye(3), expected=False),
-                dict(n=2,
-                     mat=gs.array([[gs.cos(gs.pi), gs.sin(gs.pi)],
-                                   [-gs.sin(gs.pi), gs.cos(gs.pi)]]),
-                     expected=True),
+                dict(
+                    n=2,
+                    mat=gs.array(
+                        [
+                            [gs.cos(gs.pi), gs.sin(gs.pi)],
+                            [-gs.sin(gs.pi), gs.cos(gs.pi)],
+                        ]
+                    ),
+                    expected=True,
+                ),
             ]
             return self.generate_tests(smoke_data)
 
         def random_point_belongs_data(self):
             return self._random_point_belongs_data(
-                [], [],
+                [],
+                [],
                 self.space_args_list,
                 self.n_points_list,
             )
@@ -81,10 +89,10 @@ class TestSpecialLinear(TestCase, metaclass=LieGroupParametrizer):
         self.assertAllClose(group.belongs(gs.array(point)), gs.array(expected))
 
 
-class TestTracelessMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer):
+class TestTracelessMatrices(TestCase):
     space = algebra = TracelessMatrices
 
-    class TestDataTracelessMatrices(MatrixLieAlgebraTestData):
+    class TestDataTracelessMatrices(_MatrixLieAlgebraTestData):
         n_list = random.sample(range(2, 5), 2)
         space_args_list = [(n,) for n in n_list]
         shape_list = [(n, n) for n in n_list]
@@ -95,13 +103,14 @@ class TestTracelessMatrices(TestCase, metaclass=MatrixLieAlgebraParametrizer):
         def belongs_data(self):
             smoke_data = [
                 dict(n=3, mat=gs.eye(3), expected=False),
-                dict(n=2, mat=gs.array([[1, 1], [1, -1]]), expected=True)
+                dict(n=2, mat=gs.array([[1, 1], [1, -1]]), expected=True),
             ]
             return self.generate_tests(smoke_data)
 
         def random_point_belongs_data(self):
             return self._random_point_belongs_data(
-                [], [],
+                [],
+                [],
                 self.space_args_list,
                 self.n_points_list,
             )
