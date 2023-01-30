@@ -1,10 +1,7 @@
 import random
 
 import geomstats.backend as gs
-from geomstats.information_geometry.poisson import (
-    PoissonDistributions,
-    PoissonMetric,
-)
+from geomstats.information_geometry.poisson import PoissonDistributions, PoissonMetric
 from tests.data_generation import (
     _OpenSetTestData,
     _RiemannianMetricTestData,
