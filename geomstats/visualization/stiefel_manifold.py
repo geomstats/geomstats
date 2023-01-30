@@ -89,8 +89,8 @@ class StiefelSphere:
         """Draw the sphere regularly sampled with corresponding triangles.
 
         Parameters
-            ----------
-            n_theta : int, default: 25
+        ----------
+        n_theta : int, default: 25
 
         n_phi : int, default: 13
 
@@ -151,7 +151,7 @@ class StiefelSphere:
 
         Parameters
         ----------
-         points : array-like, shape=[..., 2, 2]
+        points : array-like, shape=[..., 2, 2]
                 Set of points on the Stiefel manifold.
 
         Returns
