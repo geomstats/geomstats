@@ -1,7 +1,7 @@
-from tests2.data.base_data import VectorSpaceTestData
+from tests2.data.base_data import ComplexVectorSpaceTestData
 
 
-class EuclideanTestData(VectorSpaceTestData):
+class HermitianTestData(ComplexVectorSpaceTestData):
     def exp_vec_test_data(self):
         return self.generate_vec_data()
 

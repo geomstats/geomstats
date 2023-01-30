@@ -55,7 +55,7 @@ class _LieGroupMixinsTestData:
         return self.generate_vec_data()
 
 
-class ManifoldTestData(TestData):
+class _ManifoldMixinsTestData:
     def belongs_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -81,7 +81,19 @@ class ManifoldTestData(TestData):
         return self.generate_vec_data()
 
 
-class VectorSpaceTestData(_ProjectionMixinsTestData, ManifoldTestData):
+class ManifoldTestData(_ManifoldMixinsTestData, TestData):
+    pass
+
+
+class ComplexManifoldTestData(_ManifoldMixinsTestData, TestData):
+    def random_point_is_complex_test_data(self):
+        return self.generate_random_data()
+
+    def random_point_imaginary_nonzero_test_data(self):
+        return self.generate_tests([dict(n_points=5)])
+
+
+class _VectorSpaceMixinsTestData(_ProjectionMixinsTestData):
     def basis_cardinality_test_data(self):
         return None
 
@@ -93,6 +105,14 @@ class VectorSpaceTestData(_ProjectionMixinsTestData, ManifoldTestData):
 
     def to_tangent_is_projection_test_data(self):
         return self.generate_random_data()
+
+
+class VectorSpaceTestData(_VectorSpaceMixinsTestData, ManifoldTestData):
+    pass
+
+
+class ComplexVectorSpaceTestData(_VectorSpaceMixinsTestData, ComplexManifoldTestData):
+    pass
 
 
 class MatrixVectorSpaceMixinsTestData(TestData):
@@ -177,9 +197,17 @@ class LevelSetTestData(_ProjectionMixinsTestData, ManifoldTestData):
         return self.generate_vec_data()
 
 
-class OpenSetTestData(_ProjectionMixinsTestData, ManifoldTestData):
+class _OpenSetMixinsTestData(_ProjectionMixinsTestData):
     def to_tangent_is_tangent_in_embedding_space_test_data(self):
         return self.generate_random_data()
+
+
+class OpenSetTestData(_OpenSetMixinsTestData, ManifoldTestData):
+    pass
+
+
+class ComplexOpenSetTestData(_OpenSetMixinsTestData, ComplexManifoldTestData):
+    pass
 
 
 class FiberBundleTestData(ManifoldTestData):

@@ -1,12 +1,12 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.test.geometry.base import VectorSpaceTestCase
+from geomstats.test.geometry.base import ComplexVectorSpaceTestCase
 from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.vectorization import generate_vectorization_data
 
 
-class EuclideanTestCase(VectorSpaceTestCase):
+class HermitianTestCase(ComplexVectorSpaceTestCase):
     def test_exp(self, tangent_vec, base_point, expected, atol):
         exp = self.space.exp(tangent_vec, base_point)
         self.assertAllClose(exp, expected, atol=atol)

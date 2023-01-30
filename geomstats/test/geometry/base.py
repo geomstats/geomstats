@@ -15,6 +15,10 @@ from geomstats.vectorization import get_batch_shape, repeat_point
 
 # TODO: enumerate tests for which random is not enough
 
+# TODO: review uses of gs.ones and gs.zeros
+
+# TODO: review "passes" in tests (maybe not implemented error?)
+
 
 class _ProjectionTestCaseMixins:
     # TODO: should projection be part of manifold? (not only in tests)
@@ -255,7 +259,7 @@ class _LieGroupTestCaseMixins:
         self._test_vectorization(vec_data)
 
 
-class ManifoldTestCase(TestCase):
+class _ManifoldTestCaseMixins:
     # TODO: remove random_tangent_vec?
     # TODO: remove regularize
     # TODO: check default_coords_type correcteness if intrinsic by comparing
@@ -377,7 +381,28 @@ class ManifoldTestCase(TestCase):
         self._test_vectorization(vec_data)
 
 
-class VectorSpaceTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
+class ManifoldTestCase(_ManifoldTestCaseMixins, TestCase):
+    pass
+
+
+class ComplexManifoldTestCase(_ManifoldTestCaseMixins, TestCase):
+    # TODO: add random_point_is_complex
+    # TODO: check imaginary part of random_point
+
+    @pytest.mark.type
+    def test_random_point_is_complex(self, n_points):
+        point = self.space.random_point(n_points)
+
+        self.assertTrue(gs.is_complex(point))
+
+    @pytest.mark.random
+    def test_random_point_imaginary_nonzero(self, n_points, atol):
+        point = self.space.random_point(n_points)
+        res = gs.imag(gs.abs(point))
+        self.assertAllClose(res, 0.0, atol=atol)
+
+
+class _VectorSpaceTestCaseMixins(_ProjectionTestCaseMixins):
     def _get_point_to_project(self, n_points):
         return self.space.random_point(n_points)
 
@@ -409,6 +434,14 @@ class VectorSpaceTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
 
     def test_basis(self, expected, atol):
         self.assertAllClose(self.space.basis, expected, atol=atol)
+
+
+class VectorSpaceTestCase(_VectorSpaceTestCaseMixins, ManifoldTestCase):
+    pass
+
+
+class ComplexVectorSpaceTestCase(_VectorSpaceTestCaseMixins, ComplexManifoldTestCase):
+    pass
 
 
 class MatrixVectorSpaceTestCaseMixins:
@@ -723,7 +756,7 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
         self._test_vectorization(vec_data)
 
 
-class OpenSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
+class _OpenSetTestCaseMixins(_ProjectionTestCaseMixins):
     def _get_point_to_project(self, n_points):
         return self.space.embedding_space.random_point(n_points)
 
@@ -735,6 +768,14 @@ class OpenSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
 
         expected = gs.ones(n_points, dtype=bool)
         self.assertAllEqual(res, expected)
+
+
+class OpenSetTestCase(_OpenSetTestCaseMixins, ManifoldTestCase):
+    pass
+
+
+class ComplexOpenSetTestCase(_OpenSetTestCaseMixins, ComplexManifoldTestCase):
+    pass
 
 
 class FiberBundleTestCase(ManifoldTestCase):
