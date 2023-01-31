@@ -15,6 +15,7 @@ from geomstats.visualization.poincare_polydisk import PoincarePolyDisk
 from geomstats.visualization.pre_shape import KendallDisk, KendallSphere
 from geomstats.visualization.spd_matrices import Ellipses
 from geomstats.visualization.special_euclidean import SpecialEuclidean2
+from geomstats.visualization.special_euclidean import SpecialEuclidean3
 from geomstats.visualization.special_orthogonal import (
     Arrow3D,
     Trihedron,
@@ -96,21 +97,21 @@ def plot(points, ax=None, space=None, coords_type=None, **point_draw_kwargs):
     if space in ("SO3_GROUP", "SE3_GROUP"):
         if ax is None:
             ax = plt.subplot(111, projection="3d")
-        if space == "SE3_GROUP":
-            ax_s = AX_SCALE * gs.amax(gs.abs(points[:, 3:6]))
-        elif space == "SO3_GROUP":
-            ax_s = AX_SCALE * gs.amax(gs.abs(points[:, :3]))
-        ax_s = float(ax_s)
-        bounds = (-ax_s, ax_s)
-        plt.setp(
-            ax,
-            xlim=bounds,
-            ylim=bounds,
-            zlim=bounds,
-            xlabel="X",
-            ylabel="Y",
-            zlabel="Z",
-        )
+            if space == "SE3_GROUP":
+                ax_s = AX_SCALE * gs.amax(gs.abs(points[:, 3:6]))
+            elif space == "SO3_GROUP":
+                ax_s = AX_SCALE * gs.amax(gs.abs(points[:, :3]))
+            ax_s = float(ax_s)
+            bounds = (-ax_s, ax_s)
+            plt.setp(
+                ax,
+                xlim=bounds,
+                ylim=bounds,
+                zlim=bounds,
+                xlabel="X",
+                ylabel="Y",
+                zlabel="Z",
+            )
         trihedrons = convert_to_trihedron(points, space=space)
         for t in trihedrons:
             t.draw(ax, **point_draw_kwargs)

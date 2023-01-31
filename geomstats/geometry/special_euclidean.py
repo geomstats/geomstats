@@ -469,6 +469,26 @@ class _SpecialEuclideanVectors(LieGroup):
         rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
         return homogeneous_representation(rot_mat, trans_vec)
 
+    def vector_from_matrix(self, mat):
+        """Convert points in matrix type to vector representation.
+
+        Parameters
+        ----------
+        mat: array-like, shape=[..., n+1, n+1]
+            Matrix representation.
+
+        Returns
+        ----------
+        vec: array-like, shape=[..., dim]
+            Vector representation.
+
+        """
+        rot_mat = mat[..., : self.n, : self.n]
+        trans_vec = mat[..., : self.n, self.n]
+
+        rot_vec = self.rotations.rotation_vector_from_matrix(rot_mat)
+        return gs.concatenate([rot_vec, trans_vec], axis=-1)
+
     @geomstats.vectorization.decorator(["else", "vector", "vector"])
     def compose(self, point_a, point_b):
         r"""Compose two elements of SE(2) or SE(3).
