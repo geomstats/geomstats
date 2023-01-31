@@ -1,7 +1,8 @@
 """Visualization for Geometric Statistics."""
-import geomstats.backend as gs
 import matplotlib.pyplot as plt
 import numpy as np
+
+import geomstats.backend as gs
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.information_geometry.beta import BetaDistributions
 
@@ -71,7 +72,12 @@ class Beta:
         plt.xlabel(r"$\alpha$")
         plt.ylabel(r"$\beta$")
 
-    def plot_rendering(self, initial_point=[0, 0], size=[10, 10], sampling_period=1):
+    def plot_rendering(
+        self,
+        initial_point=[0, 0],
+        size=[10, 10],
+        sampling_period=1
+    ):
         """Draws the beta manifold.
 
         by Yiliang Chen & Allen Wang
@@ -120,7 +126,13 @@ class Beta:
         plt.ylabel(r"$\beta$")
 
     def plot_grid(
-        self, size, initial_point=[0, 0], n_steps=100, n_points=10, step=1, **kwargs
+        self,
+        size,
+        initial_point=[0, 0],
+        n_steps=100,
+        n_points=10,
+        step=1,
+        **kwargs
     ):
         """Draws the grids of beta manifold.
 
@@ -246,13 +258,16 @@ class Beta:
                 x, y = point
                 if x < 0 or y < 0:
                     raise ValueError(
-                        "Point {} is not in the first quadrant".format(point)
+                        "Point {} is not in the first quadrant"
+                        .format(point)
                     )
 
             u_lim = np.max(list(zip(initial_point, end_point))) + 1
             l_lim = np.min(list(zip(initial_point, end_point))) - 1
             geod = beta.metric.geodesic(
-                initial_point=initial_point, end_point=end_point, n_steps=n_steps
+                initial_point=initial_point,
+                end_point=end_point,
+                n_steps=n_steps
             )(t)
 
             fig = plt.figure(figsize=(5, 5))
@@ -309,9 +324,11 @@ class Beta:
             raise ValueError(
                 "Points must be in the upper-right quadrant of Euclidean space"
             )
-        if not (initial_point.shape[-1] == 2 and len(initial_point.shape) == 2):
+        if not (initial_point.shape[-1] == 2 and
+                len(initial_point.shape) == 2):
             raise ValueError("Points must lie in 2D space")
-        if len(tangent_vecs.shape) != 2 or tangent_vecs.shape[1] != 2:
+        if (len(tangent_vecs.shape) != 2 or
+                tangent_vecs.shape[1] != 2):
             raise ValueError("Tangent vector needs to be of shape N x 2")
         scaled_tangent_vecs = ray_length * tangent_vecs
 
