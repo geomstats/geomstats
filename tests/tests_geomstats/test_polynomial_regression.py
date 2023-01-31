@@ -89,7 +89,6 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         self.se2 = SpecialEuclidean(n=2)
         self.order_se2 = 2
         self.metric_se2 = self.se2.left_canonical_metric
-        # self.metric_se2.default_point_type = "matrix"
 
         self.shape_se2 = (3, 3)
         X = gs.random.rand(self.n_samples)
@@ -278,7 +277,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.0))
 
-    @tests.conftest.autograd_and_torch_only
+    # @tests.conftest.autograd_and_torch_only
     def test_value_and_grad_loss_euclidean(self):
         pr = PolynomialRegression(
             self.eucl,

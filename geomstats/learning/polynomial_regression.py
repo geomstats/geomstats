@@ -187,7 +187,7 @@ class PolynomialRegression(BaseEstimator):
             Loss.
         """
         # Split parameters (per order)
-        intercept, coef = self._split_parameters(param)
+        intercept, coef = self._split_parameters(param, shape)
 
         intercept = gs.cast(intercept, dtype=y.dtype)
         coef = gs.cast(coef, dtype=y.dtype)
@@ -209,7 +209,7 @@ class PolynomialRegression(BaseEstimator):
         return 1.0 / 2.0 * gs.sum(weights * distances) + penalty
 
     @staticmethod
-    def _split_parameters(param):
+    def _split_parameters(param, shape=None):
         """Split parameter matrix into intercept and coeff.
 
         Split parameters (order + 1 x dim) into intercept (1 x dim)
@@ -229,7 +229,10 @@ class PolynomialRegression(BaseEstimator):
         coef : array-like, shape=[{order, dim, [n,n]}]
             Initial value for the coefficient matrix.
         """
-        return param[0], param[1:]
+        if shape:
+            return param[0].reshape(shape), param[1:].reshape((-1,) + shape)
+        else:
+            return param[0], param[1:]
 
     def _combine_parameters(self, intercept, coef):
         """Combine  intercept and coeff into param.
