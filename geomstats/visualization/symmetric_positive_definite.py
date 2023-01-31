@@ -211,7 +211,6 @@ class SymPosDefVisualization:
         self.artist = coll
         self.fig = plt.figure()
 
-        # self.ax = self.fig.gca(projection='3d')
         self.ax = self.fig.add_subplot(projection="3d")
         self.ax.add_collection(coll)
 
@@ -254,15 +253,6 @@ class SymPosDefVisualization:
         array-like, shape [2,2]
         """
         x, y, z = point
-        # let a = z
-        # let x = b
-        # let y = c
-
-        # [z+x, y]
-        # [y, z-x]
-        # z>0
-        # z^2 > x^2 + y^2
-
         return np.array([[z + x, y], [y, z - x]])
 
     @staticmethod
@@ -364,15 +354,11 @@ class SymPosDefVisualization:
 
         y = np.append(0, (radii * np.sin(angles)).flatten())
 
-        # print("X Shape {}, Y Shape {}".format(x.shape, y.shape))
         for x_tmp, y_tmp in zip(x, y):
-            # print("X: {} Y:{}".format(x_tmp, y_tmp))
             sampled_xyz = (x_tmp, y_tmp, z_plane)
             sampled_spd = SymPosDefVisualization.xyz_to_spd(sampled_xyz)
-            # print(sampled_spd)
             ellipse_x, ellipse_y = self.spdPointViz.compute_coordinates(
                 sampled_spd)
-            # ellipse_z = np.full_like(ellipse_x, z_plane)
             self.ax.plot(
                 ellipse_x / (n_radii * n_angles * 0.25) + sampled_xyz[0],
                 ellipse_y / (n_radii * n_angles * 0.25) + sampled_xyz[1],
@@ -500,9 +486,6 @@ class SymPosDefVisualization:
             base_point=SymPosDefVisualization.xyz_to_spd(startpt_xyz),
         )
 
-        # print("Tangent Matrix")
-        # print(tangent_matrix)
-
         tangent_vector = SymPosDefVisualization.spd_to_xyz(tangent_matrix)
 
         self.ax.scatter3D(
@@ -549,9 +532,6 @@ class SymPosDefVisualization:
             SymPosDefVisualization.xyz_to_spd(endpt_xyz),
             base_point=SymPosDefVisualization.xyz_to_spd(startpt_xyz),
         )
-
-        # print("Tangent Matrix")
-        # print(tangent_matrix)
 
         tangent_vector = SymPosDefVisualization.spd_to_xyz(tangent_matrix)
 
@@ -603,76 +583,16 @@ class SymPosDefVisualization:
         )
         self.ax.legend()
 
-    def plot_vector_field(self,
-                          startpt_xyz=(0, 0, 1), endpt_xyz=(0.25, 0.25, 0.5)):
-        """TODO:Visualize the vector field.
-
-        Takes points and tangent vecs as parameters.
-        """
-        # tangent_matrix = self.metric.log(
-        #     SymPosDefVisualization.xyz_to_spd(endpt_xyz),
-        #     base_point=SymPosDefVisualization.xyz_to_spd(startpt_xyz),
-        # )
-
-        # tangent_vector = SymPosDefVisualization.spd_to_xyz(tangent_matrix)
-        pass
-
-
 if __name__ == "__main__":
-
-    # Affine-invariant Riemannian metric
-    # randomPoints = spdManifold.random_point(n_samples=25000)
-    # plot()
-    # ellipses = visualization.Ellipses()
-    # ellipses.draw_points(points=randomPoints)
-    # symmetric_positive_definite.plot5()
-    # symmetric_positive_definite.plot_hsv(False)
-
     viz = SymPosDefVisualization(1)
 
     viz.plot(currZ=1, hsv=True)
-    # viz.plot_grid()
-    # viz.plot_geodesic()
-    # viz.plot_tangent_space(point=(0,0,1))
-    # viz.scatter()
+    viz.plot_grid()
+    viz.plot_geodesic()
+    viz.plot_tangent_space(point=(0,0,1))
+    viz.scatter()
     viz.plot_log()
     viz.plot_exp()
 
     plt.show()
-    # viz.plot(hsv=True)
-    # plt.show(block=False)
-    # input("Press Enter to continue...")
 
-    # viz.plot(hsv=False)
-    # viz.plot_rendering()
-    # plt.show(block=False)
-    # input("Press Enter to continue...")
-
-    # viz.plot(currZ=0.9, hsv=False)
-    # viz.plot_rendering()
-    # plt.show(block=False)
-    # input("Press Enter to continue...")
-
-    # viz.plot(currZ=0.8, hsv=False)
-    # viz.plot_rendering()
-    # plt.show(block=False)
-    # input("Press Enter to continue...")
-
-    # viz.plot(currZ=0.7, hsv=False)
-    # viz.plot_rendering()
-    # plt.show(block=False)
-    # input("Press Enter to continue...")
-
-    # viz.plot(currZ=1, hsv=False)
-    # viz.plot_tangent_space((0,0,1))
-    # plt.show(block=False)
-    # input("Press Enter to continue...")
-
-    # viz.plot(currZ=0.5)
-    # viz.plot_rendering(None)
-    # plt.show(block=False)
-    # input("Press Enter to exit...")
-    # viz.plot_tangent_space((0,0,1))
-
-    # viz.plot_tangent_space((0.5,0.5,1))
-    # viz.
