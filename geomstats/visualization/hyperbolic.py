@@ -9,7 +9,6 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 class KleinDisk(Plotter):
     """Class used to plot KleinDisk"""
-    """Test comment for pull request update"""
 
     def __init__(self, points=None):
         super().__init__()
@@ -21,13 +20,12 @@ class KleinDisk(Plotter):
 
         self._space = Hyperboloid(dim=2)
         self._metric = self._space.metric
-        self._belongs = self.space.belongs
+        self._belongs = self._space.belongs
 
         self._ax_scale = 1.2
         self._dim = 2
         self._convert_points = self._convert_to_klein_coordinates
 
-    @staticmethod
     def _convert_to_klein_coordinates(points):
         """Convert poincare coordinates to klein coordinates"""
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
@@ -43,6 +41,7 @@ class KleinDisk(Plotter):
         return klein_coords
 
     def plot_space(self, ax=None, color="black", **kwargs):
+        """Plot points in the KleinDisk"""
         ax = self.set_ax(ax=ax)
 
         circle = plt.Circle((0, 0), radius=1.0, color=color, fill=False)
@@ -53,6 +52,8 @@ class KleinDisk(Plotter):
 
 
 class PoincareDisk(Plotter):
+    """Plot points in the PoincareDisk"""
+
     def __init__(self, points=None, point_type="extrinsic"):
         super().__init__()
         self.center = gs.array([0.0, 0.0])
@@ -62,17 +63,19 @@ class PoincareDisk(Plotter):
         #    self.add_points(points)
         self._space = Hyperboloid(dim=2)
         self._metric = self._space.metric
-        self._belongs = self.space.belongs
+        self._belongs = self._space.belongs
 
         self._ax_scale = 1.2
+        self._dim = 2
         self._convert_points = self._convert_to_poincare_coordinates
 
-    @staticmethod
     def _convert_to_poincare_coordinates(points):
+        """Convert points to poincare coordinates"""
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
         return poincare_coords
 
     def draw(self, ax, **kwargs):
+        """ "Create disk and plot points for PoincareDisk"""
         circle = plt.Circle((0, 0), radius=1.0, color="black", fill=False)
         ax.add_artist(circle)
         if len(self.points) > 0:
@@ -84,6 +87,7 @@ class PoincareDisk(Plotter):
                 raise ValueError("Points do not have dimension 2.")
 
     def plot(self, points, ax=None, point_type=None, **point_draw_kwargs):
+        """Plot points in the PoincareDisk"""
         if point_type is None:
             point_type = "extrinsic"
         poincare_disk = PoincareDisk(point_type=point_type)
@@ -105,13 +109,33 @@ class PoincareHalfPlane(Plotter):
             self.add_points(points)
         self._space = PoincareHalfSpace(dim=2)
         self._metric = self._space.metric
-        self._belongs = self.space.belongs
+        self._belongs = self._space.belongs
 
         self._ax_scale = 1.2
+        self._dim = 2
         self._convert_points = self._convert_to_half_plane_coordinates
 
-    @staticmethod
+    def add_points(self, points):
+        """Add points for plotting"""
+        if self.point_type == "extrinsic":
+            if not gs.all(self.belongs(points)):
+                raise ValueError(
+                    "Points do not belong to the hyperbolic space "
+                    "(extrinsic coordinates)"
+                )
+            points = self.convert_to_half_plane_coordinates(points)
+        elif self.point_type == "half-space":
+            if not gs.all(self.belongs(points)):
+                raise ValueError(
+                    "Points do not belong to the hyperbolic space "
+                    "(Poincare half plane coordinates)."
+                )
+        if not isinstance(points, list):
+            points = list(points)
+        self.points.extend(points)
+
     def _convert_to_half_plane_coordinates(points):
+        """Convert point to half plane coordinates"""
         disk_coords = points[:, 1:] / (1 + points[:, :1])
         disk_x = disk_coords[:, 0]
         disk_y = disk_coords[:, 1]
@@ -124,11 +148,13 @@ class PoincareHalfPlane(Plotter):
         return half_plane_coords
 
     def draw(self, ax, **kwargs):
+        """ "Plot points for Poincare Half Plane"""
         points_x = [gs.to_numpy(point[0]) for point in self.points]
         points_y = [gs.to_numpy(point[1]) for point in self.points]
         ax.scatter(points_x, points_y, **kwargs)
 
     def plot(self, points, ax=None, point_type=None, **point_draw_kwargs):
+        """Plot points in Poincare Half Plane"""
         if point_type is None:
             point_type = "half-space"
         poincare_half_plane = PoincareHalfPlane(point_type=point_type)
