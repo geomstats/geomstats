@@ -249,8 +249,8 @@ class Beta:
                         "Point {} is not in the first quadrant".format(point)
                     )
 
-            u_lim = gs.amax(list(zip(initial_point, end_point))) + 1
-            l_lim = gs.amin(list(zip(initial_point, end_point))) - 1
+            u_lim = max(list(zip(initial_point, end_point))) + 1
+            l_lim = min(list(zip(initial_point, end_point))) - 1
             geod = beta.metric.geodesic(
                 initial_point=initial_point, end_point=end_point, n_steps=n_steps
             )(t)
