@@ -13,10 +13,6 @@ beta = BetaDistributions()
 class Beta:
     """Class for the visualization of beta manifold."""
 
-    def __init__(self):
-        """No attributes in Beta class."""
-        pass
-
     def process_points(self, points, **kwargs):
         """Process all manifold points.
 
