@@ -1,7 +1,8 @@
 """Visualization for Geometric Statistics."""
-import geomstats.backend as gs
 import matplotlib.pyplot as plt
 import numpy as np
+
+import geomstats.backend as gs
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.information_geometry.beta import BetaDistributions
 

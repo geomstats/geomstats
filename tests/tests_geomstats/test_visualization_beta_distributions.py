@@ -3,9 +3,10 @@ import os
 import random
 import sys
 
-import geomstats.backend as gs
 import matplotlib
 import matplotlib.pyplot as plt
+
+import geomstats.backend as gs
 import tests.conftest
 from geomstats.information_geometry.beta import BetaDistributions
 from geomstats.visualization.beta_distributions import Beta
