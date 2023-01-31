@@ -71,7 +71,7 @@ class Beta:
         plt.xlabel(r"$\alpha$")
         plt.ylabel(r"$\beta$")
 
-    def plot_rendering(self, initial_point=[0, 0], size=[10, 10], sampling_period=1):
+    def plot_rendering(self, initial_point=[2, 2], size=[10, 10], sampling_period=1):
         """Draws the beta manifold.
 
         by Yiliang Chen & Allen Wang
@@ -80,7 +80,7 @@ class Beta:
         ----------
         Initial_point : array-like, shape=[1, 2]
             Defines initial point for plot rendering
-            Optional, default: [0,0]
+            Optional, default: [2,2]
         size : array-like, shape=[..., 2]
             Defines the range of the samples to be shown
             Optional, default: [10,10]
@@ -120,7 +120,7 @@ class Beta:
         plt.ylabel(r"$\beta$")
 
     def plot_grid(
-        self, size, initial_point=[0, 0], n_steps=100, n_points=10, step=1, **kwargs
+        self, size, initial_point=[2, 2], n_steps=100, n_points=10, step=1, **kwargs
     ):
         """Draws the grids of beta manifold.
 
@@ -132,7 +132,7 @@ class Beta:
             Defines the range of the grids to be shown.
         initial_point : array-like, shape=[1,2]
             Defines the initial point for plotting the beta manifold grid.
-            Optional, default: [0,0]
+            Optional, default: [2,2]
         n_steps : int, >0
             Defines the number of steps for integration.
             Optional, default: 100
