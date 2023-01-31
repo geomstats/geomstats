@@ -155,7 +155,6 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         X_powers = gs.vstack(
             [self.X_curves_2d**k for k in range(1, self.order_curves_2d + 1)]
         )
-        # Use matrix multiplication #reshape twice to use multidimensonal array
 
         # Added because of GitHub issue #1575
         intercept_curves_2d_true_repeated = gs.tile(
@@ -170,7 +169,6 @@ class TestPolynomialRegression(tests.conftest.TestCase):
                 ),
                 (-1,) + self.shape_curves_2d,
             ),
-            # self.X_curves_2d[:, None, None] * self.coef_curves_2d_true[None],
             intercept_curves_2d_true_repeated,
         )
 
@@ -277,7 +275,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.0))
 
-    # @tests.conftest.autograd_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_value_and_grad_loss_euclidean(self):
         pr = PolynomialRegression(
             self.eucl,

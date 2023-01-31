@@ -220,6 +220,8 @@ class PolynomialRegression(BaseEstimator):
         param : array-like, shape=[order + 1, {dim, [n,n]}]
             Parameters intercept and coef of the polynomial regression,
             vertically stacked or in matrix form
+        shape : array-like, shape=[order + 1, {order + 1}]
+            Optional: default, None
 
 
         Returns
