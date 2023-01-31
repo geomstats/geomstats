@@ -1,19 +1,30 @@
 """Visualization for Geometric Statistics."""
 
-import geomstats._backend as gs
 import matplotlib.pyplot as plt
-from geomstats.geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.geomstats.visualization._plotting import Plotter
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
+import geomstats._backend as gs
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.visualization._plotting import Plotter
 
-SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
+# SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
 
 AX_SCALE = 1.2
 
 
 
 class Arrow3D(Plotter):
-    """An arrow in 3d, i.e. a point and a vector."""
+    """Class used to draw an arrow in 3d
+    
+    Parameters: 
+    ----------
+    point: 
+    
+    vector:
+
+
+    Returns:
+    ----------
+    """
 
     def __init__(self, point, vector):
         super().__init__()
@@ -32,7 +43,7 @@ class Trihedron(Plotter):
         self._convert_points = self._convert_to_trihedron
 
 
-def _convert_to_trihedron(point, space=None):
+def _convert_to_trihedron(self, point, space=None):
     """Transform a rigid point into a trihedron.
 
     Transform a rigid point into a trihedron such that:
