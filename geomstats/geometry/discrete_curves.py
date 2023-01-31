@@ -5,8 +5,6 @@ Lead author: Alice Le Brigant.
 
 import math
 
-from scipy.interpolate import CubicSpline
-
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import LevelSet
@@ -17,6 +15,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from scipy.interpolate import CubicSpline
 
 R2 = Euclidean(dim=2)
 R3 = Euclidean(dim=3)
