@@ -100,6 +100,11 @@ Grassmannian Manifold
 .. automodule:: geomstats.geometry.grassmannian
    :members:
 
+Klein Bottle
+------------
+.. automodule:: geomstats.geometry.klein_bottle
+   :members:
+
 Landmarks Space
 ---------------
 .. automodule:: geomstats.geometry.landmarks
