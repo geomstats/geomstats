@@ -1,8 +1,4 @@
-"""
-This module contains a class Beta capable of plotting Beta manifolds.
-
-By Yiliang Chen & Sunpeng Duan & Marianne Arriola & Ryan Stofer & Allen Wang
-"""
+"""Visualization for Geometric Statistics."""
 import geomstats.backend as gs
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,16 +11,7 @@ beta = BetaDistributions()
 
 
 class Beta:
-    """Class for the visualization of beta manifold.
-
-    Parameters
-    ----------
-    points : array-like, shape=[..., 2]
-            Point representing a beta distribution.
-    Returns
-    -------
-    Plots
-    """
+    """Class for the visualization of beta manifold."""
 
     def __init__(self):
         """No attributes in Beta class."""
