@@ -2,7 +2,7 @@ import abc
 
 import matplotlib.pyplot as plt
 
-import geomstats.backend as gs
+import geomstats._backend as gs
 
 
 class Plotter(metaclass=abc.ABCMeta):
