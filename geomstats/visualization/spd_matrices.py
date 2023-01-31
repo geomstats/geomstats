@@ -2,10 +2,11 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
-import geomstats.backend as gs
+import geomstats._backend as gs
+from geomstats.visualization._plotting import Plotter
 
 
-class Ellipses:
+class Ellipses(Plotter):
     """Class used to plot points on the manifold SPD(2).
 
     Elements S of the manifold of 2D Symmetric Positive Definite matrices
@@ -25,25 +26,8 @@ class Ellipses:
 
     def __init__(self, n_sampling_points=100):
         self.n_sampling_points = n_sampling_points
-
-    @staticmethod
-    def set_ax(ax=None):
-        """Set the axis for the Figure.
-
-        Parameters
-        ----------
-        ax : Axis
-            Axis of the figure.
-
-        Returns
-        -------
-        ax : Axis
-            Axis of the figure.
-        """
-        if ax is None:
-            ax = plt.subplot()
-        plt.setp(ax, xlabel="X", ylabel="Y")
-        return ax
+        self._convert_points = self._compute_coordinates
+        self._dim = 2
 
     def draw_points(self, points=None, ax=None, **plot_kwargs):
         """Draw the ellipses.
@@ -64,10 +48,11 @@ class Ellipses:
         if points.ndim == 2:
             points = [points]
         for point in points:
-            x_coords, y_coords = self.compute_coordinates(point)
+            x_coords, y_coords = self._compute_coordinates(point)
             ax.plot(x_coords, y_coords, **plot_kwargs)
 
-    def compute_coordinates(self, point):
+
+    def _compute_coordinates(self, point):
         """Compute the ellipse coordinates of a 2D SPD matrix.
 
         Parameters
