@@ -1,11 +1,13 @@
 """Unit tests for visualization."""
 
-import geomstats.backend as gs
-import geomstats.visualization as visualization
 import matplotlib
 import matplotlib.pyplot as plt
+
+import geomstats.backend as gs
+import geomstats.visualization as visualization
 import tests.conftest
 from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.visualization.special_euclidean import SpecialEuclidean3
 
 matplotlib.use("Agg")  # NOQA
 
@@ -44,7 +46,6 @@ class TestVisualization(tests.conftest.TestCase):
         initial_point = self.SE3_VEC.identity
         initial_tangent_vec = gs.array([1.8, 0.2, 0.3, 3.0, 3.0, 1.0])
         N_STEPS = 40
-        visualization.SpecialEuclidean3.plot_geodesic(
+        SpecialEuclidean3.plot_geodesic(
             initial_point, initial_tangent_vec, METRIC, N_STEPS
         )
-        
