@@ -1,10 +1,6 @@
 """Unit tests for visualization."""
 
 import matplotlib.pyplot as plt
-
-# import geomstats.backend as gs
-# import geomstats.visualization as visualization
-# import conftest
 import tests.conftest
 from geomstats.geometry.spd_matrices import SPDMatrices
 import symmetric_positive_definite
@@ -21,13 +17,6 @@ class TestVisualizationSPD(tests.conftest.TestCase):
         self.curr_z = 0.3
         self.hsv = False
         plt.figure()
-
-    # def test_plot_points_spd2(self):
-    #     one_point = self.spd.random_point()
-    #     visualization.plot(one_point, space="SPD2")
-
-    #     points = self.spd.random_point(4)
-    #     visualization.plot(points, space="SPD2")
 
     def test_plot(self):
         """Test case for function plot."""
