@@ -212,8 +212,8 @@ class PolynomialRegression(BaseEstimator):
     def _split_parameters(param, shape=None):
         """Split parameter matrix into intercept and coeff.
 
-        Split parameters (order + 1 x dim) into intercept (1 x dim)
-        and coefficient matrix (order x dim).
+        Split parameters (order + 1 x dim) into intercept (-1 x shape)
+        and coefficient matrix (-1 x shape).
 
         Parameters
         ----------

@@ -342,15 +342,11 @@ class TestPolynomialRegression(tests.conftest.TestCase):
 
         # Parameter/grad shape will be (order + 1, shape - flattened)
         # Compare with geodesic regression where order=1 -> (2, shape - flattened)
-        print(self.shape_sphere)
         expected_grad_shape = (self.order_sphere + 1,) + self.shape_sphere
 
         # Without numpy conversion
         objective_with_grad = gs.autodiff.value_and_grad(loss_of_param)
         loss_value, loss_grad = objective_with_grad(self.param_sphere_guess)
-
-        # print(f"Expected grad shape is: {expected_grad_shape}")
-        # print(f"Loss grad shape is: {loss_grad.shape}")
 
         self.assertAllClose(loss_value.shape, ())
         self.assertAllClose(loss_grad.shape, expected_grad_shape)
@@ -447,7 +443,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         # Cast required because minimization happens in scipy in float64
         param_hat = gs.cast(gs.array(res.x), self.param_eucl_true.dtype)
 
-        intercept_hat, coef_hat = pr.split_parameters(param_hat)
+        intercept_hat, coef_hat = pr._split_parameters(param_hat)
         coef_hat = self.eucl.to_tangent(coef_hat, intercept_hat)
 
         self.assertAllClose(intercept_hat, self.intercept_eucl_true)
@@ -494,7 +490,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         # Cast required because minimization happens in scipy in float64
         param_hat = gs.cast(gs.array(res.x), self.param_sphere_true.dtype)
 
-        intercept_hat, coef_hat = pr.split_parameters(param_hat)
+        intercept_hat, coef_hat = pr._split_parameters(param_hat)
         intercept_hat = self.sphere.projection(intercept_hat)
         coef_hat = self.sphere.to_tangent(coef_hat, intercept_hat)
         self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=5e-2)
@@ -551,7 +547,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         # Cast required because minimization happens in scipy in float64
         param_hat = gs.cast(gs.array(res.x), self.param_se2_true.dtype)
 
-        intercept_hat, coef_hat = pr.split_parameters(param_hat)
+        intercept_hat, coef_hat = pr._split_parameters(param_hat)
         intercept_hat = gs.reshape(intercept_hat, self.shape_se2)
         coef_hat = gs.reshape(coef_hat, (self.order_se2,) + self.shape_se2)
 
