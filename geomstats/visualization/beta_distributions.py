@@ -1,6 +1,5 @@
 """Visualization for Geometric Statistics."""
 import matplotlib.pyplot as plt
-import numpy as np
 
 import geomstats.backend as gs
 from geomstats.geometry.special_euclidean import SpecialEuclidean
@@ -31,19 +30,19 @@ class Beta:
         points : array-like, shape=[..., 2]
             Beta manifold points to be plotted.
         """
-        points = np.array(points)
+        points = gs.array(points)
         if len(points.shape) == 1:
-            points = np.expand_dims(points, axis=0)
+            points = gs.expand_dims(points, axis=0)
 
         if not len(points) > 0:
             raise ValueError("No points given")
-        if not np.all(points > 0):
+        if not gs.all(points > 0):
             raise ValueError(
                 "Points must be in the upper-right quadrant of Euclidean space"
             )
         if not ((points.shape[-1] == 2 and len(points.shape) == 2)):
             raise ValueError("Points must lie in 2D space")
-        limit = np.max(points)
+        limit = gs.amax(points)
         limit += limit / 10
         return points, limit
 
@@ -250,8 +249,8 @@ class Beta:
                         "Point {} is not in the first quadrant".format(point)
                     )
 
-            u_lim = np.max(list(zip(initial_point, end_point))) + 1
-            l_lim = np.min(list(zip(initial_point, end_point))) - 1
+            u_lim = gs.amax(list(zip(initial_point, end_point))) + 1
+            l_lim = gs.amin(list(zip(initial_point, end_point))) - 1
             geod = beta.metric.geodesic(
                 initial_point=initial_point, end_point=end_point, n_steps=n_steps
             )(t)
@@ -274,8 +273,8 @@ class Beta:
                 initial_tangent_vec=initial_tangent_vec,
                 n_steps=n_steps,
             )(t)
-            u_lim = np.max(geod) + 1
-            l_lim = np.min(geod) - 1
+            u_lim = gs.amax(geod) + 1
+            l_lim = gs.amin(geod) - 1
             fig = plt.figure(figsize=(5, 5))
             ax = fig.add_subplot(111)
             ax.set(xlim=(l_lim, u_lim), ylim=(l_lim, u_lim))
@@ -306,7 +305,7 @@ class Beta:
         points : array-like, shape=[..., 2]
             Point representing a beta distribution.
         """
-        if not np.all(initial_point > 0):
+        if not gs.all(initial_point > 0):
             raise ValueError(
                 "Points must be in the upper-right quadrant of Euclidean space"
             )
@@ -324,18 +323,18 @@ class Beta:
                 n_steps=n_steps,
             )
             geod = gs.transpose(gs.array([geod(k) for k in t]))
-            geod = np.expand_dims(geod, 0)
+            geod = gs.expand_dims(geod, 0)
             if j == 0:
                 geods = geod
             else:
-                geods = np.vstack((geods, geod))
-        x_lowerLimit = np.min(geods[:, 0, :])
+                geods = gs.vstack((geods, geod))
+        x_lowerLimit = gs.amin(geods[:, 0, :])
         x_lowerLimit -= x_lowerLimit / 10
-        x_upperLimit = np.max(geods[:, 0, :])
+        x_upperLimit = gs.amax(geods[:, 0, :])
         x_upperLimit += x_upperLimit / 10
-        y_lowerLimit = np.min(geods[:, 1, :])
+        y_lowerLimit = gs.amin(geods[:, 1, :])
         y_lowerLimit -= y_lowerLimit / 10
-        y_upperLimit = np.max(geods[:, 1, :])
+        y_upperLimit = gs.amax(geods[:, 1, :])
         y_upperLimit += y_upperLimit / 10
         xlims = [x_lowerLimit, x_upperLimit]
         ylims = [y_lowerLimit, y_upperLimit]
