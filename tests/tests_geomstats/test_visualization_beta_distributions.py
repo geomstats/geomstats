@@ -3,11 +3,10 @@ import os
 import random
 import sys
 
+import geomstats.backend as gs
 import matplotlib
 import matplotlib.pyplot as plt
 import tests.conftest
-
-import geomstats.backend as gs
 from geomstats.information_geometry.beta import BetaDistributions
 from geomstats.visualization.beta_distributions import Beta
 
