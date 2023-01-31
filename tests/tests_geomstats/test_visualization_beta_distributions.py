@@ -1,15 +1,16 @@
 """Unit tests for visualization."""
+import os
 import random
 import sys
-
-sys.path.append("../../geomstats/visualization")
 
 import geomstats.backend as gs
 import matplotlib
 import matplotlib.pyplot as plt
 import tests.conftest
-from Beta_Visualization import Beta
 from geomstats.information_geometry.beta import BetaDistributions
+from geomstats.visualization.beta_distributions import Beta
+
+sys.path.append(os.path.dirname(os.getcwd()))
 
 matplotlib.use("Agg")  # NOQA
 
