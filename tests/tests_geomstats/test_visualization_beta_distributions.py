@@ -1,6 +1,8 @@
 """Unit tests for visualization."""
 import random
-import sys; sys.path.append("../../geomstats/visualization")
+import sys
+
+sys.path.append("../../geomstats/visualization")
 
 import geomstats.backend as gs
 import matplotlib
