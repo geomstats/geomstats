@@ -1,5 +1,4 @@
 """Visualization for Geometric Statistics."""
-import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 import geomstats._backend as gs
@@ -50,7 +49,6 @@ class Ellipses(Plotter):
         for point in points:
             x_coords, y_coords = self._compute_coordinates(point)
             ax.plot(x_coords, y_coords, **plot_kwargs)
-
 
     def _compute_coordinates(self, point):
         """Compute the ellipse coordinates of a 2D SPD matrix.
