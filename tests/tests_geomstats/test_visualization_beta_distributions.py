@@ -2,6 +2,8 @@
 import random
 import sys
 
+sys.path.append("../../geomstats/visualization")
+
 import geomstats.backend as gs
 import matplotlib
 import matplotlib.pyplot as plt
@@ -9,7 +11,6 @@ import tests.conftest
 from Beta_Visualization import Beta
 from geomstats.information_geometry.beta import BetaDistributions
 
-sys.path.append("../../geomstats/visualization")
 matplotlib.use("Agg")  # NOQA
 
 
