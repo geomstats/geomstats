@@ -1,38 +1,27 @@
 """Visualization for Geometric Statistics."""
 
+import geomstats._backend as gs
 import matplotlib.pyplot as plt
+from geomstats.geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geomstats.visualization._plotting import Plotter
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
-import geomstats.backend as gs
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-
 SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
-
 
 AX_SCALE = 1.2
 
 
-class Arrow3D:
+
+class Arrow3D(Plotter):
     """An arrow in 3d, i.e. a point and a vector."""
 
     def __init__(self, point, vector):
+        super().__init__()
         self.point = point
         self.vector = vector
 
-    def draw(self, ax, **quiver_kwargs):
-        """Draw the arrow in 3D plot."""
-        ax.quiver(
-            self.point[0],
-            self.point[1],
-            self.point[2],
-            self.vector[0],
-            self.vector[1],
-            self.vector[2],
-            **quiver_kwargs
-        )
 
-
-class Trihedron:
+class Trihedron(Plotter):
     """A trihedron, i.e. 3 Arrow3Ds at the same point."""
 
     def __init__(self, point, vec_1, vec_2, vec_3):
@@ -40,46 +29,10 @@ class Trihedron:
         self.arrow_2 = Arrow3D(point, vec_2)
         self.arrow_3 = Arrow3D(point, vec_3)
 
-    def draw(self, ax, **arrow_draw_kwargs):
-        """Draw the trihedron by drawing its 3 Arrow3Ds.
-
-        Arrows are drawn is order using green, red, and blue
-        to show the trihedron's orientation.
-        """
-        if "color" in arrow_draw_kwargs:
-            self.arrow_1.draw(ax, **arrow_draw_kwargs)
-            self.arrow_2.draw(ax, **arrow_draw_kwargs)
-            self.arrow_3.draw(ax, **arrow_draw_kwargs)
-        else:
-            blue = "#1f77b4"
-            orange = "#ff7f0e"
-            green = "#2ca02c"
-            self.arrow_1.draw(ax, color=blue, **arrow_draw_kwargs)
-            self.arrow_2.draw(ax, color=orange, **arrow_draw_kwargs)
-            self.arrow_3.draw(ax, color=green, **arrow_draw_kwargs)
-
-    def plot(self, points, ax=None, space=None, **point_draw_kwargs):
-        if space == "SE3_GROUP":
-            ax_s = AX_SCALE * gs.amax(gs.abs(points[:, 3:6]))
-        elif space == "SO3_GROUP":
-            ax_s = AX_SCALE * gs.amax(gs.abs(points[:, :3]))
-        ax_s = float(ax_s)
-        bounds = (-ax_s, ax_s)
-        plt.setp(
-            ax,
-            xlim=bounds,
-            ylim=bounds,
-            zlim=bounds,
-            xlabel="X",
-            ylabel="Y",
-            zlabel="Z",
-        )
-        trihedrons = convert_to_trihedron(points, space=space)
-        for t in trihedrons:
-            t.draw(ax, **point_draw_kwargs)
+        self._convert_points = self._convert_to_trihedron
 
 
-def convert_to_trihedron(point, space=None):
+def _convert_to_trihedron(point, space=None):
     """Transform a rigid point into a trihedron.
 
     Transform a rigid point into a trihedron such that:
@@ -136,6 +89,6 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
         ylabel="Y",
         zlabel="Z",
     )
-    trihedrons = convert_to_trihedron(points, space=space)
+    trihedrons = _convert_to_trihedron(points, space=space)
     for t in trihedrons:
         t.draw(ax, **point_draw_kwargs)
