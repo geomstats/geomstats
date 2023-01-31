@@ -9,6 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 class KleinDisk(Plotter):
     """Class used to plot KleinDisk"""
+    """Test comment for pull request update"""
 
     def __init__(self, points=None):
         super().__init__()
