@@ -3,7 +3,6 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 import geomstats._backend as gs
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.visualization._plotting import Plotter
 
 # SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
@@ -11,14 +10,13 @@ from geomstats.visualization._plotting import Plotter
 AX_SCALE = 1.2
 
 
-
 class Arrow3D(Plotter):
-    """Class used to draw an arrow in 3d
-    
-    Parameters: 
+    """Class used to draw an arrow in 3d.
+
+    Parameters:
     ----------
-    point: 
-    
+    point:
+
     vector:
 
 
