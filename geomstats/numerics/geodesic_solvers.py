@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
+from geomstats.numerics.ode_solvers import GSIntegrator
 
 
 class ExpSolver(ABC):
@@ -32,6 +33,7 @@ class ExpIVPSolver(ExpSolver):
         return self.integrator.integrate_t(force, initial_state, t_eval)
 
     def solve(self, metric, tangent_vec, base_point):
+        # TODO: call it exp? receive space?
         result = self._solve(metric, tangent_vec, base_point)
         return self._simplify_result(result, metric)
 
