@@ -17,20 +17,10 @@ NOT_AUTOGRAD = pytorch_backend() or np_backend()
 class TestBetaDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = BetaDistributionsTestsData()
 
-    def test_point_to_pdf(self, x):
-        point = self.Space().random_point()
+    def test_point_to_pdf(self, point, x):
         pdf = self.Space().point_to_pdf(point)
         result = pdf(x)
-        expected = beta.pdf(x, a=point[0], b=point[1])
-        self.assertAllClose(result, expected)
-
-    def test_point_to_pdf_vectorization(self, x):
-        point = self.Space().random_point(n_samples=2)
-        pdf = self.Space().point_to_pdf(point)
-        result = pdf(x)
-        pdf1 = beta.pdf(x, a=point[0, 0], b=point[0, 1])
-        pdf2 = beta.pdf(x, a=point[1, 0], b=point[1, 1])
-        expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
+        expected = gs.transpose(gs.array([beta.pdf(x_, a=point[...,0], b=point[...,1]) for x_ in x]))
         self.assertAllClose(result, expected)
 
 

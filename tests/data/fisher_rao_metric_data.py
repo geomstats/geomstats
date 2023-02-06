@@ -114,12 +114,12 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
             dict(
                 information_manifold=UnivariateNormalDistributions(),
                 support=(-10, 10),
-                base_point=gs.array([1.0, 2.0]),
+                base_point=gs.array([0.0, 0.5]),
             ),
             dict(
                 information_manifold=UnivariateNormalDistributions(),
                 support=(-10, 10),
-                base_point=gs.array([[1.0, 2.0], [2.0, 3.0]]),
+                base_point=gs.array([[0.0, 0.5], [2.0, 0.3]]),
             ),
             dict(
                 information_manifold=GammaDistributions(),
