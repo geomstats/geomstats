@@ -20,7 +20,9 @@ class TestBetaDistributions(OpenSetTestCase, metaclass=Parametrizer):
     def test_point_to_pdf(self, point, x):
         pdf = self.Space().point_to_pdf(point)
         result = pdf(x)
-        expected = gs.transpose(gs.array([beta.pdf(x_, a=point[...,0], b=point[...,1]) for x_ in x]))
+        expected = gs.transpose(
+            gs.array([beta.pdf(x_, a=point[..., 0], b=point[..., 1]) for x_ in x])
+        )
         self.assertAllClose(result, expected)
 
 

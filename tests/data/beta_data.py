@@ -36,6 +36,7 @@ class BetaDistributionsTestsData(_OpenSetTestData):
         ]
         return self.generate_tests(smoke_data)
 
+
 class BetaMetricTestData(_RiemannianMetricTestData):
 
     connection_args_list = metric_args_list = [()]

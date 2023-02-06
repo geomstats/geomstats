@@ -74,7 +74,9 @@ class TestUnivariateNormalDistributions(tests.conftest.TestCase):
         pdf = self.normal.point_to_pdf(point)
         x = gs.linspace(0.0, 1.0, 10)
         result = pdf(x)
-        expected = gs.transpose(gs.array([norm.pdf(x_, loc=point[...,0], scale=point[...,1]) for x_ in x]))
+        expected = gs.transpose(
+            gs.array([norm.pdf(x_, loc=point[..., 0], scale=point[..., 1]) for x_ in x])
+        )
         self.assertAllClose(result, expected)
 
     def test_normal_metric(self):

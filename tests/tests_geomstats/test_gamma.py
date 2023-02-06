@@ -5,7 +5,7 @@ from scipy.stats import gamma
 import geomstats.backend as gs
 import tests.conftest
 from tests.conftest import Parametrizer, autograd_backend, np_backend, pytorch_backend
-from tests.data.gamma_data import GammaMetricTestData, GammaDistributionsTestData
+from tests.data.gamma_data import GammaDistributionsTestData, GammaMetricTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 PYTORCH_BACKEND = pytorch_backend()
@@ -32,7 +32,14 @@ class TestGammaDistributions(OpenSetTestCase, metaclass=Parametrizer):
     def test_point_to_pdf(self, point, n_samples):
         pdf = self.Space().point_to_pdf(point)
         result = pdf(n_samples)
-        expected = gs.transpose(gs.array([gamma.pdf(x_, a=point[...,0], scale=point[...,1]/point[...,0]) for x_ in n_samples]))
+        expected = gs.transpose(
+            gs.array(
+                [
+                    gamma.pdf(x_, a=point[..., 0], scale=point[..., 1] / point[..., 0])
+                    for x_ in n_samples
+                ]
+            )
+        )
         self.assertAllClose(result, expected)
 
     def test_maximum_likelihood_fit(self, sample, expected):
