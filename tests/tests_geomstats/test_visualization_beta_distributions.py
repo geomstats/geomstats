@@ -33,8 +33,8 @@ class TestVisualizationBeta(tests.conftest.TestCase):
 
     def test_plot_geodesic_ball(self):
         center = gs.random.rand(1, 2)
-        n_rays = random.randint(2, 100)
-        ray_length = 1 - random.uniform(0.1, 1)
+        n_rays = gs.random.randint(2, 100)
+        ray_length = 1 - gs.random.uniform(0.1, 1)
         self.beta_viz.plot_geodestic_ball(center, n_rays, ray_length)
 
     def test_plot_vector_field(self):
