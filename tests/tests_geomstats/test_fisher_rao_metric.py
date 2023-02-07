@@ -71,7 +71,7 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
             tangent_vec_b=tangent_vec_b,
             base_point=base_point,
         )
-        normal_metric_mat = closed_form_metric.inner_product(
+        normal_metric_mat = closed_form _metric.inner_product(
             tangent_vec_a=tangent_vec_a,
             tangent_vec_b=tangent_vec_b,
             base_point=base_point,
