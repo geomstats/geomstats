@@ -114,7 +114,7 @@ class GSIntegrator(ODEIVPSolver):
 
 
 class ScipySolveIVP(ODEIVPSolver):
-    # TODO: remember `vectorized` argument
+    # TODO: remember `vectorized` argument (only for Jacobian approximation)
     # TODO: remember `dense_output` argument
 
     def __init__(self, method="RK45", save_result=False, **options):
@@ -123,13 +123,11 @@ class ScipySolveIVP(ODEIVPSolver):
         self.options = options
 
     def _integrate(self, force, initial_state, end_time=1.0, t_eval=None):
-        # TODO: parallelize
-        n_points = gs.shape(initial_state)[0] if gs.ndim(initial_state) > 2 else 1
+        # TODO: parallelize?
 
-        if n_points > 1:
+        if initial_state.ndim > 1:
             results = []
-            for position, velocity in zip(*initial_state):
-                initial_state_ = gs.stack([position, velocity])
+            for initial_state_ in initial_state:
                 results.append(
                     self._integrate_single_point(
                         force, initial_state_, end_time, t_eval
@@ -155,16 +153,14 @@ class ScipySolveIVP(ODEIVPSolver):
         return self._integrate(force, initial_state, end_time=t_eval[-1], t_eval=t_eval)
 
     def _integrate_single_point(self, force, initial_state, end_time=1.0, t_eval=None):
-        raveled_initial_state = gs.flatten(initial_state)
-
         def force_(t, state):
-            state = gs.array(state)
+            state = gs.from_numpy(state)
             return force(t, state)
 
         result = scipy.integrate.solve_ivp(
             force_,
             (0.0, end_time),
-            raveled_initial_state,
+            initial_state,
             method=self.method,
             t_eval=t_eval,
             **self.options

@@ -26,7 +26,10 @@ class ExpIVPSolver(ExpSolver):
     def _solve(self, space, tangent_vec, base_point, t_eval=None):
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
-        initial_state = gs.stack([base_point, tangent_vec])
+        if self.integrator.state_is_raveled:
+            initial_state = gs.hstack([base_point, tangent_vec])
+        else:
+            initial_state = gs.stack([base_point, tangent_vec])
 
         force = self._get_force(space)
         if t_eval is None:
@@ -36,13 +39,14 @@ class ExpIVPSolver(ExpSolver):
 
     def exp(self, space, tangent_vec, base_point):
         result = self._solve(space, tangent_vec, base_point)
-        return self._simplify_result(result, space)
+        return self._simplify_exp_result(result, space)
 
     def geodesic_ivp(self, space, tangent_vec, base_point):
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
         t_axis = int(tangent_vec.ndim > space.point_ndim)
 
         def path(t):
+            # TODO: likely unwanted behavior
             squeeze = False
             if not gs.is_array(t):
                 t = gs.array([t])
@@ -82,7 +86,7 @@ class ExpIVPSolver(ExpSolver):
     def _force_unraveled_state(self, initial_state, _, space):
         return space.metric.geodesic_equation(initial_state, _)
 
-    def _simplify_result(self, result, space):
+    def _simplify_exp_result(self, result, space):
         y = result.y[-1]
 
         if self.integrator.state_is_raveled:
@@ -160,6 +164,7 @@ class LogBVPSolver(LogSolver):
         if initialization is None:
             initialization = self._default_initialization
 
+        # TODO: rename (more segments than nodes)
         self.n_nodes = n_nodes
         self.integrator = integrator
         self.initialization = initialization
@@ -213,6 +218,9 @@ class LogBVPSolver(LogSolver):
         result = self.integrator.integrate(bvp, bc, x, y)
 
         return self._simplify_result(result, space)
+
+    def geodesic_bvp(self, space, point, base_point):
+        pass
 
     def _simplify_result(self, result, space):
         _, tangent_vec = gs.reshape(gs.transpose(result.y)[0], (space.dim, space.dim))
