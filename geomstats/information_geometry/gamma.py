@@ -20,7 +20,7 @@ from geomstats.information_geometry.base import InformationManifoldMixin
 
 warnings.filterwarnings("error")
 
-N_STEPS = 1000
+N_STEPS = 100
 
 """
 The natural coordinate system for a Gamma Distribution is:
@@ -586,7 +586,7 @@ class GammaMetric(RiemannianMetric):
         max_iter=25,
         verbose=False,
         tol=gs.atol,
-        method="ode_bvp",
+        method="geodesic_shooting",
     ):
         """Compute the logarithm map.
 
