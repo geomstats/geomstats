@@ -1,16 +1,18 @@
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
-from geomstats.numerics.ode_solvers import GSIntegrator
+from geomstats.numerics.bvp_solvers import ScipySolveBVP
+from geomstats.numerics.ivp_solvers import GSIntegrator
+from geomstats.numerics.optimizers import ScipyMinimize
 
 
 class ExpSolver(ABC):
     @abstractmethod
-    def solve(self, metric, tangent_vec, base_point):
+    def exp(self, space, tangent_vec, base_point):
         pass
 
     @abstractmethod
-    def geodesic_ivp(self, metric, tangent_vec, base_point, t):
+    def geodesic_ivp(self, space, tangent_vec, base_point, t):
         pass
 
 
@@ -21,26 +23,24 @@ class ExpIVPSolver(ExpSolver):
 
         self.integrator = integrator
 
-    def _solve(self, metric, tangent_vec, base_point, t_eval=None):
+    def _solve(self, space, tangent_vec, base_point, t_eval=None):
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
         initial_state = gs.stack([base_point, tangent_vec])
 
-        force = self._get_force(metric)
+        force = self._get_force(space)
         if t_eval is None:
             return self.integrator.integrate(force, initial_state)
 
         return self.integrator.integrate_t(force, initial_state, t_eval)
 
-    def solve(self, metric, tangent_vec, base_point):
-        # TODO: call it exp? receive space?
-        result = self._solve(metric, tangent_vec, base_point)
-        return self._simplify_result(result, metric)
+    def exp(self, space, tangent_vec, base_point):
+        result = self._solve(space, tangent_vec, base_point)
+        return self._simplify_result(result, space)
 
-    def geodesic_ivp(self, metric, tangent_vec, base_point):
-
+    def geodesic_ivp(self, space, tangent_vec, base_point):
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
-        t_axis = int(len(tangent_vec.shape) > len(metric.shape))
+        t_axis = int(tangent_vec.ndim > space.point_ndim)
 
         def path(t):
             squeeze = False
@@ -48,8 +48,8 @@ class ExpIVPSolver(ExpSolver):
                 t = gs.array([t])
                 squeeze = True
 
-            result = self._solve(metric, tangent_vec, base_point, t_eval=t)
-            result = self._simplify_result_t(result, metric)
+            result = self._solve(space, tangent_vec, base_point, t_eval=t)
+            result = self._simplify_result_t(result, space)
             if squeeze:
                 return gs.squeeze(result, axis=t_axis)
 
@@ -57,47 +57,47 @@ class ExpIVPSolver(ExpSolver):
 
         return path
 
-    def _get_force(self, metric):
+    def _get_force(self, space):
         if self.integrator.state_is_raveled:
-            force_ = lambda state, t: self._force_raveled_state(state, t, metric=metric)
+            force_ = lambda state, t: self._force_raveled_state(state, t, space=space)
         else:
-            force_ = lambda state, t: self._force_unraveled_state(
-                state, t, metric=metric
-            )
+            force_ = lambda state, t: self._force_unraveled_state(state, t, space=space)
 
         if self.integrator.tfirst:
             return lambda t, state: force_(state, t)
 
         return force_
 
-    def _force_raveled_state(self, raveled_initial_state, _, metric):
+    def _force_raveled_state(self, raveled_initial_state, _, space):
         # input: (n,)
 
         # assumes unvectorize
-        state = gs.reshape(raveled_initial_state, (metric.dim, metric.dim))
+        state = gs.reshape(raveled_initial_state, (space.dim, space.dim))
 
         # TODO: remove dependency on time in `geodesic_equation`?
-        eq = metric.geodesic_equation(state, _)
+        eq = space.metric.geodesic_equation(state, _)
 
         return gs.flatten(eq)
 
-    def _force_unraveled_state(self, initial_state, _, metric):
-        return metric.geodesic_equation(initial_state, _)
+    def _force_unraveled_state(self, initial_state, _, space):
+        return space.metric.geodesic_equation(initial_state, _)
 
-    def _simplify_result(self, result, metric):
+    def _simplify_result(self, result, space):
         y = result.y[-1]
 
         if self.integrator.state_is_raveled:
-            return y[..., : metric.dim]
+            return y[..., : space.dim]
 
         return y[0]
 
-    def _simplify_result_t(self, result, metric):
+    def _simplify_result_t(self, result, space):
+        # TODO: need to verify
+
         # assumes several t
         y = result.y
 
         if self.integrator.state_is_raveled:
-            y = y[..., : metric.dim]
+            y = y[..., : space.dim]
             if gs.ndim(y) > 2:
                 return gs.moveaxis(y, 0, 1)
             return y
@@ -109,15 +109,16 @@ class ExpIVPSolver(ExpSolver):
 
 
 class LogSolver(ABC):
+    # TODO: check private methods in children
     @abstractmethod
-    def solve(self, metric, point, base_point):
+    def log(self, space, point, base_point):
         pass
 
 
 class LogShootingSolver(LogSolver):
     def __init__(self, optimizer=None, initialization=None):
         if optimizer is None:
-            optimizer = SCPMinimize()
+            optimizer = ScipyMinimize(jac="autodiff")
 
         if initialization is None:
             initialization = self._default_initialization
@@ -125,24 +126,25 @@ class LogShootingSolver(LogSolver):
         self.optimizer = optimizer
         self.initialization = initialization
 
-    def _default_initialization(self, metric, point, base_point):
+    def _default_initialization(self, space, point, base_point):
         return gs.flatten(gs.random.rand(*base_point.shape))
 
-    def objective(self, velocity, metric, point, base_point):
-
+    def objective(self, velocity, space, point, base_point):
         velocity = gs.reshape(velocity, base_point.shape)
-        delta = metric.exp(velocity, base_point) - point
+        delta = space.metric.exp(velocity, base_point) - point
         return gs.sum(delta**2)
 
-    def solve(self, metric, point, base_point):
+    def log(self, space, point, base_point):
         # TODO: are we sure optimizing together is a good idea?
+        # TODO: create alternative vectorization case
 
-        point, base_point = gs.broadcast_arrays(point, base_point)
+        if point.ndim != base_point.ndim:
+            point, base_point = gs.broadcast_arrays(point, base_point)
 
-        objective = lambda velocity: self.objective(velocity, metric, point, base_point)
-        init_tangent_vec = self.initialization(metric, point, base_point)
+        objective = lambda velocity: self.objective(velocity, space, point, base_point)
+        init_tangent_vec = self.initialization(space, point, base_point)
 
-        res = self.optimizer.optimize(objective, init_tangent_vec, jac="autodiff")
+        res = self.optimizer.optimize(objective, init_tangent_vec)
 
         tangent_vec = gs.reshape(res.x, base_point.shape)
 
@@ -153,7 +155,7 @@ class LogBVPSolver(LogSolver):
     def __init__(self, n_nodes, integrator=None, initialization=None):
         # TODO: add more control on the discretization
         if integrator is None:
-            integrator = SCPSolveBVP()
+            integrator = ScipySolveBVP()
 
         if initialization is None:
             initialization = self._default_initialization
@@ -162,9 +164,9 @@ class LogBVPSolver(LogSolver):
         self.integrator = integrator
         self.initialization = initialization
 
-    def _default_initialization(self, metric, point, base_point):
+    def _default_initialization(self, space, point, base_point):
         # TODO: receive discretization instead?
-        dim = metric.dim
+        dim = space.dim
         point_0, point_1 = base_point, point
 
         # TODO: need to update torch linspace
@@ -176,43 +178,43 @@ class LogBVPSolver(LogSolver):
         lin_init[dim:, -1] = lin_init[dim:, -2]
         return lin_init
 
-    def boundary_condition(self, state_0, state_1, metric, point_0, point_1):
-        pos_0 = state_0[: metric.dim]
-        pos_1 = state_1[: metric.dim]
+    def boundary_condition(self, state_0, state_1, space, point_0, point_1):
+        pos_0 = state_0[: space.dim]
+        pos_1 = state_1[: space.dim]
         return gs.hstack((pos_0 - point_0, pos_1 - point_1))
 
-    def bvp(self, _, raveled_state, metric):
+    def bvp(self, _, raveled_state, space):
         # inputs: n (2*dim) , n_nodes
 
         # assumes unvectorized
 
         state = gs.moveaxis(
-            gs.reshape(raveled_state, (metric.dim, metric.dim, -1)), -2, -1
+            gs.reshape(raveled_state, (space.dim, space.dim, -1)), -2, -1
         )
 
-        eq = metric.geodesic_equation(state, _)
+        eq = space.metric.geodesic_equation(state, _)
 
-        eq = gs.reshape(gs.moveaxis(eq, -2, -1), (2 * metric.dim, -1))
+        eq = gs.reshape(gs.moveaxis(eq, -2, -1), (2 * space.dim, -1))
 
         return eq
 
-    def solve(self, metric, point, base_point):
+    def log(self, space, point, base_point):
         # TODO: vectorize
         # TODO: assume known jacobian
 
-        bvp = lambda t, state: self.bvp(t, state, metric)
+        bvp = lambda t, state: self.bvp(t, state, space)
         bc = lambda state_0, state_1: self.boundary_condition(
-            state_0, state_1, metric, base_point, point
+            state_0, state_1, space, base_point, point
         )
 
         x = gs.linspace(0.0, 1.0, self.n_nodes)
-        y = self.initialization(metric, point, base_point)
+        y = self.initialization(space, point, base_point)
 
         result = self.integrator.integrate(bvp, bc, x, y)
 
-        return self._simplify_result(result, metric)
+        return self._simplify_result(result, space)
 
-    def _simplify_result(self, result, metric):
-        _, tangent_vec = gs.reshape(gs.transpose(result.y)[0], (metric.dim, metric.dim))
+    def _simplify_result(self, result, space):
+        _, tangent_vec = gs.reshape(gs.transpose(result.y)[0], (space.dim, space.dim))
 
         return tangent_vec

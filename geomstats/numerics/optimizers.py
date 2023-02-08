@@ -6,7 +6,7 @@ import geomstats.backend as gs
 from geomstats.numerics._common import result_to_backend_type
 
 
-class SCPMinimize:
+class ScipyMinimize:
     def __init__(self, method="L-BFGS-B", jac=None, save_result=False, **options):
         self.method = method
         self.options = options
