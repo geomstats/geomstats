@@ -305,14 +305,6 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
                 tangent_vec_b=gs.array([[1.0, 2.0], [3.0, 2.0]]),
                 base_point=gs.array([[1.0, 2.0], [3.0, 2.0]]),
             ),
-            # dict(
-            #     information_manifold=BinomialDistributions(10),
-            #     support=(0, 10),
-            #     closed_form_metric=BinomialMetric(10),
-            #     tangent_vec_a=gs.array([0.5]),
-            #     tangent_vec_b=gs.array([0.5]),
-            #     base_point=gs.array([0.5]),
-            # ),
         ]
         return self.generate_tests(smoke_data)
 
