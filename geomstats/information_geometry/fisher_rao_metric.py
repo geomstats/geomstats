@@ -9,19 +9,19 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 class FisherRaoMetric(RiemannianMetric):
     r"""Class to derive the information metric from the pdf in InformationManifoldMixin.
 
-        Given a statistical manifold with coordinates :math:`\theta`,
-        the Fisher information metric is:
-        :math:`g_{j k}(\theta)=\int_X \frac{\partial \log p(x, \theta)}
-            {\partial \theta_j}\frac{\partial \log p(x, \theta)}
-            {\partial \theta_k} p(x, \theta) d x`
-    f
-        Attributes
-        ----------
-        information_manifold : InformationManifoldMixin object
-            Riemannian Manifold for a parametric family of (real) distributions.
-        support : list, shape = (2,)
-            Left and right bounds for the support of the distribution.
-            But this is just to help integration, bounds should be as large as needed.
+    Given a statistical manifold with coordinates :math:`\theta`,
+    the Fisher information metric is:
+    :math:`g_{j k}(\theta)=\int_X \frac{\partial \log p(x, \theta)}
+        {\partial \theta_j}\frac{\partial \log p(x, \theta)}
+        {\partial \theta_k} p(x, \theta) d x`
+
+    Attributes
+    ----------
+    information_manifold : InformationManifoldMixin object
+        Riemannian Manifold for a parametric family of (real) distributions.
+    support : list, shape = (2,)
+        Left and right bounds for the support of the distribution.
+        But this is just to help integration, bounds should be as large as needed.
     """
 
     def __init__(self, information_manifold, support):

@@ -338,7 +338,7 @@ class GammaMetric(RiemannianMetric):
     def __init__(self):
         super().__init__(dim=2)
 
-    def metric_matrix(self, base_point=None):
+    def metric_matrix(self, base_point):
         """Compute the inner-product matrix.
 
         Compute the inner-product matrix of the Fisher information metric
