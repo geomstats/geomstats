@@ -3,7 +3,7 @@
 import matplotlib
 import matplotlib.pyplot as plt
 
-import geomstats.backend as gs
+import geomstats._backend as gs
 import geomstats.tests
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic import Hyperbolic

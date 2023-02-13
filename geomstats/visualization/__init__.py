@@ -4,7 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
-import geomstats.backend as gs
+import geomstats._backend as gs
 from geomstats.visualization.hyperbolic import (
     KleinDisk,
     PoincareDisk,
@@ -18,7 +18,7 @@ from geomstats.visualization.special_euclidean import SpecialEuclidean2
 from geomstats.visualization.special_orthogonal import (
     Arrow3D,
     Trihedron,
-    convert_to_trihedron,
+    _convert_to_trihedron,
 )
 
 AX_SCALE = 1.2
@@ -110,7 +110,7 @@ def plot(points, ax=None, space=None, point_type=None, **point_draw_kwargs):
             ylabel="Y",
             zlabel="Z",
         )
-        trihedrons = convert_to_trihedron(points, space=space)
+        trihedrons = _convert_to_trihedron(points, space=space)
         for t in trihedrons:
             t.draw(ax, **point_draw_kwargs)
 
