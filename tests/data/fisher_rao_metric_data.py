@@ -111,7 +111,7 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def inner_product_matrix_and_its_inverse_test_data(self):
+    def det_of_inner_product_matrix_test_data(self):
         smoke_data = [
             dict(
                 information_manifold=UnivariateNormalDistributions(),
