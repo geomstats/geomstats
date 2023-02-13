@@ -25,20 +25,17 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
         else:
             self.assertAllClose(gs.shape(result), (base_point.shape[0], dim, dim))
 
-    def test_inner_product_matrix_and_its_inverse(
+    def test_det_of_inner_product_matrix(
         self, information_manifold, support, base_point
     ):
         metric = self.Metric(information_manifold=information_manifold, support=support)
         inner_prod_mat = metric.metric_matrix(base_point=base_point)
-        inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
-        result = gs.matmul(inv_inner_prod_mat, inner_prod_mat)
+        result = gs.linalg.det(inner_prod_mat)
         if base_point.ndim == 1:
-            expected = gs.eye(information_manifold.dim)
+            self.assertTrue(result > 0.0)
         else:
-            expected = gs.stack(
-                [gs.eye(information_manifold.dim) for _ in range(base_point.shape[0])]
-            )
-        self.assertAllClose(result, expected)
+            for result_ in result:
+                self.assertTrue(result_ > 0.0)
 
     def test_metric_matrix_and_closed_form_metric_matrix(
         self,
