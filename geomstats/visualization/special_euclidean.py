@@ -8,10 +8,10 @@ import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
-SE2_GROUP = SpecialEuclidean(n=2, point_type="matrix")
+SE2_MAT = SpecialEuclidean(n=2, point_type="matrix")
 SE2_VECT = SpecialEuclidean(n=2, point_type="vector")
 
-SE3_GROUP = SpecialEuclidean(n=3, point_type="matrix")
+SE3_MAT = SpecialEuclidean(n=3, point_type="matrix")
 SE3_VECT = SpecialEuclidean(n=3, point_type="vector")
 
 METRIC_SE2 = SE2_VECT.left_canonical_metric
@@ -43,7 +43,7 @@ class SpecialEuclidean2:
         """Add points to SE(2) object."""
         if self.point_type == "vector":
             points = SE2_VECT.matrix_from_vector(points)
-        if not gs.all(SE2_GROUP.belongs(points)):
+        if not gs.all(SE2_MAT.belongs(points)):
             logging.warning("Some points do not belong to SE2.")
         if not isinstance(points, list):
             points = list(points)
@@ -76,7 +76,7 @@ class SpecialEuclidean2:
 
     @staticmethod
     def plot_geodesic(
-        initial_point, initial_tangent_vec, METRIC=METRIC_SE2, N_STEPS=40
+        initial_point, initial_tangent_vec, metric=METRIC_SE2, n_steps=40
     ):
         """Plot geodesic of SE(2).
 
@@ -86,15 +86,15 @@ class SpecialEuclidean2:
             Point for the geodesic source.
         initial_tangent_vec : array-like, shape=[..., dim]
             Vector for the geodesic function.
-        METRIC
+        metric
             Chosen metric for geodesic
-        N_STEPS : array-like, shape=[..., dim]
+        n_steps : array-like, shape=[..., dim]
             Number of samples on the geodesic to plot.
         """
-        geodesic = METRIC.geodesic(
+        geodesic = metric.geodesic(
             initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
         )
-        t = gs.linspace(-3.0, 3.0, N_STEPS)
+        t = gs.linspace(-3.0, 3.0, n_steps)
         points = geodesic(t)
         points_mat = SE2_VECT.matrix_from_vector(
             points
@@ -127,7 +127,7 @@ class SpecialEuclidean3:
         """Add points to SE(3) object."""
         if self.point_type == "vector":
             points = SE3_VECT.matrix_from_vector(points)
-        if not gs.all(SE3_GROUP.belongs(points)):
+        if not gs.all(SE3_MAT.belongs(points)):
             logging.warning("Some points do not belong to SE3.")
         if not isinstance(points, list):
             points = list(points)
@@ -174,7 +174,7 @@ class SpecialEuclidean3:
 
     @staticmethod
     def plot_geodesic(
-        initial_point, initial_tangent_vec, METRIC=METRIC_SE3, N_STEPS=40
+        initial_point, initial_tangent_vec, metric=METRIC_SE3, n_steps=40
     ):
         """Plot geodesic of SE(3).
 
@@ -184,14 +184,14 @@ class SpecialEuclidean3:
             Point for the geodesic source.
         initial_tangent_vec : array-like, shape=[..., dim]
             Vector for the geodesic function.
-        METRIC
+        metric
             Chosen metric for geodesic
-        N_STEPS : array-like, shape=[..., dim]
+        n_steps : array-like, shape=[..., dim]
             Number of samples on the geodesic to plot.
         """
-        geodesic = METRIC.geodesic(
+        geodesic = metric.geodesic(
             initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
         )
-        t = gs.linspace(-3.0, 3.0, N_STEPS)
+        t = gs.linspace(-3.0, 3.0, n_steps)
         points = geodesic(t)
         visualization.plot(points, space="SE3_GROUP")
