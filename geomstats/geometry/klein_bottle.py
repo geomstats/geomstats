@@ -11,7 +11,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class KleinBottleMetric(RiemannianMetric):
-    """Class for the Klein Bottle Metric.
+    """Class for the Klein Bottle metric.
 
     Implements exp and log using explicit formulas.
 
@@ -120,31 +120,31 @@ class KleinBottleMetric(RiemannianMetric):
         )
         return point_minimal - base_point_canonical
 
-    def _closest_representative(self, point1, point2):
-        """Find the representative of point2 which is closest to point1.
+    def _closest_representative(self, point_a, point_b):
+        """Find the representative of point_b which is closest to point_a.
 
         Only representatives in the 8 surrounding
         squares have to be considered.
 
         Parameters
         ----------
-        point1: array-like, shape [..., 2]
+        point_a: array-like, shape [..., 2]
             Point on the manifold.
-        point2: array-like, shape [..., 2]
+        point_b: array-like, shape [..., 2]
             Point on the manifold.
 
         Returns
         -------
-        point1: array-like, shape [...,2]
-            Canonical representation of point1 in unit square.
+        point_a: array-like, shape [...,2]
+            Canonical representation of point_a in unit square.
         minimizers: array-like, shape [...,2]
-            Representation of point2 with smallest distance to point1.
+            Representation of point_b with smallest distance to point_a.
         """
-        point1, point2 = gs.broadcast_arrays(point1, point2)
-        shape = point1.shape
-        p1 = self._space.regularize(point1)
+        point_a, point_b = gs.broadcast_arrays(point_a, point_b)
+        shape = point_a.shape
+        p1 = self._space.regularize(point_a)
         p1 = gs.reshape(p1, (-1, 2))
-        p2 = self._space.regularize(point2)
+        p2 = self._space.regularize(point_b)
         p2 = gs.reshape(p2, (-1, 2))
         p2_2 = gs.stack([p2[:, 0], p2[:, 1] - 1], axis=-1)
         p2_3 = gs.stack([p2[:, 0], p2[:, 1] + 1], axis=-1)
@@ -188,31 +188,20 @@ class KleinBottle(Manifold):
        \end{align}
     """
 
-    def __init__(self, equip=True):
+    def __init__(self, equip=True, metric=None):
         dim = 2
         super().__init__(
             dim=dim, shape=(dim,), metric=None, default_coords_type="intrinsic"
         )
 
         if equip is True:
-            self.equip_with_metric()
+            if metric is None:
+                metric = self._default_metric()
+            self.metric = metric(self)
 
-    def _default_metric(self):
-        return KleinBottleMetric
-
-    def equip_with_metric(self, Metric=None):
-        """Equip the manifold with the specified metric.
-
-        Parameters
-        ----------
-        metric: Metric
-            A metric compatible with the Klein Bottle.
-        """
-        if Metric is None:
-            Metric = self._default_metric()
-        self.metric = Metric(self)
-
-        return self.metric
+            return self.metric
+        else:
+            return KleinBottleMetric
 
     def random_point(self, n_samples=1, bound=None):
         """Uniformly sample points on the manifold.
@@ -304,7 +293,7 @@ class KleinBottle(Manifold):
         return gs.all(gs.logical_and(point >= 0, point <= 1), axis=-1)
 
     @staticmethod
-    def equivalent(point1, point2, atol=gs.atol):
+    def equivalent(point_a, point_b, atol=gs.atol):
         r"""Evaluate whether two points represent equivalent points on the Klein Bottle.
 
         This method uses the equivalence stated in the class description.
@@ -316,9 +305,9 @@ class KleinBottle(Manifold):
 
         Parameters
         ----------
-        point1: array-like, shape=[..., 2]
+        point_a: array-like, shape=[..., 2]
             Representation of point on Klein Bottle
-        point2: array-like, shape=[..., 2]
+        point_b: array-like, shape=[..., 2]
             Representation of point on Klein Bottle
         atol: Absolute tolerance to test for belonging to \mathbb Z.
 
@@ -327,9 +316,9 @@ class KleinBottle(Manifold):
         is_equivalent : array-like, shape=[..., 2]
             Boolean evaluating if points are equivalent
         """
-        x_diff = point1[..., 0] - point2[..., 0]
-        y_diff = point1[..., 1] - point2[..., 1]
-        y_sum = point1[..., 1] + point2[..., 1]
+        x_diff = point_a[..., 0] - point_b[..., 0]
+        y_diff = point_a[..., 1] - point_b[..., 1]
+        y_sum = point_a[..., 1] + point_b[..., 1]
         un_mirrored = gs.logical_and(
             is_close_mod(gs.mod(x_diff, 2.0), 2.0, atol=atol),
             is_close_mod(gs.mod(y_diff, 1.0), 1.0, atol=atol),
@@ -357,7 +346,7 @@ class KleinBottle(Manifold):
             Regularized point.
         """
         # determine number of steps to take in x direction
-        num_steps = gs.cast(gs.abs(gs.floor(point[..., [0]])), gs.int64)
+        n_steps = gs.cast(gs.abs(gs.floor(point[..., [0]])), gs.int64)
 
         x_canonical = gs.remainder(point[..., 0], 1.0)
         y_canonical_even = gs.remainder(point[..., 1], 1.0)
@@ -365,7 +354,7 @@ class KleinBottle(Manifold):
 
         point_even = gs.stack([x_canonical, y_canonical_even], axis=-1)
         point_odd = gs.stack([x_canonical, y_canonical_odd], axis=-1)
-        return gs.where(gs.remainder(num_steps, 2) == 0, point_even, point_odd)
+        return gs.where(gs.remainder(n_steps, 2) == 0, point_even, point_odd)
 
 
 def is_close_mod(array, divisor, atol):
