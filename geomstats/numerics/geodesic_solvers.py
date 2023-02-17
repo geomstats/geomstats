@@ -133,7 +133,7 @@ class LogShootingSolver(LogSolver):
     def _default_initialization(self, space, point, base_point):
         return gs.flatten(gs.random.rand(*base_point.shape))
 
-    def objective(self, velocity, space, point, base_point):
+    def _objective(self, velocity, space, point, base_point):
         velocity = gs.reshape(velocity, base_point.shape)
         delta = space.metric.exp(velocity, base_point) - point
         return gs.sum(delta**2)
@@ -145,7 +145,7 @@ class LogShootingSolver(LogSolver):
         if point.ndim != base_point.ndim:
             point, base_point = gs.broadcast_arrays(point, base_point)
 
-        objective = lambda velocity: self.objective(velocity, space, point, base_point)
+        objective = lambda velocity: self._objective(velocity, space, point, base_point)
         init_tangent_vec = self.initialization(space, point, base_point)
 
         res = self.optimizer.optimize(objective, init_tangent_vec)
@@ -153,6 +153,45 @@ class LogShootingSolver(LogSolver):
         tangent_vec = gs.reshape(res.x, base_point.shape)
 
         return tangent_vec
+
+
+class LogShootingSolverUnflatten(LogSolver):
+    def __init__(self, optimizer=None, initialization=None):
+        if optimizer is None:
+            optimizer = ScipyMinimize(jac="autodiff")
+
+        if initialization is None:
+            initialization = self._default_initialization
+
+        self.optimizer = optimizer
+        self.initialization = initialization
+
+    def _default_initialization(self, space, point, base_point):
+        return gs.random.rand(*base_point.shape)
+
+    def _objective(self, velocity, space, point, base_point):
+        delta = space.metric.exp(velocity, base_point) - point
+        return gs.sum(delta**2)
+
+    def _log(self, space, point, base_point):
+        objective = lambda velocity: self._objective(velocity, space, point, base_point)
+        init_tangent_vec = self.initialization(space, point, base_point)
+
+        res = self.optimizer.optimize(objective, init_tangent_vec)
+
+        return res.x
+
+    def log(self, space, point, base_point):
+        if point.ndim != base_point.ndim:
+            point, base_point = gs.broadcast_arrays(point, base_point)
+
+        is_batch = point.ndim > space.point_ndim
+        if not is_batch:
+            return self._log(space, point, base_point)
+
+        return gs.stack(
+            [self._log(space, point_, base_point_) for point_, base_point_ in zip(point, base_point)]
+        )
 
 
 class LogBVPSolver(LogSolver):
