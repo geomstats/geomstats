@@ -445,6 +445,12 @@ class ComplexVectorSpaceTestCase(_VectorSpaceTestCaseMixins, ComplexManifoldTest
 
 
 class MatrixVectorSpaceTestCaseMixins:
+    def _get_random_vector(self, n_points=1):
+        if n_points == 1:
+            return gs.random.rand(self.space.dim)
+
+        return gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+
     def test_to_vector(self, point, expected, atol):
         vec = self.space.to_vector(point)
         self.assertAllClose(vec, expected, atol=atol)
@@ -476,7 +482,7 @@ class MatrixVectorSpaceTestCaseMixins:
 
     @pytest.mark.vec
     def test_from_vector_vec(self, n_reps, atol):
-        vec = gs.random.rand(self.space.dim)
+        vec = self._get_random_vector()
         expected = self.space.from_vector(vec)
 
         vec_data = generate_vectorization_data(
@@ -489,7 +495,7 @@ class MatrixVectorSpaceTestCaseMixins:
 
     @pytest.mark.random
     def test_from_vector_belongs(self, n_points, atol):
-        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+        vec = self._get_random_vector(n_points)
         point = self.space.from_vector(vec)
 
         self.test_belongs(point, gs.ones(n_points, dtype=bool), atol)
@@ -505,12 +511,24 @@ class MatrixVectorSpaceTestCaseMixins:
 
     @pytest.mark.random
     def test_to_vector_after_from_vector(self, n_points, atol):
-        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+        vec = self._get_random_vector(n_points)
 
         mat = self.space.from_vector(vec)
 
         vec_ = self.space.to_vector(mat)
         self.assertAllClose(vec_, vec, atol=atol)
+
+
+class ComplexMatrixVectorSpaceTestCaseMixins(MatrixVectorSpaceTestCaseMixins):
+    def _get_random_vector(self, n_points=1):
+        if n_points == 1:
+            return gs.random.rand(self.space.dim, dtype=gs.get_default_cdtype())
+
+        return gs.reshape(
+            gs.random.rand(n_points * self.space.dim),
+            (n_points, -1),
+            dtype=gs.get_default_cdtype(),
+        )
 
 
 class MatrixLieAlgebraTestCase(VectorSpaceTestCase):

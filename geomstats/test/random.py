@@ -1,5 +1,11 @@
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexOpenSet, LevelSet, OpenSet, VectorSpace
+from geomstats.geometry.base import (
+    ComplexOpenSet,
+    ComplexVectorSpace,
+    LevelSet,
+    OpenSet,
+    VectorSpace,
+)
 from geomstats.geometry.hypersphere import _Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.vectorization import get_n_points
@@ -40,7 +46,7 @@ def get_random_tangent_vec(space, base_point):
     if isinstance(space, (LevelSet, OpenSet, ComplexOpenSet)):
         return _get_random_tangent_vec_from_embedding_space(space, base_point)
 
-    if isinstance(space, VectorSpace):
+    if isinstance(space, (VectorSpace, ComplexVectorSpace)):
         return _get_random_tangent_vec_vector_space(space, base_point)
 
     return _get_random_tangent_vec(space, base_point)
