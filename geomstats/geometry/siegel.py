@@ -34,6 +34,7 @@ from geomstats.geometry.base import ComplexOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
+from geomstats.geometry.matrices import Matrices
 
 
 def _create_identity_mat(shape, dtype):
@@ -107,7 +108,7 @@ class Siegel(ComplexOpenSet):
         belongs = gs.all(gs.linalg.eigvalsh(aux) <= 1 - atol, axis=axis)
 
         if self.symmetric:
-            return gs.logical_and(belongs, ComplexMatrices.is_symmetric(point))
+            return gs.logical_and(belongs, Matrices.is_symmetric(point))
 
         return belongs
 
@@ -128,7 +129,7 @@ class Siegel(ComplexOpenSet):
             Matrix in the Siegel space.
         """
         if self.symmetric:
-            point = ComplexMatrices.to_symmetric(point)
+            point = Matrices.to_symmetric(point)
 
         point_transconj = ComplexMatrices.transconjugate(point)
         aux = gs.matmul(point, point_transconj)
@@ -270,11 +271,11 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         aux_a = gs.matmul(inv_aux_3, tangent_vec_a)
         aux_b = gs.matmul(inv_aux_4, tangent_vec_b_transconj)
-        trace_1 = ComplexMatrices.trace_product(aux_a, aux_b)
+        trace_1 = Matrices.trace_product(aux_a, aux_b)
 
         aux_c = gs.matmul(inv_aux_3, tangent_vec_b)
         aux_d = gs.matmul(inv_aux_4, tangent_vec_a_transconj)
-        trace_2 = ComplexMatrices.trace_product(aux_c, aux_d)
+        trace_2 = Matrices.trace_product(aux_c, aux_d)
 
         return (trace_1 + trace_2) * 0.5
 
@@ -541,7 +542,7 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         logarithm = gs.linalg.logm(frac)
 
-        sq_dist = ComplexMatrices.trace_product(logarithm, logarithm)
+        sq_dist = Matrices.trace_product(logarithm, logarithm)
         sq_dist *= 0.25
         sq_dist = gs.real(sq_dist)
         sq_dist = gs.maximum(sq_dist, 0)

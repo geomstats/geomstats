@@ -14,32 +14,89 @@ POINT_TYPES_TO_NDIMS = {"scalar": 2, "vector": 2, "matrix": 3}
 ERROR_MSG = "Invalid type: %s."
 
 
-def get_n_points(points, point_type):
+def _get_max_ndim_point(*point):
+    point_max_ndim = point[0]
+    for point_ in point[1:]:
+        if point_.ndim > point_max_ndim.ndim:
+            point_max_ndim = point_
+
+    return point_max_ndim
+
+
+def get_n_points(space, *point):
     """Compute the number of points.
 
     Parameters
     ----------
-    points : array-like
-        Input points.
-    point_type : str, {'scalar', ''vector', 'matrix'}
-        Type of input points.
+    space : Manifold
+    point : gs.array
 
     Returns
     -------
     n_points : int
         Number of points.
     """
-    n_points = 1
+    point_max_ndim = _get_max_ndim_point(*point)
 
-    points_ndim = gs.ndim(points)
+    if space.point_ndim == point_max_ndim.ndim:
+        return 1
 
-    is_vect_scalar = point_type == "scalar" and points_ndim == 1
-    is_vect_vector = point_type == "vector" and points_ndim == 2
-    is_vect_matrix = point_type == "matrix" and points_ndim == 3
+    return gs.prod(point_max_ndim.shape[: -space.point_ndim])
 
-    if is_vect_scalar or is_vect_vector or is_vect_matrix:
-        n_points = gs.shape(points)[0]
-    return n_points
+
+def is_batch(space, *point):
+    """Check if inputs are batch.
+
+    Parameters
+    ----------
+    space : Manifold
+    point : gs.array
+
+    Returns
+    -------
+    is_batch : bool
+    """
+    for point_ in point:
+        if point_.ndim > space.point_ndim:
+            return True
+
+    return False
+
+
+def get_batch_shape(space, *point):
+    """Get batch shape.
+
+    Parameters
+    ----------
+    space : Manifold
+    point : gs.array
+
+    Returns
+    -------
+    batch_shape : tuple
+    """
+    point_max_ndim = _get_max_ndim_point(*point)
+    return point_max_ndim.shape[: -space.point_ndim]
+
+
+def repeat_point(point, n_reps=2, expand=False):
+    """Repeat point.
+
+    Parameters
+    ----------
+    point : gs.array
+    n_reps : int
+    expand : bool
+        Repeat even if n_reps == 1.
+
+    Returns
+    -------
+    rep_point : gs.array
+    """
+    if not expand and n_reps == 1:
+        return gs.copy(point)
+
+    return gs.repeat(gs.expand_dims(point, 0), n_reps, axis=0)
 
 
 def decorator(input_types):

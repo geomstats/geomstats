@@ -39,7 +39,7 @@ class Hyperbolic:
             ["extrinsic", "ball", "half-space"],
         )
         if default_coords_type == "extrinsic":
-            return Hyperboloid(*args, default_coords_type=default_coords_type, **kwargs)
+            return Hyperboloid(*args, **kwargs)
         if default_coords_type == "ball":
             return PoincareBall(*args, **kwargs)
         return PoincareHalfSpace(*args, **kwargs)
