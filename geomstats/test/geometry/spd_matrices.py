@@ -10,7 +10,7 @@ from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.vectorization import generate_vectorization_data
 
 
-class SPDMatricesTestCase(OpenSetTestCase):
+class SPDMatricesTestCaseMixins:
     def test_differential_power(self, power, tangent_vec, base_point, expected, atol):
         res = self.space.differential_power(power, tangent_vec, base_point)
         self.assertAllClose(res, expected, atol=atol)
@@ -259,3 +259,7 @@ class SPDMatricesTestCase(OpenSetTestCase):
 
         expected = gs.ones(n_points, dtype=bool)
         self.assertAllEqual(res, expected)
+
+
+class SPDMatricesTestCase(SPDMatricesTestCaseMixins, OpenSetTestCase):
+    pass

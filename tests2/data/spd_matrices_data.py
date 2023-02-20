@@ -3,7 +3,7 @@ import random
 from tests2.data.base_data import OpenSetTestData
 
 
-class SPDMatricesTestData(OpenSetTestData):
+class SPDMatricesMixinsTestData:
     def _generate_power_vec_data(self):
         power = [random.randint(1, 4)]
         data = []
@@ -47,3 +47,7 @@ class SPDMatricesTestData(OpenSetTestData):
         self,
     ):
         return self.generate_random_data()
+
+
+class SPDMatricesTestData(SPDMatricesMixinsTestData, OpenSetTestData):
+    pass
