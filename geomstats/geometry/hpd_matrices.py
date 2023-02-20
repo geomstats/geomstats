@@ -12,6 +12,7 @@ from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
@@ -84,9 +85,7 @@ class HPDMatrices(ComplexOpenSet):
         eigvals, eigvecs = gs.linalg.eigh(herm)
         regularized = gs.where(eigvals < atol, atol, eigvals)
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
-        return ComplexMatrices.mul(
-            reconstruction, ComplexMatrices.transconjugate(eigvecs)
-        )
+        return Matrices.mul(reconstruction, ComplexMatrices.transconjugate(eigvecs))
 
     def random_point(self, n_samples=1, bound=0.1):
         """Sample in HPD(n) from the log-uniform distribution.
@@ -146,9 +145,7 @@ class HPDMatrices(ComplexOpenSet):
             tangent_vec_at_id_aux
         )
 
-        tangent_vec = ComplexMatrices.mul(
-            sqrt_base_point, tangent_vec_at_id, sqrt_base_point
-        )
+        tangent_vec = Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
         return tangent_vec
 
@@ -210,7 +207,7 @@ class HPDMatrices(ComplexOpenSet):
             )
 
         transconj_eigvectors = ComplexMatrices.transconjugate(eigvectors)
-        temp_result = ComplexMatrices.mul(transconj_eigvectors, tangent_vec, eigvectors)
+        temp_result = Matrices.mul(transconj_eigvectors, tangent_vec, eigvectors)
 
         numerator = gs.cast(numerator, dtype=temp_result.dtype)
         denominator = gs.cast(denominator, dtype=temp_result.dtype)
@@ -247,7 +244,7 @@ class HPDMatrices(ComplexOpenSet):
         ) = cls._aux_differential_power(power, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
-        result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
+        result = Matrices.mul(eigvectors, result, transconj_eigvectors)
         return result
 
     @classmethod
@@ -281,7 +278,7 @@ class HPDMatrices(ComplexOpenSet):
         ) = cls._aux_differential_power(power, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
-        result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
+        result = Matrices.mul(eigvectors, result, transconj_eigvectors)
         return result
 
     @classmethod
@@ -312,7 +309,7 @@ class HPDMatrices(ComplexOpenSet):
         ) = cls._aux_differential_power(0, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
-        result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
+        result = Matrices.mul(eigvectors, result, transconj_eigvectors)
         return result
 
     @classmethod
@@ -343,7 +340,7 @@ class HPDMatrices(ComplexOpenSet):
         ) = cls._aux_differential_power(0, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
-        result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
+        result = Matrices.mul(eigvectors, result, transconj_eigvectors)
         return result
 
     @classmethod
@@ -374,7 +371,7 @@ class HPDMatrices(ComplexOpenSet):
         ) = cls._aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
-        result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
+        result = Matrices.mul(eigvectors, result, transconj_eigvectors)
         return result
 
     @classmethod
@@ -405,7 +402,7 @@ class HPDMatrices(ComplexOpenSet):
         ) = cls._aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
-        result = ComplexMatrices.mul(eigvectors, result, transconj_eigvectors)
+        result = Matrices.mul(eigvectors, result, transconj_eigvectors)
         return result
 
     @classmethod
@@ -533,10 +530,10 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         -------
         inner_product : array-like, shape=[...]
         """
-        aux_a = ComplexMatrices.mul(inv_base_point, tangent_vec_a)
-        aux_b = ComplexMatrices.mul(inv_base_point, tangent_vec_b)
+        aux_a = Matrices.mul(inv_base_point, tangent_vec_a)
+        aux_b = Matrices.mul(inv_base_point, tangent_vec_b)
 
-        inner_product = ComplexMatrices.trace_product(aux_a, aux_b)
+        inner_product = Matrices.trace_product(aux_a, aux_b)
 
         return inner_product
 
@@ -598,14 +595,14 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         -------
         exp : array-like, shape=[..., n, n]
         """
-        tangent_vec_at_id = ComplexMatrices.mul(
+        tangent_vec_at_id = Matrices.mul(
             inv_sqrt_base_point, tangent_vec, inv_sqrt_base_point
         )
 
         tangent_vec_at_id = ComplexMatrices.to_hermitian(tangent_vec_at_id)
         exp_from_id = HermitianMatrices.expm(tangent_vec_at_id)
 
-        exp = ComplexMatrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
+        exp = Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
         return exp
 
     def exp(self, tangent_vec, base_point, **kwargs):
@@ -661,13 +658,11 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         -------
         log : array-like, shape=[..., n, n]
         """
-        point_near_id = ComplexMatrices.mul(
-            inv_sqrt_base_point, point, inv_sqrt_base_point
-        )
+        point_near_id = Matrices.mul(inv_sqrt_base_point, point, inv_sqrt_base_point)
         point_near_id = ComplexMatrices.to_hermitian(point_near_id)
 
         log_at_id = HPDMatrices.logm(point_near_id)
-        log = ComplexMatrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
+        log = Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
         return log
 
     def log(self, point, base_point, **kwargs):
@@ -742,9 +737,9 @@ class HPDAffineMetric(ComplexRiemannianMetric):
             end_point = self.exp(direction, base_point)
         sqrt_bp, inv_sqrt_bp = HermitianMatrices.powerm(base_point, [1.0 / 2, -1.0 / 2])
         pdt = HermitianMatrices.powerm(
-            ComplexMatrices.mul(inv_sqrt_bp, end_point, inv_sqrt_bp), 1.0 / 2
+            Matrices.mul(inv_sqrt_bp, end_point, inv_sqrt_bp), 1.0 / 2
         )
-        congruence_mat = ComplexMatrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
+        congruence_mat = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         return ComplexMatrices.congruent(tangent_vec, congruence_mat)
 
     def injectivity_radius(self, base_point):
@@ -810,12 +805,8 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
         transconj_eigvecs = ComplexMatrices.transconjugate(eigvecs)
-        rotated_tangent_vec_a = ComplexMatrices.mul(
-            transconj_eigvecs, tangent_vec_a, eigvecs
-        )
-        rotated_tangent_vec_b = ComplexMatrices.mul(
-            transconj_eigvecs, tangent_vec_b, eigvecs
-        )
+        rotated_tangent_vec_a = Matrices.mul(transconj_eigvecs, tangent_vec_a, eigvecs)
+        rotated_tangent_vec_b = Matrices.mul(transconj_eigvecs, tangent_vec_b, eigvecs)
 
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
         result = (
@@ -846,16 +837,14 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         """
         eigvals, eigvecs = gs.linalg.eigh(base_point)
         transconj_eigvecs = ComplexMatrices.transconjugate(eigvecs)
-        rotated_tangent_vec = ComplexMatrices.mul(
-            transconj_eigvecs, tangent_vec, eigvecs
-        )
+        rotated_tangent_vec = Matrices.mul(transconj_eigvecs, tangent_vec, eigvecs)
         coefficients = 1 / (eigvals[..., :, None] + eigvals[..., None, :])
         rotated_sylvester = rotated_tangent_vec * gs.cast(
             coefficients, dtype=rotated_tangent_vec.dtype
         )
         rotated_hessian = gs.einsum("...ij,...j->...ij", rotated_sylvester, eigvals)
-        rotated_hessian = ComplexMatrices.mul(rotated_hessian, rotated_sylvester)
-        hessian = ComplexMatrices.mul(eigvecs, rotated_hessian, transconj_eigvecs)
+        rotated_hessian = Matrices.mul(rotated_hessian, rotated_sylvester)
+        hessian = Matrices.mul(eigvecs, rotated_hessian, transconj_eigvecs)
 
         return base_point + tangent_vec + hessian
 
@@ -879,10 +868,8 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
             Riemannian logarithm.
         """
         sqrt_bp, inv_sqrt_bp = HermitianMatrices.powerm(base_point, [0.5, -0.5])
-        pdt = HermitianMatrices.powerm(
-            ComplexMatrices.mul(sqrt_bp, point, sqrt_bp), 0.5
-        )
-        sqrt_product = ComplexMatrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
+        pdt = HermitianMatrices.powerm(Matrices.mul(sqrt_bp, point, sqrt_bp), 0.5)
+        sqrt_product = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         transconj_sqrt_product = ComplexMatrices.transconjugate(sqrt_product)
         return sqrt_product + transconj_sqrt_product - 2 * base_point
 
@@ -965,13 +952,11 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         square_root_bp, inverse_square_root_bp = HermitianMatrices.powerm(
             base_point, [0.5, -0.5]
         )
-        end_point_lift = ComplexMatrices.mul(square_root_bp, end_point, square_root_bp)
+        end_point_lift = Matrices.mul(square_root_bp, end_point, square_root_bp)
         square_root_lift = HermitianMatrices.powerm(end_point_lift, 0.5)
 
         horizontal_velocity = gs.matmul(inverse_square_root_bp, square_root_lift)
-        partial_horizontal_velocity = ComplexMatrices.mul(
-            horizontal_velocity, square_root_bp
-        )
+        partial_horizontal_velocity = Matrices.mul(horizontal_velocity, square_root_bp)
         partial_horizontal_velocity += ComplexMatrices.transconjugate(
             partial_horizontal_velocity
         )
@@ -986,7 +971,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
                 + time**2 * end_point
             )
 
-            align = ComplexMatrices.mul(
+            align = Matrices.mul(
                 horizontal_geodesic_t,
                 ComplexMatrices.transconjugate(horizontal_velocity - square_root_bp),
                 state,
@@ -995,7 +980,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
             return gs.linalg.solve_sylvester(geodesic_t, geodesic_t, -right)
 
         flow = integrate(force, horizontal_lift_a, n_steps=n_steps, step=step)
-        final_align = ComplexMatrices.mul(end_point, flow[-1])
+        final_align = Matrices.mul(end_point, flow[-1])
         return final_align + ComplexMatrices.transconjugate(final_align)
 
     def injectivity_radius(self, base_point):
@@ -1264,9 +1249,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
 
         modified_tangent_vec_a = hpd_space.differential_log(tangent_vec_a, base_point)
         modified_tangent_vec_b = hpd_space.differential_log(tangent_vec_b, base_point)
-        product = ComplexMatrices.trace_product(
-            modified_tangent_vec_a, modified_tangent_vec_b
-        )
+        product = Matrices.trace_product(modified_tangent_vec_a, modified_tangent_vec_b)
         return product
 
     def exp(self, tangent_vec, base_point, **kwargs):

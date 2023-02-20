@@ -135,6 +135,9 @@ class MatrixVectorSpaceMixinsTestData(TestData):
         return self.generate_random_data()
 
 
+ComplexMatrixVectorSpaceMixinsTestData = MatrixVectorSpaceMixinsTestData
+
+
 class MatrixLieAlgebraTestData(VectorSpaceTestData):
     def baker_campbell_hausdorff_vec_test_data(self):
         order = [2] + random.sample(range(3, 10), 1)
