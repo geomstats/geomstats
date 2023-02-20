@@ -432,7 +432,7 @@ def _circle_mean(points):
     sample_size = points.shape[0]
     mean0 = gs.mean(points)
     var0 = gs.sum((points - mean0) ** 2)
-    sorted_points = gs.sort(points)
+    sorted_points = gs.sort(points, axis=0)
     means = _circle_variances(mean0, var0, sample_size, sorted_points)
     return means[gs.argmin(means[:, 1]), 0]
 
@@ -592,8 +592,8 @@ class FrechetMean(BaseEstimator):
         """
         if isinstance(self.metric, HypersphereMetric) and self.metric.dim == 1:
             # TODO: fix after passing equipped_space
-            mean = Hypersphere._angle_to_extrinsic(
-                _circle_mean(Hypersphere._extrinsic_to_angle(X))
+            mean = Hypersphere.angle_to_extrinsic(
+                _circle_mean(Hypersphere.extrinsic_to_angle(X))
             )
 
         elif _is_linear_metric(self.metric):

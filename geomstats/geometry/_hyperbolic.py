@@ -131,7 +131,7 @@ class _Hyperbolic:
         point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
-        point_ball = cls._half_space_to_ball_coordinates(point)
+        point_ball = cls.half_space_to_ball_coordinates(point)
         return cls._ball_to_extrinsic_coordinates(point_ball)
 
     @classmethod
@@ -153,10 +153,10 @@ class _Hyperbolic:
             Point in the hyperbolic space in half-space coordinates.
         """
         point_ball = cls._extrinsic_to_ball_coordinates(point)
-        return cls._ball_to_half_space_coordinates(point_ball)
+        return cls.ball_to_half_space_coordinates(point_ball)
 
     @staticmethod
-    def _half_space_to_ball_coordinates(point):
+    def half_space_to_ball_coordinates(point):
         """Convert half-space to ball coordinates.
 
         Convert the parameterization of a point in the hyperbolic space
@@ -180,7 +180,7 @@ class _Hyperbolic:
         return gs.concatenate([component_1, component_2[..., None]], axis=-1)
 
     @staticmethod
-    def _ball_to_half_space_coordinates(point):
+    def ball_to_half_space_coordinates(point):
         """Convert ball to half space coordinates.
 
         Convert the parameterization of a point in the hyperbolic space
@@ -317,8 +317,8 @@ class _Hyperbolic:
         coords_transform = {
             "ball-extrinsic": _Hyperbolic._ball_to_extrinsic_coordinates,
             "extrinsic-ball": _Hyperbolic._extrinsic_to_ball_coordinates,
-            "ball-half-space": _Hyperbolic._ball_to_half_space_coordinates,
-            "half-space-ball": _Hyperbolic._half_space_to_ball_coordinates,
+            "ball-half-space": _Hyperbolic.ball_to_half_space_coordinates,
+            "half-space-ball": _Hyperbolic.half_space_to_ball_coordinates,
             "intrinsic-extrinsic": _Hyperbolic._intrinsic_to_extrinsic_coordinates,
             "extrinsic-intrinsic": _Hyperbolic._extrinsic_to_intrinsic_coordinates,
             "extrinsic-half-space": _Hyperbolic._extrinsic_to_half_space_coordinates,
