@@ -1947,7 +1947,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             Time parametrized horizontal geodesic.
         """
         initial_curve, end_curve = initial_point, end_point
-        k_sampling_points = self.k_sampling_points
+        k_sampling_points = initial_curve.shape[0]
         t_space = gs.linspace(0.0, 1.0, k_sampling_points)
         spline_end_curve = CubicSpline(t_space, end_curve, axis=0)
 
