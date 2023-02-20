@@ -44,7 +44,7 @@ def get_n_points(space, *point):
     return gs.prod(point_max_ndim.shape[: -space.point_ndim])
 
 
-def is_batch(space, *point):
+def check_is_batch(space, *point):
     """Check if inputs are batch.
 
     Parameters
@@ -56,11 +56,7 @@ def is_batch(space, *point):
     -------
     is_batch : bool
     """
-    for point_ in point:
-        if point_.ndim > space.point_ndim:
-            return True
-
-    return False
+    return any(point_.ndim > space.point_ndim for point_ in point)
 
 
 def get_batch_shape(space, *point):

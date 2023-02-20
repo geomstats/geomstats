@@ -29,7 +29,7 @@ class RankKPSDMatrices(Manifold):
     """
 
     def __init__(self, n, k, **kwargs):
-        if not (k < n):
+        if not k < n:
             raise ValueError("k must be lower than n")
 
         kwargs.setdefault("metric", PSDMetricBuresWasserstein(n, k))

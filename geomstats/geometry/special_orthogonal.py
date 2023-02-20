@@ -1299,11 +1299,11 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         if extrinsic and not zyx:
             return self._matrix_from_tait_bryan_angles_extrinsic_xyz(tait_bryan_angles)
 
-        if not extrinsic and zyx:
-            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=-1)
-            return self._matrix_from_tait_bryan_angles_extrinsic_xyz(
-                tait_bryan_angles_reversed
-            )
+        # not extrinsic and zyx
+        tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=-1)
+        return self._matrix_from_tait_bryan_angles_extrinsic_xyz(
+            tait_bryan_angles_reversed
+        )
 
     def tait_bryan_angles_from_matrix(self, rot_mat, extrinsic=True, zyx=True):
         """Convert rot_mat into Tait-Bryan angles.
@@ -1388,12 +1388,12 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             )
             return self.quaternion_from_matrix(rot_mat)
 
-        if not extrinsic and zyx:
-            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=-1)
-            rot_mat = self._matrix_from_tait_bryan_angles_extrinsic_xyz(
-                tait_bryan_angles_reversed
-            )
-            return self.quaternion_from_matrix(rot_mat)
+        # not extrinsic and zyx
+        tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=-1)
+        rot_mat = self._matrix_from_tait_bryan_angles_extrinsic_xyz(
+            tait_bryan_angles_reversed
+        )
+        return self.quaternion_from_matrix(rot_mat)
 
     def rotation_vector_from_tait_bryan_angles(
         self,
@@ -1494,8 +1494,8 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             )
             return gs.flip(tait_bryan, axis=-1)
 
-        if not extrinsic and zyx:
-            return self._tait_bryan_angles_from_quaternion_intrinsic_zyx(quaternion)
+        # not extrinsic and zyx
+        return self._tait_bryan_angles_from_quaternion_intrinsic_zyx(quaternion)
 
     def tait_bryan_angles_from_rotation_vector(
         self,
