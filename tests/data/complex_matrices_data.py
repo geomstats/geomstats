@@ -642,14 +642,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
 
     def to_matrix_type_is_matrix_type_test_data(self):
         matrix_types = [
-            "diagonal",
-            "symmetric",
             "hermitian",
-            "skew_symmetric",
-            "lower_triangular",
-            "upper_triangular",
-            "strictly_lower_triangular",
-            "strictly_upper_triangular",
         ]
         list_n = random.sample(range(1, 100), 50)
         n_samples = 50

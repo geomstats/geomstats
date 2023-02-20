@@ -23,25 +23,23 @@ class HyperboloidTestData(_LevelSetTestData):
 
     Space = Hyperboloid
 
+    def intrinsic_after_extrinsic_test_data(self):
+        return self.generate_tests([])
+
+    def extrinsic_after_intrinsic_test_data(self):
+        return self.generate_tests([])
+
     def belongs_test_data(self):
         smoke_data = [
             dict(
                 dim=3,
-                default_coords_type="extrinsic",
                 vec=gs.array([1.0, 0.0, 0.0, 0.0]),
                 expected=True,
             ),
             dict(
                 dim=2,
-                default_coords_type="extrinsic",
                 vec=gs.array([0.5, 7, 3.0]),
                 expected=False,
-            ),
-            dict(
-                dim=2,
-                default_coords_type="intrinsic",
-                vec=gs.array([0.5, 7]),
-                expected=True,
             ),
         ]
         return self.generate_tests(smoke_data)

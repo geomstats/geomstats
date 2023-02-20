@@ -32,10 +32,14 @@ class HypersphereTestData(_LevelSetTestData):
 
     def angle_to_extrinsic_test_data(self):
         smoke_data = [
-            dict(dim=1, point=gs.pi / 4, expected=gs.array([1.0, 1.0]) / gs.sqrt(2.0)),
             dict(
                 dim=1,
-                point=gs.array([1.0 / 3, 0.0]) * gs.pi,
+                point=gs.array([gs.pi / 4]),
+                expected=gs.array([1.0, 1.0]) / gs.sqrt(2.0),
+            ),
+            dict(
+                dim=1,
+                point=gs.array([[1.0 / 3], [0.0]]) * gs.pi,
                 expected=gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]]),
             ),
         ]
@@ -47,7 +51,7 @@ class HypersphereTestData(_LevelSetTestData):
             dict(
                 dim=1,
                 point=gs.array([[1.0 / 2, gs.sqrt(3.0) / 2], [1.0, 0.0]]),
-                expected=gs.array([1.0 / 3, 0.0]) * gs.pi,
+                expected=gs.array([[1.0 / 3], [0.0]]) * gs.pi,
             ),
         ]
         return self.generate_tests(smoke_data)
