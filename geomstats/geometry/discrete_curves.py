@@ -2100,7 +2100,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
         return horizontal_path
 
-    def align(self, point, base_point, threshold=1e-3):
+    def align(self, point, base_point, n_times=20, threshold=1e-3):
         """Find optimal reparametrization of curve with respect to base curve.
 
         The new parametrization of curve is optimal in the sense that it is the
@@ -2124,7 +2124,9 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             Optimal reparametrization of the curve represented by point.
         """
         horizontal_path = self.horizontal_geodesic(base_point, point, threshold)
-        return horizontal_path(1.0)
+        times = gs.linspace(0.0, 1.0, n_times)
+        hor_path = horizontal_path(times)
+        return hor_path[-1]
 
 
 class SRVQuotientMetric(QuotientMetric):
