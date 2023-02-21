@@ -145,7 +145,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         Parameters
         ----------
         tangent_vec : array_like, shape=[..., n, n]
-            tanget vector at gram(base_point)
+            Tangent vector at gram(base_point).
         base_point : array_like, shape=[..., n, n]
             Base point.
 

@@ -192,10 +192,6 @@ class _Hypersphere(LevelSet):
             axis=-1,
         )
 
-        if not gs.all(self.belongs(point_extrinsic)):
-            # TODO: why is this here?
-            raise ValueError("Points do not belong to the manifold.")
-
         return point_extrinsic
 
     def tangent_spherical_to_extrinsic(

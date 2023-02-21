@@ -28,8 +28,10 @@ def get_n_points(space, *point):
 
     Parameters
     ----------
-    space : Manifold
-    point : gs.array
+    space : Manifold object
+        Space to which point belongs.
+    point : array-like
+        Point belonging to the space.
 
     Returns
     -------
@@ -44,23 +46,22 @@ def get_n_points(space, *point):
     return gs.prod(point_max_ndim.shape[: -space.point_ndim])
 
 
-def is_batch(space, *point):
+def check_is_batch(space, *point):
     """Check if inputs are batch.
 
     Parameters
     ----------
-    space : Manifold
-    point : gs.array
+    space : Manifold object
+        Space to which point belongs.
+    point : array-like
+        Point belonging to the space.
 
     Returns
     -------
     is_batch : bool
+        Returns True if point contains several points.
     """
-    for point_ in point:
-        if point_.ndim > space.point_ndim:
-            return True
-
-    return False
+    return any(point_.ndim > space.point_ndim for point_ in point)
 
 
 def get_batch_shape(space, *point):
@@ -69,11 +70,14 @@ def get_batch_shape(space, *point):
     Parameters
     ----------
     space : Manifold
-    point : gs.array
+        Space to which point belongs.
+    point : array-like
+        Point belonging to the space.
 
     Returns
     -------
     batch_shape : tuple
+        Returns the shape related with batch. () if only one point.
     """
     point_max_ndim = _get_max_ndim_point(*point)
     return point_max_ndim.shape[: -space.point_ndim]
@@ -84,14 +88,17 @@ def repeat_point(point, n_reps=2, expand=False):
 
     Parameters
     ----------
-    point : gs.array
+    point : array-like
+        Point of a space.
     n_reps : int
+        Number of times the point should be repeated.
     expand : bool
         Repeat even if n_reps == 1.
 
     Returns
     -------
-    rep_point : gs.array
+    rep_point : array-like
+        point repeated n_reps times.
     """
     if not expand and n_reps == 1:
         return gs.copy(point)
