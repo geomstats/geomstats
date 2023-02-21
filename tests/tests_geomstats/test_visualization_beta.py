@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 import tests.conftest
 from geomstats.information_geometry.beta import BetaDistributions
-from geomstats.visualization.beta_distributions import Beta
+from geomstats.visualization.beta import Beta
 
 sys.path.append(os.path.dirname(os.getcwd()))
 
@@ -26,21 +26,21 @@ class TestVisualizationBeta(tests.conftest.TestCase):
         self.beta_viz.plot(points)
 
     def test_scatter_beta(self):
-        num_points = gs.random.randint(2, 50)
-        points = gs.random.rand(num_points, 2)
+        n_points = gs.random.randint(2, 50)
+        points = gs.random.rand(n_points, 2)
         self.beta_viz.plot(points)
 
     def test_plot_geodesic_ball(self):
         center = gs.random.rand(1, 2)
         n_rays = gs.random.randint(2, 100)
         ray_length = 1 - gs.random.uniform(0.1, 1)
-        self.beta_viz.plot_geodestic_ball(center, n_rays, ray_length)
+        self.beta_viz.plot_geodesic_ball(center, n_rays, ray_length)
 
     def test_plot_vector_field(self):
         center = gs.random.rand(1, 2)
-        num_vec = gs.random.randint(1, 20)
+        n_vec = gs.random.randint(1, 20)
         tan_vec = gs.array(
-            [[gs.random.uniform(-1, 1) for i in range(2)] for j in range(num_vec)]
+            [[gs.random.uniform(-1, 1) for i in range(2)] for j in range(n_vec)]
         )
         ray_length = 1 - gs.random.uniform(0.1, 1)
         self.beta_viz.plot_vector_field(center, tan_vec, ray_length)
@@ -88,3 +88,5 @@ class TestVisualizationBeta(tests.conftest.TestCase):
     @staticmethod
     def teardown_method():
         plt.close()
+
+

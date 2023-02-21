@@ -11,15 +11,13 @@ beta = BetaDistributions()
 
 
 class Beta:
-    """Class for the visualization of beta manifold."""
+    """Visualization for Beta Distributions"""
 
-    def process_points(self, points, **kwargs):
-        """Process all manifold points.
+    def examine_points(self, points, **kwargs):
+        """Examine all input manifold points.
 
         Confirms that points passed into function lie on manifold.
         Prepares points for plotting.
-
-        by Marianne Arriola
 
         Parameters
         ----------
@@ -43,10 +41,8 @@ class Beta:
         return points, limit
 
     def plot(self, points, size=None, **kwargs):
-        """Draws the beta manifold.
-
-        by Yiliang Chen & Marianne Arriola & Ryan Stofer
-
+        """Draw the beta manifold points in the parameter space.
+        
         Parameters
         ----------
         points : array-like, shape=[..., 2]
@@ -55,7 +51,8 @@ class Beta:
             Defines the range of the manifold to be shown.
             Optional, default: None
         """
-        points, limit = self.process_points(points)
+
+        points, limit = self.examine_points(points)
         fig = plt.figure(figsize=(5, 5))
         ax = fig.add_subplot(111)
         if not size:
@@ -68,10 +65,8 @@ class Beta:
         plt.ylabel(r"$\beta$")
 
     def plot_rendering(self, initial_point=[2, 2], size=[10, 10], sampling_period=1):
-        """Draws the beta manifold.
-
-        by Yiliang Chen & Allen Wang
-
+        """Draw grid points in a given range.
+        
         Parameters
         ----------
         Initial_point : array-like, shape=[1, 2]
@@ -84,6 +79,7 @@ class Beta:
             Defines the sampling period of the sampled data
             Optional, default: 1
         """
+
         for value in initial_point:
             if value < 0:
                 raise ValueError(
@@ -118,10 +114,8 @@ class Beta:
     def plot_grid(
         self, size, initial_point=[2, 2], n_steps=100, n_points=10, step=1, **kwargs
     ):
-        """Draws the grids of beta manifold.
-
-        by Yiliang Chen
-
+        """Draw the grids on beta manifold.
+        
         Parameters
         ----------
         size : array-like, shape=[..., 2]
@@ -139,6 +133,7 @@ class Beta:
             Defines the length of a step for the grid
             Optional, default: 1
         """
+
         for value in initial_point:
             if value < 0:
                 raise ValueError(
@@ -150,15 +145,15 @@ class Beta:
         sz = gs.array(size)
         if sz.size != 2:
             raise ValueError("size should be a 1*2 array")
-        b = [(initial_point[0] + i * step) for i in range(size[0])]
-        gF = [(initial_point[1] + i * step) for i in range(size[1])]
+        xsteps = [(initial_point[0] + i * step) for i in range(size[0])]
+        ysteps = [(initial_point[1] + i * step) for i in range(size[1])]
 
         t = gs.linspace(0, 1, n_points)
         fig = plt.figure(figsize=(5, 5))
         ax = fig.add_subplot(111)
 
-        for i in b:
-            for j in gF:
+        for i in xsteps:
+            for j in ysteps:
                 start = [i, j]
                 end_h = [i + step, j]
                 end_v = [i, j + step]
@@ -177,16 +172,15 @@ class Beta:
         plt.title("Grids in the beta manifold")
 
     def scatter(self, points, **kwargs):
-        """Scatter plot of beta manifold.
-
-        by Sunpeng Duan & Marianne Arriola
-
+        """Draw the scatter plot of given beta manifold points.
+        
         Parameters
         ----------
         points : array-like, shape=[..., 2]
-            Manifold point representing a beta distribution.
+            Manifold point representing a beta distribution.  
         """
-        points, limit = self.process_points(points)
+
+        points, limit = self.examine_points(points)
 
         fig = plt.figure(figsize=(5, 5))
         ax = fig.add_subplot(111)
@@ -205,12 +199,8 @@ class Beta:
         n_points=10,
         **kwargs,
     ):
-        """Geodesic plot of beta manifold.
-
-        Plots geodesic of beta manifold.
-
-        by Sunpeng Duan & Allen Wang
-
+        """Draw the geodesic line from a single beta manifold point.
+        
         Parameters
         ----------
         initial_point : array-like, shape=[1, 2]
@@ -228,6 +218,7 @@ class Beta:
             Number of points for interpolation.
             Optional, default: 10.
         """
+
         if end_point is None and initial_tangent_vec is None:
             raise ValueError(
                 "Specify an end point or an initial tangent "
@@ -290,17 +281,14 @@ class Beta:
         n_steps=10,
         **kwargs,
     ):
-        """Geodesic vector field of beta manifold.
-
-        Calculates vector field given initial point and tangent vectors.
-
-        by Sunpeng Duan & Allen Wang & Marianne Arriola
-
+        """Calculate vector field given initial point and tangent vectors.
+        
         Parameters
         ----------
         points : array-like, shape=[..., 2]
             Point representing a beta distribution.
         """
+
         if not gs.all(initial_point > 0):
             raise ValueError(
                 "Points must be in the upper-right quadrant of Euclidean space"
@@ -324,16 +312,16 @@ class Beta:
                 geods = geod
             else:
                 geods = gs.vstack((geods, geod))
-        x_lowerLimit = gs.amin(geods[:, 0, :])
-        x_lowerLimit -= x_lowerLimit / 10
-        x_upperLimit = gs.amax(geods[:, 0, :])
-        x_upperLimit += x_upperLimit / 10
-        y_lowerLimit = gs.amin(geods[:, 1, :])
-        y_lowerLimit -= y_lowerLimit / 10
-        y_upperLimit = gs.amax(geods[:, 1, :])
-        y_upperLimit += y_upperLimit / 10
-        xlims = [x_lowerLimit, x_upperLimit]
-        ylims = [y_lowerLimit, y_upperLimit]
+        x_lower_limit = gs.amin(geods[:, 0, :])
+        x_lower_limit -= x_lower_limit / 10
+        x_upper_limit = gs.amax(geods[:, 0, :])
+        x_upper_limit += x_upper_limit / 10
+        y_lower_limit = gs.amin(geods[:, 1, :])
+        y_lower_limit -= y_lower_limit / 10
+        y_upper_limit = gs.amax(geods[:, 1, :])
+        y_upper_limit += y_upper_limit / 10
+        xlims = [x_lower_limit, x_upper_limit]
+        ylims = [y_lower_limit, y_upper_limit]
 
         return geods, xlims, ylims
 
@@ -346,18 +334,15 @@ class Beta:
         n_steps=10,
         **kwargs,
     ):
-        """Get vector field of beta manifold.
-
-        Plots vector field of the beta manifold.
-
-        by Sunpeng Duan & Allen Wang & Marianne Arriola
-
+        """Draw the vector field of the beta manifold.
+        
         Parameters
         ----------
         points : array-like, shape=[..., 2]
             Point representing a beta distribution.
         """
-        center, _ = self.process_points(initial_point)
+
+        center, _ = self.examine_points(initial_point)
 
         fig = plt.figure(figsize=(5, 5))
         ax = fig.add_subplot(111)
@@ -374,7 +359,7 @@ class Beta:
         plt.xlabel(r"$\alpha$")
         plt.ylabel(r"$\beta$")
 
-    def plot_geodestic_ball(
+    def plot_geodesic_ball(
         self,
         initial_point,
         n_rays,
@@ -383,12 +368,8 @@ class Beta:
         n_points=10,
         **kwargs,
     ):
-        """Geodesic ball plot of beta manifold.
-
-        Plots the geodesic ball of beta manifold.
-
-        by Sunpeng Duan & Allen Wang & Marianne Arriola
-
+        """Draw the geodesic ball of a point on the beta manifold.
+        
         Parameters
         ----------
         inital_point : array-like, shape=[1, 2]
@@ -402,7 +383,8 @@ class Beta:
             Number of points for interpolation.
             Optional, default: 10.
         """
-        center, _ = self.process_points(initial_point)
+
+        center, _ = self.examine_points(initial_point)
         theta = gs.linspace(-gs.pi, gs.pi, n_rays)
         directions = gs.transpose(gs.stack((gs.cos(theta), gs.sin(theta))))
         direction_norms = beta.metric.squared_norm(directions, center)
