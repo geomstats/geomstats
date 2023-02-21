@@ -158,8 +158,8 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         metric = SRVMetric(ambient_manifold=r3)
         curve = DiscreteCurves(r3).random_point(n_samples=2)
 
-        srv = metric.srv_transform(curve)
-        srv_inverse = metric.srv_transform_inverse(srv, curve[:, 0])
+        srv = metric.f_transform(curve)
+        srv_inverse = metric.f_transform_inverse(srv, curve[:, 0])
 
         result = srv.shape
         expected = (curve.shape[0], curve.shape[1] - 1, 3)
@@ -205,7 +205,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         times = gs.linspace(0.0, 1.0, n_curves)
         path_of_curves = curve_a + gs.einsum("i,jk->ijk", times, tangent_vec)
-        srv_path = srv_metric_r3.srv_transform(path_of_curves)
+        srv_path = srv_metric_r3.f_transform(path_of_curves)
         expected = n_curves * (srv_path[1] - srv_path[0])
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
@@ -259,7 +259,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         vecs_b = gs.tile(vec_b, (n_vecs, 1, 1))
         result = srv_metric_r3.inner_product(vecs_a, vecs_b, curve)
 
-        srv = srv_metric_r3.srv_transform(curve)
+        srv = srv_metric_r3.f_transform(curve)
         tangent_srv_vecs_a = srv_metric_r3.tangent_diffeomorphism(vec_a, curve)
         tangent_srv_vecs_b = srv_metric_r3.tangent_diffeomorphism(vec_b, curve)
         expected = srv_metric_r3.l2_curves_metric.inner_product(
@@ -369,9 +369,9 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         N.B: Here curves_ab are seen as curves in R3 and not S2.
         """
         srv_metric_r3 = SRVMetric(ambient_manifold=r3)
-        srv_curves = srv_metric_r3.srv_transform(curves)
+        srv_curves = srv_metric_r3.f_transform(curves)
         starting_points = curves[:, 0, :]
-        result = srv_metric_r3.srv_transform_inverse(srv_curves, starting_points)
+        result = srv_metric_r3.f_transform_inverse(srv_curves, starting_points)
         expected = curves
 
         self.assertAllClose(result, expected)
@@ -440,7 +440,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         el_metric = ElasticMetric(a=1, b=0.5)
 
         result = el_metric.f_transform(curve)
-        expected = curves_space.srv_metric.srv_transform(curve)
+        expected = curves_space.srv_metric.f_transform(curve)
         self.assertAllClose(result, expected, rtol, atol)
 
     def test_f_transform_inverse_and_srv_transform_inverse(self, curve, rtol, atol):
@@ -455,7 +455,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         fake_transformed_curve = curve[1:, :]
 
         result = el_metric.f_transform_inverse(fake_transformed_curve, starting_point)
-        expected = curves_space.srv_metric.srv_transform_inverse(
+        expected = curves_space.srv_metric.f_transform_inverse(
             fake_transformed_curve, starting_point
         )
         self.assertAllClose(result, expected, rtol, atol)
@@ -471,7 +471,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         curves = curves_space.random_point(n_samples=2)
 
         result = el_metric.f_transform(curves)
-        expected = curves_space.srv_metric.srv_transform(curves)
+        expected = curves_space.srv_metric.f_transform(curves)
         self.assertAllClose(result, expected, rtol, atol)
 
     def test_f_transform_and_inverse(self, a, b, rtol, atol):

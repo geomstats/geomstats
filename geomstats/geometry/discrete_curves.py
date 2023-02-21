@@ -477,12 +477,15 @@ class ClosedDiscreteCurves(LevelSet):
         is_vec = point.ndim > 2
 
         srv_metric = self.embedding_space.srv_metric
-        srv = srv_metric.srv_transform(point)
+        srv = srv_metric.f_transform(point)
         srv_proj = self.srv_projection(srv, atol=atol, max_iter=max_iter)
 
-        return srv_metric.srv_transform_inverse(
+        return srv_metric.f_transform_inverse(
             srv_proj, point[:, 0] if is_vec else point[0]
         )
+        #point = gs.to_ndarray(point, to_ndim=3)
+        #proj = srv_metric.f_transform_inverse(srv_proj, point[:, 0])
+        #return proj if point_ndim == 3 else gs.squeeze(proj)
 
     def srv_projection(self, srv, atol=gs.atol, max_iter=1000):
         """Project a point in the srv space into the space of closed curves srv.
@@ -1273,7 +1276,7 @@ class SRVMetric(PullbackDiffeoMetric):
     def define_embedding_metric(self):
         return L2CurvesMetric(ambient_manifold=self.ambient_manifold)
 
-    def srv_transform(self, point, tol=gs.atol):
+    def f_transform(self, point, tol=gs.atol):
         r"""Square Root Velocity Transform (SRVT).
 
         Compute the square root velocity representation of a curve. The
@@ -1335,13 +1338,13 @@ class SRVMetric(PullbackDiffeoMetric):
         # else:
         #     starting_point = base_point[..., 0, :]
         # starting_point = gs.expand_dims(starting_point, axis=-2)
-        srv_transform = self.srv_transform(base_point)
-        # last_value = gs.expand_dims(srv_transform[..., -1, :], axis=-2)
-        # return gs.concatenate((starting_point, srv_transform), axis=-2)
-        # image_point = gs.concatenate((srv_transform, last_value), axis=-2)
-        return srv_transform
+        f_transform = self.f_transform(base_point)
+        # last_value = gs.expand_dims(f_transform[..., -1, :], axis=-2)
+        # return gs.concatenate((starting_point, f_transform), axis=-2)
+        # image_point = gs.concatenate((f_transform, last_value), axis=-2)
+        return f_transform
 
-    def srv_transform_inverse(self, srv, starting_sampling_point):
+    def f_transform_inverse(self, srv, starting_sampling_point):
         r"""Inverse of the Square Root Velocity Transform (SRVT).
 
         Retrieve a curve from its square root velocity representation and
@@ -1400,8 +1403,8 @@ class SRVMetric(PullbackDiffeoMetric):
 
     def inverse_diffeomorphism(self, image_point):
         starting_sampling_point = gs.zeros(gs.shape(image_point[..., 0, :]))
-        srv_transform = image_point  # [..., :-1, :]
-        return self.srv_transform_inverse(srv_transform, starting_sampling_point)
+        f_transform = image_point  # [..., :-1, :]
+        return self.f_transform_inverse(f_transform, starting_sampling_point)
 
     def aux_differential_srv_transform(self, tangent_vec, point):
         """Compute differential of the square root velocity transform.
