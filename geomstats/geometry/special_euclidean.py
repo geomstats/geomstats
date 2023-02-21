@@ -444,7 +444,6 @@ class _SpecialEuclideanVectors(LieGroup):
         regularized_vec : array-like, shape=[..., dim]
             Regularized vector.
         """
-        # TODO: remove dependency on metric
         return self.regularize_tangent_vec(tangent_vec, self.identity, metric)
 
     def matrix_from_vector(self, vec):
@@ -666,7 +665,6 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         regularized_vec : array-like, shape=[..., 3]
             Regularized vector.
         """
-        # TODO: remove dependency on metric
         if metric is None:
             metric = self.left_canonical_metric
 
@@ -775,8 +773,6 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         regularized_vec : array-like, shape=[..., 3]
             Regularized vector.
         """
-        # TODO: remove dependency on metric
-
         if metric is None:
             metric = self.left_canonical_metric
 

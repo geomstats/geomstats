@@ -591,7 +591,6 @@ class FrechetMean(BaseEstimator):
             Returns self.
         """
         if isinstance(self.metric, HypersphereMetric) and self.metric.dim == 1:
-            # TODO: fix after passing equipped_space
             mean = Hypersphere.angle_to_extrinsic(
                 _circle_mean(Hypersphere.extrinsic_to_angle(X))
             )

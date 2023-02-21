@@ -313,11 +313,20 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
 
 class _SpecialOrthogonalVectors(LieGroup):
-    """Class for the special orthogonal groups SO({2,3}) in vector form.
+    r"""Class for the special orthogonal groups SO({2,3}) in vector form.
 
     i.e. the Lie groups of planar and 3D rotations. This class is specific to
     the vector representation of rotations. For the matrix representation use
     the SpecialOrthogonal class and set `n=2` or `n=3`.
+
+    This class represents the Lie group :math:`SO(2)` or :math:`SO(3)`, whose
+    Lie algebra is the space of skew symmetric matrices in 2D and 3D respectively.
+
+    This class uses the vector representation to represent points in
+    :math:`SO(2)` or :math:`SO(3)`, i.e. a point on the Lie group is represented
+    by a vector of size `dim`. Note that the vector actually corresponds to
+    the group logarithm of the point at the identity. Hence, in this case, the
+    Lie algebra of the Lie group is also equal to the class.
 
     Parameters
     ----------
@@ -348,12 +357,12 @@ class _SpecialOrthogonalVectors(LieGroup):
         return gs.zeros(self.dim)
 
     def belongs(self, point, atol=ATOL):
-        """Evaluate if a point belongs to SO(3).
+        """Evaluate if a point belongs to SO(2) or SO(3).
 
         Parameters
         ----------
-        point : array-like, shape=[..., 3]
-            Point to check whether it belongs to SO(3).
+        point : array-like, shape=[..., dim]
+            Point to check.
         atol : unused
 
         Returns
@@ -380,7 +389,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        # TODO: why receiving (n, n)?
         mat = point
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
@@ -398,16 +406,16 @@ class _SpecialOrthogonalVectors(LieGroup):
         return rot_mat
 
     def inverse(self, point):
-        """Compute the group inverse in SO(3).
+        """Compute the group inverse in SO(2) or SO(3).
 
         Parameters
         ----------
-        point : array-like, shape=[..., 3]
+        point : array-like, shape=[..., dim]
             Point.
 
         Returns
         -------
-        inv_point : array-like, shape=[..., 3]
+        inv_point : array-like, shape=[..., dim]
             Inverse.
         """
         return -self.regularize(point)
@@ -439,12 +447,12 @@ class _SpecialOrthogonalVectors(LieGroup):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dimension]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point.
 
         Returns
         -------
-        point : array-like, shape=[..., dimension]
+        point : array-like, shape=[..., dim]
             Point.
         """
         return self.regularize(tangent_vec)
@@ -459,12 +467,12 @@ class _SpecialOrthogonalVectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dimension]
+        point : array-like, shape=[..., dim]
             Point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dimension]
+        tangent_vec : array-like, shape=[..., dim]
             Group logarithm.
         """
         return self.regularize(point)
@@ -506,6 +514,20 @@ class _SpecialOrthogonalVectors(LieGroup):
         return self._skew_sym_mat.basis_representation(skew_mat)
 
     def to_tangent(self, vector, base_point=None):
+        """Project a vector onto the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector to project.
+        base_point : array-like, shape=[..., dim]
+            Point of the group.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
         tangent_vec = self.regularize_tangent_vec(vector, base_point)
         if base_point is not None and base_point.ndim > vector.ndim:
             return gs.broadcast_to(tangent_vec, base_point.shape)
@@ -531,7 +553,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         regularized_vec : array-like, shape=[..., 1]
             Regularized tangent vector.
         """
-        # TODO: remove metric
         return self.regularize(tangent_vec)
 
     def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
@@ -555,7 +576,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         regularized_tangent_vec : array-like, shape=[..., 1]
             Regularized tangent vector.
         """
-        # TODO: remove metric
         return self.regularize_tangent_vec_at_identity(tangent_vec)
 
 

@@ -24,7 +24,19 @@ class HyperboloidTestData(_LevelSetTestData):
     Space = Hyperboloid
 
     def intrinsic_after_extrinsic_test_data(self):
-        return self.generate_tests([])
+        """Generate data to check that changing coordinate system twice
+        gives back the point.
+
+        Assumes that random_point generates points in extrinsic coordinates.
+        """
+        random_data = [
+            dict(
+                space_args=space_args,
+                point_extrinsic=self.Space(*space_args).random_point(n_points),
+            )
+            for space_args, n_points in zip(self.space_args_list, self.n_points_list)
+        ]
+        return self.generate_tests([], random_data)
 
     def extrinsic_after_intrinsic_test_data(self):
         return self.generate_tests([])
