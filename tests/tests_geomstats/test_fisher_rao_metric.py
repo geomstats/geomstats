@@ -8,8 +8,7 @@ from tests.data.fisher_rao_metric_data import FisherRaoMetricTestData
 from tests.geometry_test_cases import TestCase
 
 
-@tests.conftest.autograd_tf_and_torch_only
-# Note: tests in tensorflow are slow.
+@tests.conftest.autograd_and_torch_only
 class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
     testing_data = FisherRaoMetricTestData()
 
@@ -45,6 +44,28 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
             base_point=base_point,
         )
         normal_metric_mat = closed_form_metric.metric_matrix(
+            base_point=base_point,
+        )
+        self.assertAllClose(inner_prod_mat, normal_metric_mat)
+
+    def test_inner_product_and_closed_form_inner_product(
+        self,
+        information_manifold,
+        support,
+        closed_form_metric,
+        tangent_vec_a,
+        tangent_vec_b,
+        base_point,
+    ):
+        metric = self.Metric(information_manifold=information_manifold, support=support)
+        inner_prod_mat = metric.inner_product(
+            tangent_vec_a=tangent_vec_a,
+            tangent_vec_b=tangent_vec_b,
+            base_point=base_point,
+        )
+        normal_metric_mat = closed_form_metric.inner_product(
+            tangent_vec_a=tangent_vec_a,
+            tangent_vec_b=tangent_vec_b,
             base_point=base_point,
         )
         self.assertAllClose(inner_prod_mat, normal_metric_mat)

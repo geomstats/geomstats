@@ -25,17 +25,19 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int, optional
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
     """
 
-    def __init__(self, dim, scale=1):
+    def __init__(self, dim, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate the "
+                "manifold without this parameter and then use "
+                "`scale * metric` to rescale the standard metric."
+            )
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim),
-            scale=scale,
-            metric=PoincareHalfSpaceMetric(dim, scale),
+            metric=PoincareHalfSpaceMetric(dim),
             default_coords_type="half-space",
         )
 
@@ -57,8 +59,7 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        belongs = gs.logical_and(belongs, point[..., -1] >= atol)
-        return belongs
+        return gs.logical_and(belongs, point[..., -1] >= atol)
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
@@ -78,8 +79,7 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
             Projected point.
         """
         last = gs.where(point[..., -1] < atol, atol, point[..., -1])
-        projected = gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
-        return projected
+        return gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
 
 
 class PoincareHalfSpaceMetric(RiemannianMetric):
@@ -92,20 +92,21 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default: 1.
     """
 
-    def __init__(self, dim, scale=1.0):
-        self.poincare_ball = PoincareBall(dim=dim, scale=scale)
+    def __init__(self, dim, **kwargs):
+        if "scale" in kwargs:
+            raise TypeError(
+                "Argument scale is no longer in use: instantiate scaled "
+                "metrics as `scale * RiemannianMetric`. Note that the "
+                "metric is scaled, not the distance."
+            )
+        self.poincare_ball = PoincareBall(dim=dim)
         super().__init__(
             dim=dim,
             signature=(dim, 0),
             default_coords_type=self.poincare_ball.default_coords_type,
         )
-        self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -126,7 +127,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         """
         inner_prod = gs.sum(tangent_vec_a * tangent_vec_b, axis=-1)
         inner_prod = inner_prod / base_point[..., -1] ** 2
-        return self.scale * inner_prod
+        return inner_prod
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential.

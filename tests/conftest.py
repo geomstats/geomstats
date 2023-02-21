@@ -1,7 +1,6 @@
 """Pytest utility classes, functions and fixtures."""
 
 import inspect
-import os
 import types
 
 import numpy as np
@@ -25,16 +24,6 @@ def pytorch_backend():
     return gs.__name__.endswith("pytorch")
 
 
-def tf_backend():
-    """Check if tensorflow is set as backend."""
-    return gs.__name__.endswith("tensorflow")
-
-
-if tf_backend():
-    import tensorflow as tf
-
-    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
 if pytorch_backend():
     import torch
 
@@ -46,14 +35,7 @@ np_only = pytest.mark.skipif(not np_backend(), reason="Test for numpy backend on
 torch_only = pytest.mark.skipif(
     not pytorch_backend(), reason="Test for pytorch backends only."
 )
-tf_only = pytest.mark.skipif(
-    not tf_backend(), reason="Test for tensorflow backends only."
-)
 
-np_and_tf_only = pytest.mark.skipif(
-    not (np_backend() or tf_backend()),
-    reason="Test for numpy and tensorflow backends only.",
-)
 np_and_torch_only = pytest.mark.skipif(
     not (np_backend() or pytorch_backend()),
     reason="Test for numpy and pytorch backends only.",
@@ -65,22 +47,6 @@ np_and_autograd_only = pytest.mark.skipif(
 autograd_and_torch_only = pytest.mark.skipif(
     not (autograd_backend() or pytorch_backend()),
     reason="Test for autograd and torch backends only.",
-)
-autograd_and_tf_only = pytest.mark.skipif(
-    not (autograd_backend() or tf_backend()),
-    reason="Test for autograd and tf backends only.",
-)
-
-np_autograd_and_tf_only = pytest.mark.skipif(
-    not (np_backend() or autograd_backend() or tf_backend()),
-    reason="Test for numpy, autograd and tensorflow backends only.",
-)
-np_autograd_and_torch_only = pytest.mark.skipif(
-    not (np_backend() or autograd_backend() or pytorch_backend()),
-    reason="Test for numpy, autograd and pytorch backends only.",
-)
-autograd_tf_and_torch_only = pytest.mark.skipif(
-    np_backend(), reason="Test for backends with automatic differentiation only."
 )
 
 
@@ -239,8 +205,6 @@ class TestCase:
     """Class for Geomstats tests."""
 
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
-        if tf_backend():
-            return tf.test.TestCase().assertAllClose(a, b, rtol=rtol, atol=atol)
         if np_backend() or autograd_backend():
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
 
@@ -250,14 +214,11 @@ class TestCase:
         )
 
     def assertAllEqual(self, a, b):
-        if tf_backend():
-            return tf.test.TestCase().assertAllEqual(a, b)
 
-        elif np_backend() or autograd_backend():
-            np.testing.assert_array_equal(a, b)
+        if np_backend() or autograd_backend():
+            return np.testing.assert_array_equal(a, b)
 
-        else:
-            self.assertTrue(gs.equal(a, b))
+        return self.assertTrue(gs.all(gs.equal(a, b)))
 
     def assertTrue(self, condition, msg=None):
         assert condition, msg
@@ -274,8 +235,6 @@ class TestCase:
         assert are_same and are_same_shape
 
     def assertShapeEqual(self, a, b):
-        if tf_backend():
-            return tf.test.TestCase().assertShapeEqual(a, b)
         assert a.shape == b.shape
 
 

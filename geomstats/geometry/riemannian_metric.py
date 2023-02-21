@@ -46,6 +46,48 @@ class RiemannianMetric(Connection, ABC):
             signature = (dim, 0)
         self.signature = signature
 
+    def __mul__(self, scalar):
+        """Multiply the metric by a scalar.
+
+        This method multiplies the (0,2) metric tensor by a scalar. Note that this does
+        not scale distances by the scalar. That would require multiplication by the
+        square of the scalar.
+
+        Parameters
+        ----------
+        scalar : float
+            The number by which to multiply the metric.
+
+        Returns
+        -------
+        metric : ScalarProductMetric
+            The metric multiplied by the scalar
+        """
+        from geomstats.geometry.scalar_product_metric import ScalarProductMetric
+
+        if not isinstance(scalar, float):
+            return NotImplemented
+        return ScalarProductMetric(self, scalar)
+
+    def __rmul__(self, scalar):
+        """Multiply the metric by a scalar.
+
+        This method multiplies the (0,2) metric tensor by a scalar. Note that this does
+        not scale distances by the scalar. That would require multiplication by the
+        square of the scalar.
+
+        Parameters
+        ----------
+        scalar : float
+            The number by which to multiply the metric.
+
+        Returns
+        -------
+        metric : ScalarProductMetric
+            The metric multiplied by the scalar.
+        """
+        return self * scalar
+
     def metric_matrix(self, base_point=None):
         """Metric matrix at the tangent space at a base point.
 
@@ -104,7 +146,7 @@ class RiemannianMetric(Connection, ABC):
             Derivative of the inner-product matrix, where the index
             k of the derivation is last: math:`mat_{ijk} = \partial_k g_{ij}`.
         """
-        metric_derivative = gs.autodiff.jacobian(self.metric_matrix)
+        metric_derivative = gs.autodiff.jacobian_vec(self.metric_matrix)
         return metric_derivative(base_point)
 
     def christoffels(self, base_point):
@@ -561,30 +603,29 @@ class RiemannianMetric(Connection, ABC):
 
         For two orthonormal tangent vectors :math:`x,y` at a base point,
         the sectional curvature is defined by :math:`K(x,y) = <R(x, y)x, y>`.
+
         For non-orthonormal vectors, it is
-        :math:`K(x,y) = <R(x, y)x, y> / \\|x \wedge y\\|^2`.
+        :math:`K(x,y) = <R(x, y)y, x> / (<x, x><y, y> - <x, y>^2)`.
 
         sectional_curvature(X, Y, P) = K(X,Y) where X, Y are tangent vectors
         at base point P.
 
+        The information manifold of multinomial distributions has constant
+        sectional curvature given by :math:`K = 2 \sqrt{n}`.
+
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec_a : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., n, n]
+        base_point : array-like, shape=[..., dim]
             Point in the manifold.
 
         Returns
         -------
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at `base_point`.
-
-        Reference
-        ---------
-        [CF1992] Do Carmo, M. P., & Flaherty Francis, J. (1992).
-        Riemannian geometry (Vol. 6). Boston: Birkhäuser.
         """
         curvature = self.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_b, base_point

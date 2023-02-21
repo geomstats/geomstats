@@ -138,7 +138,6 @@ class TestVisualization(tests.conftest.TestCase):
         result = [r <= 1.0 for r in radius]
         self.assertTrue(gs.all(result))
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_plot_points_s1(self):
         points = self.S1.random_uniform(self.n_samples)
         visualization.plot(points, space="S1")

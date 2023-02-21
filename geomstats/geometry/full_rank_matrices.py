@@ -46,8 +46,7 @@ class FullRankMatrices(OpenSet):
         has_right_rank = gs.where(
             gs.linalg.matrix_rank(point) == self.rank, True, False
         )
-        belongs = gs.logical_and(gs.array(has_right_size), has_right_rank)
-        return belongs
+        return gs.logical_and(gs.array(has_right_size), has_right_rank)
 
     def projection(self, point):
         r"""Project a matrix to the set of full rank matrices.
@@ -85,8 +84,7 @@ class FullRankMatrices(OpenSet):
             Number of samples.
             Optional, default: 1.
         bound: float
-            Bound of the interval in which to sample each matrix entry.
-            Optional, default: 1.
+            This parameter is ignored.
         n_iter : int
             Maximum number of trials to sample a matrix with full rank.
             Optional, default: 100.
@@ -96,12 +94,12 @@ class FullRankMatrices(OpenSet):
         samples : array-like, shape=[..., n, k]
             Point sampled on :math:`R_*^{n\times k}`.
         """
-        n = self.n
-        k = self.k
         sample = []
         n_accepted, iteration = 0, 0
         while n_accepted < n_samples and iteration < n_iter:
-            raw_samples = gs.random.normal(size=(n_samples - n_accepted, n, k))
+            raw_samples = gs.random.normal(
+                size=(n_samples - n_accepted, self.n, self.k)
+            )
             ranks = gs.linalg.matrix_rank(raw_samples)
             selected = ranks == self.rank
             sample.append(raw_samples[selected])

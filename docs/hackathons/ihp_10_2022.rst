@@ -1,0 +1,285 @@
+
+
+Hackathon at Institut Henri Poincaré, 17th-21st Oct 2022
+========================================================
+
+This hackathon happened at IHP within the thematic trimester on `Geometry and Statistics in Data Sciences <https://indico.math.cnrs.fr/category/498/>`_.
+
+
+Several participants made their first contributions to ``geomstats``. In no particular order: Francesco Ballerin (University of Bergen), Juliane Braunsmann (WWU Munster), Antoine Collas (Paris-Saclay University), John Harvey (Cardiff University), Emmanuel Hartman (Florida State University), and Joan Glaunès (Université Paris Descartes).
+
+
+Besides the usual informal schedule, we had a very fruitful presentation by Jean Feydy (INRIA), entitled "Fast geometric libraries for vision and data sciences". 
+
+
+It was a prolific week in terms of (great) discussions about math and programming. Several actions to improve our code base originated from them. The next section describes them and the rationale behind the changes that will be implemented.
+
+
+
+Future changes
+--------------
+
+
+Equip with metric
+*****************
+
+The following way of instantiating a space and equipping it with a metric will become standard:
+
+
+.. code-block:: python
+
+    from geomstats.geometry.hypersphere import (
+        Hypersphere,
+        HypersphereMetric,
+    )
+
+    space = Hypersphere(dim=2, equip=False)
+    space.equip_with_metric(HypersphereMetric)
+
+
+This means metrics are no more objects that should be instantiated by themselves, i.e. metrics are associated with spaces. To use methods available within the metric, it is now preferred to do ``space.metric.<method>`` instead of simply instantiating a metric and do ``metric.<method>``.
+
+
+Mathematically, this means that ``space.equip_with_metric`` transforms our smooth manifold :math:`M` into the tuple :math:`(M, g)`. The boolean ``equip`` allows to have the possibility to instantiate a non-equipped manifold. In order to keep the current behavior and for practical reasons (e.g. it can be cumbersome to equip a space that only has one "valid" metric; it is nice to have embedding spaces already equipped), ``equip=True`` by default, which means the following code is equivalent to the above:
+
+
+.. code-block:: python
+
+    space = Hypersphere(dim=2)
+
+
+We will now ask contributors to add ``_default_metric`` method to their classes, which returns the default metric for a given class (not instantiated). This will be used to equip the manifold when ``equip=True``. Metrics that require additional parameters (e.g. ``ElasticMetric``) should also return a dictionary with default values for them.
+
+
+When equipping a space with a metric that requires additional parameters, a keyword-argument syntax should be user:
+
+
+.. code-block:: python
+
+    space.equip_with_metric(ElasticMetric, a=1., b=1.)
+
+
+
+With this (seemingly small) change, we can now have (benign) circularity in our design, i.e. the space "knows" about the metric, and the metric "knows" about the space. This is achieved by requiring the first input argument of a metric to be the space:
+
+
+.. code-block:: python
+
+    class HypersphereMetric(RiemannianMetric):
+        def __init__(self, dim):
+            # init operations
+
+will become:
+
+
+.. code-block:: python
+
+    class HypersphereMetric(RiemannianMetric):
+        def __init__(self, space):
+            self._space = space
+            # other init operations
+
+
+Notice that now ``HypersphereMetric`` has access to ``dim`` via ``self._space``, which means there's only one ``dim`` (the one from ``space``) and no inconsistencies are allowed by design (e.g. equip a space with a metric that has an inappropriate ``dim``). This also removes the toll of checking input arguments for consistency.
+
+
+The ``space`` should be stored privately in the metric to avoid the recursion ``space.metric.space.metric.<...>``. The recursion is still allowed, but a user that accesses a private method from "outside" knows he/she's making a mistake.  
+
+
+Additionally, a difficult design problem is solved: how to access methods of the space within the metric? This is particularly relevant for quotient spaces (e.g. ``QuotientMetric`` requires ``FiberBundle``, and ``GraphSpaceMetric`` needs ``GraphSpace``) and was creating a design divergence where some metrics required the space, whereas others no: now all the metrics require the space.
+
+
+Moreover, we force each space to contain only one metric, since an equipped instance of a space represents :math:`(M, g)`.
+
+
+
+Similar actions will be done regarding equipping a space with a group action.
+
+
+
+Intrinsic vs extrinsic coordinates (manifold)
+*********************************************
+
+At a lower level, a manifold is expected to implement points via ``extrinsic`` OR ``intrinsic`` coordinates, never both.   
+
+
+This means that code as the following will not be allowed:
+
+
+.. code-block:: python
+
+    space = MySpace(default_coords_type="extrinsic")
+
+    space.default_coords_type = "intrinsic"
+
+
+That is, instances of a manifold are expected to be static, i.e. if you want a different point representation of your space, you should instantiate a new object.
+
+
+The main rationale behind this decision is maintainability. For example, each method of the manifold knows exactly which array shape to expect (and what each array represents). This will remove a lot of ifs from the code base (remember that ifs relate to complexity). It will also allow to have a more meaningful code hierarchy, as different representations of the same space may rely on different definitions of manifold.
+
+
+Besides, we expect usability to increase, as a user also knows exactly which kind of points each of the objects is able to manipulate.
+
+
+For the end user, no significant change will happen at instantiation level, as we will rely on interfaces (similarly to what is currently done with ``Hyperbolic``). An interface in this case is simply a class with ``__new__`` which returns an instance of another class. For example:
+
+
+.. code-block:: python
+
+    class Hypersphere:
+
+        def __new__(self, dim, intrinsic=False, equip=True):
+            if intrinsic:
+                return IntrinsicHypersphere(dim, equip=equip)
+            else:
+                return ExtrinsicHypersphere(sim, equip=equip) 
+
+
+
+Intrinsic vs extrinsic coordinates (connection)
+***********************************************
+
+Similarly to the manifold, the connection inheritance structure will also be affected by the clearer distinction between ``extrinsic`` and ``intrinsic`` (in fact, changes in the manifold structure tend to be reflected in the connection structure and vice-versa).
+
+
+Here, this distinction will reduce namespace pollution ("ill-defined" methods will not be available to many children), make testing easier (e.g. currently there are many skips in tests due to "inappropriate" method inheritance), and reduce information overload to a class user (e.g. ``dir(<MyMetric>)`` will only show methods that are properly defined).
+
+
+To make it more concrete, we will keep in ``Connection`` only methods that return coordinate invariant objects (e.g. scalars), and move coordinate dependent methods to ``IntrinsicConnection`` (e.g. ``christoffels``, ``riemannian_tensor``, etc).
+
+
+
+
+
+No dynamic behavior
+*******************
+
+As described above, spaces are not intended to be changed from "outside" after being instantiated. For example:
+
+
+.. code-block:: python
+    
+    n = 3
+    space = SPDMatrices(n=3)
+
+    space.n = 4
+
+
+is now seen as inadequate code.
+
+
+We will not enforce this kind of code to fail for most cases, but we will make the assumption it is mistaken code (i.e. a user can still do it, but at his/her own responsibility). If you want to change attributes of your space, then create a new instance of it.
+
+
+This seemingly small change frees up the developer's mind, as he/she does not have to think about all the ways a user may change an object dynamically.
+
+
+There's an exception to this: numerical-related parameters are allowed to be changed. For example, some classes will have what we call a ``ExpSolver`` (more on this in the next section). In this case it is convenient to do something like:
+
+
+.. code-block:: python
+
+    space.metric.exp_solver.n_steps = 20
+
+
+(The above code changes the number of steps performed during integration of the geodesic equation during the solution of an initial value problem.)
+
+
+The important distinction is that this code does not change anything related to mathematical properties (the equipped space still represents the same tuple :math:`(M, g)`): it simply changes the parameters of numerical algorithms used to find solutions to manifold/metric operations that do not have closed-form solutions.
+
+
+
+numerics
+********
+
+Since more and more manifolds/metrics in ``geomstats`` require the use of numerical methods, we will create the subpackage ``geomstats.numerics``. It will contain (names may change in the future):
+
+* ``optimizers``: mostly wrappers around external optimization libraries (e.g. ``scipy``). These wrappers will also handle type conversion due to backend/external libraries inconsistencies (e.g. ``scipy`` works with ``torch`` tensors, but returns ``numpy`` arrays. The end user should receive ``torch`` tensors), freeing-up new contributors of thinking about it.
+
+* ``ode_solvers``: will contain machinery to solve initial value problems (IVP) and boundary value problems (BVP). It will contain both "in-house" solvers (e.g. integrators) and wrappers to external libraries (e.g. ``scipy``). Keeping in-house solvers gives us more flexibility in terms of automatic differentiation (some external libraries will not work with AD) and vectorization.
+
+* ``parallel_transport``: ladder parallel transport methods will be moved here, and removed from ``Connection``. ``Connection`` will instantiate a ``ParallelTransporter`` if no closed-form solution exists.
+
+* ``geodesic_solvers``: will contain ``LogSolver`` and ``ExpSolver`` (a hierarchy of solvers), which will be mostly composed of optimizers or ode solvers.
+
+* ``numerical_integrators``: will contain numerical integration machinery.
+
+
+The goal of creating smaller objects to numerically solve some problems comes from the belief that there's no best algorithm to numerically solve a problem. Some algorithms are faster, other are more accurate, but in the end, the definition of best is context-dependent.
+
+
+Therefore, manifolds/metrics should not hard code any numerical algorithm, but receive an external object to solve the numerical problem (while keeping "syntax sugar": e.g. ``metric.exp`` will still be available, but under the hood it will call ``metric.exp_solver.exp``). Sensitive defaults should also be provided for users that do not want to care about this. "Sensitive defaults" in our context means accurate.
+
+
+This way, manifolds/metrics will receive numerical "solvers" by composition (e.g. a solver instance will be available within a manifold/metric instance in the same way an ``embedding_space`` is available), and are responsible for defining a proper interface to interact with them (e.g. as in the ``metric.exp_solver.exp`` described above). At instantiation time proper default objects will be created, but a user can always feed a solver that is more appropriate for his/her use case. Unnecessary objects will not be instantiated (e.g. if a metric has a closed-form solution for ``exp``, ``metric.exp_solver`` will not exist). The possibility to compare closed-form solutions with numerical ones is still available, but requires the instantiation of an external solver.
+
+
+This design has several advantages:
+
+* **modularity**: implementations of different numerical algorithms "live alone" and do not interact. Meaning, if we want to implement a new numerical algorithm, we just need to create a new (small) object with proper API.
+
+
+* **manifolds/metrics will become close to modifications** (see `open-closed principle <https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle>`_). For example, currently we have the private methods ``_pole_ladder_step`` and ``_schild_ladder_step`` in ``Connection``. Assuming we want to add a different ladder step, we will need to perform two operations: i) implement ``_<new-step-name>_ladder_step``, ii) change ``ladder_parallel_transport`` to interface with the new step type. The second step goes against the open-closed principle, as we have to modify a ``Connection`` method to be able to add a new step type. In the worst-case scenario we will introduce bugs while doing it. In the best-case scenario, we will spend mental energy thinking about how to avoid breaking already working code. With the suggested design, we simply care about creating a new (small) object with proper API.
+
+
+* **handling of numerical parameters will be simplified**. Different algorithms require different numerical parameters. Passing numerical parameters as arguments in methods (e.g. as it is currently done in ``Connection.exp``) is very dirty because it implies API differences or the use of ``**kwargs`` (which becomes unreadable pretty fast). With the new approach we know numerical parameters must be changed in the respective objects (e.g. ``space.metric.exp_solver.n_steps = 20``) and we know what are the numerical parameters we can tweak simply by looking at the documentation of the corresponding object.
+
+
+* **learning algorithms only care about passing the "geometrically" required arguments to "geometric" operations**. Following the previous point, the fact that numerical parameters are controlled via state allows to only pass geometrically meaningful arguments to methods (e.g. ``exp`` will receive ``tangent_vec`` and ``base_point``; ``log`` receives ``point`` and ``base_point``). This means we can set the numerical parameters before passing an equipped space to a learning algorithm. Currently, we have no way of controlling the parameters of ``log``, ``exp``, etc, when we use an equipped space within a learning algorithm.
+
+
+
+* **history will be easier to turn off/on**. For example, in some use cases of parallel transport we are only interested in parallel transporting a tangent vector and we do not want to access the trajectory. In other cases, the trajectory is important. Having a ``ParallelTransporter`` object allows to handle these use cases easily by having a boolean parameter e.g. ``save_trajectory=True`` that turns off/on the saving of the trajectory. If ``False``, all the additional operations required to save the trajectory will not be done (which may lead to better performance and less memory use). If ``True``, the trajectory should be stored within the object (e.g. by creating the attribute ``self.trajectory_``; naming follows ``sklearn`` naming convention), but never be returned, as we want to keep the same API. A similar behavior can be achieved without the creation of an additional object, but then the question of where to save the trajectory arises. "In ``Connection``" may be a OK answer, but it will lead fast to namespace pollution. The same applies to optimization problems, solution of ODEs, etc. This is especially interesting for research.
+
+
+* **combine different numerical algorithms**. After having different algorithms implemented as small objects, we can start combining them using composition. For example, we can have a less accurate (but fast) ``LogSolver`` to create the initialization for a more accurate ``LogSolver``. Hard coding them in a ``Connection`` would have never allowed this kind of combinations.
+
+
+
+For a contributor, setting a (default) numerical algorithm follows a similar strategy as ``_define_default_metric`` shown above. The only difference is that it should return an instance, instead of the class. For example:
+
+
+.. code-block:: python
+
+    class MyMetric(RiemannianMetric):
+
+        def _define_exp_solver(self):
+         return MyNiceExpSolver(n_steps=10)
+
+
+If ``_define_exp_solver`` does not exist, we will assume a closed-form solution is implemented. A nice error message will be implemented in ``Connection.exp`` to help contributors know what to change if something goes wrong.
+
+
+
+gs.matrices
+***********
+
+``Matrices``, ``SymmetricMatrices``, and ``SPDMatrices`` have several linear algebra-related (class) methods that are useful in several parts of the code. Having to import them any time we need to perform these operations increases the likelihood of circular imports and makes everything messier. Besides, these methods are a bit hidden within these classes as ``geomstats.geometry`` is supposed to handle geometric operations. We will then move them to the backend (under ``gs.matrices``), ensure proper testing, and add backend documentation.
+
+
+One question that arises with this is that some methods are particular to specific kinds of matrices. We will follow ``numpy``/``scipy`` conventions to handle this (e.g. ``eig`` vs ``eigh``). Moreover, we will have a ``check`` boolean parameter set to ``False`` by default, meaning we will not check if a user that is calling ``eigh`` is really passing a hermitian matrix, as these checks are computationally expensive (the possibility of ``check=True`` is especially attractive during development/debugging).
+
+
+
+
+Points shape
+************
+
+Methods in ``geomstats.geometry`` will still be able to receive one point or multiple points, but some behaviors will be slightly modified. In particular, the following behaviors are expected for a method that receives a 1d point and returns a 1d point (after some operations):
+
+1. input: 1d -> output: 1d
+
+2. input: 2d (multiple points) -> output: 2d (multiple points)
+
+3. input: 2d (one point) -> output: 2d (one point)
+
+
+The last behavior is new, as currently if we have one point as input, we will always return a 1d array (for the 1d-1d case). This means ``gs.squeeze`` will have to be used at a much lower extent.
+
+
+
+New structure
+*************
+
+The folder structure will be modified to better separate different mathematical structures. More on this soon!

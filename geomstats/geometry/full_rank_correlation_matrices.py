@@ -22,16 +22,44 @@ class FullRankCorrelationMatrices(LevelSet):
     """
 
     def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
-        super().__init__(
-            dim=int(n * (n - 1) / 2),
-            embedding_space=SPDMatrices(n=n),
-            submersion=Matrices.diagonal,
-            value=gs.ones(n),
-            tangent_submersion=lambda v, x: Matrices.diagonal(v),
-            **kwargs
-        )
         self.n = n
+
+        kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
+        super().__init__(dim=int(n * (n - 1) / 2), **kwargs)
+
+    def _define_embedding_space(self):
+        return SPDMatrices(n=self.n)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n]
+        """
+        return Matrices.diagonal(point) - gs.ones(self.n)
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : Ignored.
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n]
+        """
+        submersed_vector = Matrices.diagonal(vector)
+        if point is not None and point.ndim > vector.ndim:
+            return gs.broadcast_to(submersed_vector, point.shape[:-1])
+
+        return submersed_vector
 
     @staticmethod
     def diag_action(diagonal_vec, point):
@@ -237,8 +265,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
             return self.horizontal_projection(tangent_vec, base_point)
         diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
         lift = FullRankCorrelationMatrices.diag_action(diagonal_point, tangent_vec)
-        hor_lift = self.horizontal_projection(lift, base_point=fiber_point)
-        return hor_lift
+        return self.horizontal_projection(lift, base_point=fiber_point)
 
 
 class FullRankCorrelationAffineQuotientMetric(QuotientMetric):

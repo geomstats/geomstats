@@ -92,6 +92,7 @@ from ._dtype import (
     as_dtype,
     get_default_cdtype,
     get_default_dtype,
+    is_bool,
     is_complex,
     is_floating,
     set_default_dtype,
@@ -397,7 +398,7 @@ def ndim(x):
 
 
 def copy(x):
-    return x.copy()
+    return _np.array(x, copy=True)
 
 
 def array_from_sparse(indices, data, target_shape):
@@ -432,14 +433,12 @@ def vec_to_diag(vec):
 
 
 def tril_to_vec(x, k=0):
-    """ """
     n = x.shape[-1]
     rows, cols = tril_indices(n, k=k)
     return x[..., rows, cols]
 
 
 def triu_to_vec(x, k=0):
-    """ """
     n = x.shape[-1]
     rows, cols = triu_indices(n, k=k)
     return x[..., rows, cols]

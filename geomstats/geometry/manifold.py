@@ -11,6 +11,7 @@ import abc
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 
 
 class Manifold(abc.ABC):
@@ -28,6 +29,13 @@ class Manifold(abc.ABC):
     default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
         Optional, default: 'intrinsic'.
+
+    Attributes
+    ----------
+    point_ndim : int
+        Dimension of point array.
+    default_point_type : str
+        Point type: "vector" or "matrix"
     """
 
     def __init__(
@@ -44,15 +52,13 @@ class Manifold(abc.ABC):
         self.default_coords_type = default_coords_type
         self._metric = metric
 
-    @property
-    def default_point_type(self):
-        """Point type.
-
-        `vector` or `matrix`.
-        """
-        if len(self.shape) == 1:
-            return "vector"
-        return "matrix"
+        self.point_ndim = len(self.shape)
+        if self.point_ndim == 1:
+            self.default_point_type = "vector"
+        elif self.point_ndim == 2:
+            self.default_point_type = "matrix"
+        else:
+            self.default_point_type = "other"
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -60,7 +66,7 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., *point_shape]
             Point to evaluate.
         atol : float
             Absolute tolerance.
@@ -78,9 +84,9 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
         atol : float
             Absolute tolerance.
@@ -98,22 +104,22 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vector at base point.
         """
 
     @abc.abstractmethod
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points on the manifold.
+        """Sample random points on the manifold according to some distribution.
 
-        If the manifold is compact, a uniform distribution is used.
+        If the manifold is compact, preferably a uniform distribution will be used.
 
         Parameters
         ----------
@@ -126,7 +132,7 @@ class Manifold(abc.ABC):
 
         Returns
         -------
-        samples : array-like, shape=[..., {dim, [n, n]}]
+        samples : array-like, shape=[..., *point_shape]
             Points sampled on the manifold.
         """
 
@@ -140,11 +146,10 @@ class Manifold(abc.ABC):
 
         Returns
         -------
-        regularized_point : array-like, shape=[..., dim]
+        regularized_point : array-like, shape=[..., *point_shape]
             Regularized point.
         """
-        regularized_point = point
-        return regularized_point
+        return gs.copy(point)
 
     @property
     def metric(self):
@@ -154,7 +159,7 @@ class Manifold(abc.ABC):
     @metric.setter
     def metric(self, metric):
         if metric is not None:
-            if not isinstance(metric, RiemannianMetric):
+            if not isinstance(metric, (RiemannianMetric, ScalarProductMetric)):
                 raise ValueError("The argument must be a RiemannianMetric object")
             if metric.dim != self.dim:
                 metric.dim = self.dim
@@ -168,12 +173,12 @@ class Manifold(abc.ABC):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        base_point :  array-like, shape=[..., dim]
+        base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
             Point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vec at base point.
         """
         if (
@@ -183,10 +188,9 @@ class Manifold(abc.ABC):
         ):
             raise ValueError(
                 "The number of base points must be the same as the "
-                "number of samples, when different from 1."
+                "number of samples, when the number of base points is different from 1."
             )
-        return gs.squeeze(
-            self.to_tangent(
-                gs.random.normal(size=(n_samples,) + self.shape), base_point
-            )
+        batch_size = () if n_samples == 1 else (n_samples,)
+        return self.to_tangent(
+            gs.random.normal(size=batch_size + self.shape), base_point
         )

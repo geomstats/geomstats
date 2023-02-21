@@ -9,7 +9,7 @@ from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
 class TestDataLandmarks(_ManifoldTestData):
     dim_list = random.sample(range(2, 4), 2)
-    n_landmarks_list = random.sample(range(1, 5), 2)
+    n_landmarks_list = random.sample(range(2, 5), 2)
     space_args_list = [
         (Hypersphere(dim), n_landmarks)
         for dim, n_landmarks in zip(dim_list, n_landmarks_list)

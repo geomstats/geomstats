@@ -8,7 +8,6 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.invariant_metric import BiInvariantMetric, InvariantMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import tf_backend
 from tests.data_generation import TestData, _InvariantMetricTestData, _LieGroupTestData
 
 
@@ -46,13 +45,6 @@ elements_all = {
 
 
 elements = elements_all
-if tf_backend():
-    # Tf is extremely slow
-    elements = {
-        "angle_in_pi_2pi": angle_in_pi_2pi,
-        "angle_close_pi_low": angle_close_pi_low,
-    }
-
 
 coords = ["extrinsic", "intrinsic"]
 orders = ["xyz", "zyx"]
@@ -70,9 +62,6 @@ angles_close_to_pi_all = [
 ]
 
 angles_close_to_pi = angles_close_to_pi_all
-
-if tf_backend():
-    angles_close_to_pi = ["angle_close_pi_low"]
 
 
 class SpecialOrthogonalTestData(_LieGroupTestData):
@@ -503,14 +492,15 @@ class SpecialOrthogonal3TestData(TestData):
         data = {"xyz": xyz, "zyx": zyx}
         smoke_data = []
 
-        for coord, order in itertools.product(coords, orders):
+        for extrinsic, order in itertools.product([False, True], orders):
             for i in range(3):
                 vec = gs.squeeze(gs.array_from_sparse([(0, i)], [angle_pi_6], (1, 3)))
+                zyx = order == "zyx"
                 smoke_data += [
-                    dict(coord=coord, order=order, vec=vec, mat=data[order][i])
+                    dict(extrinsic=extrinsic, zyx=zyx, vec=vec, mat=data[order][i])
                 ]
             smoke_data += [
-                dict(coord=coord, order=order, vec=gs.zeros(3), mat=gs.eye(3))
+                dict(extrinsic=extrinsic, zyx=zyx, vec=gs.zeros(3), mat=gs.eye(3))
             ]
         return self.generate_tests(smoke_data)
 
@@ -527,13 +517,14 @@ class SpecialOrthogonal3TestData(TestData):
         data = {"xyz": xyz, "zyx": zyx}
         smoke_data = []
         e1 = gs.array([1.0, 0.0, 0.0, 0.0])
-        for coord, order in itertools.product(["intrinsic", "extrinsic"], orders):
+        for extrinsic, order in itertools.product([False, True], orders):
             for i in range(3):
                 vec = gs.squeeze(gs.array_from_sparse([(0, i)], [angle_pi_6], (1, 3)))
+                zyx = order == "zyx"
                 smoke_data += [
-                    dict(coord=coord, order=order, vec=vec, quat=data[order][i])
+                    dict(extrinsic=extrinsic, zyx=zyx, vec=vec, quat=data[order][i])
                 ]
-            smoke_data += [dict(coord=coord, order=order, vec=gs.zeros(3), quat=e1)]
+            smoke_data += [dict(extrinsic=extrinsic, zyx=zyx, vec=gs.zeros(3), quat=e1)]
         return self.generate_tests(smoke_data)
 
     def quaternion_from_rotation_vector_tait_bryan_angles_test_data(self):
@@ -840,14 +831,12 @@ class InvariantMetricTestData(TestData):
 
     def squared_dist_is_symmetric_test_data(self):
         smoke_data = []
-        for angle_type_1, angle_type_2, left_or_right in zip(
-            elements, elements, ["left", "right"]
-        ):
+        for angle_type_1, angle_type_2, left in zip(elements, elements, [True, False]):
             smoke_data += [
                 dict(
                     metric_mat_at_identity=9
                     * gs.eye(SpecialOrthogonal(3, "vector").dim),
-                    left_or_right=left_or_right,
+                    left=left,
                     point_1=elements[angle_type_1],
                     point_2=elements[angle_type_2],
                 )

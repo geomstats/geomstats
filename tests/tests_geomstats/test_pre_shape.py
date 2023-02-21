@@ -6,7 +6,7 @@ import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
-from tests.conftest import Parametrizer, np_autograd_and_torch_only
+from tests.conftest import Parametrizer
 from tests.data.pre_shape_data import (
     KendallShapeMetricTestData,
     PreShapeMetricTestData,
@@ -108,18 +108,6 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         result = space.integrability_tensor(horizontal_a, vertical_b, base_point)
         is_horizontal = space.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
-
-    @tests.conftest.np_and_autograd_only
-    def test_integrability_tensor_old(
-        self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
-    ):
-        """Test if old and new implementation give the same result."""
-        space = self.Space(k_landmarks, m_ambient)
-        result = space.integrability_tensor_old(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        expected = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
-        self.assertAllClose(result, expected)
 
     @tests.conftest.np_and_autograd_only
     def test_integrability_tensor_derivative_is_alternate(
@@ -331,7 +319,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp, atol=gs.atol * 10)
 
 
-class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -505,7 +493,6 @@ class TestKendasllShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected, atol=gs.atol * 1000)
 
-    @np_autograd_and_torch_only
     def test_parallel_transport(
         self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
     ):

@@ -221,8 +221,8 @@ def _default_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. "
-            "The mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
@@ -285,14 +285,16 @@ def _batch_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. The "
-            "mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
         logging.info(
-            "n_iter: {}, final dist: {},"
-            "final step size: {}".format(iteration, convergence, init_step_size)
+            "n_iter: %d, final dist: %e, final step size: %e",
+            iteration,
+            convergence,
+            init_step_size,
         )
 
     return estimates
@@ -390,16 +392,17 @@ def _adaptive_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. "
-            "The mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
         logging.info(
-            "n_iter: {}, final variance: {}, final dist: {},"
-            " final_step_size: {}".format(
-                iteration, var, sq_norm_current_tangent_mean, tau
-            )
+            "n_iter: %d, final variance: %e, final dist: %e, final_step_size: %e",
+            iteration,
+            var,
+            sq_norm_current_tangent_mean,
+            tau,
         )
 
     return current_mean
@@ -416,8 +419,8 @@ def _circle_mean(points):
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples,]
-        Data set of angles.
+    points : array-like, shape=[n_samples, 1]
+        Data set of angles (intrinsic coordinates).
 
     Reference
     ---------
@@ -426,14 +429,10 @@ def _circle_mean(points):
         Statistical Mathematics 67 (1), 177–193.
         https://arxiv.org/abs/1108.2141
     """
-    if points.ndim > 1:
-        points_ = Hypersphere.extrinsic_to_angle(points)
-    else:
-        points_ = gs.copy(points)
-    sample_size = points_.shape[0]
-    mean0 = gs.mean(points_)
-    var0 = gs.sum((points_ - mean0) ** 2)
-    sorted_points = gs.sort(points_)
+    sample_size = points.shape[0]
+    mean0 = gs.mean(points)
+    var0 = gs.sum((points - mean0) ** 2)
+    sorted_points = gs.sort(points, axis=0)
     means = _circle_variances(mean0, var0, sample_size, sorted_points)
     return means[gs.argmin(means[:, 1]), 0]
 
@@ -461,7 +460,7 @@ def _circle_variances(mean, var, n_samples, points):
     """
     means = (mean + gs.linspace(0.0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
     means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
-    parts = gs.array([sum(points) / n_samples if means[0] < 0 else 0])
+    parts = gs.array([gs.sum(points) / n_samples if means[0] < 0 else 0])
     m_plus = means >= 0
     left_sums = gs.cumsum(points)
     right_sums = left_sums[-1] - left_sums
@@ -592,7 +591,9 @@ class FrechetMean(BaseEstimator):
             Returns self.
         """
         if isinstance(self.metric, HypersphereMetric) and self.metric.dim == 1:
-            mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
+            mean = Hypersphere.angle_to_extrinsic(
+                _circle_mean(Hypersphere.extrinsic_to_angle(X))
+            )
 
         elif _is_linear_metric(self.metric):
             mean = linear_mean(points=X, weights=weights)

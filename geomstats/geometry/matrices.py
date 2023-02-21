@@ -31,28 +31,6 @@ class Matrices(VectorSpace):
         m, n = self.m, self.n
         return gs.reshape(gs.eye(n * m), (n * m, m, n))
 
-    def belongs(self, point, atol=gs.atol):
-        """Check if point belongs to the Matrices space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., m, n]
-            Point to be checked.
-        atol : float
-            Unused here.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Boolean evaluating if point belongs to the Matrices space.
-        """
-        ndim = point.ndim
-        if ndim == 1:
-            return False
-        mat_dim_1, mat_dim_2 = point.shape[-2:]
-        belongs = (mat_dim_1 == self.m) and (mat_dim_2 == self.n)
-        return belongs if ndim == 2 else gs.tile(gs.array([belongs]), [point.shape[0]])
-
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
         """Test if matrices a and b are close.
@@ -127,8 +105,10 @@ class Matrices(VectorSpace):
         transpose : array-like, shape=[..., n, n]
             Transposed matrix.
         """
-        is_vectorized = gs.ndim(mat) == 3
-        axes = (0, 2, 1) if is_vectorized else (1, 0)
+        ndim = gs.ndim(mat)
+        axes = list(range(0, ndim))
+        axes[-1] = ndim - 2
+        axes[-2] = ndim - 1
         return gs.transpose(mat, axes)
 
     @staticmethod
@@ -320,7 +300,13 @@ class Matrices(VectorSpace):
         """
         if mat.ndim == 2:
             return gs.array(gs.linalg.is_single_matrix_pd(mat))
-        return gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
+
+        shape = mat.shape
+        if mat.ndim > 3:
+            mat = gs.reshape(mat, (-1,) + shape[-2:])
+
+        is_pd = gs.array([gs.linalg.is_single_matrix_pd(m) for m in mat])
+        return gs.reshape(is_pd, shape[:-2])
 
     @classmethod
     def is_spd(cls, mat, atol=gs.atol):

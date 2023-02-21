@@ -34,7 +34,7 @@ class SPDMatrices(OpenSet):
         )
         self.n = n
 
-    def belongs(self, mat, atol=gs.atol):
+    def belongs(self, point, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.
 
         Parameters
@@ -50,10 +50,9 @@ class SPDMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        is_sym = self.embedding_space.belongs(mat, atol)
-        is_pd = Matrices.is_pd(mat)
-        belongs = gs.logical_and(is_sym, is_pd)
-        return belongs
+        is_sym = self.embedding_space.belongs(point, atol)
+        is_pd = Matrices.is_pd(point)
+        return gs.logical_and(is_sym, is_pd)
 
     def projection(self, point):
         """Project a matrix to the space of SPD matrices.
@@ -98,9 +97,7 @@ class SPDMatrices(OpenSet):
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
         mat = bound * (2 * gs.random.rand(*size) - 1)
-        spd_mat = GeneralLinear.exp(Matrices.to_symmetric(mat))
-
-        return spd_mat
+        return GeneralLinear.exp(Matrices.to_symmetric(mat))
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Sample on the tangent space of SPD(n) from the uniform distribution.
@@ -132,12 +129,10 @@ class SPDMatrices(OpenSet):
             tangent_vec_at_id_aux
         )
 
-        tangent_vec = Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
-
-        return tangent_vec
+        return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
     @staticmethod
-    def aux_differential_power(power, tangent_vec, base_point):
+    def _aux_differential_power(power, tangent_vec, base_point):
         """Compute the differential of the matrix power.
 
         Auxiliary function to the functions differential_power and
@@ -225,11 +220,10 @@ class SPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(power, tangent_vec, base_point)
+        ) = cls._aux_differential_power(power, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
-        result = Matrices.mul(eigvectors, result, transp_eigvectors)
-        return result
+        return Matrices.mul(eigvectors, result, transp_eigvectors)
 
     @classmethod
     def inverse_differential_power(cls, power, tangent_vec, base_point):
@@ -259,11 +253,10 @@ class SPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(power, tangent_vec, base_point)
+        ) = cls._aux_differential_power(power, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
-        result = Matrices.mul(eigvectors, result, transp_eigvectors)
-        return result
+        return Matrices.mul(eigvectors, result, transp_eigvectors)
 
     @classmethod
     def differential_log(cls, tangent_vec, base_point):
@@ -290,11 +283,10 @@ class SPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(0, tangent_vec, base_point)
+        ) = cls._aux_differential_power(0, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
-        result = Matrices.mul(eigvectors, result, transp_eigvectors)
-        return result
+        return Matrices.mul(eigvectors, result, transp_eigvectors)
 
     @classmethod
     def inverse_differential_log(cls, tangent_vec, base_point):
@@ -321,11 +313,10 @@ class SPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(0, tangent_vec, base_point)
+        ) = cls._aux_differential_power(0, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
-        result = Matrices.mul(eigvectors, result, transp_eigvectors)
-        return result
+        return Matrices.mul(eigvectors, result, transp_eigvectors)
 
     @classmethod
     def differential_exp(cls, tangent_vec, base_point):
@@ -352,11 +343,10 @@ class SPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(math.inf, tangent_vec, base_point)
+        ) = cls._aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
-        result = Matrices.mul(eigvectors, result, transp_eigvectors)
-        return result
+        return Matrices.mul(eigvectors, result, transp_eigvectors)
 
     @classmethod
     def inverse_differential_exp(cls, tangent_vec, base_point):
@@ -383,16 +373,14 @@ class SPDMatrices(OpenSet):
             numerator,
             denominator,
             temp_result,
-        ) = cls.aux_differential_power(math.inf, tangent_vec, base_point)
+        ) = cls._aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
-        result = Matrices.mul(eigvectors, result, transp_eigvectors)
-        return result
+        return Matrices.mul(eigvectors, result, transp_eigvectors)
 
     @classmethod
     def logm(cls, mat):
-        """
-        Compute the matrix log for a symmetric matrix.
+        """Compute the matrix log for a symmetric matrix.
 
         Parameters
         ----------
@@ -409,8 +397,7 @@ class SPDMatrices(OpenSet):
         logm = SymmetricMatrices.apply_func_to_eigvals(
             dim_3_mat, gs.log, check_positive=True
         )
-        logm = gs.reshape(logm, mat.shape)
-        return logm
+        return gs.reshape(logm, mat.shape)
 
     expm = SymmetricMatrices.expm
     powerm = SymmetricMatrices.powerm
@@ -456,10 +443,9 @@ class SPDMatrices(OpenSet):
             lower triangular matrix.
         """
         cf = cls.cholesky_factor(base_point)
-        differential_cf = PositiveLowerTriangularMatrices.inverse_differential_gram(
+        return PositiveLowerTriangularMatrices.inverse_differential_gram(
             tangent_vec, cf
         )
-        return differential_cf
 
 
 class SPDAffineMetric(RiemannianMetric):

@@ -3,7 +3,6 @@ import random
 import numpy as np
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
@@ -59,8 +58,7 @@ class PoincareHalfSpaceTestData(_OpenSetTestData):
 
 class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
     dim_list = random.sample(range(2, 5), 2)
-    scale_list = [1, 2]
-    metric_args_list = list(zip(dim_list, scale_list))  # [(dim,) for dim in dim_list]
+    metric_args_list = [(dim,) for dim in dim_list]
     shape_list = [(dim,) for dim in dim_list]
     space_list = [PoincareHalfSpace(dim) for dim in dim_list]
     n_points_list = random.sample(range(1, 5), 2)
@@ -77,11 +75,10 @@ class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 dim=2,
-                scale=2,
                 tangent_vec_a=[[1.0, 2.0], [3.0, 4.0]],
                 tangent_vec_b=[[1.0, 2.0], [3.0, 4.0]],
                 base_point=[[0.0, 1.0], [0.0, 5.0]],
-                expected=[10.0, 2.0],
+                expected=[5.0, 1.0],
             )
         ]
         return self.generate_tests(smoke_data)
@@ -137,16 +134,15 @@ class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
 
         inputs_to_exp = [(gs.array([2.0, 1.0]), gs.array([1.0, 1.0]))]
         smoke_data = []
-        if not tests.conftest.tf_backend():
-            for tangent_vec, base_point in inputs_to_exp:
-                smoke_data.append(
-                    dict(
-                        dim=2,
-                        tangent_vec=tangent_vec,
-                        base_point=base_point,
-                        expected=_exp(tangent_vec, base_point),
-                    )
+        for tangent_vec, base_point in inputs_to_exp:
+            smoke_data.append(
+                dict(
+                    dim=2,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    expected=_exp(tangent_vec, base_point),
                 )
+            )
         return self.generate_tests(smoke_data)
 
     def retraction_lifting_test_data(self):

@@ -23,25 +23,35 @@ class HyperboloidTestData(_LevelSetTestData):
 
     Space = Hyperboloid
 
+    def intrinsic_after_extrinsic_test_data(self):
+        """Generate data to check that changing coordinate system twice
+        gives back the point.
+
+        Assumes that random_point generates points in extrinsic coordinates.
+        """
+        random_data = [
+            dict(
+                space_args=space_args,
+                point_extrinsic=self.Space(*space_args).random_point(n_points),
+            )
+            for space_args, n_points in zip(self.space_args_list, self.n_points_list)
+        ]
+        return self.generate_tests([], random_data)
+
+    def extrinsic_after_intrinsic_test_data(self):
+        return self.generate_tests([])
+
     def belongs_test_data(self):
         smoke_data = [
             dict(
                 dim=3,
-                default_coords_type="extrinsic",
                 vec=gs.array([1.0, 0.0, 0.0, 0.0]),
                 expected=True,
             ),
             dict(
                 dim=2,
-                default_coords_type="extrinsic",
                 vec=gs.array([0.5, 7, 3.0]),
                 expected=False,
-            ),
-            dict(
-                dim=2,
-                default_coords_type="intrinsic",
-                vec=gs.array([0.5, 7]),
-                expected=True,
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -122,7 +132,6 @@ class HyperboloidMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 dim=3,
-                scale=2,
                 tangent_vec_a=tangent_vec_a,
                 tangent_vec_b=tangent_vec_b,
                 base_point=base_point,
@@ -134,16 +143,14 @@ class HyperboloidMetricTestData(_RiemannianMetricTestData):
         space = Hyperboloid(3)
         base_point = space.from_coordinates(gs.array([1.0, 1.0, 1.0]), "intrinsic")
         tangent_vec = space.to_tangent(gs.array([1.0, 2.0, 3.0, 4.0]), base_point)
-        smoke_data = [
-            dict(dim=3, scale=2, tangent_vec=tangent_vec, base_point=base_point)
-        ]
+        smoke_data = [dict(dim=3, tangent_vec=tangent_vec, base_point=base_point)]
         return self.generate_tests(smoke_data)
 
     def scaled_dist_test_data(self):
         space = Hyperboloid(3)
         point_a = space.from_coordinates(gs.array([1.0, 2.0, 3.0]), "intrinsic")
         point_b = space.from_coordinates(gs.array([4.0, 5.0, 6.0]), "intrinsic")
-        smoke_data = [dict(dim=3, scale=2, point_a=point_a, point_b=point_b)]
+        smoke_data = [dict(dim=3, point_a=point_a, point_b=point_b)]
         return self.generate_tests(smoke_data)
 
     def log_after_exp_test_data(self):

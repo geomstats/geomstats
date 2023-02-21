@@ -20,7 +20,7 @@ class TestPrepareEmgData(tests.conftest.TestCase):
         data = data[data.label != "rest"]
         self.emg_data = {
             "time_vec": gs.array(data.time),
-            "raw_data": gs.array(data[["c{}".format(i) for i in range(8)]]),
+            "raw_data": gs.array(data[[f"c{i}" for i in range(8)]]),
             "label": gs.array(data.label),
             "exp": gs.array(data.exp),
         }

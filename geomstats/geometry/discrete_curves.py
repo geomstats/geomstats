@@ -164,7 +164,7 @@ class DiscreteCurves(Manifold):
         ambient_manifold = self.ambient_manifold
         shape = vector.shape
         if shape[-2] != self.k_sampling_points:
-            return [False] * shape[0]
+            return gs.zeros(shape[0], dtype=bool)
         stacked_vec = gs.reshape(vector, (-1, shape[-1]))
         stacked_point = gs.reshape(base_point, (-1, shape[-1]))
         is_tangent = ambient_manifold.is_tangent(stacked_vec, stacked_point, atol)
@@ -191,11 +191,11 @@ class DiscreteCurves(Manifold):
         tangent_vec : array-like, shape=[..., k_sampling_points, ambient_dim]
             Tangent vector at base point.
         """
-        ambient_manifold = self.ambient_manifold
+        vector, base_point = gs.broadcast_arrays(vector, base_point)
         shape = vector.shape
         stacked_vec = gs.reshape(vector, (-1, shape[-1]))
         stacked_point = gs.reshape(base_point, (-1, shape[-1]))
-        tangent_vec = ambient_manifold.to_tangent(stacked_vec, stacked_point)
+        tangent_vec = self.ambient_manifold.to_tangent(stacked_vec, stacked_point)
         tangent_vec = gs.reshape(tangent_vec, vector.shape)
         if self.start_at_the_origin:
             tangent_vec = tangent_vec - tangent_vec[..., 0, None, :]
@@ -218,13 +218,13 @@ class DiscreteCurves(Manifold):
         shape = point.shape
         stacked_point = gs.reshape(point, (-1, shape[-1]))
         projected_point = ambient_manifold.projection(stacked_point)
-        projected_point = gs.reshape(projected_point, shape)
-        return projected_point
+        return gs.reshape(projected_point, shape)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random curves.
 
-        If the ambient manifold is compact, a uniform distribution is used.
+        Each curve is made of independently sampled points. These points are sampled
+        from the ambient manifold using the distribution set for that manifold.
 
         Parameters
         ----------
@@ -242,7 +242,7 @@ class DiscreteCurves(Manifold):
         Returns
         -------
         samples : array-like, shape=[..., k_sampling_points, {dim, [n, n]}]
-            Points sampled on the hypersphere.
+            Sampled curves.
         """
         sample = self.ambient_manifold.random_point(n_samples * self.k_sampling_points)
         sample = gs.reshape(sample, (n_samples, self.k_sampling_points, -1))
@@ -287,19 +287,39 @@ class ClosedDiscreteCurves(LevelSet):
     """
 
     def __init__(self, ambient_manifold, k_sampling_points=10):
+        self.ambient_manifold = ambient_manifold
+        self.k_sampling_points = k_sampling_points
+
         dim = ambient_manifold.dim * (k_sampling_points - 1)
         super().__init__(
             dim=dim,
             shape=(k_sampling_points,) + ambient_manifold.shape,
-            submersion=None,
-            tangent_submersion=None,
-            value=None,
-            embedding_space=DiscreteCurves(
-                ambient_manifold=ambient_manifold, k_sampling_points=k_sampling_points
-            ),
         )
-        self.ambient_manifold = ambient_manifold
-        self.ambient_metric = ambient_manifold.metric
+
+    def _define_embedding_space(self):
+        return DiscreteCurves(
+            ambient_manifold=self.ambient_manifold,
+            k_sampling_points=self.k_sampling_points,
+        )
+
+    def _assert_is_planar(self):
+        is_euclidean = isinstance(self.ambient_manifold, Euclidean)
+        is_planar = is_euclidean and self.ambient_manifold.dim == 2
+
+        if not is_planar:
+            raise AssertionError(
+                "The projection is only implemented "
+                "for discrete curves embedded in a "
+                "2D Euclidean space."
+            )
+
+    def submersion(self, point):
+        """Submersion."""
+        raise NotImplementedError("Submersion not implemented")
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion."""
+        raise NotImplementedError("Tangent submersion not implemented")
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
@@ -406,7 +426,8 @@ class ClosedDiscreteCurves(LevelSet):
     def random_point(self, n_samples=1):
         """Sample random curves.
 
-        If the ambient manifold is compact, a uniform distribution is used.
+        Each curve is made of independently sampled points. These points are sampled
+        from the ambient manifold using the distribution set for that manifold.
 
         Parameters
         ----------
@@ -451,24 +472,17 @@ class ClosedDiscreteCurves(LevelSet):
         -------
         proj : array-like, shape=[..., k_sampling_points, ambient_dim]
         """
-        is_euclidean = isinstance(self.ambient_manifold, Euclidean)
-        is_planar = is_euclidean and self.ambient_manifold.dim == 2
+        self._assert_is_planar()
 
-        if not is_planar:
-            raise AssertionError(
-                "The projection is only implemented "
-                "for discrete curves embedded in a "
-                "2D Euclidean space."
-            )
-        point_ndim = point.ndim
+        is_vec = point.ndim > 2
 
         srv_metric = self.embedding_space.srv_metric
         srv = srv_metric.srv_transform(point)
         srv_proj = self.srv_projection(srv, atol=atol, max_iter=max_iter)
 
-        point = gs.to_ndarray(point, to_ndim=3)
-        proj = srv_metric.srv_transform_inverse(srv_proj, point[:, 0])
-        return proj if point_ndim == 3 else gs.squeeze(proj)
+        return srv_metric.srv_transform_inverse(
+            srv_proj, point[:, 0] if is_vec else point[0]
+        )
 
     def srv_projection(self, srv, atol=gs.atol, max_iter=1000):
         """Project a point in the srv space into the space of closed curves srv.
@@ -494,20 +508,12 @@ class ClosedDiscreteCurves(LevelSet):
         -------
         proj : array-like, shape=[..., k_sampling_points, ambient_dim]
         """
-        is_euclidean = isinstance(self.ambient_metric, EuclideanMetric)
-        is_planar = is_euclidean and self.ambient_metric.dim == 2
+        self._assert_is_planar()
 
-        if not is_planar:
-            raise AssertionError(
-                "The projection is only implemented "
-                "for discrete curves embedded in a"
-                "2D Euclidean space."
-            )
-
-        dim = self.ambient_metric.dim
+        dim = self.ambient_manifold.metric.dim
         srv_inner_prod = self.embedding_space.l2_curves_metric.inner_product
         srv_norm = self.embedding_space.l2_curves_metric.norm
-        inner_prod = self.ambient_metric.inner_product
+        inner_prod = self.ambient_manifold.metric.inner_product
 
         def closeness_criterion(srv, srv_norms):
             """Compute the closeness criterion from [Sea2011]_.
@@ -530,10 +536,10 @@ class ClosedDiscreteCurves(LevelSet):
             Details can be found in [Sea2011]_ Section 4.2.
             """
             initial_norm = srv_norm(one_srv)
-            proj = one_srv
-            proj_norms = self.ambient_metric.norm(proj)
+            proj = gs.copy(one_srv)
+            proj_norms = self.ambient_manifold.metric.norm(proj)
             residual = closeness_criterion(proj, proj_norms)
-            criteria = self.ambient_metric.norm(residual)
+            criteria = self.ambient_manifold.metric.norm(residual)
 
             nb_iter = 0
 
@@ -566,20 +572,17 @@ class ClosedDiscreteCurves(LevelSet):
 
                 proj -= gs.sum(beta[:, None, None] * basis, axis=0)
                 proj = proj * initial_norm / srv_norm(proj)
-                proj_norms = self.ambient_metric.norm(proj)
+                proj_norms = self.ambient_manifold.metric.norm(proj)
                 residual = closeness_criterion(proj, proj_norms)
-                criteria = self.ambient_metric.norm(residual)
+                criteria = self.ambient_manifold.metric.norm(residual)
 
                 nb_iter += 1
             return proj
 
-        srv_ndim = srv.ndim
-        srv = gs.to_ndarray(srv, to_ndim=3)
+        if srv.ndim > 2:
+            return gs.stack([one_srv_projection(one_srv) for one_srv in srv])
 
-        for i_srv, one_srv in enumerate(srv):
-            srv[i_srv] = one_srv_projection(one_srv)
-
-        return srv if srv_ndim == 3 else gs.squeeze(srv)
+        return one_srv_projection(srv)
 
 
 class L2CurvesMetric(RiemannianMetric):
@@ -1846,6 +1849,9 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             Pointwise norm of the vertical part of tangent_vec.
             Only returned when return_norm is True.
         """
+        if tangent_vec.ndim > point.ndim:
+            point = gs.broadcast_to(point, tangent_vec.shape)
+
         ambient_dim = point.shape[-1]
         a_param = 1
         b_param = 1 / 2
@@ -2065,8 +2071,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             """
             n_times = repar.shape[0]
             initial_curve = path_of_curves[0]
-            reparametrized_path = []
-            reparametrized_path.append(initial_curve)
+            reparametrized_path = [initial_curve]
             for i in range(1, n_times - 1):
                 spline = CubicSpline(t_space, path_of_curves[i], axis=0)
                 repar_inverse = CubicSpline(repar[i], t_space)
@@ -2130,7 +2135,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
         return horizontal_path
 
-    def align(self, point, base_point, threshold=1e-3):
+    def align(self, point, base_point, n_times=20, threshold=1e-3):
         """Find optimal reparametrization of curve with respect to base curve.
 
         The new parametrization of curve is optimal in the sense that it is the
@@ -2154,7 +2159,9 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             Optimal reparametrization of the curve represented by point.
         """
         horizontal_path = self.horizontal_geodesic(base_point, point, threshold)
-        return horizontal_path(1.0)
+        times = gs.linspace(0.0, 1.0, n_times)
+        hor_path = horizontal_path(times)
+        return hor_path[-1]
 
 
 class SRVQuotientMetric(QuotientMetric):

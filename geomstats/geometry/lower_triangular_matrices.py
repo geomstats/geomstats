@@ -30,8 +30,8 @@ class LowerTriangularMatrices(VectorSpace):
         basis : array-like, shape=[dim, n, n]
             Basis matrices of the space.
         """
+        # TODO: check one_hot
         tril_idxs = gs.ravel_tril_indices(self.n)
-        # TODO: use default dtype when available
         vector_bases = gs.cast(
             gs.one_hot(tril_idxs, self.n * self.n),
             dtype=gs.get_default_dtype(),
@@ -75,6 +75,21 @@ class LowerTriangularMatrices(VectorSpace):
         """
         return gs.tril_to_vec(mat)
 
+    def from_vector(self, vec):
+        """Convert a vector into a lower triangular matrix.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., n, n]
+            Lower triangular matrix.
+        """
+        return gs.einsum("...i,...ijk->...jk", vec, self.basis)
+
     def projection(self, point):
         """Make a square matrix lower triangular by zeroing out other elements.
 
@@ -88,7 +103,7 @@ class LowerTriangularMatrices(VectorSpace):
         sym : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        return Matrices.to_lower_triangular(point)
+        return gs.tril(point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample a lower triangular matrix with a uniform distribution in a box.
@@ -108,4 +123,4 @@ class LowerTriangularMatrices(VectorSpace):
            Sample.
         """
         sample = super().random_point(n_samples, bound)
-        return Matrices.to_lower_triangular(sample)
+        return gs.tril(sample)
