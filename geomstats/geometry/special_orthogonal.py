@@ -389,7 +389,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         rot_mat : array-like, shape=[..., n, n]
             Rotation matrix.
         """
-        # TODO: why receiving (n, n)?
         mat = point
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
@@ -554,7 +553,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         regularized_vec : array-like, shape=[..., 1]
             Regularized tangent vector.
         """
-        # TODO: remove metric
         return self.regularize(tangent_vec)
 
     def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
@@ -578,7 +576,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         regularized_tangent_vec : array-like, shape=[..., 1]
             Regularized tangent vector.
         """
-        # TODO: remove metric
         return self.regularize_tangent_vec_at_identity(tangent_vec)
 
 
