@@ -492,14 +492,15 @@ class SpecialOrthogonal3TestData(TestData):
         data = {"xyz": xyz, "zyx": zyx}
         smoke_data = []
 
-        for coord, order in itertools.product(coords, orders):
+        for extrinsic, order in itertools.product([False, True], orders):
             for i in range(3):
                 vec = gs.squeeze(gs.array_from_sparse([(0, i)], [angle_pi_6], (1, 3)))
+                zyx = order == "zyx"
                 smoke_data += [
-                    dict(coord=coord, order=order, vec=vec, mat=data[order][i])
+                    dict(extrinsic=extrinsic, zyx=zyx, vec=vec, mat=data[order][i])
                 ]
             smoke_data += [
-                dict(coord=coord, order=order, vec=gs.zeros(3), mat=gs.eye(3))
+                dict(extrinsic=extrinsic, zyx=zyx, vec=gs.zeros(3), mat=gs.eye(3))
             ]
         return self.generate_tests(smoke_data)
 
@@ -516,13 +517,14 @@ class SpecialOrthogonal3TestData(TestData):
         data = {"xyz": xyz, "zyx": zyx}
         smoke_data = []
         e1 = gs.array([1.0, 0.0, 0.0, 0.0])
-        for coord, order in itertools.product(["intrinsic", "extrinsic"], orders):
+        for extrinsic, order in itertools.product([False, True], orders):
             for i in range(3):
                 vec = gs.squeeze(gs.array_from_sparse([(0, i)], [angle_pi_6], (1, 3)))
+                zyx = order == "zyx"
                 smoke_data += [
-                    dict(coord=coord, order=order, vec=vec, quat=data[order][i])
+                    dict(extrinsic=extrinsic, zyx=zyx, vec=vec, quat=data[order][i])
                 ]
-            smoke_data += [dict(coord=coord, order=order, vec=gs.zeros(3), quat=e1)]
+            smoke_data += [dict(extrinsic=extrinsic, zyx=zyx, vec=gs.zeros(3), quat=e1)]
         return self.generate_tests(smoke_data)
 
     def quaternion_from_rotation_vector_tait_bryan_angles_test_data(self):

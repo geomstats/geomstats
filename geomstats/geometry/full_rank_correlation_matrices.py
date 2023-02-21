@@ -265,8 +265,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
             return self.horizontal_projection(tangent_vec, base_point)
         diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
         lift = FullRankCorrelationMatrices.diag_action(diagonal_point, tangent_vec)
-        hor_lift = self.horizontal_projection(lift, base_point=fiber_point)
-        return hor_lift
+        return self.horizontal_projection(lift, base_point=fiber_point)
 
 
 class FullRankCorrelationAffineQuotientMetric(QuotientMetric):

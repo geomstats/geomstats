@@ -110,18 +110,6 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         self.assertTrue(is_horizontal)
 
     @tests.conftest.np_and_autograd_only
-    def test_integrability_tensor_old(
-        self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
-    ):
-        """Test if old and new implementation give the same result."""
-        space = self.Space(k_landmarks, m_ambient)
-        result = space.integrability_tensor_old(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-        expected = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
-        self.assertAllClose(result, expected)
-
-    @tests.conftest.np_and_autograd_only
     def test_integrability_tensor_derivative_is_alternate(
         self,
         k_landmarks,
