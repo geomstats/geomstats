@@ -20,15 +20,6 @@ class _Hyperbolic:
     chosen representation: Hyperboloid, Poincare Ball or Poincare Half-space.
     """
 
-    def __init__(self, **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate the "
-                "manifold without this parameter and then use "
-                "`scale * metric` to rescale the standard metric."
-            )
-        super().__init__(**kwargs)
-
     @staticmethod
     def _intrinsic_to_extrinsic_coordinates(point):
         """Convert intrinsic to extrinsic coordinates.
@@ -421,25 +412,6 @@ class HyperbolicMetric(RiemannianMetric):
 
     This class does not contain any methods and is only defined to act as a parent
     class for `HyperboloidMetric`, `PoincareBallMetric` and `PoincareHalfSpaceMetric`.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the hyperbolic space.
-    default_coords_type : str, {'extrinsic', 'intrinsic', etc}, optional
-        Default coordinates to represent points in hyperbolic space.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate scaled "
-                "metrics as `scale * RiemannianMetric`. Note that the "
-                "metric is scaled, not the distance."
-            )
-        super().__init__(
-            dim=dim,
-            signature=(dim, 0),
-            shape=(dim + 1,),
-            default_coords_type=default_coords_type,
-        )
+    pass

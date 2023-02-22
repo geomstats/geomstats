@@ -38,10 +38,12 @@ class HPDMatrices(ComplexOpenSet):
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
-    def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", HPDAffineMetric(n))
-        super().__init__(dim=n**2, embedding_space=HermitianMatrices(n), **kwargs)
+    def __init__(self, n, equip=True):
+        super().__init__(dim=n**2, embedding_space=HermitianMatrices(n), equip=equip)
         self.n = n
+
+    def _default_metric(self):
+        return HPDAffineMetric
 
     @staticmethod
     def belongs(point, atol=gs.atol):
@@ -483,8 +485,6 @@ class HPDAffineMetric(ComplexRiemannianMetric):
 
     Parameters
     ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
     power_affine : int
         Power transformation of the classical HPD metric.
         Optional, default: 1.
@@ -500,20 +500,8 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
-    def __init__(self, n, power_affine=1, **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate scaled "
-                "metrics as `scale * RiemannianMetric`. Note that the "
-                "metric is scaled, not the distance."
-            )
-        dim = n**2
-        super().__init__(
-            dim=dim,
-            shape=(n, n),
-            signature=(dim, 0),
-        )
-        self.n = n
+    def __init__(self, space, power_affine=1):
+        super().__init__(space=space)
         self.power_affine = power_affine
 
     @staticmethod
@@ -533,9 +521,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         aux_a = Matrices.mul(inv_base_point, tangent_vec_a)
         aux_b = Matrices.mul(inv_base_point, tangent_vec_b)
 
-        inner_product = Matrices.trace_product(aux_a, aux_b)
-
-        return inner_product
+        return Matrices.trace_product(aux_a, aux_b)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the affine-invariant inner-product.
@@ -602,8 +588,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         tangent_vec_at_id = ComplexMatrices.to_hermitian(tangent_vec_at_id)
         exp_from_id = HermitianMatrices.expm(tangent_vec_at_id)
 
-        exp = Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
-        return exp
+        return Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the affine-invariant exponential map.
@@ -662,8 +647,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         point_near_id = ComplexMatrices.to_hermitian(point_near_id)
 
         log_at_id = HPDMatrices.logm(point_near_id)
-        log = Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
-        return log
+        return Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
 
     def log(self, point, base_point, **kwargs):
         """Compute the affine-invariant logarithm map.
@@ -762,22 +746,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
 
 
 class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
-    """Class for the Bures-Wasserstein metric on the HPD manifold.
-
-    Parameters
-    ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
-    """
-
-    def __init__(self, n):
-        dim = n**2
-        super().__init__(
-            dim=dim,
-            signature=(dim, 0),
-            shape=(n, n),
-        )
-        self.n = n
+    """Class for the Bures-Wasserstein metric on the HPD manifold."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the Bures-Wasserstein inner-product.
@@ -1005,14 +974,8 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
 class HPDEuclideanMetric(ComplexRiemannianMetric):
     """Class for the Euclidean metric on the HPD manifold."""
 
-    def __init__(self, n, power_euclidean=1):
-        dim = n**2
-        super().__init__(
-            dim=dim,
-            signature=(dim, 0),
-            shape=(n, n),
-        )
-        self.n = n
+    def __init__(self, space, power_euclidean=1):
+        super().__init__(space=space)
         self.power_euclidean = power_euclidean
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -1086,9 +1049,7 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
         inf_value = gs.to_ndarray(inf_value, to_ndim=2)
         sup_value = gs.where(min_eig >= 0.0, gs.array(-math.inf), -1.0 / min_eig)
         sup_value = gs.to_ndarray(sup_value, to_ndim=2)
-        domain = gs.concatenate((inf_value, sup_value), axis=1)
-
-        return domain
+        return gs.concatenate((inf_value, sup_value), axis=1)
 
     def injectivity_radius(self, base_point):
         """Compute the upper bound of the injectivity domain.
@@ -1216,15 +1177,6 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
-        dim = n**2
-        super().__init__(
-            dim=dim,
-            signature=(dim, 0),
-            shape=(n, n),
-        )
-        self.n = n
-
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Log-Euclidean inner-product.
 
@@ -1249,8 +1201,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
 
         modified_tangent_vec_a = hpd_space.differential_log(tangent_vec_a, base_point)
         modified_tangent_vec_b = hpd_space.differential_log(tangent_vec_b, base_point)
-        product = Matrices.trace_product(modified_tangent_vec_a, modified_tangent_vec_b)
-        return product
+        return Matrices.trace_product(modified_tangent_vec_a, modified_tangent_vec_b)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Log-Euclidean exponential map.
@@ -1273,9 +1224,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
         """
         log_base_point = HPDMatrices.logm(base_point)
         dlog_tangent_vec = HPDMatrices.differential_log(tangent_vec, base_point)
-        exp = HermitianMatrices.expm(log_base_point + dlog_tangent_vec)
-
-        return exp
+        return HermitianMatrices.expm(log_base_point + dlog_tangent_vec)
 
     def log(self, point, base_point, **kwargs):
         """Compute the Log-Euclidean logarithm map.
@@ -1298,9 +1247,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
         """
         log_base_point = HPDMatrices.logm(base_point)
         log_point = HPDMatrices.logm(point)
-        log = HPDMatrices.differential_exp(log_point - log_base_point, log_base_point)
-
-        return log
+        return HPDMatrices.differential_exp(log_point - log_base_point, log_base_point)
 
     def injectivity_radius(self, base_point):
         """Radius of the largest ball where the exponential is injective.

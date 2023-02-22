@@ -26,8 +26,8 @@ class HeisenbergVectors(LieGroup, VectorSpace):
     https://en.wikipedia.org/wiki/Heisenberg_group
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(dim=3, shape=(3,), lie_algebra=Euclidean(3), **kwargs)
+    def __init__(self, equip=True):
+        super().__init__(dim=3, shape=(3,), lie_algebra=Euclidean(3), equip=True)
 
     def _create_basis(self):
         """Create the canonical basis."""

@@ -7,7 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
@@ -39,15 +39,20 @@ class PreShapeSpace(LevelSet, FiberBundle):
               https://doi.org/10.1007/s10851-020-00945-w.
     """
 
-    def __init__(self, k_landmarks, m_ambient):
+    def __init__(self, k_landmarks, m_ambient, equip=True):
         self.k_landmarks = k_landmarks
         self.m_ambient = m_ambient
 
         super().__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
-            total_space_metric=PreShapeMetric(k_landmarks, m_ambient),
+            equip=equip,
         )
-        self.total_space_metric = PreShapeMetric(k_landmarks, m_ambient)
+
+    def _default_total_space_metric(self):
+        return PreShapeMetric
+
+    def _default_metric(self):
+        return KendallShapeMetric
 
     def _define_embedding_space(self):
         return Matrices(self.k_landmarks, self.m_ambient)
@@ -649,27 +654,11 @@ class PreShapeSpace(LevelSet, FiberBundle):
 
 
 class PreShapeMetric(RiemannianMetric):
-    """Procrustes metric on the pre-shape space.
+    """Procrustes metric on the pre-shape space."""
 
-    Parameters
-    ----------
-    k_landmarks : int
-        Number of landmarks
-    m_ambient : int
-        Number of coordinates of each landmark.
-    """
-
-    def __init__(self, k_landmarks, m_ambient):
-        super().__init__(
-            dim=m_ambient * (k_landmarks - 1) - 1,
-            shape=(k_landmarks, m_ambient),
-        )
-
-        self.embedding_metric = MatricesMetric(k_landmarks, m_ambient)
-        self.sphere_metric = Hypersphere(m_ambient * k_landmarks - 1).metric
-
-        self.k_landmarks = k_landmarks
-        self.m_ambient = m_ambient
+    def __init__(self, space):
+        super().__init__(space=space)
+        self._sphere = Hypersphere(dim=space.m_ambient * space.k_landmarks - 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -688,11 +677,9 @@ class PreShapeMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        inner_prod = self.embedding_metric.inner_product(
+        return self._space.embedding_space.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point
         )
-
-        return inner_prod
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
@@ -710,9 +697,9 @@ class PreShapeMetric(RiemannianMetric):
             Point on the pre-shape space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
-        flat_tan = gs.reshape(tangent_vec, (-1, self.sphere_metric.dim + 1))
-        flat_exp = self.sphere_metric.exp(flat_tan, flat_bp)
+        flat_bp = gs.reshape(base_point, (-1, self._sphere.dim + 1))
+        flat_tan = gs.reshape(tangent_vec, (-1, self._sphere.dim + 1))
+        flat_exp = self._sphere.metric.exp(flat_tan, flat_bp)
         return gs.reshape(flat_exp, tangent_vec.shape)
 
     def log(self, point, base_point, **kwargs):
@@ -731,15 +718,14 @@ class PreShapeMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
-        flat_pt = gs.reshape(point, (-1, self.sphere_metric.dim + 1))
-        flat_log = self.sphere_metric.log(flat_pt, flat_bp)
+        flat_bp = gs.reshape(base_point, (-1, self._sphere.dim + 1))
+        flat_pt = gs.reshape(point, (-1, self._sphere.dim + 1))
+        flat_log = self._sphere.metric.log(flat_pt, flat_bp)
 
         if gs.prod(gs.array(flat_log.shape)) == gs.prod(gs.array(base_point.shape)):
-            log = gs.reshape(flat_log, base_point.shape)
-        else:
-            log = gs.reshape(flat_log, point.shape)
-        return log
+            return gs.reshape(flat_log, base_point.shape)
+
+        return gs.reshape(flat_log, point.shape)
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         r"""Compute the curvature.
@@ -772,12 +758,12 @@ class PreShapeMetric(RiemannianMetric):
         for arg in [tangent_vec_a, tangent_vec_b, tangent_vec_c]:
             if arg.ndim >= 3:
                 max_shape = arg.shape
-        flat_shape = (-1, self.sphere_metric.dim + 1)
+        flat_shape = (-1, self._sphere.dim + 1)
         flat_a = gs.reshape(tangent_vec_a, flat_shape)
         flat_b = gs.reshape(tangent_vec_b, flat_shape)
         flat_c = gs.reshape(tangent_vec_c, flat_shape)
         flat_bp = gs.reshape(base_point, flat_shape)
-        curvature = self.sphere_metric.curvature(flat_a, flat_b, flat_c, flat_bp)
+        curvature = self._sphere.metric.curvature(flat_a, flat_b, flat_c, flat_bp)
         curvature = gs.reshape(curvature, max_shape)
         return curvature
 
@@ -859,11 +845,11 @@ class PreShapeMetric(RiemannianMetric):
 
         max_shape = tangent_vec.shape if tangent_vec.ndim == 3 else direction.shape
 
-        flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
-        flat_tan_a = gs.reshape(tangent_vec, (-1, self.sphere_metric.dim + 1))
-        flat_tan_b = gs.reshape(direction, (-1, self.sphere_metric.dim + 1))
+        flat_bp = gs.reshape(base_point, (-1, self._sphere.dim + 1))
+        flat_tan_a = gs.reshape(tangent_vec, (-1, self._sphere.dim + 1))
+        flat_tan_b = gs.reshape(direction, (-1, self._sphere.dim + 1))
 
-        flat_transport = self.sphere_metric.parallel_transport(
+        flat_transport = self._sphere.metric.parallel_transport(
             flat_tan_a, flat_bp, flat_tan_b
         )
         return gs.reshape(flat_transport, max_shape)
@@ -895,22 +881,7 @@ class KendallShapeMetric(QuotientMetric):
 
     The Kendall shape space is obtained by taking the quotient of the
     pre-shape space by the space of rotations of the ambient space.
-
-    Parameters
-    ----------
-    k_landmarks : int
-        Number of landmarks
-    m_ambient : int
-        Number of coordinates of each landmark.
     """
-
-    def __init__(self, k_landmarks, m_ambient):
-        bundle = PreShapeSpace(k_landmarks, m_ambient)
-        super().__init__(
-            fiber_bundle=bundle,
-            dim=bundle.dim - int(m_ambient * (m_ambient - 1) / 2),
-            shape=(k_landmarks, m_ambient),
-        )
 
     def directional_curvature_derivative(
         self, tangent_vec_a, tangent_vec_b, base_point=None
@@ -951,19 +922,15 @@ class KendallShapeMetric(QuotientMetric):
         curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at base point.
         """
-        horizontal_x = self.fiber_bundle.horizontal_projection(
-            tangent_vec_a, base_point
-        )
-        horizontal_y = self.fiber_bundle.horizontal_projection(
-            tangent_vec_b, base_point
-        )
+        horizontal_x = self._space.horizontal_projection(tangent_vec_a, base_point)
+        horizontal_y = self._space.horizontal_projection(tangent_vec_b, base_point)
         (
             nabla_x_a_y_a_x_y,
             a_x_a_y_a_x_y,
             _,
             _,
             _,
-        ) = self.fiber_bundle.iterated_integrability_tensor_derivative_parallel(
+        ) = self._space.iterated_integrability_tensor_derivative_parallel(
             horizontal_x, horizontal_y, base_point
         )
         return 3.0 * (nabla_x_a_y_a_x_y - a_x_a_y_a_x_y)
@@ -1030,12 +997,14 @@ class KendallShapeMetric(QuotientMetric):
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
-        horizontal_a = self.fiber_bundle.horizontal_projection(tangent_vec, base_point)
-        horizontal_b = self.fiber_bundle.horizontal_projection(direction, base_point)
+        horizontal_a = self._space.horizontal_projection(tangent_vec, base_point)
+        horizontal_b = self._space.horizontal_projection(direction, base_point)
 
         def force(state, time):
-            gamma_t = self.total_space_metric.exp(time * horizontal_b, base_point)
-            speed = self.total_space_metric.parallel_transport(
+            gamma_t = self._space.total_space_metric.exp(
+                time * horizontal_b, base_point
+            )
+            speed = self._space.total_space_metric.parallel_transport(
                 horizontal_b, base_point, time * horizontal_b
             )
             coef = self.inner_product(speed, state, gamma_t)

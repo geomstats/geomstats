@@ -17,11 +17,15 @@ class Euclidean(VectorSpace):
         Dimension of the Euclidean space.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, equip=True):
         super().__init__(
+            dim=dim,
             shape=(dim,),
-            metric=EuclideanMetric(dim, shape=(dim,)),
+            equip=equip,
         )
+
+    def _default_metric(self):
+        return EuclideanMetric
 
     @property
     def identity(self):
@@ -63,19 +67,7 @@ class EuclideanMetric(RiemannianMetric):
     - flat: the inner-product is independent of the base point;
     - positive definite: it has signature (dimension, 0, 0),
       where dimension is the dimension of the Euclidean space.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the Euclidean space.
     """
-
-    def __init__(self, dim, shape=None):
-        super().__init__(
-            dim=dim,
-            shape=shape,
-            signature=(dim, 0),
-        )
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix, independent of the base point.
@@ -91,9 +83,9 @@ class EuclideanMetric(RiemannianMetric):
         inner_prod_mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        mat = gs.eye(self.dim)
+        mat = gs.eye(self._space.dim)
         if base_point is not None and base_point.ndim > 1:
-            mat = gs.broadcast_to(mat, base_point.shape + (self.dim,))
+            mat = gs.broadcast_to(mat, base_point.shape + (self._space.dim,))
         return mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -208,4 +200,4 @@ class EuclideanMetric(RiemannianMetric):
         transported_tangent_vec: array-like, shape=[..., dim]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
-        return tangent_vec
+        return gs.copy(tangent_vec)

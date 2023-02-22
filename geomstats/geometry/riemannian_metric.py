@@ -21,29 +21,12 @@ class RiemannianMetric(Connection, ABC):
     """Class for Riemannian and pseudo-Riemannian metrics.
 
     The associated Levi-Civita connection on the tangent bundle.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the manifold.
-    shape : tuple of int
-        Shape of one element of the manifold.
-        Optional, default : (dim, ).
-    signature : tuple
-        Signature of the metric.
-        Optional, default: None.
     """
 
-    def __init__(
-        self, dim, shape=None, signature=None, default_coords_type="intrinsic"
-    ):
-        super().__init__(
-            dim=dim,
-            shape=shape,
-            default_coords_type=default_coords_type,
-        )
+    def __init__(self, space, signature=None):
+        super().__init__(space=space)
         if signature is None:
-            signature = (dim, 0)
+            signature = (space.dim, 0)
         self.signature = signature
 
     def __mul__(self, scalar):
@@ -421,7 +404,7 @@ class RiemannianMetric(Connection, ABC):
             shape=[n_samples_a, dim] or [n_samples_a, n_samples_b, dim]
             Geodesic distance between the two points.
         """
-        ndim = len(self.shape)
+        ndim = len(self._space.shape)
 
         if point_a.shape[-ndim:] != point_b.shape[-ndim:]:
             raise ValueError("Manifold dimensions not equal")

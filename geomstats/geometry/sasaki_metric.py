@@ -93,7 +93,7 @@ class SasakiMetric(RiemannianMetric):
         exp : array-like, shape=[..., 2, M.dim]
             Point on the tangent bundle TM.
         """
-        bs_pts = gs.reshape(base_point, (-1, 2) + self.metric.shape)
+        bs_pts = gs.reshape(base_point, (-1, 2) + self.metric._space.shape)
         tngs = gs.reshape(tangent_vec, bs_pts.shape)
 
         metric = self.metric
@@ -136,8 +136,8 @@ class SasakiMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        pts = gs.reshape(point, (-1, 2) + self.metric.shape)
-        bs_pts = gs.reshape(base_point, (-1, 2) + self.metric.shape)
+        pts = gs.reshape(point, (-1, 2) + self.metric._space.shape)
+        bs_pts = gs.reshape(base_point, (-1, 2) + self.metric._space.shape)
 
         metric = self.metric
         par_trans = metric.parallel_transport
@@ -238,8 +238,8 @@ class SasakiMetric(RiemannianMetric):
                 ]
             )
 
-        i_pts = gs.reshape(initial_points, (-1, 2) + self.metric.shape)
-        e_pts = gs.reshape(end_points, (-1, 2) + self.metric.shape)
+        i_pts = gs.reshape(initial_points, (-1, 2) + self.metric._space.shape)
+        e_pts = gs.reshape(end_points, (-1, 2) + self.metric._space.shape)
 
         with Parallel(n_jobs=min(self.n_jobs, len(e_pts)), verbose=0) as parallel:
             rslt = parallel(
@@ -247,7 +247,7 @@ class SasakiMetric(RiemannianMetric):
                 for i, e_pt in enumerate(e_pts)
             )
 
-        rslt_shape = (-1, 2) + self.metric.shape
+        rslt_shape = (-1, 2) + self.metric._space.shape
         rslt_shape = rslt_shape if len(e_pts) == 1 else (len(e_pts),) + rslt_shape
         return gs.reshape(gs.array(rslt), rslt_shape)
 
@@ -268,9 +268,9 @@ class SasakiMetric(RiemannianMetric):
         inner_product : array-like, shape=[..., 1]
             Inner-product.
         """
-        vec_a = gs.reshape(tangent_vec_a, (-1, 2) + self.metric.shape)
-        vec_b = gs.reshape(tangent_vec_b, (-1, 2) + self.metric.shape)
-        pt = gs.reshape(base_point, (-1, 2) + self.metric.shape)
+        vec_a = gs.reshape(tangent_vec_a, (-1, 2) + self.metric._space.shape)
+        vec_b = gs.reshape(tangent_vec_b, (-1, 2) + self.metric._space.shape)
+        pt = gs.reshape(base_point, (-1, 2) + self.metric._space.shape)
 
         inner = self.metric.inner_product
         rslt = inner(vec_a[:, 0], vec_b[:, 0], pt[:, 0]) + inner(

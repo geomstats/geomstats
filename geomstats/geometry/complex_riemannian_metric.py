@@ -27,16 +27,6 @@ class ComplexRiemannianMetric(RiemannianMetric):
         Optional, default: 'intrinsic'.
     """
 
-    def __init__(
-        self, dim, shape=None, signature=None, default_coords_type="intrinsic"
-    ):
-        super(ComplexRiemannianMetric, self).__init__(
-            dim=dim,
-            shape=shape,
-            signature=signature,
-            default_coords_type=default_coords_type,
-        )
-
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.
 
@@ -57,8 +47,7 @@ class ComplexRiemannianMetric(RiemannianMetric):
         """
         inner_prod_mat = self.metric_matrix(base_point)
         aux = gs.einsum("...j,...jk->...k", gs.conj(tangent_vec_a), inner_prod_mat)
-        inner_prod = gs.dot(aux, tangent_vec_b)
-        return inner_prod
+        return gs.dot(aux, tangent_vec_b)
 
     def squared_norm(self, vector, base_point=None):
         """Compute the square of the norm of a vector.
@@ -80,8 +69,7 @@ class ComplexRiemannianMetric(RiemannianMetric):
             Squared norm.
         """
         sq_norm = self.inner_product(vector, vector, base_point)
-        sq_norm = gs.real(sq_norm)
-        return sq_norm
+        return gs.real(sq_norm)
 
     def random_unit_tangent_vec(self, base_point, n_vectors=1):
         """Generate a random unit tangent vector at a given point.

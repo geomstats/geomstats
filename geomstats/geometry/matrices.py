@@ -18,11 +18,11 @@ class Matrices(VectorSpace):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n, **kwargs):
+    def __init__(self, m, n, equip=True):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
-        kwargs.setdefault("metric", MatricesMetric(m, n))
-        super().__init__(shape=(m, n), **kwargs)
+
+        super().__init__(shape=(m, n), equip=equip)
         self.m = m
         self.n = n
 
@@ -30,6 +30,9 @@ class Matrices(VectorSpace):
         """Create the canonical basis."""
         m, n = self.m, self.n
         return gs.reshape(gs.eye(n * m), (n * m, m, n))
+
+    def _default_metric(self):
+        return MatricesMetric
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -687,17 +690,7 @@ class Matrices(VectorSpace):
 
 
 class MatricesMetric(EuclideanMetric):
-    """Euclidean metric on matrices given by Frobenius inner-product.
-
-    Parameters
-    ----------
-    m, n : int
-        Integers representing the shapes of the matrices: m x n.
-    """
-
-    def __init__(self, m, n, **kwargs):
-        dimension = m * n
-        super().__init__(dim=dimension, shape=(m, n))
+    """Euclidean metric on matrices given by Frobenius inner-product."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tangent vectors.

@@ -9,9 +9,7 @@ from abc import ABC
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
-from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape
 
 
@@ -23,42 +21,30 @@ class FiberBundle(Manifold, ABC):
 
     Parameters
     ----------
+    dim : int
+        Dimension of the base manifold.
     total_space : Manifold
         Total space of the bundle.
-    base : Manifold
-        Base manifold of the bundle.
-        Optional. Default : None.
     group : LieGroup
         Group that acts on the total space by the right.
         Optional. Default : None.
         Either the group or the group action must be given.
-    total_space_metric : RiemannianMetric
-        Metric to use in the total space.
-        Optional. The `metric` attribute of the total space is used if no
-        ambient metric is passed.
     group_action : callable
         Right group action. It must take as input a point of the total space
         and an element of the group, and return a point of the total space.
-    dim : int
-        Dimension of the base manifold.
-        Optional. If available the dimension of the base manifold is used,
-        or the difference between the dimension of the total space and the
-        group. Either dim, base or group must be given as input.
+
     """
 
     def __init__(
         self,
-        dim: int,
-        group: LieGroup = None,
-        total_space_metric: RiemannianMetric = None,
+        group=None,
         group_action=None,
         group_dim=None,
-        **kwargs
+        equip=True,
+        **kwargs,
     ):
-
-        super().__init__(dim=dim, **kwargs)
+        super().__init__(equip=equip, **kwargs)
         self.group = group
-        self.total_space_metric = total_space_metric
 
         if group_action is None and group is not None:
             group_action = group.compose
@@ -66,6 +52,21 @@ class FiberBundle(Manifold, ABC):
             group_dim = group.dim
         self.group_dim = group_dim
         self.group_action = group_action
+
+        if equip:
+            self.equip_with_total_space_metric()
+
+    def equip_with_total_space_metric(self, Metric=None, **metric_kwargs):
+        if Metric is None:
+            out = self._default_total_space_metric()
+            if isinstance(out, tuple):
+                Metric, kwargs = out
+                kwargs.update(metric_kwargs)
+                metric_kwargs = kwargs
+            else:
+                Metric = out
+
+        self.total_space_metric = Metric(self, **metric_kwargs)
 
     @staticmethod
     def riemannian_submersion(point):

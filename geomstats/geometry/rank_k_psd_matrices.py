@@ -28,19 +28,22 @@ class RankKPSDMatrices(Manifold):
         Integer representing the rank of the matrix (k<n).
     """
 
-    def __init__(self, n, k, **kwargs):
+    def __init__(self, n, k, equip=False):
         if not k < n:
             raise ValueError("k must be lower than n")
 
-        kwargs.setdefault("metric", PSDMetricBuresWasserstein(n, k))
         super().__init__(
-            **kwargs,
             dim=int(k * n - k * (k + 1) / 2),
             shape=(n, n),
+            equip=equip,
+            default_coords_type="extrinsic",
         )
         self.n = n
         self.rank = k
-        self.sym = SymmetricMatrices(self.n)
+        self.sym = SymmetricMatrices(self.n, equip=False)
+
+    def _default_metric(self):
+        return PSDEuclideanMetric
 
     def belongs(self, point, atol=gs.atol):
         r"""Check if the matrix belongs to the space.
@@ -152,7 +155,7 @@ class RankKPSDMatrices(Manifold):
             Boolean denoting if vector belongs to tangent space
             at base_point.
         """
-        vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
+        vector_sym = Matrices.to_symmetric(vector)
 
         r, _, _ = gs.linalg.svd(base_point)
         r_ort = r[..., :, -(self.n - self.rank) :]
@@ -177,7 +180,7 @@ class RankKPSDMatrices(Manifold):
         tangent : array-like, shape=[..., n, n]
             Projection of the tangent vector at base_point.
         """
-        vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
+        vector_sym = Matrices.to_symmetric(vector)
         r, _, _ = gs.linalg.svd(base_point)
         r_ort = r[..., :, : (self.rank - 1)]
         r_ort_t = Matrices.transpose(r_ort)
@@ -208,26 +211,32 @@ class PSDMatrices:
         cls,
         n,
         k,
-        **kwargs,
+        equip=True,
     ):
         """Instantiate class from one of the parent classes."""
         if n > k:
-            return RankKPSDMatrices(n, k, **kwargs)
+            return RankKPSDMatrices(n, k, equip=equip)
         if n == k:
-            return SPDMatrices(n, **kwargs)
+            return SPDMatrices(n, equip=equip)
         raise NotImplementedError("The PSD matrices is not implemented yet.")
 
 
-class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
+class BuresWassersteinBundle(FiberBundle, FullRankMatrices):
     """Class for the quotient structure on PSD matrices."""
 
-    def __init__(self, n, k):
+    def __init__(self, n, k, equip=True):
         super().__init__(
             n=n,
             k=k,
-            group=SpecialOrthogonal(k),
-            total_space_metric=MatricesMetric(n, k),
+            group=SpecialOrthogonal(k, equip=False),
+            equip=equip,
         )
+
+    def _default_total_space_metric(self):
+        return MatricesMetric
+
+    def _default_metric(self):
+        return QuotientMetric
 
     @staticmethod
     def riemannian_submersion(point):
@@ -316,11 +325,3 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
             R.point.
         """
         return Matrices.align_matrices(point, base_point)
-
-
-class PSDMetricBuresWasserstein(QuotientMetric):
-    """Bures-Wasserstein metric for fixed rank PSD matrices."""
-
-    def __init__(self, n, k):
-        fiber_bundle = BuresWassersteinBundle(n, k)
-        super().__init__(fiber_bundle=fiber_bundle, shape=(n, n))

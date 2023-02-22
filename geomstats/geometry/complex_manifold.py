@@ -9,7 +9,6 @@ Lead author: Yann Cabanes.
 import abc
 
 import geomstats.backend as gs
-from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 
 
 class ComplexManifold(abc.ABC):
@@ -30,31 +29,39 @@ class ComplexManifold(abc.ABC):
     """
 
     def __init__(
-        self, dim, shape, metric=None, default_coords_type="intrinsic", **kwargs
+        self,
+        dim,
+        shape,
+        default_coords_type="intrinsic",
+        equip=True,
     ):
         self.dim = dim
         self.shape = shape
         self.default_coords_type = default_coords_type
-        self._metric = metric
 
         self.point_ndim = len(self.shape)
-        self.default_point_type = "vector" if self.point_ndim == 1 else "matrix"
+        if self.point_ndim == 1:
+            # TODO: remove default point type
+            self.default_point_type = "vector"
+        elif self.point_ndim == 2:
+            self.default_point_type = "matrix"
+        else:
+            self.default_point_type = "other"
 
-    @property
-    def metric(self):
-        """Riemannian metric associated to the complex manifold."""
-        return self._metric
+        if equip:
+            self.equip_with_metric()
 
-    @metric.setter
-    def metric(self, metric):
-        if metric is not None:
-            if not isinstance(metric, ComplexRiemannianMetric):
-                raise ValueError(
-                    "The argument must be a ComplexRiemannianMetric object"
-                )
-            if metric.dim != self.dim:
-                metric.dim = self.dim
-        self._metric = metric
+    def equip_with_metric(self, Metric=None, **metric_kwargs):
+        if Metric is None:
+            out = self._default_metric()
+            if isinstance(out, tuple):
+                Metric, kwargs = out
+                kwargs.update(metric_kwargs)
+                metric_kwargs = kwargs
+            else:
+                Metric = out
+
+        self.metric = Metric(self, **metric_kwargs)
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):

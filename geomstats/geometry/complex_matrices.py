@@ -19,21 +19,21 @@ class ComplexMatrices(ComplexVectorSpace):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n, **kwargs):
+    def __init__(self, m, n, equip=True):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
-        kwargs.setdefault("metric", ComplexMatricesMetric(m, n))
-        kwargs.setdefault("default_point_type", "matrix")
-        super(ComplexMatrices, self).__init__(shape=(m, n), **kwargs)
+        super().__init__(shape=(m, n), equip=equip)
         self.m = m
         self.n = n
+
+    def _default_metric(self):
+        return ComplexMatricesMetric
 
     def _create_basis(self):
         """Create the canonical basis."""
         cdtype = gs.get_default_cdtype()
         m, n = self.m, self.n
-        basis = gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
-        return basis
+        return gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
 
     def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
@@ -283,16 +283,7 @@ class ComplexMatrices(ComplexVectorSpace):
 
 
 class ComplexMatricesMetric(HermitianMetric):
-    """Hermitian metric on complex matrices given by Frobenius inner-product.
-
-    Parameters
-    ----------
-    m, n : int
-        Integers representing the shapes of the matrices: m x n.
-    """
-
-    def __init__(self, m, n, **kwargs):
-        super(ComplexMatricesMetric, self).__init__(dim=m * n, shape=(m, n))
+    """Hermitian metric on complex matrices given by Frobenius inner-product."""
 
     @staticmethod
     def inner_product(tangent_vec_a, tangent_vec_b, base_point=None):

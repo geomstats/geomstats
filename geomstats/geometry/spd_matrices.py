@@ -27,12 +27,16 @@ class SPDMatrices(OpenSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", SPDAffineMetric(n))
+    def __init__(self, n, equip=True):
         super().__init__(
-            dim=int(n * (n + 1) / 2), embedding_space=SymmetricMatrices(n), **kwargs
+            dim=int(n * (n + 1) / 2),
+            embedding_space=SymmetricMatrices(n),
+            equip=equip,
         )
         self.n = n
+
+    def _default_metric(self):
+        return SPDAffineMetric
 
     def belongs(self, point, atol=gs.atol):
         """Check if a matrix is symmetric with positive eigenvalues.
@@ -451,13 +455,11 @@ class SPDMatrices(OpenSet):
 class SPDAffineMetric(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold."""
 
-    def __init__(self, n, power_affine=1):
+    def __init__(self, space, power_affine=1):
         """Build the affine-invariant metric.
 
         Parameters
         ----------
-        n : int
-            Integer representing the shape of the matrices: n x n.
         power_affine : int
             Power transformation of the classical SPD metric.
             Optional, default: 1.
@@ -468,13 +470,7 @@ class SPDAffineMetric(RiemannianMetric):
             SPD matrices? A principled continuum of metrics" Proc. of GSI,
             2019. https://arxiv.org/abs/1906.01349
         """
-        dim = int(n * (n + 1) / 2)
-        super().__init__(
-            dim=dim,
-            shape=(n, n),
-            signature=(dim, 0),
-        )
-        self.n = n
+        super().__init__(space=space)
         self.power_affine = power_affine
 
     @staticmethod
@@ -727,11 +723,6 @@ class SPDAffineMetric(RiemannianMetric):
 class SPDBuresWassersteinMetric(RiemannianMetric):
     """Class for the Bures-Wasserstein metric on the SPD manifold.
 
-    Parameters
-    ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
-
     References
     ----------
     .. [BJL2017] Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
@@ -741,15 +732,6 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         geometry of Gaussian densities"  Information Geometry, vol. 1, 137-179,
         2018. https://arxiv.org/pdf/1801.09269.pdf
     """
-
-    def __init__(self, n):
-        dim = int(n * (n + 1) / 2)
-        super().__init__(
-            dim=dim,
-            signature=(dim, 0),
-            shape=(n, n),
-        )
-        self.n = n
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the Bures-Wasserstein inner-product.
@@ -978,14 +960,8 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
 class SPDEuclideanMetric(RiemannianMetric):
     """Class for the Euclidean metric on the SPD manifold."""
 
-    def __init__(self, n, power_euclidean=1):
-        dim = int(n * (n + 1) / 2)
-        super().__init__(
-            dim=dim,
-            signature=(dim, 0),
-            shape=(n, n),
-        )
-        self.n = n
+    def __init__(self, space, power_euclidean=1):
+        super().__init__(space=space)
         self.power_euclidean = power_euclidean
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -1179,22 +1155,7 @@ class SPDEuclideanMetric(RiemannianMetric):
 
 
 class SPDLogEuclideanMetric(RiemannianMetric):
-    """Class for the Log-Euclidean metric on the SPD manifold.
-
-    Parameters
-    ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
-    """
-
-    def __init__(self, n):
-        dim = int(n * (n + 1) / 2)
-        super().__init__(
-            dim=dim,
-            signature=(dim, 0),
-            shape=(n, n),
-        )
-        self.n = n
+    """Class for the Log-Euclidean metric on the SPD manifold."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Log-Euclidean inner-product.

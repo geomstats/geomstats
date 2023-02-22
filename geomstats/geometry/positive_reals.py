@@ -53,16 +53,15 @@ class PositiveReals(OpenSet):
     The real positive axis endowed with the Information geometry metric.
     """
 
-    def __init__(self, **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate the "
-                "manifold without this parameter and then use "
-                "`scale * metric` to rescale the standard metric."
-            )
+    def __init__(self, equip=True):
         super().__init__(
-            dim=1, embedding_space=Euclidean(1), metric=PositiveRealsMetric(), **kwargs
+            dim=1,
+            embedding_space=Euclidean(1),
+            equip=equip,
         )
+
+    def _default_metric(self):
+        return PositiveRealsMetric
 
     @staticmethod
     def belongs(point, atol=gs.atol):
@@ -147,15 +146,6 @@ class PositiveRealsMetric(RiemannianMetric):
     of the SPD affine-invariant metric
     with a power affine coefficient equal to one.
     """
-
-    def __init__(self, **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate scaled "
-                "metrics as `scale * RiemannianMetric`. Note that the "
-                "metric is scaled, not the distance."
-            )
-        super().__init__(dim=1)
 
     def metric_matrix(self, base_point):
         """Compute the inner product matrix at base point.

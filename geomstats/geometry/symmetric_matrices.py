@@ -20,10 +20,12 @@ class SymmetricMatrices(VectorSpace):
         Integer representing the shapes of the matrices: n x n.
     """
 
-    def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", MatricesMetric(n, n))
-        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), **kwargs)
+    def __init__(self, n, equip=True):
+        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), equip=equip)
         self.n = n
+
+    def _default_metric(self):
+        return MatricesMetric
 
     def _create_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""

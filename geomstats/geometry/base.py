@@ -4,6 +4,7 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 """
 
 import abc
+import math
 
 import geomstats.backend as gs
 from geomstats.geometry.complex_manifold import ComplexManifold
@@ -20,9 +21,10 @@ class VectorSpace(Manifold, abc.ABC):
         product of these values by default.
     """
 
-    def __init__(self, shape, **kwargs):
-        kwargs.setdefault("dim", int(gs.prod(gs.array(shape))))
-        super().__init__(shape=shape, **kwargs)
+    def __init__(self, shape, dim=None, **kwargs):
+        if dim is None:
+            dim = math.prod(shape)
+        super().__init__(dim=dim, shape=shape, **kwargs)
         self._basis = None
 
     def belongs(self, point, atol=gs.atol):
@@ -163,10 +165,10 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, shape, **kwargs):
-        kwargs.setdefault("dim", int(gs.prod(gs.array(shape))))
-        super().__init__(shape=shape, **kwargs)
-        self.shape = shape
+    def __init__(self, shape, dim=None, **kwargs):
+        if dim is None:
+            dim = math.prod(shape)
+        super().__init__(shape=shape, dim=dim, **kwargs)
         self._basis = None
 
     def belongs(self, point, atol=gs.atol):
@@ -309,22 +311,18 @@ class LevelSet(Manifold, abc.ABC):
 
     Parameters
     ----------
-    dim : int
-        Dimension of the embedded manifold.
     default_coords_type : str, {'intrinsic', 'extrinsic', etc}
         Coordinate type.
         Optional, default: 'extrinsic'.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic", shape=None, **kwargs):
+    def __init__(self, default_coords_type="extrinsic", shape=None, **kwargs):
         self.embedding_space = self._define_embedding_space()
 
         if shape is None:
             shape = self.embedding_space.shape
 
-        super().__init__(
-            dim=dim, default_coords_type=default_coords_type, shape=shape, **kwargs
-        )
+        super().__init__(default_coords_type=default_coords_type, shape=shape, **kwargs)
 
     @abc.abstractmethod
     def _define_embedding_space(self):
@@ -505,17 +503,17 @@ class OpenSet(Manifold, abc.ABC):
 
     Parameters
     ----------
-    dim: int
-        Dimension of the manifold. It is often the same as the embedding space
-        dimension but may differ in some cases.
     embedding_space: VectorSpace
         Embedding space that contains the manifold.
     """
 
-    def __init__(self, dim, embedding_space, **kwargs):
-        kwargs.setdefault("shape", embedding_space.shape)
-        super().__init__(dim=dim, **kwargs)
+    def __init__(self, embedding_space, shape=None, **kwargs):
+        # TODO: embedding space following `LevelSet`?
+        # TODO: should we default `dim` to embedding space?
         self.embedding_space = embedding_space
+        if shape is None:
+            shape = embedding_space.shape
+        super().__init__(shape=shape, **kwargs)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -615,9 +613,10 @@ class ComplexOpenSet(ComplexManifold, abc.ABC):
         Embedding space that contains the manifold.
     """
 
-    def __init__(self, dim, embedding_space, **kwargs):
-        kwargs.setdefault("shape", embedding_space.shape)
-        super().__init__(dim=dim, **kwargs)
+    def __init__(self, embedding_space, shape=None, **kwargs):
+        if shape is None:
+            shape = embedding_space.shape
+        super().__init__(shape=shape, **kwargs)
         self.embedding_space = embedding_space
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
