@@ -1,26 +1,20 @@
-"""Unit tests for discrete_surfaces modules.
-
-Add your code directory to the PYTHON PATH before running.
-export PYTHONPATH=/home/nmiolane/code.
-
-Get the .npy files to test this code.
-"""
+"""Unit tests for discrete_surfaces modules."""
+# TODO: test laplacian function
 
 import os
 
 import numpy as np
-from my28brains.my28brains.discrete_surfaces import DiscreteSurfaces
 
 import geomstats.backend as gs
+from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
 
-# from geomstats.geometry.connection import Connection
+# TODO: load cube data for testing.
+# cube data located in geomstats/geomstats/datasets/data/cube_meshes
+# must write a function in the datasets utils.py file which loads
+# the cube data, and then use that function here.
 
-
-# import sphere data vertices and faces
-BRAINS_DIR = os.path.join(os.environ["PYTHONPATH"], "my28brains")
-DATA_DIR = os.path.join(BRAINS_DIR, "data")
-
-# uncomment if you would like to test a cube
+# below is the code used to load the data via path joining. this can 
+# be modified to write code for the dataset util.py function.
 CUBE_MESH_DIR = os.path.join(DATA_DIR, "cube_meshes")
 test_vertices_path = os.path.join(CUBE_MESH_DIR, "vertices.npy")
 test_faces_path = os.path.join(CUBE_MESH_DIR, "faces.npy")
@@ -31,52 +25,13 @@ test_vertices = gs.cast(test_vertices, gs.int64)
 test_faces = gs.cast(test_faces, gs.int64)
 
 
-# for testing a sphere -used for tangent testing
-# SPHERE_DATA_DIR = os.path.join(DATA_DIR, "sphere_meshes")
-# test_sphere_vertices_path = os.path.join(SPHERE_DATA_DIR, "vertices.npy")
-# test_sphere_faces_path = os.path.join(SPHERE_DATA_DIR, "faces.npy")
-
-# test_sphere_vertices = np.load(test_sphere_vertices_path)
-# test_sphere_faces = np.load(test_sphere_faces_path)
-# test_sphere_vertices = gs.cast(test_sphere_vertices, gs.int64)
-# test_sphere_faces = gs.cast(test_sphere_faces, gs.int64)
-
-
 def test_belongs():
     """Test that a set of vertices belongs to the manifold of DiscreteSurfaces.
 
     (Also inheritely checks if the discrete surface has degenerate triangles.)
     """
-    vertices = test_vertices
     space = DiscreteSurfaces(faces=test_faces)
-    space.belongs(point=vertices)
-
-
-def test_is_tangent():
-    """Test is_tangent.
-
-    TODO.  how to test whether a vector is tangent
-    - create a vector you know is tangent
-    - is there a property with the connection?
-    """
-
-    # space = DiscreteSurfaces(faces=test_faces)
-    # base_point = test_vertices
-    # point_2 = space.random_point()
-    # tangent_vector = Connection.log(point_2, base_point)
-    # assert space.is_tangent(tangent_vector, base_point)
-
-    # non_tangent_vector=gs.array([1,0,1])
-    # vertices = test_sphere_vertices
-    # space = DiscreteSurfaces(faces=test_sphere_faces)
-    # base_point = vertices[3]
-    # tangent_vector = gs.array([1,0,0])
-    # non_tangent_vector=gs.array([1,0,1])
-    # print(base_point)
-    # print(tangent_vector)
-    # print(non_tangent_vector)
-    # assert space.is_tangent(tangent_vector,base_point) == True
-    # assert space.is_tangent(non_tangent_vector,base_point) != True
+    assert space.belongs(point=test_vertices)
 
 
 def test_random_point_1():
@@ -98,29 +53,18 @@ def test_random_point_2():
 
     This function tests that:
     - random_point() generates a point on the manifold
-
-    TODO: this is failing. I think its failure has something to do with
-    it not being implemented in a way that is compatible with
-    the belongs() function???
-
-    error: IndexError: index 1 is out of bounds for axis 0 with size 1
     """
     space = DiscreteSurfaces(faces=test_faces)
     point = space.random_point(n_samples=1)
     print("POINT", point.shape)
-    # print(point.shape)
-    # print(test_vertices)
-    # print(test_faces)
-    # print(space.n_vertices)
-    # print(space.faces)
     assert space.belongs(point)
 
 
 def test_vertex_areas():
     """Test vertex_areas.
 
-    TODO. vertex_areas() might be referring to voronoi area.
-    not sure though. tbd.
+    Vertex area is the area of all of the triangles who are in contact
+    with a specific vertex.
 
     We test this on a space whose initializing
     point is a cube, and we test the function on
@@ -128,12 +72,15 @@ def test_vertex_areas():
 
     The cube is meshed with triangles, so each face should
     have area 2.
+
+    TODO: add "scatter_add" to geomstats' backend.
     """
-    # space = DiscreteSurfaces(faces=test_faces)
-    # point = test_vertices
-    # areas = gs.array([[12],[12],[12],[12],[12],[12],[12],[12],[12],[12],[12],[12]])
-    # print(areas.shape)
-    # assert (areas[0] == space.vertex_areas(point)[0]).all()
+    space = DiscreteSurfaces(faces=test_faces)
+    point = test_vertices
+    number_of_contact_faces = gs.array([[3], [5], [5], [5], [5], [5], [3], [5]])
+    areas = number_of_contact_faces * 2
+    print(areas.shape)
+    assert (areas[0] == space.vertex_areas(point)[0]).all()
 
 
 def test_normals():
@@ -154,7 +101,8 @@ def test_normals():
     was constructed makes it so that the normal vector could be
     pointing into the surface or out of the surface, (so it could
     either be positive or negative). Because of this, we make all
-    of the normal vectors to the cube positive.
+    of the normal vectors to the cube positive for testing
+    purposes.
     """
     space = DiscreteSurfaces(faces=test_faces)
     point = test_vertices

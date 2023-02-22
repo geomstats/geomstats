@@ -1,8 +1,6 @@
 """Discrete Surfaces with Elastic metrics.
 
 Lead author: Emmanuel Hartman
-
-This file is on-going work to clean the Geomstats GitHub PR by Emmanuel.
 """
 
 from scipy.optimize import minimize
@@ -53,6 +51,9 @@ class DiscreteSurfaces(Manifold):
         consistent with the mesh structure.
 
         Also checks if the discrete surface has degenerate triangles.
+        A "degenerate triangle" is a very small (and unneccessary)
+        triangle. Thus, to test for very small (degenerate)
+        triangles, we test for very small areas.
 
         Parameters
         ----------
@@ -72,8 +73,6 @@ class DiscreteSurfaces(Manifold):
             return False
         if point.shape[-2] != self.n_vertices:
             return False
-        # to make sure that it is actually a face and not just a point
-        # or an edge. small area = degenerate face
         smallest_area = min(self.face_areas(point))
         if smallest_area < atol:
             return False
@@ -171,27 +170,34 @@ class DiscreteSurfaces(Manifold):
         """
         n_vertices = point.shape[0]
         face_coordinates = point[self.faces]
-        v0, v1, v2 = (
+        vertex0, vertex1, vertex2 = (
             face_coordinates[:, 0],
             face_coordinates[:, 1],
             face_coordinates[:, 2],
         )
-        A = gs.linalg.norm((v1 - v2), axis=1)
-        B = gs.linalg.norm((v0 - v2), axis=1)
-        C = gs.linalg.norm((v0 - v1), axis=1)
-        s = 0.5 * (A + B + C)
-        area = gs.sqrt((s * (s - A) * (s - B) * (s - C)).clamp(min=1e-6))
-        idx = gs.flatten(self.faces)
+        len_edge_12 = gs.linalg.norm((vertex1 - vertex2), axis=1)
+        len_edge_02 = gs.linalg.norm((vertex0 - vertex2), axis=1)
+        len_edge_01 = gs.linalg.norm((vertex0 - vertex1), axis=1)
+        half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
+        area = gs.sqrt(
+            (
+                half_perimeter
+                * (half_perimeter - len_edge_12)
+                * (half_perimeter - len_edge_02)
+                * (half_perimeter - len_edge_01)
+            ).clip(min=1e-6)
+        )
+        id_vertices = gs.flatten(self.faces)
         incident_areas = gs.zeros(n_vertices)
         val = gs.flatten(gs.stack([area] * 3, axis=1))
-        incident_areas.scatter_add_(0, idx, val)
-        vertAreas = 2 * incident_areas / 3.0
-        return vertAreas
+        incident_areas.scatter_add_(0, id_vertices, val)
+        vertex_areas = 2 * incident_areas / 3.0
+        return vertex_areas
 
     def get_laplacian(self, point):
         """Compute the mesh Laplacian operator of a surface.
 
-        The laplacian is evaluated at one of its tangent vectors h.
+        The laplacian is evaluated at one of its tangent vectors, tangent_vec.
 
         Parameters
         ----------
@@ -200,57 +206,74 @@ class DiscreteSurfaces(Manifold):
 
         Returns
         -------
-        L : callable
+        laplacian : callable
             Function that will evaluate the mesh Laplacian operator
             at a tangent vector to the surface
         """
         n_vertices, n_faces = point.shape[0], self.faces.shape[0]
         face_coordinates = point[self.faces]
-        v0, v1, v2 = (
+        vertex0, vertex1, vertex2 = (
             face_coordinates[:, 0],
             face_coordinates[:, 1],
             face_coordinates[:, 2],
         )
-        A = gs.linalg.norm((v1 - v2), axis=1)
-        B = gs.linalg.norm((v0 - v2), axis=1)
-        C = gs.linalg.norm((v0 - v1), axis=1)
-        s = 0.5 * (A + B + C)
-        area = gs.sqrt((s * (s - A) * (s - B) * (s - C)).clamp(min=1e-6))
-        A2, B2, C2 = A * A, B * B, C * C
-        cota = (B2 + C2 - A2) / area
-        cotb = (A2 + C2 - B2) / area
-        cotc = (A2 + B2 - C2) / area
-        cot = gs.stack([cota, cotb, cotc], axis=1)
+        len_edge_12 = gs.linalg.norm((vertex1 - vertex2), axis=1)
+        len_edge_02 = gs.linalg.norm((vertex0 - vertex2), axis=1)
+        len_edge_01 = gs.linalg.norm((vertex0 - vertex1), axis=1)
+        half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
+        area = gs.sqrt(
+            (
+                half_perimeter
+                * (half_perimeter - len_edge_12)
+                * (half_perimeter - len_edge_02)
+                * (half_perimeter - len_edge_01)
+            ).clip(min=1e-6)
+        )
+        sq_len_edge_12, sq_len_edge_02, sq_len_edge_01 = (
+            len_edge_12 * len_edge_12,
+            len_edge_02 * len_edge_02,
+            len_edge_01 * len_edge_01,
+        )
+        cot_12 = (sq_len_edge_02 + sq_len_edge_01 - sq_len_edge_12) / area
+        cot_02 = (sq_len_edge_12 + sq_len_edge_01 - sq_len_edge_02) / area
+        cot_01 = (sq_len_edge_12 + sq_len_edge_02 - sq_len_edge_01) / area
+        cot = gs.stack([cot_12, cot_02, cot_01], axis=1)
         cot /= 2.0
         ii = self.faces[:, [1, 2, 0]]
         jj = self.faces[:, [2, 0, 1]]
-        idx = gs.reshape(gs.stack([ii, jj], axis=0), (2, n_faces * 3))
+        id_vertices = gs.reshape(gs.stack([ii, jj], axis=0), (2, n_faces * 3))
 
-        def L(h):
+        def laplacian(tangent_vec):
             """Evaluate the mesh Laplacian operator.
 
             The operator is evaluated at a tangent vector to the surface.
 
             Parameters
             ----------
-            h :  array-like, shape=[n_verticesx3]
+            tangent_vec :  array-like, shape=[n_verticesx3]
                 Tangent vector to the triangulated surface.
 
             Returns
             -------
-            Lh: array-like, shape=[n_verticesx3]
+            laplacian_at_tangent_vec: array-like, shape=[n_verticesx3]
                 Mesh Laplacian operator of the triangulated surface applied
-                 to one its tangent vector h.
+                 to one its tangent vector tangent_vec.
             """
-            hdiff = h[idx[0]] - h[idx[1]]
-            values = gs.stack([gs.flatten(cot)] * 3, axis=1) * hdiff
-            Lh = gs.zeros((n_vertices, 3))
-            Lh[:, 0] = Lh[:, 0].scatter_add(0, idx[1, :], values[:, 0])
-            Lh[:, 1] = Lh[:, 1].scatter_add(0, idx[1, :], values[:, 1])
-            Lh[:, 2] = Lh[:, 2].scatter_add(0, idx[1, :], values[:, 2])
-            return Lh
+            tangent_vec_diff = tangent_vec[id_vertices[0]] - tangent_vec[id_vertices[1]]
+            values = gs.stack([gs.flatten(cot)] * 3, axis=1) * tangent_vec_diff
+            laplacian_at_tangent_vec = gs.zeros((n_vertices, 3))
+            laplacian_at_tangent_vec[:, 0] = laplacian_at_tangent_vec[:, 0].scatter_add(
+                0, id_vertices[1, :], values[:, 0]
+            )
+            laplacian_at_tangent_vec[:, 1] = laplacian_at_tangent_vec[:, 1].scatter_add(
+                0, id_vertices[1, :], values[:, 1]
+            )
+            laplacian_at_tangent_vec[:, 2] = laplacian_at_tangent_vec[:, 2].scatter_add(
+                0, id_vertices[1, :], values[:, 2]
+            )
+            return laplacian_at_tangent_vec
 
-        return L
+        return laplacian
 
     def normals(self, point):
         """Compute normals at each face of a triangulated surface.
@@ -265,16 +288,16 @@ class DiscreteSurfaces(Manifold):
 
         Returns
         -------
-        N : array-like, shape=[n_facesx1]
+        normals_at_point : array-like, shape=[n_facesx1]
             Normals of each face of the mesh.
         """
-        V0, V1, V2 = (
+        vertex_0, vertex_1, vertex_2 = (
             gs.take(point, indices=self.faces[:, 0], axis=0),
             gs.take(point, indices=self.faces[:, 1], axis=0),
             gs.take(point, indices=self.faces[:, 2], axis=0),
         )
-        N = 0.5 * gs.cross(V1 - V0, V2 - V0)
-        return N
+        normals_at_point = 0.5 * gs.cross(vertex_1 - vertex_0, vertex_2 - vertex_0)
+        return normals_at_point
 
     def surface_one_forms(self, point):
         """Compute the vector valued one-forms.
@@ -288,16 +311,15 @@ class DiscreteSurfaces(Manifold):
 
         Returns
         -------
-        alpha : array-like, shape=[n_faces, 3, 2]
+        one_forms_base_point : array-like, shape=[n_faces, 3, 2]
             One form evaluated at each face of the triangulated surface.
         """
-        # TODO: have ambient dimension be last.
-        V0, V1, V2 = (
+        vertex_0, vertex_1, vertex_2 = (
             gs.take(point, indices=self.faces[:, 0], axis=0),
             gs.take(point, indices=self.faces[:, 1], axis=0),
             gs.take(point, indices=self.faces[:, 2], axis=0),
         )
-        return gs.stack([V1 - V0, V2 - V0], axis=1)
+        return gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=1)
 
     def face_areas(self, point):
         """Compute the areas for each face of a triangulated surface.
@@ -316,8 +338,8 @@ class DiscreteSurfaces(Manifold):
         _ :  array-like, shape=[n_faces,]
             Area computed at each face of the triangulated surface.
         """
-        g = self.surface_metric_matrices(point)
-        return gs.sqrt(gs.linalg.det(g))
+        surface_metrics = self.surface_metric_matrices(point)
+        return gs.sqrt(gs.linalg.det(surface_metrics))
 
     def surface_metric_matrices(self, point):
         """Compute the surface metric matrices.
@@ -368,7 +390,6 @@ class ElasticMetric(RiemannianMetric):
         additonal first order parameter.
     a2 : float
         Second order parameter.
-
     References
     ----------
     .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
@@ -385,7 +406,7 @@ class ElasticMetric(RiemannianMetric):
         self.d1 = d1
         self.a2 = a2
         self.space = space
-        self.time_steps = 5
+        self.n_times = 5
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.
@@ -406,43 +427,54 @@ class ElasticMetric(RiemannianMetric):
         """
         h = tangent_vec_a
         k = tangent_vec_b
-        point1 = base_point + h
-        point2 = base_point + k
+        point_a = base_point + h
+        point_b = base_point + k
         norm = 0
         if self.a0 > 0 or self.a2 > 0:
             v_areas = self.space.vertex_areas(base_point)
             if self.a2 > 0:
-                Del = self.space.get_laplacian(base_point)
+                laplacian_at_base_point = self.space.get_laplacian(base_point)
                 norm += self.a2 * gs.sum(
-                    gs.einsum("bi,bi->b", Del(h), Del(k)) / v_areas
+                    gs.einsum(
+                        "bi,bi->b",
+                        laplacian_at_base_point(h),
+                        laplacian_at_base_point(k),
+                    )
+                    / v_areas
                 )
             if self.a0 > 0:
                 norm += self.a0 * gs.sum(v_areas * gs.einsum("bi,bi->b", h, k))
         if self.a1 > 0 or self.b1 > 0 or self.c1 > 0 or self.b1 > 0:
-            alpha = self.space.surface_one_forms(base_point)
-            g = gs.matmul(gs.transpose(alpha, axes=(0, 2, 1)), alpha)
-            areas = gs.sqrt(gs.linalg.det(g))
-            n = self.space.normals(base_point)
+            one_forms_base_point = self.space.surface_one_forms(base_point)
+            surface_metrics = gs.matmul(
+                gs.transpose(one_forms_base_point, axes=(0, 2, 1)), one_forms_base_point
+            )
+            areas = gs.sqrt(gs.linalg.det(surface_metrics))
+            normals_at_base_point = self.space.normals(base_point)
             if self.c1 > 0:
-                dn1 = self.space.normals(point1) - n
-                dn2 = self.space.normals(point2) - n
+                dn1 = self.space.normals(point_a) - normals_at_base_point
+                dn2 = self.space.normals(point_b) - normals_at_base_point
                 norm += self.c1 * gs.sum(gs.einsum("bi,bi->b", dn1, dn2) * areas)
             if self.d1 > 0 or self.b1 > 0 or self.a1 > 0:
-                ginv = gs.linalg.inv(g)
-                alpha1 = self.space.surface_one_forms(point1)
-                alpha2 = self.space.surface_one_forms(point2)
+                ginv = gs.linalg.inv(surface_metrics)
+                one_forms_a = self.space.surface_one_forms(point_a)
+                one_forms_b = self.space.surface_one_forms(point_b)
                 if self.d1 > 0:
-                    xi1 = alpha1 - alpha
+                    xi1 = one_forms_a - one_forms_base_point
                     xi1_0 = gs.matmul(
-                        gs.matmul(alpha, ginv),
-                        gs.matmul(gs.transpose(xi1, (0, 2, 1)), alpha)
-                        - gs.matmul(gs.transpose(alpha, axes=(1, 2)), xi1),
+                        gs.matmul(one_forms_base_point, ginv),
+                        gs.matmul(gs.transpose(xi1, (0, 2, 1)), one_forms_base_point)
+                        - gs.matmul(
+                            gs.transpose(one_forms_base_point, axes=(1, 2)), xi1
+                        ),
                     )
-                    xi2 = alpha2 - alpha
+                    xi2 = one_forms_b - one_forms_base_point
                     xi2_0 = gs.matmul(
-                        gs.matmul(alpha, ginv),
-                        gs.matmul(gs.transpose(xi2, (0, 2, 1)), alpha)
-                        - gs.matmul(gs.transpose(alpha, axes=(1, 2)), xi2),
+                        gs.matmul(one_forms_base_point, ginv),
+                        gs.matmul(gs.transpose(xi2, (0, 2, 1)), one_forms_base_point)
+                        - gs.matmul(
+                            gs.transpose(one_forms_base_point, axes=(1, 2)), xi2
+                        ),
                     )
                     norm += self.d1 * gs.sum(
                         gs.einsum(
@@ -455,8 +487,18 @@ class ElasticMetric(RiemannianMetric):
                         * areas
                     )
                 if self.b1 > 0 or self.a1 > 0:
-                    dg1 = gs.matmul(gs.transpose(alpha1, axes=(0, 2, 1)), alpha1) - g
-                    dg2 = gs.matmul(gs.transpose(alpha2, axes=(0, 2, 1)), alpha2) - g
+                    dg1 = (
+                        gs.matmul(
+                            gs.transpose(one_forms_a, axes=(0, 2, 1)), one_forms_a
+                        )
+                        - surface_metrics
+                    )
+                    dg2 = (
+                        gs.matmul(
+                            gs.transpose(one_forms_b, axes=(0, 2, 1)), one_forms_b
+                        )
+                        - surface_metrics
+                    )
                     ginvdg1 = gs.matmul(ginv, dg1)
                     ginvdg2 = gs.matmul(ginv, dg2)
                     norm += self.a1 * gs.sum(
@@ -470,7 +512,7 @@ class ElasticMetric(RiemannianMetric):
         return norm
 
     def squared_norm(self, vector, base_point):
-        """Squared norm of a tangent vector at a base point.
+        """Compute squared norm of a tangent vector at a base point.
 
         Parameters
         ----------
@@ -487,32 +529,32 @@ class ElasticMetric(RiemannianMetric):
         return self.inner_product(vector, vector, base_point)
 
     def stepwise_path_energy(self, path):
-        """Stepwise path energy of a PL path in the space of discrete surfaces.
+        """Compute stepwise path energy of a PL path in the space of discrete surfaces.
 
         Parameters
         ----------
-        path: array-like, shape=[time_steps,n_vertices, 3]
+        path: array-like, shape=[n_times, n_vertices, 3]
             PL path of discrete surfaces.
 
         Returns
         -------
-        stepwise_path_energy : array-like, shape=[time_steps-1]
+        stepwise_path_energy : array-like, shape=[n_times-1]
             Stepwise path energy.
         """
-        N = path.shape[0]
+        n_times = path.shape[0]
         diff = path[1:, :, :] - path[:-1, :, :]
-        midpoints = path[0 : N - 1, :, :] + diff / 2  # NOQA
-        enr = []
-        for i in range(0, N - 1):
-            enr += [N * self.squared_norm(diff[i], midpoints[i])]
-        return gs.array(enr)
+        midpoints = path[0 : n_times - 1, :, :] + diff / 2  # NOQA
+        energy = []
+        for i in range(0, n_times - 1):
+            energy += [n_times * self.squared_norm(diff[i], midpoints[i])]
+        return gs.array(energy)
 
     def path_energy(self, path):
-        """Path energy of a PL path in the space of discrete surfaces.
+        """Compute path energy of a PL path in the space of discrete surfaces.
 
         Parameters
         ----------
-        path: array-like, shape=[time_steps,n_vertices, 3]
+        path: array-like, shape=[n_times, n_vertices, 3]
             PL path of discrete surfaces.
 
         Returns
@@ -549,7 +591,7 @@ class ElasticMetric(RiemannianMetric):
             return self._ivp(initial_point, initial_tangent_vec)
 
     def exp(self, tangent_vec, base_point):
-        """Exponential map associated to the Riemmannian metric.
+        """Compute exponential map associated to the Riemmannian metric.
 
         Exponential map at base_point of tangent_vec computed
         by discrete geodesic calculus methods.
@@ -591,13 +633,13 @@ class ElasticMetric(RiemannianMetric):
         return geod[1] - geod[0]
 
     def _bvp(self, initial_point, end_point):
-        npoints = initial_point.shape[0]
-        step = (end_point - initial_point) / (self.time_steps - 1)
-        geod = gs.array([initial_point + i * step for i in range(0, self.time_steps)])
-        midpoints = geod[1 : self.time_steps - 1]  # NOQA
+        n_points = initial_point.shape[0]
+        step = (end_point - initial_point) / (self.n_times - 1)
+        geod = gs.array([initial_point + i * step for i in range(0, self.n_times)])
+        midpoints = geod[1 : self.n_times - 1]  # NOQA
 
         def funopt(midpoint):
-            midpoint = gs.reshape(gs.array(midpoint), (self.time_steps - 2, npoints, 3))
+            midpoint = gs.reshape(gs.array(midpoint), (self.n_times - 2, n_points, 3))
             return self.path_energy(
                 gs.concatenate(
                     [initial_point[None, :, :], midpoint, end_point[None, :, :]], axis=0
@@ -611,64 +653,64 @@ class ElasticMetric(RiemannianMetric):
             jac=True,
             options={"disp": True, "ftol": 0.001},
         )
-        out = gs.reshape(gs.array(sol.x), (self.time_steps - 2, npoints, 3))
+        out = gs.reshape(gs.array(sol.x), (self.n_times - 2, n_points, 3))
         geod = gs.concatenate(
             [initial_point[None, :, :], out, end_point[None, :, :]], axis=0
         )
         return geod
 
     def _ivp(self, initial_point, initial_tangent_vec):
-        h0 = initial_tangent_vec / (self.time_steps - 1)
-        V0 = initial_point
-        V1 = V0 + h0
-        ivp = [V0, V1]
-        for i in range(2, self.time_steps):
-            V2 = self._stepforward(V0, V1)
-            ivp += [V2]
-            V0 = V1
-            V1 = V2
+        initial_tangent_vec = initial_tangent_vec / (self.n_times - 1)
+        vertex_0 = initial_point
+        vertex_1 = vertex_0 + initial_tangent_vec
+        ivp = [vertex_0, vertex_1]
+        for i in range(2, self.n_times):
+            vertex_2 = self._stepforward(vertex_0, vertex_1)
+            ivp += [vertex_2]
+            vertex_0 = vertex_1
+            vertex_1 = vertex_2
         return gs.stack(ivp, axis=0)
 
-    def _stepforward(self, V0, V1):
-        npoints = V0.shape[0]
-        B = gs.zeros([npoints, 3]).requires_grad_(True)
-        qV1 = V1.clone().requires_grad_(True)
+    def _stepforward(self, vertex_0, vertex_1):
+        n_points = vertex_0.shape[0]
+        B = gs.zeros([n_points, 3]).requires_grad_(True)
+        qV1 = vertex_1.clone().requires_grad_(True)
 
-        def energy(V2):
-            V1dot = V1 - V0
-            V2dot = V2 - V1
+        def energy(vertex_2):
+            edge_10 = vertex_1 - vertex_0
+            edge_21 = vertex_2 - vertex_1
 
-            def getMetric1(Vdot):
-                return self.inner_product(V1dot, Vdot, V0)
+            def get_inner_product_1(Vdot):
+                return self.inner_product(edge_10, Vdot, vertex_0)
 
-            def getMetric2(Vdot):
-                return self.inner_product(V2dot, Vdot, V1)
+            def get_inner_product_2(Vdot):
+                return self.inner_product(edge_21, Vdot, vertex_1)
 
-            def norm(V1):
-                return self.squared_norm(V2dot, V1)
+            def norm(vertex_1):
+                return self.squared_norm(edge_21, vertex_1)
 
-            sys1 = grad(getMetric1(B), B, create_graph=True)[0]
-            sys2 = grad(getMetric2(B), B, create_graph=True)[0]
+            sys1 = grad(get_inner_product_1(B), B, create_graph=True)[0]
+            sys2 = grad(get_inner_product_2(B), B, create_graph=True)[0]
             sys3 = grad(norm(qV1), qV1, create_graph=True)[0]
 
             sys = 2 * sys1 - 2 * sys2 + sys3
             return gs.sum(sys**2)
 
-        def funopt(V2):
-            V2 = gs.reshape(gs.array(V2), (npoints, 3))
-            return energy(V2)
+        def funopt(vertex_2):
+            vertex_2 = gs.reshape(gs.array(vertex_2), (n_points, 3))
+            return energy(vertex_2)
 
         sol = minimize(
             gs.autodiff.value_and_grad(funopt),
-            gs.flatten(2 * (V1 - V0) + V0),
+            gs.flatten(2 * (vertex_1 - vertex_0) + vertex_0),
             method="L-BFGS-B",
             jac=True,
             options={"disp": True, "ftol": 0.00001},
         )
-        return gs.reshape(gs.array(sol.x), (npoints, 3))
+        return gs.reshape(gs.array(sol.x), (n_points, 3))
 
     def dist(self, point_a, point_b):
-        """Geodesic distance between two discrete surfaces.
+        """Compute geodesic distance between two discrete surfaces.
 
         Parameters
         ----------
@@ -683,5 +725,5 @@ class ElasticMetric(RiemannianMetric):
             Distance.
         """
         geod = self._bvp(point_a, point_b)
-        enr = self.stepwise_path_energy(geod)
-        return gs.sum(gs.sqrt(enr))
+        energy = self.stepwise_path_energy(geod)
+        return gs.sum(gs.sqrt(energy))
