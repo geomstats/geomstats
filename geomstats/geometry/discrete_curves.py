@@ -55,11 +55,15 @@ class DiscreteCurves(Manifold):
         a RiemannianMetric object
     srv_metric : RiemannianMetric
         Square root velocity metric.
+    centre : Bool
+        Translates sampled points for centering barycentre
+    scale : Bool
+        Resizes sampled points for unit curve length
     """
 
     def __init__(
-        self, ambient_manifold, k_sampling_points=10, a=None, b=None, **kwargs
-    ):
+        self, ambient_manifold, k_sampling_points=10, a=None, b=None, centre=False, scale=False,
+        **kwargs):
         dim = ambient_manifold.dim * k_sampling_points
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super().__init__(
@@ -71,6 +75,8 @@ class DiscreteCurves(Manifold):
         self.k_sampling_points = k_sampling_points
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
         self.srv_metric = self._metric
+        self.centre = centre
+        self.scale = scale
 
         if a is not None and b is not None:
             self.elastic_metric = ElasticMetric(
@@ -135,6 +141,23 @@ class DiscreteCurves(Manifold):
 
         return each_belongs(point) and each_has_k_sampling_points(point)
 
+    @staticmethod
+    def center(point):
+        """Center curves such that barycentre is at origin.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Point in Matrices space.
+
+        Returns
+        -------
+        centered : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Point with centered curves.
+        """
+        mean = gs.mean(point, axis=-2)
+        return point - mean[..., None, :]
+    
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at a curve.
 
@@ -210,7 +233,15 @@ class DiscreteCurves(Manifold):
         shape = point.shape
         stacked_point = gs.reshape(point, (-1, shape[-1]))
         projected_point = ambient_manifold.projection(stacked_point)
-        return gs.reshape(projected_point, shape)
+        projected_point = gs.reshape(projected_point, shape)
+        if self.centre:
+            projected_point = self.center(projected_point)
+        if self.scale:
+            curve_length = 0
+            for i in range(0, shape[-2]-1):
+                curve_length += ambient_manifold.metric.norm(projected_point[i+1] - projected_point[i])
+            projected_point = projected_point/curve_length
+        return projected_point
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random curves.
