@@ -149,8 +149,7 @@ class Manifold(abc.ABC):
         regularized_point : array-like, shape=[..., *point_shape]
             Regularized point.
         """
-        regularized_point = point
-        return regularized_point
+        return gs.copy(point)
 
     @property
     def metric(self):

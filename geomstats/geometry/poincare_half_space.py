@@ -59,8 +59,7 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        belongs = gs.logical_and(belongs, point[..., -1] >= atol)
-        return belongs
+        return gs.logical_and(belongs, point[..., -1] >= atol)
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
@@ -80,8 +79,7 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
             Projected point.
         """
         last = gs.where(point[..., -1] < atol, atol, point[..., -1])
-        projected = gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
-        return projected
+        return gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
 
 
 class PoincareHalfSpaceMetric(RiemannianMetric):

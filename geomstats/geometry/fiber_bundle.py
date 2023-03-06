@@ -12,6 +12,7 @@ import geomstats.backend as gs
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import get_batch_shape
 
 
 class FiberBundle(Manifold, ABC):
@@ -72,7 +73,7 @@ class FiberBundle(Manifold, ABC):
 
         This is the projection of the fiber bundle, defined on the total
         space, with values in the base manifold. This map is surjective.
-        By default, the base manifold  is not explicit but is identified with a
+        By default, the base manifold is not explicit but is identified with a
         local section of the fiber bundle, so the submersion is the identity
         map.
 
@@ -86,7 +87,7 @@ class FiberBundle(Manifold, ABC):
         projection : array-like, shape=[..., {base_dim, [n, m]}]
             Point of the base manifold.
         """
-        return point
+        return gs.copy(point)
 
     @staticmethod
     def lift(point):
@@ -108,7 +109,7 @@ class FiberBundle(Manifold, ABC):
         lift : array-like, shape=[..., {total_space.dim, [n, m]}]
             Point of the total space.
         """
-        return point
+        return gs.copy(point)
 
     def tangent_riemannian_submersion(self, tangent_vec, base_point):
         """Project a tangent vector to base manifold.
@@ -164,14 +165,12 @@ class FiberBundle(Manifold, ABC):
         aligned : array-like, shape=[..., {total_space.dim, [n, m]}]
             Action of the optimal g on point.
         """
+        # TODO: need to fix vectorization (with use of optimizers)
+
         group = self.group
         group_action = self.group_action
-        initial_distance = self.total_space_metric.squared_dist(point, base_point)
-        if isinstance(initial_distance, float) or initial_distance.shape == ():
-            n_samples = 1
-        else:
-            n_samples = len(initial_distance)
-        max_shape = (n_samples, self.group_dim) if n_samples > 1 else (self.group_dim,)
+
+        max_shape = get_batch_shape(self, point, base_point) + (self.group_dim,)
 
         if group is not None:
 

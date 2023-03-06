@@ -165,7 +165,7 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
 
     def __init__(self, shape, **kwargs):
         kwargs.setdefault("dim", int(gs.prod(gs.array(shape))))
-        super(ComplexVectorSpace, self).__init__(shape=shape, **kwargs)
+        super().__init__(shape=shape, **kwargs)
         self.shape = shape
         self._basis = None
 

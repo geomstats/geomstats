@@ -24,11 +24,14 @@ class RankKPSDMatrices(Manifold):
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
-    k: int
+    k : int
         Integer representing the rank of the matrix (k<n).
     """
 
     def __init__(self, n, k, **kwargs):
+        if not k < n:
+            raise ValueError("k must be lower than n")
+
         kwargs.setdefault("metric", PSDMetricBuresWasserstein(n, k))
         super().__init__(
             **kwargs,
@@ -39,7 +42,7 @@ class RankKPSDMatrices(Manifold):
         self.rank = k
         self.sym = SymmetricMatrices(self.n)
 
-    def belongs(self, mat, atol=gs.atol):
+    def belongs(self, point, atol=gs.atol):
         r"""Check if the matrix belongs to the space.
 
         Parameters
@@ -55,14 +58,16 @@ class RankKPSDMatrices(Manifold):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        is_symmetric = self.sym.belongs(mat, atol)
-        eigvalues = gs.linalg.eigvalsh(mat)
+        shape_belongs = self.shape == point.shape[-self.point_ndim :]
+        if not shape_belongs:
+            shape = point.shape[: -self.point_ndim]
+            return gs.zeros(shape, dtype=bool)
+
+        is_symmetric = self.sym.belongs(point, atol)
+        eigvalues = gs.linalg.eigvalsh(point)
         is_semipositive = gs.all(eigvalues > -atol, axis=-1)
         is_rankk = gs.sum(gs.where(eigvalues < atol, 0, 1), axis=-1) == self.rank
-        belongs = gs.logical_and(
-            gs.logical_and(is_symmetric, is_semipositive), is_rankk
-        )
-        return belongs
+        return gs.logical_and(gs.logical_and(is_symmetric, is_semipositive), is_rankk)
 
     def projection(self, point):
         r"""Project a matrix to the space of PSD matrices of rank k.
@@ -80,7 +85,7 @@ class RankKPSDMatrices(Manifold):
 
         Returns
         -------
-        projected: array-like, shape=[..., n, n]
+        projected : array-like, shape=[..., n, n]
             PSD matrix rank k.
 
         References
@@ -95,9 +100,10 @@ class RankKPSDMatrices(Manifold):
         h = gs.matmul(Matrices.transpose(v), s[..., None] * v)
         sym_proj = (sym + h) / 2
         eigvals, eigvecs = gs.linalg.eigh(sym_proj)
-        i = gs.array([0] * (self.n - self.rank) + [2 * gs.atol] * self.rank)
+        k = self.n - self.rank
+        i = gs.array([0.0] * k + [2 * gs.atol] * self.rank)
         regularized = (
-            gs.assignment(eigvals, 0, gs.arange((self.n - self.rank)), axis=0) + i
+            gs.hstack([gs.zeros(point.shape[:-2] + (k,)), eigvals[..., k:]]) + i
         )
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
 
@@ -126,7 +132,7 @@ class RankKPSDMatrices(Manifold):
         spd_mat = GeneralLinear.exp(Matrices.to_symmetric(mat))
         return self.projection(spd_mat)
 
-    def is_tangent(self, vector, base_point, tangent_atol=gs.atol):
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         r"""Check if the vector belongs to the tangent space.
 
         Parameters
@@ -136,7 +142,7 @@ class RankKPSDMatrices(Manifold):
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
             Optional, default: None.
-        tangent_atol: float
+        atol : float
             Absolute tolerance.
             Optional, default: backend atol.
 
@@ -153,8 +159,7 @@ class RankKPSDMatrices(Manifold):
         r_ort_t = Matrices.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         candidates = Matrices.mul(rr, vector_sym, rr)
-        result = gs.all(gs.isclose(candidates, 0.0, tangent_atol), axis=(-2, -1))
-        return result
+        return gs.all(gs.isclose(candidates, 0.0, atol=atol), axis=(-2, -1))
 
     def to_tangent(self, vector, base_point):
         r"""Project to the tangent space of PSD(n,k) at base_point.
@@ -169,7 +174,7 @@ class RankKPSDMatrices(Manifold):
 
         Returns
         -------
-        tangent : array-like, shape=[...,n,n]
+        tangent : array-like, shape=[..., n, n]
             Projection of the tangent vector at base_point.
         """
         vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
@@ -183,7 +188,7 @@ class RankKPSDMatrices(Manifold):
 PSDEuclideanMetric = SPDEuclideanMetric
 
 
-class PSDMatrices(RankKPSDMatrices, SPDMatrices):
+class PSDMatrices:
     r"""Class for the psd matrices.
 
     The class is redirecting to the correct embedding manifold.
