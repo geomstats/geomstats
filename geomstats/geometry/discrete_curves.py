@@ -62,8 +62,15 @@ class DiscreteCurves(Manifold):
     """
 
     def __init__(
-        self, ambient_manifold, k_sampling_points=10, a=None, b=None, centre=False, scale=False,
-        **kwargs):
+        self,
+        ambient_manifold,
+        k_sampling_points=10,
+        a=None,
+        b=None,
+        centre=False,
+        scale=False,
+        **kwargs,
+    ):
         dim = ambient_manifold.dim * k_sampling_points
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
         super().__init__(
@@ -157,7 +164,7 @@ class DiscreteCurves(Manifold):
         """
         mean = gs.mean(point, axis=-2)
         return point - mean[..., None, :]
-    
+
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at a curve.
 
@@ -238,9 +245,11 @@ class DiscreteCurves(Manifold):
             projected_point = self.center(projected_point)
         if self.scale:
             curve_length = 0
-            for i in range(0, shape[-2]-1):
-                curve_length += ambient_manifold.metric.norm(projected_point[i+1] - projected_point[i])
-            projected_point = projected_point/curve_length
+            for i in range(0, shape[-2] - 1):
+                curve_length += ambient_manifold.metric.norm(
+                    projected_point[i + 1] - projected_point[i]
+                )
+            projected_point = projected_point / curve_length
         return projected_point
 
     def random_point(self, n_samples=1, bound=1.0):
