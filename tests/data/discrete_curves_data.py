@@ -97,8 +97,8 @@ class L2CurvesMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 ambient_manifold=s2,
-                curve_a=curve_a,
-                curve_b=curve_b,
+                curve_a=spherical_curve_a,
+                curve_b=spherical_curve_b,
                 times=times,
                 k_sampling_points=k_sampling_points,
             )
