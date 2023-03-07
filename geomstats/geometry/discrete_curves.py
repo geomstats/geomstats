@@ -62,7 +62,13 @@ class DiscreteCurves(Manifold):
     """
 
     def __init__(
-        self, ambient_manifold, k_sampling_points=10, a=None, b=None, **kwargs
+        self,
+        ambient_manifold,
+        k_sampling_points=10,
+        a=None,
+        b=None,
+        start_at_the_origin=True,
+        **kwargs,
     ):
         dim = ambient_manifold.dim * k_sampling_points
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
@@ -75,7 +81,7 @@ class DiscreteCurves(Manifold):
         self.k_sampling_points = k_sampling_points
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
         self.srv_metric = self._metric
-        self.start_at_the_origin = True
+        self.start_at_the_origin = start_at_the_origin
 
         if a is not None and b is not None:
             self.elastic_metric = ElasticMetric(
@@ -483,9 +489,9 @@ class ClosedDiscreteCurves(LevelSet):
         return srv_metric.f_transform_inverse(
             srv_proj, point[:, 0] if is_vec else point[0]
         )
-        #point = gs.to_ndarray(point, to_ndim=3)
-        #proj = srv_metric.f_transform_inverse(srv_proj, point[:, 0])
-        #return proj if point_ndim == 3 else gs.squeeze(proj)
+        # point = gs.to_ndarray(point, to_ndim=3)
+        # proj = srv_metric.f_transform_inverse(srv_proj, point[:, 0])
+        # return proj if point_ndim == 3 else gs.squeeze(proj)
 
     def srv_projection(self, srv, atol=gs.atol, max_iter=1000):
         """Project a point in the srv space into the space of closed curves srv.
