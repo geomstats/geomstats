@@ -689,6 +689,9 @@ class L2CurvesMetric(RiemannianMetric):
                 signature="(i,j),(i,j)->(i)",
             )
 
+        tangent_vec_a, tangent_vec_b, base_point = gs.broadcast_arrays(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
         return gs.vectorize(
             (tangent_vec_a, tangent_vec_b, base_point),
             inner_prod_aux,
