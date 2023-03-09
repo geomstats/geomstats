@@ -49,7 +49,7 @@ class TestFrechetMean(tests.conftest.TestCase):
             mean = gs.tile(mean, (2, 1, 1))
 
             logs = metric.log(point=points, base_point=mean)
-            logs_srv = metric.aux_differential_srv_transform(logs, point=mean)
+            logs_srv = metric.tangent_diffeomorphism(logs, point=mean)
             # Note that the logs are NOT inverse, only the logs_srv are.
             result.append(gs.linalg.norm(logs_srv[1, :] + logs_srv[0, :]))
         result = gs.stack(result)
