@@ -135,7 +135,7 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         smoke_data = [dict(rtol=gs.rtol, atol=gs.atol)]
         return self.generate_tests(smoke_data)
 
-    def aux_differential_srv_transform_test_data(self):
+    def tangent_diffeomorphism_test_data(self):
         smoke_data = [
             dict(
                 dim=3,
@@ -146,11 +146,11 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def aux_differential_srv_transform_inverse_test_data(self):
+    def inverse_tangent_diffeomorphism_test_data(self):
         smoke_data = [dict(dim=3, k_sampling_points=k_sampling_points, curve_a=curve_a)]
         return self.generate_tests(smoke_data)
 
-    def aux_differential_srv_transform_vectorization_test_data(self):
+    def tangent_diffeomorphism_vectorization_test_data(self):
         smoke_data = [
             dict(
                 dim=3,

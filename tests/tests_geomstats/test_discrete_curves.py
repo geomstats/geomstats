@@ -186,7 +186,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, rtol, atol)
 
     @tests.conftest.np_and_autograd_only
-    def test_aux_differential_srv_transform(
+    def test_tangent_diffeomorphism(
         self, dim, k_sampling_points, n_curves, curve_fun_a
     ):
         """Test differential of square root velocity transform.
@@ -201,7 +201,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         tangent_vec = gs.transpose(
             gs.tile(gs.linspace(1.0, 2.0, k_sampling_points), (dim, 1))
         )
-        result = srv_metric_r3.aux_differential_srv_transform(tangent_vec, curve_a)
+        result = srv_metric_r3.tangent_diffeomorphism(tangent_vec, curve_a)
 
         times = gs.linspace(0.0, 1.0, n_curves)
         path_of_curves = curve_a + gs.einsum("i,jk->ijk", times, tangent_vec)
@@ -210,25 +210,24 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
     @tests.conftest.np_and_autograd_only
-    def test_aux_differential_srv_transform_inverse(
-        self, dim, k_sampling_points, curve_a
-    ):
+    def test_inverse_tangent_diffeomorphism(self, dim, k_sampling_points, curve_a):
         """Test inverse of differential of square root velocity transform.
-        Check that it is the inverse of aux_differential_srv_transform.
+        Check that it is the inverse of tangent_diffeomorphism.
         """
         tangent_vec = gs.transpose(
             gs.tile(gs.linspace(0.0, 1.0, k_sampling_points), (dim, 1))
         )
         srv_metric_r3 = SRVMetric(r3)
-        d_srv = srv_metric_r3.aux_differential_srv_transform(tangent_vec, curve_a)
-        result = srv_metric_r3.aux_differential_srv_transform_inverse(d_srv, curve_a)
+        srv = srv_metric_r3.diffeomorphism(curve_a)
+        d_srv = srv_metric_r3.tangent_diffeomorphism(tangent_vec, curve_a)
+        result = srv_metric_r3.inverse_tangent_diffeomorphism(d_srv, srv)
         expected = tangent_vec
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
     @tests.conftest.np_and_autograd_only
     def test_tangent_diffeomorphism_and_inverse(self, curve, tangent_vec):
         """Test inverse of differential of square root velocity transform.
-        Check that it is the inverse of aux_differential_srv_transform.
+        Check that it is the inverse of tangent_diffeomorphism.
         """
         srv_metric_r3 = SRVMetric(r3)
         srv = srv_metric_r3.diffeomorphism(curve)
@@ -237,7 +236,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = tangent_vec
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
-    def test_aux_differential_srv_transform_vectorization(
+    def test_tangent_diffeomorphism_vectorization(
         self, dim, k_sampling_points, curve_a, curve_b
     ):
         """Test differential of square root velocity transform.
@@ -246,10 +245,10 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         curves = gs.stack((curve_a, curve_b))
         tangent_vecs = gs.random.rand(2, k_sampling_points, dim)
         srv_metric_r3 = SRVMetric(r3)
-        result = srv_metric_r3.aux_differential_srv_transform(tangent_vecs, curves)
+        result = srv_metric_r3.tangent_diffeomorphism(tangent_vecs, curves)
 
-        res_a = srv_metric_r3.aux_differential_srv_transform(tangent_vecs[0], curve_a)
-        res_b = srv_metric_r3.aux_differential_srv_transform(tangent_vecs[1], curve_b)
+        res_a = srv_metric_r3.tangent_diffeomorphism(tangent_vecs[0], curve_a)
+        res_b = srv_metric_r3.tangent_diffeomorphism(tangent_vecs[1], curve_b)
         expected = gs.stack([res_a, res_b])
         self.assertAllClose(result, expected)
 
