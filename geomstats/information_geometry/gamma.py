@@ -45,8 +45,11 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
     2-dimensional Euclidean space.
     """
 
-    def __init__(self):
-        super().__init__(dim=2, embedding_space=Euclidean(2), metric=GammaMetric())
+    def __init__(self, equip=True):
+        super().__init__(dim=2, embedding_space=Euclidean(2, equip=False), equip=equip)
+
+    def _default_metric(self):
+        return GammaMetric
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold of Gamma distributions.
@@ -334,9 +337,6 @@ class GammaMetric(RiemannianMetric):
     .. [AD2008] Arwini, K. A., & Dodson, C. T. (2008).
         Information geometry (pp. 31-54). Springer Berlin Heidelberg.
     """
-
-    def __init__(self):
-        super().__init__(dim=2)
 
     def metric_matrix(self, base_point):
         """Compute the inner-product matrix.
@@ -728,7 +728,7 @@ class GammaMetric(RiemannianMetric):
 
         def ivp(state, _):
             """Reformat the initial value problem geodesic ODE."""
-            position, velocity = state[: self.dim], state[self.dim :]
+            position, velocity = state[: self._space.dim], state[self._space.dim :]
             state = gs.stack([position, velocity])
             vel, acc = self.geodesic_equation(state, _)
             eq = (vel, acc)
@@ -760,7 +760,7 @@ class GammaMetric(RiemannianMetric):
                     for pt, vc in zip(point, vec):
                         initial_state = gs.hstack([pt, vc])
                         solution = odeint(ivp, initial_state, t_int, ())
-                        shooting_point = solution[-1, : self.dim]
+                        shooting_point = solution[-1, : self._space.dim]
                         exp.append(shooting_point)
                     exp = gs.array(exp) if n_times == 1 else gs.stack(exp)
                     geod.append(exp)
@@ -769,7 +769,7 @@ class GammaMetric(RiemannianMetric):
                 for point, vec in zip(initial_point, initial_tangent_vec):
                     initial_state = gs.hstack([point, vec])
                     solution = odeint(ivp, initial_state, t_int, ())
-                    geod.append(solution[:, : self.dim])
+                    geod.append(solution[:, : self._space.dim])
 
             geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)
             return gs.where(geod < gs.atol, gs.atol, geod)
@@ -1014,7 +1014,7 @@ class GammaMetric(RiemannianMetric):
             _ :  unused
                 Any (time).
             """
-            position, velocity = state[: self.dim].T, state[self.dim :].T
+            position, velocity = state[: self._space.dim].T, state[self._space.dim :].T
             state = gs.stack([position, velocity])
             vel, acc = self.geodesic_equation(state, _)
             eq = (vel, acc)
@@ -1023,7 +1023,10 @@ class GammaMetric(RiemannianMetric):
         def boundary_cond(state_0, state_1, point_0, point_1):
             """Boundary condition for the geodesic ODE."""
             return gs.hstack(
-                (state_0[: self.dim] - point_0, state_1[: self.dim] - point_1)
+                (
+                    state_0[: self._space.dim] - point_0,
+                    state_1[: self._space.dim] - point_1,
+                )
             )
 
         def jac(_, state):
@@ -1041,7 +1044,7 @@ class GammaMetric(RiemannianMetric):
             jac : array-like, shape=[dim, dim, ...]
             """
             n_times = state.shape[1]
-            position, velocity = state[: self.dim], state[self.dim :]
+            position, velocity = state[: self._space.dim], state[self._space.dim :]
 
             dgamma = self.jacobian_christoffels(gs.transpose(position))
 
@@ -1052,9 +1055,9 @@ class GammaMetric(RiemannianMetric):
             gamma = self.christoffels(gs.transpose(position))
             df_dvelocity = -2 * gs.einsum("...ijk,k...->ij...", gamma, velocity)
 
-            jac_nw = gs.squeeze((gs.zeros((self.dim, self.dim, n_times))))
+            jac_nw = gs.squeeze((gs.zeros((self._space.dim, self._space.dim, n_times))))
             jac_ne = gs.squeeze(
-                gs.transpose(gs.tile(gs.eye(self.dim), (n_times, 1, 1)))
+                gs.transpose(gs.tile(gs.eye(self._space.dim), (n_times, 1, 1)))
             )
             jac_sw = df_dposition
             jac_se = df_dvelocity
@@ -1081,6 +1084,7 @@ class GammaMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, dim]
                 Values of the geodesic at times t.
             """
+            dim = self._space.dim
             t = gs.to_ndarray(t, to_ndim=1)
             geod = []
 
@@ -1092,14 +1096,12 @@ class GammaMetric(RiemannianMetric):
                     )
                     return gs.vstack((curve.T, velocity.T))
 
-                lin_init = gs.zeros([2 * self.dim, n_steps])
-                lin_init[: self.dim, :] = gs.transpose(
-                    gs.linspace(point_0, point_1, n_steps)
+                lin_init = gs.zeros([2 * dim, n_steps])
+                lin_init[:dim, :] = gs.transpose(gs.linspace(point_0, point_1, n_steps))
+                lin_init[dim:, :-1] = n_steps * (
+                    lin_init[:dim, 1:] - lin_init[:dim, :-1]
                 )
-                lin_init[self.dim :, :-1] = n_steps * (
-                    lin_init[: self.dim, 1:] - lin_init[: self.dim, :-1]
-                )
-                lin_init[self.dim :, -1] = lin_init[self.dim :, -2]
+                lin_init[dim:, -1] = lin_init[dim:, -2]
                 return lin_init
 
             t_int = gs.linspace(0.0, 1.0, n_steps)
@@ -1119,7 +1121,7 @@ class GammaMetric(RiemannianMetric):
                         "geodesic boundary value problem is exceeded."
                     )
                 solution_at_t = solution.sol(t)
-                geodesic = solution_at_t[: self.dim, :]
+                geodesic = solution_at_t[:dim, :]
                 geod.append(gs.squeeze(gs.transpose(geodesic)))
 
             geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)

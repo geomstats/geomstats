@@ -33,10 +33,13 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
         Dimension of the manifold of Dirichlet distributions.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, equip=True):
         super().__init__(
-            dim=dim, embedding_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
+            dim=dim, embedding_space=Euclidean(dim=dim, equip=False), equip=equip
         )
+
+    def _default_metric(self):
+        return DirichletMetric
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold of Dirichlet distributions.
@@ -191,9 +194,6 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
 class DirichletMetric(RiemannianMetric):
     """Class for the Fisher information metric on Dirichlet distributions."""
 
-    def __init__(self, dim):
-        super().__init__(dim=dim)
-
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix.
 
@@ -217,7 +217,7 @@ class DirichletMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         n_points = base_point.shape[0]
 
-        mat_ones = gs.ones((n_points, self.dim, self.dim))
+        mat_ones = gs.ones((n_points, self._space.dim, self._space.dim))
         poly_sum = gs.polygamma(1, gs.sum(base_point, -1))
         mat_diag = from_vector_to_diagonal_matrix(gs.polygamma(1, base_point))
 
@@ -264,14 +264,14 @@ class DirichletMetric(RiemannianMetric):
             )
             c2 = -c1 * gs.polygamma(2, param_sum) / gs.polygamma(1, param_sum)
 
-            mat_ones = gs.ones((n_points, self.dim, self.dim))
+            mat_ones = gs.ones((n_points, self._space.dim, self._space.dim))
             mat_diag = from_vector_to_diagonal_matrix(
                 -gs.polygamma(2, base_point) / gs.polygamma(1, base_point)
             )
             arrays = [
                 gs.zeros((1, ind_k)),
                 gs.ones((1, 1)),
-                gs.zeros((1, self.dim - ind_k - 1)),
+                gs.zeros((1, self._space.dim - ind_k - 1)),
             ]
             vec_k = gs.tile(gs.hstack(arrays), (n_points, 1))
             val_k = gs.polygamma(2, param_k) / gs.polygamma(1, param_k)
@@ -287,7 +287,7 @@ class DirichletMetric(RiemannianMetric):
             return 1 / 2 * mat
 
         christoffels = []
-        for ind_k in range(self.dim):
+        for ind_k in range(self._space.dim):
             christoffels.append(coefficients(ind_k))
         christoffels = gs.stack(christoffels, 1)
 
@@ -310,6 +310,7 @@ class DirichletMetric(RiemannianMetric):
             Jacobian of the Christoffel symbols.
             :math: 'jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l'
         """
+        dim = self._space.dim
         n_dim = base_point.ndim
         param = gs.transpose(base_point)
         sum_param = gs.sum(param, 0)
@@ -330,16 +331,16 @@ class DirichletMetric(RiemannianMetric):
         term_9 = term_2 - gs.sum(term_1, 0)
 
         jac_1 = term_1 * term_8 / term_9
-        jac_1_mat = gs.squeeze(gs.tile(jac_1, (self.dim, self.dim, self.dim, 1, 1)))
+        jac_1_mat = gs.squeeze(gs.tile(jac_1, (dim, dim, dim, 1, 1)))
         jac_2 = (
             -term_6
             / term_9**2
             * gs.einsum("j...,i...->ji...", term_4 - term_3, term_1)
         )
-        jac_2_mat = gs.squeeze(gs.tile(jac_2, (self.dim, self.dim, 1, 1, 1)))
+        jac_2_mat = gs.squeeze(gs.tile(jac_2, (dim, dim, 1, 1, 1)))
         jac_3 = term_3 * term_6 / term_9
         jac_3_mat = gs.transpose(from_vector_to_diagonal_matrix(gs.transpose(jac_3)))
-        jac_3_mat = gs.squeeze(gs.tile(jac_3_mat, (self.dim, self.dim, 1, 1, 1)))
+        jac_3_mat = gs.squeeze(gs.tile(jac_3_mat, (dim, dim, 1, 1, 1)))
         jac_4 = (
             1
             / term_9**2
@@ -424,7 +425,7 @@ class DirichletMetric(RiemannianMetric):
 
         def ivp(state, _):
             """Reformat the initial value problem geodesic ODE."""
-            position, velocity = state[: self.dim], state[self.dim :]
+            position, velocity = state[: self._space.dim], state[self._space.dim :]
             state = gs.stack([position, velocity])
             vel, acc = self.geodesic_equation(state, _)
             eq = (vel, acc)
@@ -456,7 +457,7 @@ class DirichletMetric(RiemannianMetric):
                     for pt, vc in zip(point, vec):
                         initial_state = gs.hstack([pt, vc])
                         solution = odeint(ivp, initial_state, t_int, ())
-                        exp.append(solution[-1, : self.dim])
+                        exp.append(solution[-1, : self._space.dim])
                     exp = exp[0] if n_times == 1 else gs.stack(exp)
                     geod.append(exp)
             else:
@@ -464,7 +465,7 @@ class DirichletMetric(RiemannianMetric):
                 for point, vec in zip(initial_point, initial_tangent_vec):
                     initial_state = gs.hstack([point, vec])
                     solution = odeint(ivp, initial_state, t_int, ())
-                    geod.append(solution[:, : self.dim])
+                    geod.append(solution[:, : self._space.dim])
 
             geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)
             return gs.where(geod < gs.atol, gs.atol, geod)
@@ -709,7 +710,7 @@ class DirichletMetric(RiemannianMetric):
             _ :  unused
                 Any (time).
             """
-            position, velocity = state[: self.dim].T, state[self.dim :].T
+            position, velocity = state[: self._space.dim].T, state[self._space.dim :].T
             state = gs.stack([position, velocity])
             vel, acc = self.geodesic_equation(state, _)
             eq = (vel, acc)
@@ -718,7 +719,10 @@ class DirichletMetric(RiemannianMetric):
         def boundary_cond(state_0, state_1, point_0, point_1):
             """Boundary condition for the geodesic ODE."""
             return gs.hstack(
-                (state_0[: self.dim] - point_0, state_1[: self.dim] - point_1)
+                (
+                    state_0[: self._space.dim] - point_0,
+                    state_1[: self._space.dim] - point_1,
+                )
             )
 
         def jac(_, state):
@@ -735,9 +739,10 @@ class DirichletMetric(RiemannianMetric):
             -------
             jac : array-like, shape=[dim, dim, ...]
             """
+            dim = self._space.dim
             n_dim = state.ndim
             n_times = state.shape[1] if n_dim > 1 else 1
-            position, velocity = state[: self.dim], state[self.dim :]
+            position, velocity = state[:dim], state[dim:]
 
             dgamma = self.jacobian_christoffels(gs.transpose(position))
 
@@ -749,13 +754,11 @@ class DirichletMetric(RiemannianMetric):
             df_dvelocity = -2 * gs.einsum("...ijk,k...->ij...", gamma, velocity)
 
             jac_nw = (
-                gs.zeros((self.dim, self.dim, state.shape[1]))
+                gs.zeros((dim, dim, state.shape[1]))
                 if n_dim > 1
-                else gs.zeros((self.dim, self.dim))
+                else gs.zeros((dim, dim))
             )
-            jac_ne = gs.squeeze(
-                gs.transpose(gs.tile(gs.eye(self.dim), (n_times, 1, 1)))
-            )
+            jac_ne = gs.squeeze(gs.transpose(gs.tile(gs.eye(dim), (n_times, 1, 1))))
             jac_sw = df_dposition
             jac_se = df_dvelocity
             jac = gs.concatenate(
@@ -781,6 +784,7 @@ class DirichletMetric(RiemannianMetric):
             geodesic : array-like, shape=[..., n_times, dim]
                 Values of the geodesic at times t.
             """
+            dim = self._space.dim
             t = gs.to_ndarray(t, to_ndim=1)
             geod = []
 
@@ -792,14 +796,12 @@ class DirichletMetric(RiemannianMetric):
                     )
                     return gs.vstack((curve.T, velocity.T))
 
-                lin_init = gs.zeros([2 * self.dim, n_steps])
-                lin_init[: self.dim, :] = gs.transpose(
-                    gs.linspace(point_0, point_1, n_steps)
+                lin_init = gs.zeros([2 * dim, n_steps])
+                lin_init[:dim, :] = gs.transpose(gs.linspace(point_0, point_1, n_steps))
+                lin_init[dim:, :-1] = n_steps * (
+                    lin_init[:dim, 1:] - lin_init[:dim, :-1]
                 )
-                lin_init[self.dim :, :-1] = n_steps * (
-                    lin_init[: self.dim, 1:] - lin_init[: self.dim, :-1]
-                )
-                lin_init[self.dim :, -1] = lin_init[self.dim :, -2]
+                lin_init[dim:, -1] = lin_init[dim:, -2]
                 return lin_init
 
             t_int = gs.linspace(0.0, 1.0, n_steps)
@@ -820,7 +822,7 @@ class DirichletMetric(RiemannianMetric):
                         "Result may be inaccurate."
                     )
                 solution_at_t = solution.sol(t)
-                geodesic = solution_at_t[: self.dim, :]
+                geodesic = solution_at_t[:dim, :]
                 geod.append(gs.squeeze(gs.transpose(geodesic)))
 
             geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)

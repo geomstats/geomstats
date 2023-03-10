@@ -29,9 +29,11 @@ class BetaDistributions(DirichletDistributions):
         Embedding manifold.
     """
 
-    def __init__(self):
-        super().__init__(dim=2)
-        self.metric = BetaMetric()
+    def __init__(self, equip=True):
+        super().__init__(dim=2, equip=equip)
+
+    def _default_metric(self):
+        return BetaMetric
 
     def sample(self, point, n_samples=1):
         """Sample from the beta distribution.
@@ -140,9 +142,6 @@ class BetaDistributions(DirichletDistributions):
 
 class BetaMetric(DirichletMetric):
     """Class for the Fisher information metric on beta distributions."""
-
-    def __init__(self):
-        super().__init__(dim=2)
 
     @staticmethod
     def metric_det(param_a, param_b):

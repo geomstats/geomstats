@@ -17,20 +17,18 @@ class FisherRaoMetric(RiemannianMetric):
 
     Attributes
     ----------
-    information_manifold : InformationManifoldMixin object
+    space : InformationManifoldMixin object
         Riemannian Manifold for a parametric family of (real) distributions.
     support : list, shape = (2,)
         Left and right bounds for the support of the distribution.
         But this is just to help integration, bounds should be as large as needed.
     """
 
-    def __init__(self, information_manifold, support):
+    def __init__(self, space, support):
         super().__init__(
-            dim=information_manifold.dim,
-            shape=(information_manifold.dim,),
-            signature=(information_manifold.dim, 0),
+            space=space,
+            signature=(space.dim, 0),
         )
-        self.information_manifold = information_manifold
         self.support = support
 
     def metric_matrix(self, base_point):
@@ -85,7 +83,7 @@ class FisherRaoMetric(RiemannianMetric):
             x : float, shape (,)
                 Point on the support of the distribution
             """
-            return lambda point: self.information_manifold.point_to_pdf(point)(x)
+            return lambda point: self.space.point_to_pdf(point)(x)
 
         def _function_to_integrate(x):
             pdf_x = pdf(x)
@@ -153,7 +151,7 @@ class FisherRaoMetric(RiemannianMetric):
             x : float, shape (,)
                 Point on the support of the distribution
             """
-            return lambda point: self.information_manifold.point_to_pdf(point)(x)
+            return lambda point: self.space.point_to_pdf(point)(x)
 
         def _function_to_integrate(x):
             pdf_x = pdf(x)

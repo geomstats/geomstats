@@ -9,7 +9,7 @@ import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.hypersphere import HypersphereMetric
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.information_geometry.base import InformationManifoldMixin
 
@@ -31,12 +31,14 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         Embedding manifold.
     """
 
-    def __init__(self, dim, n_draws, **kwargs):
+    def __init__(self, dim, n_draws, equip=True):
         self.dim = dim
 
-        kwargs.setdefault("metric", MultinomialMetric(dim=dim, n_draws=n_draws))
-        super().__init__(dim=dim, shape=(dim + 1,), **kwargs)
+        super().__init__(dim=dim, shape=(dim + 1,), equip=equip)
         self.n_draws = n_draws
+
+    def _default_metric(self):
+        return MultinomialMetric
 
     def _define_embedding_space(self):
         return Euclidean(self.dim + 1)
@@ -181,10 +183,9 @@ class MultinomialMetric(RiemannianMetric):
         Science, 4(3): 188 - 234, 1989.
     """
 
-    def __init__(self, dim, n_draws):
-        super().__init__(dim=dim, shape=(dim + 1,))
-        self.n_draws = n_draws
-        self.sphere_metric = HypersphereMetric(dim)
+    def __init__(self, space):
+        super().__init__(space)
+        self._sphere = Hypersphere(dim=space.dim)
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix.
@@ -207,7 +208,7 @@ class MultinomialMetric(RiemannianMetric):
                 "A base point must be given to compute the " "metric matrix"
             )
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        mat = self.n_draws * from_vector_to_diagonal_matrix(1 / base_point)
+        mat = self._space.n_draws * from_vector_to_diagonal_matrix(1 / base_point)
         return gs.squeeze(mat)
 
     @staticmethod
@@ -317,7 +318,7 @@ class MultinomialMetric(RiemannianMetric):
         """
         base_point_sphere = self.simplex_to_sphere(base_point)
         tangent_vec_sphere = self.tangent_simplex_to_sphere(tangent_vec, base_point)
-        exp_sphere = self.sphere_metric.exp(tangent_vec_sphere, base_point_sphere)
+        exp_sphere = self._sphere.metric.exp(tangent_vec_sphere, base_point_sphere)
 
         return self.sphere_to_simplex(exp_sphere)
 
@@ -343,7 +344,7 @@ class MultinomialMetric(RiemannianMetric):
         """
         point_sphere = self.simplex_to_sphere(point)
         base_point_sphere = self.simplex_to_sphere(base_point)
-        log_sphere = self.sphere_metric.log(point_sphere, base_point_sphere)
+        log_sphere = self._sphere.metric.log(point_sphere, base_point_sphere)
 
         return self.tangent_sphere_to_simplex(log_sphere, base_point_sphere)
 
@@ -385,7 +386,7 @@ class MultinomialMetric(RiemannianMetric):
             vec_sphere = self.tangent_simplex_to_sphere(
                 initial_tangent_vec, initial_point
             )
-        geodesic_sphere = self.sphere_metric.geodesic(
+        geodesic_sphere = self._sphere.metric.geodesic(
             initial_point_sphere, end_point_sphere, vec_sphere
         )
 
@@ -439,7 +440,7 @@ class MultinomialMetric(RiemannianMetric):
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at `base_point`.
         """
-        sectional_curv = 2 * gs.sqrt(self.n_draws)
+        sectional_curv = 2 * gs.sqrt(self._space.n_draws)
         if (
             tangent_vec_a.ndim == 1
             and tangent_vec_b.ndim == 1
