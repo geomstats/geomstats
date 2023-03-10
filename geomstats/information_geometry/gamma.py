@@ -167,33 +167,31 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the Gamma distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
+        kappa = gs.expand_dims(point[..., 0], axis=-1)
+        gamma = gs.expand_dims(point[..., 1], axis=-1)
 
         def pdf(x):
             """Generate parameterized function for Gamma pdf.
 
             Parameters
             ----------
-            x : array-like, shape=[n_points, dim]
+            x : array-like, shape=[n_samples,]
                 Points at which to compute the probability
                 density function.
 
             Returns
             -------
-            pdf_at_x : array-like, shape=[..., n_points]
+            pdf_at_x : array-like, shape=[..., n_samples]
                 Values of pdf at x for each value of the parameters provided
                 by point.
             """
-            pdf_at_x = gs.array(
-                [
-                    gamma.pdf(t, a=point[:, 0], scale=point[:, 1] / point[:, 0])
-                    for t in gs.array(x)
-                ]
+            x = gs.reshape(gs.array(x), (-1,))
+            return (
+                kappa**kappa
+                * x ** (kappa - 1)
+                * gs.exp(-kappa * x / gamma)
+                / (gamma**kappa * gs.gamma(kappa))
             )
-            pdf_at_x = gs.squeeze(gs.stack(pdf_at_x, axis=0)).transpose()
-
-            return pdf_at_x
 
         return pdf
 
@@ -340,7 +338,7 @@ class GammaMetric(RiemannianMetric):
     def __init__(self):
         super().__init__(dim=2)
 
-    def metric_matrix(self, base_point=None):
+    def metric_matrix(self, base_point):
         """Compute the inner-product matrix.
 
         Compute the inner-product matrix of the Fisher information metric
@@ -356,10 +354,6 @@ class GammaMetric(RiemannianMetric):
         mat : array-like, shape=[..., 2, 2]
             Inner-product matrix.
         """
-        if base_point is None:
-            raise ValueError(
-                "A base point must be given to compute the " "metric matrix"
-            )
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
         kappa, gamma = base_point[:, 0], base_point[:, 1]

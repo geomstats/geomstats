@@ -141,13 +141,15 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
 
             Parameters
             ----------
-            k : array-like, shape=[n_points,]
+            k : array-like, shape=[n_samples,]
                 Integers in {0, ..., n_draws} at which to
                 compute the probability mass function.
 
             Returns
             -------
-            pmf_at_k : array-like, shape=[..., n_points]
+            pmf_at_k : array-like, shape=[..., n_samples]
+                Values of pdf at k for each value of the parameters provided
+                by point.
             """
             k = gs.reshape(gs.array(k), (-1,))
             return (
