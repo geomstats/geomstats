@@ -401,8 +401,8 @@ def ndim(x):
 
 def hsplit(x, indices_or_section):
     if isinstance(indices_or_section, int):
-        indices_or_section = x.shape[1] // indices_or_section
-    return _torch.split(x, indices_or_section, dim=1)
+        indices_or_section = x.shape[-1] // indices_or_section
+    return _torch.split(x, indices_or_section, dim=-1)
 
 
 def diagonal(x, offset=0, axis1=0, axis2=1):

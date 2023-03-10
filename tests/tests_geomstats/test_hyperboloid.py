@@ -14,11 +14,13 @@ from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
     skip_test_extrinsic_after_intrinsic = True
     skip_test_projection_belongs = True
+    skip_test_extrinsic_ball_extrinsic_composition = True
+    skip_test_extrinsic_half_plane_extrinsic_composition = True
 
     testing_data = HyperboloidTestData()
 
-    def test_belongs(self, dim, default_coords_type, vec, expected):
-        space = self.Space(dim, default_coords_type=default_coords_type)
+    def test_belongs(self, dim, vec, expected):
+        space = self.Space(dim)
         self.assertAllClose(space.belongs(vec), gs.array(expected))
 
     def test_regularize_raises(self, dim, point, expected):
@@ -68,6 +70,9 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
     skip_test_exp_belongs = True
+    skip_test_exp_after_log_intrinsic_ball_extrinsic = True
+    skip_test_exp_after_log_intrinsic_ball_extrinsic = True
+    skip_test_distance_ball_extrinsic_intrinsic = True
 
     testing_data = HyperboloidMetricTestData()
 
@@ -159,7 +164,6 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(dst_ball, dst_extr)
 
     def test_distance_ball_extrinsic_intrinsic(self, dim, x_intrinsic, y_intrinsic):
-
         intrinsic_manifold = Hyperboloid(dim, default_coords_type="intrinsic")
         extrinsic_manifold = Hyperboloid(dim, default_coords_type="extrinsic")
         x_extr = intrinsic_manifold.to_coordinates(

@@ -10,7 +10,7 @@ import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperboloid import Hyperboloid
 
-H2 = Hyperboloid(dim=2, default_coords_type="extrinsic")
+H2 = Hyperboloid(dim=2)
 METRIC = H2.metric
 
 

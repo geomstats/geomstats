@@ -130,9 +130,9 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
 
         Parameters
         ----------
-        point : array-like, shape=[n, n]
+        point : array-like, shape=[..., n, n]
             Target point.
-        base_point : array-like, shape=[n, n], optional
+        base_point : array-like, shape=[..., n, n], optional
             Base point.
             Optional, defaults to identity if None.
 
@@ -163,8 +163,23 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         """
         tangent_vec = cls.log(point, base_point)
 
+        if base_point is not None and gs.ndim(base_point) < gs.ndim(tangent_vec):
+            base_point = gs.broadcast_to(base_point, tangent_vec.shape)
+        is_vec = gs.ndim(tangent_vec) > 2
+
         def path(time):
             vecs = gs.einsum("t,...ij->...tij", time, tangent_vec)
+            if is_vec and base_point is None:
+                return gs.stack([cls.exp(vecs_) for vecs_ in vecs])
+
+            if is_vec:
+                return gs.stack(
+                    [
+                        cls.exp(vecs_, base_point_)
+                        for vecs_, base_point_ in zip(vecs, base_point)
+                    ]
+                )
+
             return cls.exp(vecs, base_point)
 
         return path

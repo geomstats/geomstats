@@ -95,10 +95,9 @@ class PoincareBall(_Hyperbolic, OpenSet):
             projected_point = gs.einsum(
                 "...j,...->...j", point * (1 - gs.atol), 1.0 / l2_norm
             )
-            projected_point = -gs.maximum(-projected_point, -point)
-            return projected_point
+            return -gs.maximum(-projected_point, -point)
 
-        return point
+        return gs.copy(point)
 
 
 class PoincareBallMetric(RiemannianMetric):
