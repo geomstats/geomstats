@@ -486,9 +486,6 @@ class ClosedDiscreteCurves(LevelSet):
         return srv_metric.f_transform_inverse(
             srv_proj, point[:, 0] if is_vec else point[0]
         )
-        # point = gs.to_ndarray(point, to_ndim=3)
-        # proj = srv_metric.f_transform_inverse(srv_proj, point[:, 0])
-        # return proj if point_ndim == 3 else gs.squeeze(proj)
 
     def srv_projection(self, srv, atol=gs.atol, max_iter=1000):
         """Project a point in the srv space into the space of closed curves srv.
@@ -636,7 +633,7 @@ class L2CurvesMetric(RiemannianMetric):
 
         Parameters
         ----------
-        func : array-like, shape=[..., k_sampling_points_minus_one]
+        func : array-like, shape=[..., k_sampling_points - 1]
             Sample points of a function at regularly spaced times.
 
         Returns
@@ -644,11 +641,9 @@ class L2CurvesMetric(RiemannianMetric):
         riemann_sum : array-like, shape=[..., ]
             Left Riemann sum.
         """
-        func = gs.to_ndarray(func, to_ndim=2)
         k_sampling_points_minus_one = func.shape[-1]
         dt = 1 / k_sampling_points_minus_one
-        riemann_sum = dt * gs.sum(func, axis=-1)
-        return gs.squeeze(riemann_sum)
+        return dt * gs.sum(func, axis=-1)
 
     def pointwise_inner_products(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the pointwise inner products of a pair of tangent vectors.
@@ -720,9 +715,7 @@ class L2CurvesMetric(RiemannianMetric):
         )
         return gs.sqrt(sq_norm)
 
-    def inner_product(
-        self, tangent_vec_a, tangent_vec_b, base_point=None  # , missing_last_time=True
-    ):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute L2 inner product between two tangent vectors.
 
         The inner product is the integral of the ambient space inner product,
@@ -1278,7 +1271,6 @@ class SRVMetric(PullbackDiffeoMetric):
                     " or an ambient manifold"
                     " equipped with a metric."
                 )
-        self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
         self.translation_invariant = translation_invariant
 
     def define_embedding_metric(self):
@@ -1484,7 +1476,7 @@ class SRVMetric(PullbackDiffeoMetric):
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
 
-        inner_prod = self.l2_curves_metric.pointwise_inner_products(
+        inner_prod = self.embedding_metric.pointwise_inner_products(
             d_vec, unit_velocity_vec, base_point[..., :-1, :]
         )
         d_vec_tangential = gs.einsum("...ij,...i->...ij", unit_velocity_vec, inner_prod)
@@ -1533,7 +1525,7 @@ class SRVMetric(PullbackDiffeoMetric):
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
-        inner_prod = self.l2_curves_metric.pointwise_inner_products(
+        inner_prod = self.embedding_metric.pointwise_inner_products(
             tangent_vec, unit_velocity_vec, point[..., :-1, :]
         )
         tangent_vec_tangential = gs.einsum(

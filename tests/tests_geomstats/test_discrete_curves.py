@@ -261,7 +261,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         srv = srv_metric_r3.f_transform(curve)
         tangent_srv_vecs_a = srv_metric_r3.tangent_diffeomorphism(vec_a, curve)
         tangent_srv_vecs_b = srv_metric_r3.tangent_diffeomorphism(vec_b, curve)
-        expected = srv_metric_r3.l2_curves_metric.inner_product(
+        expected = srv_metric_r3.embedding_metric.inner_product(
             tangent_srv_vecs_a, tangent_srv_vecs_b, srv
         )
         self.assertAllClose(result, expected)
@@ -349,13 +349,13 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         srv_metric_r3 = SRVMetric(ambient_manifold=r3)
 
         tangent_vecs = l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
-        result = srv_metric_r3.l2_curves_metric.pointwise_inner_products(
+        result = srv_metric_r3.embedding_metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_point=curves_ab
         )
         expected_shape = (n_discretized_curves, k_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-        result = srv_metric_r3.l2_curves_metric.pointwise_inner_products(
+        result = srv_metric_r3.embedding_metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs[0],
             tangent_vec_b=tangent_vecs[0],
             base_point=curves_ab[0],
