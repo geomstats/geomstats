@@ -17,20 +17,26 @@ s2 = Hypersphere(dim=2)
 r2 = Euclidean(dim=2)
 r3 = s2.embedding_space
 
-initial_point = gs.array([0.0, 0.0, 1.0])
-initial_tangent_vec_a = gs.array([1.0, 0.0, 0.0])
-initial_tangent_vec_b = gs.array([0.0, 1.0, 0.0])
-initial_tangent_vec_c = gs.array([-1.0, 0.0, 0.0])
+point = gs.array([0.0, 0.0, 1.0])
+vec_a = gs.array([1.0, 0.0, 0.0])
+vec_b = gs.array([0.0, 1.0, 0.0])
+vec_c = gs.array([-1.0, 0.0, 0.0])
 
-curve_fun_a = s2.metric.geodesic(
-    initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_a
-)
-curve_fun_b = s2.metric.geodesic(
-    initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_b
-)
-curve_fun_c = s2.metric.geodesic(
-    initial_point=initial_point, initial_tangent_vec=initial_tangent_vec_c
-)
+spherical_curve_fun_a = s2.metric.geodesic(point, initial_tangent_vec=vec_a)
+spherical_curve_fun_b = s2.metric.geodesic(point, initial_tangent_vec=vec_b)
+spherical_curve_fun_c = s2.metric.geodesic(point, initial_tangent_vec=vec_c)
+
+
+def curve_fun_a(times):
+    return spherical_curve_fun_a(times) - point
+
+
+def curve_fun_b(times):
+    return spherical_curve_fun_b(times) - point
+
+
+def curve_fun_c(times):
+    return spherical_curve_fun_c(times) - point
 
 
 k_sampling_points = 10
@@ -38,10 +44,21 @@ sampling_times = gs.linspace(0.0, 1.0, k_sampling_points)
 curve_a = curve_fun_a(sampling_times)
 curve_b = curve_fun_b(sampling_times)
 curve_c = curve_fun_c(sampling_times)
-
+spherical_curve_a = spherical_curve_fun_a(sampling_times)
+spherical_curve_b = spherical_curve_fun_b(sampling_times)
+spherical_curve_c = spherical_curve_fun_c(sampling_times)
 
 n_discretized_curves = 5
 times = gs.linspace(0.0, 1.0, n_discretized_curves)
+l2metric_s2 = L2CurvesMetric(ambient_manifold=s2)
+spherical_curves_fun_ab = l2metric_s2.geodesic(spherical_curve_a, spherical_curve_b)
+spherical_curves_fun_bc = l2metric_s2.geodesic(spherical_curve_b, spherical_curve_c)
+spherical_curves_ab = spherical_curves_fun_ab(times)
+spherical_curves_bc = spherical_curves_fun_bc(times)
+curves_ab = spherical_curves_ab - point
+curves_bc = spherical_curves_bc - point
+vec_a = gs.transpose(gs.tile(gs.linspace(0.0, 1.0, k_sampling_points), (3, 1)))
+vec_b = gs.transpose(gs.tile(gs.linspace(0.0, 2.0, k_sampling_points), (3, 1)))
 
 
 class DiscreteCurvesTestData(_ManifoldTestData):
@@ -80,8 +97,8 @@ class L2CurvesMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 ambient_manifold=s2,
-                curve_a=curve_a,
-                curve_b=curve_b,
+                curve_a=spherical_curve_a,
+                curve_b=spherical_curve_b,
                 times=times,
                 k_sampling_points=k_sampling_points,
             )
@@ -114,7 +131,11 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         smoke_data = [dict(rtol=gs.rtol, atol=gs.atol)]
         return self.generate_tests(smoke_data)
 
-    def aux_differential_srv_transform_test_data(self):
+    def diffeomorphism_and_inverse_diffeomorphism_test_data(self):
+        smoke_data = [dict(rtol=gs.rtol, atol=gs.atol)]
+        return self.generate_tests(smoke_data)
+
+    def tangent_diffeomorphism_test_data(self):
         smoke_data = [
             dict(
                 dim=3,
@@ -125,38 +146,50 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def aux_differential_srv_transform_inverse_test_data(self):
+    def inverse_tangent_diffeomorphism_test_data(self):
         smoke_data = [dict(dim=3, k_sampling_points=k_sampling_points, curve_a=curve_a)]
         return self.generate_tests(smoke_data)
 
-    def aux_differential_srv_transform_vectorization_test_data(self):
+    def tangent_diffeomorphism_vectorization_test_data(self):
         smoke_data = [
             dict(
                 dim=3,
                 k_sampling_points=k_sampling_points,
                 curve_a=curve_a,
                 curve_b=curve_b,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def tangent_diffeomorphism_and_inverse_test_data(self):
+        smoke_data = [dict(curve=curve_a, tangent_vec=vec_a)]
+        return self.generate_tests(smoke_data)
+
+    def srv_inner_product_test_data(self):
+        smoke_data = [
+            dict(
+                curve=curve_a,
+                vec_a=vec_a,
+                vec_b=vec_b,
+                k_sampling_points=k_sampling_points,
+                n_vecs=3,
             )
         ]
         return self.generate_tests(smoke_data)
 
     def srv_inner_product_elastic_test_data(self):
-        smoke_data = [dict(dim=3, k_sampling_points=k_sampling_points, curve_a=curve_a)]
+        smoke_data = [
+            dict(
+                curve=curve_a,
+                vec_a=vec_a,
+                vec_b=vec_b,
+                k_sampling_points=k_sampling_points,
+            )
+        ]
         return self.generate_tests(smoke_data)
 
     def srv_inner_product_and_dist_test_data(self):
         smoke_data = [dict(dim=3, curve_a=curve_a, curve_b=curve_b)]
-        return self.generate_tests(smoke_data)
-
-    def srv_inner_product_vectorization_test_data(self):
-        smoke_data = [
-            dict(
-                dim=3,
-                k_sampling_points=k_sampling_points,
-                curve_a=curve_a,
-                curve_b=curve_b,
-            )
-        ]
         return self.generate_tests(smoke_data)
 
     def space_derivative_test_data(self):
@@ -170,23 +203,11 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def srv_inner_product_test_data(self):
-        smoke_data = [
-            dict(curve_a=curve_a, curve_b=curve_b, curve_c=curve_c, times=times)
-        ]
-        return self.generate_tests(smoke_data)
-
-    def srv_norm_test_data(self):
-        smoke_data = [dict(curve_a=curve_a, curve_b=curve_b, times=times)]
-        return self.generate_tests(smoke_data)
-
     def srv_metric_pointwise_inner_products_test_data(self):
         smoke_data = [
             dict(
-                times=times,
-                curve_a=curve_a,
-                curve_b=curve_b,
-                curve_c=curve_c,
+                curves_ab=curves_ab,
+                curves_bc=curves_bc,
                 n_discretized_curves=n_discretized_curves,
                 k_sampling_points=k_sampling_points,
             )
@@ -194,7 +215,7 @@ class SRVMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def srv_transform_and_inverse_test_data(self):
-        smoke_data = [dict(times=times, curve_a=curve_a, curve_b=curve_b)]
+        smoke_data = [dict(curves=curves_ab)]
         return self.generate_tests(smoke_data)
 
 
@@ -299,7 +320,11 @@ class SRVShapeBundleTestData(TestData):
 
     def horizontal_geodesic_test_data(self):
         smoke_data = [
-            dict(k_sampling_points=k_sampling_points, curve_a=curve_a, n_times=20)
+            dict(
+                k_sampling_points=k_sampling_points,
+                curve_a=spherical_curve_a,
+                n_times=20,
+            )
         ]
         return self.generate_tests(smoke_data)
 
