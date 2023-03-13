@@ -263,7 +263,7 @@ class HyperboloidMetric(HyperbolicMetric):
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        sq_norm_tangent_vec = self._space.embedding_space._metric.squared_norm(
+        sq_norm_tangent_vec = self._space.embedding_space.metric.squared_norm(
             tangent_vec
         )
         sq_norm_tangent_vec = gs.clip(sq_norm_tangent_vec, 0, math.inf)

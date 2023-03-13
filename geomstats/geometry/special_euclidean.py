@@ -195,7 +195,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
             equip=equip,
         )
-        self.rotations = SpecialOrthogonal(n=n, equip=False)
+        self.rotations = SpecialOrthogonal(n=n, equip=True)
         self.translations = Euclidean(dim=n, equip=False)
 
     def _default_metric(self):
@@ -1147,7 +1147,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
         rot_a = tangent_vec[..., :n, :n]
         rot_b = direction[..., :n, :n]
         rot_bp = base_point[..., :n, :n]
-        transported_rot = self._space.rotations.bi_invariant_metric.parallel_transport(
+        transported_rot = self._space.rotations.metric.parallel_transport(
             rot_a, rot_bp, rot_b
         )
         translation = tangent_vec[..., :n, n]

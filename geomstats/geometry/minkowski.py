@@ -39,12 +39,10 @@ class MinkowskiMetric(RiemannianMetric):
     """Class for the pseudo-Riemannian Minkowski metric.
 
     The metric is flat: the inner product is independent of the base point.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the Minkowski space.
     """
+
+    def __init__(self, space):
+        super().__init__(space=space, signature=(space.dim - 1, 1))
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.

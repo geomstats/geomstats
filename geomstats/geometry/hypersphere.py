@@ -642,17 +642,16 @@ class _Hypersphere(LevelSet):
             [tangent_sample_intr, gs.zeros(n_accepted)[:, None]], axis=1
         )
 
-        metric = HypersphereMetric(dim)
         north_pole = gs.array([0.0] * dim + [1.0])
         if mean is not None:
-            mean_from_north = metric.log(mean, north_pole)
-            tangent_sample_at_pt = metric.parallel_transport(
+            mean_from_north = self.metric.log(mean, north_pole)
+            tangent_sample_at_pt = self.metric.parallel_transport(
                 tangent_sample, north_pole, mean_from_north
             )
         else:
             tangent_sample_at_pt = tangent_sample
             mean = north_pole
-        sample = metric.exp(tangent_sample_at_pt, mean)
+        sample = self.metric.exp(tangent_sample_at_pt, mean)
         return sample[0] if (n_samples == 1) else sample
 
 

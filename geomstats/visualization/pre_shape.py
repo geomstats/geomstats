@@ -4,14 +4,14 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
+from geomstats.geometry.pre_shape import PreShapeSpace
 
 M32 = Matrices(m=3, n=2)
 S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
-METRIC_S32 = KendallShapeMetric(k_landmarks=3, m_ambient=2)
+METRIC_S32 = S32.metric
 M33 = Matrices(m=3, n=3)
 S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
-METRIC_S33 = KendallShapeMetric(k_landmarks=3, m_ambient=3)
+METRIC_S33 = S33.metric
 
 
 class KendallSphere:
