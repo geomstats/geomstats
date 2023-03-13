@@ -4,6 +4,7 @@ Lead author: Alice Le Brigant.
 """
 
 import math
+from heapq import merge
 
 from scipy.interpolate import CubicSpline
 
@@ -17,6 +18,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 
 R2 = Euclidean(dim=2)
 R3 = Euclidean(dim=3)
@@ -58,7 +60,7 @@ class DiscreteCurves(Manifold):
     """
 
     def __init__(
-        self, ambient_manifold, k_sampling_points=10, a=None, b=None, **kwargs
+        self, ambient_manifold, k_sampling_points=10, a=None, b=None, **kwargs,
     ):
         dim = ambient_manifold.dim * k_sampling_points
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
@@ -701,9 +703,7 @@ class L2CurvesMetric(RiemannianMetric):
         )
         return gs.sqrt(sq_norm)
 
-    def inner_product(
-        self, tangent_vec_a, tangent_vec_b, base_point=None, missing_last_time=True
-    ):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None, missing_last_time=True):
         """Compute L2 inner product between two tangent vectors.
 
         The inner product is the integral of the ambient space inner product,
@@ -802,7 +802,7 @@ class L2CurvesMetric(RiemannianMetric):
         )
 
 
-class ElasticMetric(RiemannianMetric):
+class ElasticMetric(PullbackDiffeoMetric):
     """Elastic metric defined using the F_transform.
 
     Each individual curve is represented by a 2d-array of shape `[
@@ -832,24 +832,19 @@ class ElasticMetric(RiemannianMetric):
         plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
     """
 
+
     def __init__(
         self, a, b, ambient_manifold=R2, ambient_metric=None, translation_invariant=True
     ):
-        super().__init__(
-            dim=math.inf,
-            signature=(math.inf, 0, 0),
-            shape=(None,) + ambient_manifold.shape,
-        )
+        self.ambient_manifold = ambient_manifold
+        super().__init__(dim = math.inf, shape = None, signature = (math.inf, 0, 0))
+
         self.ambient_metric = ambient_metric
         if ambient_metric is None:
-            if hasattr(ambient_manifold, "metric"):
-                self.ambient_metric = ambient_manifold.metric
-            else:
-                raise ValueError(
-                    "Instantiating an object of class "
-                    "ElasticMetric requires either a metric"
-                    " or an ambient manifold"
-                    " equipped with a metric."
+            if hasattr(ambient_manifold, "metric"): self.ambient_metric = ambient_manifold.metric
+            else: raise ValueError(
+                    "Instantiating an object of class ElasticMetric requires either a metric"
+                    " or an ambient manifold equipped with a metric."
                 )
         self.ambient_manifold = ambient_manifold
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
@@ -857,12 +852,12 @@ class ElasticMetric(RiemannianMetric):
         self.a = a
         self.b = b
 
-    def cartesian_to_polar(self, tangent_vec):
+    def _cartesian_to_polar(self, tangent_vec):
         """Compute polar coordinates of a tangent vector from the cartesian ones.
 
         This function is an auxiliary function used for the computation
-        of the f_transform and its inverse, and is applied to the derivative
-        of a curve.
+        of the f_transform and its inverse : self.diffeomorphism and self.inverse_diffeomorphism, 
+        and is applied to the derivative of a curve.
 
         See [KN2018]_ for details.
 
@@ -909,8 +904,11 @@ class ElasticMetric(RiemannianMetric):
 
         return polar_tangent_vec
 
-    def polar_to_cartesian(self, polar_tangent_vec):
+    def _polar_to_cartesian(self, polar_tangent_vec):
         """Compute the cartesian coordinates of a tangent vector from polar ones.
+
+        This function is an auxiliary function used for the computation
+        of the f_transform : self.diffeomorphism .
 
         Parameters
         ----------
@@ -941,7 +939,7 @@ class ElasticMetric(RiemannianMetric):
 
         return tangent_vec
 
-    def f_transform(self, point):
+#    def f_transform(self, point):
         r"""Compute the f_transform of a curve.
 
         Note that the f_transform is defined on the space of curves
@@ -1002,18 +1000,18 @@ class ElasticMetric(RiemannianMetric):
             )
         k_sampling_points = point.shape[-2]
         velocity = (k_sampling_points - 1) * (point[..., 1:, :] - point[..., :-1, :])
-        polar_velocity = self.cartesian_to_polar(velocity)
+        polar_velocity = self._cartesian_to_polar(velocity)
         speeds = polar_velocity[..., :, 0]
         args = polar_velocity[..., :, 1]
 
         f_args = args * self.a / (2 * self.b)
         f_norms = 2 * self.b * gs.sqrt(speeds)
         f_polar = gs.stack([f_norms, f_args], axis=-1)
-        f_cartesian = self.polar_to_cartesian(f_polar)
+        f_cartesian = self._polar_to_cartesian(f_polar)
 
         return f_cartesian
 
-    def f_transform_inverse(self, f_trans, starting_sampling_point):
+#    def f_transform_inverse(self, f_trans, starting_sampling_point):
         r"""Compute the inverse F_transform of a transformed curve.
 
         This only works if a / (2b) <= 1.
@@ -1087,7 +1085,7 @@ class ElasticMetric(RiemannianMetric):
         curve = gs.cumsum(curve, -2)
         return gs.squeeze(curve)
 
-    def dist(self, point_a, point_b, rescaled=False):
+#    def dist(self, point_a, point_b, rescaled=False):
         """Compute the geodesic distance between two curves.
 
         The two F_transforms are computed with corrected arguments
@@ -1127,6 +1125,154 @@ class ElasticMetric(RiemannianMetric):
 
         return distance
 
+    def define_embedding_metric(self):
+        return L2CurvesMetric(ambient_manifold = self.ambient_manifold)
+    
+    def diffeomorphism(self, point):
+        r"""Compute the f_transform of a curve.
+
+        Note that the f_transform is defined on the space of curves
+        quotiented by translations, which is identified with the space
+        of curves with their first sampling point located at 0:
+
+        .. math::
+            curve(0) = (0, 0)
+
+        The f_transform is given by the formula:
+
+        .. math::
+            Imm(I, R^2) / R^2 \mapsto C^\infty(I, C*)
+            c \mapsto 2b |c'|^{1/2} (\frac{c'}{|c'|})^{a/(2b)}
+
+        where the identification :math:`C = R^2` is used and
+        the exponentiation is a complex exponentiation, which can make
+        the f_transform not well-defined:
+
+        .. math::
+            f(c) = 2b r^{1/2}\exp(i\theta * a/(2b)) * \exp(ik\pi * a/b)
+
+        where (r, theta) is the polar representation of c', and for
+        any :math:`k \in Z`.
+
+        The implementation uses formula (3) from [KN2018]_ , i.e. choses
+        the representative corresponding to k = 0.
+
+        Notes
+        -----
+        f_transform is a bijection if and only if a/2b=1.
+
+        If a 2b is an integer not equal to 1:
+        - then f_transform is well-defined but many-to-one.
+
+        If a 2b is not an integer:
+        - then f_transform is multivalued,
+        - and f_transform takes finitely many values if and only if a 2b is rational.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        f : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            F_transform of the curve..
+        """
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "f_transform is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
+        k_sampling_points = point.shape[-2]
+        velocity = (k_sampling_points - 1) * (point[..., 1:, :] - point[..., :-1, :])
+        polar_velocity = self._cartesian_to_polar(velocity)
+        speeds = polar_velocity[..., :, 0]
+        args = polar_velocity[..., :, 1]
+
+        f_args = args * ( self.a / (2 * self.b) )
+        f_norms = 2 * self.b * gs.sqrt(speeds)
+        f_polar = gs.stack([f_norms, f_args], axis=-1)
+        f_cartesian = self._polar_to_cartesian(f_polar)
+
+        return f_cartesian
+
+    def inverse_diffeomorphism(self, f_trans):
+        r"""Compute the inverse F_transform of a transformed curve.
+
+        This only works if a / (2b) <= 1.
+        See [KN2018]_ for details.
+
+        When the f_transform is many-to-one, one antecedent is chosen.
+
+        Notes
+        -----
+        f_transform is a bijection if and only if a / (2b) = 1.
+
+        If a / (2b) is an integer not equal to 1:
+        - then f_transform is well-defined but many-to-one.
+
+        If a / (2b) is not an integer:
+        - then f_transform is multivalued,
+        - and f_transform takes finitely many values if and only if a 2b is rational.
+
+        Parameters
+        ----------
+        f_trans : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            f-transform of a discrete curve.
+
+        starting_sampling_point: array-like, shape=[..., ambient_dim]
+            Point of the ambient manifold to use as start of the retrieved curve.
+
+        Returns
+        -------
+        curve : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Discrete curve.
+        """
+        starting_sampling_point = [0,0] 
+        starting_sampling_point = gs.to_ndarray( starting_sampling_point, to_ndim=f_trans.ndim, axis=-2)
+
+        if not (
+            isinstance(self.ambient_manifold, Euclidean)
+            and self.ambient_manifold.dim == 2
+        ):
+            raise NotImplementedError(
+                "f_transform_inverse is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{self.ambient_manifold} of dimension {self.ambient_manifold.dim}."
+            )
+
+        if self.a / (2 * self.b) > 1:
+            raise NotImplementedError(
+                "f_transform_inverse is only implemented for a / (2b) <= 1."
+            )
+
+        k_sampling_points_minus_one = f_trans.shape[-2]
+
+        f_polar = self._cartesian_to_polar(f_trans)
+        f_norms = f_polar[..., :, 0]
+        f_args = f_polar[..., :, 1]
+
+        dt = 1 / k_sampling_points_minus_one
+
+        delta_points_x = gs.einsum(
+            "...i,...i->...i", dt * f_norms**2, gs.cos(2 * self.b / self.a * f_args)
+        )
+        delta_points_y = gs.einsum(
+            "...i,...i->...i", dt * f_norms**2, gs.sin(2 * self.b / self.a * f_args)
+        )
+
+        delta_points = gs.stack((delta_points_x, delta_points_y), axis=-1)
+
+        delta_points = 1 / (4 * self.b**2) * delta_points
+
+        curve = gs.concatenate([starting_sampling_point, delta_points], axis=-2)
+        curve = gs.cumsum(curve, -2)
+        return gs.squeeze(curve)
+
     def squared_dist(self, point_a, point_b, rescaled=False):
         """Compute squared geodesic distance between two curves.
 
@@ -1146,7 +1292,7 @@ class ElasticMetric(RiemannianMetric):
         _ : [...]
             Squared geodesic distance between the curves.
         """
-        return self.dist(point_a=point_a, point_b=point_b, rescaled=rescaled) ** 2
+        return self.dist(point_a=point_a, point_b=point_b) ** 2
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Compute geodesic from initial curve to end curve.
@@ -1188,16 +1334,14 @@ class ElasticMetric(RiemannianMetric):
 
             curves_path = []
             for t in times:
-                initial_f = self.f_transform(initial_point)
-                end_f = self.f_transform(end_point)
+                initial_f = self.diffeomorphism(initial_point)
+                end_f = self.diffeomorphism(end_point)
                 f_t = (1 - t) * initial_f + t * end_f
-                curve_t = self.f_transform_inverse(
-                    f_t, gs.zeros(curve_ndim, dtype=initial_point.dtype)
-                )
+                curve_t = self.inverse_diffeomorphism(f_t)
                 curves_path.append(curve_t)
             return gs.stack(curves_path)
 
-        return path
+        return path    
 
 
 class SRVMetric(ElasticMetric):
@@ -2099,6 +2243,68 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             return horizontal_path
 
         return horizontal_path
+
+    def align_dp(self,initial_point,end_point, n, max_slope):
+
+        def diffeomorphism(point):
+            k_sampling_points = point.shape[-2]
+            velocity = (k_sampling_points - 1) * (point[..., 1:, :] - point[..., :-1, :])
+            square_root_velocity = gs.sqrt(gs.abs(velocity))
+            _q = [i / j for i,j in zip(velocity,square_root_velocity)]
+            l = len(_q)
+            q = [ _q[gs.floor(i*(l/n))] + velocity*(i-j) for i in range(n) ]
+            return q
+        
+        def calcul_integral(q_1,q_2,slope,constante,x_min,x_max,y_min,y_max):
+            list_l = [l for l in range(x_min,x_max+1)]
+            list_k = [(k - y_min)/slope + x_min for k in range(y_min,y_max+1)]
+            res = []         
+            i, j = 1, 1
+            while i < x_max-x_min and j < y_max-y_min:
+                if list_l[i] < list_k[j]:
+                    res.append(list_l[i])
+                    q_1_slope = q_1(i) - q_1(i-1)
+                    q_2_slope = q_2(j+1) - q_2(j)
+                    a = res[-2]
+                    b = res[-1]
+                    value_cube = value_cube + q_1_slope*q_2_slope*(gs.power(b,3)-gs.power(a,3))
+                    value_square = value_square + ( q_1_slope*q_2_slope*constante + q_1_slope*q_2[j-1] + q_2_slope*q_1[i-1]*slope )(gs.power(b,2)-gs.power(a,2))
+                    value_line = value_line + q_1*[i-1]*(q_2_slope*constante + q_2[j-1])(b-a)
+                    i += 1
+            
+                else:
+                    res.append(list[j])
+                    q_1_slope = q_1(i+1) - q_1(i)
+                    q_2_slope = q_2(j) - q_2(j-1)
+                    a = res[-2]
+                    b = res[-1]
+                    value_cube = value_cube + q_1_slope*q_2_slope*(gs.power(b,3)-gs.power(a,3))
+                    value_square = value_square + ( q_1_slope*q_2_slope*constante + q_1_slope*q_2[j-1] + q_2_slope*q_1[i-1]*slope )(gs.power(b,2)-gs.power(a,2))
+                    value_line = value_line + q_1*[i-1]*(q_2_slope*constante + q_2[j-1])(b-a)
+                    j += 1
+            value = gs.power(slope,1/2)* ( ( slope*value_cube )/(3*gs.power(n,2)) + (value_square)/(2*n) + (value_line) ) / n
+            return value
+
+
+        initial_q = diffeomorphism(initial_point)
+        end_q = diffeomorphism(end_point)
+        tableau = [[math.inf for i in range(n)] for j in range(n)]
+        tableau[0][0] = 0
+        gamma = {}
+        for i in range(1,n):
+            for j in range((1,n)):
+                minimum_line_index = max(0, i-max_slope)
+                minimum_column_index = max(0,j-max_slope)
+                for l in range(minimum_line_index,i):
+                    for k in range(minimum_column_index,j):
+                        if tableau[l][k] != math.inf :
+                            slope = (j-k)/(i-l)
+                            constante = (k - l*slope)/n 
+                            value = calcul_integral(initial_q,end_q,slope,constante,l,i,k,j)
+                            s = value + tableau[l][k]
+                            if tableau[i][j] > s: 
+                                tableau[i][j] = s
+                                gamma[(i,j)] = gamma[(l,k)].append((i,j))
 
     def align(self, point, base_point, n_times=20, threshold=1e-3):
         """Find optimal reparametrization of curve with respect to base curve.
