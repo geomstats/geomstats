@@ -30,11 +30,10 @@ class BetaDistributionsTestsData(_OpenSetTestData):
         return self.generate_tests([], random_data)
 
     def point_to_pdf_test_data(self):
-        smoke_data = [dict(x=gs.linspace(0.0, 1.0, 10))]
-        return self.generate_tests(smoke_data)
-
-    def point_to_pdf_vectorization_test_data(self):
-        smoke_data = [dict(x=gs.linspace(0.0, 1.0, 10))]
+        smoke_data = [
+            dict(point=self.Space().random_point(1), x=gs.linspace(0.0, 1.0, 10)),
+            dict(point=self.Space().random_point(3), x=gs.linspace(0.0, 1.0, 10)),
+        ]
         return self.generate_tests(smoke_data)
 
 
