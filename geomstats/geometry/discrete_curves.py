@@ -61,9 +61,6 @@ class DiscreteCurves(Manifold):
     """
 
     def __init__(
-<<<<<<< HEAD
-        self, ambient_manifold, k_sampling_points=10, a=None, b=None, **kwargs,
-=======
         self,
         ambient_manifold,
         k_sampling_points=10,
@@ -71,7 +68,6 @@ class DiscreteCurves(Manifold):
         b=None,
         start_at_the_origin=True,
         **kwargs,
->>>>>>> master
     ):
         dim = ambient_manifold.dim * k_sampling_points
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
@@ -721,11 +717,7 @@ class L2CurvesMetric(RiemannianMetric):
         )
         return gs.sqrt(sq_norm)
 
-<<<<<<< HEAD
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None, missing_last_time=True):
-=======
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
->>>>>>> master
         """Compute L2 inner product between two tangent vectors.
 
         The inner product is the integral of the ambient space inner product,
@@ -824,13 +816,8 @@ class L2CurvesMetric(RiemannianMetric):
         )
 
 
-<<<<<<< HEAD
-class ElasticMetric(PullbackDiffeoMetric):
-    """Elastic metric defined using the F_transform.
-=======
-class ElasticMetric(RiemannianMetric):
+class ElasticMetric(PullbackDiffeoMetric)):
     """Elastic metric on the space of discrete curves.
->>>>>>> master
 
     Family of elastic metric parametrized by bending and stretching parameters
     a and b. These can be obtained as pullbacks of the L2 metric by the F-transforms.
@@ -869,17 +856,9 @@ class ElasticMetric(RiemannianMetric):
         translation_invariant=True,
         k_sampling_points=10,
     ):
-<<<<<<< HEAD
         self.ambient_manifold = ambient_manifold
         super().__init__(dim = math.inf, shape = None, signature = (math.inf, 0, 0))
 
-=======
-        super().__init__(
-            dim=math.inf,
-            signature=(math.inf, 0, 0),
-            shape=(k_sampling_points,) + ambient_manifold.shape,
-        )
->>>>>>> master
         self.ambient_metric = ambient_metric
         if ambient_metric is None:
             if hasattr(ambient_manifold, "metric"): self.ambient_metric = ambient_manifold.metric
