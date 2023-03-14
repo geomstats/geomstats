@@ -35,7 +35,7 @@ def jacobian(func):
     raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
-def jacobian_vec(func):
+def jacobian_vec(func, point_ndim=1):
     """Return an error when using automatic differentiation with numpy."""
     raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 

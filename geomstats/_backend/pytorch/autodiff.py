@@ -101,7 +101,7 @@ def jacobian(func):
     return _jacobian
 
 
-def jacobian_vec(func):
+def jacobian_vec(func, point_ndim=1):
     """Return a function that returns the jacobian of func.
 
     We note that the jacobian function of torch is not vectorized
@@ -134,7 +134,7 @@ def jacobian_vec(func):
     """
 
     def _jacobian(point):
-        if point.ndim == 1:
+        if point.ndim == point_ndim:
             return _torch_jacobian(func=lambda x: func(x), inputs=point)
         return _torch.stack(
             [

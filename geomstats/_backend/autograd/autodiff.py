@@ -162,7 +162,7 @@ def _value_and_jacobian(fun, x):
     return ans, _np.reshape(_np.stack(grads), jacobian_shape)
 
 
-def jacobian_vec(func):
+def jacobian_vec(func, point_ndim=1):
     """Wrap autograd jacobian function.
 
     We note that the jacobian function of autograd is not vectorized
@@ -196,7 +196,7 @@ def jacobian_vec(func):
     """
 
     def _jac(x):
-        if x.ndim == 1:
+        if x.ndim == point_ndim:
             return jacobian(func)(x)
         return _np.stack([jacobian(func)(one_x) for one_x in x])
 
