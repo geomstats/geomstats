@@ -83,7 +83,7 @@ class FisherRaoMetric(RiemannianMetric):
             x : float, shape (,)
                 Point on the support of the distribution
             """
-            return lambda point: self.space.point_to_pdf(point)(x)
+            return lambda point: self._space.point_to_pdf(point)(x)
 
         def _function_to_integrate(x):
             pdf_x = pdf(x)
@@ -151,7 +151,7 @@ class FisherRaoMetric(RiemannianMetric):
             x : float, shape (,)
                 Point on the support of the distribution
             """
-            return lambda point: self.space.point_to_pdf(point)(x)
+            return lambda point: self._space.point_to_pdf(point)(x)
 
         def _function_to_integrate(x):
             pdf_x = pdf(x)

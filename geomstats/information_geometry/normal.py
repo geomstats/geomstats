@@ -12,7 +12,6 @@ import geomstats.backend as gs
 import geomstats.errors as errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.nfold_manifold import NFoldMetric
 from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
@@ -20,6 +19,7 @@ from geomstats.geometry.poincare_half_space import (
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 from geomstats.information_geometry.base import InformationManifoldMixin
 
@@ -482,8 +482,12 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         Dimension of the sample space of the multivariate normal distribution.
     """
 
-    def __init__(self, sample_dim):
-        super().__init__(factors=[Euclidean(sample_dim), SPDMatrices(sample_dim)])
+    def __init__(self, sample_dim, equip=True):
+        super().__init__(
+            factors=(Euclidean(sample_dim), SPDMatrices(sample_dim)),
+            default_point_type="vector",
+            equip=equip,
+        )
         self.sample_dim = sample_dim
 
     def _unstack_mean_covariance(self, point):
@@ -590,8 +594,8 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
     by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
     """
 
-    def define_embedding_metric(self):
-        r"""Define the metric to pull back.
+    def define_embedding_space(self):
+        r"""Define the equipped space with the metric to pull back.
 
         This is the metric of the Poincare upper half-plane
         with a scaling factor of 2.
@@ -602,7 +606,9 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
             The metric of the Poincare upper half-plane.
         """
         space = PoincareHalfSpace(dim=2)
-        return 2.0 * PoincareHalfSpaceMetric(space)
+        # TODO: think about how to adapt equip_with_metric
+        space.metric = ScalarProductMetric(PoincareHalfSpaceMetric(space), 2.0)
+        return space
 
     def diffeomorphism(self, base_point):
         r"""Image of base point in the Poincare upper half-plane.
@@ -689,7 +695,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         return self.inverse_diffeomorphism(image_tangent_vec)
 
     @staticmethod
-    def metric_matrix(base_point=None):
+    def metric_matrix(base_point):
         """Compute the metric matrix at the tangent space at base_point.
 
         Parameters
@@ -702,10 +708,6 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         mat : array-like, shape=[..., 2, 2]
             Metric matrix.
         """
-        if base_point is None:
-            raise ValueError(
-                "A base point must be given to compute the " "metric matrix"
-            )
         stds = base_point[..., 1]
         const = 1 / stds**2
         mat = gs.array([[1.0, 0], [0, 2]])
@@ -762,21 +764,11 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         return gs.tile(sectional_curv, (n_sec_curv,))
 
 
-class CenteredNormalMetric(NFoldMetric):
-    """Class for the Fisher information metric of centered normal distributions.
+class CenteredNormalMetric:
+    """Class for the Fisher information metric of centered normal distributions."""
 
-    Parameters
-    ----------
-    sample_dim : int
-          Dimension of the sample space of the multivariate normal distribution.
-    """
-
-    def __init__(self, sample_dim):
-        super().__init__(
-            base_metric=SPDAffineMetric(n=sample_dim),
-            n_copies=1,
-            scales=[1 / 2],
-        )
+    def __new__(self, space):
+        return ScalarProductMetric(SPDAffineMetric(space), 1 / 2)
 
 
 class DiagonalNormalMetric(RiemannianMetric):
@@ -883,7 +875,7 @@ class DiagonalNormalMetric(RiemannianMetric):
         base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
-        end_point = self.univariate_normal_metric.exp(tangent_vec, base_point)
+        end_point = self._univariate_normal.metric.exp(tangent_vec, base_point)
         return self._1d_pairs_to_stacked_mean_diagonal(end_point, apply_square=True)
 
     def log(self, point, base_point):
