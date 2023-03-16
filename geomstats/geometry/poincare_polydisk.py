@@ -15,7 +15,7 @@ References
 
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
-from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 
 
@@ -29,18 +29,14 @@ class PoincarePolydisk(NFoldManifold):
     ----------
     n_disks : int
         Number of disks.
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
-        Coordinate type.
-        Optional, default: \'extrinsic\'.
     """
 
-    def __init__(self, n_disks):
+    def __init__(self, n_disks, equip=True):
         self.n_disks = n_disks
-        super().__init__(
-            base_manifold=Hyperboloid(2),
-            n_copies=n_disks,
-            metric=PoincarePolydiskMetric(n_disks=n_disks),
-        )
+        super().__init__(base_manifold=Hyperboloid(2), n_copies=n_disks, equip=equip)
+
+    def _default_metric(self):
+        return PoincarePolydiskMetric
 
     @staticmethod
     def intrinsic_to_extrinsic_coords(point_intrinsic):
@@ -83,10 +79,6 @@ class PoincarePolydiskMetric(NFoldMetric):
     This metric comes from a model used to represent
     stationary complex autoregressive Gaussian signals.
 
-    Parameters
-    ----------
-    n_disks : int
-        Number of disks.
 
     References
     ----------
@@ -95,8 +87,8 @@ class PoincarePolydiskMetric(NFoldMetric):
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
-    def __init__(self, n_disks):
-        self.n_disks = n_disks
-        base_metric = HyperboloidMetric(2)
-        scales = [float(n_disks - i_disk) for i_disk in range(n_disks)]
-        super().__init__(base_metric, n_copies=n_disks, scales=scales)
+    def __init__(self, space):
+        scales = gs.array(
+            [float(space.n_disks - i_disk) for i_disk in range(space.n_disks)]
+        )
+        super().__init__(space, scales=scales)
