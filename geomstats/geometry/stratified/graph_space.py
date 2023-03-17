@@ -210,13 +210,12 @@ class _BaseAligner(metaclass=ABCMeta):
         self.perm_ = None
 
     @abstractmethod
-    def align(self, metric, base_graph, graph_to_permute):
+    def align(self, space, base_graph, graph_to_permute):
         """Align graphs.
 
         Parameters
         ----------
-        metric : GraphSpaceMetric
-            Metric between elements of GraphSpace.
+        space : GraphSpace
         base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
@@ -238,8 +237,8 @@ class _BaseAligner(metaclass=ABCMeta):
 
         return base_graph, graph_to_permute, is_single
 
-    def _permute(self, metric, graph_to_permute, perm):
-        return metric.space.permute(graph_to_permute, perm)
+    def _permute(self, space, graph_to_permute, perm):
+        return space.permute(graph_to_permute, perm)
 
 
 class FAQAligner(_BaseAligner):
@@ -253,13 +252,12 @@ class FAQAligner(_BaseAligner):
         PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
     """
 
-    def align(self, metric, base_graph, graph_to_permute):
+    def align(self, space, base_graph, graph_to_permute):
         """Align graphs.
 
         Parameters
         ----------
-        metric : GraphSpaceMetric
-            Metric between elements of GraphSpace.
+        space : GraphSpace
         base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
@@ -281,7 +279,7 @@ class FAQAligner(_BaseAligner):
 
         self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
 
-        return self._permute(metric, graph_to_permute, self.perm_)
+        return self._permute(space, graph_to_permute, self.perm_)
 
 
 class IDAligner(_BaseAligner):
@@ -292,13 +290,12 @@ class IDAligner(_BaseAligner):
     graphs.
     """
 
-    def align(self, metric, base_graph, graph_to_permute):
+    def align(self, space, base_graph, graph_to_permute):
         """Align graphs.
 
         Parameters
         ----------
-        metric : GraphSpaceMetric
-            Metric between elements of GraphSpace.
+        space : GraphSpace
         base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
@@ -318,7 +315,7 @@ class IDAligner(_BaseAligner):
 
         self.perm_ = gs.array(perm[0]) if is_single else gs.array(perm)
 
-        return self._permute(metric, graph_to_permute, self.perm_)
+        return self._permute(space, graph_to_permute, self.perm_)
 
 
 class ExhaustiveAligner(_BaseAligner):
@@ -336,26 +333,25 @@ class ExhaustiveAligner(_BaseAligner):
         self._all_perms = None
         self._n_nodes = None
 
-    def _set_all_perms(self, metric):
-        n_nodes = metric.n_nodes
+    def _set_all_perms(self, space):
+        n_nodes = space.n_nodes
         if self._all_perms is None or self._n_nodes != n_nodes:
             self._n_nodes = n_nodes
             self._all_perms = gs.array(
                 list(itertools.permutations(range(n_nodes), n_nodes))
             )
 
-    def _align_single(self, metric, base_graph, graph_to_permute):
-        permuted_graphs = metric.space.permute(graph_to_permute, self._all_perms)
-        dists = metric.total_space_metric.dist(base_graph, permuted_graphs)
+    def _align_single(self, space, base_graph, graph_to_permute):
+        permuted_graphs = space.permute(graph_to_permute, self._all_perms)
+        dists = space.total_space.metric.dist(base_graph, permuted_graphs)
         return self._all_perms[gs.argmin(dists)]
 
-    def align(self, metric, base_graph, graph_to_permute):
+    def align(self, space, base_graph, graph_to_permute):
         """Align graphs.
 
         Parameters
         ----------
-        metric : GraphSpaceMetric
-            Metric between elements of GraphSpace.
+        space : GraphSpace
         base_graph : array-like, shape=[..., n_nodes, n_nodes]
             Base graph.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
@@ -366,19 +362,19 @@ class ExhaustiveAligner(_BaseAligner):
         permuted_graph : array-like, shape=[..., n_nodes, n_nodes]
             Permuted graph as to be aligned with respect to the geodesic.
         """
-        self._set_all_perms(metric)
+        self._set_all_perms(space)
 
         base_graph, graph_to_permute, is_single = self._broadcast(
             base_graph, graph_to_permute
         )
         perms = [
-            self._align_single(metric, base_graph_, graph_to_permute_)
+            self._align_single(space, base_graph_, graph_to_permute_)
             for base_graph_, graph_to_permute_ in zip(base_graph, graph_to_permute)
         ]
 
         self.perm_ = gs.array(perms[0]) if is_single else gs.array(perms)
 
-        return self._permute(metric, graph_to_permute, self.perm_)
+        return self._permute(space, graph_to_permute, self.perm_)
 
 
 class _BasePointToGeodesicAligner(metaclass=ABCMeta):
@@ -407,8 +403,8 @@ class _BasePointToGeodesicAligner(metaclass=ABCMeta):
     def _get_n_points(self, graph_to_permute):
         return 1 if gs.ndim(graph_to_permute) == 2 else gs.shape(graph_to_permute)[0]
 
-    def _permute(self, metric, graph_to_permute, perm):
-        return metric.space.permute(graph_to_permute, perm)
+    def _permute(self, space, graph_to_permute, perm):
+        return space.permute(graph_to_permute, perm)
 
 
 class PointToGeodesicAligner(_BasePointToGeodesicAligner):
@@ -421,8 +417,7 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
 
     Parameters
     ----------
-    metric : GraphSpaceMetric
-        Metric between elements of GraphSpace.
+    space : GraphSpace
     s_min : float
         Minimum value of the domain to sample along the geodesics.
     s_max : float
@@ -471,7 +466,7 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         """Evaluate the geodesic in s."""
         return geodesic(self.s)
 
-    def _compute_dists(self, metric, geodesic, graph):
+    def _compute_dists(self, space, geodesic, graph):
         geodesic_s = self._get_geodesic_s(geodesic)
 
         n_points = self._get_n_points(graph)
@@ -482,18 +477,19 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
             rep_graph = graph
 
         dists = gs.reshape(
-            metric.dist(geodesic_s, rep_graph), (self.n_points, n_points)
+            space.metric.dist(geodesic_s, rep_graph), (self.n_points, n_points)
         )
 
         min_dists_idx = gs.argmin(dists, axis=0)
 
         return dists, min_dists_idx, n_points
 
-    def dist(self, metric, geodesic, graph_to_permute):
+    def dist(self, space, geodesic, graph_to_permute):
         """Compute the distance between the geodesic and the point.
 
         Parameters
         ----------
+        space : GraphSpace
         geodesic : function
             Geodesic function in GraphSpace.
         graph_to_permute : array-like, shape=[..., n_nodes, n_nodes]
@@ -505,7 +501,7 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
             Distance between the graph_to_permute and the geodesic.
         """
         dists, min_dists_idx, n_points = self._compute_dists(
-            metric, geodesic, graph_to_permute
+            space, geodesic, graph_to_permute
         )
 
         return gs.take(
@@ -513,7 +509,7 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
             min_dists_idx + gs.arange(n_points) * self.n_points,
         )
 
-    def align(self, metric, geodesic, graph_to_permute):
+    def align(self, space, geodesic, graph_to_permute):
         """Align the graph to the geodesic.
 
         Parameters
@@ -529,16 +525,16 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
             Permuted graph as to be aligned with respect to the geodesic.
         """
         _, min_dists_idx, n_points = self._compute_dists(
-            metric, geodesic, graph_to_permute
+            space, geodesic, graph_to_permute
         )
 
         perm_indices = min_dists_idx * n_points + gs.arange(n_points)
         if n_points == 1:
             perm_indices = perm_indices[0]
 
-        self.perm_ = gs.take(metric.perm_, perm_indices, axis=0)
+        self.perm_ = gs.take(space.metric.perm_, perm_indices, axis=0)
 
-        return self._permute(metric, graph_to_permute, self.perm_)
+        return self._permute(space, graph_to_permute, self.perm_)
 
 
 class _GeodesicToPointAligner(_BasePointToGeodesicAligner):
@@ -550,13 +546,13 @@ class _GeodesicToPointAligner(_BasePointToGeodesicAligner):
 
         self.opt_results_ = None
 
-    def _objective(self, s, metric, graph, geodesic):
+    def _objective(self, s, space, graph, geodesic):
         point = geodesic(s)
-        dist = metric.dist(point, graph)
+        dist = space.metric.dist(point, graph)
 
         return dist
 
-    def _compute_dists(self, metric, geodesic, graph_to_permute):
+    def _compute_dists(self, space, geodesic, graph_to_permute):
         n_points = self._get_n_points(graph_to_permute)
 
         if n_points == 1:
@@ -570,10 +566,10 @@ class _GeodesicToPointAligner(_BasePointToGeodesicAligner):
             res = scipy.optimize.minimize(
                 self._objective,
                 x0=s0,
-                args=(metric, graph, geodesic),
+                args=(space, graph, geodesic),
                 method=self.method,
             )
-            perms.append(metric.perm_[0])
+            perms.append(space.metric.perm_[0])
             min_dists.append(res.fun)
 
             opt_results.append(res)
@@ -583,15 +579,15 @@ class _GeodesicToPointAligner(_BasePointToGeodesicAligner):
 
         return gs.array(min_dists), gs.array(perms), n_points
 
-    def dist(self, metric, geodesic, graph_to_permute):
-        dists, _, _ = self._compute_dists(metric, geodesic, graph_to_permute)
+    def dist(self, space, geodesic, graph_to_permute):
+        dists, _, _ = self._compute_dists(space, geodesic, graph_to_permute)
 
         return dists
 
-    def align(self, metric, geodesic, graph_to_permute):
-        _, perms, n_points = self._compute_dists(metric, geodesic, graph_to_permute)
+    def align(self, space, geodesic, graph_to_permute):
+        _, perms, n_points = self._compute_dists(space, geodesic, graph_to_permute)
 
-        new_graph = self._permute(metric, graph_to_permute, perms)
+        new_graph = self._permute(space, graph_to_permute, perms)
         self.perm_ = perms[0] if n_points == 1 else perms
 
         return new_graph
@@ -673,12 +669,17 @@ class GraphSpace(PointSet):
         https://www.jmlr.org/papers/volume10/jain09a/jain09a.pdf
     """
 
-    def __init__(self, n_nodes, total_space=None):
-        super().__init__()
+    def __init__(self, n_nodes, total_space=None, equip=True):
+        super().__init__(equip=equip)
         self.n_nodes = n_nodes
         self.total_space = (
-            Matrices(n_nodes, n_nodes) if total_space is None else total_space
+            Matrices(n_nodes, n_nodes, equip=equip)
+            if total_space is None
+            else total_space
         )
+
+    def _default_metric(self):
+        return GraphSpaceMetric
 
     @_pad_with_zeros((1, "graphs"))
     def belongs(self, graphs, atol=gs.atol):
@@ -842,7 +843,7 @@ class GraphSpaceMetric(PointSetMetric):
     }
 
     def __init__(self, space):
-        super().__init__(space)
+        super().__init__(space=space)
         self.aligner = self._set_default_aligner()
         self.point_to_geodesic_aligner = None
 
@@ -928,17 +929,17 @@ class GraphSpaceMetric(PointSetMetric):
     @property
     def total_space_metric(self):
         """Retrieve the total space metric."""
-        return self.space.total_space.metric
+        return self._space.total_space.metric
 
     @total_space_metric.setter
     def total_space_metric(self, value):
         """Set the total space metric."""
-        self.space.total_space.metric = value
+        self._space.total_space.metric = value
 
     @property
     def n_nodes(self):
         """Retrieve the number of nodes."""
-        return self.space.n_nodes
+        return self._space.n_nodes
 
     @_vectorize_graph((1, "graph_a"), (2, "graph_b"))
     @_pad_with_zeros((1, "graph_a"), (2, "graph_b"))
@@ -1022,7 +1023,7 @@ class GraphSpaceMetric(PointSetMetric):
         -------
         permuted_graph: list, shape = [..., n_nodes, n_nodes]
         """
-        return self.aligner.align(self, base_graph, graph_to_permute)
+        return self.aligner.align(self._space, base_graph, graph_to_permute)
 
     @_vectorize_graph(
         (2, "graph_to_permute"),
@@ -1060,4 +1061,6 @@ class GraphSpaceMetric(PointSetMetric):
                 "`metric.set_point_to_geodesic_aligner('default', "
                 "s_min=-1., s_max=1.)`)"
             )
-        return self.point_to_geodesic_aligner.align(self, geodesic, graph_to_permute)
+        return self.point_to_geodesic_aligner.align(
+            self._space, geodesic, graph_to_permute
+        )
