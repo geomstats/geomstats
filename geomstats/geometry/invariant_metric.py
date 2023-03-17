@@ -1131,21 +1131,14 @@ class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
     left : bool
         Whether to use a left or right invariant metric.
         Optional, default: True.
-    point_type : str, {'vector', 'matrix'}
-        Point representation.
-        Optional, default: group.default_point_type.
     """
 
-    def __new__(cls, space, metric_mat_at_identity=None, left=True, point_type=None):
+    def __new__(cls, space, metric_mat_at_identity=None, left=True):
         """Instantiate a special euclidean group.
 
         Select the object to instantiate depending on the point_type.
         """
-        # TODO: should point type really be passed?
-        if point_type is None:
-            point_type = space.default_point_type
-
-        if point_type == "vector":
+        if space.default_point_type == "vector":
             return _InvariantMetricVector(space, left=left)
         return _InvariantMetricMatrix(
             space,

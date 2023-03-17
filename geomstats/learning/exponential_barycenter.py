@@ -128,7 +128,6 @@ class ExponentialBarycenter(BaseEstimator):
         max_iter=32,
         epsilon=EPSILON,
         init_step_size=1.0,
-        point_type=None,  # TODO: undocumented and unused parameter
         verbose=False,
     ):
         self.group = group
@@ -136,7 +135,6 @@ class ExponentialBarycenter(BaseEstimator):
         self.epsilon = epsilon
         self.verbose = verbose
         self.init_step_size = init_step_size
-        self.point_type = point_type
         self.estimate_ = None
 
     def fit(self, X, y=None, weights=None):
