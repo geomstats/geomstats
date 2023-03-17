@@ -279,10 +279,11 @@ class PreShapeSpaceTestData(_LevelSetTestData):
 class KendallShapeMetricTestData(_RiemannianMetricTestData):
     k_landmarks_list = random.sample(range(3, 6), 2)
     m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
-    metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
 
-    shape_list = metric_args_list
-    space_list = [PreShapeSpace(k, m) for k, m in metric_args_list]
+    shape_list = space_args_list = list(zip(k_landmarks_list, m_ambient_list))
+    space_list = [PreShapeSpace(k, m, equip=True) for k, m in space_args_list]
+    metric_args_list = [{} for _ in shape_list]
+
     n_points_list = random.sample(range(1, 4), 2)
     n_samples_list = random.sample(range(1, 4), 2)
     n_points_a_list = random.sample(range(1, 4), 2)
@@ -296,17 +297,18 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
     Metric = KendallShapeMetric
     Space = PreShapeSpace
 
+    space_4_3 = PreShapeSpace(4, 3)
+
     def curvature_is_skew_operator_test_data(self):
         base_point = smoke_space.random_point(2)
         vec = gs.random.rand(4, 4, 3)
-        smoke_data = [dict(k_landmarks=4, m_ambient=3, vec=vec, base_point=base_point)]
+        smoke_data = [dict(space=self.space_4_3, vec=vec, base_point=base_point)]
         return self.generate_tests(smoke_data)
 
     def curvature_bianchi_identity_test_data(self):
         smoke_data = [
             dict(
-                k_landmarks=4,
-                m_ambient=3,
+                space=self.space_4_3,
                 tangent_vec_a=tg_vec_0,
                 tangent_vec_b=tg_vec_1,
                 tangent_vec_c=tg_vec_2,
@@ -316,9 +318,8 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def kendall_sectional_curvature_test_data(self):
-        k_landmarks = 4
-        m_ambient = 3
-        space = smoke_space
+        space = self.space_4_3
+        k_landmarks, m_ambient = 4, 3
         n_samples = 4 * k_landmarks * m_ambient
         base_point = space.random_point(1)
 
@@ -330,8 +331,7 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
 
         smoke_data = [
             dict(
-                k_landmarks=4,
-                m_ambient=3,
+                space=space,
                 tangent_vec_a=tg_vec_a,
                 tangent_vec_b=tg_vec_b,
                 base_point=base_point,
@@ -342,8 +342,7 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
     def kendall_curvature_derivative_bianchi_identity_test_data(self):
         smoke_data = [
             dict(
-                k_landmarks=4,
-                m_ambient=3,
+                space=self.space_4_3,
                 hor_x=hor_x,
                 hor_y=hor_y,
                 hor_z=hor_z,
@@ -356,8 +355,7 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
     def curvature_derivative_is_skew_operator_test_data(self):
         smoke_data = [
             dict(
-                k_landmarks=4,
-                m_ambient=3,
+                space=self.space_4_3,
                 hor_x=hor_x,
                 hor_y=hor_y,
                 hor_z=hor_z,
@@ -369,8 +367,7 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
     def directional_curvature_derivative_test_data(self):
         smoke_data = [
             dict(
-                k_landmarks=4,
-                m_ambient=3,
+                space=self.space_4_3,
                 hor_x=hor_x,
                 hor_y=hor_y,
                 base_point=base_point,
@@ -383,8 +380,7 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
         coef_y = 1.5
         smoke_data = [
             dict(
-                k_landmarks=4,
-                m_ambient=3,
+                space=self.space_4_3,
                 coef_x=coef_x,
                 coef_y=coef_y,
                 hor_x=hor_x,
@@ -398,7 +394,7 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
         k_landmarks = 4
         m_ambient = 3
         n_samples = 10
-        space = PreShapeSpace(4, 3)
+        space = self.space_4_3
         base_point = space.projection(gs.eye(4)[:, :3])
         vec_a = gs.random.rand(n_samples, k_landmarks, m_ambient)
         tangent_vec_a = space.to_tangent(space.center(vec_a), base_point)
@@ -407,8 +403,7 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
         tangent_vec_b = space.to_tangent(space.center(vec_b), base_point)
         smoke_data = [
             dict(
-                k_landmarks=k_landmarks,
-                m_ambient=m_ambient,
+                space=space,
                 tangent_vec_a=tangent_vec_a,
                 tangent_vec_b=tangent_vec_b,
                 base_point=base_point,
@@ -420,10 +415,11 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
 class PreShapeMetricTestData(_RiemannianMetricTestData):
     k_landmarks_list = random.sample(range(3, 6), 2)
     m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
-    metric_args_list = list(zip(k_landmarks_list, m_ambient_list))
 
-    shape_list = metric_args_list
-    space_list = [PreShapeSpace(k, m) for k, m in metric_args_list]
+    shape_list = space_args_list = list(zip(k_landmarks_list, m_ambient_list))
+    space_list = [PreShapeSpace(k, m) for k, m in space_args_list]
+    metric_args_list = [{} for _ in shape_list]
+
     n_points_list = random.sample(range(1, 7), 2)
     n_samples_list = random.sample(range(1, 7), 2)
     n_points_a_list = random.sample(range(1, 7), 2)

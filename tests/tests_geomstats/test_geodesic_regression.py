@@ -67,7 +67,7 @@ class TestGeodesicRegression(tests.conftest.TestCase):
 
         # Set up for special euclidean
         self.se2 = SpecialEuclidean(n=2)
-        self.metric_se2 = self.se2.left_canonical_metric
+        self.metric_se2 = self.se2.metric
 
         self.shape_se2 = (3, 3)
         X = gs.random.rand(self.n_samples)

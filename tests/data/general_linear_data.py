@@ -25,7 +25,11 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
             dict(n=3, point=gs.eye(3), expected=True),
             dict(n=3, point=gs.ones((3, 3)), expected=False),
             dict(n=3, point=gs.ones(3), expected=False),
-            dict(n=3, point=[gs.eye(3), gs.ones((3, 3))], expected=[True, False]),
+            dict(
+                n=3,
+                point=gs.stack([gs.eye(3), gs.ones((3, 3))]),
+                expected=[True, False],
+            ),
         ]
         return self.generate_tests(smoke_data)
 
@@ -33,8 +37,8 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
         smoke_data = [
             dict(
                 n=2,
-                mat1=[[1.0, 0.0], [0.0, 2.0]],
-                mat2=[[2.0, 0.0], [0.0, 1.0]],
+                mat1=gs.array([[1.0, 0.0], [0.0, 2.0]]),
+                mat2=gs.array([[2.0, 0.0], [0.0, 1.0]]),
                 expected=2.0 * self.Space(2).identity,
             )
         ]
@@ -66,23 +70,27 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
         smoke_data = [
             dict(
                 n=3,
-                tangent_vec=[
-                    [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
-                    [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
-                ],
+                tangent_vec=gs.array(
+                    [
+                        [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
+                        [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
+                    ]
+                ),
                 base_point=None,
-                expected=[
+                expected=gs.array(
                     [
-                        [7.38905609, 0.0, 0.0],
-                        [0.0, 20.0855369, 0.0],
-                        [0.0, 0.0, 54.5981500],
-                    ],
-                    [
-                        [2.718281828, 0.0, 0.0],
-                        [0.0, 148.413159, 0.0],
-                        [0.0, 0.0, 403.42879349],
-                    ],
-                ],
+                        [
+                            [7.38905609, 0.0, 0.0],
+                            [0.0, 20.0855369, 0.0],
+                            [0.0, 0.0, 54.5981500],
+                        ],
+                        [
+                            [2.718281828, 0.0, 0.0],
+                            [0.0, 148.413159, 0.0],
+                            [0.0, 0.0, 403.42879349],
+                        ],
+                    ]
+                ),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -91,23 +99,27 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
         smoke_data = [
             dict(
                 n=3,
-                point=[
-                    [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
-                    [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
-                ],
+                point=gs.array(
+                    [
+                        [[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]],
+                        [[1.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]],
+                    ]
+                ),
                 base_point=None,
-                expected=[
+                expected=gs.array(
                     [
-                        [0.693147180, 0.0, 0.0],
-                        [0.0, 1.09861228866, 0.0],
-                        [0.0, 0.0, 1.38629436],
-                    ],
-                    [
-                        [0.0, 0.0, 0.0],
-                        [0.0, 1.609437912, 0.0],
-                        [0.0, 0.0, 1.79175946],
-                    ],
-                ],
+                        [
+                            [0.693147180, 0.0, 0.0],
+                            [0.0, 1.09861228866, 0.0],
+                            [0.0, 0.0, 1.38629436],
+                        ],
+                        [
+                            [0.0, 0.0, 0.0],
+                            [0.0, 1.609437912, 0.0],
+                            [0.0, 0.0, 1.79175946],
+                        ],
+                    ]
+                ),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -127,13 +139,15 @@ class GeneralLinearTestData(_LieGroupTestData, _OpenSetTestData):
             ),
             dict(
                 n=2,
-                point=[point, point],
+                point=gs.stack([point, point]),
                 base_point=identity,
                 time=time,
-                expected=[
-                    gs.array([identity, sqrt, point]),
-                    gs.array([identity, sqrt, point]),
-                ],
+                expected=gs.stack(
+                    [
+                        gs.array([identity, sqrt, point]),
+                        gs.array([identity, sqrt, point]),
+                    ]
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)

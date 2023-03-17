@@ -15,8 +15,8 @@ class TestConnection(TestCase, metaclass=Parametrizer):
 
     testing_data = ConnectionTestData()
 
-    def test_metric_matrix(self, metric, point, expected):
-        self.assertAllClose(metric.metric_matrix(point), expected)
+    def test_metric_matrix(self, space, point, expected):
+        self.assertAllClose(space.metric.metric_matrix(point), expected)
 
     def test_parallel_transport(self, dim, n_samples):
         sphere = Hypersphere(dim)
@@ -91,7 +91,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
 
     def test_exp_connection_metric(self, dim, tangent_vec, base_point):
         sphere = Hypersphere(dim)
-        connection = Connection(dim)
+        connection = Connection(sphere)
         point_ext = sphere.spherical_to_extrinsic(base_point)
         vector_ext = sphere.tangent_spherical_to_extrinsic(tangent_vec, base_point)
         connection.christoffels = sphere.metric.christoffels
@@ -122,7 +122,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
         self, dim, point, tangent_vec, n_times, n_steps, expected, atol
     ):
         sphere = Hypersphere(dim)
-        connection = Connection(dim)
+        connection = Connection(sphere)
         connection.christoffels = sphere.metric.christoffels
         geo = connection.geodesic(
             initial_point=point, initial_tangent_vec=tangent_vec, n_steps=n_steps
@@ -177,7 +177,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
         initial_tangent_vec = space.to_tangent(vector=vector, base_point=initial_point)
         end_point = space.random_uniform(2)
         with pytest.raises(RuntimeError):
-            space.bi_invariant_metric.geodesic(
+            space.metric.geodesic(
                 initial_point=initial_point,
                 initial_tangent_vec=initial_tangent_vec,
                 end_point=end_point,

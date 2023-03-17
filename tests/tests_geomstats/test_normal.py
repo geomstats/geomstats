@@ -158,17 +158,18 @@ class TestCenteredNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer)
     Space = testing_data.Space
 
     def test_inner_product_shape(
-        self, metric, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        space.equip_with_metric(self.Metric)
+        result = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         result = result.shape
         self.assertAllClose(result, expected)
 
     @pytest.mark.skip(reason="Flaky test.")
     def test_log_after_exp(self, connection_args, tangent_vec, base_point, rtol, atol):
         connection = self.Metric(*connection_args)
-        exp = connection.exp(tangent_vec=tangent_vec, base_point=gs.array(base_point))
-        result = connection.log(exp, base_point=gs.array(base_point))
+        exp = connection.exp(tangent_vec=tangent_vec, base_point=base_point)
+        result = connection.log(exp, base_point=base_point)
         self.assertAllClose(result, gs.squeeze(tangent_vec), rtol=rtol, atol=atol)
 
     @pytest.mark.skip(reason="Flaky test.")
@@ -198,8 +199,9 @@ class TestDiagonalNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer)
     Space = testing_data.Space
 
     def test_inner_product_shape(
-        self, metric, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        space.equip_with_metric(self.Metric)
+        result = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         result = result.shape
         self.assertAllClose(result, expected)

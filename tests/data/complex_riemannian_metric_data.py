@@ -16,14 +16,14 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
 
     dim = 2
     herm = Hermitian(dim=dim)
-    herm_metric = HermitianMetric(dim=dim)
 
-    complex_riem_metric = ComplexRiemannianMetric(dim=dim)
+    complex_riem_metric = ComplexRiemannianMetric(herm)
     complex_riem_metric.metric_matrix = _herm_metric_matrix
 
     metric_args_list = [(2,)]
-    connection_args_list = metric_args_list
+    connection_args_list = metric_args_list = [{}]
     space_list = [herm]
+
     n_points_a_list = [2]
     n_points_b_list = [1]
     n_points_list = [2]
@@ -34,7 +34,7 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
     def cometric_matrix_test_data(self):
         random_data = [
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 base_point=self.herm.random_point(),
                 expected=gs.eye(self.dim, dtype=CDTYPE),
             )
@@ -45,7 +45,7 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
 
         smoke_data = [
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 state=(
                     gs.array([1.0, 2.0], dtype=CDTYPE),
                     gs.array([1.0, 2.0], dtype=CDTYPE),
@@ -59,7 +59,7 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
         base_point = self.herm.random_point()
         random_data = [
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 base_point=base_point,
                 expected=gs.zeros((self.dim,) * 3),
             )
@@ -72,7 +72,7 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
         tangent_vec_b = self.herm.random_point()
         random_data = [
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 tangent_vec_a=tangent_vec_a,
                 tangent_vec_b=tangent_vec_b,
                 base_point=base_point,
@@ -90,21 +90,21 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
         multiple_vectors = self.herm.random_point(n_points)
         random_data = [
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 tangent_vec=single_vector,
                 point=single_point,
                 expected=1,
                 atol=1e-5,
             ),
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 tangent_vec=multiple_vectors,
                 point=single_point,
                 expected=gs.ones(n_points),
                 atol=1e-5,
             ),
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 tangent_vec=multiple_vectors,
                 point=multiple_points,
                 expected=gs.ones(n_points),
@@ -120,21 +120,21 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
         n_vectors = 4
         random_data = [
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 point=single_point,
                 n_vectors=1,
                 expected=1,
                 atol=1e-5,
             ),
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 point=multiple_points,
                 n_vectors=1,
                 expected=gs.ones(n_points),
                 atol=1e-5,
             ),
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 point=single_point,
                 n_vectors=n_vectors,
                 expected=gs.ones(n_vectors),
@@ -156,7 +156,7 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
         ]
         random_data += [
             dict(
-                metric=self.herm_metric,
+                metric=self.herm.metric,
                 base_point=self.herm.random_point(),
                 expected=gs.zeros((self.dim,) * 3),
             )

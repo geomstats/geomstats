@@ -74,10 +74,10 @@ class ComplexPoincareDiskTestData(_ComplexOpenSetTestData):
 
 class ComplexPoincareDiskMetricTestData(_ComplexRiemannianMetricTestData):
 
-    n_manifolds = 2
-    metric_args_list = [() for i_manifold in range(n_manifolds)]
-    shape_list = [(1,) for i_manifold in range(n_manifolds)]
-    space_list = [ComplexPoincareDisk() for i_manifold in range(n_manifolds)]
+    metric_args_list = [{}]
+    shape_list = [(1,)]
+    space_list = [ComplexPoincareDisk(equip=False)]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
@@ -91,22 +91,25 @@ class ComplexPoincareDiskMetricTestData(_ComplexRiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                tangent_vec_a=[[1j]],
-                tangent_vec_b=[[1j]],
-                base_point=[[0j]],
-                expected=[1],
+                space=self.space_list[0],
+                tangent_vec_a=gs.array([[1j]]),
+                tangent_vec_b=gs.array([[1j]]),
+                base_point=gs.array([[0j]]),
+                expected=gs.array([1]),
             ),
             dict(
-                tangent_vec_a=[[3.0 + 4j]],
-                tangent_vec_b=[[3.0 + 4j]],
-                base_point=[[0.0]],
-                expected=[25],
+                space=self.space_list[0],
+                tangent_vec_a=gs.array([[3.0 + 4j]]),
+                tangent_vec_b=gs.array([[3.0 + 4j]]),
+                base_point=gs.array([[0.0]]),
+                expected=gs.array([25]),
             ),
             dict(
-                tangent_vec_a=[[1j], [1j], [1j]],
-                tangent_vec_b=[[1j], [2j], [3j]],
-                base_point=[[0j], [0j], [0j]],
-                expected=[1, 2, 3],
+                space=self.space_list[0],
+                tangent_vec_a=gs.array([[1j], [1j], [1j]]),
+                tangent_vec_b=gs.array([[1j], [2j], [3j]]),
+                base_point=gs.array([[0j], [0j], [0j]]),
+                expected=gs.array([1, 2, 3]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -114,16 +117,19 @@ class ComplexPoincareDiskMetricTestData(_ComplexRiemannianMetricTestData):
     def exp_test_data(self):
         smoke_data = [
             dict(
+                space=self.space_list[0],
                 tangent_vec=[[2.0 + 0j]],
                 base_point=[[0.0 + 0j]],
                 expected=[[(EXP_4 - 1) / (EXP_4 + 1)]],
             ),
             dict(
+                space=self.space_list[0],
                 tangent_vec=[[2.0 + 0j]],
                 base_point=[[0.0 + 0j]],
                 expected=[[(EXP_4 - 1) / (EXP_4 + 1)]],
             ),
             dict(
+                space=self.space_list[0],
                 tangent_vec=[[2.0 + 2j]],
                 base_point=[[0.0 + 0j]],
                 expected=[
@@ -141,9 +147,10 @@ class ComplexPoincareDiskMetricTestData(_ComplexRiemannianMetricTestData):
     def log_test_data(self):
         smoke_data = [
             dict(
-                point=[[0.5]],
-                base_point=[[0.0]],
-                expected=[[LN_3 / 2]],
+                space=self.space_list[0],
+                point=gs.array([[0.5]]),
+                base_point=gs.array([[0.0]]),
+                expected=gs.array([[LN_3 / 2]]),
             )
         ]
         return self.generate_tests(smoke_data)

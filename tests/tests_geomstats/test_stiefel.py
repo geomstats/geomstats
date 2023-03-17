@@ -18,9 +18,7 @@ class TestStiefel(LevelSetTestCase, metaclass=Parametrizer):
     testing_data = StiefelTestData()
 
     def test_to_grassmannian(self, point, expected):
-        self.assertAllClose(
-            self.Space.to_grassmannian(gs.array(point)), gs.array(expected)
-        )
+        self.assertAllClose(self.Space.to_grassmannian(point), expected)
 
 
 class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -51,35 +49,33 @@ class TestStiefelCanonicalMetric(RiemannianMetricTestCase, metaclass=Parametrize
 
     testing_data = StiefelCanonicalMetricTestData()
 
-    def test_log_two_sheets_error(self, n, p, point, base_point, expected):
-        metric = self.Metric(n, p)
+    def test_log_two_sheets_error(self, space, point, base_point, expected):
+        space.equip_with_metric(self.Metric)
         with expected:
-            metric.log(point, base_point)
+            space.metric.log(point, base_point)
 
     @pytest.mark.skip(reason="throwing value error")
-    def test_retraction_lifting(
-        self, connection_args, tangent_vec, base_point, rtol, atol
-    ):
-        metric = self.Metric(*connection_args)
-        lifted = metric.lifting(gs.array(tangent_vec), gs.array(base_point))
-        result = metric.retraction(lifted, gs.array(base_point))
-        self.assertAllClose(result, gs.array(tangent_vec), rtol, atol)
+    def test_retraction_lifting(self, space, tangent_vec, base_point, rtol, atol):
+        space.equip_with_metric(self.Metric)
+        lifted = space.metric.lifting(tangent_vec, base_point)
+        result = space.metric.retraction(lifted, base_point)
+        self.assertAllClose(result, tangent_vec, rtol, atol)
 
     @pytest.mark.skip(reason="throwing value error")
-    def test_lifting_retraction(self, connection_args, point, base_point, rtol, atol):
-        metric = self.Metric(*connection_args)
-        retract = metric.retraction(gs.array(point), gs.array(base_point))
-        result = metric.lifting(retract, gs.array(base_point))
-        self.assertAllClose(result, gs.array(point), rtol, atol)
+    def test_lifting_retraction(self, space, point, base_point, rtol, atol):
+        space.equip_with_metric(self.Metric)
+        retract = space.metric.retraction(point, base_point)
+        result = space.metric.lifting(retract, base_point)
+        self.assertAllClose(result, point, rtol, atol)
 
     @pytest.mark.skip(reason="throwing value error")
-    def test_lifting_shape(self, connection_args, point, base_point, expected):
-        metric = self.Metric(*connection_args)
-        result = metric.lifting(gs.array(point), gs.array(base_point))
+    def test_lifting_shape(self, space, point, base_point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.lifting(point, base_point)
         self.assertAllClose(gs.shape(result), expected)
 
     @np_and_autograd_only
-    def test_retraction_shape(self, connection_args, tangent_vec, base_point, expected):
-        metric = self.Metric(*connection_args)
-        result = metric.retraction(gs.array(tangent_vec), gs.array(base_point))
+    def test_retraction_shape(self, space, tangent_vec, base_point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.retraction(tangent_vec, base_point)
         self.assertAllClose(gs.shape(result), expected)

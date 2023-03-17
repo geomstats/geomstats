@@ -2,9 +2,9 @@ import random
 
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
-    FullRankCorrelationAffineQuotientMetric,
     FullRankCorrelationMatrices,
 )
+from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.data_generation import TestData, _LevelSetTestData
 
@@ -115,7 +115,7 @@ class CorrelationMatricesBundleTestData(TestData):
 
 class FullRankcorrelationAffineQuotientMetricTestData(TestData):
 
-    Metric = FullRankCorrelationAffineQuotientMetric
+    Metric = QuotientMetric
     Space = CorrelationMatricesBundle
 
     def exp_log_composition_test_data(self):

@@ -1,7 +1,7 @@
 import os
 
 import geomstats.backend as gs
-from geomstats.geometry.hypersphere import HypersphereMetric
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.sasaki_metric import SasakiMetric
 from tests.data_generation import TestData
 
@@ -9,7 +9,7 @@ from tests.data_generation import TestData
 class SasakiMetricTestData(TestData):
     dim = 2
     sas_sphere_metric = SasakiMetric(
-        HypersphereMetric(dim=dim),
+        Hypersphere(dim=dim),
         os.cpu_count(),
     )
 

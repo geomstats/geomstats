@@ -14,22 +14,18 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
 
     Metric = testing_data.Metric
 
-    def test_inner_product_matrix_shape(
-        self, information_manifold, support, base_point
-    ):
-        metric = self.Metric(information_manifold=information_manifold, support=support)
-        dim = metric.dim
-        result = metric.metric_matrix(base_point=base_point)
+    def test_inner_product_matrix_shape(self, space, support, base_point):
+        space.equip_with_metric(self.Metric, support=support)
+        dim = space.dim
+        result = space.metric.metric_matrix(base_point=base_point)
         if base_point.ndim == 1:
             self.assertAllClose(gs.shape(result), (dim, dim))
         else:
             self.assertAllClose(gs.shape(result), (base_point.shape[0], dim, dim))
 
-    def test_det_of_inner_product_matrix(
-        self, information_manifold, support, base_point
-    ):
-        metric = self.Metric(information_manifold=information_manifold, support=support)
-        inner_prod_mat = metric.metric_matrix(base_point=base_point)
+    def test_det_of_inner_product_matrix(self, space, support, base_point):
+        space.equip_with_metric(self.Metric, support=support)
+        inner_prod_mat = space.metric.metric_matrix(base_point=base_point)
         result = gs.linalg.det(inner_prod_mat)
         if base_point.ndim == 1:
             self.assertTrue(result > 0.0)
@@ -39,13 +35,14 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
 
     def test_metric_matrix_and_closed_form_metric_matrix(
         self,
-        information_manifold,
+        space,
         support,
-        closed_form_metric,
         base_point,
     ):
-        metric = self.Metric(information_manifold=information_manifold, support=support)
-        inner_prod_mat = metric.metric_matrix(
+        space.equip_with_metric(self.Metric, support=support)
+        closed_form_metric = space._default_metric()(space)
+
+        inner_prod_mat = space.metric.metric_matrix(
             base_point=base_point,
         )
         normal_metric_mat = closed_form_metric.metric_matrix(
@@ -55,15 +52,16 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
 
     def test_inner_product_and_closed_form_inner_product(
         self,
-        information_manifold,
+        space,
         support,
-        closed_form_metric,
         tangent_vec_a,
         tangent_vec_b,
         base_point,
     ):
-        metric = self.Metric(information_manifold=information_manifold, support=support)
-        inner_prod_mat = metric.inner_product(
+        space.equip_with_metric(self.Metric, support=support)
+        closed_form_metric = space._default_metric()(space)
+
+        inner_prod_mat = space.metric.inner_product(
             tangent_vec_a=tangent_vec_a,
             tangent_vec_b=tangent_vec_b,
             base_point=base_point,
@@ -77,13 +75,14 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
 
     def test_inner_product_derivative_and_closed_form_inner_product_derivative(
         self,
-        information_manifold,
+        space,
         support,
         closed_form_derivative,
         base_point,
     ):
-        metric = self.Metric(information_manifold=information_manifold, support=support)
-        inner_prod_deriv_mat = metric.inner_product_derivative_matrix(
+        space.equip_with_metric(self.Metric, support=support)
+
+        inner_prod_deriv_mat = space.metric.inner_product_derivative_matrix(
             base_point=base_point
         )
         normal_inner_prod_deriv_mat = closed_form_derivative(base_point)

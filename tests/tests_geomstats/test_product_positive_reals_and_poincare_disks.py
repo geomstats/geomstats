@@ -3,9 +3,6 @@
 import geomstats.backend as gs
 from geomstats.geometry.complex_poincare_disk import ComplexPoincareDisk
 from geomstats.geometry.positive_reals import PositiveReals
-from geomstats.geometry.product_positive_reals_and_poincare_disks import (
-    ProductPositiveRealsAndComplexPoincareDisks,
-)
 from tests.conftest import Parametrizer, TestCase
 from tests.data.product_positive_reals_and_poincare_disks_data import (
     ProductPositiveRealsAndComplexPoincareDisksMetricTestData,
@@ -34,11 +31,14 @@ class TestProductPositiveRealsAndComplexPoincareDisksMetric(
     testing_data = ProductPositiveRealsAndComplexPoincareDisksMetricTestData()
     Metric = testing_data.Metric
 
-    def test_signature(self, n_manifolds, expected):
-        metric = self.Metric(n_manifolds)
-        self.assertAllClose(metric.signature, expected)
+    def test_signature(self, space, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.signature, expected)
 
-    def test_squared_dist(self, n_manifolds):
+    def test_squared_dist(self, space):
+        space.equip_with_metric(self.Metric)
+        n_manifolds = space.n_manifolds
+
         def _get_random_point():
             point_positive_reals = positive_reals.random_point()
             point_complex_poincare_disk = complex_poincare_disk.random_point()
@@ -58,7 +58,6 @@ class TestProductPositiveRealsAndComplexPoincareDisksMetric(
 
             return point, point_positive_reals, point_complex_poincare_disk
 
-        product_manifold = ProductPositiveRealsAndComplexPoincareDisks(n_manifolds)
         complex_poincare_disk = ComplexPoincareDisk()
         positive_reals = PositiveReals()
 
@@ -80,7 +79,7 @@ class TestProductPositiveRealsAndComplexPoincareDisksMetric(
             point_complex_poincare_disk_a, point_complex_poincare_disk_b
         )
 
-        sq_dist_prod = product_manifold.metric.squared_dist(point_a, point_b)
+        sq_dist_prod = space.metric.squared_dist(point_a, point_b)
 
         sq_dist_expected = (
             n_manifolds * sq_dist_positive_reals

@@ -337,13 +337,12 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = KendallShapeMetricTestData()
     Space = testing_data.Space
 
-    def test_curvature_is_skew_operator(self, k_landmarks, m_ambient, vec, base_point):
-        metric = self.Metric(k_landmarks, m_ambient)
-        space = self.Space(k_landmarks, m_ambient)
+    def test_curvature_is_skew_operator(self, space, vec, base_point):
+        space.equip_with_metric(self.Metric)
         tangent_vec_a = space.to_tangent(vec[:2], base_point)
         tangent_vec_b = space.to_tangent(vec[2:], base_point)
 
-        result = metric.curvature(
+        result = space.metric.curvature(
             tangent_vec_a, tangent_vec_a, tangent_vec_b, base_point
         )
         expected = gs.zeros_like(result)
@@ -352,8 +351,7 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     @tests.conftest.np_and_autograd_only
     def test_curvature_bianchi_identity(
         self,
-        k_landmarks,
-        m_ambient,
+        space,
         tangent_vec_a,
         tangent_vec_b,
         tangent_vec_c,
@@ -363,14 +361,14 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         :math:`R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
         """
-        metric = self.Metric(k_landmarks, m_ambient)
-        curvature_1 = metric.curvature(
+        space.equip_with_metric(self.Metric)
+        curvature_1 = space.metric.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
         )
-        curvature_2 = metric.curvature(
+        curvature_2 = space.metric.curvature(
             tangent_vec_b, tangent_vec_c, tangent_vec_a, base_point
         )
-        curvature_3 = metric.curvature(
+        curvature_3 = space.metric.curvature(
             tangent_vec_c, tangent_vec_a, tangent_vec_b, base_point
         )
 
@@ -380,7 +378,7 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     @pytest.mark.skip("keeps throwing error")
     def test_kendall_sectional_curvature(
-        self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
+        self, space, tangent_vec_a, tangent_vec_b, base_point
     ):
         """Sectional curvature of Kendall shape space is larger than 1.
 
@@ -391,29 +389,31 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         The sectional curvature is computed here with the generic
         directional_curvature and sectional curvature methods.
         """
-        space = self.Space(k_landmarks, m_ambient)
-        metric = self.Metric(k_landmarks, m_ambient)
+        space.equip_with_metric(self.Metric)
+
         hor_a = space.horizontal_projection(tangent_vec_a, base_point)
         hor_b = space.horizontal_projection(tangent_vec_b, base_point)
 
-        tidal_force = metric.directional_curvature(hor_a, hor_b, base_point)
+        tidal_force = space.metric.directional_curvature(hor_a, hor_b, base_point)
 
-        numerator = metric.inner_product(tidal_force, hor_a, base_point)
+        numerator = space.metric.inner_product(tidal_force, hor_a, base_point)
         denominator = (
-            metric.inner_product(hor_a, hor_a, base_point)
-            * metric.inner_product(hor_b, hor_b, base_point)
-            - metric.inner_product(hor_a, hor_b, base_point) ** 2
+            space.metric.inner_product(hor_a, hor_a, base_point)
+            * space.metric.inner_product(hor_b, hor_b, base_point)
+            - space.metric.inner_product(hor_a, hor_b, base_point) ** 2
         )
         condition = ~gs.isclose(denominator, 0.0, atol=gs.atol * 100)
         kappa = numerator[condition] / denominator[condition]
-        kappa_direct = metric.sectional_curvature(hor_a, hor_b, base_point)[condition]
+        kappa_direct = space.metric.sectional_curvature(hor_a, hor_b, base_point)[
+            condition
+        ]
         self.assertAllClose(kappa, kappa_direct)
         result = kappa > 1.0 - 1e-10
         self.assertTrue(gs.all(result))
 
     @tests.conftest.np_and_autograd_only
     def test_kendall_curvature_derivative_bianchi_identity(
-        self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, hor_h, base_point
+        self, space, hor_x, hor_y, hor_z, hor_h, base_point
     ):
         r"""2nd Bianchi identity on curvature derivative in kendall space.
 
@@ -421,106 +421,113 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         space to Kendall pre-shape space, :math:`(\nabla_X R)(Y, Z)
         + (\nabla_Y R)(Z,X) + (\nabla_Z R)(X, Y) = 0`.
         """
-        metric = self.Metric(k_landmarks, m_ambient)
-        term_x = metric.curvature_derivative(hor_x, hor_y, hor_z, hor_h, base_point)
-        term_y = metric.curvature_derivative(hor_y, hor_z, hor_x, hor_h, base_point)
-        term_z = metric.curvature_derivative(hor_z, hor_x, hor_y, hor_h, base_point)
+        space.equip_with_metric(self.Metric)
+        term_x = space.metric.curvature_derivative(
+            hor_x, hor_y, hor_z, hor_h, base_point
+        )
+        term_y = space.metric.curvature_derivative(
+            hor_y, hor_z, hor_x, hor_h, base_point
+        )
+        term_z = space.metric.curvature_derivative(
+            hor_z, hor_x, hor_y, hor_h, base_point
+        )
 
         result = term_x + term_y + term_z
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 100)
 
     def test_curvature_derivative_is_skew_operator(
-        self, k_landmarks, m_ambient, hor_x, hor_y, hor_z, base_point
+        self, space, hor_x, hor_y, hor_z, base_point
     ):
         r"""Derivative of a skew operator is skew.
 
         For any 3 tangent vectors horizontally lifted from kendall shape space
         to Kendall pre-shape space, :math:`(\nabla_X R)(Y,Y)Z = 0`.
         """
-        metric = self.Metric(k_landmarks, m_ambient)
-        result = metric.curvature_derivative(hor_x, hor_y, hor_y, hor_z, base_point)
+        space.equip_with_metric(self.Metric)
+        result = space.metric.curvature_derivative(
+            hor_x, hor_y, hor_y, hor_z, base_point
+        )
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
     @tests.conftest.np_and_autograd_only
-    def test_directional_curvature_derivative(
-        self, k_landmarks, m_ambient, hor_x, hor_y, base_point
-    ):
+    def test_directional_curvature_derivative(self, space, hor_x, hor_y, base_point):
         """Test equality of directional curvature derivative implementations.
 
         General formula based on curvature derivative, optimized method of
         KendallShapeMetric class, method from the QuotientMetric class and
         method from the Connection class have to give identical results.
         """
-        metric = self.Metric(k_landmarks, m_ambient)
+        space.equip_with_metric(self.Metric)
 
         # General formula based on curvature derivative
-        expected = metric.curvature_derivative(hor_x, hor_y, hor_x, hor_y, base_point)
+        expected = space.metric.curvature_derivative(
+            hor_x, hor_y, hor_x, hor_y, base_point
+        )
 
         # Optimized method of KendallShapeMetric class
-        result_kendall_shape_metric = metric.directional_curvature_derivative(
+        result_kendall_shape_metric = space.metric.directional_curvature_derivative(
             hor_x, hor_y, base_point
         )
         self.assertAllClose(result_kendall_shape_metric, expected, atol=gs.atol * 10)
 
         # Method from the QuotientMetric class
         result_quotient_metric = super(
-            self.Metric, metric
+            self.Metric, space.metric
         ).directional_curvature_derivative(hor_x, hor_y, base_point)
         self.assertAllClose(result_quotient_metric, expected, atol=gs.atol * 10)
 
         # Method from the Connection class
 
         result_connection = super(
-            QuotientMetric, metric
+            QuotientMetric, space.metric
         ).directional_curvature_derivative(hor_x, hor_y, base_point)
         self.assertAllClose(result_connection, expected, atol=gs.atol * 10)
 
     @tests.conftest.np_and_autograd_only
     def test_directional_curvature_derivative_is_quadratic(
-        self, k_landmarks, m_ambient, coef_x, coef_y, hor_x, hor_y, base_point
+        self, space, coef_x, coef_y, hor_x, hor_y, base_point
     ):
         """Directional curvature derivative is quadratic in both variables."""
-        metric = self.Metric(k_landmarks, m_ambient)
+        space.equip_with_metric(self.Metric)
+
         coef_x = -2.5
         coef_y = 1.5
-        result = metric.directional_curvature_derivative(
+        result = space.metric.directional_curvature_derivative(
             coef_x * hor_x, coef_y * hor_y, base_point
         )
         expected = (
             coef_x**2
             * coef_y**2
-            * metric.directional_curvature_derivative(hor_x, hor_y, base_point)
+            * space.metric.directional_curvature_derivative(hor_x, hor_y, base_point)
         )
         self.assertAllClose(result, expected, atol=gs.atol * 1000)
 
-    def test_parallel_transport(
-        self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
-    ):
-        space = self.Space(k_landmarks, m_ambient)
-        metric = self.Metric(k_landmarks, m_ambient)
+    def test_parallel_transport(self, space, tangent_vec_a, tangent_vec_b, base_point):
+        space.equip_with_metric(self.Metric)
+
         tan_a = space.horizontal_projection(tangent_vec_a, base_point)
         tan_b = space.horizontal_projection(tangent_vec_b, base_point)
 
         # orthonormalize and move to base_point
         tan_a -= gs.einsum(
             "...,...ij->...ij",
-            metric.inner_product(tan_a, tan_b, base_point)
-            / metric.squared_norm(tan_b, base_point),
+            space.metric.inner_product(tan_a, tan_b, base_point)
+            / space.metric.squared_norm(tan_b, base_point),
             tan_b,
         )
         tan_b = gs.einsum(
-            "...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, base_point)
+            "...ij,...->...ij", tan_b, 1.0 / space.metric.norm(tan_b, base_point)
         )
         tan_a = gs.einsum(
-            "...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, base_point)
+            "...ij,...->...ij", tan_a, 1.0 / space.metric.norm(tan_a, base_point)
         )
 
-        transported = metric.parallel_transport(
+        transported = space.metric.parallel_transport(
             tan_a, base_point, tan_b, n_steps=400, step="rk4"
         )
-        end_point = metric.exp(tan_b, base_point)
-        result = metric.norm(transported, end_point)
-        expected = metric.norm(tan_a, base_point)
+        end_point = space.metric.exp(tan_b, base_point)
+        result = space.metric.norm(transported, end_point)
+        expected = space.metric.norm(tan_a, base_point)
         self.assertAllClose(result, expected, atol=gs.atol * 10)
 
         is_tangent = space.is_tangent(transported, end_point)

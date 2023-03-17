@@ -123,8 +123,9 @@ class BinomialMetricTestData(_RiemannianMetricTestData):
 
     n_list = random.sample((2, 5), 2)
     n_samples_list = random.sample(range(1, 10), 3)
-    connection_args_list = metric_args_list = [(n,) for n in n_list]
-    space_list = [BinomialDistributions(n) for n in n_list]
+
+    connection_args_list = metric_args_list = [{} for _ in n_list]
+    space_list = [BinomialDistributions(n, equip=False) for n in n_list]
     space_args_list = [(n,) for n in n_list]
     shape_list = [(1,) for n in n_list]
     n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
@@ -139,27 +140,29 @@ class BinomialMetricTestData(_RiemannianMetricTestData):
     }
 
     def squared_dist_test_data(self):
+        space_5 = BinomialDistributions(5, equip=False)
+        space_10 = BinomialDistributions(10, equip=False)
         smoke_data = [
             dict(
-                n_draws=5,
+                space=space_5,
                 point_a=gs.array([0.2, 0.3]),
                 point_b=gs.array([0.3, 0.5]),
                 expected=gs.array([0.26908349, 0.84673057]),
             ),
             dict(
-                n_draws=10,
+                space=space_10,
                 point_a=gs.array(0.1),
                 point_b=gs.array(0.99),
                 expected=gs.array(52.79685863761384),
             ),
             dict(
-                n_draws=5,
+                space=space_5,
                 point_a=gs.array(0.3),
                 point_b=gs.array([0.2, 0.5]),
                 expected=gs.array([0.26908349, 0.84673057]),
             ),
             dict(
-                n_draws=5,
+                space=space_5,
                 point_a=gs.array([0.2, 0.5]),
                 point_b=gs.array(0.3),
                 expected=gs.array([0.26908349, 0.84673057]),
@@ -170,12 +173,12 @@ class BinomialMetricTestData(_RiemannianMetricTestData):
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(
-                n_draws=5,
+                space=BinomialDistributions(5, equip=False),
                 point=gs.array([0.5]),
                 expected=gs.array([[20.0]]),
             ),
             dict(
-                n_draws=7,
+                space=BinomialDistributions(7, equip=False),
                 point=gs.array([[0.1], [0.5], [0.4]]),
                 expected=gs.array(
                     [[[77.77777777777777]], [[28.0]], [[29.166666666666668]]]
@@ -187,7 +190,8 @@ class BinomialMetricTestData(_RiemannianMetricTestData):
     def geodesic_symmetry_test_data(self):
         random_data = []
         for space_args in self.space_args_list:
-            random_data.append(dict(space_args=space_args))
+            space = BinomialDistributions(*space_args, equip=False)
+            random_data.append(dict(space=space))
         return self.generate_tests([], random_data)
 
     def log_after_exp_test_data(self):
@@ -211,6 +215,7 @@ class BinomialMetricTestData(_RiemannianMetricTestData):
             tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
+                    space=space,
                     connection_args=connection_args,
                     tangent_vec=tangent_vec,
                     base_point=base_point,

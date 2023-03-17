@@ -666,18 +666,6 @@ class _FiberBundleTestData(TestData):
 
 
 class _ConnectionTestData(TestData):
-    def manifold_shape_test_data(self):
-        smoke_data = []
-        for connection_args, space in zip(self.metric_args_list, self.space_list):
-            smoke_data.append(
-                dict(
-                    connection_args=connection_args,
-                    expected_shape=space.random_point().shape,
-                )
-            )
-
-        return self.generate_tests(smoke_data)
-
     def exp_shape_test_data(self):
         """Generate data to check that exp returns an array of the expected shape."""
         n_samples_list = [3] * len(self.metric_args_list)
@@ -697,6 +685,7 @@ class _ConnectionTestData(TestData):
             ):
                 random_data.append(
                     dict(
+                        space=space,
                         connection_args=connection_args,
                         tangent_vec=better_squeeze(tangent_vec[:n_tangent_vecs]),
                         base_point=better_squeeze(base_point[:n_base_points]),
@@ -722,6 +711,7 @@ class _ConnectionTestData(TestData):
 
                 random_data.append(
                     dict(
+                        space=space,
                         connection_args=connection_args,
                         point=better_squeeze(point[:n_points]),
                         base_point=better_squeeze(base_point[:n_base_points]),
@@ -836,6 +826,7 @@ class _ConnectionTestData(TestData):
             base_point = space.random_point()
             random_data.append(
                 dict(
+                    space=space,
                     connection_args=connection_args,
                     point=point,
                     base_point=base_point,
@@ -871,6 +862,7 @@ class _ConnectionTestData(TestData):
             tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
+                    space=space,
                     connection_args=connection_args,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
@@ -908,6 +900,7 @@ class _ConnectionTestData(TestData):
             direction = space.to_tangent(random_dir, base_point)
             random_data.append(
                 dict(
+                    space=space,
                     connection_args=connection_args,
                     direction=direction,
                     tangent_vec=tangent_vec,
@@ -935,6 +928,7 @@ class _ConnectionTestData(TestData):
             tangent_vec = space.to_tangent(gs.random.normal(size=size), base_point)
             random_data.append(
                 dict(
+                    space=space,
                     connection_args=connection_args,
                     n_points=n_points,
                     tangent_vec=tangent_vec,
@@ -967,6 +961,7 @@ class _ConnectionTestData(TestData):
             )
             random_data.append(
                 dict(
+                    space=space,
                     connection_args=connection_args,
                     base_point=base_point,
                     expected=expected_shape,
@@ -998,6 +993,7 @@ class _ConnectionTestData(TestData):
             )
             random_data.append(
                 dict(
+                    space=space,
                     connection_args=connection_args,
                     base_point=base_point,
                     expected=expected_shape,
@@ -1027,6 +1023,7 @@ class _ConnectionTestData(TestData):
             expected_shape = expected_shape = (n_points,) if n_points >= 2 else ()
             random_data.append(
                 dict(
+                    space=space,
                     connection_args=connection_args,
                     base_point=base_point,
                     expected=expected_shape,
@@ -1069,6 +1066,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             point_b = space.random_point(n_points_b)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     point_a=point_a,
                     point_b=point_b,
@@ -1089,6 +1087,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             point_b = space.random_point(n_points_b)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     point_a=point_a,
                     point_b=point_b,
@@ -1118,6 +1117,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
@@ -1135,6 +1135,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             point = space.random_point(n_points)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     point=point,
                 )
@@ -1206,6 +1207,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             point_c = space.random_point(n_points)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     point_a=point_a,
                     point_b=point_b,
@@ -1235,6 +1237,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             base_point = space.random_point(n_points)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     base_point=base_point,
                 )
@@ -1262,6 +1265,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             base_point = space.random_point(n_points)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     base_point=base_point,
                 )
@@ -1289,6 +1293,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             base_point = space.random_point(n_points)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     base_point=base_point,
                 )
@@ -1316,6 +1321,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             base_point = space.random_point(n_points)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     base_point=base_point,
                 )
@@ -1355,6 +1361,7 @@ class _RiemannianMetricTestData(_ConnectionTestData):
             )
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
@@ -1387,6 +1394,7 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
             tangent_vec_b = space.to_tangent(random_vec_b)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
@@ -1416,6 +1424,7 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
             tangent_vec_b = space.to_tangent(random_vec_b)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
@@ -1433,6 +1442,7 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
             point_a, point_b = space.random_point(2)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     point_a=point_a,
                     point_b=point_b,
@@ -1449,6 +1459,7 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
             point, base_point = space.random_point(2)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     point=point,
                     base_point=base_point,
@@ -1470,6 +1481,7 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
             tangent_vec = space.to_tangent(random_vec)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     tangent_vec=tangent_vec,
                     base_point=base_point,
@@ -1498,6 +1510,7 @@ class _ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
             tangent_vec_b = space.to_tangent(random_vec_b)
             random_data.append(
                 dict(
+                    space=space,
                     metric_args=metric_args,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
@@ -1691,11 +1704,10 @@ class _PointTestData(TestData):
 
 class _PointMetricTestData(TestData):
     def dist_output_shape_test_data(self):
-        space = self._PointSet(*self.space_args_list[0])
-        metric = self._PointSetMetric(space)
+        space = self._PointSet(*self.space_args_list[0], equip=True)
         pts = space.random_point(2)
 
-        dist_fnc = metric.dist
+        dist_fnc = space.metric.dist
 
         smoke_data = [
             dict(dist_fnc=dist_fnc, point_a=pts[0], point_b=pts[1]),
@@ -1707,11 +1719,10 @@ class _PointMetricTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def dist_properties_test_data(self):
-        space = self._PointSet(*self.space_args_list[0])
-        metric = self._PointSetMetric(space)
+        space = self._PointSet(*self.space_args_list[0], equip=True)
         pts = space.random_point(3)
 
-        dist_fnc = metric.dist
+        dist_fnc = space.metric.dist
 
         smoke_data = [
             dict(dist_fnc=dist_fnc, point_a=pts[0], point_b=pts[1], point_c=pts[2]),
@@ -1721,7 +1732,7 @@ class _PointMetricTestData(TestData):
 
     def geodesic_output_shape_test_data(self):
         space = self._PointSet(*self.space_args_list[0])
-        metric = self._PointSetMetric(space)
+        metric = space.metric
         pts = space.random_point(2)
 
         smoke_data = [
@@ -1738,10 +1749,9 @@ class _PointMetricTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def geodesic_bounds_test_data(self):
-        space = self._PointSet(*self.space_args_list[0])
-        metric = self._PointSetMetric(space)
+        space = self._PointSet(*self.space_args_list[0], equip=True)
         pts = space.random_point(2)
 
-        smoke_data = [dict(metric=metric, start_point=pts[0], end_point=pts[1])]
+        smoke_data = [dict(space=space, start_point=pts[0], end_point=pts[1])]
 
         return self.generate_tests(smoke_data)

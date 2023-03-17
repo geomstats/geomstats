@@ -61,12 +61,12 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
         smoke_data = [
             dict(m=2, n=2, mat=sq_mat, expected=True),
             dict(m=2, n=1, mat=sq_mat, expected=False),
-            dict(m=2, n=3, mat=[MAT1_23, MAT2_23], expected=[True, True]),
-            dict(m=2, n=1, mat=MAT1_23, expected=False),
+            dict(m=2, n=3, mat=gs.stack([MAT1_23, MAT2_23]), expected=[True, True]),
+            dict(m=2, n=1, mat=gs.stack(MAT1_23), expected=False),
             dict(
                 m=3,
                 n=3,
-                mat=[MAT1_33, MAT2_33, MAT3_33],
+                mat=gs.stack([MAT1_33, MAT2_33, MAT3_33]),
                 expected=[True, True, True],
             ),
         ]
@@ -136,18 +136,24 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                 expected=gs.array([[-8.0, -20.0], [-12.0, -26.0]], dtype=CDTYPE),
             ),
             dict(
-                mat_a=[
-                    gs.array([[0.0, 1.0], [2.0, -2]], dtype=CDTYPE),
-                    gs.array([[1.0, 0.0], [0.0, -1]], dtype=CDTYPE),
-                ],
-                mat_b=[
-                    gs.array([[1.0, -2.0], [2.0, -3]], dtype=CDTYPE),
-                    gs.array([[0.0, 0.0], [-1.0, -3]], dtype=CDTYPE),
-                ],
-                expected=[
-                    gs.array([[-14.0, -23.0], [-22.0, -36.0]], dtype=CDTYPE),
-                    gs.array([[0.0, 0.0], [0.0, -8.0]], dtype=CDTYPE),
-                ],
+                mat_a=gs.stack(
+                    [
+                        gs.array([[0.0, 1.0], [2.0, -2]], dtype=CDTYPE),
+                        gs.array([[1.0, 0.0], [0.0, -1]], dtype=CDTYPE),
+                    ]
+                ),
+                mat_b=gs.stack(
+                    [
+                        gs.array([[1.0, -2.0], [2.0, -3]], dtype=CDTYPE),
+                        gs.array([[0.0, 0.0], [-1.0, -3]], dtype=CDTYPE),
+                    ]
+                ),
+                expected=gs.stack(
+                    [
+                        gs.array([[-14.0, -23.0], [-22.0, -36.0]], dtype=CDTYPE),
+                        gs.array([[0.0, 0.0], [0.0, -8.0]], dtype=CDTYPE),
+                    ]
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -155,15 +161,19 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
     def frobenius_product_test_data(self):
         smoke_data = [
             dict(
-                mat_a=[
-                    gs.array([[1.0, -2.0], [1.0, 4.0]], dtype=CDTYPE),
-                    gs.array([[1.0, 2.0], [0.0, -3.0]], dtype=CDTYPE),
-                ],
-                mat_b=[
-                    gs.array([[0.0, 4.0], [2.0, 4.0]], dtype=CDTYPE),
-                    gs.array([[1.0, -1.0], [5.0, 4.0]], dtype=CDTYPE),
-                ],
-                expected=[10.0, -13.0],
+                mat_a=gs.stack(
+                    [
+                        gs.array([[1.0, -2.0], [1.0, 4.0]], dtype=CDTYPE),
+                        gs.array([[1.0, 2.0], [0.0, -3.0]], dtype=CDTYPE),
+                    ]
+                ),
+                mat_b=gs.stack(
+                    [
+                        gs.array([[0.0, 4.0], [2.0, 4.0]], dtype=CDTYPE),
+                        gs.array([[1.0, -1.0], [5.0, 4.0]], dtype=CDTYPE),
+                    ]
+                ),
+                expected=gs.stack([10.0, -13.0]),
             ),
             dict(
                 mat_a=gs.array([[5.0, 8.0], [2.0, 2.0]], dtype=CDTYPE),
@@ -217,7 +227,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=[EYE_2, MINUS_EYE_2],
+                mat=gs.stack([EYE_2, MINUS_EYE_2]),
                 expected=[
                     gs.array([1.0, 0.0, 0.0, 1.0], dtype=CDTYPE),
                     gs.array([-1.0, 0.0, 0.0, -1.0], dtype=CDTYPE),
@@ -271,8 +281,8 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=3,
                 n=3,
-                mat=[MAT9_33, MAT11_33],
-                expected=[MAT9_33, MAT12_33],
+                mat=gs.stack([MAT9_33, MAT11_33]),
+                expected=gs.stack([MAT9_33, MAT12_33]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -322,7 +332,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=3,
                 n=3,
-                mat=[MAT9_33, MAT10_33, MAT11_33],
+                mat=gs.stack([MAT9_33, MAT10_33, MAT11_33]),
                 expected=[True, True, False],
             ),
         ]
@@ -377,13 +387,15 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=[EYE_2, MINUS_EYE_2],
+                mat=gs.stack([EYE_2, MINUS_EYE_2]),
                 expected=[True, False],
             ),
             dict(
                 m=3,
                 n=3,
-                mat=[MAT1_33, MAT2_33, MAT3_33, MAT4_33, MAT9_33, MAT10_33, MAT11_33],
+                mat=gs.stack(
+                    [MAT1_33, MAT2_33, MAT3_33, MAT4_33, MAT9_33, MAT10_33, MAT11_33]
+                ),
                 expected=[False, False, False, True, True, False, False],
             ),
         ]
@@ -519,7 +531,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(
                 m=3,
                 n=3,
-                mat=[MAT10_33, MAT11_33],
+                mat=gs.stack([MAT10_33, MAT11_33]),
                 expected=[MAT10_33, MAT13_33],
             ),
         ]
@@ -693,11 +705,13 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
 class ComplexMatricesMetricTestData(_ComplexRiemannianMetricTestData):
     m_list = random.sample(range(3, 5), 2)
     n_list = random.sample(range(3, 5), 2)
-    metric_args_list = list(zip(m_list, n_list))
-    space_args_list = metric_args_list
+
+    space_args_list = list(zip(m_list, n_list))
     shape_list = space_args_list
-    space_list = [ComplexMatrices(m, n) for m, n in metric_args_list]
-    connection_args_list = [(m * n, (m, n)) for m, n in metric_args_list]
+    space_list = [ComplexMatrices(m, n, equip=False) for m, n in space_args_list]
+
+    connection_args_list = metric_args_list = [{} for _ in shape_list]
+
     n_points_list = random.sample(range(1, 7), 2)
     n_tangent_vecs_list = random.sample(range(1, 7), 2)
     n_points_a_list = random.sample(range(1, 7), 2)
@@ -709,45 +723,49 @@ class ComplexMatricesMetricTestData(_ComplexRiemannianMetricTestData):
     Metric = ComplexMatricesMetric
 
     def inner_product_test_data(self):
+        space = ComplexMatrices(2, 2, equip=False)
         smoke_data = [
             dict(
-                m=2,
-                n=2,
+                space=space,
                 tangent_vec_a=gs.array([[-3.0, 1.0], [-1.0, -2.0]], dtype=CDTYPE),
                 tangent_vec_b=gs.array([[-9.0, 0.0], [4.0, 2.0]], dtype=CDTYPE),
                 expected=19.0 + 0j,
             ),
             dict(
-                m=2,
-                n=2,
-                tangent_vec_a=[
-                    gs.array([[-1.5, 0.0], [2.0, -3.0]], dtype=CDTYPE),
-                    gs.array([[0.5, 7.0], [0.5, -2.0]], dtype=CDTYPE),
-                ],
-                tangent_vec_b=[
-                    gs.array([[2.0, 0.0], [2.0, -3.0]], dtype=CDTYPE),
-                    gs.array([[-1.0, 0.0], [1.0, -2.0]], dtype=CDTYPE),
-                ],
+                space=space,
+                tangent_vec_a=gs.stack(
+                    [
+                        gs.array([[-1.5, 0.0], [2.0, -3.0]], dtype=CDTYPE),
+                        gs.array([[0.5, 7.0], [0.5, -2.0]], dtype=CDTYPE),
+                    ]
+                ),
+                tangent_vec_b=gs.stack(
+                    [
+                        gs.array([[2.0, 0.0], [2.0, -3.0]], dtype=CDTYPE),
+                        gs.array([[-1.0, 0.0], [1.0, -2.0]], dtype=CDTYPE),
+                    ]
+                ),
                 expected=gs.array([10.0, 4.0], dtype=CDTYPE),
             ),
         ]
         return self.generate_tests(smoke_data)
 
     def norm_test_data(self):
+        space = ComplexMatrices(2, 2, equip=False)
         smoke_data = [
             dict(
-                m=2,
-                n=2,
+                space=space,
                 vector=gs.array([[1.0, 0.0], [0.0, 1.0]], dtype=CDTYPE),
                 expected=SQRT_2,
             ),
             dict(
-                m=2,
-                n=2,
-                vector=[
-                    gs.array([[3.0, 0.0], [4.0, 0.0]], dtype=CDTYPE),
-                    gs.array([[-3.0, 0.0], [-4.0, 0.0]], dtype=CDTYPE),
-                ],
+                space=space,
+                vector=gs.stack(
+                    [
+                        gs.array([[3.0, 0.0], [4.0, 0.0]], dtype=CDTYPE),
+                        gs.array([[-3.0, 0.0], [-4.0, 0.0]], dtype=CDTYPE),
+                    ]
+                ),
                 expected=gs.array([5.0, 5.0], dtype=CDTYPE),
             ),
         ]
@@ -755,7 +773,7 @@ class ComplexMatricesMetricTestData(_ComplexRiemannianMetricTestData):
 
     def inner_product_norm_test_data(self):
         smoke_data = [
-            dict(m=5, n=5, mat=ComplexMatrices(5, 5).random_point(100)),
-            dict(m=10, n=10, mat=ComplexMatrices(5, 5).random_point(100)),
+            dict(space=ComplexMatrices(5, 5, equip=False), n_points=100),
+            dict(space=ComplexMatrices(5, 5, equip=False), n_points=100),
         ]
         return self.generate_tests(smoke_data)

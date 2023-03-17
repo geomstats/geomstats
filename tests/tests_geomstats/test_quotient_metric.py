@@ -81,25 +81,31 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     @tests.conftest.np_and_autograd_only
     def test_inner_product(self, n, mat, vec_a, vec_b):
         bundle = self.Bundle(n)
-        quotient_metric = self.Metric(bundle)
-        base_metric = self.BaseMetric(n)
+        bundle.equip_with_metric(self.Metric)
+
+        base = self.Base(n)
+        base.equip_with_metric(self.BaseMetric)
+
         point = bundle.riemannian_submersion(mat)
         tangent_vecs = Matrices.to_symmetric(gs.array([vec_a, vec_b])) / 40
-        result = quotient_metric.inner_product(
+        result = bundle.metric.inner_product(
             tangent_vecs[0], tangent_vecs[1], fiber_point=mat
         )
-        expected = base_metric.inner_product(tangent_vecs[0], tangent_vecs[1], point)
+        expected = base.metric.inner_product(tangent_vecs[0], tangent_vecs[1], point)
         self.assertAllClose(result, expected, atol=1e-1)
 
     def test_exp(self, n, mat, vec):
         bundle = self.Bundle(n)
-        quotient_metric = self.Metric(bundle)
-        base_metric = self.BaseMetric(n)
+        bundle.equip_with_metric(self.Metric)
+
+        base = self.Base(n)
+        base.equip_with_metric(self.BaseMetric)
+
         point = bundle.riemannian_submersion(mat)
         tangent_vec = Matrices.to_symmetric(vec) / 40
 
-        result = quotient_metric.exp(tangent_vec, point)
-        expected = base_metric.exp(tangent_vec, point)
+        result = bundle.metric.exp(tangent_vec, point)
+        expected = base.metric.exp(tangent_vec, point)
         self.assertAllClose(result, expected, atol=1e-1)
 
     @tests.conftest.autograd_and_torch_only
