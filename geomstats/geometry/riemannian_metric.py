@@ -352,7 +352,9 @@ class RiemannianMetric(Connection, ABC):
             raise ValueError(
                 "Several tangent vectors is only applicable to a single base point."
             )
-        random_vector = gs.squeeze(gs.random.rand(n_vectors, *shape))
+        random_vector = gs.squeeze(
+            gs.ones((n_vectors, *shape)) - 2 * gs.random.rand(n_vectors, *shape)
+        )
         normalized_vector = self.normalize(random_vector, base_point)
         return gs.squeeze(normalized_vector)
 

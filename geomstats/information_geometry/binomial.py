@@ -174,6 +174,24 @@ class BinomialMetric(RiemannianMetric):
         super().__init__(dim=1)
         self.n_draws = n_draws
 
+    def metric_matrix(self, base_point):
+        """Compute the inner-product matrix.
+
+        Compute the inner-product matrix of the Fisher information metric
+        at the tangent space at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., 1]
+            Base point.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., 1, 1]
+            Inner-product matrix.
+        """
+        return gs.to_ndarray([self.n_draws / (base_point * (1 - base_point))], 2)
+
     def squared_dist(self, point_a, point_b, **kwargs):
         """Compute squared distance associated with the binomial Fisher Rao metric.
 
