@@ -14,6 +14,7 @@ from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.landmarks import L2LandmarksMetric
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -58,7 +59,13 @@ class DiscreteCurves(Manifold):
     """
 
     def __init__(
-        self, ambient_manifold, k_sampling_points=10, a=None, b=None, **kwargs
+        self,
+        ambient_manifold,
+        k_sampling_points=10,
+        a=None,
+        b=None,
+        start_at_the_origin=True,
+        **kwargs,
     ):
         dim = ambient_manifold.dim * k_sampling_points
         kwargs.setdefault("metric", SRVMetric(ambient_manifold))
@@ -71,6 +78,7 @@ class DiscreteCurves(Manifold):
         self.k_sampling_points = k_sampling_points
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
         self.srv_metric = self._metric
+        self.start_at_the_origin = start_at_the_origin
 
         if a is not None and b is not None:
             self.elastic_metric = ElasticMetric(
@@ -159,7 +167,7 @@ class DiscreteCurves(Manifold):
         ambient_manifold = self.ambient_manifold
         shape = vector.shape
         if shape[-2] != self.k_sampling_points:
-            return [False] * shape[0]
+            return gs.zeros(shape[0], dtype=bool)
         stacked_vec = gs.reshape(vector, (-1, shape[-1]))
         stacked_point = gs.reshape(base_point, (-1, shape[-1]))
         is_tangent = ambient_manifold.is_tangent(stacked_vec, stacked_point, atol)
@@ -186,12 +194,14 @@ class DiscreteCurves(Manifold):
         tangent_vec : array-like, shape=[..., k_sampling_points, ambient_dim]
             Tangent vector at base point.
         """
-        ambient_manifold = self.ambient_manifold
+        vector, base_point = gs.broadcast_arrays(vector, base_point)
         shape = vector.shape
         stacked_vec = gs.reshape(vector, (-1, shape[-1]))
         stacked_point = gs.reshape(base_point, (-1, shape[-1]))
-        tangent_vec = ambient_manifold.to_tangent(stacked_vec, stacked_point)
+        tangent_vec = self.ambient_manifold.to_tangent(stacked_vec, stacked_point)
         tangent_vec = gs.reshape(tangent_vec, vector.shape)
+        if self.start_at_the_origin:
+            tangent_vec = tangent_vec - tangent_vec[..., 0, None, :]
         return tangent_vec
 
     def projection(self, point):
@@ -211,8 +221,7 @@ class DiscreteCurves(Manifold):
         shape = point.shape
         stacked_point = gs.reshape(point, (-1, shape[-1]))
         projected_point = ambient_manifold.projection(stacked_point)
-        projected_point = gs.reshape(projected_point, shape)
-        return projected_point
+        return gs.reshape(projected_point, shape)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random curves.
@@ -240,6 +249,9 @@ class DiscreteCurves(Manifold):
         """
         sample = self.ambient_manifold.random_point(n_samples * self.k_sampling_points)
         sample = gs.reshape(sample, (n_samples, self.k_sampling_points, -1))
+        if self.start_at_the_origin:
+            starting_sampling_point = sample[:, 0, :]
+            sample = sample - starting_sampling_point[:, None, :]
         return sample[0] if n_samples == 1 else sample
 
 
@@ -292,6 +304,17 @@ class ClosedDiscreteCurves(LevelSet):
             ambient_manifold=self.ambient_manifold,
             k_sampling_points=self.k_sampling_points,
         )
+
+    def _assert_is_planar(self):
+        is_euclidean = isinstance(self.ambient_manifold, Euclidean)
+        is_planar = is_euclidean and self.ambient_manifold.dim == 2
+
+        if not is_planar:
+            raise AssertionError(
+                "The projection is only implemented "
+                "for discrete curves embedded in a "
+                "2D Euclidean space."
+            )
 
     def submersion(self, point):
         """Submersion."""
@@ -452,24 +475,17 @@ class ClosedDiscreteCurves(LevelSet):
         -------
         proj : array-like, shape=[..., k_sampling_points, ambient_dim]
         """
-        is_euclidean = isinstance(self.ambient_manifold, Euclidean)
-        is_planar = is_euclidean and self.ambient_manifold.dim == 2
+        self._assert_is_planar()
 
-        if not is_planar:
-            raise AssertionError(
-                "The projection is only implemented "
-                "for discrete curves embedded in a "
-                "2D Euclidean space."
-            )
-        point_ndim = point.ndim
+        is_vec = point.ndim > 2
 
         srv_metric = self.embedding_space.srv_metric
-        srv = srv_metric.srv_transform(point)
+        srv = srv_metric.f_transform(point)
         srv_proj = self.srv_projection(srv, atol=atol, max_iter=max_iter)
 
-        point = gs.to_ndarray(point, to_ndim=3)
-        proj = srv_metric.srv_transform_inverse(srv_proj, point[:, 0])
-        return proj if point_ndim == 3 else gs.squeeze(proj)
+        return srv_metric.f_transform_inverse(
+            srv_proj, point[:, 0] if is_vec else point[0]
+        )
 
     def srv_projection(self, srv, atol=gs.atol, max_iter=1000):
         """Project a point in the srv space into the space of closed curves srv.
@@ -495,15 +511,7 @@ class ClosedDiscreteCurves(LevelSet):
         -------
         proj : array-like, shape=[..., k_sampling_points, ambient_dim]
         """
-        is_euclidean = isinstance(self.ambient_manifold.metric, EuclideanMetric)
-        is_planar = is_euclidean and self.ambient_manifold.metric.dim == 2
-
-        if not is_planar:
-            raise AssertionError(
-                "The projection is only implemented "
-                "for discrete curves embedded in a"
-                "2D Euclidean space."
-            )
+        self._assert_is_planar()
 
         dim = self.ambient_manifold.metric.dim
         srv_inner_prod = self.embedding_space.l2_curves_metric.inner_product
@@ -531,7 +539,7 @@ class ClosedDiscreteCurves(LevelSet):
             Details can be found in [Sea2011]_ Section 4.2.
             """
             initial_norm = srv_norm(one_srv)
-            proj = one_srv
+            proj = gs.copy(one_srv)
             proj_norms = self.ambient_manifold.metric.norm(proj)
             residual = closeness_criterion(proj, proj_norms)
             criteria = self.ambient_manifold.metric.norm(residual)
@@ -574,13 +582,10 @@ class ClosedDiscreteCurves(LevelSet):
                 nb_iter += 1
             return proj
 
-        srv_ndim = srv.ndim
-        srv = gs.to_ndarray(srv, to_ndim=3)
+        if srv.ndim > 2:
+            return gs.stack([one_srv_projection(one_srv) for one_srv in srv])
 
-        for i_srv, one_srv in enumerate(srv):
-            srv[i_srv] = one_srv_projection(one_srv)
-
-        return srv if srv_ndim == 3 else gs.squeeze(srv)
+        return one_srv_projection(srv)
 
 
 class L2CurvesMetric(RiemannianMetric):
@@ -592,11 +597,11 @@ class L2CurvesMetric(RiemannianMetric):
     a left Riemann sum.
     """
 
-    def __init__(self, ambient_manifold, ambient_metric=None):
+    def __init__(self, ambient_manifold, ambient_metric=None, k_sampling_points=10):
         super().__init__(
             dim=math.inf,
             signature=(math.inf, 0, 0),
-            shape=(None,) + ambient_manifold.shape,
+            shape=(k_sampling_points,) + ambient_manifold.shape,
         )
         if ambient_metric is None:
             if hasattr(ambient_manifold, "metric"):
@@ -615,33 +620,30 @@ class L2CurvesMetric(RiemannianMetric):
         )
 
     @staticmethod
-    def riemann_sum(func, missing_last_time=True):
+    def riemann_sum(func):
         """Compute the left Riemann sum approximation of the integral.
 
         Compute the left Riemann sum approximation of the integral of a
-        function func defined on on the unit interval,
-        given by sample points at regularly spaced times
-        t_k = k / k_sampling_points for k = 0, ..., k_sampling_points.
+        function func defined on the unit interval, given by sample points
+        at regularly spaced times
+        ..math::
+            t_i = i / (k_sampling_points - 1),
+            i = 0, ..., k_sampling_points - 2
+        (last time is missing).
 
         Parameters
         ----------
-        func : array-like, shape=[..., k_sampling_points]
+        func : array-like, shape=[..., k_sampling_points - 1]
             Sample points of a function at regularly spaced times.
-        missing_last_time : boolean.
-            Is true when the last value at to time 1 is missing.
-            Optional, default True.
 
         Returns
         -------
         riemann_sum : array-like, shape=[..., ]
             Left Riemann sum.
         """
-        func = gs.to_ndarray(func, to_ndim=2)
-        k_sampling_points = func.shape[-1] + 1 if missing_last_time else func.shape[-1]
-        dt = 1 / k_sampling_points
-        values_to_sum = func if missing_last_time else func[:, :-1]
-        riemann_sum = dt * gs.sum(values_to_sum, axis=-1)
-        return gs.squeeze(riemann_sum)
+        k_sampling_points_minus_one = func.shape[-1]
+        dt = 1 / k_sampling_points_minus_one
+        return dt * gs.sum(func, axis=-1)
 
     def pointwise_inner_products(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the pointwise inner products of a pair of tangent vectors.
@@ -679,6 +681,9 @@ class L2CurvesMetric(RiemannianMetric):
                 signature="(i,j),(i,j)->(i)",
             )
 
+        tangent_vec_a, tangent_vec_b, base_point = gs.broadcast_arrays(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
         return gs.vectorize(
             (tangent_vec_a, tangent_vec_b, base_point),
             inner_prod_aux,
@@ -710,9 +715,7 @@ class L2CurvesMetric(RiemannianMetric):
         )
         return gs.sqrt(sq_norm)
 
-    def inner_product(
-        self, tangent_vec_a, tangent_vec_b, base_point=None, missing_last_time=True
-    ):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute L2 inner product between two tangent vectors.
 
         The inner product is the integral of the ambient space inner product,
@@ -740,7 +743,7 @@ class L2CurvesMetric(RiemannianMetric):
         inner_products = self.pointwise_inner_products(
             tangent_vec_a, tangent_vec_b, base_point
         )
-        return self.riemann_sum(inner_products, missing_last_time)
+        return self.riemann_sum(inner_products)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute Riemannian exponential of tangent vector wrt to base curve.
@@ -812,10 +815,10 @@ class L2CurvesMetric(RiemannianMetric):
 
 
 class ElasticMetric(RiemannianMetric):
-    """Elastic metric defined using the F_transform.
+    """Elastic metric on the space of discrete curves.
 
-    Each individual curve is represented by a 2d-array of shape `[
-    k_sampling_points, ambient_dim]`.
+    Family of elastic metric parametrized by bending and stretching parameters
+    a and b. These can be obtained as pullbacks of the L2 metric by the F-transforms.
 
     See [NK2018]_ for details.
 
@@ -842,12 +845,18 @@ class ElasticMetric(RiemannianMetric):
     """
 
     def __init__(
-        self, a, b, ambient_manifold=R2, ambient_metric=None, translation_invariant=True
+        self,
+        a,
+        b,
+        ambient_manifold=R2,
+        ambient_metric=None,
+        translation_invariant=True,
+        k_sampling_points=10,
     ):
         super().__init__(
             dim=math.inf,
             signature=(math.inf, 0, 0),
-            shape=(None,) + ambient_manifold.shape,
+            shape=(k_sampling_points,) + ambient_manifold.shape,
         )
         self.ambient_metric = ambient_metric
         if ambient_metric is None:
@@ -1209,12 +1218,14 @@ class ElasticMetric(RiemannianMetric):
         return path
 
 
-class SRVMetric(ElasticMetric):
-    """Elastic metric defined using the Square Root Velocity Function.
+class SRVMetric(PullbackDiffeoMetric):
+    """Square Root Velocity metric on the space of discrete curves.
 
     The SRV metric is equivalent to the elastic metric chosen with
     - bending parameter a = 1,
     - stretching parameter b = 1/2.
+    It can be obtained as the pullback of the L2 metric by the Square Root
+    Velocity Function.
 
     See [Sea2011]_ for details.
 
@@ -1238,17 +1249,44 @@ class SRVMetric(ElasticMetric):
     """
 
     def __init__(
-        self, ambient_manifold, ambient_metric=None, translation_invariant=True
+        self,
+        ambient_manifold,
+        ambient_metric=None,
+        translation_invariant=True,
+        k_sampling_points=10,
     ):
+        self.ambient_manifold = ambient_manifold
         super().__init__(
-            a=1,
-            b=0.5,
-            ambient_manifold=ambient_manifold,
-            ambient_metric=ambient_metric,
-            translation_invariant=translation_invariant,
+            dim=ambient_manifold.dim,
+            shape=(k_sampling_points,) + ambient_manifold.shape,
         )
+        self.ambient_metric = ambient_metric
+        if ambient_metric is None:
+            if hasattr(ambient_manifold, "metric"):
+                self.ambient_metric = ambient_manifold.metric
+            else:
+                raise ValueError(
+                    "Instantiating an object of class "
+                    "ElasticMetric requires either a metric"
+                    " or an ambient manifold"
+                    " equipped with a metric."
+                )
+        self.translation_invariant = translation_invariant
 
-    def srv_transform(self, point, tol=gs.atol):
+    def define_embedding_metric(self):
+        r"""Define the metric which is pulled back.
+
+        Define the metric which is pulled back by the Square Root Velocity Function
+        to induce the Square Root Velocity Metric on the space of discrete curves.
+        This is the L2 metric.
+
+        -------
+        embedding_metric : RiemannianMetric object
+            The metric of the embedding space
+        """
+        return L2CurvesMetric(ambient_manifold=self.ambient_manifold)
+
+    def f_transform(self, point, tol=gs.atol):
         r"""Square Root Velocity Transform (SRVT).
 
         Compute the square root velocity representation of a curve. The
@@ -1259,7 +1297,7 @@ class SRVMetric(ElasticMetric):
         point of curve[k + 1, :, :].
 
         .. math::
-            c \mapsto \frac{c'}{|c'|^{1/2}}
+            Q(c) = c'/ |c'|^{1/2}
 
         Parameters
         ----------
@@ -1304,22 +1342,24 @@ class SRVMetric(ElasticMetric):
             return gs.squeeze(srv)
         return srv
 
-    def f_transform(self, point):
-        """Compute the F_transform of a curve.
+    def diffeomorphism(self, base_point):
+        r"""Diffeomorphism at base point.
+
+        This is the Square Root Velocity Function.
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+        base_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
 
         Returns
         -------
-        f : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            F_transform of the curve.
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Square-root velocity representation of a discrete curve.
         """
-        return self.srv_transform(point)
+        return self.f_transform(base_point)
 
-    def srv_transform_inverse(self, srv, starting_sampling_point):
+    def f_transform_inverse(self, srv, starting_sampling_point):
         r"""Inverse of the Square Root Velocity Transform (SRVT).
 
         Retrieve a curve from its square root velocity representation and
@@ -1376,40 +1416,44 @@ class SRVMetric(ElasticMetric):
 
         return curve
 
-    def f_transform_inverse(self, f_trans, starting_sampling_point):
-        """Compute the inverse of the F_transform of a transformed curve.
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse diffeomorphism at image point.
 
-        See [KN2018]_ for details.
+        This is the curve starting at the origin whose square root velocity
+        transform is image point.
 
         Parameters
         ----------
-        f_trans : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            f-transform of a discrete curve.
-
-        starting_sampling_point: array-like, shape=[..., ambient_dim]
-            Point of the ambient manifold to use as start of the retrieved curve.
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Square-root velocity representation of a discrete curve.
 
         Returns
         -------
         curve : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
+            Curve starting at the origin retrieved from its square-root velocity.
         """
-        return self.srv_transform_inverse(f_trans, starting_sampling_point)
+        starting_sampling_point = gs.zeros(gs.shape(image_point[..., 0, :]))
+        f_transform = image_point
+        return self.f_transform_inverse(f_transform, starting_sampling_point)
 
-    def aux_differential_srv_transform(self, tangent_vec, point):
-        """Compute differential of the square root velocity transform.
+    def tangent_diffeomorphism(self, tangent_vec, base_point):
+        r"""Differential of the square root velocity transform.
+
+        ..math::
+            (h, c) -> dQ_c(h) = |c'|^(-1/2} * (h' - 1/2 * <h',v>v)
+            v = c'/|c'|
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., k_sampling_points, ambient_dim]
             Tangent vector to curve, i.e. infinitesimal vector field
             along curve.
-        point : array-like, shape=[..., k_sampling_points, ambiend_dim]
+        base_point : array-like, shape=[..., k_sampling_points, ambiend_dim]
             Discrete curve.
 
         Returns
         -------
-        d_srv_vec : array-like, shape=[..., ambient_dim,]
+        d_srv_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim,]
             Differential of the square root velocity transform at curve
             evaluated at tangent_vec.
         """
@@ -1420,20 +1464,20 @@ class SRVMetric(ElasticMetric):
                 "discrete curves embedded in a Euclidean "
                 "space."
             )
-        k_sampling_points = point.shape[-2]
+        k_sampling_points = base_point.shape[-2]
         d_vec = (k_sampling_points - 1) * (
             tangent_vec[..., 1:, :] - tangent_vec[..., :-1, :]
         )
         velocity_vec = (k_sampling_points - 1) * (
-            point[..., 1:, :] - point[..., :-1, :]
+            base_point[..., 1:, :] - base_point[..., :-1, :]
         )
         velocity_norm = self.ambient_metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
 
-        inner_prod = self.l2_curves_metric.pointwise_inner_products(
-            d_vec, unit_velocity_vec, point[..., :-1, :]
+        inner_prod = self.embedding_metric.pointwise_inner_products(
+            d_vec, unit_velocity_vec, base_point[..., :-1, :]
         )
         d_vec_tangential = gs.einsum("...ij,...i->...ij", unit_velocity_vec, inner_prod)
         d_srv_vec = d_vec - 1 / 2 * d_vec_tangential
@@ -1443,15 +1487,18 @@ class SRVMetric(ElasticMetric):
 
         return d_srv_vec
 
-    def aux_differential_srv_transform_inverse(self, tangent_vec, point):
-        """Compute inverse of differential of the square root velocity transform.
+    def inverse_tangent_diffeomorphism(self, tangent_vec, image_point):
+        r"""Inverse of differential of the square root velocity transform.
+
+        .. math::
+            (c, k) -> h, where dQ_c(h)=k and h' = |c'| * (k + <k,v> v)
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Tangent vector to srv.
-        point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
+        image_point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Square root velocity representation of a discrete curve.
 
         Returns
         -------
@@ -1466,7 +1513,7 @@ class SRVMetric(ElasticMetric):
                 "discrete curves embedded in a Euclidean "
                 "space."
             )
-
+        point = self.inverse_diffeomorphism(image_point)
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, k_sampling_points, ambient_dim = point.shape
 
@@ -1478,7 +1525,7 @@ class SRVMetric(ElasticMetric):
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
-        inner_prod = self.l2_curves_metric.pointwise_inner_products(
+        inner_prod = self.embedding_metric.pointwise_inner_products(
             tangent_vec, unit_velocity_vec, point[..., :-1, :]
         )
         tangent_vec_tangential = gs.einsum(
@@ -1503,236 +1550,6 @@ class SRVMetric(ElasticMetric):
         vec = gs.cumsum(vec, -2)
 
         return gs.squeeze(vec)
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, point):
-        """Compute inner product between two tangent vectors.
-
-        The SRV metric is used, and is computed as pullback of the
-        L2 metric by the square root velocity transform.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Tangent vector to curve, i.e. infinitesimal vector field
-            along curve.
-        tangent_vec_b : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Tangent vector to curve, i.e. infinitesimal vector field
-        point : array-like, shape=[..., k_sampling_points, ambiend_dim]
-            Discrete curve.
-
-        Return
-        ------
-        inner_prod : array_like, shape=[...]
-            Square root velocity inner product between tangent_vec_a and
-            tangent_vec_b.
-        """
-        if not isinstance(self.ambient_metric, EuclideanMetric):
-            raise AssertionError(
-                "The square root velocity inner product "
-                "is only implemented for discrete curves "
-                "embedded in a Euclidean space."
-            )
-        d_srv_vec_a = self.aux_differential_srv_transform(tangent_vec_a, point)
-        d_srv_vec_b = self.aux_differential_srv_transform(tangent_vec_b, point)
-        inner_prod = self.l2_curves_metric.inner_product(d_srv_vec_a, d_srv_vec_b)
-
-        if not self.translation_invariant:
-            inner_prod += self.ambient_metric.inner_product(
-                tangent_vec_a[0], tangent_vec_b[0]
-            )
-        return inner_prod
-
-    def exp(self, tangent_vec, base_point):
-        """Compute Riemannian exponential of tangent vector wrt to base curve.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Tangent vector to discrete curve.
-        base_point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
-
-        Return
-        ------
-        end_curve :  array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve, result of the Riemannian exponential.
-        """
-        if not isinstance(self.ambient_metric, EuclideanMetric):
-            raise AssertionError(
-                "The exponential map is only implemented "
-                "for discrete curves embedded in a "
-                "Euclidean space."
-            )
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-
-        base_point, tangent_vec = gs.broadcast_arrays(base_point, tangent_vec)
-
-        base_curve_srv = self.srv_transform(base_point)
-
-        d_srv_tangent_vec = self.aux_differential_srv_transform(
-            tangent_vec=tangent_vec, point=base_point
-        )
-        end_curve_srv = self.l2_curves_metric.exp(
-            tangent_vec=d_srv_tangent_vec, base_point=base_curve_srv
-        )
-        end_curve_starting_point = self.ambient_metric.exp(
-            tangent_vec=tangent_vec[:, 0, :], base_point=base_point[:, 0, :]
-        )
-        end_curve = self.srv_transform_inverse(end_curve_srv, end_curve_starting_point)
-
-        return end_curve
-
-    def log(self, point, base_point):
-        """Compute Riemannian logarithm of a curve wrt a base curve.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
-        base_point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve to use as base point.
-
-        Returns
-        -------
-        log : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Tangent vector to a discrete curve.
-        """
-        if not isinstance(self.ambient_metric, EuclideanMetric):
-            raise AssertionError(
-                "The logarithm map is only implemented "
-                "for discrete curves embedded in a "
-                "Euclidean space."
-            )
-
-        point = gs.to_ndarray(point, to_ndim=3)
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
-
-        point, base_point = gs.broadcast_arrays(point, base_point)
-
-        curve_srv = self.srv_transform(point)
-        base_curve_srv = self.srv_transform(base_point)
-        log = self.aux_differential_srv_transform_inverse(
-            curve_srv - base_curve_srv, base_point
-        )
-        log = gs.to_ndarray(log, to_ndim=3)
-
-        log_starting_points = self.ambient_metric.log(
-            point=point[:, 0, :], base_point=base_point[:, 0, :]
-        )
-        log_starting_points = gs.to_ndarray(log_starting_points, to_ndim=3, axis=1)
-        log += log_starting_points
-        return gs.squeeze(log)
-
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Compute geodesic from initial curve to end curve.
-
-        Geodesic specified either by an initial curve and an end curve,
-        either by an initial curve and an initial tangent vector.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
-        end_point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve. If None, an initial tangent vector must be given.
-            Optional, default : None
-        initial_tangent_vec : array-like,
-            shape=[..., k_sampling_points, ambient_dim]
-            Tangent vector at base curve, the initial speed of the geodesics.
-            If None, an end curve must be given and a logarithm is computed.
-            Optional, default : None
-
-        Returns
-        -------
-        geodesic : callable
-            Geodesic in the space of discrete curves.
-        """
-        if not isinstance(self.ambient_metric, EuclideanMetric):
-            raise AssertionError(
-                "The geodesics are only implemented for "
-                "discrete curves embedded in a "
-                "Euclidean space."
-            )
-        point_ndim = 2
-        initial_point = gs.to_ndarray(initial_point, to_ndim=point_ndim + 1)
-
-        if end_point is None and initial_tangent_vec is None:
-            raise ValueError(
-                "Specify an end curve or an initial tangent "
-                "vector to define the geodesic."
-            )
-        if end_point is not None:
-            end_point = gs.to_ndarray(end_point, to_ndim=point_ndim + 1)
-            shooting_tangent_vec = self.log(point=end_point, base_point=initial_point)
-            if (initial_tangent_vec is not None) and (
-                not gs.allclose(shooting_tangent_vec, initial_tangent_vec)
-            ):
-                raise RuntimeError(
-                    "The shooting tangent vector is too"
-                    " far from the initial tangent vector."
-                )
-            initial_tangent_vec = shooting_tangent_vec
-        initial_tangent_vec = gs.array(initial_tangent_vec)
-        initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=point_ndim + 1)
-
-        def path(t):
-            """Generate parametrized function for geodesic.
-
-            Parameters
-            ----------
-            t: array-like, shape=[n_points,]
-                Times at which to compute points of the geodesic.
-            """
-            t = gs.cast(t, initial_point.dtype)
-            t = gs.to_ndarray(t, to_ndim=1)
-            t = gs.to_ndarray(t, to_ndim=2, axis=1)
-            new_initial_point = gs.to_ndarray(initial_point, to_ndim=point_ndim + 1)
-            new_initial_tangent_vec = gs.to_ndarray(
-                initial_tangent_vec, to_ndim=point_ndim + 1
-            )
-
-            tangent_vecs = gs.einsum("il,nkm->ikm", t, new_initial_tangent_vec)
-
-            point_at_time_t = []
-            for tan_vec in tangent_vecs:
-                point_at_time_t.append(self.exp(tan_vec, new_initial_point))
-            return gs.stack(point_at_time_t)
-
-        return path
-
-    def dist(self, point_a, point_b, **kwargs):
-        """Geodesic distance between two curves.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
-        point_b : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
-
-        Returns
-        -------
-        dist : array-like, shape=[...,]
-        """
-        if not isinstance(self.ambient_metric, EuclideanMetric):
-            raise AssertionError(
-                "The distance is only implemented for "
-                "discrete curves embedded in a "
-                "Euclidean space."
-            )
-        if point_a.shape != point_b.shape:
-            raise ValueError("The curves need to have the same shapes.")
-
-        srv_a = self.srv_transform(point_a)
-        srv_b = self.srv_transform(point_b)
-        dist_starting_points = self.ambient_metric.dist(point_a[0, :], point_b[0, :])
-        dist_srvs = self.l2_curves_metric.norm(srv_b - srv_a)
-        if self.translation_invariant:
-            return dist_srvs
-
-        dist = gs.sqrt(dist_starting_points**2 + dist_srvs**2)
-        return dist
 
     @staticmethod
     def space_derivative(curve):
@@ -1823,6 +1640,9 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             Pointwise norm of the vertical part of tangent_vec.
             Only returned when return_norm is True.
         """
+        if tangent_vec.ndim > point.ndim:
+            point = gs.broadcast_to(point, tangent_vec.shape)
+
         ambient_dim = point.shape[-1]
         a_param = 1
         b_param = 1 / 2
@@ -2042,8 +1862,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             """
             n_times = repar.shape[0]
             initial_curve = path_of_curves[0]
-            reparametrized_path = []
-            reparametrized_path.append(initial_curve)
+            reparametrized_path = [initial_curve]
             for i in range(1, n_times - 1):
                 spline = CubicSpline(t_space, path_of_curves[i], axis=0)
                 repar_inverse = CubicSpline(repar[i], t_space)
@@ -2107,7 +1926,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
         return horizontal_path
 
-    def align(self, point, base_point, threshold=1e-3):
+    def align(self, point, base_point, n_times=20, threshold=1e-3):
         """Find optimal reparametrization of curve with respect to base curve.
 
         The new parametrization of curve is optimal in the sense that it is the
@@ -2131,7 +1950,9 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             Optimal reparametrization of the curve represented by point.
         """
         horizontal_path = self.horizontal_geodesic(base_point, point, threshold)
-        return horizontal_path(1.0)
+        times = gs.linspace(0.0, 1.0, n_times)
+        hor_path = horizontal_path(times)
+        return hor_path[-1]
 
 
 class SRVQuotientMetric(QuotientMetric):

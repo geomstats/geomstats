@@ -35,17 +35,17 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = InvariantMetricTestData()
 
     def test_inner_product_mat_at_identity_shape(
-        self, group, metric_mat_at_identity, left_or_right
+        self, group, metric_mat_at_identity, left
     ):
-        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left)
         dim = metric.group.dim
         result = metric.metric_mat_at_identity
         self.assertAllClose(gs.shape(result), (dim, dim))
 
     def test_inner_product_matrix_shape(
-        self, group, metric_mat_at_identity, left_or_right, base_point
+        self, group, metric_mat_at_identity, left, base_point
     ):
-        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left)
         base_point = None
         dim = metric.group.dim
         result = metric.metric_matrix(base_point=base_point)
@@ -57,27 +57,26 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(gs.shape(result), (dim, dim))
 
     def test_inner_product_matrix_and_its_inverse(
-        self, group, metric_mat_at_identity, left_or_right
+        self, group, metric_mat_at_identity, left
     ):
-        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left)
         inner_prod_mat = metric.metric_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
         result = gs.matmul(inv_inner_prod_mat, inner_prod_mat)
         expected = gs.eye(group.dim)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_inner_product(
         self,
         group,
         metric_mat_at_identity,
-        left_or_right,
+        left,
         tangent_vec_a,
         tangent_vec_b,
         base_point,
         expected,
     ):
-        metric = self.Metric(group, metric_mat_at_identity, left_or_right)
+        metric = self.Metric(group, metric_mat_at_identity, left)
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
@@ -220,7 +219,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
         self.assertAllClose(expected, result, atol=1e-4)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_integrated_exp_and_log_at_id(self, group):
         metric = self.Metric(group=group)
         basis = group.lie_algebra.basis
@@ -264,7 +263,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         with expected:
             group.bi_invariant_metric.log(rotation_mat1, rotation_mat2)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_left_exp_and_exp_from_identity_left_diag_metrics(self, metric_args, point):
         metric = self.Metric(*metric_args)
         left_exp_from_id = metric.left_exp_from_identity(point)
@@ -272,7 +271,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(left_exp_from_id, exp_from_id)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_left_log_and_log_from_identity_left_diag_metrics(self, metric_args, point):
         metric = self.Metric(*metric_args)
         left_log_from_id = metric.left_log_from_identity(point)
@@ -280,7 +279,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(left_log_from_id, log_from_id)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_exp_log_composition_at_identity(self, metric_args, tangent_vec):
         metric = self.Metric(*metric_args)
         result = metric.left_log_from_identity(
@@ -288,7 +287,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, tangent_vec)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_log_exp_composition_at_identity(self, metric_args, point):
         metric = self.Metric(*metric_args)
         result = metric.left_exp_from_identity(

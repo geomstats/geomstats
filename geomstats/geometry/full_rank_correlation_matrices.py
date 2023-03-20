@@ -55,7 +55,11 @@ class FullRankCorrelationMatrices(LevelSet):
         -------
         submersed_vector : array-like, shape=[..., n]
         """
-        return Matrices.diagonal(vector)
+        submersed_vector = Matrices.diagonal(vector)
+        if point is not None and point.ndim > vector.ndim:
+            return gs.broadcast_to(submersed_vector, point.shape[:-1])
+
+        return submersed_vector
 
     @staticmethod
     def diag_action(diagonal_vec, point):
@@ -261,8 +265,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
             return self.horizontal_projection(tangent_vec, base_point)
         diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
         lift = FullRankCorrelationMatrices.diag_action(diagonal_point, tangent_vec)
-        hor_lift = self.horizontal_projection(lift, base_point=fiber_point)
-        return hor_lift
+        return self.horizontal_projection(lift, base_point=fiber_point)
 
 
 class FullRankCorrelationAffineQuotientMetric(QuotientMetric):

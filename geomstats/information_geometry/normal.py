@@ -12,12 +12,12 @@ import geomstats.backend as gs
 import geomstats.errors as errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.nfold_manifold import NFoldMetric
 from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
 )
 from geomstats.geometry.product_manifold import ProductManifold
-from geomstats.geometry.product_riemannian_metric import NFoldMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
@@ -138,21 +138,24 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
             Probability density function of the normal distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        means = point[..., 0]
-        stds = point[..., 1]
-        means = gs.to_ndarray(means, to_ndim=2)
-        stds = gs.to_ndarray(stds, to_ndim=2)
+        means = gs.expand_dims(point[..., 0], axis=-1)
+        stds = gs.expand_dims(point[..., 1], axis=-1)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
 
             Parameters
             ----------
-            x : array-like, shape=[n_points,]
+            x : array-like, shape=[n_samples,]
                 Points at which to compute the probability density function.
+
+            Returns
+            -------
+            pdf_at_x : array-like, shape=[..., n_samples]
+                Values of pdf at x for each value of the parameters provided
+                by point.
             """
-            x = gs.to_ndarray(x, to_ndim=2, axis=-1)
+            x = gs.reshape(gs.array(x), (-1,))
             return (1.0 / gs.sqrt(2 * gs.pi * stds**2)) * gs.exp(
                 -((x - means) ** 2) / (2 * stds**2)
             )
@@ -595,7 +598,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         embedding_metric : RiemannianMetric object
             The metric of the Poincare upper half-plane.
         """
-        return PoincareHalfSpaceMetric(dim=2, scale=2)
+        return 2.0 * PoincareHalfSpaceMetric(dim=2)
 
     def diffeomorphism(self, base_point):
         r"""Image of base point in the Poincare upper half-plane.
@@ -695,16 +698,14 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         mat : array-like, shape=[..., 2, 2]
             Metric matrix.
         """
+        if base_point is None:
+            raise ValueError(
+                "A base point must be given to compute the " "metric matrix"
+            )
         stds = base_point[..., 1]
-        stds = gs.to_ndarray(stds, to_ndim=1)
-        metric_mat = gs.stack(
-            [gs.array([[1.0 / std**2, 0.0], [0.0, 2.0 / std**2]]) for std in stds],
-            axis=0,
-        )
-
-        if metric_mat.ndim == 3 and metric_mat.shape[0] == 1:
-            return metric_mat[0]
-        return metric_mat
+        const = 1 / stds**2
+        mat = gs.array([[1.0, 0], [0, 2]])
+        return gs.einsum("...,ij->...ij", const, mat)
 
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the sectional curvature.

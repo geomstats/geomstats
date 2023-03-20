@@ -5,7 +5,6 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
@@ -48,9 +47,6 @@ elements_all = {
     "point_2": point_2,
 }
 elements = elements_all
-if tests.conftest.tf_backend():
-    # Tf is extremely slow
-    elements = {"point_1": point_1, "point_2": point_2}
 
 elements_matrices_all = {
     key: SpecialEuclidean(2, point_type="vector").matrix_from_vector(elements_all[key])
@@ -310,7 +306,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData
 class SpecialEuclideanMatrixCanonicalRightMetricTestData(_InvariantMetricTestData):
     n_list = [2]
     metric_args_list = [
-        (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), "right") for n in n_list
+        (SpecialEuclidean(n), gs.eye(SpecialEuclidean(n).dim), False) for n in n_list
     ]
     shape_list = [(n + 1, n + 1) for n in n_list]
     group_list = space_list = [SpecialEuclidean(n) for n in n_list]
@@ -397,13 +393,6 @@ class SpecialEuclidean3VectorsTestData(TestData):
         "rot_with_parallel_trans": rot_with_parallel_trans,
     }
     elements = elements_all
-    if tests.conftest.tf_backend():
-        # Tf is extremely slow
-        elements = {
-            "point_1": point_1,
-            "point_2": point_2,
-            "angle_close_pi_low": angle_close_pi_low,
-        }
 
     # Metrics - only diagonals
     diag_mat_at_identity = gs.eye(6) * gs.array([2.0, 2.0, 2.0, 3.0, 3.0, 3.0])
@@ -411,12 +400,12 @@ class SpecialEuclidean3VectorsTestData(TestData):
     left_diag_metric = InvariantMetric(
         group=group,
         metric_mat_at_identity=diag_mat_at_identity,
-        left_or_right="left",
+        left=True,
     )
     right_diag_metric = InvariantMetric(
         group=group,
         metric_mat_at_identity=diag_mat_at_identity,
-        left_or_right="right",
+        left=False,
     )
 
     metrics_all = {
@@ -429,8 +418,6 @@ class SpecialEuclidean3VectorsTestData(TestData):
     # 'left': left_metric,
     # 'right': right_metric}
     metrics = metrics_all
-    if tests.conftest.tf_backend():
-        metrics = {"left_diag": left_diag_metric}
 
     angles_close_to_pi_all = [
         "angle_close_pi_low",
@@ -438,8 +425,6 @@ class SpecialEuclidean3VectorsTestData(TestData):
         "angle_close_pi_high",
     ]
     angles_close_to_pi = angles_close_to_pi_all
-    if tests.conftest.tf_backend():
-        angles_close_to_pi = ["angle_close_pi_low"]
 
     tolerances = {
         "log_after_exp": {"atol": 1e-6},
@@ -589,51 +574,50 @@ class SpecialEuclidean3VectorsTestData(TestData):
             point = self.elements_all[angle_type]
             smoke_data += [dict(point=point, expected=point)]
 
-        if not tests.conftest.tf_backend():
-            angle_type = "angle_pi"
-            point = self.elements_all[angle_type]
-            smoke_data += [dict(point=point, expected=point)]
+        angle_type = "angle_pi"
+        point = self.elements_all[angle_type]
+        smoke_data += [dict(point=point, expected=point)]
 
-            angle_type = "angle_close_pi_high"
-            point = self.elements_all[angle_type]
+        angle_type = "angle_close_pi_high"
+        point = self.elements_all[angle_type]
 
-            norm = gs.linalg.norm(point[:3])
-            expected_rot = gs.concatenate(
-                [point[:3] / norm * (norm - 2 * gs.pi), gs.zeros(3)], axis=0
-            )
-            expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
-            expected = expected_rot + expected_trans
-            smoke_data += [dict(point=point, expected=expected)]
+        norm = gs.linalg.norm(point[:3])
+        expected_rot = gs.concatenate(
+            [point[:3] / norm * (norm - 2 * gs.pi), gs.zeros(3)], axis=0
+        )
+        expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
+        expected = expected_rot + expected_trans
+        smoke_data += [dict(point=point, expected=expected)]
 
-            in_pi_2pi = ["angle_in_pi_2pi", "angle_close_2pi_low"]
+        in_pi_2pi = ["angle_in_pi_2pi", "angle_close_2pi_low"]
 
-            for angle_type in in_pi_2pi:
-                point = self.elements_all[angle_type]
-                angle = gs.linalg.norm(point[:3])
-                new_angle = gs.pi - (angle - gs.pi)
-
-                expected_rot = gs.concatenate(
-                    [-new_angle * (point[:3] / angle), gs.zeros(3)], axis=0
-                )
-                expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
-                expected = expected_rot + expected_trans
-                smoke_data += [dict(point=point, expected=expected)]
-
-            angle_type = "angle_2pi"
-            point = self.elements_all[angle_type]
-
-            expected = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
-            smoke_data += [dict(point=point, expected=expected)]
-
-            angle_type = "angle_close_2pi_high"
+        for angle_type in in_pi_2pi:
             point = self.elements_all[angle_type]
             angle = gs.linalg.norm(point[:3])
-            new_angle = angle - 2 * gs.pi
+            new_angle = gs.pi - (angle - gs.pi)
 
             expected_rot = gs.concatenate(
-                [new_angle * point[:3] / angle, gs.zeros(3)], axis=0
+                [-new_angle * (point[:3] / angle), gs.zeros(3)], axis=0
             )
             expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
             expected = expected_rot + expected_trans
             smoke_data += [dict(point=point, expected=expected)]
+
+        angle_type = "angle_2pi"
+        point = self.elements_all[angle_type]
+
+        expected = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
+        smoke_data += [dict(point=point, expected=expected)]
+
+        angle_type = "angle_close_2pi_high"
+        point = self.elements_all[angle_type]
+        angle = gs.linalg.norm(point[:3])
+        new_angle = angle - 2 * gs.pi
+
+        expected_rot = gs.concatenate(
+            [new_angle * point[:3] / angle, gs.zeros(3)], axis=0
+        )
+        expected_trans = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
+        expected = expected_rot + expected_trans
+        smoke_data += [dict(point=point, expected=expected)]
         return self.generate_tests(smoke_data)

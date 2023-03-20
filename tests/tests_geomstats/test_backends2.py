@@ -3,20 +3,17 @@ import pytest
 import scipy
 
 import geomstats.backend as gs
-from tests.conftest import Parametrizer, TestCase, tf_backend
+from tests.conftest import Parametrizer, TestCase
 from tests.data.backends_data import BackendsTestData, DtypesTestData
 
 # TODO: vectorization using new approach
-
-
-IS_TF_BACKEND = tf_backend()
 
 
 def _convert_gs_to_np(value):
     if gs.is_array(value):
         return gs.to_numpy(value)
 
-    elif isinstance(value, (list, tuple)):
+    if isinstance(value, (list, tuple)):
         new_value = []
         for value_ in value:
             new_value.append(_convert_gs_to_np(value_))
@@ -26,7 +23,7 @@ def _convert_gs_to_np(value):
 
         return new_value
 
-    elif isinstance(value, dict):
+    if isinstance(value, dict):
         return {key: _convert_gs_to_np(value_) for key, value_ in value.items()}
 
     return value
@@ -199,7 +196,6 @@ class TestBackends(TestCase, metaclass=Parametrizer):
 
 class TestDtypes(TestCase, metaclass=Parametrizer):
     testing_data = DtypesTestData()
-    skip_test_solve_sylvester = IS_TF_BACKEND
 
     dtypes_str = ["float32", "float64"]  # sort by wider
     default_dtype = gs.as_dtype("float64")

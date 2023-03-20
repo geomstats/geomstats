@@ -103,7 +103,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
 
         self.assertAllClose(result, expected)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_log_connection_metric(self, dim, point, base_point, atol):
         sphere = Hypersphere(dim)
         connection = Connection(dim)
@@ -133,7 +133,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
 
         self.assertAllClose(result, expected, atol)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_geodesic_with_log_connection(
         self, dim, point, end_point, n_times, n_steps, expected, atol
     ):

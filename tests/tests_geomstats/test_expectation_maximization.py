@@ -106,7 +106,6 @@ class TestEM(tests.conftest.TestCase):
         )
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_normalization_factor(self):
         """Test for Gaussian distribution normalization factor."""
         gmm = RiemannianEM(self.metric)

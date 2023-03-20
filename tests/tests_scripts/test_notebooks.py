@@ -9,7 +9,7 @@ import tempfile
 import pytest
 
 BACKEND = os.environ.get("GEOMSTATS_BACKEND", "numpy")
-ALL_BACKENDS = ["numpy", "pytorch", "tensorflow", "autograd"]
+ALL_BACKENDS = ["numpy", "pytorch", "autograd"]
 
 
 def _exec_notebook(path):

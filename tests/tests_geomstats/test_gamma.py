@@ -4,23 +4,17 @@ from scipy.stats import gamma
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import (
-    Parametrizer,
-    autograd_backend,
-    np_backend,
-    pytorch_backend,
-    tf_backend,
-)
-from tests.data.gamma_data import GammaMetricTestData, GammaTestData
+from tests.conftest import Parametrizer, autograd_backend, np_backend, pytorch_backend
+from tests.data.gamma_data import GammaDistributionsTestData, GammaMetricTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-TF_OR_PYTORCH_BACKEND = tf_backend() or pytorch_backend()
+PYTORCH_BACKEND = pytorch_backend()
 
-NOT_AUTOGRAD = tf_backend() or pytorch_backend() or np_backend()
+NOT_AUTOGRAD = pytorch_backend() or np_backend()
 
 
-class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
-    testing_data = GammaTestData()
+class TestGammaDistributions(OpenSetTestCase, metaclass=Parametrizer):
+    testing_data = GammaDistributionsTestData()
 
     def test_belongs(self, vec, expected):
         self.assertAllClose(self.Space().belongs(gs.array(vec)), expected)
@@ -36,23 +30,16 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
 
     @tests.conftest.np_and_autograd_only
     def test_point_to_pdf(self, point, n_samples):
-        point = gs.to_ndarray(point, 2)
-        n_points = point.shape[0]
         pdf = self.Space().point_to_pdf(point)
-        alpha = gs.ones(2)
-        samples = self.Space().sample(alpha, n_samples)
-        result = pdf(samples)
-        pdf = []
-        for i in range(n_points):
-            pdf.append(
-                gs.array(
-                    [
-                        gamma.pdf(x, a=point[i, 0], scale=point[i, 1] / point[i, 0])
-                        for x in samples
-                    ]
-                )
+        result = pdf(n_samples)
+        expected = gs.transpose(
+            gs.array(
+                [
+                    gamma.pdf(x_, a=point[..., 0], scale=point[..., 1] / point[..., 0])
+                    for x_ in n_samples
+                ]
             )
-        expected = gs.squeeze(gs.stack(pdf, axis=0))
+        )
         self.assertAllClose(result, expected)
 
     def test_maximum_likelihood_fit(self, sample, expected):
@@ -99,7 +86,7 @@ class TestGamma(OpenSetTestCase, metaclass=Parametrizer):
 class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_shape = True  # because several base points for one vector
     skip_test_log_shape = NOT_AUTOGRAD
-    skip_test_exp_belongs = TF_OR_PYTORCH_BACKEND
+    skip_test_exp_belongs = True
     skip_test_log_is_tangent = NOT_AUTOGRAD
     skip_test_dist_is_symmetric = True
     skip_test_dist_is_positive = NOT_AUTOGRAD
@@ -128,15 +115,14 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = GammaMetricTestData()
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_metric_matrix_shape(self, point, expected):
         return self.assertAllClose(self.Metric().metric_matrix(point).shape, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_christoffels_vectorization(self, point, expected):
         return self.assertAllClose(self.Metric().christoffels(point), expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_christoffels_shape(self, point, expected):
         return self.assertAllClose(
             self.Metric().christoffels(base_point=point).shape,

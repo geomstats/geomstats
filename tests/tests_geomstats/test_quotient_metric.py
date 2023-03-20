@@ -91,7 +91,6 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         expected = base_metric.inner_product(tangent_vecs[0], tangent_vecs[1], point)
         self.assertAllClose(result, expected, atol=1e-1)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_exp(self, n, mat, vec):
         bundle = self.Bundle(n)
         quotient_metric = self.Metric(bundle)
@@ -103,7 +102,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         expected = base_metric.exp(tangent_vec, point)
         self.assertAllClose(result, expected, atol=1e-1)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_log(self, n, mat, vec):
         bundle = self.Bundle(n)
         quotient_metric = self.Metric(bundle)
@@ -114,7 +113,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         expected = base_metric.log(points[1], points[0])
         self.assertAllClose(result, expected, atol=1e-2)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_squared_dist(self, n, mat, vec):
         bundle = self.Bundle(n)
         quotient_metric = self.Metric(bundle)

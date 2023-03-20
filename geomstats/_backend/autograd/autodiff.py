@@ -134,8 +134,8 @@ def value_and_grad(func, to_numpy=False):
         all_grads = []
         for i in range(n_args):
 
-            def func_of_ith(*args):
-                reorg_args = args[1 : i + 1] + (args[0],) + args[i + 1 :]
+            def func_of_ith(*args, j=i):
+                reorg_args = args[1 : j + 1] + (args[0],) + args[j + 1 :]
                 return func(*reorg_args)
 
             new_args = (args[i],) + args[:i] + args[i + 1 :]

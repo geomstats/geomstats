@@ -4,7 +4,6 @@ Lead authors: Elodie Maignant and Nicolas Guigui.
 """
 
 import geomstats.backend as gs
-from geomstats.errors import check_tf_error
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
@@ -95,9 +94,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         """
         centered_point = self.center(point)
         frob_norm = self.total_space_metric.norm(centered_point)
-        projected_point = gs.einsum("...,...ij->...ij", 1.0 / frob_norm, centered_point)
-
-        return projected_point
+        return gs.einsum("...,...ij->...ij", 1.0 / frob_norm, centered_point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the pre-shape space from the uniform distribution.
@@ -197,14 +194,12 @@ class PreShapeSpace(LevelSet, FiberBundle):
             at the base point.
         """
         if not gs.all(self.is_centered(base_point)):
-            raise ValueError("The base_point does not belong to the pre-shape" " space")
+            raise ValueError("The base_point does not belong to the pre-shape space")
         vector = self.center(vector)
         sq_norm = Matrices.frobenius_product(base_point, base_point)
         inner_prod = self.total_space_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
-        tangent_vec = vector - gs.einsum("...,...ij->...ij", coef, base_point)
-
-        return tangent_vec
+        return vector - gs.einsum("...,...ij->...ij", coef, base_point)
 
     def vertical_projection(self, tangent_vec, base_point, return_skew=False):
         r"""Project to vertical subspace.
@@ -288,60 +283,6 @@ class PreShapeSpace(LevelSet, FiberBundle):
         """
         return Matrices.align_matrices(point, base_point)
 
-    def integrability_tensor_old(self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Compute the fundamental tensor A of the submersion (old).
-
-        The fundamental tensor A is defined for tangent vectors of the total
-        space by [O'Neill]_ :math:`A_X Y = ver\nabla^M_{hor X} (hor Y)
-        + hor \nabla^M_{hor X}( ver Y)` where :math:`hor,ver` are the
-        horizontal and vertical projections.
-
-        For the pre-shape space, we have closed-form expressions and the result
-        does not depend on the vertical part of :math:`X`.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point of the total space.
-
-        Returns
-        -------
-        vector : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at `base_point`, result of the A tensor applied to
-            `tangent_vec_a` and `tangent_vec_b`.
-
-        References
-        ----------
-        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
-            Submersion, Michigan Mathematical Journal 13, no. 4
-            (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
-        """
-        # Only the horizontal part of a counts
-        horizontal_a = self.horizontal_projection(tangent_vec_a, base_point)
-        vertical_b, skew = self.vertical_projection(
-            tangent_vec_b, base_point, return_skew=True
-        )
-        horizontal_b = tangent_vec_b - vertical_b
-
-        # For the horizontal part of b
-        transposed_point = Matrices.transpose(base_point)
-        sigma = gs.matmul(transposed_point, base_point)
-        alignment = gs.matmul(Matrices.transpose(horizontal_a), horizontal_b)
-        right_term = alignment - Matrices.transpose(alignment)
-        skew_hor = gs.linalg.solve_sylvester(sigma, sigma, right_term)
-        vertical = -gs.matmul(base_point, skew_hor)
-
-        # For the vertical part of b
-        vert_part = -gs.matmul(horizontal_a, skew)
-        tangent_vert = self.to_tangent(vert_part, base_point)
-        horizontal_ = self.horizontal_projection(tangent_vert, base_point)
-
-        return vertical + horizontal_
-
     def integrability_tensor(self, tangent_vec_x, tangent_vec_e, base_point):
         r"""Compute the fundamental tensor A of the submersion.
 
@@ -397,11 +338,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         p_top_e = gs.matmul(p_top, tangent_vec_e)
         sylv_p_top_e = sylv_p(p_top_e)
 
-        result = gs.matmul(base_point, sylv_e_top_hor_x) + gs.matmul(
-            hor_x, sylv_p_top_e
-        )
-
-        return result
+        return gs.matmul(base_point, sylv_e_top_hor_x) + gs.matmul(hor_x, sylv_p_top_e)
 
     def integrability_tensor_derivative(
         self,
@@ -456,7 +393,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         in Kendall shape spaces. Unpublished.
         """
         if not gs.all(self.belongs(base_point)):
-            raise ValueError("The base_point does not belong to the pre-shape" " space")
+            raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
@@ -469,7 +406,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         if not gs.all(self.is_horizontal(nabla_x_y - a_x_y, base_point)):
             raise ValueError(
                 "Tangent vector nabla_x_y is not the gradient "
-                "of a horizontal distrinbution"
+                "of a horizontal distribution"
             )
         if not gs.all(self.is_tangent(tangent_vec_e, base_point)):
             raise ValueError("Tangent vector e is not tangent")
@@ -562,7 +499,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         """
         # Vectors X and Y have to be horizontal.
         if not gs.all(self.is_centered(base_point)):
-            raise ValueError("The base_point does not belong to the pre-shape" " space")
+            raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
@@ -653,7 +590,7 @@ class PreShapeSpace(LevelSet, FiberBundle):
         in Kendall shape spaces. Unpublished.
         """
         if not gs.all(self.is_centered(base_point)):
-            raise ValueError("The base_point does not belong to the pre-shape" " space")
+            raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
@@ -797,9 +734,10 @@ class PreShapeMetric(RiemannianMetric):
         flat_bp = gs.reshape(base_point, (-1, self.sphere_metric.dim + 1))
         flat_pt = gs.reshape(point, (-1, self.sphere_metric.dim + 1))
         flat_log = self.sphere_metric.log(flat_pt, flat_bp)
-        try:
+
+        if gs.prod(gs.array(flat_log.shape)) == gs.prod(gs.array(base_point.shape)):
             log = gs.reshape(flat_log, base_point.shape)
-        except (RuntimeError, check_tf_error(ValueError, "InvalidArgumentError")):
+        else:
             log = gs.reshape(flat_log, point.shape)
         return log
 

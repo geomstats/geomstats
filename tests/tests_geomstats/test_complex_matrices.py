@@ -1,7 +1,6 @@
 """Unit tests for the manifold of complex matrices."""
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from tests.conftest import Parametrizer
 from tests.data.complex_matrices_data import (
@@ -26,26 +25,6 @@ class TestComplexMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
             gs.array(expected),
         )
 
-    def test_equal(self, m, n, mat1, mat2, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).equal(
-                gs.array(mat1, dtype=CDTYPE), gs.array(mat2, dtype=CDTYPE)
-            ),
-            gs.array(expected),
-        )
-
-    def test_mul(self, mat, expected):
-        self.assertAllClose(ComplexMatrices.mul(*mat), gs.array(expected))
-
-    def test_bracket(self, mat_a, mat_b, expected):
-        self.assertAllClose(
-            ComplexMatrices.bracket(
-                gs.array(mat_a, dtype=CDTYPE),
-                gs.array(mat_b, dtype=CDTYPE),
-            ),
-            gs.array(expected),
-        )
-
     def test_congruent(self, mat_a, mat_b, expected):
         self.assertAllClose(
             ComplexMatrices.congruent(
@@ -64,48 +43,9 @@ class TestComplexMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
             gs.array(expected),
         )
 
-    def test_trace_product(self, mat_a, mat_b, expected):
-        self.assertAllClose(
-            ComplexMatrices.trace_product(
-                gs.array(mat_a, dtype=CDTYPE),
-                gs.array(mat_b, dtype=CDTYPE),
-            ),
-            gs.array(expected),
-        )
-
-    def test_flatten(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).flatten(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    def test_transpose(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).transpose(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
     def test_transconjugate(self, m, n, mat, expected):
         self.assertAllClose(
             ComplexMatrices(m, n).transconjugate(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    def test_diagonal(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).diagonal(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    def test_is_diagonal(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).is_diagonal(gs.array(mat, dtype=CDTYPE)),
-            expected,
-        )
-
-    def test_is_symmetric(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).is_symmetric(gs.array(mat, dtype=CDTYPE)),
             gs.array(expected),
         )
 
@@ -115,119 +55,16 @@ class TestComplexMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
             gs.array(expected),
         )
 
-    def test_is_skew_symmetric(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).is_skew_symmetric(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    def test_is_pd(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).is_pd(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    def test_is_spd(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).is_spd(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
     def test_is_hpd(self, m, n, mat, expected):
         self.assertAllClose(
             ComplexMatrices(m, n).is_hpd(gs.array(mat, dtype=CDTYPE)),
             gs.array(expected),
         )
 
-    def test_is_upper_triangular(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).is_upper_triangular(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    def test_is_lower_triangular(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).is_lower_triangular(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    def test_is_strictly_lower_triangular(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).is_strictly_lower_triangular(
-                gs.array(mat, dtype=CDTYPE)
-            ),
-            gs.array(expected),
-        )
-
-    def test_is_strictly_upper_triangular(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).is_strictly_upper_triangular(
-                gs.array(mat, dtype=CDTYPE)
-            ),
-            gs.array(expected),
-        )
-
-    def test_to_diagonal(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).to_diagonal(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    @tests.conftest.np_autograd_and_torch_only
-    def test_to_symmetric(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).to_symmetric(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    @tests.conftest.np_autograd_and_torch_only
     def test_to_hermitian(self, m, n, mat, expected):
         self.assertAllClose(
             ComplexMatrices(m, n).to_hermitian(gs.array(mat, dtype=CDTYPE)),
             gs.array(expected),
-        )
-
-    def test_to_lower_triangular(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).to_lower_triangular(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    def test_to_upper_triangular(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).to_upper_triangular(gs.array(mat, dtype=CDTYPE)),
-            gs.array(expected),
-        )
-
-    def test_to_strictly_lower_triangular(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).to_strictly_lower_triangular(
-                gs.array(mat, dtype=CDTYPE)
-            ),
-            gs.array(expected),
-        )
-
-    def test_to_strictly_upper_triangular(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).to_strictly_upper_triangular(
-                gs.array(mat, dtype=CDTYPE)
-            ),
-            gs.array(expected),
-        )
-
-    def test_to_lower_triangular_diagonal_scaled(self, m, n, mat, expected):
-        self.assertAllClose(
-            ComplexMatrices(m, n).to_lower_triangular_diagonal_scaled(
-                gs.array(mat, dtype=CDTYPE)
-            ),
-            gs.array(expected),
-        )
-
-    def test_flatten_reshape(self, m, n, mat):
-        cls_mn = ComplexMatrices(m, n)
-        self.assertAllClose(
-            cls_mn.reshape(cls_mn.flatten(gs.array(mat, dtype=CDTYPE))),
-            gs.array(mat, dtype=CDTYPE),
         )
 
     def test_to_matrix_type_is_matrix_type(self, m, n, matrix_type, mat):

@@ -10,6 +10,7 @@ import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
+from geomstats.geometry.matrices import Matrices
 
 
 class HermitianMatrices(ComplexVectorSpace):
@@ -262,7 +263,5 @@ class HermitianMatrices(ComplexVectorSpace):
         for fun in function:
             eigvals_f = fun(eigvals)
             eigvals_f = algebra_utils.from_vector_to_diagonal_matrix(eigvals_f)
-            reconstruction.append(
-                ComplexMatrices.mul(eigvecs, eigvals_f, transconj_eigvecs)
-            )
+            reconstruction.append(Matrices.mul(eigvecs, eigvals_f, transconj_eigvecs))
         return reconstruction if return_list else reconstruction[0]

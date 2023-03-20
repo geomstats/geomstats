@@ -76,8 +76,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         is_lower_triangular = self.embedding_space.belongs(mat, atol)
         diagonal = Matrices.diagonal(mat)
         is_positive = gs.all(diagonal > 0, axis=-1)
-        belongs = gs.logical_and(is_lower_triangular, is_positive)
-        return belongs
+        return gs.logical_and(is_lower_triangular, is_positive)
 
     def projection(self, point):
         """Project a matrix to the Cholesksy space.
@@ -98,8 +97,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         vec_diag = gs.abs(Matrices.diagonal(point) - 0.1) + 0.1
         diag = gs.vec_to_diag(vec_diag)
         strictly_lower_triangular = Matrices.to_lower_triangular(point)
-        projection = diag + strictly_lower_triangular
-        return projection
+        return diag + strictly_lower_triangular
 
     @staticmethod
     def gram(point):
@@ -128,7 +126,6 @@ class PositiveLowerTriangularMatrices(OpenSet):
         ----------
         tangent_vec : array_like, shape=[..., n, n]
             Tangent vector at base point.
-            Symmetric Matrix.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -148,8 +145,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         Parameters
         ----------
         tangent_vec : array_like, shape=[..., n, n]
-            tanget vector at gram(base_point)
-            Symmetric Matrix.
+            Tangent vector at gram(base_point).
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -164,8 +160,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         aux = Matrices.to_lower_triangular_diagonal_scaled(
             Matrices.mul(inv_base_point, tangent_vec, inv_transpose_base_point)
         )
-        inverse_differential_gram = Matrices.mul(base_point, aux)
-        return inverse_differential_gram
+        return Matrices.mul(base_point, aux)
 
 
 class CholeskyMetric(RiemannianMetric):
@@ -186,7 +181,6 @@ class CholeskyMetric(RiemannianMetric):
     """
 
     def __init__(self, n):
-        """ """
         dim = int(n * (n + 1) / 2)
         super().__init__(dim=dim, signature=(dim, 0), shape=(n, n))
         self.n = n
