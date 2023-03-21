@@ -156,11 +156,11 @@ class FisherRaoMetric(RiemannianMetric):
 
         def _function_to_integrate(x):
             pdf_x = pdf(x)
-            pdf_x_at_base_point = pdf_x(base_point)
             (
+                pdf_x_at_base_point,
                 pdf_x_derivative_at_base_point,
                 pdf_x_hessian_at_base_point,
-            ) = gs.autodiff.jacobian_and_hessian(pdf_x)(base_point)
+            ) = gs.autodiff.value_jacobian_and_hessian(pdf_x)(base_point)
 
             return gs.einsum(
                 "...,...ijk->...ijk",
