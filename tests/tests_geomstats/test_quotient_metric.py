@@ -112,7 +112,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     def test_log(self, n, mat, vec):
         bundle = self.Bundle(n)
         quotient_metric = self.Metric(bundle)
-        base_metric = self.BaseMetric(n)
+        base_metric = self.BaseMetric(bundle)
         points = bundle.riemannian_submersion(gs.array([mat, vec]))
 
         result = quotient_metric.log(points[1], points[0])
@@ -123,7 +123,7 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
     def test_squared_dist(self, n, mat, vec):
         bundle = self.Bundle(n)
         quotient_metric = self.Metric(bundle)
-        base_metric = self.BaseMetric(n)
+        base_metric = self.BaseMetric(bundle)
         points = bundle.riemannian_submersion(gs.array([mat, vec]))
 
         result = quotient_metric.squared_dist(points[1], points[0], tol=1e-10)

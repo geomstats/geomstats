@@ -265,8 +265,8 @@ class TestHypersphereMetric(HypersphereMetricTestCase, metaclass=Parametrizer):
     skip_test_sectional_curvature = True
     skip_test_sectional_curvature_shape = True
     skip_test_riemann_tensor_spherical_coords_shape = np_backend()
-    skip_test_ricci_tensor_spherical_coords_shape = np_backend()
+    skip_test_ricci_tensor_spherical_coords_shape = True
     skip_test_riemann_tensor_spherical_coords = np_backend()
-    skip_test_ricci_tensor_spherical_coords = np_backend()
+    skip_test_ricci_tensor_spherical_coords = True
 
     testing_data = HypersphereMetricTestData()

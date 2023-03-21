@@ -4,7 +4,7 @@ from scipy.optimize import minimize
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.geometry.discrete_curves import R2, DiscreteCurves
+from geomstats.geometry.discrete_curves import DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_euclidean import SpecialEuclidean
@@ -102,8 +102,10 @@ class TestGeodesicRegression(tests.conftest.TestCase):
 
         # Set up for discrete curves
         k_sampling_points = 8
-        self.curves_2d = DiscreteCurves(R2, k_sampling_points=k_sampling_points)
-        self.metric_curves_2d = self.curves_2d.srv_metric
+        self.curves_2d = DiscreteCurves(
+            Euclidean(dim=2), k_sampling_points=k_sampling_points
+        )
+        self.metric_curves_2d = self.curves_2d.metric
 
         self.shape_curves_2d = (k_sampling_points, 2)
         X = gs.random.rand(self.n_samples)

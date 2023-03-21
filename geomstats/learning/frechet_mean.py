@@ -146,7 +146,7 @@ def elastic_mean(points, weights=None, metric=None):
     transformed_linear_mean = linear_mean(transformed, weights=weights)
 
     starting_sampling_point = (
-        FrechetMean(metric.ambient_metric)
+        FrechetMean(metric._space.ambient_manifold.metric)
         .fit(points[:, 0, :], weights=weights)
         .estimate_
     )

@@ -106,7 +106,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
     @tests.conftest.autograd_and_torch_only
     def test_log_connection_metric(self, dim, point, base_point, atol):
         sphere = Hypersphere(dim)
-        connection = Connection(dim)
+        connection = Connection(sphere)
         connection.christoffels = sphere.metric.christoffels
         vector = connection.log(
             point=point, base_point=base_point, n_steps=75, step="rk4", tol=1e-10
@@ -138,7 +138,7 @@ class TestConnection(TestCase, metaclass=Parametrizer):
         self, dim, point, end_point, n_times, n_steps, expected, atol
     ):
         sphere = Hypersphere(dim)
-        connection = Connection(dim)
+        connection = Connection(sphere)
         connection.christoffels = sphere.metric.christoffels
         geo = connection.geodesic(
             initial_point=point, end_point=end_point, n_steps=n_steps
