@@ -3,8 +3,6 @@
 import autograd as _autograd
 import autograd.numpy as _np
 from autograd import jacobian
-from autograd.extend import defvjp as _defvjp
-from autograd.extend import primitive as _primitive
 
 
 def detach(x):
@@ -53,7 +51,7 @@ def custom_gradient(*grad_funcs):
         wrapped_function : callable
             Function func with gradients specified by grad_funcs.
         """
-        wrapped_function = _primitive(func)
+        wrapped_function = _autograd.extend.primitive(func)
 
         def wrapped_grad_func(i, ans, *args, **kwargs):
             grads = grad_funcs[i](*args, **kwargs)
@@ -66,18 +64,18 @@ def custom_gradient(*grad_funcs):
             return lambda g: g * grads
 
         if len(grad_funcs) == 1:
-            _defvjp(
+            _autograd.extend.defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
             )
         elif len(grad_funcs) == 2:
-            _defvjp(
+            _autograd.extend.defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
                 lambda ans, *args, **kwargs: wrapped_grad_func(1, ans, *args, **kwargs),
             )
         elif len(grad_funcs) == 3:
-            _defvjp(
+            _autograd.extend.defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
                 lambda ans, *args, **kwargs: wrapped_grad_func(1, ans, *args, **kwargs),
@@ -93,14 +91,14 @@ def custom_gradient(*grad_funcs):
     return decorator
 
 
-def grad(func):
-    def _grad(x):
-        if x.ndim == 1:
-            return _autograd.grad(func)(x)
+def _grad(func, argnums=0):
+    def _wrapped_grad(*x, **kwargs):
+        if not hasattr(x[0], "ndim") or x[0].ndim < 2:
+            return _autograd.grad(func, argnum=argnums)(*x, **kwargs)
 
-        return _autograd.elementwise_grad(func)(x)
+        return _autograd.elementwise_grad(func, argnum=argnums)(*x, **kwargs)
 
-    return _grad
+    return _wrapped_grad
 
 
 @_autograd.differential_operators.unary_to_nary
@@ -113,7 +111,7 @@ def _elementwise_value_and_grad(fun, x):
     return ans, vjp(_autograd.differential_operators.vspace(ans).ones())
 
 
-def value_and_grad(func, to_numpy=False):
+def value_and_grad(func, argnums=0, to_numpy=False):
     """Wrap autograd value_and_grad function.
 
     Parameters
@@ -131,10 +129,10 @@ def value_and_grad(func, to_numpy=False):
         func's gradients' values at its inputs args.
     """
 
-    def _value_and_grad(x):
-        if x.ndim == 1:
-            return _autograd.value_and_grad(func)(x)
-        return _elementwise_value_and_grad(func)(x)
+    def _value_and_grad(*x, **kwargs):
+        if not hasattr(x[0], "ndim") or x[0].ndim < 2:
+            return _autograd.value_and_grad(func, argnum=argnums)(*x, **kwargs)
+        return _elementwise_value_and_grad(func, argnum=argnums)(*x, **kwargs)
 
     return _value_and_grad
 
@@ -278,3 +276,25 @@ def jacobian_and_hessian(func):
         func's hessian values at its inputs args.
     """
     return value_and_jacobian(jacobian_vec(func))
+
+
+def value_jacobian_and_hessian(func):
+    cache = []
+
+    def _cached_value_and_jacobian(fun, return_cached=False):
+        def _jac(x):
+            ans, jac = value_and_jacobian(fun)(x)
+            if not return_cached:
+                cache.append(ans)
+                return jac
+
+            value = _np.stack(cache)._value if len(cache) > 1 else cache[0]._value
+            cache.clear()
+
+            return value, ans, jac
+
+        return _jac
+
+    return _cached_value_and_jacobian(
+        _cached_value_and_jacobian(func), return_cached=True
+    )
