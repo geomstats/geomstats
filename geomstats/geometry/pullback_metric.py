@@ -3,16 +3,11 @@
 Lead author: Nina Miolane.
 """
 import abc
-import itertools
 import math
-from functools import partial
-
-import joblib
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.vectorization import get_batch_shape
+from geomstats.vectorization import check_is_batch, get_batch_shape
 
 
 class PullbackMetric(RiemannianMetric):
@@ -32,40 +27,9 @@ class PullbackMetric(RiemannianMetric):
     immersion into the Euclidean space, i.e. for
 
     :math:`N=\mathbb{R}^n`.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the underlying manifold.
-    embedding_dim : int
-        Dimension of the embedding Euclidean space.
-    immersion : callable
-        Map defining the immersion into the Euclidean space.
     """
 
-    def __init__(
-        self,
-        dim,
-        embedding_dim,
-        immersion,
-        jacobian_immersion=None,
-        tangent_immersion=None,
-    ):
-        super().__init__(dim=dim)
-        self.embedding_metric = EuclideanMetric(embedding_dim)
-        self.immersion = immersion
-        if jacobian_immersion is None:
-            jacobian_immersion = gs.autodiff.jacobian(immersion)
-        self.jacobian_immersion = jacobian_immersion
-        if tangent_immersion is None:
-
-            def _tangent_immersion(v, x):
-                return gs.squeeze(gs.matvec(jacobian_immersion(x), v))
-
-        self.tangent_immersion = _tangent_immersion
-        self._hessian_immersion = None
-
-    def metric_matrix(self, base_point=None, n_jobs=1, **joblib_kwargs):
+    def metric_matrix(self, base_point):
         r"""Metric matrix at the tangent space at a base point.
 
         Let :math:`f` be the immersion
@@ -87,81 +51,48 @@ class PullbackMetric(RiemannianMetric):
         mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        immersed_base_point = self.immersion(base_point)
-        jacobian_immersion = self.jacobian_immersion(base_point)
-        basis_elements = gs.eye(self.dim)
+        dim, dim_embedding = self._space.dim, self._space.embedding_space.dim
+        is_vec = check_is_batch(self._space, base_point)
 
-        @joblib.delayed
-        @joblib.wrap_non_picklable_objects
-        def pickable_inner_product(i, j):
-            immersed_basis_element_i = gs.squeeze(
-                gs.matvec(jacobian_immersion, basis_elements[i])
+        immersed_base_point = self._space.immersion(base_point)
+        jacobian_immersion = self._space.jacobian_immersion(base_point)
+
+        basis_elements = gs.eye(dim)
+
+        if is_vec:
+            reshaped_jacobian_immersion = gs.reshape(jacobian_immersion, (-1, dim))
+            reshaped_immersed_basis_elements = gs.matvec(
+                reshaped_jacobian_immersion, basis_elements
             )
-            immersed_basis_element_j = gs.squeeze(
-                gs.matvec(jacobian_immersion, basis_elements[j])
-            )
-            return self.embedding_metric.inner_product(
-                immersed_basis_element_i,
-                immersed_basis_element_j,
-                base_point=immersed_base_point,
+            immersed_basis_elements = gs.moveaxis(
+                gs.reshape(reshaped_immersed_basis_elements, (dim, -1, dim_embedding)),
+                0,
+                1,
             )
 
-        pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
-        out = pool(
-            pickable_inner_product(i, j)
-            for i, j in itertools.product(range(self.dim), range(self.dim))
-        )
-        metric_mat = gs.reshape(gs.array(out), (-1, self.dim, self.dim))
-        return metric_mat[0] if base_point.ndim == 1 else metric_mat
+        else:
+            immersed_basis_elements = gs.matvec(jacobian_immersion, basis_elements)
 
-    def _hessian_immersion_func(self):
-        """Compute the Hessian of the immersion.
+        elems = {}
+        for i in range(dim):
+            for j in range(i, dim):
+                elem = self._space.embedding_space.metric.inner_product(
+                    immersed_basis_elements[..., i, :],
+                    immersed_basis_elements[..., j, :],
+                    immersed_base_point,
+                )
+                elems[(i, j)] = elem
 
-        Returns
-        -------
-        hessian_immersion : list of callable
-            List of embedding_dim hessians of the scalar
-            functions defining the components of the immersion.
-        """
+        mat = []
+        for i in range(dim):
+            for j in range(dim):
+                elem = elems[(i, j)] if j > i else elems[(j, i)]
+                mat.append(elem)
 
-        def _immersion(base_point, a):
-            """Compute the component a of the immersion at a base point.
+        shape = (-1, dim, dim) if is_vec else (dim, dim)
+        return gs.reshape(gs.stack(mat, axis=-1), shape)
 
-            Parameters
-            ----------
-            base_point : array-like, shape=[..., dim]
-                Base point.
-            a : int
-                Index of the component of the immersion.
-            """
-            return gs.array([self.immersion(base_point)[a]])
-
-        hessians = [
-            gs.autodiff.hessian(partial(_immersion, a=a))
-            for a in range(self.embedding_metric.dim)
-        ]
-        return hessians
-
-    def hessian_immersion(self, base_point):
-        """Compute the Hessian of the immersion.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Base point.
-
-        Returns
-        -------
-        hessian_immersion : array-like, shape=[..., embedding_dim, dim, dim]
-            Hessian at the base point
-        """
-        if self._hessian_immersion is None:
-            self._hessian_immersion = self._hessian_immersion_func()
-
-        hessian_values = [hes(base_point) for hes in self._hessian_immersion]
-        return gs.stack(hessian_values, axis=0)
-
-    def inner_product_derivative_matrix(self, base_point=None):
+    def inner_product_derivative_matrix(self, base_point):
         r"""Compute the inner-product derivative matrix.
 
         The derivative of the metrix matrix is given by
@@ -182,25 +113,11 @@ class PullbackMetric(RiemannianMetric):
             Inner-product derivative matrix, where the index of the derivation
             is last: :math:`mat_{ij}_k = \partial_k g_{ij}`.
         """
-        initial_ndim = base_point.ndim
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        inner_prod_deriv_mats = []
-        for point in base_point:
-            jacobian_ai = self.jacobian_immersion(point)
-            if self.dim == 1 and jacobian_ai.ndim > 2:
-                jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
-
-            hessian_aij = self.hessian_immersion(point)
-            if self.dim == 1 and hessian_aij.ndim > 3:
-                hessian_aij = gs.squeeze(hessian_aij, axis=-1)
-
-            inner_prod_deriv_mat = gs.einsum(
-                "aki,aj->ijk", hessian_aij, jacobian_ai
-            ) + gs.einsum("akj,ai->ijk", hessian_aij, jacobian_ai)
-            inner_prod_deriv_mats.append(inner_prod_deriv_mat)
-
-        inner_prod_deriv_mat = gs.stack(inner_prod_deriv_mats, axis=0)
-        return inner_prod_deriv_mat[0] if initial_ndim == 1 else inner_prod_deriv_mat
+        jacobian_ai = self._space.jacobian_immersion(base_point)
+        hessian_aij = self._space.hessian_immersion(base_point)
+        return gs.einsum("...aki,...aj->...ijk", hessian_aij, jacobian_ai) + gs.einsum(
+            "...akj,...ai->...ijk", hessian_aij, jacobian_ai
+        )
 
     def second_fundamental_form(self, base_point):
         r"""Compute the second fundamental form.
@@ -222,38 +139,12 @@ class PullbackMetric(RiemannianMetric):
             Second fundamental form :math:`\RN{2}(p)_{ij}^\alpha` where the
              :math:`\alpha` index is first.
         """
-        initial_ndim = base_point.ndim
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        second_fundamental_forms = []
-        for point in base_point:
-            christoffels = self.christoffels(point)
+        christoffels = self.christoffels(base_point)
 
-            jacobian_ai = self.jacobian_immersion(point)
-            if self.dim == 1 and jacobian_ai.ndim > 2:
-                jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
+        jacobian = self._space.jacobian_immersion(base_point)
+        hessian = self._space.hessian_immersion(base_point)
 
-            hessian_aij = self.hessian_immersion(point)
-            if self.dim == 1 and hessian_aij.ndim > 3:
-                hessian_aij = gs.squeeze(hessian_aij, axis=-1)
-
-            second_fundamental_form_aij = []
-            for a in range(self.embedding_metric.dim):
-                jacobian_a = jacobian_ai[a]
-                hessian_a = hessian_aij[a]
-
-                second_fundamental_form_a = hessian_a - gs.einsum(
-                    "kij,k->ij", christoffels, jacobian_a
-                )
-                second_fundamental_form_aij.append(second_fundamental_form_a)
-
-            second_fundamental_forms_aij = gs.stack(second_fundamental_form_aij, axis=0)
-            second_fundamental_forms.append(second_fundamental_forms_aij)
-        second_fundamental_forms = gs.stack(second_fundamental_forms, axis=0)
-        return (
-            second_fundamental_forms[0]
-            if initial_ndim == 1
-            else second_fundamental_forms
-        )
+        return hessian - gs.einsum("...kij,...dk->...dij", christoffels, jacobian)
 
     def mean_curvature_vector(self, base_point):
         r"""Compute the mean curvature vector.
@@ -274,15 +165,9 @@ class PullbackMetric(RiemannianMetric):
         mean_curvature_vector : array-like, shape=[..., embedding_dim]
             Mean curvature vector.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-
-        mean_curvature = []
-        for point in base_point:
-            second_fund_form = self.second_fundamental_form(point)
-            cometric = self.cometric_matrix(point)
-            mean_curvature.append(gs.einsum("ij,aij->a", cometric, second_fund_form))
-
-        return gs.stack(mean_curvature, axis=0)
+        second_fund_form = self.second_fundamental_form(base_point)
+        cometric = self.cometric_matrix(base_point)
+        return gs.einsum("...ij,...aij->...a", cometric, second_fund_form)
 
 
 class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
@@ -297,14 +182,12 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
 
     @abc.abstractmethod
     def define_embedding_space(self):
-        r"""Create the embedding space this metric is in diffeomorphism with.
+        r"""Create the image space of the diffeormorphism.
 
-        This instantiate the metric to use as image space of the
-        diffeomorphism.
-
-        -------
-        embedding_metric : RiemannianMetric object
-            The metric of the embedding space
+        Parameters
+        ----------
+        embedding_space : Manifold object
+            Embedding space.
         """
 
     @abc.abstractmethod
@@ -391,6 +274,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_tangent_vec : array-like, shape=[..., *i_shape]
             Image tangent vector at image of the base point.
         """
+        # TODO: avoid reshapings?
         batch_shape = get_batch_shape(self._space, tangent_vec, base_point)
         flat_batch_shape = (-1,) if batch_shape else ()
 
