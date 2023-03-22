@@ -358,11 +358,26 @@ def linspace(start, stop, num=50, dtype=None):
             stop = _torch.tensor([stop])
 
         if start.shape == stop.shape:
-            return _torch.vstack([_torch.linspace(start=start[i], end=stop[i], steps=num, dtype=dtype) for i in range(start.shape[0])]).T
+            return _torch.vstack(
+                [
+                    _torch.linspace(start=start[i], end=stop[i], steps=num, dtype=dtype)
+                    for i in range(start.shape[0])
+                ]
+            ).T
         if start.shape[0] > stop.shape[0]:
-            return _torch.vstack([_torch.linspace(start=start[i], end=stop[0], steps=num, dtype=dtype) for i in range(start.shape[0])]).T
+            return _torch.vstack(
+                [
+                    _torch.linspace(start=start[i], end=stop[0], steps=num, dtype=dtype)
+                    for i in range(start.shape[0])
+                ]
+            ).T
         if stop.shape[0] > start.shape[0]:
-            return _torch.vstack([_torch.linspace(start=start[0], end=stop[i], steps=num, dtype=dtype) for i in range(stop.shape[0])]).T
+            return _torch.vstack(
+                [
+                    _torch.linspace(start=start[0], end=stop[i], steps=num, dtype=dtype)
+                    for i in range(stop.shape[0])
+                ]
+            ).T
 
 
 def equal(a, b, **kwargs):
