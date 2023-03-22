@@ -5,24 +5,6 @@ import autograd.numpy as _np
 from autograd import jacobian
 
 
-def detach(x):
-    """Return a new tensor detached from the current graph.
-
-    This is a placeholder in order to have consistent backend APIs.
-
-    Parameters
-    ----------
-    x : array-like
-        Tensor to detach.
-
-    Returns
-    -------
-    x : array-like
-        Tensor.
-    """
-    return x
-
-
 def custom_gradient(*grad_funcs):
     """Create a decorator that allows a function to define its custom gradient(s).
 
@@ -138,7 +120,7 @@ def value_and_grad(func, argnums=0, to_numpy=False):
 
 
 @_autograd.differential_operators.unary_to_nary
-def _value_and_jacobian(fun, x):
+def _value_and_jacobian_op(fun, x):
     # same as autograd.jacobian, but also returning ans
     vjp, ans = _autograd.differential_operators._make_vjp(fun, x)
     ans_vspace = _autograd.differential_operators.vspace(ans)
@@ -147,15 +129,15 @@ def _value_and_jacobian(fun, x):
     return ans, _np.reshape(_np.stack(grads), jacobian_shape)
 
 
-def value_and_jacobian(fun, point_ndim=1):
+def _value_and_jacobian(fun, point_ndim=1):
     def _value_and_jacobian_vec(x):
         if x.ndim == point_ndim:
-            return _value_and_jacobian(fun)(x)
+            return _value_and_jacobian_op(fun)(x)
 
         ans = []
         jac = []
         for one_x in x:
-            ans_, jac_ = _value_and_jacobian(fun)(one_x)
+            ans_, jac_ = _value_and_jacobian_op(fun)(one_x)
             ans.append(ans_)
             jac.append(jac_)
 
@@ -275,7 +257,7 @@ def jacobian_and_hessian(func):
         Function that returns func's jacobian and
         func's hessian values at its inputs args.
     """
-    return value_and_jacobian(jacobian_vec(func))
+    return _value_and_jacobian(jacobian_vec(func))
 
 
 def value_jacobian_and_hessian(func):
@@ -283,7 +265,7 @@ def value_jacobian_and_hessian(func):
 
     def _cached_value_and_jacobian(fun, return_cached=False):
         def _jac(x):
-            ans, jac = value_and_jacobian(fun)(x)
+            ans, jac = _value_and_jacobian(fun)(x)
             if not return_cached:
                 cache.append(ans)
                 return jac

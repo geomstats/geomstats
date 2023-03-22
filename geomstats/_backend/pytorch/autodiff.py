@@ -6,22 +6,6 @@ from torch.autograd.functional import hessian as _torch_hessian
 from torch.autograd.functional import jacobian as _torch_jacobian
 
 
-def detach(x):
-    """Return a new tensor detached from the current graph.
-
-    Parameters
-    ----------
-    x : array-like
-        Tensor to detach.
-
-    Returns
-    -------
-    x : array-like
-        Detached tensor.
-    """
-    return x.detach()
-
-
 def custom_gradient(*grad_funcs):
     """Create a decorator that allows a function to define its custom gradient(s).
 
@@ -239,7 +223,7 @@ def jacobian_and_hessian(func):
     return _jacobian_and_hessian
 
 
-def value_and_grad(func, to_numpy=False):
+def value_and_grad(func, argnums=0, to_numpy=False):
     """Return a function that returns func's value and gradients' values.
 
     Suitable for use in scipy.optimize with to_numpy=True.
@@ -260,6 +244,8 @@ def value_and_grad(func, to_numpy=False):
         Function that returns func's value and
         func's gradients' values at its inputs args.
     """
+    if isinstance(argnums, int):
+        argnums = tuple([argnums])
 
     def func_with_grad(*args, **kwargs):
         """Return func's value and func's gradients' values at args.
@@ -278,35 +264,65 @@ def value_and_grad(func, to_numpy=False):
         all_grads : list or any
             Values of func's gradients at input arguments args.
         """
-        new_args = ()
-        for one_arg in args:
+        new_args = []
+        for i_arg, one_arg in enumerate(args):
             if isinstance(one_arg, float):
                 one_arg = _torch.from_numpy(_np.array(one_arg))
             if isinstance(one_arg, _np.ndarray):
                 one_arg = _torch.from_numpy(one_arg)
-            one_arg = one_arg.clone().requires_grad_(True)
-            new_args = (*new_args, one_arg)
-        args = new_args
 
-        value = func(*args, **kwargs)
+            requires_grad = i_arg in argnums
+            one_arg = one_arg.detach().requires_grad_(requires_grad)
+            new_args.append(one_arg)
+
+        value = func(*new_args, **kwargs)
+
         if value.ndim > 0:
-            value.backward(gradient=_torch.ones_like(one_arg), retain_graph=True)
+            sum_value = value.sum()
+            sum_value.backward()
         else:
-            value.backward(retain_graph=True)
+            value.backward()
 
-        all_grads = ()
-        for one_arg in args:
-            all_grads = (
-                *all_grads,
-                _torch.autograd.grad(value, one_arg, retain_graph=True)[0],
-            )
+        all_grads = []
+        for i_arg, one_arg in enumerate(new_args):
+            if i_arg in argnums:
+                all_grads.append(
+                    one_arg.grad,
+                )
 
         if to_numpy:
-            value = detach(value).numpy()
-            all_grads = [detach(one_grad).numpy() for one_grad in all_grads]
+            value = value.detach().numpy()
+            all_grads = [one_grad.detach().numpy() for one_grad in all_grads]
 
-        if len(args) == 1:
+        if len(new_args) == 1:
             return value, all_grads[0]
-        return value, all_grads
+        return value, tuple(all_grads)
 
     return func_with_grad
+
+
+def value_jacobian_and_hessian(func):
+    def _value_jacobian_and_hessian(*args, **kwargs):
+        """Return func's jacobian and func's hessian at args.
+
+        Parameters
+        ----------
+        args : list
+            Argument to function func and its gradients.
+        kwargs : dict
+            Keyword arguments to function func and its gradients.
+
+        Returns
+        -------
+        jacobian : any
+            Value of func's jacobian at input arguments args.
+        hessian : any
+            Value of func's hessian at input arguments args.
+        """
+        return (
+            func(*args, **kwargs),
+            jacobian_vec(func)(*args, **kwargs),
+            hessian_vec(func)(*args, **kwargs),
+        )
+
+    return _value_jacobian_and_hessian
