@@ -352,32 +352,24 @@ def linspace(start, stop, num=50, dtype=None):
     try:
         return _torch.linspace(start=start, end=stop, steps=num, dtype=dtype)
     except TypeError:
-        if not _torch.is_tensor(start) or start.ndim == 0:
-            start = _torch.tensor([start])
-        if not _torch.is_tensor(stop) or stop.ndim == 0:
-            stop = _torch.tensor([stop])
+        if not _torch.is_tensor(start):
+            start = _torch.tensor(start)
+        if not _torch.is_tensor(stop):
+            stop = _torch.tensor(stop)
+        start, stop = _torch.broadcast_tensors(start, stop)
+        result_shape = (num, *start.shape)
+        start = _torch.flatten(start)
+        stop = _torch.flatten(stop)
 
-        if start.shape == stop.shape:
-            return _torch.vstack(
+        return _torch.reshape(
+            _torch.vstack(
                 [
                     _torch.linspace(start=start[i], end=stop[i], steps=num, dtype=dtype)
                     for i in range(start.shape[0])
                 ]
-            ).T
-        if start.shape[0] > stop.shape[0]:
-            return _torch.vstack(
-                [
-                    _torch.linspace(start=start[i], end=stop[0], steps=num, dtype=dtype)
-                    for i in range(start.shape[0])
-                ]
-            ).T
-        if stop.shape[0] > start.shape[0]:
-            return _torch.vstack(
-                [
-                    _torch.linspace(start=start[0], end=stop[i], steps=num, dtype=dtype)
-                    for i in range(stop.shape[0])
-                ]
-            ).T
+            ).T,
+            result_shape,
+        )
 
 
 def equal(a, b, **kwargs):
