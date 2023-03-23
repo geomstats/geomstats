@@ -17,27 +17,27 @@ def value_and_grad(*args, **kwargs):
     raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
-def jacobian(func):
+def jacobian(*args, **kwargs):
     """Return an error when using automatic differentiation with numpy."""
     raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
-def jacobian_vec(func, point_ndim=1):
+def jacobian_vec(*args, **kwargs):
     """Return an error when using automatic differentiation with numpy."""
     raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
-def hessian(func):
+def hessian(*args, **kwargs):
     """Return an error when using automatic differentiation with numpy."""
     raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
-def hessian_vec(func):
+def hessian_vec(*args, **kwargs):
     """Return an error when using automatic differentiation with numpy."""
     raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
 
-def jacobian_and_hessian(func):
+def jacobian_and_hessian(*args, **kwargs):
     """Return an error when using automatic differentiation with numpy."""
     raise RuntimeError(_USE_OTHER_BACKEND_MSG)
 
@@ -54,5 +54,5 @@ def custom_gradient(*grad_funcs):
     return decorator
 
 
-def value_jacobian_and_hessian(func):
+def value_jacobian_and_hessian(*args, **kwargs):
     raise RuntimeError(_USE_OTHER_BACKEND_MSG)

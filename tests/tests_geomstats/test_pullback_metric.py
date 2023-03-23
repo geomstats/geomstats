@@ -183,7 +183,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         """
         space.equip_with_metric(self.Metric)
         immersed_base_point = space.immersion(base_point)
-        jac_immersion = space.metric.jacobian_immersion(base_point)
+        jac_immersion = space.jacobian_immersion(base_point)
         immersed_tangent_vec_a = gs.matvec(jac_immersion, tangent_vec_a)
         immersed_tangent_vec_b = gs.matvec(jac_immersion, tangent_vec_b)
 
@@ -193,7 +193,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
         result = result_dict["transported_tangent_vec"]
         end_point = result_dict["end_point"]
-        result = space.metric.tangent_immersion(v=result, x=end_point)
+        result = space.tangent_immersion(result, end_point)
 
         expected = Hypersphere(space.dim).metric.parallel_transport(
             immersed_tangent_vec_a,

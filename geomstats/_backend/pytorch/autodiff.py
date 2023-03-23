@@ -1,5 +1,7 @@
 """Automatic differentiation in PyTorch."""
 
+import functools
+
 import numpy as _np
 import torch as _torch
 from torch.autograd.functional import hessian as _torch_hessian
@@ -131,13 +133,15 @@ def jacobian_vec(func, point_ndim=1):
     return _jacobian
 
 
-def hessian(func):
+def hessian(func, func_out_ndim=0):
     """Return a function that returns the hessian of func.
 
     Parameters
     ----------
     func : callable
         Function whose Hessian is computed.
+    func_out_ndim : dim
+        func output ndim.
 
     Returns
     -------
@@ -149,10 +153,26 @@ def hessian(func):
     def _hessian(point):
         return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
 
+    def _hessian_vector_valued(point):
+        def scalar_func(point, a):
+            return func(point)[a]
+
+        return _torch.stack(
+            [
+                hessian(functools.partial(scalar_func, a=a))(point)
+                for a in range(func_out_ndim)
+            ]
+        )
+
+        return
+
+    if func_out_ndim:
+        return _hessian_vector_valued
+
     return _hessian
 
 
-def hessian_vec(func):
+def hessian_vec(func, point_ndim=1, func_out_ndim=0):
     """Return a function that returns the hessian of func.
 
     We modify the default behavior of the hessian function of torch
@@ -163,6 +183,8 @@ def hessian_vec(func):
     ----------
     func : callable
         Function whose Hessian is computed.
+    func_out_ndim : dim
+        func output ndim.
 
     Returns
     -------
@@ -170,22 +192,20 @@ def hessian_vec(func):
         Function taking point as input and returning
         the hessian of func at point.
     """
+    hessian_func = hessian(func, func_out_ndim=func_out_ndim)
 
     def _hessian(point):
-        if point.ndim == 1:
-            return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
+        if point.ndim == point_ndim:
+            return hessian_func(point)
         return _torch.stack(
-            [
-                _torch_hessian(func=lambda x: func(x), inputs=one_point, strict=True)
-                for one_point in point
-            ],
+            [hessian_func(one_point) for one_point in point],
             axis=0,
         )
 
     return _hessian
 
 
-def jacobian_and_hessian(func):
+def jacobian_and_hessian(func, func_out_ndim=0):
     """Return a function that returns func's jacobian and hessian.
 
     Parameters
@@ -193,6 +213,8 @@ def jacobian_and_hessian(func):
     func : callable
         Function whose jacobian and hessian
         will be computed. It must be real-valued.
+    func_out_ndim : dim
+        func output ndim.
 
     Returns
     -------
@@ -218,7 +240,7 @@ def jacobian_and_hessian(func):
         hessian : any
             Value of func's hessian at input arguments args.
         """
-        return jacobian(func)(*args), hessian(func)(*args)
+        return jacobian(func)(*args), hessian(func, func_out_ndim=func_out_ndim)(*args)
 
     return _jacobian_and_hessian
 
@@ -301,7 +323,20 @@ def value_and_grad(func, argnums=0, to_numpy=False):
     return func_with_grad
 
 
-def value_jacobian_and_hessian(func):
+def value_jacobian_and_hessian(func, func_out_ndim=0):
+    """Compute value, jacobian and hessian.
+
+    func is called as many times as the output dim.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian and hessian values
+        will be computed.
+    func_out_ndim : int
+        func output ndim.
+    """
+
     def _value_jacobian_and_hessian(*args, **kwargs):
         """Return func's jacobian and func's hessian at args.
 
@@ -314,15 +349,17 @@ def value_jacobian_and_hessian(func):
 
         Returns
         -------
-        jacobian : any
+        value : array-like
+            Value of func at input arguments args.
+        jacobian : array-like
             Value of func's jacobian at input arguments args.
-        hessian : any
+        hessian : array-like
             Value of func's hessian at input arguments args.
         """
         return (
             func(*args, **kwargs),
             jacobian_vec(func)(*args, **kwargs),
-            hessian_vec(func)(*args, **kwargs),
+            hessian_vec(func, func_out_ndim=func_out_ndim)(*args, **kwargs),
         )
 
     return _value_jacobian_and_hessian

@@ -187,7 +187,7 @@ def jacobian_vec(fun, point_ndim=1):
     return _jac
 
 
-def hessian(fun):
+def hessian(fun, func_out_ndim=None):
     """Wrap autograd hessian function.
 
     For consistency with the other backend, we convert this to a tensor
@@ -198,6 +198,8 @@ def hessian(fun):
     func : callable
         Function whose hessian values
         will be computed.
+    func_out_ndim : int
+        Unused. Here for API consistency.
 
     Returns
     -------
@@ -212,7 +214,7 @@ def hessian(fun):
     return _hess
 
 
-def hessian_vec(func, point_ndim=1):
+def hessian_vec(func, point_ndim=1, func_out_ndim=None):
     """Wrap autograd hessian function.
 
     We note that the hessian function of autograd is not vectorized
@@ -226,6 +228,8 @@ def hessian_vec(func, point_ndim=1):
     func : callable
         Function whose hessian values
         will be computed.
+    func_out_ndim : int
+        Unused. Here for API consistency.
 
     Returns
     -------
@@ -233,16 +237,17 @@ def hessian_vec(func, point_ndim=1):
         Function that returns func's hessian
         values at its inputs args.
     """
+    hessian_func = hessian(func)
 
     def _hess(x):
         if x.ndim == point_ndim:
-            return hessian(func)(x)
-        return _np.stack([hessian(func)(one_x) for one_x in x])
+            return hessian_func(x)
+        return _np.stack([hessian_func(one_x) for one_x in x])
 
     return _hess
 
 
-def jacobian_and_hessian(func):
+def jacobian_and_hessian(func, func_out_ndim=None):
     """Wrap autograd jacobian and hessian functions.
 
     Parameters
@@ -250,6 +255,8 @@ def jacobian_and_hessian(func):
     func : callable
         Function whose jacobian and hessian values
         will be computed.
+    func_out_ndim : int
+        Unused. Here for API consistency.
 
     Returns
     -------
@@ -260,7 +267,19 @@ def jacobian_and_hessian(func):
     return _value_and_jacobian(jacobian_vec(func))
 
 
-def value_jacobian_and_hessian(func):
+def value_jacobian_and_hessian(func, func_out_ndim=None):
+    """Compute value, jacobian and hessian.
+
+    func is only called once.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian and hessian values
+        will be computed.
+    func_out_ndim : int
+        Unused. Here for API consistency.
+    """
     cache = []
 
     def _cached_value_and_jacobian(fun, return_cached=False):

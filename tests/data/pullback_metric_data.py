@@ -97,7 +97,9 @@ class ImmersedSet(Manifold, abc.ABC):
         hessian_immersion : array-like, shape=[..., embedding_dim, dim, dim]
             Hessian at the base point
         """
-        return gs.autodiff.hessian_vec(self.immersion)(base_point)
+        return gs.autodiff.hessian_vec(
+            self.immersion, func_out_ndim=self.embedding_space.dim
+        )(base_point)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
