@@ -97,13 +97,13 @@ class LowerTriangularMatricesTestData(_VectorSpaceTestData):
         smoke_data = [
             dict(
                 n=2,
-                point=[[2.0, 1.0], [1.0, 2.0]],
-                expected=[[2.0, 0.0], [1.0, 2.0]],
+                point=gs.array([[2.0, 1.0], [1.0, 2.0]]),
+                expected=gs.array([[2.0, 0.0], [1.0, 2.0]]),
             ),
             dict(
                 n=2,
-                point=[[1.0, 0.0], [0.0, 1.0]],
-                expected=[[1.0, 0.0], [0.0, 1.0]],
+                point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
             ),
         ]
         return self.generate_tests(smoke_data)

@@ -60,14 +60,14 @@ class SymmetricMatricesTestData(_VectorSpaceTestData):
     def powerm_test_data(self):
         smoke_data = [
             dict(
-                mat=[[1.0, 2.0], [2.0, 3.0]],
+                mat=gs.array([[1.0, 2.0], [2.0, 3.0]]),
                 power=1.0,
-                expected=[[1.0, 2.0], [2.0, 3.0]],
+                expected=gs.array([[1.0, 2.0], [2.0, 3.0]]),
             ),
             dict(
-                mat=[[1.0, 2.0], [2.0, 3.0]],
+                mat=gs.array([[1.0, 2.0], [2.0, 3.0]]),
                 power=2.0,
-                expected=[[5.0, 8.0], [8.0, 13.0]],
+                expected=gs.array([[5.0, 8.0], [8.0, 13.0]]),
             ),
         ]
         return self.generate_tests(smoke_data)

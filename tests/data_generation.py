@@ -1629,7 +1629,7 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests([], random_data)
 
 
-class _QuotientMetricTestData(_RiemannianMetricTestData):
+class _QuotientMetricTestData(TestData):
     def dist_is_smaller_than_bundle_dist_test_data(self):
         random_data = []
         for metric_args, bundle, n_points in zip(

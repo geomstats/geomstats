@@ -523,9 +523,9 @@ class HPDEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
             dict(
                 space=HPDMatrices(2, equip=False),
                 power_euclidean=1.0,
-                tangent_vec_a=[[2.0, 0.0], [0.0, 2.0]],
-                base_point=[[1.0, 0.0], [0.0, 1.0]],
-                tangent_vec_b=[[1.0, 0.0], [0.0, 0.5]],
+                tangent_vec_a=gs.array([[2.0, 0.0], [0.0, 2.0]]),
+                base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                tangent_vec_b=gs.array([[1.0, 0.0], [0.0, 0.5]]),
             )
         ]
         return self.generate_tests(smoke_data)

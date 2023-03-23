@@ -172,9 +172,9 @@ class CholeskyMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 space=self.space_2,
-                tangent_vec_a=[[1.0, 0.0], [-2.0, -1.0]],
-                tangent_vec_b=[[2.0, 0.0], [-3.0, -1.0]],
-                base_point=[[SQRT_2, 0.0], [-3.0, 1.0]],
+                tangent_vec_a=gs.array([[1.0, 0.0], [-2.0, -1.0]]),
+                tangent_vec_b=gs.array([[2.0, 0.0], [-3.0, -1.0]]),
+                base_point=gs.array([[SQRT_2, 0.0], [-3.0, 1.0]]),
                 expected=2.0,
             )
         ]
@@ -221,18 +221,24 @@ class CholeskyMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 space=self.space_2,
-                tangent_vec=[[-1.0, 0.0], [2.0, 3.0]],
-                base_point=[[1.0, 0.0], [2.0, 2.0]],
-                expected=[[1 / EULER, 0.0], [4.0, 2 * gs.exp(1.5)]],
+                tangent_vec=gs.array([[-1.0, 0.0], [2.0, 3.0]]),
+                base_point=gs.array([[1.0, 0.0], [2.0, 2.0]]),
+                expected=gs.array([[1 / EULER, 0.0], [4.0, 2 * gs.exp(1.5)]]),
             ),
             dict(
                 space=self.space_2,
-                tangent_vec=[[[0.0, 0.0], [2.0, 0.0]], [[1.0, 0.0], [0.0, 0.0]]],
-                base_point=[[[1.0, 0.0], [2.0, 2.0]], [[1.0, 0.0], [0.0, 2.0]]],
-                expected=[
-                    [[1.0, 0.0], [4.0, 2.0]],
-                    [[gs.exp(1.0), 0.0], [0.0, 2.0]],
-                ],
+                tangent_vec=gs.array(
+                    [[[0.0, 0.0], [2.0, 0.0]], [[1.0, 0.0], [0.0, 0.0]]]
+                ),
+                base_point=gs.array(
+                    [[[1.0, 0.0], [2.0, 2.0]], [[1.0, 0.0], [0.0, 2.0]]]
+                ),
+                expected=gs.array(
+                    [
+                        [[1.0, 0.0], [4.0, 2.0]],
+                        [[gs.exp(1.0), 0.0], [0.0, 2.0]],
+                    ]
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -241,18 +247,24 @@ class CholeskyMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 space=self.space_2,
-                point=[[EULER, 0.0], [2.0, EULER**3]],
-                base_point=[[EULER**3, 0.0], [4.0, EULER**4]],
-                expected=[[-2.0 * EULER**3, 0.0], [-2.0, -1 * EULER**4]],
+                point=gs.array([[EULER, 0.0], [2.0, EULER**3]]),
+                base_point=gs.array([[EULER**3, 0.0], [4.0, EULER**4]]),
+                expected=gs.array([[-2.0 * EULER**3, 0.0], [-2.0, -1 * EULER**4]]),
             ),
             dict(
                 space=self.space_2,
-                point=[
-                    [[gs.exp(-2.0), 0.0], [0.0, gs.exp(2.0)]],
-                    [[gs.exp(-3.0), 0.0], [2.0, gs.exp(3.0)]],
-                ],
-                base_point=[[[1.0, 0.0], [-1.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]],
-                expected=[[[-2.0, 0.0], [1.0, 2.0]], [[-3.0, 0.0], [2.0, 3.0]]],
+                point=gs.array(
+                    [
+                        [[gs.exp(-2.0), 0.0], [0.0, gs.exp(2.0)]],
+                        [[gs.exp(-3.0), 0.0], [2.0, gs.exp(3.0)]],
+                    ]
+                ),
+                base_point=gs.array(
+                    [[[1.0, 0.0], [-1.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]]
+                ),
+                expected=gs.array(
+                    [[[-2.0, 0.0], [1.0, 2.0]], [[-3.0, 0.0], [2.0, 3.0]]]
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -261,21 +273,25 @@ class CholeskyMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 space=self.space_2,
-                point_a=[[EULER, 0.0], [2.0, EULER**3]],
-                point_b=[[EULER**3, 0.0], [4.0, EULER**4]],
+                point_a=gs.array([[EULER, 0.0], [2.0, EULER**3]]),
+                point_b=gs.array([[EULER**3, 0.0], [4.0, EULER**4]]),
                 expected=9,
             ),
             dict(
                 space=self.space_2,
-                point_a=[
-                    [[EULER, 0.0], [2.0, EULER**3]],
-                    [[EULER, 0.0], [4.0, EULER**3]],
-                ],
-                point_b=[
-                    [[EULER**3, 0.0], [4.0, EULER**4]],
-                    [[EULER**3, 0.0], [7.0, EULER**4]],
-                ],
-                expected=[9, 14],
+                point_a=gs.array(
+                    [
+                        [[EULER, 0.0], [2.0, EULER**3]],
+                        [[EULER, 0.0], [4.0, EULER**3]],
+                    ]
+                ),
+                point_b=gs.array(
+                    [
+                        [[EULER**3, 0.0], [4.0, EULER**4]],
+                        [[EULER**3, 0.0], [7.0, EULER**4]],
+                    ]
+                ),
+                expected=gs.array([9, 14]),
             ),
         ]
         return self.generate_tests(smoke_data)

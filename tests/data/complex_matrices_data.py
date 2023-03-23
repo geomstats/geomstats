@@ -62,7 +62,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
             dict(m=2, n=2, mat=sq_mat, expected=True),
             dict(m=2, n=1, mat=sq_mat, expected=False),
             dict(m=2, n=3, mat=gs.stack([MAT1_23, MAT2_23]), expected=[True, True]),
-            dict(m=2, n=1, mat=gs.stack(MAT1_23), expected=False),
+            dict(m=2, n=1, mat=MAT1_23, expected=False),
             dict(
                 m=3,
                 n=3,
@@ -173,7 +173,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                         gs.array([[1.0, -1.0], [5.0, 4.0]], dtype=CDTYPE),
                     ]
                 ),
-                expected=gs.stack([10.0, -13.0]),
+                expected=gs.array([10.0, -13.0]),
             ),
             dict(
                 mat_a=gs.array([[5.0, 8.0], [2.0, 2.0]], dtype=CDTYPE),
@@ -532,7 +532,7 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                 m=3,
                 n=3,
                 mat=gs.stack([MAT10_33, MAT11_33]),
-                expected=[MAT10_33, MAT13_33],
+                expected=gs.stack([MAT10_33, MAT13_33]),
             ),
         ]
         return self.generate_tests(smoke_data)

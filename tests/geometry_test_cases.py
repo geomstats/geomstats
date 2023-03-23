@@ -1513,7 +1513,7 @@ class NFoldMetricTestCase(RiemannianMetricTestCase):
         self.assertAllClose(result, expected, rtol, atol)
 
 
-class QuotientMetricTestCase(RiemannianMetricTestCase):
+class QuotientMetricTestCase(TestCase):
     def test_dist_is_smaller_than_bundle_dist(
         self, metric_args, bundle, point_a, point_b, atol
     ):

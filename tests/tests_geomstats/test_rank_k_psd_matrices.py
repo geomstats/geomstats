@@ -1,6 +1,5 @@
 r"""Unit tests for the space of PSD matrices of rank k."""
 
-import geomstats.backend as gs
 from geomstats.geometry.rank_k_psd_matrices import PSDMatrices
 from tests.conftest import Parametrizer
 from tests.data.rank_k_psd_matrices_data import (
@@ -21,7 +20,7 @@ class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
 
     def test_belongs(self, n, k, mat, expected):
         space = self.Space(n, k)
-        self.assertAllClose(space.belongs(gs.array(mat)), gs.array(expected))
+        self.assertAllClose(space.belongs(mat), expected)
 
 
 class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
@@ -48,13 +47,14 @@ class TestPSDMetricBuresWasserstein(QuotientMetricTestCase, metaclass=Parametriz
     skip_test_sectional_curvature_shape = True
 
     testing_data = PSDMetricBuresWassersteinTestData()
+    Metric = testing_data.Metric
 
-    def test_exp(self, n, tangent_vec, base_point, expected):
-        metric = self.Metric(n, n)
-        result = metric.exp(gs.array(tangent_vec), gs.array(base_point))
-        self.assertAllClose(result, gs.array(expected))
+    def test_exp(self, bundle, tangent_vec, base_point, expected):
+        bundle.equip_with_metric(self.Metric)
+        result = bundle.metric.exp(tangent_vec, base_point)
+        self.assertAllClose(result, expected)
 
-    def test_log(self, n, point, base_point, expected):
-        metric = self.Metric(n, n)
-        result = metric.log(gs.array(point), gs.array(base_point))
+    def test_log(self, bundle, point, base_point, expected):
+        bundle.equip_with_metric(self.Metric)
+        result = bundle.metric.log(point, base_point)
         self.assertAllClose(result, expected)

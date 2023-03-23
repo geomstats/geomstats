@@ -118,28 +118,30 @@ class ComplexPoincareDiskMetricTestData(_ComplexRiemannianMetricTestData):
         smoke_data = [
             dict(
                 space=self.space_list[0],
-                tangent_vec=[[2.0 + 0j]],
-                base_point=[[0.0 + 0j]],
-                expected=[[(EXP_4 - 1) / (EXP_4 + 1)]],
+                tangent_vec=gs.array([[2.0 + 0j]]),
+                base_point=gs.array([[0.0 + 0j]]),
+                expected=gs.array([[(EXP_4 - 1) / (EXP_4 + 1)]]),
             ),
             dict(
                 space=self.space_list[0],
-                tangent_vec=[[2.0 + 0j]],
-                base_point=[[0.0 + 0j]],
-                expected=[[(EXP_4 - 1) / (EXP_4 + 1)]],
+                tangent_vec=gs.array([[2.0 + 0j]]),
+                base_point=gs.array([[0.0 + 0j]]),
+                expected=gs.array([[(EXP_4 - 1) / (EXP_4 + 1)]]),
             ),
             dict(
                 space=self.space_list[0],
-                tangent_vec=[[2.0 + 2j]],
-                base_point=[[0.0 + 0j]],
-                expected=[
+                tangent_vec=gs.array([[2.0 + 2j]]),
+                base_point=gs.array([[0.0 + 0j]]),
+                expected=gs.array(
                     [
-                        (1 + 1j)
-                        / SQRT_2
-                        * (gs.exp(2 * SQRT_8 + 0j) - 1)
-                        / (gs.exp(2 * SQRT_8 + 0j) + 1)
+                        [
+                            (1 + 1j)
+                            / SQRT_2
+                            * (gs.exp(2 * SQRT_8 + 0j) - 1)
+                            / (gs.exp(2 * SQRT_8 + 0j) + 1)
+                        ]
                     ]
-                ],
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)

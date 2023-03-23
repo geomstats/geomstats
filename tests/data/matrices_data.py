@@ -164,12 +164,12 @@ class MatricesTestData(_VectorSpaceTestData):
 
     def diagonal_test_data(self):
         smoke_data = [
-            dict(m=2, n=2, mat=EYE_2, expected=[1.0, 1.0]),
+            dict(m=2, n=2, mat=EYE_2, expected=gs.array([1.0, 1.0])),
             dict(
                 m=3,
                 n=3,
-                mat=[MAT1_33, MAT3_33],
-                expected=[[1.0, 4.0, 6.0], [0.0, 0.0, 0.0]],
+                mat=gs.stack([MAT1_33, MAT3_33]),
+                expected=gs.array([[1.0, 4.0, 6.0], [0.0, 0.0, 0.0]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -323,14 +323,14 @@ class MatricesTestData(_VectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=[[1.0, 2.0], [3.0, 4.0]],
-                expected=[[1.0, 0.0], [0.0, 4.0]],
+                mat=gs.array([[1.0, 2.0], [3.0, 4.0]]),
+                expected=gs.array([[1.0, 0.0], [0.0, 4.0]]),
             ),
             dict(
                 m=2,
                 n=2,
-                mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
-                expected=[[[1.0, 0.0], [0.0, 4.0]], [[5.0, 0.0], [0.0, 8.0]]],
+                mat=gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),
+                expected=gs.array([[[1.0, 0.0], [0.0, 4.0]], [[5.0, 0.0], [0.0, 8.0]]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -372,14 +372,14 @@ class MatricesTestData(_VectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=[[1.0, 2.0], [3.0, 4.0]],
-                expected=[[1.0, 0.0], [3.0, 4.0]],
+                mat=gs.array([[1.0, 2.0], [3.0, 4.0]]),
+                expected=gs.array([[1.0, 0.0], [3.0, 4.0]]),
             ),
             dict(
                 m=2,
                 n=2,
-                mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
-                expected=[[[1.0, 0.0], [3.0, 4.0]], [[5.0, 0.0], [7.0, 8.0]]],
+                mat=gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),
+                expected=gs.array([[[1.0, 0.0], [3.0, 4.0]], [[5.0, 0.0], [7.0, 8.0]]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -389,14 +389,14 @@ class MatricesTestData(_VectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=[[1.0, 2.0], [3.0, 4.0]],
-                expected=[[1.0, 2.0], [0.0, 4.0]],
+                mat=gs.array([[1.0, 2.0], [3.0, 4.0]]),
+                expected=gs.array([[1.0, 2.0], [0.0, 4.0]]),
             ),
             dict(
                 m=2,
                 n=2,
-                mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
-                expected=[[[1.0, 2.0], [0.0, 4.0]], [[5.0, 6.0], [0.0, 8.0]]],
+                mat=gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),
+                expected=gs.array([[[1.0, 2.0], [0.0, 4.0]], [[5.0, 6.0], [0.0, 8.0]]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -406,14 +406,14 @@ class MatricesTestData(_VectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=[[1.0, 2.0], [3.0, 4.0]],
-                expected=[[0.0, 0.0], [3.0, 0.0]],
+                mat=gs.array([[1.0, 2.0], [3.0, 4.0]]),
+                expected=gs.array([[0.0, 0.0], [3.0, 0.0]]),
             ),
             dict(
                 m=2,
                 n=2,
-                mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
-                expected=[[[0.0, 0.0], [3.0, 0.0]], [[0.0, 0.0], [7.0, 0.0]]],
+                mat=gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),
+                expected=gs.array([[[0.0, 0.0], [3.0, 0.0]], [[0.0, 0.0], [7.0, 0.0]]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -423,14 +423,14 @@ class MatricesTestData(_VectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=[[1.0, 2.0], [3.0, 4.0]],
-                expected=[[0.0, 2.0], [0.0, 0.0]],
+                mat=gs.array([[1.0, 2.0], [3.0, 4.0]]),
+                expected=gs.array([[0.0, 2.0], [0.0, 0.0]]),
             ),
             dict(
                 m=2,
                 n=2,
-                mat=[[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]],
-                expected=[[[0.0, 2.0], [0.0, 0.0]], [[0.0, 6.0], [0.0, 0.0]]],
+                mat=gs.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]),
+                expected=gs.array([[[0.0, 2.0], [0.0, 0.0]], [[0.0, 6.0], [0.0, 0.0]]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -440,14 +440,14 @@ class MatricesTestData(_VectorSpaceTestData):
             dict(
                 m=2,
                 n=2,
-                mat=[[2.0, 2.0], [3.0, 4.0]],
-                expected=[[1.0, 0.0], [3.0, 2.0]],
+                mat=gs.array([[2.0, 2.0], [3.0, 4.0]]),
+                expected=gs.array([[1.0, 0.0], [3.0, 2.0]]),
             ),
             dict(
                 m=2,
                 n=2,
-                mat=[[[2.0, 2.0], [3.0, 4.0]], [[6.0, 6.0], [7.0, 8.0]]],
-                expected=[[[1.0, 0], [3.0, 2.0]], [[3.0, 0.0], [7.0, 4.0]]],
+                mat=gs.array([[[2.0, 2.0], [3.0, 4.0]], [[6.0, 6.0], [7.0, 8.0]]]),
+                expected=gs.array([[[1.0, 0], [3.0, 2.0]], [[3.0, 0.0], [7.0, 4.0]]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -544,11 +544,13 @@ class MatricesMetricTestData(_RiemannianMetricTestData):
     def norm_test_data(self):
         space = Matrices(2, 2, equip=False)
         smoke_data = [
-            dict(space=space, vector=[[1.0, 0.0], [0.0, 1.0]], expected=SQRT_2),
+            dict(
+                space=space, vector=gs.array([[1.0, 0.0], [0.0, 1.0]]), expected=SQRT_2
+            ),
             dict(
                 space=space,
-                vector=[[[3.0, 0.0], [4.0, 0.0]], [[-3.0, 0.0], [-4.0, 0.0]]],
-                expected=[5.0, 5.0],
+                vector=gs.array([[[3.0, 0.0], [4.0, 0.0]], [[-3.0, 0.0], [-4.0, 0.0]]]),
+                expected=gs.array([5.0, 5.0]),
             ),
         ]
         return self.generate_tests(smoke_data)

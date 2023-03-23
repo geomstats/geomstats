@@ -185,16 +185,18 @@ class HermitianMetricTestData(_ComplexRiemannianMetricTestData):
 
     def norm_test_data(self):
         smoke_data = [
-            dict(space=Hermitian(2, equip=False), vec=[4.0, 3.0], expected=5.0),
+            dict(
+                space=Hermitian(2, equip=False), vec=gs.array([4.0, 3.0]), expected=5.0
+            ),
             dict(
                 space=Hermitian(4, equip=False),
-                vec=[4.0, 3.0, 4.0, 3.0],
+                vec=gs.array([4.0, 3.0, 4.0, 3.0]),
                 expected=5.0 * SQRT_2,
             ),
             dict(
                 space=Hermitian(3, equip=False),
-                vec=[[4.0, 3.0, 10.0], [3.0, 10.0, 4.0]],
-                expected=[5 * SQRT_5, 5 * SQRT_5],
+                vec=gs.array([[4.0, 3.0, 10.0], [3.0, 10.0, 4.0]]),
+                expected=gs.array([5 * SQRT_5, 5 * SQRT_5]),
             ),
         ]
         return self.generate_tests(smoke_data)
