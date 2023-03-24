@@ -164,8 +164,6 @@ def hessian(func, func_out_ndim=0):
             ]
         )
 
-        return
-
     if func_out_ndim:
         return _hessian_vector_valued
 
@@ -267,7 +265,7 @@ def value_and_grad(func, argnums=0, to_numpy=False):
         func's gradients' values at its inputs args.
     """
     if isinstance(argnums, int):
-        argnums = tuple([argnums])
+        argnums = (argnums,)
 
     def func_with_grad(*args, **kwargs):
         """Return func's value and func's gradients' values at args.

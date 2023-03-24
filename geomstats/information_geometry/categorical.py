@@ -75,5 +75,3 @@ class CategoricalMetric(MultinomialMetric):
     .. [K2003] R. E. Kass. The Geometry of Asymptotic Inference. Statistical
         Science, 4(3): 188 - 234, 1989.
     """
-
-    pass

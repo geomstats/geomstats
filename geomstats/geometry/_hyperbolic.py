@@ -413,5 +413,3 @@ class HyperbolicMetric(RiemannianMetric):
     This class does not contain any methods and is only defined to act as a parent
     class for `HyperboloidMetric`, `PoincareBallMetric` and `PoincareHalfSpaceMetric`.
     """
-
-    pass

@@ -100,5 +100,3 @@ class ProductHPDMatricesAndSiegelDisksMetric(ProductRiemannianMetric):
         matrices with Toeplitz structured blocks, 2016.
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
-
-    pass

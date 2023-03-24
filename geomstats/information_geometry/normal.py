@@ -277,7 +277,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         self.sample_dim = sample_dim
         self.sample_space = Euclidean(dim=sample_dim, equip=False)
         dim = int(2 * sample_dim)
-        super().__init__(dim=dim, embedding_space=Euclidean(dim, equip=False))
+        super().__init__(dim=dim, embedding_space=Euclidean(dim, equip=equip))
 
     def _default_metric(self):
         return DiagonalNormalMetric
@@ -508,7 +508,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         point = gs.to_ndarray(point, to_ndim=2)
         n_points = gs.shape(point)[0]
         mean = point[:, : self.sample_dim]
-        cov = point[:, self.sample_dim :]
+        cov = point[:, self.sample_dim:]
         cov = cov.reshape((n_points, self.sample_dim, self.sample_dim))
         return gs.squeeze(mean), gs.squeeze(cov)
 
@@ -767,7 +767,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
 class CenteredNormalMetric:
     """Class for the Fisher information metric of centered normal distributions."""
 
-    def __new__(self, space):
+    def __new__(cls, space):
         return ScalarProductMetric(SPDAffineMetric(space), 1 / 2)
 
 

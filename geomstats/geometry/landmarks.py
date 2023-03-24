@@ -37,5 +37,3 @@ class L2LandmarksMetric(NFoldMetric):
     This is the NFoldMetric of the n-fold manifold made out
     of k_landmarks copies of the ambient manifold of each landmark.
     """
-
-    pass
