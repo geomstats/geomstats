@@ -352,9 +352,9 @@ class RiemannianMetric(Connection, ABC):
             raise ValueError(
                 "Several tangent vectors is only applicable to a single base point."
             )
-        random_vector = gs.squeeze(gs.random.rand(n_vectors, *shape))
+        random_vector = gs.random.rand(n_vectors, *shape)
         normalized_vector = self.normalize(random_vector, base_point)
-        return gs.squeeze(normalized_vector)
+        return gs.squeeze(normalized_vector, axis=0)
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
