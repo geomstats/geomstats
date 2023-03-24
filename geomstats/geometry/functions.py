@@ -142,13 +142,7 @@ class HilbertSphere(Manifold):
 
 
 class HilbertSphereMetric(RiemannianMetric):
-    r"""A Riemannian metric on the Hilbert sphere (functions of norm 1).
-
-    Parameters
-    ----------
-    domain_samples : array of shape (n_samples, )
-        Grid points on the domain.
-    """
+    """A Riemannian metric on the Hilbert sphere (functions of norm 1)."""
 
     def __init__(self, space):
         domain = space.domain

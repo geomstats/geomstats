@@ -455,23 +455,22 @@ class SPDMatrices(OpenSet):
 
 
 class SPDAffineMetric(RiemannianMetric):
-    """Class for the affine-invariant metric on the SPD manifold."""
+    """Class for the affine-invariant metric on the SPD manifold.
+
+    Parameters
+    ----------
+    power_affine : int
+        Power transformation of the classical SPD metric.
+        Optional, default: 1.
+
+    References
+    ----------
+    .. [TP2019] Thanwerdas, Pennec. "Is affine-invariance well defined on
+        SPD matrices? A principled continuum of metrics" Proc. of GSI,
+        2019. https://arxiv.org/abs/1906.01349
+    """
 
     def __init__(self, space, power_affine=1):
-        """Build the affine-invariant metric.
-
-        Parameters
-        ----------
-        power_affine : int
-            Power transformation of the classical SPD metric.
-            Optional, default: 1.
-
-        References
-        ----------
-        .. [TP2019] Thanwerdas, Pennec. "Is affine-invariance well defined on
-            SPD matrices? A principled continuum of metrics" Proc. of GSI,
-            2019. https://arxiv.org/abs/1906.01349
-        """
         super().__init__(space=space)
         self.power_affine = power_affine
 

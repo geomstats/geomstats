@@ -17,7 +17,7 @@ class FisherRaoMetric(RiemannianMetric):
 
     Attributes
     ----------
-    space : InformationManifoldMixin object
+    space : InformationManifold
         Riemannian Manifold for a parametric family of (real) distributions.
     support : list, shape = (2,)
         Left and right bounds for the support of the distribution.

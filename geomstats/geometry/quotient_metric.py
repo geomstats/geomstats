@@ -18,7 +18,7 @@ class QuotientMetric(RiemannianMetric):
 
     Parameters
     ----------
-    space : geomstats.geometry.fiber_bundle.FiberBundle
+    space : FiberBundle
         Bundle structure to define the quotient.
     """
 

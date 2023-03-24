@@ -108,11 +108,6 @@ class ProductPositiveRealsAndComplexPoincareDisksMetric(ProductRiemannianMetric)
     The ProductPositiveRealsAndComplexPoincareDisks metric is inspired by
     information geometry on this specific set of Gaussian distributions.
 
-    Parameters
-    ----------
-    n_manifolds : int
-        Number of manifolds of the product.
-
     References
     ----------
     .. [Cabanes_2022] Yann Cabanes. Multidimensional complex stationary

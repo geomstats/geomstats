@@ -779,13 +779,7 @@ class CenteredNormalMetric:
 
 
 class DiagonalNormalMetric(RiemannianMetric):
-    """Class for the Fisher information metric of diagonal normal distributions.
-
-    Parameters
-    ----------
-    sample_dim : int
-          Dimension of the sample space of the multivariate normal distribution.
-    """
+    """Class for the Fisher information metric of diagonal normal distributions."""
 
     def __init__(self, space):
         super().__init__(space=space)

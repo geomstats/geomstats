@@ -11,20 +11,6 @@ class ComplexRiemannianMetric(RiemannianMetric):
     r"""Class for Riemannian and pseudo-Riemannian metrics for Complex manifolds.
 
     The associated Levi-Civita connection on the tangent bundle.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the manifold.
-    shape : tuple of int
-        Shape of one element of the manifold.
-        Optional, default : (dim, ).
-    signature : tuple
-        Signature of the metric.
-        Optional, default: None.
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
-        Coordinate type.
-        Optional, default: 'intrinsic'.
     """
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):

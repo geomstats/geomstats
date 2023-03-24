@@ -86,11 +86,6 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
 
     Class for the metric of the n-dimensional hyperbolic space
     as embedded in the Poincaré half space model.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the hyperbolic space.
     """
 
     def __init__(self, space):

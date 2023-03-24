@@ -187,10 +187,10 @@ class NFoldMetric(RiemannianMetric):
 
     Parameters
     ----------
-    base_metric : RiemannianMetric
-        Base metric.
-    n_copies : int
-        Number of replication of the base metric.
+    space : NFoldManifold
+        Base space.
+    scales : array-like
+        Scale of each metric in the product.
     """
 
     def __init__(self, space, scales=None):

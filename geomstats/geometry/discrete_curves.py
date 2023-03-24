@@ -794,12 +794,12 @@ class ElasticMetric(RiemannianMetric):
 
     Parameters
     ----------
-    translation_invariant : bool
-        Optional, default : True.
     a : float
         Bending parameter.
     b : float
         Stretching parameter.
+    translation_invariant : bool
+        Optional, default : True.
 
     References
     ----------

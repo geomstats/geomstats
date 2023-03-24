@@ -1171,13 +1171,7 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
 
 
 class HPDLogEuclideanMetric(ComplexRiemannianMetric):
-    """Class for the Log-Euclidean metric on the HPD manifold.
-
-    Parameters
-    ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
-    """
+    """Class for the Log-Euclidean metric on the HPD manifold."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Log-Euclidean inner-product.

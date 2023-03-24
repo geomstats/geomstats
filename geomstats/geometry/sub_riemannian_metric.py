@@ -16,9 +16,7 @@ class SubRiemannianMetric:
 
     Parameters
     ----------
-    space : Manifold
-    dist_dim : int
-        Dimension of the distribution
+    space : Manifold object
     cometric_matrix : callable
         Optional, default: 'None'
 
