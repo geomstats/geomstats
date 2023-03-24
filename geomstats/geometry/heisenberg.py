@@ -27,7 +27,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
     """
 
     def __init__(self, equip=True):
-        super().__init__(dim=3, shape=(3,), lie_algebra=Euclidean(3), equip=True)
+        super().__init__(dim=3, shape=(3,), lie_algebra=Euclidean(3), equip=equip)
 
     def _create_basis(self):
         """Create the canonical basis."""
