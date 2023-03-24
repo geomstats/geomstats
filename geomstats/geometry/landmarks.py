@@ -27,7 +27,9 @@ class Landmarks(NFoldManifold):
             base_manifold=ambient_manifold, n_copies=k_landmarks, equip=equip
         )
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return L2LandmarksMetric
 
 

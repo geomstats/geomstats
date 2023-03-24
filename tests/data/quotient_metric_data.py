@@ -16,10 +16,11 @@ class BuresWassersteinBundle(FiberBundle, GeneralLinear):
             equip=True,
         )
 
-    def _default_total_space_metric(self):
+    def default_total_space_metric(self):
         return MatricesMetric
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
         return QuotientMetric
 
     @staticmethod

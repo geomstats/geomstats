@@ -40,7 +40,9 @@ class ComplexPoincareDisk(ComplexOpenSet):
             equip=equip,
         )
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return ComplexPoincareDiskMetric
 
     @staticmethod

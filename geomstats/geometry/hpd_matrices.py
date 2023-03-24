@@ -42,7 +42,9 @@ class HPDMatrices(ComplexOpenSet):
         super().__init__(dim=n**2, embedding_space=HermitianMatrices(n), equip=equip)
         self.n = n
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return HPDAffineMetric
 
     @staticmethod

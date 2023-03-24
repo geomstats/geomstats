@@ -48,7 +48,9 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
     def __init__(self, equip=True):
         super().__init__(dim=2, embedding_space=Euclidean(2, equip=False), equip=equip)
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return GammaMetric
 
     def belongs(self, point, atol=gs.atol):

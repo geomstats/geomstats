@@ -198,7 +198,9 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         self.rotations = SpecialOrthogonal(n=n, equip=True)
         self.translations = Euclidean(dim=n, equip=False)
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return SpecialEuclideanMatrixCanonicalLeftMetric
 
     def _define_embedding_space(self):

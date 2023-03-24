@@ -25,7 +25,9 @@ class FullRankMatrices(OpenSet):
         self.n = n
         self.k = k
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return MatricesMetric
 
     def belongs(self, point, atol=gs.atol):

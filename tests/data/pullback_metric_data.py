@@ -26,7 +26,8 @@ class ImmersedSet(Manifold, abc.ABC):
         )
         self.embedding_space = self._define_embedding_space()
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
         return PullbackMetric
 
     @abc.abstractmethod

@@ -86,7 +86,9 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
 
         super().__init__(factors=factors, default_point_type="other", equip=equip)
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return ProductPositiveRealsAndComplexPoincareDisksMetric
 
 

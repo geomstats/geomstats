@@ -69,7 +69,9 @@ class DiscreteCurves(Manifold):
             dim=dim, shape=(k_sampling_points,) + ambient_manifold.shape, equip=equip
         )
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return SRVMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -1499,10 +1501,14 @@ class SRVShapeBundle(FiberBundle, DiscreteCurves):
         )
         self.l2_curves_metric = L2CurvesMetric(self)
 
-    def _default_total_space_metric(self):
+    @staticmethod
+    def default_total_space_metric():
+        """Metric to equip the total space with if equip is True."""
         return SRVMetric
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return SRVQuotientMetric
 
     def vertical_projection(self, tangent_vec, point, return_norm=False):

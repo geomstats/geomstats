@@ -48,10 +48,14 @@ class PreShapeSpace(LevelSet, FiberBundle):
             equip=equip,
         )
 
-    def _default_total_space_metric(self):
+    @staticmethod
+    def default_total_space_metric():
+        """Metric to equip the total space with if equip is True."""
         return PreShapeMetric
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return KendallShapeMetric
 
     def _define_embedding_space(self):

@@ -40,7 +40,7 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
         base_point,
     ):
         space.equip_with_metric(self.Metric, support=support)
-        closed_form_metric = space._default_metric()(space)
+        closed_form_metric = space.default_metric()(space)
 
         inner_prod_mat = space.metric.metric_matrix(
             base_point=base_point,
@@ -59,7 +59,7 @@ class TestFisherRaoMetric(TestCase, metaclass=Parametrizer):
         base_point,
     ):
         space.equip_with_metric(self.Metric, support=support)
-        closed_form_metric = space._default_metric()(space)
+        closed_form_metric = space.default_metric()(space)
 
         inner_prod_mat = space.metric.inner_product(
             tangent_vec_a=tangent_vec_a,

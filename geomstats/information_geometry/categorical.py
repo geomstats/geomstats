@@ -31,7 +31,9 @@ class CategoricalDistributions(MultinomialDistributions):
     def __init__(self, dim, equip=True):
         super().__init__(dim=dim, n_draws=1, equip=equip)
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return CategoricalMetric
 
     def sample(self, point, n_samples=1):

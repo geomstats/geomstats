@@ -42,7 +42,9 @@ class Stiefel(LevelSet):
         dim = int(p * n - (p * (p + 1) / 2))
         super().__init__(dim=dim, equip=equip)
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return StiefelCanonicalMetric
 
     def _define_embedding_space(self):

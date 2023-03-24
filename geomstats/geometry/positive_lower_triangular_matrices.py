@@ -36,7 +36,9 @@ class PositiveLowerTriangularMatrices(OpenSet):
         )
         self.n = n
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return CholeskyMetric
 
     def random_point(self, n_samples=1, bound=1.0):

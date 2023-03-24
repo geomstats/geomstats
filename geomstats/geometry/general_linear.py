@@ -36,7 +36,8 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
 
         self.positive_det = positive_det
 
-    def _default_metric(self):
+    def default_metric(self):
+        """Metric to equip the space with if equip is True."""
         return type(self.embedding_space.metric)
 
     def projection(self, point):

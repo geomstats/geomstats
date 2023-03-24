@@ -79,7 +79,9 @@ class Spider(PointSet):
         super().__init__(equip=equip)
         self.n_rays = n_rays
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return SpiderMetric
 
     def random_point(self, n_samples=1):

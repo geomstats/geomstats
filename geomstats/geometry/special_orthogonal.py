@@ -47,7 +47,9 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             equip=equip,
         )
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return BiInvariantMetric
 
     def _define_embedding_space(self):
@@ -775,7 +777,9 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
     def __init__(self, epsilon=0.0, equip=True):
         super().__init__(n=3, epsilon=epsilon, equip=equip)
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return BiInvariantMetric
 
     def regularize(self, point):

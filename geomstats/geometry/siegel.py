@@ -80,7 +80,9 @@ class Siegel(ComplexOpenSet):
         self.n = n
         self.symmetric = symmetric
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return SiegelMetric
 
     def belongs(self, point, atol=gs.atol):

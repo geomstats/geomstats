@@ -287,7 +287,8 @@ class LieGroup(Manifold, abc.ABC):
         super().__init__(**kwargs)
         self.lie_algebra = lie_algebra
 
-    def _default_metric(self):
+    def default_metric(self):
+        """Metric to equip the space with if equip is True."""
         return (
             InvariantMetric,
             {"left": True, "metric_mat_at_identity": gs.eye(self.dim)},

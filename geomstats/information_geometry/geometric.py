@@ -25,7 +25,9 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
             embedding_space=Euclidean(dim=1, equip=equip),
         )
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return GeometricMetric
 
     def belongs(self, point, atol=gs.atol):

@@ -184,10 +184,14 @@ class CorrelationMatricesBundle(FiberBundle, SPDMatrices):
             equip=equip,
         )
 
-    def _default_total_space_metric(self):
+    @staticmethod
+    def default_total_space_metric():
+        """Metric to equip the total space with if equip is True."""
         return SPDAffineMetric
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return QuotientMetric
 
     @staticmethod

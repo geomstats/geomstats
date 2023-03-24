@@ -32,7 +32,9 @@ class BetaDistributions(DirichletDistributions):
     def __init__(self, equip=True):
         super().__init__(dim=2, equip=equip)
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return BetaMetric
 
     def sample(self, point, n_samples=1):

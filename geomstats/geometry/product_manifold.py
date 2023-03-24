@@ -322,7 +322,9 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             equip=equip,
         )
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return ProductRiemannianMetric
 
     def _pool_outputs_from_function(self, outputs):
@@ -530,19 +532,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
 
 class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
-    """Class for product of Riemannian metrics.
-
-    Parameters
-    ----------
-    metrics : list
-        List of metrics in the product.
-    default_point_type : {'auto', 'vector', 'matrix', 'other'}
-        Optional. Default value is 'auto', which will implement as 'vector' unless all
-        factors have the same shape. Vector representation gives the point as a 1-d
-        array. Matrix representation allows for a point to be represented by an array of
-        shape (n, dim), if each manifold has default_point_type 'vector' with shape
-        (dim,). 'other' will behave as `matrix` but for higher dimensions.
-    """
+    """Class for product of Riemannian metrics."""
 
     def __init__(self, space):
         factors = [factor.metric for factor in space.factors]
@@ -562,10 +552,12 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
 
     @property
     def shape(self):
+        """Shape of space."""
         return self._space.shape
 
     @property
     def default_point_type(self):
+        """Point type of space."""
         return self._space.default_point_type
 
     def metric_matrix(self, base_point=None):

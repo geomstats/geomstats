@@ -678,7 +678,9 @@ class GraphSpace(PointSet):
             else total_space
         )
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return GraphSpaceMetric
 
     @_pad_with_zeros((1, "graphs"))

@@ -35,7 +35,9 @@ class PoincarePolydisk(NFoldManifold):
         self.n_disks = n_disks
         super().__init__(base_manifold=Hyperboloid(2), n_copies=n_disks, equip=equip)
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return PoincarePolydiskMetric
 
     @staticmethod

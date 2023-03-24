@@ -37,7 +37,9 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         super().__init__(dim=dim, shape=(dim + 1,), equip=equip)
         self.n_draws = n_draws
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return MultinomialMetric
 
     def _define_embedding_space(self):

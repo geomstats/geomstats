@@ -31,7 +31,9 @@ class Matrices(VectorSpace):
         m, n = self.m, self.n
         return gs.reshape(gs.eye(n * m), (n * m, m, n))
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return MatricesMetric
 
     @staticmethod

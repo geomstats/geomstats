@@ -68,7 +68,9 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
     def __init__(self, equip=True):
         super().__init__(dim=2, equip=equip)
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return UnivariateNormalMetric
 
     @staticmethod
@@ -182,7 +184,9 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
         super().__init__(n=sample_dim, equip=equip)
         self.sample_dim = sample_dim
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return CenteredNormalMetric
 
     def sample(self, point, n_samples=1):
@@ -279,7 +283,9 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         dim = int(2 * sample_dim)
         super().__init__(dim=dim, embedding_space=Euclidean(dim, equip=equip))
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return DiagonalNormalMetric
 
     @staticmethod
@@ -508,7 +514,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         point = gs.to_ndarray(point, to_ndim=2)
         n_points = gs.shape(point)[0]
         mean = point[:, : self.sample_dim]
-        cov = point[:, self.sample_dim:]
+        cov = point[:, self.sample_dim :]
         cov = cov.reshape((n_points, self.sample_dim, self.sample_dim))
         return gs.squeeze(mean), gs.squeeze(cov)
 
@@ -768,6 +774,7 @@ class CenteredNormalMetric:
     """Class for the Fisher information metric of centered normal distributions."""
 
     def __new__(cls, space):
+        """Instantiate a scaled SPD affine metric."""
         return ScalarProductMetric(SPDAffineMetric(space), 1 / 2)
 
 

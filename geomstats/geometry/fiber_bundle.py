@@ -57,8 +57,15 @@ class FiberBundle(Manifold, ABC):
             self.equip_with_total_space_metric()
 
     def equip_with_total_space_metric(self, Metric=None, **metric_kwargs):
+        """Equip total space with Metric.
+
+        Parameters
+        ----------
+        Metric : Connection object
+            If None, default metric will be used.
+        """
         if Metric is None:
-            out = self._default_total_space_metric()
+            out = self.default_total_space_metric()
             if isinstance(out, tuple):
                 Metric, kwargs = out
                 kwargs.update(metric_kwargs)

@@ -236,7 +236,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         group.equip_with_metric(self.Metric)
 
         lie_algebra = group.lie_algebra
-        canonical_metric = group._default_metric()(group)
+        canonical_metric = group.default_metric()(group)
 
         basis = group.metric.normal_basis(lie_algebra.basis)
 
@@ -285,7 +285,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             "...ij,...->...ij", tan_a, 1.0 / group.metric.norm(tan_a, base_point=point)
         )
 
-        left_canonical_metric = group._default_metric()(group)
+        left_canonical_metric = group.default_metric()(group)
         expected = left_canonical_metric.parallel_transport(tan_a, point, tan_b)
         result, end_point_result = group.metric.parallel_transport(
             tan_a, point, tan_b, n_steps=20, step="rk4", return_endpoint=True

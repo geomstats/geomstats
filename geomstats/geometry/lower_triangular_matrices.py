@@ -21,7 +21,9 @@ class LowerTriangularMatrices(VectorSpace):
         super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), equip=equip)
         self.n = n
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return MatricesMetric
 
     def _create_basis(self):

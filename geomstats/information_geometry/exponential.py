@@ -24,7 +24,9 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             dim=1, embedding_space=Euclidean(dim=1, equip=False), equip=equip
         )
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return ExponentialMetric
 
     def belongs(self, point, atol=gs.atol):

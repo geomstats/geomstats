@@ -42,7 +42,9 @@ class RankKPSDMatrices(Manifold):
         self.rank = k
         self.sym = SymmetricMatrices(self.n, equip=False)
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return PSDEuclideanMetric
 
     def belongs(self, point, atol=gs.atol):
@@ -232,10 +234,14 @@ class BuresWassersteinBundle(FiberBundle, FullRankMatrices):
             equip=equip,
         )
 
-    def _default_total_space_metric(self):
+    @staticmethod
+    def default_total_space_metric():
+        """Metric to equip the total space with if equip is True."""
         return MatricesMetric
 
-    def _default_metric(self):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
         return QuotientMetric
 
     @staticmethod
