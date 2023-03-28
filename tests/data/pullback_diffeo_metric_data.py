@@ -21,7 +21,7 @@ class CircleAsSO2Metric(PullbackDiffeoMetric):
             )
         super().__init__(space=space)
 
-    def define_embedding_space(self):
+    def _define_embedding_space(self):
         space = SpecialOrthogonal(n=2, point_type="matrix", equip=False)
         space.equip_with_metric(BiInvariantMetric)
         return space

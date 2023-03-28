@@ -1169,7 +1169,7 @@ class SRVMetric(PullbackDiffeoMetric):
                 "in a Euclidean space."
             )
 
-    def define_embedding_space(self):
+    def _define_embedding_space(self):
         r"""Define embedding space with metric to pull back.
 
         Define the embedding space equipped with the metric which is pulled back
@@ -1181,14 +1181,14 @@ class SRVMetric(PullbackDiffeoMetric):
         embedding_space : Manifold object
             Embedding space.
         """
-        space = DiscreteCurves(
+        embedding_space = DiscreteCurves(
             ambient_manifold=self._space.ambient_manifold,
             k_sampling_points=self._space.k_sampling_points - 1,
             start_at_the_origin=self._space.start_at_the_origin,
             equip=False,
         )
-        space.equip_with_metric(L2CurvesMetric)
-        return space
+        embedding_space.equip_with_metric(L2CurvesMetric)
+        return embedding_space
 
     def f_transform(self, point, tol=gs.atol):
         r"""Square Root Velocity Transform (SRVT).

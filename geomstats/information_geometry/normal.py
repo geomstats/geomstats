@@ -600,7 +600,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
     by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
     """
 
-    def define_embedding_space(self):
+    def _define_embedding_space(self):
         r"""Define the equipped space with the metric to pull back.
 
         This is the metric of the Poincare upper half-plane
@@ -612,7 +612,6 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
             The metric of the Poincare upper half-plane.
         """
         space = PoincareHalfSpace(dim=2)
-        # TODO: think about how to adapt equip_with_metric
         space.metric = ScalarProductMetric(PoincareHalfSpaceMetric(space), 2.0)
         return space
 

@@ -508,8 +508,6 @@ class OpenSet(Manifold, abc.ABC):
     """
 
     def __init__(self, embedding_space, shape=None, **kwargs):
-        # TODO: embedding space following `LevelSet`?
-        # TODO: should we default `dim` to embedding space?
         self.embedding_space = embedding_space
         if shape is None:
             shape = embedding_space.shape

@@ -1179,7 +1179,6 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
         _ : array-like, shape=[...,]
             Geodesic distance between point_a and point_b.
         """
-        # TODO: rename
         return super().squared_dist(point_a, point_b)
 
     def squared_dist(self, point_a, point_b, **kwargs):

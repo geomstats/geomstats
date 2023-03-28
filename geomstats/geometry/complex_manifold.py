@@ -21,11 +21,11 @@ class ComplexManifold(abc.ABC):
     shape : tuple of int
         Shape of one element of the manifold.
         Optional, default : None.
-    metric : ComplexRiemannianMetric
-        Metric object to use on the complex manifold.
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
         Coordinate type.
         Optional, default: 'intrinsic'.
+    equip : bool
+        If True, equip space with default metric.
     """
 
     def __init__(
@@ -41,7 +41,6 @@ class ComplexManifold(abc.ABC):
 
         self.point_ndim = len(self.shape)
         if self.point_ndim == 1:
-            # TODO: remove default point type
             self.default_point_type = "vector"
         elif self.point_ndim == 2:
             self.default_point_type = "matrix"

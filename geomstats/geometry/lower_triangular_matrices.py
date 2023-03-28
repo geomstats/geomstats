@@ -34,7 +34,6 @@ class LowerTriangularMatrices(VectorSpace):
         basis : array-like, shape=[dim, n, n]
             Basis matrices of the space.
         """
-        # TODO: check one_hot
         tril_idxs = gs.ravel_tril_indices(self.n)
         vector_bases = gs.cast(
             gs.one_hot(tril_idxs, self.n * self.n),

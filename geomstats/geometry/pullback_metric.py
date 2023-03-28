@@ -176,12 +176,12 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
     def __init__(self, space, signature=None):
         super().__init__(space=space, signature=signature)
 
-        self.embedding_space = self.define_embedding_space()
+        self.embedding_space = self._define_embedding_space()
         self._shape_prod = math.prod(self._space.shape)
         self._embedding_shape_prod = math.prod(self.embedding_space.shape)
 
     @abc.abstractmethod
-    def define_embedding_space(self):
+    def _define_embedding_space(self):
         r"""Create the image space of the diffeormorphism.
 
         Parameters
@@ -274,7 +274,6 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_tangent_vec : array-like, shape=[..., *i_shape]
             Image tangent vector at image of the base point.
         """
-        # TODO: avoid reshapings?
         batch_shape = get_batch_shape(self._space, tangent_vec, base_point)
         flat_batch_shape = (-1,) if batch_shape else ()
 

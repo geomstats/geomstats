@@ -173,8 +173,6 @@ class FiberBundle(Manifold, ABC):
         aligned : array-like, shape=[..., {total_space.dim, [n, m]}]
             Action of the optimal g on point.
         """
-        # TODO: need to fix vectorization (with use of optimizers)
-
         group = self.group
         group_action = self.group_action
 

@@ -22,7 +22,7 @@ class Manifold(abc.ABC):
     shape : tuple of int
         Shape of one element of the manifold.
         Optional, default : None.
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
         Coordinate type.
         Optional, default: 'intrinsic'.
     equip : bool
@@ -33,7 +33,7 @@ class Manifold(abc.ABC):
     point_ndim : int
         Dimension of point array.
     default_point_type : str
-        Point type: "vector" or "matrix"
+        Point type: "vector" or "matrix".
     """
 
     def __init__(
@@ -54,7 +54,6 @@ class Manifold(abc.ABC):
 
         self.point_ndim = len(self.shape)
         if self.point_ndim == 1:
-            # TODO: remove default point type
             self.default_point_type = "vector"
         elif self.point_ndim == 2:
             self.default_point_type = "matrix"
