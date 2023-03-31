@@ -5,10 +5,11 @@ from geomstats.geometry.pre_shape import (
     KendallShapeMetric,
     PreShapeMetric,
     PreShapeSpace,
+    PreShapeSpaceBundle,
 )
-from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
+from tests.data_generation import TestData, _LevelSetTestData, _RiemannianMetricTestData
 
-smoke_space = PreShapeSpace(4, 3)
+smoke_space = PreShapeSpaceBundle(4, 3)
 vector = gs.random.rand(11, 4, 3)
 base_point = smoke_space.random_point()
 tg_vec_0 = smoke_space.to_tangent(vector[0], base_point)
@@ -98,6 +99,34 @@ class PreShapeSpaceTestData(_LevelSetTestData):
         ]
         return self.generate_tests(smoke_data)
 
+
+class PreShapeSpaceBundleTestData(TestData):
+    Space = PreShapeSpaceBundle
+
+    def alignment_is_symmetric_test_data(self):
+        space = self.Space(4, 3)
+        random_data = [
+            dict(
+                k_landmarks=4,
+                m_ambient=3,
+                point=space.random_point(),
+                base_point=space.random_point(),
+            ),
+            dict(
+                k_landmarks=4,
+                m_ambient=3,
+                point=space.random_point(),
+                base_point=space.random_point(2),
+            ),
+            dict(
+                k_landmarks=4,
+                m_ambient=3,
+                point=space.random_point(2),
+                base_point=space.random_point(2),
+            ),
+        ]
+        return self.generate_tests([], random_data)
+
     def vertical_projection_test_data(self):
         vector = gs.random.rand(10, 4, 3)
         space = self.Space(4, 3)
@@ -157,30 +186,6 @@ class PreShapeSpaceTestData(_LevelSetTestData):
             ),
         ]
         return self.generate_tests(smoke_data)
-
-    def alignment_is_symmetric_test_data(self):
-        space = self.Space(4, 3)
-        random_data = [
-            dict(
-                k_landmarks=4,
-                m_ambient=3,
-                point=space.random_point(),
-                base_point=space.random_point(),
-            ),
-            dict(
-                k_landmarks=4,
-                m_ambient=3,
-                point=space.random_point(),
-                base_point=space.random_point(2),
-            ),
-            dict(
-                k_landmarks=4,
-                m_ambient=3,
-                point=space.random_point(2),
-                base_point=space.random_point(2),
-            ),
-        ]
-        return self.generate_tests([], random_data)
 
     def integrability_tensor_test_data(self):
         space = self.Space(4, 3)
@@ -281,7 +286,7 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
     m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
 
     shape_list = space_args_list = list(zip(k_landmarks_list, m_ambient_list))
-    space_list = [PreShapeSpace(k, m, equip=True) for k, m in space_args_list]
+    space_list = [PreShapeSpace(k, m, equip=False) for k, m in space_args_list]
     metric_args_list = [{} for _ in shape_list]
 
     n_points_list = random.sample(range(1, 4), 2)
@@ -297,7 +302,7 @@ class KendallShapeMetricTestData(_RiemannianMetricTestData):
     Metric = KendallShapeMetric
     Space = PreShapeSpace
 
-    space_4_3 = PreShapeSpace(4, 3)
+    space_4_3 = PreShapeSpace(4, 3, equip=False)
 
     def curvature_is_skew_operator_test_data(self):
         base_point = smoke_space.random_point(2)
@@ -417,7 +422,7 @@ class PreShapeMetricTestData(_RiemannianMetricTestData):
     m_ambient_list = [random.sample(range(2, n), 1)[0] for n in k_landmarks_list]
 
     shape_list = space_args_list = list(zip(k_landmarks_list, m_ambient_list))
-    space_list = [PreShapeSpace(k, m) for k, m in space_args_list]
+    space_list = [PreShapeSpaceBundle(k, m) for k, m in space_args_list]
     metric_args_list = [{} for _ in shape_list]
 
     n_points_list = random.sample(range(1, 7), 2)

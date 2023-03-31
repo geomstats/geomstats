@@ -6,10 +6,11 @@ import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, TestCase
 from tests.data.pre_shape_data import (
     KendallShapeMetricTestData,
     PreShapeMetricTestData,
+    PreShapeSpaceBundleTestData,
     PreShapeSpaceTestData,
 )
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
@@ -37,6 +38,26 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         result = gs.all(space.is_centered(centered_point))
         self.assertTrue(result)
 
+
+class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
+    testing_data = PreShapeSpaceBundleTestData()
+    Space = testing_data.Space
+
+    def test_alignment_is_symmetric(self, k_landmarks, m_ambient, point, base_point):
+        space = self.Space(k_landmarks, m_ambient)
+        aligned = space.align(point, base_point)
+        alignment = gs.matmul(Matrices.transpose(aligned), base_point)
+        result = gs.all(Matrices.is_symmetric(alignment))
+        self.assertTrue(result)
+
+    def test_horizontal_and_is_tangent(
+        self, k_landmarks, m_ambient, tangent_vec, point
+    ):
+        space = self.Space(k_landmarks, m_ambient)
+        horizontal = space.horizontal_projection(tangent_vec, point)
+        result = gs.all(space.is_tangent(horizontal, point))
+        self.assertTrue(result)
+
     def test_vertical_projection(self, k_landmarks, m_ambient, tangent_vec, point):
         space = self.Space(k_landmarks, m_ambient)
         vertical = space.vertical_projection(tangent_vec, point)
@@ -57,21 +78,6 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         expected = Matrices.transpose(result)
         self.assertAllClose(result, expected)
 
-    def test_horizontal_and_is_tangent(
-        self, k_landmarks, m_ambient, tangent_vec, point
-    ):
-        space = self.Space(k_landmarks, m_ambient)
-        horizontal = space.horizontal_projection(tangent_vec, point)
-        result = gs.all(space.is_tangent(horizontal, point))
-        self.assertTrue(result)
-
-    def test_alignment_is_symmetric(self, k_landmarks, m_ambient, point, base_point):
-        space = self.Space(k_landmarks, m_ambient)
-        aligned = space.align(point, base_point)
-        alignment = gs.matmul(Matrices.transpose(aligned), base_point)
-        result = gs.all(Matrices.is_symmetric(alignment))
-        self.assertTrue(result)
-
     @tests.conftest.np_and_autograd_only
     def test_integrability_tensor(
         self, k_landmarks, m_ambient, tangent_vec_a, tangent_vec_b, base_point
@@ -89,9 +95,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         space = self.Space(k_landmarks, m_ambient)
         result_ab = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
 
-        result = space.total_space_metric.inner_product(
-            tangent_vec_b, result_ab, base_point
-        )
+        result = space.metric.inner_product(tangent_vec_b, result_ab, base_point)
         expected = 0.0
         self.assertAllClose(result, expected, atol=gs.atol * 10)
 
@@ -169,7 +173,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         """
         space = self.Space(k_landmarks, m_ambient)
 
-        scal = space.total_space_metric.inner_product
+        scal = space.metric.inner_product
 
         nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
             hor_x,
@@ -224,7 +228,7 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
         """
         space = self.Space(k_landmarks, m_ambient)
 
-        scal = space.total_space_metric.inner_product
+        scal = space.metric.inner_product
 
         nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
             hor_x,
@@ -505,8 +509,8 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_parallel_transport(self, space, tangent_vec_a, tangent_vec_b, base_point):
         space.equip_with_metric(self.Metric)
 
-        tan_a = space.horizontal_projection(tangent_vec_a, base_point)
-        tan_b = space.horizontal_projection(tangent_vec_b, base_point)
+        tan_a = space.fiber_bundle.horizontal_projection(tangent_vec_a, base_point)
+        tan_b = space.fiber_bundle.horizontal_projection(tangent_vec_b, base_point)
 
         # orthonormalize and move to base_point
         tan_a -= gs.einsum(
@@ -530,8 +534,8 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = space.metric.norm(tan_a, base_point)
         self.assertAllClose(result, expected, atol=gs.atol * 10)
 
-        is_tangent = space.is_tangent(transported, end_point)
-        is_horizontal = space.is_horizontal(transported, end_point)
+        is_tangent = space.fiber_bundle.is_tangent(transported, end_point)
+        is_horizontal = space.fiber_bundle.is_horizontal(transported, end_point)
         self.assertTrue(gs.all(is_tangent))
         self.assertTrue(gs.all(is_horizontal))
 
