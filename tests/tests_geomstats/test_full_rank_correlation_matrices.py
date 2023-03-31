@@ -77,7 +77,7 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
     def test_log_after_align_is_horizontal(self, n, point_a, point_b):
         bundle = self.Space(n)
         aligned = bundle.align(point_a, point_b, tol=1e-10)
-        log = bundle.total_space_metric.log(aligned, point_b)
+        log = bundle.metric.log(aligned, point_b)
         result = bundle.is_horizontal(log, point_b, atol=1e-2)
         self.assertTrue(result)
 
@@ -92,23 +92,25 @@ class TestCorrelationMatricesBundle(TestCase, metaclass=Parametrizer):
 
 class TestFullRankCorrelationAffineQuotientMetric(TestCase, metaclass=Parametrizer):
     testing_data = FullRankcorrelationAffineQuotientMetricTestData()
-    Space = testing_data.Space
     Metric = testing_data.Metric
 
     @autograd_and_torch_only
-    def test_exp_log_composition(self, dim, point):
-        space = self.Space(dim, equip=False)
+    def test_exp_log_composition(self, space, n_points):
         space.equip_with_metric(self.Metric)
-        space.equip_with_total_space_metric()
 
-        log = space.metric.log(point[1], point[0])
-        result = space.metric.exp(log, point[0])
-        self.assertAllClose(result, point[1], atol=gs.atol * 10000)
+        point = space.random_point(n_points)
+        base_point = space.random_point(n_points)
 
-    def test_exp_belongs(self, dim, tangent_vec, base_point):
-        space = self.Space(dim, equip=False)
+        log = space.metric.log(point, base_point)
+        result = space.metric.exp(log, base_point)
+        self.assertAllClose(result, point, atol=gs.atol * 10000)
+
+    def test_exp_belongs(self, space, n_points):
         space.equip_with_metric(self.Metric)
-        space.equip_with_total_space_metric()
+        bundle = space.metric.fiber_bundle
+
+        base_point = space.random_point(n_points)
+        tangent_vec = space.to_tangent(bundle.random_point(), base_point)
 
         exp = space.metric.exp(tangent_vec, base_point)
         self.assertAllClose(space.belongs(exp), True)

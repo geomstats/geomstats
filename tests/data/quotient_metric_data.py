@@ -13,15 +13,11 @@ class BuresWassersteinBundle(FiberBundle, GeneralLinear):
         super().__init__(
             n=n,
             group=SpecialOrthogonal(n),
-            equip=True,
         )
-
-    def default_total_space_metric(self):
-        return MatricesMetric
 
     @staticmethod
     def default_metric():
-        return QuotientMetric
+        return MatricesMetric
 
     @staticmethod
     def riemannian_submersion(point):
@@ -49,68 +45,71 @@ class BuresWassersteinBundle(FiberBundle, GeneralLinear):
         return gs.linalg.cholesky(point)
 
 
+class BundleTestData(TestData):
+    Bundle = BuresWassersteinBundle
+    Base = SPDMatrices
+
+    def riemannian_submersion_test_data(self):
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
+
+    def lift_and_riemannian_submersion_test_data(self):
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
+
+    def tangent_riemannian_submersion_test_data(self):
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
+
+    def horizontal_projection_test_data(self):
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
+
+    def vertical_projection_test_data(self):
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
+
+    def horizontal_lift_and_tangent_riemannian_submersion_test_data(self):
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
+
+    def is_horizontal_test_data(self):
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
+
+    def is_vertical_test_data(self):
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
+
+    def align_test_data(self):
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
+
+
 class QuotientMetricTestData(TestData):
 
     Base = SPDMatrices
     Bundle = BuresWassersteinBundle
-    BaseMetric = SPDBuresWassersteinMetric
+
+    ReferenceMetric = SPDBuresWassersteinMetric
     Metric = QuotientMetric
 
-    def riemannian_submersion_test_data(self):
-        random_data = [dict(n=2, mat=BuresWassersteinBundle(2).random_point())]
-        return self.generate_tests([], random_data)
-
-    def lift_and_riemannian_submersion_test_data(self):
-        random_data = [dict(n=2, mat=SPDMatrices(2).random_point())]
-        return self.generate_tests([], random_data)
-
-    def tangent_riemannian_submersion_test_data(self):
-        random_data = [
-            dict(
-                n=2,
-                mat=BuresWassersteinBundle(2).random_point(),
-                vec=BuresWassersteinBundle(2).random_point(),
-            )
-        ]
-        return self.generate_tests([], random_data)
-
-    def horizontal_projection_test_data(self):
-        return self.tangent_riemannian_submersion_test_data()
-
-    def vertical_projection_test_data(self):
-        return self.tangent_riemannian_submersion_test_data()
-
-    def horizontal_lift_and_tangent_riemannian_submersion_test_data(self):
-        return self.tangent_riemannian_submersion_test_data()
-
-    def is_horizontal_test_data(self):
-        return self.tangent_riemannian_submersion_test_data()
-
-    def is_vertical_test_data(self):
-        return self.tangent_riemannian_submersion_test_data()
-
-    def align_test_data(self):
-        return self.tangent_riemannian_submersion_test_data()
-
     def inner_product_test_data(self):
-        random_data = [
-            dict(
-                n=2,
-                mat=BuresWassersteinBundle(2).random_point(),
-                vec_a=BuresWassersteinBundle(2).random_point(),
-                vec_b=BuresWassersteinBundle(2).random_point(),
-            )
-        ]
+        random_data = [dict(n=2)]
         return self.generate_tests([], random_data)
 
     def exp_test_data(self):
-        return self.tangent_riemannian_submersion_test_data()
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
 
     def log_test_data(self):
-        return self.tangent_riemannian_submersion_test_data()
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
 
     def squared_dist_test_data(self):
-        return self.tangent_riemannian_submersion_test_data()
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)
 
     def integrability_tensor_test_data(self):
-        return self.tangent_riemannian_submersion_test_data()
+        random_data = [dict(n=2)]
+        return self.generate_tests([], random_data)

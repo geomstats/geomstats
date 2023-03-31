@@ -2,9 +2,9 @@ import random
 
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
+    FullRankCorrelationAffineQuotientMetric,
     FullRankCorrelationMatrices,
 )
-from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from tests.data_generation import TestData, _LevelSetTestData
 
@@ -114,20 +114,19 @@ class CorrelationMatricesBundleTestData(TestData):
 
 
 class FullRankcorrelationAffineQuotientMetricTestData(TestData):
-
-    Metric = QuotientMetric
-    Space = CorrelationMatricesBundle
+    Metric = FullRankCorrelationAffineQuotientMetric
 
     def exp_log_composition_test_data(self):
-        bundle = CorrelationMatricesBundle(3)
-        point = bundle.riemannian_submersion(bundle.random_point(2))
-        random_data = [dict(dim=3, point=point)]
+        random_data = [
+            dict(space=FullRankCorrelationMatrices(3, equip=False), n_points=1)
+        ]
         return self.generate_tests([], random_data)
 
     def exp_belongs_test_data(self):
-        bundle = CorrelationMatricesBundle(3)
-        base = FullRankCorrelationMatrices(3)
-        base_point = base.random_point()
-        tangent_vec = base.to_tangent(bundle.random_point(), base_point)
-        smoke_data = [dict(dim=3, tangent_vec=tangent_vec, base_point=base_point)]
+        smoke_data = [
+            dict(
+                space=FullRankCorrelationMatrices(3, equip=False),
+                n_points=1,
+            )
+        ]
         return self.generate_tests(smoke_data)

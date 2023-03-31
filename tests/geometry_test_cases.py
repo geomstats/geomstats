@@ -638,6 +638,8 @@ class ConnectionTestCase(TestCase):
         """
         space.equip_with_metric(self.Metric, **connection_args)
 
+        print(point.shape, base_point.shape)
+
         log = space.metric.log(point, base_point)
         result = gs.shape(log)
         self.assertAllClose(result, expected)
@@ -1513,10 +1515,8 @@ class NFoldMetricTestCase(RiemannianMetricTestCase):
         self.assertAllClose(result, expected, rtol, atol)
 
 
-class QuotientMetricTestCase(TestCase):
-    def test_dist_is_smaller_than_bundle_dist(
-        self, metric_args, bundle, point_a, point_b, atol
-    ):
+class QuotientMetricTestCase(RiemannianMetricTestCase):
+    def test_dist_is_smaller_than_bundle_dist(self, metric_args, space, n_points, atol):
         """Check that the quotient distance is smaller than the distance in the bundle.
 
         Check that the quotient metric distance between two points on the quotient
@@ -1526,22 +1526,23 @@ class QuotientMetricTestCase(TestCase):
         ----------
         metric_args : tuple
             Arguments to pass to constructor of the metric.
-        bundle : FuberBundle
-            Fiber Bundle object.
-        point_a : array-like
-            Point on the manifold.
-        point_b : array-like
-            Point on the manifold.
+        space : Manifold
+            Space to be equipped with metric.
         atol : float
             Absolute tolerance to test this property.
         """
-        bundle.equip_with_metric(self.Metric, **metric_args)
-        quotient_distance = bundle.metric.dist(point_a, point_b)
-        bundle_distance = bundle.total_space_metric(point_a, point_b)
+        space.equip_with_metric(self.Metric, **metric_args)
+        bundle = space.metric.fiber_bundle
+
+        point_a = space.random_point(n_points)
+        point_b = space.random_point(n_points)
+
+        quotient_distance = space.metric.dist(point_a, point_b)
+        bundle_distance = bundle.metric.dist(point_a, point_b)
         result = gs.all(gs.abs(bundle_distance - quotient_distance) > atol)
         self.assertTrue(result)
 
-    def test_log_is_horizontal(self, metric_args, bundle, point, base_point, atol):
+    def test_log_is_horizontal(self, metric_args, space, n_points, atol):
         """Check the quotient log is a horizontal tangent vector.
 
         Check that the quotient metric logarithm gives a tangent vector
@@ -1551,18 +1552,20 @@ class QuotientMetricTestCase(TestCase):
         ----------
         metric_args : tuple
             Arguments to pass to constructor of the metric.
-        bundle : FuberBundle
-            Fiber Bundle object.
-        point : array-like
-            Point on the quotient manifold.
-        base_point : array-like
-            Point on the quotient manifold.
+        space : Manifold
+            Space to be equipped with metric.
         atol : float
             Absolute tolerance to test this property.
         """
-        bundle.equip_with_metric(self.Metric, **metric_args)
-        log = bundle.metric.log(point, base_point)
-        result = gs.all(bundle.is_horizontal(log, base_point, atol))
+        space.equip_with_metric(self.Metric, **metric_args)
+        bundle = space.metric.fiber_bundle
+
+        point = space.random_point(n_points)
+        base_point = space.random_point(n_points)
+
+        log = space.metric.log(point, base_point)
+
+        result = gs.all(bundle.is_horizontal(log, base_point, atol=atol))
         self.assertTrue(result)
 
 

@@ -28,7 +28,7 @@ class RankKPSDMatrices(Manifold):
         Integer representing the rank of the matrix (k<n).
     """
 
-    def __init__(self, n, k, equip=False):
+    def __init__(self, n, k, equip=True):
         if not k < n:
             raise ValueError("k must be lower than n")
 
@@ -226,23 +226,17 @@ class PSDMatrices:
 class BuresWassersteinBundle(FiberBundle, FullRankMatrices):
     """Class for the quotient structure on PSD matrices."""
 
-    def __init__(self, n, k, equip=True):
+    def __init__(self, n, k):
         super().__init__(
             n=n,
             k=k,
             group=SpecialOrthogonal(k, equip=False),
-            equip=equip,
         )
-
-    @staticmethod
-    def default_total_space_metric():
-        """Metric to equip the total space with if equip is True."""
-        return MatricesMetric
 
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
-        return QuotientMetric
+        return MatricesMetric
 
     @staticmethod
     def riemannian_submersion(point):
@@ -331,3 +325,11 @@ class BuresWassersteinBundle(FiberBundle, FullRankMatrices):
             R.point.
         """
         return Matrices.align_matrices(point, base_point)
+
+
+class PSDBuresWassersteinMetric(QuotientMetric):
+    """Bures-Wasserstein metric for fixed rank PSD matrices."""
+
+    def __init__(self, space):
+        k = space.rank if hasattr(space, "rank") else space.n
+        super().__init__(space=space, fiber_bundle=BuresWassersteinBundle(space.n, k))

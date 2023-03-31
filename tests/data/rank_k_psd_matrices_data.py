@@ -1,8 +1,11 @@
 import random
 
 import geomstats.backend as gs
-from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.rank_k_psd_matrices import BuresWassersteinBundle, PSDMatrices
+from geomstats.geometry.rank_k_psd_matrices import (
+    BuresWassersteinBundle,
+    PSDBuresWassersteinMetric,
+    PSDMatrices,
+)
 from tests.data_generation import (
     _FiberBundleTestData,
     _ManifoldTestData,
@@ -59,32 +62,29 @@ class BuresWassersteinBundleTestData(_FiberBundleTestData):
     Space = BuresWassersteinBundle
 
 
-class PSDMetricBuresWassersteinTestData(_QuotientMetricTestData):
-    # TODO: need to think how to solve this
+class PSDBuresWassersteinMetricTestData(_QuotientMetricTestData):
     n_list = random.sample(range(3, 8), 5)
 
     connection_args_list = metric_args_list = [{} for _ in n_list]
     shape_list = [(n, n) for n in n_list]
-    space_list = [PSDMatrices(n, n - 1) for n in n_list]
-
-    bundle_list = [BuresWassersteinBundle(n, n - 1) for n in n_list]
+    space_list = [PSDMatrices(n, n - 1, equip=False) for n in n_list]
 
     n_points_list = random.sample(range(1, 7), 5)
     n_samples_list = random.sample(range(1, 7), 5)
-    n_points_a_list = random.sample(range(1, 7), 5)
+    n_points_a_list = n_points_list
+    n_points_b_list = n_points_list
     n_tangent_vecs_list = random.sample(range(1, 7), 3)
-    n_points_b_list = [1]
     batch_size_list = random.sample(range(2, 7), 5)
     alpha_list = [1] * 5
     n_rungs_list = [1] * 5
     scheme_list = ["pole"] * 5
 
-    Metric = QuotientMetric
+    Metric = PSDBuresWassersteinMetric
 
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                bundle=BuresWassersteinBundle(3, 3),
+                space=PSDMatrices(3, 3, equip=False),
                 tangent_vec_a=gs.array(
                     [[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]
                 ),
@@ -102,7 +102,7 @@ class PSDMetricBuresWassersteinTestData(_QuotientMetricTestData):
     def exp_test_data(self):
         smoke_data = [
             dict(
-                bundle=BuresWassersteinBundle(2, 2),
+                space=PSDMatrices(2, 2, equip=False),
                 tangent_vec=gs.array([[2.0, 0.0], [0.0, 2.0]]),
                 base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
                 expected=gs.array([[4.0, 0.0], [0.0, 4.0]]),
@@ -113,7 +113,7 @@ class PSDMetricBuresWassersteinTestData(_QuotientMetricTestData):
     def log_test_data(self):
         smoke_data = [
             dict(
-                bundle=BuresWassersteinBundle(2, 2),
+                space=PSDMatrices(2, 2, equip=False),
                 point=gs.array([[4.0, 0.0], [0.0, 4.0]]),
                 base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
                 expected=gs.array([[2.0, 0.0], [0.0, 2.0]]),
@@ -124,7 +124,7 @@ class PSDMetricBuresWassersteinTestData(_QuotientMetricTestData):
     def squared_dist_test_data(self):
         smoke_data = [
             dict(
-                bundle=BuresWassersteinBundle(2, 2),
+                space=PSDMatrices(2, 2, equip=False),
                 point_a=gs.array([[1.0, 0.0], [0.0, 1.0]]),
                 point_b=gs.array([[2.0, 0.0], [0.0, 2.0]]),
                 expected=2 + 4 - (2 * 2 * 2**0.5),

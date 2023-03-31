@@ -21,10 +21,6 @@ class FiberBundle(Manifold, ABC):
 
     Parameters
     ----------
-    dim : int
-        Dimension of the base manifold.
-    total_space : Manifold
-        Total space of the bundle.
     group : LieGroup
         Group that acts on the total space by the right.
         Optional. Default : None.
@@ -40,10 +36,9 @@ class FiberBundle(Manifold, ABC):
         group=None,
         group_action=None,
         group_dim=None,
-        equip=True,
         **kwargs,
     ):
-        super().__init__(equip=equip, **kwargs)
+        super().__init__(**kwargs)
         self.group = group
 
         if group_action is None and group is not None:
@@ -52,28 +47,6 @@ class FiberBundle(Manifold, ABC):
             group_dim = group.dim
         self.group_dim = group_dim
         self.group_action = group_action
-
-        if equip:
-            self.equip_with_total_space_metric()
-
-    def equip_with_total_space_metric(self, Metric=None, **metric_kwargs):
-        """Equip total space with Metric.
-
-        Parameters
-        ----------
-        Metric : Connection object
-            If None, default metric will be used.
-        """
-        if Metric is None:
-            out = self.default_total_space_metric()
-            if isinstance(out, tuple):
-                Metric, kwargs = out
-                kwargs.update(metric_kwargs)
-                metric_kwargs = kwargs
-            else:
-                Metric = out
-
-        self.total_space_metric = Metric(self, **metric_kwargs)
 
     @staticmethod
     def riemannian_submersion(point):
@@ -199,7 +172,7 @@ class FiberBundle(Manifold, ABC):
             raise ValueError("Either the group of its action must be known")
 
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda param: self.total_space_metric.squared_dist(wrap(param), base_point),
+            lambda param: self.metric.squared_dist(wrap(param), base_point),
             to_numpy=True,
         )
 

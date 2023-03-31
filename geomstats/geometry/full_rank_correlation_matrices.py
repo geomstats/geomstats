@@ -21,12 +21,17 @@ class FullRankCorrelationMatrices(LevelSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, equip=True):
         self.n = n
-        super().__init__(dim=int(n * (n - 1) / 2), equip=False)
+        super().__init__(dim=int(n * (n - 1) / 2), equip=equip)
 
     def _define_embedding_space(self):
         return SPDMatrices(n=self.n)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return FullRankCorrelationAffineQuotientMetric
 
     def submersion(self, point):
         """Submersion that defines the manifold.
@@ -163,10 +168,6 @@ class CorrelationMatricesBundle(FiberBundle, SPDMatrices):
     Correlation matrices are obtained as the quotient of the space of SPD
     matrices by the action by congruence of diagonal matrices.
 
-    The affine-invariant metric on SPD matrices is invariant under the
-    action of diagonal matrices, thus it induces a quotient metric on the
-    manifold of full-rank correlation matrices.
-
     References
     ----------
     .. [TP21] Thanwerdas, Yann, and Xavier Pennec. “Geodesics and Curvature of
@@ -176,23 +177,17 @@ class CorrelationMatricesBundle(FiberBundle, SPDMatrices):
         https://hal.archives-ouvertes.fr/hal-03157992.
     """
 
-    def __init__(self, n, equip=True):
+    def __init__(self, n):
         super().__init__(
             n=n,
             group_dim=n,
             group_action=FullRankCorrelationMatrices.diag_action,
-            equip=equip,
         )
-
-    @staticmethod
-    def default_total_space_metric():
-        """Metric to equip the total space with if equip is True."""
-        return SPDAffineMetric
 
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
-        return QuotientMetric
+        return SPDAffineMetric
 
     @staticmethod
     def riemannian_submersion(point):
@@ -231,7 +226,7 @@ class CorrelationMatricesBundle(FiberBundle, SPDMatrices):
         diagonal = diagonal_tv / diagonal_bp
         aux = base_point * (diagonal[..., None, :] + diagonal[..., :, None])
         mat = tangent_vec - 0.5 * aux
-        return FullRankCorrelationMatrices.diag_action(diagonal_bp ** (-0.5), mat)
+        return self.group_action(diagonal_bp ** (-0.5), mat)
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         """Compute the vertical projection wrt the affine-invariant metric.
@@ -276,5 +271,21 @@ class CorrelationMatricesBundle(FiberBundle, SPDMatrices):
         if fiber_point is None and base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
         diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
-        lift = FullRankCorrelationMatrices.diag_action(diagonal_point, tangent_vec)
+        lift = self.group_action(diagonal_point, tangent_vec)
         return self.horizontal_projection(lift, base_point=fiber_point)
+
+
+class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
+    """Class for the quotient of the affine-invariant metric.
+
+    The affine-invariant metric on SPD matrices is invariant under the
+    action of diagonal matrices, thus it induces a quotient metric on the
+    manifold of full-rank correlation matrices.
+    """
+
+    def __init__(self, space):
+        fiber_bundle = CorrelationMatricesBundle(n=space.n)
+        super().__init__(
+            space=space,
+            fiber_bundle=fiber_bundle,
+        )

@@ -1629,37 +1629,31 @@ class _InvariantMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests([], random_data)
 
 
-class _QuotientMetricTestData(TestData):
+class _QuotientMetricTestData(_RiemannianMetricTestData):
     def dist_is_smaller_than_bundle_dist_test_data(self):
         random_data = []
-        for metric_args, bundle, n_points in zip(
-            self.metric_args_list, self.bundle_list, self.n_points_list
+        for metric_args, space, n_points in zip(
+            self.metric_args_list, self.space_list, self.n_points_list
         ):
-            point_a = bundle.random_point(n_points)
-            point_b = bundle.random_point(n_points)
             random_data.append(
                 dict(
                     metric_args=metric_args,
-                    bundle=bundle,
-                    point_a=point_a,
-                    point_b=point_b,
+                    space=space,
+                    n_points=n_points,
                 )
             )
         return self.generate_tests([], random_data)
 
     def log_is_horizontal_test_data(self):
         random_data = []
-        for metric_args, bundle, n_points in zip(
-            self.metric_args_list, self.bundle_list, self.n_points_list
+        for metric_args, space, n_points in zip(
+            self.metric_args_list, self.space_list, self.n_points_list
         ):
-            point = bundle.random_point(n_points)
-            base_point = bundle.random_point()
             random_data.append(
                 dict(
                     metric_args=metric_args,
-                    bundle=bundle,
-                    point=point,
-                    base_point=base_point,
+                    space=space,
+                    n_points=n_points,
                 )
             )
 
