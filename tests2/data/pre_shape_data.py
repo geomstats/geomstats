@@ -1,17 +1,7 @@
 from tests2.data.base_data import FiberBundleTestData, LevelSetTestData
 
 
-class PreShapeSpaceTestData(LevelSetTestData, FiberBundleTestData):
-    skips = (
-        # due to lack of base
-        "lift_vec",
-        "lift_belongs_to_total_space",
-        "riemannian_submersion_after_lift",
-        "riemannian_submersion_belongs_to_base",
-        "tangent_riemannian_submersion_is_tangent",
-        "tangent_riemannian_submersion_after_horizontal_lift",
-    )
-
+class PreShapeSpaceTestData(LevelSetTestData):
     def is_centered_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -20,6 +10,10 @@ class PreShapeSpaceTestData(LevelSetTestData, FiberBundleTestData):
 
     def center_is_centered_test_data(self):
         return self.generate_random_data()
+
+
+class PreShapeSpaceBundleTestData(FiberBundleTestData, PreShapeSpaceTestData):
+    skips = ("tangent_riemannian_submersion_after_horizontal_lift",)
 
     def vertical_projection_correctness_test_data(self):
         return self.generate_random_data()

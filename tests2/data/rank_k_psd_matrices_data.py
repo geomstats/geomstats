@@ -13,7 +13,7 @@ class RankKPSDMatricesTestData(_ProjectionMixinsTestData, ManifoldTestData):
     xfails = ("to_tangent_is_tangent",)
 
 
-class BuresWassersteinBundleTestData(FullRankMatricesTestData, FiberBundleTestData):
+class BuresWassersteinBundleTestData(FiberBundleTestData, FullRankMatricesTestData):
     skips = (
         "integrability_tensor_vec",
         "integrability_tensor_derivative_vec",

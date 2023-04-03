@@ -13,7 +13,7 @@ class FullRankCorrelationMatricesTestData(LevelSetTestData):
         return self.generate_vec_data()
 
 
-class CorrelationMatricesBundleTestData(SPDMatricesTestData, FiberBundleTestData):
+class CorrelationMatricesBundleTestData(FiberBundleTestData, SPDMatricesTestData):
     skips = (
         "integrability_tensor_vec",
         "integrability_tensor_derivative_vec",

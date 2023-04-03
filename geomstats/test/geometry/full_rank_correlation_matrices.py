@@ -58,5 +58,5 @@ class FullRankCorrelationMatricesTestCase(LevelSetTestCase):
         self._test_vectorization(vec_data)
 
 
-class CorrelationMatricesBundleTestCase(SPDMatricesTestCase, FiberBundleTestCase):
+class CorrelationMatricesBundleTestCase(FiberBundleTestCase, SPDMatricesTestCase):
     pass

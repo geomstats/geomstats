@@ -929,7 +929,7 @@ class FiberBundleTestCase(ManifoldTestCase):
         base_point = self.space.random_point(n_points)
 
         aligned_point = self.space.align(point, base_point)
-        log = self.space.total_space_metric.log(aligned_point, base_point)
+        log = self.space.metric.log(aligned_point, base_point)
 
         expected = gs.ones(n_points, dtype=bool)
         self.test_is_horizontal(log, base_point, expected, atol)

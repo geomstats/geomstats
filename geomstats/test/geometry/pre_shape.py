@@ -65,44 +65,9 @@ def integrability_tensor_alt(space, tangent_vec_a, tangent_vec_b, base_point):
     return vertical + horizontal_
 
 
-class PreShapeSpaceTestCase(LevelSetTestCase, FiberBundleTestCase):
+class PreShapeSpaceTestCase(LevelSetTestCase):
     def _get_random_matrix_point(self, n_points=1):
-        return Matrices(self.space.k_landmarks, self.space.m_ambient).random_point(
-            n_points
-        )
-
-    def _get_horizontal_vec(self, base_point, return_tangent=False):
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
-        horizontal = self.space.horizontal_projection(
-            tangent_vec,
-            base_point,
-        )
-        if return_tangent:
-            return tangent_vec, horizontal
-
-        return horizontal
-
-    def _get_vertical_vec(self, base_point, return_tangent=False):
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
-        vertical = self.space.vertical_projection(
-            tangent_vec,
-            base_point,
-        )
-        if return_tangent:
-            return tangent_vec, vertical
-
-        return vertical
-
-    def _get_nabla_x_y(self, horizontal_vec_x, vec_y, base_point, horizontal=True):
-        a_x_y = self.space.integrability_tensor(horizontal_vec_x, vec_y, base_point)
-
-        dy = (
-            self._get_horizontal_vec(base_point)
-            if horizontal
-            else self._get_vertical_vec(base_point)
-        )
-
-        return a_x_y + dy
+        return self.space.embedding_space.random_point(n_points)
 
     def test_is_centered(self, point, expected, atol):
         res = self.space.is_centered(point, atol=atol)
@@ -145,6 +110,41 @@ class PreShapeSpaceTestCase(LevelSetTestCase, FiberBundleTestCase):
 
         expected = gs.ones(n_points, dtype=bool)
         self.test_is_centered(res, expected, atol)
+
+
+class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
+    def _get_horizontal_vec(self, base_point, return_tangent=False):
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        horizontal = self.space.horizontal_projection(
+            tangent_vec,
+            base_point,
+        )
+        if return_tangent:
+            return tangent_vec, horizontal
+
+        return horizontal
+
+    def _get_vertical_vec(self, base_point, return_tangent=False):
+        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        vertical = self.space.vertical_projection(
+            tangent_vec,
+            base_point,
+        )
+        if return_tangent:
+            return tangent_vec, vertical
+
+        return vertical
+
+    def _get_nabla_x_y(self, horizontal_vec_x, vec_y, base_point, horizontal=True):
+        a_x_y = self.space.integrability_tensor(horizontal_vec_x, vec_y, base_point)
+
+        dy = (
+            self._get_horizontal_vec(base_point)
+            if horizontal
+            else self._get_vertical_vec(base_point)
+        )
+
+        return a_x_y + dy
 
     @pytest.mark.random
     def test_vertical_projection_correctness(self, n_points, atol):
@@ -206,9 +206,7 @@ class PreShapeSpaceTestCase(LevelSetTestCase, FiberBundleTestCase):
             tangent_vec_a, tangent_vec_b, base_point
         )
 
-        result = self.space.total_space_metric.inner_product(
-            tangent_vec_b, result_ab, base_point
-        )
+        result = self.space.metric.inner_product(tangent_vec_b, result_ab, base_point)
         expected = gs.zeros(n_points)
         self.assertAllClose(result, expected, atol=atol)
 
@@ -382,7 +380,7 @@ class PreShapeSpaceTestCase(LevelSetTestCase, FiberBundleTestCase):
             base_point,
         )
 
-        inner = self.space.total_space_metric.inner_product
+        inner = self.space.metric.inner_product
         result = (
             inner(nabla_x_a_y_z, ver_v)
             + inner(a_y_z, nabla_x_v)
@@ -420,7 +418,7 @@ class PreShapeSpaceTestCase(LevelSetTestCase, FiberBundleTestCase):
         horizontal_vec_h = self._get_horizontal_vec(base_point)
         nabla_x_h = self._get_nabla_x_y(horizontal_vec_x, horizontal_vec_h, base_point)
 
-        inner = self.space.total_space_metric.inner_product
+        inner = self.space.metric.inner_product
         result = inner(nabla_x_a_y_z, horizontal_vec_h) + inner(a_y_z, nabla_x_h)
         expected = gs.zeros(n_points)
         self.assertAllClose(result, expected, atol=atol)
@@ -457,7 +455,7 @@ class PreShapeSpaceTestCase(LevelSetTestCase, FiberBundleTestCase):
             horizontal_vec_x, vertical_vec_w, base_point, horizontal=False
         )
 
-        inner = self.space.total_space_metric.inner_product
+        inner = self.space.metric.inner_product
         result = inner(nabla_x_a_y_z, vertical_vec_w) + inner(a_y_z, nabla_x_w)
         expected = gs.zeros(n_points)
         self.assertAllClose(result, expected, atol=atol)

@@ -12,5 +12,5 @@ class RankKPSDMatricesTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
         return SquareMatrices(self.space.n).random_point(n_points)
 
 
-class BuresWassersteinBundleTestCase(FullRankMatricesTestCase, FiberBundleTestCase):
+class BuresWassersteinBundleTestCase(FiberBundleTestCase, FullRankMatricesTestCase):
     pass
