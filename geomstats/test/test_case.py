@@ -133,6 +133,8 @@ class TestCase:
             test_fnc(**datum)
 
     def assertAllClose(self, a, b, rtol=gs.rtol, atol=gs.atol):
+        if gs.is_array(a) or gs.is_array(b):
+            self.assertShapeEqual(a, b)
         return assert_allclose(a, b, rtol=rtol, atol=atol)
 
     def assertAllEqual(self, a, b):

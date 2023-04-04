@@ -276,3 +276,85 @@ class FiberBundleTestData(ManifoldTestData):
 
     def integrability_tensor_derivative_vec_test_data(self):
         return self.generate_vec_data()
+
+
+class ConnectionTestData(TestData):
+    def christoffels_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def exp_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def log_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def riemann_tensor_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def curvature_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def ricci_tensor_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def directional_curvature_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def curvature_derivative_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def directional_curvature_derivative_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def geodesic_vec_test_data(self):
+        return self.generate_vec_data_with_time()
+
+    def parallel_transport_vec_with_direction_test_data(self):
+        return self.generate_vec_data()
+
+    def parallel_transport_vec_with_end_point_test_data(self):
+        return self.generate_vec_data()
+
+    def injectivity_radius_vec_test_data(self):
+        return self.generate_vec_data()
+
+
+class RiemannianMetricTestData(ConnectionTestData):
+    def metric_matrix_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def cometric_matrix_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def inner_product_derivative_matrix_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def inner_product_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def inner_coproduct_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def squared_norm_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def norm_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def normalize_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def squared_dist_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def dist_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def covariant_riemann_tensor_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def sectional_curvature_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def scalar_curvature_vec_test_data(self):
+        return self.generate_vec_data()

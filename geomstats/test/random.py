@@ -69,6 +69,12 @@ def get_random_quaternion(n_points=1):
     )
 
 
+def get_random_times(n_times):
+    if n_times == 1:
+        return gs.random.rand(1)[0]
+    return gs.random.rand(n_times)
+
+
 class RandomDataGenerator:
     def __init__(self, space):
         self.space = space
