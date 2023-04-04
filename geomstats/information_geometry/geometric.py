@@ -22,7 +22,8 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
     def __init__(self, equip=True):
         super().__init__(
             dim=1,
-            embedding_space=Euclidean(dim=1, equip=equip),
+            embedding_space=Euclidean(dim=1),
+            equip=equip,
         )
 
     @staticmethod

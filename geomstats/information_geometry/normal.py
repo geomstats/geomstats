@@ -281,7 +281,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         self.sample_dim = sample_dim
         self.sample_space = Euclidean(dim=sample_dim, equip=False)
         dim = int(2 * sample_dim)
-        super().__init__(dim=dim, embedding_space=Euclidean(dim, equip=equip))
+        super().__init__(dim=dim, embedding_space=Euclidean(dim), equip=equip)
 
     @staticmethod
     def default_metric():
