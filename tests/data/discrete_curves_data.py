@@ -8,6 +8,7 @@ from geomstats.geometry.discrete_curves import (
     ElasticMetric,
     L2CurvesMetric,
     SRVMetric,
+    SRVPreShapeSpace,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -428,28 +429,17 @@ class SRVShapeBundleTestData(TestData):
         return self.generate_tests(smoke_data)
 
 
-class SRVQuotientMetricTestData(TestData):
-    def dist_test_data(self):
-        smoke_data = [
-            dict(
-                sampling_times=sampling_times,
-                curve_fun_a=curve_fun_a,
-                curve_a=curve_a,
-                k_sampling_points=k_sampling_points,
-            )
-        ]
-        return self.generate_tests(smoke_data)
-
-
 class ClosedDiscreteCurvesTestData(_ManifoldTestData):
     s2 = Hypersphere(dim=2)
     r2 = Euclidean(dim=2)
     r3 = Euclidean(dim=3)
+
     space_args_list = [(r2,), (r3,)]
     shape_list = [(10, 2), (10, 3)]
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
+
     Space = ClosedDiscreteCurves
 
     def projection_closed_curves_test_data(self):
@@ -476,3 +466,18 @@ class ClosedDiscreteCurvesTestData(_ManifoldTestData):
             )
         ]
         return self.generate_tests([], random_data)
+
+
+class SRVQuotientMetricTestData(TestData):
+    Space = SRVPreShapeSpace
+
+    def dist_test_data(self):
+        smoke_data = [
+            dict(
+                sampling_times=sampling_times,
+                curve_fun_a=curve_fun_a,
+                curve_a=curve_a,
+                k_sampling_points=k_sampling_points,
+            )
+        ]
+        return self.generate_tests(smoke_data)

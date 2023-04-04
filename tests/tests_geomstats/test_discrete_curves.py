@@ -542,9 +542,11 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
 
 class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
     testing_data = SRVQuotientMetricTestData()
+    Space = testing_data.Space
 
     def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
         """Test quotient distance.
+
         Check that the quotient distance is the same as the distance
         between the end points of the horizontal geodesic.
         """
@@ -558,7 +560,7 @@ class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        srv_quotient_metric_r3 = SRVShapeBundle(ambient_manifold=r3).metric
+        srv_quotient_metric_r3 = self.Space(ambient_manifold=r3).metric
         result = srv_quotient_metric_r3.dist(curve_a_resampled, curve_b)
         expected = srv_quotient_metric_r3.dist(curve_a, curve_b)
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)

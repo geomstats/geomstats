@@ -1461,7 +1461,27 @@ class SRVMetric(PullbackDiffeoMetric):
         return n_points * gs.matmul(mat_space_deriv, curve)
 
 
-class SRVShapeBundle(FiberBundle, DiscreteCurves):
+class SRVPreShapeSpace(DiscreteCurves):
+    def __init__(self, ambient_manifold, k_sampling_points=10, equip=True):
+        super().__init__(
+            ambient_manifold=ambient_manifold,
+            k_sampling_points=k_sampling_points,
+            equip=False,
+        )
+
+        if not isinstance(self, FiberBundle):
+            self.fiber_bundle = SRVShapeBundle(ambient_manifold, k_sampling_points)
+
+        if equip:
+            self.equip_with_metric(self.default_metric())
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return SRVQuotientMetric
+
+
+class SRVShapeBundle(FiberBundle, SRVPreShapeSpace):
     """Principal bundle of shapes of curves induced by the SRV metric.
 
     The space of parameterized curves is the total space of a principal
@@ -1493,23 +1513,17 @@ class SRVShapeBundle(FiberBundle, DiscreteCurves):
         pp. 40-70, 2019.
     """
 
-    def __init__(self, ambient_manifold, k_sampling_points=10, equip=True):
+    def __init__(self, ambient_manifold, k_sampling_points=10):
         super().__init__(
             ambient_manifold=ambient_manifold,
             k_sampling_points=k_sampling_points,
-            equip=equip,
         )
         self.l2_curves_metric = L2CurvesMetric(self)
 
     @staticmethod
-    def default_total_space_metric():
-        """Metric to equip the total space with if equip is True."""
-        return SRVMetric
-
-    @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
-        return SRVQuotientMetric
+        return SRVMetric
 
     def vertical_projection(self, tangent_vec, point, return_norm=False):
         """Compute vertical part of tangent vector at base point.
@@ -1790,7 +1804,7 @@ class SRVShapeBundle(FiberBundle, DiscreteCurves):
             counter = 0
 
             while gap > threshold:
-                srv_geod_fun = self.total_space_metric.geodesic(
+                srv_geod_fun = self.metric.geodesic(
                     initial_point=initial_curve, end_point=current_end_curve
                 )
                 geod = srv_geod_fun(t)
@@ -1868,7 +1882,9 @@ class SRVQuotientMetric(QuotientMetric):
         curves. Since in practice shapes can only be encoded by parametrized curves,
         geodesics are given in the total space.
         """
-        return self._space.horizontal_geodesic(initial_point, end_point, threshold)
+        return self.fiber_bundle.horizontal_geodesic(
+            initial_point, end_point, threshold
+        )
 
     def dist(self, point_a, point_b, n_times=20, threshold=1e-3):
         """Quotient SRV distance between unparametrized curves.
@@ -1906,7 +1922,7 @@ class SRVQuotientMetric(QuotientMetric):
         horizontal_geod_velocity = n_times * (
             horizontal_geod[:-1] - horizontal_geod[1:]
         )
-        velocity_norms = self._space.total_space_metric.norm(
+        velocity_norms = self.fiber_bundle.metric.norm(
             horizontal_geod_velocity, horizontal_geod[:-1]
         )
         return gs.sum(velocity_norms) / n_times

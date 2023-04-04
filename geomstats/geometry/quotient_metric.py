@@ -24,7 +24,10 @@ class QuotientMetric(RiemannianMetric):
         Bundle structure to define the quotient.
     """
 
-    def __init__(self, space, fiber_bundle, signature=None):
+    def __init__(self, space, fiber_bundle=None, signature=None):
+        if fiber_bundle is None:
+            fiber_bundle = space.fiber_bundle
+
         self.fiber_bundle = fiber_bundle
         super().__init__(space=space, signature=signature)
 

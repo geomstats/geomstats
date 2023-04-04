@@ -957,12 +957,6 @@ class KendallShapeMetric(QuotientMetric):
     pre-shape space by the space of rotations of the ambient space.
     """
 
-    def __init__(self, space):
-        super().__init__(
-            space=space,
-            fiber_bundle=space.fiber_bundle,
-        )
-
     def directional_curvature_derivative(
         self, tangent_vec_a, tangent_vec_b, base_point=None
     ):
