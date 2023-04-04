@@ -4,7 +4,6 @@ import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.test.geometry.base import OpenSetTestCase
-from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.vectorization import generate_vectorization_data
 
 
@@ -15,7 +14,7 @@ class PositiveLowerTriangularMatricesTestCase(OpenSetTestCase):
 
     @pytest.mark.vec
     def test_gram_vec(self, n_reps, atol):
-        point = self.space.random_point()
+        point = self.data_generator.random_point()
         expected = self.space.gram(point)
 
         vec_data = generate_vectorization_data(
@@ -32,8 +31,8 @@ class PositiveLowerTriangularMatricesTestCase(OpenSetTestCase):
 
     @pytest.mark.vec
     def test_differential_gram_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.differential_gram(tangent_vec, base_point)
 
@@ -58,8 +57,8 @@ class PositiveLowerTriangularMatricesTestCase(OpenSetTestCase):
 
     @pytest.mark.vec
     def test_inverse_differential_gram_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.inverse_differential_gram(tangent_vec, base_point)
 
@@ -80,7 +79,7 @@ class PositiveLowerTriangularMatricesTestCase(OpenSetTestCase):
 
     @pytest.mark.random
     def test_gram_belongs_to_spd_matrices(self, n_points):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
         gram = self.space.gram(point)
 
         res = SPDMatrices(self.space.n).belongs(gram)
@@ -89,8 +88,8 @@ class PositiveLowerTriangularMatricesTestCase(OpenSetTestCase):
 
     @pytest.mark.random
     def test_differential_gram_belongs_to_symmetric_matrices(self, n_points):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         differential_gram = self.space.differential_gram(tangent_vec, base_point)
         res = SymmetricMatrices(self.space.n).belongs(differential_gram)
@@ -101,8 +100,8 @@ class PositiveLowerTriangularMatricesTestCase(OpenSetTestCase):
     def test_inverse_differential_gram_belongs_to_lower_triangular_matrices(
         self, n_points
     ):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         inverse_differential_gram = self.space.inverse_differential_gram(
             tangent_vec, base_point

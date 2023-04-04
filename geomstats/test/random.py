@@ -67,3 +67,26 @@ def get_random_quaternion(n_points=1):
             ]
         )
     )
+
+
+class RandomDataGenerator:
+    def __init__(self, space):
+        self.space = space
+
+    def random_point(self, n_points=1):
+        return self.space.random_point(n_points)
+
+    def random_tangent_vec(self, base_point):
+        return get_random_tangent_vec(self.space, base_point)
+
+
+class FiberBundleRandomDataGenerator(RandomDataGenerator):
+    def __init__(self, bundle, base):
+        super().__init__(space=bundle)
+        self.base = base
+
+    def base_random_point(self, n_points=1):
+        return self.base.random_point(n_points)
+
+    def base_random_tangent_vec(self, base_point):
+        return get_random_tangent_vec(self.base, base_point)

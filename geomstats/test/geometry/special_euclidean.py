@@ -14,7 +14,6 @@ from geomstats.test.geometry.base import (
     MatrixLieGroupTestCase,
     _ProjectionTestCaseMixins,
 )
-from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.test_case import assert_allclose
 from geomstats.test.vectorization import generate_vectorization_data
 
@@ -70,7 +69,7 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
 
     @pytest.mark.vec
     def test_matrix_from_vector_vec(self, n_reps, atol):
-        vec = self.space.random_point()
+        vec = self.data_generator.random_point()
         expected = self.space.matrix_from_vector(vec)
 
         vec_data = generate_vectorization_data(
@@ -83,7 +82,7 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
 
     @pytest.mark.random
     def test_matrix_from_vector_belongs_to_matrices(self, n_points):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
         mat = self.space.matrix_from_vector(point)
 
         space = SpecialEuclidean(self.space.n, point_type="matrix")
@@ -98,8 +97,8 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
 
     @pytest.mark.vec
     def test_regularize_tangent_vec_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.regularize_tangent_vec(tangent_vec, base_point)
 
@@ -125,7 +124,7 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
 
     @pytest.mark.vec
     def test_regularize_tangent_vec_at_identity_vec(self, n_reps, atol):
-        tangent_vec = get_random_tangent_vec(self.space, self.space.identity)
+        tangent_vec = self.data_generator.random_tangent_vec(self.space.identity)
 
         expected = self.space.regularize_tangent_vec_at_identity(tangent_vec)
 

@@ -3,7 +3,7 @@ import abc
 import pytest
 
 import geomstats.backend as gs
-from geomstats.test.random import get_random_tangent_vec
+from geomstats.test.random import FiberBundleRandomDataGenerator, RandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.vectorization import get_batch_shape, repeat_point
@@ -60,7 +60,7 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.vec
     def test_compose_vec(self, n_reps, atol):
-        point_a, point_b = self.space.random_point(2)
+        point_a, point_b = self.data_generator.random_point(2)
 
         expected = self.space.compose(point_a, point_b)
 
@@ -78,7 +78,7 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.vec
     def test_inverse_vec(self, n_reps, atol):
-        point = self.space.random_point()
+        point = self.data_generator.random_point()
 
         expected = self.space.inverse(point)
 
@@ -92,7 +92,7 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.random
     def test_compose_with_inverse_is_identity(self, n_points, atol):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
         inverse = self.space.inverse(point)
 
         identity = self.space.identity
@@ -107,7 +107,7 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.random
     def test_compose_with_identity_is_point(self, n_points, atol):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
 
         point_ = self.space.compose(point, self.space.identity)
         self.assertAllClose(point_, point, atol=atol)
@@ -121,8 +121,8 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.vec
     def test_exp_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.exp(tangent_vec, base_point)
 
@@ -147,7 +147,7 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.vec
     def test_log_vec(self, n_reps, atol):
-        point, base_point = self.space.random_point(2)
+        point, base_point = self.data_generator.random_point(2)
 
         expected = self.space.log(point, base_point)
 
@@ -163,8 +163,8 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.random
     def test_exp_after_log(self, n_points, atol):
-        point = self.space.random_point(n_points)
-        base_point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
+        base_point = self.data_generator.random_point(n_points)
 
         vec = self.space.log(point, base_point)
         point_ = self.space.exp(vec, base_point)
@@ -173,8 +173,8 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.random
     def test_log_after_exp(self, n_points, atol):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         point = self.space.exp(tangent_vec, base_point)
         tangent_vec_ = self.space.log(point, base_point)
@@ -183,8 +183,8 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.random
     def test_to_tangent_at_identity_belongs_to_lie_algebra(self, n_points, atol):
-        tangent_vec = get_random_tangent_vec(
-            self.space, repeat_point(self.space.identity, n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(
+            repeat_point(self.space.identity, n_points)
         )
 
         res = self.space.lie_algebra.belongs(tangent_vec, atol=atol)
@@ -201,8 +201,8 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.vec
     def test_tangent_translation_map_vec(self, n_reps, left, inverse, atol):
-        point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, point)
+        point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(point)
 
         expected = self.space.tangent_translation_map(
             point, left=left, inverse=inverse
@@ -235,9 +235,9 @@ class _LieGroupTestCaseMixins:
 
     @pytest.mark.vec
     def test_lie_bracket_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec_a, tangent_vec_b = get_random_tangent_vec(
-            self.space, repeat_point(base_point, 2)
+        base_point = self.data_generator.random_point()
+        tangent_vec_a, tangent_vec_b = self.data_generator.random_tangent_vec(
+            repeat_point(base_point, 2)
         )
 
         expected = self.space.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
@@ -265,6 +265,10 @@ class _ManifoldTestCaseMixins:
     # TODO: check default_coords_type correcteness if intrinsic by comparing
     # with point shape?
 
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = RandomDataGenerator(self.space)
+
     def test_belongs(self, point, expected, atol):
         res = self.space.belongs(point, atol=atol)
         self.assertAllEqual(res, expected)
@@ -272,7 +276,7 @@ class _ManifoldTestCaseMixins:
     @pytest.mark.vec
     def test_belongs_vec(self, n_reps, atol):
         # TODO: mark as unnecessary? random_point_belongs is enough?
-        point = self.space.random_point()
+        point = self.data_generator.random_point()
         res = self.space.belongs(point)
 
         vec_data = generate_vectorization_data(
@@ -298,14 +302,14 @@ class _ManifoldTestCaseMixins:
 
     @pytest.mark.random
     def test_random_point_belongs(self, n_points, atol):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
         expected = gs.ones(n_points, dtype=bool)
 
         self.test_belongs(point, expected, atol)
 
     @pytest.mark.shape
     def test_random_point_shape(self, n_points):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
 
         expected_ndim = self.space.point_ndim + int(n_points > 1)
         self.assertEqual(gs.ndim(point), expected_ndim)
@@ -321,8 +325,8 @@ class _ManifoldTestCaseMixins:
 
     @pytest.mark.vec
     def test_is_tangent_vec(self, n_reps, atol):
-        point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, point)
+        point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(point)
 
         res = self.space.is_tangent(tangent_vec, point)
 
@@ -341,8 +345,8 @@ class _ManifoldTestCaseMixins:
     @pytest.mark.vec
     def test_to_tangent_vec(self, n_reps, atol):
         # TODO: check if it makes sense
-        vec = self.space.random_point()
-        point = self.space.random_point()
+        vec = self.data_generator.random_point()
+        point = self.data_generator.random_point()
 
         res = self.space.to_tangent(vec, point)
 
@@ -356,8 +360,8 @@ class _ManifoldTestCaseMixins:
 
     @pytest.mark.random
     def test_to_tangent_is_tangent(self, n_points, atol):
-        point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, point)
+        point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(point)
 
         expected = gs.ones(n_points, dtype=bool)
 
@@ -369,7 +373,7 @@ class _ManifoldTestCaseMixins:
 
     @pytest.mark.vec
     def test_regularize_vec(self, n_reps, atol):
-        point = self.space.random_point()
+        point = self.data_generator.random_point()
         expected = self.space.regularize(point)
 
         vec_data = generate_vectorization_data(
@@ -391,32 +395,32 @@ class ComplexManifoldTestCase(_ManifoldTestCaseMixins, TestCase):
 
     @pytest.mark.type
     def test_random_point_is_complex(self, n_points):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
 
         self.assertTrue(gs.is_complex(point))
 
     @pytest.mark.random
     def test_random_point_imaginary_nonzero(self, n_points, atol):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
         res = gs.imag(gs.abs(point))
         self.assertAllClose(res, 0.0, atol=atol)
 
 
 class _VectorSpaceTestCaseMixins(_ProjectionTestCaseMixins):
     def _get_point_to_project(self, n_points):
-        return self.space.random_point(n_points)
+        return self.data_generator.random_point(n_points)
 
     @pytest.mark.random
     def test_random_point_is_tangent(self, n_points, atol):
         # TODO: will we ever require a base point here?
-        points = self.space.random_point(n_points)
+        points = self.data_generator.random_point(n_points)
 
         res = self.space.is_tangent(points, atol=atol)
         self.assertAllEqual(res, gs.ones(n_points, dtype=bool))
 
     @pytest.mark.random
     def test_to_tangent_is_projection(self, n_points, atol):
-        vec = self.space.random_point(n_points)
+        vec = self.data_generator.random_point(n_points)
         result = self.space.to_tangent(vec)
         expected = self.space.projection(vec)
 
@@ -446,6 +450,7 @@ class ComplexVectorSpaceTestCase(_VectorSpaceTestCaseMixins, ComplexManifoldTest
 
 class MatrixVectorSpaceTestCaseMixins:
     def _get_random_vector(self, n_points=1):
+        # TODO: from data generator?
         if n_points == 1:
             return gs.random.rand(self.space.dim)
 
@@ -457,7 +462,7 @@ class MatrixVectorSpaceTestCaseMixins:
 
     @pytest.mark.vec
     def test_to_vector_vec(self, n_reps, atol):
-        point = self.space.random_point()
+        point = self.data_generator.random_point()
         expected = self.space.to_vector(point)
 
         vec_data = generate_vectorization_data(
@@ -470,7 +475,7 @@ class MatrixVectorSpaceTestCaseMixins:
 
     @pytest.mark.random
     def test_to_vector_and_basis(self, n_points, atol):
-        mat = self.space.random_point(n_points)
+        mat = self.data_generator.random_point(n_points)
         vec = self.space.to_vector(mat)
 
         res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
@@ -502,7 +507,7 @@ class MatrixVectorSpaceTestCaseMixins:
 
     @pytest.mark.random
     def test_from_vector_after_to_vector(self, n_points, atol):
-        mat = self.space.random_point(n_points)
+        mat = self.data_generator.random_point(n_points)
 
         vec = self.space.to_vector(mat)
 
@@ -544,7 +549,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
 
     @pytest.mark.vec
     def test_baker_campbell_hausdorff_vec(self, n_reps, atol, order=2):
-        matrix_a, matrix_b = self.space.random_point(2)
+        matrix_a, matrix_b = self.data_generator.random_point(2)
         expected = self.space.baker_campbell_hausdorff(matrix_a, matrix_b, order=order)
 
         vec_data = generate_vectorization_data(
@@ -569,7 +574,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
 
     @pytest.mark.vec
     def test_basis_representation_vec(self, n_reps, atol):
-        point = self.space.random_point()
+        point = self.data_generator.random_point()
         expected = self.space.basis_representation(point)
 
         vec_data = generate_vectorization_data(
@@ -582,7 +587,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
 
     @pytest.mark.random
     def test_basis_representation_and_basis(self, n_points, atol):
-        mat = self.space.random_point(n_points)
+        mat = self.data_generator.random_point(n_points)
         vec = self.space.basis_representation(mat)
 
         res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
@@ -614,7 +619,7 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
 
     @pytest.mark.random
     def test_matrix_representation_after_basis_representation(self, n_points, atol):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
         vec = self.space.basis_representation(point)
         point_ = self.space.matrix_representation(vec)
 
@@ -642,7 +647,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 
     @pytest.mark.vec
     def test_jacobian_translation_vec(self, n_reps, left, atol):
-        point = self.space.random_point()
+        point = self.data_generator.random_point()
         expected = self.space.jacobian_translation(point, left=left)
 
         vec_data = generate_vectorization_data(
@@ -659,7 +664,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 
     @pytest.mark.vec
     def test_exp_from_identity_vec(self, n_reps, atol):
-        tangent_vec = get_random_tangent_vec(self.space, self.space.identity)
+        tangent_vec = self.data_generator.random_tangent_vec(self.space.identity)
         expected = self.space.exp_from_identity(tangent_vec)
 
         vec_data = generate_vectorization_data(
@@ -676,7 +681,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 
     @pytest.mark.vec
     def test_log_from_identity_vec(self, n_reps, atol):
-        point = self.space.random_point()
+        point = self.data_generator.random_point()
         expected = self.space.log_from_identity(point)
 
         vec_data = generate_vectorization_data(
@@ -689,7 +694,7 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 
     @pytest.mark.random
     def test_exp_from_identity_after_log_from_identity(self, n_points, atol):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
         tangent_vec = self.space.log_from_identity(point)
 
         point_ = self.space.exp_from_identity(tangent_vec)
@@ -697,8 +702,8 @@ class LieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):
 
     @pytest.mark.random
     def test_log_from_identity_after_exp_from_identity(self, n_points, atol):
-        tangent_vec = get_random_tangent_vec(
-            self.space, repeat_point(self.space.identity, n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(
+            repeat_point(self.space.identity, n_points)
         )
 
         point = self.space.exp_from_identity(tangent_vec)
@@ -755,7 +760,7 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
     @pytest.mark.vec
     def test_tangent_submersion_vec(self, n_reps, atol):
         # TODO: mark as redundant? is_tangent suffices?
-        vector, point = self.space.random_point(2)
+        vector, point = self.data_generator.random_point(2)
         expected = self.space.tangent_submersion(vector, point)
 
         vec_data = generate_vectorization_data(
@@ -780,8 +785,8 @@ class _OpenSetTestCaseMixins(_ProjectionTestCaseMixins):
 
     @pytest.mark.random
     def test_to_tangent_is_tangent_in_embedding_space(self, n_points):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
         res = self.space.embedding_space.is_tangent(tangent_vec, base_point)
 
         expected = gs.ones(n_points, dtype=bool)
@@ -797,6 +802,10 @@ class ComplexOpenSetTestCase(_OpenSetTestCaseMixins, ComplexManifoldTestCase):
 
 
 class FiberBundleTestCase(ManifoldTestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = FiberBundleRandomDataGenerator(self.space, self.base)
+
     def _test_belongs_to_base(self, point, expected, atol):
         res = self.base.belongs(point, atol=atol)
         self.assertAllEqual(res, expected)
@@ -807,7 +816,7 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_riemannian_submersion_vec(self, n_reps, atol):
-        point = self.space.random_point()
+        point = self.data_generator.random_point()
         expected = self.space.riemannian_submersion(point)
 
         vec_data = generate_vectorization_data(
@@ -820,7 +829,7 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_riemannian_submersion_belongs_to_base(self, n_points, atol):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
 
         proj_point = self.space.riemannian_submersion(point)
         expected = gs.ones(n_points, dtype=bool)
@@ -833,7 +842,7 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_lift_vec(self, n_reps, atol):
-        point = self.base.random_point()
+        point = self.data_generator.base_random_point()
         expected = self.space.lift(point)
 
         vec_data = generate_vectorization_data(
@@ -846,7 +855,7 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_lift_belongs_to_total_space(self, n_points, atol):
-        point = self.base.random_point(n_points)
+        point = self.data_generator.base_random_point(n_points)
         lifted_point = self.space.lift(point)
 
         expected = gs.ones(n_points, dtype=bool)
@@ -854,7 +863,7 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_riemannian_submersion_after_lift(self, n_points, atol):
-        point = self.base.random_point(n_points)
+        point = self.data_generator.base_random_point(n_points)
         lifted_point = self.space.lift(point)
         point_ = self.space.riemannian_submersion(lifted_point)
 
@@ -868,8 +877,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_tangent_riemannian_submersion_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.tangent_riemannian_submersion(tangent_vec, base_point)
 
@@ -890,8 +899,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_tangent_riemannian_submersion_is_tangent(self, n_points, atol):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         proj_tangent_vector = self.space.tangent_riemannian_submersion(
             tangent_vec, base_point
@@ -908,8 +917,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_align_vec(self, n_reps, atol):
-        point = self.space.random_point()
-        base_point = self.space.random_point()
+        point = self.data_generator.random_point()
+        base_point = self.data_generator.random_point()
 
         expected = self.space.align(point, base_point)
 
@@ -925,8 +934,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_log_after_align_is_horizontal(self, n_points, atol):
-        point = self.space.random_point(n_points)
-        base_point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
+        base_point = self.data_generator.random_point(n_points)
 
         aligned_point = self.space.align(point, base_point)
         log = self.space.metric.log(aligned_point, base_point)
@@ -940,8 +949,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_horizontal_projection_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.horizontal_projection(tangent_vec, base_point)
 
@@ -962,8 +971,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_horizontal_projection_is_horizontal(self, n_points, atol):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         horizontal = self.space.horizontal_projection(tangent_vec, base_point)
         expected = gs.ones(n_points, dtype=bool)
@@ -975,8 +984,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_vertical_projection_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.vertical_projection(tangent_vec, base_point)
 
@@ -998,8 +1007,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_vertical_projection_is_vertical(self, n_points, atol):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         vertical = self.space.vertical_projection(tangent_vec, base_point)
         expected = gs.ones(n_points, dtype=bool)
@@ -1009,8 +1018,8 @@ class FiberBundleTestCase(ManifoldTestCase):
     def test_tangent_riemannian_submersion_after_vertical_projection(
         self, n_points, atol
     ):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         vertical = self.space.vertical_projection(tangent_vec, base_point)
         res = self.space.tangent_riemannian_submersion(vertical, base_point)
@@ -1024,8 +1033,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_is_horizontal_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.is_horizontal(tangent_vec, base_point, atol=atol)
 
@@ -1050,8 +1059,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_is_vertical_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.is_vertical(tangent_vec, base_point, atol=atol)
 
@@ -1080,8 +1089,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_horizontal_lift_vec(self, n_reps, atol):
-        fiber_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, fiber_point)
+        fiber_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(fiber_point)
 
         expected = self.space.horizontal_lift(tangent_vec, fiber_point=fiber_point)
 
@@ -1102,8 +1111,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_horizontal_lift_is_horizontal(self, n_points, atol):
-        fiber_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, fiber_point)
+        fiber_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(fiber_point)
 
         horizontal = self.space.horizontal_lift(tangent_vec, fiber_point=fiber_point)
         expected = gs.ones(n_points, dtype=bool)
@@ -1111,8 +1120,8 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.random
     def test_tangent_riemannian_submersion_after_horizontal_lift(self, n_points, atol):
-        base_point = self.base.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.base, base_point)
+        base_point = self.data_generator.base_random_point(n_points)
+        tangent_vec = self.data_generator.base_random_tangent_vec(base_point)
         fiber_point = self.space.lift(base_point)
 
         horizontal = self.space.horizontal_lift(tangent_vec, fiber_point=fiber_point)
@@ -1128,9 +1137,9 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_integrability_tensor_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec_a = get_random_tangent_vec(self.space, base_point)
-        tangent_vec_b = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.integrability_tensor(
             tangent_vec_a, tangent_vec_b, base_point
@@ -1177,18 +1186,18 @@ class FiberBundleTestCase(ManifoldTestCase):
 
     @pytest.mark.vec
     def test_integrability_tensor_derivative_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
+        base_point = self.data_generator.random_point()
         horizontal_vec_x = self.space.horizontal_lift(
-            get_random_tangent_vec(self.space, base_point),
+            self.data_generator.random_tangent_vec(base_point),
             fiber_point=base_point,
         )
         horizontal_vec_y = self.space.horizontal_lift(
-            get_random_tangent_vec(self.space, base_point),
+            self.data_generator.random_tangent_vec(base_point),
             fiber_point=base_point,
         )
-        nabla_x_y = get_random_tangent_vec(self.space, base_point)
-        tangent_vec_e = get_random_tangent_vec(self.space, base_point)
-        nabla_x_e = get_random_tangent_vec(self.space, base_point)
+        nabla_x_y = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_e = self.data_generator.random_tangent_vec(base_point)
+        nabla_x_e = self.data_generator.random_tangent_vec(base_point)
 
         nabla_x_a_y_e, a_y_e = self.space.integrability_tensor_derivative(
             horizontal_vec_x,

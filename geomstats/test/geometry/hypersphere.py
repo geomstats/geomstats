@@ -362,8 +362,8 @@ class HypersphereExtrinsicTestCase(_HypersphereTestCaseMixins, LevelSetTestCase)
 
     @pytest.mark.random
     def test_replace_values(self, n_points, atol):
-        points = self.space.random_point(n_points)
-        new_points = self.space.random_point(n_points)
+        points = self.data_generator.random_point(n_points)
+        new_points = self.data_generator.random_point(n_points)
 
         n_indices = random.randint(1, n_points)
         indices_int = [
@@ -529,7 +529,7 @@ class HypersphereIntrinsicTestCase(_HypersphereTestCaseMixins, ManifoldTestCase)
 
     @pytest.mark.shape
     def test_random_point_shape(self, n_points):
-        point = self.space.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
 
         expected_ndim = self.space.point_ndim + int(n_points > 1)
         self.assertEqual(gs.ndim(point), expected_ndim)
@@ -545,8 +545,8 @@ class HypersphereIntrinsicTestCase(_HypersphereTestCaseMixins, ManifoldTestCase)
 
     @pytest.mark.vec
     def test_is_tangent_vec(self, n_reps, atol):
-        point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, point)
+        point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(point)
 
         res = _is_tangent_intrinsic(self.space, tangent_vec, point)
 

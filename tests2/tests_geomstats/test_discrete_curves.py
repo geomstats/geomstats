@@ -5,6 +5,7 @@ import pytest
 from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     DiscreteCurves,
+    SRVPreShapeSpace,
     SRVShapeBundle,
 )
 from geomstats.geometry.euclidean import Euclidean
@@ -54,9 +55,11 @@ def bundles_spaces(request):
     dim, k_sampling_points = request.param
 
     ambient_manifold = Euclidean(dim=dim)
-    request.cls.space = SRVShapeBundle(
-        ambient_manifold, k_sampling_points=k_sampling_points
+    base = SRVPreShapeSpace(
+        ambient_manifold, k_sampling_points=k_sampling_points, equip=False
     )
+    request.cls.base = base
+    request.cls.space = base.fiber_bundle
     request.cls.sphere = Hypersphere(dim=dim - 1)
 
 

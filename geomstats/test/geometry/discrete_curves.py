@@ -10,7 +10,7 @@ from geomstats.test.geometry.base import (
     ManifoldTestCase,
     _ProjectionTestCaseMixins,
 )
-from geomstats.test.random import get_random_tangent_vec
+from geomstats.test.random import FiberBundleRandomDataGenerator, get_random_tangent_vec
 from geomstats.test.vectorization import generate_vectorization_data
 
 
@@ -21,10 +21,13 @@ class DiscreteCurvesTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
         ).random_point(n_points)
 
 
-class SRVShapeBundleTestCase(DiscreteCurvesTestCase, FiberBundleTestCase):
-    # TODO: need to review random_point and tangent_vec (based on existing tests)
+class SRVShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):
+    def __init__(self, space, base, sphere, n_discretized_curves=5):
+        super().__init__(space, base)
+        self.sphere = sphere
+        self.n_discretized_curves = n_discretized_curves
 
-    def _get_random_point(self, n_points=1):
+    def random_point(self, n_points=1):
         sampling_times = gs.linspace(0.0, 1.0, self.space.k_sampling_points)
 
         initial_point = self.sphere.random_point(n_points)
@@ -34,65 +37,35 @@ class SRVShapeBundleTestCase(DiscreteCurvesTestCase, FiberBundleTestCase):
             initial_point, initial_tangent_vec=initial_tangent_vec
         )(sampling_times)
 
-    def _get_random_tangent_vec(self, base_point, n_discretized_curves=5):
+    def random_tangent_vec(self, base_point):
         n_points = base_point.shape[0] if base_point.ndim > 2 else 1
-        point = self._get_random_point(n_points=n_points)
+        point = self.random_point(n_points=n_points)
 
-        geo = self.space.total_space_metric.geodesic(
-            initial_point=base_point, end_point=point
-        )
+        geo = self.space.metric.geodesic(initial_point=base_point, end_point=point)
 
-        times = gs.linspace(0.0, 1.0, n_discretized_curves)
+        times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
 
         geod = geo(times)
-        # TODO: need to fix geodesic
-        if geod.ndim == 4:
-            geod = gs.moveaxis(geod, 1, 0)
 
-        return n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
+        return self.n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
 
-    @pytest.mark.random
-    def test_horizontal_projection_is_horizontal(self, n_points, atol):
-        # TODO: can we avoid override?
-        base_point = self._get_random_point(n_points)
-        tangent_vec = self._get_random_tangent_vec(base_point)
 
-        horizontal = self.space.horizontal_projection(tangent_vec, base_point)
-        expected = gs.ones(n_points, dtype=bool)
-        self.test_is_horizontal(horizontal, base_point, expected, atol)
+class SRVShapeBundleTestCase(FiberBundleTestCase, DiscreteCurvesTestCase):
+    # TODO: add intermediate representation
 
-    @pytest.mark.random
-    def test_vertical_projection_is_vertical(self, n_points, atol):
-        # TODO: can we avoid override?
-        base_point = self._get_random_point(n_points)
-        tangent_vec = self._get_random_tangent_vec(base_point)
-
-        vertical = self.space.vertical_projection(tangent_vec, base_point)
-        expected = gs.ones(n_points, dtype=bool)
-        self.test_is_vertical(vertical, base_point, expected, atol)
-
-    @pytest.mark.random
-    def test_horizontal_lift_is_horizontal(self, n_points, atol):
-        fiber_point = self._get_random_point(n_points)
-        tangent_vec = self._get_random_tangent_vec(fiber_point)
-
-        horizontal = self.space.horizontal_lift(tangent_vec, fiber_point=fiber_point)
-        expected = gs.ones(n_points, dtype=bool)
-        self.test_is_horizontal(horizontal, fiber_point, expected, atol)
-
-    @pytest.mark.random
-    def test_tangent_riemannian_submersion_after_vertical_projection(
-        self, n_points, atol
-    ):
-        # TODO: can we avoid override?
-        base_point = self._get_random_point(n_points)
-        tangent_vec = self._get_random_tangent_vec(base_point)
-
-        vertical = self.space.vertical_projection(tangent_vec, base_point)
-        res = self.space.tangent_riemannian_submersion(vertical, base_point)
-        expected = gs.zeros_like(res)
-
-        self.assertAllClose(res, expected, atol=atol)
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            n_discretized_curves = (
+                5
+                if not hasattr(self, "n_discretized_curves")
+                else self.n_discretized_curves
+            )
+            self.data_generator = SRVShapeBundleRandomDataGenerator(
+                self.space,
+                self.base,
+                self.sphere,
+                n_discretized_curves=n_discretized_curves,
+            )
 
     @pytest.mark.random
     def test_tangent_vector_projections_orthogonality_with_metric(self, n_points, atol):
@@ -102,13 +75,13 @@ class SRVShapeBundleTestCase(DiscreteCurvesTestCase, FiberBundleTestCase):
         vector are orthogonal with respect to the SRVMetric inner
         product.
         """
-        base_point = self._get_random_point(n_points)
-        tangent_vec = self._get_random_tangent_vec(base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         tangent_vec_hor = self.space.horizontal_projection(tangent_vec, base_point)
         tangent_vec_ver = self.space.vertical_projection(tangent_vec, base_point)
 
-        res = self.space.total_space_metric.inner_product(
+        res = self.space.metric.inner_product(
             tangent_vec_hor, tangent_vec_ver, base_point
         )
         expected = gs.zeros(n_points)
@@ -127,8 +100,8 @@ class SRVShapeBundleTestCase(DiscreteCurvesTestCase, FiberBundleTestCase):
     def test_horizontal_geodesic_vec(self, n_reps, n_times, atol):
         times = gs.linspace(0.0, 1.0, n_times)
 
-        initial_point = self.space.random_point()
-        end_point = self.space.random_point()
+        initial_point = self.data_generator.random_point()
+        end_point = self.data_generator.random_point()
 
         expected = self.space.horizontal_geodesic(initial_point, end_point)(times)
 
@@ -159,8 +132,8 @@ class SRVShapeBundleTestCase(DiscreteCurvesTestCase, FiberBundleTestCase):
         if n_points > 1:
             raise NotImplementedError("Not implemented for n_points > 1")
 
-        initial_point = self._get_random_point(n_points)
-        end_point = self._get_random_point(n_points)
+        initial_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
 
         hor_geo_fun = self.space.horizontal_geodesic(initial_point, end_point)
 

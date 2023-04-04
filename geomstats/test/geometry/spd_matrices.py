@@ -6,7 +6,6 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.test.geometry.base import OpenSetTestCase
-from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.vectorization import generate_vectorization_data
 
 
@@ -17,8 +16,8 @@ class SPDMatricesTestCaseMixins:
 
     @pytest.mark.vec
     def test_differential_power_vec(self, n_reps, power, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.differential_power(power, tangent_vec, base_point)
 
@@ -46,8 +45,8 @@ class SPDMatricesTestCaseMixins:
 
     @pytest.mark.vec
     def test_inverse_differential_power_vec(self, n_reps, power, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.inverse_differential_power(power, tangent_vec, base_point)
 
@@ -73,8 +72,8 @@ class SPDMatricesTestCaseMixins:
 
     @pytest.mark.vec
     def test_differential_log_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.differential_log(tangent_vec, base_point)
 
@@ -99,8 +98,8 @@ class SPDMatricesTestCaseMixins:
 
     @pytest.mark.vec
     def test_inverse_differential_log_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.inverse_differential_log(tangent_vec, base_point)
 
@@ -125,8 +124,8 @@ class SPDMatricesTestCaseMixins:
 
     @pytest.mark.vec
     def test_differential_exp_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.differential_exp(tangent_vec, base_point)
 
@@ -151,8 +150,8 @@ class SPDMatricesTestCaseMixins:
 
     @pytest.mark.vec
     def test_inverse_differential_exp_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.inverse_differential_exp(tangent_vec, base_point)
 
@@ -177,7 +176,7 @@ class SPDMatricesTestCaseMixins:
 
     @pytest.mark.vec
     def test_logm_vec(self, n_reps, atol):
-        mat = self.space.random_point()
+        mat = self.data_generator.random_point()
         expected = self.space.logm(mat)
 
         vec_data = generate_vectorization_data(
@@ -194,7 +193,7 @@ class SPDMatricesTestCaseMixins:
 
     @pytest.mark.vec
     def test_cholesky_factor_vec(self, n_reps, atol):
-        mat = self.space.random_point()
+        mat = self.data_generator.random_point()
         expected = self.space.cholesky_factor(mat)
 
         vec_data = generate_vectorization_data(
@@ -209,7 +208,7 @@ class SPDMatricesTestCaseMixins:
     def test_cholesky_factor_belongs_to_positive_lower_triangular_matrices(
         self, n_points, atol
     ):
-        mat = self.space.random_point(n_points)
+        mat = self.data_generator.random_point(n_points)
 
         cf = self.space.cholesky_factor(mat)
         res = PositiveLowerTriangularMatrices(self.space.n).belongs(cf, atol=atol)
@@ -225,8 +224,8 @@ class SPDMatricesTestCaseMixins:
 
     @pytest.mark.vec
     def test_differential_cholesky_factor_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = self.space.differential_cholesky_factor(tangent_vec, base_point)
 
@@ -249,8 +248,8 @@ class SPDMatricesTestCaseMixins:
     def test_differential_cholesky_factor_belongs_to_positive_lower_triangular_matrices(
         self, n_points, atol
     ):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         differential_cf = self.space.differential_cholesky_factor(
             tangent_vec, base_point

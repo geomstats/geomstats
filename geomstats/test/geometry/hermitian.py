@@ -2,7 +2,6 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.test.geometry.base import ComplexVectorSpaceTestCase
-from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.vectorization import generate_vectorization_data
 
 
@@ -13,8 +12,8 @@ class HermitianTestCase(ComplexVectorSpaceTestCase):
 
     @pytest.mark.random
     def test_exp_random(self, n_points, atol):
-        base_point = self.space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = tangent_vec + base_point
 
@@ -22,8 +21,8 @@ class HermitianTestCase(ComplexVectorSpaceTestCase):
 
     @pytest.mark.vec
     def test_exp_vec(self, n_reps, atol):
-        base_point = self.space.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.data_generator.random_point()
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         res = self.space.exp(tangent_vec, base_point)
 
