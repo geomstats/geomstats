@@ -50,9 +50,11 @@ class SRVShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):
         return self.n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
 
 
-class SRVShapeBundleTestCase(FiberBundleTestCase, DiscreteCurvesTestCase):
-    # TODO: add intermediate representation
+class SRVPreShapeSpaceTestCase(DiscreteCurvesTestCase):
+    pass
 
+
+class SRVShapeBundleTestCase(FiberBundleTestCase, SRVPreShapeSpaceTestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             n_discretized_curves = (

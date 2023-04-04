@@ -10,7 +10,11 @@ class DiscreteCurvesTestData(_ProjectionMixinsTestData, ManifoldTestData):
     pass
 
 
-class SRVShapeBundleTestData(FiberBundleTestData, DiscreteCurvesTestData):
+class SRVPreShapeSpaceTestCase(DiscreteCurvesTestData):
+    pass
+
+
+class SRVShapeBundleTestData(FiberBundleTestData, SRVPreShapeSpaceTestCase):
     skips = (
         "horizontal_geodesic_vec",
         "align_vec",
