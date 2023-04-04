@@ -529,7 +529,7 @@ class FiberBundleTestCase(TestCase):
     ):
         bundle = self.Space(*space_args)
         aligned = bundle.align(point, base_point)
-        log = bundle.total_space_metric.log(aligned, base_point)
+        log = bundle.metric.log(aligned, base_point)
         result = bundle.is_horizontal(log, base_point)
         self.assertTrue(gs.all(result))
 
