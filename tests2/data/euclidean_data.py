@@ -23,6 +23,10 @@ class EuclideanMetricTestData(RiemannianMetricTestData):
     ignores_if_not_autodiff = (
         "christoffels_vec",
         "covariant_riemann_tensor_vec",
+        "covariant_riemann_tensor_is_interchange_symmetric",
+        "covariant_riemann_tensor_bianchi_identity",
+        "covariant_riemann_tensor_is_skew_symmetric_1",
+        "covariant_riemann_tensor_is_skew_symmetric_2",
         "curvature_vec",
         "directional_curvature_vec",
         "inner_product_derivative_matrix_vec",

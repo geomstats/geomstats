@@ -1,8 +1,10 @@
 import abc
+import math
 
 import pytest
 
 import geomstats.backend as gs
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.random import (
     FiberBundleRandomDataGenerator,
     RandomDataGenerator,
@@ -1242,8 +1244,6 @@ class FiberBundleTestCase(ManifoldTestCase):
 
 
 class ConnectionTestCase(TestCase):
-    # TODO: exp_after_log
-    # TODO: log_after_exp
     # TODO: geodesic and inverse parametrization geodesic
     def setup_method(self):
         if not hasattr(self, "data_generator"):
@@ -1293,6 +1293,18 @@ class ConnectionTestCase(TestCase):
         )
         self._test_vectorization(vec_data)
 
+    @pytest.mark.random
+    def test_exp_belongs(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        point = self.space.metric.exp(tangent_vec, base_point)
+
+        res = self.space.belongs(point, atol=atol)
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.ones(expected_shape, dtype=bool)
+        self.assertAllEqual(res, expected)
+
     def test_log(self, point, base_point, expected, atol):
         res = self.space.metric.log(point, base_point)
         self.assertAllClose(res, expected, atol=atol)
@@ -1312,6 +1324,38 @@ class ConnectionTestCase(TestCase):
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_log_is_tangent(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
+
+        tangent_vec = self.space.metric.log(point, base_point)
+
+        res = self.space.is_tangent(tangent_vec, base_point)
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.ones(expected_shape, dtype=bool)
+        self.assertAllEqual(res, expected)
+
+    @pytest.mark.random
+    def test_exp_after_log(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
+
+        tangent_vec = self.space.metric.log(end_point, base_point)
+        end_point_ = self.space.metric.exp(tangent_vec, base_point)
+
+        self.assertAllClose(end_point_, end_point, atol=atol)
+
+    @pytest.mark.random
+    def test_log_after_exp(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        end_point = self.space.metric.exp(tangent_vec, base_point)
+        tangent_vec_ = self.space.metric.log(end_point, base_point)
+
+        self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
 
     def test_riemann_tensor(self, base_point, expected, atol):
         res = self.space.metric.riemann_tensor(base_point)
@@ -1504,12 +1548,23 @@ class ConnectionTestCase(TestCase):
         )
         self._test_vectorization(vec_data)
 
-    def test_geodesic(self, initial_point, end_point, time, expected, atol):
-        res = self.space.metric.geodesic(initial_point, end_point=end_point)(time)
+    def test_geodesic(
+        self,
+        initial_point,
+        time,
+        expected,
+        atol,
+        end_point=None,
+        initial_tangent_vec=None,
+    ):
+        geod_func = self.space.metric.geodesic(
+            initial_point, end_point=end_point, initial_tangent_vec=initial_tangent_vec
+        )
+        res = geod_func(time)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
-    def test_geodesic_vec(self, n_reps, n_times, atol):
+    def test_geodesic_bvp_vec(self, n_reps, n_times, atol):
         initial_point, end_point = self.data_generator.random_point(2)
         time = get_random_times(n_times)
 
@@ -1529,7 +1584,119 @@ class ConnectionTestCase(TestCase):
             expected_name="expected",
             n_reps=n_reps,
         )
-        self._test_vectorization(vec_data)
+        self._test_vectorization(vec_data, test_fnc_name="test_geodesic")
+
+    @pytest.mark.vec
+    def test_geodesic_ivp_vec(self, n_reps, n_times, atol):
+        initial_point = self.data_generator.random_point()
+        initial_tangent_vec = self.data_generator.random_tangent_vec(initial_point)
+        time = get_random_times(n_times)
+
+        expected = self.space.metric.geodesic(
+            initial_point, initial_tangent_vec=initial_tangent_vec
+        )(time)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    initial_point=initial_point,
+                    initial_tangent_vec=initial_tangent_vec,
+                    time=time,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["initial_point", "initial_tangent_vec"],
+            expected_name="expected",
+            n_reps=n_reps,
+            vectorization_type="repeat-1",
+        )
+        self._test_vectorization(vec_data, test_fnc_name="test_geodesic")
+
+    @pytest.mark.random
+    def test_geodesic_boundary_points(self, n_points, atol):
+        initial_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
+
+        time = gs.array([0.0, 1.0])
+
+        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
+
+        res = geod_func(time)
+        expected = gs.stack(
+            [initial_point, end_point], axis=-(self.space.point_ndim + 1)
+        )
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_geodesic_bvp_reverse(self, n_points, n_times, atol):
+        initial_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
+
+        time = get_random_times(n_times)
+
+        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
+        geod_func_reverse = self.space.metric.geodesic(
+            end_point, end_point=initial_point
+        )
+
+        res = geod_func(time)
+        res_ = geod_func_reverse(1.0 - time)
+
+        self.assertAllClose(res, res_, atol=atol)
+
+    @pytest.mark.random
+    def test_geodesic_bvp_belongs(self, n_points, n_times, atol):
+        initial_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
+
+        time = get_random_times(n_times)
+
+        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
+        points = geod_func(time)
+
+        res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)))
+
+        expected_shape = (
+            math.prod(get_batch_shape(self.space, initial_point)) * n_times,
+        )
+        expected = gs.ones(expected_shape, dtype=bool)
+        self.assertAllEqual(res, expected)
+
+    @pytest.mark.random
+    def test_geodesic_ivp_belongs(self, n_points, n_times, atol):
+        initial_point = self.data_generator.random_point(n_points)
+        initial_tangent_vec = self.data_generator.random_tangent_vec(initial_point)
+
+        time = get_random_times(n_times)
+
+        geod_func = self.space.metric.geodesic(
+            initial_point, initial_tangent_vec=initial_tangent_vec
+        )
+
+        points = geod_func(time)
+
+        res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)))
+
+        expected_shape = (
+            math.prod(get_batch_shape(self.space, initial_point)) * n_times,
+        )
+        expected = gs.ones(expected_shape, dtype=bool)
+        self.assertAllEqual(res, expected)
+
+    @pytest.mark.random
+    def test_exp_geodesic_ivp(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        geod_func = self.space.metric.geodesic(
+            base_point, initial_tangent_vec=tangent_vec
+        )
+
+        end_point = self.space.metric.exp(tangent_vec, base_point)
+        end_point_ = gs.squeeze(geod_func(1.0), axis=-(self.space.point_ndim + 1))
+
+        self.assertAllClose(end_point_, end_point, atol=atol)
 
     def test_parallel_transport(
         self, tangent_vec, base_point, expected, atol, direction=None, end_point=None
@@ -1593,6 +1760,23 @@ class ConnectionTestCase(TestCase):
         )
         self._test_vectorization(vec_data, test_fnc_name="test_parallel_transport")
 
+    @pytest.mark.random
+    def test_parallel_transport_transported_is_tangent(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        transported = self.space.metric.parallel_transport(
+            tangent_vec, base_point, end_point=end_point
+        )
+
+        res = self.space.is_tangent(transported, end_point, atol=atol)
+
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.ones(expected_shape, dtype=bool)
+
+        self.assertAllEqual(res, expected)
+
     def test_injectivity_radius(self, base_point, expected, atol):
         res = self.space.metric.injectivity_radius(base_point)
         self.assertAllClose(res, expected, atol=atol)
@@ -1613,10 +1797,6 @@ class ConnectionTestCase(TestCase):
 
 
 class RiemannianMetricTestCase(ConnectionTestCase):
-
-    # TODO: dist is positive
-    # TODO: dist is symmetric
-
     def test_metric_matrix(self, base_point, expected, atol):
         res = self.space.metric.metric_matrix(base_point)
         self.assertAllClose(res, expected, atol=atol)
@@ -1634,6 +1814,18 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_metric_matrix_is_spd(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        metric_matrix = self.space.metric.metric_matrix(base_point)
+
+        res = SPDMatrices(n=self.space.dim).belongs(metric_matrix)
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.ones(expected_shape, dtype=bool)
+
+        self.assertAllEqual(res, expected)
 
     def test_cometric_matrix(self, base_point, expected, atol):
         res = self.space.metric.cometric_matrix(base_point)
@@ -1674,6 +1866,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
     def test_inner_product(
         self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
     ):
+        # TODO: test inner_product with itself?
         res = self.space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
@@ -1703,6 +1896,21 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         )
         self._test_vectorization(vec_data)
 
+    @pytest.mark.random
+    def test_inner_product_is_symmetric(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+
+        inner_product_ab = self.space.metric.inner_product(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+        inner_product_ba = self.space.metric.inner_product(
+            tangent_vec_b, tangent_vec_a, base_point
+        )
+
+        self.assertAllClose(inner_product_ab, inner_product_ba, atol=atol)
+
     def test_inner_coproduct(
         self, cotangent_vec_a, cotangent_vec_b, base_point, expected, atol
     ):
@@ -1713,7 +1921,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.vec
     def test_inner_coproduct_vec(self, n_reps, atol):
-        # TODO: check if cotangent generatpion makes sense
+        # TODO: check if cotangent generation makes sense
         base_point = self.data_generator.random_point()
         cotangent_vec_a = self.data_generator.random_tangent_vec(base_point)
         cotangent_vec_b = self.data_generator.random_tangent_vec(base_point)
@@ -1780,6 +1988,16 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         )
         self._test_vectorization(vec_data)
 
+    @pytest.mark.random
+    def test_norm_is_positive(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        vector = self.data_generator.random_tangent_vec(base_point)
+
+        norm_ = self.space.metric.norm(vector, base_point)
+
+        res = gs.all(norm_ > -atol)
+        self.assertTrue(res)
+
     def test_normalize(self, vector, base_point, expected, atol):
         res = self.space.metric.normalize(vector, base_point)
         self.assertAllClose(res, expected, atol=atol)
@@ -1819,7 +2037,27 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         )
         self._test_vectorization(vec_data)
 
+    @pytest.mark.random
+    def test_squared_dist_is_symmetric(self, n_points, atol):
+        point_a = self.data_generator.random_point(n_points)
+        point_b = self.data_generator.random_point(n_points)
+
+        squared_dist_ab = self.space.metric.squared_dist(point_a, point_b)
+        squared_dist_ba = self.space.metric.squared_dist(point_b, point_a)
+
+        self.assertAllClose(squared_dist_ab, squared_dist_ba, atol=atol)
+
+    @pytest.mark.random
+    def test_squared_dist_is_positive(self, n_points, atol):
+        point_a = self.data_generator.random_point(n_points)
+        point_b = self.data_generator.random_point(n_points)
+
+        squared_dist_ = self.space.metric.squared_dist(point_a, point_b)
+        res = gs.all(squared_dist_ > -atol)
+        self.assertTrue(res)
+
     def test_dist(self, point_a, point_b, expected, atol):
+        # TODO: dist properties mixins? (thinking about stratified)
         res = self.space.metric.dist(point_a, point_b)
         self.assertAllClose(res, expected, atol=atol)
 
@@ -1837,8 +2075,60 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         )
         self._test_vectorization(vec_data)
 
+    @pytest.mark.random
+    def test_dist_is_symmetric(self, n_points, atol):
+        point_a = self.data_generator.random_point(n_points)
+        point_b = self.data_generator.random_point(n_points)
+
+        dist_ab = self.space.metric.dist(point_a, point_b)
+        dist_ba = self.space.metric.dist(point_b, point_a)
+
+        self.assertAllClose(dist_ab, dist_ba, atol=atol)
+
+    @pytest.mark.random
+    def test_dist_is_positive(self, n_points, atol):
+        point_a = self.data_generator.random_point(n_points)
+        point_b = self.data_generator.random_point(n_points)
+
+        dist_ = self.space.metric.dist(point_a, point_b)
+        res = gs.all(dist_ > -atol)
+        self.assertTrue(res)
+
+    @pytest.mark.random
+    def test_dist_is_log_norm(self, n_points, atol):
+        point_a = self.data_generator.random_point(n_points)
+        point_b = self.data_generator.random_point(n_points)
+
+        log_norm = self.space.metric.norm(
+            self.space.metric.log(point_b, point_a), point_a
+        )
+        dist_ = self.space.metric.dist(point_a, point_b)
+        self.assertAllClose(dist_, log_norm, atol=atol)
+
+    @pytest.mark.random
+    def test_dist_point_to_itself_is_zero(self, n_points, atol):
+        point = self.data_generator.random_point(n_points)
+
+        dist_ = self.space.metric.dist(point, point)
+
+        expected_shape = get_batch_shape(self.space, point)
+        expected = gs.zeros(expected_shape)
+        self.assertAllClose(dist_, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_dist_triangle_inequality(self, n_points, atol):
+        point_a = self.data_generator.random_point(n_points)
+        point_b = self.data_generator.random_point(n_points)
+        point_c = self.data_generator.random_point(n_points)
+
+        dist_ab = self.space.metric.dist(point_a, point_b)
+        dist_bc = self.space.metric.dist(point_b, point_c)
+        dist_ac = self.space.metric.dist(point_a, point_c)
+
+        res = gs.all(dist_ab + dist_bc + atol >= dist_ac)
+        self.assertTrue(res)
+
     def test_diameter(self, points, expected, atol):
-        # TODO: generated automatically. check if correct
         res = self.space.metric.diameter(points)
         self.assertAllClose(res, expected, atol=atol)
 
@@ -1863,6 +2153,56 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_covariant_riemann_tensor_is_skew_symmetric_1(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        covariant_metric_tensor = self.space.metric.covariant_riemann_tensor(base_point)
+        skew_symmetry_1 = covariant_metric_tensor + gs.moveaxis(
+            covariant_metric_tensor, [-2, -1], [-1, -2]
+        )
+
+        res = gs.all(gs.abs(skew_symmetry_1) < gs.atol)
+        self.assertTrue(res)
+
+    @pytest.mark.random
+    def test_covariant_riemann_tensor_is_skew_symmetric_2(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        covariant_metric_tensor = self.space.metric.covariant_riemann_tensor(base_point)
+        skew_symmetry_2 = covariant_metric_tensor + gs.moveaxis(
+            covariant_metric_tensor, [-4, -3], [-3, -4]
+        )
+
+        res = gs.all(gs.abs(skew_symmetry_2) < gs.atol)
+        self.assertTrue(res)
+
+    @pytest.mark.random
+    def test_covariant_riemann_tensor_bianchi_identity(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        covariant_metric_tensor = self.space.metric.covariant_riemann_tensor(base_point)
+        bianchi_identity = (
+            covariant_metric_tensor
+            + gs.moveaxis(covariant_metric_tensor, [-3, -2, -1], [-2, -1, -3])
+            + gs.moveaxis(covariant_metric_tensor, [-3, -2, -1], [-1, -3, -2])
+        )
+
+        res = gs.all(gs.abs(bianchi_identity) < gs.atol)
+        self.assertTrue(res)
+
+    @pytest.mark.random
+    def test_covariant_riemann_tensor_is_interchange_symmetric(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        covariant_metric_tensor = self.space.metric.covariant_riemann_tensor(base_point)
+        interchange_symmetry = covariant_metric_tensor - gs.moveaxis(
+            covariant_metric_tensor, [-4, -3, -2, -1], [-2, -1, -4, -3]
+        )
+
+        res = gs.all(gs.abs(interchange_symmetry) < gs.atol)
+        self.assertTrue(res)
 
     def test_sectional_curvature(
         self, tangent_vec_a, tangent_vec_b, base_point, expected, atol

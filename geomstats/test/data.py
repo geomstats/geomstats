@@ -62,3 +62,11 @@ class TestData:
                 data.append(dict(n_reps=n_reps, n_times=n_times))
 
         return self.generate_tests(data, marks=marks)
+
+    def generate_random_data_with_time(self, marks=()):
+        data = []
+        for n_points in self.N_RANDOM_POINTS:
+            for n_times in self.N_TIME_POINTS:
+                data.append(dict(n_points=n_points, n_times=n_times))
+
+        return self.generate_tests(data, marks=marks)

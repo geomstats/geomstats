@@ -105,9 +105,9 @@ def generate_vectorization_data(
     vectorization_type: str
         Possible values are 'sym', 'basic', or the format 'repeat-(int)'
         (e.g. "repeat-0-2").
-        'sym': tests all repeation combinations.
-        'basic': tests only no repeation and repeation of all.
-        'repeat-(int)': tests repeation of provided indices.
+        'sym': tests all repetition combinations.
+        'basic': tests only no repetition and repetition of all.
+        'repeat-(int)': tests repetition of provided indices.
     """
     n_args = len(arg_names)
     _check_vectorization_type(vectorization_type, n_args)

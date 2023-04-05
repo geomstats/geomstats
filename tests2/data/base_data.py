@@ -285,8 +285,20 @@ class ConnectionTestData(TestData):
     def exp_vec_test_data(self):
         return self.generate_vec_data()
 
+    def exp_belongs_test_data(self):
+        return self.generate_random_data()
+
     def log_vec_test_data(self):
         return self.generate_vec_data()
+
+    def log_is_tangent_test_data(self):
+        return self.generate_random_data()
+
+    def exp_after_log_test_data(self):
+        return self.generate_random_data()
+
+    def log_after_exp_test_data(self):
+        return self.generate_random_data()
 
     def riemann_tensor_vec_test_data(self):
         return self.generate_vec_data()
@@ -306,14 +318,35 @@ class ConnectionTestData(TestData):
     def directional_curvature_derivative_vec_test_data(self):
         return self.generate_vec_data()
 
-    def geodesic_vec_test_data(self):
+    def geodesic_bvp_vec_test_data(self):
         return self.generate_vec_data_with_time()
+
+    def geodesic_ivp_vec_test_data(self):
+        return self.generate_vec_data_with_time()
+
+    def geodesic_boundary_points_test_data(self):
+        return self.generate_random_data()
+
+    def geodesic_bvp_reverse_test_data(self):
+        return self.generate_random_data_with_time()
+
+    def geodesic_bvp_belongs_test_data(self):
+        return self.generate_random_data_with_time()
+
+    def geodesic_ivp_belongs_test_data(self):
+        return self.generate_random_data_with_time()
+
+    def exp_geodesic_ivp_test_data(self):
+        return self.generate_random_data()
 
     def parallel_transport_vec_with_direction_test_data(self):
         return self.generate_vec_data()
 
     def parallel_transport_vec_with_end_point_test_data(self):
         return self.generate_vec_data()
+
+    def parallel_transport_transported_is_tangent_test_data(self):
+        return self.generate_random_data()
 
     def injectivity_radius_vec_test_data(self):
         return self.generate_vec_data()
@@ -322,6 +355,9 @@ class ConnectionTestData(TestData):
 class RiemannianMetricTestData(ConnectionTestData):
     def metric_matrix_vec_test_data(self):
         return self.generate_vec_data()
+
+    def metric_matrix_is_spd_test_data(self):
+        return self.generate_random_data()
 
     def cometric_matrix_vec_test_data(self):
         return self.generate_vec_data()
@@ -332,6 +368,9 @@ class RiemannianMetricTestData(ConnectionTestData):
     def inner_product_vec_test_data(self):
         return self.generate_vec_data()
 
+    def inner_product_is_symmetric_test_data(self):
+        return self.generate_random_data()
+
     def inner_coproduct_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -341,17 +380,53 @@ class RiemannianMetricTestData(ConnectionTestData):
     def norm_vec_test_data(self):
         return self.generate_vec_data()
 
+    def norm_is_positive_test_data(self):
+        return self.generate_random_data()
+
     def normalize_vec_test_data(self):
         return self.generate_vec_data()
 
     def squared_dist_vec_test_data(self):
         return self.generate_vec_data()
 
+    def squared_dist_is_symmetric_test_data(self):
+        return self.generate_random_data()
+
+    def squared_dist_is_positive_test_data(self):
+        return self.generate_random_data()
+
     def dist_vec_test_data(self):
         return self.generate_vec_data()
 
+    def dist_is_symmetric_test_data(self):
+        return self.generate_random_data()
+
+    def dist_is_positive_test_data(self):
+        return self.generate_random_data()
+
+    def dist_is_log_norm_test_data(self):
+        return self.generate_random_data()
+
+    def dist_point_to_itself_is_zero_test_data(self):
+        return self.generate_random_data()
+
+    def dist_triangle_inequality_test_data(self):
+        return self.generate_random_data()
+
     def covariant_riemann_tensor_vec_test_data(self):
         return self.generate_vec_data()
+
+    def covariant_riemann_tensor_is_skew_symmetric_1_test_data(self):
+        return self.generate_random_data()
+
+    def covariant_riemann_tensor_is_skew_symmetric_2_test_data(self):
+        return self.generate_random_data()
+
+    def covariant_riemann_tensor_bianchi_identity_test_data(self):
+        return self.generate_random_data()
+
+    def covariant_riemann_tensor_is_interchange_symmetric_test_data(self):
+        return self.generate_random_data()
 
     def sectional_curvature_vec_test_data(self):
         return self.generate_vec_data()
