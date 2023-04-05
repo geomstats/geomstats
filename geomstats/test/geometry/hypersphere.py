@@ -423,7 +423,7 @@ class HypersphereExtrinsicTestCase(_HypersphereTestCaseMixins, LevelSetTestCase)
             return
 
         kappa_estimate = _estimate_von_mises_kappa(X, n_steps=100)
-        self.assertAllClose(kappa_estimate, kappa, atol=atol)
+        self.assertAllClose(kappa_estimate, gs.array(kappa), atol=atol)
 
     @pytest.mark.random
     def test_random_von_mises_fisher_belongs(

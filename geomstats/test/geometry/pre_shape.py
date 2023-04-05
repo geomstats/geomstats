@@ -4,6 +4,7 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.test.geometry.base import FiberBundleTestCase, LevelSetTestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.vectorization import get_batch_shape
 
 
 def integrability_tensor_alt(space, tangent_vec_a, tangent_vec_b, base_point):
@@ -199,6 +200,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         """
         base_point = self.data_generator.random_point(n_points)
         tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+
         tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
         result_ab = self.space.integrability_tensor(
@@ -206,7 +208,8 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         )
 
         result = self.space.metric.inner_product(tangent_vec_b, result_ab, base_point)
-        expected = gs.zeros(n_points)
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
     @pytest.mark.random
@@ -386,7 +389,8 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             + inner(nabla_x_a_y_v, horizontal_vec_z)
             + inner(a_y_v, nabla_x_z)
         )
-        expected = gs.zeros(n_points)
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
     @pytest.mark.random
@@ -419,7 +423,8 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
 
         inner = self.space.metric.inner_product
         result = inner(nabla_x_a_y_z, horizontal_vec_h) + inner(a_y_z, nabla_x_h)
-        expected = gs.zeros(n_points)
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
     @pytest.mark.random
@@ -456,7 +461,8 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
 
         inner = self.space.metric.inner_product
         result = inner(nabla_x_a_y_z, vertical_vec_w) + inner(a_y_z, nabla_x_w)
-        expected = gs.zeros(n_points)
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
     def test_integrability_tensor_derivative_parallel(

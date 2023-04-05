@@ -12,6 +12,7 @@ from geomstats.test.geometry.base import (
 )
 from geomstats.test.random import FiberBundleRandomDataGenerator, get_random_tangent_vec
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.vectorization import get_batch_shape
 
 
 class DiscreteCurvesTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
@@ -86,7 +87,8 @@ class SRVShapeBundleTestCase(FiberBundleTestCase, SRVPreShapeSpaceTestCase):
         res = self.space.metric.inner_product(
             tangent_vec_hor, tangent_vec_ver, base_point
         )
-        expected = gs.zeros(n_points)
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.zeros(expected_shape)
         self.assertAllClose(res, expected, atol=atol)
 
     def test_horizontal_geodesic(

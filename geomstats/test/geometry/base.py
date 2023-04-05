@@ -407,7 +407,7 @@ class ComplexManifoldTestCase(_ManifoldTestCaseMixins, TestCase):
     def test_random_point_imaginary_nonzero(self, n_points, atol):
         point = self.data_generator.random_point(n_points)
         res = gs.imag(gs.abs(point))
-        self.assertAllClose(res, 0.0, atol=atol)
+        self.assertAllClose(res, gs.zeros_like(point), atol=atol)
 
 
 class _VectorSpaceTestCaseMixins(_ProjectionTestCaseMixins):
