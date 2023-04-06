@@ -1,14 +1,14 @@
 """Unit tests for Polynomial Regression."""
-from scipy.optimize import minimize
-
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.discrete_curves import R2, DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.learning.polynomial_regression import PolynomialRegression
+from scipy.optimize import minimize
+
+import tests.conftest
 
 
 class TestPolynomialRegression(tests.conftest.TestCase):
@@ -102,13 +102,16 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         X_powers = gs.vstack([self.X_se2**k for k in range(1, self.order_se2 + 1)])
         # Reshape twice to multiply with use multidimensonal array
         tangent_vec = gs.reshape(
-                Matrices.mul(
-                    gs.transpose(X_powers),
-                    gs.reshape(self.coef_se2_true, (self.order_se2, -1)),
-                ), (-1,) + self.shape_se2,
-            )
+            Matrices.mul(
+                gs.transpose(X_powers),
+                gs.reshape(self.coef_se2_true, (self.order_se2, -1)),
+            ),
+            (-1,) + self.shape_se2,
+        )
 
-        self.y_se2 = self.metric_se2.exp(tangent_vec=tangent_vec, base_point=self.intercept_se2_true)
+        self.y_se2 = self.metric_se2.exp(
+            tangent_vec=tangent_vec, base_point=self.intercept_se2_true
+        )
         self.param_se2_true = gs.vstack(
             [
                 gs.flatten(self.intercept_se2_true),

@@ -35,58 +35,58 @@ from geomstats.learning.frechet_mean import FrechetMean
 class PolynomialRegression(BaseEstimator):
     r"""PolynomialRegression.
 
-    The generative model of the data is:
-    :math:`Z = Exp_{\beta_0}(\sum_{k=1}^{K}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
-    where:
+      The generative model of the data is:
+      :math:`Z = Exp_{\beta_0}(\sum_{k=1}^{K}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
+      where:
 
-    - :math:`Exp` denotes the Riemannian exponential,
-    - :math:`\beta_0` is called the intercept,
-      and is a point on the manifold,
-    - :math:`\beta_1` is called the coefficient,
-      and is a tangent vector to the manifold at :math:`\beta_0`,
-  - :math:`K` denotes the order of the polynomial,
-    - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
-    - :math:`X` is the input, :math:`Y` is the target.
+      - :math:`Exp` denotes the Riemannian exponential,
+      - :math:`\beta_0` is called the intercept,
+        and is a point on the manifold,
+      - :math:`\beta_1` is called the coefficient,
+        and is a tangent vector to the manifold at :math:`\beta_0`,
+    - :math:`K` denotes the order of the polynomial,
+      - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
+      - :math:`X` is the input, :math:`Y` is the target.
 
-    The polynomial regression method:
+      The polynomial regression method:
 
-    - estimates :math:`\beta_0`, and each :math:`\beta_k`,
-    - predicts :math:`\hat{y}` from input :math:`X`.
+      - estimates :math:`\beta_0`, and each :math:`\beta_k`,
+      - predicts :math:`\hat{y}` from input :math:`X`.
 
-    Parameters
-    ----------
-    space : Manifold
-        Manifold.
-    metric : RiemannianMetric
-        Riemannian metric.
-    center_X : bool
-        Subtract mean to X as a preprocessing.
-    order : int
-        Order of polynomial to fit. Mandatory, maximum is 5 (for now)
-    method : str, {\'extrinsic\', \'riemannian\'}
-        Gradient descent method.
-        Optional, default: extrinsic.
-    max_iter : int
-        Maximum number of iterations for gradient descent.
-        Optional, default: 100.
-    init_step_size : float
-        Initial learning rate for gradient descent.
-        Optional, default: 0.1
-    tol : float
-        Tolerance for loss minimization.
-        Optional, default: 1e-5
-    verbose : bool
-        Verbose option.
-        Optional, default: False.
-    initialization : str or array-like,
-        {'random', 'data', 'frechet', warm_start'}
-        Initial values of the parameters for the optimization,
-        or initialization method.
-        Optional, default: 'random'
-    regularization : float
-        Weight on the constraint for the intercept to lie on the manifold in
-        the extrinsic optimization scheme. An L^2 constraint is applied.
-        Optional, default: 1.
+      Parameters
+      ----------
+      space : Manifold
+          Manifold.
+      metric : RiemannianMetric
+          Riemannian metric.
+      center_X : bool
+          Subtract mean to X as a preprocessing.
+      order : int
+          Order of polynomial to fit. Mandatory, maximum is 5 (for now)
+      method : str, {\'extrinsic\', \'riemannian\'}
+          Gradient descent method.
+          Optional, default: extrinsic.
+      max_iter : int
+          Maximum number of iterations for gradient descent.
+          Optional, default: 100.
+      init_step_size : float
+          Initial learning rate for gradient descent.
+          Optional, default: 0.1
+      tol : float
+          Tolerance for loss minimization.
+          Optional, default: 1e-5
+      verbose : bool
+          Verbose option.
+          Optional, default: False.
+      initialization : str or array-like,
+          {'random', 'data', 'frechet', warm_start'}
+          Initial values of the parameters for the optimization,
+          or initialization method.
+          Optional, default: 'random'
+      regularization : float
+          Weight on the constraint for the intercept to lie on the manifold in
+          the extrinsic optimization scheme. An L^2 constraint is applied.
+          Optional, default: 1.
     """
 
     def __init__(
@@ -156,9 +156,9 @@ class PolynomialRegression(BaseEstimator):
 
         # Reshape twice to do mat mul between 2D arrays
         tangent_vec = gs.reshape(
-                Matrices.mul(X_powers, gs.reshape(coef, (self.order, -1))),
-                (-1,) + tuple(coef.shape)[1:],
-            )
+            Matrices.mul(X_powers, gs.reshape(coef, (self.order, -1))),
+            (-1,) + tuple(coef.shape)[1:],
+        )
         return self.metric.exp(tangent_vec=tangent_vec, base_point=intercept)
 
     def _loss(self, X, y, param, shape, weights=None):
@@ -188,16 +188,12 @@ class PolynomialRegression(BaseEstimator):
         coef = gs.cast(coef, dtype=y.dtype)
         if self.method == "extrinsic":
             base_point = self.space.projection(intercept)
-            penalty = self.regularization * gs.sum(
-                (base_point - intercept) ** 2
-            )
+            penalty = self.regularization * gs.sum((base_point - intercept) ** 2)
         else:
             base_point = intercept
             penalty = 0
         tangent_vec = self.space.to_tangent(coef, base_point)
-        mses = self.metric.squared_dist(
-            self._model(X, tangent_vec, base_point), y
-        )
+        mses = self.metric.squared_dist(self._model(X, tangent_vec, base_point), y)
         if weights is None:
             weights = 1.0
 
@@ -506,7 +502,11 @@ class PolynomialRegression(BaseEstimator):
             logging.info(
                 "Number of gradient evaluations: %s, "
                 "Number of gradient iterations: %s"
-                " loss at termination: %s", i, current_iter, current_loss[-1])
+                " loss at termination: %s",
+                i,
+                current_iter,
+                current_loss[-1],
+            )
         if compute_training_score:
             variance = gs.sum(self.metric.squared_dist(y, self.intercept_))
             self.training_score_ = 1 - 2 * current_loss[-1] / variance
