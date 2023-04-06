@@ -1,14 +1,14 @@
 """Unit tests for Polynomial Regression."""
+from scipy.optimize import minimize
+
 import geomstats.backend as gs
+import tests.conftest
 from geomstats.geometry.discrete_curves import R2, DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.learning.polynomial_regression import PolynomialRegression
-from scipy.optimize import minimize
-
-import tests.conftest
 
 
 class TestPolynomialRegression(tests.conftest.TestCase):
@@ -369,7 +369,6 @@ class TestPolynomialRegression(tests.conftest.TestCase):
 
     @tests.conftest.autograd_only
     def test_value_and_grad_loss_se2(self):
-
         pr = PolynomialRegression(
             self.se2,
             metric=self.metric_se2,
@@ -439,7 +438,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         # Cast required because minimization happens in scipy in float64
         param_hat = gs.cast(gs.array(res.x), self.param_eucl_true.dtype)
 
-        intercept_hat, coef_hat = pr._split_parameters(param_hat)
+        intercept_hat, coef_hat = pr._split_parameters(param_hat, self.shape_eucl)
         coef_hat = self.eucl.to_tangent(coef_hat, intercept_hat)
 
         self.assertAllClose(intercept_hat, self.intercept_eucl_true)
@@ -486,7 +485,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         # Cast required because minimization happens in scipy in float64
         param_hat = gs.cast(gs.array(res.x), self.param_sphere_true.dtype)
 
-        intercept_hat, coef_hat = pr._split_parameters(param_hat)
+        intercept_hat, coef_hat = pr._split_parameters(param_hat, self.shape_sphere)
         intercept_hat = self.sphere.projection(intercept_hat)
         coef_hat = self.sphere.to_tangent(coef_hat, intercept_hat)
         self.assertAllClose(intercept_hat, self.intercept_sphere_true, atol=5e-2)
@@ -543,7 +542,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         # Cast required because minimization happens in scipy in float64
         param_hat = gs.cast(gs.array(res.x), self.param_se2_true.dtype)
 
-        intercept_hat, coef_hat = pr._split_parameters(param_hat)
+        intercept_hat, coef_hat = pr._split_parameters(param_hat, self.shape_se2)
         intercept_hat = gs.reshape(intercept_hat, self.shape_se2)
         coef_hat = gs.reshape(coef_hat, (self.order_se2,) + self.shape_se2)
 

@@ -35,58 +35,58 @@ from geomstats.learning.frechet_mean import FrechetMean
 class PolynomialRegression(BaseEstimator):
     r"""PolynomialRegression.
 
-      The generative model of the data is:
-        :math:`Z = Exp_{\beta_0}(\sum_{k=1}^{K}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
-      where:
+    The generative model of the data is:
+      :math:`Z = Exp_{\beta_0}(\sum_{k=1}^{K}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
+    where:
 
-      - :math:`Exp` denotes the Riemannian exponential,
-      - :math:`\beta_0` is called the intercept,
-        and is a point on the manifold,
-      - :math:`\beta_1` is called the coefficient,
-        and is a tangent vector to the manifold at :math:`\beta_0`,
-      - :math:`K` denotes the order of the polynomial,
-      - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
-      - :math:`X` is the input, :math:`Y` is the target.
+    - :math:`Exp` denotes the Riemannian exponential,
+    - :math:`\beta_0` is called the intercept,
+      and is a point on the manifold,
+    - :math:`\beta_1` is called the coefficient,
+      and is a tangent vector to the manifold at :math:`\beta_0`,
+    - :math:`K` denotes the order of the polynomial,
+    - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
+    - :math:`X` is the input, :math:`Y` is the target.
 
-      The polynomial regression method:
+    The polynomial regression method:
 
-      - estimates :math:`\beta_0`, and each :math:`\beta_k`,
-      - predicts :math:`\hat{y}` from input :math:`X`.
+    - estimates :math:`\beta_0`, and each :math:`\beta_k`,
+    - predicts :math:`\hat{y}` from input :math:`X`.
 
-      Parameters
-      ----------
-      space : Manifold
-          Manifold.
-      metric : RiemannianMetric
-          Riemannian metric.
-      center_X : bool
-          Subtract mean to X as a preprocessing.
-      order : int
-          Order of polynomial to fit. Mandatory, maximum is 5 (for now)
-      method : str, {\'extrinsic\', \'riemannian\'}
-          Gradient descent method.
-          Optional, default: extrinsic.
-      max_iter : int
-          Maximum number of iterations for gradient descent.
-          Optional, default: 100.
-      init_step_size : float
-          Initial learning rate for gradient descent.
-          Optional, default: 0.1
-      tol : float
-          Tolerance for loss minimization.
-          Optional, default: 1e-5
-      verbose : bool
-          Verbose option.
-          Optional, default: False.
-      initialization : str or array-like,
-          {'random', 'data', 'frechet', warm_start'}
-          Initial values of the parameters for the optimization,
-          or initialization method.
-          Optional, default: 'random'
-      regularization : float
-          Weight on the constraint for the intercept to lie on the manifold in
-          the extrinsic optimization scheme. An L^2 constraint is applied.
-          Optional, default: 1.
+    Parameters
+    ----------
+    space : Manifold
+        Manifold.
+    metric : RiemannianMetric
+        Riemannian metric.
+    center_X : bool
+        Subtract mean to X as a preprocessing.
+    order : int
+        Order of polynomial to fit. Mandatory, maximum is 5 (for now)
+    method : str, {\'extrinsic\', \'riemannian\'}
+        Gradient descent method.
+        Optional, default: extrinsic.
+    max_iter : int
+        Maximum number of iterations for gradient descent.
+        Optional, default: 100.
+    init_step_size : float
+        Initial learning rate for gradient descent.
+        Optional, default: 0.1
+    tol : float
+        Tolerance for loss minimization.
+        Optional, default: 1e-5
+    verbose : bool
+        Verbose option.
+        Optional, default: False.
+    initialization : str or array-like,
+        {'random', 'data', 'frechet', warm_start'}
+        Initial values of the parameters for the optimization,
+        or initialization method.
+        Optional, default: 'random'
+    regularization : float
+        Weight on the constraint for the intercept to lie on the manifold in
+        the extrinsic optimization scheme. An L^2 constraint is applied.
+        Optional, default: 1.
     """
 
     def __init__(
@@ -183,7 +183,6 @@ class PolynomialRegression(BaseEstimator):
             Loss.
         """
         intercept, coef = self._split_parameters(param, shape)
-
         intercept = gs.cast(intercept, dtype=y.dtype)
         coef = gs.cast(coef, dtype=y.dtype)
         if self.method == "extrinsic":
@@ -199,9 +198,8 @@ class PolynomialRegression(BaseEstimator):
 
         return 1.0 / 2.0 * gs.sum(weights * mses) + penalty
 
-    @staticmethod
-    def _split_parameters(param, shape=None):
-        """Split parameter matrix into intercept and coeff.
+    def _split_parameters(self, param, shape=None):
+        """Split parameter array into intercept and coeff.
 
         Split parameters (order + 1 x dim) into intercept (-1 x shape)
         and coefficient matrix (-1 x shape).
@@ -222,9 +220,12 @@ class PolynomialRegression(BaseEstimator):
         coef : array-like, shape=[{order, dim, [n,n]}]
             Initial value for the coefficient matrix.
         """
+        matrix_param = gs.reshape(param, (self.order + 1, -1))
         if shape:
-            return param[0].reshape(shape), param[1:].reshape((-1,) + shape)
-        return param[0], param[1:]
+            return matrix_param[0].reshape(shape), matrix_param[1:].reshape(
+                (-1,) + shape
+            )
+        return matrix_param[0], matrix_param[1:]
 
     def _combine_parameters(self, intercept, coef):
         """Combine  intercept and coeff into param.
