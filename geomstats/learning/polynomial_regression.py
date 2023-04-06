@@ -3,7 +3,7 @@ r"""Polynomial Regression.
 Lead author: Arka Mallela.
 
 The generative model of the data is:
-:math:`Z = Exp_{\beta_0}(\sum_{k=1}^{N}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
+:math:`Z = Exp_{\beta_0}(\sum_{k=1}^{K}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
 where:
 
 - :math:`Exp` denotes the Riemannian exponential,
@@ -11,7 +11,7 @@ where:
   and is a point on the manifold,
 - :math:`\beta_k` is called the coefficient, of :math:`X^k` power term
   and is a tangent vector to the manifold at :math:`\beta_0`,
-- :math:`N` denotes the order of the polynomial,
+- :math:`K` denotes the order of the polynomial,
 - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
 - :math:`X` is the input, :math:`Y` is the target.
 
@@ -36,7 +36,7 @@ class PolynomialRegression(BaseEstimator):
     r"""PolynomialRegression.
 
     The generative model of the data is:
-    :math:`Z = Exp_{\beta_0}(\sum_{k=1}^{N}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
+    :math:`Z = Exp_{\beta_0}(\sum_{k=1}^{K}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
     where:
 
     - :math:`Exp` denotes the Riemannian exponential,
@@ -44,6 +44,7 @@ class PolynomialRegression(BaseEstimator):
       and is a point on the manifold,
     - :math:`\beta_1` is called the coefficient,
       and is a tangent vector to the manifold at :math:`\beta_0`,
+  - :math:`K` denotes the order of the polynomial,
     - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
     - :math:`X` is the input, :math:`Y` is the target.
 
@@ -149,21 +150,16 @@ class PolynomialRegression(BaseEstimator):
         X_copy = X[:, None]
 
         # Pads additional dimensions as needed
-        # generate exponentiated matrix - N (samples) x k (order)
+        # generate power matrix - n_samples x order
         # This is a matrix where columns are powers of X
         X_powers = gs.hstack([X_copy**k for k in range(1, self.order + 1)])
 
-        # Coef is of shape k x dim (where dim can be multidimensional)
-        # Output should be shape N x dim -> exp -> N
-        # Matrix multiply with coefficients and apply exp map at intercept
         # Reshape twice to do mat mul between 2D arrays
-        return self.metric.exp(
-            gs.reshape(
+        tangent_vec = gs.reshape(
                 Matrices.mul(X_powers, gs.reshape(coef, (self.order, -1))),
                 (-1,) + tuple(coef.shape)[1:],
-            ),
-            intercept,
-        )
+            )
+        return self.metric.exp(tangent_vec=tangent_vec, base_point=intercept)
 
     def _loss(self, X, y, param, shape, weights=None):
         """Compute the loss associated to the polynomial regression.
@@ -186,7 +182,6 @@ class PolynomialRegression(BaseEstimator):
         _ : float
             Loss.
         """
-        # Split parameters (per order)
         intercept, coef = self._split_parameters(param, shape)
 
         intercept = gs.cast(intercept, dtype=y.dtype)
@@ -195,18 +190,18 @@ class PolynomialRegression(BaseEstimator):
             base_point = self.space.projection(intercept)
             penalty = self.regularization * gs.sum(
                 (base_point - intercept) ** 2
-            )  # this is L2 regularization?
+            )
         else:
             base_point = intercept
             penalty = 0
         tangent_vec = self.space.to_tangent(coef, base_point)
-        distances = self.metric.squared_dist(
+        mses = self.metric.squared_dist(
             self._model(X, tangent_vec, base_point), y
-        )  # This is MSE
+        )
         if weights is None:
             weights = 1.0
 
-        return 1.0 / 2.0 * gs.sum(weights * distances) + penalty
+        return 1.0 / 2.0 * gs.sum(weights * mses) + penalty
 
     @staticmethod
     def _split_parameters(param, shape=None):
@@ -233,8 +228,7 @@ class PolynomialRegression(BaseEstimator):
         """
         if shape:
             return param[0].reshape(shape), param[1:].reshape((-1,) + shape)
-        else:
-            return param[0], param[1:]
+        return param[0], param[1:]
 
     def _combine_parameters(self, intercept, coef):
         """Combine  intercept and coeff into param.
@@ -465,7 +459,7 @@ class PolynomialRegression(BaseEstimator):
         for i in range(self.max_iter):
             loss, grad = objective_with_grad(param)
             if gs.any(gs.isnan(grad)):
-                logging.warning(f"NaN encountered in gradient at iter {current_iter}")
+                logging.warning("NaN encountered in gradient at iter %s", current_iter)
                 lr /= 2
                 grad = current_grad
             elif loss >= current_loss[-1] and i > 0:
@@ -478,7 +472,7 @@ class PolynomialRegression(BaseEstimator):
                 current_iter += 1
             if abs(loss - current_loss[-1]) < self.tol:
                 if self.verbose:
-                    logging.info(f"Tolerance threshold reached at iter {current_iter}")
+                    logging.info("Tolerance threshold reached at iter %s", current_iter)
                 break
 
             grad_intercept, grad_coef = self._split_parameters(grad)
@@ -510,17 +504,16 @@ class PolynomialRegression(BaseEstimator):
 
         if self.verbose:
             logging.info(
-                f"Number of gradient evaluations: {i}, "
-                f"Number of gradient iterations: {current_iter}"
-                f" loss at termination: {current_loss[-1]}"
-            )
+                "Number of gradient evaluations: %s, "
+                "Number of gradient iterations: %s"
+                " loss at termination: %s", i, current_iter, current_loss[-1])
         if compute_training_score:
             variance = gs.sum(self.metric.squared_dist(y, self.intercept_))
             self.training_score_ = 1 - 2 * current_loss[-1] / variance
 
         return self
 
-    def predict(self, X, y=None):
+    def predict(self, X):
         """Predict the manifold value for each input.
 
         Parameters

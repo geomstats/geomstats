@@ -27,11 +27,11 @@ class TestPolynomialRegression(tests.conftest.TestCase):
         X = gs.random.rand(self.n_samples)
         self.X_eucl = X - gs.mean(X)
         self.intercept_eucl_true = self.eucl.random_point()
-        # Needs to be order x dim shape
+
         self.coef_eucl_true = gs.random.rand(self.order_eucl, self.dim_eucl)
-        # Make matrix of X to nth power by columns
+
         X_powers = gs.vstack([self.X_eucl**k for k in range(1, self.order_eucl + 1)])
-        # Use matrix multiplication
+
         self.y_eucl = self.intercept_eucl_true + Matrices.mul(
             gs.transpose(X_powers), self.coef_eucl_true
         )
@@ -61,11 +61,9 @@ class TestPolynomialRegression(tests.conftest.TestCase):
             gs.random.rand(self.order_sphere, self.dim_sphere + 1)
         )
 
-        # Make matrix of X to nth power by columns
         X_powers = gs.vstack(
             [self.X_sphere**k for k in range(1, self.order_sphere + 1)]
         )
-        # Use matrix multiplication
 
         self.y_sphere = self.sphere.metric.exp(
             Matrices.mul(gs.transpose(X_powers), self.coef_sphere_true),
@@ -101,20 +99,16 @@ class TestPolynomialRegression(tests.conftest.TestCase):
             self.intercept_se2_true,
         )
         self.coef_se2_true = gs.squeeze(self.coef_se2_true)
-        # Make matrix of X to nth power by columns
         X_powers = gs.vstack([self.X_se2**k for k in range(1, self.order_se2 + 1)])
-        # Use matrix multiplication
         # Reshape twice to multiply with use multidimensonal array
-        self.y_se2 = self.metric_se2.exp(
-            gs.reshape(
+        tangent_vec = gs.reshape(
                 Matrices.mul(
                     gs.transpose(X_powers),
                     gs.reshape(self.coef_se2_true, (self.order_se2, -1)),
-                ),
-                (-1,) + self.shape_se2,
-            ),
-            self.intercept_se2_true,
-        )
+                ), (-1,) + self.shape_se2,
+            )
+
+        self.y_se2 = self.metric_se2.exp(tangent_vec=tangent_vec, base_point=self.intercept_se2_true)
         self.param_se2_true = gs.vstack(
             [
                 gs.flatten(self.intercept_se2_true),
@@ -151,7 +145,6 @@ class TestPolynomialRegression(tests.conftest.TestCase):
             self.intercept_curves_2d_true,
         )
 
-        # Make matrix of X to nth power by columns
         X_powers = gs.vstack(
             [self.X_curves_2d**k for k in range(1, self.order_curves_2d + 1)]
         )
