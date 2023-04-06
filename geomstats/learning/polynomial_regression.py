@@ -36,7 +36,7 @@ class PolynomialRegression(BaseEstimator):
     r"""PolynomialRegression.
 
       The generative model of the data is:
-      :math:`Z = Exp_{\beta_0}(\sum_{k=1}^{K}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
+        :math:`Z = Exp_{\beta_0}(\sum_{k=1}^{K}\beta_k.X^k)` and :math:`Y = Exp_Z(\epsilon)`
       where:
 
       - :math:`Exp` denotes the Riemannian exponential,
