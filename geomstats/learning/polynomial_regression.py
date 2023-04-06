@@ -44,7 +44,7 @@ class PolynomialRegression(BaseEstimator):
         and is a point on the manifold,
       - :math:`\beta_1` is called the coefficient,
         and is a tangent vector to the manifold at :math:`\beta_0`,
-    - :math:`K` denotes the order of the polynomial,
+      - :math:`K` denotes the order of the polynomial,
       - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
       - :math:`X` is the input, :math:`Y` is the target.
 
