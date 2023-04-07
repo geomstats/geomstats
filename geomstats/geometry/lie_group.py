@@ -275,12 +275,6 @@ class LieGroup(Manifold, abc.ABC):
     ----------
     lie_algebra : MatrixLieAlgebra or None
         Tangent space at the identity.
-    left_canonical_metric : InvariantMetric
-        The left invariant metric that corresponds to the Euclidean inner
-        product at the identity.
-    right_canonical_metric : InvariantMetric
-        The right invariant metric that corresponds to the Euclidean inner
-        product at the identity.
     """
 
     def __init__(self, lie_algebra=None, **kwargs):

@@ -67,7 +67,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
         Returns
         -------
-        submersed_point : array-like, shape=[..., n. n]
+        submersed_point : array-like, shape=[..., n, n]
         """
         return self._aux_submersion(point) - self._value
 

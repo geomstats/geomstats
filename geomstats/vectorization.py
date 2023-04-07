@@ -3,6 +3,8 @@
 This abstracts the backend type.
 """
 
+import math
+
 import geomstats.backend as gs
 
 POINT_TYPES = ["scalar", "vector", "matrix"]
@@ -43,7 +45,7 @@ def get_n_points(space, *point):
     if space.point_ndim == point_max_ndim.ndim:
         return 1
 
-    return gs.prod(point_max_ndim.shape[: -space.point_ndim])
+    return math.prod(point_max_ndim.shape[: -space.point_ndim])
 
 
 def check_is_batch(space, *point):
@@ -104,6 +106,18 @@ def repeat_point(point, n_reps=2, expand=False):
         return gs.copy(point)
 
     return gs.repeat(gs.expand_dims(point, 0), n_reps, axis=0)
+
+
+def _is_not_none(value):
+    return value is not None
+
+
+def repeat_out(space, out, *points, out_shape=()):
+    points = filter(_is_not_none, points)
+    batch_shape = get_batch_shape(space, *points)
+    if out.shape[: -len(out_shape)] != batch_shape:
+        return gs.broadcast_to(out, batch_shape + out_shape)
+    return out
 
 
 def decorator(input_types):

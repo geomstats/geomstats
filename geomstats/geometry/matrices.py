@@ -7,6 +7,7 @@ import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.vectorization import repeat_out
 
 
 class Matrices(VectorSpace):
@@ -712,10 +713,10 @@ class MatricesMetric(EuclideanMetric):
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
-        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        out = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return repeat_out(self._space, out, tangent_vec_a, tangent_vec_b, base_point)
 
-    @staticmethod
-    def norm(vector, base_point=None):
+    def norm(self, vector, base_point=None):
         """Compute norm of a matrix.
 
         Norm of a matrix associated to the Frobenius inner product.
@@ -733,4 +734,5 @@ class MatricesMetric(EuclideanMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        return gs.linalg.norm(vector, axis=(-2, -1))
+        out = gs.linalg.norm(vector, axis=(-2, -1))
+        return repeat_out(self._space, out, vector, base_point)

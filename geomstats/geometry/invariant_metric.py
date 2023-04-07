@@ -49,8 +49,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
         self.metric_mat_at_identity = metric_mat_at_identity
         self.left = left
 
-    def reshape_metric_matrix(self):
-        """Reshape diagonal metric matrix to a symmetric matrix of size n.
+    @property
+    def reshaped_metric_matrix(self):
+        """Diagonal metric matrix reshaped to a symmetric matrix of size n.
 
         Reshape a diagonal metric matrix of size `dim x dim` into a symmetric
         matrix of size `n x n` where :math:`dim= n (n -1) / 2` is the
@@ -72,8 +73,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
             return metric_mat
         raise ValueError("This is only possible for a diagonal matrix")
 
-    reshaped_metric_matrix = property(reshape_metric_matrix)
-
     def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
         """Compute inner product at tangent space at identity.
 
@@ -93,8 +92,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         metric_mat = self.metric_mat_at_identity
         if Matrices.is_diagonal(metric_mat) and self._space.lie_algebra is not None:
             tan_b = tangent_vec_b * self.reshaped_metric_matrix
-        inner_prod = Matrices.frobenius_product(tangent_vec_a, tan_b)
-        return inner_prod
+        return Matrices.frobenius_product(tangent_vec_a, tan_b)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -122,10 +120,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         )
         tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
         tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
-        inner_prod = self.inner_product_at_identity(
-            tangent_vec_a_at_id, tangent_vec_b_at_id
-        )
-        return inner_prod
+        return self.inner_product_at_identity(tangent_vec_a_at_id, tangent_vec_b_at_id)
 
     def structure_constant(self, tangent_vec_a, tangent_vec_b, tangent_vec_c):
         r"""Compute the structure constant of the metric.
