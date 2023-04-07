@@ -4,15 +4,18 @@ import pytest
 
 from geomstats.geometry.rank_k_psd_matrices import (
     BuresWassersteinBundle,
-    RankKPSDMatrices,
+    PSDBuresWassersteinMetric,
+    PSDMatrices,
 )
 from geomstats.test.geometry.rank_k_psd_matrices import (
     BuresWassersteinBundleTestCase,
+    PSDBuresWassersteinMetricTestCase,
     RankKPSDMatricesTestCase,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from tests2.data.rank_k_psd_matrices_data import (
     BuresWassersteinBundleTestData,
+    PSDBuresWassersteinMetricTestData,
     RankKPSDMatricesTestData,
 )
 
@@ -36,13 +39,17 @@ def _get_random_params():
 @pytest.fixture(
     scope="class",
     params=[
+        random.randint(2, 5),
         (3, 2),
         _get_random_params(),
     ],
 )
 def spaces(request):
-    n, k = request.param
-    request.cls.space = RankKPSDMatrices(n=n, k=k)
+    if isinstance(request.param, int):
+        n = k = request.param
+    else:
+        n, k = request.param
+    request.cls.space = PSDMatrices(n=n, k=k, equip=False)
 
 
 @pytest.mark.usefixtures("spaces")
@@ -53,13 +60,17 @@ class TestRankKPSDMatrices(RankKPSDMatricesTestCase, metaclass=DataBasedParametr
 @pytest.fixture(
     scope="class",
     params=[
+        random.randint(2, 5),
         (3, 2),
         _get_random_params(),
     ],
 )
 def bundle_spaces(request):
-    n, k = request.param
-    request.cls.base = RankKPSDMatrices(n=n, k=k)
+    if isinstance(request.param, int):
+        n = k = request.param
+    else:
+        n, k = request.param
+    request.cls.base = PSDMatrices(n=n, k=k, equip=False)
     request.cls.space = BuresWassersteinBundle(n, k)
 
 
@@ -68,3 +79,27 @@ class TestBuresWassersteinBundle(
     BuresWassersteinBundleTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = BuresWassersteinBundleTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        random.randint(2, 5),
+        (3, 2),
+        _get_random_params(),
+    ],
+)
+def spaces_with_quotient_metric(request):
+    if isinstance(request.param, int):
+        n = k = request.param
+    else:
+        n, k = request.param
+    space = request.cls.space = PSDMatrices(n=n, k=k, equip=False)
+    space.equip_with_metric(PSDBuresWassersteinMetric)
+
+
+@pytest.mark.usefixtures("spaces_with_quotient_metric")
+class TestPSDBuresWassersteinMetric(
+    PSDBuresWassersteinMetricTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = PSDBuresWassersteinMetricTestData()

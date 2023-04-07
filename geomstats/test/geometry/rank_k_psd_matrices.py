@@ -5,6 +5,7 @@ from geomstats.test.geometry.base import (
     _ProjectionTestCaseMixins,
 )
 from geomstats.test.geometry.full_rank_matrices import FullRankMatricesTestCase
+from geomstats.test.geometry.quotient_metric import QuotientMetricTestCase
 
 
 class RankKPSDMatricesTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
@@ -13,4 +14,8 @@ class RankKPSDMatricesTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
 
 
 class BuresWassersteinBundleTestCase(FiberBundleTestCase, FullRankMatricesTestCase):
+    pass
+
+
+class PSDBuresWassersteinMetricTestCase(QuotientMetricTestCase):
     pass

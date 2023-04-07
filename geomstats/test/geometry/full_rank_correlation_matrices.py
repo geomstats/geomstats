@@ -3,6 +3,7 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.test.geometry.base import FiberBundleTestCase, LevelSetTestCase
+from geomstats.test.geometry.quotient_metric import QuotientMetricTestCase
 from geomstats.test.geometry.spd_matrices import SPDMatricesTestCase
 from geomstats.test.vectorization import generate_vectorization_data
 
@@ -59,4 +60,8 @@ class FullRankCorrelationMatricesTestCase(LevelSetTestCase):
 
 
 class CorrelationMatricesBundleTestCase(FiberBundleTestCase, SPDMatricesTestCase):
+    pass
+
+
+class FullRankCorrelationAffineQuotientMetricTestCase(QuotientMetricTestCase):
     pass
