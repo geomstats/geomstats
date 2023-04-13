@@ -1732,6 +1732,7 @@ class ConnectionTestCase(TestCase):
             arg_names=["tangent_vec", "base_point", "direction"],
             expected_name="expected",
             n_reps=n_reps,
+            vectorization_type="repeat-0-2",
         )
         self._test_vectorization(vec_data, test_fnc_name="test_parallel_transport")
 
@@ -1757,6 +1758,7 @@ class ConnectionTestCase(TestCase):
             arg_names=["tangent_vec", "base_point", "end_point"],
             expected_name="expected",
             n_reps=n_reps,
+            vectorization_type="repeat-0-1",
         )
         self._test_vectorization(vec_data, test_fnc_name="test_parallel_transport")
 
@@ -2123,10 +2125,11 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
         dist_ab = self.space.metric.dist(point_a, point_b)
         dist_bc = self.space.metric.dist(point_b, point_c)
-        dist_ac = self.space.metric.dist(point_a, point_c)
+        rhs = dist_ac = self.space.metric.dist(point_a, point_c)
 
-        res = gs.all(dist_ab + dist_bc + atol >= dist_ac)
-        self.assertTrue(res)
+        lhs = dist_ab + dist_bc
+        res = gs.all(lhs + atol >= rhs)
+        self.assertTrue(res, f"lhs: {lhs}, rhs: {dist_ac}, diff: {lhs-rhs}")
 
     def test_diameter(self, points, expected, atol):
         res = self.space.metric.diameter(points)
