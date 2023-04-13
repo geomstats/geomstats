@@ -7,6 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
+from geomstats.vectorization import repeat_out
 
 EPSILON = 1e-6
 
@@ -775,17 +776,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
             zeta_dot = -self.connection_at_identity(omega, zeta)
             return gs.stack([gam_dot, omega_dot, zeta_dot])
 
-        if (base_point.ndim == 2 or base_point.shape[0] == 1) and (
-            3 in (tangent_vec.ndim, tangent_vec_b_.ndim)
-        ):
-            n_sample = (
-                tangent_vec.shape[0]
-                if tangent_vec.ndim == 3
-                else tangent_vec_b_.shape[0]
-            )
-            base_point = gs.stack([base_point] * n_sample)
-
+        base_point, left_angular_vel_a, left_angular_vel_b = gs.broadcast_arrays(
+            base_point, left_angular_vel_a, left_angular_vel_b
+        )
         initial_state = gs.stack([base_point, left_angular_vel_b, left_angular_vel_a])
+
         flow = integrate(acceleration, initial_state, n_steps=n_steps, step=step)
         gamma, _, zeta_t = flow[-1]
         transported = self._space.tangent_translation_map(
@@ -894,10 +889,9 @@ class _InvariantMetricVector(RiemannianMetric):
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
-        metric_mat = Matrices.mul(
+        return Matrices.mul(
             inv_jacobian_transposed, self.metric_mat_at_identity, inv_jacobian
         )
-        return metric_mat
 
     def left_exp_from_identity(self, tangent_vec):
         """Compute the exponential from identity with the left-invariant metric.
@@ -941,8 +935,7 @@ class _InvariantMetricVector(RiemannianMetric):
             opp_left_exp = self.left_exp_from_identity(-tangent_vec)
             exp = self._space.inverse(opp_left_exp)
 
-        exp = self._space.regularize(exp)
-        return exp
+        return self._space.regularize(exp)
 
     def exp(self, tangent_vec, base_point=None, **kwargs):
         """Compute Riemannian exponential of tan. vector wrt to base point.
@@ -982,8 +975,7 @@ class _InvariantMetricVector(RiemannianMetric):
         else:
             exp = self._space.compose(exp_from_id, base_point)
 
-        exp = self._space.regularize(exp)
-        return exp
+        return self._space.regularize(exp)
 
     def left_log_from_identity(self, point):
         """Compute Riemannian log of a point wrt. id of left-invar. metric.
@@ -1025,14 +1017,11 @@ class _InvariantMetricVector(RiemannianMetric):
         """
         point = self._space.regularize(point)
         if self.left:
-            log = self.left_log_from_identity(point)
+            return self.left_log_from_identity(point)
 
-        else:
-            inv_point = self._space.inverse(point)
-            left_log = self.left_log_from_identity(inv_point)
-            log = -left_log
-
-        return log
+        inv_point = self._space.inverse(point)
+        left_log = self.left_log_from_identity(inv_point)
+        return -left_log
 
     def log(self, point, base_point=None, **kwargs):
         """Compute Riemannian logarithm of a point from a base point.
@@ -1070,10 +1059,9 @@ class _InvariantMetricVector(RiemannianMetric):
             point_near_id = self._space.compose(point, self._space.inverse(base_point))
 
         log_from_id = self.log_from_identity(point_near_id)
-        log = self._space.tangent_translation_map(base_point, left=self.left)(
+        return self._space.tangent_translation_map(base_point, left=self.left)(
             log_from_id
         )
-        return log
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -1101,10 +1089,7 @@ class _InvariantMetricVector(RiemannianMetric):
         )
         tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
         tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
-        inner_prod = self.inner_product_at_identity(
-            tangent_vec_a_at_id, tangent_vec_b_at_id
-        )
-        return inner_prod
+        return self.inner_product_at_identity(tangent_vec_a_at_id, tangent_vec_b_at_id)
 
 
 class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
@@ -1163,15 +1148,14 @@ class BiInvariantMetric(_InvariantMetricVector):
     """
 
     def __init__(self, space):
-        super().__init__(space=space)
-        condition = (
-            "SpecialOrthogonal" not in space.__str__()
-            and "SO" not in space.__str__()
-            and "SpecialOrthogonal3" not in space.__str__()
-        )
-        # TODO (nguigs): implement it for SE(3)
-        if condition:
+        if not self._check_implemented(space):
             raise ValueError("The bi-invariant metric is only implemented for SO(n)")
+
+        super().__init__(space=space)
+
+    def _check_implemented(self, space):
+        # TODO (nguigs): implement it for SE(3)
+        return "SpecialOrthogonal" in space.__str__() or "SO" in space.__str__()
 
     def exp(self, tangent_vec, base_point=None, **kwargs):
         """Compute Riemannian exponential of tangent vector from the identity.
@@ -1246,6 +1230,7 @@ class BiInvariantMetric(_InvariantMetricVector):
         """
         if self._space.default_point_type == "vector":
             return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -1267,7 +1252,12 @@ class BiInvariantMetric(_InvariantMetricVector):
             Inner-product of the two tangent vectors.
         """
         if base_point is None or self._space.default_point_type == "matrix":
-            return self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+            out = self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+            if base_point is not None:
+                return repeat_out(
+                    self._space, out, base_point, tangent_vec_a, tangent_vec_b
+                )
+            return out
 
         return super().inner_product(tangent_vec_a, tangent_vec_b, base_point)
 
@@ -1332,7 +1322,8 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return gs.pi * self._space.dim**0.5
+        out = gs.array(gs.pi * self._space.dim**0.5)
+        return repeat_out(self._space, out, base_point)
