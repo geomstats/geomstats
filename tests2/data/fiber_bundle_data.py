@@ -5,23 +5,14 @@ from tests2.data.general_linear_data import GeneralLinearTestData
 class GeneralLinearBuresWassersteinBundleTestData(
     FiberBundleTestData, GeneralLinearTestData
 ):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
     xfails = (
         "align_vec",
         "exp_after_log",
         "log_after_exp",
         "log_after_align_is_horizontal",
         "horizontal_lift_is_horizontal",
-    )
-
-    skips = (
-        # not implemented
-        "integrability_tensor_derivative_vec",
-        "integrability_tensor_vec",
-    )
-
-    ignores_if_not_autodiff = (
-        "align_vec",
-        "log_after_align_is_horizontal",
     )
 
     tolerances = {

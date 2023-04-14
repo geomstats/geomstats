@@ -15,13 +15,11 @@ class SRVPreShapeSpaceTestCase(DiscreteCurvesTestData):
 
 
 class SRVShapeBundleTestData(FiberBundleTestData, SRVPreShapeSpaceTestCase):
+    fail_for_not_implemented_errors = False
     skips = (
         "horizontal_geodesic_vec",
         "align_vec",
         "log_after_align_is_horizontal",
-        # not implemented
-        "integrability_tensor_vec",
-        "integrability_tensor_derivative_vec",
     )
     xfails = (
         # not robust
@@ -57,14 +55,7 @@ class SRVShapeBundleTestData(FiberBundleTestData, SRVPreShapeSpaceTestCase):
 
 
 class ClosedDiscreteCurvesTestData(LevelSetTestData):
-    skips = (
-        # not implemented
-        "to_tangent_vec",
-        "to_tangent_is_tangent",
-        "submersion_vec",
-        "tangent_submersion_vec",
-        "is_tangent_vec",
-    )
+    fail_for_not_implemented_errors = False
 
     def srv_projection_vec_test_data(self):
         return self.generate_vec_data()

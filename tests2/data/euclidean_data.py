@@ -13,25 +13,5 @@ class EuclideanTestData(VectorSpaceTestData):
 
 
 class EuclideanMetricTestData(RiemannianMetricTestData):
-    skips = (
-        # not implemented
-        "curvature_derivative_vec",
-        "directional_curvature_derivative_vec",
-        "injectivity_radius_vec",
-    )
-    # TODO: create list
-    ignores_if_not_autodiff = (
-        "christoffels_vec",
-        "covariant_riemann_tensor_vec",
-        "covariant_riemann_tensor_is_interchange_symmetric",
-        "covariant_riemann_tensor_bianchi_identity",
-        "covariant_riemann_tensor_is_skew_symmetric_1",
-        "covariant_riemann_tensor_is_skew_symmetric_2",
-        "curvature_vec",
-        "directional_curvature_vec",
-        "inner_product_derivative_matrix_vec",
-        "ricci_tensor_vec",
-        "riemann_tensor_vec",
-        "scalar_curvature_vec",
-        "sectional_curvature_vec",
-    )
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False

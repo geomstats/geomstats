@@ -42,24 +42,8 @@ class InvariantMetricMatrixTestData(_InvariantMetricMixinsTestData):
 
 
 class InvariantMetricMatrixSOTestData(InvariantMetricMatrixTestData):
-    skips = (
-        # not implemented
-        "christoffels_vec",
-        "cometric_matrix_vec",
-        "covariant_riemann_tensor_bianchi_identity",
-        "covariant_riemann_tensor_is_interchange_symmetric",
-        "covariant_riemann_tensor_is_skew_symmetric_1",
-        "covariant_riemann_tensor_is_skew_symmetric_2",
-        "covariant_riemann_tensor_vec",
-        "inner_coproduct_vec",
-        "inner_product_derivative_matrix_vec",
-        "metric_matrix_is_spd",
-        "metric_matrix_vec",
-        "ricci_tensor_vec",
-        "riemann_tensor_vec",
-        "scalar_curvature_vec",
-        "injectivity_radius_vec",
-    )
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
     tolerances = {
         # basically all the methods that depend on numerical solvers
         "dist_vec": {"atol": 1e-4},
@@ -112,15 +96,8 @@ class InvariantMetricVectorTestData(_InvariantMetricMixinsTestData):
 
 
 class InvariantMetricVectorSOTestData(InvariantMetricVectorTestData):
-    skips = (
-        # not implemented
-        "curvature_derivative_vec",
-        "directional_curvature_derivative_vec",
-        "parallel_transport_transported_is_tangent",
-        "parallel_transport_vec_with_direction",
-        "parallel_transport_vec_with_end_point",
-        "injectivity_radius_vec",
-    )
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
 
 
 class BiInvariantMetricTestData(InvariantMetricVectorTestData):
@@ -128,17 +105,18 @@ class BiInvariantMetricTestData(InvariantMetricVectorTestData):
 
 
 class BiInvariantMetricSO3VectorTestData(BiInvariantMetricTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
     skips = (
         "parallel_transport_transported_is_tangent",
         "parallel_transport_vec_with_end_point",
         "parallel_transport_vec_with_direction",
-        # not implemented
-        "curvature_derivative_vec",
-        "directional_curvature_derivative_vec",
     )
 
 
 class BiInvariantMetricSOMatrixTestData(BiInvariantMetricTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
     skips = (
         # due to bad inheritance (misses jacobian_translation)
         "christoffels_vec",
@@ -156,18 +134,4 @@ class BiInvariantMetricSOMatrixTestData(BiInvariantMetricTestData):
         "left_log_from_identity_vec",
         "log_from_identity_after_exp_from_identity",
         "log_from_identity_vec",
-        # not implemented
-        "covariant_riemann_tensor_vec",
-        "covariant_riemann_tensor_bianchi_identity",
-        "covariant_riemann_tensor_is_interchange_symmetric",
-        "covariant_riemann_tensor_is_skew_symmetric_1",
-        "covariant_riemann_tensor_is_skew_symmetric_2",
-        "curvature_derivative_vec",
-        "curvature_vec",
-        "directional_curvature_derivative_vec",
-        "directional_curvature_vec",
-        "ricci_tensor_vec",
-        "riemann_tensor_vec",
-        "scalar_curvature_vec",
-        "sectional_curvature_vec",
     )

@@ -1,9 +1,11 @@
+import functools
 import inspect
 import types
 
 import pytest
 
 import geomstats.backend as gs
+from geomstats.exceptions import AutodiffNotImplementedError
 from geomstats.test.test_case import autodiff_backend
 
 
@@ -110,6 +112,17 @@ class DataBasedParametrizer(type):
                 "Testing class doesn't have class object named 'testing_data'"
             )
 
+        fail_for_autodiff_exceptions = (
+            testing_data.fail_for_autodiff_exceptions
+            if hasattr(testing_data, "fail_for_autodiff_exceptions")
+            else True
+        )
+        fail_for_not_implemented_errors = (
+            testing_data.fail_for_not_implemented_errors
+            if hasattr(testing_data, "fail_for_not_implemented_errors")
+            else True
+        )
+
         data_names_ls = _collect_testing_data_tests(testing_data)
         test_attrs_with_data = _filter_test_funcs_given_data(
             all_test_attrs, data_names_ls
@@ -126,7 +139,11 @@ class DataBasedParametrizer(type):
         )
 
         for attr_name, attr_value in selected_test_attrs.items():
-            test_func, default_values = _copy_func(attr_value)
+            test_func, default_values = _copy_func(
+                attr_value,
+                fail_for_autodiff_exceptions=fail_for_autodiff_exceptions,
+                fail_for_not_implemented_errors=fail_for_not_implemented_errors,
+            )
             test_func = _parametrize_test_func(
                 test_func, attr_name, testing_data, default_values
             )
@@ -151,7 +168,34 @@ class DataBasedParametrizer(type):
         return super().__new__(cls, name, bases, attrs)
 
 
-def _copy_func(f, name=None):
+def _except_autodiff_exception(func):
+    @functools.wraps(func)
+    def _wrapped(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except AutodiffNotImplementedError:
+            pass
+
+    return _wrapped
+
+
+def _except_not_implemented_errors(func):
+    @functools.wraps(func)
+    def _wrapped(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except NotImplementedError:
+            pass
+
+    return _wrapped
+
+
+def _copy_func(
+    f,
+    name=None,
+    fail_for_autodiff_exceptions=True,
+    fail_for_not_implemented_errors=True,
+):
     """Copy function.
 
     Return a function with same code, globals, defaults, closure, and
@@ -175,6 +219,12 @@ def _copy_func(f, name=None):
             defaults[param.name] = param.default
     new_sign = sign.replace(parameters=new_params)
     fn.__signature__ = new_sign
+
+    if not fail_for_autodiff_exceptions and not autodiff_backend():
+        fn = _except_autodiff_exception(fn)
+
+    if not fail_for_not_implemented_errors:
+        fn = _except_not_implemented_errors(fn)
 
     return fn, defaults
 
@@ -375,7 +425,7 @@ def _filter_skips_and_ignores(test_attrs, testing_data):
         * each element is a tuple
         * each tuple contains a evaluated condition and a list of names
     * `ignores_if_not_autodiff` are a list of names
-    * `xfails` are treated separetely (are a list of names)
+    * `xfails` are treated separately (are a list of names)
     * names should not containt `test_` nor `_test_data`
     """
     selected_test_attrs = {}
@@ -384,6 +434,7 @@ def _filter_skips_and_ignores(test_attrs, testing_data):
 
     skips = list(testing_data.skips) if hasattr(testing_data, "skips") else []
 
+    # TODO: review
     skips_if = testing_data.skipif if hasattr(testing_data, "skips_if") else ()
     for skipif in skips_if:
         if skipif[0]:
@@ -391,6 +442,7 @@ def _filter_skips_and_ignores(test_attrs, testing_data):
 
     skips = {_name_to_test_name(name) for name in skips}
 
+    # TODO: remove?
     if not autodiff_backend():
         ignores = (
             set(testing_data.ignores_if_not_autodiff)
