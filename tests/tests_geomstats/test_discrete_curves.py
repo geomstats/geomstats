@@ -438,7 +438,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         curves_space = DiscreteCurves(ambient_manifold=r2)
         el_metric = ElasticMetric(a=1, b=0.5)
 
-        result = el_metric.f_transform(curve)
+        result = el_metric.diffeomorphism(curve)
         expected = curves_space.srv_metric.f_transform(curve)
         self.assertAllClose(result, expected, rtol, atol)
 
@@ -453,7 +453,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         starting_point = curve[0]
         fake_transformed_curve = curve[1:, :]
 
-        result = el_metric.f_transform_inverse(fake_transformed_curve, starting_point)
+        result = el_metric.inverse_diffeomophism(fake_transformed_curve, starting_point)
         expected = curves_space.srv_metric.f_transform_inverse(
             fake_transformed_curve, starting_point
         )
@@ -469,7 +469,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         curves = curves_space.random_point(n_samples=2)
 
-        result = el_metric.f_transform(curves)
+        result = el_metric.diffeomorphism(curves)
         expected = curves_space.srv_metric.f_transform(curves)
         self.assertAllClose(result, expected, rtol, atol)
 
@@ -479,8 +479,8 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         el_metric = ElasticMetric(a=a, b=b)
         curve = curves_space.random_point()
 
-        f = el_metric.f_transform(curve)
-        f_inverse = el_metric.f_transform_inverse(f, curve[0])
+        f = el_metric.diffeomorphism(curve)
+        f_inverse = el_metric.inverse_diffeomorphism(f, curve[0])
 
         result = f.shape
         expected = (curve.shape[0] - 1, 2)
