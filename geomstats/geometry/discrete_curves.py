@@ -6,6 +6,7 @@ Lead author: Alice Le Brigant.
 import math
 import numpy as np
 import copy
+import time
 #import sortednp
 
 from scipy.interpolate import CubicSpline
@@ -22,11 +23,11 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 
 R2 = Euclidean(dim=2)
 R3 = Euclidean(dim=3)
 
-import time
 
 class DiscreteCurves(Manifold):
     r"""Space of discrete curves sampled at points in ambient_manifold.
@@ -860,7 +861,7 @@ class ElasticMetric(PullbackDiffeoMetric):
         k_sampling_points=10,
     ):
         self.ambient_manifold = ambient_manifold
-        super().__init__(dim = math.inf, shape = None) #signature = (math.inf, 0, 0))
+        super().__init__(dim = math.inf, shape = (k_sampling_points,) + ambient_manifold.shape) #signature = (math.inf, 0, 0))
 
         self.ambient_metric = ambient_metric
         if ambient_metric is None:
@@ -1890,7 +1891,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         tangent_vec_ver = self.vertical_projection(tangent_vec, point)
         return tangent_vec - tangent_vec_ver
 
-    def horizontal_geodesic(self, initial_point, end_point, threshold=1e-3):
+    def horizontal_geodesic(self, initial_point, end_point, threshold=1e-3): # iterative horizontalazation
         """Compute horizontal geodesic between two curves.
 
         The horizontal geodesic is computed by an interative procedure where
@@ -2076,7 +2077,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
         return horizontal_path
 
-    def dist_dp(self,initial_point,end_point, n, max_slope, p=10):
+    def dist_dp(self,initial_point,end_point, n, max_slope):
 
         """ 
         Find the reparametrization gamma of the curve end_point that minimize the 
@@ -2283,16 +2284,17 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             
             #List of n*x where gamma(x) crosses a square
             
-            list_l = np.arange(x_min,x_max+1)
-            _list_k = np.arange(y_min,y_max+1)
+            list_l = np.arange(x_min,x_max+1, dtype = float)
+            _list_k = np.arange(y_min,y_max+1, dtype=float)
             list_k = (_list_k-y_min)/gamma_slope + x_min
-            list_total = np.concatenate(list_l,list_k)
+            list_total = np.concatenate((list_l,list_k))
             list_sorted = np.sort(list_total)
-            l = len(list_sorted)
-            lenght_intervals = list_sorted[1:]-list_sorted[:-1]
             
-            q_1_new = gs.array([q_1[int(np.floor(list_sorted[i]))] for i in range(l)])
-            q_2_new = gs.array([q_2[int(np.floor(gamma_slope*list_sorted[i] + gamma_constant))] for i in range(l)])
+            l = len(list_sorted)
+            lenght_intervals = list_sorted[1:-1]-list_sorted[:-2]
+            
+            q_1_new = gs.array([q_1[int(np.floor(list_sorted[i]))] for i in range(l-2)])
+            q_2_new = gs.array([q_2[int(np.floor(gamma_slope*list_sorted[i] + gamma_constant))] for i in range(l-2)])
             
             product = np.sum(np.multiply(q_1_new,q_2_new),axis=-1)
             result = np.dot(lenght_intervals,product)
@@ -2301,7 +2303,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             
             self.total_time_iteration += (time.time())-_start
 
-            return 0
+            return value
         
         def compute_rieman_sum_restricted(q_1,q_2,x_min,x_max,y_min,y_max,p):
             
@@ -2342,12 +2344,15 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         initial_q = srv_function(initial_point)
         end_q = srv_function(end_point)
 
+        """
         #norm_squared_initial_q = compute_integral_restricted(initial_q,initial_q,0,n,0,n)/n
         #norm_squared_end_q = compute_integral_restricted(end_q,end_q,0,n,0,n)/n
         
         #norm_squared_initial_q = compute_rieman_sum_restricted(initial_q,initial_q,0,n-1,0,n-1,p)/(n*p)
         #norm_squared_end_q = compute_rieman_sum_restricted(end_q,end_q,0,n-1,0,n-1,p)/(n*p)
         
+        """
+
         norm_squared_initial_q = compute_integral_restricted_constant(initial_q,initial_q,0,n,0,n)/n
         norm_squared_end_q = compute_integral_restricted_constant(end_q,end_q,0,n,0,n)/n
         
@@ -2379,6 +2384,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         maximum_scalar_product = tableau[(n,n)]/n # sinon c'est n*p
         dist_squared_1 = norm_squared_initial_q + norm_squared_end_q - 2*maximum_scalar_product
         
+        """
         end_q_2 = reparametrization(end_q,gamma[(n,n)])
         norm_squared_end_q_2 = compute_integral_restricted_constant(end_q_2,end_q_2,0,n,0,n)/n
         scalar_product = compute_integral_restricted_constant(initial_q,end_q_2,0,n,0,n)/n
@@ -2395,7 +2401,9 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         print("")
         print("")
         print("Mesures de temps de calcul")
+        """
         print("le temps d'excecution est égal à {} secondes".format(time.time()-start))
+        """
         print("le temps passé à calculer des integrales est égal à {} secondes ".format(self.total_time_iteration))
         print("le nombre d'itération est égal à {}".format(iterations))
         print("le temps moyen d'une itération est égal à {} secondes".format(self.total_time_iteration/iterations))
@@ -2412,8 +2420,8 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         print("Le produit scalaire maximum est égal à                                          {}".format(maximum_scalar_product))
         print("Le produit scalaire avec la seconde courbe reparametrisée (optimale) est égal à {}".format(scalar_product))
         print("La distance est égale à ")
-        return (np.sqrt(dist_squared_1),np.sqrt(dist_squared_2))
-        
+        """
+        return (np.sqrt(dist_squared_1))#,np.sqrt(dist_squared_2))
 
     def align(self, point, base_point, n_times=20, threshold=1e-3):
         """Find optimal reparametrization of curve with respect to base curve.
@@ -2515,3 +2523,14 @@ class SRVQuotientMetric(QuotientMetric):
         )
         quotient_dist = gs.sum(velocity_norms) / n_times
         return quotient_dist
+
+
+class DiscreteCurveswithstartpoint(ProductManifold):
+
+    def __init__(self, ambient_manifold, k_sampling_points=10, a=None, b=None, **kwargs):
+        
+        dim = ambient_manifold.dim
+        factors = [Euclidean(dim=dim),DiscreteCurves(ambient_manifold, k_sampling_points, a, b, **kwargs)]
+        
+        super().__init__(factors=factors, default_point_type = "auto",**kwargs)
+

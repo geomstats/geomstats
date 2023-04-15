@@ -412,8 +412,8 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         curves_space.start_at_the_origin = False
         el_metric = ElasticMetric(a=a, b=b)
         curve = curves_space.random_point()
-        polar_curve = el_metric.cartesian_to_polar(curve)
-        result = el_metric.polar_to_cartesian(polar_curve)
+        polar_curve = el_metric._cartesian_to_polar(curve)
+        result = el_metric._polar_to_cartesian(polar_curve)
 
         self.assertAllClose(result, curve, rtol, atol)
 
@@ -425,8 +425,8 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         curves_space.start_at_the_origin = False
         el_metric = ElasticMetric(a=a, b=b)
         curve = curves_space.random_point(n_samples=3)
-        polar_curve = el_metric.cartesian_to_polar(curve)
-        result = el_metric.polar_to_cartesian(polar_curve)
+        polar_curve = el_metric._cartesian_to_polar(curve)
+        result = el_metric._polar_to_cartesian(polar_curve)
 
         self.assertAllClose(result, curve, rtol=rtol, atol=atol)
 
