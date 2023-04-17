@@ -323,13 +323,13 @@ class RiemannianMetric(Connection, ABC):
             Random unit tangent vector at base_point.
         """
         shape = base_point.shape
-        if len(shape) > 1 and shape[-2] > 1 and n_vectors > 1:
+        if len(shape) > len(self.shape) and n_vectors > 1:
             raise ValueError(
                 "Several tangent vectors is only applicable to a single base point."
             )
-        random_vector = gs.squeeze(gs.random.rand(n_vectors, *shape))
-        normalized_vector = self.normalize(random_vector, base_point)
-        return gs.squeeze(normalized_vector)
+        vec_shape = (n_vectors, *shape) if n_vectors > 1 else shape
+        random_vector = gs.random.rand(*vec_shape)
+        return self.normalize(random_vector, base_point)
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
