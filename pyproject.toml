@@ -82,7 +82,7 @@ include = [
 [tool.setuptools.package-data]
 "*" = ["datasets/data/**/*"]
 
-[tool.pytest]
+[tool.pytest.ini_options]
 markers = [
     "smoke: simple and basic numerical tests.",
     "random: tests that use randomized data."
