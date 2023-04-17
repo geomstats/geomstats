@@ -15,9 +15,9 @@ from geomstats.test.geometry.spd_matrices import (
     SPDEuclideanMetricTestCase,
     SPDLogEuclideanMetricTestCase,
     SPDMatricesTestCase,
-    SPDRandomDataGenerator,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import RandomDataGenerator
 from tests2.data.spd_matrices_data import (
     SPDAffineMetricTestData,
     SPDBuresWassersteinMetricTestData,
@@ -79,7 +79,7 @@ def spd_with_bw_metric(request):
     request.cls.space = space
     space.equip_with_metric(SPDBuresWassersteinMetric)
 
-    request.cls.data_generator = SPDRandomDataGenerator(space, amplitude=8.0)
+    request.cls.data_generator = RandomDataGenerator(space, amplitude=2.0)
 
 
 @pytest.mark.usefixtures("spd_with_bw_metric")
@@ -103,11 +103,11 @@ def spd_with_euclidean_power_1(request):
     request.cls.space = space
     space.equip_with_metric(SPDEuclideanMetric)
 
-    request.cls.data_generator = SPDRandomDataGenerator(space, amplitude=10.0)
+    request.cls.data_generator = RandomDataGenerator(space, amplitude=4.0)
 
 
 @pytest.mark.usefixtures("spd_with_euclidean_power_1")
-class TestSPDEuclideanPower1Metric(
+class TestSPDEuclideanMetricPower1(
     SPDEuclideanMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SPDEuclideanMetricPower1TestData()
@@ -129,7 +129,7 @@ def spd_with_euclidean(request):
     request.cls.space = space
     space.equip_with_metric(SPDEuclideanMetric, power_euclidean=power_euclidean)
 
-    request.cls.data_generator = SPDRandomDataGenerator(space, amplitude=10.0)
+    request.cls.data_generator = RandomDataGenerator(space, amplitude=2.0)
 
 
 @pytest.mark.usefixtures("spd_with_euclidean")

@@ -6,20 +6,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.test.geometry.base import OpenSetTestCase, RiemannianMetricTestCase
-from geomstats.test.random import RandomDataGenerator
 from geomstats.test.vectorization import generate_vectorization_data
-
-
-class SPDRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, space, amplitude=1.0):
-        self.space = space
-        self.amplitude = amplitude
-
-    def random_tangent_vec(self, base_point):
-        return self.space.to_tangent(
-            gs.random.normal(size=base_point.shape) / self.amplitude,
-            base_point,
-        )
 
 
 class SPDMatricesTestCaseMixins:

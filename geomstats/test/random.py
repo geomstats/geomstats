@@ -1,11 +1,5 @@
 import geomstats.backend as gs
-from geomstats.geometry.base import (
-    ComplexOpenSet,
-    ComplexVectorSpace,
-    LevelSet,
-    OpenSet,
-    VectorSpace,
-)
+from geomstats.geometry.base import ComplexVectorSpace, VectorSpace
 from geomstats.geometry.hypersphere import _Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.vectorization import get_n_points
@@ -43,11 +37,11 @@ def get_random_tangent_vec(space, base_point):
     if isinstance(space, SPDMatrices):
         return space.random_tangent_vec(base_point)
 
-    if isinstance(space, (LevelSet, OpenSet, ComplexOpenSet)):
-        return _get_random_tangent_vec_from_embedding_space(space, base_point)
-
     if isinstance(space, (VectorSpace, ComplexVectorSpace)):
         return _get_random_tangent_vec_vector_space(space, base_point)
+
+    if hasattr(space, "embedding_space"):
+        return _get_random_tangent_vec_from_embedding_space(space, base_point)
 
     return _get_random_tangent_vec(space, base_point)
 
@@ -76,14 +70,15 @@ def get_random_times(n_times):
 
 
 class RandomDataGenerator:
-    def __init__(self, space):
+    def __init__(self, space, amplitude=1.0):
         self.space = space
+        self.amplitude = amplitude
 
     def random_point(self, n_points=1):
         return self.space.random_point(n_points)
 
     def random_tangent_vec(self, base_point):
-        return get_random_tangent_vec(self.space, base_point)
+        return get_random_tangent_vec(self.space, base_point) / self.amplitude
 
 
 class FiberBundleRandomDataGenerator(RandomDataGenerator):
