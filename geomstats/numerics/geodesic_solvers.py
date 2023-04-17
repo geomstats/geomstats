@@ -195,36 +195,36 @@ class LogShootingSolverUnflatten(LogSolver):
 
 
 class LogBVPSolver(LogSolver):
-    def __init__(self, n_nodes, integrator=None, initialization=None):
-        # TODO: add more control on the discretization
+    def __init__(self, n_segments=1000, integrator=None, initialization=None):
+        # TODO: add more control on the discretization?
         if integrator is None:
             integrator = ScipySolveBVP()
 
         if initialization is None:
             initialization = self._default_initialization
 
-        # TODO: rename (more segments than nodes)
-        self.n_nodes = n_nodes
+        # TODO: rename (more segments than nodes) #
+        self.n_segments = n_segments
         self.integrator = integrator
         self.initialization = initialization
 
-    def _default_initialization(self, space, point, base_point):
+    def _default_initialization(self, space, point, base_point, n_segments):
         # TODO: receive discretization instead?
         dim = space.dim
         point_0, point_1 = base_point, point
 
-        # TODO: need to update torch linspace
-        # TODO: need to avoid assignment
+        # TODO: need to update torch linspace #
+        # TODO: need to avoid assignment #
 
-        lin_init = gs.zeros([2 * dim, self.n_nodes])
-        lin_init[:dim, :] = gs.transpose(gs.linspace(point_0, point_1, self.n_nodes))
-        lin_init[dim:, :-1] = self.n_nodes * (lin_init[:dim, 1:] - lin_init[:dim, :-1])
-        lin_init[dim:, -1] = lin_init[dim:, -2]
+        mesh = gs.transpose(gs.linspace(point_0, point_1, n_segments))
+        predictions = n_segments * (mesh[:,1:] - mesh[:,:-1])
+        predictions = gs.hstack((predictions, gs.array(predictions[:,-2:-1])))
+        lin_init = gs.vstack((mesh,predictions))
         return lin_init
 
     def boundary_condition(self, state_0, state_1, space, point_0, point_1):
-        pos_0 = state_0[: space.dim]
-        pos_1 = state_1[: space.dim]
+        pos_0 = state_0[:space.dim]
+        pos_1 = state_1[:space.dim]
         return gs.hstack((pos_0 - point_0, pos_1 - point_1))
 
     def bvp(self, _, raveled_state, space):
@@ -233,35 +233,71 @@ class LogBVPSolver(LogSolver):
         # assumes unvectorized
 
         state = gs.moveaxis(
-            gs.reshape(raveled_state, (space.dim, space.dim, -1)), -2, -1
+            gs.reshape(raveled_state, (2, space.dim, -1)), -2, -1
         )
 
         eq = space.metric.geodesic_equation(state, _)
 
         eq = gs.reshape(gs.moveaxis(eq, -2, -1), (2 * space.dim, -1))
-
+        
         return eq
 
     def log(self, space, point, base_point):
-        # TODO: vectorize
+        # TODO: vectorize #
         # TODO: assume known jacobian
 
-        bvp = lambda t, state: self.bvp(t, state, space)
-        bc = lambda state_0, state_1: self.boundary_condition(
-            state_0, state_1, space, base_point, point
-        )
+        all_results = []
 
-        x = gs.linspace(0.0, 1.0, self.n_nodes)
-        y = self.initialization(space, point, base_point)
+        point, base_point = gs.broadcast_arrays(point, base_point)
+        if point.ndim == 1:
+            point = gs.expand_dims(point, axis=0)
+            base_point = gs.expand_dims(base_point, axis=0)
 
-        result = self.integrator.integrate(bvp, bc, x, y)
+        for i in range(point.shape[0]):
+            bvp = lambda t, state: self.bvp(t, state, space)
+            bc = lambda state_0, state_1: self.boundary_condition(
+                state_0, state_1, space, base_point[i], point[i]
+            )
 
-        return self._simplify_result(result, space)
+            x = gs.linspace(0.0, 1.0, self.n_segments)
+            y = self.initialization(space, point[i], base_point[i], self.n_segments)
+            
+            result = self.integrator.integrate(bvp, bc, x, y)
+            all_results.append(result)
+
+        return gs.squeeze(gs.vstack([self._simplify_result(result, space) for result in all_results]), axis=0)
 
     def geodesic_bvp(self, space, point, base_point):
-        pass
+        all_results = []
+
+        point, base_point = gs.broadcast_arrays(point, base_point)
+        if point.ndim == 1:
+            point = gs.expand_dims(point, axis=0)
+            base_point = gs.expand_dims(base_point, axis=0)
+
+        for i in range(point.shape[0]):
+            bvp = lambda t, state: self.bvp(t, state, space)
+            bc = lambda state_0, state_1: self.boundary_condition(
+                state_0, state_1, space, base_point[i], point[i]
+            )
+
+            x = gs.linspace(0.0, 1.0, self.n_segments)
+            y = self.initialization(space, point[i], base_point[i], self.n_segments)
+            
+            result = self.integrator.integrate(bvp, bc, x, y)
+            all_results.append(result)
+
+        def path(t):
+            y_t = gs.array([result.sol(t)[:1] for result in all_results])
+            return gs.expand_dims(gs.squeeze(y_t, axis=-2), axis=-1)
+            
+        return path
 
     def _simplify_result(self, result, space):
-        _, tangent_vec = gs.reshape(gs.transpose(result.y)[0], (space.dim, space.dim))
+        _, tangent_vec = gs.reshape(gs.transpose(result.y)[0], (2, space.dim))
 
         return tangent_vec
+    
+# class LogPolynomialSolver(LogSolver):
+# use minimize in optimize
+
