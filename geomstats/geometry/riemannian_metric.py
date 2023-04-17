@@ -9,6 +9,7 @@ import joblib
 import geomstats.backend as gs
 import geomstats.geometry as geometry
 from geomstats.geometry.connection import Connection
+from geomstats.vectorization import check_is_batch
 
 EPSILON = 1e-4
 N_CENTERS = 10
@@ -322,12 +323,13 @@ class RiemannianMetric(Connection, ABC):
         normalized_vector : array-like, shape=[..., n_vectors, dim]
             Random unit tangent vector at base_point.
         """
-        shape = base_point.shape
-        if len(shape) > len(self.shape) and n_vectors > 1:
+        is_batch = check_is_batch(self._space, base_point)
+        if is_batch and n_vectors > 1:
             raise ValueError(
                 "Several tangent vectors is only applicable to a single base point."
             )
-        vec_shape = (n_vectors, *shape) if n_vectors > 1 else shape
+        point_shape = self._space.shape
+        vec_shape = (n_vectors, *point_shape) if n_vectors > 1 else point_shape
         random_vector = gs.random.rand(*vec_shape)
         return self.normalize(random_vector, base_point)
 
