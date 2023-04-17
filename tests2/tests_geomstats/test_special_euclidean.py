@@ -5,19 +5,23 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
+    SpecialEuclideanMatrixCanonicalLeftMetric,
     SpecialEuclideanMatrixLieAlgebra,
     _SpecialEuclideanMatrices,
 )
 from geomstats.test.geometry.special_euclidean import (
     SpecialEuclideanMatricesTestCase,
+    SpecialEuclideanMatrixCanonicalLeftMetricTestCase,
     SpecialEuclideanMatrixLieAlgebraTestCase,
     SpecialEuclideanVectorsTestCase,
     homogeneous_representation_test_case,
     homogeneous_representation_vec_test_case,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import RandomDataGenerator
 from tests2.data.special_euclidean_data import (
     SpecialEuclideanMatricesTestData,
+    SpecialEuclideanMatrixCanonicalLeftMetricTestData,
     SpecialEuclideanMatrixLieAlgebra2TestData,
     SpecialEuclideanMatrixLieAlgebraTestData,
     SpecialEuclideanVectorsTestData,
@@ -101,8 +105,27 @@ def test_dim_mla(n, expected):
     assert space.dim == expected
 
 
+@pytest.mark.smoke
 class TestSpecialEuclideanMatrixLieAlgebra2(
     SpecialEuclideanMatrixLieAlgebraTestCase, metaclass=DataBasedParametrizer
 ):
     space = SpecialEuclideanMatrixLieAlgebra(n=2)
     testing_data = SpecialEuclideanMatrixLieAlgebra2TestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        SpecialEuclidean(random.randint(2, 3), equip=False),
+    ],
+)
+def equipped_SE_matrix_groups(request):
+    space = request.cls.space = request.param
+    space.equip_with_metric(SpecialEuclideanMatrixCanonicalLeftMetric)
+
+
+@pytest.mark.usefixtures("equipped_SE_matrix_groups")
+class TestSpecialEuclideanMatrixCanonicalLeftMetric(
+    SpecialEuclideanMatrixCanonicalLeftMetricTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = SpecialEuclideanMatrixCanonicalLeftMetricTestData()

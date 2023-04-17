@@ -14,6 +14,7 @@ from geomstats.test.geometry.base import (
     MatrixLieGroupTestCase,
     _ProjectionTestCaseMixins,
 )
+from geomstats.test.geometry.invariant_metric import InvariantMetricMatrixTestCase
 from geomstats.test.test_case import assert_allclose
 from geomstats.test.vectorization import generate_vectorization_data
 
@@ -138,4 +139,8 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
 
 
 class SpecialEuclideanMatrixLieAlgebraTestCase(MatrixLieAlgebraTestCase):
+    pass
+
+
+class SpecialEuclideanMatrixCanonicalLeftMetricTestCase(InvariantMetricMatrixTestCase):
     pass

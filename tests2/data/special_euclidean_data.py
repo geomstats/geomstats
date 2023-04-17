@@ -9,6 +9,7 @@ from tests2.data.base_data import (
     MatrixLieGroupTestData,
     _ProjectionMixinsTestData,
 )
+from tests2.data.invariant_metric_data import InvariantMetricMatrixTestData
 
 
 def algebra_useful_matrix(theta, elem_33=0.0):
@@ -77,3 +78,10 @@ class SpecialEuclideanMatrixLieAlgebra2TestData(TestData):
             ),
         ]
         return self.generate_tests(data)
+
+
+class SpecialEuclideanMatrixCanonicalLeftMetricTestData(InvariantMetricMatrixTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
+
+    xfails = ("exp_at_identity_vec",)

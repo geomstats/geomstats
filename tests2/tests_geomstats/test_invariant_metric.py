@@ -7,6 +7,7 @@ from geomstats.geometry.invariant_metric import (
     _InvariantMetricMatrix,
     _InvariantMetricVector,
 )
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.test.geometry.invariant_metric import (
     BiInvariantMetricTestCase,
@@ -14,11 +15,13 @@ from geomstats.test.geometry.invariant_metric import (
     InvariantMetricVectorTestCase,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import RandomDataGenerator
 from tests2.data.invariant_metric_data import (
-    BiInvariantMetricSO3VectorTestData,
-    BiInvariantMetricSOMatrixTestData,
+    BiInvariantMetricMatrixSOTestData,
+    BiInvariantMetricVectorSO3TestData,
+    InvariantMetricMatrixSETestData,
     InvariantMetricMatrixSOTestData,
-    InvariantMetricVectorSOTestData,
+    InvariantMetricVectorTestData,
 )
 
 # TODO: comparison of different point types?
@@ -37,6 +40,8 @@ def equipped_SO_matrix_groups_left_right(request):
     request.cls.space = space
     space.equip_with_metric(_InvariantMetricMatrix, left=left)
 
+    request.cls.data_generator = RandomDataGenerator(space, amplitude=5.0)
+
 
 @pytest.mark.slow
 @pytest.mark.usefixtures("equipped_SO_matrix_groups_left_right")
@@ -49,21 +54,47 @@ class TestInvariantMetricMatrixSO(
 @pytest.fixture(
     scope="class",
     params=[
-        (SpecialOrthogonal(3, point_type="vector", equip=False), True),
-        (SpecialOrthogonal(3, point_type="vector", equip=False), False),
+        SpecialEuclidean(random.randint(2, 3), equip=False),
     ],
 )
-def equipped_SO3_vector_groups_left_right(request):
+def equipped_SE_matrix_groups(request):
+    space = request.cls.space = request.param
+    space.equip_with_metric(_InvariantMetricMatrix, left=False)
+
+    request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
+
+
+@pytest.mark.slow
+@pytest.mark.usefixtures("equipped_SE_matrix_groups")
+class TestInvariantMetricMatrixSE(
+    InvariantMetricMatrixTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = InvariantMetricMatrixSETestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (SpecialOrthogonal(3, point_type="vector", equip=False), True),
+        (SpecialOrthogonal(3, point_type="vector", equip=False), False),
+        (SpecialEuclidean(2, point_type="vector", equip=False), True),
+        (SpecialEuclidean(2, point_type="vector", equip=False), False),
+        (SpecialEuclidean(3, point_type="vector", equip=False), True),
+        (SpecialEuclidean(3, point_type="vector", equip=False), False),
+    ],
+)
+def equipped_vector_groups_left_right(request):
     space, left = request.param
     request.cls.space = space
     space.equip_with_metric(_InvariantMetricVector, left=left)
 
 
-@pytest.mark.usefixtures("equipped_SO3_vector_groups_left_right")
-class TestInvariantMetricVectorSO(
+@pytest.mark.slow
+@pytest.mark.usefixtures("equipped_vector_groups_left_right")
+class TestInvariantMetricVector(
     InvariantMetricVectorTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = InvariantMetricVectorSOTestData()
+    testing_data = InvariantMetricVectorTestData()
 
 
 @pytest.fixture(
@@ -78,10 +109,10 @@ def equipped_SO3_vector_groups(request):
 
 
 @pytest.mark.usefixtures("equipped_SO3_vector_groups")
-class TestBiInvariantMetricSO3Vector(
+class TestBiInvariantMetricVectorSO3(
     BiInvariantMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = BiInvariantMetricSO3VectorTestData()
+    testing_data = BiInvariantMetricVectorSO3TestData()
 
 
 @pytest.fixture(
@@ -96,7 +127,7 @@ def equipped_SO_matrix_groups(request):
 
 
 @pytest.mark.usefixtures("equipped_SO_matrix_groups")
-class TestBiInvariantMetricSOMatrix(
+class TestBiInvariantMetricMatrixSO(
     BiInvariantMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = BiInvariantMetricSOMatrixTestData()
+    testing_data = BiInvariantMetricMatrixSOTestData()

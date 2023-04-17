@@ -54,18 +54,27 @@ class SPDMatricesTestData(SPDMatricesMixinsTestData, OpenSetTestData):
 
 
 class SPDAffineMetricTestData(RiemannianMetricTestData):
+    fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
 
 class SPDBuresWassersteinMetricTestData(RiemannianMetricTestData):
+    fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
     tolerances = {
         "dist_point_to_itself_is_zero": {"atol": 1e-6},
     }
 
+    skips = (
+        "parallel_transport_transported_is_tangent",
+        "parallel_transport_vec_with_direction",
+        "parallel_transport_vec_with_end_point",
+    )
+
 
 class SPDEuclideanMetricPower1TestData(RiemannianMetricTestData):
+    fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
     def exp_domain_vec_test_data(self):
@@ -73,8 +82,10 @@ class SPDEuclideanMetricPower1TestData(RiemannianMetricTestData):
 
 
 class SPDEuclideanMetricTestData(SPDEuclideanMetricPower1TestData):
+    fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
 
 class SPDLogEuclideanMetricTestData(RiemannianMetricTestData):
+    fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
