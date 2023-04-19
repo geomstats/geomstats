@@ -21,5 +21,5 @@ def dims(request):
 
 
 @pytest.mark.usefixtures("dims")
-class Test_Hyperbolic(HyperbolicTestCase, metaclass=DataBasedParametrizer):
+class TestHyperbolic(HyperbolicTestCase, metaclass=DataBasedParametrizer):
     testing_data = HyperbolicTestData()
