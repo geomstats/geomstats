@@ -7,8 +7,16 @@ from geomstats.numerics._common import result_to_backend_type
 
 
 class ScipyMinimize:
-    def __init__(self, method="L-BFGS-B", jac=None, bounds=None,
-                 tol=None, callback=None, options=None, save_result=False,):
+    def __init__(
+        self,
+        method="L-BFGS-B",
+        jac=None,
+        bounds=None,
+        tol=None,
+        callback=None,
+        options=None,
+        save_result=False,
+    ):
         # TODO: fully copy scikit signature
         self.method = method
         self.options = options

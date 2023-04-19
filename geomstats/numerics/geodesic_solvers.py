@@ -5,6 +5,8 @@ from geomstats.numerics.bvp_solvers import ScipySolveBVP
 from geomstats.numerics.ivp_solvers import GSIntegrator
 from geomstats.numerics.optimizers import ScipyMinimize
 
+# TODO: check uses of space.dim
+
 
 class ExpSolver(ABC):
     @abstractmethod
@@ -43,21 +45,13 @@ class ExpIVPSolver(ExpSolver):
 
     def geodesic_ivp(self, space, tangent_vec, base_point):
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
-        t_axis = int(tangent_vec.ndim > space.point_ndim)
 
         def path(t):
-            # TODO: likely unwanted behavior
-            squeeze = False
             if not gs.is_array(t):
                 t = gs.array([t])
-                squeeze = True
 
             result = self._solve(space, tangent_vec, base_point, t_eval=t)
-            result = self._simplify_result_t(result, space)
-            if squeeze:
-                return gs.squeeze(result, axis=t_axis)
-
-            return result
+            return self._simplify_result_t(result, space)
 
         return path
 
@@ -78,7 +72,6 @@ class ExpIVPSolver(ExpSolver):
         # assumes unvectorize
         state = gs.reshape(raveled_initial_state, (space.dim, space.dim))
 
-        # TODO: remove dependency on time in `geodesic_equation`?
         eq = space.metric.geodesic_equation(state, _)
 
         return gs.flatten(eq)
@@ -87,7 +80,7 @@ class ExpIVPSolver(ExpSolver):
         return space.metric.geodesic_equation(initial_state, _)
 
     def _simplify_exp_result(self, result, space):
-        y = result.y[-1]
+        y = result.get_last_y()
 
         if self.integrator.state_is_raveled:
             return y[..., : space.dim]
@@ -95,13 +88,12 @@ class ExpIVPSolver(ExpSolver):
         return y[0]
 
     def _simplify_result_t(self, result, space):
-        # TODO: need to verify
-
         # assumes several t
         y = result.y
 
         if self.integrator.state_is_raveled:
             y = y[..., : space.dim]
+
             if gs.ndim(y) > 2:
                 return gs.moveaxis(y, 0, 1)
             return y
@@ -113,13 +105,80 @@ class ExpIVPSolver(ExpSolver):
 
 
 class LogSolver(ABC):
-    # TODO: check private methods in children
     @abstractmethod
     def log(self, space, point, base_point):
         pass
 
+    @abstractmethod
+    def geodesic_bvp(self, space, point, base_point):
+        pass
 
-class LogShootingSolver(LogSolver):
+
+class _GeodesicBVPFromExpMixins:
+    def _geodesic_bvp_single(self, space, t, tangent_vec, base_point):
+        tangent_vec_ = gs.einsum("...,...i->...i", t, tangent_vec)
+        return space.metric.exp(tangent_vec_, base_point)
+
+    def geodesic_bvp(self, space, point, base_point):
+        tangent_vec = self.log(space, point, base_point)
+        is_batch = tangent_vec.ndim > space.point_ndim
+
+        def path(t):
+            if not gs.is_array(t):
+                t = gs.array([t])
+
+            if not is_batch:
+                return self._geodesic_bvp_single(space, t, tangent_vec, base_point)
+
+            return gs.stack(
+                [
+                    self._geodesic_bvp_single(space, t, tangent_vec_, base_point_)
+                    for tangent_vec_, base_point_ in zip(tangent_vec, base_point)
+                ]
+            )
+
+        return path
+
+
+class _LogBatchMixins:
+    @abstractmethod
+    def _log_single(self, space, point, base_point):
+        pass
+
+    def log(self, space, point, base_point):
+        # assumes inability to properly vectorize
+        if point.ndim != base_point.ndim:
+            point, base_point = gs.broadcast_arrays(point, base_point)
+
+        is_batch = point.ndim > space.point_ndim
+        if not is_batch:
+            return self._log_single(space, point, base_point)
+
+        return gs.stack(
+            [
+                self._log_single(space, point_, base_point_)
+                for point_, base_point_ in zip(point, base_point)
+            ]
+        )
+
+
+class LogShootingSolver:
+    def __new__(cls, optimizer=None, initialization=None, flatten=True):
+        if flatten:
+            return _LogShootingSolverFlatten(
+                optimizer=optimizer,
+                initialization=initialization,
+            )
+
+        return _LogShootingSolverUnflatten(
+            optimizer=optimizer,
+            initialization=initialization,
+        )
+
+
+class _LogShootingSolverFlatten(_GeodesicBVPFromExpMixins, LogSolver):
+    # TODO: add a (linear) initialization here?
+
     def __init__(self, optimizer=None, initialization=None):
         if optimizer is None:
             optimizer = ScipyMinimize(jac="autodiff")
@@ -139,9 +198,6 @@ class LogShootingSolver(LogSolver):
         return gs.sum(delta**2)
 
     def log(self, space, point, base_point):
-        # TODO: are we sure optimizing together is a good idea?
-        # TODO: create alternative vectorization case
-
         if point.ndim != base_point.ndim:
             point, base_point = gs.broadcast_arrays(point, base_point)
 
@@ -155,7 +211,9 @@ class LogShootingSolver(LogSolver):
         return tangent_vec
 
 
-class LogShootingSolverUnflatten(LogSolver):
+class _LogShootingSolverUnflatten(
+    _LogBatchMixins, _GeodesicBVPFromExpMixins, LogSolver
+):
     def __init__(self, optimizer=None, initialization=None):
         if optimizer is None:
             optimizer = ScipyMinimize(jac="autodiff")
@@ -173,7 +231,7 @@ class LogShootingSolverUnflatten(LogSolver):
         delta = space.metric.exp(velocity, base_point) - point
         return gs.sum(delta**2)
 
-    def _log(self, space, point, base_point):
+    def _log_single(self, space, point, base_point):
         objective = lambda velocity: self._objective(velocity, space, point, base_point)
         init_tangent_vec = self.initialization(space, point, base_point)
 
@@ -181,123 +239,98 @@ class LogShootingSolverUnflatten(LogSolver):
 
         return res.x
 
-    def log(self, space, point, base_point):
-        if point.ndim != base_point.ndim:
-            point, base_point = gs.broadcast_arrays(point, base_point)
 
-        is_batch = point.ndim > space.point_ndim
-        if not is_batch:
-            return self._log(space, point, base_point)
-
-        return gs.stack(
-            [self._log(space, point_, base_point_) for point_, base_point_ in zip(point, base_point)]
-        )
-
-
-class LogBVPSolver(LogSolver):
-    def __init__(self, n_segments=1000, integrator=None, initialization=None):
-        # TODO: add more control on the discretization?
+class LogBVPSolver(_LogBatchMixins, LogSolver):
+    def __init__(self, n_nodes=10, integrator=None, initialization=None):
         if integrator is None:
             integrator = ScipySolveBVP()
 
         if initialization is None:
             initialization = self._default_initialization
 
-        # TODO: rename (more segments than nodes) #
-        self.n_segments = n_segments
+        self.n_nodes = n_nodes
         self.integrator = integrator
         self.initialization = initialization
 
-    def _default_initialization(self, space, point, base_point, n_segments):
-        # TODO: receive discretization instead?
-        dim = space.dim
+        self.grid = self._create_grid()
+
+    def _create_grid(self):
+        return gs.linspace(0.0, 1.0, num=self.n_nodes)
+
+    def _default_initialization(self, space, point, base_point):
         point_0, point_1 = base_point, point
 
-        # TODO: need to update torch linspace #
-        # TODO: need to avoid assignment #
+        pos_init = gs.transpose(gs.linspace(point_0, point_1, self.n_nodes))
 
-        mesh = gs.transpose(gs.linspace(point_0, point_1, n_segments))
-        predictions = n_segments * (mesh[:,1:] - mesh[:,:-1])
-        predictions = gs.hstack((predictions, gs.array(predictions[:,-2:-1])))
-        lin_init = gs.vstack((mesh,predictions))
-        return lin_init
+        vel_init = self.n_nodes * (pos_init[:, 1:] - pos_init[:, :-1])
+        vel_init = gs.hstack([vel_init, vel_init[:, [-2]]])
+
+        return gs.vstack([pos_init, vel_init])
 
     def boundary_condition(self, state_0, state_1, space, point_0, point_1):
-        pos_0 = state_0[:space.dim]
-        pos_1 = state_1[:space.dim]
+        pos_0 = state_0[: space.dim]
+        pos_1 = state_1[: space.dim]
         return gs.hstack((pos_0 - point_0, pos_1 - point_1))
 
     def bvp(self, _, raveled_state, space):
         # inputs: n (2*dim) , n_nodes
-
         # assumes unvectorized
 
-        state = gs.moveaxis(
-            gs.reshape(raveled_state, (2, space.dim, -1)), -2, -1
-        )
+        state = gs.moveaxis(gs.reshape(raveled_state, (2, space.dim, -1)), -2, -1)
 
         eq = space.metric.geodesic_equation(state, _)
 
-        eq = gs.reshape(gs.moveaxis(eq, -2, -1), (2 * space.dim, -1))
-        
-        return eq
+        return gs.reshape(gs.moveaxis(eq, -2, -1), (2 * space.dim, -1))
 
-    def log(self, space, point, base_point):
-        # TODO: vectorize #
-        # TODO: assume known jacobian
+    def _solve(self, space, point, base_point):
+        bvp = lambda t, state: self.bvp(t, state, space)
+        bc = lambda state_0, state_1: self.boundary_condition(
+            state_0, state_1, space, base_point, point
+        )
 
-        all_results = []
+        y = self.initialization(space, point, base_point)
 
-        point, base_point = gs.broadcast_arrays(point, base_point)
-        if point.ndim == 1:
-            point = gs.expand_dims(point, axis=0)
-            base_point = gs.expand_dims(base_point, axis=0)
+        return self.integrator.integrate(bvp, bc, self.grid, y)
 
-        for i in range(point.shape[0]):
-            bvp = lambda t, state: self.bvp(t, state, space)
-            bc = lambda state_0, state_1: self.boundary_condition(
-                state_0, state_1, space, base_point[i], point[i]
-            )
-
-            x = gs.linspace(0.0, 1.0, self.n_segments)
-            y = self.initialization(space, point[i], base_point[i], self.n_segments)
-            
-            result = self.integrator.integrate(bvp, bc, x, y)
-            all_results.append(result)
-
-        return gs.squeeze(gs.vstack([self._simplify_result(result, space) for result in all_results]), axis=0)
+    def _log_single(self, space, point, base_point):
+        res = self._solve(space, point, base_point)
+        return self._simplify_log_result(res, space)
 
     def geodesic_bvp(self, space, point, base_point):
-        all_results = []
+        # TODO: add to docstrings: 0 <= t <= 1
 
-        point, base_point = gs.broadcast_arrays(point, base_point)
-        if point.ndim == 1:
-            point = gs.expand_dims(point, axis=0)
-            base_point = gs.expand_dims(base_point, axis=0)
+        if point.ndim != base_point.ndim:
+            point, base_point = gs.broadcast_arrays(point, base_point)
 
-        for i in range(point.shape[0]):
-            bvp = lambda t, state: self.bvp(t, state, space)
-            bc = lambda state_0, state_1: self.boundary_condition(
-                state_0, state_1, space, base_point[i], point[i]
-            )
-
-            x = gs.linspace(0.0, 1.0, self.n_segments)
-            y = self.initialization(space, point[i], base_point[i], self.n_segments)
-            
-            result = self.integrator.integrate(bvp, bc, x, y)
-            all_results.append(result)
+        is_batch = point.ndim > space.point_ndim
+        if not is_batch:
+            result = self._solve(space, point, base_point)
+        else:
+            results = [
+                self._solve(space, point_, base_point_)
+                for point_, base_point_ in zip(point, base_point)
+            ]
 
         def path(t):
-            y_t = gs.array([result.sol(t)[:1] for result in all_results])
-            return gs.expand_dims(gs.squeeze(y_t, axis=-2), axis=-1)
-            
+            if not gs.is_array(t):
+                t = gs.array([t])
+
+            if not is_batch:
+                return self._simplify_result_t(result.sol(t), space)
+
+            return gs.array(
+                [self._simplify_result_t(result.sol(t), space) for result in results]
+            )
+
         return path
 
-    def _simplify_result(self, result, space):
+    def _simplify_log_result(self, result, space):
         _, tangent_vec = gs.reshape(gs.transpose(result.y)[0], (2, space.dim))
-
         return tangent_vec
-    
+
+    def _simplify_result_t(self, result, space):
+        return gs.transpose(result[:2, :])
+
+
 # class LogPolynomialSolver(LogSolver):
 # use minimize in optimize
-

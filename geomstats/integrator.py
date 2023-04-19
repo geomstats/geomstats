@@ -47,9 +47,9 @@ def euler_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+    point_new : array-like, shape=[..., {dim, [n, n]}]
         First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+    vector_new : array-like, shape=[..., {dim, [n, n]}]
         Second variable at time t + dt.
     """
     derivatives = force(state, time)
@@ -74,9 +74,9 @@ def symplectic_euler_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+    point_new : array-like, shape=[..., {dim, [n, n]}]
         First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+    vector_new : array-like, shape=[..., {dim, [n, n]}]
         Second variable at time t + dt.
     """
     raise NotImplementedError
@@ -99,9 +99,9 @@ def leapfrog_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+    point_new : array-like, shape=[..., {dim, [n, n]}]
         First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+    vector_new : array-like, shape=[..., {dim, [n, n]}]
         Second variable at time t + dt.
     """
     raise NotImplementedError
@@ -124,9 +124,9 @@ def rk2_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+    point_new : array-like, shape=[..., {dim, [n, n]}]
         First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+    vector_new : array-like, shape=[..., {dim, [n, n]}]
         Second variable at time t + dt.
 
     See Also
@@ -156,9 +156,9 @@ def rk4_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+    point_new : array-like, shape=[..., {dim, [n, n]}]
         First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+    vector_new : array-like, shape=[..., {dim, [n, n]}]
         Second variable at time t + dt.
 
     See Also

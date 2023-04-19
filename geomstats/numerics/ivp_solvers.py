@@ -8,9 +8,29 @@ from geomstats.errors import check_parameter_accepted_values
 from geomstats.numerics._common import result_to_backend_type
 
 
+def _merge_scipy_results(results, same_t=False):
+    keys = list(results[0].keys())
+    merged_results = {key: [] for key in keys}
+
+    for result in results:
+        for key, value in merged_results.items():
+            merged_results[key].append(result[key])
+
+    if same_t:
+        merged_results["t"] = gs.moveaxis(merged_results["t"], 0, 1)
+        merged_results["y"] = gs.moveaxis(merged_results["y"], 0, 1)
+
+    return merged_results
+
+
 class OdeResult(scipy.optimize.OptimizeResult):
     # following scipy
-    pass
+    def get_last_y(self):
+        # assumes last t is the same
+        if gs.is_array(self.y):
+            return self.y[-1]
+
+        return gs.stack([y_[-1] for y_ in self.y])
 
 
 class ODEIVPSolver(ABC):
@@ -125,6 +145,7 @@ class ScipySolveIVP(ODEIVPSolver):
     def _integrate(self, force, initial_state, end_time=1.0, t_eval=None):
         # TODO: parallelize?
 
+        # TODO: check this condition
         if initial_state.ndim > 1:
             results = []
             for initial_state_ in initial_state:
@@ -134,12 +155,13 @@ class ScipySolveIVP(ODEIVPSolver):
                     )
                 )
 
-            result = self._merge_results(results)
+            result = OdeResult(_merge_scipy_results(results, same_t=t_eval is not None))
 
         else:
             result = self._integrate_single_point(
                 force, initial_state, end_time, t_eval=t_eval
             )
+            result = OdeResult(**result)
 
         if self.save_result:
             self.result_ = result
@@ -169,19 +191,3 @@ class ScipySolveIVP(ODEIVPSolver):
         result.y = gs.moveaxis(result.y, 0, -1)
 
         return result
-
-    def _merge_results(self, results):
-        # TODO: can "t" and "y" have different shapes?
-        keys = ["t", "y", "nfev", "njev", "success"]
-        merged_results = {key: [] for key in keys}
-
-        for result in results:
-            for key, value in merged_results.items():
-                merged_results[key].append(result[key])
-
-        # TODO: should keys other than "t" and "y" be array?
-        merged_results = {key: gs.array(value) for key, value in merged_results.items()}
-        merged_results["t"] = gs.moveaxis(merged_results["t"], 0, 1)
-        merged_results["y"] = gs.moveaxis(merged_results["y"], 0, 1)
-
-        return OdeResult(**merged_results)
