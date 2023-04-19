@@ -63,10 +63,15 @@ def get_random_quaternion(n_points=1):
     )
 
 
-def get_random_times(n_times):
+def get_random_times(n_times, sort=True):
     if n_times == 1:
         return gs.random.rand(1)[0]
-    return gs.random.rand(n_times)
+
+    time = gs.random.rand(n_times)
+    if sort:
+        return gs.sort(time)
+
+    return time
 
 
 class RandomDataGenerator:
