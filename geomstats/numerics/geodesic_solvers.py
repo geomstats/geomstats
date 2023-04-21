@@ -313,7 +313,7 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
 
         def path(t):
             if not gs.is_array(t):
-                t = gs.array([t])
+                t = gs.array(t)
 
             if not is_batch:
                 return self._simplify_result_t(result.sol(t), space)
@@ -328,7 +328,9 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
         _, tangent_vec = gs.reshape(gs.transpose(result.y)[0], (2, space.dim))
         return tangent_vec
     
-    
+    def _simplify_result_t(self, result, space):
+        return gs.transpose(result[:space.dim, :])
+
 
 class LogPolynomialSolver(_LogBatchMixins, LogSolver):
 

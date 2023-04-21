@@ -29,23 +29,23 @@ class ScipyMinimize:
 
         self.result_ = None
 
-    def optimize(self, func, x0):
+    def optimize(self, func, x0, jac=None, args=()):
         # TODO: need to improve result (e.g. vector or float if one point)
 
-        jac = self.jac
-        if self.jac == "autodiff":
+        jac = self.jac if jac is None else jac
+        if jac == "autodiff":
             jac = True
 
-            def func_(x):
+            def func_(x, *args):
                 value, grad = gs.autodiff.value_and_grad(func, to_numpy=True)(
-                    gs.from_numpy(x)
+                    gs.from_numpy(x), *args
                 )
                 return value, grad
 
         else:
 
-            def func_(x):
-                value = func(gs.from_numpy(x))
+            def func_(x, *args):
+                value = func(gs.from_numpy(x), *args)
                 return value
 
         result = scipy.optimize.minimize(
@@ -57,6 +57,7 @@ class ScipyMinimize:
             tol=self.tol,
             callback=self.callback,
             options=self.options,
+            args=args
         )
 
         result = result_to_backend_type(result)
