@@ -364,8 +364,6 @@ class LogPolynomialSolver(_LogBatchMixins, LogSolver):
         """Compute the energy of the polynomial curve defined by param."""
 
         x, y = self.initialization(space, point, base_point, param)
-        if x.min() < 0:
-            return np.inf, np.inf, x, np.nan
 
         velocity_sqnorm = space.metric.squared_norm(vector=y, base_point=x)
         energy = gs.sum(velocity_sqnorm) / self.n_nodes
