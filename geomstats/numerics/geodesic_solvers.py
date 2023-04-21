@@ -204,7 +204,7 @@ class _LogShootingSolverFlatten(_GeodesicBVPFromExpMixins, LogSolver):
         objective = lambda velocity: self._objective(velocity, space, point, base_point)
         init_tangent_vec = self.initialization(space, point, base_point)
 
-        res = self.optimizer.optimize(objective, init_tangent_vec)
+        res = self.optimizer.minimize(objective, init_tangent_vec)
 
         tangent_vec = gs.reshape(res.x, base_point.shape)
 
@@ -235,7 +235,7 @@ class _LogShootingSolverUnflatten(
         objective = lambda velocity: self._objective(velocity, space, point, base_point)
         init_tangent_vec = self.initialization(space, point, base_point)
 
-        res = self.optimizer.optimize(objective, init_tangent_vec)
+        res = self.optimizer.minimize(objective, init_tangent_vec)
 
         return res.x
 
