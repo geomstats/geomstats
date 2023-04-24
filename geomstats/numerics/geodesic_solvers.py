@@ -50,6 +50,9 @@ class ExpIVPSolver(ExpSolver):
             if not gs.is_array(t):
                 t = gs.array([t])
 
+            if gs.ndim(t) == 0:
+                t = gs.expand_dims(t, axis=0)
+
             result = self._solve(space, tangent_vec, base_point, t_eval=t)
             return self._simplify_result_t(result, space)
 
@@ -70,7 +73,7 @@ class ExpIVPSolver(ExpSolver):
         # input: (n,)
 
         # assumes unvectorize
-        state = gs.reshape(raveled_initial_state, (space.dim, space.dim))
+        state = gs.reshape(raveled_initial_state, (2, space.dim))
 
         eq = space.metric.geodesic_equation(state, _)
 
@@ -126,6 +129,9 @@ class _GeodesicBVPFromExpMixins:
         def path(t):
             if not gs.is_array(t):
                 t = gs.array([t])
+
+            if gs.ndim(t) == 0:
+                t = gs.expand_dims(t, axis=0)
 
             if not is_batch:
                 return self._geodesic_bvp_single(space, t, tangent_vec, base_point)
@@ -190,7 +196,7 @@ class _LogShootingSolverFlatten(_GeodesicBVPFromExpMixins, LogSolver):
         self.initialization = initialization
 
     def _default_initialization(self, space, point, base_point):
-        return gs.flatten(gs.random.rand(*base_point.shape))
+        return gs.flatten(point - base_point)
 
     def _objective(self, velocity, space, point, base_point):
         velocity = gs.reshape(velocity, base_point.shape)
@@ -204,7 +210,7 @@ class _LogShootingSolverFlatten(_GeodesicBVPFromExpMixins, LogSolver):
         objective = lambda velocity: self._objective(velocity, space, point, base_point)
         init_tangent_vec = self.initialization(space, point, base_point)
 
-        res = self.optimizer.optimize(objective, init_tangent_vec)
+        res = self.optimizer.minimize(objective, init_tangent_vec)
 
         tangent_vec = gs.reshape(res.x, base_point.shape)
 
@@ -225,7 +231,7 @@ class _LogShootingSolverUnflatten(
         self.initialization = initialization
 
     def _default_initialization(self, space, point, base_point):
-        return gs.random.rand(*base_point.shape)
+        return point - base_point
 
     def _objective(self, velocity, space, point, base_point):
         delta = space.metric.exp(velocity, base_point) - point
@@ -235,7 +241,7 @@ class _LogShootingSolverUnflatten(
         objective = lambda velocity: self._objective(velocity, space, point, base_point)
         init_tangent_vec = self.initialization(space, point, base_point)
 
-        res = self.optimizer.optimize(objective, init_tangent_vec)
+        res = self.optimizer.minimize(objective, init_tangent_vec)
 
         return res.x
 
@@ -313,7 +319,10 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
 
         def path(t):
             if not gs.is_array(t):
-                t = gs.array(t)
+                t = gs.array([t])
+
+            if gs.ndim(t) == 0:
+                t = gs.expand_dims(t, axis=0)
 
             if not is_batch:
                 return self._simplify_result_t(result.sol(t), space)
@@ -327,25 +336,24 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
     def _simplify_log_result(self, result, space):
         _, tangent_vec = gs.reshape(gs.transpose(result.y)[0], (2, space.dim))
         return tangent_vec
-    
+
     def _simplify_result_t(self, result, space):
-        return gs.transpose(result[:space.dim, :])
+        return gs.transpose(result[: space.dim, :])
 
 
 class LogPolynomialSolver(_LogBatchMixins, LogSolver):
-
     def __init__(self, n_nodes=201, degree=5, optimizer=None, initialization=None):
         if optimizer is None:
             optimizer = ScipyMinimize()
 
         if initialization is None:
             initialization = self._default_initialization
-        
+
         self.n_nodes = n_nodes
-        self.degree  = degree
+        self.degree = degree
         self.initialization = initialization
         self.optimizer = optimizer
-    
+
     def _default_initialization(self, space, point, base_point, param, t=None):
         last_coef = point - base_point - gs.sum(param, axis=0)
         coef = gs.vstack((base_point, param, last_coef))
@@ -359,7 +367,7 @@ class LogPolynomialSolver(_LogBatchMixins, LogSolver):
         y = gs.einsum("ij,ik->kj", coef[1:], t_y)
 
         return x, y
-    
+
     def _cost_fun(self, param, space, point, base_point):
         """Compute the energy of the polynomial curve defined by param."""
 
@@ -368,13 +376,13 @@ class LogPolynomialSolver(_LogBatchMixins, LogSolver):
         velocity_sqnorm = space.metric.squared_norm(vector=y, base_point=x)
         energy = gs.sum(velocity_sqnorm) / self.n_nodes
         return energy, x, y
-    
+
     def _cost_jacobian(self, param, space, point, base_point):
         """Compute the jacobian of the cost function at polynomial curve."""
 
         t = gs.linspace(0.0, 1.0, self.n_nodes)
         x, y = self.initialization(space, point, base_point, param, t=t)
-        
+
         fac1 = gs.stack(
             [
                 k * t ** (k - 1) - self.degree * t ** (self.degree - 1)
@@ -382,29 +390,26 @@ class LogPolynomialSolver(_LogBatchMixins, LogSolver):
             ]
         )
         fac2 = gs.stack([t**k - t**self.degree for k in range(1, self.degree)])
-        fac3 = (y * gs.polygamma(1, x)).T - gs.sum(
-            y, 1
-        ) * gs.polygamma(1, gs.sum(x, 1))
-        fac4 = (y**2 * gs.polygamma(2, x)).T - gs.sum(
-            y, 1
-        ) ** 2 * gs.polygamma(2, gs.sum(x, 1))
+        fac3 = (y * gs.polygamma(1, x)).T - gs.sum(y, 1) * gs.polygamma(1, gs.sum(x, 1))
+        fac4 = (y**2 * gs.polygamma(2, x)).T - gs.sum(y, 1) ** 2 * gs.polygamma(
+            2, gs.sum(x, 1)
+        )
 
         cost_jac = (
-            2 * gs.einsum("ij,kj->ik", fac1, fac3)
-            + gs.einsum("ij,kj->ik", fac2, fac4)
+            2 * gs.einsum("ij,kj->ik", fac1, fac3) + gs.einsum("ij,kj->ik", fac2, fac4)
         ) / self.n_nodes
         return gs.reshape(gs.transpose(cost_jac), (space.dim * (self.degree - 1),))
 
     def _f2minimize(self, x, space, point, base_point):
         """Compute function to minimize."""
-        param = gs.transpose(gs.reshape(x,(space.dim, self.degree - 1)))
+        param = gs.transpose(gs.reshape(x, (space.dim, self.degree - 1)))
         return self._cost_fun(param, space, point, base_point)[0]
 
     def _jacobian(self, x, space, point, base_point):
         """Compute jacobian of the function to minimize."""
-        param = gs.transpose(gs.reshape(gs.from_numpy(x),(space.dim, self.degree - 1)))
+        param = gs.transpose(gs.reshape(gs.from_numpy(x), (space.dim, self.degree - 1)))
         return self._cost_jacobian(param, space, point, base_point)
-    
+
     def _solve(
         self,
         space,
@@ -412,32 +417,34 @@ class LogPolynomialSolver(_LogBatchMixins, LogSolver):
         base_point,
         jac_on=True,
     ):
-        
+
         x0 = gs.ones(space.dim * (self.degree - 1))
         jac = self._jacobian if jac_on else None
-        sol = self.optimizer.optimize(self._f2minimize, x0, jac=jac, args=(space, point, base_point))
-        opt_param = gs.transpose(gs.reshape(sol.x,(space.dim, self.degree - 1)))
+        sol = self.optimizer.optimize(
+            self._f2minimize, x0, jac=jac, args=(space, point, base_point)
+        )
+        opt_param = gs.transpose(gs.reshape(sol.x, (space.dim, self.degree - 1)))
         _, x, y = self._cost_fun(opt_param, space, point, base_point)
 
         return x, y
-    
+
     def _log_single(self, space, point, base_point):
         _, y = self._solve(space, point, base_point)
         return y[0]
-    
+
     def _simplify_result_t(self, x, t):
         """Get point at t using interpolation"""
-        n_segments = x.shape[0]-1
+        n_segments = x.shape[0] - 1
         points_at_t = []
         for t_ in t:
-            i1 = int(t_*(n_segments))
-            t1 = i1/n_segments
+            i1 = int(t_ * (n_segments))
+            t1 = i1 / n_segments
             if i1 == n_segments:
                 points_at_t.append(x[i1])
                 continue
-            i2 = i1+1
-            t2 = i2/n_segments
-            points_at_t.append(x[i1] + (t_-t1)*(x[i2]-x[i1])/(t2-t1))
+            i2 = i1 + 1
+            t2 = i2 / n_segments
+            points_at_t.append(x[i1] + (t_ - t1) * (x[i2] - x[i1]) / (t2 - t1))
         return gs.stack(points_at_t)
 
     def geodesic_bvp(self, space, point, base_point):
@@ -459,9 +466,6 @@ class LogPolynomialSolver(_LogBatchMixins, LogSolver):
             if not is_batch:
                 return self._simplify_result_t(result, t)
 
-            return gs.array(
-                [self._simplify_result_t(result, t) for result in results]
-            )
+            return gs.array([self._simplify_result_t(result, t) for result in results])
 
         return path
-    
