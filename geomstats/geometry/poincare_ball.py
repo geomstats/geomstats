@@ -13,6 +13,7 @@ from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import repeat_out
 
 EPSILON = 1e-6
 NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
@@ -128,11 +129,9 @@ class PoincareBallMetric(RiemannianMetric):
 
         factor = gs.tanh(lambda_base_point * norm_tan)
 
-        exp = self.mobius_add(
+        return self.mobius_add(
             base_point, gs.einsum("...,...i->...i", factor, direction)
         )
-
-        return exp
 
     def log(self, point, base_point, **kwargs):
         """Compute Riemannian logarithm of a point wrt a base point.
@@ -156,8 +155,7 @@ class PoincareBallMetric(RiemannianMetric):
         coef = (1 - squared_norm_bp) * utils.taylor_exp_even_func(
             squared_norm_add, utils.arctanh_card_close_0
         )
-        log = gs.einsum("...,...j->...j", coef, mobius_addition)
-        return log
+        return gs.einsum("...,...j->...j", coef, mobius_addition)
 
     def mobius_add(self, point_a, point_b, project_first=True):
         r"""Compute the Mobius addition of two points.
@@ -227,8 +225,7 @@ class PoincareBallMetric(RiemannianMetric):
         diff_norm = gs.sum((point_a - point_b) ** 2, -1)
         norm_function = 1 + 2 * diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
-        dist = gs.log(norm_function + gs.sqrt(norm_function**2 - 1))
-        return dist
+        return gs.log(norm_function + gs.sqrt(norm_function**2 - 1))
 
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
@@ -436,4 +433,5 @@ class PoincareBallMetric(RiemannianMetric):
         radius : float
             Injectivity radius.
         """
-        return math.inf
+        out = gs.array(math.inf)
+        return repeat_out(self._space, out, base_point)
