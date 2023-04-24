@@ -16,13 +16,16 @@ def _create_params():
     # TODO: do this more in a fixture like behavior?
     params = []
 
-    space = PoincareBall(2)
-    for integrator in (
-        GSIntegrator(n_steps=20, step_type="rk4"),
-        ScipySolveIVP(rtol=1e-8),
+    for space in (
+        PoincareBall(2),
+        PoincareBall(3),
     ):
-        solver = ExpIVPSolver(integrator=integrator)
-        params.append((space, solver))
+        for integrator in (
+            GSIntegrator(n_steps=20, step_type="rk4"),
+            ScipySolveIVP(rtol=1e-8),
+        ):
+            solver = ExpIVPSolver(integrator=integrator)
+            params.append((space, solver))
 
     return params
 
