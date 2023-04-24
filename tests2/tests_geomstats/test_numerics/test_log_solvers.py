@@ -2,11 +2,15 @@ import pytest
 
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.numerics.geodesic_solvers import LogBVPSolver, LogShootingSolver
-from geomstats.test.numerics.geodesic_solvers import LogSolverComparisonTestCase
+from geomstats.test.numerics.geodesic_solvers import (
+    LogSolverComparisonTestCase,
+    LogSolverTypeCheckTestCase,
+)
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.geodesic_solvers_data import LogSolverComparisonTestData
-
-# TODO: test if output is in the right backend
+from tests2.data.geodesic_solvers_data import (
+    LogSolverComparisonTestData,
+    LogSolverTypeCheckTestData,
+)
 
 
 def _create_params():
@@ -37,3 +41,10 @@ class TestLogSolverComparison(
     LogSolverComparisonTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = LogSolverComparisonTestData()
+
+
+@pytest.mark.usefixtures("spaces")
+class TestLogSolverTypeCheck(
+    LogSolverTypeCheckTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = LogSolverTypeCheckTestData()
