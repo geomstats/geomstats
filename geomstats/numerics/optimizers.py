@@ -29,7 +29,7 @@ class ScipyMinimize:
         self.jac = jac
         self.hess = hess
         self.bounds = bounds
-        self.constraints = (constraints,)
+        self.constraints = constraints
         self.tol = tol
         self.callback = callback
         self.options = options

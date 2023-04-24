@@ -73,7 +73,7 @@ class ExpIVPSolver(ExpSolver):
         # input: (n,)
 
         # assumes unvectorize
-        state = gs.reshape(raveled_initial_state, (space.dim, space.dim))
+        state = gs.reshape(raveled_initial_state, (2, space.dim))
 
         eq = space.metric.geodesic_equation(state, _)
 
@@ -196,7 +196,7 @@ class _LogShootingSolverFlatten(_GeodesicBVPFromExpMixins, LogSolver):
         self.initialization = initialization
 
     def _default_initialization(self, space, point, base_point):
-        return gs.flatten(gs.random.rand(*base_point.shape))
+        return gs.flatten(point - base_point)
 
     def _objective(self, velocity, space, point, base_point):
         velocity = gs.reshape(velocity, base_point.shape)
@@ -231,7 +231,7 @@ class _LogShootingSolverUnflatten(
         self.initialization = initialization
 
     def _default_initialization(self, space, point, base_point):
-        return gs.random.rand(*base_point.shape)
+        return point - base_point
 
     def _objective(self, velocity, space, point, base_point):
         delta = space.metric.exp(velocity, base_point) - point
@@ -338,7 +338,7 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
         return tangent_vec
 
     def _simplify_result_t(self, result, space):
-        return gs.transpose(result[:2, :])
+        return gs.transpose(result[: space.dim, :])
 
 
 # class LogPolynomialSolver(LogSolver):
