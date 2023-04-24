@@ -50,6 +50,9 @@ class ExpIVPSolver(ExpSolver):
             if not gs.is_array(t):
                 t = gs.array([t])
 
+            if gs.ndim(t) == 0:
+                t = gs.expand_dims(t, axis=0)
+
             result = self._solve(space, tangent_vec, base_point, t_eval=t)
             return self._simplify_result_t(result, space)
 
@@ -126,6 +129,9 @@ class _GeodesicBVPFromExpMixins:
         def path(t):
             if not gs.is_array(t):
                 t = gs.array([t])
+
+            if gs.ndim(t) == 0:
+                t = gs.expand_dims(t, axis=0)
 
             if not is_batch:
                 return self._geodesic_bvp_single(space, t, tangent_vec, base_point)
@@ -314,6 +320,9 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
         def path(t):
             if not gs.is_array(t):
                 t = gs.array([t])
+
+            if gs.ndim(t) == 0:
+                t = gs.expand_dims(t, axis=0)
 
             if not is_batch:
                 return self._simplify_result_t(result.sol(t), space)
