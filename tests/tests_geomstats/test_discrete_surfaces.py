@@ -8,21 +8,15 @@ import numpy as np
 import geomstats.backend as gs
 from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
 
-# TODO: load cube data for testing.
-# cube data located in geomstats/geomstats/datasets/data/cube_meshes
-# must write a function in the datasets utils.py file which loads
-# the cube data, and then use that function here.
-
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 DATA_DIR = os.path.join(ROOT_DIR, "geomstats", "datasets", "data")
 CUBE_MESH_DIR = os.path.join(DATA_DIR, "cube_meshes")
 test_vertices_path = os.path.join(CUBE_MESH_DIR, "vertices.npy")
 test_faces_path = os.path.join(CUBE_MESH_DIR, "faces.npy")
 
-test_vertices = np.load(test_vertices_path)
-test_faces = np.load(test_faces_path)
-test_vertices = gs.cast(test_vertices, gs.int64)
-test_faces = gs.cast(test_faces, gs.int64)
+test_vertices = gs.array(np.load(test_vertices_path))
+test_faces = gs.array(np.load(test_faces_path))
+test_vertices = gs.cast(test_vertices, gs.float64)
 
 
 def test_belongs():
