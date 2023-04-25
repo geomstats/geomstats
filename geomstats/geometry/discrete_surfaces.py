@@ -3,13 +3,9 @@
 Lead authors: Emmanuel Hartman, Adele Myers.
 """
 
-from scipy.optimize import minimize
-from torch.autograd import grad
-
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class DiscreteSurfaces(Manifold):
@@ -190,7 +186,9 @@ class DiscreteSurfaces(Manifold):
         id_vertices = gs.flatten(self.faces)
         incident_areas = gs.zeros(n_vertices)
         val = gs.flatten(gs.stack([area] * 3, axis=1))
-        incident_areas = gs.scatter_add(incident_areas, dim=0, index=id_vertices, src=val)
+        incident_areas = gs.scatter_add(
+            incident_areas, dim=0, index=id_vertices, src=val
+        )
         vertex_areas = 2 * incident_areas / 3.0
         return vertex_areas
 
@@ -262,14 +260,14 @@ class DiscreteSurfaces(Manifold):
             tangent_vec_diff = tangent_vec[id_vertices[0]] - tangent_vec[id_vertices[1]]
             values = gs.stack([gs.flatten(cot)] * 3, axis=1) * tangent_vec_diff
             laplacian_at_tangent_vec = gs.zeros((n_vertices, 3))
-            laplacian_at_tangent_vec[:, 0] = gs.scatter_add(laplacian_at_tangent_vec[:, 0],
-                0, id_vertices[1, :], values[:, 0]
+            laplacian_at_tangent_vec[:, 0] = gs.scatter_add(
+                laplacian_at_tangent_vec[:, 0], 0, id_vertices[1, :], values[:, 0]
             )
-            laplacian_at_tangent_vec[:, 1] = gs.scatter_add(laplacian_at_tangent_vec[:, 1],
-                0, id_vertices[1, :], values[:, 1]
+            laplacian_at_tangent_vec[:, 1] = gs.scatter_add(
+                laplacian_at_tangent_vec[:, 1], 0, id_vertices[1, :], values[:, 1]
             )
-            laplacian_at_tangent_vec[:, 2] = gs.scatter_add(laplacian_at_tangent_vec[:, 2],
-                0, id_vertices[1, :], values[:, 2]
+            laplacian_at_tangent_vec[:, 2] = gs.scatter_add(
+                laplacian_at_tangent_vec[:, 2], 0, id_vertices[1, :], values[:, 2]
             )
             return laplacian_at_tangent_vec
 
@@ -364,4 +362,3 @@ class DiscreteSurfaces(Manifold):
         one_forms = self.surface_one_forms(point)
         transposed_one_forms = gs.transpose(one_forms, axes=(0, 2, 1))
         return gs.matmul(one_forms, transposed_one_forms)
-
