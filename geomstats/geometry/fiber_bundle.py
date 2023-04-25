@@ -9,11 +9,10 @@ from abc import ABC
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
-from geomstats.geometry.manifold import Manifold
 from geomstats.vectorization import get_batch_shape
 
 
-class FiberBundle(Manifold, ABC):
+class FiberBundle(ABC):
     """Class for (principal) fiber bundles.
 
     This class implements abstract methods for fiber bundles, or more
@@ -28,17 +27,16 @@ class FiberBundle(Manifold, ABC):
     group_action : callable
         Right group action. It must take as input a point of the total space
         and an element of the group, and return a point of the total space.
-
     """
 
     def __init__(
         self,
+        space,
         group=None,
         group_action=None,
         group_dim=None,
-        **kwargs,
     ):
-        super().__init__(**kwargs)
+        self.space = space
         self.group = group
 
         if group_action is None and group is not None:
@@ -149,7 +147,7 @@ class FiberBundle(Manifold, ABC):
         group = self.group
         group_action = self.group_action
 
-        max_shape = get_batch_shape(self, point, base_point) + (self.group_dim,)
+        max_shape = get_batch_shape(self.space, point, base_point) + (self.group_dim,)
 
         if group is not None:
 
@@ -172,7 +170,7 @@ class FiberBundle(Manifold, ABC):
             raise ValueError("Either the group of its action must be known")
 
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda param: self.metric.squared_dist(wrap(param), base_point),
+            lambda param: self.space.metric.squared_dist(wrap(param), base_point),
             to_numpy=True,
         )
 
