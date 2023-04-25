@@ -13,8 +13,8 @@ from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
 # must write a function in the datasets utils.py file which loads
 # the cube data, and then use that function here.
 
-# below is the code used to load the data via path joining. this can 
-# be modified to write code for the dataset util.py function.
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+DATA_DIR = os.path.join(ROOT_DIR, "geomstats", "datasets", "data")
 CUBE_MESH_DIR = os.path.join(DATA_DIR, "cube_meshes")
 test_vertices_path = os.path.join(CUBE_MESH_DIR, "vertices.npy")
 test_faces_path = os.path.join(CUBE_MESH_DIR, "faces.npy")
