@@ -4,9 +4,6 @@ Lead author: Alice Le Brigant.
 """
 
 import math
-import numpy as np
-import copy
-import time
 
 from scipy.interpolate import CubicSpline
 
@@ -21,8 +18,6 @@ from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
-from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 
 R2 = Euclidean(dim=2)
 R3 = Euclidean(dim=3)
@@ -849,7 +844,6 @@ class ElasticMetric(PullbackDiffeoMetric):
         plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
     """
 
-
     def __init__(
         self,
         a,
@@ -860,14 +854,19 @@ class ElasticMetric(PullbackDiffeoMetric):
         k_sampling_points=10,
     ):
         self.ambient_manifold = ambient_manifold
-        super().__init__(dim = math.inf, shape = (k_sampling_points,) + ambient_manifold.shape) #signature = (math.inf, 0, 0))
+        super().__init__(
+            dim=math.inf,
+            shape=(k_sampling_points,) + ambient_manifold.shape
+        )
 
         self.ambient_metric = ambient_metric
         if ambient_metric is None:
-            if hasattr(ambient_manifold, "metric"): self.ambient_metric = ambient_manifold.metric
-            else: raise ValueError(
-                    "Instantiating an object of class ElasticMetric requires either a metric"
-                    " or an ambient manifold equipped with a metric."
+            if hasattr(ambient_manifold, "metric"):
+                self.ambient_metric = ambient_manifold.metric
+            else:
+                raise ValueError(
+                    "Instantiating an object of class ElasticMetric requires either"
+                    "a metric or an ambient manifold equipped with a metric."
                 )
         self.ambient_manifold = ambient_manifold
         self.l2_curves_metric = L2CurvesMetric(ambient_manifold=ambient_manifold)
@@ -879,8 +878,8 @@ class ElasticMetric(PullbackDiffeoMetric):
         """Compute polar coordinates of a tangent vector from the cartesian ones.
 
         This function is an auxiliary function used for the computation
-        of the f_transform and its inverse : self.diffeomorphism and self.inverse_diffeomorphism, 
-        and is applied to the derivative of a curve.
+        of the f_transform and its inverse : self.diffeomorphism and
+        self.inverse_diffeomorphism, and is applied to the derivative of a curve.
 
         See [KN2018]_ for details.
 
@@ -963,8 +962,17 @@ class ElasticMetric(PullbackDiffeoMetric):
         return tangent_vec
 
     def define_embedding_metric(self):
-        return L2CurvesMetric(ambient_manifold = self.ambient_manifold)
-    
+        r"""Create the metric this metric is in diffeomorphism with.
+
+        This instantiate the metric to use as image space of the
+        diffeomorphism.
+
+        -------
+        embedding_metric : RiemannianMetric object
+            The metric of the embedding space
+        """
+        return L2CurvesMetric(ambient_manifold=self.ambient_manifold)
+
     def diffeomorphism(self, point):
         r"""Compute the f_transform of a curve.
 
@@ -1030,7 +1038,7 @@ class ElasticMetric(PullbackDiffeoMetric):
         speeds = polar_velocity[..., :, 0]
         args = polar_velocity[..., :, 1]
 
-        f_args = args * ( self.a / (2 * self.b) )
+        f_args = args * (self.a / (2 * self.b))
         f_norms = 2 * self.b * gs.sqrt(speeds)
         f_polar = gs.stack([f_norms, f_args], axis=-1)
         f_cartesian = self._polar_to_cartesian(f_polar)
@@ -1069,8 +1077,9 @@ class ElasticMetric(PullbackDiffeoMetric):
         curve : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
         """
-        starting_sampling_point = [0,0] 
-        starting_sampling_point = gs.to_ndarray( starting_sampling_point, to_ndim=f_trans.ndim, axis=-2)
+        starting_sampling_point = [0, 0]
+        starting_sampling_point = gs.to_ndarray(starting_sampling_point,
+                                                to_ndim=f_trans.ndim, axis=-2)
 
         if not (
             isinstance(self.ambient_manifold, Euclidean)
@@ -1178,7 +1187,7 @@ class ElasticMetric(PullbackDiffeoMetric):
                 curves_path.append(curve_t)
             return gs.stack(curves_path)
 
-        return path    
+        return path
 
 
 class SRVMetric(PullbackDiffeoMetric):
@@ -1989,14 +1998,3 @@ class SRVQuotientMetric(QuotientMetric):
         )
         quotient_dist = gs.sum(velocity_norms) / n_times
         return quotient_dist
-
-
-class DiscreteCurveswithstartpoint(ProductManifold):
-
-    def __init__(self, ambient_manifold, k_sampling_points=10, a=None, b=None, **kwargs):
-        
-        dim = ambient_manifold.dim
-        factors = [Euclidean(dim=dim),DiscreteCurves(ambient_manifold, k_sampling_points, a, b, **kwargs)]
-        
-        super().__init__(factors=factors, default_point_type = "auto",**kwargs)
-
