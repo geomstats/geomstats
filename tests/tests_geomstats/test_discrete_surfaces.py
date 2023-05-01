@@ -13,6 +13,8 @@ DATA_DIR = os.path.join(ROOT_DIR, "geomstats", "datasets", "data")
 CUBE_MESH_DIR = os.path.join(DATA_DIR, "cube_meshes")
 test_vertices_path = os.path.join(CUBE_MESH_DIR, "vertices.npy")
 test_faces_path = os.path.join(CUBE_MESH_DIR, "faces.npy")
+print(test_vertices_path)
+print(test_faces_path)
 
 test_vertices = gs.array(np.load(test_vertices_path))
 test_faces = gs.array(np.load(test_faces_path))
@@ -28,29 +30,28 @@ def test_belongs():
     assert space.belongs(point=test_vertices)
 
 
-def test_random_point_1():
+def test_random_point_shape():
     """Test random_point.
 
-    This function tests that:
-    - random_point() generates the correct number of samples (3)
+    This function tests that random_point() generates
+    the correct number of samples.
+
+    Where: one sample = one discrete surface.
     """
-    # ambient_dim = 3
-    # faces = gs.ones((12, ambient_dim))
     space = DiscreteSurfaces(faces=test_faces)
-    # use a random point a test_vertices
     point = space.random_point(n_samples=3)
-    assert point.shape[-1] == 3
+    result, _, _ = point.shape
+    assert result == 3
 
 
-def test_random_point_2():
+def test_random_point_and_belongs():
     """Test random_point.
 
-    This function tests that:
-    - random_point() generates a point on the manifold
+    This function tests that random_point() generates a point
+    on the manifold, i.e. generates a discrete surface.
     """
     space = DiscreteSurfaces(faces=test_faces)
     point = space.random_point(n_samples=1)
-    print("POINT", point.shape)
     assert space.belongs(point)
 
 
@@ -58,7 +59,8 @@ def test_vertex_areas():
     """Test vertex_areas.
 
     Vertex area is the area of all of the triangles who are in contact
-    with a specific vertex.
+    with a specific vertex, according to the formula:
+    vertex_areas = 2 * incident_areas / 3.0
 
     We test this on a space whose initializing
     point is a cube, and we test the function on
@@ -71,10 +73,12 @@ def test_vertex_areas():
     """
     space = DiscreteSurfaces(faces=test_faces)
     point = test_vertices
-    number_of_contact_faces = gs.array([[3], [5], [5], [5], [5], [5], [3], [5]])
-    areas = number_of_contact_faces * 2
-    print(areas.shape)
-    assert (areas[0] == space.vertex_areas(point)[0]).all()
+    n_vertices, _ = point.shape
+    number_of_contact_faces = gs.array([3, 5, 5, 5, 5, 5, 3, 5])
+    triangle_area = 0.5 * 2 * 2
+    expected = 2 * (number_of_contact_faces * triangle_area) / 3
+    result = space.vertex_areas(point)
+    assert gs.allclose(result, expected), result
 
 
 def test_normals():

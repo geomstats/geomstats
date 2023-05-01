@@ -154,17 +154,24 @@ class DiscreteSurfaces(Manifold):
     def vertex_areas(self, point):
         """Compute vertex areas for a triangulated surface.
 
+        Heron's formula gives the triangle's area in terms of its sides a b c:,
+        As the square root of the product s(s - a)(s - b)(s - c),
+        where s is the semiperimeter of the triangle, that is, s = (a + b + c)/2.
+
+        The vertex area is defined as 2/3 of the sum of the areas of the faces
+        touching it.
+
         Parameters
         ----------
-        point : array-like, shape=[n_verticesx3]
+        point : array-like, shape=[n_vertices, 3]
              Surface, i.e. the vertices of its triangulation.
 
         Returns
         -------
-        vertareas :  array-like, shape=[n_verticesx1]
+        vertareas :  array-like, shape=[n_vertices, 1]
             vertex areas
         """
-        n_vertices = point.shape[0]
+        n_vertices, _ = point.shape
         face_coordinates = point[self.faces]
         vertex0, vertex1, vertex2 = (
             face_coordinates[:, 0],
@@ -183,95 +190,17 @@ class DiscreteSurfaces(Manifold):
                 * (half_perimeter - len_edge_01)
             ).clip(min=1e-6)
         )
+
         id_vertices = gs.flatten(self.faces)
-        incident_areas = gs.zeros(n_vertices)
+
         val = gs.flatten(gs.stack([area] * 3, axis=1))
+
+        incident_areas = gs.zeros(n_vertices)
         incident_areas = gs.scatter_add(
             incident_areas, dim=0, index=id_vertices, src=val
         )
         vertex_areas = 2 * incident_areas / 3.0
         return vertex_areas
-
-    def get_laplacian(self, point):
-        """Compute the mesh Laplacian operator of a surface.
-
-        The laplacian is evaluated at one of its tangent vectors, tangent_vec.
-
-        Parameters
-        ----------
-        point  :  array-like, shape=[n_verticesx3]
-             Surface, i.e. the vertices of its triangulation.
-
-        Returns
-        -------
-        laplacian : callable
-            Function that will evaluate the mesh Laplacian operator
-            at a tangent vector to the surface
-        """
-        n_vertices, n_faces = point.shape[0], self.faces.shape[0]
-        face_coordinates = point[self.faces]
-        vertex0, vertex1, vertex2 = (
-            face_coordinates[:, 0],
-            face_coordinates[:, 1],
-            face_coordinates[:, 2],
-        )
-        len_edge_12 = gs.linalg.norm((vertex1 - vertex2), axis=1)
-        len_edge_02 = gs.linalg.norm((vertex0 - vertex2), axis=1)
-        len_edge_01 = gs.linalg.norm((vertex0 - vertex1), axis=1)
-        half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
-        area = gs.sqrt(
-            (
-                half_perimeter
-                * (half_perimeter - len_edge_12)
-                * (half_perimeter - len_edge_02)
-                * (half_perimeter - len_edge_01)
-            ).clip(min=1e-6)
-        )
-        sq_len_edge_12, sq_len_edge_02, sq_len_edge_01 = (
-            len_edge_12 * len_edge_12,
-            len_edge_02 * len_edge_02,
-            len_edge_01 * len_edge_01,
-        )
-        cot_12 = (sq_len_edge_02 + sq_len_edge_01 - sq_len_edge_12) / area
-        cot_02 = (sq_len_edge_12 + sq_len_edge_01 - sq_len_edge_02) / area
-        cot_01 = (sq_len_edge_12 + sq_len_edge_02 - sq_len_edge_01) / area
-        cot = gs.stack([cot_12, cot_02, cot_01], axis=1)
-        cot /= 2.0
-        ii = self.faces[:, [1, 2, 0]]
-        jj = self.faces[:, [2, 0, 1]]
-        id_vertices = gs.reshape(gs.stack([ii, jj], axis=0), (2, n_faces * 3))
-
-        def laplacian(tangent_vec):
-            """Evaluate the mesh Laplacian operator.
-
-            The operator is evaluated at a tangent vector to the surface.
-
-            Parameters
-            ----------
-            tangent_vec :  array-like, shape=[n_verticesx3]
-                Tangent vector to the triangulated surface.
-
-            Returns
-            -------
-            laplacian_at_tangent_vec: array-like, shape=[n_verticesx3]
-                Mesh Laplacian operator of the triangulated surface applied
-                 to one its tangent vector tangent_vec.
-            """
-            tangent_vec_diff = tangent_vec[id_vertices[0]] - tangent_vec[id_vertices[1]]
-            values = gs.stack([gs.flatten(cot)] * 3, axis=1) * tangent_vec_diff
-            laplacian_at_tangent_vec = gs.zeros((n_vertices, 3))
-            laplacian_at_tangent_vec[:, 0] = gs.scatter_add(
-                laplacian_at_tangent_vec[:, 0], 0, id_vertices[1, :], values[:, 0]
-            )
-            laplacian_at_tangent_vec[:, 1] = gs.scatter_add(
-                laplacian_at_tangent_vec[:, 1], 0, id_vertices[1, :], values[:, 1]
-            )
-            laplacian_at_tangent_vec[:, 2] = gs.scatter_add(
-                laplacian_at_tangent_vec[:, 2], 0, id_vertices[1, :], values[:, 2]
-            )
-            return laplacian_at_tangent_vec
-
-        return laplacian
 
     def normals(self, point):
         """Compute normals at each face of a triangulated surface.
@@ -312,11 +241,9 @@ class DiscreteSurfaces(Manifold):
         one_forms_base_point : array-like, shape=[n_faces, 3, 2]
             One form evaluated at each face of the triangulated surface.
         """
-        vertex_0, vertex_1, vertex_2 = (
-            gs.take(point, indices=self.faces[:, 0], axis=0),
-            gs.take(point, indices=self.faces[:, 1], axis=0),
-            gs.take(point, indices=self.faces[:, 2], axis=0),
-        )
+        vertex_0 = gs.take(point, indices=self.faces[:, 0], axis=-2)
+        vertex_1 = gs.take(point, indices=self.faces[:, 1], axis=-2)
+        vertex_2 = gs.take(point, indices=self.faces[:, 2], axis=-2)
         return gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=1)
 
     def face_areas(self, point):
@@ -350,7 +277,7 @@ class DiscreteSurfaces(Manifold):
 
         Parameters
         ----------
-        point : array like, shape=[n_verticesx3]
+        point : array like, shape=[n_vertices, 3]
             One surface, i.e. the vertices of its triangulation.
 
         Returns
