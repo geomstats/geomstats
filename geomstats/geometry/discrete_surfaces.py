@@ -247,23 +247,6 @@ class DiscreteSurfaces(Manifold):
         vertex_1 = gs.take(point, indices=self.faces[:, 1], axis=-2)
         vertex_2 = gs.take(point, indices=self.faces[:, 2], axis=-2)
         return gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=1)
-        # point = gs.array(point)
-        # need_squeeze = False
-        # if point.ndim == 2:
-        #     need_squeeze = True
-        #     point = gs.expand_dims(point, axis=0)
-
-        # vertex_0, vertex_1, vertex_2 = (
-        #     gs.take(point, indices=self.faces[:, 0], axis=-2),
-        #     gs.take(point, indices=self.faces[:, 1], axis=-2),
-        #     gs.take(point, indices=self.faces[:, 2], axis=-2),
-        # )
-
-        # if need_squeeze:
-        #     return gs.squeeze(
-        #         gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=-1), axis=0
-        #     )
-        # return gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=-1)
 
     def face_areas(self, point):
         """Compute the areas for each face of a triangulated surface.
