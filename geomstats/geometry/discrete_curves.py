@@ -4,6 +4,8 @@ Lead author: Alice Le Brigant.
 """
 
 import math
+import numpy as np
+import copy
 
 from scipy.interpolate import CubicSpline
 
@@ -1897,6 +1899,283 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             return horizontal_path
 
         return horizontal_path
+
+    def dist_dp(self,initial_point,end_point, n, max_slope):
+
+        """ 
+        Find the reparametrization gamma of the curve end_point that minimize the 
+        distance between the curve initial_point and the reparametrized curve 
+        end_point@gammaand and output the corresponding distance using the dynamic
+        programming algorithm.  
+
+        end_point@gamma : t --> end_point(gamma(t)) 
+
+        The objectif is then equivalent to find the gamma that maximize the 
+        L2 scalar product of <initial_q|end_q@gamma> (which is an integral).
+
+        initial_q ( respectively end_q@gamma ) : the square root velocity function 
+        (svr_function) of initial_point (respectively end_q@gamma)
+
+        which implies that:
+        end_q@gamma : t --> end_q(gamma(t))*|gamma(t)|^(1/2) and  <initial_q|end_q@gamma> =
+        the integral of t --> q_1(t)*q_2(gamma(t))*|gamma(t)|^(1/2) over [0,1] 
+
+        Inputs
+        ----------
+        initial_point : array-like, shape=[k_sampling_points, ambient_dim]
+            Initial discrete curve.
+        end_point : array-like, shape=[k_sampling_points, ambient_dim]
+            End discrete curve.
+        n: int
+            Discretization of initial_q and end_q
+        max_slope : int 
+            maximum slope of gamma and of gamma_inverse
+
+
+        Outputs
+        -------
+        gamma[(n,n)]: list 
+            Optimal reparametrization of end_point
+        dist : float
+            Distance between initial_point and end_point@gamma 
+        
+        """
+
+        def srv_function(point):
+
+            """ 
+            Computes the srv_function of a point (with discretization = n) 
+            (a point in the space of curves is a curve) and gives the norm 
+            squared of the srv_function 
+            """
+            
+            l = point.shape[-2] - 1
+            velocity = l * (point[1:, :] - point[:-1, :])
+            square_root_velocity = np.sqrt(np.sum(gs.abs(velocity),axis=-1))
+            _q = np.array([ i/j for (i,j) in zip(velocity,square_root_velocity)])
+            q = np.array([_q[np.int(np.floor(i*(l/n)))] for i in range(n)])
+            return q
+
+        def reparametrization(q,gamma):
+            new_q = np.empty(shape = q.shape, dtype = float)
+            l = len(gamma)
+            for k in range(1,l):
+                (i_depart,j_depart) = gamma[k-1]
+                (i_arrive,j_arrive) = gamma[k]
+                gamma_slope = (j_arrive - j_depart)/(i_arrive - i_depart)
+                gamma_constant = (j_depart - i_depart*gamma_slope)
+                for i in range(i_depart,i_arrive):
+                    gamma_i = i*gamma_slope + gamma_constant
+                    new_q[i] = math.pow(gamma_slope,1/2) * q[np.int(np.floor(gamma_i))]
+            return new_q
+
+        def compute_integral_restricted(q_1,q_2,x_min,x_max,y_min,y_max):
+
+            """
+            Compute the integral of 
+            t --> q_1(t)*q_2(gamma(t))*|gamma(t)|^(1/2) over [x_min,x_max] 
+            where gamma restricted to [x_min,xmax] is the linear 
+            interpolation between y_min et y_max. 
+            gamma(x_min) = y_min and gamma(x_max) = y_max 
+            """
+
+            # Gamma's parameters
+            gamma_slope = (y_max-y_min)/(x_max-x_min) #exact
+            gamma_constant = (y_min - x_min*gamma_slope) # manque un *(1/n)
+            
+            #List of n*x where gamma(x) crosses a square
+            list_l = [l for l in range(x_min,x_max+1)] # manque un *(1/n)
+            list_k = [(k - y_min)/gamma_slope + x_min for k in range(y_min,y_max+1)] # manque un *(1/n)
+
+            lower_bound = x_min    
+            i= 1
+            j= 1
+
+            """ 
+            At each step we compute value_1 and value_2 which are related to 
+            the value of the integral restricted to [lower_bound,upper_bound]:  
+            value = gamma_slope^(1/2) ( value_1*gamma_slope + value_2) / n 
+            We can compute value_1 and value_2 in closed form, we have introduced 
+            them to make the least amount of operation : the multiplications by 
+            gamma_slope, gamma_slope^(1/2) and the division by n is done at the 
+            very end instead of doing it at every interval.  
+            """
+            
+            value_1 = 0.
+            value_2 = 0.
+            value_3 = 0.
+            while i < x_max-x_min+1 and j < y_max-y_min+1:
+
+                # Integral's parameters
+                upper_bound = min(list_l[i],list_k[j])
+                
+                q_1_slope = q_1[x_min + i] - q_1[x_min + i-1] # manque un *n
+                q_2_slope = q_2[y_min + j] - q_2[y_min + j-1] # manque un *n
+                q_1_constant = q_1[x_min + i-1] - (x_min + i-1)*q_1_slope # exact
+                q_2_constant = q_2[y_min + j-1] - (y_min + j-1)*q_2_slope # exact
+
+                #Compute the value_1, value_2 and value_3
+
+                vector_1 = q_2_slope*gamma_constant + q_2_constant
+
+                value_1 += np.dot(q_1_slope,q_2_slope)*(math.pow(upper_bound,3)-math.pow(lower_bound,3))
+                value_2 += (np.dot(q_1_slope,vector_1) + gamma_slope*np.dot(q_2_slope,q_1_constant))*(math.pow(upper_bound,2)-math.pow(lower_bound,2))
+                value_3 += np.dot(q_1_constant,vector_1)*(upper_bound-lower_bound)
+                
+                if list_l[i] == list_k[j]:
+                    i += 1
+                    j += 1
+                elif list_l[i] < list_k[j]:
+                    i += 1
+                else :
+                    j += 1
+                lower_bound = upper_bound
+
+            value = math.pow(gamma_slope,1/2) * ( ( gamma_slope * value_1 ) / 3 + value_2 / 2 + value_3 )  # manque un *(1/n)
+            
+            return value
+
+        def compute_integral_restricted_constant(q_1,q_2,x_min,x_max,y_min,y_max):
+
+            """
+            Compute the integral of t --> q_1(t)*q_2(gamma(t))*|gamma(t)|^(1/2) over [x_min,x_max] 
+            where gamma restricted to [x_min,xmax] is the linear interpolation between y_min et y_max. 
+            gamma(x_min) = y_min and gamma(x_max) = y_max 
+            """
+
+            # Gamma's parameters
+            gamma_slope = (y_max-y_min)/(x_max-x_min) #exact
+            gamma_constant = (y_min - x_min*gamma_slope) # manque un *(1/n)
+            
+            #List of n*x where gamma(x) crosses a square
+            list_l = [l for l in range(x_min,x_max+1)] # manque un *(1/n)
+            list_k = [(k - y_min)/gamma_slope + x_min for k in range(y_min,y_max+1)] # manque un *(1/n) 
+
+            lower_bound = x_min    
+            i= 1
+            j= 1
+
+            """ 
+            At each step we compute value_1 and value_2 which are related to 
+            the value of the integral restricted to [lower_bound,upper_bound]:  
+            value = gamma_slope^(1/2) ( value_1*gamma_slope + value_2) / n 
+            We can compute value_1 and value_2 in closed form, we have introduced 
+            them to make the least amount of operation : the multiplications by 
+            gamma_slope, gamma_slope^(1/2) and the division by n is done at the 
+            very end instead of doing it at every interval.  
+            """
+            
+            value = 0.
+            while i < x_max-x_min+1 and j < y_max-y_min+1:
+
+                # Integral's parameters
+                upper_bound = min(list_l[i],list_k[j])
+
+                value += (upper_bound-lower_bound)*np.dot(q_1[x_min + i-1],q_2[y_min + j-1])
+                
+                if list_l[i] == list_k[j]:
+                    i += 1
+                    j += 1
+                elif list_l[i] < list_k[j]:
+                    i += 1
+                else :
+                    j += 1
+                lower_bound = upper_bound
+
+            value = math.pow(gamma_slope,1/2) * value  # manque un *(1/n)
+            
+            return value
+        
+        """ 
+        Since we try to find the function gamma which maximize the
+        integral of t --> q_1(t)*q_2(gamma(t))*|gamma(t)|^(1/2) over 
+        [0,1] we divide [0,1] into n interval [i/n, (i+1)/n], we assume 
+        that gamma restricted to each [i/n,(i+1)/n] is linear and we try 
+        to find the function gamma through dynamic programmation using 
+        the function compute_integral_restricted. 
+        """
+        
+        initial_q = srv_function(initial_point)
+        end_q = srv_function(end_point)
+
+        """
+        #norm_squared_initial_q = compute_integral_restricted(initial_q,initial_q,0,n,0,n)/n
+        #norm_squared_end_q = compute_integral_restricted(end_q,end_q,0,n,0,n)/n
+        
+        #norm_squared_initial_q = compute_rieman_sum_restricted(initial_q,initial_q,0,n-1,0,n-1,p)/(n*p)
+        #norm_squared_end_q = compute_rieman_sum_restricted(end_q,end_q,0,n-1,0,n-1,p)/(n*p)
+        
+        """
+
+        norm_squared_initial_q = compute_integral_restricted_constant(initial_q,initial_q,0,n,0,n)/n
+        norm_squared_end_q = compute_integral_restricted_constant(end_q,end_q,0,n,0,n)/n
+        
+        tableau = (-1.0)*np.ones((n+1,n+1))
+        tableau[0,0] = 0.
+        gamma = {}
+        gamma[(0,0)] = [(0,0)]
+        for j in range(1,n+1):
+            min_i = np.int(max(gs.floor(j/max_slope),n-max_slope*(n-j)))
+            max_i = np.int(min(j*max_slope,gs.ceil(n-(n-j)*(1/max_slope))))
+            for i in range(min_i,max_i+1):
+                minimum_column_index = np.int(max(0, i-max_slope))
+                minimum_line_index = np.int(max(0,j-max_slope))
+                for l in range(minimum_column_index,i):
+                    for k in range(minimum_line_index,j):
+                        if tableau[k,l] != -1 :
+                            iterations += 1
+                            
+                            #new_value = tableau[k,l] + compute_integral_restricted(initial_q,end_q,l,i,k,j)
+                            #new_value = tableau[k,l] + compute_rieman_sum_restricted(initial_q,end_q,l,i,k,j,p) 
+                            new_value = tableau[k,l] + compute_integral_restricted_constant(initial_q,end_q,l,i,k,j)
+                            
+                            if tableau[j,i] < new_value : 
+                                tableau[j,i] = new_value
+                                new_gamma = copy.deepcopy(gamma[(l,k)])
+                                new_gamma.append((i,j))
+                                gamma[(i,j)] = new_gamma
+
+        maximum_scalar_product = tableau[(n,n)]/n # sinon c'est n*p
+        dist_squared_1 = norm_squared_initial_q + norm_squared_end_q - 2*maximum_scalar_product
+        
+        """
+        end_q_2 = reparametrization(end_q,gamma[(n,n)])
+        norm_squared_end_q_2 = compute_integral_restricted_constant(end_q_2,end_q_2,0,n,0,n)/n
+        scalar_product = compute_integral_restricted_constant(initial_q,end_q_2,0,n,0,n)/n
+        dist_squared_2 = norm_squared_initial_q + norm_squared_end_q_2 - 2*scalar_product
+
+        gamma_a = [(0,0),(10,5),(20,15),(30,50),(40,55),(50,60),(60,65),(70,80),(80,90),(90,95),(100,100)]
+        gamma_b = [(0,0),(10,5),(20,15),(30,50),(40,55),(50,60),(60,65),(70,80),(80,90),(90,95),(100,100)]
+        initial_q_2 = reparametrization(initial_q,gamma_a)
+        end_q_3 = reparametrization(end_q,gamma_b)
+        norm_squared_initial_q_2 = compute_integral_restricted_constant(initial_q_2,initial_q_2,0,n,0,n)/n
+        norm_squared_end_q_3 = compute_integral_restricted_constant(end_q_3,end_q_3,0,n,0,n)/n
+
+        print("")
+        print("")
+        print("")
+        print("Mesures de temps de calcul")
+        """
+        print("le temps d'excecution est égal à {} secondes".format(time.time()-start))
+        """
+        print("le temps passé à calculer des integrales est égal à {} secondes ".format(self.total_time_iteration))
+        print("le nombre d'itération est égal à {}".format(iterations))
+        print("le temps moyen d'une itération est égal à {} secondes".format(self.total_time_iteration/iterations))
+        print("")
+        print("Mesures d'invariance de reparametrisation")
+        print("La norme au carré de la seconde courbe est égale à \
+              \n sans reparamétrisation :      {} \
+              \n reparametrisée (optimale) :   {} \
+              \n reparamétrisée (quelconque) : {} ".format(norm_squared_end_q,norm_squared_end_q_2,norm_squared_end_q_3))
+        print("La norme au carré de la première courbe est égale à \
+              \n sans paramétrisation :        {} \
+              \n reparamétrisée (quelconque) : {}"\
+              .format(norm_squared_initial_q,norm_squared_initial_q_2))
+        print("Le produit scalaire maximum est égal à                                          {}".format(maximum_scalar_product))
+        print("Le produit scalaire avec la seconde courbe reparametrisée (optimale) est égal à {}".format(scalar_product))
+        print("La distance est égale à ")
+        """
+        return (np.sqrt(dist_squared_1))#,np.sqrt(dist_squared_2))
 
     def align(self, point, base_point, n_times=20, threshold=1e-3):
         """Find optimal reparametrization of curve with respect to base curve.
