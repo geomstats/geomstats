@@ -253,7 +253,7 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def diffeomorphism_and_srv_transform_test_data(self):
+    def f_transform_and_srv_transform_test_data(self):
         smoke_data = [
             dict(
                 curve=gs.stack([curve_a[:, 0], curve_a[:, 2]], axis=-1),
@@ -263,7 +263,7 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def inverse__diffeomorphism_and_srv_transform_inverse_test_data(self):
+    def f_transform_inverse_and_srv_transform_inverse_test_data(self):
         smoke_data = [
             dict(
                 curve=gs.stack([curve_a[:, 0], curve_a[:, 2]], axis=-1),
@@ -273,7 +273,7 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def diffeomorphism_and_srv_transform_vectorization_test_data(self):
+    def f_transform_and_srv_transform_vectorization_test_data(self):
         smoke_data = [
             dict(
                 rtol=10 * gs.rtol,
@@ -282,7 +282,7 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def diffeomorphism_and_inverse_diffeomorphism_test_data(self):
+    def f_transform_and_f_transform_inverse_test_data(self):
         smoke_data = [
             dict(a=a, b=b, rtol=10 * gs.rtol, atol=10 * gs.atol)
             for a, b in self.a_b_list
