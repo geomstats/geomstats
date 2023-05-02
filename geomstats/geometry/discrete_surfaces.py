@@ -66,11 +66,12 @@ class DiscreteSurfaces(Manifold):
             Boolean evaluating if point belongs to the space of discrete
             surfaces.
         """
+        n_points = 1 if point.ndim == 2 else point.shape[0]
         if point.shape[-1] != 3:
-            return False
+            return gs.array([False] * n_points)
         if point.shape[-2] != self.n_vertices:
-            return False
-        return True
+            return gs.array([False] * n_points)
+        return gs.array([True] * n_points)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
