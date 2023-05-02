@@ -172,18 +172,15 @@ class DiscreteSurfaces(Manifold):
         if point.ndim == 2:
             point = gs.expand_dims(point, 0)
             need_squeeze = True
-        print("ponit", point.shape)  # 2, 12, 3
         n_points, n_vertices, _ = point.shape
         vertex_0, vertex_1, vertex_2 = (
             gs.take(point, indices=self.faces[:, 0], axis=-2),
             gs.take(point, indices=self.faces[:, 1], axis=-2),
             gs.take(point, indices=self.faces[:, 2], axis=-2),
         )
-        print("vertex_0", vertex_0.shape)  # 2, 12, 3
         len_edge_12 = gs.linalg.norm((vertex_1 - vertex_2), axis=-1)
         len_edge_02 = gs.linalg.norm((vertex_0 - vertex_2), axis=-1)
         len_edge_01 = gs.linalg.norm((vertex_0 - vertex_1), axis=-1)
-        print("len_edge_12", len_edge_12.shape)  # 2, 12, 3
         half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
         area = gs.sqrt(
             (
@@ -193,21 +190,16 @@ class DiscreteSurfaces(Manifold):
                 * (half_perimeter - len_edge_01)
             ).clip(min=1e-6)
         )
-        print("area", area.shape)  # 2, 12, 1
 
-        id_vertices = gs.flatten(gs.array(self.faces))  # 3 * 12
-        id_vertices = gs.expand_dims(id_vertices, axis=0)  # 1 * 36
-        id_vertices = gs.tile(id_vertices, (n_points, 1))  # 2 * 36
+        id_vertices = gs.flatten(gs.array(self.faces))
+        id_vertices = gs.expand_dims(id_vertices, axis=0)
+        id_vertices = gs.tile(id_vertices, (n_points, 1))
         incident_areas = gs.zeros((n_points, n_vertices))
         val = gs.reshape(gs.tile(area, (1, 1, 3)), (n_points, -1))
-        print("val", val.shape)  # 2, 36
-        print("id_vertices", id_vertices.shape)  # 2, 36
         assert val.shape == id_vertices.shape, val.shape
-        # val = gs.reshape(gs.stack([area] * 3, axis=-1), (n_points, n_vertices))
         incident_areas = gs.scatter_add(
             incident_areas, dim=1, index=id_vertices, src=val
         )
-        # incident_areas.scatter_add_(dim=0, index=id_vertices, src=val)
         vertex_areas = 2 * incident_areas / 3.0
 
         if need_squeeze:

@@ -550,9 +550,13 @@ def scatter_add(input, dim, index, src):
     input : array-like
         Modified input array.
     """
-    for i, val in zip(index, src):
-        if dim == 0:
+    if dim == 0:
+        for i, val in zip(index, src):
             input[i] += val
-        else:
-            raise NotImplementedError
-    return input
+        return input
+    elif dim == 1:
+        for j in range(len(input)):
+            for i, val in zip(index[j], src[j]):
+                input[j, i] += val
+        return input
+    raise NotImplementedError

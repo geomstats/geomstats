@@ -56,6 +56,7 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
         result = space.vertex_areas(point)
         assert result.shape == (8,)
+        assert expected.shape == (8,)
         assert gs.allclose(result, expected), result
 
         point = gs.array([point, point])
