@@ -33,10 +33,19 @@ from torch import (
     ones_like,
     polygamma,
     quantile,
-    scatter_add
 )
 from torch import repeat_interleave as repeat
-from torch import reshape, stack, trapz, uint8, unique, vstack, zeros, zeros_like
+from torch import (
+    reshape,
+    scatter_add,
+    stack,
+    trapz,
+    uint8,
+    unique,
+    vstack,
+    zeros,
+    zeros_like,
+)
 from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
