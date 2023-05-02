@@ -1,3 +1,5 @@
+"""Optimizers implementations."""
+
 import logging
 
 import scipy

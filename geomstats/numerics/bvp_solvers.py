@@ -1,3 +1,5 @@
+"""Boundary value problem solvers implementation."""
+
 import scipy
 
 import geomstats.backend as gs

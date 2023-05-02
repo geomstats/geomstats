@@ -1,3 +1,5 @@
+"""Geodesic solvers implementation."""
+
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
@@ -7,16 +9,56 @@ from geomstats.numerics.optimizers import ScipyMinimize
 
 
 class ExpSolver(ABC):
-    @abstractmethod
-    def exp(self, space, tangent_vec, base_point):
-        pass
+    """Abstract class for geodesic initial value problem solvers."""
 
     @abstractmethod
-    def geodesic_ivp(self, space, tangent_vec, base_point, t):
-        pass
+    def exp(self, space, tangent_vec, base_point):
+        """Exponential map.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        """
+
+    @abstractmethod
+    def geodesic_ivp(self, space, tangent_vec, base_point):
+        """Geodesic curve for initial value problem.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        path : callable
+            Time parametrized geodesic curve. `f(t)`.
+        """
 
 
 class ExpIVPSolver(ExpSolver):
+    """Geodesic initial value problem solver.
+
+    Parameters
+    ----------
+    integrator : ODEIVPSolver
+        Instance of ODEIVP integrator.
+    """
+
     def __init__(self, integrator=None):
         if integrator is None:
             integrator = GSIntegrator()
@@ -38,13 +80,56 @@ class ExpIVPSolver(ExpSolver):
         return self.integrator.integrate_t(force, initial_state, t_eval)
 
     def exp(self, space, tangent_vec, base_point):
+        """Exponential map.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        """
         result = self._solve(space, tangent_vec, base_point)
         return self._simplify_exp_result(result, space)
 
     def geodesic_ivp(self, space, tangent_vec, base_point):
+        """Geodesic curve for initial value problem.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        path : callable
+            Time parametrized geodesic curve. `f(t)`.
+        """
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
         def path(t):
+            """Time parametrized geodesic curve.
+
+            Parameters
+            ----------
+            t : float or array-like, shape=[..., dim]
+
+            Returns
+            -------
+            geodesic_points : array-like, shape=[..., n_t, dim]
+                Geodesic points evaluated at t.
+            """
             if not gs.is_array(t):
                 t = gs.array([t])
 
@@ -106,25 +191,86 @@ class ExpIVPSolver(ExpSolver):
 
 
 class LogSolver(ABC):
+    """Abstract class for geodesic boundary value problem solvers."""
+
     @abstractmethod
     def log(self, space, point, base_point):
-        pass
+        """Logarithm map.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point.
+        """
 
     @abstractmethod
     def geodesic_bvp(self, space, point, base_point):
-        pass
+        """Geodesic curve for boundary value problem.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        path : callable
+            Time parametrized geodesic curve. `f(t)`.
+        """
 
 
 class _GeodesicBVPFromExpMixins:
+    """Provides method to get geodesic given exp."""
+
     def _geodesic_bvp_single(self, space, t, tangent_vec, base_point):
         tangent_vec_ = gs.einsum("...,...i->...i", t, tangent_vec)
         return space.metric.exp(tangent_vec_, base_point)
 
     def geodesic_bvp(self, space, point, base_point):
+        """Geodesic curve for boundary value problem.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        path : callable
+            Time parametrized geodesic curve. `f(t)`.
+        """
         tangent_vec = self.log(space, point, base_point)
         is_batch = tangent_vec.ndim > space.point_ndim
 
         def path(t):
+            """Time parametrized geodesic curve.
+
+            Parameters
+            ----------
+            t : float or array-like, shape=[..., dim]
+
+            Returns
+            -------
+            geodesic_points : array-like, shape=[..., n_t, dim]
+                Geodesic points evaluated at t.
+            """
             if not gs.is_array(t):
                 t = gs.array([t])
 
@@ -145,11 +291,29 @@ class _GeodesicBVPFromExpMixins:
 
 
 class _LogBatchMixins:
+    """Provides method to compute log for multiples point."""
+
     @abstractmethod
     def _log_single(self, space, point, base_point):
         pass
 
     def log(self, space, point, base_point):
+        """Logarithm map.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point.
+        """
         # assumes inability to properly vectorize
         if point.ndim != base_point.ndim:
             point, base_point = gs.broadcast_arrays(point, base_point)
@@ -167,7 +331,21 @@ class _LogBatchMixins:
 
 
 class LogShootingSolver:
+    """Geodesic boundary value problem solver using shooting.
+
+    Parameters
+    ----------
+    optimizer : ScipyMinimize
+        Instance of ScipyMinimize.
+    initialization : callable
+        Function to provide initial solution. `f(space, point, base_point)`.
+        Defaults to linear initialization.
+    flatten : bool
+        If True, the optimization problem is solved together for all the points.
+    """
+
     def __new__(cls, optimizer=None, initialization=None, flatten=True):
+        """Instantiate a log shooting solver."""
         if flatten:
             return _LogShootingSolverFlatten(
                 optimizer=optimizer,
@@ -200,6 +378,22 @@ class _LogShootingSolverFlatten(_GeodesicBVPFromExpMixins, LogSolver):
         return gs.sum(delta**2)
 
     def log(self, space, point, base_point):
+        """Logarithm map.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point.
+        """
         if point.ndim != base_point.ndim:
             point, base_point = gs.broadcast_arrays(point, base_point)
 
@@ -243,6 +437,18 @@ class _LogShootingSolverUnflatten(
 
 
 class LogBVPSolver(_LogBatchMixins, LogSolver):
+    """Geodesic boundary value problem using an ODE solver.
+
+    Parameters
+    ----------
+    n_nodes : Number of mesh nodes.
+    integrator : ScipySolveBVP
+        Instance of ScipySolveBVP.
+    initialization : callable
+        Function to provide initial solution. `f(space, point, base_point)`.
+        Defaults to linear initialization.
+    """
+
     def __init__(self, n_nodes=10, integrator=None, initialization=None):
         if integrator is None:
             integrator = ScipySolveBVP()
@@ -269,12 +475,12 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
 
         return gs.vstack([pos_init, vel_init])
 
-    def boundary_condition(self, state_0, state_1, space, point_0, point_1):
+    def _boundary_condition(self, state_0, state_1, space, point_0, point_1):
         pos_0 = state_0[: space.dim]
         pos_1 = state_1[: space.dim]
         return gs.hstack((pos_0 - point_0, pos_1 - point_1))
 
-    def bvp(self, _, raveled_state, space):
+    def _bvp(self, _, raveled_state, space):
         # inputs: n (2*dim) , n_nodes
         # assumes unvectorized
 
@@ -285,8 +491,8 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
         return gs.reshape(gs.moveaxis(eq, -2, -1), (2 * space.dim, -1))
 
     def _solve(self, space, point, base_point):
-        bvp = lambda t, state: self.bvp(t, state, space)
-        bc = lambda state_0, state_1: self.boundary_condition(
+        bvp = lambda t, state: self._bvp(t, state, space)
+        bc = lambda state_0, state_1: self._boundary_condition(
             state_0, state_1, space, base_point, point
         )
 
@@ -299,8 +505,22 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
         return self._simplify_log_result(res, space)
 
     def geodesic_bvp(self, space, point, base_point):
-        # TODO: add to docstrings: 0 <= t <= 1
+        """Geodesic curve for boundary value problem.
 
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        path : callable
+            Time parametrized geodesic curve. `f(t)`. 0 <= t <= 1.
+        """
         if point.ndim != base_point.ndim:
             point, base_point = gs.broadcast_arrays(point, base_point)
 
@@ -314,6 +534,17 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
             ]
 
         def path(t):
+            """Time parametrized geodesic curve.
+
+            Parameters
+            ----------
+            t : float or array-like, shape=[..., dim]
+
+            Returns
+            -------
+            geodesic_points : array-like, shape=[..., n_t, dim]
+                Geodesic points evaluated at t.
+            """
             if not gs.is_array(t):
                 t = gs.array([t])
 
@@ -338,22 +569,45 @@ class LogBVPSolver(_LogBatchMixins, LogSolver):
 
 
 class _Polynomial:
-    # TODO: add tests against numpy
+    """Power series.
+
+    Parameters
+    ----------
+    coeffs : array-like, [..., degree + 1]
+        Series coefficients.
+    """
 
     def __init__(self, coeffs):
         self.coeffs = coeffs
 
     @property
     def degree(self):
+        """Polynomial degree."""
         return self.coeffs.shape[-1] - 1
 
     def __call__(self, x):
+        """Evaluate series at x.
+
+        Parameters
+        ----------
+        x : array-like, [dim,]
+
+        Returns
+        -------
+        poly_eval : array-like, shape=[dim, ...]
+        """
         x_t = gs.stack(
             [gs.power(x, power) for power in range(self.degree + 1)], axis=-1
         )
         return gs.einsum("...j,nj->n...", self.coeffs, x_t)
 
     def first_derivative(self, x):
+        """Evaluate first derivative at x.
+
+        Parameters
+        ----------
+        x : array-like, shape=[dim,]
+        """
         dx_t = gs.stack(
             [power * gs.power(x, power - 1) for power in range(1, self.degree + 1)],
             axis=-1,
@@ -362,6 +616,20 @@ class _Polynomial:
 
 
 class LogPolynomialApproxSolver(_LogBatchMixins, LogSolver):
+    """Geodesic boundary value problem through a polynomial approximation.
+
+    Parameters
+    ----------
+    n_nodes : Number of mesh nodes.
+    degree : int
+        Degree of the polynomial.
+    optimizer : ScipyMinimize
+        Instance of ScipyMinimize.
+    initialization : callable
+        Function to provide initial solution. `f(space, point, base_point)`.
+        Defaults to linear initialization.
+    """
+
     def __init__(self, n_nodes=10, degree=5, optimizer=None, initialization=None):
         if optimizer is None:
             optimizer = ScipyMinimize()
@@ -445,13 +713,31 @@ class LogPolynomialApproxSolver(_LogBatchMixins, LogSolver):
         return log
 
     def geodesic_bvp(self, space, point, base_point):
+        """Geodesic curve for boundary value problem.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        path : callable
+            Time parametrized geodesic curve. `f(t)`.
+        """
         if point.ndim != base_point.ndim:
             point, base_point = gs.broadcast_arrays(point, base_point)
 
         is_batch = point.ndim > space.point_ndim
         if not is_batch:
             result = self._solve(space, point, base_point)
-            coeffs = self._update_poly_coeffs(result.x, space, point, base_point).coeffs
+            coeffs = gs.copy(
+                self._update_poly_coeffs(result.x, space, point, base_point).coeffs
+            )
 
         else:
             results = [
@@ -470,6 +756,17 @@ class LogPolynomialApproxSolver(_LogBatchMixins, LogSolver):
         poly = _Polynomial(coeffs)
 
         def path(t):
+            """Time parametrized geodesic curve.
+
+            Parameters
+            ----------
+            t : float or array-like, shape=[..., dim]
+
+            Returns
+            -------
+            geodesic_points : array-like, shape=[..., n_t, dim]
+                Geodesic points evaluated at t.
+            """
             if not gs.is_array(t):
                 t = gs.array([t])
 
