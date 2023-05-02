@@ -48,14 +48,15 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
         The cube is meshed with triangles, so each face should
         have area 2.
-
-        TODO: add "scatter_add" to geomstats' backend.
         """
         number_of_contact_faces = gs.array([3, 5, 5, 5, 5, 5, 3, 5])
         triangle_area = 0.5 * 2 * 2
         expected = 2 * (number_of_contact_faces * triangle_area) / 3
         space = self.Space(faces)
         result = space.vertex_areas(point)
+        print("result", result)
+        print(type(result))
+        print("expected", expected)
         assert gs.allclose(result, expected), result
 
     def test_normals(self, faces, point):
