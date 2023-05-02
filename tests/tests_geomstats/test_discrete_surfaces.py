@@ -4,7 +4,6 @@ import numpy as np
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
-from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
 from tests.conftest import Parametrizer
 from tests.data.discrete_surfaces_data import DiscreteSurfacesTestData
 from tests.geometry_test_cases import ManifoldTestCase
@@ -12,86 +11,6 @@ from tests.geometry_test_cases import ManifoldTestCase
 test_vertices, test_faces = data_utils.load_cube()
 test_vertices = gs.array(test_vertices, dtype=gs.float64)
 test_faces = gs.array(test_faces)
-
-
-def test_normals():
-    """Test normals.
-
-    We test this on a space whose initializing
-    point is a cube, and we test the function on
-    a cube with sides of length 2 centered at the origin.
-    The cube is meshed with 12 triangles (2 triangles
-    per face.)
-
-    Recall that the magnitude of each normal vector is equal to
-    the area of the face it is normal to.
-
-    We compare the abs value of each normal vector array because:
-    note that the "normals" variable here calculates the normals
-    as pointing out of the surface, but the way that normals()
-    was constructed makes it so that the normal vector could be
-    pointing into the surface or out of the surface, (so it could
-    either be positive or negative). Because of this, we make all
-    of the normal vectors to the cube positive for testing
-    purposes.
-    """
-    space = DiscreteSurfaces(faces=test_faces)
-    point = test_vertices
-    cube_normals = np.array(
-        [
-            [0, 0, 2],
-            [0, 0, 2],
-            [0, 2, 0],
-            [0, 2, 0],
-            [2, 0, 0],
-            [2, 0, 0],
-            [0, -2, 0],
-            [0, -2, 0],
-            [-2, 0, 0],
-            [-2, 0, 0],
-            [0, 0, -2],
-            [0, 0, -2],
-        ]
-    )
-    abs_cube_normals = gs.abs(cube_normals)
-    abs_int_normals = gs.cast(gs.abs(space.normals(point)), gs.int64)
-    for i_vect, cube_vector in enumerate(abs_cube_normals):
-        assert (cube_vector == abs_int_normals[i_vect]).all()
-
-
-def test_surface_one_forms():
-    """Test surface one forms."""
-    vertices = test_vertices
-    space = DiscreteSurfaces(faces=test_faces)
-    one_forms = space.surface_one_forms(point=vertices)
-    assert one_forms.shape == (space.n_faces, 2, 3), one_forms.shape
-
-    first_vec = one_forms[:, 0, :]
-    second_vec = one_forms[:, 1, :]
-    inner_prods = gs.einsum("ij,ij->i", first_vec, second_vec)
-    result = [prod in [0.0, 4.0] for prod in inner_prods]
-    assert gs.all(result)
-    print(result)
-
-
-def test_faces_area():
-    """Test faces area."""
-    vertices = test_vertices
-    space = DiscreteSurfaces(faces=test_faces)
-    face_areas = space.face_areas(point=vertices)
-    assert face_areas.shape == (space.n_faces,), face_areas.shape
-
-
-def test_surface_metric_matrices():
-    """Test surface metric matrices."""
-    vertices = test_vertices
-    space = DiscreteSurfaces(faces=test_faces)
-    surface_metric_matrices = space.surface_metric_matrices(point=vertices)
-    assert surface_metric_matrices.shape == (
-        space.n_faces,
-        2,
-        2,
-    ), surface_metric_matrices.shape
 
 
 def _test_manifold_shape(test_cls, space_args):
@@ -145,3 +64,76 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
         space = self.Space(faces)
         result = space.vertex_areas(point)
         assert gs.allclose(result, expected), result
+
+    def test_normals(self, faces, point):
+        """Test normals.
+
+        We test this on a space whose initializing
+        point is a cube, and we test the function on
+        a cube with sides of length 2 centered at the origin.
+        The cube is meshed with 12 triangles (2 triangles
+        per face.)
+
+        Recall that the magnitude of each normal vector is equal to
+        the area of the face it is normal to.
+
+        We compare the abs value of each normal vector array because:
+        note that the "normals" variable here calculates the normals
+        as pointing out of the surface, but the way that normals()
+        was constructed makes it so that the normal vector could be
+        pointing into the surface or out of the surface, (so it could
+        either be positive or negative). Because of this, we make all
+        of the normal vectors to the cube positive for testing
+        purposes.
+        """
+        space = self.Space(faces=faces)
+        cube_normals = np.array(
+            [
+                [0, 0, 2],
+                [0, 0, 2],
+                [0, 2, 0],
+                [0, 2, 0],
+                [2, 0, 0],
+                [2, 0, 0],
+                [0, -2, 0],
+                [0, -2, 0],
+                [-2, 0, 0],
+                [-2, 0, 0],
+                [0, 0, -2],
+                [0, 0, -2],
+            ]
+        )
+        abs_cube_normals = gs.abs(cube_normals)
+        abs_int_normals = gs.cast(gs.abs(space.normals(point)), gs.int64)
+        for i_vect, cube_vector in enumerate(abs_cube_normals):
+            assert (cube_vector == abs_int_normals[i_vect]).all()
+
+    def test_surface_one_forms(self, faces, point):
+        """Test surface one forms."""
+        space = self.Space(faces=faces)
+        one_forms = space.surface_one_forms(point=point)
+        assert one_forms.shape == (space.n_faces, 2, 3), one_forms.shape
+
+        first_vec = one_forms[:, 0, :]
+        second_vec = one_forms[:, 1, :]
+        inner_prods = gs.einsum("ij,ij->i", first_vec, second_vec)
+        result = [prod in [0.0, 4.0] for prod in inner_prods]
+        assert gs.all(result)
+
+    def test_faces_area(self, faces, point):
+        """Test faces area."""
+        space = self.Space(faces=faces)
+        face_areas = space.face_areas(point=point)
+        expected = gs.array([4.0] * 12)
+        assert face_areas.shape == (space.n_faces,), face_areas.shape
+        assert gs.allclose(face_areas, expected), face_areas
+
+    def test_surface_metric_matrices(self, faces, point):
+        """Test surface metric matrices."""
+        space = self.Space(faces=faces)
+        surface_metric_matrices = space.surface_metric_matrices(point=point)
+        assert surface_metric_matrices.shape == (
+            space.n_faces,
+            2,
+            2,
+        ), surface_metric_matrices.shape

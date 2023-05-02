@@ -5,7 +5,9 @@ import geomstats.datasets.utils as data_utils
 from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
 from tests.data_generation import _ManifoldTestData
 
-_, faces = data_utils.load_cube()
+vertices, faces = data_utils.load_cube()
+vertices = gs.array(vertices, dtype=gs.float64)
+faces = gs.array(faces)
 
 
 class DiscreteSurfacesTestData(_ManifoldTestData):
@@ -18,9 +20,26 @@ class DiscreteSurfacesTestData(_ManifoldTestData):
     Space = DiscreteSurfaces
 
     def vertex_areas_test_data(self):
-        vertices, faces = data_utils.load_cube()
-        vertices = gs.array(vertices, dtype=gs.float64)
-        faces = gs.array(faces)
+        smoke_data = [dict(faces=faces, point=vertices)]
+
+        return self.generate_tests(smoke_data)
+
+    def normals_test_data(self):
+        smoke_data = [dict(faces=faces, point=vertices)]
+
+        return self.generate_tests(smoke_data)
+
+    def surface_one_forms_test_data(self):
+        smoke_data = [dict(faces=faces, point=vertices)]
+
+        return self.generate_tests(smoke_data)
+
+    def faces_area_test_data(self):
+        smoke_data = [dict(faces=faces, point=vertices)]
+
+        return self.generate_tests(smoke_data)
+
+    def surface_metric_matrices_test_data(self):
         smoke_data = [dict(faces=faces, point=vertices)]
 
         return self.generate_tests(smoke_data)
