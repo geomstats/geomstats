@@ -14,70 +14,6 @@ test_vertices = gs.array(test_vertices, dtype=gs.float64)
 test_faces = gs.array(test_faces)
 
 
-def test_belongs():
-    """Test that a set of vertices belongs to the manifold of DiscreteSurfaces.
-
-    (Also inheritely checks if the discrete surface has degenerate triangles.)
-    """
-    space = DiscreteSurfaces(faces=test_faces)
-    assert space.belongs(point=test_vertices)
-
-    test_two_surfaces = gs.stack([test_vertices, test_vertices])
-    print("test_two_surfaces.shape", test_two_surfaces.shape)
-    assert gs.all(space.belongs(point=test_two_surfaces))
-
-
-def test_random_point_shape():
-    """Test random_point.
-
-    This function tests that random_point() generates
-    the correct number of samples.
-
-    Where: one sample = one discrete surface.
-    """
-    space = DiscreteSurfaces(faces=test_faces)
-
-    result = space.random_point(n_samples=3)
-    assert result.shape == (3,) + space.shape
-
-
-def test_random_point_and_belongs():
-    """Test random_point.
-
-    This function tests that random_point() generates a point
-    on the manifold, i.e. generates a discrete surface.
-    """
-    space = DiscreteSurfaces(faces=test_faces)
-    point = space.random_point(n_samples=1)
-    assert space.belongs(point)
-
-
-def test_vertex_areas():
-    """Test vertex_areas.
-
-    Vertex area is the area of all of the triangles who are in contact
-    with a specific vertex, according to the formula:
-    vertex_areas = 2 * incident_areas / 3.0
-
-    We test this on a space whose initializing
-    point is a cube, and we test the function on
-    a cube with sides of length 2 centered at the origin.
-
-    The cube is meshed with triangles, so each face should
-    have area 2.
-
-    TODO: add "scatter_add" to geomstats' backend.
-    """
-    space = DiscreteSurfaces(faces=test_faces)
-    point = test_vertices
-    n_vertices, _ = point.shape
-    number_of_contact_faces = gs.array([3, 5, 5, 5, 5, 5, 3, 5])
-    triangle_area = 0.5 * 2 * 2
-    expected = 2 * (number_of_contact_faces * triangle_area) / 3
-    result = space.vertex_areas(point)
-    assert gs.allclose(result, expected), result
-
-
 def test_normals():
     """Test normals.
 
@@ -181,10 +117,31 @@ def _test_manifold_shape(test_cls, space_args):
 
 
 class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
-    skip_test_projection_belongs = True
-    skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = DiscreteSurfacesTestData()
 
     def test_manifold_shape(self, space_args):
         return _test_manifold_shape(self, space_args)
+
+    def test_vertex_areas(self, faces, point):
+        """Test vertex_areas.
+
+        Vertex area is the area of all of the triangles who are in contact
+        with a specific vertex, according to the formula:
+        vertex_areas = 2 * incident_areas / 3.0
+
+        We test this on a space whose initializing
+        point is a cube, and we test the function on
+        a cube with sides of length 2 centered at the origin.
+
+        The cube is meshed with triangles, so each face should
+        have area 2.
+
+        TODO: add "scatter_add" to geomstats' backend.
+        """
+        number_of_contact_faces = gs.array([3, 5, 5, 5, 5, 5, 3, 5])
+        triangle_area = 0.5 * 2 * 2
+        expected = 2 * (number_of_contact_faces * triangle_area) / 3
+        space = self.Space(faces)
+        result = space.vertex_areas(point)
+        assert gs.allclose(result, expected), result
