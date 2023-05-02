@@ -4,7 +4,7 @@ Lead authors: Emmanuel Hartman, Adele Myers.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
 
 
@@ -35,10 +35,16 @@ class DiscreteSurfaces(Manifold):
     def __init__(self, faces, **kwargs):
         """Create an object."""
         ambient_dim = 3
-        self.dim = (gs.amax(faces) + 1) * ambient_dim
         self.faces = faces
         self.n_faces = len(faces)
         self.n_vertices = int(gs.amax(self.faces) + 1)
+        dim = self.n_vertices * ambient_dim
+        self.shape = (self.n_vertices, ambient_dim)
+        super().__init__(
+            dim=dim,
+            shape=(self.n_vertices, 3),
+            **kwargs,
+        )
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to the manifold.
@@ -46,14 +52,9 @@ class DiscreteSurfaces(Manifold):
         Checks that vertices are inputed in proper form and are
         consistent with the mesh structure.
 
-        Also checks if the discrete surface has degenerate triangles.
-        A "degenerate triangle" is a very small (and unneccessary)
-        triangle. Thus, to test for very small (degenerate)
-        triangles, we test for very small areas.
-
         Parameters
         ----------
-        point : array-like, shape=[n_vertices, 3]
+        point : array-like, shape=[..., n_vertices, 3]
             Surface, i.e. the vertices of its triangulation.
         atol : float
             Absolute tolerance.
@@ -68,9 +69,6 @@ class DiscreteSurfaces(Manifold):
         if point.shape[-1] != 3:
             return False
         if point.shape[-2] != self.n_vertices:
-            return False
-        smallest_area = min(self.face_areas(point))
-        if smallest_area < atol:
             return False
         return True
 
@@ -113,7 +111,7 @@ class DiscreteSurfaces(Manifold):
         tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vector at base point.
         """
-        raise NotImplementedError("to tangent is not implemented for discrete surfaces")
+        return vector
 
     def projection(self, point):
         """Project a point to the manifold.
@@ -128,7 +126,7 @@ class DiscreteSurfaces(Manifold):
         point: array-like, shape[..., *point_shape]
             Point.
         """
-        raise NotImplementedError("projection is not implemented for discrete surfaces")
+        return point
 
     def random_point(self, n_samples=1):
         """Sample discrete surfaces.
@@ -146,10 +144,10 @@ class DiscreteSurfaces(Manifold):
         vertices :  array-like, shape=[n_samples, n_vertices, 3]
             Vertices for a batch of points in the space of discrete surfaces.
         """
-        sphere = Hypersphere(dim=2, default_coords_type="extrinsic")
-        vertices = sphere.random_uniform(n_samples * self.n_vertices)
+        euclidean = Euclidean(dim=3)
+        vertices = euclidean.random_point(n_samples * self.n_vertices)
         vertices = gs.reshape(vertices, (n_samples, self.n_vertices, 3))
-        return vertices
+        return vertices[0] if n_samples == 1 else vertices
 
     def vertex_areas(self, point):
         """Compute vertex areas for a triangulated surface.
@@ -231,9 +229,12 @@ class DiscreteSurfaces(Manifold):
 
         The one forms are evaluated at the faces of a triangulated surface.
 
+        A one-form is represented by the two vectors (01) and (02) at each face
+        of vertices 0, 1, 2.
+
         Parameters
         ----------
-        point :  array-like, shape=[n_vertices, 3]
+        point : array-like, shape=[n_vertices, 3]
              One surface, i.e. the vertices of its triangulation.
 
         Returns
@@ -245,6 +246,23 @@ class DiscreteSurfaces(Manifold):
         vertex_1 = gs.take(point, indices=self.faces[:, 1], axis=-2)
         vertex_2 = gs.take(point, indices=self.faces[:, 2], axis=-2)
         return gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=1)
+        # point = gs.array(point)
+        # need_squeeze = False
+        # if point.ndim == 2:
+        #     need_squeeze = True
+        #     point = gs.expand_dims(point, axis=0)
+
+        # vertex_0, vertex_1, vertex_2 = (
+        #     gs.take(point, indices=self.faces[:, 0], axis=-2),
+        #     gs.take(point, indices=self.faces[:, 1], axis=-2),
+        #     gs.take(point, indices=self.faces[:, 2], axis=-2),
+        # )
+
+        # if need_squeeze:
+        #     return gs.squeeze(
+        #         gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=-1), axis=0
+        #     )
+        # return gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=-1)
 
     def face_areas(self, point):
         """Compute the areas for each face of a triangulated surface.
@@ -287,5 +305,6 @@ class DiscreteSurfaces(Manifold):
             the triangulated surface.
         """
         one_forms = self.surface_one_forms(point)
+        print("one_forms.shape", one_forms.shape)
         transposed_one_forms = gs.transpose(one_forms, axes=(0, 2, 1))
         return gs.matmul(one_forms, transposed_one_forms)

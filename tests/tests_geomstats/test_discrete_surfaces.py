@@ -1,24 +1,17 @@
 """Unit tests for discrete_surfaces modules."""
-# TODO: test laplacian function
-
-import os
 
 import numpy as np
 
 import geomstats.backend as gs
+import geomstats.datasets.utils as data_utils
 from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
+from tests.conftest import Parametrizer
+from tests.data.discrete_surfaces_data import DiscreteSurfacesTestData
+from tests.geometry_test_cases import ManifoldTestCase
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-DATA_DIR = os.path.join(ROOT_DIR, "geomstats", "datasets", "data")
-CUBE_MESH_DIR = os.path.join(DATA_DIR, "cube_meshes")
-test_vertices_path = os.path.join(CUBE_MESH_DIR, "vertices.npy")
-test_faces_path = os.path.join(CUBE_MESH_DIR, "faces.npy")
-print(test_vertices_path)
-print(test_faces_path)
-
-test_vertices = gs.array(np.load(test_vertices_path))
-test_faces = gs.array(np.load(test_faces_path))
-test_vertices = gs.cast(test_vertices, gs.float64)
+test_vertices, test_faces = data_utils.load_cube()
+test_vertices = gs.array(test_vertices, dtype=gs.float64)
+test_faces = gs.array(test_faces)
 
 
 def test_belongs():
@@ -28,6 +21,10 @@ def test_belongs():
     """
     space = DiscreteSurfaces(faces=test_faces)
     assert space.belongs(point=test_vertices)
+
+    test_two_surfaces = gs.stack([test_vertices, test_vertices])
+    print("test_two_surfaces.shape", test_two_surfaces.shape)
+    assert gs.all(space.belongs(point=test_two_surfaces))
 
 
 def test_random_point_shape():
@@ -39,9 +36,9 @@ def test_random_point_shape():
     Where: one sample = one discrete surface.
     """
     space = DiscreteSurfaces(faces=test_faces)
-    point = space.random_point(n_samples=3)
-    result, _, _ = point.shape
-    assert result == 3
+
+    result = space.random_point(n_samples=3)
+    assert result.shape == (3,) + space.shape
 
 
 def test_random_point_and_belongs():
@@ -133,6 +130,13 @@ def test_surface_one_forms():
     one_forms = space.surface_one_forms(point=vertices)
     assert one_forms.shape == (space.n_faces, 2, 3), one_forms.shape
 
+    first_vec = one_forms[:, 0, :]
+    second_vec = one_forms[:, 1, :]
+    inner_prods = gs.einsum("ij,ij->i", first_vec, second_vec)
+    result = [prod in [0.0, 4.0] for prod in inner_prods]
+    assert gs.all(result)
+    print(result)
+
 
 def test_faces_area():
     """Test faces area."""
@@ -152,3 +156,35 @@ def test_surface_metric_matrices():
         2,
         2,
     ), surface_metric_matrices.shape
+
+
+def _test_manifold_shape(test_cls, space_args):
+    space = test_cls.Space(*space_args)
+    point = space.random_point()
+
+    msg = f"Shape is {space.shape}, but random point shape is {point.shape}"
+    test_cls.assertTrue(space.shape == point.shape, msg)
+
+    if space.metric is None:
+        return
+
+    msg = (
+        f"Space shape is {space.shape}, "
+        f"whereas space metric shape is {space.metric.shape}",
+    )
+
+    if space.metric.shape[0] is None:
+        test_cls.assertTrue(len(space.shape) == len(space.metric.shape), msg)
+        test_cls.assertTrue(space.shape[1:] == space.metric.shape[1:], msg)
+    else:
+        test_cls.assertTrue(space.shape == space.metric.shape, msg)
+
+
+class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
+    skip_test_projection_belongs = True
+    skip_test_random_tangent_vec_is_tangent = True
+
+    testing_data = DiscreteSurfacesTestData()
+
+    def test_manifold_shape(self, space_args):
+        return _test_manifold_shape(self, space_args)
