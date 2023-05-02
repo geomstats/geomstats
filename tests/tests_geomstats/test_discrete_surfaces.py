@@ -40,7 +40,7 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
         Vertex area is the area of all of the triangles who are in contact
         with a specific vertex, according to the formula:
-        vertex_areas = 2 * incident_areas / 3.0
+        vertex_areas = 2 * sum_incident_areas / 3.0
 
         We test this on a space whose initializing
         point is a cube, and we test the function on
@@ -53,10 +53,16 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
         triangle_area = 0.5 * 2 * 2
         expected = 2 * (number_of_contact_faces * triangle_area) / 3
         space = self.Space(faces)
+
         result = space.vertex_areas(point)
-        print("result", result)
-        print(type(result))
-        print("expected", expected)
+        assert result.shape == (8,)
+        assert gs.allclose(result, expected), result
+
+        point = gs.array([point, point])
+        expected = gs.array([expected, expected])
+        result = space.vertex_areas(point)
+        assert point.shape == (2, 8, 3)
+        assert result.shape == (2, 8), result.shape
         assert gs.allclose(result, expected), result
 
     def test_normals(self, faces, point):
