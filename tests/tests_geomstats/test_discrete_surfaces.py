@@ -104,11 +104,27 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
                 [0.0, 0.0, -2.0],
             ]
         )
-        # expected = gs.abs(cube_normals)
-        expected = gs.abs(cube_normals)
-        result = gs.abs(space.normals(point))
-        # result = gs.abs(space.normals(point))
-        assert gs.allclose(result, expected), result
+        expected = cube_normals
+
+        result = space.normals(point)
+        are_close = [
+            (gs.allclose(res, exp) or gs.allclose(res, -exp))
+            for res, exp in zip(result, expected)
+        ]
+
+        assert gs.all(are_close)
+
+        point = gs.array([point, point])
+        result = space.normals(point)
+        are_close_0 = [
+            (gs.allclose(res, exp) or gs.allclose(res, -exp))
+            for res, exp in zip(result[0], expected)
+        ]
+        are_close_1 = [
+            (gs.allclose(res, exp) or gs.allclose(res, -exp))
+            for res, exp in zip(result[1], expected)
+        ]
+        assert gs.all(gs.array([are_close_0, are_close_1]))
 
     def test_surface_one_forms(self, faces, point):
         """Test surface one forms."""

@@ -222,12 +222,18 @@ class DiscreteSurfaces(Manifold):
         normals_at_point : array-like, shape=[n_facesx1]
             Normals of each face of the mesh.
         """
+        need_squeeze = False
+        if point.ndim == 2:
+            point = gs.expand_dims(point, 0)
+            need_squeeze = True
         vertex_0, vertex_1, vertex_2 = (
-            gs.take(point, indices=self.faces[:, 0], axis=0),
-            gs.take(point, indices=self.faces[:, 1], axis=0),
-            gs.take(point, indices=self.faces[:, 2], axis=0),
+            gs.take(point, indices=self.faces[:, 0], axis=-2),
+            gs.take(point, indices=self.faces[:, 1], axis=-2),
+            gs.take(point, indices=self.faces[:, 2], axis=-2),
         )
         normals_at_point = 0.5 * gs.cross(vertex_1 - vertex_0, vertex_2 - vertex_0)
+        if need_squeeze:
+            normals_at_point = gs.squeeze(normals_at_point, axis=0)
         return normals_at_point
 
     def surface_one_forms(self, point):
