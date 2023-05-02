@@ -1,16 +1,9 @@
 """Unit tests for discrete_surfaces modules."""
 
-import numpy as np
-
 import geomstats.backend as gs
-import geomstats.datasets.utils as data_utils
 from tests.conftest import Parametrizer
 from tests.data.discrete_surfaces_data import DiscreteSurfacesTestData
 from tests.geometry_test_cases import ManifoldTestCase
-
-test_vertices, test_faces = data_utils.load_cube()
-test_vertices = gs.array(test_vertices, dtype=gs.float64)
-test_faces = gs.array(test_faces)
 
 
 def _test_manifold_shape(test_cls, space_args):
@@ -87,7 +80,7 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
         purposes.
         """
         space = self.Space(faces=faces)
-        cube_normals = np.array(
+        cube_normals = gs.array(
             [
                 [0, 0, 2],
                 [0, 0, 2],
