@@ -90,24 +90,25 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
         space = self.Space(faces=faces)
         cube_normals = gs.array(
             [
-                [0, 0, 2],
-                [0, 0, 2],
-                [0, 2, 0],
-                [0, 2, 0],
-                [2, 0, 0],
-                [2, 0, 0],
-                [0, -2, 0],
-                [0, -2, 0],
-                [-2, 0, 0],
-                [-2, 0, 0],
-                [0, 0, -2],
-                [0, 0, -2],
+                [0.0, 0.0, 2.0],
+                [0.0, 0.0, 2.0],
+                [0.0, 2.0, 0.0],
+                [0.0, 2.0, 0.0],
+                [2.0, 0.0, 0.0],
+                [2.0, 0.0, 0.0],
+                [0.0, -2.0, 0.0],
+                [0.0, -2.0, 0.0],
+                [-2.0, 0.0, 0.0],
+                [-2.0, 0.0, 0.0],
+                [0.0, 0.0, -2.0],
+                [0.0, 0.0, -2.0],
             ]
         )
-        abs_cube_normals = gs.abs(cube_normals)
-        abs_int_normals = gs.cast(gs.abs(space.normals(point)), gs.int64)
-        for i_vect, cube_vector in enumerate(abs_cube_normals):
-            assert (cube_vector == abs_int_normals[i_vect]).all()
+        # expected = gs.abs(cube_normals)
+        expected = gs.abs(cube_normals)
+        result = gs.abs(space.normals(point))
+        # result = gs.abs(space.normals(point))
+        assert gs.allclose(result, expected), result
 
     def test_surface_one_forms(self, faces, point):
         """Test surface one forms."""
