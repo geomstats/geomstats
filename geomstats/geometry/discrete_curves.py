@@ -1045,6 +1045,9 @@ class ElasticMetric(PullbackDiffeoMetric):
 
         return f_cartesian
 
+    def f_transform(self,point):
+        return self.diffeomorphism(point)
+
     def inverse_diffeomorphism(self, f_trans):
         r"""Compute the inverse F_transform of a transformed curve.
 
