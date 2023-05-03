@@ -155,20 +155,28 @@ class TestSpecialOrthogonal3Vectors(TestCase, metaclass=Parametrizer):
     testing_data = SpecialOrthogonal3TestData()
     Space = testing_data.Space
 
-    def test_tait_bryan_angles_matrix(self, coord, order, vec, mat):
+    def test_tait_bryan_angles_matrix(self, extrinsic, zyx, vec, mat):
         group = self.Space(3, point_type="vector")
 
-        mat_from_vec = group.matrix_from_tait_bryan_angles(vec, coord, order)
+        mat_from_vec = group.matrix_from_tait_bryan_angles(
+            vec, extrinsic=extrinsic, zyx=zyx
+        )
         self.assertAllClose(mat_from_vec, mat)
-        vec_from_mat = group.tait_bryan_angles_from_matrix(mat, coord, order)
+        vec_from_mat = group.tait_bryan_angles_from_matrix(
+            mat, extrinsic=extrinsic, zyx=zyx
+        )
         self.assertAllClose(vec_from_mat, vec)
 
-    def test_tait_bryan_angles_quaternion(self, coord, order, vec, quat):
+    def test_tait_bryan_angles_quaternion(self, extrinsic, zyx, vec, quat):
         group = self.Space(3, point_type="vector")
 
-        quat_from_vec = group.quaternion_from_tait_bryan_angles(vec, coord, order)
+        quat_from_vec = group.quaternion_from_tait_bryan_angles(
+            vec, extrinsic=extrinsic, zyx=zyx
+        )
         self.assertAllClose(quat_from_vec, quat)
-        vec_from_quat = group.tait_bryan_angles_from_quaternion(quat, coord, order)
+        vec_from_quat = group.tait_bryan_angles_from_quaternion(
+            quat, extrinsic=extrinsic, zyx=zyx
+        )
         self.assertAllClose(vec_from_quat, vec)
 
     def test_quaternion_from_rotation_vector_tait_bryan_angles(

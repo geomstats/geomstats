@@ -10,7 +10,6 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry._hyperbolic import HyperbolicMetric, _Hyperbolic
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
@@ -23,19 +22,13 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     Minkowski space as the set of points with squared norm equal to -1. For other
     representations of hyperbolic spaces see the `Hyperbolic` class.
 
-    The default_coords_type parameter allows to choose the representation of the
-    points as input.
-
     Parameters
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    default_coords_type : str, {'extrinsic', 'intrinsic'}
-        Default coordinates to represent points in hyperbolic space.
-        Optional, default: 'extrinsic'.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
+    def __init__(self, dim, **kwargs):
         if "scale" in kwargs:
             raise TypeError(
                 "Argument scale is no longer in use: instantiate the "
@@ -43,8 +36,8 @@ class Hyperboloid(_Hyperbolic, LevelSet):
                 "`scale * metric` to rescale the standard metric."
             )
         self.dim = dim
-        kwargs.setdefault("metric", HyperboloidMetric(dim, default_coords_type))
-        super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
+        kwargs.setdefault("metric", HyperboloidMetric(dim))
+        super().__init__(dim=dim, default_coords_type="extrinsic", **kwargs)
 
     def _define_embedding_space(self):
         return Minkowski(self.dim + 1)
@@ -75,38 +68,6 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         submersed_vector : array-like, shape=[...]
         """
         return self.embedding_space.metric.inner_product(vector, point)
-
-    def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the hyperbolic space.
-
-        Test if a point belongs to the hyperbolic space in
-        its hyperboloid representation.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to be tested.
-        atol : float, optional
-            Tolerance at which to evaluate how close the squared norm
-            is to the reference value.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Array of booleans indicating whether the corresponding points
-            belong to the hyperbolic space.
-        """
-        point_dim = point.shape[-1]
-        if point_dim is not self.dim + 1:
-            belongs = False
-            if point_dim is self.dim and self.default_coords_type == "intrinsic":
-                belongs = True
-            if gs.ndim(point) == 2:
-                belongs = gs.tile([belongs], (point.shape[0],))
-            return belongs
-
-        return super().belongs(point, atol)
 
     def projection(self, point):
         """Project a point in space on the hyperboloid.
@@ -147,9 +108,6 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             Point in hyperbolic space in canonical representation
             in extrinsic coordinates.
         """
-        if self.default_coords_type == "intrinsic":
-            point = self.intrinsic_to_extrinsic_coords(point)
-
         sq_norm = self.embedding_space.metric.squared_norm(point)
         if not gs.all(sq_norm):
             raise ValueError(
@@ -161,7 +119,6 @@ class Hyperboloid(_Hyperbolic, LevelSet):
 
         return projected_point
 
-    @geomstats.vectorization.decorator(["else", "vector", "vector"])
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the hyperbolic space.
 
@@ -181,37 +138,12 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             Tangent vector at the base point, equal to the projection of
             the vector in Minkowski space.
         """
-        if self.default_coords_type == "intrinsic":
-            base_point = self.intrinsic_to_extrinsic_coords(base_point)
-
         sq_norm = self.embedding_space.metric.squared_norm(base_point)
         inner_prod = self.embedding_space.metric.inner_product(base_point, vector)
 
         coef = inner_prod / sq_norm
 
-        tangent_vec = vector - gs.einsum("...,...j->...j", coef, base_point)
-        return tangent_vec
-
-    def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim + 1]
-            Vector.
-        base_point : array-like, shape=[..., dim + 1]
-            Point on the manifold.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        product = self.embedding_space.metric.inner_product(vector, base_point)
-        return gs.isclose(product, 0.0)
+        return vector - gs.einsum("...,...j->...j", coef, base_point)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert from intrinsic to extrinsic coordinates.
@@ -271,8 +203,8 @@ class HyperboloidMetric(HyperbolicMetric):
         Optional, default: 'extrinsic'.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic"):
-        super().__init__(dim=dim, default_coords_type=default_coords_type)
+    def __init__(self, dim):
+        super().__init__(dim=dim, default_coords_type="extrinsic")
         self.embedding_metric = MinkowskiMetric(dim + 1)
 
     def metric_matrix(self, base_point=None):

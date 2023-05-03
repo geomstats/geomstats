@@ -5,7 +5,7 @@ from geomstats.information_geometry.gamma import GammaDistributions, GammaMetric
 from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
 
 
-class GammaTestData(_OpenSetTestData):
+class GammaDistributionsTestData(_OpenSetTestData):
     Space = GammaDistributions
     space_args_list = []
     shape_list = [(2,)]
@@ -45,16 +45,12 @@ class GammaTestData(_OpenSetTestData):
     def point_to_pdf_test_data(self):
         random_data = [
             dict(
-                point=self.Space().random_point(2),
-                n_samples=random.choice(self.n_samples_list),
-            ),
-            dict(
-                point=self.Space().random_point(4),
-                n_samples=random.choice(self.n_samples_list),
+                point=self.Space().random_point(3),
+                n_samples=self.n_samples_list,
             ),
             dict(
                 point=self.Space().random_point(1),
-                n_samples=random.choice(self.n_samples_list),
+                n_samples=self.n_samples_list,
             ),
         ]
         return self.generate_tests([], random_data)

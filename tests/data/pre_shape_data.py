@@ -197,9 +197,6 @@ class PreShapeSpaceTestData(_LevelSetTestData):
         ]
         return self.generate_tests(random_data)
 
-    def integrability_tensor_old_test_data(self):
-        return self.integrability_tensor_test_data()
-
     def integrability_tensor_derivative_is_alternate_test_data(self):
         smoke_data = [
             dict(
