@@ -975,7 +975,7 @@ class ElasticMetric(PullbackDiffeoMetric):
         """
         return L2CurvesMetric(ambient_manifold=self.ambient_manifold)
 
-    def diffeomorphism(self, point):
+    def f_transform(self, point):
         r"""Compute the f_transform of a curve.
 
         Note that the f_transform is defined on the space of curves
@@ -1047,45 +1047,10 @@ class ElasticMetric(PullbackDiffeoMetric):
 
         return f_cartesian
 
-    def f_transform(self, point):
-        r"""Compute the f_transform of a curve.
+    def diffeomorphism(self, point):
+        r"""Diffeomorphism at base point.
 
-        Note that the f_transform is defined on the space of curves
-        quotiented by translations, which is identified with the space
-        of curves with their first sampling point located at 0:
-
-        .. math::
-            curve(0) = (0, 0)
-
-        The f_transform is given by the formula:
-
-        .. math::
-            Imm(I, R^2) / R^2 \mapsto C^\infty(I, C*)
-            c \mapsto 2b |c'|^{1/2} (\frac{c'}{|c'|})^{a/(2b)}
-
-        where the identification :math:`C = R^2` is used and
-        the exponentiation is a complex exponentiation, which can make
-        the f_transform not well-defined:
-
-        .. math::
-            f(c) = 2b r^{1/2}\exp(i\theta * a/(2b)) * \exp(ik\pi * a/b)
-
-        where (r, theta) is the polar representation of c', and for
-        any :math:`k \in Z`.
-
-        The implementation uses formula (3) from [KN2018]_ , i.e. choses
-        the representative corresponding to k = 0.
-
-        Notes
-        -----
-        f_transform is a bijection if and only if a/2b=1.
-
-        If a 2b is an integer not equal to 1:
-        - then f_transform is well-defined but many-to-one.
-
-        If a 2b is not an integer:
-        - then f_transform is multivalued,
-        - and f_transform takes finitely many values if and only if a 2b is rational.
+        This is the f_transform function,
 
         Parameters
         ----------
@@ -1096,10 +1061,11 @@ class ElasticMetric(PullbackDiffeoMetric):
         -------
         f : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             F_transform of the curve..
-        """
-        return self.diffeomorphism(point)
 
-    def inverse_diffeomorphism(self, f_trans):
+        """
+        return self.f_transform(point)
+
+    def f_transform_inverse(self, f_trans, starting_sampling_point):
         r"""Compute the inverse F_transform of a transformed curve.
 
         This only works if a / (2b) <= 1.
@@ -1131,7 +1097,6 @@ class ElasticMetric(PullbackDiffeoMetric):
         curve : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
         """
-        starting_sampling_point = [0, 0]
         starting_sampling_point = gs.to_ndarray(starting_sampling_point,
                                                 to_ndim=f_trans.ndim, axis=-2)
 
@@ -1173,7 +1138,27 @@ class ElasticMetric(PullbackDiffeoMetric):
         curve = gs.cumsum(curve, -2)
         return gs.squeeze(curve)
 
-    def squared_dist(self, point_a, point_b, rescaled=False):
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse diffeomorphism at image point.
+
+        This is the curve starting at the origin whose
+        F transform is image point.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            F tranform representation of a discrete curve.
+
+        Returns
+        -------
+        curve : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Curve starting at the origin retrieved from its square-root velocity.
+        """
+        starting_sampling_point = gs.zeros(gs.shape(image_point[..., 0, :]))
+        f_transform = image_point
+        return self.f_transform_inverse(f_transform, starting_sampling_point)
+
+    def squared_dist(self, point_a, point_b):
         """Compute squared geodesic distance between two curves.
 
         The two F_transforms are computed with corrected arguments
