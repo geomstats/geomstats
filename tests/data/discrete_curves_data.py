@@ -55,7 +55,6 @@ class DiscreteCurvesTestData(_ManifoldTestData):
 
 
 class L2CurvesMetricTestData(_RiemannianMetricTestData):
-
     ambient_manifolds_list = [r2, r3]
     metric_args_list = [
         (ambient_manifolds,) for ambient_manifolds in ambient_manifolds_list

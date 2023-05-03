@@ -539,7 +539,6 @@ class ClosedDiscreteCurves(LevelSet):
             nb_iter = 0
 
             while criteria >= atol and nb_iter < max_iter:
-
                 jacobian_vec = []
                 for i in range(dim):
                     for j in range(i, dim):
