@@ -223,7 +223,7 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
 
     n_samples_list = [1, 5]
     a_list = [1, 2]
-    b_list = [1, 2]
+    b_list = [2, 5]
 
     ambient_manifolds_list = [r2]
     connection_args_list = metric_args_list = [(1, 1)]
