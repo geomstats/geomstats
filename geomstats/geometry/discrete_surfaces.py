@@ -319,6 +319,8 @@ class DiscreteSurfaces(Manifold):
             the triangulated surface.
         """
         one_forms = self.surface_one_forms(point)
-        transposed_one_forms = one_forms.transpose(-1, -2)
+        ndim = one_forms.ndim
+        transpose_axes = tuple(range(ndim - 2)) + tuple(reversed(range(ndim - 2, ndim)))
+        transposed_one_forms = one_forms.transpose(transpose_axes)
         metric_mats = gs.matmul(one_forms, transposed_one_forms)
         return metric_mats
