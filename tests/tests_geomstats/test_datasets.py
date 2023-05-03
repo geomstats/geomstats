@@ -194,7 +194,7 @@ class TestDatasets(tests.conftest.TestCase):
         result = [treatment in ["control", "cytd", "jasp"] for treatment in treatments]
         self.assertTrue(gs.all(result))
 
-    def test_cube(self):
+    def test_load_cube(self):
         """Test that the cube loads correctly."""
         vertices, faces = data_utils.load_cube()
         assert vertices.shape == (8, 3)

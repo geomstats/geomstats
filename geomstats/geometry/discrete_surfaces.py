@@ -53,7 +53,7 @@ class DiscreteSurfaces(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., n_vertices, 3]
-            Surface, i.e. the 3D coordinates of the vertices of its triangulation.
+            Surface, as the 3D coordinates of the vertices of its triangulation.
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
@@ -82,7 +82,7 @@ class DiscreteSurfaces(Manifold):
         vector : array-like, shape=[..., n_vertices, 3]
             Vector, i.e. a 3D vector field on the surface.
         base_point : array-like, shape=[..., n_vertices, 3]
-            Surface, i.e. the 3D coordinates of the vertices of its triangulation.
+            Surface, as the 3D coordinates of the vertices of its triangulation.
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
@@ -102,7 +102,7 @@ class DiscreteSurfaces(Manifold):
         vector : array-like, shape=[..., n_vertices, 3]
             Vector, i.e. a 3D vector field on the surface.
         base_point : array-like, shape=[..., n_vertices, 3]
-            Surface, i.e. the 3D coordinates of the vertices of its triangulation.
+            Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
@@ -117,7 +117,7 @@ class DiscreteSurfaces(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., n_vertices, 3]
-            Surface, i.e. the 3D coordinates of the vertices of its triangulation.
+            Surface, as the 3D coordinates of the vertices of its triangulation..
 
         Returns
         -------
@@ -161,7 +161,7 @@ class DiscreteSurfaces(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., n_vertices, 3]
-             Surface, i.e. the 3D coordinates of the vertices of its triangulation.
+             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
@@ -196,7 +196,6 @@ class DiscreteSurfaces(Manifold):
         id_vertices = gs.tile(id_vertices, (n_points, 1))
         incident_areas = gs.zeros((n_points, n_vertices))
         val = gs.reshape(gs.tile(area, (1, 1, 3)), (n_points, -1))
-        assert val.shape == id_vertices.shape, val.shape
         incident_areas = gs.scatter_add(
             incident_areas, dim=1, index=id_vertices, src=val
         )
@@ -215,7 +214,7 @@ class DiscreteSurfaces(Manifold):
         Parameters
         ----------
         point : array-like, shape=[n_vertices, 3]
-            Surface, i.e. the vertices of its triangulation.
+            Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
@@ -247,7 +246,7 @@ class DiscreteSurfaces(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., n_vertices, 3]
-             One surface, i.e. the vertices of its triangulation.
+             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
@@ -272,7 +271,7 @@ class DiscreteSurfaces(Manifold):
         Parameters
         ----------
         point : array-like, shape=[n_vertices, 3]
-            One surface, i.e. the vertices of its triangulation.
+            Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
@@ -294,11 +293,11 @@ class DiscreteSurfaces(Manifold):
         Parameters
         ----------
         point : array like, shape=[n_vertices, 3]
-            One surface, i.e. the vertices of its triangulation.
+            Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
-        _ : array-like, shape=[n_faces, 2, 2]
+        metric_mats : array-like, shape=[n_faces, 2, 2]
             Surface metric matrices evaluated at each face of
             the triangulated surface.
         """

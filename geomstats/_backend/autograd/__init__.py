@@ -556,7 +556,7 @@ def scatter_add(input, dim, index, src):
         for i, val in zip(index, src):
             input[i] += val
         return input
-    elif dim == 1:
+    if dim == 1:
         for j in range(len(input)):
             for i, val in zip(index[j], src[j]):
                 input[j, i] += val
