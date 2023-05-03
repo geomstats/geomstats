@@ -140,6 +140,7 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
         assert gs.all(result)
 
         singleton_point = gs.expand_dims(point, axis=0)
+        print("singleton_point.shape", singleton_point.shape)
         result = space.surface_one_forms(point=singleton_point)
         assert result.shape == (1, space.n_faces, 2, 3)
 

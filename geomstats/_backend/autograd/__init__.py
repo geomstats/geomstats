@@ -534,7 +534,7 @@ def trace(a):
 
 
 def scatter_add(input, dim, index, src):
-    """Write values from src into input at the indices specified in index.
+    """Add values from src into input at the indices specified in index.
 
     Parameters
     ----------
