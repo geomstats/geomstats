@@ -220,10 +220,13 @@ class SRVMetricTestData(_RiemannianMetricTestData):
 
 
 class ElasticMetricTestData(_RiemannianMetricTestData):
-    a_b_list = [(1, 1)]
+
+    n_samples_list = [1, 5]
+    a_list = [1, 2]
+    b_list = [1, 2]
 
     ambient_manifolds_list = [r2]
-    connection_args_list = metric_args_list = a_b_list
+    connection_args_list = metric_args_list = [(1, 1)]
     shape_list = [(10, 2), (10, 3)]
     space_list = [
         DiscreteCurves(ambient_manifolds)
@@ -241,25 +244,17 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
 
     def cartesian_to_polar_and_polar_to_cartesian_test_data(self):
         smoke_data = [
-            dict(a=a, b=b, rtol=10 * gs.rtol, atol=10 * gs.atol)
-            for a, b in self.a_b_list
-        ]
-        return self.generate_tests(smoke_data)
-
-    def cartesian_to_polar_and_polar_to_cartesian_vectorization_test_data(self):
-        smoke_data = [
-            dict(a=a, b=b, rtol=10 * gs.rtol, atol=10 * gs.atol)
-            for a, b in self.a_b_list
+            dict(a=a, b=b, n_samples=n_samples,
+                 rtol=10 * gs.rtol, atol=10 * gs.atol)
+            for a in self.a_list for b in self.b_list
+            for n_samples in self.n_samples_list
         ]
         return self.generate_tests(smoke_data)
 
     def f_transform_and_srv_transform_test_data(self):
         smoke_data = [
-            dict(
-                curve=gs.stack([curve_a[:, 0], curve_a[:, 2]], axis=-1),
-                rtol=gs.rtol,
-                atol=gs.atol,
-            )
+            dict(n_samples=n_samples, rtol=gs.rtol, atol=gs.atol)
+            for n_samples in self.n_samples_list
         ]
         return self.generate_tests(smoke_data)
 
@@ -273,19 +268,30 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def f_transform_and_srv_transform_vectorization_test_data(self):
+    def f_transform_and_f_transform_inverse_test_data(self):
         smoke_data = [
             dict(
-                rtol=10 * gs.rtol,
-                atol=10 * gs.atol,
-            )
+                curve=gs.stack([curve_a[:, 0], curve_a[:, 2]], axis=-1),
+                a=a, b=b, rtol=10 * gs.rtol, atol=10 * gs.atol)
+            for a in self.a_list for b in self.b_list
         ]
         return self.generate_tests(smoke_data)
 
-    def f_transform_and_f_transform_inverse_test_data(self):
+    def f_transform_and_diffeomorphism_test_data(self):
         smoke_data = [
-            dict(a=a, b=b, rtol=10 * gs.rtol, atol=10 * gs.atol)
-            for a, b in self.a_b_list
+            dict(a=a, b=b, n_samples=n_samples,
+                 rtol=10 * gs.rtol, atol=10 * gs.atol)
+            for a in self.a_list for b in self.b_list
+            for n_samples in self.n_samples_list
+        ]
+        return self.generate_tests(smoke_data)
+
+    def f_transform_inverse_and_inverse_diffeomorphism_test_data(self):
+        smoke_data = [
+            dict(a=a, b=b, n_samples=n_samples,
+                 rtol=10 * gs.rtol, atol=10 * gs.atol)
+            for a in self.a_list for b in self.b_list
+            for n_samples in self.n_samples_list
         ]
         return self.generate_tests(smoke_data)
 
