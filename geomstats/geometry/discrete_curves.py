@@ -854,8 +854,7 @@ class ElasticMetric(PullbackDiffeoMetric):
     ):
         self.ambient_manifold = ambient_manifold
         super().__init__(
-            dim=math.inf,
-            shape=(k_sampling_points,) + ambient_manifold.shape
+            dim=math.inf, shape=(k_sampling_points,) + ambient_manifold.shape
         )
 
         self.ambient_metric = ambient_metric
@@ -1096,7 +1095,8 @@ class ElasticMetric(PullbackDiffeoMetric):
         """
         if gs.ndim(f_trans) != gs.ndim(starting_sampling_point):
             starting_sampling_point = gs.to_ndarray(
-                starting_sampling_point, to_ndim=f_trans.ndim, axis=-2)
+                starting_sampling_point, to_ndim=f_trans.ndim, axis=-2
+            )
 
         if not (
             isinstance(self.ambient_manifold, Euclidean)
