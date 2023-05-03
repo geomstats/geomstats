@@ -246,18 +246,21 @@ class DiscreteSurfaces(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_vertices, 3]
+        point : array-like, shape=[..., n_vertices, 3]
              One surface, i.e. the vertices of its triangulation.
 
         Returns
         -------
-        one_forms_base_point : array-like, shape=[n_faces, 3, 2]
+        one_forms_base_point : array-like, shape=[..., n_faces, 2, 3]
             One form evaluated at each face of the triangulated surface.
         """
         vertex_0 = gs.take(point, indices=self.faces[:, 0], axis=-2)
         vertex_1 = gs.take(point, indices=self.faces[:, 1], axis=-2)
         vertex_2 = gs.take(point, indices=self.faces[:, 2], axis=-2)
-        return gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=1)
+        one_forms = gs.stack([vertex_1 - vertex_0, vertex_2 - vertex_0], axis=-2)
+        if point.ndim == 3 and one_forms.ndim == 3:
+            one_forms = gs.expand_dims(one_forms, axis=0)
+        return one_forms
 
     def face_areas(self, point):
         """Compute the areas for each face of a triangulated surface.
@@ -268,12 +271,12 @@ class DiscreteSurfaces(Manifold):
 
         Parameters
         ----------
-        point :  array-like, shape=[n_vertices, 3]
+        point : array-like, shape=[n_vertices, 3]
             One surface, i.e. the vertices of its triangulation.
 
         Returns
         -------
-        _ :  array-like, shape=[n_faces,]
+        _ : array-like, shape=[n_faces,]
             Area computed at each face of the triangulated surface.
         """
         surface_metrics = self.surface_metric_matrices(point)
@@ -299,6 +302,15 @@ class DiscreteSurfaces(Manifold):
             Surface metric matrices evaluated at each face of
             the triangulated surface.
         """
+        need_squeeze = False
+        if point.ndim == 2:
+            point = gs.expand_dims(point, 0)
+            need_squeeze = True
+        print("point.shape", point.shape)
         one_forms = self.surface_one_forms(point)
-        transposed_one_forms = gs.transpose(one_forms, axes=(0, 2, 1))
-        return gs.matmul(one_forms, transposed_one_forms)
+        print("one_forms", one_forms.shape)
+        transposed_one_forms = gs.transpose(one_forms, axes=(0, 1, 3, 2))
+        metric_mats = gs.matmul(one_forms, transposed_one_forms)
+        if need_squeeze:
+            metric_mats = gs.squeeze(metric_mats, axis=0)
+        return metric_mats

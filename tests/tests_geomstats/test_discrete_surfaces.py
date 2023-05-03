@@ -129,29 +129,57 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
     def test_surface_one_forms(self, faces, point):
         """Test surface one forms."""
         space = self.Space(faces=faces)
-        one_forms = space.surface_one_forms(point=point)
-        assert one_forms.shape == (space.n_faces, 2, 3), one_forms.shape
 
-        first_vec = one_forms[:, 0, :]
-        second_vec = one_forms[:, 1, :]
-        inner_prods = gs.einsum("ij,ij->i", first_vec, second_vec)
+        result = space.surface_one_forms(point=point)
+        assert result.shape == (space.n_faces, 2, 3), result.shape
+
+        first_vec = result[:, 0, :]
+        second_vec = result[:, 1, :]
+        inner_prods = gs.einsum("ni,ni->n", first_vec, second_vec)
         result = [prod in [0.0, 4.0] for prod in inner_prods]
+        assert gs.all(result)
+
+        singleton_point = gs.expand_dims(point, axis=0)
+        result = space.surface_one_forms(point=singleton_point)
+        assert result.shape == (1, space.n_faces, 2, 3)
+
+        point = gs.array([point, point])
+        result = space.surface_one_forms(point=point)
+        assert result.shape == (2, space.n_faces, 2, 3)
+
+        first_vec = result[:, :, 0, :]
+        second_vec = result[:, :, 1, :]
+        inner_prods = gs.einsum("mni,mni->mn", first_vec, second_vec)
+        result = []
+        for inner_prod in inner_prods:
+            result.append([prod in [0.0, 4.0] for prod in inner_prod])
         assert gs.all(result)
 
     def test_faces_area(self, faces, point):
         """Test faces area."""
         space = self.Space(faces=faces)
-        face_areas = space.face_areas(point=point)
+
+        result = space.face_areas(point=point)
         expected = gs.array([4.0] * 12)
-        assert face_areas.shape == (space.n_faces,), face_areas.shape
-        assert gs.allclose(face_areas, expected), face_areas
+        assert result.shape == (space.n_faces,), result.shape
+        assert gs.allclose(result, expected), result
+
+        point = gs.array([point, point])
+        result = space.face_areas(point=point)
+        expected = gs.array([expected, expected])
+        assert result.shape == (2, space.n_faces), result.shape
+        assert gs.allclose(result, expected), result
 
     def test_surface_metric_matrices(self, faces, point):
         """Test surface metric matrices."""
         space = self.Space(faces=faces)
-        surface_metric_matrices = space.surface_metric_matrices(point=point)
-        assert surface_metric_matrices.shape == (
+        result = space.surface_metric_matrices(point=point)  #
+        assert result.shape == (
             space.n_faces,
             2,
             2,
-        ), surface_metric_matrices.shape
+        ), result.shape
+
+        point = gs.array([point, point])
+        result = space.surface_metric_matrices(point=point)
+        assert result.shape == (2, space.n_faces, 2, 2)
