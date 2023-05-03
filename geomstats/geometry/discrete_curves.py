@@ -1095,8 +1095,9 @@ class ElasticMetric(PullbackDiffeoMetric):
         curve : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
         """
-        starting_sampling_point = gs.to_ndarray(starting_sampling_point,
-                                                to_ndim=f_trans.ndim, axis=-2)
+        if gs.ndim(f_trans) != gs.ndim(starting_sampling_point):
+            starting_sampling_point = gs.to_ndarray(
+                starting_sampling_point, to_ndim=f_trans.ndim, axis=-2)
 
         if not (
             isinstance(self.ambient_manifold, Euclidean)
