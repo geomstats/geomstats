@@ -306,9 +306,7 @@ class DiscreteSurfaces(Manifold):
         if point.ndim == 2:
             point = gs.expand_dims(point, 0)
             need_squeeze = True
-        print("point.shape", point.shape)
         one_forms = self.surface_one_forms(point)
-        print("one_forms", one_forms.shape)
         transposed_one_forms = gs.transpose(one_forms, axes=(0, 1, 3, 2))
         metric_mats = gs.matmul(one_forms, transposed_one_forms)
         if need_squeeze:

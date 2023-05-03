@@ -173,7 +173,7 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
     def test_surface_metric_matrices(self, faces, point):
         """Test surface metric matrices."""
         space = self.Space(faces=faces)
-        result = space.surface_metric_matrices(point=point)  #
+        result = space.surface_metric_matrices(point=point)
         assert result.shape == (
             space.n_faces,
             2,
