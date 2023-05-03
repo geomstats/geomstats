@@ -483,19 +483,18 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, rtol, atol)
 
     def test_f_transform_inverse_and_inverse_diffeomorphism(
-            self, a, b, n_samples, rtol, atol):
+            self, a, b, curve, rtol, atol):
         """Test that the f transform inverse coincides
         with the inverse diffeomorphism when starting at 0.
         """
-        curves_space = DiscreteCurves(ambient_manifold=r2)
-        curves = curves_space.random_point(n_samples=n_samples)
+        starting_point = gs.zeros(gs.shape(curve[..., 0, :]))
+        fake_transformed_curve = curve[1:, :]
 
         el_metric = ElasticMetric(a=a, b=b)
-        starting_point = gs.zeros(gs.shape(curves[..., 0, :]))
 
-        result = el_metric.inverse_diffeomorphism(curves)
+        result = el_metric.inverse_diffeomorphism(fake_transformed_curve)
         expected = el_metric.f_transform_inverse(
-            curves, starting_point)
+            fake_transformed_curve, starting_point)
 
         self.assertAllClose(result, expected, rtol, atol)
 
