@@ -1978,13 +1978,20 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         
         """
 
-        def srv_function(point):
+        def srv_function(point, tol=gs.atol):
             """ 
             Computes the srv_function of a point (with discretization = n) 
             (a point in the space of curves is a curve) 
             and gives the norm squared of the srv_function 
             """
-            
+            if gs.any(
+                self.ambient_metric.norm(point[..., 1:, :] - point[..., :-1, :]) < tol
+            ):
+                raise AssertionError(
+                    "The square root velocity framework "
+                    "is only defined for discrete curves "
+                    "with distinct consecutive sample points."
+                )
             l = point.shape[-2] - 1
             velocity = l * (point[1:, :] - point[:-1, :])
             square_root_velocity = np.sqrt(np.sum(gs.abs(velocity),axis=-1))
@@ -1995,7 +2002,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         
         def reparametrisation_q(q, gamma):
 
-            new_q = np.empty(shape = q.shape, dtype = float)
+            new_q = np.empty(shape=q.shape, dtype=float)
             l = len(gamma)
             
             for k in range(1,l):
@@ -2011,7 +2018,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             
             return new_q
 
-#        def compute_integral_restricted(q_1, q_2, x_min, x_max, y_min, y_max):
+        def compute_integral_restricted(q_1, q_2, x_min, x_max, y_min, y_max):
             """
             Compute n * the value of the integral of 
             t --> q_1(t)*q_2(gamma(t))*|gamma(t)|^(1/2) over [x_min,x_max] 
@@ -2178,12 +2185,13 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                                 gamma[(i,j)] = new_gamma
 
         maximum_scalar_product = tableau[(n, n)]/n
+        
         dist_squared = norm_squared_initial_q + norm_squared_end_q - 2*maximum_scalar_product
+        distance = np.sqrt(dist_squared)
         
         end_q_reparametrised = reparametrisation_q(end_q,gamma[(n, n)])
         end_point_reparametrized = self.total_space_metric.inverse_diffeomorphism(end_q_reparametrised,end_point[-1])
         geodesic = self.total_space_metric.geodesic(initial_point, end_point_reparametrized)
-        distance = np.sqrt(dist_squared)
 
         return {"geodesic": geodesic, "distance": distance} 
 
@@ -2234,7 +2242,8 @@ class SRVQuotientMetric(QuotientMetric):
             shape=(k_sampling_points,) + ambient_manifold.shape,
         )
 
-    def geodesic(self, initial_point, end_point, threshold=1e-3, method="horizontal projection"):
+    def geodesic(self, initial_point, end_point, method="horizontal projection",
+                 threshold=1e-3, n=100, max_slope=10):
         """Geodesic for the quotient SRV Metric.
 
         The geodesics between unparametrized curves for the quotient metric are
@@ -2242,18 +2251,40 @@ class SRVQuotientMetric(QuotientMetric):
         curves. Since in practice shapes can only be encoded by parametrized curves,
         geodesics are given in the total space.
         """
+        
         if method == "horizontal projection" :
             return self.fiber_bundle.horizontal_geodesic(
                 initial_point, end_point, threshold
             )
+        
         elif method == "dynamic programming" :
-            return self.fiber_bundle._dynamic_programming["geodesic"]
+            point_ndim = gs.ndim(initial_point)
+            if point_ndim == 2:
+                dp = self.bundle._dynamic_programming(
+                initial_point, end_point, n, max_slope
+                )
+                return dp["geodesic"]
+            else :
+                initial_point = gs.to_ndarray(initial_point, to_ndim=3)
+                end_point = gs.to_ndarray(end_point, to_ndim=3)
+                n_points = initial_point.shape[0]
+                results = np.zeros(n_points, dtype=object)
+
+                for i in range(n_points):
+                    dp = self.bundle._dynamic_programming(
+                        initial_point[i], end_point[i], n, max_slope
+                    )
+                    results[i] = dp["geodesic"]
+
+                return results
+        
         else :
             raise AssertionError(
                 "Method not implemented"
             )
 
-    def dist(self, point_a, point_b, n_times=20, threshold=1e-3, method="horizontal projection"):
+    def dist(self, point_a, point_b, method="horizontal projection",
+             n_times=20, threshold=1e-3, n=100, max_slope=10):
         """Quotient SRV distance between unparametrized curves.
 
         This is the distance induced by the SRV Metric on the space of unparametrized
@@ -2268,13 +2299,23 @@ class SRVQuotientMetric(QuotientMetric):
             Discrete curve.
         point_b : array-like, shape=[k_sampling_points, ambient_dim]
             Discrete curve.
+        method : string,
+            "horizontal projection" or "dynamic programming" 
         n_times: int
+            Relevant for the horizonral porjection method
             Number of times used to discretize the horizontal geodesic.
             Optional, default: 20.
         threshold: float
+            Relevant for the horizontal projection method
             Stop criterion used in the algorithm to compute the horizontal
             geodesic.
             Optional, default: 1e-3.
+        n : int
+            Relevant for the dynamic programming method
+            Number of discretisations of the cuves 
+        max_slope : int 
+            Relevant for the dynamic programing method
+            Max slope of the reparametrization of point b 
 
         Returns
         -------
@@ -2295,9 +2336,29 @@ class SRVQuotientMetric(QuotientMetric):
             )
             quotient_dist = gs.sum(velocity_norms) / n_times
             return quotient_dist
+        
         elif method == "dynamic programming" :
-            return self.fiber_bundle._dynamic_programming["distance"]
+            point_ndim = gs.ndim(initial_point)
+            if point_ndim == 2:
+                dp = self.bundle._dynamic_programming(
+                initial_point, end_point, n, max_slope
+                )
+                return dp["distance"]
+            else :
+                initial_point = gs.to_ndarray(initial_point, to_ndim=3)
+                end_point = gs.to_ndarray(end_point, to_ndim=3)
+                n_points = initial_point.shape[0]
+                quotient_dist = np.zeros(n_points, dtype=float)
+
+                for i in range(n_points):
+                    dp = self.bundle._dynamic_programming(
+                        initial_point[i], end_point[i], n, max_slope
+                    )
+                    quotient_dist[i] = dp["distance"]
+
+                return quotient_dist
+        
         else :
             raise AssertionError(
-                "Method not implemented "
+                "Method not implemented"
             )
