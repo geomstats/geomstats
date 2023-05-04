@@ -324,3 +324,80 @@ class DiscreteSurfaces(Manifold):
         transposed_one_forms = gs.transpose(one_forms, axes=transpose_axes)
         metric_mats = gs.matmul(one_forms, transposed_one_forms)
         return metric_mats
+
+    def laplacian(self, point):
+        """Compute the mesh Laplacian operator of a triangulated surface.
+
+        Parameters
+        ----------
+        point :  array-like, shape=[n_vertices, 3]
+            Surface, as the 3D coordinates of the vertices of its triangulation.
+
+        Returns
+        -------
+        _laplacian : callable
+            Function that evaluates the mesh Laplacian operator at a
+            tangent vector field to the surface.
+        """
+        n_vertices, n_faces = point.shape[0], self.faces.shape[0]
+        vertex_0, vertex_1, vertex_2 = self._vertices(point)
+        len_edge_12 = gs.linalg.norm((vertex_1 - vertex_2), axis=1)
+        len_edge_02 = gs.linalg.norm((vertex_0 - vertex_2), axis=1)
+        len_edge_01 = gs.linalg.norm((vertex_0 - vertex_1), axis=1)
+
+        half_perimeter = 0.5 * (len_edge_12 + len_edge_02 + len_edge_01)
+        area = gs.sqrt(
+            (
+                half_perimeter
+                * (half_perimeter - len_edge_12)
+                * (half_perimeter - len_edge_02)
+                * (half_perimeter - len_edge_01)
+            ).clip(min=1e-6)
+        )
+        sq_len_edge_12, sq_len_edge_02, sq_len_edge_01 = (
+            len_edge_12 * len_edge_12,
+            len_edge_02 * len_edge_02,
+            len_edge_01 * len_edge_01,
+        )
+        cot_12 = (sq_len_edge_02 + sq_len_edge_01 - sq_len_edge_12) / area
+        cot_02 = (sq_len_edge_12 + sq_len_edge_01 - sq_len_edge_02) / area
+        cot_01 = (sq_len_edge_12 + sq_len_edge_02 - sq_len_edge_01) / area
+        cot = gs.stack([cot_12, cot_02, cot_01], axis=1)
+        cot /= 2.0
+        ii = self.faces[:, [1, 2, 0]]
+        jj = self.faces[:, [2, 0, 1]]
+        id_vertices = gs.reshape(gs.stack([ii, jj], axis=0), (2, n_faces * 3))
+
+        def _laplacian(tangent_vec):
+            """Evaluate the mesh Laplacian operator.
+
+            The operator is evaluated at a tangent vector to the surface.
+
+            Parameters
+            ----------
+            tangent_vec :  array-like, shape=[n_vertices, 3]
+                Tangent vector to the manifold at the base point that is the
+                triangulated surface. This tangent vector is a vector field
+                on the triangulated surface.
+
+            Returns
+            -------
+            laplacian_at_tangent_vec: array-like, shape=[n_vertices, 3]
+                Mesh Laplacian operator of the triangulated surface applied
+                to one its tangent vector tangent_vec.
+            """
+            tangent_vec_diff = tangent_vec[id_vertices[0]] - tangent_vec[id_vertices[1]]
+            values = gs.stack([gs.flatten(cot)] * 3, axis=1) * tangent_vec_diff
+            laplacian_at_tangent_vec = gs.zeros((n_vertices, 3))
+            laplacian_at_tangent_vec[:, 0] = gs.scatter_add(
+                laplacian_at_tangent_vec[:, 0], 0, id_vertices[1, :], values[:, 0]
+            )
+            laplacian_at_tangent_vec[:, 1] = gs.scatter_add(
+                laplacian_at_tangent_vec[:, 1], 0, id_vertices[1, :], values[:, 1]
+            )
+            laplacian_at_tangent_vec[:, 2] = gs.scatter_add(
+                laplacian_at_tangent_vec[:, 2], 0, id_vertices[1, :], values[:, 2]
+            )
+            return laplacian_at_tangent_vec
+
+        return _laplacian
