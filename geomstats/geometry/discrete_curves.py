@@ -1938,7 +1938,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
         return horizontal_path
 
-    def _dynamic_programming_approach(self, initial_point, end_point, n, max_slope):
+    def _dynamic_programming(self, initial_point, end_point, n, max_slope):
         """ 
         Find the reparametrization gamma of the curve end_point that minimize the 
         distance between the curve initial_point and the reparametrized curve 
@@ -2234,7 +2234,7 @@ class SRVQuotientMetric(QuotientMetric):
             shape=(k_sampling_points,) + ambient_manifold.shape,
         )
 
-    def geodesic(self, initial_point, end_point, threshold=1e-3):
+    def geodesic(self, initial_point, end_point, threshold=1e-3, method="horizontal projection"):
         """Geodesic for the quotient SRV Metric.
 
         The geodesics between unparametrized curves for the quotient metric are
@@ -2242,11 +2242,18 @@ class SRVQuotientMetric(QuotientMetric):
         curves. Since in practice shapes can only be encoded by parametrized curves,
         geodesics are given in the total space.
         """
-        return self.fiber_bundle.horizontal_geodesic(
-            initial_point, end_point, threshold
-        )
+        if method == "horizontal projection" :
+            return self.fiber_bundle.horizontal_geodesic(
+                initial_point, end_point, threshold
+            )
+        elif method == "dynamic programming" :
+            return self.fiber_bundle._dynamic_programming["geodesic"]
+        else :
+            raise AssertionError(
+                "Method not implemented"
+            )
 
-    def dist(self, point_a, point_b, n_times=20, threshold=1e-3):
+    def dist(self, point_a, point_b, n_times=20, threshold=1e-3, method="horizontal projection"):
         """Quotient SRV distance between unparametrized curves.
 
         This is the distance induced by the SRV Metric on the space of unparametrized
@@ -2274,16 +2281,23 @@ class SRVQuotientMetric(QuotientMetric):
         quotient_dist : float
             Quotient distance between the two curves represented by point_a and point_b.
         """
-        horizontal_path = self.geodesic(
-            initial_point=point_a, end_point=point_b, threshold=threshold
-        )
-        times = gs.linspace(0.0, 1.0, n_times)
-        horizontal_geod = horizontal_path(times)
-        horizontal_geod_velocity = n_times * (
-            horizontal_geod[:-1] - horizontal_geod[1:]
-        )
-        velocity_norms = self.total_space_metric.norm(
-            horizontal_geod_velocity, horizontal_geod[:-1]
-        )
-        quotient_dist = gs.sum(velocity_norms) / n_times
-        return quotient_dist
+        if method == "horizontal projection" :
+            horizontal_path = self.geodesic(
+                initial_point=point_a, end_point=point_b, threshold=threshold
+            )
+            times = gs.linspace(0.0, 1.0, n_times)
+            horizontal_geod = horizontal_path(times)
+            horizontal_geod_velocity = n_times * (
+                horizontal_geod[:-1] - horizontal_geod[1:]
+            )
+            velocity_norms = self.total_space_metric.norm(
+                horizontal_geod_velocity, horizontal_geod[:-1]
+            )
+            quotient_dist = gs.sum(velocity_norms) / n_times
+            return quotient_dist
+        elif method == "dynamic programming" :
+            return self.fiber_bundle._dynamic_programming["distance"]
+        else :
+            raise AssertionError(
+                "Method not implemented "
+            )
