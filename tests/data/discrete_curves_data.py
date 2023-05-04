@@ -334,6 +334,16 @@ class SRVShapeBundleTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
+    def dynamic_programming_test_data(self):
+        smoke_data = [
+            dict(
+                k_sampling_points=k_sampling_points,
+                curve_a=spherical_curve_a,
+                n_times=20,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
 
 class SRVQuotientMetricTestData(TestData):
     def dist_test_data(self):
