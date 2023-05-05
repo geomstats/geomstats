@@ -8,11 +8,11 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import TestData
 
 
-class BuresWassersteinBundle(FiberBundle, GeneralLinear):
-    def __init__(self, n):
+class BuresWassersteinBundle(FiberBundle):
+    def __init__(self, total_space):
         super().__init__(
-            n=n,
-            group=SpecialOrthogonal(n),
+            total_space=total_space,
+            group=SpecialOrthogonal(total_space.n),
         )
 
     @staticmethod
@@ -47,6 +47,7 @@ class BuresWassersteinBundle(FiberBundle, GeneralLinear):
 
 class BundleTestData(TestData):
     Bundle = BuresWassersteinBundle
+    TotalSpace = GeneralLinear
     Base = SPDMatrices
 
     def riemannian_submersion_test_data(self):
@@ -90,6 +91,7 @@ class QuotientMetricTestData(TestData):
 
     Base = SPDMatrices
     Bundle = BuresWassersteinBundle
+    TotalSpace = GeneralLinear
 
     ReferenceMetric = SPDBuresWassersteinMetric
     Metric = QuotientMetric

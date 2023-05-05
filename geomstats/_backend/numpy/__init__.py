@@ -529,3 +529,34 @@ def dot(a, b):
 
 def trace(a):
     return _np.trace(a, axis1=-2, axis2=-1)
+
+
+def scatter_add(input, dim, index, src):
+    """Add values from src into input at the indices specified in index.
+
+    Parameters
+    ----------
+    input : array-like
+        Tensor to scatter values into.
+    dim : int
+        The axis along which to index.
+    index : array-like
+        The indices of elements to scatter.
+    src : array-like
+        The source element(s) to scatter.
+
+    Returns
+    -------
+    input : array-like
+        Modified input array.
+    """
+    if dim == 0:
+        for i, val in zip(index, src):
+            input[i] += val
+        return input
+    if dim == 1:
+        for j in range(len(input)):
+            for i, val in zip(index[j], src[j]):
+                input[j, i] += val
+        return input
+    raise NotImplementedError

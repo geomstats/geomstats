@@ -386,33 +386,26 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = ElasticMetricTestData()
 
-    def test_cartesian_to_polar_and_polar_to_cartesian(self, space, a, b, rtol, atol):
-        """Test conversion to polar coordinate"""
-        space.equip_with_metric(self.Metric, a=a, b=b)
-        curve = space.random_point()
-        polar_curve = space.metric.cartesian_to_polar(curve)
-        result = space.metric.polar_to_cartesian(polar_curve)
-
-        self.assertAllClose(result, curve, rtol, atol)
-
-    def test_cartesian_to_polar_and_polar_to_cartesian_vectorization(
-        self, space, a, b, rtol, atol
+    def test_cartesian_to_polar_and_polar_to_cartesian(
+        self, space, a, b, n_samples, rtol, atol
     ):
         """Test conversion to polar coordinate"""
         space.equip_with_metric(self.Metric, a=a, b=b)
 
-        curve = space.random_point(n_samples=3)
-        polar_curve = space.metric.cartesian_to_polar(curve)
-        result = space.metric.polar_to_cartesian(polar_curve)
+        curve = space.random_point(n_samples=n_samples)
+        polar_curve = space.metric._cartesian_to_polar(curve)
+        result = space.metric._polar_to_cartesian(polar_curve)
 
         self.assertAllClose(result, curve, rtol=rtol, atol=atol)
 
-    def test_f_transform_and_srv_transform(self, space, curve, rtol, atol):
-        """Test that the f transform coincides with the SRVF
+    def test_f_transform_and_srv_transform(self, space, n_samples, rtol, atol):
+        """Test that the f transform coincides with the SRVF.
 
-        This is valid for a f transform with a=1, b=1/2.
+        This is valid for a f_transform with a=1, b=1/2.
         """
-        space.equip_with_metric(self.Metric, a=1, b=0.5)
+        curve = space.random_point(n_samples)
+
+        space.equip_with_metric(self.Metric, a=1.0, b=0.5)
         result = space.metric.f_transform(curve)
 
         space.equip_with_metric(SRVMetric)
@@ -442,26 +435,9 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected, rtol, atol)
 
-    def test_f_transform_and_srv_transform_vectorization(self, space, rtol, atol):
-        """Test that the f transform coincides with the SRVF.
-
-        This is valid for a f_transform with a=1, b=1/2.
-        """
-        space.equip_with_metric(self.Metric, a=1, b=0.5)
-
-        curves = space.random_point(n_samples=2)
-
-        result = space.metric.f_transform(curves)
-
-        space.equip_with_metric(SRVMetric)
-        expected = space.metric.f_transform(curves)
-        self.assertAllClose(result, expected, rtol, atol)
-
-    def test_f_transform_and_inverse(self, space, a, b, rtol, atol):
+    def test_f_transform_and_f_transform_inverse(self, space, a, b, curve, rtol, atol):
         """Test that the inverse is right."""
         space.equip_with_metric(self.Metric, a=a, b=b)
-
-        curve = space.random_point()
 
         f = space.metric.f_transform(curve)
         f_inverse = space.metric.f_transform_inverse(f, curve[0])
@@ -472,6 +448,37 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         result = f_inverse
         expected = curve
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def test_f_transform_and_diffeomorphism(self, space, a, b, n_samples, rtol, atol):
+        """Test that f_transform coincides with
+        diffeomorphism.
+        """
+        space.equip_with_metric(self.Metric, a=a, b=b)
+
+        curves = space.random_point(n_samples=n_samples)
+
+        result = space.metric.f_transform(curves)
+        expected = space.metric.diffeomorphism(curves)
+
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def test_f_transform_inverse_and_inverse_diffeomorphism(
+        self, space, a, b, curve, rtol, atol
+    ):
+        """Test that the f transform inverse coincides
+        with the inverse diffeomorphism when starting at 0.
+        """
+        space.equip_with_metric(self.Metric, a=a, b=b)
+
+        starting_point = gs.zeros(gs.shape(curve[..., 0, :]))
+        fake_transformed_curve = curve[1:, :]
+
+        result = space.metric.inverse_diffeomorphism(fake_transformed_curve)
+        expected = space.metric.f_transform_inverse(
+            fake_transformed_curve, starting_point
+        )
+
         self.assertAllClose(result, expected, rtol, atol)
 
 
@@ -486,8 +493,9 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         vector are othogonal with respect to the SRVMetric inner
         product, and check vectorization.
         """
-        srv_metric_r3 = DiscreteCurves(r3, equip=True).metric
-        srv_shape_bundle_r3 = SRVShapeBundle(r3)
+        total_space = DiscreteCurves(r3, equip=True)
+        srv_metric_r3 = total_space.metric
+        srv_shape_bundle_r3 = SRVShapeBundle(total_space)
 
         geod = srv_metric_r3.geodesic(initial_point=curve_a, end_point=curve_b)
         geod = geod(times)
@@ -527,7 +535,8 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        srv_shape_bundle_r3 = SRVShapeBundle(r3)
+
+        srv_shape_bundle_r3 = SRVShapeBundle(DiscreteCurves(r3, equip=True))
         horizontal_geod_fun = srv_shape_bundle_r3.horizontal_geodesic(curve_a, curve_b)
         times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_geod_fun(times)
@@ -542,7 +551,6 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
 
 class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
     testing_data = SRVQuotientMetricTestData()
-    Space = testing_data.Space
 
     def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
         """Test quotient distance.
@@ -550,6 +558,11 @@ class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
         Check that the quotient distance is the same as the distance
         between the end points of the horizontal geodesic.
         """
+        space = DiscreteCurves(ambient_manifold=r3)
+        space.equip_with_group_action("reparametrizations")
+
+        space.equip_with_quotient_structure()
+
         curve_a_resampled = curve_fun_a(sampling_times**2)
         curve_b = gs.transpose(
             gs.stack(
@@ -560,7 +573,7 @@ class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        srv_quotient_metric_r3 = self.Space(ambient_manifold=r3).metric
+        srv_quotient_metric_r3 = space.quotient.metric
         result = srv_quotient_metric_r3.dist(curve_a_resampled, curve_b)
         expected = srv_quotient_metric_r3.dist(curve_a, curve_b)
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)

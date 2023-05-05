@@ -42,10 +42,13 @@ class TestPreShapeSpace(LevelSetTestCase, metaclass=Parametrizer):
 class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
     testing_data = PreShapeSpaceBundleTestData()
     Space = testing_data.Space
+    Bundle = testing_data.Bundle
 
     def test_alignment_is_symmetric(self, k_landmarks, m_ambient, point, base_point):
         space = self.Space(k_landmarks, m_ambient)
-        aligned = space.align(point, base_point)
+        bundle = self.Bundle(space)
+
+        aligned = bundle.align(point, base_point)
         alignment = gs.matmul(Matrices.transpose(aligned), base_point)
         result = gs.all(Matrices.is_symmetric(alignment))
         self.assertTrue(result)
@@ -54,13 +57,17 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
         self, k_landmarks, m_ambient, tangent_vec, point
     ):
         space = self.Space(k_landmarks, m_ambient)
-        horizontal = space.horizontal_projection(tangent_vec, point)
+        bundle = self.Bundle(space)
+
+        horizontal = bundle.horizontal_projection(tangent_vec, point)
         result = gs.all(space.is_tangent(horizontal, point))
         self.assertTrue(result)
 
     def test_vertical_projection(self, k_landmarks, m_ambient, tangent_vec, point):
         space = self.Space(k_landmarks, m_ambient)
-        vertical = space.vertical_projection(tangent_vec, point)
+        bundle = self.Bundle(space)
+
+        vertical = bundle.vertical_projection(tangent_vec, point)
         transposed_point = Matrices.transpose(point)
 
         tmp_expected = gs.matmul(transposed_point, tangent_vec)
@@ -72,7 +79,9 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
 
     def test_horizontal_projection(self, k_landmarks, m_ambient, tangent_vec, point):
         space = self.Space(k_landmarks, m_ambient)
-        horizontal = space.horizontal_projection(tangent_vec, point)
+        bundle = self.Bundle(space)
+
+        horizontal = bundle.horizontal_projection(tangent_vec, point)
         transposed_point = Matrices.transpose(point)
         result = gs.matmul(transposed_point, horizontal)
         expected = Matrices.transpose(result)
@@ -93,24 +102,28 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
         exchanging horizontal and vertical vector spaces.
         """
         space = self.Space(k_landmarks, m_ambient)
-        result_ab = space.integrability_tensor(tangent_vec_a, tangent_vec_b, base_point)
+        bundle = self.Bundle(space)
+
+        result_ab = bundle.integrability_tensor(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
 
         result = space.metric.inner_product(tangent_vec_b, result_ab, base_point)
         expected = 0.0
         self.assertAllClose(result, expected, atol=gs.atol * 10)
 
-        horizontal_b = space.horizontal_projection(tangent_vec_b, base_point)
-        horizontal_a = space.horizontal_projection(tangent_vec_a, base_point)
-        result = space.integrability_tensor(horizontal_a, horizontal_b, base_point)
-        expected = -space.integrability_tensor(horizontal_b, horizontal_a, base_point)
+        horizontal_b = bundle.horizontal_projection(tangent_vec_b, base_point)
+        horizontal_a = bundle.horizontal_projection(tangent_vec_a, base_point)
+        result = bundle.integrability_tensor(horizontal_a, horizontal_b, base_point)
+        expected = -bundle.integrability_tensor(horizontal_b, horizontal_a, base_point)
         self.assertAllClose(result, expected, atol=gs.atol * 10)
 
-        is_vertical = space.is_vertical(result, base_point)
+        is_vertical = bundle.is_vertical(result, base_point)
         self.assertTrue(is_vertical)
 
         vertical_b = tangent_vec_b - horizontal_b
-        result = space.integrability_tensor(horizontal_a, vertical_b, base_point)
-        is_horizontal = space.is_horizontal(result, base_point)
+        result = bundle.integrability_tensor(horizontal_a, vertical_b, base_point)
+        is_horizontal = bundle.is_horizontal(result, base_point)
         self.assertTrue(is_horizontal)
 
     @tests.conftest.np_and_autograd_only
@@ -132,7 +145,9 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
         :math:`\nabla_X ( A_Y Z + A_Z Y ) = 0`.
         """
         space = self.Space(k_landmarks, m_ambient)
-        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
+        bundle = self.Bundle(space)
+
+        nabla_x_a_y_z, a_y_z = bundle.integrability_tensor_derivative(
             hor_x,
             hor_y,
             nabla_x_y,
@@ -140,7 +155,7 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
             nabla_x_z,
             base_point,
         )
-        nabla_x_a_z_y, a_z_y = space.integrability_tensor_derivative(
+        nabla_x_a_z_y, a_z_y = bundle.integrability_tensor_derivative(
             hor_x,
             hor_z,
             nabla_x_z,
@@ -172,10 +187,11 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
         :math:`\nabla_X (< A_Y Z , V > + < A_Y V , Z >) = 0`.
         """
         space = self.Space(k_landmarks, m_ambient)
+        bundle = self.Bundle(space)
 
         scal = space.metric.inner_product
 
-        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
+        nabla_x_a_y_z, a_y_z = bundle.integrability_tensor_derivative(
             hor_x,
             hor_y,
             nabla_x_y,
@@ -184,7 +200,7 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
             base_point,
         )
 
-        nabla_x_a_y_v, a_y_v = space.integrability_tensor_derivative(
+        nabla_x_a_y_v, a_y_v = bundle.integrability_tensor_derivative(
             hor_x,
             hor_y,
             nabla_x_y,
@@ -227,10 +243,11 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
         :math:`nabla_X < A_Y V, W > = 0`.
         """
         space = self.Space(k_landmarks, m_ambient)
+        bundle = self.Bundle(space)
 
         scal = space.metric.inner_product
 
-        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
+        nabla_x_a_y_z, a_y_z = bundle.integrability_tensor_derivative(
             hor_x,
             hor_y,
             nabla_x_y,
@@ -241,7 +258,7 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
         result = scal(nabla_x_a_y_z, hor_h) + scal(a_y_z, nabla_x_h)
         self.assertAllClose(result, gs.zeros_like(result), atol=gs.atol * 10)
 
-        nabla_x_a_y_v, a_y_v = space.integrability_tensor_derivative(
+        nabla_x_a_y_v, a_y_v = bundle.integrability_tensor_derivative(
             hor_x,
             hor_y,
             nabla_x_y,
@@ -262,14 +279,16 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
         the general implementation.
         """
         space = self.Space(k_landmarks, m_ambient)
-        (nabla_x_a_y_z_qp, a_y_z_qp,) = space.integrability_tensor_derivative_parallel(
+        bundle = self.Bundle(space)
+
+        (nabla_x_a_y_z_qp, a_y_z_qp,) = bundle.integrability_tensor_derivative_parallel(
             hor_x, hor_y, hor_z, base_point
         )
 
-        a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
-        a_x_z = space.integrability_tensor(hor_x, hor_z, base_point)
+        a_x_y = bundle.integrability_tensor(hor_x, hor_y, base_point)
+        a_x_z = bundle.integrability_tensor(hor_x, hor_z, base_point)
 
-        nabla_x_a_y_z, a_y_z = space.integrability_tensor_derivative(
+        nabla_x_a_y_z, a_y_z = bundle.integrability_tensor_derivative(
             hor_x, hor_y, a_x_y, hor_z, a_x_z, base_point
         )
 
@@ -291,8 +310,10 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
         Intermediate computations returned are also verified.
         """
         space = self.Space(k_landmarks, m_ambient)
-        a_x_y = space.integrability_tensor(hor_x, hor_y, base_point)
-        nabla_x_v, a_x_y = space.integrability_tensor_derivative(
+        bundle = self.Bundle(space)
+
+        a_x_y = bundle.integrability_tensor(hor_x, hor_y, base_point)
+        nabla_x_v, a_x_y = bundle.integrability_tensor_derivative(
             hor_x,
             hor_x,
             gs.zeros_like(hor_x),
@@ -301,11 +322,11 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
             base_point,
         )
 
-        (nabla_x_a_y_a_x_y, a_y_a_x_y,) = space.integrability_tensor_derivative(
+        (nabla_x_a_y_a_x_y, a_y_a_x_y,) = bundle.integrability_tensor_derivative(
             hor_x, hor_y, a_x_y, a_x_y, nabla_x_v, base_point
         )
 
-        a_x_a_y_a_x_y = space.integrability_tensor(hor_x, a_y_a_x_y, base_point)
+        a_x_a_y_a_x_y = bundle.integrability_tensor(hor_x, a_y_a_x_y, base_point)
 
         (
             nabla_x_a_y_a_x_y_qp,
@@ -313,7 +334,7 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
             nabla_x_v_qp,
             a_y_a_x_y_qp,
             ver_v_qp,
-        ) = space.iterated_integrability_tensor_derivative_parallel(
+        ) = bundle.iterated_integrability_tensor_derivative_parallel(
             hor_x, hor_y, base_point
         )
         self.assertAllClose(a_x_y, ver_v_qp, atol=gs.atol * 10)
@@ -342,7 +363,6 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     Space = testing_data.Space
 
     def test_curvature_is_skew_operator(self, space, vec, base_point):
-        space.equip_with_metric(self.Metric)
         tangent_vec_a = space.to_tangent(vec[:2], base_point)
         tangent_vec_b = space.to_tangent(vec[2:], base_point)
 
@@ -365,7 +385,6 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         :math:`R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
         """
-        space.equip_with_metric(self.Metric)
         curvature_1 = space.metric.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
         )
@@ -393,8 +412,6 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         The sectional curvature is computed here with the generic
         directional_curvature and sectional curvature methods.
         """
-        space.equip_with_metric(self.Metric)
-
         hor_a = space.horizontal_projection(tangent_vec_a, base_point)
         hor_b = space.horizontal_projection(tangent_vec_b, base_point)
 
@@ -425,7 +442,6 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         space to Kendall pre-shape space, :math:`(\nabla_X R)(Y, Z)
         + (\nabla_Y R)(Z,X) + (\nabla_Z R)(X, Y) = 0`.
         """
-        space.equip_with_metric(self.Metric)
         term_x = space.metric.curvature_derivative(
             hor_x, hor_y, hor_z, hor_h, base_point
         )
@@ -447,7 +463,6 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         For any 3 tangent vectors horizontally lifted from kendall shape space
         to Kendall pre-shape space, :math:`(\nabla_X R)(Y,Y)Z = 0`.
         """
-        space.equip_with_metric(self.Metric)
         result = space.metric.curvature_derivative(
             hor_x, hor_y, hor_y, hor_z, base_point
         )
@@ -461,8 +476,6 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         KendallShapeMetric class, method from the QuotientMetric class and
         method from the Connection class have to give identical results.
         """
-        space.equip_with_metric(self.Metric)
-
         # General formula based on curvature derivative
         expected = space.metric.curvature_derivative(
             hor_x, hor_y, hor_x, hor_y, base_point
@@ -492,8 +505,6 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self, space, coef_x, coef_y, hor_x, hor_y, base_point
     ):
         """Directional curvature derivative is quadratic in both variables."""
-        space.equip_with_metric(self.Metric)
-
         coef_x = -2.5
         coef_y = 1.5
         result = space.metric.directional_curvature_derivative(
@@ -507,10 +518,12 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, atol=gs.atol * 1000)
 
     def test_parallel_transport(self, space, tangent_vec_a, tangent_vec_b, base_point):
-        space.equip_with_metric(self.Metric)
-
-        tan_a = space.fiber_bundle.horizontal_projection(tangent_vec_a, base_point)
-        tan_b = space.fiber_bundle.horizontal_projection(tangent_vec_b, base_point)
+        tan_a = space.metric.fiber_bundle.horizontal_projection(
+            tangent_vec_a, base_point
+        )
+        tan_b = space.metric.fiber_bundle.horizontal_projection(
+            tangent_vec_b, base_point
+        )
 
         # orthonormalize and move to base_point
         tan_a -= gs.einsum(
@@ -526,16 +539,17 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             "...ij,...->...ij", tan_a, 1.0 / space.metric.norm(tan_a, base_point)
         )
 
+        print(space.metric)
         transported = space.metric.parallel_transport(
-            tan_a, base_point, tan_b, n_steps=400, step="rk4"
+            tan_a, base_point, direction=tan_b, n_steps=400, step="rk4"
         )
         end_point = space.metric.exp(tan_b, base_point)
         result = space.metric.norm(transported, end_point)
         expected = space.metric.norm(tan_a, base_point)
         self.assertAllClose(result, expected, atol=gs.atol * 10)
 
-        is_tangent = space.fiber_bundle.is_tangent(transported, end_point)
-        is_horizontal = space.fiber_bundle.is_horizontal(transported, end_point)
+        is_tangent = space.is_tangent(transported, end_point)
+        is_horizontal = space.metric.fiber_bundle.is_horizontal(transported, end_point)
         self.assertTrue(gs.all(is_tangent))
         self.assertTrue(gs.all(is_horizontal))
 

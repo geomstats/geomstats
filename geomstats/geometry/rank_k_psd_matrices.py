@@ -223,20 +223,14 @@ class PSDMatrices:
         raise NotImplementedError("The PSD matrices is not implemented yet.")
 
 
-class BuresWassersteinBundle(FiberBundle, FullRankMatrices):
+class BuresWassersteinBundle(FiberBundle):
     """Class for the quotient structure on PSD matrices."""
 
-    def __init__(self, n, k):
+    def __init__(self, total_space):
         super().__init__(
-            n=n,
-            k=k,
-            group=SpecialOrthogonal(k, equip=False),
+            total_space=total_space,
+            group=SpecialOrthogonal(total_space.k, equip=False),
         )
-
-    @staticmethod
-    def default_metric():
-        """Metric to equip the space with if equip is True."""
-        return MatricesMetric
 
     @staticmethod
     def riemannian_submersion(point):
@@ -250,13 +244,15 @@ class BuresWassersteinBundle(FiberBundle, FullRankMatrices):
 
     def lift(self, point):
         """Find a representer in top space."""
+        k = self.total_space.k
         eigvals, eigvecs = gs.linalg.eigh(point)
         return gs.einsum(
-            "...ij,...j->...ij", eigvecs[..., -self.k :], eigvals[..., -self.k :] ** 0.5
+            "...ij,...j->...ij", eigvecs[..., -k:], eigvals[..., -k:] ** 0.5
         )
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Horizontal lift of a tangent vector."""
+        n = self.total_space.n
         if fiber_point is None:
             fiber_point = self.lift(base_point)
         transposed_point = Matrices.transpose(fiber_point)
@@ -265,7 +261,7 @@ class BuresWassersteinBundle(FiberBundle, FullRankMatrices):
         right_term = Matrices.mul(transposed_point, tangent_vec, fiber_point)
         sylvester = gs.linalg.solve_sylvester(alignment, alignment, right_term)
         skew_term = Matrices.mul(projector, sylvester)
-        orth_proj = gs.eye(self.n) - Matrices.mul(projector, transposed_point)
+        orth_proj = gs.eye(n) - Matrices.mul(projector, transposed_point)
         orth_part = Matrices.mul(orth_proj, tangent_vec, projector)
         return skew_term + orth_part
 
@@ -330,6 +326,10 @@ class BuresWassersteinBundle(FiberBundle, FullRankMatrices):
 class PSDBuresWassersteinMetric(QuotientMetric):
     """Bures-Wasserstein metric for fixed rank PSD matrices."""
 
-    def __init__(self, space):
-        k = space.rank if hasattr(space, "rank") else space.n
-        super().__init__(space=space, fiber_bundle=BuresWassersteinBundle(space.n, k))
+    def __init__(self, space, total_space=None):
+        if total_space is None:
+            k = space.rank if hasattr(space, "rank") else space.n
+            total_space = FullRankMatrices(space.n, k, equip=False)
+            total_space.equip_with_metric(MatricesMetric)
+
+        super().__init__(space=space, fiber_bundle=BuresWassersteinBundle(total_space))

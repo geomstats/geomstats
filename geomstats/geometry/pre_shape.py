@@ -46,20 +46,32 @@ class PreShapeSpace(LevelSet):
 
         super().__init__(
             dim=m_ambient * (k_landmarks - 1) - 1,
-            equip=False,
+            equip=equip,
         )
-        if not isinstance(self, FiberBundle):
-            self.fiber_bundle = PreShapeSpaceBundle(k_landmarks, m_ambient)
-
-        if equip:
-            self.equip_with_metric(self.default_metric())
 
         self._sphere = Hypersphere(dim=m_ambient * k_landmarks - 1)
+
+        self._quotient_map = {
+            (PreShapeMetric, "rotations"): (PreShapeSpaceBundle, KendallShapeMetric),
+        }
+
+    def _get_total_space_metric(self):
+        return (
+            self.metric.fiber_bundle.total_space.metric
+            if hasattr(self.metric, "fiber_bundle")
+            else self.metric
+        )
+
+    def new(self, equip=True):
+        """Create manifold with same parameters."""
+        return PreShapeSpace(
+            k_landmarks=self.k_landmarks, m_ambient=self.m_ambient, equip=equip
+        )
 
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
-        return KendallShapeMetric
+        return PreShapeMetric
 
     def _define_embedding_space(self):
         return Matrices(self.k_landmarks, self.m_ambient)
@@ -103,8 +115,16 @@ class PreShapeSpace(LevelSet):
         -------
         projected_point : array-like, shape=[..., k_landmarks, m_ambient]
             Point projected on the pre-shape space.
+
+        Notes
+        -----
+        * Requires space to be equipped.
         """
-        return self.fiber_bundle.projection(point)
+        total_space_metric = self._get_total_space_metric()
+
+        centered_point = self.center(point)
+        frob_norm = total_space_metric.norm(centered_point)
+        return gs.einsum("...,...ij->...ij", 1.0 / frob_norm, centered_point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the pre-shape space from the uniform distribution.
@@ -137,8 +157,16 @@ class PreShapeSpace(LevelSet):
         -------
         samples : array-like, shape=[..., k_landmarks, m_ambient]
             Points sampled on the pre-shape space.
+
+        Notes
+        -----
+        * Requires space to be equipped.
         """
-        return self.fiber_bundle.random_uniform(n_samples)
+        samples = self._sphere.random_uniform(n_samples)
+        samples = gs.reshape(samples, (-1, self.k_landmarks, self.m_ambient))
+        if n_samples == 1:
+            samples = samples[0]
+        return self.projection(samples)
 
     @staticmethod
     def is_centered(point, atol=gs.atol):
@@ -196,86 +224,25 @@ class PreShapeSpace(LevelSet):
         tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector in the tangent space of the pre-shape space
             at the base point.
-        """
-        return self.fiber_bundle.to_tangent(vector, base_point)
 
-
-class PreShapeSpaceBundle(FiberBundle, PreShapeSpace):
-    def __init__(self, k_landmarks, m_ambient):
-        super().__init__(
-            k_landmarks=k_landmarks,
-            m_ambient=m_ambient,
-        )
-
-    @staticmethod
-    def default_metric():
-        """Metric to equip the space with if equip is True."""
-        return PreShapeMetric
-
-    def projection(self, point):
-        """Project a point on the pre-shape space.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point in Matrices space.
-
-        Returns
-        -------
-        projected_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point projected on the pre-shape space.
-        """
-        centered_point = self.center(point)
-        frob_norm = self.metric.norm(centered_point)
-        return gs.einsum("...,...ij->...ij", 1.0 / frob_norm, centered_point)
-
-    def random_uniform(self, n_samples=1):
-        """Sample in the pre-shape space from the uniform distribution.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-
-        Returns
-        -------
-        samples : array-like, shape=[..., k_landmarks, m_ambient]
-            Points sampled on the pre-shape space.
-        """
-        samples = self._sphere.random_uniform(n_samples)
-        samples = gs.reshape(samples, (-1, self.k_landmarks, self.m_ambient))
-        if n_samples == 1:
-            samples = samples[0]
-        return self.projection(samples)
-
-    def to_tangent(self, vector, base_point):
-        """Project a vector to the tangent space.
-
-        Project a vector in the embedding matrix space
-        to the tangent space of the pre-shape space at a base point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., k_landmarks, m_ambient]
-            Vector in Matrix space.
-        base_point : array-like, shape=[..., k_landmarks, m_ambient]
-            Point on the pre-shape space defining the tangent space,
-            where the vector will be projected.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector in the tangent space of the pre-shape space
-            at the base point.
+        Notes
+        -----
+        * Requires space to be equipped.
         """
         if not gs.all(self.is_centered(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
+
+        total_space_metric = self._get_total_space_metric()
+
         vector = self.center(vector)
         sq_norm = Matrices.frobenius_product(base_point, base_point)
-        inner_prod = self.metric.inner_product(base_point, vector)
+        inner_prod = total_space_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
         return vector - gs.einsum("...,...ij->...ij", coef, base_point)
+
+
+class PreShapeSpaceBundle(FiberBundle):
+    r"""Class for the Kendall pre-shape space bundle."""
 
     def align(self, point, base_point, **kwargs):
         """Align point to base_point.
@@ -355,7 +322,7 @@ class PreShapeSpaceBundle(FiberBundle, PreShapeSpace):
             Boolean denoting if tangent vector is horizontal.
         """
         product = gs.matmul(Matrices.transpose(tangent_vec), base_point)
-        is_tangent = self.is_tangent(tangent_vec, base_point, atol)
+        is_tangent = self.total_space.is_tangent(tangent_vec, base_point, atol)
         is_symmetric = Matrices.is_symmetric(product, atol)
         return gs.logical_and(is_tangent, is_symmetric)
 
@@ -468,13 +435,13 @@ class PreShapeSpaceBundle(FiberBundle, PreShapeSpace):
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
         in Kendall shape spaces. Unpublished.
         """
-        if not gs.all(self.belongs(base_point)):
+        if not gs.all(self.total_space.belongs(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
         if not gs.all(self.is_horizontal(horizontal_vec_y, base_point)):
             raise ValueError("Tangent vector y is not horizontal")
-        if not gs.all(self.is_tangent(nabla_x_y, base_point)):
+        if not gs.all(self.total_space.is_tangent(nabla_x_y, base_point)):
             raise ValueError("Vector nabla_x_y is not tangent")
         a_x_y = self.integrability_tensor(
             horizontal_vec_x, horizontal_vec_y, base_point
@@ -484,9 +451,9 @@ class PreShapeSpaceBundle(FiberBundle, PreShapeSpace):
                 "Tangent vector nabla_x_y is not the gradient "
                 "of a horizontal distribution"
             )
-        if not gs.all(self.is_tangent(tangent_vec_e, base_point)):
+        if not gs.all(self.total_space.is_tangent(tangent_vec_e, base_point)):
             raise ValueError("Tangent vector e is not tangent")
-        if not gs.all(self.is_tangent(nabla_x_e, base_point)):
+        if not gs.all(self.total_space.is_tangent(nabla_x_e, base_point)):
             raise ValueError("Vector nabla_x_e is not tangent")
 
         p_top = Matrices.transpose(base_point)
@@ -518,7 +485,9 @@ class PreShapeSpaceBundle(FiberBundle, PreShapeSpace):
             x_top, tangent_vec_e_sym
         )
 
-        scal_x_a_y_e = self.metric.inner_product(horizontal_vec_x, a_y_e, base_point)
+        scal_x_a_y_e = self.total_space.metric.inner_product(
+            horizontal_vec_x, a_y_e, base_point
+        )
 
         nabla_x_a_y_e = (
             gs.matmul(base_point, sylv_p(tmp_tangent_vec_p))
@@ -572,7 +541,7 @@ class PreShapeSpaceBundle(FiberBundle, PreShapeSpace):
         in Kendall shape spaces. Unpublished.
         """
         # Vectors X and Y have to be horizontal.
-        if not gs.all(self.is_centered(base_point)):
+        if not gs.all(self.total_space.is_centered(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
@@ -663,7 +632,7 @@ class PreShapeSpaceBundle(FiberBundle, PreShapeSpace):
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
         in Kendall shape spaces. Unpublished.
         """
-        if not gs.all(self.is_centered(base_point)):
+        if not gs.all(self.total_space.is_centered(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
         if not gs.all(self.is_horizontal(horizontal_vec_x, base_point)):
             raise ValueError("Tangent vector x is not horizontal")
@@ -1085,8 +1054,10 @@ class KendallShapeMetric(QuotientMetric):
         horizontal_b = self.fiber_bundle.horizontal_projection(direction, base_point)
 
         def force(state, time):
-            gamma_t = self.fiber_bundle.metric.exp(time * horizontal_b, base_point)
-            speed = self.fiber_bundle.metric.parallel_transport(
+            gamma_t = self.fiber_bundle.total_space.metric.exp(
+                time * horizontal_b, base_point
+            )
+            speed = self.fiber_bundle.total_space.metric.parallel_transport(
                 horizontal_b, base_point, time * horizontal_b
             )
             coef = self.inner_product(speed, state, gamma_t)

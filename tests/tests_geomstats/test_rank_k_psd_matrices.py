@@ -26,6 +26,8 @@ class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
 
     testing_data = BuresWassersteinBundleTestData()
     Base = testing_data.Base
+    TotalSpace = testing_data.TotalSpace
+    Bundle = testing_data.Bundle
 
 
 class TestPSDBuresWassersteinMetric(QuotientMetricTestCase, metaclass=Parametrizer):

@@ -1,6 +1,7 @@
 import random
 
 import geomstats.backend as gs
+from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.geometry.rank_k_psd_matrices import (
     BuresWassersteinBundle,
     PSDBuresWassersteinMetric,
@@ -59,7 +60,8 @@ class BuresWassersteinBundleTestData(_FiberBundleTestData):
     n_vecs_list = random.sample(range(1, 5), 2)
 
     Base = PSDMatrices
-    Space = BuresWassersteinBundle
+    TotalSpace = FullRankMatrices
+    Bundle = BuresWassersteinBundle
 
 
 class PSDBuresWassersteinMetricTestData(_QuotientMetricTestData):

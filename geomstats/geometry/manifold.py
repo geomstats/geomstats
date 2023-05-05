@@ -82,6 +82,43 @@ class Manifold(abc.ABC):
 
         self.metric = Metric(self, **metric_kwargs)
 
+    def equip_with_group_action(self, group_action):
+        """Equip manifold with group action.
+
+        Parameters
+        ----------
+        group_action : str
+
+        """
+        self.group_action = group_action
+
+    def _check_equip_with_quotient_structure(self):
+        if not hasattr(self, "_quotient_map"):
+            raise ValueError("No quotient structure defined for this manifold.")
+
+        for structure_name in ("metric", "group_action"):
+            if not hasattr(self, structure_name):
+                raise ValueError(f"Need to equip with `{structure_name}` first")
+
+    def equip_with_quotient_structure(self):
+        """Equip manifold with quotient structure.
+
+        Creates attributes `quotient` and `fiber_bundle`.
+        """
+        self._check_equip_with_quotient_structure()
+
+        key = type(self.metric), self.group_action
+
+        out = self._quotient_map.get(key, None)
+        if out is None:
+            raise ValueError(f"No mapping for key: {key}")
+        FiberBundle_, QuotientMetric_ = out
+
+        self.fiber_bundle = FiberBundle_(total_space=self)
+
+        self.quotient = self.new(equip=False)
+        self.quotient.equip_with_metric(QuotientMetric_, fiber_bundle=self.fiber_bundle)
+
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold.
