@@ -70,8 +70,16 @@ class DiscreteCurves(Manifold):
         )
 
         self._quotient_map = {
-            (SRVMetric, "reparametrizations"): (ShapeBundle, SRVQuotientMetric),
+            (SRVMetric, "reparametrizations"): (SRVShapeBundle, SRVQuotientMetric),
         }
+
+    def new(self, equip=True):
+        return DiscreteCurves(
+            self.ambient_manifold,
+            k_sampling_points=self.k_sampling_points,
+            start_at_the_origin=self.start_at_the_origin,
+            equip=equip,
+        )
 
     @staticmethod
     def default_metric():
@@ -1465,7 +1473,7 @@ class SRVMetric(PullbackDiffeoMetric):
         return n_points * gs.matmul(mat_space_deriv, curve)
 
 
-class ShapeBundle(FiberBundle):
+class SRVShapeBundle(FiberBundle):
     """Principal bundle of shapes of curves induced by the SRV metric.
 
     The space of parameterized curves is the total space of a principal
@@ -1497,9 +1505,9 @@ class ShapeBundle(FiberBundle):
         pp. 40-70, 2019.
     """
 
-    def __init__(self, space):
-        super().__init__(space=space)
-        self.l2_curves_metric = L2CurvesMetric(space)
+    def __init__(self, total_space):
+        super().__init__(total_space=total_space)
+        self.l2_curves_metric = L2CurvesMetric(total_space)
 
     def vertical_projection(self, tangent_vec, point, return_norm=False):
         """Compute vertical part of tangent vector at base point.
@@ -1780,7 +1788,7 @@ class ShapeBundle(FiberBundle):
             counter = 0
 
             while gap > threshold:
-                srv_geod_fun = self.space.metric.geodesic(
+                srv_geod_fun = self.total_space.metric.geodesic(
                     initial_point=initial_curve, end_point=current_end_curve
                 )
                 geod = srv_geod_fun(t)
@@ -1791,7 +1799,9 @@ class ShapeBundle(FiberBundle):
                 )
 
                 space_deriv = SRVMetric.space_derivative(geod)
-                space_deriv_norm = self.space.ambient_manifold.metric.norm(space_deriv)
+                space_deriv_norm = self.total_space.ambient_manifold.metric.norm(
+                    space_deriv
+                )
 
                 repar = construct_reparametrization(vertical_norm, space_deriv_norm)
 
@@ -1898,7 +1908,7 @@ class SRVQuotientMetric(QuotientMetric):
         horizontal_geod_velocity = n_times * (
             horizontal_geod[:-1] - horizontal_geod[1:]
         )
-        velocity_norms = self.fiber_bundle.space.metric.norm(
+        velocity_norms = self.fiber_bundle.total_space.metric.norm(
             horizontal_geod_velocity, horizontal_geod[:-1]
         )
         return gs.sum(velocity_norms) / n_times

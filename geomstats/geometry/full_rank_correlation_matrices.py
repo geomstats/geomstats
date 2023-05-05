@@ -162,7 +162,7 @@ class FullRankCorrelationMatrices(LevelSet):
         return sym * mask_diag
 
 
-class CorrelationMatricesBundle(FiberBundle, SPDMatrices):
+class CorrelationMatricesBundle(FiberBundle):
     """Fiber bundle to construct the quotient metric on correlation matrices.
 
     Correlation matrices are obtained as the quotient of the space of SPD
@@ -177,17 +177,12 @@ class CorrelationMatricesBundle(FiberBundle, SPDMatrices):
         https://hal.archives-ouvertes.fr/hal-03157992.
     """
 
-    def __init__(self, n):
+    def __init__(self, total_space):
         super().__init__(
-            n=n,
-            group_dim=n,
+            total_space=total_space,
+            group_dim=total_space.n,
             group_action=FullRankCorrelationMatrices.diag_action,
         )
-
-    @staticmethod
-    def default_metric():
-        """Metric to equip the space with if equip is True."""
-        return SPDAffineMetric
 
     @staticmethod
     def riemannian_submersion(point):
@@ -243,7 +238,7 @@ class CorrelationMatricesBundle(FiberBundle, SPDMatrices):
         ver : array-like, shape=[..., n, n]
             Vertical projection.
         """
-        n = self.n
+        n = self.total_space.n
         inverse_base_point = GeneralLinear.inverse(base_point)
         operator = gs.eye(n) + base_point * inverse_base_point
         inverse_operator = GeneralLinear.inverse(operator)
@@ -284,8 +279,11 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
     """
 
     def __init__(self, space):
-        fiber_bundle = CorrelationMatricesBundle(n=space.n)
+        # TODO: change API to receive total space?
+        total_space = SPDMatrices(space.n, equip=False)
+        total_space.equip_with_metric(SPDAffineMetric)
+
         super().__init__(
             space=space,
-            fiber_bundle=fiber_bundle,
+            fiber_bundle=CorrelationMatricesBundle(total_space),
         )

@@ -31,12 +31,12 @@ class FiberBundle(ABC):
 
     def __init__(
         self,
-        space,
+        total_space,
         group=None,
         group_action=None,
         group_dim=None,
     ):
-        self.space = space
+        self.total_space = total_space
         self.group = group
 
         if group_action is None and group is not None:
@@ -147,7 +147,8 @@ class FiberBundle(ABC):
         group = self.group
         group_action = self.group_action
 
-        max_shape = get_batch_shape(self.space, point, base_point) + (self.group_dim,)
+        batch_shape = get_batch_shape(self.total_space, point, base_point)
+        max_shape = batch_shape + (self.group_dim,)
 
         if group is not None:
 
@@ -170,7 +171,9 @@ class FiberBundle(ABC):
             raise ValueError("Either the group of its action must be known")
 
         objective_with_grad = gs.autodiff.value_and_grad(
-            lambda param: self.space.metric.squared_dist(wrap(param), base_point),
+            lambda param: gs.sum(
+                self.total_space.metric.squared_dist(wrap(param), base_point)
+            ),
             to_numpy=True,
         )
 

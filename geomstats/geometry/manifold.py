@@ -63,12 +63,6 @@ class Manifold(abc.ABC):
         if equip:
             self.equip_with_metric()
 
-        self._active_metric_name = "metric"
-
-    @property
-    def active_metric(self):
-        return getattr(self, self._active_metric_name)
-
     def equip_with_metric(self, Metric=None, **metric_kwargs):
         """Equip manifold with Metric.
 
@@ -92,6 +86,9 @@ class Manifold(abc.ABC):
         self.group_action = group_action
 
     def _check_equip_with_quotient_structure(self):
+        if not hasattr(self, "_quotient_map"):
+            raise ValueError("No quotient structure defined for this manifold.")
+
         for structure_name in ("metric", "group_action"):
             if not hasattr(self, structure_name):
                 raise ValueError(f"Need to equip with `{structure_name}` first")
@@ -104,13 +101,12 @@ class Manifold(abc.ABC):
         out = self._quotient_map.get(key, None)
         if out is None:
             raise ValueError(f"No mapping for key: {key}")
-        FiberBundle_, Metric = out
+        FiberBundle_, QuotientMetric_ = out
 
-        self.fiber_bundle = FiberBundle_(space=self)
-        self.quotient_metric = Metric(space=self)
+        self.fiber_bundle = FiberBundle_(total_space=self)
 
-    def set_active_metric(self, metric_name):
-        self._active_metric_name = metric_name
+        self.quotient = self.new(equip=False)
+        self.quotient.equip_with_metric(QuotientMetric_, fiber_bundle=self.fiber_bundle)
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
