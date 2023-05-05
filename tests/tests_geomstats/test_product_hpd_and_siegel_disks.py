@@ -2,9 +2,6 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.hpd_matrices import HPDMatrices
-from geomstats.geometry.product_hpd_and_siegel_disks import (
-    ProductHPDMatricesAndSiegelDisks,
-)
 from geomstats.geometry.siegel import Siegel
 from tests.conftest import Parametrizer, TestCase
 from tests.data.product_hpd_and_siegel_disks_data import (
@@ -31,11 +28,15 @@ class TestProductHPDMatricesAndSiegelDisksMetric(TestCase, metaclass=Parametrize
     testing_data = ProductHPDMatricesAndSiegelDisksMetricTestData()
     Metric = testing_data.Metric
 
-    def test_signature(self, n_manifolds, n, expected):
-        metric = self.Metric(n_manifolds, n)
-        self.assertAllClose(metric.signature, expected)
+    def test_signature(self, space, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.signature, expected)
 
-    def test_squared_dist(self, n_manifolds, n):
+    def test_squared_dist(self, space):
+        space.equip_with_metric(self.Metric)
+        n_manifolds = space.n_manifolds
+        n = space.n
+
         def _get_random_point():
             point_hpd = hpd.random_point()
             point_siegel = siegel.random_point()
@@ -48,7 +49,6 @@ class TestProductHPDMatricesAndSiegelDisksMetric(TestCase, metaclass=Parametrize
 
             return point, point_hpd, point_siegel
 
-        product_manifold = ProductHPDMatricesAndSiegelDisks(n_manifolds, n)
         siegel = Siegel(n)
         hpd = HPDMatrices(n)
 
@@ -58,7 +58,7 @@ class TestProductHPDMatricesAndSiegelDisksMetric(TestCase, metaclass=Parametrize
         sq_dist_hpd = hpd.metric.squared_dist(point_hpd_a, point_hpd_b)
         sq_dist_siegel = siegel.metric.squared_dist(point_siegel_a, point_siegel_b)
 
-        sq_dist_prod = product_manifold.metric.squared_dist(point_a, point_b)
+        sq_dist_prod = space.metric.squared_dist(point_a, point_b)
 
         sq_dist_expected = (
             n_manifolds * sq_dist_hpd

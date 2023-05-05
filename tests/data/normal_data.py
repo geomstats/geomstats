@@ -323,16 +323,11 @@ class CenteredNormalMetricTestData(_RiemannianMetricTestData):
         CenteredNormalDistributions(sample_dim) for sample_dim in sample_dim_list
     ]
     shape_list = [(sample_dim, sample_dim) for sample_dim in sample_dim_list]
-    space_args_list = [(sample_dim,) for sample_dim in sample_dim_list]
-    connection_args_list = [(sample_dim,) for sample_dim in sample_dim_list]
+    connection_args_list = metric_args_list = [{} for _ in sample_dim_list]
+
     n_samples_list = [1, 3, 5]
     n_points_list = n_points_a_list = n_points_b_list = [1, 3, 5]
     n_tangent_vecs_list = [1, 3, 5]
-    metric_args_list = list(
-        zip(
-            sample_dim_list,
-        )
-    )
 
     def inner_product_shape_test_data(self):
         random_data = []
@@ -341,18 +336,18 @@ class CenteredNormalMetricTestData(_RiemannianMetricTestData):
             self.shape_list,
             self.n_tangent_vecs_list,
         ):
-            metric = space.metric
+            batch_shape = () if n_tangent_vecs == 1 else (n_tangent_vecs,)
             base_point = space.random_point()
             tangent_vec_a = space.to_tangent(
-                gs.random.normal(scale=1e-2, size=(n_tangent_vecs,) + shape), base_point
+                gs.random.normal(scale=1e-2, size=batch_shape + shape), base_point
             )
             tangent_vec_b = space.to_tangent(
-                gs.random.normal(scale=1e-2, size=(n_tangent_vecs,) + shape), base_point
+                gs.random.normal(scale=1e-2, size=batch_shape + shape), base_point
             )
             expected = () if n_tangent_vecs == 1 else (n_tangent_vecs,)
             random_data.append(
                 dict(
-                    metric=metric,
+                    space=space,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
                     base_point=base_point,
@@ -397,16 +392,11 @@ class DiagonalNormalMetricTestData(_RiemannianMetricTestData):
         DiagonalNormalDistributions(sample_dim) for sample_dim in sample_dim_list
     ]
     shape_list = [(2 * sample_dim,) for sample_dim in sample_dim_list]
-    space_args_list = [(sample_dim,) for sample_dim in sample_dim_list]
-    connection_args_list = [(2 * sample_dim,) for sample_dim in sample_dim_list]
+    connection_args_list = metric_args_list = [{} for _ in sample_dim_list]
+
     n_samples_list = [1, 3, 5]
     n_points_list = n_points_a_list = n_points_b_list = [1, 3, 5]
     n_tangent_vecs_list = [1, 3, 5]
-    metric_args_list = list(
-        zip(
-            sample_dim_list,
-        )
-    )
 
     def inner_product_shape_test_data(self):
         random_data = []
@@ -415,7 +405,6 @@ class DiagonalNormalMetricTestData(_RiemannianMetricTestData):
             self.shape_list,
             self.n_tangent_vecs_list,
         ):
-            metric = space.metric
             base_point = space.random_point()
             tangent_vec_a = space.to_tangent(
                 gs.random.normal(scale=1e-2, size=(n_tangent_vecs,) + shape), base_point
@@ -426,7 +415,7 @@ class DiagonalNormalMetricTestData(_RiemannianMetricTestData):
             expected = (tangent_vec_a.shape[0],)
             random_data.append(
                 dict(
-                    metric=metric,
+                    space=space,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
                     base_point=base_point,

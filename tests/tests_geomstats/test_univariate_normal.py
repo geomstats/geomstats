@@ -6,10 +6,7 @@ from scipy.stats import norm
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.information_geometry.normal import (
-    UnivariateNormalDistributions,
-    UnivariateNormalMetric,
-)
+from geomstats.information_geometry.normal import UnivariateNormalDistributions
 
 
 class TestUnivariateNormalDistributions(tests.conftest.TestCase):
@@ -19,7 +16,7 @@ class TestUnivariateNormalDistributions(tests.conftest.TestCase):
         """Define the parameters of the tests."""
         warnings.simplefilter("ignore", category=UserWarning)
         self.normal = UnivariateNormalDistributions()
-        self.metric = UnivariateNormalMetric()
+        self.metric = self.normal.metric
         self.n_samples = 10
         self.dim = self.normal.dim
 

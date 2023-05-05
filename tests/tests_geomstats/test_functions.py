@@ -15,38 +15,6 @@ def gaussian(x, mu, sig):
     return gs.array([f_sinf])
 
 
-class TestHilbertSphereMetric(tests.conftest.TestCase):
-    def setup_method(self):
-        self.domain = gs.linspace(0, 1, num=50)
-        self.f = gaussian(self.domain, 0.5, 0.1)
-        self.manifold = HilbertSphere(self.domain)
-        self.point_a = gaussian(self.domain, 0.2, 0.1)
-        self.point_b = gaussian(self.domain, 0.5, 0.1)
-        self.points = gs.squeeze(
-            gs.array([gaussian(self.domain, a, 0.1) for a in gs.linspace(0.2, 0.8, 5)])
-        )
-
-    def test_inner_product(self):
-        result = self.manifold.metric.inner_product(self.point_a, self.point_b)
-        self.assertAllClose(gs.shape(result), (1,))
-        result = self.manifold.metric.inner_product(self.points, self.point_a)
-        self.assertAllClose(gs.shape(result), (gs.shape(self.points)[0],))
-
-    def test_exp(self):
-        exp = self.manifold.metric.exp(self.point_a, self.point_b)
-        self.assertAllClose(gs.shape(exp), gs.shape(self.point_b))
-        result = self.manifold.belongs(exp, atol=0.1)[0]
-        self.assertTrue(result, f"Expected True but got {result}")
-        exp = self.manifold.metric.exp(self.points, self.point_b)
-        self.assertAllClose(gs.shape(exp), gs.shape(self.points))
-
-    def test_log(self):
-        log = self.manifold.metric.log(self.point_a, self.point_b)
-        self.assertAllClose(gs.shape(log), gs.shape(self.point_b))
-        log = self.manifold.metric.log(self.points, self.point_b)
-        self.assertAllClose(gs.shape(log), gs.shape(self.points))
-
-
 class TestHilbertSphere(tests.conftest.TestCase):
     def setup_method(self):
         self.domain = gs.linspace(0, 1, num=50)
@@ -98,3 +66,35 @@ class TestHilbertSphere(tests.conftest.TestCase):
         rand_points = self.manifold.random_point(n_samples=5)
         result = gs.all(self.manifold.belongs(rand_points))
         self.assertTrue(result)
+
+
+class TestHilbertSphereMetric(tests.conftest.TestCase):
+    def setup_method(self):
+        self.domain = gs.linspace(0, 1, num=50)
+        self.f = gaussian(self.domain, 0.5, 0.1)
+        self.manifold = HilbertSphere(self.domain)
+        self.point_a = gaussian(self.domain, 0.2, 0.1)
+        self.point_b = gaussian(self.domain, 0.5, 0.1)
+        self.points = gs.squeeze(
+            gs.array([gaussian(self.domain, a, 0.1) for a in gs.linspace(0.2, 0.8, 5)])
+        )
+
+    def test_inner_product(self):
+        result = self.manifold.metric.inner_product(self.point_a, self.point_b)
+        self.assertAllClose(gs.shape(result), (1,))
+        result = self.manifold.metric.inner_product(self.points, self.point_a)
+        self.assertAllClose(gs.shape(result), (gs.shape(self.points)[0],))
+
+    def test_exp(self):
+        exp = self.manifold.metric.exp(self.point_a, self.point_b)
+        self.assertAllClose(gs.shape(exp), gs.shape(self.point_b))
+        result = self.manifold.belongs(exp, atol=0.1)[0]
+        self.assertTrue(result, f"Expected True but got {result}")
+        exp = self.manifold.metric.exp(self.points, self.point_b)
+        self.assertAllClose(gs.shape(exp), gs.shape(self.points))
+
+    def test_log(self):
+        log = self.manifold.metric.log(self.point_a, self.point_b)
+        self.assertAllClose(gs.shape(log), gs.shape(self.point_b))
+        log = self.manifold.metric.log(self.points, self.point_b)
+        self.assertAllClose(gs.shape(log), gs.shape(self.points))

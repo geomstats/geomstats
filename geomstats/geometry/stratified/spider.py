@@ -4,7 +4,7 @@ Lead authors: Anna Calissano & Jonas Lueg
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.stratified.point_set import (
     Point,
     PointSet,
@@ -75,9 +75,14 @@ class Spider(PointSet):
         Academic Press, 2020. 299-342.
     """
 
-    def __init__(self, n_rays):
-        super().__init__()
+    def __init__(self, n_rays, equip=True):
+        super().__init__(equip=equip)
         self.n_rays = n_rays
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return SpiderMetric
 
     def random_point(self, n_samples=1):
         r"""Compute a random point of the spider set.
@@ -183,14 +188,16 @@ class Spider(PointSet):
 class SpiderMetric(PointSetMetric):
     """Geometry on the Spider, induced by the rays Geometry."""
 
-    def __init__(self, space, ray_metric=EuclideanMetric(1)):
+    def __init__(self, space, ray_metric=None):
         super().__init__(space=space)
+        if ray_metric is None:
+            ray_metric = Euclidean(dim=1, equip=True).metric
         self.ray_metric = ray_metric
 
     @property
     def n_rays(self):
         """Get number of rays."""
-        return self.space.n_rays
+        return self._space.n_rays
 
     @_vectorize_point((1, "a"), (2, "b"))
     def dist(self, point_a, point_b):

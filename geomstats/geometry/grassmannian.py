@@ -38,7 +38,6 @@ References
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -132,7 +131,7 @@ class Grassmannian(LevelSet):
         Dimension of the subspaces.
     """
 
-    def __init__(self, n, p, **kwargs):
+    def __init__(self, n, p, equip=True):
         geomstats.errors.check_integer(p, "p")
         geomstats.errors.check_integer(n, "n")
         if p > n:
@@ -143,12 +142,16 @@ class Grassmannian(LevelSet):
         self.n = n
         self.p = p
 
-        kwargs.setdefault("metric", GrassmannianCanonicalMetric(n, p))
         dim = int(p * (n - p))
-        super().__init__(dim=dim, **kwargs)
+        super().__init__(dim=dim, equip=equip)
 
     def _define_embedding_space(self):
         return SymmetricMatrices(self.n)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return GrassmannianCanonicalMetric
 
     def submersion(self, point):
         r"""Submersion that defines the Grassmann manifold.
@@ -314,27 +317,11 @@ class GrassmannianCanonicalMetric(MatricesMetric):
     """Canonical metric of the Grassmann manifold.
 
     Coincides with the Frobenius metric.
-
-    Parameters
-    ----------
-    n : int
-        Dimension of the Euclidean space.
-    p : int
-        Dimension of the subspaces.
     """
 
-    def __init__(self, n, p):
-        geomstats.errors.check_integer(p, "p")
-        geomstats.errors.check_integer(n, "n")
-        if p > n:
-            raise ValueError("p <= n is required.")
-
-        dim = int(p * (n - p))
-        super().__init__(m=n, n=n, dim=dim, signature=(dim, 0, 0))
-
-        self.n = n
-        self.p = p
-        self.embedding_metric = EuclideanMetric(n * p)
+    def __init__(self, space):
+        super().__init__(space=space, signature=(space.dim, 0, 0))
+        self._general_linear = GeneralLinear(space.n, equip=False)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Exponentiate the invariant vector field v from base point p.
@@ -389,13 +376,12 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             "Geometric Mean and Geodesic Regression on Grassmannians"
             Linear Algebra and its Applications, 466, 83-101, 2015.
         """
-        GLn = GeneralLinear(self.n)
-        id_n = GLn.identity
+        id_n = self._general_linear.identity
         id_n, point, base_point = gs.convert_to_wider_dtype([id_n, point, base_point])
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
-        rot = GLn.compose(sym2, sym1)
-        return Matrices.bracket(GLn.log(rot) / 2, base_point)
+        rot = self._general_linear.compose(sym2, sym1)
+        return Matrices.bracket(self._general_linear.log(rot) / 2, base_point)
 
     def parallel_transport(
         self, tangent_vec, base_point, tangent_vec_b=None, end_point=None
@@ -470,8 +456,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         _ : array-like, shape=[...,]
             Geodesic distance between point_a and point_b.
         """
-        dist = super().squared_dist(point_a, point_b)
-        return dist
+        return super().squared_dist(point_a, point_b)
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
@@ -488,8 +473,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        dist = _squared_dist(point_a, point_b, metric=self)
-        return dist
+        return _squared_dist(point_a, point_b, metric=self)
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.

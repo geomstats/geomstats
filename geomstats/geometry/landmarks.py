@@ -21,13 +21,16 @@ class Landmarks(NFoldManifold):
         Number of landmarks.
     """
 
-    def __init__(self, ambient_manifold, k_landmarks, **kwargs):
-        kwargs.setdefault(
-            "metric", L2LandmarksMetric(ambient_manifold.metric, k_landmarks)
-        )
-        super().__init__(base_manifold=ambient_manifold, n_copies=k_landmarks, **kwargs)
-        self.ambient_manifold = ambient_manifold
+    def __init__(self, ambient_manifold, k_landmarks, equip=True):
         self.k_landmarks = k_landmarks
+        super().__init__(
+            base_manifold=ambient_manifold, n_copies=k_landmarks, equip=equip
+        )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return L2LandmarksMetric
 
 
 class L2LandmarksMetric(NFoldMetric):
@@ -35,17 +38,4 @@ class L2LandmarksMetric(NFoldMetric):
 
     This is the NFoldMetric of the n-fold manifold made out
     of k_landmarks copies of the ambient manifold of each landmark.
-
-    Parameters
-    ----------
-    ambient_metric : RiemannianMetric
-        Riemannian metric of the manifold to which the landmarks belong.
-    k_landmarks: int
-        Number of landmarks.
-
     """
-
-    def __init__(self, ambient_metric, k_landmarks, **kwargs):
-        super().__init__(base_metric=ambient_metric, n_copies=k_landmarks, **kwargs)
-        self.ambient_metric = ambient_metric
-        self.k_landmarks = k_landmarks

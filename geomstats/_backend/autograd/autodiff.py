@@ -2,29 +2,7 @@
 
 import autograd as _autograd
 import autograd.numpy as _np
-from autograd import hessian as _hessian
 from autograd import jacobian
-from autograd import value_and_grad as _value_and_grad
-from autograd.extend import defvjp as _defvjp
-from autograd.extend import primitive as _primitive
-
-
-def detach(x):
-    """Return a new tensor detached from the current graph.
-
-    This is a placeholder in order to have consistent backend APIs.
-
-    Parameters
-    ----------
-    x : array-like
-        Tensor to detach.
-
-    Returns
-    -------
-    x : array-like
-        Tensor.
-    """
-    return x
 
 
 def custom_gradient(*grad_funcs):
@@ -55,7 +33,7 @@ def custom_gradient(*grad_funcs):
         wrapped_function : callable
             Function func with gradients specified by grad_funcs.
         """
-        wrapped_function = _primitive(func)
+        wrapped_function = _autograd.extend.primitive(func)
 
         def wrapped_grad_func(i, ans, *args, **kwargs):
             grads = grad_funcs[i](*args, **kwargs)
@@ -68,18 +46,18 @@ def custom_gradient(*grad_funcs):
             return lambda g: g * grads
 
         if len(grad_funcs) == 1:
-            _defvjp(
+            _autograd.extend.defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
             )
         elif len(grad_funcs) == 2:
-            _defvjp(
+            _autograd.extend.defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
                 lambda ans, *args, **kwargs: wrapped_grad_func(1, ans, *args, **kwargs),
             )
         elif len(grad_funcs) == 3:
-            _defvjp(
+            _autograd.extend.defvjp(
                 wrapped_function,
                 lambda ans, *args, **kwargs: wrapped_grad_func(0, ans, *args, **kwargs),
                 lambda ans, *args, **kwargs: wrapped_grad_func(1, ans, *args, **kwargs),
@@ -95,7 +73,27 @@ def custom_gradient(*grad_funcs):
     return decorator
 
 
-def value_and_grad(func, to_numpy=False):
+def _grad(func, argnums=0):
+    def _wrapped_grad(*x, **kwargs):
+        if not hasattr(x[0], "ndim") or x[0].ndim < 2:
+            return _autograd.grad(func, argnum=argnums)(*x, **kwargs)
+
+        return _autograd.elementwise_grad(func, argnum=argnums)(*x, **kwargs)
+
+    return _wrapped_grad
+
+
+@_autograd.differential_operators.unary_to_nary
+def _elementwise_value_and_grad(fun, x):
+    # same as autograd.elementwise_grad, but also returning ans
+    vjp, ans = _autograd.differential_operators._make_vjp(fun, x)
+    if _autograd.differential_operators.vspace(ans).iscomplex:
+        raise TypeError("Elementwise_grad only applies to real-output functions.")
+
+    return ans, vjp(_autograd.differential_operators.vspace(ans).ones())
+
+
+def value_and_grad(func, argnums=0, to_numpy=False):
     """Wrap autograd value_and_grad function.
 
     Parameters
@@ -108,52 +106,21 @@ def value_and_grad(func, to_numpy=False):
 
     Returns
     -------
-    func_with_grad : callable
+    value_and_grad : callable
         Function that returns func's value and
         func's gradients' values at its inputs args.
     """
 
-    def func_with_grad(*args):
-        """Return func's value and func's gradients' values at args.
+    def _value_and_grad(*x, **kwargs):
+        if not hasattr(x[0], "ndim") or x[0].ndim < 2:
+            return _autograd.value_and_grad(func, argnum=argnums)(*x, **kwargs)
+        return _elementwise_value_and_grad(func, argnum=argnums)(*x, **kwargs)
 
-        Parameters
-        ----------
-        args : list
-            Argument to function func and its gradients.
-
-        Returns
-        -------
-        value : any
-            Value of func at input arguments args.
-        _ : tuple or any
-            Values of func's gradients at input arguments args.
-        """
-        n_args = len(args)
-
-        all_values = []
-        all_grads = []
-        for i in range(n_args):
-
-            def func_of_ith(*args, j=i):
-                reorg_args = args[1 : j + 1] + (args[0],) + args[j + 1 :]
-                return func(*reorg_args)
-
-            new_args = (args[i],) + args[:i] + args[i + 1 :]
-            value_i, grad_i = _value_and_grad(func_of_ith)(*new_args)
-
-            all_values.append(value_i)
-            all_grads.append(grad_i)
-
-        if n_args == 1:
-            return all_values[0], all_grads[0]
-
-        return _np.stack(all_values), tuple(all_grads)
-
-    return func_with_grad
+    return _value_and_grad
 
 
 @_autograd.differential_operators.unary_to_nary
-def _value_and_jacobian(fun, x):
+def _value_and_jacobian_op(fun, x):
     # same as autograd.jacobian, but also returning ans
     vjp, ans = _autograd.differential_operators._make_vjp(fun, x)
     ans_vspace = _autograd.differential_operators.vspace(ans)
@@ -162,7 +129,24 @@ def _value_and_jacobian(fun, x):
     return ans, _np.reshape(_np.stack(grads), jacobian_shape)
 
 
-def jacobian_vec(func):
+def _value_and_jacobian(fun, point_ndim=1):
+    def _value_and_jacobian_vec(x):
+        if x.ndim == point_ndim:
+            return _value_and_jacobian_op(fun)(x)
+
+        ans = []
+        jac = []
+        for one_x in x:
+            ans_, jac_ = _value_and_jacobian_op(fun)(one_x)
+            ans.append(ans_)
+            jac.append(jac_)
+
+        return _np.stack(ans), _np.stack(jac)
+
+    return _value_and_jacobian_vec
+
+
+def jacobian_vec(fun, point_ndim=1):
     """Wrap autograd jacobian function.
 
     We note that the jacobian function of autograd is not vectorized
@@ -184,7 +168,7 @@ def jacobian_vec(func):
 
     Parameters
     ----------
-    func : callable
+    fun : callable
         Function whose jacobian values
         will be computed.
 
@@ -196,18 +180,15 @@ def jacobian_vec(func):
     """
 
     def _jac(x):
-        if x.ndim == 1:
-            return jacobian(func)(x)
-        return _np.stack([jacobian(func)(one_x) for one_x in x])
+        if x.ndim == point_ndim:
+            return jacobian(fun)(x)
+        return _np.stack([jacobian(fun)(one_x) for one_x in x])
 
     return _jac
 
 
-def hessian(func):
+def hessian(fun, func_out_ndim=None):
     """Wrap autograd hessian function.
-
-    We note that the hessian function of autograd returns a tensor
-    of shape (1, dim, dim) when one x is given as input.
 
     For consistency with the other backend, we convert this to a tensor
     of shape (dim, dim).
@@ -217,6 +198,8 @@ def hessian(func):
     func : callable
         Function whose hessian values
         will be computed.
+    func_out_ndim : int
+        Unused. Here for API consistency.
 
     Returns
     -------
@@ -226,12 +209,12 @@ def hessian(func):
     """
 
     def _hess(x):
-        return _hessian(func)(x)[0]
+        return _autograd.hessian(fun)(x)
 
     return _hess
 
 
-def hessian_vec(func):
+def hessian_vec(func, point_ndim=1, func_out_ndim=None):
     """Wrap autograd hessian function.
 
     We note that the hessian function of autograd is not vectorized
@@ -245,6 +228,8 @@ def hessian_vec(func):
     func : callable
         Function whose hessian values
         will be computed.
+    func_out_ndim : int
+        Unused. Here for API consistency.
 
     Returns
     -------
@@ -252,16 +237,17 @@ def hessian_vec(func):
         Function that returns func's hessian
         values at its inputs args.
     """
+    hessian_func = hessian(func)
 
     def _hess(x):
-        if x.ndim == 1:
-            return _hessian(func)(x)[0]
-        return _np.stack([_hessian(func)(one_x)[0] for one_x in x])
+        if x.ndim == point_ndim:
+            return hessian_func(x)
+        return _np.stack([hessian_func(one_x) for one_x in x])
 
     return _hess
 
 
-def jacobian_and_hessian(func):
+def jacobian_and_hessian(func, func_out_ndim=None):
     """Wrap autograd jacobian and hessian functions.
 
     Parameters
@@ -269,6 +255,8 @@ def jacobian_and_hessian(func):
     func : callable
         Function whose jacobian and hessian values
         will be computed.
+    func_out_ndim : int
+        Unused. Here for API consistency.
 
     Returns
     -------
@@ -276,4 +264,38 @@ def jacobian_and_hessian(func):
         Function that returns func's jacobian and
         func's hessian values at its inputs args.
     """
-    return _value_and_jacobian(jacobian(func))
+    return _value_and_jacobian(jacobian_vec(func))
+
+
+def value_jacobian_and_hessian(func, func_out_ndim=None):
+    """Compute value, jacobian and hessian.
+
+    func is only called once.
+
+    Parameters
+    ----------
+    func : callable
+        Function whose jacobian and hessian values
+        will be computed.
+    func_out_ndim : int
+        Unused. Here for API consistency.
+    """
+    cache = []
+
+    def _cached_value_and_jacobian(fun, return_cached=False):
+        def _jac(x):
+            ans, jac = _value_and_jacobian(fun)(x)
+            if not return_cached:
+                cache.append(ans)
+                return jac
+
+            value = _np.stack(cache)._value if len(cache) > 1 else cache[0]._value
+            cache.clear()
+
+            return value, ans, jac
+
+        return _jac
+
+    return _cached_value_and_jacobian(
+        _cached_value_and_jacobian(func), return_cached=True
+    )

@@ -10,7 +10,6 @@ import geomstats.errors
 import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -30,7 +29,7 @@ class Stiefel(LevelSet):
         Number of basis vectors in the orthonormal frame.
     """
 
-    def __init__(self, n, p, **kwargs):
+    def __init__(self, n, p, equip=True):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(p, "p")
         if p > n:
@@ -41,8 +40,12 @@ class Stiefel(LevelSet):
         self._value = gs.eye(p)
 
         dim = int(p * n - (p * (p + 1) / 2))
-        kwargs.setdefault("metric", StiefelCanonicalMetric(n, p))
-        super().__init__(dim=dim, **kwargs)
+        super().__init__(dim=dim, equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return StiefelCanonicalMetric
 
     def _define_embedding_space(self):
         return Matrices(self.n, self.p)
@@ -196,22 +199,10 @@ class Stiefel(LevelSet):
 
 
 class StiefelCanonicalMetric(RiemannianMetric):
-    """Class that defines the canonical metric for Stiefel manifolds.
+    """Class that defines the canonical metric for Stiefel manifolds."""
 
-    Parameters
-    ----------
-    n : int
-        Dimension of the ambient vector space.
-    p : int
-        Number of basis vectors in the orthonormal frames.
-    """
-
-    def __init__(self, n, p):
-        dim = int(p * n - (p * (p + 1) / 2))
-        super().__init__(dim=dim, signature=(dim, 0, 0), shape=(n, p))
-        self.embedding_metric = EuclideanMetric(n * p)
-        self.n = n
-        self.p = p
+    def __init__(self, space):
+        super().__init__(space=space, signature=(space.dim, 0, 0))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the inner-product of two tangent vectors at a base point.
@@ -251,7 +242,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         aux = gs.matmul(
             Matrices.transpose(tangent_vec_a),
-            gs.eye(self.n) - 0.5 * gs.matmul(base_point, base_point_transpose),
+            gs.eye(self._space.n) - 0.5 * gs.matmul(base_point, base_point_transpose),
         )
         inner_prod = Matrices.trace_product(aux, tangent_vec_b)
 
@@ -273,7 +264,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Point in the Stiefel manifold equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        p = self.p
+        p = self._space.p
         matrix_a = Matrices.mul(Matrices.transpose(base_point), tangent_vec)
         matrix_k = tangent_vec - Matrices.mul(base_point, matrix_a)
 
@@ -397,7 +388,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        n, p = self.n, self.p
+        n, p = self._space.n, self._space.p
         if p == n:
             det_point = gs.linalg.det(point)
             det_base_point = gs.linalg.det(base_point)

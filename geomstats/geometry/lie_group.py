@@ -16,23 +16,10 @@ ATOL = 1e-6
 class MatrixLieGroup(Manifold, abc.ABC):
     """Class for matrix Lie groups."""
 
-    def __init__(self, dim, representation_dim, lie_algebra=None, **kwargs):
-        super().__init__(
-            dim=dim, shape=(representation_dim, representation_dim), **kwargs
-        )
+    def __init__(self, representation_dim, lie_algebra=None, **kwargs):
+        super().__init__(shape=(representation_dim, representation_dim), **kwargs)
         self.lie_algebra = lie_algebra
         self.representation_dim = representation_dim
-        self.left_canonical_metric = InvariantMetric(
-            group=self,
-            metric_mat_at_identity=gs.eye(self.dim),
-            left=True,
-        )
-
-        self.right_canonical_metric = InvariantMetric(
-            group=self,
-            metric_mat_at_identity=gs.eye(self.dim),
-            left=False,
-        )
 
     @property
     def identity(self):
@@ -296,23 +283,16 @@ class LieGroup(Manifold, abc.ABC):
         product at the identity.
     """
 
-    def __init__(self, dim, shape, lie_algebra=None, **kwargs):
-        super().__init__(dim=dim, shape=shape, **kwargs)
-
+    def __init__(self, lie_algebra=None, **kwargs):
+        super().__init__(**kwargs)
         self.lie_algebra = lie_algebra
-        self.left_canonical_metric = InvariantMetric(
-            group=self,
-            metric_mat_at_identity=gs.eye(self.dim),
-            left=True,
-        )
 
-        self.right_canonical_metric = InvariantMetric(
-            group=self,
-            metric_mat_at_identity=gs.eye(self.dim),
-            left=False,
+    def default_metric(self):
+        """Metric to equip the space with if equip is True."""
+        return (
+            InvariantMetric,
+            {"left": True, "metric_mat_at_identity": gs.eye(self.dim)},
         )
-
-        self.metric = self.left_canonical_metric
 
     @property
     def identity(self):
@@ -494,10 +474,9 @@ class LieGroup(Manifold, abc.ABC):
         base_point = self.regularize(base_point)
 
         if gs.allclose(base_point, identity):
-            result = self.exp_from_identity(tangent_vec)
-        else:
-            result = self.exp_not_from_identity(tangent_vec, base_point)
-        return result
+            return self.exp_from_identity(tangent_vec)
+
+        return self.exp_not_from_identity(tangent_vec, base_point)
 
     def log_from_identity(self, point):
         """Compute the group logarithm of `point` from the identity.
@@ -570,10 +549,9 @@ class LieGroup(Manifold, abc.ABC):
         base_point = self.regularize(base_point)
 
         if gs.allclose(base_point, identity):
-            result = self.log_from_identity(point)
-        else:
-            result = self.log_not_from_identity(point, base_point)
-        return result
+            return self.log_from_identity(point)
+
+        return self.log_not_from_identity(point, base_point)
 
     def lie_bracket(self, tangent_vector_a, tangent_vector_b, base_point=None):
         """Compute the lie bracket of two tangent vectors.
@@ -632,8 +610,7 @@ class LieGroup(Manifold, abc.ABC):
             tangent_vec_at_id = vector
         else:
             tangent_vec_at_id = self.compose(self.inverse(base_point), vector)
-        is_tangent = self.lie_algebra.belongs(tangent_vec_at_id, atol)
-        return is_tangent
+        return self.lie_algebra.belongs(tangent_vec_at_id, atol)
 
     def to_tangent(self, vector, base_point=None):
         """Project a vector onto the tangent space at a base point.

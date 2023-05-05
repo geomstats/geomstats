@@ -183,17 +183,9 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         Subgroup of rotations of size n.
     translations : Euclidean
         Subgroup of translations of size n.
-    left_canonical_metric : InvariantMetric
-        The left invariant metric that corresponds to the Frobenius inner
-        product at the identity.
-    right_canonical_metric : InvariantMetric
-        The right invariant metric that corresponds to the Frobenius inner
-        product at the identity.
-    metric :  MatricesMetric
-        The Euclidean (Frobenius) inner product.
     """
 
-    def __init__(self, n, **kwargs):
+    def __init__(self, n, equip=True):
         self.n = n
         self._value = gs.eye(n + 1)
 
@@ -201,16 +193,15 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
             dim=int((n * (n + 1)) / 2),
             representation_dim=n + 1,
             lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
-            **kwargs
+            equip=equip,
         )
-        self.rotations = SpecialOrthogonal(n=n)
-        self.translations = Euclidean(dim=n)
+        self.rotations = SpecialOrthogonal(n=n, equip=True)
+        self.translations = Euclidean(dim=n, equip=False)
 
-        self.left_canonical_metric = SpecialEuclideanMatrixCanonicalLeftMetric(
-            group=self
-        )
-        if self._metric is None:
-            self._metric = self.left_canonical_metric
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return SpecialEuclideanMatrixCanonicalLeftMetric
 
     def _define_embedding_space(self):
         return GeneralLinear(self.n + 1, positive_det=True)
@@ -349,18 +340,21 @@ class _SpecialEuclideanVectors(LieGroup):
         Optional, default: 0.
     """
 
-    def __init__(self, n, epsilon=0.0):
+    def __init__(self, n, epsilon=0.0, equip=True):
+        self.n = n
+        self.epsilon = epsilon
+        self.rotations = SpecialOrthogonal(
+            n=n, point_type="vector", epsilon=epsilon, equip=False
+        )
+        self.translations = Euclidean(dim=n, equip=False)
+
         dim = n * (n + 1) // 2
         super().__init__(
             dim=dim,
             shape=(dim,),
             lie_algebra=Euclidean(dim),
+            equip=equip,
         )
-
-        self.n = n
-        self.epsilon = epsilon
-        self.rotations = SpecialOrthogonal(n=n, point_type="vector", epsilon=epsilon)
-        self.translations = Euclidean(dim=n)
 
     @property
     def identity(self):
@@ -428,23 +422,20 @@ class _SpecialEuclideanVectors(LieGroup):
 
         return gs.concatenate([regularized_rot_vec, translation], axis=-1)
 
-    def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
+    def regularize_tangent_vec_at_identity(self, tangent_vec):
         """Regularize a tangent vector at the identity.
 
         Parameters
         ----------
         tangent_vec: array-like, shape=[..., dim]
             Tangent vector at base point.
-        metric : RiemannianMetric
-            Metric.
-            Optional, default: None.
 
         Returns
         -------
         regularized_vec : array-like, shape=[..., dim]
             Regularized vector.
         """
-        return self.regularize_tangent_vec(tangent_vec, self.identity, metric)
+        return self.regularize_tangent_vec(tangent_vec, self.identity)
 
     def matrix_from_vector(self, vec):
         """Convert point in vector point-type to matrix.
@@ -644,10 +635,10 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.0):
-        super().__init__(n=2, epsilon=epsilon)
+    def __init__(self, epsilon=0.0, equip=True):
+        super().__init__(n=2, epsilon=epsilon, equip=equip)
 
-    def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
+    def regularize_tangent_vec(self, tangent_vec, base_point):
         """Regularize a tangent vector at a base point.
 
         Parameters
@@ -656,18 +647,12 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 3]
             Base point.
-        metric : RiemannianMetric
-            Metric.
-            Optional, defaults to self.left_canonical_metric if None.
 
         Returns
         -------
         regularized_vec : array-like, shape=[..., 3]
             Regularized vector.
         """
-        if metric is None:
-            metric = self.left_canonical_metric
-
         rotations = self.rotations
         dim_rotations = rotations.dim
 
@@ -752,10 +737,22 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.0):
-        super().__init__(n=3, epsilon=epsilon)
+    def __init__(self, epsilon=0.0, equip=True):
+        super().__init__(n=3, epsilon=epsilon, equip=equip)
 
-    def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
+    def equip_with_metric(self, Metric=None, **metric_kwargs):
+        super().equip_with_metric(Metric=Metric, **metric_kwargs)
+
+        dim_rotations = self.rotations.dim
+        metric_mat = self.metric.metric_mat_at_identity
+        rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
+        rotations_kwargs = {
+            "metric_mat_at_identity": rot_metric_mat,
+            "left": self.metric.left,
+        }
+        self.rotations.equip_with_metric(InvariantMetric, **rotations_kwargs)
+
+    def regularize_tangent_vec(self, tangent_vec, base_point):
         """Regularize a tangent vector at a base point.
 
         Parameters
@@ -764,34 +761,20 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 3]
             Base point.
-        metric : RiemannianMetric
-            Metric.
-            Optional, defaults to self.left_canonical_metric if None.
 
         Returns
         -------
         regularized_vec : array-like, shape=[..., 3]
             Regularized vector.
         """
-        if metric is None:
-            metric = self.left_canonical_metric
-
-        rotations = self.rotations
-        dim_rotations = rotations.dim
+        dim_rotations = self.rotations.dim
 
         rot_tangent_vec = tangent_vec[..., :dim_rotations]
         rot_base_point = base_point[..., :dim_rotations]
 
-        metric_mat = metric.metric_mat_at_identity
-        rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
-        rot_metric = InvariantMetric(
-            group=rotations,
-            metric_mat_at_identity=rot_metric_mat,
-            left=metric.left,
-        )
-
-        rotations_vec = rotations.regularize_tangent_vec(
-            tangent_vec=rot_tangent_vec, base_point=rot_base_point, metric=rot_metric
+        rotations_vec = self.rotations.regularize_tangent_vec(
+            tangent_vec=rot_tangent_vec,
+            base_point=rot_base_point,
         )
 
         return gs.concatenate(
@@ -1013,21 +996,20 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
 
     Parameters
     ----------
-    group : SpecialEuclidean
+    space : SpecialEuclidean
         Instance of the class SpecialEuclidean with `point_type='matrix'`.
     """
 
-    def __init__(self, group):
+    def __init__(self, space):
         if (
-            not isinstance(group, _SpecialEuclideanMatrices)
-            or group.default_point_type != "matrix"
+            not isinstance(space, _SpecialEuclideanMatrices)
+            or space.default_point_type != "matrix"
         ):
             raise ValueError(
                 "group must be an instance of the "
                 "SpecialEclidean class with `point_type=matrix`."
             )
-        super().__init__(group=group)
-        self.n = group.n
+        super().__init__(space=space)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -1074,18 +1056,16 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
         --------
         examples.plot_geodesics_se2
         """
-        group = self.group
+        group = self._space
+        n = group.n
         if base_point is None:
             base_point = group.identity
-        inf_rotation = tangent_vec[..., : self.n, : self.n]
-        rotation = base_point[..., : self.n, : self.n]
+        inf_rotation = tangent_vec[..., :n, :n]
+        rotation = base_point[..., :n, :n]
         rotation_exp = GeneralLinear.exp(inf_rotation, rotation)
-        translation_exp = (
-            tangent_vec[..., : self.n, self.n] + base_point[..., : self.n, self.n]
-        )
+        translation_exp = tangent_vec[..., :n, n] + base_point[..., :n, n]
 
-        exp = homogeneous_representation(rotation_exp, translation_exp, 1.0)
-        return exp
+        return homogeneous_representation(rotation_exp, translation_exp, 1.0)
 
     def log(self, point, base_point=None, **kwargs):
         """Compute logarithm map associated to the canonical metric.
@@ -1116,12 +1096,11 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
             no. 4 (August 1998): 576–89.
             https://doi.org/10.1109/70.704225.
         """
-        rotation_bp = base_point[..., : self.n, : self.n]
-        rotation_p = point[..., : self.n, : self.n]
+        n = self._space.n
+        rotation_bp = base_point[..., :n, :n]
+        rotation_p = point[..., :n, :n]
         rotation_log = GeneralLinear.log(rotation_p, rotation_bp)
-        translation_log = (
-            point[..., : self.n, self.n] - base_point[..., : self.n, self.n]
-        )
+        translation_log = point[..., :n, n] - base_point[..., :n, n]
 
         return homogeneous_representation(rotation_log, translation_log, 0.0)
 
@@ -1158,6 +1137,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
         transported_tangent_vec: array-like, shape=[..., n + 1, n + 1]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
+        n = self._space.n
         if direction is None:
             if end_point is not None:
                 direction = self.log(end_point, base_point)
@@ -1166,13 +1146,13 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
-        rot_a = tangent_vec[..., : self.n, : self.n]
-        rot_b = direction[..., : self.n, : self.n]
-        rot_bp = base_point[..., : self.n, : self.n]
-        transported_rot = self.group.rotations.bi_invariant_metric.parallel_transport(
+        rot_a = tangent_vec[..., :n, :n]
+        rot_b = direction[..., :n, :n]
+        rot_bp = base_point[..., :n, :n]
+        transported_rot = self._space.rotations.metric.parallel_transport(
             rot_a, rot_bp, rot_b
         )
-        translation = tangent_vec[..., : self.n, self.n]
+        translation = tangent_vec[..., :n, n]
 
         return homogeneous_representation(transported_rot, translation, 0.0)
 
@@ -1199,9 +1179,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
         _ : array-like, shape=[...,]
             Geodesic distance between point_a and point_b.
         """
-        # TODO: rename
-        dist = super().squared_dist(point_a, point_b)
-        return dist
+        return super().squared_dist(point_a, point_b)
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
@@ -1218,8 +1196,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        dist = _squared_dist(point_a, point_b, metric=self)
-        return dist
+        return _squared_dist(point_a, point_b, metric=self)
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.
@@ -1241,8 +1218,9 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
         radius : float
             Injectivity radius.
         """
-        rotation = base_point[..., : self.n, : self.n]
-        rotation_radius = gs.pi * (self.dim - self.n) ** 0.5
+        n = self._space.n
+        rotation = base_point[..., :n, :n]
+        rotation_radius = gs.pi * (self._space.dim - n) ** 0.5
         radius = gs.where(
             gs.sum(rotation, axis=(-2, -1)) == 0, math.inf, rotation_radius
         )
@@ -1265,20 +1243,20 @@ class SpecialEuclidean:
         Optional, default: 0.
     """
 
-    def __new__(cls, n, point_type="matrix", epsilon=0.0):
+    def __new__(cls, n, point_type="matrix", epsilon=0.0, equip=True):
         """Instantiate a special Euclidean group.
 
         Select the object to instantiate depending on the point_type.
         """
         if n == 2 and point_type == "vector":
-            return _SpecialEuclidean2Vectors(epsilon)
+            return _SpecialEuclidean2Vectors(epsilon, equip=equip)
         if n == 3 and point_type == "vector":
-            return _SpecialEuclidean3Vectors(epsilon)
+            return _SpecialEuclidean3Vectors(epsilon, equip=equip)
         if point_type == "vector":
             raise NotImplementedError(
-                "SE(n) is only implemented in matrix representation" " when n > 3."
+                "SE(n) is only implemented in matrix representation when n > 3."
             )
-        return _SpecialEuclideanMatrices(n)
+        return _SpecialEuclideanMatrices(n, equip=equip)
 
 
 class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
@@ -1303,7 +1281,7 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
     def __init__(self, n):
         self.n = n
         dim = int(n * (n + 1) / 2)
-        super().__init__(dim=dim, representation_dim=n + 1)
+        super().__init__(dim=dim, representation_dim=n + 1, equip=False)
 
         self.skew = SkewSymmetricMatrices(n)
 

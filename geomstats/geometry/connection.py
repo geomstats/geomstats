@@ -19,35 +19,12 @@ class Connection(ABC):
 
     Parameters
     ----------
-    dim : int
-        Dimension of the underlying manifold.
-    shape : tuple of int
-        Shape of one element of the manifold.
-        Optional, default : (dim, ).
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
-        Coordinate type.
-        Optional, default: \'intrinsic\'.
+    space : Manifold object
+        M in the tuple (M, g).
     """
 
-    def __init__(self, dim, shape=None, default_coords_type="intrinsic"):
-        geomstats.errors.check_integer(dim, "dim")
-
-        if shape is None:
-            shape = (dim,)
-
-        self.dim = dim
-        self.shape = shape
-        self.default_coords_type = default_coords_type
-
-    @property
-    def default_point_type(self):
-        """Point type.
-
-        `vector` or `matrix`.
-        """
-        if len(self.shape) == 1:
-            return "vector"
-        return "matrix"
+    def __init__(self, space):
+        self._space = space
 
     def christoffels(self, base_point):
         """Christoffel symbols associated with the connection.
@@ -454,7 +431,7 @@ class Connection(ABC):
             Riemannian tensor curvature,
             with the contravariant index on the last dimension.
         """
-        if len(self.shape) > 1:
+        if len(self._space.shape) > 1:
             raise NotImplementedError(
                 "Riemann tensor not implemented for manifolds with points of ndim > 1."
             )
@@ -660,7 +637,7 @@ class Connection(ABC):
             represents the different initial conditions, and the second
             corresponds to time.
         """
-        point_type = self.default_point_type
+        point_type = self._space.default_point_type
 
         if end_point is None and initial_tangent_vec is None:
             raise ValueError(

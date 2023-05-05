@@ -7,176 +7,45 @@ from tests.conftest import Parametrizer, TestCase
 from tests.data.pullback_metric_data import PullbackMetricTestData
 
 
-def _circle_immersion(point):
-    return gs.array(
-        [
-            gs.cos(point),
-            gs.sin(point),
-        ]
-    )
-
-
-def _sphere_immersion(spherical_coords):
-    theta = spherical_coords[..., 0]
-    phi = spherical_coords[..., 1]
-    return gs.array(
-        [
-            gs.cos(phi) * gs.sin(theta),
-            gs.sin(phi) * gs.sin(theta),
-            gs.cos(theta),
-        ]
-    )
-
-
-def _expected_jacobian_circle_immersion(point):
-    jacobian = gs.array(
-        [
-            [-gs.sin(point)],
-            [gs.cos(point)],
-        ]
-    )
-    return jacobian
-
-
-def _expected_jacobian_sphere_immersion(point):
-    theta = point[..., 0]
-    phi = point[..., 1]
-    jacobian = gs.array(
-        [
-            [gs.cos(phi) * gs.cos(theta), -gs.sin(phi) * gs.sin(theta)],
-            [gs.sin(phi) * gs.cos(theta), gs.cos(phi) * gs.sin(theta)],
-            [-gs.sin(theta), 0.0],
-        ]
-    )
-    return jacobian
-
-
-def _expected_hessian_sphere_immersion(point):
-    theta = point[..., 0]
-    phi = point[..., 1]
-    hessian_immersion_x = gs.array(
-        [
-            [-gs.sin(theta) * gs.cos(phi), -gs.cos(theta) * gs.sin(phi)],
-            [-gs.cos(theta) * gs.sin(phi), -gs.sin(theta) * gs.cos(phi)],
-        ]
-    )
-    hessian_immersion_y = gs.array(
-        [
-            [-gs.sin(theta) * gs.sin(phi), gs.cos(theta) * gs.cos(phi)],
-            [gs.cos(theta) * gs.cos(phi), -gs.sin(theta) * gs.sin(phi)],
-        ]
-    )
-    hessian_immersion_z = gs.array([[-gs.cos(theta), 0.0], [0.0, 0.0]])
-    hessian_immersion = gs.stack(
-        [hessian_immersion_x, hessian_immersion_y, hessian_immersion_z], axis=0
-    )
-    return hessian_immersion
-
-
-def _expected_circle_metric_matrix(point):
-    mat = gs.array([[1.0]])
-    return mat
-
-
-def _expected_sphere_metric_matrix(point):
-    theta = point[..., 0]
-    mat = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** 2]])
-    return mat
-
-
-def _expected_inverse_circle_metric_matrix(point):
-    mat = gs.array([[1.0]])
-    return mat
-
-
-def _expected_inverse_sphere_metric_matrix(point):
-    theta = point[..., 0]
-    mat = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** (-2)]])
-    return mat
-
-
 @tests.conftest.autograd_and_torch_only
 class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
     testing_data = PullbackMetricTestData()
     Metric = testing_data.Metric
 
-    def test_sphere_immersion(self, spherical_coords, expected):
-        result = _sphere_immersion(spherical_coords)
+    def test_sphere_immersion(self, space, point, expected):
+        result = space.immersion(point)
         self.assertAllClose(result, expected)
 
-    def test_sphere_immersion_and_spherical_to_extrinsic(self, dim, point):
-        expected = _sphere_immersion(point)
-        result = Hypersphere(dim).spherical_to_extrinsic(point)
+    def test_sphere_immersion_and_spherical_to_extrinsic(self, space, point):
+        result = space.immersion(point)
+        expected = Hypersphere(space.dim).spherical_to_extrinsic(point)
         self.assertAllClose(result, expected)
 
-    def test_jacobian_sphere_immersion(self, dim, pole):
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
-        result = pullback_metric.jacobian_immersion(pole)
-        expected = _expected_jacobian_sphere_immersion(pole)
+    def test_jacobian_immersion(self, space, pole, expected_func):
+        result = space.jacobian_immersion(pole)
+        expected = expected_func(pole)
         self.assertAllClose(result, expected)
 
-    def test_jacobian_circle_immersion(self, dim, pole):
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
-        )
-        result = pullback_metric.jacobian_immersion(pole)
-        expected = _expected_jacobian_circle_immersion(pole)
+    def test_tangent_immersion(self, space, tangent_vec, point, expected):
+        result = space.tangent_immersion(tangent_vec, point)
         self.assertAllClose(result, expected)
 
-    def test_tangent_sphere_immersion(self, dim, tangent_vec, point, expected):
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
-        result = pullback_metric.tangent_immersion(tangent_vec, point)
+    def test_metric_matrix(self, space, base_point, expected_func):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.metric_matrix(base_point)
+        expected = expected_func(base_point)
         self.assertAllClose(result, expected)
 
-    def test_tangent_circle_immersion(self, dim, tangent_vec, point, expected):
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
-        )
-        result = pullback_metric.tangent_immersion(tangent_vec, point)
+    def test_inverse_metric_matrix(self, space, base_point, expected_func):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.cometric_matrix(base_point)
+        expected = expected_func(base_point)
         self.assertAllClose(result, expected)
 
-    def test_sphere_metric_matrix(self, dim, base_point):
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
-        result = pullback_metric.metric_matrix(base_point)
-        expected = _expected_sphere_metric_matrix(base_point)
-        self.assertAllClose(result, expected)
-
-    def test_circle_metric_matrix(self, dim, base_point):
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
-        )
-        result = pullback_metric.metric_matrix(base_point)
-        expected = _expected_circle_metric_matrix(base_point)
-        self.assertAllClose(result, expected)
-
-    def test_inverse_sphere_metric_matrix(self, dim, base_point):
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
-
-        result = pullback_metric.cometric_matrix(base_point)
-        expected = _expected_inverse_sphere_metric_matrix(base_point)
-        self.assertAllClose(result, expected)
-
-    def test_inverse_circle_metric_matrix(self, dim, base_point):
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
-        )
-
-        result = pullback_metric.cometric_matrix(base_point)
-        expected = _expected_inverse_circle_metric_matrix(base_point)
-        self.assertAllClose(result, expected)
-
-    def test_inner_product_and_sphere_inner_product(
+    def test_inner_product_and_hypersphere_inner_product(
         self,
-        dim,
+        space,
         tangent_vec_a,
         tangent_vec_b,
         base_point,
@@ -189,31 +58,30 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         The inner-product of pullback_metric is defined in terms
         of the spherical coordinates.
         """
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
-        immersed_base_point = _sphere_immersion(base_point)
-        jac_immersion = pullback_metric.jacobian_immersion(base_point)
+        space.equip_with_metric(self.Metric)
+        immersed_base_point = space.immersion(base_point)
+
+        jac_immersion = space.jacobian_immersion(base_point)
         immersed_tangent_vec_a = gs.matvec(jac_immersion, tangent_vec_a)
         immersed_tangent_vec_b = gs.matvec(jac_immersion, tangent_vec_b)
 
-        result = pullback_metric.inner_product(
+        result = space.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point=base_point
         )
-        expected = Hypersphere(dim).metric.inner_product(
+        expected = Hypersphere(space.dim).metric.inner_product(
             immersed_tangent_vec_a,
             immersed_tangent_vec_b,
             base_point=immersed_base_point,
         )
         self.assertAllClose(result, expected)
 
-    def test_inner_product_derivative_matrix_s2(self, dim, base_point):
-        metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
+    def test_sphere_inner_product_derivative_matrix(self, space, base_point):
+        space.equip_with_metric(self.Metric)
+        dim = space.dim
+
         theta, _ = base_point[0], base_point[1]
 
-        derivative_matrix = metric.inner_product_derivative_matrix(base_point)
+        derivative_matrix = space.metric.inner_product_derivative_matrix(base_point)
 
         assert ~gs.allclose(derivative_matrix, gs.zeros((dim, dim, dim)))
 
@@ -226,7 +94,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(derivative_matrix[:, :, 0], expected_1)
         self.assertAllClose(derivative_matrix[:, :, 1], expected_2)
 
-    def test_christoffels_and_sphere_christoffels(self, dim, base_point):
+    def test_christoffels_and_hypersphere_christoffels(self, space, base_point):
         """Test consistency between sphere's christoffels.
 
         The christoffels of the class Hypersphere are
@@ -235,20 +103,16 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         The christoffels of pullback_metric are also defined
         in terms of the spherical coordinates.
         """
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
-        result = pullback_metric.christoffels(base_point)
-        expected = Hypersphere(2).metric.christoffels(base_point)
+        space.equip_with_metric(self.Metric)
+        result = space.metric.christoffels(base_point)
+        expected = Hypersphere(space.dim).metric.christoffels(base_point)
         self.assertAllClose(result, expected)
 
-    def test_christoffels_sphere(self, dim, base_point):
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
+    def test_christoffels_sphere(self, space, base_point):
+        space.equip_with_metric(self.Metric)
         theta, _ = base_point[0], base_point[1]
 
-        christoffels = pullback_metric.christoffels(base_point)
+        christoffels = space.metric.christoffels(base_point)
 
         self.assertAllClose(christoffels.shape, (2, 2, 2))
 
@@ -266,7 +130,7 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(christoffels[1, 0, 1], expected_2_12)
         self.assertAllClose(christoffels[1, 1, 0], expected_2_21)
 
-    def test_christoffels_circle(self, dim, base_point):
+    def test_christoffels_circle(self, space, base_point):
         """Test consistency between sphere's christoffels.
 
         The christoffels of the class Hypersphere are
@@ -275,16 +139,14 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         The christoffels of pullback_metric are also defined
         in terms of the spherical coordinates.
         """
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_circle_immersion
-        )
-        result = pullback_metric.christoffels(base_point)
+        space.equip_with_metric(self.Metric)
+        result = space.metric.christoffels(base_point)
 
         self.assertAllClose(result.shape, (1, 1, 1))
         self.assertAllClose(result, gs.zeros((1, 1, 1)))
 
     @tests.conftest.autograd_and_torch_only
-    def test_exp_and_sphere_exp(self, dim, tangent_vec, base_point):
+    def test_exp_and_hypersphere_exp(self, space, tangent_vec, base_point):
         """Test consistency between sphere's Riemannian exp.
 
         The exp map of the class Hypersphere is
@@ -293,23 +155,21 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         The exp map of pullback_metric is defined
         in terms of the spherical coordinates.
         """
-        # Note: this works in tf too, but takes a very long time.
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
-        immersed_base_point = _sphere_immersion(base_point)
-        jac_immersion = pullback_metric.jacobian_immersion(base_point)
+        space.equip_with_metric(self.Metric)
+
+        immersed_base_point = space.immersion(base_point)
+        jac_immersion = space.jacobian_immersion(base_point)
         immersed_tangent_vec_a = gs.matvec(jac_immersion, tangent_vec)
-        result = pullback_metric.exp(tangent_vec, base_point=base_point)
-        result = Hypersphere(dim).spherical_to_extrinsic(result)
-        expected = Hypersphere(dim).metric.exp(
+        result = space.metric.exp(tangent_vec, base_point=base_point)
+        result = Hypersphere(space.dim).spherical_to_extrinsic(result)
+        expected = Hypersphere(space.dim).metric.exp(
             immersed_tangent_vec_a, base_point=immersed_base_point
         )
         self.assertAllClose(result, expected, atol=1e-1)
 
     @tests.conftest.torch_only
-    def test_parallel_transport_and_sphere_parallel_transport(
-        self, dim, tangent_vec_a, tangent_vec_b, base_point
+    def test_parallel_transport_and_hypersphere_parallel_transport(
+        self, space, tangent_vec_a, tangent_vec_b, base_point
     ):
         """Test consistency between sphere's parallel transports.
 
@@ -321,50 +181,46 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
 
         Note: this test passes in autograd and in tf but takes a very long time.
         """
-        pullback_metric = self.Metric(
-            dim=dim, embedding_dim=dim + 1, immersion=_sphere_immersion
-        )
-        immersed_base_point = _sphere_immersion(base_point)
-        jac_immersion = pullback_metric.jacobian_immersion(base_point)
+        space.equip_with_metric(self.Metric)
+        immersed_base_point = space.immersion(base_point)
+        jac_immersion = space.jacobian_immersion(base_point)
         immersed_tangent_vec_a = gs.matvec(jac_immersion, tangent_vec_a)
         immersed_tangent_vec_b = gs.matvec(jac_immersion, tangent_vec_b)
 
-        result_dict = pullback_metric.ladder_parallel_transport(
+        result_dict = space.metric.ladder_parallel_transport(
             tangent_vec_a, base_point=base_point, direction=tangent_vec_b
         )
 
         result = result_dict["transported_tangent_vec"]
         end_point = result_dict["end_point"]
-        result = pullback_metric.tangent_immersion(v=result, x=end_point)
+        result = space.tangent_immersion(result, end_point)
 
-        expected = Hypersphere(dim).metric.parallel_transport(
+        expected = Hypersphere(space.dim).metric.parallel_transport(
             immersed_tangent_vec_a,
             base_point=immersed_base_point,
             direction=immersed_tangent_vec_b,
         )
         self.assertAllClose(result, expected, atol=5e-3)
 
-    def test_hessian_sphere_immersion(self, base_point):
+    def test_hessian_sphere_immersion(self, space, base_point, expected_func):
         """Test the hessian immersion.
 
         The hessian immersion is the hessian of the immersion
         function.
         """
-        pullback_metric = self.Metric(
-            dim=2, embedding_dim=3, immersion=_sphere_immersion
+        result = space.hessian_immersion(base_point)
+        expected = expected_func(base_point)
+        self.assertAllClose(
+            result.shape, (space.embedding_space.dim, space.dim, space.dim)
         )
-        result = pullback_metric.hessian_immersion(base_point)
-        expected = _expected_hessian_sphere_immersion(base_point)
-        self.assertAllClose(result.shape, (3, 2, 2))
         self.assertAllClose(result, expected)
 
-    def test_second_fundamental_form_sphere(self, base_point):
-        pullback_metric = self.Metric(
-            dim=2, embedding_dim=3, immersion=_sphere_immersion
-        )
+    def test_second_fundamental_form_sphere(self, space, base_point):
+        space.equip_with_metric(self.Metric)
+
         theta, phi = base_point[0], base_point[1]
         radius = 1
-        result = pullback_metric.second_fundamental_form(base_point)
+        result = space.metric.second_fundamental_form(base_point)
 
         expected_11 = gs.array(
             [
@@ -390,11 +246,9 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result_11, expected_11)
         self.assertAllClose(result_22, expected_22, atol=1e-5)
 
-    def test_second_fundamental_form_circle(self, base_point):
-        pullback_metric = self.Metric(
-            dim=1, embedding_dim=2, immersion=_circle_immersion
-        )
-        result = pullback_metric.second_fundamental_form(base_point)
+    def test_second_fundamental_form_circle(self, space, base_point):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.second_fundamental_form(base_point)
 
         expected = gs.array(
             [
@@ -406,22 +260,18 @@ class TestPullbackMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
-    def test_mean_curvature_vector_norm_sphere(self, base_point):
-        pullback_metric = self.Metric(
-            dim=2, embedding_dim=3, immersion=_sphere_immersion
-        )
+    def test_mean_curvature_vector_norm_sphere(self, space, base_point):
+        space.equip_with_metric(self.Metric)
         radius = 1
-        result = pullback_metric.mean_curvature_vector(base_point)
+        result = space.metric.mean_curvature_vector(base_point)
         result = gs.linalg.norm(result)
         expected = gs.array(2 / radius)
         self.assertAllClose(result, expected)
 
-    def test_mean_curvature_vector_norm_circle(self, base_point):
-        pullback_metric = self.Metric(
-            dim=1, embedding_dim=2, immersion=_circle_immersion
-        )
+    def test_mean_curvature_vector_norm_circle(self, space, base_point):
+        space.equip_with_metric(self.Metric)
         radius = 1
-        result = pullback_metric.mean_curvature_vector(base_point)
+        result = space.metric.mean_curvature_vector(base_point)
         result = gs.linalg.norm(result)
         expected = gs.array(1 / radius)
         self.assertAllClose(result, expected)
