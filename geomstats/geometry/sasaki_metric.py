@@ -135,6 +135,8 @@ class SasakiMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
+        point, base_point = gs.broadcast_arrays(point, base_point)
+
         pts = gs.reshape(point, (-1, 2) + self._space.shape)
         bs_pts = gs.reshape(base_point, (-1, 2) + self._space.shape)
 
