@@ -16,6 +16,7 @@ from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.vectorization import repeat_out
 
 PI = gs.pi
 PI2 = PI * PI
@@ -104,7 +105,7 @@ def _squared_dist(point_a, point_b, metric):
     _ : array-like, shape=[...,]
         Geodesic distance between point_a and point_b.
     """
-    return metric.private_squared_dist(point_a, point_b)
+    return metric._squared_dist(point_a, point_b)
 
 
 def homogeneous_representation(rotation, translation, constant=1.0):
@@ -1001,15 +1002,18 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
     """
 
     def __init__(self, space):
-        if (
-            not isinstance(space, _SpecialEuclideanMatrices)
-            or space.default_point_type != "matrix"
-        ):
+        if not self._check_implemented(space):
             raise ValueError(
                 "group must be an instance of the "
-                "SpecialEclidean class with `point_type=matrix`."
+                "SpecialEuclidean class with `point_type=matrix`."
             )
         super().__init__(space=space)
+
+    def _check_implemented(self, space):
+        return (
+            isinstance(space, _SpecialEuclideanMatrices)
+            and space.default_point_type == "matrix"
+        )
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -1029,7 +1033,10 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return repeat_out(
+            self._space, inner_prod, base_point, tangent_vec_a, tangent_vec_b
+        )
 
     def exp(self, tangent_vec, base_point=None, n_steps=10, step="rk4", **kwargs):
         """Exponential map associated to the cannonical metric.
@@ -1156,7 +1163,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
 
         return homogeneous_representation(transported_rot, translation, 0.0)
 
-    def private_squared_dist(self, point_a, point_b):
+    def _squared_dist(self, point_a, point_b):
         """Compute geodesic distance between two points.
 
         Compute the squared geodesic distance between point_a
@@ -1215,16 +1222,13 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
         n = self._space.n
         rotation = base_point[..., :n, :n]
         rotation_radius = gs.pi * (self._space.dim - n) ** 0.5
-        radius = gs.where(
-            gs.sum(rotation, axis=(-2, -1)) == 0, math.inf, rotation_radius
-        )
-        return radius
+        return gs.where(gs.sum(rotation, axis=(-2, -1)) == 0, math.inf, rotation_radius)
 
 
 class SpecialEuclidean:

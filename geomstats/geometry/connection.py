@@ -742,7 +742,7 @@ class Connection(ABC):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
         raise NotImplementedError("The injectivity range is not implemented yet.")

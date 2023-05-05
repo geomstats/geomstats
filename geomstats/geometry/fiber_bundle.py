@@ -154,8 +154,9 @@ class FiberBundle(ABC):
 
             def wrap(param):
                 """Wrap a parameter vector to a group element."""
-                algebra_elt = gs.array(param)
-                algebra_elt = gs.cast(algebra_elt, dtype=base_point.dtype)
+                algebra_elt = gs.reshape(
+                    gs.cast(gs.array(param), dtype=base_point.dtype), max_shape
+                )
                 algebra_elt = group.lie_algebra.matrix_representation(algebra_elt)
                 group_elt = group.exp(algebra_elt)
                 return self.group_action(point, group_elt)
@@ -163,7 +164,7 @@ class FiberBundle(ABC):
         elif group_action is not None:
 
             def wrap(param):
-                vector = gs.array(param)
+                vector = gs.reshape(gs.array(param), max_shape)
                 vector = gs.cast(vector, dtype=base_point.dtype)
                 return group_action(vector, point)
 

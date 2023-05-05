@@ -8,7 +8,7 @@ import math
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.base import ComplexOpenSet
-from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
+from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
@@ -1280,4 +1280,5 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
         """
         log_a = HPDMatrices.logm(point_a)
         log_b = HPDMatrices.logm(point_b)
-        return ComplexMatricesMetric.norm(log_a - log_b)
+
+        return gs.linalg.norm(log_a - log_b, axis=(-2, -1))

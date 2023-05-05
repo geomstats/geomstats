@@ -41,6 +41,7 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.vectorization import repeat_out
 
 
 def _squared_dist_grad_point_a(point_a, point_b, metric):
@@ -117,7 +118,7 @@ def _squared_dist(point_a, point_b, metric):
     _ : array-like, shape=[...,]
         Geodesic distance between point_a and point_b.
     """
-    return metric.private_squared_dist(point_a, point_b)
+    return metric._squared_dist(point_a, point_b)
 
 
 class Grassmannian(LevelSet):
@@ -384,7 +385,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         return Matrices.bracket(self._general_linear.log(rot) / 2, base_point)
 
     def parallel_transport(
-        self, tangent_vec, base_point, tangent_vec_b=None, end_point=None
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vector.
 
@@ -399,19 +400,19 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., n, n]
             Point on the Grassmann manifold. Point to transport from.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
             Optional, default: None
         end_point : array-like, shape=[..., n, n]
             Point on the Grassmann manifold to transport to. Unused if
-            `tangent_vec_b` is given.
+            `direction` is given.
             Optional, default: None
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., n, n]
-            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at `exp_(base_point)(direction)`.
 
         References
         ----------
@@ -420,20 +421,20 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             Aspects.” ArXiv:2011.13699 [Cs, Math], November 27, 2020.
             https://arxiv.org/abs/2011.13699.
         """
-        if tangent_vec_b is None:
+        if direction is None:
             if end_point is not None:
-                tangent_vec_b = self.log(end_point, base_point)
+                direction = self.log(end_point, base_point)
             else:
                 raise ValueError(
-                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    "Either an end_point or a direction must be given to define the"
                     " geodesic along which to transport."
                 )
         expm = gs.linalg.expm
         mul = Matrices.mul
-        rot = -Matrices.bracket(base_point, tangent_vec_b)
+        rot = -Matrices.bracket(base_point, direction)
         return mul(expm(rot), tangent_vec, expm(-rot))
 
-    def private_squared_dist(self, point_a, point_b):
+    def _squared_dist(self, point_a, point_b):
         """Compute geodesic distance between two points.
 
         Compute the squared geodesic distance between point_a
@@ -490,7 +491,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
 
         References
@@ -501,4 +502,5 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             ArXiv:2011.13699 [Cs, Math], November 27, 2020.
             https://arxiv.org/abs/2011.13699.
         """
-        return gs.pi / 2
+        radius = gs.array(gs.pi / 2)
+        return repeat_out(self._space, radius, base_point)

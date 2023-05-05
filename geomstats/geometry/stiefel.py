@@ -13,6 +13,7 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.vectorization import repeat_out
 
 
 class Stiefel(LevelSet):
@@ -244,9 +245,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Matrices.transpose(tangent_vec_a),
             gs.eye(self._space.n) - 0.5 * gs.matmul(base_point, base_point_transpose),
         )
-        inner_prod = Matrices.trace_product(aux, tangent_vec_b)
-
-        return inner_prod
+        return Matrices.trace_product(aux, tangent_vec_b)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
@@ -545,7 +544,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
 
         References
@@ -555,4 +554,5 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Catholique de Louvain, 2013.
             https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
         """
-        return 0.89 * gs.pi
+        radius = gs.array(0.89 * gs.pi)
+        return repeat_out(self._space, radius, base_point)

@@ -522,21 +522,25 @@ class MatricesMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 space=space,
-                tangent_vec_a=[[-3.0, 1.0], [-1.0, -2.0]],
-                tangent_vec_b=[[-9.0, 0.0], [4.0, 2.0]],
+                tangent_vec_a=gs.array([[-3.0, 1.0], [-1.0, -2.0]]),
+                tangent_vec_b=gs.array([[-9.0, 0.0], [4.0, 2.0]]),
                 expected=19.0,
             ),
             dict(
                 space=space,
-                tangent_vec_a=[
-                    [[-1.5, 0.0], [2.0, -3.0]],
-                    [[0.5, 7.0], [0.5, -2.0]],
-                ],
-                tangent_vec_b=[
-                    [[2.0, 0.0], [2.0, -3.0]],
-                    [[-1.0, 0.0], [1.0, -2.0]],
-                ],
-                expected=[10.0, 4.0],
+                tangent_vec_a=gs.array(
+                    [
+                        [[-1.5, 0.0], [2.0, -3.0]],
+                        [[0.5, 7.0], [0.5, -2.0]],
+                    ]
+                ),
+                tangent_vec_b=gs.array(
+                    [
+                        [[2.0, 0.0], [2.0, -3.0]],
+                        [[-1.0, 0.0], [1.0, -2.0]],
+                    ]
+                ),
+                expected=gs.array([10.0, 4.0]),
             ),
         ]
         return self.generate_tests(smoke_data)

@@ -87,7 +87,7 @@ class RiemannianMetric(Connection, ABC):
             Inner-product matrix.
         """
         raise NotImplementedError(
-            "The computation of the metric matrix" " is not implemented."
+            "The computation of the metric matrix is not implemented."
         )
 
     def cometric_matrix(self, base_point=None):
@@ -304,7 +304,8 @@ class RiemannianMetric(Connection, ABC):
         """
         norm = self.norm(vector, base_point)
         norm = gs.where(norm == 0, gs.ones(norm.shape), norm)
-        return gs.einsum("...i,...->...i", vector, 1 / norm)
+        indices = "ijk"[: self._space.point_ndim]
+        return gs.einsum(f"...{indices},...->...{indices}", vector, 1 / norm)
 
     def random_unit_tangent_vec(self, base_point, n_vectors=1):
         """Generate a random unit tangent vector at a given point.
