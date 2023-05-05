@@ -226,7 +226,7 @@ class TestSPDEuclideanMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self, space, power_euclidean, tangent_vec, base_point, expected
     ):
         space.equip_with_metric(self.Metric, power_euclidean=power_euclidean)
-        result = space.metric.exp_domain(tangent_vec, base_point, expected)
+        result = space.metric.exp_domain(tangent_vec, base_point)
         self.assertAllClose(result, expected)
 
     def test_log(self, space, power_euclidean, point, base_point, expected):

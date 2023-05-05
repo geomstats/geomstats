@@ -81,7 +81,9 @@ def get_batch_shape(space, *point):
     batch_shape : tuple
         Returns the shape related with batch. () if only one point.
     """
-    point = filter(_is_not_none, point)
+    point = list(filter(_is_not_none, point))
+    if len(point) == 0:
+        return ()
     point_max_ndim = _get_max_ndim_point(*point)
     return point_max_ndim.shape[: -space.point_ndim]
 
@@ -114,6 +116,24 @@ def _is_not_none(value):
 
 
 def repeat_out(space, out, *points, out_shape=()):
+    """Repeat out shape after finding batch shape.
+
+    Parameters
+    ----------
+    space : Manifold
+        Space to which point belongs.
+    out : array-like
+        Output to be repeated
+    point : array-like
+        Point belonging to the space.
+    out_shape : tuple
+        Indicates out shape for no batch computations.
+
+    Returns
+    -------
+    out : array-like
+        If no batch, then input is returned. Otherwise it is broadcasted.
+    """
     points = filter(_is_not_none, points)
     batch_shape = get_batch_shape(space, *points)
     if out.shape[: -len(out_shape)] != batch_shape:
