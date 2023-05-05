@@ -921,8 +921,8 @@ class PreShapeMetric(RiemannianMetric):
         radius : float
             Injectivity radius.
         """
-        out = gs.array(gs.pi)
-        return repeat_out(self._space, out, base_point)
+        radius = gs.array(gs.pi)
+        return repeat_out(self._space, radius, base_point)
 
 
 class KendallShapeMetric(QuotientMetric):

@@ -713,8 +713,10 @@ class MatricesMetric(EuclideanMetric):
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
-        out = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
-        return repeat_out(self._space, out, tangent_vec_a, tangent_vec_b, base_point)
+        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return repeat_out(
+            self._space, inner_prod, tangent_vec_a, tangent_vec_b, base_point
+        )
 
     def norm(self, vector, base_point=None):
         """Compute norm of a matrix.
@@ -734,5 +736,5 @@ class MatricesMetric(EuclideanMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        out = gs.linalg.norm(vector, axis=(-2, -1))
-        return repeat_out(self._space, out, vector, base_point)
+        norm = gs.linalg.norm(vector, axis=(-2, -1))
+        return repeat_out(self._space, norm, vector, base_point)

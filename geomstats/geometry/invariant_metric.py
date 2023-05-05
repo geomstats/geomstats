@@ -1252,12 +1252,12 @@ class BiInvariantMetric(_InvariantMetricVector):
             Inner-product of the two tangent vectors.
         """
         if base_point is None or self._space.default_point_type == "matrix":
-            out = self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+            inner_prod = self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
             if base_point is not None:
                 return repeat_out(
-                    self._space, out, base_point, tangent_vec_a, tangent_vec_b
+                    self._space, inner_prod, base_point, tangent_vec_a, tangent_vec_b
                 )
-            return out
+            return inner_prod
 
         return super().inner_product(tangent_vec_a, tangent_vec_b, base_point)
 
@@ -1325,5 +1325,5 @@ class BiInvariantMetric(_InvariantMetricVector):
         radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        out = gs.array(gs.pi * self._space.dim**0.5)
-        return repeat_out(self._space, out, base_point)
+        radius = gs.array(gs.pi * self._space.dim**0.5)
+        return repeat_out(self._space, radius, base_point)

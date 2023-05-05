@@ -554,5 +554,5 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Catholique de Louvain, 2013.
             https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
         """
-        out = gs.array(0.89 * gs.pi)
-        return repeat_out(self._space, out, base_point)
+        radius = gs.array(0.89 * gs.pi)
+        return repeat_out(self._space, radius, base_point)

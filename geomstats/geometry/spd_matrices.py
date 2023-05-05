@@ -718,8 +718,8 @@ class SPDAffineMetric(RiemannianMetric):
         radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        out = gs.array(math.inf)
-        return repeat_out(self._space, out, base_point)
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)
 
 
 class SPDBuresWassersteinMetric(RiemannianMetric):
@@ -1254,8 +1254,8 @@ class SPDLogEuclideanMetric(RiemannianMetric):
         radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        out = gs.array(math.inf)
-        return repeat_out(self._space, out, base_point)
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)
 
     def dist(self, point_a, point_b):
         """Compute log euclidean distance.

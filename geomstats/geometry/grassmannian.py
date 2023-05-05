@@ -502,5 +502,5 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             ArXiv:2011.13699 [Cs, Math], November 27, 2020.
             https://arxiv.org/abs/2011.13699.
         """
-        out = gs.array(gs.pi / 2)
-        return repeat_out(self._space, out, base_point)
+        radius = gs.array(gs.pi / 2)
+        return repeat_out(self._space, radius, base_point)

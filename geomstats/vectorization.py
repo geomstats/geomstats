@@ -17,12 +17,23 @@ ERROR_MSG = "Invalid type: %s."
 
 
 def _get_max_ndim_point(*point):
-    point_max_ndim = point[0]
-    for point_ in point[1:]:
-        if point_.ndim > point_max_ndim.ndim:
-            point_max_ndim = point_
+    """Identify point with higher dimension.
 
-    return point_max_ndim
+    Parameters
+    ----------
+    point : array-like
+
+    Returns
+    -------
+    max_ndim_point : array-like
+        Point with higher dimension.
+    """
+    max_ndim_point = point[0]
+    for point_ in point[1:]:
+        if point_.ndim > max_ndim_point.ndim:
+            max_ndim_point = point_
+
+    return max_ndim_point
 
 
 def get_n_points(space, *point):
@@ -73,7 +84,7 @@ def get_batch_shape(space, *point):
     ----------
     space : Manifold
         Space to which point belongs.
-    point : array-like
+    point : array-like or None
         Point belonging to the space.
 
     Returns
@@ -112,10 +123,11 @@ def repeat_point(point, n_reps=2, expand=False):
 
 
 def _is_not_none(value):
+    """Check if a value is None."""
     return value is not None
 
 
-def repeat_out(space, out, *points, out_shape=()):
+def repeat_out(space, out, *point, out_shape=()):
     """Repeat out shape after finding batch shape.
 
     Parameters
@@ -124,7 +136,7 @@ def repeat_out(space, out, *points, out_shape=()):
         Space to which point belongs.
     out : array-like
         Output to be repeated
-    point : array-like
+    point : array-like or None
         Point belonging to the space.
     out_shape : tuple
         Indicates out shape for no batch computations.
@@ -134,8 +146,8 @@ def repeat_out(space, out, *points, out_shape=()):
     out : array-like
         If no batch, then input is returned. Otherwise it is broadcasted.
     """
-    points = filter(_is_not_none, points)
-    batch_shape = get_batch_shape(space, *points)
+    point = filter(_is_not_none, point)
+    batch_shape = get_batch_shape(space, *point)
     if out.shape[: -len(out_shape)] != batch_shape:
         return gs.broadcast_to(out, batch_shape + out_shape)
     return out

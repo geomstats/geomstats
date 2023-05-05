@@ -1033,8 +1033,10 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        out = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
-        return repeat_out(self._space, out, base_point, tangent_vec_a, tangent_vec_b)
+        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return repeat_out(
+            self._space, inner_prod, base_point, tangent_vec_a, tangent_vec_b
+        )
 
     def exp(self, tangent_vec, base_point=None, n_steps=10, step="rk4", **kwargs):
         """Exponential map associated to the cannonical metric.

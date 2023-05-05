@@ -433,5 +433,5 @@ class PoincareBallMetric(RiemannianMetric):
         radius : float
             Injectivity radius.
         """
-        out = gs.array(math.inf)
-        return repeat_out(self._space, out, base_point)
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)

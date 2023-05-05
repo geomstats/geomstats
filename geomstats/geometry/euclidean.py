@@ -108,8 +108,10 @@ class EuclideanMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        out = gs.dot(tangent_vec_a, tangent_vec_b)
-        return repeat_out(self._space, out, tangent_vec_a, tangent_vec_b, base_point)
+        inner_product = gs.dot(tangent_vec_a, tangent_vec_b)
+        return repeat_out(
+            self._space, inner_product, tangent_vec_a, tangent_vec_b, base_point
+        )
 
     def norm(self, vector, base_point=None):
         """Compute norm of a vector.
@@ -133,8 +135,8 @@ class EuclideanMetric(RiemannianMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        out = gs.linalg.norm(vector, axis=-1)
-        return repeat_out(self._space, out, vector, base_point)
+        norm = gs.linalg.norm(vector, axis=-1)
+        return repeat_out(self._space, norm, vector, base_point)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute exp map of a base point in tangent vector direction.
@@ -202,10 +204,10 @@ class EuclideanMetric(RiemannianMetric):
         transported_tangent_vec: array-like, shape=[..., dim]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
-        out = gs.copy(tangent_vec)
+        transported_tangent_vec = gs.copy(tangent_vec)
         return repeat_out(
             self._space,
-            out,
+            transported_tangent_vec,
             tangent_vec,
             base_point,
             direction,
