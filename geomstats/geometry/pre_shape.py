@@ -11,6 +11,7 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
+from geomstats.vectorization import get_batch_shape, repeat_out
 
 
 class PreShapeSpace(LevelSet):
@@ -724,6 +725,10 @@ class PreShapeSpaceBundle(FiberBundle, PreShapeSpace):
 class PreShapeMetric(RiemannianMetric):
     """Procrustes metric on the pre-shape space."""
 
+    def _flatten_point(self, point):
+        sphere_embedding_dim = self._space._sphere.embedding_space.dim
+        return gs.reshape(point, point.shape[:-2] + (sphere_embedding_dim,))
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
 
@@ -761,11 +766,9 @@ class PreShapeMetric(RiemannianMetric):
             Point on the pre-shape space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        sphere = self._space._sphere
-        sphere_embedding_dim = sphere.embedding_space.dim
-        flat_bp = gs.reshape(base_point, (-1, sphere_embedding_dim))
-        flat_tan = gs.reshape(tangent_vec, (-1, sphere_embedding_dim))
-        flat_exp = sphere.metric.exp(flat_tan, flat_bp)
+        flat_bp = self._flatten_point(base_point)
+        flat_tan = self._flatten_point(tangent_vec)
+        flat_exp = self._space._sphere.metric.exp(flat_tan, flat_bp)
         return gs.reshape(flat_exp, tangent_vec.shape)
 
     def log(self, point, base_point, **kwargs):
@@ -784,16 +787,14 @@ class PreShapeMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        sphere = self._space._sphere
-        sphere_embedding_dim = sphere.embedding_space.dim
-        flat_bp = gs.reshape(base_point, (-1, sphere_embedding_dim))
-        flat_pt = gs.reshape(point, (-1, sphere_embedding_dim))
-        flat_log = sphere.metric.log(flat_pt, flat_bp)
+        batch_shape = get_batch_shape(self._space, point, base_point)
 
-        if gs.prod(gs.array(flat_log.shape)) == gs.prod(gs.array(base_point.shape)):
-            return gs.reshape(flat_log, base_point.shape)
+        flat_bp = self._flatten_point(base_point)
+        flat_pt = self._flatten_point(point)
 
-        return gs.reshape(flat_log, point.shape)
+        flat_log = self._space._sphere.metric.log(flat_pt, flat_bp)
+
+        return gs.reshape(flat_log, batch_shape + self._space.shape)
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         r"""Compute the curvature.
@@ -822,21 +823,18 @@ class PreShapeMetric(RiemannianMetric):
         curvature : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at `base_point`.
         """
-        sphere = self._space._sphere
-        sphere_embedding_dim = sphere.embedding_space.dim
+        batch_shape = get_batch_shape(
+            self._space, base_point, tangent_vec_a, tangent_vec_b, tangent_vec_c
+        )
+        flat_a = self._flatten_point(tangent_vec_a)
+        flat_b = self._flatten_point(tangent_vec_b)
+        flat_c = self._flatten_point(tangent_vec_c)
+        flat_bp = self._flatten_point(base_point)
 
-        max_shape = base_point.shape
-        for arg in [tangent_vec_a, tangent_vec_b, tangent_vec_c]:
-            if arg.ndim >= 3:
-                max_shape = arg.shape
-        flat_shape = (-1, sphere_embedding_dim)
-        flat_a = gs.reshape(tangent_vec_a, flat_shape)
-        flat_b = gs.reshape(tangent_vec_b, flat_shape)
-        flat_c = gs.reshape(tangent_vec_c, flat_shape)
-        flat_bp = gs.reshape(base_point, flat_shape)
-        curvature = sphere.metric.curvature(flat_a, flat_b, flat_c, flat_bp)
-        curvature = gs.reshape(curvature, max_shape)
-        return curvature
+        curvature = self._space._sphere.metric.curvature(
+            flat_a, flat_b, flat_c, flat_bp
+        )
+        return gs.reshape(curvature, batch_shape + self._space.shape)
 
     def curvature_derivative(
         self,
@@ -878,7 +876,15 @@ class PreShapeMetric(RiemannianMetric):
         curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
             Tangent vector at base point.
         """
-        return gs.zeros_like(tangent_vec_a)
+        batch_shape = get_batch_shape(
+            self._space,
+            tangent_vec_a,
+            tangent_vec_b,
+            tangent_vec_c,
+            tangent_vec_d,
+            base_point,
+        )
+        return gs.zeros(batch_shape + self._space.shape)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -914,19 +920,18 @@ class PreShapeMetric(RiemannianMetric):
                     " geodesic along which to transport."
                 )
 
-        sphere = self._space._sphere
-        sphere_embedding_dim = sphere.embedding_space.dim
+        batch_shape = get_batch_shape(
+            self._space, tangent_vec, base_point, direction, end_point
+        )
 
-        max_shape = tangent_vec.shape if tangent_vec.ndim == 3 else direction.shape
+        flat_bp = self._flatten_point(base_point)
+        flat_tan_a = self._flatten_point(tangent_vec)
+        flat_tan_b = self._flatten_point(direction)
 
-        flat_bp = gs.reshape(base_point, (-1, sphere_embedding_dim))
-        flat_tan_a = gs.reshape(tangent_vec, (-1, sphere_embedding_dim))
-        flat_tan_b = gs.reshape(direction, (-1, sphere_embedding_dim))
-
-        flat_transport = sphere.metric.parallel_transport(
+        flat_transport = self._space._sphere.metric.parallel_transport(
             flat_tan_a, flat_bp, flat_tan_b
         )
-        return gs.reshape(flat_transport, max_shape)
+        return gs.reshape(flat_transport, batch_shape + self._space.shape)
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.
@@ -947,7 +952,8 @@ class PreShapeMetric(RiemannianMetric):
         radius : float
             Injectivity radius.
         """
-        return gs.pi
+        out = gs.array(gs.pi)
+        return repeat_out(self._space, out, base_point)
 
 
 class KendallShapeMetric(QuotientMetric):

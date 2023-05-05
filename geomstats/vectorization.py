@@ -81,6 +81,7 @@ def get_batch_shape(space, *point):
     batch_shape : tuple
         Returns the shape related with batch. () if only one point.
     """
+    point = filter(_is_not_none, point)
     point_max_ndim = _get_max_ndim_point(*point)
     return point_max_ndim.shape[: -space.point_ndim]
 
