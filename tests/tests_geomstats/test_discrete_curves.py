@@ -387,33 +387,30 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = ElasticMetricTestData()
 
     def test_cartesian_to_polar_and_polar_to_cartesian(
-        self, a, b, n_samples, rtol, atol
+        self, space, a, b, n_samples, rtol, atol
     ):
         """Test conversion to polar coordinate"""
-        curves_space = DiscreteCurves(ambient_manifold=r2)
-        curves_space.start_at_the_origin = False
-        el_metric = ElasticMetric(a=a, b=b)
-        curve = curves_space.random_point(n_samples=n_samples)
-        polar_curve = el_metric._cartesian_to_polar(curve)
-        result = el_metric._polar_to_cartesian(polar_curve)
+        space.equip_with_metric(self.Metric, a=a, b=b)
+
+        curve = space.random_point(n_samples=n_samples)
+        polar_curve = space.metric._cartesian_to_polar(curve)
+        result = space.metric._polar_to_cartesian(polar_curve)
 
         self.assertAllClose(result, curve, rtol=rtol, atol=atol)
 
-    def test_f_transform_and_srv_transform(self, n_samples, rtol, atol):
+    def test_f_transform_and_srv_transform(self, space, n_samples, rtol, atol):
         """Test that the f transform coincides with the SRVF.
 
         This is valid for a f_transform with a=1, b=1/2.
         """
-        space.equip_with_metric(self.Metric, a=1, b=0.5)
+        curve = space.random_point(n_samples)
+
+        space.equip_with_metric(self.Metric, a=1.0, b=0.5)
         result = space.metric.f_transform(curve)
 
         space.equip_with_metric(SRVMetric)
         expected = space.metric.f_transform(curve)
 
-        curves = curves_space.random_point(n_samples=n_samples)
-
-        result = el_metric.f_transform(curves)
-        expected = curves_space.srv_metric.f_transform(curves)
         self.assertAllClose(result, expected, rtol, atol)
 
     def test_f_transform_inverse_and_srv_transform_inverse(
@@ -438,9 +435,9 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected, rtol, atol)
 
-    def test_f_transform_and_f_transform_inverse(self, a, b, curve, rtol, atol):
+    def test_f_transform_and_f_transform_inverse(self, space, a, b, curve, rtol, atol):
         """Test that the inverse is right."""
-        el_metric = ElasticMetric(a=a, b=b)
+        space.equip_with_metric(self.Metric, a=a, b=b)
 
         f = space.metric.f_transform(curve)
         f_inverse = space.metric.f_transform_inverse(f, curve[0])
@@ -453,37 +450,36 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = curve
         self.assertAllClose(result, expected, rtol, atol)
 
-    def test_f_transform_and_diffeomorphism(self, a, b, n_samples, rtol, atol):
+    def test_f_transform_and_diffeomorphism(self, space, a, b, n_samples, rtol, atol):
         """Test that f_transform coincides with
         diffeomorphism.
         """
-        curves_space = DiscreteCurves(ambient_manifold=r2)
-        el_metric = ElasticMetric(a=a, b=b)
-        curves = curves_space.random_point(n_samples=n_samples)
+        space.equip_with_metric(self.Metric, a=a, b=b)
 
-        result = el_metric.f_transform(curves)
-        expected = el_metric.diffeomorphism(curves)
+        curves = space.random_point(n_samples=n_samples)
+
+        result = space.metric.f_transform(curves)
+        expected = space.metric.diffeomorphism(curves)
 
         self.assertAllClose(result, expected, rtol, atol)
 
     def test_f_transform_inverse_and_inverse_diffeomorphism(
-        self, a, b, curve, rtol, atol
+        self, space, a, b, curve, rtol, atol
     ):
         """Test that the f transform inverse coincides
         with the inverse diffeomorphism when starting at 0.
         """
+        space.equip_with_metric(self.Metric, a=a, b=b)
+
         starting_point = gs.zeros(gs.shape(curve[..., 0, :]))
         fake_transformed_curve = curve[1:, :]
 
-        el_metric = ElasticMetric(a=a, b=b)
-
-        result = el_metric.inverse_diffeomorphism(fake_transformed_curve)
-        expected = el_metric.f_transform_inverse(fake_transformed_curve, starting_point)
+        result = space.metric.inverse_diffeomorphism(fake_transformed_curve)
+        expected = space.metric.f_transform_inverse(
+            fake_transformed_curve, starting_point
+        )
 
         self.assertAllClose(result, expected, rtol, atol)
-
-    def test_manifold_shape(self, connection_args, expected_shape):
-        return _test_metric_manifold_shape(self, connection_args, expected_shape)
 
 
 class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):

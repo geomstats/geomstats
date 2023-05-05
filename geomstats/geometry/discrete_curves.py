@@ -836,15 +836,6 @@ class ElasticMetric(PullbackDiffeoMetric):
         self.a = a
         self.b = b
 
-        self.l2_curves_metric = L2CurvesMetric(
-            DiscreteCurves(
-                ambient_manifold=space.ambient_manifold,
-                k_sampling_points=space.k_sampling_points - 1,
-                start_at_the_origin=space.start_at_the_origin,
-                equip=False,
-            )
-        )
-
     def _check_ambient_manifold(self, ambient_manifold):
         if not (isinstance(ambient_manifold, Euclidean) and ambient_manifold.dim == 2):
             raise NotImplementedError(
@@ -853,7 +844,7 @@ class ElasticMetric(PullbackDiffeoMetric):
                 f"{ambient_manifold} of dimension {ambient_manifold.dim}."
             )
 
-    def cartesian_to_polar(self, tangent_vec):
+    def _cartesian_to_polar(self, tangent_vec):
         """Compute polar coordinates of a tangent vector from the cartesian ones.
 
         This function is an auxiliary function used for the computation
@@ -919,7 +910,7 @@ class ElasticMetric(PullbackDiffeoMetric):
 
         return norms[..., :, None] * unit_tangent_vec
 
-    def define_embedding_metric(self):
+    def _define_embedding_space(self):
         r"""Create the metric this metric is in diffeomorphism with.
 
         This instantiate the metric to use as image space of the
@@ -929,7 +920,14 @@ class ElasticMetric(PullbackDiffeoMetric):
         embedding_metric : RiemannianMetric object
             The metric of the embedding space
         """
-        return L2CurvesMetric(ambient_manifold=self.ambient_manifold)
+        embedding_space = DiscreteCurves(
+            ambient_manifold=self._space.ambient_manifold,
+            k_sampling_points=self._space.k_sampling_points - 1,
+            start_at_the_origin=self._space.start_at_the_origin,
+            equip=False,
+        )
+        embedding_space.equip_with_metric(L2CurvesMetric)
+        return embedding_space
 
     def f_transform(self, point):
         r"""Compute the f_transform of a curve.
@@ -1213,6 +1211,7 @@ class SRVMetric(PullbackDiffeoMetric):
         embedding_space : Manifold object
             Embedding space.
         """
+        print("here")
         embedding_space = DiscreteCurves(
             ambient_manifold=self._space.ambient_manifold,
             k_sampling_points=self._space.k_sampling_points - 1,

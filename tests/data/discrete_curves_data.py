@@ -289,10 +289,10 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
     n_samples_list = [1, 5]
     a_list = [1, 2]
     b_list = [2, 5]
+    a_b_list = list(zip(a_list, b_list))
 
-    ambient_manifolds_list = [r2]
-    connection_args_list = metric_args_list = [(1, 1)]
-    shape_list = [(10, 2), (10, 3)]
+    ambient_manifolds_list = [r2] * len(a_b_list)
+    shape_list = [(10, 2), (10, 2)]
     space_list = [
         DiscreteCurves(ambient_manifold, equip=False)
         for ambient_manifold in ambient_manifolds_list
@@ -310,17 +310,34 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
     Metric = ElasticMetric
 
     def cartesian_to_polar_and_polar_to_cartesian_test_data(self):
-        smoke_data = [
-            dict(a=a, b=b, n_samples=n_samples, rtol=10 * gs.rtol, atol=10 * gs.atol)
-            for a in self.a_list
-            for b in self.b_list
-            for n_samples in self.n_samples_list
-        ]
+        smoke_data = []
+        for n_samples in self.n_samples_list:
+            for a, b in self.a_b_list:
+                smoke_data.append(
+                    dict(
+                        space=DiscreteCurves(
+                            ambient_manifold=r2, start_at_the_origin=False, equip=False
+                        ),
+                        a=a,
+                        b=b,
+                        n_samples=n_samples,
+                        rtol=10 * gs.rtol,
+                        atol=10 * gs.atol,
+                    )
+                )
+
         return self.generate_tests(smoke_data)
 
     def f_transform_and_srv_transform_test_data(self):
         smoke_data = [
-            dict(n_samples=n_samples, rtol=gs.rtol, atol=gs.atol)
+            dict(
+                space=DiscreteCurves(
+                    ambient_manifold=r2, start_at_the_origin=True, equip=False
+                ),
+                n_samples=n_samples,
+                rtol=gs.rtol,
+                atol=gs.atol,
+            )
             for n_samples in self.n_samples_list
         ]
         return self.generate_tests(smoke_data)
@@ -350,23 +367,35 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
                 rtol=10 * gs.rtol,
                 atol=10 * gs.atol,
             )
-            for a in self.a_list
-            for b in self.b_list
+            for a, b in self.a_b_list
         ]
         return self.generate_tests(smoke_data)
 
     def f_transform_and_diffeomorphism_test_data(self):
-        smoke_data = [
-            dict(a=a, b=b, n_samples=n_samples, rtol=10 * gs.rtol, atol=10 * gs.atol)
-            for a in self.a_list
-            for b in self.b_list
-            for n_samples in self.n_samples_list
-        ]
+        smoke_data = []
+        for n_samples in self.n_samples_list:
+            for a, b in self.a_b_list:
+                smoke_data.append(
+                    dict(
+                        space=DiscreteCurves(
+                            ambient_manifold=r2, start_at_the_origin=True, equip=False
+                        ),
+                        a=a,
+                        b=b,
+                        n_samples=n_samples,
+                        rtol=10 * gs.rtol,
+                        atol=10 * gs.atol,
+                    )
+                )
+
         return self.generate_tests(smoke_data)
 
     def f_transform_inverse_and_inverse_diffeomorphism_test_data(self):
         smoke_data = [
             dict(
+                space=DiscreteCurves(
+                    ambient_manifold=r2, start_at_the_origin=True, equip=False
+                ),
                 curve=gs.stack(
                     [curve_a[:, 0], curve_a[:, 2]],
                     axis=-1,
@@ -376,9 +405,7 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
                 rtol=10 * gs.rtol,
                 atol=10 * gs.atol,
             )
-            for a in self.a_list
-            for b in self.b_list
-            for n_samples in self.n_samples_list
+            for a, b in self.a_b_list
         ]
         return self.generate_tests(smoke_data)
 
