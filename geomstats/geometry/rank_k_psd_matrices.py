@@ -326,10 +326,10 @@ class BuresWassersteinBundle(FiberBundle):
 class PSDBuresWassersteinMetric(QuotientMetric):
     """Bures-Wasserstein metric for fixed rank PSD matrices."""
 
-    def __init__(self, space):
-        # TODO: change API to receive total space?
-        k = space.rank if hasattr(space, "rank") else space.n
-        total_space = FullRankMatrices(space.n, k, equip=False)
-        total_space.equip_with_metric(MatricesMetric)
+    def __init__(self, space, total_space=None):
+        if total_space is None:
+            k = space.rank if hasattr(space, "rank") else space.n
+            total_space = FullRankMatrices(space.n, k, equip=False)
+            total_space.equip_with_metric(MatricesMetric)
 
         super().__init__(space=space, fiber_bundle=BuresWassersteinBundle(total_space))

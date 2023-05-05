@@ -62,6 +62,7 @@ class PreShapeSpace(LevelSet):
         )
 
     def new(self, equip=True):
+        """Create manifold with same parameters."""
         return PreShapeSpace(
             k_landmarks=self.k_landmarks, m_ambient=self.m_ambient, equip=equip
         )
@@ -240,6 +241,8 @@ class PreShapeSpace(LevelSet):
 
 
 class PreShapeSpaceBundle(FiberBundle):
+    r"""Class for the Kendall pre-shape space bundle."""
+
     def align(self, point, base_point, **kwargs):
         """Align point to base_point.
 

@@ -278,10 +278,10 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
     manifold of full-rank correlation matrices.
     """
 
-    def __init__(self, space):
-        # TODO: change API to receive total space?
-        total_space = SPDMatrices(space.n, equip=False)
-        total_space.equip_with_metric(SPDAffineMetric)
+    def __init__(self, space, total_space=None):
+        if total_space is None:
+            total_space = SPDMatrices(space.n, equip=False)
+            total_space.equip_with_metric(SPDAffineMetric)
 
         super().__init__(
             space=space,

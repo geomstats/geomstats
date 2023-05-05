@@ -83,6 +83,13 @@ class Manifold(abc.ABC):
         self.metric = Metric(self, **metric_kwargs)
 
     def equip_with_group_action(self, group_action):
+        """Equip manifold with group action.
+
+        Parameters
+        ----------
+        group_action : str
+
+        """
         self.group_action = group_action
 
     def _check_equip_with_quotient_structure(self):
@@ -94,6 +101,10 @@ class Manifold(abc.ABC):
                 raise ValueError(f"Need to equip with `{structure_name}` first")
 
     def equip_with_quotient_structure(self):
+        """Equip manifold with quotient structure.
+
+        Creates attributes `quotient` and `fiber_bundle`.
+        """
         self._check_equip_with_quotient_structure()
 
         key = type(self.metric), self.group_action

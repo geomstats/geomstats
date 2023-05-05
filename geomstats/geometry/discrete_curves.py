@@ -74,6 +74,7 @@ class DiscreteCurves(Manifold):
         }
 
     def new(self, equip=True):
+        """Create manifold with same parameters."""
         return DiscreteCurves(
             self.ambient_manifold,
             k_sampling_points=self.k_sampling_points,

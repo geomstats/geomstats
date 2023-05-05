@@ -32,9 +32,6 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
     testing_data = DiscreteSurfacesTestData()
 
-    def test_manifold_shape(self, space_args):
-        return _test_manifold_shape(self, space_args)
-
     def test_vertex_areas(self, faces, point):
         """Test vertex_areas.
 
