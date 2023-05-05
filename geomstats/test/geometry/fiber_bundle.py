@@ -1,22 +1,16 @@
 import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
-from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.test.geometry.base import FiberBundleTestCase
-from geomstats.test.geometry.general_linear import GeneralLinearTestCase
 
 
-class GeneralLinearBuresWassersteinBundle(FiberBundle, GeneralLinear):
-    def __init__(self, n):
+class GeneralLinearBuresWassersteinBundle(FiberBundle):
+    def __init__(self, space):
         super().__init__(
-            n=n,
-            group=SpecialOrthogonal(n),
+            space=space,
+            group=SpecialOrthogonal(space.n),
         )
-
-    @staticmethod
-    def default_metric():
-        return MatricesMetric
 
     @staticmethod
     def riemannian_submersion(point):
@@ -44,7 +38,5 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle, GeneralLinear):
         return gs.linalg.cholesky(point)
 
 
-class GeneralLinearBuresWassersteinBundleTestCase(
-    FiberBundleTestCase, GeneralLinearTestCase
-):
+class GeneralLinearBuresWassersteinBundleTestCase(FiberBundleTestCase):
     pass

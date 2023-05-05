@@ -10,6 +10,7 @@ from geomstats.test.geometry.base import (
     ManifoldTestCase,
     _ProjectionTestCaseMixins,
 )
+from geomstats.test.geometry.quotient_metric import QuotientMetricTestCase
 from geomstats.test.random import FiberBundleRandomDataGenerator, get_random_tangent_vec
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.vectorization import get_batch_shape
@@ -22,9 +23,9 @@ class DiscreteCurvesTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
         ).random_point(n_points)
 
 
-class SRVShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):
-    def __init__(self, space, base, sphere, n_discretized_curves=5):
-        super().__init__(space, base)
+class ShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):
+    def __init__(self, total_space, sphere, n_discretized_curves=5):
+        super().__init__(total_space, total_space)
         self.sphere = sphere
         self.n_discretized_curves = n_discretized_curves
 
@@ -51,11 +52,7 @@ class SRVShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):
         return self.n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
 
 
-class SRVPreShapeSpaceTestCase(DiscreteCurvesTestCase):
-    pass
-
-
-class SRVShapeBundleTestCase(FiberBundleTestCase, SRVPreShapeSpaceTestCase):
+class SRVShapeBundleTestCase(FiberBundleTestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             n_discretized_curves = (
@@ -63,9 +60,8 @@ class SRVShapeBundleTestCase(FiberBundleTestCase, SRVPreShapeSpaceTestCase):
                 if not hasattr(self, "n_discretized_curves")
                 else self.n_discretized_curves
             )
-            self.data_generator = SRVShapeBundleRandomDataGenerator(
-                self.space,
-                self.base,
+            self.data_generator = ShapeBundleRandomDataGenerator(
+                self.total_space,
                 self.sphere,
                 n_discretized_curves=n_discretized_curves,
             )
@@ -81,20 +77,20 @@ class SRVShapeBundleTestCase(FiberBundleTestCase, SRVPreShapeSpaceTestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        tangent_vec_hor = self.space.horizontal_projection(tangent_vec, base_point)
-        tangent_vec_ver = self.space.vertical_projection(tangent_vec, base_point)
+        tangent_vec_hor = self.bundle.horizontal_projection(tangent_vec, base_point)
+        tangent_vec_ver = self.bundle.vertical_projection(tangent_vec, base_point)
 
-        res = self.space.metric.inner_product(
+        res = self.total_space.metric.inner_product(
             tangent_vec_hor, tangent_vec_ver, base_point
         )
-        expected_shape = get_batch_shape(self.space, base_point)
+        expected_shape = get_batch_shape(self.total_space, base_point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(res, expected, atol=atol)
 
     def test_horizontal_geodesic(
         self, initial_point, end_point, times, expected, atol, threshold=1e-3
     ):
-        res = self.space.horizontal_geodesic(
+        res = self.bundle.horizontal_geodesic(
             initial_point, end_point, threshold=threshold
         )(times)
 
@@ -107,7 +103,7 @@ class SRVShapeBundleTestCase(FiberBundleTestCase, SRVPreShapeSpaceTestCase):
         initial_point = self.data_generator.random_point()
         end_point = self.data_generator.random_point()
 
-        expected = self.space.horizontal_geodesic(initial_point, end_point)(times)
+        expected = self.bundle.horizontal_geodesic(initial_point, end_point)(times)
 
         vec_data = generate_vectorization_data(
             data=[
@@ -139,7 +135,7 @@ class SRVShapeBundleTestCase(FiberBundleTestCase, SRVPreShapeSpaceTestCase):
         initial_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
 
-        hor_geo_fun = self.space.horizontal_geodesic(initial_point, end_point)
+        hor_geo_fun = self.bundle.horizontal_geodesic(initial_point, end_point)
 
         n_times = 20
         times = gs.linspace(0, 1, n_times)
@@ -147,7 +143,7 @@ class SRVShapeBundleTestCase(FiberBundleTestCase, SRVPreShapeSpaceTestCase):
         horizontal_geo = hor_geo_fun(times)
         velocity_vec = n_times * (horizontal_geo[1:] - horizontal_geo[:-1])
 
-        _, vertical_norms = self.space.vertical_projection(
+        _, vertical_norms = self.bundle.vertical_projection(
             velocity_vec, horizontal_geo[:-1], return_norm=True
         )
 
@@ -215,3 +211,18 @@ class ClosedDiscreteCurvesTestCase(LevelSetTestCase):
     def test_random_point_is_closed(self, n_points, atol):
         point = self.space.random_point(n_points)
         self.assertAllClose(point[..., 0, :], point[..., -1, :], atol=atol)
+
+
+class SRVQuotientMetricTestCase(QuotientMetricTestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            n_discretized_curves = (
+                5
+                if not hasattr(self, "n_discretized_curves")
+                else self.n_discretized_curves
+            )
+            self.data_generator = ShapeBundleRandomDataGenerator(
+                self.space,
+                self.sphere,
+                n_discretized_curves=n_discretized_curves,
+            )

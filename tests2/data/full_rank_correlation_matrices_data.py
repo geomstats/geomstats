@@ -14,7 +14,7 @@ class FullRankCorrelationMatricesTestData(LevelSetTestData):
         return self.generate_vec_data()
 
 
-class CorrelationMatricesBundleTestData(FiberBundleTestData, SPDMatricesTestData):
+class CorrelationMatricesBundleTestData(FiberBundleTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 

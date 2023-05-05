@@ -4,17 +4,14 @@ from tests2.data.base_data import (
     ManifoldTestData,
     _ProjectionMixinsTestData,
 )
+from tests2.data.quotient_metric_data import QuotientMetricTestData
 
 
 class DiscreteCurvesTestData(_ProjectionMixinsTestData, ManifoldTestData):
     pass
 
 
-class SRVPreShapeSpaceTestCase(DiscreteCurvesTestData):
-    pass
-
-
-class SRVShapeBundleTestData(FiberBundleTestData, SRVPreShapeSpaceTestCase):
+class SRVShapeBundleTestData(FiberBundleTestData):
     fail_for_not_implemented_errors = False
     skips = (
         "horizontal_geodesic_vec",
@@ -65,3 +62,7 @@ class ClosedDiscreteCurvesTestData(LevelSetTestData):
 
     def random_point_is_closed_test_data(self):
         return self.generate_random_data()
+
+
+class SRVQuotientMetricTestData(QuotientMetricTestData):
+    fail_for_not_implemented_errors = False

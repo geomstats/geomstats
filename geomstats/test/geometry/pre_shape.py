@@ -2,12 +2,18 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.test.geometry.base import FiberBundleTestCase, LevelSetTestCase
+from geomstats.test.geometry.base import (
+    FiberBundleTestCase,
+    LevelSetTestCase,
+    RiemannianMetricTestCase,
+)
+from geomstats.test.geometry.quotient_metric import QuotientMetricTestCase
+from geomstats.test.random import get_random_times
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.vectorization import get_batch_shape
 
 
-def integrability_tensor_alt(space, tangent_vec_a, tangent_vec_b, base_point):
+def integrability_tensor_alt(bundle, tangent_vec_a, tangent_vec_b, base_point):
     r"""Compute the fundamental tensor A of the submersion.
 
     The fundamental tensor A is defined for tangent vectors of the total
@@ -22,7 +28,7 @@ def integrability_tensor_alt(space, tangent_vec_a, tangent_vec_b, base_point):
 
     Parameters
     ----------
-    space : PreShapeSpace
+    bundle : PreShapeSpaceBundle
     tangent_vec_a : array-like, shape=[..., k_landmarks, m_ambient]
         Tangent vector at `base_point`.
     tangent_vec_b : array-like, shape=[..., k_landmarks, m_ambient]
@@ -43,8 +49,8 @@ def integrability_tensor_alt(space, tangent_vec_a, tangent_vec_b, base_point):
         (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
     """
     # Only the horizontal part of a counts
-    horizontal_a = space.horizontal_projection(tangent_vec_a, base_point)
-    vertical_b, skew = space.vertical_projection(
+    horizontal_a = bundle.horizontal_projection(tangent_vec_a, base_point)
+    vertical_b, skew = bundle.vertical_projection(
         tangent_vec_b, base_point, return_skew=True
     )
     horizontal_b = tangent_vec_b - vertical_b
@@ -59,8 +65,8 @@ def integrability_tensor_alt(space, tangent_vec_a, tangent_vec_b, base_point):
 
     # For the vertical part of b
     vert_part = -gs.matmul(horizontal_a, skew)
-    tangent_vert = space.to_tangent(vert_part, base_point)
-    horizontal_ = space.horizontal_projection(tangent_vert, base_point)
+    tangent_vert = bundle.total_space.to_tangent(vert_part, base_point)
+    horizontal_ = bundle.horizontal_projection(tangent_vert, base_point)
 
     return vertical + horizontal_
 
@@ -112,10 +118,14 @@ class PreShapeSpaceTestCase(LevelSetTestCase):
         self.test_is_centered(res, expected, atol)
 
 
-class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
+class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
+    def _test_is_tangent(self, vector, base_point, expected, atol):
+        res = self.total_space.is_tangent(vector, base_point, atol=atol)
+        self.assertAllEqual(res, expected)
+
     def _get_horizontal_vec(self, base_point, return_tangent=False):
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
-        horizontal = self.space.horizontal_projection(
+        horizontal = self.bundle.horizontal_projection(
             tangent_vec,
             base_point,
         )
@@ -126,7 +136,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
 
     def _get_vertical_vec(self, base_point, return_tangent=False):
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
-        vertical = self.space.vertical_projection(
+        vertical = self.bundle.vertical_projection(
             tangent_vec,
             base_point,
         )
@@ -136,7 +146,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         return vertical
 
     def _get_nabla_x_y(self, horizontal_vec_x, vec_y, base_point, horizontal=True):
-        a_x_y = self.space.integrability_tensor(horizontal_vec_x, vec_y, base_point)
+        a_x_y = self.bundle.integrability_tensor(horizontal_vec_x, vec_y, base_point)
 
         dy = (
             self._get_horizontal_vec(base_point)
@@ -155,7 +165,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         tmp_expected = gs.matmul(transposed_point, tangent_vec)
         expected = Matrices.transpose(tmp_expected) - tmp_expected
 
-        vertical = self.space.vertical_projection(tangent_vec, base_point)
+        vertical = self.bundle.vertical_projection(tangent_vec, base_point)
         tmp_result = gs.matmul(transposed_point, vertical)
         result = Matrices.transpose(tmp_result) - tmp_result
 
@@ -166,7 +176,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        horizontal = self.space.horizontal_projection(tangent_vec, base_point)
+        horizontal = self.bundle.horizontal_projection(tangent_vec, base_point)
 
         result = gs.matmul(Matrices.transpose(base_point), horizontal)
         self.assertAllClose(result, Matrices.transpose(result), atol=atol)
@@ -176,17 +186,17 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        horizontal = self.space.horizontal_projection(tangent_vec, base_point)
+        horizontal = self.bundle.horizontal_projection(tangent_vec, base_point)
 
         expected = gs.ones(n_points, dtype=bool)
-        self.test_is_tangent(horizontal, base_point, expected, atol)
+        self._test_is_tangent(horizontal, base_point, expected, atol)
 
     @pytest.mark.random
     def test_alignment_is_symmetric(self, n_points, atol):
         point = self.data_generator.random_point(n_points)
         base_point = self.data_generator.random_point(n_points)
 
-        aligned_point = self.space.align(point, base_point)
+        aligned_point = self.bundle.align(point, base_point)
         alignment = Matrices.mul(Matrices.transpose(aligned_point), base_point)
         self.assertAllClose(alignment, Matrices.transpose(alignment), atol=atol)
 
@@ -203,12 +213,14 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
 
         tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
-        result_ab = self.space.integrability_tensor(
+        result_ab = self.bundle.integrability_tensor(
             tangent_vec_a, tangent_vec_b, base_point
         )
 
-        result = self.space.metric.inner_product(tangent_vec_b, result_ab, base_point)
-        expected_shape = get_batch_shape(self.space, base_point)
+        result = self.total_space.metric.inner_product(
+            tangent_vec_b, result_ab, base_point
+        )
+        expected_shape = get_batch_shape(self.total_space, base_point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
@@ -226,19 +238,21 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             base_point, return_tangent=True
         )
 
-        result = self.space.integrability_tensor(horizontal_a, horizontal_b, base_point)
-        expected = -self.space.integrability_tensor(
+        result = self.bundle.integrability_tensor(
+            horizontal_a, horizontal_b, base_point
+        )
+        expected = -self.bundle.integrability_tensor(
             horizontal_b, horizontal_a, base_point
         )
         self.assertAllClose(result, expected, atol=atol)
 
-        is_vertical = self.space.is_vertical(result, base_point, atol=atol)
+        is_vertical = self.bundle.is_vertical(result, base_point, atol=atol)
         expected = gs.ones(n_points, dtype=bool)
         self.assertAllEqual(is_vertical, expected)
 
         vertical_b = tangent_vec_b - horizontal_b
-        result = self.space.integrability_tensor(horizontal_a, vertical_b, base_point)
-        is_horizontal = self.space.is_horizontal(result, base_point, atol=atol)
+        result = self.bundle.integrability_tensor(horizontal_a, vertical_b, base_point)
+        is_horizontal = self.bundle.is_horizontal(result, base_point, atol=atol)
         expected = gs.ones(n_points, dtype=bool)
         self.assertAllEqual(is_horizontal, expected)
 
@@ -249,11 +263,11 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
         tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
-        expected = self.space.integrability_tensor(
+        expected = self.bundle.integrability_tensor(
             tangent_vec_a, tangent_vec_b, base_point
         )
         alt_expected = integrability_tensor_alt(
-            self.space, tangent_vec_a, tangent_vec_b, base_point
+            self.bundle, tangent_vec_a, tangent_vec_b, base_point
         )
         self.assertAllClose(expected, alt_expected)
 
@@ -269,7 +283,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         tangent_vec_e = self.data_generator.random_tangent_vec(base_point)
         nabla_x_e = self.data_generator.random_tangent_vec(base_point)
 
-        nabla_x_a_y_e, a_y_e = self.space.integrability_tensor_derivative(
+        nabla_x_a_y_e, a_y_e = self.bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             nabla_x_y,
@@ -321,7 +335,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         nabla_x_y = self._get_nabla_x_y(horizontal_vec_x, horizontal_vec_y, base_point)
         nabla_x_z = self._get_nabla_x_y(horizontal_vec_x, horizontal_vec_z, base_point)
 
-        nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative(
+        nabla_x_a_y_z, a_y_z = self.bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             nabla_x_y,
@@ -329,7 +343,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             nabla_x_z,
             base_point,
         )
-        nabla_x_a_z_y, a_z_y = self.space.integrability_tensor_derivative(
+        nabla_x_a_z_y, a_z_y = self.bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_z,
             nabla_x_z,
@@ -338,7 +352,11 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             base_point,
         )
 
-        shape = (n_points,) + self.space.shape if n_points > 1 else self.space.shape
+        shape = (
+            (n_points,) + self.total_space.shape
+            if n_points > 1
+            else self.total_space.shape
+        )
         expected = gs.zeros(shape)
 
         result = nabla_x_a_y_z + nabla_x_a_z_y
@@ -364,7 +382,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         ver_v = self.data_generator.random_tangent_vec(base_point)
         nabla_x_v = self.data_generator.random_tangent_vec(base_point)
 
-        nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative(
+        nabla_x_a_y_z, a_y_z = self.bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             nabla_x_y,
@@ -373,7 +391,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             base_point,
         )
 
-        nabla_x_a_y_v, a_y_v = self.space.integrability_tensor_derivative(
+        nabla_x_a_y_v, a_y_v = self.bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             nabla_x_y,
@@ -382,14 +400,14 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             base_point,
         )
 
-        inner = self.space.metric.inner_product
+        inner = self.total_space.metric.inner_product
         result = (
             inner(nabla_x_a_y_z, ver_v)
             + inner(a_y_z, nabla_x_v)
             + inner(nabla_x_a_y_v, horizontal_vec_z)
             + inner(a_y_v, nabla_x_z)
         )
-        expected_shape = get_batch_shape(self.space, base_point)
+        expected_shape = get_batch_shape(self.total_space, base_point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
@@ -409,7 +427,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         nabla_x_y = self._get_nabla_x_y(horizontal_vec_x, horizontal_vec_y, base_point)
         nabla_x_z = self._get_nabla_x_y(horizontal_vec_x, horizontal_vec_z, base_point)
 
-        nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative(
+        nabla_x_a_y_z, a_y_z = self.bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             nabla_x_y,
@@ -421,9 +439,9 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         horizontal_vec_h = self._get_horizontal_vec(base_point)
         nabla_x_h = self._get_nabla_x_y(horizontal_vec_x, horizontal_vec_h, base_point)
 
-        inner = self.space.metric.inner_product
+        inner = self.total_space.metric.inner_product
         result = inner(nabla_x_a_y_z, horizontal_vec_h) + inner(a_y_z, nabla_x_h)
-        expected_shape = get_batch_shape(self.space, base_point)
+        expected_shape = get_batch_shape(self.total_space, base_point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
@@ -445,7 +463,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             horizontal_vec_x, vertical_vec_z, base_point, horizontal=False
         )
 
-        nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative(
+        nabla_x_a_y_z, a_y_z = self.bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             nabla_x_y,
@@ -459,9 +477,9 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             horizontal_vec_x, vertical_vec_w, base_point, horizontal=False
         )
 
-        inner = self.space.metric.inner_product
+        inner = self.total_space.metric.inner_product
         result = inner(nabla_x_a_y_z, vertical_vec_w) + inner(a_y_z, nabla_x_w)
-        expected_shape = get_batch_shape(self.space, base_point)
+        expected_shape = get_batch_shape(self.total_space, base_point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
@@ -475,7 +493,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         expected_a_y_z,
         atol,
     ):
-        nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative_parallel(
+        nabla_x_a_y_z, a_y_z = self.bundle.integrability_tensor_derivative_parallel(
             horizontal_vec_x, horizontal_vec_y, horizontal_vec_z, base_point
         )
         self.assertAllClose(nabla_x_a_y_z, expected_nabla_x_a_y_z, atol=atol)
@@ -491,7 +509,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         (
             expected_nabla_x_a_y_z,
             expected_a_y_z,
-        ) = self.space.integrability_tensor_derivative_parallel(
+        ) = self.bundle.integrability_tensor_derivative_parallel(
             horizontal_vec_x, horizontal_vec_y, horizontal_vec_z, base_point
         )
 
@@ -528,20 +546,20 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         horizontal_vec_y = self._get_horizontal_vec(base_point)
         horizontal_vec_z = self._get_horizontal_vec(base_point)
 
-        nabla_x_a_y_z, a_y_z = self.space.integrability_tensor_derivative_parallel(
+        nabla_x_a_y_z, a_y_z = self.bundle.integrability_tensor_derivative_parallel(
             horizontal_vec_x, horizontal_vec_y, horizontal_vec_z, base_point
         )
 
-        a_x_y = self.space.integrability_tensor(
+        a_x_y = self.bundle.integrability_tensor(
             horizontal_vec_x, horizontal_vec_y, base_point
         )
-        a_x_z = self.space.integrability_tensor(
+        a_x_z = self.bundle.integrability_tensor(
             horizontal_vec_x, horizontal_vec_z, base_point
         )
         (
             expected_nabla_x_a_y_z,
             expected_a_y_z,
-        ) = self.space.integrability_tensor_derivative(
+        ) = self.bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_y,
             a_x_y,
@@ -571,7 +589,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             nabla_x_v,
             a_y_a_x_y,
             vertical_vec_v,
-        ) = self.space.iterated_integrability_tensor_derivative_parallel(
+        ) = self.bundle.iterated_integrability_tensor_derivative_parallel(
             horizontal_vec_x, horizontal_vec_y, base_point
         )
         self.assertAllClose(nabla_x_a_y_v, expected_nabla_x_a_y_v, atol=atol)
@@ -591,7 +609,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             expected_nabla_x_v,
             expected_a_y_a_x_y,
             expected_vertical_vec_v,
-        ) = self.space.iterated_integrability_tensor_derivative_parallel(
+        ) = self.bundle.iterated_integrability_tensor_derivative_parallel(
             horizontal_vec_x, horizontal_vec_y, base_point
         )
 
@@ -639,10 +657,10 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         horizontal_vec_x = self._get_horizontal_vec(base_point)
         horizontal_vec_y = self._get_horizontal_vec(base_point)
 
-        a_x_y = self.space.integrability_tensor(
+        a_x_y = self.bundle.integrability_tensor(
             horizontal_vec_x, horizontal_vec_y, base_point
         )
-        nabla_x_v, a_x_y = self.space.integrability_tensor_derivative(
+        nabla_x_v, a_x_y = self.bundle.integrability_tensor_derivative(
             horizontal_vec_x,
             horizontal_vec_x,
             gs.zeros_like(horizontal_vec_x),
@@ -651,11 +669,11 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             base_point,
         )
 
-        nabla_x_a_y_a_x_y, a_y_a_x_y = self.space.integrability_tensor_derivative(
+        nabla_x_a_y_a_x_y, a_y_a_x_y = self.bundle.integrability_tensor_derivative(
             horizontal_vec_x, horizontal_vec_y, a_x_y, a_x_y, nabla_x_v, base_point
         )
 
-        a_x_a_y_a_x_y = self.space.integrability_tensor(
+        a_x_a_y_a_x_y = self.bundle.integrability_tensor(
             horizontal_vec_x, a_y_a_x_y, base_point
         )
 
@@ -665,7 +683,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
             nabla_x_v_qp,
             a_y_a_x_y_qp,
             ver_v_qp,
-        ) = self.space.iterated_integrability_tensor_derivative_parallel(
+        ) = self.bundle.iterated_integrability_tensor_derivative_parallel(
             horizontal_vec_x, horizontal_vec_y, base_point
         )
         self.assertAllClose(a_x_y, ver_v_qp, atol=atol)
@@ -673,3 +691,71 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase, PreShapeSpaceTestCase):
         self.assertAllClose(nabla_x_v, nabla_x_v_qp, atol=atol)
         self.assertAllClose(a_x_a_y_a_x_y, a_x_a_y_a_x_y_qp, atol=atol)
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp, atol=atol)
+
+
+class PreShapeMetricTestCase(RiemannianMetricTestCase):
+    pass
+
+
+class KendallShapeMetricTestCase(QuotientMetricTestCase):
+    def _cmp_points(self, point, point_, atol):
+        dists = self.space.metric.dist(point, point_)
+        batch_shape = get_batch_shape(self.space, point, point_)
+
+        self.assertAllClose(dists, gs.zeros(batch_shape), atol=atol)
+
+    @pytest.mark.random
+    def test_exp_after_log(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
+
+        tangent_vec = self.space.metric.log(end_point, base_point)
+        end_point_ = self.space.metric.exp(tangent_vec, base_point)
+
+        self._cmp_points(end_point_, end_point, atol=atol)
+
+    @pytest.mark.random
+    def test_log_after_exp(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        end_point = self.space.metric.exp(tangent_vec, base_point)
+        tangent_vec_ = self.space.metric.log(end_point, base_point)
+
+        end_point_ = self.space.metric.exp(tangent_vec_, base_point)
+
+        self._cmp_points(end_point_, end_point, atol=atol)
+
+    @pytest.mark.random
+    def test_geodesic_bvp_reverse(self, n_points, n_times, atol):
+        initial_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
+
+        time = get_random_times(n_times)
+
+        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
+        geod_func_reverse = self.space.metric.geodesic(
+            end_point, end_point=initial_point
+        )
+
+        points = gs.reshape(geod_func(time), (-1, *self.space.shape))
+
+        points_ = gs.reshape(geod_func_reverse(1.0 - time), (-1, *self.space.shape))
+
+        self._cmp_points(points, points_, atol=atol)
+
+    @pytest.mark.random
+    def test_geodesic_boundary_points(self, n_points, atol):
+        initial_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
+
+        time = gs.array([0.0, 1.0])
+
+        geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
+
+        points = gs.reshape(geod_func(time), (-1, *self.space.shape))
+        expected_points = gs.reshape(
+            gs.stack([initial_point, end_point], axis=-(self.space.point_ndim + 1)),
+            (-1, *self.space.shape),
+        )
+        self._cmp_points(points, expected_points, atol=atol)

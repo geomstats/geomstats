@@ -1,10 +1,7 @@
 from tests2.data.base_data import FiberBundleTestData
-from tests2.data.general_linear_data import GeneralLinearTestData
 
 
-class GeneralLinearBuresWassersteinBundleTestData(
-    FiberBundleTestData, GeneralLinearTestData
-):
+class GeneralLinearBuresWassersteinBundleTestData(FiberBundleTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
     xfails = (

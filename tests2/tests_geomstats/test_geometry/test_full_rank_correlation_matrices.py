@@ -7,6 +7,7 @@ from geomstats.geometry.full_rank_correlation_matrices import (
     FullRankCorrelationAffineQuotientMetric,
     FullRankCorrelationMatrices,
 )
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundleTestCase,
     FullRankCorrelationAffineQuotientMetricTestCase,
@@ -47,7 +48,8 @@ class TestFullRankCorrelationMatrices(
 )
 def bundles(request):
     n = request.param
-    request.cls.space = CorrelationMatricesBundle(n=n)
+    request.cls.total_space = total_space = SPDMatrices(n=n, equip=True)
+    request.cls.bundle = CorrelationMatricesBundle(total_space)
     request.cls.base = FullRankCorrelationMatrices(n=n, equip=False)
 
 

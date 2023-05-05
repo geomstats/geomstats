@@ -5,7 +5,6 @@ import pytest
 from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     DiscreteCurves,
-    SRVPreShapeSpace,
     SRVShapeBundle,
 )
 from geomstats.geometry.euclidean import Euclidean
@@ -13,12 +12,14 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.test.geometry.discrete_curves import (
     ClosedDiscreteCurvesTestCase,
     DiscreteCurvesTestCase,
+    SRVQuotientMetricTestCase,
     SRVShapeBundleTestCase,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from tests2.data.discrete_curves_data import (
     ClosedDiscreteCurvesTestData,
     DiscreteCurvesTestData,
+    SRVQuotientMetricTestData,
     SRVShapeBundleTestData,
 )
 
@@ -51,19 +52,22 @@ class TestDiscreteCurves(DiscreteCurvesTestCase, metaclass=DataBasedParametrizer
         (3, random.randint(5, 10)),
     ],
 )
-def bundles_spaces(request):
+def shape_bundles(request):
     dim, k_sampling_points = request.param
 
     ambient_manifold = Euclidean(dim=dim)
-    base = SRVPreShapeSpace(
-        ambient_manifold, k_sampling_points=k_sampling_points, equip=False
+    # TODO: can also test different metrics
+    space = DiscreteCurves(
+        ambient_manifold, k_sampling_points=k_sampling_points, equip=True
     )
-    request.cls.base = base
-    request.cls.space = base.fiber_bundle
+    request.cls.total_space = request.cls.base = space
+
+    request.cls.bundle = SRVShapeBundle(space)
+
     request.cls.sphere = Hypersphere(dim=dim - 1)
 
 
-@pytest.mark.usefixtures("bundles_spaces")
+@pytest.mark.usefixtures("shape_bundles")
 class TestSRVShapeBundle(SRVShapeBundleTestCase, metaclass=DataBasedParametrizer):
     testing_data = SRVShapeBundleTestData()
 
@@ -89,3 +93,32 @@ class TestClosedDiscreteCurves(
     ClosedDiscreteCurvesTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = ClosedDiscreteCurvesTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (2, random.randint(5, 10)),
+        # (3, random.randint(5, 10)),
+    ],
+)
+def spaces_with_quotient(request):
+    dim, k_sampling_points = request.param
+
+    ambient_manifold = Euclidean(dim=dim)
+    space = DiscreteCurves(
+        ambient_manifold, k_sampling_points=k_sampling_points, equip=True
+    )
+
+    space.equip_with_group_action("reparametrizations")
+    space.equip_with_quotient_structure()
+
+    request.cls.space = space.quotient
+
+    request.cls.sphere = Hypersphere(dim=dim - 1)
+
+
+@pytest.mark.usefixtures("spaces_with_quotient")
+class TestSRVQuotientMetric(SRVQuotientMetricTestCase, metaclass=DataBasedParametrizer):
+    # TODO: failing. need to understand why
+    testing_data = SRVQuotientMetricTestData()

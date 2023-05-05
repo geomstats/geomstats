@@ -213,7 +213,7 @@ class ComplexOpenSetTestData(_OpenSetMixinsTestData, ComplexManifoldTestData):
     pass
 
 
-class FiberBundleTestData(ManifoldTestData):
+class FiberBundleTestData(TestData):
     def riemannian_submersion_vec_test_data(self):
         return self.generate_vec_data()
 

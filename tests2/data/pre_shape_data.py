@@ -1,4 +1,9 @@
-from tests2.data.base_data import FiberBundleTestData, LevelSetTestData
+from tests2.data.base_data import (
+    FiberBundleTestData,
+    LevelSetTestData,
+    RiemannianMetricTestData,
+)
+from tests2.data.quotient_metric_data import QuotientMetricTestData
 
 
 class PreShapeSpaceTestData(LevelSetTestData):
@@ -12,7 +17,7 @@ class PreShapeSpaceTestData(LevelSetTestData):
         return self.generate_random_data()
 
 
-class PreShapeSpaceBundleTestData(FiberBundleTestData, PreShapeSpaceTestData):
+class PreShapeSpaceBundleTestData(FiberBundleTestData):
     skips = ("tangent_riemannian_submersion_after_horizontal_lift",)
 
     def vertical_projection_correctness_test_data(self):
@@ -59,3 +64,15 @@ class PreShapeSpaceBundleTestData(FiberBundleTestData, PreShapeSpaceTestData):
 
     def iterated_integrability_tensor_derivative_parallel_optimized_test_data(self):
         return self.generate_random_data()
+
+
+class PreShapeMetricTestData(RiemannianMetricTestData):
+    fail_for_not_implemented_errors = False
+
+
+class KendallShapeMetricTestData(QuotientMetricTestData):
+    fail_for_not_implemented_errors = False
+
+    tolerances = {
+        "parallel_transport_transported_is_tangent": {"atol": 1e-4},
+    }

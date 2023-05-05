@@ -87,8 +87,8 @@ class RandomDataGenerator:
 
 
 class FiberBundleRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, bundle, base):
-        super().__init__(space=bundle)
+    def __init__(self, total_space, base):
+        super().__init__(space=total_space)
         self.base = base
 
     def base_random_point(self, n_points=1):
