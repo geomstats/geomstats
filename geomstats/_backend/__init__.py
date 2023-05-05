@@ -120,6 +120,7 @@ BACKEND_ATTRIBUTES = {
         "repeat",
         "reshape",
         "rtol",
+        "scatter_add",
         "searchsorted",
         "set_default_dtype",
         "set_diag",

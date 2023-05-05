@@ -545,7 +545,6 @@ class ClosedDiscreteCurves(LevelSet):
             nb_iter = 0
 
             while criteria >= atol and nb_iter < max_iter:
-
                 jacobian_vec = []
                 for i in range(dim):
                     for j in range(i, dim):
@@ -796,7 +795,7 @@ class L2CurvesMetric(RiemannianMetric):
         )
 
 
-class ElasticMetric(RiemannianMetric):
+class ElasticMetric(PullbackDiffeoMetric):
     """Elastic metric on the space of discrete curves.
 
     Family of elastic metric parametrized by bending and stretching parameters
@@ -858,8 +857,8 @@ class ElasticMetric(RiemannianMetric):
         """Compute polar coordinates of a tangent vector from the cartesian ones.
 
         This function is an auxiliary function used for the computation
-        of the f_transform and its inverse, and is applied to the derivative
-        of a curve.
+        of the f_transform and its inverse : self.diffeomorphism and
+        self.inverse_diffeomorphism, and is applied to the derivative of a curve.
 
         See [KN2018]_ for details.
 
@@ -895,8 +894,11 @@ class ElasticMetric(RiemannianMetric):
 
         return polar_tangent_vec
 
-    def polar_to_cartesian(self, polar_tangent_vec):
+    def _polar_to_cartesian(self, polar_tangent_vec):
         """Compute the cartesian coordinates of a tangent vector from polar ones.
+
+        This function is an auxiliary function used for the computation
+        of the f_transform : self.diffeomorphism .
 
         Parameters
         ----------
@@ -916,6 +918,18 @@ class ElasticMetric(RiemannianMetric):
         unit_tangent_vec = gs.stack((tangent_vec_x, tangent_vec_y), axis=-1)
 
         return norms[..., :, None] * unit_tangent_vec
+
+    def define_embedding_metric(self):
+        r"""Create the metric this metric is in diffeomorphism with.
+
+        This instantiate the metric to use as image space of the
+        diffeomorphism.
+
+        -------
+        embedding_metric : RiemannianMetric object
+            The metric of the embedding space
+        """
+        return L2CurvesMetric(ambient_manifold=self.ambient_manifold)
 
     def f_transform(self, point):
         r"""Compute the f_transform of a curve.
@@ -940,8 +954,8 @@ class ElasticMetric(RiemannianMetric):
         .. math::
             f(c) = 2b r^{1/2}\exp(i\theta * a/(2b)) * \exp(ik\pi * a/b)
 
-         where (r, theta) is the polar representation of c', and for
-         any :math:`k \in Z`.
+        where (r, theta) is the polar representation of c', and for
+        any :math:`k \in Z`.
 
         The implementation uses formula (3) from [KN2018]_ , i.e. choses
         the representative corresponding to k = 0.
@@ -951,11 +965,11 @@ class ElasticMetric(RiemannianMetric):
         f_transform is a bijection if and only if a/2b=1.
 
         If a 2b is an integer not equal to 1:
-          - then f_transform is well-defined but many-to-one.
+        - then f_transform is well-defined but many-to-one.
 
         If a 2b is not an integer:
-          - then f_transform is multivalued,
-          - and f_transform takes finitely many values if and only if a 2b is rational.
+        - then f_transform is multivalued,
+        - and f_transform takes finitely many values if and only if a 2b is rational.
 
         Parameters
         ----------
@@ -969,15 +983,33 @@ class ElasticMetric(RiemannianMetric):
         """
         k_sampling_points = point.shape[-2]
         velocity = (k_sampling_points - 1) * (point[..., 1:, :] - point[..., :-1, :])
-        polar_velocity = self.cartesian_to_polar(velocity)
+        polar_velocity = self._cartesian_to_polar(velocity)
         speeds = polar_velocity[..., :, 0]
         args = polar_velocity[..., :, 1]
 
-        f_args = args * self.a / (2 * self.b)
+        f_args = args * (self.a / (2 * self.b))
         f_norms = 2 * self.b * gs.sqrt(speeds)
         f_polar = gs.stack([f_norms, f_args], axis=-1)
 
-        return self.polar_to_cartesian(f_polar)
+        return self._polar_to_cartesian(f_polar)
+
+    def diffeomorphism(self, point):
+        r"""Diffeomorphism at base point.
+
+        This is the f_transform function,
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Discrete curve.
+
+        Returns
+        -------
+        f : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            F_transform of the curve..
+
+        """
+        return self.f_transform(point)
 
     def f_transform_inverse(self, f_trans, starting_sampling_point):
         r"""Compute the inverse F_transform of a transformed curve.
@@ -992,11 +1024,11 @@ class ElasticMetric(RiemannianMetric):
         f_transform is a bijection if and only if a / (2b) = 1.
 
         If a / (2b) is an integer not equal to 1:
-          - then f_transform is well-defined but many-to-one.
+        - then f_transform is well-defined but many-to-one.
 
         If a / (2b) is not an integer:
-          - then f_transform is multivalued,
-          - and f_transform takes finitely many values if and only if a 2b is rational.
+        - then f_transform is multivalued,
+        - and f_transform takes finitely many values if and only if a 2b is rational.
 
         Parameters
         ----------
@@ -1022,7 +1054,7 @@ class ElasticMetric(RiemannianMetric):
 
         k_sampling_points_minus_one = f_trans.shape[-2]
 
-        f_polar = self.cartesian_to_polar(f_trans)
+        f_polar = self._cartesian_to_polar(f_trans)
         f_norms = f_polar[..., :, 0]
         f_args = f_polar[..., :, 1]
 
@@ -1044,37 +1076,27 @@ class ElasticMetric(RiemannianMetric):
 
         return gs.squeeze(curve)
 
-    def dist(self, point_a, point_b, rescaled=False):
-        """Compute the geodesic distance between two curves.
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse diffeomorphism at image point.
 
-        The two F_transforms are computed with corrected arguments
-        before taking the L2 distance between them.
-        See [KN2018]_ for details.
+        This is the curve starting at the origin whose
+        F transform is image point.
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
-        point_b : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            F tranform representation of a discrete curve.
 
         Returns
         -------
-        dist : [...]
-            Geodesic distance between the curves.
+        curve : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Curve starting at the origin retrieved from its square-root velocity.
         """
-        f_1 = self.f_transform(point_a)
-        f_2 = self.f_transform(point_b)
+        starting_sampling_point = gs.zeros(gs.shape(image_point[..., 0, :]))
+        f_transform = image_point
+        return self.f_transform_inverse(f_transform, starting_sampling_point)
 
-        if rescaled:
-            cosine = self.l2_curves_metric.inner_product(f_1, f_2) / (4 * self.b**2)
-            distance = 2 * self.b * gs.arccos(gs.clip(cosine, -1, 1))
-        else:
-            distance = self.l2_curves_metric.dist(f_1, f_2)
-
-        return distance
-
-    def squared_dist(self, point_a, point_b, rescaled=False):
+    def squared_dist(self, point_a, point_b):
         """Compute squared geodesic distance between two curves.
 
         The two F_transforms are computed with corrected arguments
@@ -1093,7 +1115,7 @@ class ElasticMetric(RiemannianMetric):
         _ : [...]
             Squared geodesic distance between the curves.
         """
-        return self.dist(point_a=point_a, point_b=point_b, rescaled=rescaled) ** 2
+        return self.dist(point_a=point_a, point_b=point_b) ** 2
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Compute geodesic from initial curve to end curve.
@@ -1129,12 +1151,10 @@ class ElasticMetric(RiemannianMetric):
 
             curves_path = []
             for t in times:
-                initial_f = self.f_transform(initial_point)
-                end_f = self.f_transform(end_point)
+                initial_f = self.diffeomorphism(initial_point)
+                end_f = self.diffeomorphism(end_point)
                 f_t = (1 - t) * initial_f + t * end_f
-                curve_t = self.f_transform_inverse(
-                    f_t, gs.zeros(curve_ndim, dtype=initial_point.dtype)
-                )
+                curve_t = self.inverse_diffeomorphism(f_t)
                 curves_path.append(curve_t)
             return gs.stack(curves_path)
 

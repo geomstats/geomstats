@@ -52,6 +52,10 @@ MAMMALS_PATH = os.path.join(DATA_PATH, "graph_space", "mammals_grooming.npy")
 FOOTBALL_PATH_GRAPHS = os.path.join(DATA_PATH, "graph_space", "football_ppn.npy")
 FOOTBALL_PATH_SCORES = os.path.join(DATA_PATH, "graph_space", "football_scores.npy")
 
+CUBE_MESH_DIR = os.path.join(DATA_PATH, "cube_meshes")
+CUBE_VERTICES = os.path.join(CUBE_MESH_DIR, "vertices.npy")
+CUBE_FACES = os.path.join(CUBE_MESH_DIR, "faces.npy")
+
 
 def load_cities():
     """Load data from data/cities/cities.json.
@@ -443,3 +447,19 @@ def load_football():
     data_football = np.load(FOOTBALL_PATH_GRAPHS)
     data_scores = np.load(FOOTBALL_PATH_SCORES)
     return data_football, data_scores
+
+
+def load_cube():
+    """Load data from the cube mesh.
+
+    Returns
+    -------
+    vertices : gs.array, shape=[8, 3]
+        Vertices of the cube.
+    faces : gs.array, shape=[12, 3]
+        Faces of the cube.
+        Each face contains the 3 indices of the vertices that compose it.
+    """
+    vertices = np.load(CUBE_VERTICES)
+    faces = np.load(CUBE_FACES)
+    return vertices, faces
