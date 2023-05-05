@@ -8,7 +8,6 @@ from geomstats.geometry.discrete_curves import (
     ElasticMetric,
     L2CurvesMetric,
     SRVMetric,
-    SRVPreShapeSpace,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -469,8 +468,6 @@ class ClosedDiscreteCurvesTestData(_ManifoldTestData):
 
 
 class SRVQuotientMetricTestData(TestData):
-    Space = SRVPreShapeSpace
-
     def dist_test_data(self):
         smoke_data = [
             dict(

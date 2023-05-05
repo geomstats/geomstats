@@ -486,8 +486,9 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         vector are othogonal with respect to the SRVMetric inner
         product, and check vectorization.
         """
-        srv_metric_r3 = DiscreteCurves(r3, equip=True).metric
-        srv_shape_bundle_r3 = SRVShapeBundle(r3)
+        total_space = DiscreteCurves(r3, equip=True)
+        srv_metric_r3 = total_space.metric
+        srv_shape_bundle_r3 = SRVShapeBundle(total_space)
 
         geod = srv_metric_r3.geodesic(initial_point=curve_a, end_point=curve_b)
         geod = geod(times)
@@ -527,7 +528,8 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        srv_shape_bundle_r3 = SRVShapeBundle(r3)
+
+        srv_shape_bundle_r3 = SRVShapeBundle(DiscreteCurves(r3, equip=True))
         horizontal_geod_fun = srv_shape_bundle_r3.horizontal_geodesic(curve_a, curve_b)
         times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_geod_fun(times)
@@ -542,7 +544,6 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
 
 class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
     testing_data = SRVQuotientMetricTestData()
-    Space = testing_data.Space
 
     def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
         """Test quotient distance.
@@ -550,6 +551,11 @@ class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
         Check that the quotient distance is the same as the distance
         between the end points of the horizontal geodesic.
         """
+        space = DiscreteCurves(ambient_manifold=r3)
+        space.equip_with_group_action("reparametrizations")
+
+        space.equip_with_quotient_structure()
+
         curve_a_resampled = curve_fun_a(sampling_times**2)
         curve_b = gs.transpose(
             gs.stack(
@@ -560,7 +566,7 @@ class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        srv_quotient_metric_r3 = self.Space(ambient_manifold=r3).metric
+        srv_quotient_metric_r3 = space.quotient.metric
         result = srv_quotient_metric_r3.dist(curve_a_resampled, curve_b)
         expected = srv_quotient_metric_r3.dist(curve_a, curve_b)
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)

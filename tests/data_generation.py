@@ -599,7 +599,7 @@ class _FiberBundleTestData(TestData):
     def is_horizontal_after_horizontal_projection_test_data(self):
         random_data = []
         for space_args, n_points in zip(self.space_args_list, self.n_points_list):
-            space = self.Space(*space_args)
+            space = self.TotalSpace(*space_args)
             base_point = space.random_point(n_points)
             tangent_vec = space.random_tangent_vec(base_point, n_points)
             data = dict(
@@ -613,7 +613,7 @@ class _FiberBundleTestData(TestData):
     def is_vertical_after_vertical_projection_test_data(self):
         random_data = []
         for space_args, n_points in zip(self.space_args_list, self.n_points_list):
-            space = self.Space(*space_args)
+            space = self.TotalSpace(*space_args)
             base_point = space.random_point(n_points)
             tangent_vec = space.random_tangent_vec(base_point, n_points)
             data = dict(
@@ -626,16 +626,17 @@ class _FiberBundleTestData(TestData):
         return self.generate_tests([], random_data)
 
     def is_horizontal_after_log_after_align_test_data(self):
-        random_data = [
+        random_data = []
+        for space_args, n_points, n_base_points in zip(
+            self.space_args_list, self.n_points_list, self.n_base_points_list
+        ):
+            total_space = self.TotalSpace(*space_args)
             dict(
                 space_args=space_args,
-                base_point=self.Space(*space_args).random_point(n_base_points),
-                point=self.Space(*space_args).random_point(n_points),
+                base_point=total_space.random_point(n_base_points),
+                point=total_space.random_point(n_points),
             )
-            for space_args, n_points, n_base_points in zip(
-                self.space_args_list, self.n_points_list, self.n_base_points_list
-            )
-        ]
+
         return self.generate_tests([], random_data)
 
     def riemannian_submersion_after_lift_test_data(self):
@@ -653,8 +654,9 @@ class _FiberBundleTestData(TestData):
     def is_tangent_after_tangent_riemannian_submersion_test_data(self):
         random_data = []
         for space_args, n_vecs in zip(self.space_args_list, self.n_vecs_list):
-            base_point = self.Space(*space_args).random_point()
-            tangent_vec = self.Space(*space_args).random_tangent_vec(base_point, n_vecs)
+            total_space = self.TotalSpace(*space_args)
+            base_point = total_space.random_point()
+            tangent_vec = total_space.random_tangent_vec(base_point, n_vecs)
             d = dict(
                 space_args=space_args,
                 base_cls=self.Base,

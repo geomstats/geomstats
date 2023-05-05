@@ -14,19 +14,22 @@ class TestBundle(TestCase, metaclass=Parametrizer):
     testing_data = BundleTestData()
     Bundle = testing_data.Bundle
     Base = testing_data.Base
+    TotalSpace = testing_data.TotalSpace
 
     def test_riemannian_submersion(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat = bundle.random_point()
+        mat = total_space.random_point()
 
         point = bundle.riemannian_submersion(mat)
-        result = gs.all(bundle.belongs(point))
+        result = gs.all(total_space.belongs(point))
         self.assertTrue(result)
 
     def test_lift_and_riemannian_submersion(self, n):
-        bundle = self.Bundle(n)
         base = self.Base(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
         mat = base.random_point()
 
@@ -35,9 +38,10 @@ class TestBundle(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, mat)
 
     def test_tangent_riemannian_submersion(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         point = bundle.riemannian_submersion(mat)
         tangent_vec = bundle.tangent_riemannian_submersion(vec, point)
@@ -45,9 +49,10 @@ class TestBundle(TestCase, metaclass=Parametrizer):
         self.assertTrue(result)
 
     def test_horizontal_projection(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         horizontal_vec = bundle.horizontal_projection(vec, mat)
         product = Matrices.mul(horizontal_vec, GeneralLinear.inverse(mat))
@@ -55,9 +60,10 @@ class TestBundle(TestCase, metaclass=Parametrizer):
         self.assertTrue(is_horizontal)
 
     def test_vertical_projection(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         vertical_vec = bundle.vertical_projection(vec, mat)
         result = bundle.tangent_riemannian_submersion(vertical_vec, mat)
@@ -65,9 +71,10 @@ class TestBundle(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, atol=1e-3)
 
     def test_horizontal_lift_and_tangent_riemannian_submersion(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         tangent_vec = Matrices.to_symmetric(vec)
         horizontal = bundle.horizontal_lift(tangent_vec, fiber_point=mat)
@@ -76,9 +83,10 @@ class TestBundle(TestCase, metaclass=Parametrizer):
 
     @tests.conftest.np_and_autograd_only
     def test_is_horizontal(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         tangent_vec = Matrices.to_symmetric(vec)
         horizontal = bundle.horizontal_lift(tangent_vec, fiber_point=mat)
@@ -87,9 +95,10 @@ class TestBundle(TestCase, metaclass=Parametrizer):
 
     @tests.conftest.np_and_autograd_only
     def test_is_vertical(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         vertical = bundle.vertical_projection(vec, mat)
         result = bundle.is_vertical(vertical, mat, atol=1e-2)
@@ -97,9 +106,10 @@ class TestBundle(TestCase, metaclass=Parametrizer):
 
     @tests.conftest.autograd_and_torch_only
     def test_align(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         aligned = bundle.align(mat, vec, tol=1e-10)
         result = bundle.is_horizontal(vec - aligned, vec, atol=1e-2)
@@ -110,13 +120,15 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
     testing_data = QuotientMetricTestData()
     Base, Bundle = testing_data.Base, testing_data.Bundle
+    TotalSpace = testing_data.TotalSpace
     ReferenceMetric, Metric = testing_data.ReferenceMetric, testing_data.Metric
 
     @tests.conftest.np_and_autograd_only
     def test_inner_product(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec_a, vec_b = bundle.random_point(3)
+        mat, vec_a, vec_b = total_space.random_point(3)
 
         base = self.Base(n, equip=False)
         base.equip_with_metric(self.ReferenceMetric)
@@ -134,9 +146,10 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, atol=1e-1)
 
     def test_exp(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         base = self.Base(n, equip=False)
         base.equip_with_metric(self.ReferenceMetric)
@@ -153,9 +166,10 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
     @tests.conftest.autograd_and_torch_only
     def test_log(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         base = self.Base(n, equip=False)
         base.equip_with_metric(self.ReferenceMetric)
@@ -171,9 +185,10 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
 
     @tests.conftest.autograd_and_torch_only
     def test_squared_dist(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         base = self.Base(n, equip=False)
         base.equip_with_metric(self.ReferenceMetric)
@@ -188,9 +203,10 @@ class TestQuotientMetric(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, atol=1e-2)
 
     def test_integrability_tensor(self, n):
-        bundle = self.Bundle(n)
+        total_space = self.TotalSpace(n)
+        bundle = self.Bundle(total_space)
 
-        mat, vec = bundle.random_point(2)
+        mat, vec = total_space.random_point(2)
 
         point = bundle.riemannian_submersion(mat)
         tangent_vec = Matrices.to_symmetric(vec) / 20
