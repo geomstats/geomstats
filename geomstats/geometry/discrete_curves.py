@@ -1940,20 +1940,19 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
     def _dynamic_programming(self, initial_curve, end_curve, n=100, max_slope=6):
         """Compute the dynamic programming algorithm.
 
-        Find the reparametrization gamma of end_curve that minimizes the distance between
-        initial_curve and end_curve reparametrized by gamma, and output the corresponding
-        distance, using a dynamic programming algorithm.
-   
-        The objective can be expressed in terms of square root velocity (SRV) representations:
-        it is equivalent to finding the gamma that maximizes the L2 scalar product between
-        initial_q and end_q@gamma where initial_q is the SRV representation of the initial
-        curve and end_q@gamma is the SRV representation of the end curve reparametrized by
-        gamma, i.e.
-        .. math::
+        Find the reparametrization gamma of end_curve that minimizes the distance
+        between initial_curve and end_curve reparametrized by gamma, and output
+        the corresponding distance, using a dynamic programming algorithm.
+
+        The objective can be expressed in terms of square root velocity (SRV)
+        representations: it is equivalent to finding the gamma that maximizes
+        the L2 scalar product between initial_q and end_q@gamma where initial_q
+        is the SRV representation of the initial curve and end_q@gamma is the SRV
+        representation of the end curve reparametrized by gamma, i.e... math::
         end_q@gamma : t --> end_q(gamma(t))*|gamma(t)|^(1/2)
 
-        The dynamic programming algorithm assume that for every subinterval [i/n, (i+1)/n]
-        of [0,1], gamma is linear.
+        The dynamic programming algorithm assumes that for every subinterval
+        [i/n, (i+1)/n] of [0,1], gamma is linear.
 
         Inputs
         ----------
@@ -2012,17 +2011,17 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             """Compute end_q@gamma.
 
             Inputs
-        ----------
-        q : array , shape=[k_sampling_points, ambient_dim]
-            SRV function of some curve.
-        gamma : array, shape=[n_subinterval]
-            parametrization of a curve.
+            ----------
+            q : array , shape=[k_sampling_points, ambient_dim]
+                SRV function of some curve.
+            gamma : array, shape=[n_subinterval]
+                parametrization of a curve.
 
 
-        Outputs
-        -------
-        new_q : array , shape=[k_sampling_points, ambient_dim]
-            end_q@gamma
+            Outputs
+            -------
+            new_q : array , shape=[k_sampling_points, ambient_dim]
+                end_q@gamma
             """
             new_q = gs.empty(shape=q.shape, dtype=float)
             n_subinterval = len(gamma)
@@ -2041,10 +2040,30 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             return new_q
 
         def reparametrisation_curve(curve, gamma):
+            """Compute end_curve reparametrized by gamma.
+            Inputs
+            ----------
+            curve : array , shape=[k_sampling_points, ambient_dim]
+                a curve.
+            gamma : array, shape=[n_subinterval]
+                parametrization of a curve.
+
+
+            Outputs
+            -------
+            new_curve : array , shape=[k_sampling_points, ambient_dim]
+                curve reparametrized by gamma
+
+            """
 
             k_sampling_point = curve.shape[-2] - 1
-            new_curve = gs.empty(shape=curve.shape, dtype=float)
+            new_curve = gs.zeros(shape=curve.shape, dtype=float)
             n_subinterval = len(gamma)
+            list_gamma_slope = gs.zeros(n+1, dtype=float)
+            list_gamma_constant = gs.zeros(n+1, dtype=float) 
+
+            new_curve[0] = curve[0]
+            new_curve[-1] = curve[-1]
 
             for k in range(1, n_subinterval):
 
@@ -2052,17 +2071,33 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                 (i_arrive, j_arrive) = gamma[k]
                 gamma_slope = (j_arrive - j_depart) / (i_arrive - i_depart)
                 gamma_constant = (j_depart - i_depart * gamma_slope)
+                
+                for i in range(i_depart,i_arrive):
+                    list_gamma_slope[i] = gamma_slope 
+                    list_gamma_constant[i] = gamma_constant
 
-                a_depart = int(gs.ceil(k_sampling_point * i_depart / n))
-                a_arrive = int(gs.floor(k_sampling_point * i_arrive / n))
+            for k in range(1,k_sampling_point):
+                indice_n = int(gs.floor(n*k/k_sampling_point))
+                gamma_indice_n = (n * k / k_sampling_point)*list_gamma_slope[indice_n] + list_gamma_constant[indice_n]
+                gamma_indice_k = k_sampling_point * gamma_indice_n / n
+                indice_k = int(gs.floor(gamma_indice_k))
+                alpha = gamma_indice_k - indice_k
 
-                for a in range(a_depart, a_arrive):
-                    gamma_a = n * a * gamma_slope / k_sampling_point + gamma_constant
-                    indice = int(gs.floor(gamma_a * k_sampling_point / n))
-                    beta = indice + 1 - k_sampling_point * gamma_a / n
-                    new_curve[a] = beta * curve[indice] + (1 - beta) * curve[indice + 1]
+                new_curve[k] = curve[indice_k]*(1-alpha) + curve[indice_k+1]*alpha
+
+            """
+            a_depart = int(gs.ceil(k_sampling_point * i_depart / n))
+            a_arrive = int(gs.floor(k_sampling_point * i_arrive / n))
+            ancient_value = gs.inf
+
+            for a in range(a_depart, a_arrive):
+                gamma_a = n * a * gamma_slope / k_sampling_point + gamma_constant
+                indice = int(gs.floor(gamma_a * k_sampling_point / n))
+                beta = indice + 1 - k_sampling_point * gamma_a / n
+                new_curve[a] = beta * curve[indice] + (1 - beta) * curve[indice + 1]
 
             new_curve[k_sampling_point] = curve[k_sampling_point]
+            """
 
             return new_curve
 
@@ -2135,20 +2170,19 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                                 new_gamma.append((i, j))
                                 gamma[(i, j)] = new_gamma
 
+
         maximum_scalar_product = tableau[(n, n)] / n
 
         dist_squared = norm_squared_initial_q + \
             norm_squared_end_q - 2 * maximum_scalar_product
+
         distance = gs.sqrt(dist_squared)
 
-        identity = [(0,0), (n,n)]
-
-        initial_curve_reparametrized = reparametrisation_curve(initial_curve, identity)
-
-        end_curve_reparametrized = reparametrisation_curve(end_curve, gamma[(n, n)])
+        end_curve_reparametrized = reparametrisation_curve(
+            end_curve, gamma[(n, n)])
 
         geodesic = self.total_space_metric.geodesic(
-            initial_curve_reparametrized, end_curve_reparametrized)
+            initial_curve, end_curve_reparametrized)
 
         return {"geodesic": geodesic, "distance": distance}
 
