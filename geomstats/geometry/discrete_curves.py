@@ -4,7 +4,6 @@ Lead author: Alice Le Brigant.
 """
 
 import math
-import numpy as np
 import copy
 
 from scipy.interpolate import CubicSpline
@@ -1563,55 +1562,6 @@ class SRVMetric(PullbackDiffeoMetric):
 
         return gs.squeeze(vec)
 
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Compute geodesic from initial curve to end curve.
-
-        Geodesic specified by an initial curve and an end curve computed
-        as an inverse f_transform of a segment between f_transforms.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
-        end_point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Discrete curve.
-
-        Returns
-        -------
-        curve_on_geodesic : callable
-            The time parameterized geodesic curve.
-        """
-        if not isinstance(self.ambient_metric, EuclideanMetric):
-            raise AssertionError(
-                "The geodesics are only implemented for "
-                "discrete curves embedded in a "
-                "Euclidean space."
-            )
-        curve_ndim = 2
-        initial_point = gs.to_ndarray(initial_point, to_ndim=curve_ndim)
-        end_point = gs.to_ndarray(end_point, to_ndim=curve_ndim)
-
-        def path(times):
-            """Generate parametrized function for geodesic.
-
-            Parameters
-            ----------
-            times : array-like, shape=[n_times,]
-                Times in [0, 1] at which to compute points of the geodesic.
-            """
-            times = gs.to_ndarray(times, to_ndim=1)
-
-            curves_path = []
-            for t in times:
-                initial_f = self.diffeomorphism(initial_point)
-                end_f = self.diffeomorphism(end_point)
-                f_t = (1 - t) * initial_f + t * end_f
-                curve_t = self.inverse_diffeomorphism(f_t)
-                curves_path.append(curve_t)
-            return gs.stack(curves_path)
-
-        return path
-
     @staticmethod
     def space_derivative(curve):
         """Compute space derivative of curve using centered differences.
@@ -1987,54 +1937,58 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
         return horizontal_path
 
-    def _dynamic_programming(self, initial_point, end_point, n=100, max_slope=10):
+    def _dynamic_programming(self, initial_curve, end_curve, n=100, max_slope=6):
         """Compute the dynamic programming algorithm.
 
-        Find the reparametrization gamma of the curve end_point that minimize the
-        distance between the curve initial_point and the reparametrized curve
-        end_point@gammaand and output the corresponding distance using the dynamic
-        programming algorithm.
+        Find the reparametrization gamma of end_curve that minimizes the distance between
+        initial_curve and end_curve reparametrized by gamma, and output the corresponding
+        distance, using a dynamic programming algorithm.
+   
+        The objective can be expressed in terms of square root velocity (SRV) representations:
+        it is equivalent to finding the gamma that maximizes the L2 scalar product between
+        initial_q and end_q@gamma where initial_q is the SRV representation of the initial
+        curve and end_q@gamma is the SRV representation of the end curve reparametrized by
+        gamma, i.e.
+        .. math::
+        end_q@gamma : t --> end_q(gamma(t))*|gamma(t)|^(1/2)
 
-        end_point@gamma : t --> end_point(gamma(t))
-
-        The objectif is then equivalent to find the gamma that maximize the
-        L2 scalar product of <initial_q|end_q@gamma> (which is an integral).
-
-        initial_q ( respectively end_q@gamma ) : the square root velocity function
-        (svr_function) of initial_point (respectively end_q@gamma)
-
-        which implies that:
-        end_q@gamma : t --> end_q(gamma(t))*|gamma(t)|^(1/2) and
-        <initial_q|end_q@gamma> = the integral of
-        t --> q_1(t)*q_2(gamma(t))*|gamma(t)|^(1/2) over [0,1]
+        The dynamic programming algorithm assume that for every subinterval [i/n, (i+1)/n]
+        of [0,1], gamma is linear.
 
         Inputs
         ----------
-        initial_point : array-like, shape=[k_sampling_points, ambient_dim]
+        intial_curve : array-like, shape=[k_sampling_points, ambient_dim]
             Initial discrete curve.
-        end_point : array-like, shape=[k_sampling_points, ambient_dim]
+        end_curve : array-like, shape=[k_sampling_points, ambient_dim]
             End discrete curve.
-        n: int
-            Discretization of initial_q and end_q
+        n : int
+            number of subintervals of [0,1] where gamma, restricted to
+            each subinterval, is linear.
         max_slope : int
-            maximum slope of gamma and of gamma_inverse
+            maximum slope of gamma and of its inverse.
 
 
         Outputs
         -------
         gamma[(n,n)]: list
-            Optimal reparametrization of end_point
+            Optimal reparametrization of end_curve
         dist : float
-            Distance between initial_point and end_point@gamma
+            Distance between intial_curve and end_curve@gamma
 
         """
 
         def srv_function(point, tol=gs.atol):
             """Compute SRV function of a curve.
 
-            Computes the srv_function of a point (with discretization = n)
-            (a point in the space of curves is a curve)
-            and gives the norm squared of the srv_function
+            Inputs
+            ----------
+            point : array , shape=[k_sampling_points, ambient_dim]
+                A curve.
+
+            Outputs
+            -------
+            q : array , shape=[n, ambient_dim]
+                SRV function of the curve at the right size.
             """
             if gs.any(
                 self.total_space_metric.ambient_metric.norm(
@@ -2047,19 +2001,33 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                 )
             k_sampling_point = point.shape[-2] - 1
             velocity = k_sampling_point * (point[1:, :] - point[:-1, :])
-            square_root_velocity = np.sqrt(np.sum(gs.abs(velocity), axis=-1))
-            _q = np.array([i / j for (i, j) in zip(velocity, square_root_velocity)])
-            q = np.array([_q[int(np.floor(i * (k_sampling_point / n)))]
+            square_root_velocity = gs.sqrt(gs.sum(gs.abs(velocity), axis=-1))
+            _q = gs.array([i / j for (i, j) in zip(velocity, square_root_velocity)])
+            q = gs.array([_q[int(gs.floor(i * (k_sampling_point / n)))]
                           for i in range(n)])
 
             return q
 
         def reparametrisation_q(q, gamma):
+            """Compute end_q@gamma.
 
-            new_q = np.empty(shape=q.shape, dtype=float)
-            k_subinterval = len(gamma)
+            Inputs
+        ----------
+        q : array , shape=[k_sampling_points, ambient_dim]
+            SRV function of some curve.
+        gamma : array, shape=[n_subinterval]
+            parametrization of a curve.
 
-            for k in range(1, k_subinterval):
+
+        Outputs
+        -------
+        new_q : array , shape=[k_sampling_points, ambient_dim]
+            end_q@gamma
+            """
+            new_q = gs.empty(shape=q.shape, dtype=float)
+            n_subinterval = len(gamma)
+
+            for k in range(1, n_subinterval):
 
                 (i_depart, j_depart) = gamma[k - 1]
                 (i_arrive, j_arrive) = gamma[k]
@@ -2068,96 +2036,46 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
                 for i in range(i_depart, i_arrive):
                     gamma_i = i * gamma_slope + gamma_constant
-                    new_q[i] = math.pow(gamma_slope, 1 / 2) * q[int(np.floor(gamma_i))]
+                    new_q[i] = math.pow(gamma_slope, 1 / 2) * q[int(gs.floor(gamma_i))]
 
             return new_q
 
-        def compute_integral_restricted(q_1, q_2, x_min, x_max, y_min, y_max):
-            """Compute a value of an integral over a subinterval.
+        def reparametrisation_curve(curve, gamma):
 
-            Compute n * the value of the integral of
-            t --> q_1(t)*q_2(gamma(t))*|gamma(t)|^(1/2) over [x_min,x_max]
-            where gamma restricted to [x_min,xmax] is the linear
-            interpolation between y_min et y_max.
-            gamma(x_min) = y_min and gamma(x_max) = y_max
-            """
-            # Gamma's parameters
-            gamma_slope = (y_max - y_min) / (x_max - x_min)
-            gamma_constant = (y_min - x_min * gamma_slope)  # gamma_constant * n
+            k_sampling_point = curve.shape[-2] - 1
+            new_curve = gs.empty(shape=curve.shape, dtype=float)
+            n_subinterval = len(gamma)
 
-            # List of n*x where gamma(x) crosses a square
-            list_l = [x_i for x_i in range(x_min, x_max + 1)]
-            list_k = [(k - y_min) / gamma_slope + x_min
-                      for k in range(y_min, y_max + 1)]
+            for k in range(1, n_subinterval):
 
-            lower_bound = x_min
-            i = 1
-            j = 1
+                (i_depart, j_depart) = gamma[k - 1]
+                (i_arrive, j_arrive) = gamma[k]
+                gamma_slope = (j_arrive - j_depart) / (i_arrive - i_depart)
+                gamma_constant = (j_depart - i_depart * gamma_slope)
 
-            """
-            At each step we compute value_1 and value_2 which are related to
-            the value of the integral restricted to [lower_bound,upper_bound]:
-            value = gamma_slope^(1/2) ( value_1*gamma_slope + value_2) / n
-            We can compute value_1 and value_2 in closed form, we have introduced
-            them to make the least amount of operation : the multiplications by
-            gamma_slope, gamma_slope^(1/2) and the division by n is done at the
-            very end instead of doing it at every interval.
-            """
+                a_depart = int(gs.ceil(k_sampling_point * i_depart / n))
+                a_arrive = int(gs.floor(k_sampling_point * i_arrive / n))
 
-            value_1 = 0.
-            value_2 = 0.
-            value_3 = 0.
-            while i < x_max - x_min + 1 and j < y_max - y_min + 1:
+                for a in range(a_depart, a_arrive):
+                    gamma_a = n * a * gamma_slope / k_sampling_point + gamma_constant
+                    indice = int(gs.floor(gamma_a * k_sampling_point / n))
+                    beta = indice + 1 - k_sampling_point * gamma_a / n
+                    new_curve[a] = beta * curve[indice] + (1 - beta) * curve[indice + 1]
 
-                # Integral's parameters
-                upper_bound = min(list_l[i], list_k[j])
+            new_curve[k_sampling_point] = curve[k_sampling_point]
 
-                q_1_slope = q_1[x_min + i] - q_1[x_min + i - 1]  # q_1_slope * n
-                q_2_slope = q_2[y_min + j] - q_2[y_min + j - 1]  # q_2_slope * n
-                q_1_constant = q_1[x_min + i - 1] - (x_min + i - 1) * q_1_slope
-                q_2_constant = q_2[y_min + j - 1] - (y_min + j - 1) * q_2_slope
+            return new_curve
 
-                # Compute the value_1, value_2 and value_3
-
-                vector_1 = q_2_slope * gamma_constant + q_2_constant
-
-                value_1 += np.dot(q_1_slope, q_2_slope) * \
-                    (math.pow(upper_bound, 3) - math.pow(lower_bound, 3))
-                value_2 += (np.dot(q_1_slope, vector_1) +
-                            gamma_slope * np.dot(q_2_slope, q_1_constant)) * \
-                    (math.pow(upper_bound, 2) - math.pow(lower_bound, 2))
-
-                value_3 += np.dot(q_1_constant, vector_1) * (upper_bound - lower_bound)
-
-                if list_l[i] == list_k[j]:
-                    i += 1
-                    j += 1
-                elif list_l[i] < list_k[j]:
-                    i += 1
-                else :
-                    j += 1
-                lower_bound = upper_bound
-
-            value = math.pow(gamma_slope, 1 / 2) * \
-                ((gamma_slope * value_1) / 3 + value_2 / 2 + value_3)
-
-            return value
-
-        def compute_integral_restricted_constant(
+        def compute_integral_restricted(
                 q_1, q_2, x_min, x_max, y_min, y_max):
-            """Compute a value of an integral over a subinterval.
+            """Compute the value of an integral over a subinterval.
 
             Compute n * the value of the integral of
             t --> q_1(t)*q_2(gamma(t))*|gamma(t)|^(1/2) over [x_min,x_max]
-            where gamma restricted to [x_min,xmax] is the linear interpolation
-            between y_min et y_max.
-            gamma(x_min) = y_min and gamma(x_max) = y_max
+            where gamma restricted to [x_min,xmax] is a constant.
             """
-            # Gamma's parameters
             gamma_slope = (y_max - y_min) / (x_max - x_min)
-            # gamma_constant = (y_min - x_min * gamma_slope)
 
-            # List of n*x where gamma(x) crosses a square
             list_l = [x_i for x_i in range(x_min, x_max + 1)]
             list_k = [(k - y_min) / gamma_slope + x_min
                       for k in range(y_min, y_max + 1)]
@@ -2169,10 +2087,9 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             value = 0.
             while i < x_max - x_min + 1 and j < y_max - y_min + 1:
 
-                # Integral's parameters
                 upper_bound = min(list_l[i], list_k[j])
                 lenght = upper_bound - lower_bound
-                value += lenght * np.dot(q_1[x_min + i - 1], q_2[y_min + j - 1])
+                value += lenght * gs.dot(q_1[x_min + i - 1], q_2[y_min + j - 1])
 
                 if list_l[i] == list_k[j]:
                     i += 1
@@ -2186,23 +2103,16 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             value = math.pow(gamma_slope, 1 / 2) * value
 
             return value
-        """
-        Since we try to find the function gamma which maximize the
-        integral of t --> q_1(t)*q_2(gamma(t))*|gamma(t)|^(1/2) over
-        [0,1] we divide [0,1] into n interval [i/n, (i+1)/n], we assume
-        that gamma restricted to each [i/n,(i+1)/n] is linear and we try
-        to find the function gamma through dynamic programmation using
-        the function compute_integral_restricted.
-        """
-        initial_q = srv_function(initial_point)
-        end_q = srv_function(end_point)
 
-        norm_squared_initial_q = compute_integral_restricted_constant(
+        initial_q = srv_function(initial_curve)
+        end_q = srv_function(end_curve)
+
+        norm_squared_initial_q = compute_integral_restricted(
             initial_q, initial_q, 0, n, 0, n) / n
-        norm_squared_end_q = compute_integral_restricted_constant(
+        norm_squared_end_q = compute_integral_restricted(
             end_q, end_q, 0, n, 0, n) / n
 
-        tableau = (-1.0) * np.ones((n + 1, n + 1))
+        tableau = (-1.0) * gs.ones((n + 1, n + 1))
         tableau[0, 0] = 0.
         gamma = {}
         gamma[(0, 0)] = [(0, 0)]
@@ -2216,7 +2126,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                     for k in range(minimum_line_index, j):
                         if tableau[k, m] != -1 :
                             new_value = tableau[k, m] + \
-                                compute_integral_restricted_constant(
+                                compute_integral_restricted(
                                 initial_q, end_q, m, i, k, j)
 
                             if tableau[j, i] < new_value :
@@ -2229,20 +2139,16 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
         dist_squared = norm_squared_initial_q + \
             norm_squared_end_q - 2 * maximum_scalar_product
-        distance = np.sqrt(dist_squared)
+        distance = gs.sqrt(dist_squared)
 
-        identity = [(0, 0), (n, n)]
+        identity = [(0,0), (n,n)]
 
-        initial_q_reparametrized = reparametrisation_q(initial_q, identity)
-        initial_point_reparametrized = self.total_space_metric.f_transform_inverse(
-            initial_q_reparametrized, initial_point[0])
+        initial_curve_reparametrized = reparametrisation_curve(initial_curve, identity)
 
-        end_q_reparametrized = reparametrisation_q(end_q, gamma[(n, n)])
-        end_point_reparametrized = self.total_space_metric.f_transform_inverse(
-            end_q_reparametrized, end_point[0])
+        end_curve_reparametrized = reparametrisation_curve(end_curve, gamma[(n, n)])
 
         geodesic = self.total_space_metric.geodesic(
-            initial_point_reparametrized, end_point_reparametrized)
+            initial_curve_reparametrized, end_curve_reparametrized)
 
         return {"geodesic": geodesic, "distance": distance}
 
@@ -2310,17 +2216,17 @@ class SRVQuotientMetric(QuotientMetric):
         elif method == "dynamic programming" :
             point_ndim = gs.ndim(initial_point)
             if point_ndim == 2:
-                dp = self.bundle._dynamic_programming(
+                dp = self.fiber_bundle._dynamic_programming(
                     initial_point, end_point, n, max_slope)
                 return dp["geodesic"]
             else :
                 initial_point = gs.to_ndarray(initial_point, to_ndim=3)
                 end_point = gs.to_ndarray(end_point, to_ndim=3)
                 n_points = initial_point.shape[0]
-                results = np.zeros(n_points, dtype=object)
+                results = gs.zeros(n_points, dtype=object)
 
                 for i in range(n_points):
-                    dp = self.bundle._dynamic_programming(
+                    dp = self.fiber_bundle._dynamic_programming(
                         initial_point[i], end_point[i], n, max_slope
                     )
                     results[i] = dp["geodesic"]
@@ -2333,7 +2239,7 @@ class SRVQuotientMetric(QuotientMetric):
             )
 
     def dist(self, point_a, point_b, method="horizontal projection",
-             n_times=20, threshold=1e-3, n=100, max_slope=10):
+             n_times=20, threshold=1e-3, n=100, max_slope=6):
         """Quotient SRV distance between unparametrized curves.
 
         This is the distance induced by the SRV Metric on the space of unparametrized
@@ -2389,17 +2295,17 @@ class SRVQuotientMetric(QuotientMetric):
         elif method == "dynamic programming" :
             point_ndim = gs.ndim(point_a)
             if point_ndim == 2:
-                dp = self.bundle._dynamic_programming(
+                dp = self.fiber_bundle._dynamic_programming(
                     point_a, point_b, n, max_slope)
                 return dp["distance"]
             else :
                 point_a = gs.to_ndarray(point_a, to_ndim=3)
                 point_b = gs.to_ndarray(point_b, to_ndim=3)
                 n_points = point_a.shape[0]
-                quotient_dist = np.zeros(n_points, dtype=float)
+                quotient_dist = gs.zeros(n_points, dtype=float)
 
                 for i in range(n_points):
-                    dp = self.bundle._dynamic_programming(
+                    dp = self.fiber_bundle._dynamic_programming(
                         point_a[i], point_b[i], n, max_slope)
                     quotient_dist[i] = dp["distance"]
 
