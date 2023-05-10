@@ -19,9 +19,9 @@ class TestDataLieAlgebra(TestData):
 
     def orthonormal_basis_test_data(self):
         smoke_data = [
-            dict(group=SpecialOrthogonal(3), metric_mat_at_identity=None),
+            dict(group=SpecialOrthogonal(3, equip=False), metric_mat_at_identity=None),
             dict(
-                group=SpecialOrthogonal(3),
+                group=SpecialOrthogonal(3, equip=False),
                 metric_mat_at_identity=from_vector_to_diagonal_matrix(
                     gs.array([1.0, 2.0, 3.0])
                 ),
@@ -31,11 +31,14 @@ class TestDataLieAlgebra(TestData):
 
     def orthonormal_basis_se3_test_data(self):
         smoke_data = [
-            dict(group=SpecialEuclidean(3), metric_mat_at_identity=None),
+            dict(group=SpecialEuclidean(3, equip=False), metric_mat_at_identity=None),
             dict(
-                group=SpecialEuclidean(3),
+                group=SpecialEuclidean(3, equip=False),
                 metric_mat_at_identity=from_vector_to_diagonal_matrix(
-                    gs.cast(gs.arange(1, SpecialEuclidean(3).dim + 1), gs.float32)
+                    gs.cast(
+                        gs.arange(1, SpecialEuclidean(3, equip=False).dim + 1),
+                        gs.float32,
+                    )
                 ),
             ),
         ]

@@ -4,10 +4,7 @@ import warnings
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.information_geometry.categorical import (
-    CategoricalDistributions,
-    CategoricalMetric,
-)
+from geomstats.information_geometry.categorical import CategoricalDistributions
 from geomstats.information_geometry.multinomial import MultinomialDistributions
 
 
@@ -20,7 +17,7 @@ class TestCategoricalDistributions(tests.conftest.TestCase):
         warnings.simplefilter("ignore", category=UserWarning)
         self.dim = 3
         self.categorical = CategoricalDistributions(self.dim)
-        self.metric = CategoricalMetric(self.dim)
+        self.metric = self.categorical.metric
         self.n_points = 10
         self.n_samples = 20
 

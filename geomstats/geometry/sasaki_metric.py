@@ -44,8 +44,8 @@ class SasakiMetric(RiemannianMetric):
 
     Parameters
     ----------
-    metric : RiemannianMetric
-        Metric of the base manifold of the tangent bundle.
+    space : Manifold
+        Base manifold of the tangent bundle.
     n_jobs: int
         Number of jobs for parallel computing.
         Optional, default: 1.
@@ -61,16 +61,14 @@ class SasakiMetric(RiemannianMetric):
         https://nbn-resolving.org/urn/resolver.pl?urn:nbn:de:0297-zib-87174
     """
 
-    def __init__(self, metric: RiemannianMetric, n_jobs: int = 1):
-        self.metric = metric
-        shape = (2, gs.prod(gs.array(metric.shape)))
+    def __init__(self, space, n_jobs=1):
+        shape = (2, gs.prod(gs.array(space.shape)))
 
         self.n_jobs = n_jobs
+        self.dim = 2 * space.dim
+        self.shape = shape
 
-        super().__init__(
-            2 * metric.dim,
-            shape=shape,
-        )
+        super().__init__(space=space)
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, **kwargs):
         """Compute the Riemannian exponential of a point.
@@ -93,20 +91,21 @@ class SasakiMetric(RiemannianMetric):
         exp : array-like, shape=[..., 2, M.dim]
             Point on the tangent bundle TM.
         """
-        bs_pts = gs.reshape(base_point, (-1, 2) + self.metric.shape)
+        bs_pts = gs.reshape(base_point, (-1, 2) + self._space.shape)
         tngs = gs.reshape(tangent_vec, bs_pts.shape)
 
-        metric = self.metric
-        par_trans = metric.parallel_transport
+        par_trans = self._space.metric.parallel_transport
         eps = 1 / n_steps
 
         v0, w0 = gs.take(tngs, 0, axis=1), gs.take(tngs, 1, axis=1)
         p0, u0 = gs.take(bs_pts, 0, axis=1), gs.take(bs_pts, 1, axis=1)
         for _ in range(n_steps):
-            p = metric.exp(eps * v0, p0)
+            p = self._space.metric.exp(eps * v0, p0)
             u = par_trans(u0 + eps * w0, p0, end_point=p)
             v = par_trans(
-                v0 - eps * (metric.curvature(u0, w0, v0, p0)), p0, end_point=p
+                v0 - eps * (self._space.metric.curvature(u0, w0, v0, p0)),
+                p0,
+                end_point=p,
             )
             w = par_trans(w0, p0, end_point=p)
             p0, u0 = p, u
@@ -136,11 +135,12 @@ class SasakiMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        pts = gs.reshape(point, (-1, 2) + self.metric.shape)
-        bs_pts = gs.reshape(base_point, (-1, 2) + self.metric.shape)
+        point, base_point = gs.broadcast_arrays(point, base_point)
 
-        metric = self.metric
-        par_trans = metric.parallel_transport
+        pts = gs.reshape(point, (-1, 2) + self._space.shape)
+        bs_pts = gs.reshape(base_point, (-1, 2) + self._space.shape)
+
+        par_trans = self._space.metric.parallel_transport
 
         pu = self.geodesic_discrete(bs_pts, pts, n_steps)
         if len(pts) == 1:
@@ -150,7 +150,7 @@ class SasakiMetric(RiemannianMetric):
         p1, u1 = gs.take(pu1, 0, axis=1), gs.take(pu1, 1, axis=1)
         p0, u0 = gs.take(bs_pts, 0, axis=1), gs.take(bs_pts, 1, axis=1)
         w = par_trans(u1, p1, end_point=p0) - u0
-        v = metric.log(point=p1, base_point=p0)
+        v = self._space.metric.log(point=p1, base_point=p0)
         rslt = n_steps * gs.stack([v, w], axis=1)
 
         return gs.reshape(gs.array(rslt), point.shape)
@@ -175,7 +175,7 @@ class SasakiMetric(RiemannianMetric):
             Discrete geodesics of form x(s)=(p(s), u(s)) in Sasaki metric
             connecting initial_point = x(0) and end_point = x(1).
         """
-        metric = self.metric
+        metric = self._space.metric
         par_trans = metric.parallel_transport
 
         def _grad(pu, i_pt, e_pt):
@@ -238,8 +238,8 @@ class SasakiMetric(RiemannianMetric):
                 ]
             )
 
-        i_pts = gs.reshape(initial_points, (-1, 2) + self.metric.shape)
-        e_pts = gs.reshape(end_points, (-1, 2) + self.metric.shape)
+        i_pts = gs.reshape(initial_points, (-1, 2) + self._space.shape)
+        e_pts = gs.reshape(end_points, (-1, 2) + self._space.shape)
 
         with Parallel(n_jobs=min(self.n_jobs, len(e_pts)), verbose=0) as parallel:
             rslt = parallel(
@@ -247,7 +247,7 @@ class SasakiMetric(RiemannianMetric):
                 for i, e_pt in enumerate(e_pts)
             )
 
-        rslt_shape = (-1, 2) + self.metric.shape
+        rslt_shape = (-1, 2) + self._space.shape
         rslt_shape = rslt_shape if len(e_pts) == 1 else (len(e_pts),) + rslt_shape
         return gs.reshape(gs.array(rslt), rslt_shape)
 
@@ -268,11 +268,11 @@ class SasakiMetric(RiemannianMetric):
         inner_product : array-like, shape=[..., 1]
             Inner-product.
         """
-        vec_a = gs.reshape(tangent_vec_a, (-1, 2) + self.metric.shape)
-        vec_b = gs.reshape(tangent_vec_b, (-1, 2) + self.metric.shape)
-        pt = gs.reshape(base_point, (-1, 2) + self.metric.shape)
+        vec_a = gs.reshape(tangent_vec_a, (-1, 2) + self._space.shape)
+        vec_b = gs.reshape(tangent_vec_b, (-1, 2) + self._space.shape)
+        pt = gs.reshape(base_point, (-1, 2) + self._space.shape)
 
-        inner = self.metric.inner_product
+        inner = self._space.metric.inner_product
         rslt = inner(vec_a[:, 0], vec_b[:, 0], pt[:, 0]) + inner(
             vec_a[:, 1], vec_b[:, 1], pt[:, 0]
         )

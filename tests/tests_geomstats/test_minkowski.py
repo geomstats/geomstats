@@ -1,6 +1,5 @@
 """Unit tests for Minkowski space."""
 
-import geomstats.backend as gs
 from tests.conftest import Parametrizer, np_backend
 from tests.data.minkowski_data import MinkowskiMetricTestData, MinkowskiTestData
 from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestCase
@@ -13,9 +12,7 @@ class TestMinkowski(VectorSpaceTestCase, metaclass=Parametrizer):
     testing_data = MinkowskiTestData()
 
     def test_belongs(self, dim, point, expected):
-        self.assertAllClose(
-            self.Space(dim).belongs(gs.array(point)), gs.array(expected)
-        )
+        self.assertAllClose(self.Space(dim).belongs(point), expected)
 
 
 class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -38,29 +35,32 @@ class TestMinkowskiMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = MinkowskiMetricTestData()
 
-    def test_metric_matrix(self, dim, expected):
-        metric = self.Metric(dim)
-        self.assertAllClose(metric.metric_matrix(), gs.array(expected))
+    def test_metric_matrix(self, space, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.metric_matrix(), expected)
 
-    def test_inner_product(self, dim, point_a, point_b, expected):
-        metric = self.Metric(dim)
+    def test_inner_product(self, space, point_a, point_b, expected):
+        space.equip_with_metric(self.Metric)
         self.assertAllClose(
-            metric.inner_product(gs.array(point_a), gs.array(point_b)),
-            gs.array(expected),
+            space.metric.inner_product(point_a, point_b),
+            expected,
         )
 
-    def test_squared_norm(self, dim, point, expected):
-        metric = self.Metric(dim)
-        self.assertAllClose(metric.squared_norm(gs.array(point)), gs.array(expected))
+    def test_squared_norm(self, space, point, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.squared_norm(point), expected)
 
-    def test_exp(self, dim, tangent_vec, base_point, expected):
-        result = self.Metric(dim).exp(gs.array(tangent_vec), gs.array(base_point))
-        self.assertAllClose(result, gs.array(expected))
+    def test_exp(self, space, tangent_vec, base_point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.exp(tangent_vec, base_point)
+        self.assertAllClose(result, expected)
 
-    def test_log(self, dim, point, base_point, expected):
-        result = self.Metric(dim).log(gs.array(point), gs.array(base_point))
-        self.assertAllClose(result, gs.array(expected))
+    def test_log(self, space, point, base_point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.log(point, base_point)
+        self.assertAllClose(result, expected)
 
-    def test_squared_dist(self, dim, point_a, point_b, expected):
-        result = self.Metric(dim).squared_dist(gs.array(point_a), gs.array(point_b))
-        self.assertAllClose(result, gs.array(expected))
+    def test_squared_dist(self, space, point_a, point_b, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.squared_dist(point_a, point_b)
+        self.assertAllClose(result, expected)

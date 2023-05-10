@@ -24,18 +24,14 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
 
     Parameters
     ----------
-    dim : int
-        Dimension of the Lie algebra as a real vector space.
     representation_dim : int
         Amount of rows and columns in the matrix representation of the
         Lie algebra.
     """
 
-    def __init__(self, dim, representation_dim, **kwargs):
-        super().__init__(shape=(representation_dim, representation_dim), **kwargs)
-        geomstats.errors.check_integer(dim, "dim")
+    def __init__(self, representation_dim, **kwargs):
         geomstats.errors.check_integer(representation_dim, "representation_dim")
-        self.dim = dim
+        super().__init__(shape=(representation_dim, representation_dim), **kwargs)
         self.representation_dim = representation_dim
 
     bracket = Matrices.bracket

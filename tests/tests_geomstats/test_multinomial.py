@@ -63,65 +63,61 @@ class TestMultinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = MultinomialMetricTestData()
     Space = testing_data.Space
 
-    def test_simplex_to_sphere_and_back(self, dim, n_draws, n_points):
+    def test_simplex_to_sphere_and_back(self, space, n_points):
         """Test simplex_to_sphere and sphere_to_simplex.
         Check that they are inverse.
         """
-        points = self.Space(dim, n_draws).random_point(n_points)
-        points_sphere = self.Metric(dim, n_draws).simplex_to_sphere(points)
-        result = self.Metric(dim, n_draws).sphere_to_simplex(points_sphere)
-        expected = points
+        space.equip_with_metric(self.Metric)
+        expected = points = space.random_point(n_points)
+        points_sphere = space.metric.simplex_to_sphere(points)
+        result = space.metric.sphere_to_simplex(points_sphere)
         self.assertAllClose(expected, result)
 
-    def test_tangent_simplex_to_sphere_and_back(self, dim, n_draws, n_points):
+    def test_tangent_simplex_to_sphere_and_back(self, space, n_points):
         """Test tangent_simplex_to_sphere and back.
         Check that they are inverse.
         """
-        points = self.Space(dim, n_draws).random_point(n_points)
-        points_sphere = self.Metric(dim, n_draws).simplex_to_sphere(points)
-        vec = -5 + 2 * gs.random.rand(n_points, dim + 1)
-        tangent_vec = self.Space(dim, n_draws).to_tangent(vec)
-        tangent_vec_sphere = self.Metric(dim, n_draws).tangent_simplex_to_sphere(
-            tangent_vec, points
-        )
-        result = self.Metric(dim, n_draws).tangent_sphere_to_simplex(
+        space.equip_with_metric(self.Metric)
+        points = space.random_point(n_points)
+        points_sphere = space.metric.simplex_to_sphere(points)
+        vec = -5 + 2 * gs.random.rand(n_points, space.dim + 1)
+        expected = tangent_vec = space.to_tangent(vec)
+        tangent_vec_sphere = space.metric.tangent_simplex_to_sphere(tangent_vec, points)
+        result = space.metric.tangent_sphere_to_simplex(
             tangent_vec_sphere, points_sphere
         )
-        expected = tangent_vec
         self.assertAllClose(expected, result)
 
-    def test_tangent_simplex_to_sphere_vectorization(self, dim, n_draws, n_points):
+    def test_tangent_simplex_to_sphere_vectorization(self, space, n_points):
         """Test tangent_simplex_to_sphere vectorization.
         Check with one point and several tangent vectors.
         """
-        point = self.Space(dim, n_draws).random_point()
-        point_sphere = self.Metric(dim, n_draws).simplex_to_sphere(point)
-        vec = -5 + 2 * gs.random.rand(n_points, dim + 1)
-        tangent_vec = self.Space(dim, n_draws).to_tangent(vec)
-        tangent_vec_sphere = self.Metric(dim, n_draws).tangent_simplex_to_sphere(
-            tangent_vec, point
-        )
-        result = self.Metric(dim, n_draws).tangent_sphere_to_simplex(
+        space.equip_with_metric(self.Metric)
+        point = space.random_point()
+        point_sphere = space.metric.simplex_to_sphere(point)
+        vec = -5 + 2 * gs.random.rand(n_points, space.dim + 1)
+        expected = tangent_vec = space.to_tangent(vec)
+        tangent_vec_sphere = space.metric.tangent_simplex_to_sphere(tangent_vec, point)
+        result = space.metric.tangent_sphere_to_simplex(
             tangent_vec_sphere, point_sphere
         )
-        expected = tangent_vec
         self.assertAllClose(expected, result)
 
-    def test_geodesic(self, dim, n_draws):
+    def test_geodesic(self, space):
         """Test geodesic.
         Check that the norm of the velocity is constant.
         """
-        initial_point = self.Space(dim, n_draws).random_point()
-        end_point = self.Space(dim, n_draws).random_point()
+        space.equip_with_metric(self.Metric)
+
+        initial_point = space.random_point()
+        end_point = space.random_point()
 
         n_steps = 100
-        geod = self.Metric(dim, n_draws).geodesic(
-            initial_point=initial_point, end_point=end_point
-        )
+        geod = space.metric.geodesic(initial_point=initial_point, end_point=end_point)
         t = gs.linspace(0.0, 1.0, n_steps)
         geod_at_t = geod(t)
         velocity = n_steps * (geod_at_t[1:, :] - geod_at_t[:-1, :])
-        velocity_norm = self.Metric(dim, n_draws).norm(velocity, geod_at_t[:-1, :])
+        velocity_norm = space.metric.norm(velocity, geod_at_t[:-1, :])
         result = (
             1
             / gs.amin(velocity_norm)
@@ -131,15 +127,18 @@ class TestMultinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(expected, result, rtol=1.0)
 
-    def test_geodesic_vectorization(self, dim, n_draws, n_points):
+    def test_geodesic_vectorization(self, space, n_points):
         """Check vectorization of geodesic.
         Check the shape of geodesic at time t for
         different scenarios.
         """
-        initial_point = self.Space(dim, n_draws).random_point()
-        vec = self.Space(dim, n_draws).random_point()
-        initial_tangent_vec = self.Space(dim, n_draws).to_tangent(vec)
-        geod = self.Metric(dim, n_draws).geodesic(
+        space.equip_with_metric(self.Metric)
+        dim = space.dim
+
+        initial_point = space.random_point()
+        vec = space.random_point()
+        initial_tangent_vec = space.to_tangent(vec)
+        geod = space.metric.geodesic(
             initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
         )
         time = 0.5
@@ -149,9 +148,9 @@ class TestMultinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         n_vecs = 5
         n_times = 10
-        vecs = self.Space(dim, n_draws).random_point(n_vecs)
-        initial_tangent_vecs = self.Space(dim, n_draws).to_tangent(vecs)
-        geod = self.Metric(dim, n_draws).geodesic(
+        vecs = space.random_point(n_vecs)
+        initial_tangent_vecs = space.to_tangent(vecs)
+        geod = space.metric.geodesic(
             initial_point=initial_point, initial_tangent_vec=initial_tangent_vecs
         )
         times = gs.linspace(0.0, 1.0, n_times)
@@ -159,18 +158,17 @@ class TestMultinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = (n_vecs, n_times, dim + 1)
         self.assertAllClose(result, expected)
 
-        end_points = self.Space(dim, n_draws).random_point(n_points)
-        geod = self.Metric(dim, n_draws).geodesic(
-            initial_point=initial_point, end_point=end_points
-        )
+        end_points = space.random_point(n_points)
+        geod = space.metric.geodesic(initial_point=initial_point, end_point=end_points)
         time = 0.5
         result = geod(time).shape
         expected = (n_points, dim + 1)
         self.assertAllClose(expected, result)
 
-    def test_sectional_curvature_is_positive(self, dim, n_draws, base_point):
-        space = self.Space(dim, n_draws)
-        metric = self.Metric(dim, n_draws)
-        tangent_vec = space.to_tangent(gs.random.rand(dim + 1), base_point)
-        result = metric.sectional_curvature(tangent_vec, tangent_vec, base_point)
+    def test_sectional_curvature_is_positive(self, space):
+        space.equip_with_metric(self.Metric)
+        base_point = space.random_point()
+
+        tangent_vec = space.to_tangent(gs.random.rand(space.dim + 1), base_point)
+        result = space.metric.sectional_curvature(tangent_vec, tangent_vec, base_point)
         self.assertAllClose(gs.all(result > 0), True)

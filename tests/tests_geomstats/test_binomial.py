@@ -57,16 +57,17 @@ class TestBinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = BinomialMetricTestData()
     Space = testing_data.Space
 
-    def test_squared_dist(self, n_draws, point_a, point_b, expected):
-        self.assertAllClose(
-            self.Metric(n_draws).squared_dist(point_a, point_b), expected
-        )
+    def test_squared_dist(self, space, point_a, point_b, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.squared_dist(point_a, point_b), expected)
 
-    def test_metric_matrix(self, n_draws, point, expected):
-        self.assertAllClose(self.Metric(n_draws).metric_matrix(point), expected)
+    def test_metric_matrix(self, space, point, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.metric_matrix(point), expected)
 
-    def test_geodesic_symmetry(self, space_args):
-        space = self.Space(*space_args)
+    def test_geodesic_symmetry(self, space):
+        space.equip_with_metric(self.Metric)
+
         point_a, point_b = space.random_point(2)
         path_ab = space.metric.geodesic(initial_point=point_a, end_point=point_b)
         path_ba = space.metric.geodesic(initial_point=point_b, end_point=point_a)

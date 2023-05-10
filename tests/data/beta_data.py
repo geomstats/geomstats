@@ -39,7 +39,7 @@ class BetaDistributionsTestsData(_OpenSetTestData):
 
 class BetaMetricTestData(_RiemannianMetricTestData):
 
-    connection_args_list = metric_args_list = [()]
+    connection_args_list = metric_args_list = [{}]
     shape_list = [(2,)]
     space_list = [BetaDistributions()]
     n_samples_list = random.sample(range(2, 5), 2)
@@ -59,6 +59,7 @@ class BetaMetricTestData(_RiemannianMetricTestData):
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(
+                space=self.space_list[0],
                 point=gs.array([1.0, 1.0]),
                 expected=gs.array([[1.0, -0.644934066], [-0.644934066, 1.0]]),
             )
@@ -66,13 +67,13 @@ class BetaMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def exp_test_data(self):
-        smoke_data = [dict(n_samples=10)]
+        smoke_data = [dict(space=self.space_list[0], n_samples=10)]
         return self.generate_tests(smoke_data)
 
     def christoffels_shape_test_data(self):
-        smoke_data = [dict(n_samples=10)]
+        smoke_data = [dict(space=self.space_list[0], n_samples=10)]
         return self.generate_tests(smoke_data)
 
     def sectional_curvature_test_data(self):
-        smoke_data = [dict(n_samples=10)]
+        smoke_data = [dict(space=self.space_list[0], n_samples=10)]
         return self.generate_tests(smoke_data)

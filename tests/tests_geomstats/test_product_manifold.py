@@ -61,13 +61,15 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
     testing_data = ProductRiemannianMetricTestData()
 
-    def test_inner_product_matrix(
-        self, manifolds, default_point_type, point, base_point
-    ):
-        metric = self.Metric(manifolds, default_point_type=default_point_type)
-        logs = metric.log(point, base_point)
-        result = metric.inner_product(logs, logs, base_point)
-        expected = metric.squared_dist(base_point, point)
+    def test_inner_product_matrix(self, space, n_points):
+        space.equip_with_metric(self.Metric)
+
+        point = space.random_point(n_points)
+        base_point = space.random_point(n_points)
+
+        logs = space.metric.log(point, base_point)
+        result = space.metric.inner_product(logs, logs, base_point)
+        expected = space.metric.squared_dist(base_point, point)
         self.assertAllClose(result, expected)
 
     def test_inner_product_matrix_vector(self, default_point_type):
@@ -81,12 +83,8 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         self.assertAllClose(result, expected)
 
     @tests.conftest.np_and_autograd_only
-    def test_dist_exp_after_log_norm(
-        self, manifolds, default_point_type, n_samples, einsum_str, expected
-    ):
-        space = ProductManifold(
-            factors=manifolds, default_point_type=default_point_type
-        )
+    def test_dist_exp_after_log_norm(self, space, n_samples, einsum_str, expected):
+        space.equip_with_metric(self.Metric)
         point = space.random_point(n_samples)
         base_point = space.random_point(n_samples)
 

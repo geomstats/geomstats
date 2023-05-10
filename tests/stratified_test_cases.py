@@ -48,10 +48,8 @@ class PointSetMetricTestCase(TestCase):
         return gs.array(resh_res)
 
     def test_dist(self, space_args, point_a, point_b, expected):
-
         space = self.testing_data._PointSet(*space_args)
-        geom = self.testing_data._PointSetMetric(space)
-        results = geom.dist(point_a, point_b)
+        results = space.metric.dist(point_a, point_b)
 
         self.assertAllClose(results, expected)
 
@@ -109,8 +107,8 @@ class PointSetMetricTestCase(TestCase):
         if is_list:
             self.assertTrue(results.shape[-d_array - 2] == n_geo)
 
-    def test_geodesic_bounds(self, metric, start_point, end_point):
-        geodesic = metric.geodesic(start_point, end_point)
+    def test_geodesic_bounds(self, space, start_point, end_point):
+        geodesic = space.metric.geodesic(start_point, end_point)
 
         results = geodesic([0.0, 1.0])
         for pt, pt_res in zip([start_point, end_point], results):

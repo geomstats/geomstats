@@ -17,20 +17,18 @@ class FisherRaoMetric(RiemannianMetric):
 
     Attributes
     ----------
-    information_manifold : InformationManifoldMixin object
+    space : InformationManifold
         Riemannian Manifold for a parametric family of (real) distributions.
     support : list, shape = (2,)
         Left and right bounds for the support of the distribution.
         But this is just to help integration, bounds should be as large as needed.
     """
 
-    def __init__(self, information_manifold, support):
+    def __init__(self, space, support):
         super().__init__(
-            dim=information_manifold.dim,
-            shape=(information_manifold.dim,),
-            signature=(information_manifold.dim, 0),
+            space=space,
+            signature=(space.dim, 0),
         )
-        self.information_manifold = information_manifold
         self.support = support
 
     def metric_matrix(self, base_point):
@@ -68,7 +66,7 @@ class FisherRaoMetric(RiemannianMetric):
 
         Returns
         -------
-        mat : array-like, shape=[..., dim, dim]
+        metric_mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
 
         References
@@ -85,25 +83,26 @@ class FisherRaoMetric(RiemannianMetric):
             x : float, shape (,)
                 Point on the support of the distribution
             """
-            return lambda point: self.information_manifold.point_to_pdf(point)(x)
+            return lambda point: gs.squeeze(self._space.point_to_pdf(point)(x), axis=-1)
 
         def _function_to_integrate(x):
             pdf_x = pdf(x)
-            pdf_x_at_base_point = pdf_x(base_point)
-            pdf_x_derivative = gs.autodiff.jacobian_vec(pdf_x)
-            pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)
+            (
+                pdf_x_at_base_point,
+                pdf_x_derivative_at_base_point,
+            ) = gs.autodiff.value_and_grad(pdf_x, to_numpy=True)(base_point)
+
             return gs.einsum(
-                "...ij,...k->...ij",
+                "...ij,...->...ij",
                 gs.einsum(
-                    "...ki,...kj->...ij",
+                    "...i,...j->...ij",
                     pdf_x_derivative_at_base_point,
                     pdf_x_derivative_at_base_point,
                 ),
                 1 / pdf_x_at_base_point,
             )
 
-        metric_mat = quad_vec(_function_to_integrate, *self.support)[0]
-        return metric_mat
+        return quad_vec(_function_to_integrate, *self.support)[0]
 
     def inner_product_derivative_matrix(self, base_point):
         r"""Compute the derivative of the inner-product matrix.
@@ -153,35 +152,35 @@ class FisherRaoMetric(RiemannianMetric):
             x : float, shape (,)
                 Point on the support of the distribution
             """
-            return lambda point: self.information_manifold.point_to_pdf(point)(x)
+            return lambda point: gs.squeeze(self._space.point_to_pdf(point)(x), axis=-1)
 
         def _function_to_integrate(x):
             pdf_x = pdf(x)
-            pdf_x_at_base_point = pdf_x(base_point)
-            pdf_x_derivative = gs.autodiff.jacobian_vec(pdf_x)
-            pdf_x_derivative_at_base_point = pdf_x_derivative(base_point)
-            pdf_x_hessian = gs.autodiff.hessian_vec(pdf_x)
-            pdf_x_hessian_at_base_point = pdf_x_hessian(base_point)
+            (
+                pdf_x_at_base_point,
+                pdf_x_derivative_at_base_point,
+                pdf_x_hessian_at_base_point,
+            ) = gs.autodiff.value_jacobian_and_hessian(pdf_x)(base_point)
 
             return gs.einsum(
-                "...n,...ijk->...ijk",
+                "...,...ijk->...ijk",
                 1 / (pdf_x_at_base_point**2),
                 gs.einsum(
-                    "...n,...ijk->...ijk",
+                    "...,...ijk->...ijk",
                     pdf_x_at_base_point,
                     gs.einsum(
-                        "...ki,...nj->...ijk",
+                        "...ki,...j->...ijk",
                         pdf_x_hessian_at_base_point,
                         pdf_x_derivative_at_base_point,
                     )
                     + gs.einsum(
-                        "...kj,...ni->...ijk",
+                        "...kj,...i->...ijk",
                         pdf_x_hessian_at_base_point,
                         pdf_x_derivative_at_base_point,
                     ),
                 )
                 - gs.einsum(
-                    "...ni, ...nj, ...nk -> ...ijk",
+                    "...i, ...j, ...k -> ...ijk",
                     pdf_x_derivative_at_base_point,
                     pdf_x_derivative_at_base_point,
                     pdf_x_derivative_at_base_point,

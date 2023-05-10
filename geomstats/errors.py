@@ -33,7 +33,10 @@ def check_positive(param, param_name):
     param_name : string
        Name of the parameter.
     """
-    if not (isinstance(param, (int, float)) and param > 0):
+    if not (
+        (isinstance(param, (int, float)) or (gs.is_array(param) and param.ndim == 0))
+        and param > 0
+    ):
         raise ValueError(f"{param_name} must be positive.")
 
 

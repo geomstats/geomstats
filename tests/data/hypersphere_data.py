@@ -235,9 +235,11 @@ class HypersphereTestData(_LevelSetTestData):
 
 class HypersphereMetricTestData(_RiemannianMetricTestData):
     dim_list = random.sample(range(2, 5), 2)
-    connection_args_list = metric_args_list = [(n,) for n in dim_list]
+
+    connection_args_list = metric_args_list = [{} for _ in dim_list]
     shape_list = [(dim + 1,) for dim in dim_list]
     space_list = [Hypersphere(n) for n in dim_list]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
@@ -251,10 +253,10 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                dim=4,
-                tangent_vec_a=[1.0, 0.0, 0.0, 0.0, 0.0],
-                tangent_vec_b=[0.0, 1.0, 0.0, 0.0, 0.0],
-                base_point=[0.0, 0.0, 0.0, 0.0, 1.0],
+                space=Hypersphere(dim=4, equip=False),
+                tangent_vec_a=gs.array([1.0, 0.0, 0.0, 0.0, 0.0]),
+                tangent_vec_b=gs.array([0.0, 1.0, 0.0, 0.0, 0.0]),
+                base_point=gs.array([0.0, 0.0, 0.0, 0.0, 1.0]),
                 expected=0.0,
             )
         ]
@@ -266,7 +268,14 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         point_a = point_a / gs.linalg.norm(point_a)
         point_b = gs.array([2.0, 10, 0.0, 0.0, 0.0])
         point_b = point_b / gs.linalg.norm(point_b)
-        smoke_data = [dict(dim=4, point_a=point_a, point_b=point_b, expected=gs.pi / 2)]
+        smoke_data = [
+            dict(
+                space=Hypersphere(dim=4, equip=False),
+                point_a=point_a,
+                point_b=point_b,
+                expected=gs.pi / 2,
+            )
+        ]
         return self.generate_tests(smoke_data)
 
     def diameter_test_data(self):
@@ -274,7 +283,11 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         point_b = gs.array([[1.0, 0.0, 0.0]])
         point_c = gs.array([[0.0, 0.0, -1.0]])
         smoke_data = [
-            dict(dim=2, points=gs.vstack((point_a, point_b, point_c)), expected=gs.pi)
+            dict(
+                space=Hypersphere(dim=2, equip=False),
+                points=gs.vstack((point_a, point_b, point_c)),
+                expected=gs.pi,
+            )
         ]
         return self.generate_tests(smoke_data)
 
@@ -284,7 +297,13 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         Note that point is given in spherical coordinates.
         """
         point = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
-        smoke_data = [dict(dim=2, point=point, expected=[2, 2, 2, 2])]
+        smoke_data = [
+            dict(
+                space=Hypersphere(dim=2, equip=False),
+                point=point,
+                expected=[2, 2, 2, 2],
+            )
+        ]
         return self.generate_tests(smoke_data)
 
     def riemann_tensor_spherical_coords_shape_test_data(self):
@@ -292,13 +311,14 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
 
         Note that point is given in spherical coordinates.
         """
+        space = Hypersphere(dim=2, equip=False)
         base_point = gs.array([gs.pi / 2, gs.pi / 6])
         base_points = gs.array(
             [[gs.pi / 3, gs.pi / 5], [gs.pi / 4, gs.pi / 6], [gs.pi / 5, gs.pi / 7]]
         )
         smoke_data = [
-            dict(base_point=base_point, expected=(2, 2, 2, 2)),
-            dict(base_point=base_points, expected=(3, 2, 2, 2, 2)),
+            dict(space=space, base_point=base_point, expected=(2, 2, 2, 2)),
+            dict(space=space, base_point=base_points, expected=(3, 2, 2, 2, 2)),
         ]
         return self.generate_tests(smoke_data)
 
@@ -308,7 +328,9 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         Note that point is given in spherical coordinates.
         """
         base_point = gs.array([gs.pi / 2, gs.pi / 6])
-        smoke_data = [dict(base_point=base_point)]
+        smoke_data = [
+            dict(space=Hypersphere(dim=2, equip=False), base_point=base_point)
+        ]
         return self.generate_tests(smoke_data)
 
     def ricci_tensor_spherical_coords_shape_test_data(self):
@@ -316,13 +338,15 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
 
         Note that point is given in spherical coordinates.
         """
+        space = Hypersphere(dim=2, equip=False)
+
         base_point = gs.array([gs.pi / 3, gs.pi / 7])
         base_points = gs.array(
             [[gs.pi / 3, gs.pi / 7], [gs.pi / 4, gs.pi / 8], [gs.pi / 5, gs.pi / 9]]
         )
         smoke_data = [
-            dict(base_point=base_point, expected=(2, 2)),
-            dict(base_point=base_points, expected=(3, 2, 2)),
+            dict(space=space, base_point=base_point, expected=(2, 2)),
+            dict(space=space, base_point=base_points, expected=(3, 2, 2)),
         ]
         return self.generate_tests(smoke_data)
 
@@ -331,6 +355,8 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
 
         Note that point is given in spherical coordinates.
         """
+        space = Hypersphere(dim=4, equip=False)
+
         theta = gs.pi / 3
         base_point = gs.array([theta, gs.pi / 7])
         expected = gs.array([[1.0, 0.0], [0.0, gs.sin(theta) ** 2]])
@@ -346,8 +372,8 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
             ]
         )
         smoke_data = [
-            dict(base_point=base_point, expected=expected),
-            dict(base_point=base_points, expected=expecteds),
+            dict(space=space, base_point=base_point, expected=expected),
+            dict(space=space, base_point=base_points, expected=expecteds),
         ]
         return self.generate_tests(smoke_data)
 
@@ -356,7 +382,7 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         n_samples_list = random.sample(range(1, 4), 2)
         random_data = []
         for dim, n_samples in zip(dim_list, n_samples_list):
-            sphere = Hypersphere(dim)
+            sphere = Hypersphere(dim, equip=False)
             base_point = sphere.random_uniform()
             tangent_vec_a = sphere.to_tangent(
                 gs.random.rand(n_samples, sphere.dim + 1), base_point
@@ -367,7 +393,7 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
             expected = gs.ones(n_samples)  # try shape here
             random_data.append(
                 dict(
-                    dim=dim,
+                    space=sphere,
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
                     base_point=base_point,
@@ -379,11 +405,13 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
     def dist_pairwise_test_data(self):
         smoke_data = [
             dict(
-                dim=4,
-                point=[
-                    1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0]),
-                    1.0 / gs.sqrt(435.0) * gs.array([1.0, -20.0, -5.0, 0.0, 3.0]),
-                ],
+                space=Hypersphere(dim=4, equip=False),
+                point=gs.array(
+                    [
+                        1.0 / gs.sqrt(129.0) * gs.array([10.0, -2.0, -5.0, 0.0, 0.0]),
+                        1.0 / gs.sqrt(435.0) * gs.array([1.0, -20.0, -5.0, 0.0, 3.0]),
+                    ]
+                ),
                 expected=gs.array([[0.0, 1.24864502], [1.24864502, 0.0]]),
                 rtol=1e-3,
             )
@@ -399,7 +427,8 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         point = point / gs.linalg.norm(point)
         smoke_data = [
             dict(
-                connection_args=(4,),
+                space=Hypersphere(dim=4, equip=False),
+                connection_args={},
                 point=point,
                 base_point=base_point,
             )
@@ -412,7 +441,8 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
 
         smoke_data = [
             dict(
-                connection_args=(4,),
+                space=Hypersphere(dim=4, equip=False),
+                connection_args={},
                 tangent_vec=tangent_vec,
                 base_point=base_point,
             )
@@ -428,7 +458,7 @@ class HypersphereMetricTestData(_RiemannianMetricTestData):
         base_point = unnorm_base_point / gs.linalg.norm(unnorm_base_point)
         smoke_data = [
             dict(
-                dim=4,
+                space=Hypersphere(dim=4, equip=False),
                 vector=gs.array([9.0, 0.0, -1.0, -2.0, 1.0]),
                 base_point=base_point,
             )
