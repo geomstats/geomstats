@@ -1946,10 +1946,10 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
         The objective can be expressed in terms of square root velocity (SRV)
         representations: it is equivalent to finding the gamma that maximizes
-        the L2 scalar product between initial_q and end_q@gamma where initial_q
-        is the SRV representation of the initial curve and end_q@gamma is the SRV
+        the L2 scalar product between initial_srv and end_srv@gamma where initial_srv
+        is the SRV representation of the initial curve and end_srv@gamma is the SRV
         representation of the end curve reparametrized by gamma, i.e... math::
-        end_q@gamma : t --> end_q(gamma(t))*|gamma(t)|^(1/2)
+        end_srv@gamma : t --> end_srv(gamma(t))*|gamma(t)|^(1/2).
 
         The dynamic programming algorithm assumes that for every subinterval
         [i/n, (i+1)/n] of [0,1], gamma is linear.
@@ -1961,18 +1961,19 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
         end_curve : array-like, shape=[k_sampling_points, ambient_dim]
             End discrete curve.
         n : int
-            number of subintervals of [0,1] where gamma, restricted to
-            each subinterval, is linear.
+            Number of subintervals in which the reparametrization is linear.
+            Optinal, default: 100.
         max_slope : int
-            maximum slope of gamma and of its inverse.
+            Maximum slope allowed for a reparametrization.
+            Optional, default: 6.
 
 
         Outputs
         -------
-        gamma[(n,n)]: list
-            Optimal reparametrization of end_curve
+        geodesic: callable
+            Time parametrized geodesic.
         dist : float
-            Distance between intial_curve and end_curve@gamma
+            Quotient distance between intial_curve and end_curve.
 
         """
 
@@ -1982,11 +1983,11 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             Inputs
             ----------
             point : array , shape=[k_sampling_points, ambient_dim]
-                A curve.
+                Discrete curve.
 
             Outputs
             -------
-            q : array , shape=[n, ambient_dim]
+            srv : array , shape=[n, ambient_dim]
                 SRV function of the curve at the right size.
             """
             if gs.any(
@@ -2001,66 +2002,34 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
             k_sampling_point = point.shape[-2] - 1
             velocity = k_sampling_point * (point[1:, :] - point[:-1, :])
             square_root_velocity = gs.sqrt(gs.sum(gs.abs(velocity), axis=-1))
-            _q = gs.array([i / j for (i, j) in zip(velocity, square_root_velocity)])
-            q = gs.array([_q[int(gs.floor(i * (k_sampling_point / n)))]
+            _srv = gs.array([i / j for (i, j) in zip(velocity, square_root_velocity)])
+            srv = gs.array([_srv[int(gs.floor(i * (k_sampling_point / n)))]
                           for i in range(n)])
 
-            return q
+            return srv
 
-        def reparametrisation_q(q, gamma):
-            """Compute end_q@gamma.
-
-            Inputs
-            ----------
-            q : array , shape=[k_sampling_points, ambient_dim]
-                SRV function of some curve.
-            gamma : array, shape=[n_subinterval]
-                parametrization of a curve.
-
-
-            Outputs
-            -------
-            new_q : array , shape=[k_sampling_points, ambient_dim]
-                end_q@gamma
-            """
-            new_q = gs.empty(shape=q.shape, dtype=float)
-            n_subinterval = len(gamma)
-
-            for k in range(1, n_subinterval):
-
-                (i_depart, j_depart) = gamma[k - 1]
-                (i_arrive, j_arrive) = gamma[k]
-                gamma_slope = (j_arrive - j_depart) / (i_arrive - i_depart)
-                gamma_constant = (j_depart - i_depart * gamma_slope)
-
-                for i in range(i_depart, i_arrive):
-                    gamma_i = i * gamma_slope + gamma_constant
-                    new_q[i] = math.pow(gamma_slope, 1 / 2) * q[int(gs.floor(gamma_i))]
-
-            return new_q
-
-        def reparametrisation_curve(curve, gamma):
+        def reparametrization_curve(curve, gamma):
             """Compute end_curve reparametrized by gamma.
+
             Inputs
             ----------
             curve : array , shape=[k_sampling_points, ambient_dim]
-                a curve.
+                Discrete curve.
             gamma : array, shape=[n_subinterval]
-                parametrization of a curve.
+                Parametrization of a curve.
 
 
             Outputs
             -------
             new_curve : array , shape=[k_sampling_points, ambient_dim]
-                curve reparametrized by gamma
+                Curve reparametrized by gamma.
 
             """
-
             k_sampling_point = curve.shape[-2] - 1
             new_curve = gs.zeros(shape=curve.shape, dtype=float)
             n_subinterval = len(gamma)
-            list_gamma_slope = gs.zeros(n+1, dtype=float)
-            list_gamma_constant = gs.zeros(n+1, dtype=float) 
+            list_gamma_slope = gs.zeros(n + 1, dtype=float)
+            list_gamma_constant = gs.zeros(n + 1, dtype=float)
 
             new_curve[0] = curve[0]
             new_curve[-1] = curve[-1]
@@ -2071,43 +2040,52 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                 (i_arrive, j_arrive) = gamma[k]
                 gamma_slope = (j_arrive - j_depart) / (i_arrive - i_depart)
                 gamma_constant = (j_depart - i_depart * gamma_slope)
-                
-                for i in range(i_depart,i_arrive):
-                    list_gamma_slope[i] = gamma_slope 
+
+                for i in range(i_depart, i_arrive):
+                    list_gamma_slope[i] = gamma_slope
                     list_gamma_constant[i] = gamma_constant
 
-            for k in range(1,k_sampling_point):
-                indice_n = int(gs.floor(n*k/k_sampling_point))
-                gamma_indice_n = (n * k / k_sampling_point)*list_gamma_slope[indice_n] + list_gamma_constant[indice_n]
+            for k in range(1, k_sampling_point):
+                indice_n = int(gs.floor(n * k / k_sampling_point))
+                gamma_indice_n = (n * k / k_sampling_point) * \
+                    list_gamma_slope[indice_n] + list_gamma_constant[indice_n]
                 gamma_indice_k = k_sampling_point * gamma_indice_n / n
                 indice_k = int(gs.floor(gamma_indice_k))
                 alpha = gamma_indice_k - indice_k
 
-                new_curve[k] = curve[indice_k]*(1-alpha) + curve[indice_k+1]*alpha
-
-            """
-            a_depart = int(gs.ceil(k_sampling_point * i_depart / n))
-            a_arrive = int(gs.floor(k_sampling_point * i_arrive / n))
-            ancient_value = gs.inf
-
-            for a in range(a_depart, a_arrive):
-                gamma_a = n * a * gamma_slope / k_sampling_point + gamma_constant
-                indice = int(gs.floor(gamma_a * k_sampling_point / n))
-                beta = indice + 1 - k_sampling_point * gamma_a / n
-                new_curve[a] = beta * curve[indice] + (1 - beta) * curve[indice + 1]
-
-            new_curve[k_sampling_point] = curve[k_sampling_point]
-            """
+                new_curve[k] = curve[indice_k] * (1 - alpha) + \
+                    curve[indice_k + 1] * alpha
 
             return new_curve
 
         def compute_integral_restricted(
-                q_1, q_2, x_min, x_max, y_min, y_max):
+                srv_1, srv_2, x_min, x_max, y_min, y_max):
             """Compute the value of an integral over a subinterval.
 
             Compute n * the value of the integral of
-            t --> q_1(t)*q_2(gamma(t))*|gamma(t)|^(1/2) over [x_min,x_max]
+            t --> srv_1(t)*srv_2(gamma(t))*|gamma(t)|^(1/2) over [x_min,x_max]
             where gamma restricted to [x_min,xmax] is a constant.
+
+            Inputs
+            ----------
+            srv_1 : array , shape=[n, ambient_dim]
+                SRV function of the initial curve.
+            srv_2 : array, shape=[n, ambient_dim]
+                SRV function of the end curve.
+            x_min : int
+                Beginning of the subinterval.
+            x_max : int
+                End of the subinterval.
+            y_min : int
+                Value of gamma at x_min.
+            y_max : int
+                Value of gamma at x_max.
+
+
+            Outputs
+            -------
+            value : float
+                Value of the integral described above.
             """
             gamma_slope = (y_max - y_min) / (x_max - x_min)
 
@@ -2124,7 +2102,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
                 upper_bound = min(list_l[i], list_k[j])
                 lenght = upper_bound - lower_bound
-                value += lenght * gs.dot(q_1[x_min + i - 1], q_2[y_min + j - 1])
+                value += lenght * gs.dot(srv_1[x_min + i - 1], srv_2[y_min + j - 1])
 
                 if list_l[i] == list_k[j]:
                     i += 1
@@ -2139,13 +2117,13 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
 
             return value
 
-        initial_q = srv_function(initial_curve)
-        end_q = srv_function(end_curve)
+        initial_srv = srv_function(initial_curve)
+        end_srv = srv_function(end_curve)
 
-        norm_squared_initial_q = compute_integral_restricted(
-            initial_q, initial_q, 0, n, 0, n) / n
-        norm_squared_end_q = compute_integral_restricted(
-            end_q, end_q, 0, n, 0, n) / n
+        norm_squared_initial_srv = compute_integral_restricted(
+            initial_srv, initial_srv, 0, n, 0, n) / n
+        norm_squared_end_srv = compute_integral_restricted(
+            end_srv, end_srv, 0, n, 0, n) / n
 
         tableau = (-1.0) * gs.ones((n + 1, n + 1))
         tableau[0, 0] = 0.
@@ -2162,7 +2140,7 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                         if tableau[k, m] != -1 :
                             new_value = tableau[k, m] + \
                                 compute_integral_restricted(
-                                initial_q, end_q, m, i, k, j)
+                                initial_srv, end_srv, m, i, k, j)
 
                             if tableau[j, i] < new_value :
                                 tableau[j, i] = new_value
@@ -2170,15 +2148,14 @@ class SRVShapeBundle(DiscreteCurves, FiberBundle):
                                 new_gamma.append((i, j))
                                 gamma[(i, j)] = new_gamma
 
-
         maximum_scalar_product = tableau[(n, n)] / n
 
-        dist_squared = norm_squared_initial_q + \
-            norm_squared_end_q - 2 * maximum_scalar_product
+        dist_squared = norm_squared_initial_srv + \
+            norm_squared_end_srv - 2 * maximum_scalar_product
 
         distance = gs.sqrt(dist_squared)
 
-        end_curve_reparametrized = reparametrisation_curve(
+        end_curve_reparametrized = reparametrization_curve(
             end_curve, gamma[(n, n)])
 
         geodesic = self.total_space_metric.geodesic(
@@ -2288,23 +2265,21 @@ class SRVQuotientMetric(QuotientMetric):
             Discrete curve.
         point_b : array-like, shape=[k_sampling_points, ambient_dim]
             Discrete curve.
-        method : string,
-            "horizontal projection" or "dynamic programming"
+        method : str, {"horizontal projection", "dynamic programming"}
+            Type of method to use.
+            Optional, default: "horizontal projection".
         n_times: int
-            Relevant for the horizonral porjection method
             Number of times used to discretize the horizontal geodesic.
             Optional, default: 20.
         threshold: float
-            Relevant for the horizontal projection method
-            Stop criterion used in the algorithm to compute the horizontal
-            geodesic.
+            Stop criterion used in the algorithm to compute the horizontal geodesic.
             Optional, default: 1e-3.
         n : int
-            Relevant for the dynamic programming method
-            Number of discretisations of the cuves
+            Number of subintervals in which the reparametrization is linear.
+            Optinal, default: 100.
         max_slope : int
-            Relevant for the dynamic programing method
-            Max slope of the reparametrization of point b
+            Maximum slope allowed for a reparametrization.
+            Optional, default: 6.
 
         Returns
         -------

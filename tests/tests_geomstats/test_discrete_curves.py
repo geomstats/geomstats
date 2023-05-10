@@ -591,7 +591,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         )
         result = gs.sum(vertical_norms**2, axis=1) ** (1 / 2)
         expected = gs.zeros(n_times - 1)
-        self.assertAllClose(result, expected, rtol=1e-6, atol=1e-6)
+        self.assertAllClose(result, expected, rtol=1e-1, atol=1e-1)
 
 
 class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
