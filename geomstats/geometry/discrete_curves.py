@@ -1896,8 +1896,9 @@ class SRVShapeBundle(FiberBundle):
             srv : array , shape=[n, ambient_dim]
                 SRV function of the curve at the right size.
             """
+            ambient_metric = self.total_space.metric._space.ambient_manifold.metric
             if gs.any(
-                self.total_space_metric.ambient_metric.norm(
+                ambient_metric.norm(
                     point[..., 1:, :] - point[..., :-1, :]) < tol
             ):
                 raise AssertionError(
@@ -1910,7 +1911,7 @@ class SRVShapeBundle(FiberBundle):
             square_root_velocity = gs.sqrt(gs.sum(gs.abs(velocity), axis=-1))
             _srv = gs.array([i / j for (i, j) in zip(velocity, square_root_velocity)])
             srv = gs.array([_srv[int(gs.floor(i * (k_sampling_point / n)))]
-                          for i in range(n)])
+                           for i in range(n)])
 
             return srv
 
@@ -2064,7 +2065,7 @@ class SRVShapeBundle(FiberBundle):
         end_curve_reparametrized = reparametrization_curve(
             end_curve, gamma[(n, n)])
 
-        geodesic = self.total_space_metric.geodesic(
+        geodesic = self.total_space.metric.geodesic(
             initial_curve, end_curve_reparametrized)
 
         return {"geodesic": geodesic, "distance": distance}
@@ -2183,20 +2184,23 @@ class SRVQuotientMetric(QuotientMetric):
         quotient_dist : float
             Quotient distance between the two curves represented by point_a and point_b.
         """
-        horizontal_path = self.geodesic(
-            initial_point=point_a, end_point=point_b, threshold=threshold
-        )
-        times = gs.linspace(0.0, 1.0, n_times)
-        horizontal_geod = horizontal_path(times)
-        horizontal_geod_velocity = n_times * (
-            horizontal_geod[:-1] - horizontal_geod[1:]
-        )
-        velocity_norms = self.fiber_bundle.total_space.metric.norm(
-            horizontal_geod_velocity, horizontal_geod[:-1]
-        )
-        return gs.sum(velocity_norms) / n_times
+        if method == "horizontal projection":
+
+            horizontal_path = self.geodesic(
+                initial_point=point_a, end_point=point_b, threshold=threshold
+            )
+            times = gs.linspace(0.0, 1.0, n_times)
+            horizontal_geod = horizontal_path(times)
+            horizontal_geod_velocity = n_times * (
+                horizontal_geod[:-1] - horizontal_geod[1:]
+            )
+            velocity_norms = self.fiber_bundle.total_space.metric.norm(
+                horizontal_geod_velocity, horizontal_geod[:-1]
+            )
+            return gs.sum(velocity_norms) / n_times
 
         elif method == "dynamic programming" :
+
             point_ndim = gs.ndim(point_a)
             if point_ndim == 2:
                 dp = self.fiber_bundle._dynamic_programming(
