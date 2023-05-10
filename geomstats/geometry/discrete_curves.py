@@ -1843,7 +1843,8 @@ class SRVShapeBundle(FiberBundle):
 
         return horizontal_path
 
-    def _dynamic_programming(self, initial_curve, end_curve, n=100, max_slope=6):
+    def _dynamic_programming(
+            self, initial_curve, end_curve, n_discretization=100, max_slope=6):
         """Compute the dynamic programming algorithm.
 
         Find the reparametrization gamma of end_curve that minimizes the distance
@@ -1866,7 +1867,7 @@ class SRVShapeBundle(FiberBundle):
             Initial discrete curve.
         end_curve : array-like, shape=[k_sampling_points, ambient_dim]
             End discrete curve.
-        n : int
+        n_discretization : int
             Number of subintervals in which the reparametrization is linear.
             Optinal, default: 100.
         max_slope : int
@@ -1883,8 +1884,8 @@ class SRVShapeBundle(FiberBundle):
 
         """
 
-        def srv_function(point, tol=gs.atol):
-            """Compute SRV function of a curve.
+        def srv_function_resampled(point, tol=gs.atol):
+            """Compute SRV function of a discrete curve and resample it.
 
             Inputs
             ----------
@@ -1893,7 +1894,7 @@ class SRVShapeBundle(FiberBundle):
 
             Outputs
             -------
-            srv : array , shape=[n, ambient_dim]
+            srv : array , shape=[n_discretization, ambient_dim]
                 SRV function of the curve at the right size.
             """
             ambient_metric = self.total_space.metric._space.ambient_manifold.metric
@@ -1910,8 +1911,8 @@ class SRVShapeBundle(FiberBundle):
             velocity = k_sampling_point * (point[1:, :] - point[:-1, :])
             square_root_velocity = gs.sqrt(gs.sum(gs.abs(velocity), axis=-1))
             _srv = gs.array([i / j for (i, j) in zip(velocity, square_root_velocity)])
-            srv = gs.array([_srv[int(gs.floor(i * (k_sampling_point / n)))]
-                           for i in range(n)])
+            srv = gs.array([_srv[int(gs.floor(i * (k_sampling_point
+                            / n_discretization)))] for i in range(n_discretization)])
 
             return srv
 
@@ -1935,8 +1936,8 @@ class SRVShapeBundle(FiberBundle):
             k_sampling_point = curve.shape[-2] - 1
             new_curve = gs.zeros(shape=curve.shape, dtype=float)
             n_subinterval = len(gamma)
-            list_gamma_slope = gs.zeros(n + 1, dtype=float)
-            list_gamma_constant = gs.zeros(n + 1, dtype=float)
+            list_gamma_slope = gs.zeros(n_discretization + 1, dtype=float)
+            list_gamma_constant = gs.zeros(n_discretization + 1, dtype=float)
 
             new_curve[0] = curve[0]
             new_curve[-1] = curve[-1]
@@ -1953,10 +1954,10 @@ class SRVShapeBundle(FiberBundle):
                     list_gamma_constant[i] = gamma_constant
 
             for k in range(1, k_sampling_point):
-                indice_n = int(gs.floor(n * k / k_sampling_point))
-                gamma_indice_n = (n * k / k_sampling_point) * \
+                indice_n = int(gs.floor(n_discretization * k / k_sampling_point))
+                gamma_indice_n = (n_discretization * k / k_sampling_point) * \
                     list_gamma_slope[indice_n] + list_gamma_constant[indice_n]
-                gamma_indice_k = k_sampling_point * gamma_indice_n / n
+                gamma_indice_k = k_sampling_point * gamma_indice_n / n_discretization
                 indice_k = int(gs.floor(gamma_indice_k))
                 alpha = gamma_indice_k - indice_k
 
@@ -2024,21 +2025,26 @@ class SRVShapeBundle(FiberBundle):
 
             return value
 
-        initial_srv = srv_function(initial_curve)
-        end_srv = srv_function(end_curve)
+        initial_srv = srv_function_resampled(initial_curve)
+        end_srv = srv_function_resampled(end_curve)
 
         norm_squared_initial_srv = compute_integral_restricted(
-            initial_srv, initial_srv, 0, n, 0, n) / n
+            initial_srv, initial_srv, 0, n_discretization, 0, n_discretization) \
+            / n_discretization
         norm_squared_end_srv = compute_integral_restricted(
-            end_srv, end_srv, 0, n, 0, n) / n
+            end_srv, end_srv, 0, n_discretization, 0, n_discretization) \
+            / n_discretization
 
-        tableau = (-1.0) * gs.ones((n + 1, n + 1))
+        tableau = (-1.0) * gs.ones((n_discretization + 1, n_discretization + 1))
         tableau[0, 0] = 0.
         gamma = {}
         gamma[(0, 0)] = [(0, 0)]
-        for j in range(1, n + 1):
-            min_i = int(max(gs.floor(j / max_slope), n - max_slope * (n - j)))
-            max_i = int(min(j * max_slope, gs.ceil(n - (n - j) * (1 / max_slope))))
+        for j in range(1, n_discretization + 1):
+            min_i = int(max(gs.floor(j / max_slope),
+                        n_discretization - max_slope * (n_discretization - j)))
+            max_i = int(min(j * max_slope,
+                        gs.ceil(n_discretization - (n_discretization - j)
+                            * (1 / max_slope))))
             for i in range(min_i, max_i + 1):
                 minimum_column_index = int(max(0, i - max_slope))
                 minimum_line_index = int(max(0, j - max_slope))
@@ -2055,7 +2061,8 @@ class SRVShapeBundle(FiberBundle):
                                 new_gamma.append((i, j))
                                 gamma[(i, j)] = new_gamma
 
-        maximum_scalar_product = tableau[(n, n)] / n
+        maximum_scalar_product = tableau[(n_discretization, n_discretization)] \
+            / n_discretization
 
         dist_squared = norm_squared_initial_srv + \
             norm_squared_end_srv - 2 * maximum_scalar_product
@@ -2063,7 +2070,7 @@ class SRVShapeBundle(FiberBundle):
         distance = gs.sqrt(dist_squared)
 
         end_curve_reparametrized = reparametrization_curve(
-            end_curve, gamma[(n, n)])
+            end_curve, gamma[(n_discretization, n_discretization)])
 
         geodesic = self.total_space.metric.geodesic(
             initial_curve, end_curve_reparametrized)
@@ -2109,7 +2116,7 @@ class SRVQuotientMetric(QuotientMetric):
     """
 
     def geodesic(self, initial_point, end_point, method="horizontal projection",
-                 threshold=1e-3, n=100, max_slope=10):
+                 threshold=1e-3, n_discretization=100, max_slope=10):
         """Geodesic for the quotient SRV Metric.
 
         The geodesics between unparametrized curves for the quotient metric are
@@ -2126,7 +2133,7 @@ class SRVQuotientMetric(QuotientMetric):
             point_ndim = gs.ndim(initial_point)
             if point_ndim == 2:
                 dp = self.fiber_bundle._dynamic_programming(
-                    initial_point, end_point, n, max_slope)
+                    initial_point, end_point, n_discretization, max_slope)
                 return dp["geodesic"]
             else :
                 initial_point = gs.to_ndarray(initial_point, to_ndim=3)
@@ -2136,7 +2143,7 @@ class SRVQuotientMetric(QuotientMetric):
 
                 for i in range(n_points):
                     dp = self.fiber_bundle._dynamic_programming(
-                        initial_point[i], end_point[i], n, max_slope
+                        initial_point[i], end_point[i], n_discretization, max_slope
                     )
                     results[i] = dp["geodesic"]
 
@@ -2148,7 +2155,7 @@ class SRVQuotientMetric(QuotientMetric):
             )
 
     def dist(self, point_a, point_b, method="horizontal projection",
-             n_times=20, threshold=1e-3, n=100, max_slope=6):
+             n_times=20, threshold=1e-3, n_discretization=100, max_slope=6):
         """Quotient SRV distance between unparametrized curves.
 
         This is the distance induced by the SRV Metric on the space of unparametrized
@@ -2172,7 +2179,7 @@ class SRVQuotientMetric(QuotientMetric):
         threshold: float
             Stop criterion used in the algorithm to compute the horizontal geodesic.
             Optional, default: 1e-3.
-        n : int
+        n_discretization : int
             Number of subintervals in which the reparametrization is linear.
             Optinal, default: 100.
         max_slope : int
@@ -2204,7 +2211,7 @@ class SRVQuotientMetric(QuotientMetric):
             point_ndim = gs.ndim(point_a)
             if point_ndim == 2:
                 dp = self.fiber_bundle._dynamic_programming(
-                    point_a, point_b, n, max_slope)
+                    point_a, point_b, n_discretization, max_slope)
                 return dp["distance"]
             else :
                 point_a = gs.to_ndarray(point_a, to_ndim=3)
@@ -2214,7 +2221,7 @@ class SRVQuotientMetric(QuotientMetric):
 
                 for i in range(n_points):
                     dp = self.fiber_bundle._dynamic_programming(
-                        point_a[i], point_b[i], n, max_slope)
+                        point_a[i], point_b[i], n_discretization, max_slope)
                     quotient_dist[i] = dp["distance"]
 
                 return quotient_dist
