@@ -71,19 +71,19 @@ class Siegel(ComplexOpenSet):
         Optional, default: False.
     """
 
-    def __init__(self, n, symmetric=False, **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate the "
-                "manifold without this parameter and then use "
-                "`scale * metric` to rescale the standard metric."
-            )
-        kwargs.setdefault("metric", SiegelMetric(n))
+    def __init__(self, n, symmetric=False, equip=True):
         super().__init__(
-            dim=n**2, embedding_space=ComplexMatrices(m=n, n=n), **kwargs
+            dim=n**2,
+            embedding_space=ComplexMatrices(m=n, n=n),
+            equip=equip,
         )
         self.n = n
         self.symmetric = symmetric
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return SiegelMetric
 
     def belongs(self, point, atol=gs.atol):
         """Check if a matrix belongs to the Siegel space.
@@ -203,28 +203,7 @@ class Siegel(ComplexOpenSet):
 
 
 class SiegelMetric(ComplexRiemannianMetric):
-    """Class for the Siegel metric.
-
-    Parameters
-    ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
-    """
-
-    def __init__(self, n, **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate scaled "
-                "metrics as `scale * RiemannianMetric`. Note that the "
-                "metric is scaled, not the distance."
-            )
-        dim = int(n**2)
-        super().__init__(
-            dim=dim,
-            shape=(n, n),
-            signature=(dim, 0),
-        )
-        self.n = n
+    """Class for the Siegel metric."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Siegel inner-product.
@@ -335,8 +314,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         factor_3 = gs.where(gs.isnan(factor_3), gs.zeros_like(factor_2), factor_3)
         prod_1 = gs.matmul(factor_1, factor_2)
         prod_2 = gs.matmul(prod_1, factor_3)
-        exp = gs.matmul(prod_2, tangent_vec)
-        return exp
+        return gs.matmul(prod_2, tangent_vec)
 
     @staticmethod
     def isometry(point, point_to_zero):
@@ -371,8 +349,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         factor_3 = gs.linalg.inv(aux_6)
         prod_1 = gs.matmul(factor_1, factor_2)
         prod_2 = gs.matmul(prod_1, factor_3)
-        point_image = gs.matmul(prod_2, factor_4)
-        return point_image
+        return gs.matmul(prod_2, factor_4)
 
     def exp(self, tangent_vec, base_point):
         """Compute the Siegel exponential map.
@@ -427,9 +404,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         factor_2 = HermitianMatrices.powerm(aux_2, -1)
         factor_2 = gs.where(gs.isnan(factor_2), gs.zeros_like(factor_2), factor_2)
         prod_1 = gs.matmul(factor_1, factor_2)
-        log_at_zero = gs.matmul(prod_1, point)
-        log_at_zero *= 0.5
-        return log_at_zero
+        return gs.matmul(prod_1, point) * 0.5
 
     @staticmethod
     def tangent_vec_from_zero_to_base_point(tangent_vec, base_point):
@@ -456,8 +431,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         factor_1 = HermitianMatrices.powerm(aux_3, 1 / 2)
         factor_3 = HermitianMatrices.powerm(aux_4, 1 / 2)
         prod_1 = gs.matmul(factor_1, tangent_vec)
-        tangent_vec_at_base_point = gs.matmul(prod_1, factor_3)
-        return tangent_vec_at_base_point
+        return gs.matmul(prod_1, factor_3)
 
     def log(self, point, base_point):
         """Compute the Siegel logarithm map.
@@ -542,11 +516,9 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         logarithm = gs.linalg.logm(frac)
 
-        sq_dist = Matrices.trace_product(logarithm, logarithm)
-        sq_dist *= 0.25
+        sq_dist = Matrices.trace_product(logarithm, logarithm) * 0.25
         sq_dist = gs.real(sq_dist)
-        sq_dist = gs.maximum(sq_dist, 0)
-        return sq_dist
+        return gs.maximum(sq_dist, 0)
 
     def sectional_curvature_at_zero(self, tangent_vec_a, tangent_vec_b, atol=gs.atol):
         """Compute the sectional curvature at zero.
@@ -574,7 +546,7 @@ class SiegelMetric(ComplexRiemannianMetric):
             scalars = gs.where(norm_tangent_vec < atol, 0.0, 1 / norm_tangent_vec)
             return gs.einsum("...,...ij->...ij", scalars, tangent_vec)
 
-        zero = gs.zeros([self.n, self.n], dtype=tangent_vec_a.dtype)
+        zero = gs.zeros([self._space.n, self._space.n], dtype=tangent_vec_a.dtype)
 
         tangent_vec_a = _scale_by_norm(tangent_vec_a)
 

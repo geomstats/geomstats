@@ -1,5 +1,6 @@
 import random
 
+import geomstats.backend as gs
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from tests.data_generation import _VectorSpaceTestData
 
@@ -15,29 +16,33 @@ class LowerTriangularMatricesTestData(_VectorSpaceTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(n=2, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=True),
-            dict(n=2, mat=[[1.0, -1.0], [-1.0, 3.0]], expected=False),
+            dict(n=2, mat=gs.array([[1.0, 0.0], [-1.0, 3.0]]), expected=True),
+            dict(n=2, mat=gs.array([[1.0, -1.0], [-1.0, 3.0]]), expected=False),
             dict(
                 n=2,
-                mat=[
-                    [[1.0, 0], [0, 1.0]],
-                    [[1.0, 2.0], [2.0, 1.0]],
-                    [[-1.0, 0.0], [1.0, 1.0]],
-                    [[0.0, 0.0], [1.0, 1.0]],
-                ],
+                mat=gs.array(
+                    [
+                        [[1.0, 0], [0, 1.0]],
+                        [[1.0, 2.0], [2.0, 1.0]],
+                        [[-1.0, 0.0], [1.0, 1.0]],
+                        [[0.0, 0.0], [1.0, 1.0]],
+                    ]
+                ),
                 expected=[True, False, True, True],
             ),
             dict(
                 n=3,
-                mat=[
-                    [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                    [[0.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                    [[1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                    [[-1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                ],
+                mat=gs.array(
+                    [
+                        [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                        [[0.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                        [[1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                        [[-1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                    ]
+                ),
                 expected=[False, True, True, True],
             ),
-            dict(n=3, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=False),
+            dict(n=3, mat=gs.array([[1.0, 0.0], [-1.0, 3.0]]), expected=False),
         ]
         return self.generate_tests(smoke_data)
 
@@ -54,19 +59,23 @@ class LowerTriangularMatricesTestData(_VectorSpaceTestData):
         smoke_data = [
             dict(
                 n=3,
-                mat=[[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]],
-                expected=[1.0, 0.6, 7.0, -3.0, 0.0, 8.0],
+                mat=gs.array([[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]]),
+                expected=gs.array([1.0, 0.6, 7.0, -3.0, 0.0, 8.0]),
             ),
             dict(
                 n=3,
-                mat=[
-                    [[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]],
-                    [[2.0, 0.0, 0.0], [2.6, 7.0, 0.0], [-3.0, 0.0, 28.0]],
-                ],
-                expected=[
-                    [1.0, 0.6, 7.0, -3.0, 0.0, 8.0],
-                    [2.0, 2.6, 7.0, -3.0, 0.0, 28.0],
-                ],
+                mat=gs.array(
+                    [
+                        [[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]],
+                        [[2.0, 0.0, 0.0], [2.6, 7.0, 0.0], [-3.0, 0.0, 28.0]],
+                    ]
+                ),
+                expected=gs.array(
+                    [
+                        [1.0, 0.6, 7.0, -3.0, 0.0, 8.0],
+                        [2.0, 2.6, 7.0, -3.0, 0.0, 28.0],
+                    ]
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -88,13 +97,13 @@ class LowerTriangularMatricesTestData(_VectorSpaceTestData):
         smoke_data = [
             dict(
                 n=2,
-                point=[[2.0, 1.0], [1.0, 2.0]],
-                expected=[[2.0, 0.0], [1.0, 2.0]],
+                point=gs.array([[2.0, 1.0], [1.0, 2.0]]),
+                expected=gs.array([[2.0, 0.0], [1.0, 2.0]]),
             ),
             dict(
                 n=2,
-                point=[[1.0, 0.0], [0.0, 1.0]],
-                expected=[[1.0, 0.0], [0.0, 1.0]],
+                point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
             ),
         ]
         return self.generate_tests(smoke_data)

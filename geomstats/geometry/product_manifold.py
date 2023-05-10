@@ -60,33 +60,38 @@ def _block_diagonal(factor_matrices):
     return metric_matrix
 
 
+def _find_product_shape(factors, default_point_type):
+    """Determine an appropriate shape for the product from the factors."""
+    factor_shapes = [factor.shape for factor in factors]
+
+    if default_point_type == "auto":
+        if _all_equal(factor_shapes):
+            return len(factors), *factors[0].shape
+        default_point_type = "vector"
+    if default_point_type == "vector":
+        return (sum(math.prod(factor_shape) for factor_shape in factor_shapes),)
+    if not _all_equal(factor_shapes):
+        raise ValueError(
+            "A default_point_type of 'matrix' or 'other' can only be used if all "
+            "manifolds have the same shape."
+        )
+    if default_point_type == "matrix" and not len(factor_shapes[0]) == 1:
+        raise ValueError(
+            "A default_point_type of 'matrix' can only be used if all "
+            "manifolds have vector type."
+        )
+    return len(factors), *factors[0].shape
+
+
 class _IterateOverFactorsMixins:
-    def __init__(self, *args, pool_outputs=False, has_mixed_fields=False, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self, factors, cum_index, pool_outputs, has_mixed_fields, *args, **kwargs
+    ):
+        self.factors = factors
+        self._cum_index = cum_index
         self._pool_outputs = pool_outputs
         self._has_mixed_fields = has_mixed_fields
-
-    def _find_product_shape(self, default_point_type):
-        """Determine an appropriate shape for the product from the factors."""
-        if default_point_type == "auto":
-            if _all_equal(self._factor_shapes):
-                return len(self.factors), *self.factors[0].shape
-            default_point_type = "vector"
-        if default_point_type == "vector":
-            return (
-                sum(math.prod(factor_shape) for factor_shape in self._factor_shapes),
-            )
-        if not _all_equal(self._factor_shapes):
-            raise ValueError(
-                "A default_point_type of 'matrix' or 'other' can only be used if all "
-                "manifolds have the same shape."
-            )
-        if default_point_type == "matrix" and not len(self._factor_shapes[0]) == 1:
-            raise ValueError(
-                "A default_point_type of 'matrix' can only be used if all "
-                "manifolds have vector type."
-            )
-        return len(self.factors), *self.factors[0].shape
+        super().__init__(*args, **kwargs)
 
     def embed_to_product(self, points):
         """Map a point in each factor to a point in the product.
@@ -99,7 +104,7 @@ class _IterateOverFactorsMixins:
 
         Returns
         -------
-        point : array-like, shape (..., self.shape)
+        point : array-like, shape (..., shape)
 
         Raises
         ------
@@ -128,7 +133,7 @@ class _IterateOverFactorsMixins:
 
         Parameters
         ----------
-        point : array-like, shape (..., self.shape)
+        point : array-like, shape (..., shape)
             The point to be projected to the factors
 
         Returns
@@ -144,7 +149,7 @@ class _IterateOverFactorsMixins:
         geomstats.errors.check_point_shape(point, self)
 
         if self.default_point_type == "vector":
-            projected_points = gs.split(point, self.cum_index, axis=-1)
+            projected_points = gs.split(point, self._cum_index, axis=-1)
             projected_points = [
                 self._reshape_trailing(projected_points[j], self.factors[j])
                 for j in range(len(self.factors))
@@ -168,12 +173,14 @@ class _IterateOverFactorsMixins:
         return projected_points
 
     @staticmethod
-    def _reshape_trailing(argument, manifold):
+    def _reshape_trailing(argument, factor):
         """Convert the trailing dimensions to match the shape of a factor manifold."""
-        if manifold.default_coords_type == "vector":
+        space = factor._space if isinstance(factor, RiemannianMetric) else factor
+
+        if space.default_coords_type == "vector":
             return argument
         leading_shape = argument.shape[:-1]
-        trailing_shape = manifold.shape
+        trailing_shape = space.shape
         new_shape = leading_shape + trailing_shape
         return gs.reshape(argument, new_shape)
 
@@ -198,7 +205,7 @@ class _IterateOverFactorsMixins:
 
         Returns
         -------
-        out : array-like, shape = [..., {(), self.shape}]
+        out : array-like, shape = [..., {(), shape}]
         """
         # TODO The user may prefer to provide the arguments as lists and receive them as
         # TODO lists, as this may be the form in which they are available. This should
@@ -267,52 +274,28 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
         (dim,). 'other' will behave as `matrix` but for higher dimensions.
     """
 
-    def __init__(self, factors, default_point_type="auto", **kwargs):
-        if "metric_scales" in kwargs:
-            raise TypeError(
-                "Argument `metric_scales` is no longer in use: "
-                "use `scale * metric` to achieved the desired behavior"
-            )
+    def __init__(self, factors, default_point_type="auto", equip=True):
         geomstats.errors.check_parameter_accepted_values(
             default_point_type,
             "default_point_type",
             ["auto", "vector", "matrix", "other"],
         )
 
-        self.factors = tuple(factors)
-        self._factor_dims = [factor.dim for factor in self.factors]
-        self._factor_shapes = [factor.shape for factor in self.factors]
-        self._factor_default_coords_types = [
-            factor.default_coords_type for factor in self.factors
-        ]
+        factors = tuple(factors)
 
-        dim = sum(self._factor_dims)
+        factor_dims = [factor.dim for factor in factors]
+        factor_default_coords_types = [factor.default_coords_type for factor in factors]
 
-        shape = self._find_product_shape(default_point_type)
+        dim = sum(factor_dims)
 
-        if "extrinsic" in self._factor_default_coords_types:
+        shape = _find_product_shape(factors, default_point_type)
+
+        if "extrinsic" in factor_default_coords_types:
             default_coords_type = "extrinsic"
         else:
             default_coords_type = "intrinsic"
 
-        kwargs.setdefault(
-            "metric",
-            ProductRiemannianMetric(
-                [manifold.metric for manifold in factors],
-                default_point_type=default_point_type,
-            ),
-        )
-
-        super().__init__(
-            pool_outputs=True,
-            has_mixed_fields=_has_mixed_fields(self.factors),
-            dim=dim,
-            shape=shape,
-            default_coords_type=default_coords_type,
-            **kwargs,
-        )
-
-        if self.default_coords_type == "extrinsic":
+        if default_coords_type == "extrinsic":
             factor_embedding_spaces = [
                 manifold.embedding_space
                 if hasattr(manifold, "embedding_space")
@@ -322,11 +305,27 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             # TODO: need to revisit due to removal of scales
             self.embedding_space = ProductManifold(factor_embedding_spaces)
 
-        self.cum_index = (
-            gs.cumsum(self._factor_dims)[:-1]
-            if self.default_coords_type == "intrinsic"
-            else gs.cumsum(self.embedding_space._factor_dims)[:-1]
+        cum_index = (
+            gs.cumsum(factor_dims)[:-1]
+            if default_coords_type == "intrinsic"
+            else self.embedding_space._cum_index
         )
+
+        super().__init__(
+            factors=factors,
+            cum_index=cum_index,
+            pool_outputs=True,
+            has_mixed_fields=_has_mixed_fields(factors),
+            dim=dim,
+            shape=shape,
+            default_coords_type=default_coords_type,
+            equip=equip,
+        )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return ProductRiemannianMetric
 
     def _pool_outputs_from_function(self, outputs):
         """Collect outputs for each product to be returned.
@@ -533,49 +532,33 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
 
 class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
-    """Class for product of Riemannian metrics.
+    """Class for product of Riemannian metrics."""
 
-    Parameters
-    ----------
-    metrics : list
-        List of metrics in the product.
-    default_point_type : {'auto', 'vector', 'matrix', 'other'}
-        Optional. Default value is 'auto', which will implement as 'vector' unless all
-        factors have the same shape. Vector representation gives the point as a 1-d
-        array. Matrix representation allows for a point to be represented by an array of
-        shape (n, dim), if each manifold has default_point_type 'vector' with shape
-        (dim,). 'other' will behave as `matrix` but for higher dimensions.
-    """
+    def __init__(self, space):
+        factors = [factor.metric for factor in space.factors]
+        factor_signatures = [metric.signature for metric in factors]
 
-    def __init__(self, metrics, default_point_type="auto"):
-        geomstats.errors.check_parameter_accepted_values(
-            default_point_type,
-            "default_point_type",
-            ["auto", "vector", "matrix", "other"],
-        )
-
-        self.factors = metrics
-        self._factor_dims = [factor.dim for factor in self.factors]
-        self._factor_shapes = [factor.shape for factor in self.factors]
-        self._factor_shape_sizes = [math.prod(metric.shape) for metric in self.factors]
-        self._factor_signatures = [metric.signature for metric in self.factors]
-
-        dim = sum(self._factor_dims)
-
-        shape = self._find_product_shape(default_point_type)
-
-        sig_pos = sum(sig[0] for sig in self._factor_signatures)
-        sig_neg = sum(sig[1] for sig in self._factor_signatures)
+        sig_pos = sum(sig[0] for sig in factor_signatures)
+        sig_neg = sum(sig[1] for sig in factor_signatures)
 
         super().__init__(
+            space=space,
+            factors=factors,
+            cum_index=space._cum_index,
             pool_outputs=False,
-            has_mixed_fields=_has_mixed_fields(self.factors),
-            dim=dim,
+            has_mixed_fields=space._has_mixed_fields,
             signature=(sig_pos, sig_neg),
-            shape=shape,
         )
 
-        self.cum_index = gs.cumsum(self._factor_shape_sizes)[:-1]
+    @property
+    def shape(self):
+        """Shape of space."""
+        return self._space.shape
+
+    @property
+    def default_point_type(self):
+        """Point type of space."""
+        return self._space.default_point_type
 
     def metric_matrix(self, base_point=None):
         """Compute the matrix of the inner-product.

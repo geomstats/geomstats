@@ -146,7 +146,7 @@ def elastic_mean(points, weights=None, metric=None):
     transformed_linear_mean = linear_mean(transformed, weights=weights)
 
     starting_sampling_point = (
-        FrechetMean(metric.ambient_metric)
+        FrechetMean(metric._space.ambient_manifold.metric)
         .fit(points[:, 0, :], weights=weights)
         .estimate_
     )
@@ -200,7 +200,7 @@ def _default_gradient_descent(
 
         var_is_0 = gs.isclose(var, 0.0)
 
-        metric_dim = metric.dim
+        metric_dim = metric._space.dim
         if isinstance(metric, ElasticMetric):
             metric_dim = tangent_mean.shape[-2] * tangent_mean.shape[-1]
 
@@ -590,7 +590,7 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-        if isinstance(self.metric, HypersphereMetric) and self.metric.dim == 1:
+        if isinstance(self.metric, HypersphereMetric) and self.metric._space.dim == 1:
             mean = Hypersphere.angle_to_extrinsic(
                 _circle_mean(Hypersphere.extrinsic_to_angle(X))
             )

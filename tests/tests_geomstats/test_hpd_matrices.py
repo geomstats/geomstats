@@ -2,7 +2,6 @@
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.geometry.hpd_matrices import HPDMatrices
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.matrices import Matrices
 from tests.conftest import Parametrizer
@@ -23,24 +22,23 @@ class TestHPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = HPDMatricesTestData()
 
     def test_belongs(self, n, mat, expected):
-        self.assertAllClose(self.Space(n).belongs(gs.array(mat)), expected)
+        self.assertAllClose(self.Space(n).belongs(mat), expected)
 
     def test_projection(self, n, mat, expected):
         self.assertAllClose(
-            self.Space(n).projection(gs.array(mat)),
-            gs.array(expected),
+            self.Space(n).projection(mat),
+            expected,
         )
 
     def test_logm(self, hpd_mat, expected):
         self.assertAllClose(
-            self.Space.logm(gs.array(hpd_mat)),
-            gs.array(expected),
+            self.Space.logm(hpd_mat),
+            expected,
         )
 
     def test_cholesky_factor(self, n, hpd_mat, expected):
-        hpd_mat = gs.array(hpd_mat)
         result = self.Space.cholesky_factor(hpd_mat)
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
         is_lower_triangular = LowerTriangularMatrices(n).belongs(result, gs.atol)
         diagonal = Matrices.diagonal(hpd_mat)
         is_positive = gs.all(gs.real(diagonal) > 0, axis=-1)
@@ -49,58 +47,58 @@ class TestHPDMatrices(OpenSetTestCase, metaclass=Parametrizer):
 
     def test_differential_cholesky_factor(self, n, tangent_vec, base_point, expected):
         result = self.Space.differential_cholesky_factor(
-            gs.array(tangent_vec),
-            gs.array(base_point),
+            tangent_vec,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
         self.assertTrue(gs.all(LowerTriangularMatrices(n).belongs(result)))
 
     def test_differential_power(self, power, tangent_vec, base_point, expected):
         result = self.Space.differential_power(
             power,
-            gs.array(tangent_vec),
-            gs.array(base_point),
+            tangent_vec,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
     def test_inverse_differential_power(self, power, tangent_vec, base_point, expected):
         result = self.Space.inverse_differential_power(
             power,
-            gs.array(tangent_vec),
-            gs.array(base_point),
+            tangent_vec,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
     def test_differential_log(self, tangent_vec, base_point, expected):
         result = self.Space.differential_log(
-            gs.array(tangent_vec),
-            gs.array(base_point),
+            tangent_vec,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
     def test_inverse_differential_log(self, tangent_vec, base_point, expected):
         result = self.Space.inverse_differential_log(
-            gs.array(tangent_vec),
-            gs.array(base_point),
+            tangent_vec,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
     def test_differential_exp(self, tangent_vec, base_point, expected):
         result = self.Space.differential_exp(
-            gs.array(tangent_vec),
-            gs.array(base_point),
+            tangent_vec,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
     def test_inverse_differential_exp(self, tangent_vec, base_point, expected):
         result = self.Space.inverse_differential_exp(
-            gs.array(tangent_vec),
-            gs.array(base_point),
+            tangent_vec,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
     def test_cholesky_factor_belongs(self, n, mat):
-        result = self.Space(n).cholesky_factor(gs.array(mat))
+        result = self.Space(n).cholesky_factor(mat)
         is_lower_triangular = LowerTriangularMatrices(n).belongs(result, gs.atol)
         diagonal = Matrices.diagonal(mat)
         is_positive = gs.all(gs.real(diagonal) > 0, axis=-1)
@@ -127,34 +125,34 @@ class TestHPDAffineMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrize
     testing_data = HPDAffineMetricTestData()
 
     def test_inner_product(
-        self, n, power_affine, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, space, power_affine, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.Metric(n, power_affine)
-        result = metric.inner_product(
-            gs.array(tangent_vec_a),
-            gs.array(tangent_vec_b),
-            gs.array(base_point),
+        space.equip_with_metric(self.Metric, power_affine=power_affine)
+        result = space.metric.inner_product(
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
         )
         self.assertAllClose(result, expected)
 
-    def test_exp(self, n, power_affine, tangent_vec, base_point, expected):
-        metric = self.Metric(n, power_affine)
+    def test_exp(self, space, power_affine, tangent_vec, base_point, expected):
+        space.equip_with_metric(self.Metric, power_affine=power_affine)
         self.assertAllClose(
-            metric.exp(
-                gs.array(tangent_vec),
-                gs.array(base_point),
+            space.metric.exp(
+                tangent_vec,
+                base_point,
             ),
-            gs.array(expected),
+            expected,
         )
 
-    def test_log(self, n, power_affine, point, base_point, expected):
-        metric = self.Metric(n, power_affine)
+    def test_log(self, space, power_affine, point, base_point, expected):
+        space.equip_with_metric(self.Metric, power_affine=power_affine)
         self.assertAllClose(
-            metric.log(
-                gs.array(point),
-                gs.array(base_point),
+            space.metric.log(
+                point,
+                base_point,
             ),
-            gs.array(expected),
+            expected,
         )
 
 
@@ -177,36 +175,37 @@ class TestHPDBuresWassersteinMetric(
 
     testing_data = HPDBuresWassersteinMetricTestData()
 
-    def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
-        metric = self.Metric(n)
-        result = metric.inner_product(
-            gs.array(tangent_vec_a),
-            gs.array(tangent_vec_b),
-            gs.array(base_point),
+    def test_inner_product(
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.inner_product(
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
-    def test_exp(self, n, tangent_vec, base_point, expected):
-        metric = self.Metric(n)
-        result = metric.exp(
-            gs.array(tangent_vec),
-            gs.array(base_point),
+    def test_exp(self, space, tangent_vec, base_point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.exp(
+            tangent_vec,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
-    def test_log(self, n, point, base_point, expected):
-        metric = self.Metric(n)
-        result = metric.log(
-            gs.array(point),
-            gs.array(base_point),
+    def test_log(self, space, point, base_point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.log(
+            point,
+            base_point,
         )
         self.assertAllClose(result, expected)
 
     @tests.conftest.np_and_autograd_only
-    def test_parallel_transport(self, n):
-        space = HPDMatrices(*n)
-        metric = self.Metric(*n)
-        shape = (2, *n, *n)
+    def test_parallel_transport(self, space):
+        space.equip_with_metric(self.Metric)
+        shape = (2, space.n, space.n)
 
         point = space.random_point(2)
         end_point = space.random_point(2)
@@ -220,30 +219,34 @@ class TestHPDBuresWassersteinMetric(
         # orthonormalize and move to base_point
         tan_a -= gs.einsum(
             "...,...ij->...ij",
-            metric.inner_product(tan_a, tan_b, point)
-            / metric.squared_norm(tan_b, point),
+            space.metric.inner_product(tan_a, tan_b, point)
+            / space.metric.squared_norm(tan_b, point),
             tan_b,
         )
-        tan_b = gs.einsum("...ij,...->...ij", tan_b, 1.0 / metric.norm(tan_b, point))
-        tan_a = gs.einsum("...ij,...->...ij", tan_a, 1.0 / metric.norm(tan_a, point))
+        tan_b = gs.einsum(
+            "...ij,...->...ij", tan_b, 1.0 / space.metric.norm(tan_b, point)
+        )
+        tan_a = gs.einsum(
+            "...ij,...->...ij", tan_a, 1.0 / space.metric.norm(tan_a, point)
+        )
 
-        transported = metric.parallel_transport(
+        transported = space.metric.parallel_transport(
             tan_a, point, end_point=end_point, n_steps=15, step="rk4"
         )
-        result = metric.norm(transported, end_point)
-        expected = metric.norm(tan_a, point)
+        result = space.metric.norm(transported, end_point)
+        expected = space.metric.norm(tan_a, point)
         self.assertAllClose(result, expected)
 
         is_tangent = space.is_tangent(transported, end_point)
         self.assertTrue(gs.all(is_tangent))
 
-        transported = metric.parallel_transport(
+        transported = space.metric.parallel_transport(
             tan_a, point, tan_b, n_steps=15, step="rk4"
         )
 
-        end_point = metric.exp(tan_b, point)
-        result = metric.norm(transported, end_point)
-        expected = metric.norm(tan_a, point)
+        end_point = space.metric.exp(tan_b, point)
+        result = space.metric.norm(transported, end_point)
+        expected = space.metric.norm(tan_a, point)
         self.assertAllClose(result, expected)
 
         is_tangent = space.is_tangent(transported, end_point)
@@ -274,40 +277,42 @@ class TestHPDEuclideanMetric(ComplexRiemannianMetricTestCase, metaclass=Parametr
     testing_data = HPDEuclideanMetricTestData()
 
     def test_inner_product(
-        self, n, power_euclidean, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, space, power_euclidean, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.Metric(n, power_euclidean)
-        result = metric.inner_product(
-            gs.array(tangent_vec_a),
-            gs.array(tangent_vec_b),
-            gs.array(base_point),
+        space.equip_with_metric(self.Metric, power_euclidean=power_euclidean)
+        result = space.metric.inner_product(
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
     @tests.conftest.np_and_autograd_only
-    def test_exp_domain(self, n, power_euclidean, tangent_vec, base_point, expected):
-        metric = self.Metric(n, power_euclidean)
-        result = metric.exp_domain(
-            gs.array(tangent_vec),
-            gs.array(base_point),
-            gs.array(expected),
+    def test_exp_domain(
+        self, space, power_euclidean, tangent_vec, base_point, expected
+    ):
+        space.equip_with_metric(self.Metric, power_euclidean=power_euclidean)
+        result = space.metric.exp_domain(
+            tangent_vec,
+            base_point,
+            expected,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
-    def test_log(self, n, power_euclidean, point, base_point, expected):
-        metric = self.Metric(n)
-        result = metric.log(
-            gs.array(point),
-            gs.array(base_point),
+    def test_log(self, space, power_euclidean, point, base_point, expected):
+        space.equip_with_metric(self.Metric, power_euclidean=power_euclidean)
+        result = space.metric.log(
+            point,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
     def test_parallel_transport(
-        self, n, power_euclidean, tangent_vec_a, base_point, tangent_vec_b
+        self, space, power_euclidean, tangent_vec_a, base_point, tangent_vec_b
     ):
-        metric = self.Metric(n, power_euclidean)
-        result = metric.parallel_transport(
-            gs.array(tangent_vec_a), gs.array(base_point), gs.array(tangent_vec_b)
+        space.equip_with_metric(self.Metric, power_euclidean=power_euclidean)
+        result = space.metric.parallel_transport(
+            tangent_vec_a, base_point, tangent_vec_b
         )
         self.assertAllClose(result, tangent_vec_a)
 
@@ -371,35 +376,37 @@ class TestHPDLogEuclideanMetric(
 
     testing_data = HPDLogEuclideanMetricTestData()
 
-    def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
-        metric = self.Metric(n)
-        result = metric.inner_product(
-            gs.array(tangent_vec_a),
-            gs.array(tangent_vec_b),
-            gs.array(base_point),
+    def test_inner_product(
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.inner_product(
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
-    def test_exp(self, n, tangent_vec, base_point, expected):
-        metric = self.Metric(n)
-        result = metric.exp(
-            gs.array(tangent_vec),
-            gs.array(base_point),
+    def test_exp(self, space, tangent_vec, base_point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.exp(
+            tangent_vec,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
-    def test_log(self, n, point, base_point, expected):
-        metric = self.Metric(n)
-        result = metric.log(
-            gs.array(point),
-            gs.array(base_point),
+    def test_log(self, space, point, base_point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.log(
+            point,
+            base_point,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)
 
-    def test_dist(self, n, point_a, point_b, expected):
-        metric = self.Metric(n)
-        result = metric.dist(
-            gs.array(point_a),
-            gs.array(point_b),
+    def test_dist(self, space, point_a, point_b, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.dist(
+            point_a,
+            point_b,
         )
-        self.assertAllClose(result, gs.array(expected))
+        self.assertAllClose(result, expected)

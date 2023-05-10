@@ -28,14 +28,18 @@ class PositiveLowerTriangularMatrices(OpenSet):
         https://arxiv.org/abs/1908.09326
     """
 
-    def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", CholeskyMetric(n))
+    def __init__(self, n, equip=True):
         super().__init__(
             dim=int(n * (n + 1) / 2),
             embedding_space=LowerTriangularMatrices(n),
-            **kwargs
+            equip=equip,
         )
         self.n = n
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return CholeskyMetric
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample from the manifold.
@@ -164,13 +168,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
 
 class CholeskyMetric(RiemannianMetric):
-    """Class for cholesky metric on cholesky space.
-
-    Parameters
-    ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
-
+    """Class for Cholesky metric on Cholesky space.
 
     References
     ----------
@@ -179,11 +177,6 @@ class CholeskyMetric(RiemannianMetric):
         SIAM journal on Matrix Analysis and Applications , 2019.
         https://arxiv.org/abs/1908.09326
     """
-
-    def __init__(self, n):
-        dim = int(n * (n + 1) / 2)
-        super().__init__(dim=dim, signature=(dim, 0), shape=(n, n))
-        self.n = n
 
     @staticmethod
     def diag_inner_product(tangent_vec_a, tangent_vec_b, base_point):
@@ -207,8 +200,7 @@ class CholeskyMetric(RiemannianMetric):
         tangent_vec_a_diagonal = Matrices.diagonal(tangent_vec_a)
         tangent_vec_b_diagonal = Matrices.diagonal(tangent_vec_b)
         prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_sqrt_diagonal
-        ip_diagonal = gs.sum(prod, axis=-1)
-        return ip_diagonal
+        return gs.sum(prod, axis=-1)
 
     @staticmethod
     def strictly_lower_inner_product(tangent_vec_a, tangent_vec_b):
@@ -287,8 +279,7 @@ class CholeskyMetric(RiemannianMetric):
 
         sl_exp = sl_base_point + sl_tangent_vec
         diag_exp = gs.vec_to_diag(diag_base_point * diag_product_expm)
-        exp = sl_exp + diag_exp
-        return exp
+        return sl_exp + diag_exp
 
     def log(self, point, base_point, **kwargs):
         """Compute the Cholesky logarithm map.
@@ -317,8 +308,7 @@ class CholeskyMetric(RiemannianMetric):
 
         sl_log = sl_point - sl_base_point
         diag_log = gs.vec_to_diag(diag_base_point * diag_product_logm)
-        log = sl_log + diag_log
-        return log
+        return sl_log + diag_log
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Compute the Cholesky Metric squared distance.

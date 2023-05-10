@@ -1,33 +1,26 @@
 """Test data for the fisher rao metric."""
 
 import geomstats.backend as gs
-from geomstats.information_geometry.beta import BetaDistributions, BetaMetric
+from geomstats.information_geometry.beta import BetaDistributions
 from geomstats.information_geometry.binomial import BinomialDistributions
-from geomstats.information_geometry.exponential import (
-    ExponentialDistributions,
-    ExponentialMetric,
-)
+from geomstats.information_geometry.exponential import ExponentialDistributions
 from geomstats.information_geometry.fisher_rao_metric import FisherRaoMetric
-from geomstats.information_geometry.gamma import GammaDistributions, GammaMetric
+from geomstats.information_geometry.gamma import GammaDistributions
 from geomstats.information_geometry.geometric import GeometricDistributions
-from geomstats.information_geometry.normal import (
-    UnivariateNormalDistributions,
-    UnivariateNormalMetric,
-)
+from geomstats.information_geometry.normal import UnivariateNormalDistributions
 from geomstats.information_geometry.poisson import PoissonDistributions
 from tests.data_generation import _RiemannianMetricTestData
 
 
 class FisherRaoMetricTestData(_RiemannianMetricTestData):
-    information_manifolds = [
+    Metric = FisherRaoMetric
+
+    space_list = [
         UnivariateNormalDistributions(),
     ]
-    supports = [(-10, 10)]
-    Metric = FisherRaoMetric
-    metric_args_list = list(zip(information_manifolds, supports))
+    shape_list = [space.shape for space in space_list]
+    metric_args_list = [{"support": (-10, 10)} for _ in space_list]
 
-    shape_list = [metric_args[0].shape for metric_args in metric_args_list]
-    space_list = [metric_args[0] for metric_args in metric_args_list]
     n_points_list = [1, 2] * 3
     n_tangent_vecs_list = [1, 2] * 3
     n_points_a_list = [1, 2] * 3
@@ -39,72 +32,72 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
     def inner_product_matrix_shape_test_data(self):
         smoke_data = [
             dict(
-                information_manifold=UnivariateNormalDistributions(),
+                space=UnivariateNormalDistributions(equip=False),
                 support=(-10, 10),
                 base_point=gs.array([1.0, 2.0]),
             ),
             dict(
-                information_manifold=UnivariateNormalDistributions(),
+                space=UnivariateNormalDistributions(equip=False),
                 support=(-10, 10),
                 base_point=gs.array([[1.0, 2.0], [2.0, 3.0]]),
             ),
             dict(
-                information_manifold=GammaDistributions(),
+                space=GammaDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([1.0, 2.0]),
             ),
             dict(
-                information_manifold=GammaDistributions(),
+                space=GammaDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([[1.0, 2.0], [2.0, 3.0]]),
             ),
             dict(
-                information_manifold=BetaDistributions(),
+                space=BetaDistributions(equip=False),
                 support=(0, 1),
                 base_point=gs.array([1.0, 2.0]),
             ),
             dict(
-                information_manifold=BetaDistributions(),
+                space=BetaDistributions(equip=False),
                 support=(0, 1),
                 base_point=gs.array([[1.0, 2.0], [2.0, 3.0]]),
             ),
             dict(
-                information_manifold=ExponentialDistributions(),
+                space=ExponentialDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([1.0]),
             ),
             dict(
-                information_manifold=ExponentialDistributions(),
+                space=ExponentialDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([[1.0], [0.5]]),
             ),
             dict(
-                information_manifold=BinomialDistributions(10),
+                space=BinomialDistributions(10, equip=False),
                 support=(0, 10),
                 base_point=gs.array([0.5]),
             ),
             dict(
-                information_manifold=BinomialDistributions(10),
+                space=BinomialDistributions(10, equip=False),
                 support=(0, 10),
                 base_point=gs.array([[0.5], [0.8]]),
             ),
             dict(
-                information_manifold=PoissonDistributions(),
+                space=PoissonDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([1.0]),
             ),
             dict(
-                information_manifold=PoissonDistributions(),
+                space=PoissonDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([[1.0], [5.0]]),
             ),
             dict(
-                information_manifold=GeometricDistributions(),
+                space=GeometricDistributions(equip=False),
                 support=(1, 10),
                 base_point=gs.array([0.5]),
             ),
             dict(
-                information_manifold=GeometricDistributions(),
+                space=GeometricDistributions(equip=False),
                 support=(1, 10),
                 base_point=gs.array([[0.5], [0.8]]),
             ),
@@ -114,72 +107,72 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
     def det_of_inner_product_matrix_test_data(self):
         smoke_data = [
             dict(
-                information_manifold=UnivariateNormalDistributions(),
+                space=UnivariateNormalDistributions(equip=False),
                 support=(-10, 10),
                 base_point=gs.array([0.0, 0.5]),
             ),
             dict(
-                information_manifold=UnivariateNormalDistributions(),
+                space=UnivariateNormalDistributions(equip=False),
                 support=(-10, 10),
                 base_point=gs.array([[0.0, 0.5], [1.0, 0.5]]),
             ),
             dict(
-                information_manifold=GammaDistributions(),
+                space=GammaDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([1.0, 2.0]),
             ),
             dict(
-                information_manifold=GammaDistributions(),
+                space=GammaDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([[1.0, 2.0], [2.0, 3.0]]),
             ),
             dict(
-                information_manifold=BetaDistributions(),
+                space=BetaDistributions(equip=False),
                 support=(0, 1),
                 base_point=gs.array([1.0, 2.0]),
             ),
             dict(
-                information_manifold=BetaDistributions(),
+                space=BetaDistributions(equip=False),
                 support=(0, 1),
                 base_point=gs.array([[1.0, 2.0], [2.0, 3.0]]),
             ),
             dict(
-                information_manifold=ExponentialDistributions(),
+                space=ExponentialDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([1.0]),
             ),
             dict(
-                information_manifold=ExponentialDistributions(),
+                space=ExponentialDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([[1.0], [0.5]]),
             ),
             dict(
-                information_manifold=BinomialDistributions(10),
+                space=BinomialDistributions(10, equip=False),
                 support=(0, 10),
                 base_point=gs.array([0.5]),
             ),
             dict(
-                information_manifold=BinomialDistributions(10),
+                space=BinomialDistributions(10, equip=False),
                 support=(0, 10),
                 base_point=gs.array([[0.5], [0.8]]),
             ),
             dict(
-                information_manifold=PoissonDistributions(),
+                space=PoissonDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([1.0]),
             ),
             dict(
-                information_manifold=PoissonDistributions(),
+                space=PoissonDistributions(equip=False),
                 support=(0, 10),
                 base_point=gs.array([[1.0], [5.0]]),
             ),
             dict(
-                information_manifold=GeometricDistributions(),
+                space=GeometricDistributions(equip=False),
                 support=(1, 10),
                 base_point=gs.array([0.5]),
             ),
             dict(
-                information_manifold=GeometricDistributions(),
+                space=GeometricDistributions(equip=False),
                 support=(1, 10),
                 base_point=gs.array([[0.5], [0.8]]),
             ),
@@ -189,51 +182,43 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
     def metric_matrix_and_closed_form_metric_matrix_test_data(self):
         smoke_data = [
             dict(
-                information_manifold=UnivariateNormalDistributions(),
+                space=UnivariateNormalDistributions(equip=False),
                 support=(-20, 20),
-                closed_form_metric=UnivariateNormalMetric(),
                 base_point=gs.array([0.1, 0.8]),
             ),
             dict(
-                information_manifold=UnivariateNormalDistributions(),
+                space=UnivariateNormalDistributions(equip=False),
                 support=(-20, 20),
-                closed_form_metric=UnivariateNormalMetric(),
                 base_point=gs.array([[0.1, 0.8], [1.0, 2.0]]),
             ),
             dict(
-                information_manifold=ExponentialDistributions(),
+                space=ExponentialDistributions(equip=False),
                 support=(0, 100),
-                closed_form_metric=ExponentialMetric(),
                 base_point=gs.array([1.0]),
             ),
             dict(
-                information_manifold=ExponentialDistributions(),
+                space=ExponentialDistributions(equip=False),
                 support=(0, 100),
-                closed_form_metric=ExponentialMetric(),
                 base_point=gs.array([[1.0], [0.5]]),
             ),
             dict(
-                information_manifold=GammaDistributions(),
+                space=GammaDistributions(equip=False),
                 support=(0, 200),
-                closed_form_metric=GammaMetric(),
                 base_point=gs.array([1.0, 4.0]),
             ),
             dict(
-                information_manifold=GammaDistributions(),
+                space=GammaDistributions(equip=False),
                 support=(0, 100),
-                closed_form_metric=GammaMetric(),
                 base_point=gs.array([[1.0, 2.0], [2.0, 3.0]]),
             ),
             dict(
-                information_manifold=BetaDistributions(),
+                space=BetaDistributions(equip=False),
                 support=(0, 1),
-                closed_form_metric=BetaMetric(),
                 base_point=gs.array([0.5, 1.0]),
             ),
             dict(
-                information_manifold=BetaDistributions(),
+                space=BetaDistributions(equip=False),
                 support=(0, 1),
-                closed_form_metric=BetaMetric(),
                 base_point=gs.array([[0.5, 1.0], [2.0, 3.0]]),
             ),
         ]
@@ -242,65 +227,57 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
     def inner_product_and_closed_form_inner_product_test_data(self):
         smoke_data = [
             dict(
-                information_manifold=UnivariateNormalDistributions(),
+                space=UnivariateNormalDistributions(equip=False),
                 support=(-20, 20),
-                closed_form_metric=UnivariateNormalMetric(),
                 tangent_vec_a=gs.array([1.0, 2.0]),
                 tangent_vec_b=gs.array([1.0, 2.0]),
                 base_point=gs.array([1.0, 2.0]),
             ),
             dict(
-                information_manifold=UnivariateNormalDistributions(),
+                space=UnivariateNormalDistributions(equip=False),
                 support=(-20, 20),
-                closed_form_metric=UnivariateNormalMetric(),
                 tangent_vec_a=gs.array([[1.0, 2.0], [0, 2.0]]),
                 tangent_vec_b=gs.array([[1.0, 2.0], [0, 2.0]]),
                 base_point=gs.array([[1.0, 2.0], [0, 2.0]]),
             ),
             dict(
-                information_manifold=ExponentialDistributions(),
+                space=ExponentialDistributions(equip=False),
                 support=(0, 100),
-                closed_form_metric=ExponentialMetric(),
                 tangent_vec_a=gs.array([0.5]),
                 tangent_vec_b=gs.array([0.5]),
                 base_point=gs.array([0.5]),
             ),
             dict(
-                information_manifold=ExponentialDistributions(),
+                space=ExponentialDistributions(equip=False),
                 support=(0, 100),
-                closed_form_metric=ExponentialMetric(),
                 tangent_vec_a=gs.array([[0.5], [0.8]]),
                 tangent_vec_b=gs.array([[0.5], [0.8]]),
                 base_point=gs.array([[0.5], [0.8]]),
             ),
             dict(
-                information_manifold=BetaDistributions(),
+                space=BetaDistributions(equip=False),
                 support=(0, 1),
-                closed_form_metric=BetaMetric(),
                 tangent_vec_a=gs.array([1.0, 2.0]),
                 tangent_vec_b=gs.array([1.0, 2.0]),
                 base_point=gs.array([1.0, 2.0]),
             ),
             dict(
-                information_manifold=BetaDistributions(),
+                space=BetaDistributions(equip=False),
                 support=(0, 1),
-                closed_form_metric=BetaMetric(),
                 tangent_vec_a=gs.array([[1.0, 2.0], [3.0, 2.0]]),
                 tangent_vec_b=gs.array([[1.0, 2.0], [3.0, 2.0]]),
                 base_point=gs.array([[1.0, 2.0], [3.0, 2.0]]),
             ),
             dict(
-                information_manifold=GammaDistributions(),
+                space=GammaDistributions(equip=False),
                 support=(0, 100),
-                closed_form_metric=GammaMetric(),
                 tangent_vec_a=gs.array([1.0, 2.0]),
                 tangent_vec_b=gs.array([1.0, 2.0]),
                 base_point=gs.array([1.0, 2.0]),
             ),
             dict(
-                information_manifold=GammaDistributions(),
+                space=GammaDistributions(equip=False),
                 support=(0, 100),
-                closed_form_metric=GammaMetric(),
                 tangent_vec_a=gs.array([[1.0, 2.0], [3.0, 2.0]]),
                 tangent_vec_b=gs.array([[1.0, 2.0], [3.0, 2.0]]),
                 base_point=gs.array([[1.0, 2.0], [3.0, 2.0]]),
@@ -313,7 +290,7 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
     ):
         smoke_data = [
             dict(
-                information_manifold=ExponentialDistributions(),
+                space=ExponentialDistributions(equip=False),
                 support=(0, 100),
                 closed_form_derivative=lambda p: gs.expand_dims(
                     gs.expand_dims(-2 / p**3, axis=-1), axis=-1
@@ -321,7 +298,7 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
                 base_point=gs.array([0.5]),
             ),
             dict(
-                information_manifold=ExponentialDistributions(),
+                space=ExponentialDistributions(equip=False),
                 support=(0, 200),
                 closed_form_derivative=lambda p: gs.expand_dims(
                     gs.expand_dims(-2 / p**3, axis=-1), axis=-1
@@ -329,7 +306,7 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
                 base_point=gs.array([[0.2], [0.5]]),
             ),
             dict(
-                information_manifold=UnivariateNormalDistributions(),
+                space=UnivariateNormalDistributions(equip=False),
                 support=(-20, 20),
                 closed_form_derivative=lambda p: gs.array(
                     [[[0, -2 / p[1] ** 3], [0, 0]], [[0, 0], [0, -4 / p[1] ** 3]]]
@@ -344,7 +321,7 @@ class FisherRaoMetricTestData(_RiemannianMetricTestData):
                 base_point=gs.array([1.0, 2.0]),
             ),
             dict(
-                information_manifold=UnivariateNormalDistributions(),
+                space=UnivariateNormalDistributions(equip=False),
                 support=(-20, 20),
                 closed_form_derivative=lambda p: gs.array(
                     [[[0, -2 / p[1] ** 3], [0, 0]], [[0, 0], [0, -4 / p[1] ** 3]]]
