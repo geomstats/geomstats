@@ -563,7 +563,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        srv_shape_bundle_r3 = SRVShapeBundle(r3)
+        srv_shape_bundle_r3 = SRVShapeBundle(DiscreteCurves(r3, equip=True))
         geod_fun = srv_shape_bundle_r3._dynamic_programming(
             curve_a, curve_b, max_slope=50)["geodesic"]
         times = gs.linspace(0.0, 1.0, n_times)
