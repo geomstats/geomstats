@@ -1935,10 +1935,10 @@ class SRVShapeBundle(FiberBundle):
 
             """
             k_sampling_point = curve.shape[-2] - 1
-            new_curve = gs.zeros(shape=curve.shape, dtype=float)
+            new_curve = gs.zeros(shape=curve.shape)
             n_subinterval = len(gamma)
-            list_gamma_slope = gs.zeros(n_discretization + 1, dtype=float)
-            list_gamma_constant = gs.zeros(n_discretization + 1, dtype=float)
+            list_gamma_slope = gs.zeros(n_discretization + 1)
+            list_gamma_constant = gs.zeros(n_discretization + 1)
 
             new_curve[0] = curve[0]
             new_curve[-1] = curve[-1]
@@ -2219,7 +2219,7 @@ class SRVQuotientMetric(QuotientMetric):
                 point_a = gs.to_ndarray(point_a, to_ndim=3)
                 point_b = gs.to_ndarray(point_b, to_ndim=3)
                 n_points = point_a.shape[0]
-                quotient_dist = gs.zeros(n_points, dtype=float)
+                quotient_dist = gs.zeros(n_points)
 
                 for i in range(n_points):
                     dp = self.fiber_bundle._dynamic_programming(
