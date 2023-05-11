@@ -1859,7 +1859,7 @@ class SRVShapeBundle(FiberBundle):
         .. math::
         end_srv@\gamma(t) = end_srv(\gamma(t))\cdot\lvert\gamma(t)\rvert^\frac{1}{2}
 
-        The dynamic programming algorithm assumes that for every subinterval 
+        The dynamic programming algorithm assumes that for every subinterval
         :math: '\left[\frac{i}{n},\frac{i+1}{n}\right]' of :math: '\left[0,1\right]',
         gamma is linear.
 
@@ -1936,7 +1936,7 @@ class SRVShapeBundle(FiberBundle):
 
             """
             k_sampling_point = curve.shape[-2] - 1
-            new_curve = gs.zeros(shape=gs.shape(curve), dtype=float)
+            new_curve = gs.zeros(shape=tuple(curve.shape), dtype=float)
             n_subinterval = len(gamma)
             list_gamma_slope = gs.zeros(n_discretization + 1, dtype=float)
             list_gamma_constant = gs.zeros(n_discretization + 1, dtype=float)
@@ -1972,7 +1972,7 @@ class SRVShapeBundle(FiberBundle):
                 srv_1, srv_2, x_min, x_max, y_min, y_max):
             r"""Compute the value of an integral over a subinterval.
 
-            Compute n * the value of the integral of 
+            Compute n * the value of the integral of
             .. math::
             srv_1(t)\cdotsrv_2(\gamma(t))\cdot\lvert\gamma(t)\rvert^\frac{1}{2}
             over :math: '\left[\x_min,x_max\right]' where gamma restricted to
