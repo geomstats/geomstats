@@ -1936,7 +1936,7 @@ class SRVShapeBundle(FiberBundle):
 
             """
             k_sampling_point = curve.shape[-2] - 1
-            new_curve = gs.zeros(shape=tuple(curve.shape), dtype=float)
+            new_curve = gs.zeros(curve.shape, dtype=float)
             n_subinterval = len(gamma)
             list_gamma_slope = gs.zeros(n_discretization + 1, dtype=float)
             list_gamma_constant = gs.zeros(n_discretization + 1, dtype=float)
