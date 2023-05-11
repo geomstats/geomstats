@@ -1845,7 +1845,7 @@ class SRVShapeBundle(FiberBundle):
 
     def _dynamic_programming(
             self, initial_curve, end_curve, n_discretization=100, max_slope=6):
-        """Compute the dynamic programming algorithm.
+        r"""Compute the dynamic programming algorithm.
 
         Find the reparametrization gamma of end_curve that minimizes the distance
         between initial_curve and end_curve reparametrized by gamma, and output
@@ -1855,11 +1855,12 @@ class SRVShapeBundle(FiberBundle):
         representations: it is equivalent to finding the gamma that maximizes
         the L2 scalar product between initial_srv and end_srv@gamma where initial_srv
         is the SRV representation of the initial curve and end_srv@gamma is the SRV
-        representation of the end curve reparametrized by gamma, i.e... math::
-        end_srv@gamma : t --> end_srv(gamma(t))*|gamma(t)|^(1/2).
+        representation of the end curve reparametrized by gamma, i.e .. math::
+        'end_srv@\gamma(t) = end_srv(\gamma(t))\cdot\lvert\gamma(t)\rvert^\frac{1}{2}'.
 
-        The dynamic programming algorithm assumes that for every subinterval
-        [i/n, (i+1)/n] of [0,1], gamma is linear.
+        The dynamic programming algorithm assumes that for every subinterval .. math::
+        '\left[\frac{i}{n},\frac{i+1}{n}\right]' of :math: '\left[0,1\right]',
+        gamma is linear.
 
         Inputs
         ----------
@@ -1968,11 +1969,12 @@ class SRVShapeBundle(FiberBundle):
 
         def compute_integral_restricted(
                 srv_1, srv_2, x_min, x_max, y_min, y_max):
-            """Compute the value of an integral over a subinterval.
+            r"""Compute the value of an integral over a subinterval.
 
-            Compute n * the value of the integral of
-            t --> srv_1(t)*srv_2(gamma(t))*|gamma(t)|^(1/2) over [x_min,x_max]
-            where gamma restricted to [x_min,xmax] is a constant.
+            Compute n * the value of the integral of .. math::
+            'srv_1(t)\cdotsrv_2(\gamma(t))\cdot\lvert\gamma(t)\rvert^\frac{1}{2}'
+            over :math: '\left[\x_min,x_max\right]' where gamma restricted to
+            :math: '\left[\x_min,x_max\right]' is a linear.
 
             Inputs
             ----------
