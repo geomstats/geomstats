@@ -1855,11 +1855,12 @@ class SRVShapeBundle(FiberBundle):
         representations: it is equivalent to finding the gamma that maximizes
         the L2 scalar product between initial_srv and end_srv@gamma where initial_srv
         is the SRV representation of the initial curve and end_srv@gamma is the SRV
-        representation of the end curve reparametrized by gamma, i.e .. math::
-        'end_srv@\gamma(t) = end_srv(\gamma(t))\cdot\lvert\gamma(t)\rvert^\frac{1}{2}'.
+        representation of the end curve reparametrized by gamma, i.e
+        .. math::
+        end_srv@\gamma(t) = end_srv(\gamma(t))\cdot\lvert\gamma(t)\rvert^\frac{1}{2}
 
-        The dynamic programming algorithm assumes that for every subinterval .. math::
-        '\left[\frac{i}{n},\frac{i+1}{n}\right]' of :math: '\left[0,1\right]',
+        The dynamic programming algorithm assumes that for every subinterval 
+        :math: '\left[\frac{i}{n},\frac{i+1}{n}\right]' of :math: '\left[0,1\right]',
         gamma is linear.
 
         Inputs
@@ -1935,10 +1936,10 @@ class SRVShapeBundle(FiberBundle):
 
             """
             k_sampling_point = curve.shape[-2] - 1
-            new_curve = gs.zeros(shape=curve.shape)
+            new_curve = gs.zeros(shape=curve.shape, dtype=float)
             n_subinterval = len(gamma)
-            list_gamma_slope = gs.zeros(n_discretization + 1)
-            list_gamma_constant = gs.zeros(n_discretization + 1)
+            list_gamma_slope = gs.zeros(n_discretization + 1, dtype=float)
+            list_gamma_constant = gs.zeros(n_discretization + 1, dtype=float)
 
             new_curve[0] = curve[0]
             new_curve[-1] = curve[-1]
@@ -1971,8 +1972,9 @@ class SRVShapeBundle(FiberBundle):
                 srv_1, srv_2, x_min, x_max, y_min, y_max):
             r"""Compute the value of an integral over a subinterval.
 
-            Compute n * the value of the integral of .. math::
-            'srv_1(t)\cdotsrv_2(\gamma(t))\cdot\lvert\gamma(t)\rvert^\frac{1}{2}'
+            Compute n * the value of the integral of 
+            .. math::
+            srv_1(t)\cdotsrv_2(\gamma(t))\cdot\lvert\gamma(t)\rvert^\frac{1}{2}
             over :math: '\left[\x_min,x_max\right]' where gamma restricted to
             :math: '\left[\x_min,x_max\right]' is a linear.
 
@@ -2219,7 +2221,7 @@ class SRVQuotientMetric(QuotientMetric):
                 point_a = gs.to_ndarray(point_a, to_ndim=3)
                 point_b = gs.to_ndarray(point_b, to_ndim=3)
                 n_points = point_a.shape[0]
-                quotient_dist = gs.zeros(n_points)
+                quotient_dist = gs.zeros(n_points, dtype=float)
 
                 for i in range(n_points):
                     dp = self.fiber_bundle._dynamic_programming(
