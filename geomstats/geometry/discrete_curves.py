@@ -1655,6 +1655,16 @@ class SRVShapeBundle(FiberBundle):
         tangent_vec_ver = self.vertical_projection(tangent_vec, point)
         return tangent_vec - tangent_vec_ver
 
+
+class SRVQuotientMetric(QuotientMetric):
+    """SRV quotient metric on the space of unparametrized curves.
+
+    This is the class for the quotient metric induced by the SRV Metric
+    on the shape space of unparametrized curves, i.e. the space of parametrized
+    curves quotiented by the group of reparametrizations. In the discrete case,
+    reparametrization corresponds to resampling.
+    """
+
     def horizontal_geodesic(self, initial_point, end_point, threshold=1e-3):
         """Compute horizontal geodesic between two curves.
 
@@ -1809,20 +1819,19 @@ class SRVShapeBundle(FiberBundle):
             counter = 0
 
             while gap > threshold:
-                srv_geod_fun = self.total_space.metric.geodesic(
+                srv_geod_fun = self.fiber_bundle.total_space.metric.geodesic(
                     initial_point=initial_curve, end_point=current_end_curve
                 )
                 geod = srv_geod_fun(t)
 
                 time_deriv = n_times * (geod[1:] - geod[:-1])
-                _, vertical_norm = self.vertical_projection(
+                _, vertical_norm = self.fiber_bundle.vertical_projection(
                     time_deriv, geod[:-1], return_norm=True
                 )
 
                 space_deriv = SRVMetric.space_derivative(geod)
-                space_deriv_norm = self.total_space.ambient_manifold.metric.norm(
-                    space_deriv
-                )
+                space_deriv_norm = self.fiber_bundle.total_space.\
+                    ambient_manifold.metric.norm(space_deriv)
 
                 repar = construct_reparametrization(vertical_norm, space_deriv_norm)
 
@@ -1899,7 +1908,8 @@ class SRVShapeBundle(FiberBundle):
             srv : array , shape=[n_discretization, ambient_dim]
                 SRV function of the curve at the right size.
             """
-            ambient_metric = self.total_space.metric._space.ambient_manifold.metric
+            ambient_metric = self.fiber_bundle.total_space.\
+                metric._space.ambient_manifold.metric
             if gs.any(
                 ambient_metric.norm(
                     point[..., 1:, :] - point[..., :-1, :]) < tol
@@ -2076,7 +2086,7 @@ class SRVShapeBundle(FiberBundle):
         end_curve_reparametrized = reparametrization_curve(
             end_curve, gamma[(n_discretization, n_discretization)])
 
-        geodesic = self.total_space.metric.geodesic(
+        geodesic = self.fiber_bundle.total_space.metric.geodesic(
             initial_curve, end_curve_reparametrized)
 
         return {"geodesic": geodesic, "distance": distance}
@@ -2109,16 +2119,6 @@ class SRVShapeBundle(FiberBundle):
         hor_path = horizontal_path(times)
         return hor_path[-1]
 
-
-class SRVQuotientMetric(QuotientMetric):
-    """SRV quotient metric on the space of unparametrized curves.
-
-    This is the class for the quotient metric induced by the SRV Metric
-    on the shape space of unparametrized curves, i.e. the space of parametrized
-    curves quotiented by the group of reparametrizations. In the discrete case,
-    reparametrization corresponds to resampling.
-    """
-
     def geodesic(self, initial_point, end_point, method="horizontal projection",
                  threshold=1e-3, n_discretization=100, max_slope=10):
         """Geodesic for the quotient SRV Metric.
@@ -2129,14 +2129,14 @@ class SRVQuotientMetric(QuotientMetric):
         geodesics are given in the total space.
         """
         if method == "horizontal projection" :
-            return self.fiber_bundle.horizontal_geodesic(
+            return self.horizontal_geodesic(
                 initial_point, end_point, threshold
             )
 
         elif method == "dynamic programming" :
             point_ndim = gs.ndim(initial_point)
             if point_ndim == 2:
-                dp = self.fiber_bundle._dynamic_programming(
+                dp = self._dynamic_programming(
                     initial_point, end_point, n_discretization, max_slope)
                 return dp["geodesic"]
             else :
@@ -2146,7 +2146,7 @@ class SRVQuotientMetric(QuotientMetric):
                 results = gs.zeros(n_points, dtype=object)
 
                 for i in range(n_points):
-                    dp = self.fiber_bundle._dynamic_programming(
+                    dp = self._dynamic_programming(
                         initial_point[i], end_point[i], n_discretization, max_slope
                     )
                     results[i] = dp["geodesic"]
@@ -2214,7 +2214,7 @@ class SRVQuotientMetric(QuotientMetric):
 
             point_ndim = gs.ndim(point_a)
             if point_ndim == 2:
-                dp = self.fiber_bundle._dynamic_programming(
+                dp = self._dynamic_programming(
                     point_a, point_b, n_discretization, max_slope)
                 return dp["distance"]
             else :
@@ -2224,7 +2224,7 @@ class SRVQuotientMetric(QuotientMetric):
                 quotient_dist = gs.zeros(n_points, dtype=float)
 
                 for i in range(n_points):
-                    dp = self.fiber_bundle._dynamic_programming(
+                    dp = self._dynamic_programming(
                         point_a[i], point_b[i], n_discretization, max_slope)
                     quotient_dist[i] = dp["distance"]
 

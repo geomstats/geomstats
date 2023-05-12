@@ -438,26 +438,6 @@ class SRVShapeBundleTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def horizontal_geodesic_test_data(self):
-        smoke_data = [
-            dict(
-                k_sampling_points=k_sampling_points,
-                curve_a=spherical_curve_a,
-                n_times=20,
-            )
-        ]
-        return self.generate_tests(smoke_data)
-
-    def dynamic_programming_test_data(self):
-        smoke_data = [
-            dict(
-                k_sampling_points=k_sampling_points,
-                curve_a=spherical_curve_a,
-                n_times=20,
-            )
-        ]
-        return self.generate_tests(smoke_data)
-
 
 class ClosedDiscreteCurvesTestData(_ManifoldTestData):
     s2 = Hypersphere(dim=2)
@@ -506,6 +486,26 @@ class SRVQuotientMetricTestData(TestData):
                 curve_fun_a=curve_fun_a,
                 curve_a=curve_a,
                 k_sampling_points=k_sampling_points,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def horizontal_geodesic_test_data(self):
+        smoke_data = [
+            dict(
+                k_sampling_points=k_sampling_points,
+                curve_a=spherical_curve_a,
+                n_times=20,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def dynamic_programming_test_data(self):
+        smoke_data = [
+            dict(
+                k_sampling_points=k_sampling_points,
+                curve_a=spherical_curve_a,
+                n_times=20,
             )
         ]
         return self.generate_tests(smoke_data)
