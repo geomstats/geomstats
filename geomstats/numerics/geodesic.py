@@ -3,8 +3,8 @@
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
-from geomstats.numerics.bvp_solvers import ScipySolveBVP
-from geomstats.numerics.ivp_solvers import GSIntegrator
+from geomstats.numerics.bvp import ScipySolveBVP
+from geomstats.numerics.ivp import GSIntegrator
 from geomstats.numerics.optimizers import ScipyMinimize
 
 
