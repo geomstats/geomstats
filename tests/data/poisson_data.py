@@ -87,15 +87,12 @@ class PoissonTestData(_OpenSetTestData):
 
 
 class PoissonMetricTestData(_RiemannianMetricTestData):
-    Space = PoissonDistributions
     Metric = PoissonMetric
 
-    n_list = random.sample(range(2, 5), 2)
-    n_samples_list = random.sample(range(1, 10), 3)
-    connection_args_list = metric_args_list = [() for n in n_list]
-    space_list = [PoissonDistributions() for n in n_list]
-    space_args_list = [() for n in n_list]
-    shape_list = [(1,) for n in n_list]
+    connection_args_list = metric_args_list = [{}]
+    space_list = [PoissonDistributions()]
+    shape_list = [(1,)]
+
     n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -110,21 +107,25 @@ class PoissonMetricTestData(_RiemannianMetricTestData):
     def squared_dist_test_data(self):
         smoke_data = [
             dict(
+                space=self.space_list[0],
                 point_a=gs.array([1, 3, 0.1]),
                 point_b=gs.array([4, 3, 0.9]),
                 expected=gs.array([4.0, 0.0, 1.6]),
             ),
             dict(
+                space=self.space_list[0],
                 point_a=gs.array(0.1),
                 point_b=gs.array(4.9),
                 expected=gs.array(14.4),
             ),
             dict(
+                space=self.space_list[0],
                 point_a=gs.array(0.1),
                 point_b=gs.array([4.9, 0.9]),
                 expected=gs.array([14.4, 1.6]),
             ),
             dict(
+                space=self.space_list[0],
                 point_a=gs.array([4.9, 0.4]),
                 point_b=gs.array(0.1),
                 expected=gs.array([14.4, 0.4]),
@@ -135,10 +136,12 @@ class PoissonMetricTestData(_RiemannianMetricTestData):
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(
+                space=self.space_list[0],
                 point=gs.array([0.5]),
                 expected=gs.array([[2]]),
             ),
             dict(
+                space=self.space_list[0],
                 point=gs.array([[0.5], [0.2]]),
                 expected=gs.array([[[2]], [[5]]]),
             ),
@@ -147,8 +150,8 @@ class PoissonMetricTestData(_RiemannianMetricTestData):
 
     def geodesic_symmetry_test_data(self):
         random_data = []
-        for space_args in self.space_args_list:
-            random_data.append(dict(space_args=space_args))
+        for space in self.space_list:
+            random_data.append(dict(space=space))
         return self.generate_tests([], random_data)
 
     def log_after_exp_test_data(self):
@@ -168,6 +171,7 @@ class PoissonMetricTestData(_RiemannianMetricTestData):
             tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
+                    space=space,
                     connection_args=connection_args,
                     tangent_vec=tangent_vec,
                     base_point=base_point,

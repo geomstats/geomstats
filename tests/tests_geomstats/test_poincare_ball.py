@@ -4,7 +4,6 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.poincare_ball import PoincareBall
 from tests.conftest import Parametrizer
 from tests.data.poincare_ball_data import (
     PoincareBallTestData,
@@ -20,12 +19,12 @@ class TestPoincareBall(OpenSetTestCase, metaclass=Parametrizer):
 
     def test_belongs(self, dim, point, expected):
         space = self.Space(dim)
-        result = space.belongs(gs.array(point))
-        self.assertAllClose(result, gs.array(expected))
+        result = space.belongs(point)
+        self.assertAllClose(result, expected)
 
     def test_projection_norm_lessthan_1(self, dim, point):
         space = self.Space(dim)
-        projected_point = space.projection(gs.array(point))
+        projected_point = space.projection(point)
         result = gs.sum(projected_point * projected_point) < 1.0
         self.assertTrue(result)
 
@@ -47,81 +46,85 @@ class TestPoincareBallMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = TestDataPoincareBallMetric()
 
-    def test_mobius_out_of_the_ball(self, dim, x, y):
-        metric = self.Metric(dim)
+    def test_mobius_out_of_the_ball(self, space, x, y):
+        space.equip_with_metric(self.Metric)
         with pytest.raises(ValueError):
-            metric.mobius_add(gs.array(x), gs.array(y), project_first=False)
+            space.metric.mobius_add(x, y, project_first=False)
 
-    def test_log(self, dim, point, base_point, expected):
-        metric = self.Metric(dim)
-        result = metric.log(gs.array(point), gs.array(base_point))
-        self.assertAllClose(result, gs.array(expected))
+    def test_log(self, space, point, base_point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.log(point, base_point)
+        self.assertAllClose(result, expected)
 
-    def test_dist_pairwise(self, dim, point, expected):
-        metric = self.Metric(dim)
-        result = metric.dist_pairwise(gs.array(point))
-        self.assertAllClose(result, gs.array(expected), rtol=1e-3)
+    def test_dist_pairwise(self, space, point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.dist_pairwise(point)
+        self.assertAllClose(result, expected, rtol=1e-3)
 
-    def test_dist(self, dim, point_a, point_b, expected):
-        metric = self.Metric(dim)
-        result = metric.dist(gs.array(point_a), gs.array(point_b))
-        self.assertAllClose(result, gs.array(expected))
+    def test_dist(self, space, point_a, point_b, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.dist(point_a, point_b)
+        self.assertAllClose(result, expected)
 
-    def test_coordinate(self, dim, point_a, point_b):
-        metric = self.Metric(dim)
-        point_a_h = PoincareBall(dim).to_coordinates(gs.array(point_a), "extrinsic")
-        point_b_h = PoincareBall(dim).to_coordinates(gs.array(point_b), "extrinsic")
-        dist_in_ball = metric.dist(gs.array(point_a), gs.array(point_b))
-        dist_in_hype = Hyperboloid(dim).metric.dist(point_a_h, point_b_h)
+    def test_coordinate(self, space, point_a, point_b):
+        space.equip_with_metric(self.Metric)
+        point_a_h = space.to_coordinates(point_a, "extrinsic")
+        point_b_h = space.to_coordinates(point_b, "extrinsic")
+        dist_in_ball = space.metric.dist(point_a, point_b)
+        dist_in_hype = Hyperboloid(space.dim).metric.dist(point_a_h, point_b_h)
         self.assertAllClose(dist_in_ball, dist_in_hype)
 
-    def test_mobius_vectorization(self, dim, point_a, point_b):
-        metric = self.Metric(dim)
+    def test_mobius_vectorization(self, space, point_a, point_b):
+        space.equip_with_metric(self.Metric)
 
-        dist_a_b = metric.mobius_add(point_a, point_b)
+        dist_a_b = space.metric.mobius_add(point_a, point_b)
 
         result_vect = dist_a_b
-        result = [metric.mobius_add(point_a, point_b[i]) for i in range(len(point_b))]
+        result = [
+            space.metric.mobius_add(point_a, point_b[i]) for i in range(len(point_b))
+        ]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-        dist_a_b = metric.mobius_add(point_b, point_a)
+        dist_a_b = space.metric.mobius_add(point_b, point_a)
 
         result_vect = dist_a_b
-        result = [metric.mobius_add(point_b[i], point_a) for i in range(len(point_b))]
+        result = [
+            space.metric.mobius_add(point_b[i], point_a) for i in range(len(point_b))
+        ]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-    def test_log_vectorization(self, dim, point_a, point_b):
+    def test_log_vectorization(self, space, point_a, point_b):
+        space.equip_with_metric(self.Metric)
 
-        metric = self.Metric(dim)
-        dist_a_b = metric.log(point_a, point_b)
+        dist_a_b = space.metric.log(point_a, point_b)
 
         result_vect = dist_a_b
-        result = [metric.log(point_a, point_b[i]) for i in range(len(point_b))]
+        result = [space.metric.log(point_a, point_b[i]) for i in range(len(point_b))]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-        dist_a_b = metric.log(point_b, point_a)
+        dist_a_b = space.metric.log(point_b, point_a)
 
         result_vect = dist_a_b
-        result = [metric.log(point_b[i], point_a) for i in range(len(point_b))]
+        result = [space.metric.log(point_b[i], point_a) for i in range(len(point_b))]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-    def test_exp_vectorization(self, dim, point_a, point_b):
+    def test_exp_vectorization(self, space, point_a, point_b):
+        space.equip_with_metric(self.Metric)
 
-        metric = self.Metric(dim)
-        dist_a_b = metric.exp(point_a, point_b)
+        dist_a_b = space.metric.exp(point_a, point_b)
 
         result_vect = dist_a_b
-        result = [metric.exp(point_a, point_b[i]) for i in range(len(point_b))]
+        result = [space.metric.exp(point_a, point_b[i]) for i in range(len(point_b))]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-        dist_a_b = metric.exp(point_b, point_a)
+        dist_a_b = space.metric.exp(point_b, point_a)
 
         result_vect = dist_a_b
-        result = [metric.exp(point_b[i], point_a) for i in range(len(point_b))]
+        result = [space.metric.exp(point_b[i], point_a) for i in range(len(point_b))]
         result = gs.stack(result, axis=0)
         self.assertAllClose(result_vect, result)

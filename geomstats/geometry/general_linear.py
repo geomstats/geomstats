@@ -24,20 +24,21 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         Optional, default: False.
     """
 
-    def __init__(self, n, positive_det=False, **kwargs):
-        embedding_space = Matrices(n, n)
-        kwargs.setdefault("dim", n**2)
-        kwargs.setdefault("metric", embedding_space.metric)
-
+    def __init__(self, n, positive_det=False, equip=True):
         self.n = n
         super().__init__(
-            embedding_space=embedding_space,
+            dim=n**2,
+            embedding_space=Matrices(n, n),
             representation_dim=n,
             lie_algebra=SquareMatrices(n),
-            **kwargs
+            equip=equip,
         )
 
         self.positive_det = positive_det
+
+    def default_metric(self):
+        """Metric to equip the space with if equip is True."""
+        return type(self.embedding_space.metric)
 
     def projection(self, point):
         r"""Project a matrix to the general linear group.
@@ -198,7 +199,7 @@ class SquareMatrices(MatrixLieAlgebra):
 
     def __init__(self, n):
         self.n = n
-        super().__init__(dim=n**2, representation_dim=n)
+        super().__init__(dim=n**2, representation_dim=n, equip=False)
         self._mat_space = Matrices(n, n)
 
     def _create_basis(self):

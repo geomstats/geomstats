@@ -913,7 +913,7 @@ class WaldSpace(PointSet):
     """
 
     def __init__(self, n_labels):
-        super().__init__()
+        super().__init__(equip=False)
         self.n_labels = n_labels
         self.ambient = spd.SPDMatrices(n=self.n_labels)
 

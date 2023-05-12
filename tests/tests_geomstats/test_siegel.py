@@ -1,6 +1,5 @@
 """Unit tests for the Siegel manifold."""
 
-import geomstats.backend as gs
 from tests.conftest import Parametrizer
 from tests.data.siegel_data import SiegelMetricTestData, SiegelTestData
 from tests.geometry_test_cases import ComplexRiemannianMetricTestCase, OpenSetTestCase
@@ -12,12 +11,12 @@ class TestSiegel(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = SiegelTestData()
 
     def test_belongs(self, n, mat, expected):
-        self.assertAllClose(self.Space(n).belongs(gs.array(mat)), expected)
+        self.assertAllClose(self.Space(n).belongs(mat), expected)
 
     def test_projection(self, n, mat, expected):
         self.assertAllClose(
-            self.Space(n).projection(gs.array(mat)),
-            gs.array(expected),
+            self.Space(n).projection(mat),
+            expected,
         )
 
 
@@ -40,42 +39,41 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = SiegelMetricTestData()
 
-    def test_inner_product(self, n, tangent_vec_a, tangent_vec_b, base_point, expected):
-        metric = self.Metric(n)
-        result = metric.inner_product(
-            gs.array(tangent_vec_a),
-            gs.array(tangent_vec_b),
-            gs.array(base_point),
+    def test_inner_product(
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.inner_product(
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
         )
         self.assertAllClose(result, expected)
 
-    def test_exp(self, n, tangent_vec, base_point, expected):
-        metric = self.Metric(n)
+    def test_exp(self, space, tangent_vec, base_point, expected):
+        space.equip_with_metric(self.Metric)
         self.assertAllClose(
-            metric.exp(
-                gs.array(tangent_vec),
-                gs.array(base_point),
+            space.metric.exp(
+                tangent_vec,
+                base_point,
             ),
-            gs.array(expected),
+            expected,
         )
 
-    def test_log(self, n, point, base_point, expected):
-        metric = self.Metric(n)
+    def test_log(self, space, point, base_point, expected):
+        space.equip_with_metric(self.Metric)
         self.assertAllClose(
-            metric.log(
-                gs.array(point),
-                gs.array(base_point),
-            ),
-            gs.array(expected),
+            space.metric.log(point, base_point),
+            expected,
         )
 
     def test_sectional_curvature(
-        self, n, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.Metric(n)
-        result = metric.sectional_curvature(
-            gs.array(tangent_vec_a),
-            gs.array(tangent_vec_b),
-            gs.array(base_point),
+        space.equip_with_metric(self.Metric)
+        result = space.metric.sectional_curvature(
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
         )
         self.assertAllClose(result, expected)

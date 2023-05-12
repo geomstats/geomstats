@@ -137,7 +137,7 @@ class GeodesicRegression(BaseEstimator):
         """
         X_copy = (
             X[:, None]
-            if self.metric.default_point_type == "vector"
+            if self.metric._space.default_point_type == "vector"
             else X[:, None, None]
         )
         return self.metric.exp(X_copy * coef[None], intercept)

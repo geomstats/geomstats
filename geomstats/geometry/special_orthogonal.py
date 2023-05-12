@@ -35,7 +35,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n, **kwargs):
+    def __init__(self, n, equip=True):
         self.n = n
         self._value = gs.eye(n)
 
@@ -44,11 +44,13 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             representation_dim=n,
             lie_algebra=SkewSymmetricMatrices(n=n),
             default_coords_type="extrinsic",
-            **kwargs,
+            equip=equip,
         )
-        self.bi_invariant_metric = BiInvariantMetric(group=self)
-        if self._metric is None:
-            self._metric = self.bi_invariant_metric
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return BiInvariantMetric
 
     def _define_embedding_space(self):
         return GeneralLinear(self.n, positive_det=True)
@@ -65,7 +67,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
 
         Returns
         -------
-        submersed_point : array-like, shape=[..., n. n]
+        submersed_point : array-like, shape=[..., n, n]
         """
         return self._aux_submersion(point) - self._value
 
@@ -336,9 +338,9 @@ class _SpecialOrthogonalVectors(LieGroup):
         Optional, default: 0.
     """
 
-    def __init__(self, n, epsilon=0.0):
+    def __init__(self, n, epsilon=0.0, equip=True):
         dim = n * (n - 1) // 2
-        super().__init__(dim=dim, shape=(dim,), lie_algebra=self)
+        super().__init__(dim=dim, shape=(dim,), lie_algebra=self, equip=equip)
 
         self.n = n
         self.epsilon = epsilon
@@ -534,7 +536,7 @@ class _SpecialOrthogonalVectors(LieGroup):
 
         return tangent_vec
 
-    def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
+    def regularize_tangent_vec_at_identity(self, tangent_vec):
         """Regularize a tangent vector at the identity.
 
         In 2D, regularize a tangent_vector by getting its norm at the identity,
@@ -544,9 +546,6 @@ class _SpecialOrthogonalVectors(LieGroup):
         ----------
         tangent_vec : array-like, shape=[..., 1]
             Tangent vector at base point.
-        metric : RiemannianMetric
-            Metric to compute the norm of the tangent vector.
-            Optional, default is the Euclidean metric.
 
         Returns
         -------
@@ -555,7 +554,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         """
         return self.regularize(tangent_vec)
 
-    def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
+    def regularize_tangent_vec(self, tangent_vec, base_point):
         """Regularize tangent vector at a base point.
 
         In 2D, regularize a tangent_vector by getting the norm of its parallel
@@ -567,9 +566,6 @@ class _SpecialOrthogonalVectors(LieGroup):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 1]
             Point on the manifold.
-        metric : RiemannianMetric
-            Metric to compute the norm of the tangent vector.
-            Optional, default is the Euclidean metric.
 
         Returns
         -------
@@ -594,10 +590,11 @@ class _SpecialOrthogonal2Vectors(_SpecialOrthogonalVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.0):
+    def __init__(self, epsilon=0.0, equip=True):
         super().__init__(
             n=2,
             epsilon=epsilon,
+            equip=equip,
         )
 
     def regularize(self, point):
@@ -777,11 +774,13 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         Optional, default: 0.
     """
 
-    def __init__(self, epsilon=0.0):
-        super().__init__(n=3, epsilon=epsilon)
+    def __init__(self, epsilon=0.0, equip=True):
+        super().__init__(n=3, epsilon=epsilon, equip=equip)
 
-        self.bi_invariant_metric = BiInvariantMetric(group=self)
-        self.metric = self.bi_invariant_metric
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return BiInvariantMetric
 
     def regularize(self, point):
         """Regularize a point to be in accordance with convention.
@@ -821,7 +820,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         norm_ratio = gs.where(angle > gs.pi, -norm_ratio, norm_ratio)
         return gs.einsum("...,...i->...i", norm_ratio, point)
 
-    def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
+    def regularize_tangent_vec_at_identity(self, tangent_vec):
         """Regularize a tangent vector at the identity.
 
         In 3D, regularize a tangent_vector by getting its norm at the identity,
@@ -831,19 +830,16 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         ----------
         tangent_vec : array-like, shape=[..., 3]
             Tangent vector at base point.
-        metric : RiemannianMetric
-            Metric.
-            Optional, default: self.left_canonical_metric.
 
         Returns
         -------
         regularized_vec : array-like, shape=[..., 3]
             Regularized tangent vector.
         """
-        if metric is None:
+        if not hasattr(self, "metric"):
             return self.regularize(tangent_vec)
 
-        tangent_vec_metric_norm = metric.norm(tangent_vec)
+        tangent_vec_metric_norm = self.metric.norm(tangent_vec)
         tangent_vec_canonical_norm = gs.linalg.norm(tangent_vec, axis=-1)
 
         # This avoids dividing by 0
@@ -858,7 +854,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         regularized_vec = self.regularize(coef_tangent_vec)
         return gs.einsum("...,...i->...i", 1.0 / coef, regularized_vec)
 
-    def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
+    def regularize_tangent_vec(self, tangent_vec, base_point):
         """Regularize tangent vector at a base point.
 
         In 3D, regularize a tangent_vector by getting the norm of its parallel
@@ -870,29 +866,22 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 3]
             Point on the manifold.
-        metric : RiemannianMetric
-            Metric.
-            Optional, default: self.left_canonical_metric.
 
         Returns
         -------
         regularized_tangent_vec : array-like, shape=[..., 3]
             Regularized tangent vector.
         """
-        if metric is None:
-            metric = self.left_canonical_metric
         base_point = self.regularize(base_point)
 
         tangent_vec_at_id = self.tangent_translation_map(
-            base_point, left=metric.left, inverse=True
+            base_point, left=self.metric.left, inverse=True
         )(tangent_vec)
 
-        tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
-            tangent_vec_at_id, metric
-        )
+        tangent_vec_at_id = self.regularize_tangent_vec_at_identity(tangent_vec_at_id)
 
         regularized_tangent_vec = self.tangent_translation_map(
-            base_point, left=metric.left
+            base_point, left=self.metric.left
         )(tangent_vec_at_id)
 
         return regularized_tangent_vec
@@ -1686,18 +1675,18 @@ class SpecialOrthogonal:
         default: 0
     """
 
-    def __new__(cls, n, point_type="matrix", epsilon=0.0, **kwargs):
+    def __new__(cls, n, point_type="matrix", epsilon=0.0, equip=True):
         """Instantiate a special orthogonal group.
 
         Select the object to instantiate depending on the point_type.
         """
         if n == 2 and point_type == "vector":
-            return _SpecialOrthogonal2Vectors(epsilon)
+            return _SpecialOrthogonal2Vectors(epsilon, equip=equip)
         if n == 3 and point_type == "vector":
-            return _SpecialOrthogonal3Vectors(epsilon)
+            return _SpecialOrthogonal3Vectors(epsilon, equip=equip)
         if point_type == "vector":
             raise NotImplementedError(
                 "SO(n) is implemented in vector representation "
                 "for n = 2 and n = 3 only."
             )
-        return _SpecialOrthogonalMatrices(n, **kwargs)
+        return _SpecialOrthogonalMatrices(n, equip=equip)

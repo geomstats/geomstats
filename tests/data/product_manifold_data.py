@@ -11,13 +11,8 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
 smoke_manifolds_1 = [Hypersphere(dim=2), Hyperboloid(dim=2)]
-smoke_metrics_1 = [Hypersphere(dim=2).metric, Hyperboloid(dim=2).metric]
-
 smoke_manifolds_2 = [Euclidean(3), Minkowski(3)]
-smoke_metrics_2 = [Euclidean(3).metric, Minkowski(3).metric]
-
 smoke_manifolds_3 = [Siegel(2), Siegel(2), Siegel(2)]
-smoke_metrics_3 = [Siegel(2).metric, Siegel(2).metric, Siegel(2).metric]
 
 
 class ProductManifoldTestData(_ManifoldTestData):
@@ -122,18 +117,17 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 3), 1)
     default_point_list = ["vector", "matrix"]
     manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
-    metrics_list = [
-        [Hypersphere(dim=n).metric, Hyperboloid(dim=n).metric] for n in n_list
-    ]
-    metric_args_list = list(zip(metrics_list, default_point_list))
-    shape_list = [
-        (n + 1, n + 1) if default_point == "matrix" else (2 * (n + 1),)
-        for n, default_point in zip(n_list, default_point_list)
-    ]
+
     space_list = [
         ProductManifold(manifolds, default_point_type=default_point_type)
         for manifolds, default_point_type in zip(manifolds_list, default_point_list)
     ]
+    connection_args_list = metric_args_list = [{} for _ in space_list]
+    shape_list = [
+        (n + 1, n + 1) if default_point == "matrix" else (2 * (n + 1),)
+        for n, default_point in zip(n_list, default_point_list)
+    ]
+
     n_points_list = random.sample(range(2, 5), 1)
     n_tangent_vecs_list = random.sample(range(2, 5), 1)
     n_points_a_list = random.sample(range(2, 5), 1)
@@ -147,34 +141,28 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
     def inner_product_matrix_test_data(self):
         smoke_data = [
             dict(
-                manifolds=smoke_metrics_2,
-                default_point_type="vector",
-                point=ProductManifold(
-                    smoke_manifolds_1, default_point_type="vector"
-                ).random_point(5),
-                base_point=ProductManifold(
-                    smoke_manifolds_1, default_point_type="vector"
-                ).random_point(5),
+                space=ProductManifold(
+                    smoke_manifolds_2,
+                    default_point_type="vector",
+                    equip=False,
+                ),
+                n_points=5,
             ),
             dict(
-                manifolds=smoke_metrics_2,
-                default_point_type="matrix",
-                point=ProductManifold(
-                    smoke_manifolds_2, default_point_type="matrix"
-                ).random_point(5),
-                base_point=ProductManifold(
-                    smoke_manifolds_2, default_point_type="matrix"
-                ).random_point(5),
+                space=ProductManifold(
+                    smoke_manifolds_2,
+                    default_point_type="matrix",
+                    equip=False,
+                ),
+                n_points=5,
             ),
             dict(
-                manifolds=smoke_metrics_3,
-                default_point_type="other",
-                point=ProductManifold(
-                    smoke_manifolds_3, default_point_type="other"
-                ).random_point(5),
-                base_point=ProductManifold(
-                    smoke_manifolds_3, default_point_type="other"
-                ).random_point(5),
+                space=ProductManifold(
+                    smoke_manifolds_3,
+                    default_point_type="other",
+                    equip=False,
+                ),
+                n_points=5,
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -189,22 +177,31 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
     def dist_exp_after_log_norm_test_data(self):
         smoke_data = [
             dict(
-                manifolds=smoke_manifolds_1,
-                default_point_type="vector",
+                space=ProductManifold(
+                    smoke_manifolds_1,
+                    default_point_type="vector",
+                    equip=False,
+                ),
                 n_samples=10,
                 einsum_str="..., ...j->...j",
                 expected=gs.ones(10),
             ),
             dict(
-                manifolds=smoke_manifolds_1,
-                default_point_type="matrix",
+                space=ProductManifold(
+                    smoke_manifolds_1,
+                    default_point_type="matrix",
+                    equip=False,
+                ),
                 n_samples=10,
                 einsum_str="..., ...jl->...jl",
                 expected=gs.ones(10),
             ),
             dict(
-                manifolds=smoke_manifolds_3,
-                default_point_type="other",
+                space=ProductManifold(
+                    smoke_manifolds_3,
+                    default_point_type="other",
+                    equip=False,
+                ),
                 n_samples=10,
                 einsum_str="..., ...jkl->...jkl",
                 expected=gs.ones(10),

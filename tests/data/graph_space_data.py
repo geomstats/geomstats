@@ -22,13 +22,6 @@ from tests.data_generation import (
 )
 
 
-def _get_metric_with_exact_aligner(space):
-    metric = GraphSpaceMetric(space)
-    exact_aligner = ExhaustiveAligner()
-    metric.set_aligner(exact_aligner)
-    return metric
-
-
 class GraphSpaceTestData(_PointSetTestData):
 
     _PointSet = GraphSpace
@@ -178,7 +171,7 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
 
         smoke_data = [
             dict(
-                space_args=(2,),
+                space=GraphSpace(n_nodes=2, equip=True),
                 start_point=graph_a,
                 end_point=graph_b,
                 t=0.0,
@@ -189,17 +182,15 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
         return self.generate_tests(smoke_data)
 
     def align_point_to_point_test_data(self):
-        space = self._PointSet(n_nodes=2)
-        metric = self._PointSetMetric(space)
-
-        id_aligner = metric.aligner
+        space = GraphSpace(n_nodes=2, equip=True)
+        id_aligner = space.metric.aligner
 
         graph_a = GraphPoint(adj=gs.array([[1.0, 2.0], [3.0, 4.0]]))
         graph_b = GraphPoint(adj=gs.array([[3.0, 4.0], [1.0, 2.0]]))
 
         smoke_data = [
             dict(
-                metric=metric,
+                space=space,
                 point_a=graph_a,
                 point_b=graph_b,
                 aligner=id_aligner,
@@ -210,19 +201,18 @@ class GraphSpaceMetricTestData(_PointMetricTestData):
         return self.generate_tests(smoke_data)
 
     def align_point_to_geodesic_test_data(self):
-        space = GraphSpace(2)
-        metric = GraphSpaceMetric(space)
-        metric.set_point_to_geodesic_aligner("default", n_points=3)
+        space = GraphSpace(2, equip=True)
+        space.metric.set_point_to_geodesic_aligner("default", n_points=3)
 
         base_point, end_point = space.random_point(2)
-        geodesic = metric.geodesic(base_point=base_point, end_point=end_point)
+        geodesic = space.metric.geodesic(base_point=base_point, end_point=end_point)
 
         s = gs.linspace(0.0, 1.0, num=3)
         points = geodesic(s)
 
         smoke_data = [
             dict(
-                metric=metric,
+                space=space,
                 geodesic=geodesic,
                 point=points,
                 expected=points,
@@ -269,31 +259,34 @@ class AlignerTestData(TestData):
         self._setup()
 
     def _setup(self):
-        self.spaces = [GraphSpace(3)]
+        self.space_args_list = [(3,)]
 
     def _get_aligners(self):
         Aligners = [IDAligner, FAQAligner, ExhaustiveAligner]
         return [Aligner() for Aligner in Aligners]
 
     def align_test_data(self):
+        exhaustive_aligner = ExhaustiveAligner()
+
         smoke_data = []
-        for space in self.spaces:
+        for space_args in self.space_args_list:
+            space = GraphSpace(*space_args, equip=True)
             base_point, permute_point = space.random_point(2)
 
-            metric = _get_metric_with_exact_aligner(space)
-
-            expected = metric.aligner.align(metric, base_point, permute_point)
+            expected = exhaustive_aligner.align(space, base_point, permute_point)
 
             aligners = [FAQAligner()]
             for aligner in aligners:
+                space.metric.set_aligner(aligner)
+
                 smoke_data.append(
                     dict(
-                        metric=metric,
+                        space=space,
                         aligner=aligner,
                         base_point=base_point,
                         permute_point=permute_point,
                         expected=expected,
-                        dist_fnc=metric.dist,
+                        dist_fnc=space.metric.dist,
                     )
                 )
 
@@ -301,22 +294,20 @@ class AlignerTestData(TestData):
 
     def align_cmp_points_test_data(self):
         vec_data = []
-        for space in self.spaces:
+        for space_args in self.space_args_list:
+            space = GraphSpace(*space_args, equip=True)
             base_point, permute_point = space.random_point(2)
 
             aligners = self._get_aligners()
             for aligner in aligners:
-                metric = GraphSpaceMetric(space)
-                metric.set_aligner(aligner)
-
                 if isinstance(aligner, IDAligner):
                     expected = permute_point
                 else:
-                    expected = metric.aligner.align(metric, base_point, permute_point)
+                    expected = aligner.align(space, base_point, permute_point)
 
                 vec_data.append(
                     dict(
-                        metric=metric,
+                        space=space,
                         aligner=aligner,
                         base_point=base_point,
                         permute_point=permute_point,
@@ -330,15 +321,15 @@ class AlignerTestData(TestData):
 
     def align_output_shape_test_data(self):
         smoke_data = []
-        for space in self.spaces:
+        for space_args in self.space_args_list:
+            space = GraphSpace(*space_args, equip=True)
             base_point, permute_point = space.random_point(2)
 
-            metric = GraphSpaceMetric(space)
             aligners = self._get_aligners()
             for aligner in aligners:
                 smoke_data.append(
                     dict(
-                        metric=metric,
+                        space=space,
                         aligner=aligner,
                         base_point=base_point,
                         permute_point=permute_point,
@@ -359,24 +350,25 @@ class PointToGeodesicAlignerTestData(TestData):
         self._setup()
 
     def _setup(self):
-        self.spaces = [GraphSpace(3)]
+        self.space_args_list = [(3,)]
 
     def _get_aligners_and_geo(self, space):
+        space.metric.set_aligner(ExhaustiveAligner())
         init_point, end_point = space.random_point(2)
-        metric = _get_metric_with_exact_aligner(space)
 
-        geodesic = metric.geodesic(init_point, end_point)
+        geodesic = space.metric.geodesic(init_point, end_point)
 
         aligners = [
             PointToGeodesicAligner(s_min=0.0, s_max=1.0, n_points=3),
             _GeodesicToPointAligner(),
         ]
-        return metric, aligners, geodesic
+        return aligners, geodesic
 
     def align_test_data(self):
         smoke_data = []
-        for space in self.spaces:
-            metric, aligners, geodesic = self._get_aligners_and_geo(space)
+        for space_args in self.space_args_list:
+            space = GraphSpace(*space_args, equip=True)
+            aligners, geodesic = self._get_aligners_and_geo(space)
 
             s = gs.linspace(0.0, 1.0, num=3)
             points = geodesic(s)
@@ -384,7 +376,7 @@ class PointToGeodesicAlignerTestData(TestData):
             for aligner in aligners:
                 smoke_data.append(
                     dict(
-                        metric=metric,
+                        space=space,
                         aligner=aligner,
                         geodesic=geodesic,
                         point=points,
@@ -393,14 +385,15 @@ class PointToGeodesicAlignerTestData(TestData):
                 )
 
         vec_data = []
-        for space in self.spaces:
-            metric, aligners, geodesic = self._get_aligners_and_geo(space)
+        for space_args in self.space_args_list:
+            space = GraphSpace(*space_args, equip=True)
+            aligners, geodesic = self._get_aligners_and_geo(space)
             point = geodesic(0.5)[0]
 
             for aligner in aligners:
                 vec_data.append(
                     dict(
-                        metric=metric,
+                        space=space,
                         aligner=aligner,
                         geodesic=geodesic,
                         point=point,
@@ -414,8 +407,9 @@ class PointToGeodesicAlignerTestData(TestData):
 
     def dist_test_data(self):
         smoke_data = []
-        for space in self.spaces:
-            metric, aligners, geodesic = self._get_aligners_and_geo(space)
+        for space_args in self.space_args_list:
+            space = GraphSpace(*space_args, equip=True)
+            aligners, geodesic = self._get_aligners_and_geo(space)
 
             s = gs.linspace(0.0, 1.0, num=3)
             points = geodesic(s)
@@ -423,7 +417,7 @@ class PointToGeodesicAlignerTestData(TestData):
             for aligner in aligners:
                 smoke_data.append(
                     dict(
-                        metric=metric,
+                        space=space,
                         aligner=aligner,
                         geodesic=geodesic,
                         point=points,
@@ -432,14 +426,15 @@ class PointToGeodesicAlignerTestData(TestData):
                 )
 
         vec_data = []
-        for space in self.spaces:
-            metric, aligners, geodesic = self._get_aligners_and_geo(space)
+        for space_args in self.space_args_list:
+            space = GraphSpace(*space_args, equip=True)
+            aligners, geodesic = self._get_aligners_and_geo(space)
             point = geodesic(0.5)[0]
 
             for aligner in aligners:
                 vec_data.append(
                     dict(
-                        metric=metric,
+                        space=space,
                         aligner=aligner,
                         geodesic=geodesic,
                         point=point,

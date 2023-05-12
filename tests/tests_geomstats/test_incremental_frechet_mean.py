@@ -18,21 +18,25 @@ class TestIncrementalFrechetMean(TestCase):
         self.n = 3
         self.spd_cov_n = (self.n * (self.n + 1)) // 2
         self.samples = 5
-        self.spd = SPDMatrices(self.n)
-        self.log_euclidean = SPDLogEuclideanMetric(self.n)
-        self.affine_invariant = SPDAffineMetric(self.n)
+        self.spd = SPDMatrices(self.n, equip=False)
+
+        self.spd_log_euclidean = SPDMatrices(self.n, equip=False)
+        self.spd_log_euclidean.equip_with_metric(SPDLogEuclideanMetric)
+
+        self.spd_affine_invariant = SPDMatrices(self.n, equip=False)
+        self.spd_affine_invariant.equip_with_metric(SPDAffineMetric)
+
         self.euclidean = Euclidean(self.n)
 
     def test_ifm_log_euclidean_belongs(self):
         mean = 2 * gs.eye(self.n)
         cov = gs.eye(self.spd_cov_n)
 
-        spd = SPDMatrices(self.n, metric=self.log_euclidean)
-        LogNormalSampler = LogNormal(self.spd, mean, cov)
+        LogNormalSampler = LogNormal(self.spd_log_euclidean, mean, cov)
         data = LogNormalSampler.sample(20)
-        ifm = IncrementalFrechetMean(self.log_euclidean).fit(data)
+        ifm = IncrementalFrechetMean(self.spd_log_euclidean.metric).fit(data)
         ifm_mean = ifm.estimate_
-        result = gs.all(spd.belongs(ifm_mean))
+        result = gs.all(self.spd.belongs(ifm_mean))
         expected = gs.array(True)
         self.assertAllClose(result, expected)
 
@@ -40,12 +44,11 @@ class TestIncrementalFrechetMean(TestCase):
         mean = 2 * gs.eye(self.n)
         cov = gs.eye(self.spd_cov_n)
 
-        spd = SPDMatrices(self.n)
-        LogNormalSampler = LogNormal(self.spd, mean, cov)
+        LogNormalSampler = LogNormal(self.spd_affine_invariant, mean, cov)
         data = LogNormalSampler.sample(20)
-        ifm = IncrementalFrechetMean(self.affine_invariant).fit(data)
+        ifm = IncrementalFrechetMean(self.spd_affine_invariant.metric).fit(data)
         ifm_mean = ifm.estimate_
-        result = gs.all(spd.belongs(ifm_mean))
+        result = gs.all(self.spd.belongs(ifm_mean))
         expected = gs.array(True)
         self.assertAllClose(result, expected)
 

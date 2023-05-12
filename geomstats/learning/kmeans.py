@@ -110,29 +110,24 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         if isinstance(self.init, str):
             if self.init == "kmeans++":
-                centroids = [gs.expand_dims(X[randint(0, n_samples - 1)], 0)]
+                centroids = [X[randint(0, n_samples - 1)]]
                 for i in range(self.n_clusters - 1):
-                    dists = [
-                        gs.to_ndarray(self.metric.dist(centroids[j], X), 2, 1)
-                        for j in range(i + 1)
-                    ]
-                    dists = gs.hstack(dists)
-                    dists_to_closest_centroid = gs.amin(dists, 1)
+                    dists = [self.metric.dist(centroids[j], X) for j in range(i + 1)]
+                    dists_to_closest_centroid = gs.amin(dists, 0)
                     indices = gs.arange(n_samples)
                     weights = dists_to_closest_centroid / gs.sum(
                         dists_to_closest_centroid
                     )
                     index = rv_discrete(values=(indices, weights)).rvs()
-                    centroids.append(gs.expand_dims(X[index], 0))
+                    centroids.append(X[index])
             elif self.init == "random":
                 centroids = [
-                    gs.expand_dims(X[randint(0, n_samples - 1)], 0)
-                    for i in range(self.n_clusters)
+                    X[randint(0, n_samples - 1)] for i in range(self.n_clusters)
                 ]
             else:
                 raise ValueError(f"Unknown initial centroids method '{self.init}'.")
 
-            centroids = gs.concatenate(centroids, axis=0)
+            centroids = gs.stack(centroids, axis=0)
         else:
             if callable(self.init):
                 centroids = self.init(X, self.n_clusters)

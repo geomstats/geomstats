@@ -72,7 +72,7 @@ class TestBackends(tests.conftest.TestCase):
         theta = _np.random.rand(5)
         phi = _np.random.rand(5)
         np_array = _np.zeros((n_samples, 5, 4))
-        gs_array = gs.array(np_array)
+        gs_array = gs.from_numpy(np_array)
         np_array[0, :, 0] = gs.cos(theta) * gs.cos(phi)
         np_array[0, :, 1] = -gs.sin(theta) * gs.sin(phi)
         gs_array = gs.assignment(gs_array, gs.cos(theta) * gs.cos(phi), (0, 0), axis=1)
@@ -240,14 +240,14 @@ class TestBackends(tests.conftest.TestCase):
             gs.assignment(gs_array_1, [0.1, 2.0, 1.0], [0, 1])
 
         np_array_1 = _np.ones(3)
-        gs_array_1 = gs.ones_like(gs.array(np_array_1))
+        gs_array_1 = gs.ones_like(gs.from_numpy(np_array_1))
 
         np_array_1[2] = 1.5
         gs_result = gs.assignment(gs_array_1, 1.5, 2)
         self.assertAllCloseToNp(gs_result, np_array_1)
 
         np_array_1_list = _np.ones(3)
-        gs_array_1_list = gs.ones_like(gs.array(np_array_1_list))
+        gs_array_1_list = gs.ones_like(gs.from_numpy(np_array_1_list))
 
         indices = [1, 2]
         np_array_1_list[indices] = 1.5
@@ -255,33 +255,33 @@ class TestBackends(tests.conftest.TestCase):
         self.assertAllCloseToNp(gs_result, np_array_1_list)
 
         np_array_2 = _np.zeros((3, 2))
-        gs_array_2 = gs.zeros_like(gs.array(np_array_2))
+        gs_array_2 = gs.zeros_like(gs.from_numpy(np_array_2))
 
         np_array_2[0, :] = 1
         gs_result = gs.assignment(gs_array_2, 1, 0, axis=1)
         self.assertAllCloseToNp(gs_result, np_array_2)
 
         np_array_3 = _np.zeros((3, 3))
-        gs_array_3 = gs.zeros_like(gs.array(np_array_3))
+        gs_array_3 = gs.zeros_like(gs.from_numpy(np_array_3))
 
         np_array_3[0, 1] = 1
         gs_result = gs.assignment(gs_array_3, 1, (0, 1))
         self.assertAllCloseToNp(gs_result, np_array_3)
 
         np_array_4 = _np.zeros((3, 3, 2))
-        gs_array_4 = gs.zeros_like(gs.array(np_array_4))
+        gs_array_4 = gs.zeros_like(gs.from_numpy(np_array_4))
 
         np_array_4[0, :, 1] = 1
         gs_result = gs.assignment(gs_array_4, 1, (0, 1), axis=1)
         self.assertAllCloseToNp(gs_result, np_array_4)
 
-        gs_array_4_arr = gs.zeros_like(gs.array(np_array_4))
+        gs_array_4_arr = gs.zeros_like(gs.from_numpy(np_array_4))
 
         gs_result = gs.assignment(gs_array_4_arr, 1, gs.array((0, 1)), axis=1)
         self.assertAllCloseToNp(gs_result, np_array_4)
 
         np_array_4_list = _np.zeros((3, 3, 2))
-        gs_array_4_list = gs.zeros_like(gs.array(np_array_4_list))
+        gs_array_4_list = gs.zeros_like(gs.from_numpy(np_array_4_list))
 
         np_array_4_list[(0, 1), :, (1, 1)] = 1
         gs_result = gs.assignment(gs_array_4_list, 1, [(0, 1), (1, 1)], axis=1)
@@ -293,7 +293,7 @@ class TestBackends(tests.conftest.TestCase):
             gs.assignment_by_sum(gs_array_1, [0.1, 2.0, 1.0], [0, 1])
 
         np_array_1 = _np.ones(3)
-        gs_array_1 = gs.ones_like(gs.array(np_array_1))
+        gs_array_1 = gs.ones_like(gs.from_numpy(np_array_1))
 
         np_array_1[2] += 1.5
         gs_result = gs.assignment_by_sum(gs_array_1, 1.5, 2)
@@ -304,7 +304,7 @@ class TestBackends(tests.conftest.TestCase):
         self.assertAllCloseToNp(gs_result_list, np_array_1)
 
         np_array_1_list = _np.ones(3)
-        gs_array_1_list = gs.ones_like(gs.array(np_array_1_list))
+        gs_array_1_list = gs.ones_like(gs.from_numpy(np_array_1_list))
 
         indices = [1, 2]
         np_array_1_list[indices] += 1.5
@@ -312,28 +312,28 @@ class TestBackends(tests.conftest.TestCase):
         self.assertAllCloseToNp(gs_result, np_array_1_list)
 
         np_array_2 = _np.zeros((3, 2))
-        gs_array_2 = gs.zeros_like(gs.array(np_array_2))
+        gs_array_2 = gs.zeros_like(gs.from_numpy(np_array_2))
 
         np_array_2[0, :] += 1
         gs_result = gs.assignment_by_sum(gs_array_2, 1, 0, axis=1)
         self.assertAllCloseToNp(gs_result, np_array_2)
 
         np_array_3 = _np.zeros((3, 3))
-        gs_array_3 = gs.zeros_like(gs.array(np_array_3))
+        gs_array_3 = gs.zeros_like(gs.from_numpy(np_array_3))
 
         np_array_3[0, 1] += 1
         gs_result = gs.assignment_by_sum(gs_array_3, 1, (0, 1))
         self.assertAllCloseToNp(gs_result, np_array_3)
 
         np_array_4 = _np.zeros((3, 3, 2))
-        gs_array_4 = gs.zeros_like(gs.array(np_array_4))
+        gs_array_4 = gs.zeros_like(gs.from_numpy(np_array_4))
 
         np_array_4[0, :, 1] += 1
         gs_result = gs.assignment_by_sum(gs_array_4, 1, (0, 1), axis=1)
         self.assertAllCloseToNp(gs_result, np_array_4)
 
         np_array_4_list = _np.zeros((3, 3, 2))
-        gs_array_4_list = gs.zeros_like(gs.array(np_array_4_list))
+        gs_array_4_list = gs.zeros_like(gs.from_numpy(np_array_4_list))
 
         np_array_4_list[(0, 1), :, (1, 1)] += 1
         gs_result = gs.assignment_by_sum(gs_array_4_list, 1, [(0, 1), (1, 1)], axis=1)
@@ -343,7 +343,7 @@ class TestBackends(tests.conftest.TestCase):
         theta = _np.array([0.1, 0.2, 0.3, 0.4, 5.5])
         phi = _np.array([0.11, 0.22, 0.33, 0.44, -0.55])
         np_array = _np.ones((n_samples, 5, 4))
-        gs_array = gs.array(np_array)
+        gs_array = gs.from_numpy(np_array)
 
         gs_array = gs.assignment_by_sum(
             gs_array, gs.cos(theta) * gs.cos(phi), (0, 0), axis=1
