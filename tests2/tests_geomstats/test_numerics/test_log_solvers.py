@@ -1,7 +1,7 @@
 import pytest
 
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.numerics.geodesic_solvers import LogBVPSolver, LogShootingSolver
+from geomstats.numerics.geodesic import LogBVPSolver, LogShootingSolver
 from geomstats.test.numerics.geodesic_solvers import (
     LogSolverComparisonTestCase,
     LogSolverTypeCheckTestCase,

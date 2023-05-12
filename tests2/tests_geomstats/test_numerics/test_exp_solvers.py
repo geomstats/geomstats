@@ -1,8 +1,8 @@
 import pytest
 
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.numerics.geodesic_solvers import ExpIVPSolver
-from geomstats.numerics.ivp_solvers import GSIntegrator, ScipySolveIVP
+from geomstats.numerics.geodesic import ExpIVPSolver
+from geomstats.numerics.ivp import GSIntegrator, ScipySolveIVP
 from geomstats.test.numerics.geodesic_solvers import (
     ExpSolverComparisonTestCase,
     ExpSolverTypeCheck,
