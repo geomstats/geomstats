@@ -36,7 +36,7 @@ def _convert_np_output(func):
     return _wrapped
 
 
-class _InstanceConvertOutputWrapper(object):
+class _InstanceConvertOutputWrapper:
     """Dynamic wrapper for an instance to convert method output to gs.array."""
 
     def __init__(self, instance):

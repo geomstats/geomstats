@@ -295,7 +295,22 @@ class _LogBatchMixins:
 
     @abstractmethod
     def _log_single(self, space, point, base_point):
-        pass
+        """Logarithm map.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[dim]
+            Point on the manifold.
+        base_point : array-like, shape=[dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[dim]
+            Tangent vector at the base point.
+        """
 
     def log(self, space, point, base_point):
         """Logarithm map.
