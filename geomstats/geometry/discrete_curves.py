@@ -1506,10 +1506,7 @@ class SRVShapeBundle(FiberBundle):
     Each tangent vector to the space of parameterized curves can be
     split into a vertical part (tangent to the fibers of the principal
     bundle) and a horizontal part (orthogonal to the vertical part with
-    respect to the SRV metric). Horizontal geodesics in the total space
-    can be computed using an algorithm that iteratively finds the best
-    correspondence between two fibers of the principal bundle, see Reference
-    below.
+    respect to the SRV metric).
 
     Parameters
     ----------
@@ -1517,13 +1514,6 @@ class SRVShapeBundle(FiberBundle):
         Manifold in which curves take values.
     k_sampling_points : int
         Number of sampling points for the discrete curves.
-
-    References
-    ----------
-    .. [LAB2017] A. Le Brigant,
-        "A discrete framework to find the optimal matching between manifold-
-        valued curves," in Journal of Mathematical Imaging and Vision, 61,
-        pp. 40-70, 2019.
     """
 
     def __init__(self, total_space):
@@ -1663,6 +1653,17 @@ class SRVQuotientMetric(QuotientMetric):
     on the shape space of unparametrized curves, i.e. the space of parametrized
     curves quotiented by the group of reparametrizations. In the discrete case,
     reparametrization corresponds to resampling.
+
+    Horizontal geodesics in the total space can be computed using an algorithm
+    that iteratively finds the best correspondence between two fibers of the
+    principal bundle, see Reference below.
+
+    References
+    ----------
+    .. [LAB2017] A. Le Brigant,
+        "A discrete framework to find the optimal matching between manifold-
+        valued curves," in Journal of Mathematical Imaging and Vision, 61,
+        pp. 40-70, 2019.
     """
 
     def _iterative_horizontal_projection(
@@ -1871,7 +1872,7 @@ class SRVQuotientMetric(QuotientMetric):
 
         The dynamic programming algorithm assumes that for every subinterval
         :math: '\left[\frac{i}{n},\frac{i+1}{n}\right]' of :math: '\left[0,1\right]',
-        gamma is linear.
+        gamma is linear, see Reference below.
 
         Inputs
         ----------
