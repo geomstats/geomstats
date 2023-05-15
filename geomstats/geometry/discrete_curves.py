@@ -4,6 +4,7 @@ Lead author: Alice Le Brigant.
 """
 
 import math
+import copy
 
 from scipy.interpolate import CubicSpline
 
@@ -1654,7 +1655,8 @@ class SRVShapeBundle(FiberBundle):
         tangent_vec_ver = self.vertical_projection(tangent_vec, point)
         return tangent_vec - tangent_vec_ver
 
-    def horizontal_geodesic(self, initial_point, end_point, threshold=1e-3):
+    def _iterative_horizontal_projection(
+            self, initial_point, end_point, threshold=1e-3):
         """Compute horizontal geodesic between two curves.
 
         The horizontal geodesic is computed by an interative procedure where
@@ -1842,7 +1844,325 @@ class SRVShapeBundle(FiberBundle):
 
         return horizontal_path
 
-    def align(self, point, base_point, n_times=20, threshold=1e-3):
+    def _dynamic_programming_single(
+            self, initial_curve, end_curve, n_discretization=100, max_slope=6):
+        r"""Compute the dynamic programming algorithm.
+
+        Find the reparametrization gamma of end_curve that minimizes the distance
+        between initial_curve and end_curve reparametrized by gamma, and output
+        the corresponding distance, using a dynamic programming algorithm.
+
+        The objective can be expressed in terms of square root velocity (SRV)
+        representations: it is equivalent to finding the gamma that maximizes
+        the L2 scalar product between initial_srv and end_srv@gamma where initial_srv
+        is the SRV representation of the initial curve and end_srv@gamma is the SRV
+        representation of the end curve reparametrized by gamma, i.e
+        .. math::
+        end_srv@\gamma(t) = end_srv(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
+
+        The dynamic programming algorithm assumes that for every subinterval
+        :math: '\left[\frac{i}{n},\frac{i+1}{n}\right]' of :math: '\left[0,1\right]',
+        gamma is linear.
+
+        Inputs
+        ----------
+        intial_curve : array-like, shape=[k_sampling_points, ambient_dim]
+            Initial discrete curve.
+        end_curve : array-like, shape=[k_sampling_points, ambient_dim]
+            End discrete curve.
+        n_discretization : int
+            Number of subintervals in which the reparametrization is linear.
+            Optinal, default: 100.
+        max_slope : int
+            Maximum slope allowed for a reparametrization.
+            Optional, default: 6.
+
+
+        Outputs
+        -------
+        geodesic: callable
+            Time parametrized geodesic.
+        dist : float
+            Quotient distance between intial_curve and end_curve.
+
+        References
+        ----------
+        [WAJ2007] M. Washington, S. Anuj & H. Joshi,
+        "On Shape of Plane Elastic Curves", in International Journal of Computer
+        Vision. 73(3):307-324, 2007.
+
+        """
+
+        def srv_function_resampled(point, tol=gs.atol):
+            """Compute SRV function of a discrete curve and resample it.
+
+            Inputs
+            ----------
+            point : array , shape=[k_sampling_points, ambient_dim]
+                Discrete curve.
+
+            Outputs
+            -------
+            srv : array , shape=[n_discretization, ambient_dim]
+                SRV function of the curve at the right size.
+            """
+            ambient_metric = self.total_space.ambient_manifold.metric
+            if gs.any(
+                ambient_metric.norm(
+                    point[..., 1:, :] - point[..., :-1, :]) < tol
+            ):
+                raise AssertionError(
+                    "The square root velocity framework "
+                    "is only defined for discrete curves "
+                    "with distinct consecutive sample points."
+                )
+            k_sampling_point = point.shape[-2] - 1
+            velocity = k_sampling_point * (point[1:, :] - point[:-1, :])
+            square_root_velocity = gs.sqrt(gs.sum(gs.abs(velocity), axis=-1))
+            _srv = gs.array([i / j for (i, j) in zip(velocity, square_root_velocity)])
+            srv = gs.array([_srv[int(gs.floor(i * (k_sampling_point
+                            / n_discretization)))] for i in range(n_discretization)])
+
+            return srv
+
+        def reparametrize(curve, gamma):
+            """Reparametrize curve by gamma.
+
+            Inputs
+            ----------
+            curve : array , shape=[k_sampling_points, ambient_dim]
+                Discrete curve.
+            gamma : array, shape=[n_subinterval]
+                Parametrization of a curve.
+
+
+            Outputs
+            -------
+            new_curve : array , shape=[k_sampling_points, ambient_dim]
+                Curve reparametrized by gamma.
+
+            """
+            k_sampling_point = curve.shape[-2] - 1
+            new_curve = gs.zeros(curve.shape, dtype=float)
+            n_subinterval = len(gamma)
+            list_gamma_slope = gs.zeros(n_discretization + 1, dtype=float)
+            list_gamma_constant = gs.zeros(n_discretization + 1, dtype=float)
+
+            new_curve[0] = curve[0]
+            new_curve[-1] = curve[-1]
+
+            for k in range(1, n_subinterval):
+
+                (i_depart, j_depart) = gamma[k - 1]
+                (i_arrive, j_arrive) = gamma[k]
+                gamma_slope = (j_arrive - j_depart) / (i_arrive - i_depart)
+                gamma_constant = (j_depart - i_depart * gamma_slope)
+
+                for i in range(i_depart, i_arrive):
+                    list_gamma_slope[i] = gamma_slope
+                    list_gamma_constant[i] = gamma_constant
+
+            for k in range(1, k_sampling_point):
+                indice_n = int(gs.floor(n_discretization * k / k_sampling_point))
+                gamma_indice_n = (n_discretization * k / k_sampling_point) * \
+                    list_gamma_slope[indice_n] + list_gamma_constant[indice_n]
+                gamma_indice_k = k_sampling_point * gamma_indice_n / n_discretization
+                indice_k = int(gs.floor(gamma_indice_k))
+                alpha = gamma_indice_k - indice_k
+
+                new_curve[k] = curve[indice_k] * (1 - alpha) + \
+                    curve[indice_k + 1] * alpha
+
+            return new_curve
+
+        def compute_integral_restricted(
+                srv_1, srv_2, x_min, x_max, y_min, y_max):
+            r"""Compute the value of an integral over a subinterval.
+
+            Compute n * the value of the integral of
+            .. math::
+            srv_1(t)\cdotsrv_2(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
+            over :math: '\left[\x_min,x_max\right]' where gamma restricted to
+            :math: '\left[\x_min,x_max\right]' is a linear.
+
+            Inputs
+            ----------
+            srv_1 : array , shape=[n, ambient_dim]
+                SRV function of the initial curve.
+            srv_2 : array, shape=[n, ambient_dim]
+                SRV function of the end curve.
+            x_min : int
+                Beginning of the subinterval.
+            x_max : int
+                End of the subinterval.
+            y_min : int
+                Value of gamma at x_min.
+            y_max : int
+                Value of gamma at x_max.
+
+
+            Outputs
+            -------
+            value : float
+                Value of the integral described above.
+            """
+            gamma_slope = (y_max - y_min) / (x_max - x_min)
+
+            list_l = list(range(x_min, x_max + 1))
+            list_k = [(k - y_min) / gamma_slope + x_min
+                      for k in range(y_min, y_max + 1)]
+
+            lower_bound = x_min
+            i = 1
+            j = 1
+
+            value = 0.
+            while i < x_max - x_min + 1 and j < y_max - y_min + 1:
+
+                upper_bound = min(list_l[i], list_k[j])
+                lenght = upper_bound - lower_bound
+                value += lenght * gs.dot(srv_1[x_min + i - 1], srv_2[y_min + j - 1])
+
+                if list_l[i] == list_k[j]:
+                    i += 1
+                    j += 1
+                elif list_l[i] < list_k[j]:
+                    i += 1
+                else :
+                    j += 1
+                lower_bound = upper_bound
+
+            value = math.pow(gamma_slope, 1 / 2) * value
+
+            return value
+
+        initial_srv = srv_function_resampled(initial_curve)
+        end_srv = srv_function_resampled(end_curve)
+
+        norm_squared_initial_srv = compute_integral_restricted(
+            initial_srv, initial_srv, 0, n_discretization, 0, n_discretization) \
+            / n_discretization
+        norm_squared_end_srv = compute_integral_restricted(
+            end_srv, end_srv, 0, n_discretization, 0, n_discretization) \
+            / n_discretization
+
+        tableau = (-1.0) * gs.ones((n_discretization + 1, n_discretization + 1))
+        tableau[0, 0] = 0.
+        gamma = {(0, 0) : [(0, 0)]}
+        for j in range(1, n_discretization + 1):
+            min_i = int(max(gs.floor(j / max_slope),
+                        n_discretization - max_slope * (n_discretization - j)))
+            max_i = int(min(j * max_slope,
+                        gs.ceil(n_discretization - (n_discretization - j)
+                            * (1 / max_slope))))
+            for i in range(min_i, max_i + 1):
+                minimum_column_index = int(max(0, i - max_slope))
+                minimum_line_index = int(max(0, j - max_slope))
+                for m in range(minimum_column_index, i):
+                    for k in range(minimum_line_index, j):
+                        if tableau[k, m] != -1 :
+                            new_value = tableau[k, m] + \
+                                compute_integral_restricted(
+                                initial_srv, end_srv, m, i, k, j)
+
+                            if tableau[j, i] < new_value :
+                                tableau[j, i] = new_value
+                                new_gamma = copy.deepcopy(gamma[(m, k)])
+                                new_gamma.append((i, j))
+                                gamma[(i, j)] = new_gamma
+
+        maximum_scalar_product = tableau[(n_discretization, n_discretization)] \
+            / n_discretization
+
+        dist_squared = norm_squared_initial_srv + \
+            norm_squared_end_srv - 2 * maximum_scalar_product
+
+        distance = gs.sqrt(dist_squared)
+
+        end_curve_reparametrized = reparametrize(
+            end_curve, gamma[(n_discretization, n_discretization)])
+
+        geodesic = self.total_space.metric.geodesic(
+            initial_curve, end_curve_reparametrized)
+
+        return {"geodesic": geodesic, "distance": distance}
+
+    def _dynamic_programming(
+            self, initial_curve, end_curve, n_discretization=100, max_slope=6):
+        """Vectorize the dynamic programming algorithm.
+
+        Inputs
+        ----------
+        intial_curve : array-like, shape=[k_sampling_points, ambient_dim]
+            Initial discrete curve.
+        end_curve : array-like, shape=[k_sampling_points, ambient_dim]
+            End discrete curve.
+        n_discretization : int
+            Number of subintervals in which the reparametrization is linear.
+            Optinal, default: 100.
+        max_slope : int
+            Maximum slope allowed for a reparametrization.
+            Optional, default: 6.
+
+
+        Outputs
+        -------
+        results : dict,
+            keys : "geodesics" and "distances".
+        """
+        point_ndim = gs.ndim(initial_curve)
+        results = {"geodesics" : [], "distances" : []}
+
+        if point_ndim == 2:
+            dp = self._dynamic_programming_single(
+                initial_curve, end_curve, n_discretization, max_slope)
+            results["geodesics"] = dp["geodesic"]
+            results["distances"] = dp["distance"]
+            return results
+
+        initial_curves = gs.to_ndarray(initial_curve, to_ndim=3)
+        end_curves = gs.to_ndarray(end_curve, to_ndim=3)
+        n_points = initial_curves.shape[0]
+        geodesics = gs.zeros(n_points, dtype=object)
+        distances = gs.zeros(n_points, dtype=float)
+
+        for i in range(n_points):
+            dp = self._dynamic_programming_single(
+                initial_curves[i], end_curves[i], n_discretization, max_slope)
+            geodesics[i] = dp["geodesic"]
+            distances[i] = dp["distance"]
+
+        results["geodesics"] = geodesics
+        results["distances"] = distances
+
+        return results
+
+    def horizontal_geodesic(
+            self, initial_point, end_point, method="iterative horizontal projection",
+            threshold=1e-3, n_discretization=100, max_slope=10):
+        """Geodesic for the quotient SRV Metric.
+
+        The geodesics between unparametrized curves for the quotient metric are
+        projections of the horizontal geodesics in the total space of parameterized
+        curves. Since in practice shapes can only be encoded by parametrized curves,
+        geodesics are given in the total space.
+        """
+        if method == "iterative horizontal projection" :
+            return self._iterative_horizontal_projection(
+                initial_point, end_point, threshold)
+
+        if method == "dynamic programming" :
+            results = self._dynamic_programming(
+                initial_point, end_point, n_discretization, max_slope)
+            return results["geodesics"]
+
+        raise AssertionError(
+            "The only methods implemented are iterative horizontal projection \
+            and dynamic programming.")
+
+    def align(self, base_point, point, n_times=20,
+              method="iterative horizontal projection",
+              threshold=1e-3, n_discretization=100, max_slope=10):
         """Find optimal reparametrization of curve with respect to base curve.
 
         The new parametrization of curve is optimal in the sense that it is the
@@ -1865,7 +2185,8 @@ class SRVShapeBundle(FiberBundle):
         reparametrized_curve : array-like, shape=[k_sampling_points, ambient_dim]
             Optimal reparametrization of the curve represented by point.
         """
-        horizontal_path = self.horizontal_geodesic(base_point, point, threshold)
+        horizontal_path = self.horizontal_geodesic(
+            base_point, point, method, threshold, n_discretization, max_slope)
         times = gs.linspace(0.0, 1.0, n_times)
         hor_path = horizontal_path(times)
         return hor_path[-1]
@@ -1880,7 +2201,9 @@ class SRVQuotientMetric(QuotientMetric):
     reparametrization corresponds to resampling.
     """
 
-    def geodesic(self, initial_point, end_point, threshold=1e-3):
+    def geodesic(
+            self, initial_point, end_point, method="iterative horizontal projection",
+            threshold=1e-3, n_discretization=100, max_slope=10):
         """Geodesic for the quotient SRV Metric.
 
         The geodesics between unparametrized curves for the quotient metric are
@@ -1889,10 +2212,10 @@ class SRVQuotientMetric(QuotientMetric):
         geodesics are given in the total space.
         """
         return self.fiber_bundle.horizontal_geodesic(
-            initial_point, end_point, threshold
-        )
+            initial_point, end_point, method, threshold, n_discretization, max_slope)
 
-    def dist(self, point_a, point_b, n_times=20, threshold=1e-3):
+    def dist(self, point_a, point_b, method="iterative horizontal projection",
+             n_times=20, threshold=1e-3, n_discretization=100, max_slope=6):
         """Quotient SRV distance between unparametrized curves.
 
         This is the distance induced by the SRV Metric on the space of unparametrized
@@ -1907,28 +2230,47 @@ class SRVQuotientMetric(QuotientMetric):
             Discrete curve.
         point_b : array-like, shape=[k_sampling_points, ambient_dim]
             Discrete curve.
+        method : str, {"iterative horizontal projection", "dynamic programming"}
+            Type of method to use.
+            Optional, default: "iterative horizontal projection".
         n_times: int
             Number of times used to discretize the horizontal geodesic.
             Optional, default: 20.
         threshold: float
-            Stop criterion used in the algorithm to compute the horizontal
-            geodesic.
+            Stop criterion used in the algorithm to compute the horizontal geodesic.
             Optional, default: 1e-3.
+        n_discretization : int
+            Number of subintervals in which the reparametrization is linear.
+            Optinal, default: 100.
+        max_slope : int
+            Maximum slope allowed for a reparametrization.
+            Optional, default: 6.
 
         Returns
         -------
         quotient_dist : float
             Quotient distance between the two curves represented by point_a and point_b.
         """
-        horizontal_path = self.geodesic(
-            initial_point=point_a, end_point=point_b, threshold=threshold
-        )
-        times = gs.linspace(0.0, 1.0, n_times)
-        horizontal_geod = horizontal_path(times)
-        horizontal_geod_velocity = n_times * (
-            horizontal_geod[:-1] - horizontal_geod[1:]
-        )
-        velocity_norms = self.fiber_bundle.total_space.metric.norm(
-            horizontal_geod_velocity, horizontal_geod[:-1]
-        )
-        return gs.sum(velocity_norms) / n_times
+        if method == "iterative horizontal projection":
+
+            horizontal_path = self.geodesic(
+                initial_point=point_a, end_point=point_b, threshold=threshold
+            )
+            times = gs.linspace(0.0, 1.0, n_times)
+            horizontal_geod = horizontal_path(times)
+            horizontal_geod_velocity = n_times * (
+                horizontal_geod[:-1] - horizontal_geod[1:]
+            )
+            velocity_norms = self.fiber_bundle.total_space.metric.norm(
+                horizontal_geod_velocity, horizontal_geod[:-1]
+            )
+            return gs.sum(velocity_norms) / n_times
+
+        if method == "dynamic programming" :
+            results = self.fiber_bundle._dynamic_programming(
+                point_a, point_b, n_discretization, max_slope)
+            return results["distances"]
+
+        raise AssertionError(
+            "The only methods implemented are iterative horizontal projection \
+            and dynamic programming.")
