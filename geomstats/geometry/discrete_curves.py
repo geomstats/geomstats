@@ -1906,7 +1906,7 @@ class SRVShapeBundle(FiberBundle):
             srv : array , shape=[n_discretization, ambient_dim]
                 SRV function of the curve at the right size.
             """
-            ambient_metric = self.total_space.metric._space.ambient_manifold.metric
+            ambient_metric = self.total_space.ambient_manifold.metric
             if gs.any(
                 ambient_metric.norm(
                     point[..., 1:, :] - point[..., :-1, :]) < tol
@@ -2008,7 +2008,7 @@ class SRVShapeBundle(FiberBundle):
             """
             gamma_slope = (y_max - y_min) / (x_max - x_min)
 
-            list_l = [x_i for x_i in range(x_min, x_max + 1)]
+            list_l = list(range(x_min, x_max + 1))
             list_k = [(k - y_min) / gamma_slope + x_min
                       for k in range(y_min, y_max + 1)]
 
@@ -2048,8 +2048,7 @@ class SRVShapeBundle(FiberBundle):
 
         tableau = (-1.0) * gs.ones((n_discretization + 1, n_discretization + 1))
         tableau[0, 0] = 0.
-        gamma = {}
-        gamma[(0, 0)] = [(0, 0)]
+        gamma = {(0, 0) : [(0, 0)]}
         for j in range(1, n_discretization + 1):
             min_i = int(max(gs.floor(j / max_slope),
                         n_discretization - max_slope * (n_discretization - j)))
