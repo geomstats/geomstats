@@ -1665,7 +1665,8 @@ class SRVQuotientMetric(QuotientMetric):
     reparametrization corresponds to resampling.
     """
 
-    def horizontal_geodesic(self, initial_point, end_point, threshold=1e-3):
+    def _iterative_horizontal_projection(
+            self, initial_point, end_point, threshold=1e-3):
         """Compute horizontal geodesic between two curves.
 
         The horizontal geodesic is computed by an interative procedure where
@@ -1852,7 +1853,7 @@ class SRVQuotientMetric(QuotientMetric):
 
         return horizontal_path
 
-    def _dynamic_programming(
+    def _dynamic_programming_single(
             self, initial_curve, end_curve, n_discretization=100, max_slope=6):
         r"""Compute the dynamic programming algorithm.
 
@@ -1866,7 +1867,7 @@ class SRVQuotientMetric(QuotientMetric):
         is the SRV representation of the initial curve and end_srv@gamma is the SRV
         representation of the end curve reparametrized by gamma, i.e
         .. math::
-        end_srv@\gamma(t) = end_srv(\gamma(t))\cdot\lvert\gamma(t)\rvert^\frac{1}{2}
+        end_srv@\gamma(t) = end_srv(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
 
         The dynamic programming algorithm assumes that for every subinterval
         :math: '\left[\frac{i}{n},\frac{i+1}{n}\right]' of :math: '\left[0,1\right]',
@@ -1892,6 +1893,12 @@ class SRVQuotientMetric(QuotientMetric):
             Time parametrized geodesic.
         dist : float
             Quotient distance between intial_curve and end_curve.
+
+        References
+        ----------
+        Mio, Washington & Srivastava, Anuj & Joshi, Shantanu. (2007).
+        On Shape of Plane Elastic Curves. International Journal of Computer
+        Vision. 73(3):307-324, 2007.
 
         """
 
@@ -1984,7 +1991,7 @@ class SRVQuotientMetric(QuotientMetric):
 
             Compute n * the value of the integral of
             .. math::
-            srv_1(t)\cdotsrv_2(\gamma(t))\cdot\lvert\gamma(t)\rvert^\frac{1}{2}
+            srv_1(t)\cdotsrv_2(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
             over :math: '\left[\x_min,x_max\right]' where gamma restricted to
             :math: '\left[\x_min,x_max\right]' is a linear.
 
@@ -2091,7 +2098,82 @@ class SRVQuotientMetric(QuotientMetric):
 
         return {"geodesic": geodesic, "distance": distance}
 
-    def align(self, point, base_point, n_times=20, threshold=1e-3):
+    def _dynamic_programming(
+            self, initial_curve, end_curve, n_discretization=100, max_slope=6):
+        """Vectorize the dynamic programming algorithm.
+
+        Inputs
+        ----------
+        intial_curve : array-like, shape=[k_sampling_points, ambient_dim]
+            Initial discrete curve.
+        end_curve : array-like, shape=[k_sampling_points, ambient_dim]
+            End discrete curve.
+        n_discretization : int
+            Number of subintervals in which the reparametrization is linear.
+            Optinal, default: 100.
+        max_slope : int
+            Maximum slope allowed for a reparametrization.
+            Optional, default: 6.
+
+
+        Outputs
+        -------
+        results : dict,
+            keys : "geodesics" and "distances".
+        """
+        point_ndim = gs.ndim(initial_curve)
+        results = {"geodesics" : [], "distances" : []}
+
+        if point_ndim == 2:
+            dp = self._dynamic_programming_single(
+                initial_curve, end_curve, n_discretization, max_slope)
+            results["geodesics"] = dp["geodesic"]
+            results["distances"] = dp["distance"]
+            return results
+        else :
+            initial_curves = gs.to_ndarray(initial_curve, to_ndim=3)
+            end_curves = gs.to_ndarray(end_curve, to_ndim=3)
+            n_points = initial_curves.shape[0]
+            geodesics = gs.zeros(n_points, dtype=object)
+            distances = gs.zeros(n_points, dtype=float)
+
+            for i in range(n_points):
+                dp = self._dynamic_programming_single(
+                    initial_curves[i], end_curves[i], n_discretization, max_slope)
+                geodesics[i] = dp["geodesic"]
+                distances[i] = dp["distance"]
+
+            results["geodesics"] = geodesics
+            results["distances"] = distances
+
+            return results
+
+    def horizontal_geodesic(
+            self, initial_point, end_point, method="iterative horizontal projection",
+            threshold=1e-3, n_discretization=100, max_slope=10):
+        """Geodesic for the quotient SRV Metric.
+
+        The geodesics between unparametrized curves for the quotient metric are
+        projections of the horizontal geodesics in the total space of parameterized
+        curves. Since in practice shapes can only be encoded by parametrized curves,
+        geodesics are given in the total space.
+        """
+        if method == "iterative horizontal projection" :
+            return self._iterative_horizontal_projection(
+                initial_point, end_point, threshold)
+
+        if method == "dynamic programming" :
+            results = self._dynamic_programming(
+                initial_point, end_point, n_discretization, max_slope)
+            return results["geodesics"]
+
+        else :
+            raise AssertionError(
+                "Method not implemented")
+
+    def align(self, base_point, point, n_times=20,
+              method="iterative horizontal projection",
+              threshold=1e-3, n_discretization=100, max_slope=10):
         """Find optimal reparametrization of curve with respect to base curve.
 
         The new parametrization of curve is optimal in the sense that it is the
@@ -2114,13 +2196,25 @@ class SRVQuotientMetric(QuotientMetric):
         reparametrized_curve : array-like, shape=[k_sampling_points, ambient_dim]
             Optimal reparametrization of the curve represented by point.
         """
-        horizontal_path = self.horizontal_geodesic(base_point, point, threshold)
+        horizontal_path = self.horizontal_geodesic(
+            base_point, point, method, threshold, n_discretization, max_slope)
         times = gs.linspace(0.0, 1.0, n_times)
         hor_path = horizontal_path(times)
         return hor_path[-1]
 
-    def geodesic(self, initial_point, end_point, method="horizontal projection",
-                 threshold=1e-3, n_discretization=100, max_slope=10):
+
+class SRVQuotientMetric(QuotientMetric):
+    """SRV quotient metric on the space of unparametrized curves.
+
+    This is the class for the quotient metric induced by the SRV Metric
+    on the shape space of unparametrized curves, i.e. the space of parametrized
+    curves quotiented by the group of reparametrizations. In the discrete case,
+    reparametrization corresponds to resampling.
+    """
+
+    def geodesic(
+            self, initial_point, end_point, method="iterative horizontal projection",
+            threshold=1e-3, n_discretization=100, max_slope=10):
         """Geodesic for the quotient SRV Metric.
 
         The geodesics between unparametrized curves for the quotient metric are
@@ -2128,37 +2222,10 @@ class SRVQuotientMetric(QuotientMetric):
         curves. Since in practice shapes can only be encoded by parametrized curves,
         geodesics are given in the total space.
         """
-        if method == "horizontal projection" :
-            return self.horizontal_geodesic(
-                initial_point, end_point, threshold
-            )
+        return self.fiber_bundle.horizontal_geodesic(
+            initial_point, end_point, method, threshold, n_discretization, max_slope)
 
-        elif method == "dynamic programming" :
-            point_ndim = gs.ndim(initial_point)
-            if point_ndim == 2:
-                dp = self._dynamic_programming(
-                    initial_point, end_point, n_discretization, max_slope)
-                return dp["geodesic"]
-            else :
-                initial_point = gs.to_ndarray(initial_point, to_ndim=3)
-                end_point = gs.to_ndarray(end_point, to_ndim=3)
-                n_points = initial_point.shape[0]
-                results = gs.zeros(n_points, dtype=object)
-
-                for i in range(n_points):
-                    dp = self._dynamic_programming(
-                        initial_point[i], end_point[i], n_discretization, max_slope
-                    )
-                    results[i] = dp["geodesic"]
-
-                return results
-
-        else :
-            raise AssertionError(
-                "Method not implemented"
-            )
-
-    def dist(self, point_a, point_b, method="horizontal projection",
+    def dist(self, point_a, point_b, method="iterative horizontal projection",
              n_times=20, threshold=1e-3, n_discretization=100, max_slope=6):
         """Quotient SRV distance between unparametrized curves.
 
@@ -2174,9 +2241,9 @@ class SRVQuotientMetric(QuotientMetric):
             Discrete curve.
         point_b : array-like, shape=[k_sampling_points, ambient_dim]
             Discrete curve.
-        method : str, {"horizontal projection", "dynamic programming"}
+        method : str, {"iterative horizontal projection", "dynamic programming"}
             Type of method to use.
-            Optional, default: "horizontal projection".
+            Optional, default: "iterative horizontal projection".
         n_times: int
             Number of times used to discretize the horizontal geodesic.
             Optional, default: 20.
@@ -2195,7 +2262,7 @@ class SRVQuotientMetric(QuotientMetric):
         quotient_dist : float
             Quotient distance between the two curves represented by point_a and point_b.
         """
-        if method == "horizontal projection":
+        if method == "iterative horizontal projection":
 
             horizontal_path = self.geodesic(
                 initial_point=point_a, end_point=point_b, threshold=threshold
@@ -2210,25 +2277,10 @@ class SRVQuotientMetric(QuotientMetric):
             )
             return gs.sum(velocity_norms) / n_times
 
-        elif method == "dynamic programming" :
-
-            point_ndim = gs.ndim(point_a)
-            if point_ndim == 2:
-                dp = self._dynamic_programming(
-                    point_a, point_b, n_discretization, max_slope)
-                return dp["distance"]
-            else :
-                point_a = gs.to_ndarray(point_a, to_ndim=3)
-                point_b = gs.to_ndarray(point_b, to_ndim=3)
-                n_points = point_a.shape[0]
-                quotient_dist = gs.zeros(n_points, dtype=float)
-
-                for i in range(n_points):
-                    dp = self._dynamic_programming(
-                        point_a[i], point_b[i], n_discretization, max_slope)
-                    quotient_dist[i] = dp["distance"]
-
-                return quotient_dist
+        if method == "dynamic programming" :
+            results = self.fiber_bundle._dynamic_programming(
+                point_a, point_b, n_discretization, max_slope)
+            return results["distances"]
 
         else :
             raise AssertionError(

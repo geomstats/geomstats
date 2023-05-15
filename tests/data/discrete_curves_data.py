@@ -427,6 +427,11 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
 
 
 class SRVShapeBundleTestData(TestData):
+
+    methods = ["iterative horizontal projection", "dynamic programming"]
+    thresholds = [1e-3, 1e-1]
+    type = list(zip(methods, thresholds))
+
     def horizontal_and_vertical_projections_test_data(self):
         smoke_data = [
             dict(
@@ -436,6 +441,18 @@ class SRVShapeBundleTestData(TestData):
                 curve_b=curve_b,
             )
         ]
+        return self.generate_tests(smoke_data)
+
+    def horizontal_geodesic_test_data(self):
+        smoke_data = []
+        for type in zip(self.methods, self.thresholds):
+            smoke_data.append(
+                dict(
+                    k_sampling_points=k_sampling_points,
+                    curve_a=spherical_curve_a,
+                    n_times=20,
+                    type=type),
+            )
         return self.generate_tests(smoke_data)
 
 
