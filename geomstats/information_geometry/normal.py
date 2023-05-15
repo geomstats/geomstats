@@ -22,6 +22,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.fisher_rao_metric import FisherRaoMetric
 
 
 class NormalDistributions:
@@ -73,8 +74,7 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
         """Metric to equip the space with if equip is True."""
         return UnivariateNormalMetric
 
-    @staticmethod
-    def random_point(n_samples=1, bound=1.0):
+    def random_point(self, n_samples=1, bound=1.0):
         """Sample parameters of normal distributions.
 
         The uniform distribution on [-bound/2, bound/2]x[0, bound] is used.
@@ -86,18 +86,16 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
             Optional, default: 1.
         bound : float
             Side of the square where the normal parameters are sampled.
-            Optional, default: 5.
+            Optional, default: 1.
 
         Returns
         -------
         samples : array-like, shape=[..., 2]
             Sample of points representing normal distributions.
         """
-        means = -bound + 2 * bound * gs.random.rand(n_samples)
+        means = -bound / 2 + bound * gs.random.rand(n_samples)
         stds = bound * gs.random.rand(n_samples)
-        if n_samples == 1:
-            return gs.array((means[0], stds[0]))
-        return gs.transpose(gs.stack((means, stds)))
+        return gs.squeeze(gs.transpose(gs.vstack((means, stds))), axis=0)
 
     def sample(self, point, n_samples=1):
         """Sample from the normal distribution.
@@ -118,12 +116,9 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
         samples : array-like, shape=[..., n_samples]
             Sample from normal distributions.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-        samples = []
-        for mean, scale in point:
-            samples.append(gs.array(norm.rvs(mean, scale, size=n_samples)))
-        return samples[0] if len(point) == 1 else gs.stack(samples)
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+        samples = gs.vstack([norm.rvs(mean, scale, size=n_samples) for mean, scale in point])
+        return gs.squeeze(samples, axis=0)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -142,9 +137,10 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
             Probability density function of the normal distribution with
             parameters provided by point.
         """
-        means = gs.expand_dims(point[..., 0], axis=-1)
-        stds = gs.expand_dims(point[..., 1], axis=-1)
-
+        mean = point[..., :1]
+        std = point[..., 1:]
+        pdf_normalization = 1 / gs.sqrt(2 * gs.pi * std**2)
+        
         def pdf(x):
             """Generate parameterized function for normal pdf.
 
@@ -159,10 +155,8 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
                 Values of pdf at x for each value of the parameters provided
                 by point.
             """
-            x = gs.reshape(gs.array(x), (-1,))
-            return (1.0 / gs.sqrt(2 * gs.pi * stds**2)) * gs.exp(
-                -((x - means) ** 2) / (2 * stds**2)
-            )
+            pdf = gs.exp(-0.5 * (x - mean) ** 2 / std**2)
+            return pdf_normalization * pdf
 
         return pdf
 
@@ -206,13 +200,10 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
         samples : array-like, shape=[..., n_samples, sample_dim]
             Sample from centered multivariate normal distributions.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=3)
-        samples = []
+        point = gs.to_ndarray(point, to_ndim=3, axis=0)
         mean = gs.zeros(self.sample_dim)
-        for cov in point:
-            samples.append(gs.array(multivariate_normal.rvs(mean, cov, size=n_samples)))
-        return samples[0] if point.shape[0] == 1 else gs.stack(samples)
+        samples = gs.vstack([multivariate_normal.rvs(mean, cov, size=n_samples) for cov in point])
+        return gs.squeeze(samples, axis=0)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -229,12 +220,9 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             Probability density function of the centered multivariate normal
             distributions with covariance matrices provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = point[None, :, :] if point.ndim == 2 else point
-        n = self.sample_dim
         det_cov = gs.linalg.det(point)
         inv_cov = gs.linalg.inv(point)
-        pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, n) * det_cov)
+        pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, self.sample_dim) * det_cov)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -250,14 +238,8 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             pdf_at_x: array-like, shape=[..., n_samples]
                 Probability density function at x.
             """
-            x = gs.to_ndarray(x, to_ndim=2, axis=0)
-
-            pdf = []
-            for xi in x:
-                pdf.append(gs.exp(-0.5 * gs.transpose(xi) @ inv_cov @ xi))
-            pdf = gs.stack(pdf)
-            pdf = pdf_normalization * pdf
-            return gs.squeeze(pdf)
+            pdf = gs.exp(-0.5 * gs.einsum('ni,...ii,ni->n...', x, inv_cov, x))
+            return gs.transpose(pdf_normalization * pdf)
 
         return pdf
 
@@ -280,7 +262,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
     def __init__(self, sample_dim, equip=True):
         self.sample_dim = sample_dim
         self.sample_space = Euclidean(dim=sample_dim, equip=False)
-        dim = int(2 * sample_dim)
+        dim = 2 * sample_dim
         super().__init__(dim=dim, embedding_space=Euclidean(dim), equip=equip)
 
     @staticmethod
@@ -288,8 +270,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         """Metric to equip the space with if equip is True."""
         return DiagonalNormalMetric
 
-    @staticmethod
-    def _unstack_mean_diagonal(sample_dim, point):
+    def _unstack_mean_diagonal(self, point):
         """Extract mean and diagonal of the covariance matrix from a given point.
 
         Parameters
@@ -306,12 +287,11 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         diagonal : array-like, shape=[..., sample_dim]
             Diagonals of covariance matrices from the input point.
         """
-        mean = point[..., :sample_dim]
-        diagonal = point[..., sample_dim:]
+        mean = point[..., : self.sample_dim]
+        diagonal = point[..., self.sample_dim :]
         return mean, diagonal
 
-    @staticmethod
-    def _stack_mean_diagonal(mean, diagonal):
+    def _stack_mean_diagonal(self, mean, diagonal):
         """Set mean and diagonal of the covariance matrix into a point.
 
         Parameters
@@ -326,8 +306,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         point : array-like, shape=[..., 2 * sample_dim]
             Point with means and diagonals covariance matrices.
         """
-        point = gs.concatenate([mean, diagonal], axis=-1)
-        return point
+        return gs.hstack((mean, diagonal))
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the manifold.
@@ -344,11 +323,8 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        _, diagonal = self._unstack_mean_diagonal(self.sample_dim, point)
-        belongs = gs.logical_and(belongs, gs.all(diagonal >= atol, axis=-1))
-        return belongs
+        _, diagonal = self._unstack_mean_diagonal(point)
+        return gs.logical_and(point.shape[-1] == self.dim, gs.all(diagonal >= atol, axis=-1))
 
     def random_point(self, n_samples=1):
         """Generate random parameters of multivariate diagonal normal distributions.
@@ -366,15 +342,10 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
             First :math:`sample_dim` elements contain the mean vector and the last
             :math:`sample_dim` elements contain the diagonal of the covariance matrix.
         """
-        sample_dim = self.sample_dim
-        bound = 1.0
-        mean = self.sample_space.random_point(n_samples=n_samples, bound=bound)
-        if n_samples == 1:
-            diagonal = gs.array(norm.rvs(size=(sample_dim,)) ** 2)
-        else:
-            diagonal = gs.array(norm.rvs(size=(n_samples, sample_dim)) ** 2)
-        point = self._stack_mean_diagonal(mean, diagonal)
-        return point
+        mean = self.sample_space.random_point(n_samples=n_samples)
+        diagonal_shape = (self.sample_dim,) if n_samples == 1 else (n_samples, self.sample_dim)
+        diagonal = gs.reshape(gs.random.rand(n_samples * self.sample_dim) ** 2, diagonal_shape)
+        return self._stack_mean_diagonal(mean, diagonal)
 
     def projection(self, point):
         """Project a point on the manifold of diagonal multivariate normal distribution.
@@ -394,7 +365,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
             Point containing means and diagonals
             of covariance matrices.
         """
-        mean, diagonal = self._unstack_mean_diagonal(self.sample_dim, point)
+        mean, diagonal = self._unstack_mean_diagonal(point)
         regularized = gs.where(diagonal < gs.atol, gs.atol, diagonal)
         projected = self._stack_mean_diagonal(mean, regularized)
         return projected
@@ -417,16 +388,11 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples, sample_dim]
             Sample from multivariate normal distributions.
         """
-        geomstats.errors.check_belongs(point, self)
-        if point.ndim > 2:
-            raise NotImplementedError
-        point = gs.to_ndarray(point, to_ndim=2)
-        samples = []
-        for p in point:
-            mean, diag = self._unstack_mean_diagonal(self.sample_dim, p)
-            cov = gs.vec_to_diag(diag)
-            samples.append(gs.array(multivariate_normal.rvs(mean, cov, size=n_samples)))
-        return samples[0] if point.shape[0] == 1 else gs.stack(samples)
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+        means, diagonals = self._unstack_mean_diagonal(point)
+        covs = gs.vec_to_diag(diagonals)
+        samples = gs.vstack([multivariate_normal.rvs(mean, cov, size=n_samples) for mean, cov in zip(means, covs)])
+        return gs.squeeze(samples, axis=0)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -444,15 +410,10 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the normal distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        if point.ndim > 2:
-            raise NotImplementedError
-        point = gs.to_ndarray(point, to_ndim=2, axis=0)
-        point = point[:, None, :]
-        n = self.sample_dim
-        mean, diagonal = self._unstack_mean_diagonal(n, point)
-        det_cov = gs.squeeze(gs.prod(diagonal, axis=-1))
-
+        mean, diagonal = self._unstack_mean_diagonal(point)
+        det_cov = gs.prod(diagonal, axis=-1)
+        pdf_normalization = 1 / gs.sqrt(gs.power((2 * gs.pi), self.sample_dim) * det_cov)
+        
         def pdf(x):
             """Generate parameterized function for normal pdf.
 
@@ -461,16 +422,14 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
             x : array-like, shape=[n_samples, sample_dim]
                 Points at which to compute the probability
                 density function.
+
+            Returns
+            -------
+            pdf_at_x: array-like, shape=[..., n_samples]
+                Probability density function at x.
             """
-            x = gs.to_ndarray(x, to_ndim=2, axis=0)
-            x = x[None, :, :]
-            pdf = gs.exp(-0.5 * gs.sum(((x - mean) ** 2) / diagonal, axis=-1))
-            pdf_normalization = 1 / gs.sqrt(gs.power((2 * gs.pi), n) * det_cov)
-            while pdf_normalization.ndim < pdf.ndim:
-                pdf_normalization = pdf_normalization[..., None]
-            pdf = pdf_normalization * pdf
-            pdf = gs.squeeze(pdf)
-            return pdf
+            pdf = gs.stack([gs.exp(-0.5 * gs.sum((x_ - mean) ** 2 / diagonal, axis=-1)) for x_ in x], axis=0)
+            return gs.transpose(pdf_normalization * pdf)
 
         return pdf
 
@@ -511,12 +470,10 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         diagonal : array-like, shape=[..., sample_dim, sample_dim]
             Covariance matrices from the input point.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        n_points = gs.shape(point)[0]
-        mean = point[:, : self.sample_dim]
-        cov = point[:, self.sample_dim :]
-        cov = cov.reshape((n_points, self.sample_dim, self.sample_dim))
-        return gs.squeeze(mean), gs.squeeze(cov)
+        mean = point[..., : self.sample_dim]
+        cov = point[..., self.sample_dim :]
+        cov = cov.reshape((-1, self.sample_dim, self.sample_dim))
+        return mean, gs.squeeze(cov, axis=0)
 
     def sample(self, point, n_samples=1):
         """Sample from a multivariate normal distribution.
@@ -536,14 +493,10 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         samples : array-like, shape=[..., n_samples, sample_dim]
             Sample from multivariate normal distributions.
         """
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
         means, covs = self._unstack_mean_covariance(point)
-        means = gs.to_ndarray(means, to_ndim=2)
-        covs = gs.to_ndarray(covs, to_ndim=3)
-        samples = []
-        for mean, cov in zip(means, covs):
-            samples.append(gs.array(multivariate_normal.rvs(mean, cov, size=n_samples)))
-        samples = samples[0] if point.shape[0] == 1 else gs.stack(samples)
-        return gs.squeeze(samples)
+        samples = gs.vstack([multivariate_normal.rvs(mean, cov, size=n_samples) for mean, cov in zip(means, covs)])
+        return gs.squeeze(samples, axis=0)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -561,15 +514,11 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             Probability density function of the multivariate normal
             distributions with parameters provided by point.
         """
-        if point.ndim > 3:
-            raise NotImplementedError
-        n = self.sample_dim
+
         mean, cov = self._unstack_mean_covariance(point)
-        mean = gs.to_ndarray(mean, to_ndim=2)
-        cov = gs.to_ndarray(cov, to_ndim=3)
         det_cov = gs.linalg.det(cov)
         inv_cov = gs.linalg.inv(cov)
-        pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, n) * det_cov)
+        pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, self.sample_dim) * det_cov)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
@@ -579,16 +528,16 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             x : array-like, shape=[n_samples, sample_dim]
                 Points at which to compute the probability
                 density function.
+
+            Returns
+            -------
+            pdf_at_x: array-like, shape=[..., n_samples]
+                Probability density function at x.
             """
-            x = gs.to_ndarray(x, to_ndim=2, axis=0)
-            pdf = []
-            for xi in x:
-                xi0 = xi - mean
-                pdf_at_xi = gs.exp(-0.5 * xi0[:, None, :] @ inv_cov @ xi0[:, :, None])
-                pdf.append(gs.squeeze(pdf_at_xi))
-            pdf = gs.stack(pdf)
-            pdf = pdf_normalization * pdf
-            return gs.squeeze(pdf)
+            print('x',x)
+            print('mean', mean, 'inv_cov', inv_cov)
+            pdf = gs.stack([gs.exp(-0.5 * gs.einsum('...i,...ii,...i->...', x_-mean, inv_cov, x_-mean)) for x_ in x], axis=0)
+            return gs.transpose(pdf_normalization * pdf)
 
         return pdf
 
@@ -699,8 +648,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         """
         return self.inverse_diffeomorphism(image_tangent_vec)
 
-    @staticmethod
-    def metric_matrix(base_point):
+    def metric_matrix(self, base_point):
         """Compute the metric matrix at the tangent space at base_point.
 
         Parameters
@@ -799,9 +747,7 @@ class DiagonalNormalMetric(RiemannianMetric):
         pairs : array-like, shape=[..., sample_dim, 2]
             Pairs of parameters (e.g. means and variances).
         """
-        mean, diagonal = self._space._unstack_mean_diagonal(
-            self._space.sample_dim, point
-        )
+        mean, diagonal = self._space._unstack_mean_diagonal(point)
         if apply_sqrt:
             diagonal = gs.sqrt(diagonal)
         return gs.stack([mean, diagonal], axis=-1)
@@ -846,13 +792,17 @@ class DiagonalNormalMetric(RiemannianMetric):
             Inner-product.
         """
         tangent_vec_a = self._stacked_mean_diagonal_to_1d_pairs(tangent_vec_a)
+        print('tanvec a', tangent_vec_a)
         tangent_vec_b = self._stacked_mean_diagonal_to_1d_pairs(tangent_vec_b)
+        print('tanvec b', tangent_vec_b)
         base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
+        print('base point', base_point)
         inner_prod = self._univariate_normal.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point
         )
+        print('inner prod', inner_prod)
         return gs.sum(inner_prod, axis=-1)
 
     def exp(self, tangent_vec, base_point):
@@ -915,3 +865,16 @@ class DiagonalNormalMetric(RiemannianMetric):
             Injectivity radius.
         """
         return math.inf
+    
+class GeneralNormalMetric(FisherRaoMetric):
+    # def inner_product(self, base_point):
+    #     pass
+
+    def exp(self, tangent_vec, base_point):
+        pass
+
+    def log(self, point, base_point):
+        pass
+
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        pass
