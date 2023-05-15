@@ -1915,7 +1915,7 @@ class SRVQuotientMetric(QuotientMetric):
             srv : array , shape=[n_discretization, ambient_dim]
                 SRV function of the curve at the right size.
             """
-            ambient_metric = self.total_space.ambient_manifold.metric
+            ambient_metric = self.fiber_bundle.total_space.ambient_manifold.metric
             if gs.any(
                 ambient_metric.norm(
                     point[..., 1:, :] - point[..., :-1, :]) < tol
@@ -2146,29 +2146,6 @@ class SRVQuotientMetric(QuotientMetric):
 
         return results
 
-    def horizontal_geodesic(
-            self, initial_point, end_point, method="iterative horizontal projection",
-            threshold=1e-3, n_discretization=100, max_slope=10):
-        """Geodesic for the quotient SRV Metric.
-
-        The geodesics between unparametrized curves for the quotient metric are
-        projections of the horizontal geodesics in the total space of parameterized
-        curves. Since in practice shapes can only be encoded by parametrized curves,
-        geodesics are given in the total space.
-        """
-        if method == "iterative horizontal projection" :
-            return self._iterative_horizontal_projection(
-                initial_point, end_point, threshold)
-
-        if method == "dynamic programming" :
-            results = self._dynamic_programming(
-                initial_point, end_point, n_discretization, max_slope)
-            return results["geodesics"]
-
-        raise AssertionError(
-            "The only methods implemented are iterative horizontal projection \
-            and dynamic programming.")
-
     def align(self, base_point, point, n_times=20,
               method="iterative horizontal projection",
               threshold=1e-3, n_discretization=100, max_slope=10):
@@ -2194,21 +2171,11 @@ class SRVQuotientMetric(QuotientMetric):
         reparametrized_curve : array-like, shape=[k_sampling_points, ambient_dim]
             Optimal reparametrization of the curve represented by point.
         """
-        horizontal_path = self.horizontal_geodesic(
+        horizontal_path = self.geodesic(
             base_point, point, method, threshold, n_discretization, max_slope)
         times = gs.linspace(0.0, 1.0, n_times)
         hor_path = horizontal_path(times)
         return hor_path[-1]
-
-
-class SRVQuotientMetric(QuotientMetric):
-    """SRV quotient metric on the space of unparametrized curves.
-
-    This is the class for the quotient metric induced by the SRV Metric
-    on the shape space of unparametrized curves, i.e. the space of parametrized
-    curves quotiented by the group of reparametrizations. In the discrete case,
-    reparametrization corresponds to resampling.
-    """
 
     def geodesic(
             self, initial_point, end_point, method="iterative horizontal projection",
@@ -2220,8 +2187,18 @@ class SRVQuotientMetric(QuotientMetric):
         curves. Since in practice shapes can only be encoded by parametrized curves,
         geodesics are given in the total space.
         """
-        return self.fiber_bundle.horizontal_geodesic(
-            initial_point, end_point, method, threshold, n_discretization, max_slope)
+        if method == "iterative horizontal projection" :
+            return self._iterative_horizontal_projection(
+                initial_point, end_point, threshold)
+
+        if method == "dynamic programming" :
+            results = self._dynamic_programming(
+                initial_point, end_point, n_discretization, max_slope)
+            return results["geodesics"]
+
+        raise AssertionError(
+            "The only methods implemented are iterative horizontal projection \
+            and dynamic programming.")
 
     def dist(self, point_a, point_b, method="iterative horizontal projection",
              n_times=20, threshold=1e-3, n_discretization=100, max_slope=6):

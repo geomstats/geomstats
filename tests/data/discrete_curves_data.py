@@ -430,7 +430,6 @@ class SRVShapeBundleTestData(TestData):
 
     methods = ["iterative horizontal projection", "dynamic programming"]
     thresholds = [1e-3, 1e-1]
-    type = list(zip(methods, thresholds))
 
     def horizontal_and_vertical_projections_test_data(self):
         smoke_data = [
@@ -496,6 +495,10 @@ class ClosedDiscreteCurvesTestData(_ManifoldTestData):
 
 
 class SRVQuotientMetricTestData(TestData):
+
+    methods = ["iterative horizontal projection", "dynamic programming"]
+    thresholds = [1e-3, 1e-1]
+
     def dist_test_data(self):
         smoke_data = [
             dict(
@@ -507,22 +510,14 @@ class SRVQuotientMetricTestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def horizontal_geodesic_test_data(self):
-        smoke_data = [
-            dict(
-                k_sampling_points=k_sampling_points,
-                curve_a=spherical_curve_a,
-                n_times=20,
+    def geodesic_test_data(self):
+        smoke_data = []
+        for t in zip(self.methods, self.thresholds):
+            smoke_data.append(
+                dict(
+                    k_sampling_points=k_sampling_points,
+                    curve_a=spherical_curve_a,
+                    n_times=20,
+                    type_method=t),
             )
-        ]
-        return self.generate_tests(smoke_data)
-
-    def dynamic_programming_test_data(self):
-        smoke_data = [
-            dict(
-                k_sampling_points=k_sampling_points,
-                curve_a=spherical_curve_a,
-                n_times=20,
-            )
-        ]
         return self.generate_tests(smoke_data)
