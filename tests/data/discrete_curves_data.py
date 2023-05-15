@@ -430,7 +430,6 @@ class SRVShapeBundleTestData(TestData):
 
     methods = ["iterative horizontal projection", "dynamic programming"]
     thresholds = [1e-3, 1e-1]
-    type = list(zip(methods, thresholds))
 
     def horizontal_and_vertical_projections_test_data(self):
         smoke_data = [
