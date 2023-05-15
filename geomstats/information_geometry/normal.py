@@ -116,6 +116,7 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
         samples : array-like, shape=[..., n_samples]
             Sample from normal distributions.
         """
+        geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2, axis=0)
         samples = gs.vstack([norm.rvs(mean, scale, size=n_samples) for mean, scale in point])
         return gs.squeeze(samples, axis=0)
@@ -137,6 +138,7 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
             Probability density function of the normal distribution with
             parameters provided by point.
         """
+        geomstats.errors.check_belongs(point, self)
         mean = point[..., :1]
         std = point[..., 1:]
         pdf_normalization = 1 / gs.sqrt(2 * gs.pi * std**2)
@@ -200,6 +202,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
         samples : array-like, shape=[..., n_samples, sample_dim]
             Sample from centered multivariate normal distributions.
         """
+        geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=3, axis=0)
         mean = gs.zeros(self.sample_dim)
         samples = gs.vstack([multivariate_normal.rvs(mean, cov, size=n_samples) for cov in point])
@@ -220,6 +223,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             Probability density function of the centered multivariate normal
             distributions with covariance matrices provided by point.
         """
+        geomstats.errors.check_belongs(point, self)
         det_cov = gs.linalg.det(point)
         inv_cov = gs.linalg.inv(point)
         pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, self.sample_dim) * det_cov)
@@ -388,6 +392,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples, sample_dim]
             Sample from multivariate normal distributions.
         """
+        geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2, axis=0)
         means, diagonals = self._unstack_mean_diagonal(point)
         covs = gs.vec_to_diag(diagonals)
@@ -410,6 +415,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the normal distribution with
             parameters provided by point.
         """
+        geomstats.errors.check_belongs(point, self)
         mean, diagonal = self._unstack_mean_diagonal(point)
         det_cov = gs.prod(diagonal, axis=-1)
         pdf_normalization = 1 / gs.sqrt(gs.power((2 * gs.pi), self.sample_dim) * det_cov)
@@ -493,6 +499,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         samples : array-like, shape=[..., n_samples, sample_dim]
             Sample from multivariate normal distributions.
         """
+        geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2, axis=0)
         means, covs = self._unstack_mean_covariance(point)
         samples = gs.vstack([multivariate_normal.rvs(mean, cov, size=n_samples) for mean, cov in zip(means, covs)])
@@ -514,7 +521,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             Probability density function of the multivariate normal
             distributions with parameters provided by point.
         """
-
+        geomstats.errors.check_belongs(point, self)
         mean, cov = self._unstack_mean_covariance(point)
         det_cov = gs.linalg.det(cov)
         inv_cov = gs.linalg.inv(cov)
@@ -792,17 +799,13 @@ class DiagonalNormalMetric(RiemannianMetric):
             Inner-product.
         """
         tangent_vec_a = self._stacked_mean_diagonal_to_1d_pairs(tangent_vec_a)
-        print('tanvec a', tangent_vec_a)
         tangent_vec_b = self._stacked_mean_diagonal_to_1d_pairs(tangent_vec_b)
-        print('tanvec b', tangent_vec_b)
         base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
-        print('base point', base_point)
         inner_prod = self._univariate_normal.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point
         )
-        print('inner prod', inner_prod)
         return gs.sum(inner_prod, axis=-1)
 
     def exp(self, tangent_vec, base_point):
@@ -865,16 +868,3 @@ class DiagonalNormalMetric(RiemannianMetric):
             Injectivity radius.
         """
         return math.inf
-    
-class GeneralNormalMetric(FisherRaoMetric):
-    # def inner_product(self, base_point):
-    #     pass
-
-    def exp(self, tangent_vec, base_point):
-        pass
-
-    def log(self, point, base_point):
-        pass
-
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        pass
