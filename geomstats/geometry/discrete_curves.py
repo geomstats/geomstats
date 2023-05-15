@@ -1887,8 +1887,8 @@ class SRVShapeBundle(FiberBundle):
 
         References
         ----------
-        Mio, Washington & Srivastava, Anuj & Joshi, Shantanu. (2007).
-        On Shape of Plane Elastic Curves. International Journal of Computer
+        [WAJ2007] M. Washington, S. Anuj & H. Joshi,
+        "On Shape of Plane Elastic Curves", in International Journal of Computer
         Vision. 73(3):307-324, 2007.
 
         """
@@ -1925,8 +1925,8 @@ class SRVShapeBundle(FiberBundle):
 
             return srv
 
-        def reparametrization_curve(curve, gamma):
-            """Compute end_curve reparametrized by gamma.
+        def reparametrize(curve, gamma):
+            """Reparametrize curve by gamma.
 
             Inputs
             ----------
@@ -2080,7 +2080,7 @@ class SRVShapeBundle(FiberBundle):
 
         distance = gs.sqrt(dist_squared)
 
-        end_curve_reparametrized = reparametrization_curve(
+        end_curve_reparametrized = reparametrize(
             end_curve, gamma[(n_discretization, n_discretization)])
 
         geodesic = self.total_space.metric.geodesic(
@@ -2120,23 +2120,23 @@ class SRVShapeBundle(FiberBundle):
             results["geodesics"] = dp["geodesic"]
             results["distances"] = dp["distance"]
             return results
-        else :
-            initial_curves = gs.to_ndarray(initial_curve, to_ndim=3)
-            end_curves = gs.to_ndarray(end_curve, to_ndim=3)
-            n_points = initial_curves.shape[0]
-            geodesics = gs.zeros(n_points, dtype=object)
-            distances = gs.zeros(n_points, dtype=float)
 
-            for i in range(n_points):
-                dp = self._dynamic_programming_single(
-                    initial_curves[i], end_curves[i], n_discretization, max_slope)
-                geodesics[i] = dp["geodesic"]
-                distances[i] = dp["distance"]
+        initial_curves = gs.to_ndarray(initial_curve, to_ndim=3)
+        end_curves = gs.to_ndarray(end_curve, to_ndim=3)
+        n_points = initial_curves.shape[0]
+        geodesics = gs.zeros(n_points, dtype=object)
+        distances = gs.zeros(n_points, dtype=float)
 
-            results["geodesics"] = geodesics
-            results["distances"] = distances
+        for i in range(n_points):
+            dp = self._dynamic_programming_single(
+                initial_curves[i], end_curves[i], n_discretization, max_slope)
+            geodesics[i] = dp["geodesic"]
+            distances[i] = dp["distance"]
 
-            return results
+        results["geodesics"] = geodesics
+        results["distances"] = distances
+
+        return results
 
     def horizontal_geodesic(
             self, initial_point, end_point, method="iterative horizontal projection",
@@ -2157,9 +2157,9 @@ class SRVShapeBundle(FiberBundle):
                 initial_point, end_point, n_discretization, max_slope)
             return results["geodesics"]
 
-        else :
-            raise AssertionError(
-                "Method not implemented")
+        raise AssertionError(
+            "The only methods implemented are iterative horizontal projection \
+            and dynamic programming.")
 
     def align(self, base_point, point, n_times=20,
               method="iterative horizontal projection",
@@ -2272,7 +2272,6 @@ class SRVQuotientMetric(QuotientMetric):
                 point_a, point_b, n_discretization, max_slope)
             return results["distances"]
 
-        else :
-            raise AssertionError(
-                "Method not implemented"
-            )
+        raise AssertionError(
+            "The only methods implemented are iterative horizontal projection \
+            and dynamic programming.")
