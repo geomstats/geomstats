@@ -521,7 +521,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
-    def test_horizontal_geodesic(self, k_sampling_points, curve_a, n_times):
+    def test_horizontal_geodesic(self, k_sampling_points, curve_a, n_times, type):
         """Test horizontal geodesic.
         Check that the time derivative of the geodesic is
         horizontal at all time.
@@ -536,8 +536,14 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
             )
         )
 
-        srv_shape_bundle_r3 = SRVShapeBundle(DiscreteCurves(r3, equip=True))
-        horizontal_geod_fun = srv_shape_bundle_r3.horizontal_geodesic(curve_a, curve_b)
+        total_space = DiscreteCurves(r3, equip=True)
+        srv_shape_bundle_r3 = SRVShapeBundle(total_space)
+
+        method = type[0]
+        threshold = type[1]
+
+        horizontal_geod_fun = srv_shape_bundle_r3.horizontal_geodesic(
+            curve_a, curve_b, method=method)
         times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_geod_fun(times)
         velocity_vec = n_times * (horizontal_geod[1:] - horizontal_geod[:-1])
@@ -546,35 +552,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         )
         result = gs.sum(vertical_norms**2, axis=1) ** (1 / 2)
         expected = gs.zeros(n_times - 1)
-        self.assertAllClose(result, expected, atol=1e-3)
-
-    def test_dynamic_programming(self, k_sampling_points, curve_a, n_times):
-        """Test dynamic programming algorithm.
-
-        Check that the time derivative of the geodesic obtained
-        via dynamic programming is horizontal at all time.
-        """
-        curve_b = gs.transpose(
-            gs.stack(
-                (
-                    gs.zeros(k_sampling_points),
-                    gs.zeros(k_sampling_points),
-                    gs.linspace(1.0, 0.5, k_sampling_points),
-                )
-            )
-        )
-        srv_shape_bundle_r3 = SRVShapeBundle(DiscreteCurves(r3, equip=True))
-        geod_fun = srv_shape_bundle_r3._dynamic_programming(
-            curve_a, curve_b)["geodesic"]
-        times = gs.linspace(0.0, 1.0, n_times)
-        geod = geod_fun(times)
-        velocity_vec = n_times * (geod[1:] - geod[:-1])
-        _, vertical_norms = srv_shape_bundle_r3.vertical_projection(
-            velocity_vec, geod[:-1], return_norm=True
-        )
-        result = gs.sum(vertical_norms**2, axis=1) ** (1 / 2)
-        expected = gs.zeros(n_times - 1)
-        self.assertAllClose(result, expected, rtol=1e-1, atol=1e-1)
+        self.assertAllClose(result, expected, atol=threshold)
 
 
 class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
