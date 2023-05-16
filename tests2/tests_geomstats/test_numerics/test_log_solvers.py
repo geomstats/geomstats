@@ -1,7 +1,7 @@
 import pytest
 
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.numerics.geodesic import LogBVPSolver, LogShootingSolver
+from geomstats.numerics.geodesic import LogODESolver, LogShootingSolver
 from geomstats.test.numerics.geodesic_solvers import (
     LogSolverComparisonTestCase,
     LogSolverTypeCheckTestCase,
@@ -24,7 +24,7 @@ def _create_params():
         for solver in (
             LogShootingSolver(flatten=True),
             LogShootingSolver(flatten=False),
-            LogBVPSolver(n_nodes=10),
+            LogODESolver(n_nodes=10),
         ):
             params.append((space, solver))
 
@@ -53,7 +53,7 @@ def _create_params_type_check():
     for solver in (
         LogShootingSolver(flatten=True),
         LogShootingSolver(flatten=False),
-        LogBVPSolver(n_nodes=10),
+        LogODESolver(n_nodes=10),
     ):
         params.append((space, solver))
 
