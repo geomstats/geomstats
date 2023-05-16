@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
 from geomstats.numerics.bvp import ScipySolveBVP
-from geomstats.numerics.ivp import GSIntegrator
+from geomstats.numerics.ivp import GSIVPIntegrator
 from geomstats.numerics.optimizers import ScipyMinimize
 
 
@@ -50,7 +50,7 @@ class ExpSolver(ABC):
         """
 
 
-class ExpIVPSolver(ExpSolver):
+class ExpODESolver(ExpSolver):
     """Geodesic initial value problem solver.
 
     Parameters
@@ -61,7 +61,7 @@ class ExpIVPSolver(ExpSolver):
 
     def __init__(self, integrator=None):
         if integrator is None:
-            integrator = GSIntegrator()
+            integrator = GSIVPIntegrator()
 
         self.integrator = integrator
 
@@ -451,7 +451,7 @@ class _LogShootingSolverUnflatten(
         return res.x
 
 
-class LogBVPSolver(_LogBatchMixins, LogSolver):
+class LogODESolver(_LogBatchMixins, LogSolver):
     """Geodesic boundary value problem using an ODE solver.
 
     Parameters

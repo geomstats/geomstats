@@ -104,7 +104,7 @@ class ODEIVPSolver(ABC):
         """
 
 
-class GSIntegrator(ODEIVPSolver):
+class GSIVPIntegrator(ODEIVPSolver):
     """In-house ODE integrator.
 
     Parameters
