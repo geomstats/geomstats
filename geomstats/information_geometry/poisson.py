@@ -20,12 +20,15 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
     i.e. [the half-line of positive reals].
     """
 
-    def __init__(self):
+    def __init__(self, equip=True):
         super().__init__(
-            dim=1,
-            embedding_space=Euclidean(dim=1),
-            metric=PoissonMetric(),
+            dim=1, embedding_space=Euclidean(dim=1, equip=False), equip=equip
         )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return PoissonMetric
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold of Poisson distributions.
@@ -165,9 +168,6 @@ class PoissonMetric(RiemannianMetric):
     .. [AM1981] Atkinson, C., & Mitchell, A. F. (1981). Rao's distance measure.
         Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
     """
-
-    def __init__(self):
-        super().__init__(dim=1)
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Compute squared distance associated with the Poisson metric.

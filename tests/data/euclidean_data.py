@@ -21,17 +21,19 @@ class EuclideanTestData(_VectorSpaceTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(dim=2, vec=[0.0, 1.0], expected=True),
-            dict(dim=2, vec=[1.0, 0.0, 1.0], expected=False),
+            dict(dim=2, vec=gs.array([0.0, 1.0]), expected=True),
+            dict(dim=2, vec=gs.array([1.0, 0.0, 1.0]), expected=False),
         ]
         return self.generate_tests(smoke_data)
 
 
 class EuclideanMetricTestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 7), 5)
-    connection_args_list = metric_args_list = [(n,) for n in n_list]
-    shape_list = metric_args_list
-    space_list = [Euclidean(n) for n in n_list]
+
+    connection_args_list = metric_args_list = [{} for _ in n_list]
+    space_list = [Euclidean(n, equip=False) for n in n_list]
+    shape_list = [(n,) for n in n_list]
+
     n_points_list = random.sample(range(1, 7), 5)
     n_tangent_vecs_list = n_vecs_list = random.sample(range(1, 7), 5)
     n_points_a_list = random.sample(range(1, 7), 5)
@@ -51,9 +53,9 @@ class EuclideanMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 dim=2,
-                tangent_vec=[0.0, 1.0],
-                base_point=[2.0, 10.0],
-                expected=[2.0, 11.0],
+                tangent_vec=gs.array([0.0, 1.0]),
+                base_point=gs.array([2.0, 10.0]),
+                expected=gs.array([2.0, 11.0]),
             ),
             dict(
                 dim=2,
@@ -88,7 +90,12 @@ class EuclideanMetricTestData(_RiemannianMetricTestData):
         n_ps = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
         n_bps = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
         smoke_data = [
-            dict(dim=2, point=[2.0, 10.0], base_point=[0.0, 1.0], expected=[2.0, 9.0]),
+            dict(
+                dim=2,
+                point=gs.array([2.0, 10.0]),
+                base_point=gs.array([0.0, 1.0]),
+                expected=gs.array([2.0, 9.0]),
+            ),
             dict(dim=2, point=one_p, base_point=one_bp, expected=one_p - one_bp),
             dict(dim=2, point=one_p, base_point=n_bps, expected=one_p - n_bps),
             dict(dim=2, point=n_ps, base_point=one_bp, expected=n_ps - one_bp),
@@ -97,33 +104,33 @@ class EuclideanMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def inner_product_test_data(self):
-        n_tangent_vecs_1 = [[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]]
-        n_tangent_vecs_2 = [[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]]
-        tangent_vec_3 = [0.0, 1.0]
-        tangent_vec_4 = [2.0, 10.0]
+        n_tangent_vecs_1 = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])
+        n_tangent_vecs_2 = gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]])
+        tangent_vec_3 = gs.array([0.0, 1.0])
+        tangent_vec_4 = gs.array([2.0, 10.0])
         smoke_data = [
             dict(
                 dim=2,
                 tangent_vec_a=n_tangent_vecs_1,
                 tangent_vec_b=tangent_vec_4,
-                expected=[14.0, -44.0, 0.0],
+                expected=gs.array([14.0, -44.0, 0.0]),
             ),
             dict(
                 dim=2,
                 tangent_vec_a=tangent_vec_3,
                 tangent_vec_b=n_tangent_vecs_2,
-                expected=[10.0, -1.0, 6.0],
+                expected=gs.array([10.0, -1.0, 6.0]),
             ),
             dict(
                 dim=2,
                 tangent_vec_a=n_tangent_vecs_1,
                 tangent_vec_b=n_tangent_vecs_2,
-                expected=[14.0, -12.0, 21.0],
+                expected=gs.array([14.0, -12.0, 21.0]),
             ),
             dict(
                 dim=2,
-                tangent_vec_a=[0.0, 1.0],
-                tangent_vec_b=[2.0, 10.0],
+                tangent_vec_a=gs.array([0.0, 1.0]),
+                tangent_vec_b=gs.array([2.0, 10.0]),
                 expected=10.0,
             ),
         ]
@@ -133,24 +140,24 @@ class EuclideanMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 dim=2,
-                vec=[0.0, 1.0],
+                vec=gs.array([0.0, 1.0]),
                 expected=1.0,
             ),
             dict(
                 dim=2,
-                vec=[[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]],
-                expected=[5.0, 20.0, 26.0],
+                vec=gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]]),
+                expected=gs.array([5.0, 20.0, 26.0]),
             ),
         ]
         return self.generate_tests(smoke_data)
 
     def norm_test_data(self):
         smoke_data = [
-            dict(dim=2, vec=[4.0, 3.0], expected=5.0),
-            dict(dim=4, vec=[4.0, 3.0, 4.0, 3.0], expected=5.0 * SQRT_2),
+            dict(dim=2, vec=gs.array([4.0, 3.0]), expected=5.0),
+            dict(dim=4, vec=gs.array([4.0, 3.0, 4.0, 3.0]), expected=5.0 * SQRT_2),
             dict(
                 dim=3,
-                vec=[[4.0, 3.0, 10.0], [3.0, 10.0, 4.0]],
+                vec=gs.array([[4.0, 3.0, 10.0], [3.0, 10.0, 4.0]]),
                 expected=[5 * SQRT_5, 5 * SQRT_5],
             ),
         ]
@@ -175,7 +182,7 @@ class EuclideanMetricTestData(_RiemannianMetricTestData):
                 dim=2,
                 point_a=one_point_a,
                 point_b=n_points_b,
-                expected=[85.0, 68.0, 34.0],
+                expected=gs.array([85.0, 68.0, 34.0]),
             )
         )
         smoke_data.append(
@@ -186,7 +193,7 @@ class EuclideanMetricTestData(_RiemannianMetricTestData):
                 dim=2,
                 point_a=n_points_a,
                 point_b=one_point_b,
-                expected=[81.0, 212.0, 130.0],
+                expected=gs.array([81.0, 212.0, 130.0]),
             )
         )
         smoke_data.append(
@@ -194,7 +201,7 @@ class EuclideanMetricTestData(_RiemannianMetricTestData):
                 dim=2,
                 point_a=n_points_a,
                 point_b=n_points_b,
-                expected=[81.0, 109.0, 29.0],
+                expected=gs.array([81.0, 109.0, 29.0]),
             )
         )
 

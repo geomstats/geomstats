@@ -4,10 +4,8 @@ import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.discrete_curves import (
     DiscreteCurves,
-    ElasticMetric,
     L2CurvesMetric,
     SRVMetric,
-    SRVQuotientMetric,
     SRVShapeBundle,
 )
 from geomstats.geometry.euclidean import Euclidean
@@ -33,47 +31,11 @@ r2 = Euclidean(dim=2)
 r3 = Euclidean(dim=3)
 
 
-def _test_manifold_shape(test_cls, space_args):
-    space = test_cls.Space(*space_args)
-    point = space.random_point()
-
-    msg = f"Shape is {space.shape}, but random point shape is {point.shape}"
-    test_cls.assertTrue(space.shape == point.shape, msg)
-
-    if space.metric is None:
-        return
-
-    msg = (
-        f"Space shape is {space.shape}, "
-        f"whereas space metric shape is {space.metric.shape}",
-    )
-
-    if space.metric.shape[0] is None:
-        test_cls.assertTrue(len(space.shape) == len(space.metric.shape), msg)
-        test_cls.assertTrue(space.shape[1:] == space.metric.shape[1:], msg)
-    else:
-        test_cls.assertTrue(space.shape == space.metric.shape, msg)
-
-
-def _test_metric_manifold_shape(test_cls, connection_args, expected_shape):
-    connection = test_cls.Metric(*connection_args)
-
-    msg = f"Shape is {connection.shape}, but random point shape is {expected_shape}"
-    if connection.shape[0] is None:
-        test_cls.assertTrue(len(connection.shape) == len(expected_shape), msg)
-        test_cls.assertTrue(connection.shape[1:] == expected_shape[1:], msg)
-    else:
-        test_cls.asserttrue(connection.shape == expected_shape, msg)
-
-
 class TestDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
     skip_test_projection_belongs = True
     skip_test_random_tangent_vec_is_tangent = True
 
     testing_data = DiscreteCurvesTestData()
-
-    def test_manifold_shape(self, space_args):
-        return _test_manifold_shape(self, space_args)
 
 
 class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
@@ -94,9 +56,6 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
         expected = proj[0, :]
         self.assertAllClose(result, expected, rtol=10 * gs.rtol)
 
-    def test_manifold_shape(self, space_args):
-        return _test_manifold_shape(self, space_args)
-
 
 class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_belongs = True
@@ -115,25 +74,23 @@ class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = L2CurvesMetricTestData()
 
     def test_l2_metric_geodesic(
-        self, ambient_manifold, curve_a, curve_b, times, k_sampling_points
+        self, space, curve_a, curve_b, times, k_sampling_points
     ):
         """Test the geodesic method of L2LandmarksMetric."""
-        l2_metric_s2 = self.Metric(ambient_manifold=s2)
-        curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
+        space.equip_with_metric(self.Metric)
+
+        curves_ab = space.metric.geodesic(curve_a, curve_b)
         curves_ab = curves_ab(times)
 
         result = curves_ab
         expected = []
         for k in range(k_sampling_points):
-            geod = l2_metric_s2.ambient_metric.geodesic(
+            geod = space.ambient_manifold.metric.geodesic(
                 initial_point=curve_a[k, :], end_point=curve_b[k, :]
             )
             expected.append(geod(times))
         expected = gs.stack(expected, axis=1)
         self.assertAllClose(result, expected)
-
-    def test_manifold_shape(self, connection_args, expected_shape):
-        return _test_metric_manifold_shape(self, connection_args, expected_shape)
 
 
 class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -153,51 +110,14 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = SRVMetricTestData()
 
-    def test_srv_inner_product(self, curve_a, curve_b, curve_c, times):
-        l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
-        srv_metric_r3 = SRVMetric(ambient_manifold=r3)
-        curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
-        curves_bc = l2_metric_s2.geodesic(curve_b, curve_c)
-        curves_ab = curves_ab(times)
-        curves_bc = curves_bc(times)
-        srvs_ab = srv_metric_r3.srv_transform(curves_ab)
-        srvs_bc = srv_metric_r3.srv_transform(curves_bc)
-
-        result = srv_metric_r3.l2_curves_metric.inner_product(srvs_ab, srvs_bc)
-        products = srvs_ab * srvs_bc
-        expected = [gs.sum(product) for product in products]
-        expected = gs.array(expected) / (srvs_ab.shape[-2] + 1)
-        self.assertAllClose(result, expected)
-
-        result = result.shape
-        expected = [srvs_ab.shape[0]]
-        self.assertAllClose(result, expected)
-
-    def test_srv_norm(self, curve_a, curve_b, times):
-        l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
-        srv_metric_r3 = SRVMetric(ambient_manifold=r3)
-        curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
-        curves_ab = curves_ab(times)
-        srvs_ab = srv_metric_r3.srv_transform(curves_ab)
-
-        result = srv_metric_r3.l2_curves_metric.norm(srvs_ab)
-        products = srvs_ab * srvs_ab
-        sums = [gs.sum(product) for product in products]
-        squared_norm = gs.array(sums) / (srvs_ab.shape[-2] + 1)
-        expected = gs.sqrt(squared_norm)
-        self.assertAllClose(result, expected)
-
-        result = result.shape
-        expected = [srvs_ab.shape[0]]
-        self.assertAllClose(result, expected)
-
-    def test_srv_transform_and_srv_transform_inverse(self, rtol, atol):
+    def test_srv_transform_and_srv_transform_inverse(self, space, rtol, atol):
         """Test that srv and its inverse are inverse."""
-        metric = SRVMetric(ambient_manifold=r3)
-        curve = DiscreteCurves(r3).random_point(n_samples=2)
+        space.equip_with_metric(self.Metric)
 
-        srv = metric.srv_transform(curve)
-        srv_inverse = metric.srv_transform_inverse(srv, curve[:, 0])
+        curve = space.random_point(n_samples=2)
+
+        srv = space.metric.f_transform(curve)
+        srv_inverse = space.metric.f_transform_inverse(srv, curve[:, 0])
 
         result = srv.shape
         expected = (curve.shape[0], curve.shape[1] - 1, 3)
@@ -207,81 +127,132 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = curve
         self.assertAllClose(result, expected, rtol, atol)
 
+    def test_diffeomorphism_and_inverse_diffeomorphism(self, space, rtol, atol):
+        """Test that srv and its inverse are inverse."""
+        space.equip_with_metric(self.Metric)
+        curve = space.random_point(n_samples=2)
+
+        image = space.metric.diffeomorphism(curve)
+        inverse_image = space.metric.inverse_diffeomorphism(image)
+
+        result = inverse_image.shape
+        expected = (curve.shape[0], curve.shape[1], 3)
+        self.assertAllClose(result, expected)
+
+        result = inverse_image
+        expected = curve
+        self.assertAllClose(result, expected, rtol, atol)
+
     @tests.conftest.np_and_autograd_only
-    def test_aux_differential_srv_transform(
-        self, dim, k_sampling_points, n_curves, curve_fun_a
-    ):
+    def test_tangent_diffeomorphism(self, space, n_curves, curve_fun_a):
         """Test differential of square root velocity transform.
         Check that its value at (curve, tangent_vec) coincides
         with the derivative at zero of the square root velocity
         transform of a path of curves starting at curve with
         initial derivative tangent_vec.
         """
-        srv_metric_r3 = SRVMetric(r3)
-        sampling_times = gs.linspace(0.0, 1.0, k_sampling_points)
+        space.equip_with_metric(self.Metric)
+
+        sampling_times = gs.linspace(0.0, 1.0, space.k_sampling_points)
         curve_a = curve_fun_a(sampling_times)
         tangent_vec = gs.transpose(
-            gs.tile(gs.linspace(1.0, 2.0, k_sampling_points), (dim, 1))
+            gs.tile(
+                gs.linspace(1.0, 2.0, space.k_sampling_points),
+                (space.ambient_manifold.dim, 1),
+            )
         )
-        result = srv_metric_r3.aux_differential_srv_transform(tangent_vec, curve_a)
+        result = space.metric.tangent_diffeomorphism(tangent_vec, curve_a)
 
         times = gs.linspace(0.0, 1.0, n_curves)
         path_of_curves = curve_a + gs.einsum("i,jk->ijk", times, tangent_vec)
-        srv_path = srv_metric_r3.srv_transform(path_of_curves)
+        srv_path = space.metric.f_transform(path_of_curves)
         expected = n_curves * (srv_path[1] - srv_path[0])
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
     @tests.conftest.np_and_autograd_only
-    def test_aux_differential_srv_transform_inverse(
-        self, dim, k_sampling_points, curve_a
-    ):
+    def test_inverse_tangent_diffeomorphism(self, space, curve_a):
         """Test inverse of differential of square root velocity transform.
-        Check that it is the inverse of aux_differential_srv_transform.
+        Check that it is the inverse of tangent_diffeomorphism.
         """
+        space.equip_with_metric(self.Metric)
+
         tangent_vec = gs.transpose(
-            gs.tile(gs.linspace(0.0, 1.0, k_sampling_points), (dim, 1))
+            gs.tile(
+                gs.linspace(0.0, 1.0, space.k_sampling_points),
+                (space.ambient_manifold.dim, 1),
+            )
         )
-        srv_metric_r3 = SRVMetric(r3)
-        d_srv = srv_metric_r3.aux_differential_srv_transform(tangent_vec, curve_a)
-        result = srv_metric_r3.aux_differential_srv_transform_inverse(d_srv, curve_a)
+        srv = space.metric.diffeomorphism(curve_a)
+        d_srv = space.metric.tangent_diffeomorphism(tangent_vec, curve_a)
+        result = space.metric.inverse_tangent_diffeomorphism(d_srv, srv)
         expected = tangent_vec
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
 
-    def test_aux_differential_srv_transform_vectorization(
-        self, dim, k_sampling_points, curve_a, curve_b
-    ):
+    @tests.conftest.np_and_autograd_only
+    def test_tangent_diffeomorphism_and_inverse(self, space, curve, tangent_vec):
+        """Test inverse of differential of square root velocity transform.
+        Check that it is the inverse of tangent_diffeomorphism.
+        """
+        space.equip_with_metric(self.Metric)
+
+        srv = space.metric.diffeomorphism(curve)
+        d_srv = space.metric.tangent_diffeomorphism(tangent_vec, curve)
+        result = space.metric.inverse_tangent_diffeomorphism(d_srv, srv)
+        expected = tangent_vec
+        self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)
+
+    def test_tangent_diffeomorphism_vectorization(self, space, curve_a, curve_b):
         """Test differential of square root velocity transform.
         Check vectorization.
         """
-        dim = 3
-        curves = gs.stack((curve_a, curve_b))
-        tangent_vecs = gs.random.rand(2, k_sampling_points, dim)
-        srv_metric_r3 = SRVMetric(r3)
-        result = srv_metric_r3.aux_differential_srv_transform(tangent_vecs, curves)
+        space.equip_with_metric(self.Metric)
 
-        res_a = srv_metric_r3.aux_differential_srv_transform(tangent_vecs[0], curve_a)
-        res_b = srv_metric_r3.aux_differential_srv_transform(tangent_vecs[1], curve_b)
+        curves = gs.stack((curve_a, curve_b))
+        tangent_vecs = gs.random.rand(
+            2, space.k_sampling_points, space.ambient_manifold.dim
+        )
+
+        result = space.metric.tangent_diffeomorphism(tangent_vecs, curves)
+
+        res_a = space.metric.tangent_diffeomorphism(tangent_vecs[0], curve_a)
+        res_b = space.metric.tangent_diffeomorphism(tangent_vecs[1], curve_b)
         expected = gs.stack([res_a, res_b])
         self.assertAllClose(result, expected)
 
-    def test_srv_inner_product_elastic(self, dim, k_sampling_points, curve_a):
+    def test_srv_inner_product(self, space, curve, vec_a, vec_b, n_vecs):
+        space.equip_with_metric(self.Metric)
+
+        vecs_a = gs.tile(vec_a, (n_vecs, 1, 1))
+        vecs_b = gs.tile(vec_b, (n_vecs, 1, 1))
+        result = space.metric.inner_product(vecs_a, vecs_b, curve)
+
+        srv = space.metric.f_transform(curve)
+        tangent_srv_vecs_a = space.metric.tangent_diffeomorphism(vec_a, curve)
+        tangent_srv_vecs_b = space.metric.tangent_diffeomorphism(vec_b, curve)
+        expected = space.metric.embedding_space.metric.inner_product(
+            tangent_srv_vecs_a, tangent_srv_vecs_b, srv
+        )
+        self.assertAllClose(result, expected)
+
+        expected = []
+        for i in range(n_vecs):
+            expected.append(space.metric.inner_product(vecs_a[i], vecs_b[i], curve))
+        expected = gs.stack(expected)
+        self.assertAllClose(result, expected)
+
+    def test_srv_inner_product_elastic(self, space, curve, vec_a, vec_b):
         """Test inner product of SRVMetric.
         Check that the pullback metric gives an elastic metric
         with parameters a=1, b=1/2.
         """
-        tangent_vec_a = gs.random.rand(k_sampling_points, dim)
-        tangent_vec_b = gs.random.rand(k_sampling_points, dim)
-        r3 = Euclidean(dim)
-        srv_metric_r3 = SRVMetric(r3)
-        result = srv_metric_r3.inner_product(tangent_vec_a, tangent_vec_b, curve_a)
+        space.equip_with_metric(self.Metric)
+        k_sampling_points = space.k_sampling_points
 
-        d_vec_a = (k_sampling_points - 1) * (
-            tangent_vec_a[1:, :] - tangent_vec_a[:-1, :]
-        )
-        d_vec_b = (k_sampling_points - 1) * (
-            tangent_vec_b[1:, :] - tangent_vec_b[:-1, :]
-        )
-        velocity_vec = (k_sampling_points - 1) * (curve_a[1:, :] - curve_a[:-1, :])
+        result = space.metric.inner_product(vec_a, vec_b, curve)
+
+        d_vec_a = (k_sampling_points - 1) * (vec_a[1:, :] - vec_a[:-1, :])
+        d_vec_b = (k_sampling_points - 1) * (vec_b[1:, :] - vec_b[:-1, :])
+        velocity_vec = (k_sampling_points - 1) * (curve[1:, :] - curve[:-1, :])
         velocity_norm = r3.metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum("ij,i->ij", velocity_vec, 1 / velocity_norm)
         a_param = 1
@@ -292,58 +263,36 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             * gs.sum(d_vec_a * unit_velocity_vec, axis=1)
             * gs.sum(d_vec_b * unit_velocity_vec, axis=1)
         ) / velocity_norm
-        expected = gs.sum(integrand) / k_sampling_points
+        expected = gs.sum(integrand) / (k_sampling_points - 1)
         self.assertAllClose(result, expected)
 
-    def test_srv_inner_product_and_dist(self, dim, curve_a, curve_b):
+    def test_srv_inner_product_and_dist(self, space, curve_a, curve_b):
         """Test that norm of log and dist coincide
         for curves with same / different starting points, and for
         the translation invariant / non invariant SRV metric.
         """
-        r3 = Euclidean(dim=dim)
-        curve_b_transl = curve_b + gs.array([1.0, 0.0, 0.0])
-        curve_b = [curve_b, curve_b_transl]
-        translation_invariant = [True, False]
-        for curve in curve_b:
-            for param in translation_invariant:
-                srv_metric = SRVMetric(ambient_manifold=r3, translation_invariant=param)
-                log = srv_metric.log(point=curve, base_point=curve_a)
-                result = srv_metric.norm(vector=log, base_point=curve_a)
-                expected = srv_metric.dist(curve_a, curve)
-                self.assertAllClose(result, expected)
-
-    def test_srv_inner_product_vectorization(
-        self, dim, k_sampling_points, curve_a, curve_b
-    ):
-        """Test inner product of SRVMetric.
-        Check vectorization.
-        """
-        curves = gs.stack((curve_a, curve_b))
-        tangent_vecs_1 = gs.random.rand(2, k_sampling_points, dim)
-        tangent_vecs_2 = gs.random.rand(2, k_sampling_points, dim)
-        srv_metric_r3 = SRVMetric(r3)
-        result = srv_metric_r3.inner_product(tangent_vecs_1, tangent_vecs_2, curves)
-
-        res_a = srv_metric_r3.inner_product(
-            tangent_vecs_1[0], tangent_vecs_2[0], curve_a
-        )
-        res_b = srv_metric_r3.inner_product(
-            tangent_vecs_1[1], tangent_vecs_2[1], curve_b
-        )
-        expected = gs.stack((res_a, res_b))
+        space.equip_with_metric(self.Metric)
+        log = space.metric.log(point=curve_b, base_point=curve_a)
+        result = space.metric.norm(vector=log, base_point=curve_a)
+        expected = space.metric.dist(curve_a, curve_b)
         self.assertAllClose(result, expected)
 
     def test_space_derivative(
-        self, dim, n_points, n_discretized_curves, k_sampling_points
+        self,
+        space,
+        n_points,
+        n_discretized_curves,
     ):
         """Test space derivative.
         Check result on an example and vectorization.
         """
+        space.equip_with_metric(self.Metric)
+
         n_points = 3
-        dim = 3
-        srv_metric_r3 = SRVMetric(Euclidean(dim))
+        dim = space.ambient_manifold.dim
+
         curve = gs.random.rand(n_points, dim)
-        result = srv_metric_r3.space_derivative(curve)
+        result = space.metric.space_derivative(curve)
         delta = 1 / n_points
         d_curve_1 = (curve[1] - curve[0]) / delta
         d_curve_2 = (curve[2] - curve[0]) / (2 * delta)
@@ -359,32 +308,37 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, expected)
 
-        path_of_curves = gs.random.rand(n_discretized_curves, k_sampling_points, dim)
-        result = srv_metric_r3.space_derivative(path_of_curves)
+        path_of_curves = gs.random.rand(
+            n_discretized_curves, space.k_sampling_points, dim
+        )
+        result = space.metric.space_derivative(path_of_curves)
         expected = []
         for i in range(n_discretized_curves):
-            expected.append(srv_metric_r3.space_derivative(path_of_curves[i]))
+            expected.append(space.metric.space_derivative(path_of_curves[i]))
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
     def test_srv_metric_pointwise_inner_products(
-        self, times, curve_a, curve_b, curve_c, n_discretized_curves, k_sampling_points
+        self, space, curves_ab, curves_bc, n_discretized_curves
     ):
-        l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
-        srv_metric_r3 = SRVMetric(ambient_manifold=r3)
-        curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
-        curves_bc = l2_metric_s2.geodesic(curve_b, curve_c)
-        curves_ab = curves_ab(times)
-        curves_bc = curves_bc(times)
+        space.equip_with_metric(self.Metric)
+        k_sampling_points = space.k_sampling_points
+        srv_metric_r3 = space.metric
+
+        l2_metric_s2 = L2CurvesMetric(
+            DiscreteCurves(
+                ambient_manifold=s2, k_sampling_points=space.k_sampling_points
+            )
+        )
 
         tangent_vecs = l2_metric_s2.log(point=curves_bc, base_point=curves_ab)
-        result = srv_metric_r3.l2_curves_metric.pointwise_inner_products(
+        result = srv_metric_r3.embedding_space.metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs, tangent_vec_b=tangent_vecs, base_point=curves_ab
         )
         expected_shape = (n_discretized_curves, k_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-        result = srv_metric_r3.l2_curves_metric.pointwise_inner_products(
+        result = srv_metric_r3.embedding_space.metric.pointwise_inner_products(
             tangent_vec_a=tangent_vecs[0],
             tangent_vec_b=tangent_vecs[0],
             base_point=curves_ab[0],
@@ -392,25 +346,17 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected_shape = (k_sampling_points,)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-    def test_srv_transform_and_inverse(self, times, curve_a, curve_b):
+    def test_srv_transform_and_inverse(self, space, curves):
         """Test of SRVT and its inverse.
         N.B: Here curves_ab are seen as curves in R3 and not S2.
         """
-        l2_metric_s2 = L2CurvesMetric(ambient_manifold=s2)
-        srv_metric_r3 = SRVMetric(ambient_manifold=r3)
-        curves_ab = l2_metric_s2.geodesic(curve_a, curve_b)
-        curves_ab = curves_ab(times)
-
-        curves = curves_ab
-        srv_curves = srv_metric_r3.srv_transform(curves)
+        space.equip_with_metric(self.Metric)
+        srv_curves = space.metric.f_transform(curves)
         starting_points = curves[:, 0, :]
-        result = srv_metric_r3.srv_transform_inverse(srv_curves, starting_points)
+        result = space.metric.f_transform_inverse(srv_curves, starting_points)
         expected = curves
 
         self.assertAllClose(result, expected)
-
-    def test_manifold_shape(self, connection_args, expected_shape):
-        return _test_metric_manifold_shape(self, connection_args, expected_shape)
 
 
 class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
@@ -440,79 +386,61 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = ElasticMetricTestData()
 
-    def test_cartesian_to_polar_and_polar_to_cartesian(self, a, b, rtol, atol):
-        """Test conversion to polar coordinate"""
-        curves_space = DiscreteCurves(ambient_manifold=r2)
-        el_metric = ElasticMetric(a=a, b=b)
-        curve = curves_space.random_point()
-        polar_curve = el_metric.cartesian_to_polar(curve)
-        result = el_metric.polar_to_cartesian(polar_curve)
-
-        self.assertAllClose(result, curve, rtol, atol)
-
-    def test_cartesian_to_polar_and_polar_to_cartesian_vectorization(
-        self, a, b, rtol, atol
+    def test_cartesian_to_polar_and_polar_to_cartesian(
+        self, space, a, b, n_samples, rtol, atol
     ):
         """Test conversion to polar coordinate"""
-        curves_space = DiscreteCurves(ambient_manifold=r2)
-        el_metric = ElasticMetric(a=a, b=b)
-        curve = curves_space.random_point(n_samples=3)
-        polar_curve = el_metric.cartesian_to_polar(curve)
-        result = el_metric.polar_to_cartesian(polar_curve)
+        space.equip_with_metric(self.Metric, a=a, b=b)
+
+        curve = space.random_point(n_samples=n_samples)
+        polar_curve = space.metric._cartesian_to_polar(curve)
+        result = space.metric._polar_to_cartesian(polar_curve)
 
         self.assertAllClose(result, curve, rtol=rtol, atol=atol)
 
-    def test_f_transform_and_srv_transform(self, curve, rtol, atol):
-        """Test that the f transform coincides with the SRVF
-
-        This is valid for a f transform with a=1, b=1/2.
-        """
-        curves_space = DiscreteCurves(ambient_manifold=r2)
-        el_metric = ElasticMetric(a=1, b=0.5)
-
-        result = el_metric.f_transform(curve)
-        expected = curves_space.srv_metric.srv_transform(curve)
-        self.assertAllClose(result, expected, rtol, atol)
-
-    def test_f_transform_inverse_and_srv_transform_inverse(self, curve, rtol, atol):
-        """Test that the f transform coincides with the SRVF
-
-        This is valid for a f transform with a=1, b=1/2.
-        """
-        curves_space = DiscreteCurves(ambient_manifold=r2)
-
-        el_metric = ElasticMetric(a=1, b=0.5)
-        starting_point = curve[0]
-        fake_transformed_curve = curve[1:, :]
-
-        result = el_metric.f_transform_inverse(fake_transformed_curve, starting_point)
-        expected = curves_space.srv_metric.srv_transform_inverse(
-            fake_transformed_curve, starting_point
-        )
-        self.assertAllClose(result, expected, rtol, atol)
-
-    def test_f_transform_and_srv_transform_vectorization(self, rtol, atol):
+    def test_f_transform_and_srv_transform(self, space, n_samples, rtol, atol):
         """Test that the f transform coincides with the SRVF.
 
         This is valid for a f_transform with a=1, b=1/2.
         """
-        curves_space = DiscreteCurves(ambient_manifold=r2)
-        el_metric = ElasticMetric(a=1, b=0.5)
+        curve = space.random_point(n_samples)
 
-        curves = curves_space.random_point(n_samples=2)
+        space.equip_with_metric(self.Metric, a=1.0, b=0.5)
+        result = space.metric.f_transform(curve)
 
-        result = el_metric.f_transform(curves)
-        expected = curves_space.srv_metric.srv_transform(curves)
+        space.equip_with_metric(SRVMetric)
+        expected = space.metric.f_transform(curve)
+
         self.assertAllClose(result, expected, rtol, atol)
 
-    def test_f_transform_and_inverse(self, a, b, rtol, atol):
-        """Test that the inverse is right."""
-        curves_space = DiscreteCurves(ambient_manifold=r2)
-        el_metric = ElasticMetric(a=a, b=b)
-        curve = curves_space.random_point()
+    def test_f_transform_inverse_and_srv_transform_inverse(
+        self, space, curve, rtol, atol
+    ):
+        """Test that the f transform coincides with the SRVF
 
-        f = el_metric.f_transform(curve)
-        f_inverse = el_metric.f_transform_inverse(f, curve[0])
+        This is valid for a f transform with a=1, b=1/2.
+        """
+        space.equip_with_metric(self.Metric, a=1, b=0.5)
+
+        starting_point = curve[0]
+        fake_transformed_curve = curve[1:, :]
+
+        result = space.metric.f_transform_inverse(
+            fake_transformed_curve, starting_point
+        )
+
+        space.equip_with_metric(SRVMetric)
+        expected = space.metric.f_transform_inverse(
+            fake_transformed_curve, starting_point
+        )
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def test_f_transform_and_f_transform_inverse(self, space, a, b, curve, rtol, atol):
+        """Test that the inverse is right."""
+        space.equip_with_metric(self.Metric, a=a, b=b)
+
+        f = space.metric.f_transform(curve)
+        f_inverse = space.metric.f_transform_inverse(f, curve[0])
 
         result = f.shape
         expected = (curve.shape[0] - 1, 2)
@@ -522,8 +450,36 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = curve
         self.assertAllClose(result, expected, rtol, atol)
 
-    def test_manifold_shape(self, connection_args, expected_shape):
-        return _test_metric_manifold_shape(self, connection_args, expected_shape)
+    def test_f_transform_and_diffeomorphism(self, space, a, b, n_samples, rtol, atol):
+        """Test that f_transform coincides with
+        diffeomorphism.
+        """
+        space.equip_with_metric(self.Metric, a=a, b=b)
+
+        curves = space.random_point(n_samples=n_samples)
+
+        result = space.metric.f_transform(curves)
+        expected = space.metric.diffeomorphism(curves)
+
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def test_f_transform_inverse_and_inverse_diffeomorphism(
+        self, space, a, b, curve, rtol, atol
+    ):
+        """Test that the f transform inverse coincides
+        with the inverse diffeomorphism when starting at 0.
+        """
+        space.equip_with_metric(self.Metric, a=a, b=b)
+
+        starting_point = gs.zeros(gs.shape(curve[..., 0, :]))
+        fake_transformed_curve = curve[1:, :]
+
+        result = space.metric.inverse_diffeomorphism(fake_transformed_curve)
+        expected = space.metric.f_transform_inverse(
+            fake_transformed_curve, starting_point
+        )
+
+        self.assertAllClose(result, expected, rtol, atol)
 
 
 class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
@@ -537,8 +493,10 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         vector are othogonal with respect to the SRVMetric inner
         product, and check vectorization.
         """
-        srv_metric_r3 = SRVMetric(r3)
-        srv_shape_bundle_r3 = SRVShapeBundle(r3)
+        total_space = DiscreteCurves(r3, equip=True)
+        srv_metric_r3 = total_space.metric
+        srv_shape_bundle_r3 = SRVShapeBundle(total_space)
+
         geod = srv_metric_r3.geodesic(initial_point=curve_a, end_point=curve_b)
         geod = geod(times)
         tangent_vec = n_discretized_curves * (geod[1, :, :] - geod[0, :, :])
@@ -546,7 +504,6 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
             tangent_vec, curve_a
         )
         tangent_vec_ver = srv_shape_bundle_r3.vertical_projection(tangent_vec, curve_a)
-        print(tangent_vec_hor.shape)
         result = srv_metric_r3.inner_product(tangent_vec_hor, tangent_vec_ver, curve_a)
         expected = 0.0
         self.assertAllClose(result, expected, atol=1e-4)
@@ -564,7 +521,8 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         expected = gs.stack(expected)
         self.assertAllClose(result, expected)
 
-    def test_horizontal_geodesic(self, k_sampling_points, curve_a, n_times):
+    def test_horizontal_geodesic(
+            self, k_sampling_points, curve_a, n_times, type_method):
         """Test horizontal geodesic.
         Check that the time derivative of the geodesic is
         horizontal at all time.
@@ -578,8 +536,15 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        srv_shape_bundle_r3 = SRVShapeBundle(r3)
-        horizontal_geod_fun = srv_shape_bundle_r3.horizontal_geodesic(curve_a, curve_b)
+
+        total_space = DiscreteCurves(r3, equip=True)
+        srv_shape_bundle_r3 = SRVShapeBundle(total_space)
+
+        method = type_method[0]
+        threshold = type_method[1]
+
+        horizontal_geod_fun = srv_shape_bundle_r3.horizontal_geodesic(
+            curve_a, curve_b, method=method)
         times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_geod_fun(times)
         velocity_vec = n_times * (horizontal_geod[1:] - horizontal_geod[:-1])
@@ -588,7 +553,7 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         )
         result = gs.sum(vertical_norms**2, axis=1) ** (1 / 2)
         expected = gs.zeros(n_times - 1)
-        self.assertAllClose(result, expected, atol=1e-3)
+        self.assertAllClose(result, expected, atol=threshold)
 
 
 class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
@@ -596,9 +561,15 @@ class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
 
     def test_dist(self, sampling_times, curve_fun_a, curve_a, k_sampling_points):
         """Test quotient distance.
+
         Check that the quotient distance is the same as the distance
         between the end points of the horizontal geodesic.
         """
+        space = DiscreteCurves(ambient_manifold=r3)
+        space.equip_with_group_action("reparametrizations")
+
+        space.equip_with_quotient_structure()
+
         curve_a_resampled = curve_fun_a(sampling_times**2)
         curve_b = gs.transpose(
             gs.stack(
@@ -609,7 +580,7 @@ class TestSRVQuotientMetric(TestCase, metaclass=Parametrizer):
                 )
             )
         )
-        srv_quotient_metric_r3 = SRVQuotientMetric(ambient_manifold=r3)
+        srv_quotient_metric_r3 = space.quotient.metric
         result = srv_quotient_metric_r3.dist(curve_a_resampled, curve_b)
         expected = srv_quotient_metric_r3.dist(curve_a, curve_b)
         self.assertAllClose(result, expected, atol=1e-3, rtol=1e-3)

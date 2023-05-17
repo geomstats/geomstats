@@ -12,7 +12,6 @@ import geomstats.backend as gs
 import geomstats.errors as errors
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.nfold_manifold import NFoldMetric
 from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
@@ -20,6 +19,7 @@ from geomstats.geometry.poincare_half_space import (
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 from geomstats.information_geometry.base import InformationManifoldMixin
 
@@ -43,7 +43,7 @@ class NormalDistributions:
         Optional, default: 'general'.
     """
 
-    def __new__(cls, sample_dim, distribution_type="general"):
+    def __new__(cls, sample_dim, distribution_type="general", equip=True):
         """Instantiate class that corresponds to the distribution_type."""
         errors.check_parameter_accepted_values(
             distribution_type,
@@ -51,12 +51,12 @@ class NormalDistributions:
             ["centered", "diagonal", "general"],
         )
         if sample_dim == 1:
-            return UnivariateNormalDistributions()
+            return UnivariateNormalDistributions(equip=equip)
         if distribution_type == "centered":
-            return CenteredNormalDistributions(sample_dim)
+            return CenteredNormalDistributions(sample_dim, equip=equip)
         if distribution_type == "diagonal":
-            return DiagonalNormalDistributions(sample_dim)
-        return GeneralNormalDistributions(sample_dim)
+            return DiagonalNormalDistributions(sample_dim, equip=equip)
+        return GeneralNormalDistributions(sample_dim, equip=equip)
 
 
 class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace):
@@ -65,9 +65,13 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
     This is upper half-plane.
     """
 
-    def __init__(self):
-        super().__init__(dim=2)
-        self.metric = UnivariateNormalMetric()
+    def __init__(self, equip=True):
+        super().__init__(dim=2, equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return UnivariateNormalMetric
 
     @staticmethod
     def random_point(n_samples=1, bound=1.0):
@@ -138,21 +142,24 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
             Probability density function of the normal distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        means = point[..., 0]
-        stds = point[..., 1]
-        means = gs.to_ndarray(means, to_ndim=2)
-        stds = gs.to_ndarray(stds, to_ndim=2)
+        means = gs.expand_dims(point[..., 0], axis=-1)
+        stds = gs.expand_dims(point[..., 1], axis=-1)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
 
             Parameters
             ----------
-            x : array-like, shape=[n_points,]
+            x : array-like, shape=[n_samples,]
                 Points at which to compute the probability density function.
+
+            Returns
+            -------
+            pdf_at_x : array-like, shape=[..., n_samples]
+                Values of pdf at x for each value of the parameters provided
+                by point.
             """
-            x = gs.to_ndarray(x, to_ndim=2, axis=-1)
+            x = gs.reshape(gs.array(x), (-1,))
             return (1.0 / gs.sqrt(2 * gs.pi * stds**2)) * gs.exp(
                 -((x - means) ** 2) / (2 * stds**2)
             )
@@ -173,10 +180,14 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
         Dimension of the sample space of the multivariate normal distribution.
     """
 
-    def __init__(self, sample_dim):
-        super().__init__(n=sample_dim)
+    def __init__(self, sample_dim, equip=True):
+        super().__init__(n=sample_dim, equip=equip)
         self.sample_dim = sample_dim
-        self.metric = CenteredNormalMetric(sample_dim=sample_dim)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return CenteredNormalMetric
 
     def sample(self, point, n_samples=1):
         """Sample from a centered multivariate normal distribution.
@@ -266,12 +277,16 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
           Dimension of the sample space of the multivariate normal distribution.
     """
 
-    def __init__(self, sample_dim):
+    def __init__(self, sample_dim, equip=True):
         self.sample_dim = sample_dim
-        self.sample_space = Euclidean(dim=sample_dim)
+        self.sample_space = Euclidean(dim=sample_dim, equip=False)
         dim = int(2 * sample_dim)
-        super().__init__(dim=dim, embedding_space=Euclidean(dim))
-        self.metric = DiagonalNormalMetric(sample_dim=sample_dim)
+        super().__init__(dim=dim, embedding_space=Euclidean(dim), equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return DiagonalNormalMetric
 
     @staticmethod
     def _unstack_mean_diagonal(sample_dim, point):
@@ -473,8 +488,12 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         Dimension of the sample space of the multivariate normal distribution.
     """
 
-    def __init__(self, sample_dim):
-        super().__init__(factors=[Euclidean(sample_dim), SPDMatrices(sample_dim)])
+    def __init__(self, sample_dim, equip=True):
+        super().__init__(
+            factors=(Euclidean(sample_dim), SPDMatrices(sample_dim)),
+            default_point_type="vector",
+            equip=equip,
+        )
         self.sample_dim = sample_dim
 
     def _unstack_mean_covariance(self, point):
@@ -581,11 +600,8 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
     by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
     """
 
-    def __init__(self):
-        super().__init__(dim=2)
-
-    def define_embedding_metric(self):
-        r"""Define the metric to pull back.
+    def _define_embedding_space(self):
+        r"""Define the equipped space with the metric to pull back.
 
         This is the metric of the Poincare upper half-plane
         with a scaling factor of 2.
@@ -595,7 +611,9 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         embedding_metric : RiemannianMetric object
             The metric of the Poincare upper half-plane.
         """
-        return 2.0 * PoincareHalfSpaceMetric(dim=2)
+        space = PoincareHalfSpace(dim=2)
+        space.metric = ScalarProductMetric(PoincareHalfSpaceMetric(space), 2.0)
+        return space
 
     def diffeomorphism(self, base_point):
         r"""Image of base point in the Poincare upper half-plane.
@@ -682,7 +700,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         return self.inverse_diffeomorphism(image_tangent_vec)
 
     @staticmethod
-    def metric_matrix(base_point=None):
+    def metric_matrix(base_point):
         """Compute the metric matrix at the tangent space at base_point.
 
         Parameters
@@ -695,10 +713,6 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         mat : array-like, shape=[..., 2, 2]
             Metric matrix.
         """
-        if base_point is None:
-            raise ValueError(
-                "A base point must be given to compute the " "metric matrix"
-            )
         stds = base_point[..., 1]
         const = 1 / stds**2
         mat = gs.array([[1.0, 0], [0, 2]])
@@ -755,39 +769,20 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         return gs.tile(sectional_curv, (n_sec_curv,))
 
 
-class CenteredNormalMetric(NFoldMetric):
-    """Class for the Fisher information metric of centered normal distributions.
+class CenteredNormalMetric:
+    """Class for the Fisher information metric of centered normal distributions."""
 
-    Parameters
-    ----------
-    sample_dim : int
-          Dimension of the sample space of the multivariate normal distribution.
-    """
-
-    def __init__(self, sample_dim):
-        super().__init__(
-            base_metric=SPDAffineMetric(n=sample_dim),
-            n_copies=1,
-            scales=[1 / 2],
-        )
+    def __new__(cls, space):
+        """Instantiate a scaled SPD affine metric."""
+        return ScalarProductMetric(SPDAffineMetric(space), 1 / 2)
 
 
 class DiagonalNormalMetric(RiemannianMetric):
-    """Class for the Fisher information metric of diagonal normal distributions.
+    """Class for the Fisher information metric of diagonal normal distributions."""
 
-    Parameters
-    ----------
-    sample_dim : int
-          Dimension of the sample space of the multivariate normal distribution.
-    """
-
-    def __init__(self, sample_dim):
-        self.sample_dim = sample_dim
-        dim = int(2 * sample_dim)
-        super().__init__(dim=dim)
-        self.univariate_normal_metric = UnivariateNormalMetric()
-        manifold = DiagonalNormalDistributions
-        self._unstack_mean_diagonal = manifold._unstack_mean_diagonal
+    def __init__(self, space):
+        super().__init__(space=space)
+        self._univariate_normal = UnivariateNormalDistributions()
 
     def _stacked_mean_diagonal_to_1d_pairs(self, point, apply_sqrt=False):
         """Create pairs of 1d parameters from nd counterparts.
@@ -804,11 +799,12 @@ class DiagonalNormalMetric(RiemannianMetric):
         pairs : array-like, shape=[..., sample_dim, 2]
             Pairs of parameters (e.g. means and variances).
         """
-        mean, diagonal = self._unstack_mean_diagonal(self.sample_dim, point)
+        mean, diagonal = self._space._unstack_mean_diagonal(
+            self._space.sample_dim, point
+        )
         if apply_sqrt:
             diagonal = gs.sqrt(diagonal)
-        point = gs.stack([mean, diagonal], axis=-1)
-        return point
+        return gs.stack([mean, diagonal], axis=-1)
 
     def _1d_pairs_to_stacked_mean_diagonal(self, point, apply_square=False):
         """Create nd stacked parameters from pairs of 1d counterparts.
@@ -829,8 +825,7 @@ class DiagonalNormalMetric(RiemannianMetric):
         diagonal = point[..., 1]
         if apply_square:
             diagonal = gs.power(diagonal, 2)
-        point = gs.concatenate([mean, diagonal], axis=-1)
-        return point
+        return gs.concatenate([mean, diagonal], axis=-1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Inner product between two tangent vectors at a base point.
@@ -855,11 +850,10 @@ class DiagonalNormalMetric(RiemannianMetric):
         base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
-        inner_prod = self.univariate_normal_metric.inner_product(
+        inner_prod = self._univariate_normal.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point
         )
-        inner_prod = gs.sum(inner_prod, axis=-1)
-        return inner_prod
+        return gs.sum(inner_prod, axis=-1)
 
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential.
@@ -881,11 +875,8 @@ class DiagonalNormalMetric(RiemannianMetric):
         base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
-        end_point = self.univariate_normal_metric.exp(tangent_vec, base_point)
-        end_point = self._1d_pairs_to_stacked_mean_diagonal(
-            end_point, apply_square=True
-        )
-        return end_point
+        end_point = self._univariate_normal.metric.exp(tangent_vec, base_point)
+        return self._1d_pairs_to_stacked_mean_diagonal(end_point, apply_square=True)
 
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
@@ -907,9 +898,8 @@ class DiagonalNormalMetric(RiemannianMetric):
         base_point = self._stacked_mean_diagonal_to_1d_pairs(
             base_point, apply_sqrt=True
         )
-        log = self.univariate_normal_metric.log(point, base_point)
-        log = self._1d_pairs_to_stacked_mean_diagonal(log)
-        return log
+        log = self._univariate_normal.metric.log(point, base_point)
+        return self._1d_pairs_to_stacked_mean_diagonal(log)
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.

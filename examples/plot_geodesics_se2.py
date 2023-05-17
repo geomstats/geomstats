@@ -11,12 +11,16 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.special_euclidean import (
+    SpecialEuclidean,
+    SpecialEuclideanMatrixCanonicalLeftMetric,
+)
 
-SE2_GROUP = SpecialEuclidean(n=2, point_type="matrix")
+SE2_GROUP = SpecialEuclidean(n=2, point_type="matrix", equip=False)
 N_STEPS = 40
-LEFT_METRIC = SE2_GROUP.left_canonical_metric
-RIGHT_METRIC = SE2_GROUP.right_canonical_metric
+LEFT_METRIC = SpecialEuclideanMatrixCanonicalLeftMetric(SE2_GROUP)
+RIGHT_METRIC = InvariantMetric(SE2_GROUP, left=False)
 
 
 def main():

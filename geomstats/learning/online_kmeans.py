@@ -69,7 +69,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20, atol=1e-5, max_iter=5
         step_size = gs.floor(gs.array(iteration / n_repetitions)) + 1
 
         random_index = gs.random.randint(low=0, high=n_samples, size=(1,))
-        point = gs.get_slice(X, gs.cast(random_index, gs.int32))
+        point = gs.get_slice(X, gs.cast(random_index, gs.int32))[0]
 
         index_to_update = metric.closest_neighbor_index(point, cluster_centers)
         center_to_update = gs.copy(gs.get_slice(cluster_centers, index_to_update))

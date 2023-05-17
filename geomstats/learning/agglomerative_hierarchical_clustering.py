@@ -119,7 +119,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
 
         super().__init__(
             n_clusters=n_clusters,
-            affinity=affinity,
+            metric=affinity,
             memory=memory,
             connectivity=connectivity,
             compute_full_tree=compute_full_tree,

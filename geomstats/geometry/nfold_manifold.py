@@ -22,8 +22,6 @@ class NFoldManifold(Manifold):
         Base manifold.
     n_copies : int
         Number of replication of the base manifold.
-    metric : RiemannianMetric
-        Metric object to use on the manifold.
     default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
         Optional, default: 'intrinsic'.
@@ -33,24 +31,26 @@ class NFoldManifold(Manifold):
         self,
         base_manifold,
         n_copies,
-        metric=None,
+        equip=True,
     ):
         geomstats.errors.check_integer(n_copies, "n_copies")
         dim = n_copies * base_manifold.dim
         shape = (n_copies,) + base_manifold.shape
 
-        if metric is None:
-            metric = NFoldMetric(base_manifold.metric, n_copies)
+        self.base_manifold = base_manifold
+        self.n_copies = n_copies
 
         super().__init__(
             dim=dim,
             shape=shape,
             default_coords_type=base_manifold.default_coords_type,
-            metric=metric,
+            equip=equip,
         )
 
-        self.base_manifold = base_manifold
-        self.n_copies = n_copies
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return NFoldMetric
 
     def belongs(self, point, atol=gs.atol):
         """Test if a point belongs to the manifold.
@@ -187,26 +187,24 @@ class NFoldMetric(RiemannianMetric):
 
     Parameters
     ----------
-    base_metric : RiemannianMetric
-        Base metric.
-    n_copies : int
-        Number of replication of the base metric.
+    space : NFoldManifold
+        Base space.
+    scales : array-like
+        Scale of each metric in the product.
     """
 
-    def __init__(self, base_metric, n_copies, scales=None):
-        geomstats.errors.check_integer(n_copies, "n_copies")
-        dim = n_copies * base_metric.dim
-        base_shape = base_metric.shape
-        super().__init__(
-            dim=dim, shape=base_shape if n_copies == 1 else (n_copies, *base_shape)
-        )
-        self.base_shape = base_shape
-        self.base_metric = base_metric
-        self.n_copies = n_copies
+    def __init__(self, space, scales=None):
         if scales is not None:
             for scale in scales:
                 geomstats.errors.check_positive(scale, "Each value in scales")
+
+            if len(scales) != space.n_copies:
+                raise ValueError(
+                    "Number of scales should be equal to number of factors"
+                )
         self.scales = scales
+
+        super().__init__(space=space)
 
     def metric_matrix(self, base_point=None):
         """Compute the matrix of the inner-product.
@@ -225,10 +223,12 @@ class NFoldMetric(RiemannianMetric):
         matrix : array-like, shape=[..., n_copies, dim, dim]
             Matrix of the inner-product at the base point.
         """
-        point_ = gs.reshape(base_point, (-1, *self.base_shape))
-        matrices = self.base_metric.metric_matrix(point_)
-        dim = self.base_metric.dim
-        reshaped = gs.reshape(matrices, (-1, self.n_copies, dim, dim))
+        base_manifold = self._space.base_manifold
+
+        point_ = gs.reshape(base_point, (-1, *base_manifold.shape))
+        matrices = base_manifold.metric.metric_matrix(point_)
+        dim = self.base_manifold.dim
+        reshaped = gs.reshape(matrices, (-1, self._space.n_copies, dim, dim))
         if self.scales is not None:
             reshaped = gs.einsum("j,ijkl->ijkl", self.scales, matrices)
 
@@ -255,14 +255,16 @@ class NFoldMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
+        base_manifold = self._space.base_manifold
+
         tangent_vec_a_, tangent_vec_b_, point_ = gs.broadcast_arrays(
             tangent_vec_a, tangent_vec_b, base_point
         )
-        point_ = gs.reshape(point_, (-1, *self.base_shape))
-        vector_a = gs.reshape(tangent_vec_a_, (-1, *self.base_shape))
-        vector_b = gs.reshape(tangent_vec_b_, (-1, *self.base_shape))
-        inner_each = self.base_metric.inner_product(vector_a, vector_b, point_)
-        reshaped = gs.reshape(inner_each, (-1, self.n_copies))
+        point_ = gs.reshape(point_, (-1, *base_manifold.shape))
+        vector_a = gs.reshape(tangent_vec_a_, (-1, *base_manifold.shape))
+        vector_b = gs.reshape(tangent_vec_b_, (-1, *base_manifold.shape))
+        inner_each = base_manifold.metric.inner_product(vector_a, vector_b, point_)
+        reshaped = gs.reshape(inner_each, (-1, self._space.n_copies))
         if self.scales is not None:
             reshaped = gs.einsum("j,ij->ij", self.scales, reshaped)
         return gs.squeeze(gs.sum(reshaped, axis=-1))
@@ -284,11 +286,15 @@ class NFoldMetric(RiemannianMetric):
             Point on the manifold equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
+        base_manifold = self._space.base_manifold
+
         tangent_vec, point_ = gs.broadcast_arrays(tangent_vec, base_point)
-        point_ = gs.reshape(point_, (-1, *self.base_shape))
-        vector_ = gs.reshape(tangent_vec, (-1, *self.base_shape))
-        each_exp = self.base_metric.exp(vector_, point_)
-        reshaped = gs.reshape(each_exp, (-1, self.n_copies) + self.base_shape)
+        point_ = gs.reshape(point_, (-1, *base_manifold.shape))
+        vector_ = gs.reshape(tangent_vec, (-1, *base_manifold.shape))
+        each_exp = base_manifold.metric.exp(vector_, point_)
+        reshaped = gs.reshape(
+            each_exp, (-1, self._space.n_copies) + base_manifold.shape
+        )
         return gs.squeeze(reshaped)
 
     def log(self, point, base_point, **kwargs):
@@ -308,11 +314,15 @@ class NFoldMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
+        base_manifold = self._space.base_manifold
+
         point_, base_point_ = gs.broadcast_arrays(point, base_point)
-        base_point_ = gs.reshape(base_point_, (-1, *self.base_shape))
-        point_ = gs.reshape(point_, (-1, *self.base_shape))
-        each_log = self.base_metric.log(point_, base_point_)
-        reshaped = gs.reshape(each_log, (-1, self.n_copies) + self.base_shape)
+        base_point_ = gs.reshape(base_point_, (-1, *base_manifold.shape))
+        point_ = gs.reshape(point_, (-1, *base_manifold.shape))
+        each_log = base_manifold.metric.log(point_, base_point_)
+        reshaped = gs.reshape(
+            each_log, (-1, self._space.n_copies) + base_manifold.shape
+        )
         return gs.squeeze(reshaped)
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):

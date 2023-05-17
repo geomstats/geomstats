@@ -21,7 +21,7 @@ class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
 
     def test_belongs(self, dim, vec, expected):
         space = self.Space(dim)
-        self.assertAllClose(space.belongs(vec), gs.array(expected))
+        self.assertAllClose(space.belongs(vec), expected)
 
     def test_regularize_raises(self, dim, point, expected):
         space = self.Space(dim)
@@ -77,19 +77,22 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = HyperboloidMetricTestData()
 
     def test_inner_product_is_minkowski_inner_product(
-        self, dim, tangent_vec_a, tangent_vec_b, base_point
+        self, space, tangent_vec_a, tangent_vec_b, base_point
     ):
-        metric = self.Metric(dim)
-        minkowki_space = Minkowski(dim + 1)
-        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        space.equip_with_metric(self.Metric)
+        minkowki_space = Minkowski(space.dim + 1)
+        result = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = minkowki_space.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point
         )
         self.assertAllClose(result, expected)
 
-    def test_scaled_inner_product(self, dim, tangent_vec_a, tangent_vec_b, base_point):
-        default_space = Hyperboloid(dim=dim)
-        default_metric = default_space.metric
+    def test_scaled_inner_product(
+        self, space, tangent_vec_a, tangent_vec_b, base_point
+    ):
+        space.equip_with_metric(self.Metric)
+
+        default_metric = space.metric
         scaled_metric = 2.0 * default_metric
 
         inner_product_default_metric = default_metric.inner_product(
@@ -102,9 +105,10 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = 2.0 * inner_product_default_metric
         self.assertAllClose(result, expected)
 
-    def test_scaled_squared_norm(self, dim, tangent_vec, base_point):
-        default_space = Hyperboloid(dim=dim)
-        default_metric = default_space.metric
+    def test_scaled_squared_norm(self, space, tangent_vec, base_point):
+        space.equip_with_metric(self.Metric)
+
+        default_metric = space.metric
         scaled_metric = 2.0 * default_metric
 
         squared_norm_default_metric = default_metric.squared_norm(
@@ -115,9 +119,10 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = 2.0 * squared_norm_default_metric
         self.assertAllClose(result, expected)
 
-    def test_scaled_dist(self, dim, point_a, point_b):
-        default_space = Hyperboloid(dim=dim)
-        default_metric = default_space.metric
+    def test_scaled_dist(self, space, point_a, point_b):
+        space.equip_with_metric(self.Metric)
+
+        default_metric = space.metric
         scaled_metric = 2.0 * default_metric
 
         distance_default_metric = default_metric.dist(point_a, point_b)
@@ -131,6 +136,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     ):
         intrinsic_manifold = Hyperboloid(dim=dim, default_coords_type="intrinsic")
         extrinsic_manifold = Hyperbolic(dim=dim, default_coords_type="extrinsic")
+
         ball_manifold = PoincareBall(dim)
         x_extr = intrinsic_manifold.to_coordinates(
             x_intrinsic, to_coords_type="extrinsic"

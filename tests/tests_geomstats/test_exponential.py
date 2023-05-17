@@ -26,11 +26,12 @@ class TestExponential(OpenSetTestCase, metaclass=Parametrizer):
 
     @tests.conftest.np_and_autograd_only
     def test_point_to_pdf(self, point, n_samples):
+        space = self.Space()
         point = gs.to_ndarray(point, 1)
         n_points = point.shape[0]
-        pdf = self.Space().point_to_pdf(point)
+        pdf = space.point_to_pdf(point)
         point_to_sample = point[0] if point.ndim > 1 else point
-        samples = gs.to_ndarray(self.Space().sample(point_to_sample, n_samples), 1)
+        samples = gs.to_ndarray(space.sample(point_to_sample, n_samples), 1)
         result = gs.squeeze(pdf(samples))
         pdf = []
         for i in range(n_points):
@@ -54,14 +55,16 @@ class TestExponentialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = ExponentialMetricTestData()
     Space = testing_data.Space
 
-    def test_squared_dist(self, point_a, point_b, expected):
-        self.assertAllClose(self.Metric().squared_dist(point_a, point_b), expected)
+    def test_squared_dist(self, space, point_a, point_b, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.squared_dist(point_a, point_b), expected)
 
-    def test_metric_matrix(self, point, expected):
-        self.assertAllClose(self.Metric().metric_matrix(point), expected)
+    def test_metric_matrix(self, space, point, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.metric_matrix(point), expected)
 
-    def test_geodesic_symmetry(self):
-        space = self.Space()
+    def test_geodesic_symmetry(self, space):
+        space.equip_with_metric(self.Metric)
         point_a, point_b = space.random_point(2)
         path_ab = space.metric.geodesic(initial_point=point_a, end_point=point_b)
         path_ba = space.metric.geodesic(initial_point=point_b, end_point=point_a)

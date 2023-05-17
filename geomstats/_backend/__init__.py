@@ -120,6 +120,7 @@ BACKEND_ATTRIBUTES = {
         "repeat",
         "reshape",
         "rtol",
+        "scatter_add",
         "searchsorted",
         "set_default_dtype",
         "set_diag",
@@ -159,13 +160,13 @@ BACKEND_ATTRIBUTES = {
     ],
     "autodiff": [
         "custom_gradient",
-        "detach",
         "hessian",
         "hessian_vec",
         "jacobian",
         "jacobian_vec",
         "jacobian_and_hessian",
         "value_and_grad",
+        "value_jacobian_and_hessian",
     ],
     "linalg": [
         "cholesky",

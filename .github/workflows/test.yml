@@ -2,36 +2,34 @@ name: "Testing"
 
 on:
   push:
-    branches: [master,github-actions-test]
+    branches: [master, github-actions-test]
     paths-ignore:
-    - 'docs/**'
-    - 'README.rst'
-    - 'LICENSE.md'
-    - '.github/workflows/docs.yml'
-    - '.deepsource.toml'
-    - '.gitignore'
+      - "docs/**"
+      - "README.rst"
+      - "LICENSE.md"
+      - ".github/workflows/docs.yml"
+      - ".deepsource.toml"
+      - ".gitignore"
 
   pull_request:
     branches: [master]
     paths-ignore:
-    - 'docs/**'
-    - 'README.rst'
-    - '.github/workflows/docs.yml'
-    - 'LICENSE.md'
-    - '.deepsource.toml'
-    - '.gitignore'
-
+      - "docs/**"
+      - "README.rst"
+      - ".github/workflows/docs.yml"
+      - "LICENSE.md"
+      - ".deepsource.toml"
+      - ".gitignore"
 
 jobs:
   build:
-
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
         os: [ubuntu-latest]
         python-version: [3.8]
-        geomstats-backend : ['autograd','numpy','pytorch']
-        test-folder : ['tests/tests_geomstats/' , 'tests/tests_scripts']
+        geomstats-backend: ["autograd", "numpy", "pytorch"]
+        test-folder: ["tests/tests_geomstats/", "tests/tests_scripts"]
       fail-fast: false
 
     steps:
@@ -40,9 +38,13 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{matrix.python-version}}
+          cache: "pip"
+          cache-dependency-path: |
+            setup.cfg
+            setup.py
 
       - name: install dependencies [pip]
-        run:  |
+        run: |
           pip install --upgrade pip setuptools wheel
           pip install -e .[opt,test,${{ matrix.geomstats-backend }}]
 
@@ -51,7 +53,7 @@ jobs:
 
       - name: unit testing [pytest]
         env:
-          GEOMSTATS_BACKEND : ${{matrix.geomstats-backend}}
+          GEOMSTATS_BACKEND: ${{matrix.geomstats-backend}}
         run: |
           pytest --cov-report term --cov=geomstats ${{matrix.test-folder}}
 

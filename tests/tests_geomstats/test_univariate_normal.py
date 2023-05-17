@@ -6,10 +6,7 @@ from scipy.stats import norm
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.information_geometry.normal import (
-    UnivariateNormalDistributions,
-    UnivariateNormalMetric,
-)
+from geomstats.information_geometry.normal import UnivariateNormalDistributions
 
 
 class TestUnivariateNormalDistributions(tests.conftest.TestCase):
@@ -19,7 +16,7 @@ class TestUnivariateNormalDistributions(tests.conftest.TestCase):
         """Define the parameters of the tests."""
         warnings.simplefilter("ignore", category=UserWarning)
         self.normal = UnivariateNormalDistributions()
-        self.metric = UnivariateNormalMetric()
+        self.metric = self.normal.metric
         self.n_samples = 10
         self.dim = self.normal.dim
 
@@ -70,15 +67,14 @@ class TestUnivariateNormalDistributions(tests.conftest.TestCase):
 
         Check vectorization of the computation of the pdf.
         """
-        point = self.normal.random_point(n_samples=2)
+        point = self.normal.random_point(n_samples=3)
         pdf = self.normal.point_to_pdf(point)
         x = gs.linspace(0.0, 1.0, 10)
         result = pdf(x)
-        pdf1 = norm.pdf(x, loc=point[0, 0], scale=point[0, 1])
-        pdf2 = norm.pdf(x, loc=point[1, 0], scale=point[1, 1])
-        expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
-
-        self.assertAllClose(result, expected, atol=1e-8)
+        expected = gs.transpose(
+            gs.array([norm.pdf(x_, loc=point[..., 0], scale=point[..., 1]) for x_ in x])
+        )
+        self.assertAllClose(result, expected)
 
     def test_normal_metric(self):
         n_samples = 3

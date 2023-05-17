@@ -22,13 +22,14 @@ class HermitianMatrices(ComplexVectorSpace):
         Integer representing the shapes of the matrices: n x n.
     """
 
-    def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", ComplexMatricesMetric(n, n))
-        super(HermitianMatrices, self).__init__(
-            shape=(n, n), default_point_type="matrix", **kwargs
-        )
+    def __init__(self, n, equip=True):
+        super().__init__(dim=n**2, shape=(n, n), equip=equip)
         self.n = n
-        self.dim = n**2
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return ComplexMatricesMetric
 
     def _create_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""

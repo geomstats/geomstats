@@ -20,13 +20,18 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
     i.e. the half-line of positive reals.
     """
 
-    def __init__(self, n_draws):
+    def __init__(self, n_draws, equip=True):
         super().__init__(
             dim=1,
-            embedding_space=Euclidean(dim=1),
-            metric=BinomialMetric(n_draws),
+            embedding_space=Euclidean(dim=1, equip=False),
+            equip=equip,
         )
         self.n_draws = n_draws
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return BinomialMetric
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold of binomial distributions.
@@ -141,13 +146,15 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
 
             Parameters
             ----------
-            k : array-like, shape=[n_points,]
+            k : array-like, shape=[n_samples,]
                 Integers in {0, ..., n_draws} at which to
                 compute the probability mass function.
 
             Returns
             -------
-            pmf_at_k : array-like, shape=[..., n_points]
+            pmf_at_k : array-like, shape=[..., n_samples]
+                Values of pdf at k for each value of the parameters provided
+                by point.
             """
             k = gs.reshape(gs.array(k), (-1,))
             return (
@@ -168,10 +175,6 @@ class BinomialMetric(RiemannianMetric):
         Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
     """
 
-    def __init__(self, n_draws):
-        super().__init__(dim=1)
-        self.n_draws = n_draws
-
     def squared_dist(self, point_a, point_b, **kwargs):
         """Compute squared distance associated with the binomial Fisher Rao metric.
 
@@ -190,7 +193,7 @@ class BinomialMetric(RiemannianMetric):
         point_a, point_b = gs.broadcast_arrays(point_a, point_b)
         return gs.squeeze(
             4
-            * self.n_draws
+            * self._space.n_draws
             * (gs.arcsin(gs.sqrt(point_a)) - gs.arcsin(gs.sqrt(point_b))) ** 2
         )
 
@@ -207,7 +210,9 @@ class BinomialMetric(RiemannianMetric):
         mat : array-like, shape=[..., 1, 1]
             Metric matrix.
         """
-        return gs.expand_dims(self.n_draws / (base_point * (1 - base_point)), axis=-1)
+        return gs.expand_dims(
+            self._space.n_draws / (base_point * (1 - base_point)), axis=-1
+        )
 
     def _geodesic_ivp(self, initial_point, initial_tangent_vec):
         """Solve geodesic initial value problem.

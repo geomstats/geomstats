@@ -143,7 +143,7 @@ class TestExponentialBarycenter(tests.conftest.TestCase):
         estimator.fit(point)
         result = estimator.estimate_
         frechet_estimator = FrechetMean(
-            self.so.bi_invariant_metric,
+            self.so.metric,
             max_iter=40,
             epsilon=1e-10,
             method="adaptive",

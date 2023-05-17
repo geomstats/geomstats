@@ -33,22 +33,14 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
     testing_data = SpecialEuclideanTestData()
 
     def test_belongs(self, n, mat, expected):
-        self.assertAllClose(
-            SpecialEuclidean(n).belongs(gs.array(mat)), gs.array(expected)
-        )
+        self.assertAllClose(SpecialEuclidean(n).belongs(mat), expected)
 
     def test_identity(self, n, expected):
-        self.assertAllClose(SpecialEuclidean(n).identity, gs.array(expected))
+        self.assertAllClose(SpecialEuclidean(n).identity, expected)
 
     def test_is_tangent(self, n, tangent_vec, base_point, expected):
-        result = SpecialEuclidean(n).is_tangent(
-            gs.array(tangent_vec), gs.array(base_point)
-        )
-        self.assertAllClose(result, gs.array(expected))
-
-    def test_metrics_default_point_type(self, n, metric_str):
-        group = self.Space(n)
-        self.assertTrue(getattr(group, metric_str).default_point_type == "matrix")
+        result = SpecialEuclidean(n).is_tangent(tangent_vec, base_point)
+        self.assertAllClose(result, expected)
 
     def test_inverse_shape(self, n, points, expected):
         group = self.Space(n)
@@ -56,7 +48,7 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 
     def test_compose_shape(self, n, point_a, point_b, expected):
         group = self.Space(n)
-        result = gs.shape(group.compose(gs.array(point_a), gs.array(point_b)))
+        result = gs.shape(group.compose(point_a, point_b))
         self.assertAllClose(result, expected)
 
     def test_regularize_shape(self, n, point_type, n_samples):
@@ -96,7 +88,7 @@ class TestSpecialEuclideanMatrixLieAlgebra(
 
     def test_belongs(self, n, vec, expected):
         algebra = self.Space(n)
-        self.assertAllClose(algebra.belongs(gs.array(vec)), gs.array(expected))
+        self.assertAllClose(algebra.belongs(vec), expected)
 
 
 class TestSpecialEuclideanMatrixCanonicalLeftMetric(
@@ -119,7 +111,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
 
     def test_left_metric_wrong_group(self, group, expected):
         with expected:
-            self.Metric(group)
+            group.equip_with_metric(self.Metric)
 
 
 class TestSpecialEuclideanMatrixCanonicalRightMetric(
@@ -162,11 +154,15 @@ class TestSpecialEuclideanMatrixCanonicalRightMetric(
 
     @pytest.mark.skip(reason="Unkown reason")
     def test_right_exp_coincides(self, n, initial_vec):
-        group = SpecialEuclidean(n=n)
-        vector_group = SpecialEuclidean(n=n, point_type="vector")
+        group = SpecialEuclidean(n, equip=False)
+        group.equip_with_metric(left=False)
+
+        vector_group = SpecialEuclidean(n=n, point_type="vector", equip=False)
+        vector_group.equip_with_metric(left=False)
+
         initial_matrix_vec = group.lie_algebra.matrix_representation(initial_vec)
-        vector_exp = vector_group.right_canonical_metric.exp(initial_vec)
-        result = group.right_canonical_metric.exp(initial_matrix_vec, n_steps=25)
+        vector_exp = vector_group.metric.exp(initial_vec)
+        result = group.metric.exp(initial_matrix_vec, n_steps=25)
         expected = vector_group.matrix_from_vector(vector_exp)
         self.assertAllClose(result, expected, atol=1e-6)
 
@@ -175,18 +171,29 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
     skip_test_exp_after_log = True
     skip_test_exp_after_log_right_with_angles_close_to_pi = True
     testing_data = SpecialEuclidean3VectorsTestData()
+    Metric = testing_data.Metric
+    group = testing_data.group
 
     @tests.conftest.np_and_autograd_only
-    def test_exp_after_log(self, metric, point, base_point, atol):
+    def test_exp_after_log(self, metric_args, point, base_point, atol):
         """
         Test that the Riemannian right exponential and the
         Riemannian right logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        group = SpecialEuclidean(3, "vector")
-        result = metric.exp(metric.log(point, base_point), base_point)
-        expected = group.regularize(point)
-        expected = gs.cast(expected, gs.float64)
+        if metric_args == {}:
+            self.group.metric = None
+            result = self.group.exp(self.group.log(point, base_point), base_point)
+        else:
+            self.group.equip_with_metric(self.Metric, **metric_args)
+
+            result = self.group.metric.exp(
+                self.group.metric.log(point, base_point), base_point
+            )
+
+        expected = self.group.regularize(point)
+        # TODO: delete?
+        # expected = gs.cast(expected, gs.float64)
         norm = gs.linalg.norm(expected)
         if norm != 0:
             atol *= norm
@@ -195,14 +202,24 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
     @tests.conftest.np_and_autograd_only
     def test_exp_after_log_right_with_angles_close_to_pi(
         self,
-        metric,
+        metric_args,
         point,
         base_point,
         atol,
     ):
-        group = SpecialEuclidean(3, "vector")
-        result = metric.exp(metric.log(point, base_point), base_point)
-        expected = group.regularize(point)
+        if metric_args == {}:
+            self.group.metric = None
+
+            result = self.group.exp(self.group.log(point, base_point), base_point)
+
+        else:
+            self.group.equip_with_metric(self.Metric, **metric_args)
+
+            result = self.group.metric.exp(
+                self.group.metric.log(point, base_point), base_point
+            )
+
+        expected = self.group.regularize(point)
 
         inv_expected = gs.concatenate([-expected[:3], expected[3:6]])
 
@@ -217,18 +234,21 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
 
     @tests.conftest.np_and_autograd_only
     def test_log_after_exp_with_angles_close_to_pi(
-        self, metric, tangent_vec, base_point, atol
+        self, metric_args, tangent_vec, base_point, atol
     ):
         """
         Test that the Riemannian left exponential and the
         Riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        group = SpecialEuclidean(3, "vector")
-        result = metric.log(metric.exp(tangent_vec, base_point), base_point)
+        self.group.equip_with_metric(self.Metric, **metric_args)
 
-        expected = group.regularize_tangent_vec(
-            tangent_vec=tangent_vec, base_point=base_point, metric=metric
+        result = self.group.metric.log(
+            self.group.metric.exp(tangent_vec, base_point), base_point
+        )
+
+        expected = self.group.regularize_tangent_vec(
+            tangent_vec=tangent_vec, base_point=base_point
         )
 
         inv_expected = gs.concatenate([-expected[:3], expected[3:6]])
@@ -243,17 +263,19 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         )
 
     @tests.conftest.np_and_autograd_only
-    def test_log_after_exp(self, metric, tangent_vec, base_point, atol):
+    def test_log_after_exp(self, metric_args, tangent_vec, base_point, atol):
         """
         Test that the Riemannian left exponential and the
         Riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        group = SpecialEuclidean(3, "vector")
-        result = metric.log(metric.exp(tangent_vec, base_point), base_point)
+        self.group.equip_with_metric(self.Metric, **metric_args)
+        result = self.group.metric.log(
+            self.group.metric.exp(tangent_vec, base_point), base_point
+        )
 
-        expected = group.regularize_tangent_vec(
-            tangent_vec=tangent_vec, base_point=base_point, metric=metric
+        expected = self.group.regularize_tangent_vec(
+            tangent_vec=tangent_vec, base_point=base_point
         )
 
         norm = gs.linalg.norm(expected)
@@ -262,17 +284,31 @@ class TestSpecialEuclidean3Vectors(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected, atol=atol)
 
     @tests.conftest.np_and_autograd_only
-    def test_exp(self, metric, base_point, tangent_vec, expected):
-        result = metric.exp(base_point=base_point, tangent_vec=tangent_vec)
+    def test_exp(self, metric_args, base_point, tangent_vec, expected):
+        if metric_args == {}:
+            self.group.metric = None
+            result = self.group.exp(base_point=base_point, tangent_vec=tangent_vec)
+        else:
+            self.group.equip_with_metric(self.Metric, **metric_args)
+            result = self.group.metric.exp(
+                base_point=base_point, tangent_vec=tangent_vec
+            )
+
         self.assertAllClose(result, expected)
 
     @tests.conftest.np_and_autograd_only
-    def test_log(self, metric, point, base_point, expected):
-        result = metric.log(point, base_point)
+    def test_log(self, metric_args, point, base_point, expected):
+        if metric_args == {}:
+            self.group.metric = None
+            result = self.group.log(point, base_point)
+        else:
+            self.group.equip_with_metric(self.Metric, **metric_args)
+            result = self.group.metric.log(point, base_point)
+
         self.assertAllClose(result, expected)
 
     @tests.conftest.np_and_autograd_only
     def test_regularize_extreme_cases(self, point, expected):
-        group = SpecialEuclidean(3, "vector")
-        result = group.regularize(point)
+        self.group.metric = None
+        result = self.group.regularize(point)
         self.assertAllClose(result, expected)
