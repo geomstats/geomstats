@@ -1,8 +1,10 @@
-import abc
-
 import pytest
 
 import geomstats.backend as gs
+from geomstats.test.random import (
+    EmbeddedSpaceRandomDataGenerator,
+    VectorSpaceRandomDataGenerator,
+)
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.complex_manifold import ComplexManifoldTestCase
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
@@ -23,17 +25,13 @@ from geomstats.vectorization import get_batch_shape
 class _ProjectionTestCaseMixins:
     # TODO: should projection be part of manifold? (not only in tests)
 
-    @abc.abstractmethod
-    def _get_point_to_project(self, n_points=1):
-        raise NotImplementedError("Need to implement `_get_point_to_project`")
-
     def test_projection(self, point, expected, atol):
         proj_point = self.space.projection(point)
         self.assertAllClose(proj_point, expected, atol=atol)
 
     @pytest.mark.vec
     def test_projection_vec(self, n_reps, atol):
-        point = self._get_point_to_project(1)
+        point = self.data_generator.point_to_project()
         expected = self.space.projection(point)
 
         vec_data = generate_vectorization_data(
@@ -46,7 +44,7 @@ class _ProjectionTestCaseMixins:
 
     @pytest.mark.random
     def test_projection_belongs(self, n_points, atol):
-        point = self._get_point_to_project(n_points)
+        point = self.data_generator.point_to_project(n_points)
         proj_point = self.space.projection(point)
         expected = gs.ones(n_points, dtype=bool)
 
@@ -54,8 +52,9 @@ class _ProjectionTestCaseMixins:
 
 
 class _VectorSpaceTestCaseMixins(_ProjectionTestCaseMixins):
-    def _get_point_to_project(self, n_points):
-        return self.data_generator.random_point(n_points)
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = VectorSpaceRandomDataGenerator(self.space)
 
     @pytest.mark.random
     def test_random_point_is_tangent(self, n_points, atol):
@@ -187,8 +186,9 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
     # TODO: need to develop `intrinsic_after_extrinsic` and `extrinsic_after_intrinsic`
     # TODO: class to handle `extrinsinc-intrinsic` mixins?
 
-    def _get_point_to_project(self, n_points):
-        return self.space.embedding_space.random_point(n_points)
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
 
     def test_submersion(self, point, expected, atol):
         submersed_point = self.space.submersion(point)
@@ -251,8 +251,9 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
 
 
 class _OpenSetTestCaseMixins(_ProjectionTestCaseMixins):
-    def _get_point_to_project(self, n_points):
-        return self.space.embedding_space.random_point(n_points)
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
 
     @pytest.mark.random
     def test_to_tangent_is_tangent_in_embedding_space(self, n_points):

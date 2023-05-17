@@ -1,6 +1,9 @@
 import geomstats.backend as gs
 from geomstats.geometry.base import ComplexVectorSpace, VectorSpace
+from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.general_linear import SquareMatrices
 from geomstats.geometry.hypersphere import _Hypersphere
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.vectorization import get_n_points
 
@@ -84,6 +87,41 @@ class RandomDataGenerator:
 
     def random_tangent_vec(self, base_point):
         return get_random_tangent_vec(self.space, base_point) / self.amplitude
+
+
+class VectorSpaceRandomDataGenerator(RandomDataGenerator):
+    def point_to_project(self, n_points=1):
+        return self.random_point(n_points)
+
+
+class EmbeddedSpaceRandomDataGenerator(RandomDataGenerator):
+    def point_to_project(self, n_points=1):
+        return self.space.embedding_space.random_point(n_points)
+
+
+class DiscreteCurvesRandomDataGenerator(RandomDataGenerator):
+    def point_to_project(self, n_points=1):
+        return Matrices(
+            self.space.k_sampling_points, self.space.ambient_manifold.dim
+        ).random_point(n_points)
+
+
+class RankKPSDMatricesRandomDataGenerator(RandomDataGenerator):
+    def __init__(self, space, amplitude=1.0):
+        super().__init__(space, amplitude=amplitude)
+        self._square = SquareMatrices(self.space.n)
+
+    def point_to_project(self, n_points=1):
+        return self._square.random_point(n_points)
+
+
+class LieGroupVectorRandomDataGenerator(RandomDataGenerator):
+    def __init__(self, space, amplitude=1.0):
+        super().__init__(space, amplitude=amplitude)
+        self._euclidean = Euclidean(self.space.dim, equip=False)
+
+    def point_to_project(self, n_points=1):
+        return self._euclidean.random_point(n_points)
 
 
 class FiberBundleRandomDataGenerator(RandomDataGenerator):

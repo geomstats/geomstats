@@ -7,7 +7,10 @@ from geomstats.geometry.special_orthogonal import (
     _SpecialOrthogonal2Vectors,
     _SpecialOrthogonal3Vectors,
 )
-from geomstats.test.random import get_random_quaternion
+from geomstats.test.random import (
+    LieGroupVectorRandomDataGenerator,
+    get_random_quaternion,
+)
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import (
     LevelSetTestCase,
@@ -17,6 +20,8 @@ from geomstats.test_cases.geometry.lie_group import (
     LieGroupTestCase,
     MatrixLieGroupTestCase,
 )
+
+# TODO: improve random generation
 
 
 class _SpecialOrthogonalTestCaseMixins:
@@ -195,13 +200,12 @@ class SpecialOrthogonalVectorsTestCase(
     _ProjectionTestCaseMixins, _SpecialOrthogonalTestCaseMixins, LieGroupTestCase
 ):
     # TODO: add test on projection matrix belongs?
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = LieGroupVectorRandomDataGenerator(self.space)
 
     def _get_random_rotation_vector(self, n_points=1):
         return self.space.random_point(n_points)
-
-    def _get_point_to_project(self, n_points):
-        batch_shape = (n_points,) if n_points > 1 else ()
-        return gs.random.normal(size=batch_shape + self.space.shape)
 
     @pytest.mark.vec
     def test_projection_vec(self, n_reps, atol):

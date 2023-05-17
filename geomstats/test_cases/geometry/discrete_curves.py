@@ -3,8 +3,11 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.discrete_curves import DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.matrices import Matrices
-from geomstats.test.random import FiberBundleRandomDataGenerator, get_random_tangent_vec
+from geomstats.test.random import (
+    DiscreteCurvesRandomDataGenerator,
+    FiberBundleRandomDataGenerator,
+    get_random_tangent_vec,
+)
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import (
     LevelSetTestCase,
@@ -17,10 +20,9 @@ from geomstats.vectorization import get_batch_shape
 
 
 class DiscreteCurvesTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
-    def _get_point_to_project(self, n_points=1):
-        return Matrices(
-            self.space.k_sampling_points, self.space.ambient_manifold.dim
-        ).random_point(n_points)
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = DiscreteCurvesRandomDataGenerator(self.space)
 
 
 class ShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):

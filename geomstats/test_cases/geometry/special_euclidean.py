@@ -7,6 +7,7 @@ from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
     homogeneous_representation,
 )
+from geomstats.test.random import LieGroupVectorRandomDataGenerator
 from geomstats.test.test_case import assert_allclose
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import (
@@ -62,9 +63,9 @@ class SpecialEuclideanMatricesTestCase(MatrixLieGroupTestCase, LevelSetTestCase)
 
 
 class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCase):
-    def _get_point_to_project(self, n_points):
-        batch_shape = (n_points,) if n_points > 1 else ()
-        return gs.random.normal(size=batch_shape + self.space.shape)
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = LieGroupVectorRandomDataGenerator(self.space)
 
     def test_matrix_from_vector(self, vec, expected, atol):
         mat = self.space.matrix_from_vector(vec)
