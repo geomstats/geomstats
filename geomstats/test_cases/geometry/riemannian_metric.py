@@ -7,6 +7,40 @@ from geomstats.test_cases.geometry.connection import ConnectionTestCase
 from geomstats.vectorization import get_batch_shape
 
 
+def _is_isometry(
+    space,
+    tangent_vec,
+    other_tangent_vec,
+    base_point,
+    is_tangent_atol,
+    atol,
+):
+    """Check that a transformation is an isometry.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+    tangent_vec : array-like
+        Tangent vector at base point.
+    other_tangent_vec : array-like
+        Transformed tangent vector at base point.
+    base_point : array-like
+        Point on manifold.
+    is_tangent_atol: float
+        Asbolute tolerance for the is_tangent function.
+    atol : float
+        Absolute tolerance to test this property.
+    """
+    is_tangent = space.is_tangent(other_tangent_vec, base_point, atol=is_tangent_atol)
+    is_equinormal = gs.isclose(
+        space.metric.norm(other_tangent_vec, base_point),
+        space.metric.norm(tangent_vec, base_point),
+        atol=atol,
+    )
+    return gs.logical_and(is_tangent, is_equinormal)
+
+
 class RiemannianMetricTestCase(ConnectionTestCase):
     def test_metric_matrix(self, base_point, expected, atol):
         res = self.space.metric.metric_matrix(base_point)
@@ -109,6 +143,15 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_inner_product_is_symmetric(self, n_points, atol):
+        """Check inner product is symmetric.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         base_point = self.data_generator.random_point(n_points)
         tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
         tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
@@ -250,6 +293,15 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_squared_dist_is_symmetric(self, n_points, atol):
+        """Check squared distance is symmetric.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         point_a = self.data_generator.random_point(n_points)
         point_b = self.data_generator.random_point(n_points)
 
@@ -260,6 +312,15 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_squared_dist_is_positive(self, n_points, atol):
+        """Check squared distance is positive.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         point_a = self.data_generator.random_point(n_points)
         point_b = self.data_generator.random_point(n_points)
 
@@ -288,6 +349,15 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_dist_is_symmetric(self, n_points, atol):
+        """Check distance is symmetric.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         point_a = self.data_generator.random_point(n_points)
         point_b = self.data_generator.random_point(n_points)
 
@@ -298,6 +368,15 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_dist_is_positive(self, n_points, atol):
+        """Check distance is positive.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         point_a = self.data_generator.random_point(n_points)
         point_b = self.data_generator.random_point(n_points)
 
@@ -307,6 +386,15 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_dist_is_log_norm(self, n_points, atol):
+        """Check distance is norm of log.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         point_a = self.data_generator.random_point(n_points)
         point_b = self.data_generator.random_point(n_points)
 
@@ -318,6 +406,15 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_dist_point_to_itself_is_zero(self, n_points, atol):
+        """Check distance of a point to itself is zero.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         point = self.data_generator.random_point(n_points)
 
         dist_ = self.space.metric.dist(point, point)
@@ -328,6 +425,15 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_dist_triangle_inequality(self, n_points, atol):
+        """Check distance satifies triangle inequality.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         point_a = self.data_generator.random_point(n_points)
         point_b = self.data_generator.random_point(n_points)
         point_c = self.data_generator.random_point(n_points)
@@ -368,6 +474,16 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_covariant_riemann_tensor_is_skew_symmetric_1(self, n_points, atol):
+        """Check covariant riemannian tensor verifies first skew symmetry.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
+        # TODO: add definition of first skew symmetry in docstrings
         base_point = self.data_generator.random_point(n_points)
 
         covariant_metric_tensor = self.space.metric.covariant_riemann_tensor(base_point)
@@ -380,6 +496,16 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_covariant_riemann_tensor_is_skew_symmetric_2(self, n_points, atol):
+        """Check covariant riemannian tensor verifies second skew symmetry.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
+        # TODO: add definition of second skew symmetry in docstrings
         base_point = self.data_generator.random_point(n_points)
 
         covariant_metric_tensor = self.space.metric.covariant_riemann_tensor(base_point)
@@ -392,6 +518,16 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_covariant_riemann_tensor_bianchi_identity(self, n_points, atol):
+        """Check covariant riemannian tensor verifies Bianchi identity.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
+        # TODO: add Bianchi identity in docstrings
         base_point = self.data_generator.random_point(n_points)
 
         covariant_metric_tensor = self.space.metric.covariant_riemann_tensor(base_point)
@@ -406,6 +542,16 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     @pytest.mark.random
     def test_covariant_riemann_tensor_is_interchange_symmetric(self, n_points, atol):
+        """Check covariant riemannian tensor verifies interchange symmetry.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
+        # TODO: add definition of interchange symmetry in docstrings
         base_point = self.data_generator.random_point(n_points)
 
         covariant_metric_tensor = self.space.metric.covariant_riemann_tensor(base_point)
@@ -468,3 +614,67 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_parallel_transport_ivp_is_isometry(self, n_points, atol):
+        """Check parallel transport is an isometry.
+
+        This is for parallel transport defined by initial value problem (ivp).
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
+        base_point = self.data_generator.random_point(n_points)
+        direction = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        transported = self.space.metric.parallel_transport(
+            tangent_vec, base_point, direction=direction
+        )
+
+        end_point = self.space.metric.exp(tangent_vec, base_point)
+
+        result = _is_isometry(
+            self.space,
+            tangent_vec,
+            transported,
+            end_point,
+            is_tangent_atol=atol,
+            atol=atol,
+        )
+        self.assertTrue(gs.all(result))
+
+    @pytest.mark.random
+    def test_parallel_transport_bvp_is_isometry(self, n_points, atol):
+        """Check parallel transport is an isometry.
+
+        This is for parallel transport defined by boundary value problem (bvp).
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
+        base_point = self.data_generator.random_point(n_points)
+        end_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        transported = self.space.metric.parallel_transport(
+            tangent_vec, base_point, end_point=end_point
+        )
+
+        result = _is_isometry(
+            self.space,
+            tangent_vec,
+            transported,
+            end_point,
+            is_tangent_atol=atol,
+            atol=atol,
+        )
+        self.assertTrue(gs.all(result))

@@ -49,6 +49,15 @@ class _ManifoldTestCaseMixins:
 
     @pytest.mark.random
     def test_random_point_belongs(self, n_points, atol):
+        """Check random point belongs to manifold.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         point = self.data_generator.random_point(n_points)
         expected = gs.ones(n_points, dtype=bool)
 
@@ -56,6 +65,13 @@ class _ManifoldTestCaseMixins:
 
     @pytest.mark.shape
     def test_random_point_shape(self, n_points):
+        """Check random point shape.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        """
         point = self.data_generator.random_point(n_points)
 
         expected_ndim = self.space.point_ndim + int(n_points > 1)
@@ -107,6 +123,15 @@ class _ManifoldTestCaseMixins:
 
     @pytest.mark.random
     def test_to_tangent_is_tangent(self, n_points, atol):
+        """Check to_tangent returns tangent vector.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(point)
 
@@ -130,6 +155,24 @@ class _ManifoldTestCaseMixins:
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_random_tangent_vec_is_tangent(self, n_points, atol):
+        """Check to_tangent returns tangent vector.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
+        # TODO: notice manifold is not being used here
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        expected = gs.ones(n_points, dtype=bool)
+        self.test_is_tangent(tangent_vec, base_point, expected, atol)
 
 
 class ManifoldTestCase(_ManifoldTestCaseMixins, TestCase):

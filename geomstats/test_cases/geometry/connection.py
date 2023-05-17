@@ -10,7 +10,6 @@ from geomstats.vectorization import get_batch_shape
 
 
 class ConnectionTestCase(TestCase):
-    # TODO: geodesic and inverse parametrization geodesic
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.space)
@@ -62,6 +61,15 @@ class ConnectionTestCase(TestCase):
 
     @pytest.mark.random
     def test_exp_belongs(self, n_points, atol):
+        """Check exponential gives point in the manifold.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
@@ -94,6 +102,15 @@ class ConnectionTestCase(TestCase):
 
     @pytest.mark.random
     def test_log_is_tangent(self, n_points, atol):
+        """Check logarithm gives a tangent vector.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         base_point = self.data_generator.random_point(n_points)
         point = self.data_generator.random_point(n_points)
 
@@ -106,6 +123,15 @@ class ConnectionTestCase(TestCase):
 
     @pytest.mark.random
     def test_exp_after_log(self, n_points, atol):
+        """Check exp and log are inverse.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         base_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
 
@@ -116,6 +142,15 @@ class ConnectionTestCase(TestCase):
 
     @pytest.mark.random
     def test_log_after_exp(self, n_points, atol):
+        """Check log and exp are inverse.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
@@ -418,6 +453,17 @@ class ConnectionTestCase(TestCase):
 
     @pytest.mark.random
     def test_geodesic_bvp_belongs(self, n_points, n_times, atol):
+        """Check geodesic belongs to manifold.
+
+        This is for geodesics defined by the boundary value problem (bvp).
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         initial_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
 
@@ -436,6 +482,17 @@ class ConnectionTestCase(TestCase):
 
     @pytest.mark.random
     def test_geodesic_ivp_belongs(self, n_points, n_times, atol):
+        """Check geodesic belongs to manifold.
+
+        This is for geodesics defined by the initial value problem (ivp).
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         initial_point = self.data_generator.random_point(n_points)
         initial_tangent_vec = self.data_generator.random_tangent_vec(initial_point)
 
@@ -457,6 +514,15 @@ class ConnectionTestCase(TestCase):
 
     @pytest.mark.random
     def test_exp_geodesic_ivp(self, n_points, atol):
+        """Check end point of a geodesic matches exponential.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
@@ -481,7 +547,7 @@ class ConnectionTestCase(TestCase):
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
-    def test_parallel_transport_vec_with_direction(self, n_reps, atol):
+    def test_parallel_transport_ivp_vec(self, n_reps, atol):
         base_point = self.data_generator.random_point()
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
         direction = self.data_generator.random_tangent_vec(base_point)
@@ -508,7 +574,7 @@ class ConnectionTestCase(TestCase):
         self._test_vectorization(vec_data, test_fnc_name="test_parallel_transport")
 
     @pytest.mark.vec
-    def test_parallel_transport_vec_with_end_point(self, n_reps, atol):
+    def test_parallel_transport_bvp_vec(self, n_reps, atol):
         base_point, end_point = self.data_generator.random_point(2)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
@@ -534,7 +600,7 @@ class ConnectionTestCase(TestCase):
         self._test_vectorization(vec_data, test_fnc_name="test_parallel_transport")
 
     @pytest.mark.random
-    def test_parallel_transport_transported_is_tangent(self, n_points, atol):
+    def test_parallel_transport_transported_bvp_is_tangent(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
@@ -542,6 +608,25 @@ class ConnectionTestCase(TestCase):
         transported = self.space.metric.parallel_transport(
             tangent_vec, base_point, end_point=end_point
         )
+
+        res = self.space.is_tangent(transported, end_point, atol=atol)
+
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.ones(expected_shape, dtype=bool)
+
+        self.assertAllEqual(res, expected)
+
+    @pytest.mark.random
+    def test_parallel_transport_transported_ivp_is_tangent(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        direction = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        transported = self.space.metric.parallel_transport(
+            tangent_vec, base_point, direction=direction
+        )
+
+        end_point = self.space.metric.exp(tangent_vec, base_point)
 
         res = self.space.is_tangent(transported, end_point, atol=atol)
 

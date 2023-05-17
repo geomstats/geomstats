@@ -44,6 +44,15 @@ class _ProjectionTestCaseMixins:
 
     @pytest.mark.random
     def test_projection_belongs(self, n_points, atol):
+        """Check projection belongs to manifold.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         point = self.data_generator.point_to_project(n_points)
         proj_point = self.space.projection(point)
         expected = gs.ones(n_points, dtype=bool)
@@ -58,7 +67,15 @@ class _VectorSpaceTestCaseMixins(_ProjectionTestCaseMixins):
 
     @pytest.mark.random
     def test_random_point_is_tangent(self, n_points, atol):
-        # TODO: will we ever require a base point here?
+        """Check random point is tangent.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         points = self.data_generator.random_point(n_points)
 
         res = self.space.is_tangent(points, atol=atol)
@@ -66,6 +83,15 @@ class _VectorSpaceTestCaseMixins(_ProjectionTestCaseMixins):
 
     @pytest.mark.random
     def test_to_tangent_is_projection(self, n_points, atol):
+        """Check to_tangent is same as projection.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        atol : float
+            Absolute tolerance.
+        """
         vec = self.data_generator.random_point(n_points)
         result = self.space.to_tangent(vec)
         expected = self.space.projection(vec)
@@ -74,11 +100,25 @@ class _VectorSpaceTestCaseMixins(_ProjectionTestCaseMixins):
 
     @pytest.mark.mathprop
     def test_basis_cardinality(self):
+        """Check number of basis elements is the dimension.
+
+        Parameters
+        ----------
+        atol : float
+            Absolute tolerance.
+        """
         basis = self.space.basis
         self.assertEqual(basis.shape[0], self.space.dim)
 
     @pytest.mark.mathprop
     def test_basis_belongs(self, atol):
+        """Check basis elements belong to vector space.
+
+        Parameters
+        ----------
+        atol : float
+            Absolute tolerance.
+        """
         result = self.space.belongs(self.space.basis, atol=atol)
         self.assertAllEqual(result, gs.ones_like(result))
 

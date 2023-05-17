@@ -82,3 +82,9 @@ class RiemannianMetricTestData(ConnectionTestData):
 
     def scalar_curvature_vec_test_data(self):
         return self.generate_vec_data()
+
+    def parallel_transport_ivp_is_isometry_test_data(self):
+        return self.generate_random_data()
+
+    def parallel_transport_bvp_is_isometry_test_data(self):
+        return self.generate_random_data()
