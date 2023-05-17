@@ -9,14 +9,15 @@ from geomstats.geometry.discrete_curves import (
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.test.geometry.discrete_curves import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.discrete_curves import (
     ClosedDiscreteCurvesTestCase,
     DiscreteCurvesTestCase,
     SRVQuotientMetricTestCase,
     SRVShapeBundleTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.discrete_curves_data import (
+
+from .data.discrete_curves import (
     ClosedDiscreteCurvesTestData,
     DiscreteCurvesTestData,
     SRVQuotientMetricTestData,

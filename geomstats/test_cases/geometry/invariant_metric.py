@@ -1,7 +1,7 @@
 import pytest
 
-from geomstats.test.geometry.base import RiemannianMetricTestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from geomstats.vectorization import repeat_point
 
 # TODO: more random tests (e.g. inner product)

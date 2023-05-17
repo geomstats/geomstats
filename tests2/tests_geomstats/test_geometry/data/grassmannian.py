@@ -1,7 +1,8 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.data.base_data import LevelSetTestData
-from tests2.data.matrices_data import MatricesMetricTestData
+
+from .base import LevelSetTestData
+from .matrices import MatricesMetricTestData
 
 
 class GrassmannianTestData(LevelSetTestData):

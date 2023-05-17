@@ -1,6 +1,7 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.data.base_data import MatrixVectorSpaceMixinsTestData, VectorSpaceTestData
+
+from .base import MatrixVectorSpaceMixinsTestData, VectorSpaceTestData
 
 
 class LowerTriangularMatricesTestData(

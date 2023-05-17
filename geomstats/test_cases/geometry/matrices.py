@@ -1,5 +1,5 @@
-from geomstats.test.geometry.base import VectorSpaceTestCase
-from geomstats.test.geometry.euclidean import EuclideanMetricTestCase
+from geomstats.test_cases.geometry.base import VectorSpaceTestCase
+from geomstats.test_cases.geometry.euclidean import EuclideanMetricTestCase
 
 
 class MatricesTestCase(VectorSpaceTestCase):

@@ -3,11 +3,12 @@ import random
 import pytest
 
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
-from geomstats.test.geometry.lower_triangular_matrices import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.lower_triangular_matrices import (
     LowerTriangularMatricesTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.lower_triangular_matrices_data import (
+
+from .data.lower_triangular_matrices import (
     LowerTriangularMatrices2TestData,
     LowerTriangularMatrices3TestData,
     LowerTriangularMatricesTestData,

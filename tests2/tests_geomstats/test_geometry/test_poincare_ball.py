@@ -3,15 +3,13 @@ import random
 import pytest
 
 from geomstats.geometry.poincare_ball import PoincareBall, PoincareBallMetric
-from geomstats.test.geometry.poincare_ball import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.poincare_ball import (
     PoincareBallMetricTestCase,
     PoincareBallTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.poincare_ball_data import (
-    PoincareBallMetricTestData,
-    PoincareBallTestData,
-)
+
+from .data.poincare_ball import PoincareBallMetricTestData, PoincareBallTestData
 
 
 @pytest.fixture(

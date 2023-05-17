@@ -3,12 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.general_linear import SquareMatrices
-from geomstats.test.geometry.square_matrices import SquareMatricesTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.square_matrices_data import (
-    SquareMatrices3TestData,
-    SquareMatricesTestData,
-)
+from geomstats.test_cases.geometry.square_matrices import SquareMatricesTestCase
+
+from .data.square_matrices import SquareMatrices3TestData, SquareMatricesTestData
 
 
 @pytest.fixture(

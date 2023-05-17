@@ -1,4 +1,5 @@
-from tests2.data.base_data import RiemannianMetricTestData, VectorSpaceTestData
+from .base import VectorSpaceTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class EuclideanTestData(VectorSpaceTestData):

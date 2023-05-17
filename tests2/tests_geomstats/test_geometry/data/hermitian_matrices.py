@@ -1,7 +1,4 @@
-from tests2.data.base_data import (
-    ComplexVectorSpaceTestData,
-    MatrixVectorSpaceMixinsTestData,
-)
+from .base import ComplexVectorSpaceTestData, MatrixVectorSpaceMixinsTestData
 
 
 class HermitianMatricesTestData(

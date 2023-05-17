@@ -7,16 +7,18 @@ from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
     homogeneous_representation,
 )
-from geomstats.test.geometry.base import (
-    LevelSetTestCase,
-    LieGroupTestCase,
-    MatrixLieAlgebraTestCase,
-    MatrixLieGroupTestCase,
-    _ProjectionTestCaseMixins,
-)
-from geomstats.test.geometry.invariant_metric import InvariantMetricMatrixTestCase
 from geomstats.test.test_case import assert_allclose
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import (
+    LevelSetTestCase,
+    _ProjectionTestCaseMixins,
+)
+from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
+from geomstats.test_cases.geometry.lie_algebra import MatrixLieAlgebraTestCase
+from geomstats.test_cases.geometry.lie_group import (
+    LieGroupTestCase,
+    MatrixLieGroupTestCase,
+)
 
 
 def homogeneous_representation_test_case(

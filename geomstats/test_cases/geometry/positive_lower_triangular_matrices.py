@@ -3,8 +3,8 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from geomstats.test.geometry.base import OpenSetTestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import OpenSetTestCase
 
 
 class PositiveLowerTriangularMatricesTestCase(OpenSetTestCase):

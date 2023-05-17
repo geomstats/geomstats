@@ -1,8 +1,9 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.test.geometry.base import MatrixLieGroupTestCase, OpenSetTestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.lie_group import MatrixLieGroupTestCase
 
 
 class GeneralLinearTestCase(MatrixLieGroupTestCase, OpenSetTestCase):

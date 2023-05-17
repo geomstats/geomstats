@@ -3,9 +3,12 @@ import random
 import pytest
 
 from geomstats.geometry.complex_poincare_disk import ComplexPoincareDisk
-from geomstats.test.geometry.complex_poincare_disk import ComplexPoincareDiskTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.complex_poincare_disk_data import ComplexPoincareDiskTestData
+from geomstats.test_cases.geometry.complex_poincare_disk import (
+    ComplexPoincareDiskTestCase,
+)
+
+from .data.complex_poincare_disk import ComplexPoincareDiskTestData
 
 
 class TestComplexPoincareDisk(

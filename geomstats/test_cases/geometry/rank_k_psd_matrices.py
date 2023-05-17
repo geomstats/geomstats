@@ -1,10 +1,8 @@
 from geomstats.geometry.general_linear import SquareMatrices
-from geomstats.test.geometry.base import (
-    FiberBundleTestCase,
-    ManifoldTestCase,
-    _ProjectionTestCaseMixins,
-)
-from geomstats.test.geometry.quotient_metric import QuotientMetricTestCase
+from geomstats.test_cases.geometry.base import _ProjectionTestCaseMixins
+from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
+from geomstats.test_cases.geometry.manifold import ManifoldTestCase
+from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 
 
 class RankKPSDMatricesTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):

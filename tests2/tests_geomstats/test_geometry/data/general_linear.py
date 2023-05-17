@@ -1,6 +1,7 @@
 import random
 
-from tests2.data.base_data import MatrixLieGroupTestData, OpenSetTestData
+from .base import OpenSetTestData
+from .lie_group import MatrixLieGroupTestData
 
 
 class GeneralLinearTestData(MatrixLieGroupTestData, OpenSetTestData):

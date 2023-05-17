@@ -1,5 +1,5 @@
-from tests2.data.base_data import VectorSpaceTestData
-from tests2.data.euclidean_data import EuclideanMetricTestData
+from .base import VectorSpaceTestData
+from .euclidean import EuclideanMetricTestData
 
 
 class MatricesTestData(VectorSpaceTestData):

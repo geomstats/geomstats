@@ -1,6 +1,7 @@
-from tests2.data.base_data import FiberBundleTestData, LevelSetTestData
-from tests2.data.quotient_metric_data import QuotientMetricTestData
-from tests2.data.spd_matrices_data import SPDMatricesTestData
+from .base import LevelSetTestData
+from .fiber_bundle import FiberBundleTestData
+from .quotient_metric import QuotientMetricTestData
+from .spd_matrices import SPDMatricesTestData
 
 
 class FullRankCorrelationMatricesTestData(LevelSetTestData):

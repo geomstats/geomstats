@@ -3,9 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.hpd_matrices import HPDMatrices
-from geomstats.test.geometry.hpd_matrices import HPDMatricesTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.hpd_matrices_data import HPDMatricesTestData
+from geomstats.test_cases.geometry.hpd_matrices import HPDMatricesTestCase
+
+from .data.hpd_matrices import HPDMatricesTestData
 
 
 @pytest.fixture(

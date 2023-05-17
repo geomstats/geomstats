@@ -1,9 +1,5 @@
-from tests2.data.base_data import (
-    LevelSetTestData,
-    LieGroupTestData,
-    MatrixLieGroupTestData,
-    _ProjectionMixinsTestData,
-)
+from .base import LevelSetTestData, _ProjectionMixinsTestData
+from .lie_group import LieGroupTestData, MatrixLieGroupTestData
 
 
 class _SpecialOrthogonalMixinsTestData:

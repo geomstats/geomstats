@@ -1,4 +1,4 @@
-from geomstats.test.geometry.base import MatrixLieAlgebraTestCase
+from geomstats.test_cases.geometry.lie_algebra import MatrixLieAlgebraTestCase
 
 
 class SquareMatricesTestCase(MatrixLieAlgebraTestCase):

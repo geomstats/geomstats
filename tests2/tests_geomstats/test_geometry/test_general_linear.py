@@ -3,9 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.test.geometry.general_linear import GeneralLinearTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.general_linear_data import GeneralLinearTestData
+from geomstats.test_cases.geometry.general_linear import GeneralLinearTestCase
+
+from .data.general_linear import GeneralLinearTestData
 
 
 @pytest.fixture(

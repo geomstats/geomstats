@@ -2,15 +2,13 @@ import pytest
 
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.numerics.geodesic import LogODESolver, LogShootingSolver
-from geomstats.test.numerics.geodesic_solvers import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.numerics.geodesic import (
     LogSolverComparisonTestCase,
     LogSolverTypeCheckTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.geodesic_solvers_data import (
-    LogSolverComparisonTestData,
-    LogSolverTypeCheckTestData,
-)
+
+from .data.geodesic import LogSolverComparisonTestData, LogSolverTypeCheckTestData
 
 
 def _create_params():

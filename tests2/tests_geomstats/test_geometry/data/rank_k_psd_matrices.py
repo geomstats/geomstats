@@ -1,9 +1,7 @@
-from tests2.data.base_data import (
-    FiberBundleTestData,
-    ManifoldTestData,
-    _ProjectionMixinsTestData,
-)
-from tests2.data.quotient_metric_data import QuotientMetricTestData
+from .base import _ProjectionMixinsTestData
+from .fiber_bundle import FiberBundleTestData
+from .manifold import ManifoldTestData
+from .quotient_metric import QuotientMetricTestData
 
 
 class RankKPSDMatricesTestData(_ProjectionMixinsTestData, ManifoldTestData):

@@ -6,13 +6,14 @@ from geomstats.geometry.special_orthogonal import (
     SpecialOrthogonal,
     _SpecialOrthogonalMatrices,
 )
-from geomstats.test.geometry.special_orthogonal import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.special_orthogonal import (
     SpecialOrthogonal2VectorsTestCase,
     SpecialOrthogonal3VectorsTestCase,
     SpecialOrthogonalMatricesTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.special_orthogonal_data import (
+
+from .data.special_orthogonal import (
     SpecialOrthogonal2VectorsTestData,
     SpecialOrthogonal3VectorsTestData,
     SpecialOrthogonalMatricesTestData,

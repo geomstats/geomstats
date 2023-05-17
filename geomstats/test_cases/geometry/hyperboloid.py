@@ -1,4 +1,4 @@
-from geomstats.test.geometry.base import LevelSetTestCase
+from geomstats.test_cases.geometry.base import LevelSetTestCase
 
 # TODO: treat _HyperbolicTestCase separetely
 

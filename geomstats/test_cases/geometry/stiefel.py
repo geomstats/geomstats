@@ -1,8 +1,9 @@
 import pytest
 
-from geomstats.test.geometry.base import LevelSetTestCase, RiemannianMetricTestCase
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import LevelSetTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class StiefelTestCase(LevelSetTestCase):

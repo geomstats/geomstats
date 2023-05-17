@@ -9,13 +9,14 @@ from geomstats.geometry.rank_k_psd_matrices import (
     PSDBuresWassersteinMetric,
     PSDMatrices,
 )
-from geomstats.test.geometry.rank_k_psd_matrices import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.rank_k_psd_matrices import (
     BuresWassersteinBundleTestCase,
     PSDBuresWassersteinMetricTestCase,
     RankKPSDMatricesTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.rank_k_psd_matrices_data import (
+
+from .data.rank_k_psd_matrices import (
     BuresWassersteinBundleTestData,
     PSDBuresWassersteinMetricTestData,
     RankKPSDMatricesTestData,

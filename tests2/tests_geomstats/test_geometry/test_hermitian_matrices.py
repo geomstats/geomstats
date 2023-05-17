@@ -3,9 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
-from geomstats.test.geometry.hermitian_matrices import HermitianMatricesTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.hermitian_matrices_data import HermitianMatricesTestData
+from geomstats.test_cases.geometry.hermitian_matrices import HermitianMatricesTestCase
+
+from .data.hermitian_matrices import HermitianMatricesTestData
 
 
 @pytest.fixture(

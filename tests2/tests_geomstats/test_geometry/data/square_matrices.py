@@ -1,6 +1,7 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.data.base_data import MatrixLieAlgebraTestData
+
+from .lie_algebra import MatrixLieAlgebraTestData
 
 
 class SquareMatricesTestData(MatrixLieAlgebraTestData):

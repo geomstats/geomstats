@@ -9,14 +9,15 @@ from geomstats.geometry.invariant_metric import (
 )
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.test.geometry.invariant_metric import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import RandomDataGenerator
+from geomstats.test_cases.geometry.invariant_metric import (
     BiInvariantMetricTestCase,
     InvariantMetricMatrixTestCase,
     InvariantMetricVectorTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
-from tests2.data.invariant_metric_data import (
+
+from .data.invariant_metric import (
     BiInvariantMetricMatrixSOTestData,
     BiInvariantMetricVectorSO3TestData,
     InvariantMetricMatrixSETestData,

@@ -1,8 +1,8 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.test.geometry.base import ComplexVectorSpaceTestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import ComplexVectorSpaceTestCase
 
 
 class HermitianTestCase(ComplexVectorSpaceTestCase):

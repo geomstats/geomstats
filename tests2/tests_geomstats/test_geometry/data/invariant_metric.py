@@ -1,4 +1,4 @@
-from tests2.data.base_data import RiemannianMetricTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class _InvariantMetricMixinsTestData(RiemannianMetricTestData):

@@ -3,9 +3,13 @@ import random
 import pytest
 
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.test.geometry.matrices import MatricesMetricTestCase, MatricesTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.matrices_data import MatricesMetricTestData, MatricesTestData
+from geomstats.test_cases.geometry.matrices import (
+    MatricesMetricTestCase,
+    MatricesTestCase,
+)
+
+from .data.matrices import MatricesMetricTestData, MatricesTestData
 
 
 @pytest.fixture(

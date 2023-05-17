@@ -2,14 +2,11 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.data.base_data import (
-    LevelSetTestData,
-    LieGroupTestData,
-    MatrixLieAlgebraTestData,
-    MatrixLieGroupTestData,
-    _ProjectionMixinsTestData,
-)
-from tests2.data.invariant_metric_data import InvariantMetricMatrixTestData
+
+from .base import LevelSetTestData, _ProjectionMixinsTestData
+from .invariant_metric import InvariantMetricMatrixTestData
+from .lie_algebra import MatrixLieAlgebraTestData
+from .lie_group import LieGroupTestData, MatrixLieGroupTestData
 
 
 def algebra_useful_matrix(theta, elem_33=0.0):

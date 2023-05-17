@@ -1,7 +1,9 @@
 import random
 
 from geomstats.test.data import TestData
-from tests2.data.base_data import LevelSetTestData, ManifoldTestData
+
+from .base import LevelSetTestData
+from .manifold import ManifoldTestData
 
 
 class HypersphereCoordsTransformTestData(TestData):

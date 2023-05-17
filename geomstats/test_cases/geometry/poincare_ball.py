@@ -1,7 +1,8 @@
 import pytest
 
-from geomstats.test.geometry.base import OpenSetTestCase, RiemannianMetricTestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class PoincareBallTestCase(OpenSetTestCase):

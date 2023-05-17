@@ -5,10 +5,11 @@ import scipy
 
 import geomstats.backend as gs
 from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.test.geometry.base import LevelSetTestCase, ManifoldTestCase
 from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import LevelSetTestCase
+from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.vectorization import get_batch_shape
 
 

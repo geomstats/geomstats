@@ -1,9 +1,7 @@
-from tests2.data.base_data import (
-    FiberBundleTestData,
-    LevelSetTestData,
-    RiemannianMetricTestData,
-)
-from tests2.data.quotient_metric_data import QuotientMetricTestData
+from .base import LevelSetTestData
+from .fiber_bundle import FiberBundleTestData
+from .quotient_metric import QuotientMetricTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class PreShapeSpaceTestData(LevelSetTestData):

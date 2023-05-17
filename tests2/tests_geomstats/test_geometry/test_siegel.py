@@ -3,9 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.siegel import Siegel
-from geomstats.test.geometry.siegel import SiegelTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.siegel_data import SiegelTestData
+from geomstats.test_cases.geometry.siegel import SiegelTestCase
+
+from .data.siegel import SiegelTestData
 
 
 @pytest.fixture(

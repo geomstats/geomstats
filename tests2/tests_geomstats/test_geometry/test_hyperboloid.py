@@ -3,9 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.test.geometry.hyperboloid import HyperboloidTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.hyperboloid_data import HyperboloidTestData
+from geomstats.test_cases.geometry.hyperboloid import HyperboloidTestCase
+
+from .data.hyperboloid import HyperboloidTestData
 
 
 @pytest.fixture(

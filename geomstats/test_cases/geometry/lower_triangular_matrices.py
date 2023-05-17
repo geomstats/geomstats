@@ -1,4 +1,4 @@
-from geomstats.test.geometry.base import (
+from geomstats.test_cases.geometry.base import (
     MatrixVectorSpaceTestCaseMixins,
     VectorSpaceTestCase,
 )

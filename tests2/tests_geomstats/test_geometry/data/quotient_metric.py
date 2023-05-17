@@ -1,5 +1,5 @@
-from tests2.data.base_data import RiemannianMetricTestData
-from tests2.data.comparison_data import RiemannianMetricComparisonTestData
+from .comparison import RiemannianMetricComparisonTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class QuotientMetricTestData(RiemannianMetricTestData):

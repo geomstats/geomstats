@@ -1,4 +1,5 @@
-from tests2.data.base_data import LieGroupTestData, VectorSpaceTestData
+from .base import VectorSpaceTestData
+from .lie_group import LieGroupTestData
 
 
 class HeisenbergVectorsTestData(LieGroupTestData, VectorSpaceTestData):

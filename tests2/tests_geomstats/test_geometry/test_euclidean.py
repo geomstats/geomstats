@@ -3,9 +3,13 @@ import random
 import pytest
 
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.test.geometry.euclidean import EuclideanMetricTestCase, EuclideanTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.euclidean_data import EuclideanMetricTestData, EuclideanTestData
+from geomstats.test_cases.geometry.euclidean import (
+    EuclideanMetricTestCase,
+    EuclideanTestCase,
+)
+
+from .data.euclidean import EuclideanMetricTestData, EuclideanTestData
 
 
 @pytest.fixture(

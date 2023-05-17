@@ -1,4 +1,4 @@
-from tests2.data.base_data import OpenSetTestData
+from .base import OpenSetTestData
 
 
 class PositiveLowerTriangularMatricesTestData(OpenSetTestData):

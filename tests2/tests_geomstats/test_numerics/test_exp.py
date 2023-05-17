@@ -3,13 +3,14 @@ import pytest
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.numerics.geodesic import ExpODESolver
 from geomstats.numerics.ivp import GSIVPIntegrator, ScipySolveIVP
-from geomstats.test.numerics.geodesic_solvers import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.numerics.geodesic import (
     ExpSolverComparisonTestCase,
     ExpSolverTypeCheck,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.exp_solvers_data import ExpODESolverComparisonTestData
-from tests2.data.geodesic_solvers_data import ExpSolverTypeCheckTestData
+
+from .data.exp import ExpODESolverComparisonTestData
+from .data.geodesic import ExpSolverTypeCheckTestData
 
 
 def _create_params():

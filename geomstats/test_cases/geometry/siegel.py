@@ -1,4 +1,4 @@
-from geomstats.test.geometry.base import ComplexOpenSetTestCase
+from geomstats.test_cases.geometry.base import ComplexOpenSetTestCase
 
 
 class SiegelTestCase(ComplexOpenSetTestCase):

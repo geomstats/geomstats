@@ -7,14 +7,16 @@ from geomstats.geometry.special_orthogonal import (
     _SpecialOrthogonal2Vectors,
     _SpecialOrthogonal3Vectors,
 )
-from geomstats.test.geometry.base import (
-    LevelSetTestCase,
-    LieGroupTestCase,
-    MatrixLieGroupTestCase,
-    _ProjectionTestCaseMixins,
-)
 from geomstats.test.random import get_random_quaternion
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import (
+    LevelSetTestCase,
+    _ProjectionTestCaseMixins,
+)
+from geomstats.test_cases.geometry.lie_group import (
+    LieGroupTestCase,
+    MatrixLieGroupTestCase,
+)
 
 
 class _SpecialOrthogonalTestCaseMixins:

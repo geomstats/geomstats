@@ -1,4 +1,4 @@
-from geomstats.test.geometry.base import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class QuotientMetricTestCase(RiemannianMetricTestCase):

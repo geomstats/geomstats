@@ -3,13 +3,14 @@ import random
 import pytest
 
 from geomstats.geometry.stiefel import Stiefel, StiefelCanonicalMetric
-from geomstats.test.geometry.stiefel import (
+from geomstats.test.parametrizers import DataBasedParametrizer, Parametrizer
+from geomstats.test_cases.geometry.stiefel import (
     StiefelCanonicalMetricTestCase,
     StiefelStaticMethodsTestCase,
     StiefelTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer, Parametrizer
-from tests2.data.stiefel_data import (
+
+from .data.stiefel import (
     StiefelCanonicalMetricTestData,
     StiefelStaticMethodsTestData,
     StiefelTestData,

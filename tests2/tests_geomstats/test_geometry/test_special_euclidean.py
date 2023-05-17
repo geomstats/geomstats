@@ -9,7 +9,9 @@ from geomstats.geometry.special_euclidean import (
     SpecialEuclideanMatrixLieAlgebra,
     _SpecialEuclideanMatrices,
 )
-from geomstats.test.geometry.special_euclidean import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import RandomDataGenerator
+from geomstats.test_cases.geometry.special_euclidean import (
     SpecialEuclideanMatricesTestCase,
     SpecialEuclideanMatrixCanonicalLeftMetricTestCase,
     SpecialEuclideanMatrixLieAlgebraTestCase,
@@ -17,9 +19,8 @@ from geomstats.test.geometry.special_euclidean import (
     homogeneous_representation_test_case,
     homogeneous_representation_vec_test_case,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
-from tests2.data.special_euclidean_data import (
+
+from .data.special_euclidean import (
     SpecialEuclideanMatricesTestData,
     SpecialEuclideanMatrixCanonicalLeftMetricTestData,
     SpecialEuclideanMatrixLieAlgebra2TestData,

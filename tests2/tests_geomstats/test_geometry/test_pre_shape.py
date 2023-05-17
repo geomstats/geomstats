@@ -7,14 +7,15 @@ from geomstats.geometry.pre_shape import (
     PreShapeSpace,
     PreShapeSpaceBundle,
 )
-from geomstats.test.geometry.pre_shape import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.pre_shape import (
     KendallShapeMetricTestCase,
     PreShapeMetricTestCase,
     PreShapeSpaceBundleTestCase,
     PreShapeSpaceTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.pre_shape_data import (
+
+from .data.pre_shape import (
     KendallShapeMetricTestData,
     PreShapeMetricTestData,
     PreShapeSpaceBundleTestData,

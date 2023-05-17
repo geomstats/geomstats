@@ -6,11 +6,14 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDBuresWassersteinMetric, SPDMatrices
-from geomstats.test.comparison import RiemannianMetricComparisonTestCase
-from geomstats.test.geometry.fiber_bundle import GeneralLinearBuresWassersteinBundle
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from tests2.data.quotient_metric_data import SPDBuresWassersteinQuotientMetricTestData
+from geomstats.test_cases.comparison import RiemannianMetricComparisonTestCase
+from geomstats.test_cases.geometry.fiber_bundle import (
+    GeneralLinearBuresWassersteinBundle,
+)
+
+from .data.quotient_metric import SPDBuresWassersteinQuotientMetricTestData
 
 
 @pytest.fixture(

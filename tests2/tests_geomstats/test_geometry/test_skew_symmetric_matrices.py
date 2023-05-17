@@ -3,11 +3,12 @@ import random
 import pytest
 
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.test.geometry.skew_symmetric_matrices import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.skew_symmetric_matrices import (
     SkewSymmetricMatricesTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.skew_symmetric_matrices_data import (
+
+from .data.skew_symmetric_matrices import (
     SkewSymmetricMatrices2TestData,
     SkewSymmetricMatrices3TestData,
     SkewSymmetricMatricesTestData,

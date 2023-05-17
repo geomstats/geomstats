@@ -1,4 +1,4 @@
-from tests2.data.base_data import ComplexVectorSpaceTestData
+from .base import ComplexVectorSpaceTestData
 
 
 class ComplexMatricesTestData(ComplexVectorSpaceTestData):

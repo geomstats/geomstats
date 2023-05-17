@@ -1,8 +1,9 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.test.geometry.base import RiemannianMetricTestCase, VectorSpaceTestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import VectorSpaceTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class EuclideanTestCase(VectorSpaceTestCase):

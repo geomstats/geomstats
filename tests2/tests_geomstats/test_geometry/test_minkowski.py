@@ -3,9 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.test.geometry.minkowski import MinkowskiTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.minkowski_data import MinkowskiTestData
+from geomstats.test_cases.geometry.minkowski import MinkowskiTestCase
+
+from .data.minkowski import MinkowskiTestData
 
 
 @pytest.fixture(

@@ -1,7 +1,8 @@
 from geomstats.geometry.heisenberg import HeisenbergVectors
-from geomstats.test.geometry.heisenberg import HeisenbergVectorsTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.heisenberg_data import HeisenbergVectorsTestData
+from geomstats.test_cases.geometry.heisenberg import HeisenbergVectorsTestCase
+
+from .data.heisenberg import HeisenbergVectorsTestData
 
 
 class TestHeisenbergVectors(HeisenbergVectorsTestCase, metaclass=DataBasedParametrizer):

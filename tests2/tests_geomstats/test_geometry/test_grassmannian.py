@@ -3,12 +3,13 @@ import random
 import pytest
 
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
-from geomstats.test.geometry.grassmannian import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.grassmannian import (
     GrassmannianCanonicalMetricTestCase,
     GrassmannianTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.grassmannian_data import (
+
+from .data.grassmannian import (
     Grassmannian32TestData,
     GrassmannianCanonicalMetricTestData,
     GrassmannianTestData,

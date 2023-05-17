@@ -9,16 +9,17 @@ from geomstats.geometry.spd_matrices import (
     SPDLogEuclideanMetric,
     SPDMatrices,
 )
-from geomstats.test.geometry.spd_matrices import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import RandomDataGenerator
+from geomstats.test_cases.geometry.spd_matrices import (
     SPDAffineMetricTestCase,
     SPDBuresWassersteinMetricTestCase,
     SPDEuclideanMetricTestCase,
     SPDLogEuclideanMetricTestCase,
     SPDMatricesTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
-from tests2.data.spd_matrices_data import (
+
+from .data.spd_matrices import (
     SPDAffineMetricTestData,
     SPDBuresWassersteinMetricTestData,
     SPDEuclideanMetricPower1TestData,

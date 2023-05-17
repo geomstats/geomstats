@@ -3,12 +3,13 @@ import random
 import pytest
 
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from geomstats.test.geometry.symmetric_matrices import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.symmetric_matrices import (
     SymmetricMatricesOpsTestCase,
     SymmetricMatricesTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.symmetric_matrices_data import (
+
+from .data.symmetric_matrices import (
     SymmetricMatrices1TestData,
     SymmetricMatrices2TestData,
     SymmetricMatrices3TestData,

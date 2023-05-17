@@ -1,4 +1,4 @@
-from tests2.data.base_data import LevelSetTestData
+from .base import LevelSetTestData
 
 
 class HyperboloidTestData(LevelSetTestData):

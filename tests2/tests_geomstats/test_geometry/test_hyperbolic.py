@@ -3,9 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry._hyperbolic import _Hyperbolic
-from geomstats.test.geometry.hyperbolic import HyperbolicTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.hyperbolic_data import HyperbolicTestData
+from geomstats.test_cases.geometry.hyperbolic import HyperbolicTestCase
+
+from .data.hyperbolic import HyperbolicTestData
 
 
 @pytest.fixture(

@@ -1,4 +1,4 @@
-from geomstats.test.geometry.base import ComplexVectorSpaceTestCase
+from geomstats.test_cases.geometry.base import ComplexVectorSpaceTestCase
 
 
 class ComplexMatricesTestCase(ComplexVectorSpaceTestCase):

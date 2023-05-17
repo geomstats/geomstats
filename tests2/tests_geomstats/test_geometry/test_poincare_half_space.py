@@ -3,9 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.poincare_half_space import PoincareHalfSpace
-from geomstats.test.geometry.poincare_half_space import PoincareHalfSpaceTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.poincare_half_space_data import PoincareHalfSpaceTestData
+from geomstats.test_cases.geometry.poincare_half_space import PoincareHalfSpaceTestCase
+
+from .data.poincare_half_space import PoincareHalfSpaceTestData
 
 
 @pytest.fixture(

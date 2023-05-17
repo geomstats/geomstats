@@ -1,6 +1,7 @@
 import random
 
-from tests2.data.base_data import OpenSetTestData, RiemannianMetricTestData
+from .base import OpenSetTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class SPDMatricesMixinsTestData:

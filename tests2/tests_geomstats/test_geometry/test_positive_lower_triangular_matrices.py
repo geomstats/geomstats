@@ -5,11 +5,12 @@ import pytest
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
-from geomstats.test.geometry.positive_lower_triangular_matrices import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatricesTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.positive_lower_triangular_matrices_data import (
+
+from .data.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatricesTestData,
 )
 

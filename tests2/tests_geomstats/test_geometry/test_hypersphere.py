@@ -3,13 +3,14 @@ import random
 import pytest
 
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.test.geometry.hypersphere import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.hypersphere import (
     HypersphereCoordsTransformTestCase,
     HypersphereExtrinsicTestCase,
     HypersphereIntrinsicTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.hypersphere_data import (
+
+from .data.hypersphere import (
     HypersphereCoordsTransformTestData,
     HypersphereExtrinsicTestData,
     HypersphereIntrinsicTestData,

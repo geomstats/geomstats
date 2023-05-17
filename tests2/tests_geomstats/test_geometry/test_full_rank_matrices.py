@@ -3,9 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
-from geomstats.test.geometry.full_rank_matrices import FullRankMatricesTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.full_rank_matrices_data import FullRankMatricesTestData
+from geomstats.test_cases.geometry.full_rank_matrices import FullRankMatricesTestCase
+
+from .data.full_rank_matrices import FullRankMatricesTestData
 
 
 @pytest.fixture(

@@ -4,15 +4,15 @@ import geomstats.backend as gs
 from geomstats.geometry.discrete_curves import DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.matrices import Matrices
-from geomstats.test.geometry.base import (
-    FiberBundleTestCase,
-    LevelSetTestCase,
-    ManifoldTestCase,
-    _ProjectionTestCaseMixins,
-)
-from geomstats.test.geometry.quotient_metric import QuotientMetricTestCase
 from geomstats.test.random import FiberBundleRandomDataGenerator, get_random_tangent_vec
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import (
+    LevelSetTestCase,
+    _ProjectionTestCaseMixins,
+)
+from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
+from geomstats.test_cases.geometry.manifold import ManifoldTestCase
+from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 from geomstats.vectorization import get_batch_shape
 
 

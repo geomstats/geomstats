@@ -1,10 +1,7 @@
-from tests2.data.base_data import (
-    FiberBundleTestData,
-    LevelSetTestData,
-    ManifoldTestData,
-    _ProjectionMixinsTestData,
-)
-from tests2.data.quotient_metric_data import QuotientMetricTestData
+from .base import LevelSetTestData, _ProjectionMixinsTestData
+from .fiber_bundle import FiberBundleTestData
+from .manifold import ManifoldTestData
+from .quotient_metric import QuotientMetricTestData
 
 
 class DiscreteCurvesTestData(_ProjectionMixinsTestData, ManifoldTestData):

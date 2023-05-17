@@ -2,7 +2,9 @@ import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.test.data import TestData
-from tests2.data.base_data import LevelSetTestData, RiemannianMetricTestData
+
+from .base import LevelSetTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class StiefelTestData(LevelSetTestData):

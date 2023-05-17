@@ -3,9 +3,10 @@ import random
 import pytest
 
 from geomstats.geometry.complex_matrices import ComplexMatrices
-from geomstats.test.geometry.complex_matrices import ComplexMatricesTestCase
 from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.complex_matrices_data import ComplexMatricesTestData
+from geomstats.test_cases.geometry.complex_matrices import ComplexMatricesTestCase
+
+from .data.complex_matrices import ComplexMatricesTestData
 
 
 @pytest.fixture(

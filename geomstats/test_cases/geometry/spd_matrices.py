@@ -5,8 +5,9 @@ from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
-from geomstats.test.geometry.base import OpenSetTestCase, RiemannianMetricTestCase
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class SPDMatricesTestCaseMixins:

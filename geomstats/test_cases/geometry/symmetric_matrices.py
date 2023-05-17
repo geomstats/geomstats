@@ -1,8 +1,8 @@
-from geomstats.test.geometry.base import (
+from geomstats.test.test_case import TestCase
+from geomstats.test_cases.geometry.base import (
     MatrixVectorSpaceTestCaseMixins,
     VectorSpaceTestCase,
 )
-from geomstats.test.test_case import TestCase
 
 # TODO: mixins with MatrixVectorSpaces?
 # TODO: use `self.space.ndim` to control vector dimension

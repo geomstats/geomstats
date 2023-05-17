@@ -8,13 +8,14 @@ from geomstats.geometry.full_rank_correlation_matrices import (
     FullRankCorrelationMatrices,
 )
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.test.geometry.full_rank_correlation_matrices import (
+from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundleTestCase,
     FullRankCorrelationAffineQuotientMetricTestCase,
     FullRankCorrelationMatricesTestCase,
 )
-from geomstats.test.parametrizers import DataBasedParametrizer
-from tests2.data.full_rank_correlation_matrices_data import (
+
+from .data.full_rank_correlation_matrices import (
     CorrelationMatricesBundleTestData,
     FullRankCorrelationAffineQuotientMetricTestData,
     FullRankCorrelationMatricesTestData,
