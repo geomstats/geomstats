@@ -197,6 +197,10 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
         assert gs.allclose(result, expected), result
 
+        # tangent_vec = gs.array([tangent_vec, tangent_vec])
+        # result = space.laplacian(point=point)(tangent_vec)
+        # assert result.shape == (2, n_vertices, 3), result.shape
+
 
 class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_all = not (autograd_backend() or pytorch_backend())
@@ -208,7 +212,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_after_log = True
     skip_test_exp_belongs = True
     skip_test_exp_ladder_parallel_transport = True
-    skip_test_inner_product_is_symmetric = True
+    # skip_test_inner_product_is_symmetric = True
     skip_test_log_after_exp = True
     skip_test_log_is_tangent = True
     skip_test_dist_is_norm_of_log = True

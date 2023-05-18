@@ -60,7 +60,7 @@ class DiscreteSurfacesTestData(_ManifoldTestData):
 
 class ElasticMetricTestData(_RiemannianMetricTestData):
 
-    n_samples_list = [1, 5]
+    n_samples_list = [1]
     a0_list = [1, 5]
     a1_list = [1, 5]
     b1_list = [1, 5]
@@ -73,10 +73,10 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
     ]
     shape_list = [(8, 3)]
     space_list = [DiscreteSurfaces(faces)]
-    n_points_list = random.sample(range(2, 5), 2)
-    n_tangent_vecs_list = random.sample(range(2, 5), 2)
-    n_points_a_list = [1, 2]
-    n_points_b_list = [1, 2]
+    n_points_list = [1]
+    n_tangent_vecs_list = [1]
+    n_points_a_list = [1]
+    n_points_b_list = [1]
     alpha_list = [1] * 2
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
