@@ -299,6 +299,27 @@ class DiscreteSurfaces(Manifold):
         surface_metrics = self.surface_metric_matrices(point)
         return gs.sqrt(gs.linalg.det(surface_metrics))
 
+    def _surface_metric_matrices_from_one_forms(self, one_forms):
+        """Compute the surface metric matrices directly from the one_forms.
+
+        This function is useful for efficiency purposes.
+
+        Parameters
+        ----------
+        one_forms : array-like, shape=[..., n_faces, 2, 3]
+            One form evaluated at each face of the triangulated surface.
+
+        Returns
+        -------
+        metric_mats : array-like, shape=[n_faces, 2, 2]
+            Surface metric matrices evaluated at each face of
+            the triangulated surface.
+        """
+        ndim = one_forms.ndim
+        transpose_axes = tuple(range(ndim - 2)) + tuple(reversed(range(ndim - 2, ndim)))
+        transposed_one_forms = gs.transpose(one_forms, axes=transpose_axes)
+        return gs.matmul(one_forms, transposed_one_forms)
+
     def surface_metric_matrices(self, point):
         """Compute the surface metric matrices.
 
@@ -320,11 +341,8 @@ class DiscreteSurfaces(Manifold):
             the triangulated surface.
         """
         one_forms = self.surface_one_forms(point)
-        ndim = one_forms.ndim
-        transpose_axes = tuple(range(ndim - 2)) + tuple(reversed(range(ndim - 2, ndim)))
-        transposed_one_forms = gs.transpose(one_forms, axes=transpose_axes)
-        metric_mats = gs.matmul(one_forms, transposed_one_forms)
-        return metric_mats
+
+        return self._surface_metric_matrices_from_one_forms(one_forms)
 
     def laplacian(self, point):
         r"""Compute the mesh Laplacian operator of a triangulated surface.
@@ -495,7 +513,7 @@ class ElasticMetric(RiemannianMetric):
             Tangent vector at base point.
         tangent_vec_b: array-like, shape=[..., n_vertices, 3]
             Tangent vector at base point.
-        base_point: array-like, shape=[..., n_vertices, 3]
+        base_point: array-like, shape=[n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
@@ -524,50 +542,62 @@ class ElasticMetric(RiemannianMetric):
                 laplacian_at_base_point = self.space.laplacian(base_point)
                 inner_prod += self.a2 * gs.sum(
                     gs.einsum(
-                        "bi,bi->b",
+                        "...bi,...bi->...b",
                         laplacian_at_base_point(h),
                         laplacian_at_base_point(k),
                     )
-                    / v_areas
+                    / v_areas,
+                    axis=-1,
                 )
         if self.a1 > 0 or self.b1 > 0 or self.c1 > 0 or self.b1 > 0:
             one_forms_base_point = self.space.surface_one_forms(base_point)
-            surface_metrics = gs.matmul(
-                gs.transpose(one_forms_base_point, axes=(0, 2, 1)), one_forms_base_point
+            surface_metrics = self.space._surface_metric_matrices_from_one_forms(
+                one_forms_base_point
             )
             areas = gs.sqrt(gs.linalg.det(surface_metrics))
             normals_at_base_point = self.space.normals(base_point)
             if self.c1 > 0:
                 dn1 = self.space.normals(point_a) - normals_at_base_point
                 dn2 = self.space.normals(point_b) - normals_at_base_point
-                inner_prod += self.c1 * gs.sum(gs.einsum("bi,bi->b", dn1, dn2) * areas)
+                inner_prod += self.c1 * gs.sum(
+                    gs.einsum("...bi,...bi->...b", dn1, dn2) * areas, axis=-1
+                )
             if self.d1 > 0 or self.b1 > 0 or self.a1 > 0:
                 ginv = gs.linalg.inv(surface_metrics)
                 one_forms_a = self.space.surface_one_forms(point_a)
                 one_forms_b = self.space.surface_one_forms(point_b)
                 if self.d1 > 0:
-                    xi1 = one_forms_a - one_forms_base_point
+                    one_forms_base_point_t = gs.transpose(
+                        one_forms_base_point, (0, 2, 1)
+                    )
+
+                    one_forms_a_t = gs.transpose(one_forms_a, (0, 1, 3, 2))
+                    xi1 = one_forms_a_t - one_forms_base_point_t
+
                     xi1_0 = gs.matmul(
-                        gs.matmul(one_forms_base_point, ginv),
-                        gs.matmul(gs.transpose(xi1, (0, 2, 1)), one_forms_base_point)
-                        - gs.matmul(
-                            gs.transpose(one_forms_base_point, axes=(1, 2)), xi1
-                        ),
+                        gs.matmul(one_forms_base_point_t, ginv),
+                        gs.matmul(
+                            gs.transpose(xi1, (0, 1, 3, 2)), one_forms_base_point_t
+                        )
+                        - gs.matmul(one_forms_base_point, xi1),
                     )
-                    xi2 = one_forms_b - one_forms_base_point
+
+                    one_forms_b_t = gs.transpose(one_forms_b, (0, 1, 3, 2))
+                    xi2 = one_forms_b_t - one_forms_base_point_t
                     xi2_0 = gs.matmul(
-                        gs.matmul(one_forms_base_point, ginv),
-                        gs.matmul(gs.transpose(xi2, (0, 2, 1)), one_forms_base_point)
-                        - gs.matmul(
-                            gs.transpose(one_forms_base_point, axes=(1, 2)), xi2
-                        ),
+                        gs.matmul(one_forms_base_point_t, ginv),
+                        gs.matmul(
+                            gs.transpose(xi2, (0, 1, 3, 2)), one_forms_base_point_t
+                        )
+                        - gs.matmul(one_forms_base_point, xi2),
                     )
+
                     inner_prod += self.d1 * gs.sum(
                         gs.einsum(
-                            "bii->b",
+                            "...bii->...b",
                             gs.matmul(
                                 xi1_0,
-                                gs.matmul(ginv, gs.transpose(xi2_0, axes=(0, 2, 1))),
+                                gs.matmul(ginv, gs.transpose(xi2_0, axes=(0, 1, 3, 2))),
                             ),
                         )
                         * areas
@@ -575,24 +605,26 @@ class ElasticMetric(RiemannianMetric):
                 if self.b1 > 0 or self.a1 > 0:
                     dg1 = (
                         gs.matmul(
-                            gs.transpose(one_forms_a, axes=(0, 2, 1)), one_forms_a
+                            one_forms_a, gs.transpose(one_forms_a, axes=(0, 1, 3, 2))
                         )
                         - surface_metrics
                     )
                     dg2 = (
                         gs.matmul(
-                            gs.transpose(one_forms_b, axes=(0, 2, 1)), one_forms_b
+                            one_forms_b, gs.transpose(one_forms_b, axes=(0, 1, 3, 2))
                         )
                         - surface_metrics
                     )
                     ginvdg1 = gs.matmul(ginv, dg1)
                     ginvdg2 = gs.matmul(ginv, dg2)
                     inner_prod += self.a1 * gs.sum(
-                        gs.einsum("bii->b", gs.matmul(ginvdg1, ginvdg2)) * areas
+                        gs.einsum("...bii->...b", gs.matmul(ginvdg1, ginvdg2)) * areas,
+                        axis=-1,
                     )
                     inner_prod += self.b1 * gs.sum(
-                        gs.einsum("bii->b", ginvdg1)
-                        * gs.einsum("bii->b", ginvdg2)
-                        * areas
+                        gs.einsum("...bii->...b", ginvdg1)
+                        * gs.einsum("...bii->...b", ginvdg2)
+                        * areas,
+                        axis=-1,
                     )
         return inner_prod
