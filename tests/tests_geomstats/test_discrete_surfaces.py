@@ -236,15 +236,31 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         ----------
         metric_args : tuple
             Arguments to pass to constructor of the metric.
-        point_a : array-like
-            Point on the manifold.
-        point_b : array-like
-            Point on the manifold.
+        path : array-like, shape=[n_time_steps, n_vertices, 3]
+            Path in the space of discrete surfaces.
         atol : float
             Absolute tolerance to test this property.
         """
         metric = self.Metric(*metric_args)
 
         energy = metric.stepwise_path_energy(path)
+        result = gs.all(energy > -1 * atol)
+        self.assertTrue(result)
+
+    def test_path_energy_is_positive(self, metric_args, path, atol):
+        """Check that energy of a path of surfaces is positive at each time-step.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        path : array-like, shape=[n_time_steps, n_vertices, 3]
+            Path in the space of discrete surfaces.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.Metric(*metric_args)
+
+        energy = metric.path_energy(path)
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)

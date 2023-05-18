@@ -888,3 +888,18 @@ class ElasticMetric(RiemannianMetric):
         for diff, midpoint in zip(surface_diffs, surface_midpoints):
             energy += [n_time_steps * self.squared_norm(diff, midpoint)]
         return gs.array(energy)
+
+    def path_energy(self, path):
+        """Compute path energy of a path in the space of discrete surfaces.
+
+        Parameters
+        ----------
+        path : array-like, shape=[time_steps, n_vertices, 3]
+            Piecewise linear path of discrete surfaces.
+
+        Returns
+        -------
+        energy : array-like, shape=[,]
+            Path energy.
+        """
+        return 0.5 * gs.sum(self.stepwise_path_energy(path))
