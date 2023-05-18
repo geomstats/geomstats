@@ -503,6 +503,62 @@ class ElasticMetric(RiemannianMetric):
             axis=-1,
         )
 
+    def _inner_product_c1(self, point_a, point_b, normals_at_base_point, areas):
+        dn1 = self.space.normals(point_a) - normals_at_base_point
+        dn2 = self.space.normals(point_b) - normals_at_base_point
+        return self.c1 * gs.sum(
+            gs.einsum("...bi,...bi->...b", dn1, dn2) * areas, axis=-1
+        )
+
+    def _inner_product_d1(
+        self, one_forms_a, one_forms_b, one_forms_base_point, areas, inv_surface_metrics
+    ):
+        one_forms_base_point_t = gs.transpose(one_forms_base_point, (0, 2, 1))
+
+        one_forms_a_t = gs.transpose(one_forms_a, (0, 1, 3, 2))
+        xi1 = one_forms_a_t - one_forms_base_point_t
+
+        xi1_0 = gs.matmul(
+            gs.matmul(one_forms_base_point_t, inv_surface_metrics),
+            gs.matmul(gs.transpose(xi1, (0, 1, 3, 2)), one_forms_base_point_t)
+            - gs.matmul(one_forms_base_point, xi1),
+        )
+
+        one_forms_b_t = gs.transpose(one_forms_b, (0, 1, 3, 2))
+        xi2 = one_forms_b_t - one_forms_base_point_t
+        xi2_0 = gs.matmul(
+            gs.matmul(one_forms_base_point_t, inv_surface_metrics),
+            gs.matmul(gs.transpose(xi2, (0, 1, 3, 2)), one_forms_base_point_t)
+            - gs.matmul(one_forms_base_point, xi2),
+        )
+
+        return self.d1 * gs.sum(
+            gs.einsum(
+                "...bii->...b",
+                gs.matmul(
+                    xi1_0,
+                    gs.matmul(
+                        inv_surface_metrics, gs.transpose(xi2_0, axes=(0, 1, 3, 2))
+                    ),
+                ),
+            )
+            * areas
+        )
+
+    def _inner_product_a1(self, ginvdg1, ginvdg2, areas):
+        return self.a1 * gs.sum(
+            gs.einsum("...bii->...b", gs.matmul(ginvdg1, ginvdg2)) * areas,
+            axis=-1,
+        )
+
+    def _inner_product_b1(self, ginvdg1, ginvdg2, areas):
+        return self.b1 * gs.sum(
+            gs.einsum("...bii->...b", ginvdg1)
+            * gs.einsum("...bii->...b", ginvdg2)
+            * areas,
+            axis=-1,
+        )
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Inner product between two tangent vectors at a base point.
 
@@ -563,54 +619,26 @@ class ElasticMetric(RiemannianMetric):
             surface_metrics = self.space._surface_metric_matrices_from_one_forms(
                 one_forms_base_point
             )
-            areas = gs.sqrt(gs.linalg.det(surface_metrics))
             normals_at_base_point = self.space.normals(base_point)
+            areas = gs.sqrt(gs.linalg.det(surface_metrics))
+
             if self.c1 > 0:
-                dn1 = self.space.normals(point_a) - normals_at_base_point
-                dn2 = self.space.normals(point_b) - normals_at_base_point
-                inner_prod += self.c1 * gs.sum(
-                    gs.einsum("...bi,...bi->...b", dn1, dn2) * areas, axis=-1
+                inner_prod += self._inner_product_c1(
+                    point_a, point_b, normals_at_base_point, areas
                 )
             if self.d1 > 0 or self.b1 > 0 or self.a1 > 0:
                 ginv = gs.linalg.inv(surface_metrics)
                 one_forms_a = self.space.surface_one_forms(point_a)
                 one_forms_b = self.space.surface_one_forms(point_b)
                 if self.d1 > 0:
-                    one_forms_base_point_t = gs.transpose(
-                        one_forms_base_point, (0, 2, 1)
+                    inner_prod += self._inner_product_d1(
+                        one_forms_a,
+                        one_forms_b,
+                        one_forms_base_point,
+                        areas=areas,
+                        inv_surface_metrics=ginv,
                     )
 
-                    one_forms_a_t = gs.transpose(one_forms_a, (0, 1, 3, 2))
-                    xi1 = one_forms_a_t - one_forms_base_point_t
-
-                    xi1_0 = gs.matmul(
-                        gs.matmul(one_forms_base_point_t, ginv),
-                        gs.matmul(
-                            gs.transpose(xi1, (0, 1, 3, 2)), one_forms_base_point_t
-                        )
-                        - gs.matmul(one_forms_base_point, xi1),
-                    )
-
-                    one_forms_b_t = gs.transpose(one_forms_b, (0, 1, 3, 2))
-                    xi2 = one_forms_b_t - one_forms_base_point_t
-                    xi2_0 = gs.matmul(
-                        gs.matmul(one_forms_base_point_t, ginv),
-                        gs.matmul(
-                            gs.transpose(xi2, (0, 1, 3, 2)), one_forms_base_point_t
-                        )
-                        - gs.matmul(one_forms_base_point, xi2),
-                    )
-
-                    inner_prod += self.d1 * gs.sum(
-                        gs.einsum(
-                            "...bii->...b",
-                            gs.matmul(
-                                xi1_0,
-                                gs.matmul(ginv, gs.transpose(xi2_0, axes=(0, 1, 3, 2))),
-                            ),
-                        )
-                        * areas
-                    )
                 if self.b1 > 0 or self.a1 > 0:
                     dg1 = (
                         gs.matmul(
@@ -626,14 +654,6 @@ class ElasticMetric(RiemannianMetric):
                     )
                     ginvdg1 = gs.matmul(ginv, dg1)
                     ginvdg2 = gs.matmul(ginv, dg2)
-                    inner_prod += self.a1 * gs.sum(
-                        gs.einsum("...bii->...b", gs.matmul(ginvdg1, ginvdg2)) * areas,
-                        axis=-1,
-                    )
-                    inner_prod += self.b1 * gs.sum(
-                        gs.einsum("...bii->...b", ginvdg1)
-                        * gs.einsum("...bii->...b", ginvdg2)
-                        * areas,
-                        axis=-1,
-                    )
+                    inner_prod += self._inner_product_a1(ginvdg1, ginvdg2, areas)
+                    inner_prod += self._inner_product_b1(ginvdg1, ginvdg2, areas)
         return inner_prod
