@@ -823,18 +823,18 @@ class ElasticMetric(PullbackDiffeoMetric):
 
     Parameters
     ----------
+    a : float
+        Bending parameter.
+    b : float
+        Stretching parameter.
     ambient_manifold : Manifold
         Manifold in which curves take values.
-    metric : RiemannianMetric
+    ambient_metric : RiemannianMetric
         Metric to use on the ambient manifold. If None is passed, ambient
         manifold should have a metric attribute, which will be used.
         Optional, default : None.
     translation_invariant : bool
         Optional, default : True.
-    a : float
-        Bending parameter.
-    b : float
-        Stretching parameter.
 
     References
     ----------

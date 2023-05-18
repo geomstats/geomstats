@@ -2,8 +2,8 @@ import random
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
-from geomstats.geometry.discrete_surfaces import DiscreteSurfaces
-from tests.data_generation import _ManifoldTestData
+from geomstats.geometry.discrete_surfaces import DiscreteSurfaces, ElasticMetric
+from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
 vertices, faces = data_utils.load_cube()
 vertices = gs.array(vertices, dtype=gs.float64)
@@ -56,3 +56,29 @@ class DiscreteSurfacesTestData(_ManifoldTestData):
         ]
 
         return self.generate_tests(smoke_data)
+
+
+class ElasticMetricTestData(_RiemannianMetricTestData):
+
+    n_samples_list = [1, 5]
+    a0_list = [1, 5]
+    a1_list = [1, 5]
+    b1_list = [1, 5]
+    c1_list = [1, 5]
+    d1_list = [1, 5]
+    a2_list = [1, 5]
+
+    connection_args_list = metric_args_list = [
+        (DiscreteSurfaces(faces), 1, 1, 1, 1, 1, 1)
+    ]
+    shape_list = [(8, 3)]
+    space_list = [DiscreteSurfaces(faces)]
+    n_points_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = random.sample(range(2, 5), 2)
+    n_points_a_list = [1, 2]
+    n_points_b_list = [1, 2]
+    alpha_list = [1] * 2
+    n_rungs_list = [1] * 2
+    scheme_list = ["pole"] * 2
+
+    Metric = ElasticMetric

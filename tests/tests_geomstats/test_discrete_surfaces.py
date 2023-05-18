@@ -2,8 +2,11 @@
 
 import geomstats.backend as gs
 from tests.conftest import Parametrizer
-from tests.data.discrete_surfaces_data import DiscreteSurfacesTestData
-from tests.geometry_test_cases import ManifoldTestCase
+from tests.data.discrete_surfaces_data import (
+    DiscreteSurfacesTestData,
+    ElasticMetricTestData,
+)
+from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 def _test_manifold_shape(test_cls, space_args):
@@ -193,3 +196,31 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
         assert result.shape == (n_vertices, 3), result.shape
 
         assert gs.allclose(result, expected), result
+
+
+class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    skip_test_exp_shape = True
+    skip_test_log_shape = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_after_log = True
+    skip_test_exp_belongs = True
+    skip_test_exp_ladder_parallel_transport = True
+    skip_test_inner_product_is_symmetric = True
+    skip_test_log_after_exp = True
+    skip_test_log_is_tangent = True
+    skip_test_dist_is_norm_of_log = True
+    skip_test_dist_point_to_itself_is_zero = True
+    skip_test_triangle_inequality_of_dist = True
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
+
+    testing_data = ElasticMetricTestData()

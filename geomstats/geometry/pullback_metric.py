@@ -285,8 +285,7 @@ class PullbackMetric(RiemannianMetric):
 
 
 class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
-    """
-    Pullback metric via a diffeomorphism.
+    """Pullback metric via a diffeomorphism.
 
     Parameters
     ----------

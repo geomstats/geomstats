@@ -7,6 +7,7 @@ import math
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class DiscreteSurfaces(Manifold):
@@ -408,3 +409,44 @@ class DiscreteSurfaces(Manifold):
             return laplacian_at_tangent_vec
 
         return _laplacian
+
+
+class ElasticMetric(RiemannianMetric):
+    """Elastic metric defined by a family of second order Sobolev metrics.
+
+    Each individual discrete surface is represented by a 2D-array of shape `[
+    n_vertices, 3]`. See [HSKCB2022]_ for details.
+
+    Parameters
+    ----------
+    space : DiscreteSurfaces
+        Instantiated DiscreteSurfaces manifold.
+    a0 : float
+        First order parameter.
+    a1 : float
+        Stretching parameter.
+    b1 : float
+        Shearing parameter.
+    c1 : float
+        Bending parameter.
+    d1 : float
+        additonal first order parameter.
+    a2 : float
+        Second order parameter.
+
+    References
+    ----------
+    .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
+        Sobolev metrics: a comprehensive numerical framework".
+        arXiv:2204.04238 [cs.CV], 25 Sep 2022
+    """
+
+    def __init__(self, space, a0, a1, b1, c1, d1, a2):
+        super().__init__(dim=space.dim, shape=space.shape)
+        self.space = space
+        self.a0 = a0
+        self.a1 = a1
+        self.b1 = b1
+        self.c1 = c1
+        self.d1 = d1
+        self.a2 = a2
