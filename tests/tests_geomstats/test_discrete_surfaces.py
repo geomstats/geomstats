@@ -197,9 +197,9 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
         assert gs.allclose(result, expected), result
 
-        # tangent_vec = gs.array([tangent_vec, tangent_vec])
-        # result = space.laplacian(point=point)(tangent_vec)
-        # assert result.shape == (2, n_vertices, 3), result.shape
+        tangent_vec = gs.array([tangent_vec, tangent_vec])
+        result = space.laplacian(point=point)(tangent_vec)
+        assert result.shape == (2, n_vertices, 3), result.shape
 
 
 class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):

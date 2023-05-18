@@ -400,31 +400,17 @@ class DiscreteSurfaces(Manifold):
             if tangent_vec.ndim == 2:
                 tangent_vec = gs.expand_dims(tangent_vec, axis=0)
                 to_squeeze = True
-            # tangent_vec_diff =
-            # tangent_vec[:, id_vertices[0]] - tangent_vec[:, id_vertices[1]]
-            # values = gs.stack([gs.flatten(cot)] * 3, axis=-2) * tangent_vec_diff
             n_tangent_vecs = len(tangent_vec)
-            print(f"id_vertices.shape = {id_vertices.shape}")  # 2, 3*n_faces
             tangent_vec_diff = (
                 tangent_vec[:, id_vertices[0]] - tangent_vec[:, id_vertices[1]]
             )
-            # n_tangent_vec, n_faces*3, 3
-            print(f"cot.shape = {cot.shape}")  # n_faces, 3
             values = gs.einsum(
                 "bd,nbd->nbd", gs.stack([gs.flatten(cot)] * 3, axis=1), tangent_vec_diff
             )
-            print(f"values.shape = {values.shape}")  # 1, n_faces * 3, 3
 
             laplacian_at_tangent_vec = gs.zeros((n_tangent_vecs, n_vertices, 3))
             id_vertices_201_repeated = gs.tile(id_vertices[1, :], (n_tangent_vecs, 1))
-            test_values = values[:, :, 0]
-            test_lap = laplacian_at_tangent_vec[:, :, 0]
 
-            print(
-                f"id_vertices_201_repeated.shape = {id_vertices_201_repeated.shape}"
-            )  # 1, n_faces*3
-            print(f"test_values.shape= {test_values.shape}")  # 1, n_faces*3
-            print(f"test_lap.shape = {test_lap.shape}")
             for i_dim in range(3):
                 laplacian_at_tangent_vec[:, :, i_dim] = gs.scatter_add(
                     input=laplacian_at_tangent_vec[:, :, i_dim],
