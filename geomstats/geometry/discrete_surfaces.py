@@ -250,7 +250,7 @@ class DiscreteSurfaces(Manifold):
 
         Returns
         -------
-        normals_at_point : array-like, shape=[n_facesx1]
+        normals_at_point : array-like, shape=[n_faces, 3]
             Normals of each face of the mesh.
         """
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
@@ -272,7 +272,7 @@ class DiscreteSurfaces(Manifold):
 
         Returns
         -------
-        one_forms_base_point : array-like, shape=[..., n_faces, 2, 3]
+        one_forms_bp : array-like, shape=[..., n_faces, 2, 3]
             One form evaluated at each face of the triangulated surface.
         """
         vertex_0, vertex_1, vertex_2 = self._vertices(point)
@@ -296,8 +296,8 @@ class DiscreteSurfaces(Manifold):
         _ : array-like, shape=[n_faces,]
             Area computed at each face of the triangulated surface.
         """
-        surface_metrics = self.surface_metric_matrices(point)
-        return gs.sqrt(gs.linalg.det(surface_metrics))
+        surface_metrics_bp = self.surface_metric_matrices(point)
+        return gs.sqrt(gs.linalg.det(surface_metrics_bp))
 
     def _surface_metric_matrices_from_one_forms(self, one_forms):
         """Compute the surface metric matrices directly from the one_forms.
@@ -485,13 +485,266 @@ class ElasticMetric(RiemannianMetric):
         self.d1 = d1
         self.a2 = a2
 
-    def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas):
+    def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas_bp):
+        r"""Compute term of order 0 within the inner-product.
+
+        Denote h and k the tangent vectors a and b respectively.
+        Denote q the base point, i.e. the surface.
+
+        The equation of the inner-product is:
+        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+
+        This method computes :math:`G_{a_0} = a_0 <h, k>`,
+        with notations taken from .. [HSKCB2022].
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at base point.
+        vertex_areas : array-like, shape=[n_vertices, 3]
+            Vertex areas for each vertex of the base_point.
+
+        Returns
+        -------
+        _ : array-like, shape=[...]
+            Term of order 0, and coefficient a0, of the inner-product.
+
+        References
+        ----------
+        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
+            Sobolev metrics: a comprehensive numerical framework".
+            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+        """
         return self.a0 * gs.sum(
-            vertex_areas * gs.einsum("...bi,...bi->...b", tangent_vec_a, tangent_vec_b),
+            vertex_areas_bp
+            * gs.einsum("...bi,...bi->...b", tangent_vec_a, tangent_vec_b),
             axis=-1,
         )
 
-    def _inner_product_a2(self, tangent_vec_a, tangent_vec_b, base_point, vertex_areas):
+    def _inner_product_a1(self, ginvdg1, ginvdg2, areas_bp):
+        r"""Compute a1 term of order 1 within the inner-product.
+
+        Denote h and k the tangent vectors a and b respectively.
+        Denote q the base point, i.e. the surface.
+
+        The equation of the inner-product is:
+        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+
+        This method computes :math:`G_{a_1} = a_1.g_q^{-1} <dh_m, dk_m>`,
+        with notations taken from .. [HSKCB2022].
+
+        Parameters
+        ----------
+        ginvdg1 : array-like
+            X
+        ginvdg2 : array-like
+            X
+        areas : array-like, shape=[n_vertices, 3]
+            X
+
+        Returns
+        -------
+        _ : array-like, shape=[...]
+            Term of order 0, and coefficient a1, of the inner-product.
+
+        References
+        ----------
+        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
+            Sobolev metrics: a comprehensive numerical framework".
+            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+        """
+        return self.a1 * gs.sum(
+            gs.einsum("...bii->...b", gs.matmul(ginvdg1, ginvdg2)) * areas_bp,
+            axis=-1,
+        )
+
+    def _inner_product_b1(self, ginvdg1, ginvdg2, areas_bp):
+        r"""Compute b1 term of order 1 within the inner-product.
+
+        Denote h and k the tangent vectors a and b respectively.
+        Denote q the base point, i.e. the surface.
+
+        The equation of the inner-product is:
+        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+
+        This method computes :math:`G_{b_1} = b_1.g_q^{-1} <dh_+, dk_+>`,
+        with notations taken from .. [HSKCB2022].
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at base point.
+        vertex_areas : array-like, shape=[n_vertices, 3]
+            X
+
+        Returns
+        -------
+        _ : array-like, shape=[...]
+            Term of order 0, and coefficient b1, of the inner-product.
+
+        References
+        ----------
+        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
+            Sobolev metrics: a comprehensive numerical framework".
+            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+        """
+        return self.b1 * gs.sum(
+            gs.einsum("...bii->...b", ginvdg1)
+            * gs.einsum("...bii->...b", ginvdg2)
+            * areas_bp,
+            axis=-1,
+        )
+
+    def _inner_product_c1(self, point_a, point_b, normals_bp, areas_bp):
+        r"""Compute c1 term of order 1 within the inner-product.
+
+        Denote h and k the tangent vectors a and b respectively.
+        Denote q the base point, i.e. the surface.
+
+        The equation of the inner-product is:
+        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+
+        This method computes :math:`G_{c_1} = c_1.g_q^{-1} <dh_\perp, dk_\perp>`,
+        with notations taken from .. [HSKCB2022].
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., n_vertices, 3]
+            Point a corresponding to tangent vec a.
+        point_b : array-like, shape=[..., n_vertices, 3]
+            Point b corresponding to tangent vec b.
+        normals_bp : array-like, shape=[n_faces, 3]
+            Normals of each face of the surface given by the base point.
+        areas_bp : array-like, shape=[n_faces,]
+            Areas of the faces of the surface given by the base point.
+
+        Returns
+        -------
+        _ : array-like, shape=[...]
+            Term of order 0, and coefficient c1, of the inner-product.
+
+        References
+        ----------
+        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
+            Sobolev metrics: a comprehensive numerical framework".
+            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+        """
+        dna = self.space.normals(point_a) - normals_bp
+        dnb = self.space.normals(point_b) - normals_bp
+        return self.c1 * gs.sum(
+            gs.einsum("...bi,...bi->...b", dna, dnb) * areas_bp, axis=-1
+        )
+
+    def _inner_product_d1(
+        self, one_forms_a, one_forms_b, one_forms_bp, areas_bp, inv_surface_metrics_bp
+    ):
+        r"""Compute d1 term of order 1 within the inner-product.
+
+        Denote h and k the tangent vectors a and b respectively.
+        Denote q the base point, i.e. the surface.
+
+        The equation of the inner-product is:
+        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+
+        This method computes :math:`G_{d_1} = d_1.g_q^{-1} <dh_0, dk_0>`,
+        with notations taken from .. [HSKCB2022].
+
+        Parameters
+        ----------
+        one_forms_a : array-like, shape=[..., n_faces, 2, 3]
+            One forms at point a corresponding to tangent vec a.
+        one_forms_b : array-like, shape=[..., n_faces, 2, 3]
+            One forms at point b corresponding to tangent vec b.
+        one_forms_bp : array-like, shape=[n_faces, 2, 3]
+            One forms at base point.
+        areas_bp : array-like, shape=[n_faces,]
+            Areas of the faces of the surface given by the base point.
+        inv_surface_metrics_bp : array-like, shape=[n_faces, 2, 2]
+            Inverses of the surface metric matrices at each face.
+
+        Returns
+        -------
+        _ : array-like, shape=[...]
+            Term of order 0, and coefficient d1, of the inner-product.
+
+        References
+        ----------
+        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
+            Sobolev metrics: a comprehensive numerical framework".
+            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+        """
+        one_forms_bp_t = gs.transpose(one_forms_bp, (0, 2, 1))
+
+        one_forms_a_t = gs.transpose(one_forms_a, (0, 1, 3, 2))
+        xa = one_forms_a_t - one_forms_bp_t
+
+        xa_0 = gs.matmul(
+            gs.matmul(one_forms_bp_t, inv_surface_metrics_bp),
+            gs.matmul(gs.transpose(xa, (0, 1, 3, 2)), one_forms_bp_t)
+            - gs.matmul(one_forms_bp, xa),
+        )
+
+        one_forms_b_t = gs.transpose(one_forms_b, (0, 1, 3, 2))
+        xb = one_forms_b_t - one_forms_bp_t
+        xb_0 = gs.matmul(
+            gs.matmul(one_forms_bp_t, inv_surface_metrics_bp),
+            gs.matmul(gs.transpose(xb, (0, 1, 3, 2)), one_forms_bp_t)
+            - gs.matmul(one_forms_bp, xb),
+        )
+
+        return self.d1 * gs.sum(
+            gs.einsum(
+                "...bii->...b",
+                gs.matmul(
+                    xa_0,
+                    gs.matmul(
+                        inv_surface_metrics_bp, gs.transpose(xb_0, axes=(0, 1, 3, 2))
+                    ),
+                ),
+            )
+            * areas_bp
+        )
+
+    def _inner_product_a2(
+        self, tangent_vec_a, tangent_vec_b, base_point, vertex_areas_bp
+    ):
+        r"""Compute term of order 2 within the inner-product.
+
+        Denote h and k the tangent vectors a and b respectively.
+        Denote q the base point, i.e. the surface.
+
+        The equation of the inner-product is:
+        :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
+
+        This method computes :math:`G_{a_2} = a_2 <\Delta_q h, \Delta_q k>`,
+        with notations taken from .. [HSKCB2022].
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at base point.
+        base_point : array-like, shape=[n_vertices, 3]
+            Base point, a surface i.e. the 3D coordinates of its vertices.
+        vertex_areas_bp : array-like, shape=[n_vertices, 1]
+            Vertex areas for each vertex of the base_point.
+
+        Returns
+        -------
+        _ : array-like, shape=[...]
+            Term of order 2, and coefficient a2, of the inner-product.
+
+        References
+        ----------
+        .. [HSKCB2022] "Elastic shape analysis of surfaces with second-order
+            Sobolev metrics: a comprehensive numerical framework".
+            arXiv:2204.04238 [cs.CV], 25 Sep 2022.
+        """
         laplacian_at_base_point = self.space.laplacian(base_point)
         return self.a2 * gs.sum(
             gs.einsum(
@@ -499,68 +752,12 @@ class ElasticMetric(RiemannianMetric):
                 laplacian_at_base_point(tangent_vec_a),
                 laplacian_at_base_point(tangent_vec_b),
             )
-            / vertex_areas,
-            axis=-1,
-        )
-
-    def _inner_product_c1(self, point_a, point_b, normals_at_base_point, areas):
-        dn1 = self.space.normals(point_a) - normals_at_base_point
-        dn2 = self.space.normals(point_b) - normals_at_base_point
-        return self.c1 * gs.sum(
-            gs.einsum("...bi,...bi->...b", dn1, dn2) * areas, axis=-1
-        )
-
-    def _inner_product_d1(
-        self, one_forms_a, one_forms_b, one_forms_base_point, areas, inv_surface_metrics
-    ):
-        one_forms_base_point_t = gs.transpose(one_forms_base_point, (0, 2, 1))
-
-        one_forms_a_t = gs.transpose(one_forms_a, (0, 1, 3, 2))
-        xi1 = one_forms_a_t - one_forms_base_point_t
-
-        xi1_0 = gs.matmul(
-            gs.matmul(one_forms_base_point_t, inv_surface_metrics),
-            gs.matmul(gs.transpose(xi1, (0, 1, 3, 2)), one_forms_base_point_t)
-            - gs.matmul(one_forms_base_point, xi1),
-        )
-
-        one_forms_b_t = gs.transpose(one_forms_b, (0, 1, 3, 2))
-        xi2 = one_forms_b_t - one_forms_base_point_t
-        xi2_0 = gs.matmul(
-            gs.matmul(one_forms_base_point_t, inv_surface_metrics),
-            gs.matmul(gs.transpose(xi2, (0, 1, 3, 2)), one_forms_base_point_t)
-            - gs.matmul(one_forms_base_point, xi2),
-        )
-
-        return self.d1 * gs.sum(
-            gs.einsum(
-                "...bii->...b",
-                gs.matmul(
-                    xi1_0,
-                    gs.matmul(
-                        inv_surface_metrics, gs.transpose(xi2_0, axes=(0, 1, 3, 2))
-                    ),
-                ),
-            )
-            * areas
-        )
-
-    def _inner_product_a1(self, ginvdg1, ginvdg2, areas):
-        return self.a1 * gs.sum(
-            gs.einsum("...bii->...b", gs.matmul(ginvdg1, ginvdg2)) * areas,
-            axis=-1,
-        )
-
-    def _inner_product_b1(self, ginvdg1, ginvdg2, areas):
-        return self.b1 * gs.sum(
-            gs.einsum("...bii->...b", ginvdg1)
-            * gs.einsum("...bii->...b", ginvdg2)
-            * areas,
+            / vertex_areas_bp,
             axis=-1,
         )
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Inner product between two tangent vectors at a base point.
+        r"""Compute inner product between two tangent vectors at a base point.
 
         The inner-product has 6 terms, where each term corresponds to
         one of the 6 hyperparameters a0, a1, b1, c1, d1, a2.
@@ -579,20 +776,20 @@ class ElasticMetric(RiemannianMetric):
         - :math:`G_{d_1} = d_1.g_q^{-1} <dh_0, dk_0>`
         - :math:`G_{a_2} = a_2 <\Delta_q h, \Delta_q k>`
 
-        with notations taken form .. [HSKCB2022].
+        with notations taken from .. [HSKCB2022].
 
         Parameters
         ----------
-        tangent_vec_a: array-like, shape=[..., n_vertices, 3]
+        tangent_vec_a : array-like, shape=[..., n_vertices, 3]
             Tangent vector at base point.
-        tangent_vec_b: array-like, shape=[..., n_vertices, 3]
+        tangent_vec_b : array-like, shape=[..., n_vertices, 3]
             Tangent vector at base point.
-        base_point: array-like, shape=[n_vertices, 3]
+        base_point : array-like, shape=[n_vertices, 3]
             Surface, as the 3D coordinates of the vertices of its triangulation.
 
         Returns
         -------
-        inner_product : array-like, shape=[...]
+        inner_prod : array-like, shape=[...]
             Inner-product.
 
         References
@@ -607,53 +804,55 @@ class ElasticMetric(RiemannianMetric):
         point_b = base_point + k
         inner_prod = 0
         if self.a0 > 0 or self.a2 > 0:
-            vertex_areas = self.space.vertex_areas(base_point)
+            vertex_areas_bp = self.space.vertex_areas(base_point)
             if self.a0 > 0:
-                inner_prod += self._inner_product_a0(h, k, vertex_areas=vertex_areas)
+                inner_prod += self._inner_product_a0(
+                    h, k, vertex_areas_bp=vertex_areas_bp
+                )
             if self.a2 > 0:
                 inner_prod += self._inner_product_a2(
-                    h, k, base_point=base_point, vertex_areas=vertex_areas
+                    h, k, base_point=base_point, vertex_areas_bp=vertex_areas_bp
                 )
         if self.a1 > 0 or self.b1 > 0 or self.c1 > 0 or self.b1 > 0:
-            one_forms_base_point = self.space.surface_one_forms(base_point)
-            surface_metrics = self.space._surface_metric_matrices_from_one_forms(
-                one_forms_base_point
+            one_forms_bp = self.space.surface_one_forms(base_point)
+            surface_metrics_bp = self.space._surface_metric_matrices_from_one_forms(
+                one_forms_bp
             )
-            normals_at_base_point = self.space.normals(base_point)
-            areas = gs.sqrt(gs.linalg.det(surface_metrics))
+            normals_bp = self.space.normals(base_point)
+            areas_bp = gs.sqrt(gs.linalg.det(surface_metrics_bp))
 
             if self.c1 > 0:
                 inner_prod += self._inner_product_c1(
-                    point_a, point_b, normals_at_base_point, areas
+                    point_a, point_b, normals_bp, areas_bp
                 )
             if self.d1 > 0 or self.b1 > 0 or self.a1 > 0:
-                ginv = gs.linalg.inv(surface_metrics)
+                ginv = gs.linalg.inv(surface_metrics_bp)
                 one_forms_a = self.space.surface_one_forms(point_a)
                 one_forms_b = self.space.surface_one_forms(point_b)
                 if self.d1 > 0:
                     inner_prod += self._inner_product_d1(
                         one_forms_a,
                         one_forms_b,
-                        one_forms_base_point,
-                        areas=areas,
-                        inv_surface_metrics=ginv,
+                        one_forms_bp,
+                        areas=areas_bp,
+                        inv_surface_metrics_bp=ginv,
                     )
 
                 if self.b1 > 0 or self.a1 > 0:
-                    dg1 = (
+                    dga = (
                         gs.matmul(
                             one_forms_a, gs.transpose(one_forms_a, axes=(0, 1, 3, 2))
                         )
-                        - surface_metrics
+                        - surface_metrics_bp
                     )
-                    dg2 = (
+                    dgb = (
                         gs.matmul(
                             one_forms_b, gs.transpose(one_forms_b, axes=(0, 1, 3, 2))
                         )
-                        - surface_metrics
+                        - surface_metrics_bp
                     )
-                    ginvdg1 = gs.matmul(ginv, dg1)
-                    ginvdg2 = gs.matmul(ginv, dg2)
-                    inner_prod += self._inner_product_a1(ginvdg1, ginvdg2, areas)
-                    inner_prod += self._inner_product_b1(ginvdg1, ginvdg2, areas)
+                    ginvdga = gs.matmul(ginv, dga)
+                    ginvdgb = gs.matmul(ginv, dgb)
+                    inner_prod += self._inner_product_a1(ginvdga, ginvdgb, areas_bp)
+                    inner_prod += self._inner_product_b1(ginvdga, ginvdgb, areas_bp)
         return inner_prod
