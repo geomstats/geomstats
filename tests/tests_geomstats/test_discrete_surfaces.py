@@ -140,7 +140,6 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
         assert gs.all(result)
 
         singleton_point = gs.expand_dims(point, axis=0)
-        print("singleton_point.shape", singleton_point.shape)
         result = space.surface_one_forms(point=singleton_point)
         assert result.shape == (1, space.n_faces, 2, 3)
 
@@ -184,3 +183,13 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
         point = gs.array([point, point])
         result = space.surface_metric_matrices(point=point)
         assert result.shape == (2, space.n_faces, 2, 2)
+
+    def test_laplacian(self, faces, point, tangent_vec, expected):
+        """Test laplacian operator."""
+        space = self.Space(faces=faces)
+
+        n_vertices = point.shape[-2]
+        result = space.laplacian(point=point)(tangent_vec)
+        assert result.shape == (n_vertices, 3), result.shape
+
+        assert gs.allclose(result, expected), result

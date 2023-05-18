@@ -43,3 +43,16 @@ class DiscreteSurfacesTestData(_ManifoldTestData):
         smoke_data = [dict(faces=faces, point=vertices)]
 
         return self.generate_tests(smoke_data)
+
+    def laplacian_test_data(self):
+        smoke_data = [
+            dict(
+                faces=faces,
+                point=vertices,
+                tangent_vec=tangent_vec,
+                expected=gs.zeros_like(vertices),
+            )
+            for tangent_vec in [gs.zeros_like(vertices), gs.ones_like(vertices)]
+        ]
+
+        return self.generate_tests(smoke_data)

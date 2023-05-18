@@ -326,7 +326,12 @@ class DiscreteSurfaces(Manifold):
         return metric_mats
 
     def laplacian(self, point):
-        """Compute the mesh Laplacian operator of a triangulated surface.
+        r"""Compute the mesh Laplacian operator of a triangulated surface.
+
+        Denoting q the surface, i.e. the point in the DiscreteSurfaces manifold,
+        the laplacian at q is defined as the operator:
+        :math: `\Delta_q = - Tr(g_q^{-1} \nabla^2)`
+        where :math:`g_q` is the surface metric matrix of :math:`q`.
 
         Parameters
         ----------
@@ -371,11 +376,13 @@ class DiscreteSurfaces(Manifold):
         def _laplacian(tangent_vec):
             """Evaluate the mesh Laplacian operator.
 
-            The operator is evaluated at a tangent vector to the surface.
+            The operator is evaluated at a tangent vector at point to the
+            manifold of DiscreteSurfaces. In other words, the operator is
+            evaluated at a vector field defined on the surface point.
 
             Parameters
             ----------
-            tangent_vec :  array-like, shape=[n_vertices, 3]
+            tangent_vec : array-like, shape=[n_vertices, 3]
                 Tangent vector to the manifold at the base point that is the
                 triangulated surface. This tangent vector is a vector field
                 on the triangulated surface.
