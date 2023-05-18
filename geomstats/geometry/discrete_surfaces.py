@@ -826,7 +826,7 @@ class ElasticMetric(RiemannianMetric):
                     point_a, point_b, normals_bp, areas_bp
                 )
             if self.d1 > 0 or self.b1 > 0 or self.a1 > 0:
-                ginv = gs.linalg.inv(surface_metrics_bp)
+                ginv_bp = gs.linalg.inv(surface_metrics_bp)
                 one_forms_a = self.space.surface_one_forms(point_a)
                 one_forms_b = self.space.surface_one_forms(point_b)
                 if self.d1 > 0:
@@ -834,8 +834,8 @@ class ElasticMetric(RiemannianMetric):
                         one_forms_a,
                         one_forms_b,
                         one_forms_bp,
-                        areas=areas_bp,
-                        inv_surface_metrics_bp=ginv,
+                        areas_bp=areas_bp,
+                        inv_surface_metrics_bp=ginv_bp,
                     )
 
                 if self.b1 > 0 or self.a1 > 0:
@@ -851,8 +851,8 @@ class ElasticMetric(RiemannianMetric):
                         )
                         - surface_metrics_bp
                     )
-                    ginvdga = gs.matmul(ginv, dga)
-                    ginvdgb = gs.matmul(ginv, dgb)
+                    ginvdga = gs.matmul(ginv_bp, dga)
+                    ginvdgb = gs.matmul(ginv_bp, dgb)
                     inner_prod += self._inner_product_a1(ginvdga, ginvdgb, areas_bp)
                     inner_prod += self._inner_product_b1(ginvdga, ginvdgb, areas_bp)
         return inner_prod
