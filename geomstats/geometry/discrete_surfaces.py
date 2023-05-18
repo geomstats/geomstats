@@ -430,7 +430,7 @@ class ElasticMetric(RiemannianMetric):
     c1 : float
         Bending parameter.
     d1 : float
-        additonal first order parameter.
+        Additonal first order parameter.
     a2 : float
         Second order parameter.
 

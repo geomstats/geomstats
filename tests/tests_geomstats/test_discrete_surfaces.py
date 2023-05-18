@@ -1,7 +1,7 @@
 """Unit tests for discrete_surfaces modules."""
 
 import geomstats.backend as gs
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, autograd_backend, pytorch_backend
 from tests.data.discrete_surfaces_data import (
     DiscreteSurfacesTestData,
     ElasticMetricTestData,
@@ -199,6 +199,7 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
 
 class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    skip_all = not (autograd_backend() or pytorch_backend())
     skip_test_exp_shape = True
     skip_test_log_shape = True
     skip_test_exp_geodesic_ivp = True
