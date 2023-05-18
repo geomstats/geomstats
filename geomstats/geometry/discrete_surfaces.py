@@ -485,6 +485,24 @@ class ElasticMetric(RiemannianMetric):
         self.d1 = d1
         self.a2 = a2
 
+    def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas):
+        return self.a0 * gs.sum(
+            vertex_areas * gs.einsum("...bi,...bi->...b", tangent_vec_a, tangent_vec_b),
+            axis=-1,
+        )
+
+    def _inner_product_a2(self, tangent_vec_a, tangent_vec_b, base_point, vertex_areas):
+        laplacian_at_base_point = self.space.laplacian(base_point)
+        return self.a2 * gs.sum(
+            gs.einsum(
+                "...bi,...bi->...b",
+                laplacian_at_base_point(tangent_vec_a),
+                laplacian_at_base_point(tangent_vec_b),
+            )
+            / vertex_areas,
+            axis=-1,
+        )
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Inner product between two tangent vectors at a base point.
 
@@ -533,21 +551,12 @@ class ElasticMetric(RiemannianMetric):
         point_b = base_point + k
         inner_prod = 0
         if self.a0 > 0 or self.a2 > 0:
-            v_areas = self.space.vertex_areas(base_point)
+            vertex_areas = self.space.vertex_areas(base_point)
             if self.a0 > 0:
-                inner_prod += self.a0 * gs.sum(
-                    v_areas * gs.einsum("...bi,...bi->...b", h, k), axis=-1
-                )
+                inner_prod += self._inner_product_a0(h, k, vertex_areas=vertex_areas)
             if self.a2 > 0:
-                laplacian_at_base_point = self.space.laplacian(base_point)
-                inner_prod += self.a2 * gs.sum(
-                    gs.einsum(
-                        "...bi,...bi->...b",
-                        laplacian_at_base_point(h),
-                        laplacian_at_base_point(k),
-                    )
-                    / v_areas,
-                    axis=-1,
+                inner_prod += self._inner_product_a2(
+                    h, k, base_point=base_point, vertex_areas=vertex_areas
                 )
         if self.a1 > 0 or self.b1 > 0 or self.c1 > 0 or self.b1 > 0:
             one_forms_base_point = self.space.surface_one_forms(base_point)

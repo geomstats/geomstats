@@ -212,7 +212,6 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_after_log = True
     skip_test_exp_belongs = True
     skip_test_exp_ladder_parallel_transport = True
-    # skip_test_inner_product_is_symmetric = True
     skip_test_log_after_exp = True
     skip_test_log_is_tangent = True
     skip_test_dist_is_norm_of_log = True
