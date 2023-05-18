@@ -82,3 +82,13 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
     scheme_list = ["pole"] * 2
 
     Metric = ElasticMetric
+
+    def stepwise_path_energy_is_positive_test_data(self):
+        smoke_data = [
+            dict(
+                metric_args=self.metric_args_list[0],
+                path=gs.array([vertices, vertices, vertices]),
+                atol=1e-6,
+            )
+        ]
+        return self.generate_tests(smoke_data, [])

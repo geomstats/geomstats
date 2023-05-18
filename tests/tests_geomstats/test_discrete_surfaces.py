@@ -228,3 +228,23 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_sectional_curvature_shape = True
 
     testing_data = ElasticMetricTestData()
+
+    def test_stepwise_path_energy_is_positive(self, metric_args, path, atol):
+        """Check that energy of a path of surfaces is positive at each time-step.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        point_a : array-like
+            Point on the manifold.
+        point_b : array-like
+            Point on the manifold.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        metric = self.Metric(*metric_args)
+
+        energy = metric.stepwise_path_energy(path)
+        result = gs.all(energy > -1 * atol)
+        self.assertTrue(result)

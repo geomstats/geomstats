@@ -802,11 +802,18 @@ class ElasticMetric(RiemannianMetric):
             Sobolev metrics: a comprehensive numerical framework".
             arXiv:2204.04238 [cs.CV], 25 Sep 2022.
         """
+        to_squeeze = False
+        if tangent_vec_a.ndim == 2 and tangent_vec_b.ndim == 2:
+            to_squeeze = True
+        if tangent_vec_a.ndim == 2:
+            tangent_vec_a = gs.expand_dims(tangent_vec_a, axis=0)
+        if tangent_vec_b.ndim == 2:
+            tangent_vec_b = gs.expand_dims(tangent_vec_b, axis=0)
         h = tangent_vec_a
         k = tangent_vec_b
         point_a = base_point + h
         point_b = base_point + k
-        inner_prod = 0
+        inner_prod = gs.zeros((gs.maximum(len(tangent_vec_a), len(tangent_vec_b)), 1))
         if self.a0 > 0 or self.a2 > 0:
             vertex_areas_bp = self.space.vertex_areas(base_point)
             if self.a0 > 0:
@@ -859,4 +866,25 @@ class ElasticMetric(RiemannianMetric):
                     ginvdgb = gs.matmul(ginv_bp, dgb)
                     inner_prod += self._inner_product_a1(ginvdga, ginvdgb, areas_bp)
                     inner_prod += self._inner_product_b1(ginvdga, ginvdgb, areas_bp)
-        return inner_prod
+        return gs.squeeze(inner_prod, axis=0) if to_squeeze else inner_prod
+
+    def stepwise_path_energy(self, path):
+        """Compute stepwise path energy of a path in the space of discrete surfaces.
+
+        Parameters
+        ----------
+        path : array-like, shape=[time_steps, n_vertices, 3]
+            Piecewise linear path of discrete surfaces.
+
+        Returns
+        -------
+        energy : array-like, shape=[time_steps - 1,]
+            Stepwise path energy.
+        """
+        n_time_steps, _, _ = path.shape
+        surface_diffs = path[1:, :, :] - path[:-1, :, :]
+        surface_midpoints = path[: n_time_steps - 1, :, :] + surface_diffs / 2
+        energy = []
+        for diff, midpoint in zip(surface_diffs, surface_midpoints):
+            energy += [n_time_steps * self.squared_norm(diff, midpoint)]
+        return gs.array(energy)
