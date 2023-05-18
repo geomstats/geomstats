@@ -523,7 +523,7 @@ class ElasticMetric(RiemannianMetric):
             axis=-1,
         )
 
-    def _inner_product_a1(self, ginvdg1, ginvdg2, areas_bp):
+    def _inner_product_a1(self, ginvdga, ginvdgb, areas_bp):
         r"""Compute a1 term of order 1 within the inner-product.
 
         Denote h and k the tangent vectors a and b respectively.
@@ -537,12 +537,14 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        ginvdg1 : array-like
-            X
-        ginvdg2 : array-like
-            X
-        areas : array-like, shape=[n_vertices, 3]
-            X
+        ginvdga : array-like, shape=[n_faces, 2, 2]
+            Product of the inverse of the surface metric matrices
+            with their differential at a.
+        ginvdgb : array-like, shape=[n_faces, 2, 2]
+            Product of the inverse of the surface metric matrices
+            with their differential at b.
+        areas_bp : array-like, shape=[n_faces,]
+            Areas of the faces of the surface given by the base point.
 
         Returns
         -------
@@ -556,11 +558,11 @@ class ElasticMetric(RiemannianMetric):
             arXiv:2204.04238 [cs.CV], 25 Sep 2022.
         """
         return self.a1 * gs.sum(
-            gs.einsum("...bii->...b", gs.matmul(ginvdg1, ginvdg2)) * areas_bp,
+            gs.einsum("...bii->...b", gs.matmul(ginvdga, ginvdgb)) * areas_bp,
             axis=-1,
         )
 
-    def _inner_product_b1(self, ginvdg1, ginvdg2, areas_bp):
+    def _inner_product_b1(self, ginvdga, ginvdgb, areas_bp):
         r"""Compute b1 term of order 1 within the inner-product.
 
         Denote h and k the tangent vectors a and b respectively.
@@ -574,12 +576,14 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n_vertices, 3]
-            Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., n_vertices, 3]
-            Tangent vector at base point.
-        vertex_areas : array-like, shape=[n_vertices, 3]
-            X
+        ginvdga : array-like, shape=[n_faces, 2, 2]
+            Product of the inverse of the surface metric matrices
+            with their differential at a.
+        ginvdgb : array-like, shape=[n_faces, 2, 2]
+            Product of the inverse of the surface metric matrices
+            with their differential at b.
+        areas_bp : array-like, shape=[n_faces,]
+            Areas of the faces of the surface given by the base point.
 
         Returns
         -------
@@ -593,8 +597,8 @@ class ElasticMetric(RiemannianMetric):
             arXiv:2204.04238 [cs.CV], 25 Sep 2022.
         """
         return self.b1 * gs.sum(
-            gs.einsum("...bii->...b", ginvdg1)
-            * gs.einsum("...bii->...b", ginvdg2)
+            gs.einsum("...bii->...b", ginvdga)
+            * gs.einsum("...bii->...b", ginvdgb)
             * areas_bp,
             axis=-1,
         )
