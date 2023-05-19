@@ -480,15 +480,13 @@ class ElasticMetric(RiemannianMetric):
     """
 
     def __init__(self, space, a0, a1, b1, c1, d1, a2):
-        super().__init__(dim=space.dim, shape=space.shape)
-        self.space = space
+        super().__init__(space=space)
         self.a0 = a0
         self.a1 = a1
         self.b1 = b1
         self.c1 = c1
         self.d1 = d1
         self.a2 = a2
-        self.n_times = 5
 
     def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas_bp):
         r"""Compute term of order 0 within the inner-product.
@@ -642,8 +640,8 @@ class ElasticMetric(RiemannianMetric):
             Sobolev metrics: a comprehensive numerical framework".
             arXiv:2204.04238 [cs.CV], 25 Sep 2022.
         """
-        dna = self.space.normals(point_a) - normals_bp
-        dnb = self.space.normals(point_b) - normals_bp
+        dna = self._space.normals(point_a) - normals_bp
+        dnb = self._space.normals(point_b) - normals_bp
         return self.c1 * gs.sum(
             gs.einsum("...bi,...bi->...b", dna, dnb) * areas_bp, axis=-1
         )
@@ -754,7 +752,7 @@ class ElasticMetric(RiemannianMetric):
             Sobolev metrics: a comprehensive numerical framework".
             arXiv:2204.04238 [cs.CV], 25 Sep 2022.
         """
-        laplacian_at_base_point = self.space.laplacian(base_point)
+        laplacian_at_base_point = self._space.laplacian(base_point)
         return self.a2 * gs.sum(
             gs.einsum(
                 "...bi,...bi->...b",
@@ -820,7 +818,7 @@ class ElasticMetric(RiemannianMetric):
         point_b = base_point + k
         inner_prod = gs.zeros((gs.maximum(len(tangent_vec_a), len(tangent_vec_b)), 1))
         if self.a0 > 0 or self.a2 > 0:
-            vertex_areas_bp = self.space.vertex_areas(base_point)
+            vertex_areas_bp = self._space.vertex_areas(base_point)
             if self.a0 > 0:
                 inner_prod += self._inner_product_a0(
                     h, k, vertex_areas_bp=vertex_areas_bp
@@ -830,11 +828,11 @@ class ElasticMetric(RiemannianMetric):
                     h, k, base_point=base_point, vertex_areas_bp=vertex_areas_bp
                 )
         if self.a1 > 0 or self.b1 > 0 or self.c1 > 0 or self.b1 > 0:
-            one_forms_bp = self.space.surface_one_forms(base_point)
-            surface_metrics_bp = self.space._surface_metric_matrices_from_one_forms(
+            one_forms_bp = self._space.surface_one_forms(base_point)
+            surface_metrics_bp = self._space._surface_metric_matrices_from_one_forms(
                 one_forms_bp
             )
-            normals_bp = self.space.normals(base_point)
+            normals_bp = self._space.normals(base_point)
             areas_bp = gs.sqrt(gs.linalg.det(surface_metrics_bp))
 
             if self.c1 > 0:
@@ -843,8 +841,8 @@ class ElasticMetric(RiemannianMetric):
                 )
             if self.d1 > 0 or self.b1 > 0 or self.a1 > 0:
                 ginv_bp = gs.linalg.inv(surface_metrics_bp)
-                one_forms_a = self.space.surface_one_forms(point_a)
-                one_forms_b = self.space.surface_one_forms(point_b)
+                one_forms_a = self._space.surface_one_forms(point_a)
+                one_forms_b = self._space.surface_one_forms(point_b)
                 if self.d1 > 0:
                     inner_prod += self._inner_product_d1(
                         one_forms_a,

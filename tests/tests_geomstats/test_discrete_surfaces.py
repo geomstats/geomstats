@@ -9,28 +9,6 @@ from tests.data.discrete_surfaces_data import (
 from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
-def _test_manifold_shape(test_cls, space_args):
-    space = test_cls.Space(*space_args)
-    point = space.random_point()
-
-    msg = f"Shape is {space.shape}, but random point shape is {point.shape}"
-    test_cls.assertTrue(space.shape == point.shape, msg)
-
-    if space.metric is None:
-        return
-
-    msg = (
-        f"Space shape is {space.shape}, "
-        f"whereas space metric shape is {space.metric.shape}",
-    )
-
-    if space.metric.shape[0] is None:
-        test_cls.assertTrue(len(space.shape) == len(space.metric.shape), msg)
-        test_cls.assertTrue(space.shape[1:] == space.metric.shape[1:], msg)
-    else:
-        test_cls.assertTrue(space.shape == space.metric.shape, msg)
-
-
 class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
     testing_data = DiscreteSurfacesTestData()
@@ -231,25 +209,27 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = ElasticMetricTestData()
 
-    def test_path_energy_per_time_is_positive(self, metric_args, path, atol):
+    def test_path_energy_per_time_is_positive(
+        self, space, a0, a1, b1, c1, d1, a2, path, atol
+    ):
         """Check that energy of a path of surfaces is positive at each time-step.
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        space : DiscreteSurfaces
+            Space of discrete surfaces associated with the ElasticMetric.
         path : array-like, shape=[n_time_steps, n_vertices, 3]
             Path in the space of discrete surfaces.
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
+        space.equip_with_metric(self.Metric, a0=a0, a1=a1, b1=b1, c1=c1, d1=d1, a2=a2)
 
-        energy = metric.path_energy_per_time(path)
+        energy = space.metric.path_energy_per_time(path)
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)
 
-    def test_path_energy_is_positive(self, metric_args, path, atol):
+    def test_path_energy_is_positive(self, space, a0, a1, b1, c1, d1, a2, path, atol):
         """Check that energy of a path of surfaces is positive at each time-step.
 
         Parameters
@@ -261,8 +241,8 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         atol : float
             Absolute tolerance to test this property.
         """
-        metric = self.Metric(*metric_args)
+        space.equip_with_metric(self.Metric, a0=a0, a1=a1, b1=b1, c1=c1, d1=d1, a2=a2)
 
-        energy = metric.path_energy(path)
+        energy = space.metric.path_energy(path)
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)

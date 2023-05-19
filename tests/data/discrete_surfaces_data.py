@@ -69,8 +69,19 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
     a2_list = [1, 5]
 
     connection_args_list = metric_args_list = [
-        (DiscreteSurfaces(faces), 1, 1, 1, 1, 1, 1)
+        {
+            "a0": a0,
+            "a1": a1,
+            "b1": b1,
+            "c1": c1,
+            "d1": d1,
+            "a2": a2,
+        }
+        for a0, a1, b1, c1, d1, a2 in zip(
+            a0_list, a1_list, b1_list, c1_list, d1_list, a2_list
+        )
     ]
+
     shape_list = [(8, 3)]
     space_list = [DiscreteSurfaces(faces)]
     n_points_list = [1]
@@ -86,7 +97,13 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
     def path_energy_per_time_is_positive_test_data(self):
         smoke_data = [
             dict(
-                metric_args=self.metric_args_list[0],
+                space=DiscreteSurfaces(faces=faces),
+                a0=1,
+                a1=1,
+                b1=1,
+                c1=1,
+                d1=1,
+                a2=1,
                 path=gs.array([vertices, vertices, vertices]),
                 atol=1e-6,
             )
@@ -96,7 +113,13 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
     def path_energy_is_positive_test_data(self):
         smoke_data = [
             dict(
-                metric_args=self.metric_args_list[0],
+                space=DiscreteSurfaces(faces=faces),
+                a0=1,
+                a1=1,
+                b1=1,
+                c1=1,
+                d1=1,
+                a2=1,
                 path=gs.array([vertices, vertices, vertices]),
                 atol=1e-6,
             )
