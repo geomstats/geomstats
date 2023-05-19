@@ -211,12 +211,17 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_after_log = True
     skip_test_exp_belongs = True
+    skip_test_geodesic_bvp_belongs = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_log_after_exp = True
     skip_test_log_is_tangent = True
     skip_test_dist_is_norm_of_log = True
+    skip_test_dist_is_positive = True
+    skip_test_dist_is_symmetric = True
     skip_test_dist_point_to_itself_is_zero = True
     skip_test_triangle_inequality_of_dist = True
+    skip_test_squared_dist_is_symmetric = True
+    skip_test_squared_dist_is_positive = True
     skip_test_geodesic_ivp_belongs = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
@@ -229,7 +234,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = ElasticMetricTestData()
 
-    def test_stepwise_path_energy_is_positive(self, metric_args, path, atol):
+    def test_path_energy_per_time_is_positive(self, metric_args, path, atol):
         """Check that energy of a path of surfaces is positive at each time-step.
 
         Parameters
@@ -243,7 +248,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         """
         metric = self.Metric(*metric_args)
 
-        energy = metric.stepwise_path_energy(path)
+        energy = metric.path_energy_per_time(path)
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)
 

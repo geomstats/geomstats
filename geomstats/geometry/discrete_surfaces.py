@@ -451,6 +451,9 @@ class ElasticMetric(RiemannianMetric):
     Each individual discrete surface is represented by a 2D-array of shape `[
     n_vertices, 3]`. See [HSKCB2022]_ for details.
 
+    The parameters a0, a1, b1, c1, d1, a2 (detailed below) are non-negative weighting
+    coefficients for the different terms in the metric.
+
     Parameters
     ----------
     space : DiscreteSurfaces
@@ -484,6 +487,7 @@ class ElasticMetric(RiemannianMetric):
         self.c1 = c1
         self.d1 = d1
         self.a2 = a2
+        self.n_times = 5
 
     def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas_bp):
         r"""Compute term of order 0 within the inner-product.
@@ -868,25 +872,25 @@ class ElasticMetric(RiemannianMetric):
                     inner_prod += self._inner_product_b1(ginvdga, ginvdgb, areas_bp)
         return gs.squeeze(inner_prod, axis=0) if to_squeeze else inner_prod
 
-    def stepwise_path_energy(self, path):
+    def path_energy_per_time(self, path):
         """Compute stepwise path energy of a path in the space of discrete surfaces.
 
         Parameters
         ----------
-        path : array-like, shape=[time_steps, n_vertices, 3]
+        path : array-like, shape=[n_times, n_vertices, 3]
             Piecewise linear path of discrete surfaces.
 
         Returns
         -------
-        energy : array-like, shape=[time_steps - 1,]
+        energy : array-like, shape=[n_times - 1,]
             Stepwise path energy.
         """
-        n_time_steps, _, _ = path.shape
+        n_times, _, _ = path.shape
         surface_diffs = path[1:, :, :] - path[:-1, :, :]
-        surface_midpoints = path[: n_time_steps - 1, :, :] + surface_diffs / 2
+        surface_midpoints = path[: n_times - 1, :, :] + surface_diffs / 2
         energy = []
         for diff, midpoint in zip(surface_diffs, surface_midpoints):
-            energy += [n_time_steps * self.squared_norm(diff, midpoint)]
+            energy += [n_times * self.squared_norm(diff, midpoint)]
         return gs.array(energy)
 
     def path_energy(self, path):
@@ -894,7 +898,7 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        path : array-like, shape=[time_steps, n_vertices, 3]
+        path : array-like, shape=[n_times, n_vertices, 3]
             Piecewise linear path of discrete surfaces.
 
         Returns
@@ -902,4 +906,4 @@ class ElasticMetric(RiemannianMetric):
         energy : array-like, shape=[,]
             Path energy.
         """
-        return 0.5 * gs.sum(self.stepwise_path_energy(path))
+        return 0.5 * gs.sum(self.path_energy_per_time(path))

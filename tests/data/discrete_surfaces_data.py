@@ -83,7 +83,7 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
 
     Metric = ElasticMetric
 
-    def stepwise_path_energy_is_positive_test_data(self):
+    def path_energy_per_time_is_positive_test_data(self):
         smoke_data = [
             dict(
                 metric_args=self.metric_args_list[0],
