@@ -450,7 +450,8 @@ class SRVShapeBundleTestData(TestData):
                     k_sampling_points=k_sampling_points,
                     curve_a=spherical_curve_a,
                     n_times=20,
-                    type_method=t),
+                    type_method=t,
+                ),
             )
         return self.generate_tests(smoke_data)
 
