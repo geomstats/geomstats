@@ -300,7 +300,8 @@ class DiscreteSurfaces(Manifold):
         surface_metrics_bp = self.surface_metric_matrices(point)
         return gs.sqrt(gs.linalg.det(surface_metrics_bp))
 
-    def _surface_metric_matrices_from_one_forms(self, one_forms):
+    @staticmethod
+    def _surface_metric_matrices_from_one_forms(one_forms):
         """Compute the surface metric matrices directly from the one_forms.
 
         This function is useful for efficiency purposes.
