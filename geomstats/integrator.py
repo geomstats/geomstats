@@ -18,10 +18,15 @@ from geomstats.errors import check_parameter_accepted_values
 
 STEP_FUNCTIONS = {
     "euler": "euler_step",
-    "symp_euler": "symplectic_euler_step",
-    "leapfrog": "leapfrog_step",
     "rk4": "rk4_step",
     "rk2": "rk2_step",
+}
+
+
+FEVALS_PER_STEP = {
+    "euler": 1,
+    "rk4": 4,
+    "rk2": 2,
 }
 
 
@@ -42,9 +47,9 @@ def euler_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+    point_new : array-like, shape=[..., {dim, [n, n]}]
         First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+    vector_new : array-like, shape=[..., {dim, [n, n]}]
         Second variable at time t + dt.
     """
     derivatives = force(state, time)
@@ -69,9 +74,9 @@ def symplectic_euler_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+    point_new : array-like, shape=[..., {dim, [n, n]}]
         First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+    vector_new : array-like, shape=[..., {dim, [n, n]}]
         Second variable at time t + dt.
     """
     raise NotImplementedError
@@ -94,9 +99,9 @@ def leapfrog_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+    point_new : array-like, shape=[..., {dim, [n, n]}]
         First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+    vector_new : array-like, shape=[..., {dim, [n, n]}]
         Second variable at time t + dt.
     """
     raise NotImplementedError
@@ -119,9 +124,9 @@ def rk2_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+    point_new : array-like, shape=[..., {dim, [n, n]}]
         First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+    vector_new : array-like, shape=[..., {dim, [n, n]}]
         Second variable at time t + dt.
 
     See Also
@@ -151,9 +156,9 @@ def rk4_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[,,,, {dim, [n, n]}]
+    point_new : array-like, shape=[..., {dim, [n, n]}]
         First variable at time t + dt.
-    vector_new : array-like, shape=[,,,, {dim, [n, n]}]
+    vector_new : array-like, shape=[..., {dim, [n, n]}]
         Second variable at time t + dt.
 
     See Also

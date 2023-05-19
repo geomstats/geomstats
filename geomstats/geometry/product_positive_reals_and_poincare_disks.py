@@ -52,6 +52,7 @@ from geomstats.geometry.complex_poincare_disk import (
 )
 from geomstats.geometry.positive_reals import PositiveReals, PositiveRealsMetric
 from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 
 
 class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
@@ -67,19 +68,28 @@ class ProductPositiveRealsAndComplexPoincareDisks(ProductManifold):
         Number of manifolds of the product.
     """
 
-    def __init__(self, n_manifolds, **kwargs):
-        positive_reals = PositiveReals()
-        complex_poincare_disk = ComplexPoincareDisk()
-        factors = [positive_reals] + (n_manifolds - 1) * [complex_poincare_disk]
+    def __init__(self, n_manifolds, equip=True):
+        self.n_manifolds = n_manifolds
 
-        super().__init__(
-            factors=factors,
-            default_point_type="other",
-            metric=ProductPositiveRealsAndComplexPoincareDisksMetric(
-                n_manifolds=n_manifolds, **kwargs
-            ),
-            **kwargs
+        factors = [PositiveReals(equip=False)] + [
+            ComplexPoincareDisk() for _ in range(n_manifolds - 1)
+        ]
+
+        scales = [float(n_manifolds - i_manifold) for i_manifold in range(n_manifolds)]
+        factors[0].metric = ScalarProductMetric(
+            PositiveRealsMetric(factors[0]), scales[0]
         )
+        for factor, scale in zip(factors[1:], scales[1:]):
+            factor.metric = ScalarProductMetric(
+                ComplexPoincareDiskMetric(factor), scale
+            )
+
+        super().__init__(factors=factors, default_point_type="other", equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return ProductPositiveRealsAndComplexPoincareDisksMetric
 
 
 class ProductPositiveRealsAndComplexPoincareDisksMetric(ProductRiemannianMetric):
@@ -97,11 +107,6 @@ class ProductPositiveRealsAndComplexPoincareDisksMetric(ProductRiemannianMetric)
     a Toeplitz HPD covariance matrix and a zero relation matrix.
     The ProductPositiveRealsAndComplexPoincareDisks metric is inspired by
     information geometry on this specific set of Gaussian distributions.
-
-    Parameters
-    ----------
-    n_manifolds : int
-        Number of manifolds of the product.
 
     References
     ----------
@@ -132,11 +137,3 @@ class ProductPositiveRealsAndComplexPoincareDisksMetric(ProductRiemannianMetric)
     .. [Yang_2013] Marc Arnaudon, Frédéric Barbaresco and Le Yang. Riemannian Medians
         and Means With Applications to Radar Signal Processing, IEEE, 2013.
     """
-
-    def __init__(self, n_manifolds, **kwargs):
-        scales = [float(n_manifolds - i_manifold) for i_manifold in range(n_manifolds)]
-        metrics = [scales[0] * PositiveRealsMetric()] + [
-            scale * ComplexPoincareDiskMetric() for scale in scales[1:]
-        ]
-
-        super().__init__(metrics=metrics, default_point_type="other", **kwargs)

@@ -1,7 +1,6 @@
 """Unit tests for NFoldManifold, NFoldMetric."""
 
 import geomstats.backend as gs
-from geomstats.geometry.nfold_manifold import NFoldMetric
 from tests.conftest import Parametrizer
 from tests.data.nfold_manifold_data import NFoldManifoldTestData, NFoldMetricTestData
 from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
@@ -37,6 +36,8 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = NFoldMetricTestData()
 
     def test_inner_product_shape(self, space, n_samples, point, tangent_vec):
+        space.equip_with_metric(self.Metric)
+
         result = space.metric.inner_product(tangent_vec, tangent_vec, point)
         expected = gs.zeros(n_samples)
         self.assertAllClose(result, expected)
@@ -53,18 +54,19 @@ class TestNFoldMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = space.metric.inner_product(tangent_vec[0], tangent_vec[0], point)
         self.assertAllClose(result, expected)
 
-    def test_inner_product_scales(
-        self, base_metric, n_copies, scales, point, tangent_vec
-    ):
-        metric = NFoldMetric(base_metric=base_metric, n_copies=n_copies, scales=scales)
-        result = metric.inner_product(tangent_vec, tangent_vec, point)
+    def test_inner_product_scales(self, space, scales, point, tangent_vec):
+        space.equip_with_metric(self.Metric, scales=scales)
+
+        result = space.metric.inner_product(tangent_vec, tangent_vec, point)
 
         expected = 0
-        base_shape = base_metric.shape
-        point_reshaped = gs.reshape(point, (-1, n_copies, *base_shape))
-        vec_reshaped = gs.reshape(tangent_vec, (-1, n_copies, *base_shape))
-        for i in range(n_copies):
+        base_shape = space.base_manifold.shape
+        point_reshaped = gs.reshape(point, (-1, space.n_copies, *base_shape))
+        vec_reshaped = gs.reshape(tangent_vec, (-1, space.n_copies, *base_shape))
+        for i in range(space.n_copies):
             point_i = point_reshaped[:, i]
             vec_i = vec_reshaped[:, i]
-            expected += scales[i] * base_metric.inner_product(vec_i, vec_i, point_i)
+            expected += scales[i] * space.base_manifold.metric.inner_product(
+                vec_i, vec_i, point_i
+            )
         self.assertAllClose(result, expected)

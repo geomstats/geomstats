@@ -42,6 +42,7 @@ class DiscreteSurfaces(Manifold):
         super().__init__(
             dim=self.n_vertices * ambient_dim,
             shape=(self.n_vertices, 3),
+            equip=False,
         )
 
     def belongs(self, point, atol=gs.atol):

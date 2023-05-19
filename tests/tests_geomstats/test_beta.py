@@ -59,43 +59,47 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = BetaMetricTestData()
     Space = testing_data.Space
 
-    def test_metric_matrix(self, point, expected):
-        result = self.Metric().metric_matrix(point)
+    def test_metric_matrix(self, space, point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.metric_matrix(point)
         self.assertAllClose(result, expected)
 
     @tests.conftest.np_only
-    def test_exp(self, n_samples):
+    def test_exp(self, space, n_samples):
         """Test Exp.
 
         Test that the Riemannian exponential at points on the first
         bisector computed in the direction of the first bisector stays
         on the first bisector.
         """
-        points = self.Space().random_point(n_samples)
-        vectors = self.Space().random_point(n_samples)
+        space.equip_with_metric(self.Metric)
+        points = space.random_point(n_samples)
+        vectors = space.random_point(n_samples)
         initial_vectors = gs.array([[vec_x, vec_x] for vec_x in vectors[:, 0]])
         points = gs.array([[param_a, param_a] for param_a in points[:, 0]])
-        result_points = self.Metric().exp(initial_vectors, points)
+        result_points = space.metric.exp(initial_vectors, points)
         result = gs.isclose(result_points[:, 0], result_points[:, 1])
         expected = gs.array([True] * n_samples)
         self.assertAllClose(expected, result)
 
-    def test_christoffels_shape(self, n_samples):
+    def test_christoffels_shape(self, space, n_samples):
         """Test Christoffel synbols.
         Check vectorization of Christoffel symbols.
         """
-        points = self.Space().random_point(n_samples)
-        dim = self.Space().dim
-        christoffel = self.Metric().christoffels(points)
+        space.equip_with_metric(self.Metric)
+        points = space.random_point(n_samples)
+        dim = space.dim
+        christoffel = space.metric.christoffels(points)
         result = christoffel.shape
         expected = gs.array([n_samples, dim, dim, dim])
         self.assertAllClose(result, expected)
 
     @tests.conftest.autograd_only
-    def test_sectional_curvature(self, n_samples, atol):
-        point = self.Space().random_point(n_samples)
-        tangent_vec_a = self.Space().metric.random_unit_tangent_vec(point)
-        tangent_vec_b = self.Space().metric.random_unit_tangent_vec(point)
+    def test_sectional_curvature(self, space, n_samples, atol):
+        space.equip_with_metric(self.Metric)
+        point = space.random_point(n_samples)
+        tangent_vec_a = space.metric.random_unit_tangent_vec(point)
+        tangent_vec_b = space.metric.random_unit_tangent_vec(point)
         x, y = point[:, 0], point[:, 1]
         detg = gs.polygamma(1, x) * gs.polygamma(1, y) - gs.polygamma(1, x + y) * (
             gs.polygamma(1, x) + gs.polygamma(1, y)

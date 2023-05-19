@@ -38,10 +38,10 @@ References
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.vectorization import repeat_out
 
 
 def _squared_dist_grad_point_a(point_a, point_b, metric):
@@ -118,7 +118,7 @@ def _squared_dist(point_a, point_b, metric):
     _ : array-like, shape=[...,]
         Geodesic distance between point_a and point_b.
     """
-    return metric.private_squared_dist(point_a, point_b)
+    return metric._squared_dist(point_a, point_b)
 
 
 class Grassmannian(LevelSet):
@@ -132,7 +132,7 @@ class Grassmannian(LevelSet):
         Dimension of the subspaces.
     """
 
-    def __init__(self, n, p, **kwargs):
+    def __init__(self, n, p, equip=True):
         geomstats.errors.check_integer(p, "p")
         geomstats.errors.check_integer(n, "n")
         if p > n:
@@ -143,12 +143,16 @@ class Grassmannian(LevelSet):
         self.n = n
         self.p = p
 
-        kwargs.setdefault("metric", GrassmannianCanonicalMetric(n, p))
         dim = int(p * (n - p))
-        super().__init__(dim=dim, **kwargs)
+        super().__init__(dim=dim, equip=equip)
 
     def _define_embedding_space(self):
         return SymmetricMatrices(self.n)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return GrassmannianCanonicalMetric
 
     def submersion(self, point):
         r"""Submersion that defines the Grassmann manifold.
@@ -314,27 +318,11 @@ class GrassmannianCanonicalMetric(MatricesMetric):
     """Canonical metric of the Grassmann manifold.
 
     Coincides with the Frobenius metric.
-
-    Parameters
-    ----------
-    n : int
-        Dimension of the Euclidean space.
-    p : int
-        Dimension of the subspaces.
     """
 
-    def __init__(self, n, p):
-        geomstats.errors.check_integer(p, "p")
-        geomstats.errors.check_integer(n, "n")
-        if p > n:
-            raise ValueError("p <= n is required.")
-
-        dim = int(p * (n - p))
-        super().__init__(m=n, n=n, dim=dim, signature=(dim, 0, 0))
-
-        self.n = n
-        self.p = p
-        self.embedding_metric = EuclideanMetric(n * p)
+    def __init__(self, space):
+        super().__init__(space=space, signature=(space.dim, 0, 0))
+        self._general_linear = GeneralLinear(space.n, equip=False)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Exponentiate the invariant vector field v from base point p.
@@ -389,16 +377,15 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             "Geometric Mean and Geodesic Regression on Grassmannians"
             Linear Algebra and its Applications, 466, 83-101, 2015.
         """
-        GLn = GeneralLinear(self.n)
-        id_n = GLn.identity
+        id_n = self._general_linear.identity
         id_n, point, base_point = gs.convert_to_wider_dtype([id_n, point, base_point])
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
-        rot = GLn.compose(sym2, sym1)
-        return Matrices.bracket(GLn.log(rot) / 2, base_point)
+        rot = self._general_linear.compose(sym2, sym1)
+        return Matrices.bracket(self._general_linear.log(rot) / 2, base_point)
 
     def parallel_transport(
-        self, tangent_vec, base_point, tangent_vec_b=None, end_point=None
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vector.
 
@@ -413,19 +400,19 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., n, n]
             Point on the Grassmann manifold. Point to transport from.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
             Optional, default: None
         end_point : array-like, shape=[..., n, n]
             Point on the Grassmann manifold to transport to. Unused if
-            `tangent_vec_b` is given.
+            `direction` is given.
             Optional, default: None
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., n, n]
-            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at `exp_(base_point)(direction)`.
 
         References
         ----------
@@ -434,20 +421,20 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             Aspects.” ArXiv:2011.13699 [Cs, Math], November 27, 2020.
             https://arxiv.org/abs/2011.13699.
         """
-        if tangent_vec_b is None:
+        if direction is None:
             if end_point is not None:
-                tangent_vec_b = self.log(end_point, base_point)
+                direction = self.log(end_point, base_point)
             else:
                 raise ValueError(
-                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    "Either an end_point or a direction must be given to define the"
                     " geodesic along which to transport."
                 )
         expm = gs.linalg.expm
         mul = Matrices.mul
-        rot = -Matrices.bracket(base_point, tangent_vec_b)
+        rot = -Matrices.bracket(base_point, direction)
         return mul(expm(rot), tangent_vec, expm(-rot))
 
-    def private_squared_dist(self, point_a, point_b):
+    def _squared_dist(self, point_a, point_b):
         """Compute geodesic distance between two points.
 
         Compute the squared geodesic distance between point_a
@@ -470,8 +457,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         _ : array-like, shape=[...,]
             Geodesic distance between point_a and point_b.
         """
-        dist = super().squared_dist(point_a, point_b)
-        return dist
+        return super().squared_dist(point_a, point_b)
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
@@ -488,8 +474,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        dist = _squared_dist(point_a, point_b, metric=self)
-        return dist
+        return _squared_dist(point_a, point_b, metric=self)
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.
@@ -506,7 +491,7 @@ class GrassmannianCanonicalMetric(MatricesMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
 
         References
@@ -517,4 +502,5 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             ArXiv:2011.13699 [Cs, Math], November 27, 2020.
             https://arxiv.org/abs/2011.13699.
         """
-        return gs.pi / 2
+        radius = gs.array(gs.pi / 2)
+        return repeat_out(self._space, radius, base_point)

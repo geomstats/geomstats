@@ -19,7 +19,7 @@ from geomstats.learning.frechet_mean import FrechetMean, variance
 from geomstats.learning.geodesic_regression import GeodesicRegression
 
 SPACE = SpecialEuclidean(2)
-METRIC = SPACE.left_canonical_metric
+METRIC = SPACE.metric
 gs.random.seed(0)
 
 

@@ -10,7 +10,7 @@ from tests.data.sub_riemannian_metric_data import (
     SubRiemannianMetricFrameTestData,
 )
 
-heis = HeisenbergVectors()
+heis = HeisenbergVectors(equip=False)
 
 
 def heis_frame(point):
@@ -70,7 +70,7 @@ class SubRiemannianMetricTestCase(TestCase):
 class TestSubRiemannianMetricCometric(
     SubRiemannianMetricTestCase, metaclass=Parametrizer
 ):
-    metric = SubRiemannianMetric(dim=3, cometric_matrix=trivial_cometric_matrix)
+    metric = SubRiemannianMetric(heis, cometric_matrix=trivial_cometric_matrix)
     testing_data = SubRiemannianMetricCometricTestData()
 
     skip_test_geodesic = True
@@ -103,7 +103,7 @@ class TestSubRiemannianMetricCometric(
 
 class TestSubRiemannianMetricFrame(SubRiemannianMetricTestCase, metaclass=Parametrizer):
     testing_data = SubRiemannianMetricFrameTestData()
-    metric = SubRiemannianMetric(dim=3, frame=heis_frame)
+    metric = SubRiemannianMetric(heis, frame=heis_frame)
 
     skip_test_exp = True
     skip_test_hamiltonian = True

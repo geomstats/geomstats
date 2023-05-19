@@ -97,7 +97,7 @@ def main():
     regressed_geodesic = path(
         gs.linspace(0.0, 1.0, 100) * gs.pi * 2 / METRIC.norm(coef)
     )
-    regressed_geodesic = gs.to_numpy(gs.autodiff.detach(regressed_geodesic))
+    regressed_geodesic = gs.to_numpy(regressed_geodesic)
 
     size = 10
     marker = "o"

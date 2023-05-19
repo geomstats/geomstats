@@ -52,16 +52,17 @@ class TestPoissonMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTODIFF
     skip_test_sectional_curvature_shape = NOT_AUTODIFF
     testing_data = PoissonMetricTestData()
-    Space = testing_data.Space
 
-    def test_squared_dist(self, point_a, point_b, expected):
-        self.assertAllClose(self.Metric().squared_dist(point_a, point_b), expected)
+    def test_squared_dist(self, space, point_a, point_b, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.squared_dist(point_a, point_b), expected)
 
-    def test_metric_matrix(self, point, expected):
-        self.assertAllClose(self.Metric().metric_matrix(point), expected)
+    def test_metric_matrix(self, space, point, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.metric_matrix(point), expected)
 
-    def test_geodesic_symmetry(self):
-        space = self.Space()
+    def test_geodesic_symmetry(self, space):
+        space.equip_with_metric(self.Metric)
         point_a, point_b = space.random_point(2)
         path_ab = space.metric.geodesic(initial_point=point_a, end_point=point_b)
         path_ba = space.metric.geodesic(initial_point=point_b, end_point=point_a)
