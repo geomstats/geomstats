@@ -432,9 +432,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
 
 class _StiefelLogSolver:
-    def __init__(self, max_iter=500, tol=1e-8):
+    def __init__(self, max_iter=500, tol=1e-8, imag_tol=1e-6):
         self.max_iter = max_iter
         self.tol = tol
+        self.imag_tol = imag_tol
 
     @staticmethod
     def _normal_component_qr(point, base_point, matrix_m):
@@ -586,5 +587,12 @@ class _StiefelLogSolver:
 
         else:
             warnings.warn("`log` hasn't converged.")
+
+        if gs.is_complex(matrix_lv):
+            imag_sum = gs.amax(gs.abs(gs.imag(matrix_lv)))
+            if imag_sum < self.imag_tol:
+                matrix_lv = gs.real(matrix_lv)
+            else:
+                raise ValueError(f"Non-neglible imaginary part. max is {imag_sum}")
 
         return matrix_lv
