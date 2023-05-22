@@ -5,6 +5,8 @@ A set of all orthonormal p-frames in n-dimensional space, where p <= n.
 Lead author: Oleg Kachan.
 """
 
+import warnings
+
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
@@ -204,6 +206,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
     def __init__(self, space):
         super().__init__(space=space, signature=(space.dim, 0, 0))
+        self._log_solver = _StiefelLogSolver()
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the inner-product of two tangent vectors at a base point.
@@ -247,7 +250,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         )
         return Matrices.trace_product(aux, tangent_vec_b)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -281,153 +284,23 @@ class StiefelCanonicalMetric(RiemannianMetric):
         )
         return exp
 
-    @staticmethod
-    def _normal_component_qr(point, base_point, matrix_m):
-        """Compute the QR decomposition of the normal component of a point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, p]
-        base_point : array-like, shape=[..., n, p]
-        matrix_m : array-like
-
-        Returns
-        -------
-        matrix_q : array-like
-        matrix_n : array-like
-        """
-        matrix_k = point - gs.matmul(base_point, matrix_m)
-        matrix_q, matrix_n = gs.linalg.qr(matrix_k)
-        return matrix_q, matrix_n
-
-    @staticmethod
-    def _orthogonal_completion(matrix_m, matrix_n):
-        """Orthogonal matrix completion.
-
-        Parameters
-        ----------
-        matrix_m : array-like
-        matrix_n : array-like
-
-        Returns
-        -------
-        matrix_v : array-like
-        """
-        matrix_w = gs.concatenate([matrix_m, matrix_n], axis=-2)
-        matrix_v, _ = gs.linalg.qr(matrix_w, mode="complete")
-
-        return matrix_v
-
-    @staticmethod
-    def _procrustes_preprocessing(p, matrix_v, matrix_m, matrix_n):
-        """Procrustes preprocessing.
-
-        Parameters
-        ----------
-        matrix_v : array-like
-        matrix_m : array-like
-        matrix_n : array-like
-
-        Returns
-        -------
-        matrix_v : array-like
-        """
-        [matrix_d, _, matrix_r] = gs.linalg.svd(matrix_v[..., p:, p:])
-        matrix_v_final = gs.copy(matrix_v)
-        for i in range(1, p + 1):
-            matrix_rd = Matrices.mul(matrix_r, Matrices.transpose(matrix_d))
-            sub_matrix_v = gs.matmul(matrix_v[..., :, p:], matrix_rd)
-            matrix_v_final = gs.concatenate(
-                [gs.concatenate([matrix_m, matrix_n], axis=-2), sub_matrix_v], axis=-1
-            )
-            det = gs.linalg.det(matrix_v_final)
-            if gs.all(det > 0):
-                break
-            ones = gs.ones(p)
-            reflection_vec = gs.concatenate([ones[:-i], gs.array([-1.0] * i)], axis=0)
-            mask = gs.cast(det < 0, matrix_v.dtype)
-            sign = mask[..., None] * reflection_vec + (1.0 - mask)[..., None] * ones
-            matrix_d = gs.einsum(
-                "...ij,...i->...ij", Matrices.transpose(matrix_d), sign
-            )
-        return matrix_v_final
-
-    def log(self, point, base_point, max_iter=30, tol=gs.atol, **kwargs):
+    def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
-        When p=n, the space St(n,n)~O(n) has two non connected sheets: the
-        log is only defined for data from the same sheet.
-        For p<n, the space St(n,p)~O(n)/O(n-p)~SO(n)/SO(n-p) is connected.
-        Based on [ZR2017]_.
-
-        References
-        ----------
-        .. [ZR2017] Zimmermann, Ralf. "A Matrix-Algebraic Algorithm for the
-            Riemannian Logarithm on the Stiefel Manifold under the Canonical
-            Metric" SIAM J. Matrix Anal. & Appl., 38(2), 322–342, 2017.
-            https://arxiv.org/pdf/1604.05054.pdf
-
         Parameters
         ----------
         point : array-like, shape=[..., n, p]
             Point in the Stiefel manifold.
         base_point : array-like, shape=[..., n, p]
             Point in the Stiefel manifold.
-        max_iter: int
-            Maximum number of iterations to perform during the algorithm.
-            Optional, default: 30.
-        tol: float
-            Tolerance to reach convergence. The matrix 2-norm is used as
-            criterion.
-            Optional, default: 1e-6.
 
         Returns
         -------
-        log : array-like, shape=[..., dim + 1]
+        log : array-like, shape=[..., n, p]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        n, p = self._space.n, self._space.p
-        if p == n:
-            det_point = gs.linalg.det(point)
-            det_base_point = gs.linalg.det(base_point)
-            if not gs.all(det_point * det_base_point > 0.0):
-                raise ValueError("Points from different sheets in log")
-
-        transpose_base_point = Matrices.transpose(base_point)
-        matrix_m = gs.matmul(transpose_base_point, point)
-
-        matrix_q, matrix_n = self._normal_component_qr(point, base_point, matrix_m)
-
-        matrix_v = self._orthogonal_completion(matrix_m, matrix_n)
-        matrix_v = self._procrustes_preprocessing(p, matrix_v, matrix_m, matrix_n)
-        matrix_v = gs.to_ndarray(matrix_v, to_ndim=3)
-        result = []
-        for x in matrix_v:
-            result.append(self._iter_log(p, x, max_iter, tol))
-        result = gs.stack(result)
-        matrix_lv = (
-            result[0] if (point.ndim == 2) and (base_point.ndim == 2) else result
-        )
-        matrix_xv = gs.matmul(base_point, matrix_lv[..., :p, :p])
-        matrix_qv = gs.matmul(matrix_q, matrix_lv[..., p:, :p])
-
-        return matrix_xv + matrix_qv
-
-    @staticmethod
-    def _iter_log(p, matrix_v, max_iter, tol):
-        matrix_lv = gs.zeros_like(matrix_v)
-        for _ in range(max_iter):
-            matrix_lv = gs.linalg.logm(matrix_v)
-            matrix_c = matrix_lv[..., p:, p:]
-            norm_matrix_c = gs.linalg.norm(matrix_c)
-            if norm_matrix_c <= tol:
-                break
-
-            matrix_phi = gs.linalg.expm(-Matrices.to_skew_symmetric(matrix_c))
-            aux_matrix = gs.matmul(matrix_v[..., :, p:], matrix_phi)
-            matrix_v = gs.concatenate([matrix_v[..., :, :p], aux_matrix], axis=-1)
-        return matrix_lv
+        return self._log_solver.log(self._space, point, base_point)
 
     @staticmethod
     def retraction(tangent_vec, base_point):
@@ -556,3 +429,162 @@ class StiefelCanonicalMetric(RiemannianMetric):
         """
         radius = gs.array(0.89 * gs.pi)
         return repeat_out(self._space, radius, base_point)
+
+
+class _StiefelLogSolver:
+    def __init__(self, max_iter=500, tol=1e-8):
+        self.max_iter = max_iter
+        self.tol = tol
+
+    @staticmethod
+    def _normal_component_qr(point, base_point, matrix_m):
+        """Compute the QR decomposition of the normal component of a point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, p]
+        base_point : array-like, shape=[..., n, p]
+        matrix_m : array-like
+
+        Returns
+        -------
+        matrix_q : array-like
+        matrix_n : array-like
+        """
+        matrix_k = point - gs.matmul(base_point, matrix_m)
+        matrix_q, matrix_n = gs.linalg.qr(matrix_k)
+        return matrix_q, matrix_n
+
+    @staticmethod
+    def _orthogonal_completion(matrix_m, matrix_n):
+        """Orthogonal matrix completion.
+
+        Parameters
+        ----------
+        matrix_m : array-like
+        matrix_n : array-like
+
+        Returns
+        -------
+        matrix_v : array-like
+        """
+        matrix_w = gs.concatenate([matrix_m, matrix_n], axis=-2)
+        matrix_v, _ = gs.linalg.qr(matrix_w, mode="complete")
+
+        return matrix_v
+
+    @staticmethod
+    def _procrustes_preprocessing(p, matrix_v, matrix_m, matrix_n):
+        """Procrustes preprocessing.
+
+        Parameters
+        ----------
+        matrix_v : array-like
+        matrix_m : array-like
+        matrix_n : array-like
+
+        Returns
+        -------
+        matrix_v : array-like
+        """
+        [matrix_d, _, matrix_r] = gs.linalg.svd(matrix_v[..., p:, p:])
+        matrix_v_final = gs.copy(matrix_v)
+        for i in range(1, p + 1):
+            matrix_rd = Matrices.mul(matrix_r, Matrices.transpose(matrix_d))
+            sub_matrix_v = gs.matmul(matrix_v[..., :, p:], matrix_rd)
+            matrix_v_final = gs.concatenate(
+                [gs.concatenate([matrix_m, matrix_n], axis=-2), sub_matrix_v], axis=-1
+            )
+            det = gs.linalg.det(matrix_v_final)
+            if gs.all(det > 0):
+                break
+
+            ones = gs.ones(p)
+            reflection_vec = gs.concatenate([ones[:-i], gs.array([-1.0] * i)], axis=0)
+            mask = gs.cast(det < 0, matrix_v.dtype)
+            sign = mask[..., None] * reflection_vec + (1.0 - mask)[..., None] * ones
+            matrix_d = gs.einsum(
+                "...ij,...i->...ij", Matrices.transpose(matrix_d), sign
+            )
+
+        return matrix_v_final
+
+    def log(self, space, point, base_point):
+        """Compute the Riemannian logarithm of a point.
+
+        When p=n, the space St(n,n)~O(n) has two non connected sheets: the
+        log is only defined for data from the same sheet.
+        For p<n, the space St(n,p)~O(n)/O(n-p)~SO(n)/SO(n-p) is connected.
+        Based on [ZR2017]_.
+
+        References
+        ----------
+        .. [ZR2017] Zimmermann, Ralf. "A Matrix-Algebraic Algorithm for the
+            Riemannian Logarithm on the Stiefel Manifold under the Canonical
+            Metric" SIAM J. Matrix Anal. & Appl., 38(2), 322–342, 2017.
+            https://arxiv.org/pdf/1604.05054.pdf
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, p]
+            Point in the Stiefel manifold.
+        base_point : array-like, shape=[..., n, p]
+            Point in the Stiefel manifold.
+        max_iter: int
+            Maximum number of iterations to perform during the algorithm.
+            Optional, default: 30.
+        tol: float
+            Tolerance to reach convergence. The matrix 2-norm is used as
+            criterion.
+            Optional, default: 1e-6.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n, p]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
+        """
+        n, p = space.n, space.p
+        if p == n:
+            det_point = gs.linalg.det(point)
+            det_base_point = gs.linalg.det(base_point)
+            if not gs.all(det_point * det_base_point > 0.0):
+                raise ValueError("Points from different sheets in log")
+
+        transpose_base_point = Matrices.transpose(base_point)
+        matrix_m = gs.matmul(transpose_base_point, point)
+
+        matrix_q, matrix_n = self._normal_component_qr(point, base_point, matrix_m)
+
+        matrix_v = self._orthogonal_completion(matrix_m, matrix_n)
+        matrix_v = self._procrustes_preprocessing(p, matrix_v, matrix_m, matrix_n)
+
+        matrix_lv = (
+            self._iter_log(p, matrix_v)
+            if gs.ndim(matrix_v) == 2
+            else gs.stack([self._iter_log(p, x) for x in matrix_v])
+        )
+
+        matrix_xv = gs.matmul(base_point, matrix_lv[..., :p, :p])
+        matrix_qv = gs.matmul(matrix_q, matrix_lv[..., p:, :p])
+
+        return matrix_xv + matrix_qv
+
+    def _iter_log(self, p, matrix_v):
+        matrix_lv = gs.zeros_like(matrix_v)
+        for _ in range(self.max_iter):
+            matrix_lv = gs.linalg.logm(matrix_v)
+
+            matrix_c = matrix_lv[..., p:, p:]
+            norm_matrix_c = gs.linalg.norm(matrix_c)
+            if norm_matrix_c <= self.tol:
+                break
+
+            matrix_phi = gs.linalg.expm(-Matrices.to_skew_symmetric(matrix_c))
+            aux_matrix = gs.matmul(matrix_v[..., :, p:], matrix_phi)
+            matrix_v = gs.concatenate([matrix_v[..., :, :p], aux_matrix], axis=-1)
+
+        else:
+            warnings.warn("`log` hasn't converged.")
+
+        return matrix_lv
