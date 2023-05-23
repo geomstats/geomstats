@@ -64,11 +64,11 @@ class Manifold(abc.ABC):
             self.equip_with_metric()
 
     def equip_with_metric(self, Metric=None, **metric_kwargs):
-        """Equip manifold with Metric.
+        """Equip manifold with a Riemannian metric.
 
         Parameters
         ----------
-        Metric : Connection object
+        Metric : RiemannianMetric object
             If None, default metric will be used.
         """
         if Metric is None:
@@ -88,7 +88,7 @@ class Manifold(abc.ABC):
         Parameters
         ----------
         group_action : str
-
+            Group action.
         """
         self.group_action = group_action
 

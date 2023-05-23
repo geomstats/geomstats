@@ -171,7 +171,16 @@ class PullbackMetric(RiemannianMetric):
 
 
 class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
-    """Pullback metric via a diffeomorphism."""
+    """Pullback metric via a diffeomorphism.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension.
+    shape : tuple of int
+        Shape of one element of the underlying manifold.
+        Optional, default : None.
+    """
 
     def __init__(self, space, signature=None):
         super().__init__(space=space, signature=signature)

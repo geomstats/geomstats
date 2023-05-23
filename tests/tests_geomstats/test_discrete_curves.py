@@ -522,7 +522,8 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_horizontal_geodesic(
-            self, k_sampling_points, curve_a, n_times, type_method):
+        self, k_sampling_points, curve_a, n_times, type_method
+    ):
         """Test horizontal geodesic.
         Check that the time derivative of the geodesic is
         horizontal at all time.
@@ -544,7 +545,8 @@ class TestSRVShapeBundle(TestCase, metaclass=Parametrizer):
         threshold = type_method[1]
 
         horizontal_geod_fun = srv_shape_bundle_r3.horizontal_geodesic(
-            curve_a, curve_b, method=method)
+            curve_a, curve_b, method=method
+        )
         times = gs.linspace(0.0, 1.0, n_times)
         horizontal_geod = horizontal_geod_fun(times)
         velocity_vec = n_times * (horizontal_geod[1:] - horizontal_geod[:-1])

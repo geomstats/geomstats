@@ -1,31 +1,12 @@
 """Unit tests for discrete_surfaces modules."""
 
 import geomstats.backend as gs
-from tests.conftest import Parametrizer
-from tests.data.discrete_surfaces_data import DiscreteSurfacesTestData
-from tests.geometry_test_cases import ManifoldTestCase
-
-
-def _test_manifold_shape(test_cls, space_args):
-    space = test_cls.Space(*space_args)
-    point = space.random_point()
-
-    msg = f"Shape is {space.shape}, but random point shape is {point.shape}"
-    test_cls.assertTrue(space.shape == point.shape, msg)
-
-    if space.metric is None:
-        return
-
-    msg = (
-        f"Space shape is {space.shape}, "
-        f"whereas space metric shape is {space.metric.shape}",
-    )
-
-    if space.metric.shape[0] is None:
-        test_cls.assertTrue(len(space.shape) == len(space.metric.shape), msg)
-        test_cls.assertTrue(space.shape[1:] == space.metric.shape[1:], msg)
-    else:
-        test_cls.assertTrue(space.shape == space.metric.shape, msg)
+from tests.conftest import Parametrizer, autograd_backend, pytorch_backend
+from tests.data.discrete_surfaces_data import (
+    DiscreteSurfacesTestData,
+    ElasticMetricTestData,
+)
+from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
@@ -137,7 +118,6 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
         assert gs.all(result)
 
         singleton_point = gs.expand_dims(point, axis=0)
-        print("singleton_point.shape", singleton_point.shape)
         result = space.surface_one_forms(point=singleton_point)
         assert result.shape == (1, space.n_faces, 2, 3)
 
@@ -181,3 +161,88 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
         point = gs.array([point, point])
         result = space.surface_metric_matrices(point=point)
         assert result.shape == (2, space.n_faces, 2, 2)
+
+    def test_laplacian(self, faces, point, tangent_vec, expected):
+        """Test laplacian operator."""
+        space = self.Space(faces=faces)
+
+        n_vertices = point.shape[-2]
+        result = space.laplacian(point=point)(tangent_vec)
+        assert result.shape == (n_vertices, 3), result.shape
+
+        assert gs.allclose(result, expected), result
+
+        tangent_vec = gs.array([tangent_vec, tangent_vec])
+        result = space.laplacian(point=point)(tangent_vec)
+        assert result.shape == (2, n_vertices, 3), result.shape
+
+
+class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    skip_all = not (autograd_backend() or pytorch_backend())
+    skip_test_exp_shape = True
+    skip_test_log_shape = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_exp_after_log = True
+    skip_test_exp_belongs = True
+    skip_test_geodesic_bvp_belongs = True
+    skip_test_exp_ladder_parallel_transport = True
+    skip_test_log_after_exp = True
+    skip_test_log_is_tangent = True
+    skip_test_dist_is_norm_of_log = True
+    skip_test_dist_is_positive = True
+    skip_test_dist_is_symmetric = True
+    skip_test_dist_point_to_itself_is_zero = True
+    skip_test_triangle_inequality_of_dist = True
+    skip_test_squared_dist_is_symmetric = True
+    skip_test_squared_dist_is_positive = True
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
+
+    testing_data = ElasticMetricTestData()
+
+    def test_path_energy_per_time_is_positive(
+        self, space, a0, a1, b1, c1, d1, a2, path, atol
+    ):
+        """Check that energy of a path of surfaces is positive at each time-step.
+
+        Parameters
+        ----------
+        space : DiscreteSurfaces
+            Space of discrete surfaces associated with the ElasticMetric.
+        path : array-like, shape=[n_time_steps, n_vertices, 3]
+            Path in the space of discrete surfaces.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        space.equip_with_metric(self.Metric, a0=a0, a1=a1, b1=b1, c1=c1, d1=d1, a2=a2)
+
+        energy = space.metric.path_energy_per_time(path)
+        result = gs.all(energy > -1 * atol)
+        self.assertTrue(result)
+
+    def test_path_energy_is_positive(self, space, a0, a1, b1, c1, d1, a2, path, atol):
+        """Check that energy of a path of surfaces is positive at each time-step.
+
+        Parameters
+        ----------
+        metric_args : tuple
+            Arguments to pass to constructor of the metric.
+        path : array-like, shape=[n_time_steps, n_vertices, 3]
+            Path in the space of discrete surfaces.
+        atol : float
+            Absolute tolerance to test this property.
+        """
+        space.equip_with_metric(self.Metric, a0=a0, a1=a1, b1=b1, c1=c1, d1=d1, a2=a2)
+
+        energy = space.metric.path_energy(path)
+        result = gs.all(energy > -1 * atol)
+        self.assertTrue(result)
