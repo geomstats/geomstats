@@ -429,6 +429,7 @@ class DiscreteSurfaces(Manifold):
             )
 
             laplacian_at_tangent_vec = gs.zeros((n_tangent_vecs, n_vertices, 3))
+
             id_vertices_201_repeated = gs.tile(id_vertices[1, :], (n_tangent_vecs, 1))
 
             for i_dim in range(3):
@@ -462,16 +463,22 @@ class ElasticMetric(RiemannianMetric):
         Instantiated DiscreteSurfaces manifold.
     a0 : float
         First order parameter.
+        Default: 1.
     a1 : float
         Stretching parameter.
+        Default: 1.
     b1 : float
         Shearing parameter.
+        Default: 1.
     c1 : float
         Bending parameter.
+        Default: 1.
     d1 : float
         Additonal first order parameter.
+        Default: 1.
     a2 : float
         Second order parameter.
+        Default: 1.
 
     References
     ----------
@@ -480,7 +487,7 @@ class ElasticMetric(RiemannianMetric):
         arXiv:2204.04238 [cs.CV], 25 Sep 2022
     """
 
-    def __init__(self, space, a0, a1, b1, c1, d1, a2):
+    def __init__(self, space, a0=1.0, a1=1.0, b1=1.0, c1=1.0, d1=1.0, a2=1.0):
         super().__init__(space=space)
         self.a0 = a0
         self.a1 = a1
@@ -663,9 +670,9 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        one_forms_a : array-like, shape=[..., n_faces, 2, 3]
+        one_forms_a : array-like, shape=[n_points, n_faces, 2, 3]
             One forms at point a corresponding to tangent vec a.
-        one_forms_b : array-like, shape=[..., n_faces, 2, 3]
+        one_forms_b : array-like, shape=[n_points, n_faces, 2, 3]
             One forms at point b corresponding to tangent vec b.
         one_forms_bp : array-like, shape=[n_faces, 2, 3]
             One forms at base point.
@@ -813,20 +820,22 @@ class ElasticMetric(RiemannianMetric):
             tangent_vec_a = gs.expand_dims(tangent_vec_a, axis=0)
         if tangent_vec_b.ndim == 2:
             tangent_vec_b = gs.expand_dims(tangent_vec_b, axis=0)
-        h = tangent_vec_a
-        k = tangent_vec_b
-        point_a = base_point + h
-        point_b = base_point + k
+
+        point_a = base_point + tangent_vec_a
+        point_b = base_point + tangent_vec_b
         inner_prod = gs.zeros((gs.maximum(len(tangent_vec_a), len(tangent_vec_b)), 1))
         if self.a0 > 0 or self.a2 > 0:
             vertex_areas_bp = self._space.vertex_areas(base_point)
             if self.a0 > 0:
                 inner_prod += self._inner_product_a0(
-                    h, k, vertex_areas_bp=vertex_areas_bp
+                    tangent_vec_a, tangent_vec_b, vertex_areas_bp=vertex_areas_bp
                 )
             if self.a2 > 0:
                 inner_prod += self._inner_product_a2(
-                    h, k, base_point=base_point, vertex_areas_bp=vertex_areas_bp
+                    tangent_vec_a,
+                    tangent_vec_b,
+                    base_point=base_point,
+                    vertex_areas_bp=vertex_areas_bp,
                 )
         if self.a1 > 0 or self.b1 > 0 or self.c1 > 0 or self.b1 > 0:
             one_forms_bp = self._space.surface_one_forms(base_point)
@@ -890,7 +899,7 @@ class ElasticMetric(RiemannianMetric):
         surface_midpoints = path[: n_times - 1, :, :] + surface_diffs / 2
         energy = []
         for diff, midpoint in zip(surface_diffs, surface_midpoints):
-            energy += [n_times * self.squared_norm(diff, midpoint)]
+            energy.extend([n_times * self.squared_norm(diff, midpoint)])
         return gs.array(energy)
 
     def path_energy(self, path):
