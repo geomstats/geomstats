@@ -52,6 +52,7 @@ from numpy import (
     pad,
     prod,
     quantile,
+    remainder,
     repeat,
     reshape,
     searchsorted,
