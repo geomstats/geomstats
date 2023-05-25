@@ -50,7 +50,6 @@ class IncrementalFrechetMean(BaseEstimator):
         metric,
         verbose=False,
     ):
-
         self.metric = metric
         self.verbose = verbose
         self.estimate_ = None

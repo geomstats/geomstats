@@ -11,7 +11,6 @@ from tests.data_generation import TestData, _LevelSetTestData
 
 
 class FullRankCorrelationMatricesTestData(_LevelSetTestData):
-
     n_list = random.sample(range(2, 4), 2)
     space_args_list = [(n,) for n in n_list]
     shape_list = [(n, n) for n in n_list]

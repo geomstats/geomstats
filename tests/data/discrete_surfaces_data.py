@@ -59,7 +59,6 @@ class DiscreteSurfacesTestData(_ManifoldTestData):
 
 
 class ElasticMetricTestData(_RiemannianMetricTestData):
-
     n_samples_list = [1]
     a0_list = [1, 5]
     a1_list = [1, 5]

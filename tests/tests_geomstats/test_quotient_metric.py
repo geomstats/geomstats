@@ -117,7 +117,6 @@ class TestBundle(TestCase, metaclass=Parametrizer):
 
 
 class TestQuotientMetric(TestCase, metaclass=Parametrizer):
-
     testing_data = QuotientMetricTestData()
     Base, Bundle = testing_data.Base, testing_data.Bundle
     TotalSpace = testing_data.TotalSpace

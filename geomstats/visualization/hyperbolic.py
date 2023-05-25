@@ -89,7 +89,6 @@ class PoincareDisk:
         return ax
 
     def add_points(self, points):
-
         if self.coords_type == "extrinsic":
             if not gs.all(H2.belongs(points)):
                 raise ValueError("Points do not belong to the hyperbolic space.")

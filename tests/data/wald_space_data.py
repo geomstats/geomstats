@@ -6,7 +6,6 @@ from tests.data_generation import TestData, _PointSetTestData, _PointTestData
 
 
 class WaldTestData(_PointTestData):
-
     _Point = Wald
 
     n_samples = 2
@@ -14,7 +13,6 @@ class WaldTestData(_PointTestData):
     point_args_list = [(n_labels, 0.9, 0.9) for n_labels in n_labels_list]
 
     def generate_wald_belongs_test_data(self):
-
         random_data = [
             dict(point_args=point_args) for point_args in self.point_args_list
         ]
@@ -52,7 +50,6 @@ class WaldTestData(_PointTestData):
 
 
 class WaldSpaceTestData(_PointSetTestData):
-
     _Point = Wald
     _PointSet = WaldSpace
 

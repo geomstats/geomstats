@@ -6,7 +6,6 @@ from tests.geometry_test_cases import MatrixLieAlgebraTestCase
 
 
 class TestSkewSymmetricMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer):
-
     testing_data = SkewSymmetricMatricesTestData()
 
     def test_belongs(self, n, mat, expected):

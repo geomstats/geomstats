@@ -12,7 +12,6 @@ NOT_AUTODIFF = np_backend()
 
 
 class TestPoisson(OpenSetTestCase, metaclass=Parametrizer):
-
     testing_data = PoissonTestData()
 
     def test_belongs(self, point, expected):

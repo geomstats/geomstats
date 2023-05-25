@@ -19,7 +19,6 @@ def _sphere_metric_matrix(base_point):
 
 
 class RiemannianMetricTestData(TestData):
-
     dim = 2
     euc = Euclidean(dim=dim)
     sphere = Hypersphere(dim=dim)
@@ -64,7 +63,6 @@ class RiemannianMetricTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def hamiltonian_test_data(self):
-
         smoke_data = [
             dict(
                 metric=self.euc.metric,

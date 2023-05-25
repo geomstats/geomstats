@@ -42,7 +42,6 @@ class TestDataLandmarks(_ManifoldTestData):
 
 
 class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
-
     dim_list = random.sample(range(2, 4), 2)
     n_landmarks_list = random.sample(range(2, 5), 2)
     space_args_list = [

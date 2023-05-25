@@ -18,7 +18,6 @@ SQRT_8 = math.sqrt(8.0)
 
 
 class ComplexPoincareDiskTestData(_ComplexOpenSetTestData):
-
     smoke_space_args_list = [(), (), (), ()]
     smoke_n_points_list = [1, 2, 1, 2]
     n_list = random.sample(range(2, 5), 2)
@@ -73,7 +72,6 @@ class ComplexPoincareDiskTestData(_ComplexOpenSetTestData):
 
 
 class ComplexPoincareDiskMetricTestData(_ComplexRiemannianMetricTestData):
-
     metric_args_list = [{}]
     shape_list = [(1,)]
     space_list = [ComplexPoincareDisk(equip=False)]

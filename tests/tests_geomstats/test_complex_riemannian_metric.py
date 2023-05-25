@@ -7,7 +7,6 @@ from tests.geometry_test_cases import RiemannianMetricTestCase
 
 
 class TestComplexRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
-
     skip_test_log = True
     skip_test_inner_coproduct = True
     skip_test_exp_geodesic_ivp = True

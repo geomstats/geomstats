@@ -9,7 +9,6 @@ from tests.data_generation import _LevelSetTestData, _RiemannianMetricTestData
 
 
 class HypersphereTestData(_LevelSetTestData):
-
     dim_list = random.sample(range(1, 4), 2)
     space_args_list = [(dim,) for dim in dim_list]
     n_points_list = random.sample(range(1, 5), 2)

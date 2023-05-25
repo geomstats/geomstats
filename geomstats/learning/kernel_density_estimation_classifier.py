@@ -127,9 +127,8 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         distance="minkowski",
         distance_params=None,
         n_jobs=None,
-        **kwargs
+        **kwargs,
     ):
-
         self.bandwidth = bandwidth
 
         if isinstance(kernel, str):
@@ -163,7 +162,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
             metric=distance,
             metric_params=distance_params,
             n_jobs=n_jobs,
-            **kwargs
+            **kwargs,
         )
 
     def fit(self, X, y):

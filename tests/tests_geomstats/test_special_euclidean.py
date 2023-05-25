@@ -95,7 +95,6 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
     InvariantMetricTestCase,
     metaclass=Parametrizer,
 ):
-
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_shape = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True

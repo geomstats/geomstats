@@ -264,7 +264,6 @@ def _batch_gradient_descent(
     convergence_old = convergence
 
     while convergence > epsilon and max_iter > iteration:
-
         iteration += 1
         estimates_broadcast, _ = gs.broadcast_arrays(estimates, points)
         estimates_flattened = gs.reshape(estimates_broadcast, flat_shape)

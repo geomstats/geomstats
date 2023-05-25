@@ -73,7 +73,6 @@ class SymmetricMatricesTestData(_VectorSpaceTestData):
         return self.generate_tests(smoke_data)
 
     def dim_test_data(self):
-
         smoke_data = [
             dict(n=1, expected_dim=1),
             dict(n=2, expected_dim=3),

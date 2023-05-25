@@ -105,7 +105,6 @@ class TestData:
     def _generate_datum_vectorization_tests(
         self, datum, comb_indices, arg_names, expected_name, check_expand=True, n_reps=2
     ):
-
         if expected_name is not None:
             has_expected = True
             expected = datum.get(expected_name)
@@ -368,7 +367,6 @@ class _LevelSetTestData(_ManifoldTestData):
         """
         random_data = []
         for space_args, n_points in zip(self.space_args_list, self.n_points_list):
-
             space = self.Space(*space_args, default_coords_type="intrinsic")
             point_intrinsic = space.random_point(n_points)
             random_data.append(
@@ -384,7 +382,6 @@ class _LieGroupTestData(_ManifoldTestData):
     def _generate_compose_data(self):
         random_data = []
         for group_args, n_points in zip(self.space_args_list, self.n_points_list):
-
             group = self.Space(*group_args)
             point = group.random_point(n_points)
             random_data.append(dict(group_args=group_args, point=point))
@@ -415,7 +412,6 @@ class _LieGroupTestData(_ManifoldTestData):
         ):
             group = self.Space(*group_args)
             for base_point in [group.random_point(), group.identity]:
-
                 tangent_vec = group.to_tangent(
                     gs.random.normal(size=(n_tangent_vecs,) + shape) / amplitude,
                     base_point,
@@ -710,7 +706,6 @@ class _ConnectionTestData(TestData):
             for (n_points, n_base_points), expected_shape in zip(
                 n_points_list, expected_shape_list
             ):
-
                 random_data.append(
                     dict(
                         space=space,
@@ -1664,7 +1659,6 @@ class _QuotientMetricTestData(_RiemannianMetricTestData):
 
 class _PointSetTestData(TestData):
     def random_point_belongs_test_data(self):
-
         random_data = [
             dict(space_args=space_args, n_points=n_points)
             for space_args, n_points in zip(self.space_args_list, self.n_points_list)

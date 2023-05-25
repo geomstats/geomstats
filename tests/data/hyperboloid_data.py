@@ -14,7 +14,6 @@ RTOL = 1e-6
 
 
 class HyperboloidTestData(_LevelSetTestData):
-
     dim_list = random.sample(range(2, 4), 2)
     space_args_list = [(dim,) for dim in dim_list]
     shape_list = [(dim + 1,) for dim in dim_list]
@@ -90,7 +89,6 @@ class HyperboloidTestData(_LevelSetTestData):
 
 
 class HyperboloidMetricTestData(_RiemannianMetricTestData):
-
     dim_list = random.sample(range(2, 4), 2)
 
     space_list = [Hyperboloid(dim) for dim in dim_list]
@@ -169,7 +167,6 @@ class HyperboloidMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def distance_ball_extrinsic_from_ball_test_data(self):
-
         smoke_data = [
             dict(dim=2, x_ball=gs.array([0.7, 0.2]), y_ball=gs.array([0.2, 0.2]))
         ]

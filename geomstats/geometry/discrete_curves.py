@@ -1957,7 +1957,6 @@ class SRVShapeBundle(FiberBundle):
             new_curve[-1] = curve[-1]
 
             for k in range(1, n_subinterval):
-
                 (i_depart, j_depart) = gamma[k - 1]
                 (i_arrive, j_arrive) = gamma[k]
                 gamma_slope = (j_arrive - j_depart) / (i_arrive - i_depart)
@@ -2025,7 +2024,6 @@ class SRVShapeBundle(FiberBundle):
 
             value = 0.0
             while i < x_max - x_min + 1 and j < y_max - y_min + 1:
-
                 upper_bound = min(list_l[i], list_k[j])
                 lenght = upper_bound - lower_bound
                 value += lenght * gs.dot(srv_1[x_min + i - 1], srv_2[y_min + j - 1])
@@ -2313,7 +2311,6 @@ class SRVQuotientMetric(QuotientMetric):
             Quotient distance between the two curves represented by point_a and point_b.
         """
         if method == "iterative horizontal projection":
-
             horizontal_path = self.geodesic(
                 initial_point=point_a, end_point=point_b, threshold=threshold
             )

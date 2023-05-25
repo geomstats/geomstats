@@ -495,7 +495,6 @@ class TestBackends(tests.conftest.TestCase):
         self.assertTrue(gs.all(result))
 
     def test_broadcast_arrays(self):
-
         array_1 = gs.array([[1, 2, 3]])
         array_2 = gs.array([[4], [5]])
         result = gs.broadcast_arrays(array_1, array_2)
@@ -637,7 +636,6 @@ class TestBackends(tests.conftest.TestCase):
         self.assertAllClose(result, expected)
 
     def test_mat_from_diag_triu_tril(self):
-
         diag = gs.array([9.0, 9.0, 9.0])
         triu = gs.array([1.0, 2.0, 3.0])
         tril = -1 * triu

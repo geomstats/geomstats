@@ -14,7 +14,6 @@ from tests.geometry_test_cases import OpenSetTestCase
 class TestProductPositiveRealsAndComplexPoincareDisks(
     OpenSetTestCase, metaclass=Parametrizer
 ):
-
     skip_test_to_tangent_is_tangent_in_embedding_space = True
 
     testing_data = ProductPositiveRealsAndComplexPoincareDisksTestData()
@@ -27,7 +26,6 @@ class TestProductPositiveRealsAndComplexPoincareDisks(
 class TestProductPositiveRealsAndComplexPoincareDisksMetric(
     TestCase, metaclass=Parametrizer
 ):
-
     testing_data = ProductPositiveRealsAndComplexPoincareDisksMetricTestData()
     Metric = testing_data.Metric
 

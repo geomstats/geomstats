@@ -8,7 +8,6 @@ from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
 
 class NFoldManifoldTestData(_ManifoldTestData):
-
     base_list = [
         SpecialOrthogonal(2),
         Euclidean(3),
@@ -51,7 +50,6 @@ class NFoldManifoldTestData(_ManifoldTestData):
 
 
 class NFoldMetricTestData(_RiemannianMetricTestData):
-
     n_list = random.sample(range(3, 5), 2)
     power_list = random.sample(range(2, 5), 2)
     base_list = [SpecialOrthogonal(n) for n in n_list]

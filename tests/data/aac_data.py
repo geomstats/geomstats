@@ -182,7 +182,6 @@ class _TrivialRegressionData:
 
 class AACRegressionTestData(_EstimatorTestData):
     def _setup(self):
-
         space_2 = GraphSpace(2)
         metric = space_2.metric
 
