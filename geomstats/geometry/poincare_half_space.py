@@ -27,19 +27,18 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
         Dimension of the hyperbolic space.
     """
 
-    def __init__(self, dim, **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate the "
-                "manifold without this parameter and then use "
-                "`scale * metric` to rescale the standard metric."
-            )
+    def __init__(self, dim, equip=True):
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim),
-            metric=PoincareHalfSpaceMetric(dim),
             default_coords_type="half-space",
+            equip=equip,
         )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return PoincareHalfSpaceMetric
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the upper half space.
@@ -87,26 +86,11 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
 
     Class for the metric of the n-dimensional hyperbolic space
     as embedded in the Poincaré half space model.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the hyperbolic space.
     """
 
-    def __init__(self, dim, **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate scaled "
-                "metrics as `scale * RiemannianMetric`. Note that the "
-                "metric is scaled, not the distance."
-            )
-        self.poincare_ball = PoincareBall(dim=dim)
-        super().__init__(
-            dim=dim,
-            signature=(dim, 0),
-            default_coords_type=self.poincare_ball.default_coords_type,
-        )
+    def __init__(self, space):
+        super().__init__(space=space)
+        self._poincare_ball = PoincareBall(dim=space.dim)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -145,15 +129,14 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             Point in the Poincare half space, reached by the geodesic
             starting from `base_point` with initial velocity `tangent_vec`
         """
-        base_point_ball = self.poincare_ball.half_space_to_ball_coordinates(base_point)
-        tangent_vec_ball = self.poincare_ball.half_space_to_ball_tangent(
+        base_point_ball = self._poincare_ball.half_space_to_ball_coordinates(base_point)
+        tangent_vec_ball = self._poincare_ball.half_space_to_ball_tangent(
             tangent_vec, base_point
         )
-        end_point_ball = self.poincare_ball.metric.exp(
+        end_point_ball = self._poincare_ball.metric.exp(
             tangent_vec_ball, base_point_ball
         )
-        end_point = self.poincare_ball.ball_to_half_space_coordinates(end_point_ball)
-        return end_point
+        return self._poincare_ball.ball_to_half_space_coordinates(end_point_ball)
 
     def log(self, point, base_point, **kwargs):
         """Compute Riemannian logarithm of a point wrt a base point.
@@ -171,11 +154,10 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        point_ball = self.poincare_ball.half_space_to_ball_coordinates(point)
-        base_point_ball = self.poincare_ball.half_space_to_ball_coordinates(base_point)
-        log_ball = self.poincare_ball.metric.log(point_ball, base_point_ball)
-        log = self.poincare_ball.ball_to_half_space_tangent(log_ball, base_point_ball)
-        return log
+        point_ball = self._poincare_ball.half_space_to_ball_coordinates(point)
+        base_point_ball = self._poincare_ball.half_space_to_ball_coordinates(base_point)
+        log_ball = self._poincare_ball.metric.log(point_ball, base_point_ball)
+        return self._poincare_ball.ball_to_half_space_tangent(log_ball, base_point_ball)
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.

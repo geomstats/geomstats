@@ -7,6 +7,7 @@ import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.vectorization import repeat_out
 
 
 class Matrices(VectorSpace):
@@ -18,11 +19,11 @@ class Matrices(VectorSpace):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n, **kwargs):
+    def __init__(self, m, n, equip=True):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
-        kwargs.setdefault("metric", MatricesMetric(m, n))
-        super().__init__(shape=(m, n), **kwargs)
+
+        super().__init__(shape=(m, n), equip=equip)
         self.m = m
         self.n = n
 
@@ -30,6 +31,11 @@ class Matrices(VectorSpace):
         """Create the canonical basis."""
         m, n = self.m, self.n
         return gs.reshape(gs.eye(n * m), (n * m, m, n))
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):
@@ -687,17 +693,7 @@ class Matrices(VectorSpace):
 
 
 class MatricesMetric(EuclideanMetric):
-    """Euclidean metric on matrices given by Frobenius inner-product.
-
-    Parameters
-    ----------
-    m, n : int
-        Integers representing the shapes of the matrices: m x n.
-    """
-
-    def __init__(self, m, n, **kwargs):
-        dimension = m * n
-        super().__init__(dim=dimension, shape=(m, n))
+    """Euclidean metric on matrices given by Frobenius inner-product."""
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tangent vectors.
@@ -717,10 +713,12 @@ class MatricesMetric(EuclideanMetric):
         inner_prod : array-like, shape=[...,]
             Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
-        return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
+        return repeat_out(
+            self._space, inner_prod, tangent_vec_a, tangent_vec_b, base_point
+        )
 
-    @staticmethod
-    def norm(vector, base_point=None):
+    def norm(self, vector, base_point=None):
         """Compute norm of a matrix.
 
         Norm of a matrix associated to the Frobenius inner product.
@@ -738,4 +736,5 @@ class MatricesMetric(EuclideanMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        return gs.linalg.norm(vector, axis=(-2, -1))
+        norm = gs.linalg.norm(vector, axis=(-2, -1))
+        return repeat_out(self._space, norm, vector, base_point)

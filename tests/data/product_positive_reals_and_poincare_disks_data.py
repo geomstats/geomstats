@@ -31,9 +31,10 @@ class ProductPositiveRealsAndComplexPoincareDisksMetricTestData(TestData):
 
     n_manifolds_list = random.sample(range(2, 6), 2)
     dimension_list = 2 * [1]
+
     space_args_list = list(zip(n_manifolds_list))
     space_list = [
-        ProductPositiveRealsAndComplexPoincareDisks(*space_args)
+        ProductPositiveRealsAndComplexPoincareDisks(*space_args, equip=False)
         for space_args in space_args_list
     ]
 
@@ -43,14 +44,15 @@ class ProductPositiveRealsAndComplexPoincareDisksMetricTestData(TestData):
     n_points_b_list = [1]
 
     Metric = ProductPositiveRealsAndComplexPoincareDisksMetric
+    Space = ProductPositiveRealsAndComplexPoincareDisks
 
     def signature_test_data(self):
         smoke_data = [
-            dict(n_manifolds=2, expected=(2, 0)),
-            dict(n_manifolds=4, expected=(4, 0)),
+            dict(space=self.Space(2, equip=False), expected=(2, 0)),
+            dict(space=self.Space(4, equip=False), expected=(4, 0)),
         ]
         return self.generate_tests(smoke_data)
 
     def squared_dist_test_data(self):
-        smoke_data = [dict(n_manifolds=4)]
+        smoke_data = [dict(space=self.Space(4, equip=False))]
         return self.generate_tests(smoke_data)

@@ -101,12 +101,12 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
     Space = GeometricDistributions
     Metric = GeometricMetric
 
-    n_list = random.sample((2, 5), 2)
     n_samples_list = random.sample(range(1, 10), 3)
-    connection_args_list = metric_args_list = [() for n in n_list]
-    space_list = [GeometricDistributions() for n in n_list]
-    space_args_list = [() for n in n_list]
-    shape_list = [(1,) for n in n_list]
+
+    connection_args_list = metric_args_list = [{}]
+    space_list = [GeometricDistributions(equip=False)]
+    shape_list = [(1,)]
+
     n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
@@ -119,23 +119,28 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
     }
 
     def squared_dist_test_data(self):
+        space = self.space_list[0]
         smoke_data = [
             dict(
+                space=space,
                 point_a=gs.array([0.2, 0.3]),
                 point_b=gs.array([0.3, 0.5]),
                 expected=gs.array([0.21846342154512002, 0.4318107273293949]),
             ),
             dict(
+                space=space,
                 point_a=gs.array(0.2),
                 point_b=gs.array(0.3),
                 expected=gs.array(0.21846342154512002),
             ),
             dict(
+                space=space,
                 point_a=gs.array(0.3),
                 point_b=gs.array([0.2, 0.5]),
                 expected=gs.array([0.21846342154512002, 0.4318107273293949]),
             ),
             dict(
+                space=space,
                 point_a=gs.array([0.2, 0.5]),
                 point_b=gs.array(0.3),
                 expected=gs.array([0.21846342154512002, 0.4318107273293949]),
@@ -144,12 +149,15 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def metric_matrix_test_data(self):
+        space = self.space_list[0]
         smoke_data = [
             dict(
+                space=space,
                 point=gs.array([0.5]),
                 expected=gs.array([[8.0]]),
             ),
             dict(
+                space=space,
                 point=gs.array([[0.2], [0.5], [0.4]]),
                 expected=gs.array(
                     [[[31.249999999999993]], [[8.0]], [[10.416666666666664]]]
@@ -160,8 +168,8 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
 
     def geodesic_symmetry_test_data(self):
         random_data = []
-        for space_args in self.space_args_list:
-            random_data.append(dict(space_args=space_args))
+        for space in self.space_list:
+            random_data.append(dict(space=space))
         return self.generate_tests([], random_data)
 
     def exp_belongs_test_data(self):
@@ -289,6 +297,7 @@ class GeometricMetricTestData(_RiemannianMetricTestData):
             tangent_vec = space.to_tangent(random_vec, base_point)
             random_data.append(
                 dict(
+                    space=space,
                     connection_args=connection_args,
                     tangent_vec=tangent_vec,
                     base_point=base_point,

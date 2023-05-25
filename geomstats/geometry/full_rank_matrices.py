@@ -19,13 +19,16 @@ class FullRankMatrices(OpenSet):
         Integer representing the shape of the matrices: n x k
     """
 
-    def __init__(self, n, k, **kwargs):
-        kwargs.setdefault("dim", n * k)
-        kwargs.setdefault("metric", MatricesMetric(n, k))
-        super().__init__(embedding_space=Matrices(n, k), **kwargs)
+    def __init__(self, n, k, equip=True):
+        super().__init__(dim=n * k, embedding_space=Matrices(n, k), equip=equip)
         self.rank = min(n, k)
         self.n = n
         self.k = k
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
 
     def belongs(self, point, atol=gs.atol):
         r"""Check if the matrix belongs to :math:`R_*^{n \times k}`.

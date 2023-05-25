@@ -121,7 +121,7 @@ class TestAutodiff(tests.conftest.TestCase):
 
         arg_x = 1.0
         arg_y = 2.0
-        val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        val, grad = gs.autodiff.value_and_grad(func, argnums=(0, 1))(arg_x, arg_y)
 
         self.assertAllClose(val, 1.0)
         self.assertTrue(isinstance(grad, tuple))
@@ -135,7 +135,7 @@ class TestAutodiff(tests.conftest.TestCase):
 
         arg_x = gs.array([1.0, 2.0])
         arg_y = gs.array([2.0, 3.0])
-        val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        val, grad = gs.autodiff.value_and_grad(func, argnums=(0, 1))(arg_x, arg_y)
 
         self.assertAllClose(val, 2.0)
         self.assertTrue(isinstance(grad, tuple))
@@ -149,7 +149,7 @@ class TestAutodiff(tests.conftest.TestCase):
 
         arg_x = gs.array([[1.0, 3.0], [2.0, 3.0]])
         arg_y = gs.array([[2.0, 5.0], [0.0, 4.0]])
-        val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        val, grad = gs.autodiff.value_and_grad(func, argnums=(0, 1))(arg_x, arg_y)
         self.assertAllClose(val, 10.0)
         self.assertAllClose(grad[0], gs.array([[-2.0, -4.0], [4.0, -2.0]]))
         self.assertAllClose(grad[1], gs.array([[2.0, 4.0], [-4.0, 2.0]]))
@@ -191,7 +191,9 @@ class TestAutodiff(tests.conftest.TestCase):
         arg_x = gs.array([1.0, 3.0])
         arg_y = gs.array([2.0, 5.0])
 
-        result_val, result_grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        result_val, result_grad = gs.autodiff.value_and_grad(func, argnums=(0, 1))(
+            arg_x, arg_y
+        )
 
         self.assertTrue(isinstance(result_grad, tuple))
         result_grad_x, result_grad_y = result_grad
@@ -221,7 +223,9 @@ class TestAutodiff(tests.conftest.TestCase):
         arg_x = gs.array([[1.0, 3.0], [2.0, 3.0]])
         arg_y = gs.array([[2.0, 5.0], [0.0, 4.0]])
 
-        result_val, result_grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        result_val, result_grad = gs.autodiff.value_and_grad(func, argnums=(0, 1))(
+            arg_x, arg_y
+        )
 
         self.assertTrue(isinstance(result_grad, tuple))
         result_grad_x, result_grad_y = result_grad
@@ -363,7 +367,7 @@ class TestAutodiff(tests.conftest.TestCase):
             return dist
 
         space = SpecialEuclidean(n=2)
-        const_metric = space.left_canonical_metric
+        const_metric = space.metric
         const_point_b = space.random_point()
 
         def func(x):
@@ -379,7 +383,7 @@ class TestAutodiff(tests.conftest.TestCase):
     @tests.conftest.autograd_only
     def test_custom_gradient_in_action(self):
         space = SpecialEuclidean(n=2)
-        const_metric = space.left_canonical_metric
+        const_metric = space.metric
         const_point_b = space.random_point()
 
         def func(x):
@@ -503,7 +507,9 @@ class TestAutodiff(tests.conftest.TestCase):
         point = gs.array([gs.pi / 3, gs.pi])
         theta = point[0]
         phi = point[1]
-        hessian_1ij = gs.autodiff.hessian(_first_component_of_sphere_immersion)(point)
+        hessian_1ij = gs.autodiff.hessian(_first_component_of_sphere_immersion_scalar)(
+            point
+        )
 
         expected_1ij = radius * gs.array(
             [
@@ -525,9 +531,9 @@ class TestAutodiff(tests.conftest.TestCase):
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
         thetas = points[:, 0]
         phis = points[:, 1]
-        hessian_1ij = gs.autodiff.hessian_vec(_first_component_of_sphere_immersion)(
-            points
-        )
+        hessian_1ij = gs.autodiff.hessian_vec(
+            _first_component_of_sphere_immersion_scalar
+        )(points)
 
         expected_1ij = gs.stack(
             [

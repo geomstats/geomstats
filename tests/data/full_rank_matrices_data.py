@@ -1,5 +1,6 @@
 import random
 
+import geomstats.backend as gs
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from tests.data_generation import _OpenSetTestData
 
@@ -19,13 +20,20 @@ class FullRankMatricesTestData(_OpenSetTestData):
             dict(
                 m=3,
                 n=2,
-                mat=[
-                    [-1.6473486, -1.18240309],
-                    [0.1944016, 0.18169231],
-                    [-1.13933855, -0.64971248],
-                ],
+                mat=gs.array(
+                    [
+                        [-1.6473486, -1.18240309],
+                        [0.1944016, 0.18169231],
+                        [-1.13933855, -0.64971248],
+                    ]
+                ),
                 expected=True,
             ),
-            dict(m=3, n=2, mat=[[1.0, -1.0], [1.0, -1.0], [0.0, 0.0]], expected=False),
+            dict(
+                m=3,
+                n=2,
+                mat=gs.array([[1.0, -1.0], [1.0, -1.0], [0.0, 0.0]]),
+                expected=False,
+            ),
         ]
         return self.generate_tests(smoke_data)
