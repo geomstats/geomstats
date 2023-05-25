@@ -37,5 +37,5 @@ repos:
     rev: 4.0.1
     hooks:
     -   id: flake8
-        additional_dependencies: [flake8-docstrings]
+        additional_dependencies: [flake8-docstrings, Flake8-pyproject]
 
