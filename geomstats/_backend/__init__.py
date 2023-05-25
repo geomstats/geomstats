@@ -11,6 +11,14 @@ import types
 
 import geomstats._backend._common as common
 
+
+def get_backend_name():
+    return os.environ.get("GEOMSTATS_BACKEND", "numpy")
+
+
+BACKEND_NAME = get_backend_name()
+
+
 BACKEND_ATTRIBUTES = {
     "": [
         # Types
@@ -272,18 +280,14 @@ class BackendImporter:
         if fullname in sys.modules:
             return sys.modules[fullname]
 
-        _BACKEND = os.environ.get("GEOMSTATS_BACKEND")
-        if _BACKEND is None:
-            os.environ["GEOMSTATS_BACKEND"] = _BACKEND = "numpy"
-
-        module = self._create_backend_module(_BACKEND)
-        module.__name__ = f"geomstats.{_BACKEND}"
+        module = self._create_backend_module(BACKEND_NAME)
+        module.__name__ = f"geomstats.{BACKEND_NAME}"
         module.__loader__ = self
         sys.modules[fullname] = module
 
         module.set_default_dtype("float64")
 
-        logging.info(f"Using {_BACKEND} backend")
+        logging.info(f"Using {BACKEND_NAME} backend")
         return module
 
 
