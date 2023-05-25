@@ -48,7 +48,7 @@ source_suffix = [".rst"]
 
 master_doc = "index"
 
-language = None
+language = "en"
 
 nbsphinx_prolog = (
     r"""
