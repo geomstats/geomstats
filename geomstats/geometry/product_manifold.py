@@ -7,7 +7,9 @@ import math
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.complex_manifold import ComplexManifold
-from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
+from geomstats.geometry.complex_riemannian_metric import (
+    ComplexRiemannianMetric,
+)
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -72,8 +74,8 @@ def _find_product_shape(factors, default_point_type):
         return (sum(math.prod(factor_shape) for factor_shape in factor_shapes),)
     if not _all_equal(factor_shapes):
         raise ValueError(
-            "A default_point_type of 'matrix' or 'other' can only be used if all "
-            "manifolds have the same shape."
+            "A default_point_type of 'matrix' or 'other' can only be used if "
+            "all manifolds have the same shape."
         )
     if default_point_type == "matrix" and not len(factor_shapes[0]) == 1:
         raise ValueError(
@@ -85,7 +87,13 @@ def _find_product_shape(factors, default_point_type):
 
 class _IterateOverFactorsMixins:
     def __init__(
-        self, factors, cum_index, pool_outputs, has_mixed_fields, *args, **kwargs
+        self,
+        factors,
+        cum_index,
+        pool_outputs,
+        has_mixed_fields,
+        *args,
+        **kwargs,
     ):
         self.factors = factors
         self._cum_index = cum_index
@@ -109,8 +117,8 @@ class _IterateOverFactorsMixins:
         Raises
         ------
         ShapeError
-            If the points are not compatible with the shapes of the corresponding
-            factors.
+            If the points are not compatible with the shapes of the
+            corresponding factors.
         """
         for point, factor in zip(points, self.factors):
             geomstats.errors.check_point_shape(point, factor)
@@ -144,7 +152,8 @@ class _IterateOverFactorsMixins:
         Raises
         ------
         ShapeError
-            If the point does not have a shape compatible with the product manifold.
+            If the point does not have a shape compatible with the product
+            manifold.
         """
         geomstats.errors.check_point_shape(point, self)
 
@@ -174,7 +183,12 @@ class _IterateOverFactorsMixins:
 
     @staticmethod
     def _reshape_trailing(argument, factor):
-        """Convert the trailing dimensions to match the shape of a factor manifold."""
+        """
+        Convert trailing dimensions.
+
+        Convert the trailing dimensions to match the shape of a factor
+        manifold.
+        """
         space = factor._space if isinstance(factor, RiemannianMetric) else factor
 
         if space.default_coords_type == "vector":
@@ -189,15 +203,15 @@ class _IterateOverFactorsMixins:
 
         func is called on each factor of the product.
 
-        Array-type arguments are separated out to be passed to func for each factor,
-        but other arguments are passed unchanged.
+        Array-type arguments are separated out to be passed to func for each
+        factor, but other arguments are passed unchanged.
 
         Parameters
         ----------
         func : str
-            The name of a method which is defined for each factor of the product
-            The method must return an array of shape (..., factor.shape) or a boolean
-            array of shape (...,).
+            The name of a method which is defined for each factor of the
+            product. The method must return an array of shape
+            (..., factor.shape) or a boolean array of shape (...,).
         args : dict
             Dict of arguments.
             Array-type arguments must be of type (..., shape)
@@ -207,10 +221,14 @@ class _IterateOverFactorsMixins:
         -------
         out : array-like, shape = [..., {(), shape}]
         """
-        # TODO The user may prefer to provide the arguments as lists and receive them as
-        # TODO lists, as this may be the form in which they are available. This should
-        # TODO be allowed, rather than packing and unpacking them repeatedly.
-        args_list, numerical_args = self._validate_and_prepare_args_for_iteration(args)
+        # TODO The user may prefer to provide the arguments as lists and
+        # TODO receive them as lists, as this may be the form in which they
+        # TODO are available. This should be allowed, rather than packing and
+        # TODO unpacking them repeatedly.
+        (
+            args_list,
+            numerical_args,
+        ) = self._validate_and_prepare_args_for_iteration(args)
 
         out = [
             self._get_method(self.factors[i], func, args_list[i], numerical_args)
@@ -267,14 +285,16 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
     factors : list
         List of manifolds in the product.
     default_point_type : {'auto', 'vector', 'matrix', 'other'}
-        Optional. Default value is 'auto', which will implement as 'vector' unless all
-        factors have the same shape. Vector representation gives the point as a 1-d
-        array. Matrix representation allows for a point to be represented by an array of
-        shape (n, dim), if each manifold has default_point_type 'vector' with shape
-        (dim,). 'other' will behave as `matrix` but for higher dimensions.
+        Optional. Default value is 'auto', which will implement as 'vector'
+        unless all factors have the same shape. Vector representation gives
+        the point as a 1-d array. Matrix representation allows for a point to
+        be represented by an array of shape (n, dim), if each manifold has
+        default_point_type 'vector' with shape (dim,). 'other' will behave as
+        `matrix` but for higher dimensions.
     """
 
     def __init__(self, factors, default_point_type="auto", equip=True):
+        """Initialize manifold."""
         geomstats.errors.check_parameter_accepted_values(
             default_point_type,
             "default_point_type",
@@ -322,6 +342,9 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             equip=equip,
         )
 
+        if hasattr(self, "metric"):
+            self.metric._pool_outputs_from_function = self._pool_outputs_from_function
+
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
@@ -330,13 +353,13 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
     def _pool_outputs_from_function(self, outputs):
         """Collect outputs for each product to be returned.
 
-        If each element of the output is a boolean array of the same shape, test along
-        the list whether all elements are True and return a boolean array of the same
-        shape.
+        If each element of the output is a boolean array of the same shape,
+        test along the list whether all elements are True and return a boolean
+        array of the same shape.
 
-        Otherwise, if each element of the output has a shape compatible with points of
-        the corresponding factor, an attempt is made to map the list of points to a
-        point in the product by embed_to_product.
+        Otherwise, if each element of the output has a shape compatible with
+        points of the corresponding factor, an attempt is made to map the list
+        of points to a point in the product by embed_to_product.
 
         Parameters
         ----------
@@ -363,8 +386,8 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             return self.embed_to_product(outputs)
         except geomstats.errors.ShapeError:
             raise RuntimeError(
-                "Could not combine outputs - they are not points of the individual"
-                " factors."
+                "Could not combine outputs - they are not points of the "
+                "individual factors."
             )
         except ValueError:
             raise RuntimeError(
@@ -453,10 +476,12 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
         -------
         samples : array-like, shape=[..., {dim, embedding_space.dim,
             [n_manifolds, dim_each]}]
-            Points sampled in the tangent space of the product manifold at base_point.
+            Points sampled in the tangent space of the product manifold at
+            base_point.
         """
         samples = self._iterate_over_factors(
-            "random_tangent_vec", {"base_point": base_point, "n_samples": n_samples}
+            "random_tangent_vec",
+            {"base_point": base_point, "n_samples": n_samples},
         )
         return samples
 
@@ -526,7 +551,8 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             Boolean denoting if vector is a tangent vector at the base point.
         """
         is_tangent = self._iterate_over_factors(
-            "is_tangent", {"base_point": base_point, "vector": vector, "atol": atol}
+            "is_tangent",
+            {"base_point": base_point, "vector": vector, "atol": atol},
         )
         return is_tangent
 
@@ -535,6 +561,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
     """Class for product of Riemannian metrics."""
 
     def __init__(self, space):
+        """Initialize metric."""
         factors = [factor.metric for factor in space.factors]
         factor_signatures = [metric.signature for metric in factors]
 
@@ -637,10 +664,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         """
         args = {"tangent_vec": tangent_vec, "base_point": base_point}
         exp = self._iterate_over_factors("exp", args)
-
-        if self.default_point_type == "vector":
-            return gs.concatenate(exp, -1)
-        return gs.stack(exp, axis=-len(self.shape))
+        return self._pool_outputs_from_function(exp)
 
     def log(self, point, base_point=None, **kwargs):
         """Compute the Riemannian logarithm of a point.
@@ -661,6 +685,4 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         """
         args = {"point": point, "base_point": base_point}
         logs = self._iterate_over_factors("log", args)
-        if self.default_point_type == "vector":
-            return gs.concatenate(logs, axis=-1)
-        return gs.stack(logs, axis=-len(self.shape))
+        return self._pool_outputs_from_function(logs)
