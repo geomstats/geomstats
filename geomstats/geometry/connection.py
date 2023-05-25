@@ -312,7 +312,7 @@ class Connection(ABC):
         n_rungs=1,
         scheme="pole",
         alpha=1,
-        **single_step_kwargs
+        **single_step_kwargs,
     ):
         """Approximate parallel transport using the pole ladder scheme.
 
@@ -385,7 +385,7 @@ class Connection(ABC):
                 base_point=current_point,
                 next_point=next_point,
                 base_shoot=base_shoot,
-                **single_step_kwargs
+                **single_step_kwargs,
             )
             current_point = next_point
             base_shoot = next_step["end_point"]

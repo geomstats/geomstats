@@ -10,7 +10,6 @@ from tests.tests_geomstats.test_hypersphere import HypersphereMetricTestCase
 
 
 class TestHypersphereBisMetric(HypersphereMetricTestCase, metaclass=Parametrizer):
-
     skip_test_exp_geodesic_ivp = True
     skip_test_dist_point_to_itself_is_zero = True
     skip_test_christoffels_shape = True

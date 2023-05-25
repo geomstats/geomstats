@@ -312,7 +312,6 @@ class TestGeodesicRegression(tests.conftest.TestCase):
 
     @tests.conftest.autograd_only
     def test_value_and_grad_loss_se2(self):
-
         gr = GeodesicRegression(
             self.se2,
             metric=self.metric_se2,

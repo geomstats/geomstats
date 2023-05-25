@@ -9,7 +9,6 @@ from tests.data.pullback_metric_data import PullbackMetricTestData
 
 @tests.conftest.autograd_and_torch_only
 class TestPullbackMetric(TestCase, metaclass=Parametrizer):
-
     testing_data = PullbackMetricTestData()
     Metric = testing_data.Metric
 

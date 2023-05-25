@@ -8,7 +8,6 @@ from tests.data_generation import TestData, _OpenSetTestData
 
 
 class ProductHPDMatricesAndSiegelDisksTestData(_OpenSetTestData):
-
     n_manifolds_list = random.sample(range(2, 6), 2)
     dimension_list = random.sample(range(2, 6), 2)
     space_args_list = list(zip(n_manifolds_list, dimension_list))
@@ -28,7 +27,6 @@ class ProductHPDMatricesAndSiegelDisksTestData(_OpenSetTestData):
 
 
 class ProductHPDMatricesAndSiegelDisksMetricTestData(TestData):
-
     n_manifolds_list = random.sample(range(2, 6), 2)
     dimension_list = random.sample(range(2, 6), 2)
     space_args_list = list(zip(n_manifolds_list, dimension_list))

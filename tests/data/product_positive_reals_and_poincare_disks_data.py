@@ -8,7 +8,6 @@ from tests.data_generation import TestData, _OpenSetTestData
 
 
 class ProductPositiveRealsAndComplexPoincareDisksTestData(_OpenSetTestData):
-
     n_manifolds_list = random.sample(range(2, 6), 2)
     dimension_list = 2 * [1]
     space_args_list = list(zip(n_manifolds_list))
@@ -28,7 +27,6 @@ class ProductPositiveRealsAndComplexPoincareDisksTestData(_OpenSetTestData):
 
 
 class ProductPositiveRealsAndComplexPoincareDisksMetricTestData(TestData):
-
     n_manifolds_list = random.sample(range(2, 6), 2)
     dimension_list = 2 * [1]
 

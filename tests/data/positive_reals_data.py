@@ -11,7 +11,6 @@ EXP_2 = math.exp(2.0)
 
 
 class PositiveRealsTestData(_OpenSetTestData):
-
     smoke_space_args_list = [(1,), (1,), (1,), (1,)]
     smoke_n_points_list = [1, 2, 1, 2]
     n_list = random.sample(range(2, 5), 2)

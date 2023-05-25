@@ -12,7 +12,6 @@ from tests.geometry_test_cases import OpenSetTestCase
 
 
 class TestProductHPDMatricesAndSiegelDisks(OpenSetTestCase, metaclass=Parametrizer):
-
     skip_test_to_tangent_is_tangent_in_embedding_space = True
     skip_test_to_tangent_is_tangent = True
 
@@ -24,7 +23,6 @@ class TestProductHPDMatricesAndSiegelDisks(OpenSetTestCase, metaclass=Parametriz
 
 
 class TestProductHPDMatricesAndSiegelDisksMetric(TestCase, metaclass=Parametrizer):
-
     testing_data = ProductHPDMatricesAndSiegelDisksMetricTestData()
     Metric = testing_data.Metric
 

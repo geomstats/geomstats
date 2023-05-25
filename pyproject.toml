@@ -44,7 +44,7 @@ doc = [
     "pydata-sphinx-theme"
 ]
 lint = [
-    "black < 23.0",
+    "black",
     "flake8",
     "flake8-docstrings",
     "Flake8-pyproject",

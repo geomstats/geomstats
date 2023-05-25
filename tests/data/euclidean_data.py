@@ -10,7 +10,6 @@ SQRT_5 = math.sqrt(5)
 
 
 class EuclideanTestData(_VectorSpaceTestData):
-
     Space = Euclidean
 
     n_list = random.sample(range(2, 5), 2)
@@ -45,7 +44,6 @@ class EuclideanMetricTestData(_RiemannianMetricTestData):
     Metric = EuclideanMetric
 
     def exp_test_data(self):
-
         one_tangent_vec = gs.array([0.0, 1.0])
         one_base_point = gs.array([2.0, 10.0])
         n_tangent_vecs = gs.array([[2.0, 1.0], [-2.0, -4.0], [-5.0, 1.0]])

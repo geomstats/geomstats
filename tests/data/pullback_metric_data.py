@@ -104,7 +104,6 @@ def _expected_inverse_sphere_metric_matrix(point):
 
 
 class PullbackMetricTestData(TestData):
-
     Metric = PullbackMetric
 
     def sphere_immersion_test_data(self):

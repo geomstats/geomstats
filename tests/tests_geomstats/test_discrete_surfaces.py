@@ -10,7 +10,6 @@ from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
-
     testing_data = DiscreteSurfacesTestData()
 
     def test_vertex_areas(self, faces, point):

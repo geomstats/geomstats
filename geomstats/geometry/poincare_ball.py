@@ -299,7 +299,6 @@ class PoincareBallMetric(RiemannianMetric):
         expand_variances = gs.repeat(expand_variances, dim, axis=0)
 
         if binomial_coefficient is None:
-
             dim_range = gs.arange(dim)
             dim_range[0] = 1
             n_fact = dim_range.prod()

@@ -40,7 +40,6 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, geometry, **kwargs):
-
         if isinstance(geometry, LieGroup):
             self._used_geometry = geometry
             self.estimator = ExponentialBarycenter(group=self._used_geometry, **kwargs)

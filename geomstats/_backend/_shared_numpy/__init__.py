@@ -62,7 +62,6 @@ def real(x):
 
 
 def arange(start_or_stop, /, stop=None, step=1, dtype=None, **kwargs):
-
     if dtype is None and (
         type(stop) is float or type(step) is float or type(start_or_stop) is float
     ):

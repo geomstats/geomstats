@@ -19,7 +19,6 @@ SINH_1 = math.sinh(1.0)
 
 
 class HPDMatricesTestData(_OpenSetTestData):
-
     smoke_space_args_list = [(2,), (3,), (4,), (5,)]
     smoke_n_points_list = [1, 2, 1, 2]
     n_list = random.sample(range(2, 5), 2)
@@ -556,7 +555,6 @@ class HPDEuclideanMetricPower1TestData(_ComplexRiemannianMetricTestData):
 
 
 class HPDLogEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
-
     n_list = random.sample(range(2, 4), 2)
 
     metric_args_list = [{} for _ in n_list]

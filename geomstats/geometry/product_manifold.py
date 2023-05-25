@@ -46,7 +46,7 @@ def _block_diagonal(factor_matrices):
             shapes_dict[(i, j)] = matrix_i.shape[:-1] + matrix_j.shape[-1:]
     rows = []
     # concacatenate along axis = -2
-    for (i, matrix_i) in enumerate(factor_matrices):
+    for i, matrix_i in enumerate(factor_matrices):
         # concatenate along axis = -1
         blocks_to_concatenate = []
         for j, _ in enumerate(factor_matrices):

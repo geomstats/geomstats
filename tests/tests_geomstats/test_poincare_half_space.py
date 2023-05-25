@@ -10,7 +10,6 @@ from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
 
 class TestPoincareHalfSpace(OpenSetTestCase, metaclass=Parametrizer):
-
     testing_data = PoincareHalfSpaceTestData()
 
     def test_belongs(self, dim, vec, expected):

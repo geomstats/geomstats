@@ -23,7 +23,6 @@ from tests.data_generation import (
 
 
 class GraphSpaceTestData(_PointSetTestData):
-
     _PointSet = GraphSpace
     _Point = GraphPoint
 
@@ -92,7 +91,6 @@ class GraphSpaceTestData(_PointSetTestData):
         )
 
     def pad_with_zeros_test_data(self):
-
         space = self._PointSet(4)
 
         adjs = [

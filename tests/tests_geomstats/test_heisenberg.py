@@ -8,7 +8,6 @@ from tests.geometry_test_cases import LieGroupTestCase, VectorSpaceTestCase
 class TestHeisenbergVectors(
     LieGroupTestCase, VectorSpaceTestCase, metaclass=Parametrizer
 ):
-
     testing_data = HeisenbergVectorsTestData()
 
     def test_dimension(self, expected):

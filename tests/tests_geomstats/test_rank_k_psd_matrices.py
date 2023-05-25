@@ -14,7 +14,6 @@ from tests.geometry_test_cases import (
 
 
 class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
-
     testing_data = PSDMatricesTestData()
 
     def test_belongs(self, n, k, mat, expected):
@@ -23,7 +22,6 @@ class TestPSDMatrices(ManifoldTestCase, metaclass=Parametrizer):
 
 
 class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=Parametrizer):
-
     testing_data = BuresWassersteinBundleTestData()
     Base = testing_data.Base
     TotalSpace = testing_data.TotalSpace

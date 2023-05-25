@@ -12,7 +12,6 @@ NOT_AUTODIFF = np_backend()
 
 
 class TestExponential(OpenSetTestCase, metaclass=Parametrizer):
-
     testing_data = ExponentialTestData()
 
     def test_belongs(self, point, expected):

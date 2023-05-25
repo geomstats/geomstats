@@ -285,7 +285,6 @@ class SRVMetricTestData(_RiemannianMetricTestData):
 
 
 class ElasticMetricTestData(_RiemannianMetricTestData):
-
     n_samples_list = [1, 5]
     a_list = [1, 2]
     b_list = [2, 5]
@@ -427,7 +426,6 @@ class ElasticMetricTestData(_RiemannianMetricTestData):
 
 
 class SRVShapeBundleTestData(TestData):
-
     methods = ["iterative horizontal projection", "dynamic programming"]
     thresholds = [1e-3, 1e-1]
 

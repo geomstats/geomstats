@@ -49,7 +49,6 @@ class MatricesTestData(_VectorSpaceTestData):
         return self.generate_tests(smoke_data)
 
     def equal_test_data(self):
-
         smoke_data = [
             dict(m=2, n=2, mat1=EYE_2, mat2=EYE_2, expected=True),
             dict(m=2, n=3, mat1=MAT1_23, mat2=MAT2_23, expected=False),

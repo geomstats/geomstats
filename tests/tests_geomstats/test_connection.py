@@ -12,7 +12,6 @@ from tests.data.connection_data import ConnectionTestData
 
 
 class TestConnection(TestCase, metaclass=Parametrizer):
-
     testing_data = ConnectionTestData()
 
     def test_metric_matrix(self, space, point, expected):
