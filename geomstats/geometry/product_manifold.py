@@ -322,13 +322,21 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             equip=equip,
         )
 
-        if hasattr(self, "metric"):
-            self.metric._pool_outputs_from_function = self._pool_outputs_from_function
-
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return ProductRiemannianMetric
+
+    def equip_with_metric(self, Metric=None, **metric_kwargs):
+        """Equip manifold with a Riemannian metric.
+
+        Parameters
+        ----------
+        Metric : RiemannianMetric object
+            If None, default metric will be used.
+        """
+        super().equip_with_metric(Metric, **metric_kwargs)
+        self.metric._pool_outputs_from_function = self._pool_outputs_from_function
 
     def _pool_outputs_from_function(self, outputs):
         """Collect outputs for each product to be returned.
