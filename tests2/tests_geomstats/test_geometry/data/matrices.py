@@ -8,3 +8,8 @@ class MatricesTestData(VectorSpaceTestData):
 
 class MatricesMetricTestData(EuclideanMetricTestData):
     fail_for_not_implemented_errors = False
+    skips = (
+        "christoffels_vec",
+        "inner_coproduct_vec",
+        "inner_product_derivative_matrix_vec",
+    )

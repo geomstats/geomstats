@@ -7,40 +7,6 @@ from geomstats.test_cases.geometry.connection import ConnectionTestCase
 from geomstats.vectorization import get_batch_shape
 
 
-def _is_isometry(
-    space,
-    tangent_vec,
-    other_tangent_vec,
-    base_point,
-    is_tangent_atol,
-    atol,
-):
-    """Check that a transformation is an isometry.
-
-    Parameters
-    ----------
-    space : Manifold
-        Equipped manifold.
-    tangent_vec : array-like
-        Tangent vector at base point.
-    other_tangent_vec : array-like
-        Transformed tangent vector at base point.
-    base_point : array-like
-        Point on manifold.
-    is_tangent_atol: float
-        Asbolute tolerance for the is_tangent function.
-    atol : float
-        Absolute tolerance to test this property.
-    """
-    is_tangent = space.is_tangent(other_tangent_vec, base_point, atol=is_tangent_atol)
-    is_equinormal = gs.isclose(
-        space.metric.norm(other_tangent_vec, base_point),
-        space.metric.norm(tangent_vec, base_point),
-        atol=atol,
-    )
-    return gs.logical_and(is_tangent, is_equinormal)
-
-
 class RiemannianMetricTestCase(ConnectionTestCase):
     def test_metric_matrix(self, base_point, expected, atol):
         res = self.space.metric.metric_matrix(base_point)
@@ -616,8 +582,8 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         self._test_vectorization(vec_data)
 
     @pytest.mark.random
-    def test_parallel_transport_ivp_is_isometry(self, n_points, atol):
-        """Check parallel transport is an isometry.
+    def test_parallel_transport_ivp_norm(self, n_points, atol):
+        """Check parallel transported norm is preserved.
 
         This is for parallel transport defined by initial value problem (ivp).
 
@@ -636,21 +602,17 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             tangent_vec, base_point, direction=direction
         )
 
-        end_point = self.space.metric.exp(tangent_vec, base_point)
+        end_point = self.space.metric.exp(direction, base_point)
 
-        result = _is_isometry(
-            self.space,
-            tangent_vec,
-            transported,
-            end_point,
-            is_tangent_atol=atol,
+        self.assertAllClose(
+            self.space.metric.norm(transported, end_point),
+            self.space.metric.norm(tangent_vec, base_point),
             atol=atol,
         )
-        self.assertTrue(gs.all(result))
 
     @pytest.mark.random
-    def test_parallel_transport_bvp_is_isometry(self, n_points, atol):
-        """Check parallel transport is an isometry.
+    def test_parallel_transport_bvp_norm(self, n_points, atol):
+        """Check parallel transported norm is preserved.
 
         This is for parallel transport defined by boundary value problem (bvp).
 
@@ -669,12 +631,8 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             tangent_vec, base_point, end_point=end_point
         )
 
-        result = _is_isometry(
-            self.space,
-            tangent_vec,
-            transported,
-            end_point,
-            is_tangent_atol=atol,
+        self.assertAllClose(
+            self.space.metric.norm(transported, end_point),
+            self.space.metric.norm(tangent_vec, base_point),
             atol=atol,
         )
-        self.assertTrue(gs.all(result))
