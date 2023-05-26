@@ -9,7 +9,6 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.errors
-import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.matrices import Matrices
@@ -333,8 +332,41 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return result
 
     @staticmethod
-    @geomstats.vectorization.decorator(["matrix", "matrix"])
-    def lifting(point, base_point):
+    def _matrix_r_single(matrix_m):
+        def _make_minor(i, matrix):
+            return matrix[: i + 1, : i + 1]
+
+        def _make_column_r(i, matrix, columns_list):
+            if i == 0:
+                return gs.array([1.0 / matrix[0, 0]])
+
+            matrix_m_i = _make_minor(i, matrix_m)
+            inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
+            b_i = _make_b(i, matrix_m, columns_list)
+            column_r_i = gs.matvec(inv_matrix_m_i, b_i)
+
+            if column_r_i[i] <= 0:
+                raise ValueError("(r_i)_i <= 0")
+            return column_r_i
+
+        def _make_b(i, matrix, columns_list):
+            return gs.array(
+                [-gs.dot(matrix[i, : j + 1], columns_list[j]) for j in range(i)] + [1.0]
+            )
+
+        n = matrix_m.shape[-1]
+
+        columns_list = []
+        matrix_r = gs.zeros((n, n))
+        for j in range(n):
+            column_r_j = _make_column_r(j, matrix_m, columns_list)
+            columns_list.append(column_r_j)
+
+            matrix_r[: len(column_r_j), j] = column_r_j
+
+        return matrix_r
+
+    def lifting(self, point, base_point):
         """Compute the lifting of a point.
 
         This computation is based on the QR-decomposion.
@@ -354,50 +386,17 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Tangent vector at the base point equal to the lifting
             of point at the base point.
         """
-        n_points, _, _ = point.shape
-        n_base_points, _, n = base_point.shape
+        point, base_point = gs.broadcast_arrays(point, base_point)
 
-        if not (n_points == n_base_points or n_points == 1 or n_base_points == 1):
-            raise NotImplementedError
-
-        n_liftings = gs.maximum(n_base_points, n_points)
-
-        def _make_minor(i, matrix):
-            return matrix[: i + 1, : i + 1]
-
-        def _make_column_r(i, matrix):
-            if i == 0:
-                if matrix[0, 0] <= 0:
-                    raise ValueError("M[0,0] <= 0")
-                return gs.array([1.0 / matrix[0, 0]])
-            matrix_m_i = _make_minor(i, matrix_m_k)
-            inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
-            b_i = _make_b(i, matrix_m_k, columns_list)
-            column_r_i = gs.matmul(inv_matrix_m_i, b_i)
-
-            if column_r_i[i] <= 0:
-                raise ValueError("(r_i)_i <= 0")
-            return column_r_i
-
-        def _make_b(i, matrix, list_matrices_r):
-            b = gs.ones(i + 1)
-
-            for j in range(i):
-                b[j] = -gs.matmul(matrix[i, : j + 1], list_matrices_r[j])
-
-            return b
-
-        matrix_r = gs.zeros((n_liftings, n, n))
         matrix_m = gs.matmul(Matrices.transpose(base_point), point)
 
-        for k in range(n_liftings):
-            columns_list = []
-            matrix_m_k = matrix_m[k]
+        if gs.any(matrix_m[..., 0, 0] < 0.0):
+            raise ValueError("Algorithm does no work if m11 <= 0.")
 
-            for j in range(n):
-                column_r_j = _make_column_r(j, matrix_m_k)
-                columns_list.append(column_r_j)
-                matrix_r[k, : len(column_r_j), j] = gs.array(column_r_j)
+        if point.ndim == 2:
+            matrix_r = self._matrix_r_single(matrix_m)
+        else:
+            matrix_r = gs.stack([self._matrix_r_single(matrix) for matrix in matrix_m])
 
         return gs.matmul(point, matrix_r) - base_point
 
