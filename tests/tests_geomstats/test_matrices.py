@@ -8,7 +8,6 @@ from tests.geometry_test_cases import RiemannianMetricTestCase, VectorSpaceTestC
 
 
 class TestMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
-
     testing_data = MatricesTestData()
 
     def test_belongs(self, m, n, mat, expected):

@@ -281,7 +281,10 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
         space = self.Space(k_landmarks, m_ambient)
         bundle = self.Bundle(space)
 
-        (nabla_x_a_y_z_qp, a_y_z_qp,) = bundle.integrability_tensor_derivative_parallel(
+        (
+            nabla_x_a_y_z_qp,
+            a_y_z_qp,
+        ) = bundle.integrability_tensor_derivative_parallel(
             hor_x, hor_y, hor_z, base_point
         )
 
@@ -322,7 +325,10 @@ class TestPreShapeSpaceBundle(TestCase, metaclass=Parametrizer):
             base_point,
         )
 
-        (nabla_x_a_y_a_x_y, a_y_a_x_y,) = bundle.integrability_tensor_derivative(
+        (
+            nabla_x_a_y_a_x_y,
+            a_y_a_x_y,
+        ) = bundle.integrability_tensor_derivative(
             hor_x, hor_y, a_x_y, a_x_y, nabla_x_v, base_point
         )
 

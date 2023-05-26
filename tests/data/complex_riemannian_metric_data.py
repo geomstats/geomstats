@@ -13,7 +13,6 @@ def _herm_metric_matrix(base_point):
 
 
 class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
-
     dim = 2
     herm = Hermitian(dim=dim)
 
@@ -42,7 +41,6 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(random_data)
 
     def hamiltonian_test_data(self):
-
         smoke_data = [
             dict(
                 metric=self.herm.metric,
@@ -144,7 +142,6 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests([], random_data)
 
     def christoffels_test_data(self):
-
         random_data = []
 
         random_data += [
@@ -165,7 +162,6 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(random_data)
 
     def exp_test_data(self):
-
         herm_base_point = self.herm.random_point()
         herm_tangent_vec = self.herm.random_point()
         herm_expected = herm_base_point + herm_tangent_vec

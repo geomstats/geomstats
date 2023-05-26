@@ -13,7 +13,6 @@ ALL_BACKENDS = ["numpy", "pytorch", "autograd"]
 
 
 def _exec_notebook(path):
-
     file_name = tempfile.NamedTemporaryFile(suffix=".ipynb").name
     args = [
         "jupyter",

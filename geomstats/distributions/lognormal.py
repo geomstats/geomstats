@@ -150,7 +150,6 @@ class LogNormal:
     """
 
     def __init__(self, manifold, mean, cov=None):
-
         if not isinstance(manifold, SPDMatrices) and not isinstance(
             manifold, Euclidean
         ):

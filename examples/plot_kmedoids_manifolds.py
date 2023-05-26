@@ -124,7 +124,6 @@ def main():
 
 
 if __name__ == "__main__":
-
     compatible_backends = ["numpy", "pytorch"]
 
     if os.environ["GEOMSTATS_BACKEND"] not in compatible_backends:

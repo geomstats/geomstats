@@ -19,7 +19,6 @@ SINH_1 = math.sinh(1.0)
 
 
 class SPDMatricesTestData(_OpenSetTestData):
-
     smoke_space_args_list = [(2,), (3,), (4,), (5,)]
     smoke_n_points_list = [1, 2, 1, 2]
     n_list = random.sample(range(2, 5), 2)

@@ -13,7 +13,6 @@ from tests.geometry_test_cases import LevelSetTestCase
 
 
 class TestFullRankCorrelationMatrices(LevelSetTestCase, metaclass=Parametrizer):
-
     skip_test_intrinsic_after_extrinsic = True
     skip_test_extrinsic_after_intrinsic = True
     testing_data = FullRankCorrelationMatricesTestData()

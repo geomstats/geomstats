@@ -10,7 +10,6 @@ from tests.data_generation import TestData, _OpenSetTestData
 
 
 class PoincarePolydiskTestData(_OpenSetTestData):
-
     n_disks_list = random.sample(range(2, 4), 2)
     space_args_list = [(n_disks,) for n_disks in n_disks_list]
     shape_list = [(n_disks, 3) for n_disks in n_disks_list]
@@ -25,7 +24,6 @@ class PoincarePolydiskTestData(_OpenSetTestData):
 
 
 class PoincarePolydiskMetricTestData(TestData):
-
     n_disks_list = random.sample(range(2, 4), 2)
 
     shape_list = [(n_disks, 3) for n_disks in n_disks_list]

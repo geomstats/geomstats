@@ -26,7 +26,6 @@ class BackendsTestData(TestData):
         return [{"func_name": func_name, "args": args_} for args_ in args]
 
     def _additional_array_data(self):
-
         data = [
             dict(func_name="zeros", args=(2,)),
             dict(func_name="zeros", args=((2, 2),)),

@@ -38,7 +38,6 @@ class BetaDistributionsTestsData(_OpenSetTestData):
 
 
 class BetaMetricTestData(_RiemannianMetricTestData):
-
     connection_args_list = metric_args_list = [{}]
     shape_list = [(2,)]
     space_list = [BetaDistributions()]

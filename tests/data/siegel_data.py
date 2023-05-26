@@ -13,7 +13,6 @@ EXP_4 = math.exp(4.0)
 
 
 class SiegelTestData(_ComplexOpenSetTestData):
-
     smoke_space_args_list = [(2,), (3,), (4,), (5,)]
     smoke_n_points_list = [1, 2, 1, 2]
     n_list = random.sample(range(2, 5), 2)

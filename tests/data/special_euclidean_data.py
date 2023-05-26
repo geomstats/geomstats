@@ -226,7 +226,6 @@ class SpecialEuclideanTestData(_LieGroupTestData):
 
 
 class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
-
     Space = SpecialEuclideanMatrixLieAlgebra
 
     n_list = random.sample(range(2, 5), 2)

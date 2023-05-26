@@ -79,7 +79,6 @@ class TestComplexMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
 class TestComplexMatricesMetric(
     ComplexRiemannianMetricTestCase, metaclass=Parametrizer
 ):
-
     skip_test_inner_product_is_symmetric = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_parallel_transport_ivp_is_isometry = True

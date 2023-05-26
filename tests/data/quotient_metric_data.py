@@ -88,7 +88,6 @@ class BundleTestData(TestData):
 
 
 class QuotientMetricTestData(TestData):
-
     Base = SPDMatrices
     Bundle = BuresWassersteinBundle
     TotalSpace = GeneralLinear

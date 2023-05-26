@@ -28,7 +28,7 @@ class Arrow3D:
             self.vector[0],
             self.vector[1],
             self.vector[2],
-            **quiver_kwargs
+            **quiver_kwargs,
         )
 
 

@@ -39,7 +39,6 @@ class StiefelTestData(_LevelSetTestData):
     }
 
     def to_grassmannian_test_data(self):
-
         point1 = gs.array([[1.0, -1.0], [1.0, 1.0], [0.0, 0.0]]) / gs.sqrt(2.0)
         batch_points = Matrices.mul(
             GeneralLinear.exp(gs.array([gs.pi * r_z / n for n in [2, 3, 4]])),
@@ -53,7 +52,6 @@ class StiefelTestData(_LevelSetTestData):
 
 
 class StiefelCanonicalMetricTestData(_RiemannianMetricTestData):
-
     n_list = random.sample(range(3, 5), 2)
     p_list = [random.sample(range(2, n), 1)[0] for n in n_list]
 

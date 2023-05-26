@@ -391,7 +391,6 @@ class InvariantMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def integrated_exp_at_id_test_data(self):
-
         smoke_data = [dict(group=self.matrix_so3)]
         return self.generate_tests(smoke_data)
 

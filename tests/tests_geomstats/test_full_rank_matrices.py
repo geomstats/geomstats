@@ -6,7 +6,6 @@ from tests.geometry_test_cases import OpenSetTestCase
 
 
 class TestFullRankMatrices(OpenSetTestCase, metaclass=Parametrizer):
-
     testing_data = FullRankMatricesTestData()
 
     def test_belongs(self, m, n, mat, expected):

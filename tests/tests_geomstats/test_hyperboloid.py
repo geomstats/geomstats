@@ -160,7 +160,6 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(x_extr_a, x_extr_b, atol=3e-4)
 
     def test_distance_ball_extrinsic_from_ball(self, dim, x_ball, y_ball):
-
         ball_manifold = PoincareBall(dim)
         space = Hyperboloid(dim)
         x_extr = ball_manifold.to_coordinates(x_ball, to_coords_type="extrinsic")

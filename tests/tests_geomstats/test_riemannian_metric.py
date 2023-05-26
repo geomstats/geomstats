@@ -7,7 +7,6 @@ from tests.geometry_test_cases import TestCase
 
 
 class TestRiemannianMetric(TestCase, metaclass=Parametrizer):
-
     testing_data = RiemannianMetricTestData()
 
     def test_cometric_matrix(self, metric, base_point, expected):

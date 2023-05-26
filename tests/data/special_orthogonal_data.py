@@ -343,7 +343,6 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
         return self.generate_tests([], random_data)
 
     def matrix_from_rotation_vector_test_data(self):
-
         rot_vec_3 = 1e-11 * gs.array([12.0, 1.0, -81.0])
         angle = gs.linalg.norm(rot_vec_3)
         skew_rot_vec_3 = 1e-11 * gs.array(
