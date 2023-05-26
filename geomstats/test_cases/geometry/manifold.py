@@ -11,6 +11,7 @@ class _ManifoldTestCaseMixins:
     # TODO: remove regularize
     # TODO: check default_coords_type correcteness if intrinsic by comparing
     # with point shape?
+    tangent_to_multiple = False
 
     def setup_method(self):
         if not hasattr(self, "data_generator"):
@@ -77,7 +78,7 @@ class _ManifoldTestCaseMixins:
         expected_ndim = self.space.point_ndim + int(n_points > 1)
         self.assertEqual(gs.ndim(point), expected_ndim)
 
-        self.assertAllEqual(gs.shape(point)[-self.space.point_ndim :], self.space.shape)
+        self.assertAllEqual(gs.shape(point)[-self.space.point_ndim:], self.space.shape)
 
         if n_points > 1:
             self.assertEqual(gs.shape(point)[0], n_points)

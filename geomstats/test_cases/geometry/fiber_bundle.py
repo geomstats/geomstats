@@ -108,6 +108,7 @@ class FiberBundleTestCase(TestCase):
             ],
             arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -180,6 +181,7 @@ class FiberBundleTestCase(TestCase):
             ],
             arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -216,7 +218,7 @@ class FiberBundleTestCase(TestCase):
             arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
             n_reps=n_reps,
-            vectorization_type="repeat-0",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
         )
         self._test_vectorization(vec_data)
 
@@ -264,6 +266,7 @@ class FiberBundleTestCase(TestCase):
             ],
             arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -290,6 +293,7 @@ class FiberBundleTestCase(TestCase):
             ],
             arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -320,6 +324,7 @@ class FiberBundleTestCase(TestCase):
             ],
             arg_names=["tangent_vec", "fiber_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -374,6 +379,7 @@ class FiberBundleTestCase(TestCase):
             ],
             arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)

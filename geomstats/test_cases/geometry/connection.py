@@ -10,6 +10,8 @@ from geomstats.vectorization import get_batch_shape
 
 
 class ConnectionTestCase(TestCase):
+    tangent_to_multiple = False
+
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.space)
@@ -54,7 +56,7 @@ class ConnectionTestCase(TestCase):
             ],
             arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
-            vectorization_type="repeat-0",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -209,7 +211,7 @@ class ConnectionTestCase(TestCase):
             ],
             arg_names=["tangent_vec_a", "tangent_vec_b", "tangent_vec_c", "base_point"],
             expected_name="expected",
-            vectorization_type="repeat-0-1-2",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1-2",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -262,7 +264,7 @@ class ConnectionTestCase(TestCase):
             ],
             arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
             expected_name="expected",
-            vectorization_type="repeat-0-1",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -314,7 +316,7 @@ class ConnectionTestCase(TestCase):
                 "base_point",
             ],
             expected_name="expected",
-            vectorization_type="repeat-0-1-2-3",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1-2-3",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -349,7 +351,7 @@ class ConnectionTestCase(TestCase):
             ],
             arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
             expected_name="expected",
-            vectorization_type="repeat-0-1",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -415,7 +417,7 @@ class ConnectionTestCase(TestCase):
             arg_names=["initial_point", "initial_tangent_vec"],
             expected_name="expected",
             n_reps=n_reps,
-            vectorization_type="repeat-1",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-1",
         )
         self._test_vectorization(vec_data, test_fnc_name="test_geodesic")
 
@@ -569,7 +571,7 @@ class ConnectionTestCase(TestCase):
             arg_names=["tangent_vec", "base_point", "direction"],
             expected_name="expected",
             n_reps=n_reps,
-            vectorization_type="repeat-0-2",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-2",
         )
         self._test_vectorization(vec_data, test_fnc_name="test_parallel_transport")
 
@@ -595,7 +597,7 @@ class ConnectionTestCase(TestCase):
             arg_names=["tangent_vec", "base_point", "end_point"],
             expected_name="expected",
             n_reps=n_reps,
-            vectorization_type="repeat-0-1",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
         )
         self._test_vectorization(vec_data, test_fnc_name="test_parallel_transport")
 

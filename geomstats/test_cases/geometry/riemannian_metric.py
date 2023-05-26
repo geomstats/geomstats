@@ -103,6 +103,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             ],
             arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -162,6 +163,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             ],
             arg_names=["cotangent_vec_a", "cotangent_vec_b", "base_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -183,6 +185,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             ],
             arg_names=["vector", "base_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -204,6 +207,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             ],
             arg_names=["vector", "base_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -235,6 +239,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             ],
             arg_names=["vector", "base_point"],
             expected_name="expected",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
@@ -558,7 +563,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             ],
             arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
             expected_name="expected",
-            vectorization_type="repeat-0-1",
+            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)

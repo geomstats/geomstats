@@ -285,6 +285,7 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
             ],
             arg_names=["vector", "point"],
             n_reps=n_reps,
+            vectorization_type="sym" if self.tangent_to_multiple else "repetition-0",
             expected_name="expected",
         )
         self._test_vectorization(vec_data)
