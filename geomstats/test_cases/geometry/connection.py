@@ -116,7 +116,7 @@ class ConnectionTestCase(TestCase):
 
         tangent_vec = self.space.metric.log(point, base_point)
 
-        res = self.space.is_tangent(tangent_vec, base_point)
+        res = self.space.is_tangent(tangent_vec, base_point, atol=atol)
         expected_shape = get_batch_shape(self.space, base_point)
         expected = gs.ones(expected_shape, dtype=bool)
         self.assertAllEqual(res, expected)

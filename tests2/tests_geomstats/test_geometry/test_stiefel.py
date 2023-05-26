@@ -16,6 +16,9 @@ from .data.stiefel import (
     StiefelTestData,
 )
 
+# TODO: use comparison with limit cases
+# TODO: make it work with p=1?
+
 
 def _get_random_params():
     while True:
@@ -35,7 +38,11 @@ def _get_random_params():
 
 @pytest.fixture(
     scope="class",
-    params=[(3, 2), _get_random_params()],
+    params=[
+        (3, 2),
+        # (random.randint(2, 4), 1),
+        _get_random_params(),
+    ],
 )
 def spaces(request):
     n, p = request.param
@@ -47,6 +54,7 @@ class TestStiefel(StiefelTestCase, metaclass=DataBasedParametrizer):
     testing_data = StiefelTestData()
 
 
+@pytest.mark.smoke
 class TestStiefelStaticMethods(StiefelStaticMethodsTestCase, metaclass=Parametrizer):
     Space = Stiefel
     testing_data = StiefelStaticMethodsTestData()
@@ -54,7 +62,11 @@ class TestStiefelStaticMethods(StiefelStaticMethodsTestCase, metaclass=Parametri
 
 @pytest.fixture(
     scope="class",
-    params=[(3, 2), _get_random_params()],
+    params=[
+        (3, 2),
+        # (random.randint(2, 4), 1),
+        _get_random_params(),
+    ],
 )
 def equipped_spaces(request):
     n, p = request.param
