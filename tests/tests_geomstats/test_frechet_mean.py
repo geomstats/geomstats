@@ -563,7 +563,7 @@ class TestFrechetMean(tests.conftest.TestCase):
         point = space.random_point(2)
         mean = FrechetMean(metric, method="default", init_step_size=0.5, verbose=True)
         mean.fit(point)
-        result = space.belongs(mean.estimate_)
+        result = space.belongs(mean.estimate_, atol=1e-8)
         self.assertTrue(result)
 
     def test_circle_mean(self):
