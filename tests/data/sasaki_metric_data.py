@@ -1,5 +1,3 @@
-import os
-
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.sasaki_metric import SasakiMetric
@@ -10,7 +8,7 @@ class SasakiMetricTestData(TestData):
     dim = 2
     sas_sphere_metric = SasakiMetric(
         Hypersphere(dim=dim),
-        os.cpu_count(),
+        n_jobs=1,
     )
 
     # fix elements in TS

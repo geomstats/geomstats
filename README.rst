@@ -111,16 +111,9 @@ requirements via ``git`` as follows:
 This method installs the latest GitHub version of geomstats.
 
 
-To add the requirements into a conda environment, you can use the
-``enviroment.yml`` file as follows:
-
-::
-
-   conda env create --file environment.yml
-
 Note that this only installs the minimum requirements. To add the optional,
 development, continuous integration and documentation requirements,
-refer to the file ``setup.cfg``.
+refer to the file ``pyproject.toml``.
 
 Install geomstats : Developers
 ------------------------------

@@ -27,19 +27,24 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.8]
+        python-version: [3.11]
         geomstats-backend: ["autograd", "numpy", "pytorch"]
         test-folder: ["tests/tests_geomstats/", "tests/tests_scripts"]
       fail-fast: false
+    env:
+      GEOMSTATS_BACKEND: ${{matrix.geomstats-backend}}
 
-    steps:
+    steps:         
       - uses: actions/checkout@v3
       - name: Build using Python ${{matrix.python-version}} and Backend ${{matrix.geomstats-backend}}
         uses: actions/setup-python@v4
         with:
           python-version: ${{matrix.python-version}}
-          cache: "pip"
-          cache-dependency-path: "pyproject.toml"
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{matrix.geomstats-backend}}-${{matrix.os}}-${{matrix.python-version}}-${{ hashFiles('pyproject.toml') }}
 
       - name: install dependencies [pip]
         run: |
@@ -49,13 +54,17 @@ jobs:
       - name: Add annotations [pytest]
         run: pip install pytest-github-actions-annotate-failures
 
-      - name: unit testing [pytest]
-        env:
-          GEOMSTATS_BACKEND: ${{matrix.geomstats-backend}}
+      - name: unit testing for geomstats [pytest]
+        if : ${{matrix.test-folder == 'tests/tests_geomstats/'}}
         run: |
           pytest --cov-report term --cov=geomstats ${{matrix.test-folder}}
 
+      - name: unit testing for scripts [pytest]       
+        if : ${{matrix.test-folder == 'tests/tests_scripts'}}
+        run: |
+          pytest ${{matrix.test-folder}}
+
       - name: uploading code coverage [codecov]
-        if: ${{matrix.python-version == 3.8 && matrix.test-folder == 'tests/tests_geomstats/'}}
+        if: ${{matrix.python-version == 3.11 && matrix.test-folder == 'tests/tests_geomstats/'}}
         run: |
           bash <(curl -s https://codecov.io/bash) -c -F ${{matrix.geomstats-backend}}
