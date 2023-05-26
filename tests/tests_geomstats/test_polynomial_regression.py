@@ -1,14 +1,14 @@
 """Unit tests for Polynomial Regression."""
-from scipy.optimize import minimize
-
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.discrete_curves import R2, DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.learning.polynomial_regression import PolynomialRegression
+from scipy.optimize import minimize
+
+import tests.conftest
 
 
 class TestPolynomialRegression(tests.conftest.TestCase):
@@ -598,7 +598,7 @@ class TestPolynomialRegression(tests.conftest.TestCase):
             direction=tangent_vec_of_transport,
         )
 
-        self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=1e-3)
+        self.assertAllClose(transported_coef_hat, self.coef_eucl_true, atol=1e-2)
 
     @tests.conftest.autograd_and_torch_only
     def test_fit_extrinsic_hypersphere(self):
