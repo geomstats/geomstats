@@ -94,7 +94,6 @@ class Parametrizer(type):
             if (f"skip_{attr_name}", True) in locals()["attrs"].items():
                 attrs[attr_name] = pytest.mark.skip("skipped")(test_func)
             else:
-
                 attrs[attr_name] = _parametrize_test_func(
                     test_func, attr_name, testing_data, default_values
                 )

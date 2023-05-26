@@ -85,7 +85,15 @@ include = [
 [tool.pytest.ini_options]
 markers = [
     "smoke: simple and basic numerical tests.",
-    "random: tests that use randomized data."
+    "random: tests that use randomized data.",
+    "validation: not smoke, neither random.",
+    "ignore: deselect tests.",
+    "vec: vectorization tests.",
+    "shape: array shape tests.",
+    "type: checks output types.",
+    "mathprop: mathematical properties tests.",
+    "slow: for slow tests.",
+    "test: testing markers."
 ]
 
 [tool.flake8]
@@ -107,5 +115,6 @@ per-file-ignores = [
     "geomstats/visualization/__init__.py: F401",
     "geomstats/tests.py : D101, D102",
     "tests/*: D100, D101, D102, D103, D106, D200, D201, D205, D400, D404, I100, I101, I201, I202",
-    "*/__init__.py: D104"
+    "*/__init__.py: D104",
+    "geomstats/test*/*: D100, D101, D102, D103, D104, E501"
 ]

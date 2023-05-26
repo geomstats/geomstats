@@ -352,7 +352,6 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
     def test_matrix_from_tait_bryan_angles(
         self, tait_bryan_angles, extrinsic, zyx, expected, atol
     ):
-
         res = self.space.matrix_from_tait_bryan_angles(
             tait_bryan_angles, extrinsic=extrinsic, zyx=zyx
         )

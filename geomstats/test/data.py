@@ -28,7 +28,6 @@ class TestData:
             marks = [marks]
 
         for test_datum in test_data:
-
             if isinstance(test_datum, dict):
                 if "marks" not in test_datum:
                     test_datum["marks"] = marks

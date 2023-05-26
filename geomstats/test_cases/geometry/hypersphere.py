@@ -172,7 +172,6 @@ class HypersphereCoordsTransformTestCase(TestCase):
         expected,
         atol,
     ):
-
         res = self.space.tangent_spherical_to_extrinsic(
             tangent_vec_spherical, base_point_spherical
         )
@@ -239,7 +238,6 @@ class HypersphereCoordsTransformTestCase(TestCase):
 
     @pytest.mark.vec
     def test_tangent_extrinsic_to_spherical_vec(self, n_reps, atol):
-
         base_point = self.space_extrinsic.random_point()
         tangent_vec = get_random_tangent_vec(self.space, base_point)
 

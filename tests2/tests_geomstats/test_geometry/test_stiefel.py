@@ -18,7 +18,6 @@ from .data.stiefel import (
 
 
 def _get_random_params():
-
     while True:
         a = random.randint(2, 6)
         b = random.randint(2, 6)
