@@ -78,7 +78,7 @@ class _ManifoldTestCaseMixins:
         expected_ndim = self.space.point_ndim + int(n_points > 1)
         self.assertEqual(gs.ndim(point), expected_ndim)
 
-        self.assertAllEqual(gs.shape(point)[-self.space.point_ndim:], self.space.shape)
+        self.assertAllEqual(gs.shape(point)[-self.space.point_ndim :], self.space.shape)
 
         if n_points > 1:
             self.assertEqual(gs.shape(point)[0], n_points)
