@@ -134,3 +134,15 @@ class FiberBundleRandomDataGenerator(RandomDataGenerator):
 
     def base_random_tangent_vec(self, base_point):
         return get_random_tangent_vec(self.base, base_point)
+
+
+class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    def random_point_standard(self, n_points=1):
+        return self.space.natural_to_standard(self.random_point(n_points=n_points))
+
+    def random_tangent_vec_standard(self, base_point):
+        base_point_natural = self.space.standard_to_natural(base_point)
+        tangent_vec_natural = self.random_tangent_vec(base_point_natural)
+        return self.space.tangent_natural_to_standard(
+            tangent_vec_natural, base_point_natural
+        )
