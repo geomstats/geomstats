@@ -22,6 +22,7 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
 from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.vectorization import repeat_out
 
 
 class NormalDistributions:
@@ -749,24 +750,10 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         sectional_curvature : array-like, shape=[...,]
             Sectional curvature at `base_point`.
         """
-        sectional_curv = -0.5
-        if (
-            tangent_vec_a.ndim == 1
-            and tangent_vec_b.ndim == 1
-            and (base_point is None or base_point.ndim == 1)
-        ):
-            return gs.array(sectional_curv)
-
-        n_sec_curv = []
-        if base_point is not None and base_point.ndim == 2:
-            n_sec_curv.append(base_point.shape[0])
-        if tangent_vec_a.ndim == 2:
-            n_sec_curv.append(tangent_vec_a.shape[0])
-        if tangent_vec_b.ndim == 2:
-            n_sec_curv.append(tangent_vec_b.shape[0])
-        n_sec_curv = max(n_sec_curv)
-
-        return gs.tile(sectional_curv, (n_sec_curv,))
+        sectional_curv = gs.array(-0.5)
+        return repeat_out(
+            self._space, sectional_curv, tangent_vec_a, tangent_vec_b, base_point
+        )
 
 
 class CenteredNormalMetric:
@@ -911,7 +898,8 @@ class DiagonalNormalMetric(RiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return math.inf
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)
