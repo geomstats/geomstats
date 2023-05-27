@@ -8,19 +8,21 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.spd_matrices import SPDBuresWassersteinMetric, SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.comparison import RiemannianMetricComparisonTestCase
 from geomstats.test_cases.geometry.fiber_bundle import (
     GeneralLinearBuresWassersteinBundle,
 )
+from geomstats.test_cases.geometry.riemannian_metric import (
+    RiemannianMetricComparisonTestCase,
+)
 
-from .data.quotient_metric import SPDBuresWassersteinQuotientMetricTestData
+from .data.quotient_metric import SPDBuresWassersteinQuotientMetricCmpTestData
 
 
 @pytest.fixture(
     scope="class",
     params=[
         2,
-        # random.randint(3, 5),
+        random.randint(3, 5),
     ],
 )
 def spd_with_quotient_metric(request):
@@ -40,7 +42,7 @@ def spd_with_quotient_metric(request):
 
 
 @pytest.mark.usefixtures("spd_with_quotient_metric")
-class TestSPDBuresWassersteinQuotientMetric(
+class TestSPDBuresWassersteinQuotientMetricCmp(
     RiemannianMetricComparisonTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = SPDBuresWassersteinQuotientMetricTestData()
+    testing_data = SPDBuresWassersteinQuotientMetricCmpTestData()

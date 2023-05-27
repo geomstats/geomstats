@@ -76,3 +76,47 @@ class ConnectionTestData(TestData):
 
     def injectivity_radius_vec_test_data(self):
         return self.generate_vec_data()
+
+
+class ConnectionComparisonTestData(TestData):
+    def christoffels_test_data(self):
+        return self.generate_random_data()
+
+    def exp_test_data(self):
+        return self.generate_random_data()
+
+    def log_test_data(self):
+        return self.generate_random_data()
+
+    def riemann_tensor_test_data(self):
+        return self.generate_random_data()
+
+    def curvature_test_data(self):
+        return self.generate_random_data()
+
+    def ricci_tensor_test_data(self):
+        return self.generate_random_data()
+
+    def directional_curvature_test_data(self):
+        return self.generate_random_data()
+
+    def curvature_derivative_test_data(self):
+        return self.generate_random_data()
+
+    def directional_curvature_derivative_test_data(self):
+        return self.generate_random_data()
+
+    def geodesic_bvp_test_data(self):
+        return self.generate_random_data_with_time()
+
+    def geodesic_ivp_test_data(self):
+        return self.generate_random_data_with_time()
+
+    def parallel_transport_with_direction_test_data(self):
+        return self.generate_random_data()
+
+    def parallel_transport_with_end_point_test_data(self):
+        return self.generate_random_data()
+
+    def injectivity_radius_test_data(self):
+        return self.generate_random_data()

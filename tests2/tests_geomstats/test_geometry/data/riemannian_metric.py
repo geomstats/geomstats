@@ -1,4 +1,4 @@
-from .connection import ConnectionTestData
+from .connection import ConnectionComparisonTestData, ConnectionTestData
 
 
 class RiemannianMetricTestData(ConnectionTestData):
@@ -87,4 +87,45 @@ class RiemannianMetricTestData(ConnectionTestData):
         return self.generate_random_data()
 
     def parallel_transport_bvp_norm_test_data(self):
+        return self.generate_random_data()
+
+
+class RiemannianMetricComparisonTestData(ConnectionComparisonTestData):
+    def metric_matrix_test_data(self):
+        return self.generate_random_data()
+
+    def cometric_matrix_test_data(self):
+        return self.generate_random_data()
+
+    def inner_product_derivative_matrix_test_data(self):
+        return self.generate_random_data()
+
+    def inner_product_test_data(self):
+        return self.generate_random_data()
+
+    def inner_coproduct_test_data(self):
+        return self.generate_random_data()
+
+    def squared_norm_test_data(self):
+        return self.generate_random_data()
+
+    def norm_test_data(self):
+        return self.generate_random_data()
+
+    def normalize_test_data(self):
+        return self.generate_random_data()
+
+    def squared_dist_test_data(self):
+        return self.generate_random_data()
+
+    def dist_test_data(self):
+        return self.generate_random_data()
+
+    def covariant_riemann_tensor_test_data(self):
+        return self.generate_random_data()
+
+    def sectional_curvature_test_data(self):
+        return self.generate_random_data()
+
+    def scalar_curvature_test_data(self):
         return self.generate_random_data()

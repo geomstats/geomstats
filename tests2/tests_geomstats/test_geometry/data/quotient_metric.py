@@ -1,12 +1,14 @@
-from .comparison import RiemannianMetricComparisonTestData
-from .riemannian_metric import RiemannianMetricTestData
+from .riemannian_metric import (
+    RiemannianMetricComparisonTestData,
+    RiemannianMetricTestData,
+)
 
 
 class QuotientMetricTestData(RiemannianMetricTestData):
     pass
 
 
-class SPDBuresWassersteinQuotientMetricTestData(RiemannianMetricComparisonTestData):
+class SPDBuresWassersteinQuotientMetricCmpTestData(RiemannianMetricComparisonTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
