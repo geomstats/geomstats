@@ -900,7 +900,6 @@ class ElasticMetric(RiemannianMetric):
         energy : array-like, shape=[..., n_times - 1,]
             Stepwise path energy.
         """
-        print(path.shape)
         need_squeeze = False
         if path.ndim == 3:
             path = gs.expand_dims(path, axis=0)

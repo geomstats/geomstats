@@ -186,7 +186,6 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_geodesic_bvp_belongs = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_log_after_exp = True
-    #skip_test_log_is_tangent = True
     skip_test_dist_is_norm_of_log = True
     skip_test_dist_is_positive = True
     skip_test_dist_is_symmetric = True
@@ -223,20 +222,14 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         space.equip_with_metric(self.Metric, a0=a0, a1=a1, b1=b1, c1=c1, d1=d1, a2=a2)
 
         energy = space.metric.path_energy_per_time(path)
-        print('pre vec')
-        print(energy.shape)
+
         self.assertAllEqual(energy.shape, (n_times-1, 1))
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)
 
-        print(path.shape)
-        print(n_times)
         expected_shape = (2, n_times -1, 1)
         path = gs.array([path, path])
-        print("HELLO")
-        print(path.shape)
         energy = space.metric.path_energy_per_time(path)
-        print(energy.shape)
         self.assertAllEqual(energy.shape, expected_shape)
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)
