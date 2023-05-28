@@ -497,6 +497,10 @@ class ElasticMetric(RiemannianMetric):
         self.d1 = d1
         self.a2 = a2
 
+        self.n_times = 5
+        #self.dim = self.space.dim
+        #self.shape = self.space.shape
+
     def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas_bp):
         r"""Compute term of order 0 within the inner-product.
 
@@ -918,7 +922,7 @@ class ElasticMetric(RiemannianMetric):
         """
         return 0.5 * gs.sum(self.path_energy_per_time(path))
     
-     def _ivp(self, initial_point, initial_tangent_vec, times=None):
+    def _ivp(self, initial_point, initial_tangent_vec, times=None):
         initial_point = gs.array(initial_point)
         initial_tangent_vec = gs.array(initial_tangent_vec)
 
@@ -985,3 +989,34 @@ class ElasticMetric(RiemannianMetric):
             options={"disp": True, "ftol": 1},
         )
         return gs.reshape(gs.array(sol.x), (n_points, 3))
+    
+    def exp(self, tangent_vec, base_point):
+        """Compute exponential map associated to the Riemmannian metric.
+
+        Exponential map at base_point of tangent_vec computed
+        by discrete geodesic calculus methods.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_vertices, 3]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[n_vertices, 3]
+            Point on the manifold.
+
+        Returns
+        -------
+        exp : array-like, shape=[nv,3]
+            Point on the manifold.
+        """
+        exps = []
+        need_squeeze = False
+        if tangent_vec.ndim == 2:
+            tangent_vec = gs.expand_dims(tangent_vec, axis=0)
+            need_squeeze = True
+        for one_tangent_vec in tangent_vec:
+            geod = self._ivp(base_point, one_tangent_vec)
+            exps.append(geod[-1])
+        exps = gs.array(exps)
+        if need_squeeze:
+            exps = gs.squeeze(exps, axis=0)
+        return exps
