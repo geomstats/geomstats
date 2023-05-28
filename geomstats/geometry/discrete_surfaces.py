@@ -498,10 +498,6 @@ class ElasticMetric(RiemannianMetric):
         self.d1 = d1
         self.a2 = a2
 
-        self.n_times = 5
-        #self.dim = self.space.dim
-        #self.shape = self.space.shape
-
     def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas_bp):
         r"""Compute term of order 0 within the inner-product.
 
@@ -923,36 +919,27 @@ class ElasticMetric(RiemannianMetric):
         """
         return 0.5 * gs.sum(self.path_energy_per_time(path))
     
-    def parallel_transport(self, tangent_vec, base_point, direction=None, end_point=None):
-        """Parallel transport of a tangent vector tan_a along the geodesic."""
-        parallel_transport_dict = self.ladder_parallel_transport(
-            self, tangent_vec, base_point, direction, n_rungs=1, scheme="pole", alpha=1
-        )
-        return gs.array(parallel_transport_dict["transported_tangent_vec"])
+    # def parallel_transport(self, tangent_vec, base_point, direction=None, end_point=None):
+    #     """Parallel transport of a tangent vector tan_a along the geodesic."""
+    #     parallel_transport_dict = self.ladder_parallel_transport(
+    #         self, tangent_vec, base_point, direction, n_rungs=1, scheme="pole", alpha=1
+    #     )
+    #     return gs.array(parallel_transport_dict["transported_tangent_vec"])
     
-    def _ivp(self, initial_point, initial_tangent_vec, times=None):
-        initial_point = gs.array(initial_point)
-        initial_tangent_vec = gs.array(initial_tangent_vec)
+    def _ivp(self, initial_point, initial_tangent_vec, times):
+        # initial_point = gs.array(initial_point)
+        # initial_tangent_vec = gs.array(initial_tangent_vec)
 
-        if times is None:
-            initial_tangent_vec = initial_tangent_vec / (self.n_times - 1)
-        else:
-            initial_tangent_vec = initial_tangent_vec / (len(times) - 1)
-        vertex_0 = initial_point
-        vertex_1 = vertex_0 + initial_tangent_vec
-        ivp = [vertex_0, vertex_1]
-        if times is None:
-            for i in range(2, self.n_times):
-                vertex_2 = self._stepforward(vertex_0, vertex_1)
-                ivp += [vertex_2]
-                vertex_0 = vertex_1
-                vertex_1 = vertex_2
-        else:
-            for i in range(2, len(times)):
-                vertex_2 = self._stepforward(vertex_0, vertex_1)
-                ivp += [vertex_2]
-                vertex_0 = vertex_1
-                vertex_1 = vertex_2
+        n_times = len(times)
+        initial_tangent_vec = initial_tangent_vec / (n_times - 1)
+
+        next_point = initial_point + initial_tangent_vec
+        ivp = [initial_point, next_point]
+        for _ in range(2, n_times):
+            next_next_point = self._stepforward(initial_point, next_point)
+            ivp += [next_next_point]
+            initial_point = next_point
+            next_point = next_next_point
         return gs.stack(ivp, axis=0)
 
     def _stepforward(self, current_point, next_point):
@@ -995,7 +982,7 @@ class ElasticMetric(RiemannianMetric):
         )
         return gs.reshape(gs.array(sol.x), (n_vertices, 3))
     
-    def exp(self, tangent_vec, base_point, n_steps=None, step=None):
+    def exp(self, tangent_vec, base_point, n_steps=100, step=None):
         """Compute exponential map associated to the Riemmannian metric.
 
         Exponential map at base_point of tangent_vec computed
@@ -1015,17 +1002,17 @@ class ElasticMetric(RiemannianMetric):
         """
         exps = []
         need_squeeze = False
+        times = gs.arange(0, 1, n_steps)
         if tangent_vec.ndim == 2:
             tangent_vec = gs.expand_dims(tangent_vec, axis=0)
             need_squeeze = True
         for one_tangent_vec in tangent_vec:
-            geod = self._ivp(base_point, one_tangent_vec)
+            geod = self._ivp(base_point, one_tangent_vec, times=times)
             exps.append(geod[-1])
         exps = gs.array(exps)
         if need_squeeze:
             exps = gs.squeeze(exps, axis=0)
         return exps
-
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Compute a geodesic.
