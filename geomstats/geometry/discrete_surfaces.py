@@ -13,6 +13,8 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
+N_STEPS = 3
+
 
 class DiscreteSurfaces(Manifold):
     r"""Space of parameterized discrete surfaces.
@@ -954,7 +956,7 @@ class ElasticMetric(RiemannianMetric):
         next_point = gs.array(next_point)
         n_vertices = current_point.shape[0]
         zeros = gs.zeros([n_vertices, 3]).requires_grad_(True)
-        next_point_clone = gs.copy(next_point).requires_grad_(True)
+        next_point_clone = next_point.clone().requires_grad_(True)
 
         def energy_objective(next_next_point):
             next_next_point = gs.reshape(gs.array(next_next_point), (n_vertices, 3))
@@ -978,6 +980,9 @@ class ElasticMetric(RiemannianMetric):
             )(zeros)
             _, energy_3 = gs.autodiff.value_and_grad(norm)(next_point_clone)
             energy_3 = energy_3.requires_grad_(True)
+            # energy_1 = grad(inner_product_with_current_to_next(zeros), zeros, create_graph=True)[0]
+            # energy_2 = grad(inner_product_with_next_to_next_next(zeros), zeros, create_graph=True)[0]
+            # energy_3 = grad(norm(next_point_clone), next_point_clone, create_graph=True)[0]
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
             return gs.sum(energy_tot**2)
@@ -993,7 +998,7 @@ class ElasticMetric(RiemannianMetric):
         )
         return gs.reshape(gs.array(sol.x), (n_vertices, 3))
 
-    def exp(self, tangent_vec, base_point, n_steps=3, step=None):
+    def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step=None):
         """Compute exponential map associated to the Riemmannian metric.
 
         Exponential map at base_point of tangent_vec computed
@@ -1048,6 +1053,8 @@ class ElasticMetric(RiemannianMetric):
         path : callable
             Geodesic function.
         """
+        if end_point is not None:
+            raise NotImplementedError
 
         def path(t):
             """Compute geodesic function.
@@ -1062,9 +1069,12 @@ class ElasticMetric(RiemannianMetric):
             path : array-like, shape=[n_times, n_vertices, 3]
                 Geodesic.
             """
-            if end_point is not None:
-                raise NotImplementedError
+            assert len(t) == 1
             if initial_tangent_vec is not None:
-                return self._ivp(initial_point, initial_tangent_vec, t)
+                times = gs.linspace(0.0, 1.0, N_STEPS)
+                end_point = self._ivp(initial_point, t[0] * initial_tangent_vec, times)[
+                    -1
+                ]
+                return gs.expand_dims(end_point, axis=0)
 
         return path
