@@ -919,17 +919,8 @@ class ElasticMetric(RiemannianMetric):
         """
         return 0.5 * gs.sum(self.path_energy_per_time(path))
     
-    # def parallel_transport(self, tangent_vec, base_point, direction=None, end_point=None):
-    #     """Parallel transport of a tangent vector tan_a along the geodesic."""
-    #     parallel_transport_dict = self.ladder_parallel_transport(
-    #         self, tangent_vec, base_point, direction, n_rungs=1, scheme="pole", alpha=1
-    #     )
-    #     return gs.array(parallel_transport_dict["transported_tangent_vec"])
     
     def _ivp(self, initial_point, initial_tangent_vec, times):
-        # initial_point = gs.array(initial_point)
-        # initial_tangent_vec = gs.array(initial_tangent_vec)
-
         n_times = len(times)
         initial_tangent_vec = initial_tangent_vec / (n_times - 1)
 
