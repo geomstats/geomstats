@@ -987,7 +987,7 @@ class ElasticMetric(RiemannianMetric):
         )
         return gs.reshape(gs.array(sol.x), (n_vertices, 3))
     
-    def exp(self, tangent_vec, base_point, n_steps=100, step=None):
+    def exp(self, tangent_vec, base_point, n_steps=3, step=None):
         """Compute exponential map associated to the Riemmannian metric.
 
         Exponential map at base_point of tangent_vec computed
@@ -1007,7 +1007,7 @@ class ElasticMetric(RiemannianMetric):
         """
         exps = []
         need_squeeze = False
-        times = gs.arange(0, 1, n_steps)
+        times = gs.linspace(start=0.0, stop=1.0, num=n_steps)
         if tangent_vec.ndim == 2:
             tangent_vec = gs.expand_dims(tangent_vec, axis=0)
             need_squeeze = True
