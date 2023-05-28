@@ -2,11 +2,10 @@
 
 import geomstats.backend as gs
 from tests.conftest import Parametrizer, autograd_backend, pytorch_backend
-from tests.data.discrete_surfaces_data import (
-    DiscreteSurfacesTestData,
-    ElasticMetricTestData,
-)
-from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
+from tests.data.discrete_surfaces_data import (DiscreteSurfacesTestData,
+                                               ElasticMetricTestData)
+from tests.geometry_test_cases import (ManifoldTestCase,
+                                       RiemannianMetricTestCase)
 
 
 class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
@@ -190,7 +189,7 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_dist_point_to_itself_is_zero = True
     skip_test_triangle_inequality_of_dist = True
     skip_test_squared_dist_is_symmetric = True
-    skip_test_squared_dist_is_positive = True
+    # skip_test_squared_dist_is_positive = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
     skip_test_covariant_riemann_tensor_bianchi_identity = True
@@ -221,11 +220,11 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         energy = space.metric.path_energy_per_time(path)
 
-        self.assertAllEqual(energy.shape, (n_times-1, 1))
+        self.assertAllEqual(energy.shape, (n_times - 1, 1))
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)
 
-        expected_shape = (2, n_times -1, 1)
+        expected_shape = (2, n_times - 1, 1)
         path = gs.array([path, path])
         energy = space.metric.path_energy_per_time(path)
         self.assertAllEqual(energy.shape, expected_shape)
@@ -253,6 +252,6 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         path = gs.array([path, path])
         energy = space.metric.path_energy(path)
-        self.assertAllEqual(energy.shape, (2, ))
+        self.assertAllEqual(energy.shape, (2,))
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)

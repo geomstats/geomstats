@@ -908,7 +908,9 @@ class ElasticMetric(RiemannianMetric):
         surface_diffs = path[:, 1:, :, :] - path[:, :-1, :, :]
         surface_midpoints = path[:, : n_times - 1, :, :] + surface_diffs / 2
         energy_per_path = []
-        for one_surface_diffs, one_surface_midpoints in zip(surface_diffs, surface_midpoints):
+        for one_surface_diffs, one_surface_midpoints in zip(
+            surface_diffs, surface_midpoints
+        ):
             energy = []
             for diff, midpoint in zip(one_surface_diffs, one_surface_midpoints):
                 energy.extend([n_times * self.squared_norm(diff, midpoint)])
@@ -941,8 +943,7 @@ class ElasticMetric(RiemannianMetric):
         initial_point : array-like, shape=[n_vertices, 3]
             Initial point, i.e. initial discrete surface.
         initial_tangent_vec : array-like, shape=[n_vertices, 3]
-            Initial tangent vector
-            Optional, default: None.
+            Initial tangent vector.
         times : array-like, shape=[n_times,]
             Times between 0 and 1.
         """
@@ -988,9 +989,6 @@ class ElasticMetric(RiemannianMetric):
             )(zeros)
             _, energy_3 = gs.autodiff.value_and_grad(norm)(next_point_clone)
             energy_3 = energy_3.requires_grad_(True)
-            # energy_1 = grad(inner_product_with_current_to_next(zeros), zeros, create_graph=True)[0]
-            # energy_2 = grad(inner_product_with_next_to_next_next(zeros), zeros, create_graph=True)[0]
-            # energy_3 = grad(norm(next_point_clone), next_point_clone, create_graph=True)[0]
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
             return gs.sum(energy_tot**2)
@@ -1060,11 +1058,8 @@ class ElasticMetric(RiemannianMetric):
         """
         logs = []
         need_squeeze = False
-        times = gs.linspace(0., 1., N_STEPS)
+        times = gs.linspace(0.0, 1.0, N_STEPS)
 
-        # print("LOG before squeeze:")
-        # print("point.shape: ", point.shape)
-        # print("base_point.shape: ", base_point.shape)
         if point.ndim == 2:
             point = gs.expand_dims(point, axis=0)
             need_squeeze = True
@@ -1072,9 +1067,7 @@ class ElasticMetric(RiemannianMetric):
             base_point = gs.expand_dims(base_point, axis=0)
             need_squeeze = True
         for one_point in point:
-            # print("one_point.shape: ", one_point.shape)
             for one_base_point in base_point:
-                # print("one_base_point.shape: ", one_base_point.shape)
                 geod = self._bvp(one_base_point, one_point, times)
                 logs.append(geod[1] - geod[0])
         logs = gs.array(logs)
@@ -1083,21 +1076,25 @@ class ElasticMetric(RiemannianMetric):
         return logs
 
     def _bvp(self, initial_point, end_point, times):
+        """Solve boundary value problem (IVP).
+
+        Given an initial point and an end point, solve the geodesic equation.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[n_vertices, 3]
+            Initial point, i.e. initial discrete surface.
+        end_point : array-like, shape=[n_vertices, 3]
+            End point, i.e. end discrete surface.
+        times : array-like, shape=[n_times,]
+            Times between 0 and 1.
+        """
         n_points = initial_point.shape[-2]
         step = (end_point - initial_point) / (len(times) - 1)
-        # create a straight line between initial and end points for initialization
         geod = gs.array([initial_point + i * step for i in times])
         midpoints = geod[1 : len(times) - 1]
 
-        # print("before dimension expansion:")
-        # print("midpoints.shape", midpoints.shape)
-        # print("initial_point.shape", initial_point.shape)
-        # print("end_point.shape", end_point.shape)
-
-        # if vectorizing code: expanding dimension if there is only one midpoint
         all_need_squeeze = False
-        initial_point_need_squeeze = False
-        end_point_need_squeeze = False
         if midpoints.ndim == 3:
             all_need_squeeze = True
             initial_point = gs.expand_dims(initial_point, axis=0)
@@ -1106,49 +1103,36 @@ class ElasticMetric(RiemannianMetric):
             num_points = midpoints.shape[0]
         else:
             if initial_point.ndim == 2:
-                initial_point_need_squeeze = True
                 initial_point = gs.expand_dims(initial_point, axis=0)
                 num_points = end_point.shape[0]
             if end_point.ndim == 2:
-                end_point_need_squeeze = True
                 end_point = gs.expand_dims(end_point, axis=0)
                 num_points = initial_point.shape[0]
             midpoints = gs.reshape(
                 midpoints, (num_points, self.n_times - 2, n_points, 3)
             )
 
-        # if times is None:
-        #     midpoints = self.remove_degenerate_faces(midpoints, n_points)
-        # else:
-        #     midpoints = self.remove_degenerate_faces(midpoints, n_points, times)
+        def objective(midpoint):
+            """Compute path energy of paths going through a midpoint.
 
-        # num_points = midpoints.shape[0]
-        # print("after dimension expansion:")
-        # print("midpoints.shape", midpoints.shape)
-        # print("initial_point.shape", initial_point.shape)
-        # print("end_point.shape", end_point.shape)
-        # print("num_points", num_points)
+            Parameters
+            ----------
+            midpoint : array-like, shape=[..., n_vertices, 3]
+                Midpoint of the path, i.e. a discrete surface.
 
-        # needs to be differentiable with respect to midpoints
-        def funopt(midpoint):
-            # if times is None:
-            #     midpoint = gs.reshape(
-            #         gs.array(midpoint), (num_points, self.n_times - 2, n_points, 3)
-            #     )
-            #     # midpoint = self.remove_degenerate_faces(midpoint, n_points)
-            # else:
+            Returns
+            -------
+            _ : array-like, shape=[...]
+                Energy of the path going through this midpoint.
+            """
             midpoint = gs.reshape(
                 gs.array(midpoint), (num_points, len(times) - 2, n_points, 3)
             )
-            # midpoint = self.remove_degenerate_faces(midpoint, n_points, times)
 
             paths = []
             for one_midpoint, one_initial_point, one_end_point in zip(
                 midpoint, initial_point, end_point
             ):
-                # print("one_midpoint", one_midpoint.shape)
-                # print("one_initial_point", one_initial_point.shape)
-                # print("one_endpoint", one_end_point.shape)
                 one_path = gs.concatenate(
                     [
                         one_initial_point[None, :, :],
@@ -1159,14 +1143,12 @@ class ElasticMetric(RiemannianMetric):
                 )
                 paths.append(one_path)
             paths = gs.array(paths)
-            print(f"paths.shape = {paths.shape}")
             return self.path_energy(paths)
 
         initial_geod = gs.flatten(midpoints)
-        # CHANGE ALERT: "ftol": 0.001" originally
-        # find midpoints that minimize path energy
+
         sol = minimize(
-            gs.autodiff.value_and_grad(funopt, to_numpy=True),
+            gs.autodiff.value_and_grad(objective, to_numpy=True),
             initial_geod.detach().numpy(),
             method="L-BFGS-B",
             jac=True,
