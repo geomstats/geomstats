@@ -8,7 +8,8 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-
+from scipy.optimize import minimize
+from torch.autograd import grad
 
 class DiscreteSurfaces(Manifold):
     r"""Space of parameterized discrete surfaces.
@@ -916,3 +917,71 @@ class ElasticMetric(RiemannianMetric):
             Path energy.
         """
         return 0.5 * gs.sum(self.path_energy_per_time(path))
+    
+     def _ivp(self, initial_point, initial_tangent_vec, times=None):
+        initial_point = gs.array(initial_point)
+        initial_tangent_vec = gs.array(initial_tangent_vec)
+
+        if times is None:
+            initial_tangent_vec = initial_tangent_vec / (self.n_times - 1)
+        else:
+            initial_tangent_vec = initial_tangent_vec / (len(times) - 1)
+        vertex_0 = initial_point
+        vertex_1 = vertex_0 + initial_tangent_vec
+        ivp = [vertex_0, vertex_1]
+        if times is None:
+            for i in range(2, self.n_times):
+                vertex_2 = self._stepforward(vertex_0, vertex_1)
+                ivp += [vertex_2]
+                vertex_0 = vertex_1
+                vertex_1 = vertex_2
+        else:
+            for i in range(2, len(times)):
+                vertex_2 = self._stepforward(vertex_0, vertex_1)
+                ivp += [vertex_2]
+                vertex_0 = vertex_1
+                vertex_1 = vertex_2
+        return gs.stack(ivp, axis=0)
+
+    def _stepforward(self, vertex_0, vertex_1):
+        vertex_0 = gs.array(vertex_0)
+        vertex_1 = gs.array(vertex_1)
+        n_points = vertex_0.shape[0]
+        zeros = gs.zeros([n_points, 3]).requires_grad_(True)
+        vertex_1_clone = vertex_1.clone().requires_grad_(True)
+
+        def energy(vertex_2):
+            edge_10 = vertex_1 - vertex_0
+            edge_21 = vertex_2 - vertex_1
+
+            def get_inner_product_1(Vdot):
+                return self.inner_product(edge_10, Vdot, vertex_0)
+
+            def get_inner_product_2(Vdot):
+                return self.inner_product(edge_21, Vdot, vertex_1)
+
+            def norm(vertex_1):
+                return self.squared_norm(edge_21, vertex_1)
+
+            sys1 = grad(get_inner_product_1(zeros), zeros, create_graph=True)[0]
+            sys2 = grad(get_inner_product_2(zeros), zeros, create_graph=True)[0]
+            sys3 = grad(norm(vertex_1_clone), vertex_1_clone, create_graph=True)[0]
+
+            sys = 2 * sys1 - 2 * sys2 + sys3
+            return gs.sum(sys**2)
+
+        def funopt(vertex_2):
+            vertex_2 = gs.reshape(gs.array(vertex_2), (n_points, 3))
+            return energy(vertex_2)
+
+        input = gs.flatten((2 * (vertex_1 - vertex_0) + vertex_0))
+
+        # CHANGE ALERT: "ftol": 0.001" originally
+        sol = minimize(
+            gs.autodiff.value_and_grad(funopt, to_numpy=True),
+            input.detach().numpy(),
+            method="L-BFGS-B",
+            jac=True,
+            options={"disp": True, "ftol": 1},
+        )
+        return gs.reshape(gs.array(sol.x), (n_points, 3))
