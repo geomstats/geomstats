@@ -1040,54 +1040,6 @@ class ElasticMetric(RiemannianMetric):
             exps = gs.squeeze(exps, axis=0)
         return exps
 
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Compute a geodesic.
-
-        Given an initial point and either an endpoint or initial vector.
-
-        Parameters
-        ----------
-        initial_point: array-like, shape=[n_vertices, 3]
-            Initial point, i.e. initial discrete surface.
-        end_point: array-like, shape=[n_vertices, 3]
-            End discrete surface: endpoint for the boundary value geodesic problem.
-            Optional, default: None.
-        initial_tangent_vec: array-like, shape=[n_vertices, 3]
-            Initial tangent vector
-            Optional, default: None.
-
-        Returns
-        -------
-        path : callable
-            Geodesic function.
-        """
-        if end_point is not None:
-            raise NotImplementedError
-
-        def path(t):
-            """Compute geodesic function.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_times]
-                Times.
-
-            Returns
-            -------
-            path : array-like, shape=[n_times, n_vertices, 3]
-                Geodesic.
-            """
-            assert len(t) == 1
-            if initial_tangent_vec is not None:
-                times = gs.linspace(0.0, 1.0, N_STEPS)
-                end_point = self._ivp(initial_point, t[0] * initial_tangent_vec, times)[
-                    -1
-                ]
-                assert end_point.ndim == 2, end_point.shape
-                return gs.expand_dims(end_point, axis=0)
-
-        return path
-
     def log(self, point, base_point):
         """Compute logarithm map associated to the Riemannian metric.
 
