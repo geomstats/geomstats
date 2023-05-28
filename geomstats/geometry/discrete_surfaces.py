@@ -13,7 +13,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-N_STEPS = 5
+N_STEPS = 10
 
 
 class DiscreteSurfaces(Manifold):
