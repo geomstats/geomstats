@@ -921,19 +921,34 @@ class ElasticMetric(RiemannianMetric):
     
     
     def _ivp(self, initial_point, initial_tangent_vec, times):
+        """Solve initial value problem (IVP).
+        
+        Given an initial point and an initial vector, solve the geodesic equation.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[n_vertices, 3]
+            Initial point, i.e. initial discrete surface.
+        initial_tangent_vec : array-like, shape=[n_vertices, 3]
+            Initial tangent vector
+            Optional, default: None.
+        times : array-like, shape=[n_times,]
+            Times between 0 and 1.
+        """
         n_times = len(times)
         initial_tangent_vec = initial_tangent_vec / (n_times - 1)
 
         next_point = initial_point + initial_tangent_vec
-        ivp = [initial_point, next_point]
+        discrete_path = [initial_point, next_point]
         for _ in range(2, n_times):
             next_next_point = self._stepforward(initial_point, next_point)
-            ivp += [next_next_point]
+            discrete_path += [next_next_point]
             initial_point = next_point
             next_point = next_next_point
-        return gs.stack(ivp, axis=0)
+        return gs.stack(discrete_path, axis=0)
 
     def _stepforward(self, current_point, next_point):
+        """Compute the next point on the geodesic."""
         current_point = gs.array(current_point)
         next_point = gs.array(next_point)
         n_vertices = current_point.shape[0]
@@ -954,22 +969,21 @@ class ElasticMetric(RiemannianMetric):
             def norm(vertex_1):
                 return self.squared_norm(next_to_next_next, vertex_1)
 
-            sys1 = grad(inner_product_with_current_to_next(zeros), zeros, create_graph=True)[0]
-            sys2 = grad(inner_product_with_next_to_next_next(zeros), zeros, create_graph=True)[0]
-            sys3 = grad(norm(next_point_clone), next_point_clone, create_graph=True)[0]
+            energy_1 = grad(inner_product_with_current_to_next(zeros), zeros, create_graph=True)[0]
+            energy_2 = grad(inner_product_with_next_to_next_next(zeros), zeros, create_graph=True)[0]
+            energy_3 = grad(norm(next_point_clone), next_point_clone, create_graph=True)[0]
 
-            sys = 2 * sys1 - 2 * sys2 + sys3
-            return gs.sum(sys**2)
+            energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
+            return gs.sum(energy_tot**2)
 
         input = gs.flatten((2 * (next_point - current_point) + current_point))
 
-        # CHANGE ALERT: "ftol": 0.001" originally
         sol = minimize(
             gs.autodiff.value_and_grad(energy_objective, to_numpy=True),
             input.detach().numpy(),
             method="L-BFGS-B",
             jac=True,
-            options={"disp": True, "ftol": 1},
+            options={"disp": True, "ftol": 0.1},
         )
         return gs.reshape(gs.array(sol.x), (n_vertices, 3))
     
@@ -1013,9 +1027,9 @@ class ElasticMetric(RiemannianMetric):
         Parameters
         ----------
         initial_point: array-like, shape=[n_vertices, 3]
-            Initial discrete surface
+            Initial point, i.e. initial discrete surface.
         end_point: array-like, shape=[n_vertices, 3]
-            End discrete surface: endpoint for the boundary value geodesic problem
+            End discrete surface: endpoint for the boundary value geodesic problem.
             Optional, default: None.
         initial_tangent_vec: array-like, shape=[n_vertices, 3]
             Initial tangent vector
@@ -1023,8 +1037,8 @@ class ElasticMetric(RiemannianMetric):
 
         Returns
         -------
-        path_energy : float
-            total path energy.
+        path : callable
+            Geodesic function.
         """
 
         def path(t):
@@ -1032,7 +1046,7 @@ class ElasticMetric(RiemannianMetric):
 
             Parameters
             ----------
-            times: array-like, shape=[n_times]
+            t : array-like, shape=[n_times]
                 Times.
 
             Returns
