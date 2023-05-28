@@ -4,13 +4,15 @@ Lead authors: Emmanuel Hartman, Adele Myers.
 """
 import math
 
+from scipy.optimize import minimize
+from torch.autograd import grad
+
 import geomstats.backend as gs
+from geomstats.geometry.connection import Connection
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from scipy.optimize import minimize
-from torch.autograd import grad
-from geomstats.geometry.connection import Connection
+
 
 class DiscreteSurfaces(Manifold):
     r"""Space of parameterized discrete surfaces.
@@ -918,11 +920,10 @@ class ElasticMetric(RiemannianMetric):
             Path energy.
         """
         return 0.5 * gs.sum(self.path_energy_per_time(path))
-    
-    
+
     def _ivp(self, initial_point, initial_tangent_vec, times):
         """Solve initial value problem (IVP).
-        
+
         Given an initial point and an initial vector, solve the geodesic equation.
 
         Parameters
@@ -969,17 +970,14 @@ class ElasticMetric(RiemannianMetric):
             def norm(vertex_1):
                 return self.squared_norm(next_to_next_next, vertex_1)
 
-            _, energy_1 = gs.autodiff.value_and_grad(inner_product_with_current_to_next)(zeros)
-            _, energy_2 = gs.autodiff.value_and_grad(inner_product_with_next_to_next_next)(zeros)
+            _, energy_1 = gs.autodiff.value_and_grad(
+                inner_product_with_current_to_next
+            )(zeros)
+            _, energy_2 = gs.autodiff.value_and_grad(
+                inner_product_with_next_to_next_next
+            )(zeros)
             _, energy_3 = gs.autodiff.value_and_grad(norm)(next_point_clone)
             energy_3 = energy_3.requires_grad_(True)
-            #old_energy_1 = grad(inner_product_with_current_to_next(zeros), zeros, create_graph=True)[0]
-            #print("\n energy1")
-            #print(energy_1)
-            #print(old_energy_1)
-            #raise NotImplemented
-            #energy_2 = grad(inner_product_with_next_to_next_next(zeros), zeros, create_graph=True)[0]
-            #energy_3 = grad(norm(next_point_clone), next_point_clone, create_graph=True)[0]
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
             return gs.sum(energy_tot**2)
@@ -994,7 +992,7 @@ class ElasticMetric(RiemannianMetric):
             options={"disp": True, "ftol": 0.1},
         )
         return gs.reshape(gs.array(sol.x), (n_vertices, 3))
-    
+
     def exp(self, tangent_vec, base_point, n_steps=3, step=None):
         """Compute exponential map associated to the Riemmannian metric.
 
@@ -1007,6 +1005,8 @@ class ElasticMetric(RiemannianMetric):
             Tangent vector at the base point.
         base_point : array-like, shape=[n_vertices, 3]
             Point on the manifold.
+        n_steps : int
+            Number of time steps on the geodesic.
 
         Returns
         -------
