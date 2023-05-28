@@ -180,7 +180,6 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_all = not (autograd_backend() or pytorch_backend())
     skip_test_exp_shape = True
     skip_test_log_shape = True
-    skip_test_exp_geodesic_ivp = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_after_log = True
