@@ -219,9 +219,25 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         atol : float
             Absolute tolerance to test this property.
         """
+        n_times = len(path)
         space.equip_with_metric(self.Metric, a0=a0, a1=a1, b1=b1, c1=c1, d1=d1, a2=a2)
 
         energy = space.metric.path_energy_per_time(path)
+        print('pre vec')
+        print(energy.shape)
+        self.assertAllEqual(energy.shape, (n_times-1, 1))
+        result = gs.all(energy > -1 * atol)
+        self.assertTrue(result)
+
+        print(path.shape)
+        print(n_times)
+        expected_shape = (2, n_times -1, 1)
+        path = gs.array([path, path])
+        print("HELLO")
+        print(path.shape)
+        energy = space.metric.path_energy_per_time(path)
+        print(energy.shape)
+        self.assertAllEqual(energy.shape, expected_shape)
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)
 
@@ -240,5 +256,12 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         space.equip_with_metric(self.Metric, a0=a0, a1=a1, b1=b1, c1=c1, d1=d1, a2=a2)
 
         energy = space.metric.path_energy(path)
+        self.assertAllEqual(energy.shape, ())
+        result = gs.all(energy > -1 * atol)
+        self.assertTrue(result)
+
+        path = gs.array([path, path])
+        energy = space.metric.path_energy(path)
+        self.assertAllEqual(energy.shape, (2, ))
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)
