@@ -1078,3 +1078,151 @@ class ElasticMetric(RiemannianMetric):
                 return gs.expand_dims(end_point, axis=0)
 
         return path
+
+    def log(self, point, base_point):
+        """Compute logarithm map associated to the Riemannian metric.
+
+        Solve the boundary value problem associated to the geodesic equation
+        using path straightening.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n_vertices,3]
+            Point on the manifold.
+        base_point : array-like, shape=[n_vertices,3]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n_vertices, 3]
+            Tangent vector at the base point.
+        """
+        logs = []
+        need_squeeze = False
+
+        # print("LOG before squeeze:")
+        # print("point.shape: ", point.shape)
+        # print("base_point.shape: ", base_point.shape)
+        if point.ndim == 2:
+            point = gs.expand_dims(point, axis=0)
+            need_squeeze = True
+        if base_point.ndim == 2:
+            base_point = gs.expand_dims(base_point, axis=0)
+            need_squeeze = True
+        for one_point in point:
+            # print("one_point.shape: ", one_point.shape)
+            for one_base_point in base_point:
+                # print("one_base_point.shape: ", one_base_point.shape)
+                geod = self._bvp(one_base_point, one_point)
+                logs.append(geod[1] - geod[0])
+        logs = gs.array(logs)
+        if need_squeeze:
+            logs = gs.squeeze(logs, axis=0)
+        return logs
+
+    def _bvp(self, initial_point, end_point, times):
+        n_points = initial_point.shape[-2]
+        step = (end_point - initial_point) / (len(times) - 1)
+        # create a straight line between initial and end points for initialization
+        geod = gs.array([initial_point + i * step for i in times])
+        midpoints = geod[1 : len(times) - 1]
+
+        # print("before dimension expansion:")
+        # print("midpoints.shape", midpoints.shape)
+        # print("initial_point.shape", initial_point.shape)
+        # print("end_point.shape", end_point.shape)
+
+        # if vectorizing code: expanding dimension if there is only one midpoint
+        all_need_squeeze = False
+        initial_point_need_squeeze = False
+        end_point_need_squeeze = False
+        if midpoints.ndim == 3:
+            all_need_squeeze = True
+            initial_point = gs.expand_dims(initial_point, axis=0)
+            end_point = gs.expand_dims(end_point, axis=0)
+            midpoints = gs.expand_dims(midpoints, axis=0)
+            num_points = midpoints.shape[0]
+        else:
+            if initial_point.ndim == 2:
+                initial_point_need_squeeze = True
+                initial_point = gs.expand_dims(initial_point, axis=0)
+                num_points = end_point.shape[0]
+            if end_point.ndim == 2:
+                end_point_need_squeeze = True
+                end_point = gs.expand_dims(end_point, axis=0)
+                num_points = initial_point.shape[0]
+            midpoints = gs.reshape(
+                midpoints, (num_points, self.n_times - 2, n_points, 3)
+            )
+
+        # if times is None:
+        #     midpoints = self.remove_degenerate_faces(midpoints, n_points)
+        # else:
+        #     midpoints = self.remove_degenerate_faces(midpoints, n_points, times)
+
+        # num_points = midpoints.shape[0]
+        # print("after dimension expansion:")
+        # print("midpoints.shape", midpoints.shape)
+        # print("initial_point.shape", initial_point.shape)
+        # print("end_point.shape", end_point.shape)
+        # print("num_points", num_points)
+
+        # needs to be differentiable with respect to midpoints
+        def funopt(midpoint):
+            # if times is None:
+            #     midpoint = gs.reshape(
+            #         gs.array(midpoint), (num_points, self.n_times - 2, n_points, 3)
+            #     )
+            #     # midpoint = self.remove_degenerate_faces(midpoint, n_points)
+            # else:
+            midpoint = gs.reshape(
+                gs.array(midpoint), (num_points, len(times) - 2, n_points, 3)
+            )
+            # midpoint = self.remove_degenerate_faces(midpoint, n_points, times)
+
+            paths = []
+            for one_midpoint, one_initial_point, one_end_point in zip(
+                midpoint, initial_point, end_point
+            ):
+                # print("one_midpoint", one_midpoint.shape)
+                # print("one_initial_point", one_initial_point.shape)
+                # print("one_endpoint", one_end_point.shape)
+                one_path = gs.concatenate(
+                    [
+                        one_initial_point[None, :, :],
+                        one_midpoint,
+                        one_end_point[None, :, :],
+                    ],
+                    axis=0,
+                )
+                paths.append(one_path)
+            paths = gs.array(paths)
+
+            return self.path_energy(paths)
+
+        initial_geod = gs.flatten(midpoints)
+        # CHANGE ALERT: "ftol": 0.001" originally
+        # find midpoints that minimize path energy
+        sol = minimize(
+            gs.autodiff.value_and_grad(funopt, to_numpy=True),
+            initial_geod.detach().numpy(),
+            method="L-BFGS-B",
+            jac=True,
+            options={"disp": True, "ftol": 1},
+        )
+        out = gs.reshape(gs.array(sol.x), (num_points, len(times) - 2, n_points, 3))
+
+        geod = []
+        for one_out, one_initial_point, one_end_point in zip(
+            out, initial_point, end_point
+        ):
+            one_geod = gs.concatenate(
+                [one_initial_point[None, :, :], one_out, one_end_point[None, :, :]],
+                axis=0,
+            )
+            geod.append(one_geod)
+        geod = gs.array(geod)
+        if all_need_squeeze:
+            geod = gs.squeeze(geod, axis=0)
+
+        return geod
