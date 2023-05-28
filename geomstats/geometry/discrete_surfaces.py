@@ -892,21 +892,30 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        path : array-like, shape=[n_times, n_vertices, 3]
+        path : array-like, shape=[..., n_times, n_vertices, 3]
             Piecewise linear path of discrete surfaces.
 
         Returns
         -------
-        energy : array-like, shape=[n_times - 1,]
+        energy : array-like, shape=[..., n_times - 1,]
             Stepwise path energy.
         """
-        n_times, _, _ = path.shape
-        surface_diffs = path[1:, :, :] - path[:-1, :, :]
-        surface_midpoints = path[: n_times - 1, :, :] + surface_diffs / 2
-        energy = []
-        for diff, midpoint in zip(surface_diffs, surface_midpoints):
-            energy.extend([n_times * self.squared_norm(diff, midpoint)])
-        return gs.array(energy)
+        print(path.shape)
+        need_squeeze = False
+        if path.ndim == 3:
+            path = gs.expand_dims(path, axis=0)
+            need_squeeze = True
+        n_times = path.shape[-3]
+        surface_diffs = path[:, 1:, :, :] - path[:, :-1, :, :]
+        surface_midpoints = path[:, : n_times - 1, :, :] + surface_diffs / 2
+        energy_per_path = []
+        for one_surface_diffs, one_surface_midpoints in zip(surface_diffs, surface_midpoints):
+            energy = []
+            for diff, midpoint in zip(one_surface_diffs, one_surface_midpoints):
+                energy.extend([n_times * self.squared_norm(diff, midpoint)])
+            energy_per_path.append(gs.array(energy))
+        energy_per_path = gs.array(energy_per_path)
+        return gs.squeeze(energy_per_path, axis=0) if need_squeeze else energy_per_path
 
     def path_energy(self, path):
         """Compute path energy of a path in the space of discrete surfaces.
@@ -1075,6 +1084,7 @@ class ElasticMetric(RiemannianMetric):
                 end_point = self._ivp(initial_point, t[0] * initial_tangent_vec, times)[
                     -1
                 ]
+                assert end_point.ndim == 2, end_point.shape
                 return gs.expand_dims(end_point, axis=0)
 
         return path
@@ -1099,6 +1109,7 @@ class ElasticMetric(RiemannianMetric):
         """
         logs = []
         need_squeeze = False
+        times = gs.linspace(0., 1., N_STEPS)
 
         # print("LOG before squeeze:")
         # print("point.shape: ", point.shape)
@@ -1113,7 +1124,7 @@ class ElasticMetric(RiemannianMetric):
             # print("one_point.shape: ", one_point.shape)
             for one_base_point in base_point:
                 # print("one_base_point.shape: ", one_base_point.shape)
-                geod = self._bvp(one_base_point, one_point)
+                geod = self._bvp(one_base_point, one_point, times)
                 logs.append(geod[1] - geod[0])
         logs = gs.array(logs)
         if need_squeeze:
@@ -1197,7 +1208,7 @@ class ElasticMetric(RiemannianMetric):
                 )
                 paths.append(one_path)
             paths = gs.array(paths)
-
+            print(f"paths.shape = {paths.shape}")
             return self.path_energy(paths)
 
         initial_geod = gs.flatten(midpoints)
