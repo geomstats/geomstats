@@ -953,7 +953,7 @@ class ElasticMetric(RiemannianMetric):
         next_point = gs.array(next_point)
         n_vertices = current_point.shape[0]
         zeros = gs.zeros([n_vertices, 3]).requires_grad_(True)
-        next_point_clone = next_point.clone().requires_grad_(True)
+        next_point_clone = gs.copy(next_point).requires_grad_(True)
 
         def energy_objective(next_next_point):
             next_next_point = gs.reshape(gs.array(next_next_point), (n_vertices, 3))
@@ -969,9 +969,17 @@ class ElasticMetric(RiemannianMetric):
             def norm(vertex_1):
                 return self.squared_norm(next_to_next_next, vertex_1)
 
-            energy_1 = grad(inner_product_with_current_to_next(zeros), zeros, create_graph=True)[0]
-            energy_2 = grad(inner_product_with_next_to_next_next(zeros), zeros, create_graph=True)[0]
-            energy_3 = grad(norm(next_point_clone), next_point_clone, create_graph=True)[0]
+            _, energy_1 = gs.autodiff.value_and_grad(inner_product_with_current_to_next)(zeros)
+            _, energy_2 = gs.autodiff.value_and_grad(inner_product_with_next_to_next_next)(zeros)
+            _, energy_3 = gs.autodiff.value_and_grad(norm)(next_point_clone)
+            energy_3 = energy_3.requires_grad_(True)
+            #old_energy_1 = grad(inner_product_with_current_to_next(zeros), zeros, create_graph=True)[0]
+            #print("\n energy1")
+            #print(energy_1)
+            #print(old_energy_1)
+            #raise NotImplemented
+            #energy_2 = grad(inner_product_with_next_to_next_next(zeros), zeros, create_graph=True)[0]
+            #energy_3 = grad(norm(next_point_clone), next_point_clone, create_graph=True)[0]
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
             return gs.sum(energy_tot**2)
