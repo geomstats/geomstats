@@ -3,7 +3,6 @@
 from scipy.stats import binom
 
 import geomstats.backend as gs
-import tests.conftest
 from tests.conftest import Parametrizer, np_backend
 from tests.data.binomial_data import BinomialMetricTestData, BinomialTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
@@ -25,7 +24,6 @@ class TestBinomial(OpenSetTestCase, metaclass=Parametrizer):
             self.Space(n_draws).sample(point, n_samples).shape, expected
         )
 
-    @tests.conftest.np_and_autograd_only
     def test_point_to_pdf(self, n_draws, point, n_samples):
         point = gs.to_ndarray(point, 1)
         n_points = point.shape[0]

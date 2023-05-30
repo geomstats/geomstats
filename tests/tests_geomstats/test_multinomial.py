@@ -1,13 +1,9 @@
 """Unit tests for the multinomial manifold."""
 
 import geomstats.backend as gs
-from tests.conftest import Parametrizer, np_backend, pytorch_backend
+from tests.conftest import Parametrizer
 from tests.data.multinomial_data import MultinomialMetricTestData, MultinomialTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
-
-PYTORCH_BACKEND = pytorch_backend()
-
-NOT_AUTOGRAD = pytorch_backend() or np_backend()
 
 
 class TestMultinomialDistributions(LevelSetTestCase, metaclass=Parametrizer):
@@ -143,7 +139,10 @@ class TestMultinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         time = 0.5
         result = geod(time).shape
-        expected = (dim + 1,)
+        expected = (
+            1,
+            dim + 1,
+        )
         self.assertAllClose(expected, result)
 
         n_vecs = 5
@@ -162,7 +161,7 @@ class TestMultinomialMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         geod = space.metric.geodesic(initial_point=initial_point, end_point=end_points)
         time = 0.5
         result = geod(time).shape
-        expected = (n_points, dim + 1)
+        expected = (n_points, 1, dim + 1)
         self.assertAllClose(expected, result)
 
     def test_sectional_curvature_is_positive(self, space):

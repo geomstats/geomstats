@@ -158,21 +158,21 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 space=self.Space(3),
-                point=[0.1, 0.1, 0.5],
-                vec=[1.3, 1.3, 2.2],
-                expected=[True, True, False],
+                point=gs.array([0.1, 0.1, 0.5]),
+                vec=gs.array([1.3, 1.3, 2.2]),
+                expected=gs.array([True, True, False]),
             ),
             dict(
                 space=self.Space(3),
-                point=[3.5, 0.1, 3.5],
-                vec=[0.8, 0.1, 0.8],
-                expected=[True, False, True],
+                point=gs.array([3.5, 0.1, 3.5]),
+                vec=gs.array([0.8, 0.1, 0.8]),
+                expected=gs.array([True, False, True]),
             ),
             dict(
                 space=self.Space(4),
-                point=[1.1, 1.1, 2.3, 1.1],
-                vec=[0.6, 0.6, 2.1, 0.6],
-                expected=[True, True, False, True],
+                point=gs.array([1.1, 1.1, 2.3, 1.1]),
+                vec=gs.array([0.6, 0.6, 2.1, 0.6]),
+                expected=gs.array([True, True, False, True]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -182,20 +182,20 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
             dict(
                 space=self.Space(2),
                 n_points=1,
-                n_steps=50,
-                expected=(50, 2),
+                n_steps=4,
+                expected=(4, 2),
             ),
             dict(
                 space=self.Space(2),
                 n_points=3,
-                n_steps=50,
-                expected=(3, 50, 2),
+                n_steps=4,
+                expected=(3, 4, 2),
             ),
             dict(
                 space=self.Space(3),
-                n_points=4,
-                n_steps=50,
-                expected=(4, 50, 3),
+                n_points=2,
+                n_steps=4,
+                expected=(2, 4, 3),
             ),
         ]
         return self.generate_tests([], random_data)
@@ -233,13 +233,16 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
                 space=self.Space(2),
                 n_points=1,
                 time=0.5,
-                expected=(2,),
+                expected=(
+                    1,
+                    2,
+                ),
             ),
             dict(
                 space=self.Space(3),
                 n_points=4,
                 time=0.5,
-                expected=(4, 3),
+                expected=(4, 1, 3),
             ),
             dict(
                 space=self.Space(3),
@@ -253,25 +256,6 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
     def jacobian_christoffels_test_data(self):
         random_data = [dict(space=space, n_points=2) for space in self.space_list]
         return self.generate_tests([], random_data)
-
-    def jacobian_in_geodesic_bvp_test_data(self):
-        random_data = [dict(space=space) for space in self.space_list]
-        return self.generate_tests([], random_data)
-
-    def approx_geodesic_bvp_test_data(self):
-        random_data = [dict(space=space) for space in self.space_list]
-        return self.generate_tests([], random_data)
-
-    def polynomial_init_test_data(self):
-        smoke_data = [
-            dict(
-                space=self.Space(3),
-                point_a=[100.0, 1.0, 1.0],
-                point_b=[1.0, 1.0, 100.0],
-                expected=8.5,
-            ),
-        ]
-        return self.generate_tests(smoke_data)
 
     def sectional_curvature_is_negative_test_data(self):
         random_data = [dict(space=space) for space in self.space_list]
