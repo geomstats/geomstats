@@ -464,7 +464,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         Defaults to linear initialization.
     """
 
-    def __init__(self, n_nodes=10, integrator=None, initialization=None):
+    def __init__(self, n_nodes=10, integrator=None, initialization=None, use_jac=True):
         if integrator is None:
             integrator = ScipySolveBVP()
 
@@ -474,6 +474,7 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         self.n_nodes = n_nodes
         self.integrator = integrator
         self.initialization = initialization
+        self.use_jac = use_jac
 
         self.grid = self._create_grid()
 
@@ -496,14 +497,65 @@ class LogODESolver(_LogBatchMixins, LogSolver):
         return gs.hstack((pos_0 - point_0, pos_1 - point_1))
 
     def _bvp(self, _, raveled_state, space):
-        # inputs: n (2*dim) , n_nodes
-        # assumes unvectorized
+        """Boundary value problem.
 
+        Parameters
+        ----------
+        _ : float
+            Unused.
+        raveled_state : array-like, shape=[2*dim, n_nodes]
+            Vector of state variables (position and speed).
+
+        Returns
+        -------
+        sol : array-like, shape=[2*dim, n_nodes]
+        """
         state = gs.moveaxis(gs.reshape(raveled_state, (2, space.dim, -1)), -2, -1)
 
         eq = space.metric.geodesic_equation(state, _)
 
         return gs.reshape(gs.moveaxis(eq, -2, -1), (2 * space.dim, -1))
+
+    def _jacobian(self, _, raveled_state, space):
+        """Jacobian of boundary value problem.
+
+        Parameters
+        ----------
+        _ : float
+            Unused.
+        raveled_state : array-like, shape=[2*dim, n_nodes]
+            Vector of state variables (position and speed).
+
+        Returns
+        -------
+        jac : array-like, shape=[dim, dim, n_nodes]
+        """
+        dim = space.dim
+        n_nodes = raveled_state.shape[-1]
+        position, velocity = raveled_state[:dim], raveled_state[dim:]
+
+        dgamma = space.metric.jacobian_christoffels(gs.transpose(position))
+
+        df_dposition = -gs.einsum(
+            "j...,...ijkl,k...->il...", velocity, dgamma, velocity
+        )
+
+        gamma = space.metric.christoffels(gs.transpose(position))
+        df_dvelocity = -2 * gs.einsum("...ijk,k...->ij...", gamma, velocity)
+
+        jac_nw = gs.zeros((dim, dim, raveled_state.shape[1]))
+        jac_ne = gs.squeeze(gs.transpose(gs.tile(gs.eye(dim), (n_nodes, 1, 1))))
+        jac_sw = df_dposition
+        jac_se = df_dvelocity
+        jac = gs.concatenate(
+            (
+                gs.concatenate((jac_nw, jac_ne), axis=1),
+                gs.concatenate((jac_sw, jac_se), axis=1),
+            ),
+            axis=0,
+        )
+
+        return jac
 
     def _solve(self, space, point, base_point):
         bvp = lambda t, state: self._bvp(t, state, space)
@@ -511,9 +563,13 @@ class LogODESolver(_LogBatchMixins, LogSolver):
             state_0, state_1, space, base_point, point
         )
 
+        jacobian = None
+        if self.use_jac:
+            jacobian = lambda t, state: self._jacobian(t, state, space=space)
+
         y = self.initialization(space, point, base_point)
 
-        return self.integrator.integrate(bvp, bc, self.grid, y)
+        return self.integrator.integrate(bvp, bc, self.grid, y, fun_jac=jacobian)
 
     def _log_single(self, space, point, base_point):
         res = self._solve(space, point, base_point)
