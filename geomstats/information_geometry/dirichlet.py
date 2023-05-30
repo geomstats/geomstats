@@ -197,8 +197,10 @@ class DirichletMetric(RiemannianMetric):
     def __init__(self, space):
         super().__init__(space=space)
 
-        self.log_solver = LogODESolver(n_nodes=500, integrator=ScipySolveBVP(tol=1e-3))
-        self.exp_solver = ExpODESolver(integrator=ScipySolveIVP(method="RK45"))
+        self.log_solver = LogODESolver(
+            n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
+        )
+        self.exp_solver = ExpODESolver(integrator=ScipySolveIVP(method="LSODA"))
 
     def metric_matrix(self, base_point):
         """Compute the inner-product matrix.
