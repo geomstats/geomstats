@@ -963,7 +963,7 @@ class ElasticMetric(RiemannianMetric):
         """Compute the next point on the geodesic."""
         current_point = gs.array(current_point)
         next_point = gs.array(next_point)
-        n_vertices = current_point.shape[0]
+        n_vertices = current_point.shape[-2]
         zeros = gs.zeros([n_vertices, 3]).requires_grad_(True)
         next_point_clone = next_point.clone().requires_grad_(True)
 
@@ -992,6 +992,7 @@ class ElasticMetric(RiemannianMetric):
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
             return gs.sum(energy_tot**2)
+
 
         input = gs.flatten((2 * (next_point - current_point) + current_point))
 

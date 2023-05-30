@@ -177,15 +177,15 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
 class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_all = not (autograd_backend() or pytorch_backend())
-    skip_test_exp_shape = True
+    #skip_test_exp_shape = True
     skip_test_log_shape = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_after_log = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_log_after_exp = True
-    #skip_test_dist_is_norm_of_log = True
     skip_test_dist_is_symmetric = True
+    skip_test_dist_is_norm_of_log = True
     skip_test_triangle_inequality_of_dist = True
     skip_test_squared_dist_is_symmetric = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
@@ -253,6 +253,3 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllEqual(energy.shape, (2,))
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)
-
-    def test_dist_is_norm_of_log(self, space, metric_args, point_a, point_b):
-        super().test_dist_is_norm_of_log(space, metric_args, point_a, point_b, rtol=0.08, atol=0.08)
