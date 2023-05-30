@@ -651,36 +651,40 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
 
 class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
-    @pytest.mark.random
-    def test_metric_matrix(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-
+    def test_metric_matrix(self, base_point, atol):
         res = self.space.metric.metric_matrix(base_point)
         res_ = self.other_space.metric.metric_matrix(base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_cometric_matrix(self, n_points, atol):
+    def test_metric_matrix_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
 
+        self.test_metric_matrix(base_point, atol)
+
+    def test_cometric_matrix(self, base_point, atol):
         res = self.space.metric.cometric_matrix(base_point)
         res_ = self.other_space.metric.cometric_matrix(base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_inner_product_derivative_matrix(self, n_points, atol):
+    def test_cometric_matrix_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
 
+        self.test_cometric_matrix(base_point, atol)
+
+    def test_inner_product_derivative_matrix(self, base_point, atol):
         res = self.space.metric.inner_product_derivative_matrix(base_point)
         res_ = self.other_space.metric.inner_product_derivative_matrix(base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_inner_product(self, n_points, atol):
+    def test_inner_product_derivative_matrix_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_inner_product_derivative_matrix(base_point, atol)
+
+    def test_inner_product(self, tangent_vec_a, tangent_vec_b, base_point, atol):
         res = self.space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         res_ = self.other_space.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point
@@ -688,11 +692,14 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_inner_coproduct(self, n_points, atol):
+    def test_inner_product_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
-        cotangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        cotangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_inner_product(tangent_vec_a, tangent_vec_b, base_point, atol)
+
+    def test_inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point, atol):
         res = self.space.metric.inner_coproduct(
             cotangent_vec_a, cotangent_vec_b, base_point
         )
@@ -702,64 +709,85 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_squared_norm(self, n_points, atol):
+    def test_inner_coproduct_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
-        vector = self.data_generator.random_tangent_vec(base_point)
+        cotangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        cotangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_inner_coproduct(cotangent_vec_a, cotangent_vec_b, base_point, atol)
+
+    def test_squared_norm(self, vector, base_point, atol):
         res = self.space.metric.squared_norm(vector, base_point)
         res_ = self.other_space.metric.squared_norm(vector, base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_norm(self, n_points, atol):
+    def test_squared_norm_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
         vector = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_squared_norm(vector, base_point, atol)
+
+    def test_norm(self, vector, base_point, atol):
         res = self.space.metric.norm(vector, base_point)
         res_ = self.other_space.metric.norm(vector, base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_normalize(self, n_points, atol):
+    def test_norm_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
         vector = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_norm(vector, base_point, atol)
+
+    def test_normalize(self, vector, base_point, atol):
         res = self.space.metric.normalize(vector, base_point)
         res_ = self.other_space.metric.normalize(vector, base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_squared_dist(self, n_points, atol):
-        point_a = self.data_generator.random_point(n_points)
-        point_b = self.data_generator.random_point(n_points)
+    def test_normalize_random(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        vector = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_normalize(vector, base_point, atol)
+
+    def test_squared_dist(self, point_a, point_b, atol):
         res = self.space.metric.squared_dist(point_a, point_b)
         res_ = self.other_space.metric.squared_dist(point_a, point_b)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_dist(self, n_points, atol):
+    def test_squared_dist_random(self, n_points, atol):
         point_a = self.data_generator.random_point(n_points)
         point_b = self.data_generator.random_point(n_points)
 
+        self.test_squared_dist(point_a, point_b, atol)
+
+    def test_dist(self, point_a, point_b, atol):
         res = self.space.metric.dist(point_a, point_b)
         res_ = self.other_space.metric.dist(point_a, point_b)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_covariant_riemann_tensor(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
+    def test_dist_random(self, n_points, atol):
+        point_a = self.data_generator.random_point(n_points)
+        point_b = self.data_generator.random_point(n_points)
 
+        self.test_dist(point_a, point_b, atol)
+
+    def test_covariant_riemann_tensor(self, base_point, atol):
         res = self.space.metric.covariant_riemann_tensor(base_point)
         res_ = self.other_space.metric.covariant_riemann_tensor(base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_sectional_curvature(self, n_points, atol):
+    def test_covariant_riemann_tensor_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_covariant_riemann_tensor(base_point, atol)
+
+    def test_sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point, atol):
         res = self.space.metric.sectional_curvature(
             tangent_vec_a, tangent_vec_b, base_point
         )
@@ -769,9 +797,20 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_scalar_curvature(self, n_points, atol):
+    def test_sectional_curvature_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_sectional_curvature(tangent_vec_a, tangent_vec_b, base_point, atol)
+
+    def test_scalar_curvature(self, base_point, atol):
         res = self.space.metric.scalar_curvature(base_point)
         res_ = self.other_space.metric.scalar_curvature(base_point)
         self.assertAllClose(res, res_, atol=atol)
+
+    @pytest.mark.random
+    def test_scalar_curvature_random(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        self.test_scalar_curvature(base_point, atol)

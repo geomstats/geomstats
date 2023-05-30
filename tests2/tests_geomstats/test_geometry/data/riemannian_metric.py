@@ -91,41 +91,41 @@ class RiemannianMetricTestData(ConnectionTestData):
 
 
 class RiemannianMetricComparisonTestData(ConnectionComparisonTestData):
-    def metric_matrix_test_data(self):
+    def metric_matrix_random_test_data(self):
         return self.generate_random_data()
 
-    def cometric_matrix_test_data(self):
+    def cometric_matrix_random_test_data(self):
         return self.generate_random_data()
 
-    def inner_product_derivative_matrix_test_data(self):
+    def inner_product_derivative_matrix_random_test_data(self):
         return self.generate_random_data()
 
-    def inner_product_test_data(self):
+    def inner_product_random_test_data(self):
         return self.generate_random_data()
 
-    def inner_coproduct_test_data(self):
+    def inner_coproduct_random_test_data(self):
         return self.generate_random_data()
 
-    def squared_norm_test_data(self):
+    def squared_norm_random_test_data(self):
         return self.generate_random_data()
 
-    def norm_test_data(self):
+    def norm_random_test_data(self):
         return self.generate_random_data()
 
-    def normalize_test_data(self):
+    def normalize_random_test_data(self):
         return self.generate_random_data()
 
-    def squared_dist_test_data(self):
+    def squared_dist_random_test_data(self):
         return self.generate_random_data()
 
-    def dist_test_data(self):
+    def dist_random_test_data(self):
         return self.generate_random_data()
 
-    def covariant_riemann_tensor_test_data(self):
+    def covariant_riemann_tensor_random_test_data(self):
         return self.generate_random_data()
 
-    def sectional_curvature_test_data(self):
+    def sectional_curvature_random_test_data(self):
         return self.generate_random_data()
 
-    def scalar_curvature_test_data(self):
+    def scalar_curvature_random_test_data(self):
         return self.generate_random_data()

@@ -661,47 +661,55 @@ class ConnectionComparisonTestCase(TestCase):
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.space)
 
-    @pytest.mark.random
-    def test_christoffels(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-
+    def test_christoffels(self, base_point, atol):
         res = self.space.metric.christoffels(base_point)
         res_ = self.other_space.metric.christoffels(base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_exp(self, n_points, atol):
+    def test_christoffels_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_christoffels(base_point, atol)
+
+    def test_exp(self, tangent_vec, base_point, atol):
         res = self.space.metric.exp(tangent_vec, base_point)
         res_ = self.other_space.metric.exp(tangent_vec, base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_log(self, n_points, atol):
+    def test_exp_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
-        point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_exp(tangent_vec, base_point, atol)
+
+    def test_log(self, point, base_point, atol):
         res = self.space.metric.log(point, base_point)
         res_ = self.other_space.metric.log(point, base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_riemann_tensor(self, n_points, atol):
+    def test_log_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
+        point = self.data_generator.random_point(n_points)
 
+        self.test_log(point, base_point, atol)
+
+    def test_riemann_tensor(self, base_point, atol):
         res = self.space.metric.riemann_tensor(base_point)
         res_ = self.other_space.metric.riemann_tensor(base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_curvature(self, n_points, atol):
+    def test_riemann_tensor_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_c = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_riemann_tensor(base_point, atol)
+
+    def test_curvature(
+        self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point, atol
+    ):
         res = self.space.metric.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
         )
@@ -711,19 +719,30 @@ class ConnectionComparisonTestCase(TestCase):
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_ricci_tensor(self, n_points, atol):
+    def test_curvature_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_c = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_curvature(
+            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point, atol
+        )
+
+    def test_ricci_tensor(self, base_point, atol):
         res = self.space.metric.ricci_tensor(base_point)
         res_ = self.other_space.metric.ricci_tensor(base_point)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_directional_curvature(self, n_points, atol):
+    def test_ricci_tensor_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_ricci_tensor(base_point, atol)
+
+    def test_directional_curvature(
+        self, tangent_vec_a, tangent_vec_b, base_point, atol
+    ):
         res = self.space.metric.directional_curvature(
             tangent_vec_a, tangent_vec_b, base_point
         )
@@ -733,13 +752,22 @@ class ConnectionComparisonTestCase(TestCase):
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_curvature_derivative(self, n_points, atol):
+    def test_directional_curvature_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
         tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_c = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_d = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_directional_curvature(tangent_vec_a, tangent_vec_b, base_point, atol)
+
+    def test_curvature_derivative(
+        self,
+        tangent_vec_a,
+        tangent_vec_b,
+        tangent_vec_c,
+        tangent_vec_d,
+        base_point,
+        atol,
+    ):
         res = self.space.metric.curvature_derivative(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point
         )
@@ -749,11 +777,20 @@ class ConnectionComparisonTestCase(TestCase):
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_directional_curvature_derivative(self, n_points, atol):
+    def test_curvature_derivative_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
         tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_c = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_d = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_curvature_derivative(
+            tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point, atol
+        )
+
+    def test_directional_curvature_derivative(
+        self, tangent_vec_a, tangent_vec_b, base_point, atol
+    ):
         res = self.space.metric.directional_curvature_derivative(
             tangent_vec_a, tangent_vec_b, base_point
         )
@@ -763,11 +800,16 @@ class ConnectionComparisonTestCase(TestCase):
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_geodesic_bvp(self, n_points, n_times, atol):
-        initial_point = self.data_generator.random_point(n_points)
-        end_point = self.data_generator.random_point(n_points)
-        time = get_random_times(n_times)
+    def test_directional_curvature_derivative_random(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_directional_curvature_derivative(
+            tangent_vec_a, tangent_vec_b, base_point, atol
+        )
+
+    def test_geodesic_bvp(self, initial_point, end_point, time, atol):
         res = self.space.metric.geodesic(initial_point, end_point=end_point)(time)
         res_ = self.other_space.metric.geodesic(initial_point, end_point=end_point)(
             time
@@ -775,11 +817,14 @@ class ConnectionComparisonTestCase(TestCase):
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_geodesic_ivp(self, n_points, n_times, atol):
+    def test_geodesic_bvp_random(self, n_points, n_times, atol):
         initial_point = self.data_generator.random_point(n_points)
-        initial_tangent_vec = self.data_generator.random_tangent_vec(initial_point)
+        end_point = self.data_generator.random_point(n_points)
         time = get_random_times(n_times)
 
+        self.test_geodesic_bvp(initial_point, end_point, time, atol)
+
+    def test_geodesic_ivp(self, initial_point, initial_tangent_vec, time, atol):
         res = self.space.metric.geodesic(
             initial_point, initial_tangent_vec=initial_tangent_vec
         )(time)
@@ -790,37 +835,54 @@ class ConnectionComparisonTestCase(TestCase):
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_parallel_transport_with_direction(self, n_points, atol):
+    def test_geodesic_ivp_random(self, n_points, n_times, atol):
+        initial_point = self.data_generator.random_point(n_points)
+        initial_tangent_vec = self.data_generator.random_tangent_vec(initial_point)
+        time = get_random_times(n_times)
+
+        self.test_geodesic_ivp(initial_point, initial_tangent_vec, time, atol)
+
+    def test_parallel_transport_ivp(self, base_point, tangent_vec, direction, atol):
+        res = self.space.metric.parallel_transport(
+            tangent_vec, base_point, direction=direction
+        )
+        res_ = self.other_space.metric.parallel_transport(
+            tangent_vec, base_point, direction=direction
+        )
+        self.assertAllClose(res, res_, atol=atol)
+
+    @pytest.mark.random
+    def test_parallel_transport_ivp_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
         direction = self.data_generator.random_tangent_vec(base_point)
 
+        self.test_parallel_transport(base_point, tangent_vec, direction, atol)
+
+    def test_parallel_transport_bvp(self, base_point, end_point, tangent_vec, atol):
         res = self.space.metric.parallel_transport(
-            tangent_vec, base_point, direction=direction
+            tangent_vec, base_point, end_point=end_point
         )
         res_ = self.other_space.metric.parallel_transport(
-            tangent_vec, base_point, direction=direction
+            tangent_vec, base_point, end_point=end_point
         )
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_parallel_transport_with_end_point(self, n_points, atol):
+    def test_parallel_transport_bvp_random(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
-        res = self.space.metric.parallel_transport(
-            tangent_vec, base_point, end_point=end_point
-        )
-        res_ = self.other_space.metric.parallel_transport(
-            tangent_vec, base_point, end_point=end_point
-        )
-        self.assertAllClose(res, res_, atol=atol)
+        self.test_parallel_transport_bvp(base_point, end_point, tangent_vec, atol)
 
-    @pytest.mark.random
-    def test_injectivity_radius(self, n_points, atol):
-        base_point = self.data_generator.random_point(n_points)
-
+    def test_injectivity_radius(self, base_point, atol):
         res = self.space.metric.injectivity_radius(base_point)
         res_ = self.other_space.metric.injectivity_radius(base_point)
         self.assertAllClose(res, res_, atol=atol)
+
+    @pytest.mark.random
+    def test_injectivity_radius_random(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        self.test_injectivity_radius(base_point, atol)

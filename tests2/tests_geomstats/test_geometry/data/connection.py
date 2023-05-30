@@ -79,44 +79,44 @@ class ConnectionTestData(TestData):
 
 
 class ConnectionComparisonTestData(TestData):
-    def christoffels_test_data(self):
+    def christoffels_random_test_data(self):
         return self.generate_random_data()
 
-    def exp_test_data(self):
+    def exp_random_test_data(self):
         return self.generate_random_data()
 
-    def log_test_data(self):
+    def log_random_test_data(self):
         return self.generate_random_data()
 
-    def riemann_tensor_test_data(self):
+    def riemann_tensor_random_test_data(self):
         return self.generate_random_data()
 
-    def curvature_test_data(self):
+    def curvature_random_test_data(self):
         return self.generate_random_data()
 
-    def ricci_tensor_test_data(self):
+    def ricci_tensor_random_test_data(self):
         return self.generate_random_data()
 
-    def directional_curvature_test_data(self):
+    def directional_curvature_random_test_data(self):
         return self.generate_random_data()
 
-    def curvature_derivative_test_data(self):
+    def curvature_derivative_random_test_data(self):
         return self.generate_random_data()
 
-    def directional_curvature_derivative_test_data(self):
+    def directional_curvature_derivative_random_test_data(self):
         return self.generate_random_data()
 
-    def geodesic_bvp_test_data(self):
+    def geodesic_bvp_random_test_data(self):
         return self.generate_random_data_with_time()
 
-    def geodesic_ivp_test_data(self):
+    def geodesic_ivp_random_test_data(self):
         return self.generate_random_data_with_time()
 
-    def parallel_transport_with_direction_test_data(self):
+    def parallel_transport_ivp_random_test_data(self):
         return self.generate_random_data()
 
-    def parallel_transport_with_end_point_test_data(self):
+    def parallel_transport_bvp_random_test_data(self):
         return self.generate_random_data()
 
-    def injectivity_radius_test_data(self):
+    def injectivity_radius_random_test_data(self):
         return self.generate_random_data()
