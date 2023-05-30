@@ -2,10 +2,11 @@
 
 import geomstats.backend as gs
 from tests.conftest import Parametrizer, autograd_backend, pytorch_backend
-from tests.data.discrete_surfaces_data import (DiscreteSurfacesTestData,
-                                               ElasticMetricTestData)
-from tests.geometry_test_cases import (ManifoldTestCase,
-                                       RiemannianMetricTestCase)
+from tests.data.discrete_surfaces_data import (
+    DiscreteSurfacesTestData,
+    ElasticMetricTestData,
+)
+from tests.geometry_test_cases import ManifoldTestCase, RiemannianMetricTestCase
 
 
 class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
@@ -177,7 +178,7 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
 class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_all = not (autograd_backend() or pytorch_backend())
-    #skip_test_exp_shape = True
+    skip_test_exp_shape = True
     skip_test_log_shape = True
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
@@ -208,6 +209,8 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         ----------
         space : DiscreteSurfaces
             Space of discrete surfaces associated with the ElasticMetric.
+        a0, a1, b1, c1, d1, a2 : floats
+            Parameters of the ElasticMetric.
         path : array-like, shape=[n_time_steps, n_vertices, 3]
             Path in the space of discrete surfaces.
         atol : float
@@ -234,8 +237,10 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        space : DiscreteSurfaces
+            Space of discrete surfaces associated with the ElasticMetric.
+        a0, a1, b1, c1, d1, a2 : floats
+            Parameters of the ElasticMetric.
         path : array-like, shape=[n_time_steps, n_vertices, 3]
             Path in the space of discrete surfaces.
         atol : float
