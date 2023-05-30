@@ -5,10 +5,8 @@ Lead authors: Emmanuel Hartman, Adele Myers.
 import math
 
 from scipy.optimize import minimize
-from torch.autograd import grad
 
 import geomstats.backend as gs
-from geomstats.geometry.connection import Connection
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -946,21 +944,39 @@ class ElasticMetric(RiemannianMetric):
             Initial tangent vector.
         times : array-like, shape=[n_times,]
             Times between 0 and 1.
+
+        Returns
+        -------
+        geod : array-like, shape=[n_times, n_vertices, 3]
+            Geodesic discretized along the times given as inputs.
         """
         n_times = len(times)
         initial_tangent_vec = initial_tangent_vec / (n_times - 1)
 
         next_point = initial_point + initial_tangent_vec
-        discrete_path = [initial_point, next_point]
+        geod = [initial_point, next_point]
         for _ in range(2, n_times):
             next_next_point = self._stepforward(initial_point, next_point)
-            discrete_path += [next_next_point]
+            geod += [next_next_point]
             initial_point = next_point
             next_point = next_next_point
-        return gs.stack(discrete_path, axis=0)
+        return gs.stack(geod, axis=0)
 
     def _stepforward(self, current_point, next_point):
-        """Compute the next point on the geodesic."""
+        """Compute the next point on the geodesic.
+
+        Parameters
+        ----------
+        current_point : array-like, shape=[n_vertices, 3]
+            Current point on the geodesic.
+        next_point : array-like, shape=[n_vertices, 3]
+            Next point on the geodesic.
+
+        Returns
+        -------
+        next_next_point : array-like, shape=[n_vertices, 3]
+            Next next point on the geodesic.
+        """
         current_point = gs.array(current_point)
         next_point = gs.array(next_point)
         n_vertices = current_point.shape[-2]
@@ -968,37 +984,50 @@ class ElasticMetric(RiemannianMetric):
         next_point_clone = next_point.clone().requires_grad_(True)
 
         def energy_objective(next_next_point):
+            """Compute the energy objective to minimize.
+
+            Parameters
+            ----------
+            next_next_point : array-like, shape=[n_vertices, 3]
+                Next next point on the geodesic.
+
+            Returns
+            -------
+            energy_tot : array-like, shape=[,]
+                Energy objective to minimize.
+            """
             next_next_point = gs.reshape(gs.array(next_next_point), (n_vertices, 3))
             current_to_next = next_point - current_point
             next_to_next_next = next_next_point - next_point
 
-            def inner_product_with_current_to_next(tangent_vec):
+            def _inner_product_with_current_to_next(tangent_vec):
                 return self.inner_product(current_to_next, tangent_vec, current_point)
 
-            def inner_product_with_next_to_next_next(tangent_vec):
+            def _inner_product_with_next_to_next_next(tangent_vec):
                 return self.inner_product(next_to_next_next, tangent_vec, next_point)
 
-            def norm(vertex_1):
-                return self.squared_norm(next_to_next_next, vertex_1)
+            def _norm(base_point):
+                return self.squared_norm(next_to_next_next, base_point)
 
             _, energy_1 = gs.autodiff.value_and_grad(
-                inner_product_with_current_to_next
+                _inner_product_with_current_to_next
             )(zeros)
             _, energy_2 = gs.autodiff.value_and_grad(
-                inner_product_with_next_to_next_next
+                _inner_product_with_next_to_next_next
             )(zeros)
-            _, energy_3 = gs.autodiff.value_and_grad(norm)(next_point_clone)
+            _, energy_3 = gs.autodiff.value_and_grad(_norm)(next_point_clone)
             energy_3 = energy_3.requires_grad_(True)
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
             return gs.sum(energy_tot**2)
 
-
-        input = gs.flatten((2 * (next_point - current_point) + current_point))
+        initial_next_next_point = gs.flatten(
+            (2 * (next_point - current_point) + current_point)
+        )
 
         sol = minimize(
             gs.autodiff.value_and_grad(energy_objective, to_numpy=True),
-            input.detach().numpy(),
+            initial_next_next_point.detach().numpy(),
             method="L-BFGS-B",
             jac=True,
             options={"disp": True, "ftol": 0.1},
@@ -1022,7 +1051,7 @@ class ElasticMetric(RiemannianMetric):
 
         Returns
         -------
-        exp : array-like, shape=[nv,3]
+        exp : array-like, shape=[n_vertices, 3]
             Point on the manifold.
         """
         exps = []
@@ -1089,6 +1118,11 @@ class ElasticMetric(RiemannianMetric):
             End point, i.e. end discrete surface.
         times : array-like, shape=[n_times,]
             Times between 0 and 1.
+
+        Returns
+        -------
+        geod : array-like, shape=[n_times, n_vertices, 3]
+            Geodesic discretized on the times given as inputs.
         """
         n_points = initial_point.shape[-2]
         step = (end_point - initial_point) / (len(times) - 1)
