@@ -680,18 +680,17 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None, **kwargs):
         args = {"initial_point": initial_point, "end_point": end_point, "initial_tangent_vec":initial_tangent_vec} | kwargs
         geodesics = gs.array(self._iterate_over_factors("geodesic", args))
-        geodesics = geodesics.reshape(-1)
+        dict = {factor:geodesic for factor,geodesic in zip(self._space.factors, geodesics)}
         
         def geod_fun(t):
             t = gs.to_ndarray(t, to_ndim=1)
-            l = len(geodesics)
             result = []
-            for k in range(l):
-                geodesic_k = geodesics[k]
-                value = geodesic_k(t)
+            for factor in self._space.factors:
+                geodesic = dict[factor]
+                value = geodesic(t)
                 value = gs.reshape(value, (len(t),math.prod(value.shape[1:])))
                 result.append(value)
             
-            return gs.concatenate(result, axis=-1)
+            return gs.concatenate(result, axis=1)
 
         return geod_fun

@@ -231,7 +231,7 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
     def log_after_exp_test_data(self):
         return super().log_after_exp_test_data(amplitude=10.0)
 
-    def exp_test_data(self):
+    def exp_test_shape_data(self):
         smoke_data = [
             dict(space=space) for space in self.space_list
         ]
@@ -244,7 +244,7 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
     
-    def log_test_data(self):
+    def log_test_shape_data(self):
         smoke_data = [
             dict(space=space) for space in self.space_list
         ]

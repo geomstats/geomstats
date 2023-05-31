@@ -60,7 +60,6 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
     skip_test_inner_product_matrix_vector = True
-    skip_test_exp_shape = True
 
     testing_data = ProductRiemannianMetricTestData()
 
@@ -101,7 +100,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         result = space.metric.dist(point, base_point)
         self.assertAllClose(result, expected)
     
-    def test_exp(self, space):
+    def test_exp_shape(self, space):
         space.equip_with_metric()
         point = space.random_point()
         tangent_vec = space.random_point()
@@ -126,7 +125,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
         self.assertAllClose(results, expected)
 
-    def test_log(self, space):
+    def test_log_shape(self, space):
         space.equip_with_metric()
         point = space.random_point()
         base_point = space.random_point()
