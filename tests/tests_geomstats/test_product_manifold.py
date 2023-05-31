@@ -160,7 +160,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
         results = space.metric.dist(point_a, point_b)
         result = results[0]
-        expected = gs.repeat(result, n_samples)
+        expected = gs.broadcast_to(result, n_samples)
 
         self.assertAllClose(results, expected)
     
@@ -179,7 +179,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         space.equip_with_metric()
         point_a = space.random_point()
         point_b = space.random_point()
-        times = gs.repeat(1/2, n_samples)
+        times = gs.broadcast_to(1/2, n_samples)
 
         results = space.metric.geodesic(point_a, point_b)(times)
         result = results[0]
