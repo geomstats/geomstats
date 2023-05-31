@@ -1,5 +1,7 @@
 """Unit tests for ProductManifold, ProductRiemannianMetric."""
 
+import math
+
 import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
@@ -58,6 +60,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
     skip_test_inner_product_matrix_vector = True
+    skip_test_exp_shape = True
 
     testing_data = ProductRiemannianMetricTestData()
 
@@ -84,7 +87,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
     @tests.conftest.np_and_autograd_only
     def test_dist_exp_after_log_norm(self, space, n_samples, einsum_str, expected):
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric()
         point = space.random_point(n_samples)
         base_point = space.random_point(n_samples)
 
@@ -97,3 +100,91 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         point = space.metric.exp(normalized_logs, base_point)
         result = space.metric.dist(point, base_point)
         self.assertAllClose(result, expected)
+    
+    def test_exp(self, space):
+        space.equip_with_metric()
+        point = space.random_point()
+        tangent_vec = space.random_point()
+
+        points = space.metric.exp(tangent_vec, point)
+        points = space.project_from_product(points)
+        factors = space.factors
+        results = [manifold.shape == point.shape for manifold,point in zip(factors,points)]
+        expected = gs.ones(len(factors))
+        self.assertAllClose(results, expected)
+
+    def test_exp_vectorization(self, space, n_samples):
+        space.equip_with_metric()
+        point = space.random_point()
+        point = gs.tile(point,(n_samples, 1))
+        tangent_vec = space.random_point()
+        tangent_vec = gs.tile(tangent_vec, (n_samples, 1))
+
+        results = space.metric.exp(tangent_vec, point)
+        result = results[0]
+        expected = gs.tile(result, (n_samples, 1))
+
+        self.assertAllClose(results, expected)
+
+    def test_log(self, space):
+        space.equip_with_metric()
+        point = space.random_point()
+        base_point = space.random_point()
+
+        tangent_vecs = space.metric.log(point, base_point)
+        tangent_vecs = space.project_from_product(tangent_vecs)
+        factors = space.factors
+        results = [manifold.shape == point.shape for manifold,point in zip(factors,tangent_vecs)]
+        expected = gs.ones(len(factors))
+
+        self.assertAllClose(results, expected)
+
+    def test_log_vectorization(self, space, n_samples):
+        space.equip_with_metric()
+        point = space.random_point()
+        point = gs.tile(point,(n_samples, 1))
+        base_point = space.random_point()
+        base_point = gs.tile(base_point, (n_samples, 1))
+
+        results = space.metric.log(point, base_point)
+        result = results[0]
+        expected = gs.tile(result, (n_samples, 1))
+
+        self.assertAllClose(results, expected)
+
+    def test_dist_vectorization(self, space, n_samples):
+        space.equip_with_metric()
+        point_a = space.random_point()
+        point_a = gs.tile(point_a,(n_samples, 1))
+        point_b = space.random_point()
+        point_b = gs.tile(point_b, (n_samples, 1))
+
+        results = space.metric.dist(point_a, point_b)
+        result = results[0]
+        expected = gs.repeat(result, n_samples)
+
+        self.assertAllClose(results, expected)
+    
+    def test_geodesic(self, space):
+
+        space.equip_with_metric()
+        point_a = space.random_point()
+        point_b = space.random_point() 
+
+        point = space.metric.geodesic(point_a, point_b)(1/2)
+        result = math.prod(point.shape)
+        expected = math.prod(space.shape)
+        self.assertAllClose(result, expected)
+
+    def test_geodesic_vectorization(self, space, n_samples):
+        space.equip_with_metric()
+        point_a = space.random_point()
+        point_b = space.random_point()
+        times = gs.repeat(1/2, n_samples)
+
+        results = space.metric.geodesic(point_a, point_b)(times)
+        result = results[0]
+        expected = gs.tile(result, (n_samples, 1))
+
+        self.assertAllClose(results, expected)
+        

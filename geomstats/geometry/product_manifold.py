@@ -646,7 +646,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Point on the manifold equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        args = {"tangent_vec": tangent_vec, "base_point": base_point}
+        args = {"tangent_vec": tangent_vec, "base_point": base_point} | kwargs
         exp = self._iterate_over_factors("exp", args)
 
         return self._pool_outputs_from_function(exp)
@@ -668,6 +668,30 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        args = {"point": point, "base_point": base_point}
+        args = {"point": point, "base_point": base_point} | kwargs
         logs = self._iterate_over_factors("log", args)
         return self._pool_outputs_from_function(logs)
+
+    def dist(self,point_a, point_b,**kwargs):
+        args = {"point_a": point_a, "point_b": point_b} | kwargs
+        dists = gs.array(self._iterate_over_factors("dist", args))
+        return gs.linalg.norm(dists, ord=2, axis=0) 
+    
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None, **kwargs):
+        args = {"initial_point": initial_point, "end_point": end_point, "initial_tangent_vec":initial_tangent_vec} | kwargs
+        geodesics = gs.array(self._iterate_over_factors("geodesic", args))
+        geodesics = geodesics.reshape(-1)
+        
+        def geod_fun(t):
+            t = gs.to_ndarray(t, to_ndim=1)
+            l = len(geodesics)
+            result = []
+            for k in range(l):
+                geodesic_k = geodesics[k]
+                value = geodesic_k(t)
+                value = gs.reshape(value, (len(t),math.prod(value.shape[1:])))
+                result.append(value)
+            
+            return gs.concatenate(result, axis=-1)
+
+        return geod_fun

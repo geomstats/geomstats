@@ -5,15 +5,14 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from tests.data_generation import _ManifoldTestData, _RiemannianMetricTestData
 
 smoke_manifolds_1 = [Hypersphere(dim=2), Hyperboloid(dim=2)]
 smoke_manifolds_2 = [Euclidean(3), Minkowski(3)]
 smoke_manifolds_3 = [Siegel(2), Siegel(2), Siegel(2)]
-
 
 class ProductManifoldTestData(_ManifoldTestData):
     manifolds_list = [
@@ -28,12 +27,6 @@ class ProductManifoldTestData(_ManifoldTestData):
     ]
     default_point_list = ["matrix"] + ["vector"] * 6 + ["other"]
     default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"] * 2
-
-    if len(manifolds_list) != len(default_point_list) or len(manifolds_list) != len(
-        default_coords_type_list
-    ):
-        raise Exception("One of the lists is incomplete.")
-
     shape_list = [
         (2, 3 + 1),
         (2 * (3 + 1),),
@@ -44,6 +37,12 @@ class ProductManifoldTestData(_ManifoldTestData):
         (7,),
         (3, 2, 2),
     ]
+
+    if len(manifolds_list) != len(default_point_list) or len(manifolds_list) != len(
+        default_coords_type_list
+    ):
+        raise Exception("One of the lists is incomplete.")
+
 
     space_args_list = [
         (manifolds, default_point)
@@ -114,19 +113,39 @@ class ProductManifoldTestData(_ManifoldTestData):
 
 
 class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
+    manifolds_list = [
+        [Hypersphere(dim=3), Hyperboloid(dim=3)],
+        [Hypersphere(dim=3), Hyperboloid(dim=4)],
+        [Hypersphere(dim=1), Euclidean(dim=1)],
+        [SpecialOrthogonal(n=2), SpecialOrthogonal(n=3)],
+        [SpecialOrthogonal(n=2), Euclidean(dim=3)],
+        [Euclidean(dim=2), Euclidean(dim=1), Euclidean(dim=4)],
+        [Siegel(2), Siegel(2), Siegel(2)],
+    ]
+    default_point_list = ["vector"] * 7
+    default_coords_type_list = ["extrinsic"] * 5 + ["intrinsic"] * 2
+    shape_list = [
+        (2 * (3 + 1),),
+        ((3 + 1) + (4 + 1),),
+        (2 + 1,),
+        (4 + 6,),
+        (4 + 3,),
+        (7,),
+        (3 * 2 * 2,),
+    ]
+    
+    if len(manifolds_list) != len(default_point_list) or len(manifolds_list) != len(
+        default_coords_type_list
+    ):
+        raise Exception("One of the lists is incomplete.")
+    
     n_list = random.sample(range(2, 3), 1)
-    default_point_list = ["vector", "matrix"]
-    manifolds_list = [[Hypersphere(dim=n), Hyperboloid(dim=n)] for n in n_list]
 
     space_list = [
         ProductManifold(manifolds, default_point_type=default_point_type)
         for manifolds, default_point_type in zip(manifolds_list, default_point_list)
     ]
     connection_args_list = metric_args_list = [{} for _ in space_list]
-    shape_list = [
-        (n + 1, n + 1) if default_point == "matrix" else (2 * (n + 1),)
-        for n, default_point in zip(n_list, default_point_list)
-    ]
 
     n_points_list = random.sample(range(2, 5), 1)
     n_tangent_vecs_list = random.sample(range(2, 5), 1)
@@ -211,3 +230,49 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
 
     def log_after_exp_test_data(self):
         return super().log_after_exp_test_data(amplitude=10.0)
+
+    def exp_test_data(self):
+        smoke_data = [
+            dict(space=space) for space in self.space_list
+        ]
+        return self.generate_tests(smoke_data)
+    
+    def exp_vectorization_test_data(self):
+        smoke_data = [
+            dict(space=space, n_samples = n_samples)
+            for space in self.space_list for n_samples in self.n_list
+        ]
+        return self.generate_tests(smoke_data)
+    
+    def log_test_data(self):
+        smoke_data = [
+            dict(space=space) for space in self.space_list
+        ]
+        return self.generate_tests(smoke_data)
+    
+    def log_vectorization_test_data(self):
+        smoke_data = [
+            dict(space=space, n_samples = n_samples)
+            for space in self.space_list for n_samples in self.n_list
+        ]
+        return self.generate_tests(smoke_data)
+    
+    def dist_vectorization_test_data(self):
+        smoke_data = [
+            dict(space=space, n_samples = n_samples)
+            for space in self.space_list for n_samples in self.n_list
+        ]
+        return self.generate_tests(smoke_data)
+    
+    def geodesic_test_data(self):
+        smoke_data = [
+            dict(space=space) for space in self.space_list
+        ]
+        return self.generate_tests(smoke_data)
+    
+    def geodesic_vectorization_test_data(self):
+        smoke_data = [
+            dict(space=space, n_samples = n_samples)
+            for space in self.space_list for n_samples in self.n_list
+        ]
+        return self.generate_tests(smoke_data)
