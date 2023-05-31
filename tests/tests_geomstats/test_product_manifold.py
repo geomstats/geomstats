@@ -99,7 +99,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         point = space.metric.exp(normalized_logs, base_point)
         result = space.metric.dist(point, base_point)
         self.assertAllClose(result, expected)
-    
+
     def test_exp_shape(self, space):
         space.equip_with_metric()
         point = space.random_point()
@@ -108,14 +108,16 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         points = space.metric.exp(tangent_vec, point)
         points = space.project_from_product(points)
         factors = space.factors
-        results = [manifold.shape == point.shape for manifold,point in zip(factors,points)]
+        results = [
+            manifold.shape == point.shape for manifold, point in zip(factors, points)
+        ]
         expected = gs.ones(len(factors))
         self.assertAllClose(results, expected)
 
     def test_exp_vectorization(self, space, n_samples):
         space.equip_with_metric()
         point = space.random_point()
-        point = gs.tile(point,(n_samples, 1))
+        point = gs.tile(point, (n_samples, 1))
         tangent_vec = space.random_point()
         tangent_vec = gs.tile(tangent_vec, (n_samples, 1))
 
@@ -133,7 +135,10 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         tangent_vecs = space.metric.log(point, base_point)
         tangent_vecs = space.project_from_product(tangent_vecs)
         factors = space.factors
-        results = [manifold.shape == point.shape for manifold,point in zip(factors,tangent_vecs)]
+        results = [
+            manifold.shape == point.shape
+            for manifold, point in zip(factors, tangent_vecs)
+        ]
         expected = gs.ones(len(factors))
 
         self.assertAllClose(results, expected)
@@ -141,7 +146,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     def test_log_vectorization(self, space, n_samples):
         space.equip_with_metric()
         point = space.random_point()
-        point = gs.tile(point,(n_samples, 1))
+        point = gs.tile(point, (n_samples, 1))
         base_point = space.random_point()
         base_point = gs.tile(base_point, (n_samples, 1))
 
@@ -154,7 +159,7 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     def test_dist_vectorization(self, space, n_samples):
         space.equip_with_metric()
         point_a = space.random_point()
-        point_a = gs.tile(point_a,(n_samples, 1))
+        point_a = gs.tile(point_a, (n_samples, 1))
         point_b = space.random_point()
         point_b = gs.tile(point_b, (n_samples, 1))
 
@@ -163,14 +168,13 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         expected = gs.broadcast_to(result, n_samples)
 
         self.assertAllClose(results, expected)
-    
-    def test_geodesic(self, space):
 
+    def test_geodesic(self, space):
         space.equip_with_metric()
         point_a = space.random_point()
-        point_b = space.random_point() 
+        point_b = space.random_point()
 
-        point = space.metric.geodesic(point_a, point_b)(1/2)
+        point = space.metric.geodesic(point_a, point_b)(1 / 2)
         result = math.prod(point.shape)
         expected = math.prod(space.shape)
         self.assertAllClose(result, expected)
@@ -179,11 +183,10 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
         space.equip_with_metric()
         point_a = space.random_point()
         point_b = space.random_point()
-        times = gs.broadcast_to(1/2, n_samples)
+        times = gs.broadcast_to(1 / 2, n_samples)
 
         results = space.metric.geodesic(point_a, point_b)(times)
         result = results[0]
         expected = gs.tile(result, (n_samples, 1))
 
         self.assertAllClose(results, expected)
-        
