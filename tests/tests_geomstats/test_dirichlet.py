@@ -301,3 +301,15 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             < 0
         )
         self.assertAllClose(result, True)
+
+    @tests.conftest.np_and_autograd_only
+    def test_approx_geodesic_bvp(self, space):
+        space.equip_with_metric(self.Metric)
+
+        point_a = space.random_point()
+        point_b = space.random_point()
+
+        res = space.metric._approx_geodesic_bvp(point_a, point_b)
+        result = res[0]
+        expected = space.metric.dist(point_a, point_b)
+        self.assertAllClose(expected, result, atol=0, rtol=1e-1)

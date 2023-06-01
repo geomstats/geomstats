@@ -260,3 +260,7 @@ class DirichletMetricTestData(_RiemannianMetricTestData):
     def sectional_curvature_is_negative_test_data(self):
         random_data = [dict(space=space) for space in self.space_list]
         return self.generate_tests([], random_data)
+
+    def approx_geodesic_bvp_test_data(self):
+        random_data = [dict(space=space) for space in self.space_list]
+        return self.generate_tests([], random_data)
