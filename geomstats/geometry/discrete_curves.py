@@ -15,7 +15,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.landmarks import Landmarks
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.pullback_metric import Diffeo, PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -797,54 +797,28 @@ class L2CurvesMetric(RiemannianMetric):
         )
 
 
-class ElasticMetric(PullbackDiffeoMetric):
-    """Elastic metric on the space of discrete curves.
+class FTransform(Diffeo):
+    def __init__(self, space, a, b, embedding_space=None):
+        if embedding_space is None:
+            embedding_space = DiscreteCurves(
+                ambient_manifold=space.ambient_manifold,
+                k_sampling_points=space.k_sampling_points - 1,
+                start_at_the_origin=space.start_at_the_origin,
+                equip=False,
+            )
 
-    Family of elastic metric parametrized by bending and stretching parameters
-    a and b. These can be obtained as pullbacks of the L2 metric by the F-transforms.
-
-    See [NK2018]_ for details.
-
-    Parameters
-    ----------
-    a : float
-        Bending parameter.
-    b : float
-        Stretching parameter.
-    translation_invariant : bool
-        Optional, default : True.
-
-    References
-    ----------
-    .. [KN2018] S. Kurtek and T. Needham,
-        "Simplifying transforms for general elastic metrics on the space of
-        plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
-    """
-
-    def __init__(
-        self,
-        space,
-        a,
-        b,
-        translation_invariant=True,
-    ):
-        self._check_ambient_manifold(space.ambient_manifold)
-
-        super().__init__(
-            space=space,
-            signature=(math.inf, 0, 0),
-        )
-        self.translation_invariant = translation_invariant
         self.a = a
         self.b = b
 
-    def _check_ambient_manifold(self, ambient_manifold):
-        if not (isinstance(ambient_manifold, Euclidean) and ambient_manifold.dim == 2):
-            raise NotImplementedError(
-                "This metric is only implemented for planar curves:\n"
-                "ambient_manifold must be a plane, but it is:\n"
-                f"{ambient_manifold} of dimension {ambient_manifold.dim}."
-            )
+        super().__init__(space, embedding_space)
+
+    def _check_init(self, space, embedding_space):
+        # TODO: add more validation?
+        if not isinstance(space, DiscreteCurves):
+            raise TypeError("Expected space to be `DiscreteCurves`.")
+
+        if not isinstance(embedding_space, DiscreteCurves):
+            raise TypeError("Expected embedding space to be `DiscreteCurves`.")
 
     def _cartesian_to_polar(self, tangent_vec):
         """Compute polar coordinates of a tangent vector from the cartesian ones.
@@ -868,13 +842,13 @@ class ElasticMetric(PullbackDiffeoMetric):
             Arguments, i.e. angle, of the components in polar coordinates.
         """
         k_sampling_points = tangent_vec.shape[-2]
-        norms = self._space.ambient_manifold.metric.norm(tangent_vec)
+        norms = self.space.ambient_manifold.metric.norm(tangent_vec)
         arg_0 = gs.arctan2(tangent_vec[..., 0, 1], tangent_vec[..., 0, 0])
         args = [arg_0]
 
         for i in range(1, k_sampling_points):
             point, last_point = tangent_vec[..., i, :], tangent_vec[..., i - 1, :]
-            prod = self._space.ambient_manifold.metric.inner_product(point, last_point)
+            prod = self.space.ambient_manifold.metric.inner_product(point, last_point)
             cosine = prod / (norms[..., i] * norms[..., i - 1])
             angle = gs.arccos(gs.clip(cosine, -1, 1))
             det = gs.linalg.det(gs.stack([last_point, point], axis=-1))
@@ -911,25 +885,6 @@ class ElasticMetric(PullbackDiffeoMetric):
         unit_tangent_vec = gs.stack((tangent_vec_x, tangent_vec_y), axis=-1)
 
         return norms[..., :, None] * unit_tangent_vec
-
-    def _define_embedding_space(self):
-        r"""Create the metric this metric is in diffeomorphism with.
-
-        This instantiate the metric to use as image space of the
-        diffeomorphism.
-
-        -------
-        embedding_metric : RiemannianMetric object
-            The metric of the embedding space
-        """
-        embedding_space = DiscreteCurves(
-            ambient_manifold=self._space.ambient_manifold,
-            k_sampling_points=self._space.k_sampling_points - 1,
-            start_at_the_origin=self._space.start_at_the_origin,
-            equip=False,
-        )
-        embedding_space.equip_with_metric(L2CurvesMetric)
-        return embedding_space
 
     def f_transform(self, point):
         r"""Compute the f_transform of a curve.
@@ -1096,6 +1051,59 @@ class ElasticMetric(PullbackDiffeoMetric):
         f_transform = image_point
         return self.f_transform_inverse(f_transform, starting_sampling_point)
 
+
+class ElasticMetric(PullbackDiffeoMetric):
+    """Elastic metric on the space of discrete curves.
+
+    Family of elastic metric parametrized by bending and stretching parameters
+    a and b. These can be obtained as pullbacks of the L2 metric by the F-transforms.
+
+    See [NK2018]_ for details.
+
+    Parameters
+    ----------
+    a : float
+        Bending parameter.
+    b : float
+        Stretching parameter.
+
+    References
+    ----------
+    .. [KN2018] S. Kurtek and T. Needham,
+        "Simplifying transforms for general elastic metrics on the space of
+        plane curves", arXiv:1803.10894 [math.DG], 29 Mar 2018.
+    """
+
+    def __init__(
+        self,
+        space,
+        a,
+        b,
+    ):
+        self._check_ambient_manifold(space.ambient_manifold)
+
+        diffeo = FTransform(
+            space,
+            a,
+            b,
+        )
+        diffeo.embedding_space.equip_with_metric(
+            L2CurvesMetric,
+        )
+        super().__init__(
+            space=space,
+            diffeo=diffeo,
+            signature=(math.inf, 0, 0),
+        )
+
+    def _check_ambient_manifold(self, ambient_manifold):
+        if not (isinstance(ambient_manifold, Euclidean) and ambient_manifold.dim == 2):
+            raise NotImplementedError(
+                "This metric is only implemented for planar curves:\n"
+                "ambient_manifold must be a plane, but it is:\n"
+                f"{ambient_manifold} of dimension {ambient_manifold.dim}."
+            )
+
     def squared_dist(self, point_a, point_b):
         """Compute squared geodesic distance between two curves.
 
@@ -1151,77 +1159,45 @@ class ElasticMetric(PullbackDiffeoMetric):
 
             curves_path = []
             for t in times:
-                initial_f = self.diffeomorphism(initial_point)
-                end_f = self.diffeomorphism(end_point)
+                initial_f = self.diffeo.diffeomorphism(initial_point)
+                end_f = self.diffeo.diffeomorphism(end_point)
                 f_t = (1 - t) * initial_f + t * end_f
-                curve_t = self.inverse_diffeomorphism(f_t)
+                curve_t = self.diffeo.inverse_diffeomorphism(f_t)
                 curves_path.append(curve_t)
             return gs.stack(curves_path)
 
         return path
 
 
-class SRVMetric(PullbackDiffeoMetric):
-    """Square Root Velocity metric on the space of discrete curves.
-
-    The SRV metric is equivalent to the elastic metric chosen with
-    - bending parameter a = 1,
-    - stretching parameter b = 1/2.
-    It can be obtained as the pullback of the L2 metric by the Square Root
-    Velocity Function.
-
-    See [Sea2011]_ for details.
-
-    Parameters
-    ----------
-    translation_invariant : bool
-        Optional, default : True.
-
-    References
-    ----------
-    .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
-        "Shape Analysis of Elastic Curves in Euclidean Spaces,"
-        in IEEE Transactions on Pattern Analysis and Machine Intelligence,
-        vol. 33, no. 7, pp. 1415-1428, July 2011.
-    """
-
-    def __init__(
-        self,
-        space,
-        translation_invariant=True,
-    ):
-        super().__init__(space=space)
-        self.translation_invariant = translation_invariant
-
-    def _check_ambient_manifold(self, ambient_manifold):
-        if not isinstance(ambient_manifold, Euclidean):
-            raise AssertionError(
-                "This metric is only "
-                "implemented for discrete curves embedded "
-                "in a Euclidean space."
+class SRVTransform(Diffeo):
+    def __init__(self, space, embedding_space=None):
+        if embedding_space is None:
+            embedding_space = DiscreteCurves(
+                ambient_manifold=space.ambient_manifold,
+                k_sampling_points=space.k_sampling_points - 1,
+                start_at_the_origin=space.start_at_the_origin,
+                equip=False,
+            )
+            embedding_space.equip_with_metric(
+                L2CurvesMetric,
             )
 
-    def _define_embedding_space(self):
-        r"""Define embedding space with metric to pull back.
+        super().__init__(space, embedding_space)
 
-        Define the embedding space equipped with the metric which is pulled back
-        by the Square Root Velocity Function to induce the Square Root Velocity
-        Metric on the space of discrete curves.
-        This is the L2 metric.
+    def _check_init(self, space, embedding_space):
+        # TODO: add more validation?
+        if not isinstance(space, DiscreteCurves):
+            raise TypeError("Expected space to be `DiscreteCurves`.")
 
-        -------
-        embedding_space : Manifold object
-            Embedding space.
-        """
-        print("here")
-        embedding_space = DiscreteCurves(
-            ambient_manifold=self._space.ambient_manifold,
-            k_sampling_points=self._space.k_sampling_points - 1,
-            start_at_the_origin=self._space.start_at_the_origin,
-            equip=False,
-        )
-        embedding_space.equip_with_metric(L2CurvesMetric)
-        return embedding_space
+        if not isinstance(embedding_space, DiscreteCurves):
+            raise TypeError("Expected embedding space to be `DiscreteCurves`.")
+
+        if not hasattr(embedding_space, "metric") or not isinstance(
+            embedding_space.metric, L2CurvesMetric
+        ):
+            raise ValueError(
+                "Embedding space needs to be equipped with `L2CurvesMetric`."
+            )
 
     def f_transform(self, point, tol=gs.atol):
         r"""Square Root Velocity Transform (SRVT).
@@ -1250,7 +1226,7 @@ class SRVMetric(PullbackDiffeoMetric):
         srv : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Square-root velocity representation of a discrete curve.
         """
-        ambient_metric = self._space.ambient_manifold.metric
+        ambient_metric = self.space.ambient_manifold.metric
         if gs.any(ambient_metric.norm(point[..., 1:, :] - point[..., :-1, :]) < tol):
             raise AssertionError(
                 "The square root velocity framework "
@@ -1333,7 +1309,7 @@ class SRVMetric(PullbackDiffeoMetric):
         n_curves, k_sampling_points_minus_one, n_coords = srv.shape
 
         srv_flat = gs.reshape(srv, (n_curves * k_sampling_points_minus_one, n_coords))
-        srv_norm = self._space.ambient_manifold.metric.norm(srv_flat)
+        srv_norm = self.space.ambient_manifold.metric.norm(srv_flat)
 
         dt = 1 / k_sampling_points_minus_one
 
@@ -1392,7 +1368,7 @@ class SRVMetric(PullbackDiffeoMetric):
         velocity_vec = (k_sampling_points - 1) * (
             base_point[..., 1:, :] - base_point[..., :-1, :]
         )
-        velocity_norm = self._space.ambient_manifold.metric.norm(velocity_vec)
+        velocity_norm = self.space.ambient_manifold.metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
@@ -1435,7 +1411,7 @@ class SRVMetric(PullbackDiffeoMetric):
         velocity_vec = (k_sampling_points - 1) * (
             point[..., 1:, :] - point[..., :-1, :]
         )
-        velocity_norm = self._space.ambient_manifold.metric.norm(velocity_vec)
+        velocity_norm = self.space.ambient_manifold.metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
@@ -1464,6 +1440,43 @@ class SRVMetric(PullbackDiffeoMetric):
         vec = gs.cumsum(vec, -2)
 
         return gs.squeeze(vec)
+
+
+class SRVMetric(PullbackDiffeoMetric):
+    """Square Root Velocity metric on the space of discrete curves.
+
+    The SRV metric is equivalent to the elastic metric chosen with
+    - bending parameter a = 1,
+    - stretching parameter b = 1/2.
+    It can be obtained as the pullback of the L2 metric by the Square Root
+    Velocity Function.
+
+    See [Sea2011]_ for details.
+
+    References
+    ----------
+    .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
+        "Shape Analysis of Elastic Curves in Euclidean Spaces,"
+        in IEEE Transactions on Pattern Analysis and Machine Intelligence,
+        vol. 33, no. 7, pp. 1415-1428, July 2011.
+    """
+
+    def __init__(
+        self,
+        space,
+    ):
+        self._check_ambient_manifold(space.ambient_manifold)
+
+        diffeo = SRVTransform(space)
+        super().__init__(space=space, diffeo=diffeo)
+
+    def _check_ambient_manifold(self, ambient_manifold):
+        if not isinstance(ambient_manifold, Euclidean):
+            raise AssertionError(
+                "This metric is only "
+                "implemented for discrete curves embedded "
+                "in a Euclidean space."
+            )
 
     @staticmethod
     def space_derivative(curve):

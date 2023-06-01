@@ -17,7 +17,7 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpaceMetric,
 )
 from geomstats.geometry.product_manifold import ProductManifold
-from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.pullback_metric import Diffeo, PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
@@ -593,27 +593,25 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         return pdf
 
 
-class UnivariateNormalMetric(PullbackDiffeoMetric):
-    """Class for the Fisher information metric on univariate normal distributions.
+class DiffeoUnivariateNormalPoincareHalfSpace(Diffeo):
+    def __init__(self, space=None, embedding_space=None):
+        if space is None:
+            space = UnivariateNormalDistributions(equip=False)
 
-    This is the pullback of the metric of the Poincare upper half-plane
-    by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
-    """
+        if embedding_space is None:
+            embedding_space = PoincareHalfSpace(dim=2, equip=False)
 
-    def _define_embedding_space(self):
-        r"""Define the equipped space with the metric to pull back.
+        super().__init__(space, embedding_space)
 
-        This is the metric of the Poincare upper half-plane
-        with a scaling factor of 2.
+    def _check_init(self, space, embedding_space):
+        if not isinstance(space, UnivariateNormalDistributions):
+            raise TypeError("Expected space to be `UnivariateNormalDistributions`.")
 
-        Returns
-        -------
-        embedding_metric : RiemannianMetric object
-            The metric of the Poincare upper half-plane.
-        """
-        space = PoincareHalfSpace(dim=2)
-        space.metric = ScalarProductMetric(PoincareHalfSpaceMetric(space), 2.0)
-        return space
+        if not isinstance(embedding_space, PoincareHalfSpace):
+            raise TypeError("Expected embedding space to be `PoincareHalfSpace`.")
+
+        if embedding_space.dim != 2:
+            raise ValueError("Embedding space dim must be 2.")
 
     def diffeomorphism(self, base_point):
         r"""Image of base point in the Poincare upper half-plane.
@@ -698,6 +696,21 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
             Inverse image of image_tangent_vec.
         """
         return self.inverse_diffeomorphism(image_tangent_vec)
+
+
+class UnivariateNormalMetric(PullbackDiffeoMetric):
+    """Class for the Fisher information metric on univariate normal distributions.
+
+    This is the pullback of the metric of the Poincare upper half-plane
+    by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
+    """
+
+    def __init__(self, space):
+        diffeo = DiffeoUnivariateNormalPoincareHalfSpace(space=space)
+        diffeo.embedding_space.metric = ScalarProductMetric(
+            PoincareHalfSpaceMetric(diffeo.embedding_space), 2.0
+        )
+        super().__init__(space, diffeo)
 
     @staticmethod
     def metric_matrix(base_point):
