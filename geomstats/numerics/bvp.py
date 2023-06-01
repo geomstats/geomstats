@@ -29,7 +29,7 @@ class ScipySolveBVP:
         fun_jac_ = None
         if fun_jac is not None:
 
-            def func_jac_(t, state):
+            def fun_jac_(t, state):
                 return fun_jac(t, gs.from_numpy(state))
 
         result = scipy.integrate.solve_bvp(
