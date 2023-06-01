@@ -115,6 +115,7 @@ class ProductManifoldTestData(_ManifoldTestData):
 class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
     manifolds_list = [
         [Hypersphere(dim=3), Hyperboloid(dim=3)],
+        [Hypersphere(dim=3), Hyperboloid(dim=3)],
         [Hypersphere(dim=3), Hyperboloid(dim=4)],
         [Hypersphere(dim=1), Euclidean(dim=1)],
         [SpecialOrthogonal(n=2), SpecialOrthogonal(n=3)],
@@ -122,16 +123,17 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
         [Euclidean(dim=2), Euclidean(dim=1), Euclidean(dim=4)],
         [Siegel(2), Siegel(2), Siegel(2)],
     ]
-    default_point_list = ["vector"] * 7
-    default_coords_type_list = ["extrinsic"] * 5 + ["intrinsic"] + ["extrinsic"]
+    default_point_list = ["matrix"] + ["vector"] * 6 + ["other"]
+    default_coords_type_list = ["extrinsic"] * 6 + ["intrinsic"] + ["extrinsic"]
     shape_list = [
+        (2, 3 + 1),
         (2 * (3 + 1),),
         ((3 + 1) + (4 + 1),),
         (2 + 1,),
         (4 + 6,),
         (4 + 3,),
         (7,),
-        (3 * 2 * 2,),
+        (3, 2, 2,),
     ]
 
     if len(manifolds_list) != len(default_point_list) or len(manifolds_list) != len(
@@ -231,7 +233,7 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
     def log_after_exp_test_data(self):
         return super().log_after_exp_test_data(amplitude=10.0)
 
-    def exp_test_shape_data(self):
+    def exp_shape_test_data(self):
         smoke_data = [dict(space=space) for space in self.space_list]
         return self.generate_tests(smoke_data)
 
@@ -243,7 +245,7 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def log_test_shape_data(self):
+    def log_shape_test_data(self):
         smoke_data = [dict(space=space) for space in self.space_list]
         return self.generate_tests(smoke_data)
 

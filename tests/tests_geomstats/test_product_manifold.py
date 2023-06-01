@@ -117,13 +117,13 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     def test_exp_vectorization(self, space, n_samples):
         space.equip_with_metric()
         point = space.random_point()
-        point = gs.tile(point, (n_samples, 1))
+        point = gs.broadcast_to(point, (n_samples,) + point.shape)
         tangent_vec = space.random_point()
-        tangent_vec = gs.tile(tangent_vec, (n_samples, 1))
+        tangent_vec = gs.broadcast_to(tangent_vec, (n_samples,) + point.shape)
 
         results = space.metric.exp(tangent_vec, point)
         result = results[0]
-        expected = gs.tile(result, (n_samples, 1))
+        expected = gs.broadcast_to(result, (n_samples,) + result.shape)
 
         self.assertAllClose(results, expected)
 
@@ -146,22 +146,22 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
     def test_log_vectorization(self, space, n_samples):
         space.equip_with_metric()
         point = space.random_point()
-        point = gs.tile(point, (n_samples, 1))
+        point = gs.broadcast_to(point, (n_samples,) + point.shape)
         base_point = space.random_point()
-        base_point = gs.tile(base_point, (n_samples, 1))
+        base_point = gs.broadcast_to(base_point, (n_samples,) + base_point.shape)
 
         results = space.metric.log(point, base_point)
         result = results[0]
-        expected = gs.tile(result, (n_samples, 1))
+        expected = gs.broadcast_to(result, (n_samples,) + result.shape)
 
         self.assertAllClose(results, expected)
 
     def test_dist_vectorization(self, space, n_samples):
         space.equip_with_metric()
         point_a = space.random_point()
-        point_a = gs.tile(point_a, (n_samples, 1))
+        point_a = gs.broadcast_to(point_a, (n_samples,) + point_a.shape)
         point_b = space.random_point()
-        point_b = gs.tile(point_b, (n_samples, 1))
+        point_b = gs.broadcast_to(point_b, (n_samples,) + point_b.shape)
 
         results = space.metric.dist(point_a, point_b)
         result = results[0]
@@ -187,6 +187,6 @@ class TestProductRiemannianMetric(RiemannianMetricTestCase, metaclass=Parametriz
 
         results = space.metric.geodesic(point_a, point_b)(times)
         result = results[0]
-        expected = gs.tile(result, (n_samples, 1))
+        expected = gs.broadcast_to(result, (n_samples,) + result.shape)
 
         self.assertAllClose(results, expected)
