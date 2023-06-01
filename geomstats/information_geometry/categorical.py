@@ -60,7 +60,7 @@ class CategoricalDistributions(MultinomialDistributions):
         point = gs.to_ndarray(point, to_ndim=2)
         samples = []
         for param in point:
-            counts = multinomial.rvs(self.n_draws, param, size=n_samples)
+            counts = gs.from_numpy(multinomial.rvs(self.n_draws, param, size=n_samples))
             samples.append(gs.argmax(counts, axis=-1))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 

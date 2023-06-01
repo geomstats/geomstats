@@ -50,6 +50,10 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
             Boolean indicating whether point represents a binomial
             distribution.
         """
+        belongs_shape = self.shape == point.shape[-self.point_ndim :]
+        if not belongs_shape:
+            shape = point.shape[: -self.point_ndim]
+            return gs.zeros(shape, dtype=bool)
         return gs.squeeze(gs.logical_and(atol <= point, point <= 1 - atol), axis=-1)
 
     def random_point(self, n_samples=1):

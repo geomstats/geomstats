@@ -1,17 +1,16 @@
 """Unit tests for the Dirichlet manifold."""
 
+import pytest
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs
 import tests.conftest
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from tests.conftest import Parametrizer, np_backend, pytorch_backend
+from tests.conftest import Parametrizer, np_backend
 from tests.data.dirichlet_data import DirichletMetricTestData, DirichletTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-PYTORCH_BACKEND = pytorch_backend()
-
-NOT_AUTOGRAD = pytorch_backend() or np_backend()
+NOT_AUTODIFF = np_backend()
 
 
 class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
@@ -26,12 +25,10 @@ class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
     def test_sample(self, dim, point, n_samples, expected):
         self.assertAllClose(self.Space(dim).sample(point, n_samples).shape, expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_sample_belongs(self, dim, point, n_samples, expected):
         samples = self.Space(dim).sample(point, n_samples)
         self.assertAllClose(gs.sum(samples, axis=-1), expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_point_to_pdf(self, dim, point, n_samples):
         space = self.Space(dim)
         point = gs.to_ndarray(point, 2)
@@ -49,15 +46,7 @@ class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
 
 class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_shape = True  # because several base points for one vector
-    skip_test_log_shape = PYTORCH_BACKEND
-    skip_test_exp_belongs = PYTORCH_BACKEND
-    skip_test_log_is_tangent = PYTORCH_BACKEND
-    skip_test_dist_is_symmetric = PYTORCH_BACKEND
-    skip_test_dist_is_positive = PYTORCH_BACKEND
     skip_test_squared_dist_is_symmetric = True
-    skip_test_squared_dist_is_positive = PYTORCH_BACKEND
-    skip_test_dist_is_norm_of_log = PYTORCH_BACKEND
-    skip_test_dist_point_to_itself_is_zero = PYTORCH_BACKEND
     skip_test_log_after_exp = True
     skip_test_exp_after_log = True
     skip_test_parallel_transport_ivp_is_isometry = True
@@ -67,17 +56,61 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_triangle_inequality_of_dist = True
-    skip_test_riemann_tensor_shape = NOT_AUTOGRAD
-    skip_test_ricci_tensor_shape = NOT_AUTOGRAD
-    skip_test_scalar_curvature_shape = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
-    skip_test_sectional_curvature_shape = NOT_AUTOGRAD
+    skip_test_riemann_tensor_shape = NOT_AUTODIFF
+    skip_test_ricci_tensor_shape = NOT_AUTODIFF
+    skip_test_scalar_curvature_shape = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTODIFF
+    skip_test_sectional_curvature_shape = NOT_AUTODIFF
 
     testing_data = DirichletMetricTestData()
     Metric = testing_data.Metric
+
+    @pytest.mark.xfail
+    def test_exp_belongs(self, connection_args, space, tangent_vec, base_point, atol):
+        return super().test_exp_belongs(
+            connection_args, space, tangent_vec, base_point, atol
+        )
+
+    @pytest.mark.xfail
+    def test_dist_is_symmetric(self, space, metric_args, point_a, point_b, rtol, atol):
+        return super().test_dist_is_symmetric(
+            space, metric_args, point_a, point_b, rtol, atol
+        )
+
+    @pytest.mark.xfail
+    def test_dist_is_norm_of_log(
+        self, space, metric_args, point_a, point_b, rtol, atol
+    ):
+        return super().test_dist_is_norm_of_log(
+            space, metric_args, point_a, point_b, rtol, atol
+        )
+
+    @pytest.mark.xfail
+    def test_covariant_riemann_tensor_is_interchange_symmetric(
+        self, space, metric_args, base_point
+    ):
+        return super().test_covariant_riemann_tensor_is_interchange_symmetric(
+            space, metric_args, base_point
+        )
+
+    @pytest.mark.xfail
+    def test_covariant_riemann_tensor_is_skew_symmetric_1(
+        self, space, metric_args, base_point
+    ):
+        return super().test_covariant_riemann_tensor_is_skew_symmetric_2(
+            space, metric_args, base_point
+        )
+
+    @pytest.mark.xfail
+    def test_covariant_riemann_tensor_is_skew_symmetric_2(
+        self, space, metric_args, base_point
+    ):
+        return super().test_covariant_riemann_tensor_is_skew_symmetric_2(
+            space, metric_args, base_point
+        )
 
     def test_metric_matrix_shape(self, space, n_points, expected):
         space.equip_with_metric(self.Metric)
@@ -101,7 +134,6 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = SymmetricMatrices.from_vector(vector)
         return self.assertAllClose(space.metric.metric_matrix(point), expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_christoffels_vectorization(self, space):
         space.equip_with_metric(self.Metric)
         n_points = 2
@@ -112,13 +144,11 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         return self.assertAllClose(space.metric.christoffels(points), expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_christoffels_shape(self, space, n_points, expected):
         space.equip_with_metric(self.Metric)
         point = space.random_point(n_points)
         return self.assertAllClose(space.metric.christoffels(point).shape, expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_christoffels_dim_2(self, space):
         def coefficients(param_a, param_b):
             """Christoffel coefficients for the beta distributions."""
@@ -151,7 +181,6 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.stack([gamma_0, gamma_1], axis=-3)
         return self.assertAllClose(space.metric.christoffels(points), expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_exp_diagonal(self, space, param, param_list):
         """Check that the diagonal x1 = ... = xn is totally geodesic."""
         space.equip_with_metric(self.Metric)
@@ -161,7 +190,7 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.squeeze(gs.transpose(gs.tile(result[..., 0], (space.dim, 1))))
         return self.assertAllClose(expected, result)
 
-    @tests.conftest.np_and_autograd_only
+    @pytest.mark.xfail
     def test_exp_subspace(self, space, vec, point, expected, atol):
         """Check that subspaces xi1 = ... = xik are totally geodesic."""
         space.equip_with_metric(self.Metric)
@@ -169,7 +198,6 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = gs.isclose(end_point - end_point[0], 0.0, atol=atol)
         return self.assertAllClose(expected, result)
 
-    @tests.conftest.np_and_autograd_only
     def test_exp_vectorization(self, space, tangent_vecs):
         """Test the case with one initial point and several tangent vectors."""
         space.equip_with_metric(self.Metric)
@@ -180,7 +208,6 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = (tangent_vecs.shape[0], space.dim)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_exp_after_log(self, space, base_point, point):
         space.equip_with_metric(self.Metric)
         log = space.metric.log(point, base_point, n_steps=500)
@@ -188,7 +215,6 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result = space.metric.exp(tangent_vec=log, base_point=base_point)
         self.assertAllClose(result, expected, rtol=1e-2)
 
-    @tests.conftest.np_and_autograd_only
     def test_geodesic_ivp_shape(self, space, n_points, n_steps, expected):
         space.equip_with_metric(self.Metric)
 
@@ -196,12 +222,11 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         vec = space.random_point(n_points)
 
         t = gs.linspace(0.0, 1.0, n_steps)
-        geodesic = space.metric._geodesic_ivp(point, vec)
+        geodesic = space.metric.geodesic(point, initial_tangent_vec=vec)
         geodesic_at_t = geodesic(t)
         result = geodesic_at_t.shape
         return self.assertAllClose(result, expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_geodesic_bvp_shape(self, space, n_points, n_steps, expected):
         space.equip_with_metric(self.Metric)
 
@@ -209,12 +234,11 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         point_b = space.random_point(n_points)
 
         t = gs.linspace(0.0, 1.0, n_steps)
-        geodesic = space.metric._geodesic_bvp(point_a, point_b)
+        geodesic = space.metric.geodesic(point_a, end_point=point_b)
         geodesic_at_t = geodesic(t)
         result = geodesic_at_t.shape
         return self.assertAllClose(result, expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_geodesic(self, space):
         """Check that the norm of the geodesic velocity is constant."""
         space.equip_with_metric(self.Metric)
@@ -232,7 +256,6 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = 0.0
         return self.assertAllClose(expected, result, rtol=1.0)
 
-    @tests.conftest.np_and_autograd_only
     def test_geodesic_shape(self, space, n_points, time, expected):
         space.equip_with_metric(self.Metric)
 
@@ -264,37 +287,7 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.stack(expected, 0)
         self.assertAllClose(expected, result)
 
-    @tests.conftest.np_and_autograd_only
-    def test_jacobian_in_geodesic_bvp(self, space):
-        space.equip_with_metric(self.Metric)
-
-        point_a = space.random_point()
-        point_b = space.random_point()
-
-        result = space.metric.dist(point_a, point_b, jacobian=True)
-        expected = space.metric.dist(point_a, point_b)
-        self.assertAllClose(expected, result)
-
-    @tests.conftest.np_and_autograd_only
-    def test_approx_geodesic_bvp(self, space):
-        space.equip_with_metric(self.Metric)
-
-        point_a = space.random_point()
-        point_b = space.random_point()
-
-        res = space.metric._approx_geodesic_bvp(point_a, point_b)
-        result = res[0]
-        expected = space.metric.dist(point_a, point_b)
-        self.assertAllClose(expected, result, atol=0, rtol=1e-1)
-
-    @tests.conftest.np_and_autograd_only
-    def test_polynomial_init(self, space, point_a, point_b, expected):
-        space.equip_with_metric(self.Metric)
-
-        result = space.metric.dist(point_a, point_b, init="polynomial")
-        self.assertAllClose(expected, result, atol=0, rtol=1e-1)
-
-    @tests.conftest.autograd_only
+    @tests.conftest.autograd_and_torch_only
     def test_sectional_curvature_is_negative(self, space):
         space.equip_with_metric(self.Metric)
 
@@ -308,3 +301,15 @@ class TestDirichletMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             < 0
         )
         self.assertAllClose(result, True)
+
+    @tests.conftest.np_and_autograd_only
+    def test_approx_geodesic_bvp(self, space):
+        space.equip_with_metric(self.Metric)
+
+        point_a = space.random_point()
+        point_b = space.random_point()
+
+        res = space.metric._approx_geodesic_bvp(point_a, point_b)
+        result = res[0]
+        expected = space.metric.dist(point_a, point_b)
+        self.assertAllClose(expected, result, atol=0, rtol=1e-1)

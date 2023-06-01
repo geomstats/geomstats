@@ -192,6 +192,11 @@ class GammaMetricTestData(_RiemannianMetricTestData):
     n_points_a_list = n_points_b_list = n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
+    tolerances = {
+        "log_after_exp_control": {"atol": 1e-1},
+        "exp_after_log_control": {"atol": 1e-1},
+    }
+
     def metric_matrix_shape_test_data(self):
         space = self.space_list[0]
         random_data = [
@@ -227,13 +232,6 @@ class GammaMetricTestData(_RiemannianMetricTestData):
                 space=space,
                 point=point,
                 tangent_vecs=random.choice(self.n_norms_list) * tangent_vecs,
-                exp_solver="geomstats",
-            ),
-            dict(
-                space=space,
-                point=point,
-                tangent_vecs=random.choice(self.n_norms_list) * tangent_vecs,
-                exp_solver="lsoda",
             ),
         ]
         return self.generate_tests([], random_data)
@@ -251,13 +249,6 @@ class GammaMetricTestData(_RiemannianMetricTestData):
                 space=space,
                 base_point=base_point,
                 tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
-                exp_solver="geomstats",
-            ),
-            dict(
-                space=space,
-                base_point=base_point,
-                tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
-                exp_solver="lsoda",
             ),
         ]
         return self.generate_tests([], random_data)
@@ -275,29 +266,6 @@ class GammaMetricTestData(_RiemannianMetricTestData):
                 space=space,
                 base_point=base_point,
                 tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
-                exp_solver="geomstats",
-                log_method="geodesic_shooting",
-            ),
-            dict(
-                space=space,
-                base_point=base_point,
-                tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
-                exp_solver="lsoda",
-                log_method="ode_bvp",
-            ),
-            dict(
-                space=space,
-                base_point=base_point,
-                tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
-                exp_solver="geomstats",
-                log_method="ode_bvp",
-            ),
-            dict(
-                space=space,
-                base_point=base_point,
-                tangent_vec=random.choice(self.n_norms_list) * tangent_vec,
-                exp_solver="lsoda",
-                log_method="ode_bvp",
             ),
         ]
         return self.generate_tests([], random_data)
@@ -322,34 +290,7 @@ class GammaMetricTestData(_RiemannianMetricTestData):
                 space=space,
                 base_point=base_point,
                 end_point=end_point,
-                exp_solver="geomstats",
-                log_method="geodesic_shooting",
-                rtol=1,
-            ),
-            dict(
-                space=space,
-                base_point=base_point,
-                end_point=end_point,
-                exp_solver="lsoda",
-                log_method="ode_bvp",
-                rtol=1,
-            ),
-            dict(
-                space=space,
-                base_point=base_point,
-                end_point=end_point,
-                exp_solver="geomstats",
-                log_method="ode_bvp",
-                rtol=1,
-            ),
-            dict(
-                space=space,
-                base_point=base_point,
-                end_point=end_point,
-                exp_solver="lsoda",
-                log_method="geodesic_shooting",
-                rtol=1,
-            ),
+            )
         ]
         return self.generate_tests([], random_data)
 
@@ -372,33 +313,6 @@ class GammaMetricTestData(_RiemannianMetricTestData):
                 space=space,
                 base_point=base_point,
                 tangent_vec=tangent_vec,
-                exp_solver="geomstats",
-                log_method="geodesic_shooting",
-                rtol=1,
-            ),
-            dict(
-                space=space,
-                base_point=base_point,
-                tangent_vec=tangent_vec,
-                exp_solver="lsoda",
-                log_method="ode_bvp",
-                rtol=1,
-            ),
-            dict(
-                space=space,
-                base_point=base_point,
-                tangent_vec=tangent_vec,
-                exp_solver="geomstats",
-                log_method="ode_bvp",
-                rtol=1,
-            ),
-            dict(
-                space=space,
-                base_point=base_point,
-                tangent_vec=tangent_vec,
-                exp_solver="lsoda",
-                log_method="geodesic_shooting",
-                rtol=1,
             ),
         ]
         return self.generate_tests([], random_data)

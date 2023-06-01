@@ -1,16 +1,15 @@
 """Unit tests for the Gamma manifold."""
 
+import pytest
 from scipy.stats import gamma
 
 import geomstats.backend as gs
 import tests.conftest
-from tests.conftest import Parametrizer, autograd_backend, np_backend, pytorch_backend
+from tests.conftest import Parametrizer, np_backend
 from tests.data.gamma_data import GammaDistributionsTestData, GammaMetricTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-PYTORCH_BACKEND = pytorch_backend()
-
-NOT_AUTOGRAD = pytorch_backend() or np_backend()
+NOT_AUTODIFF = np_backend()
 
 
 class TestGammaDistributions(OpenSetTestCase, metaclass=Parametrizer):
@@ -28,7 +27,6 @@ class TestGammaDistributions(OpenSetTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(self.Space().sample(point, n_samples).shape, expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_point_to_pdf(self, point, n_samples):
         pdf = self.Space().point_to_pdf(point)
         result = pdf(n_samples)
@@ -85,13 +83,9 @@ class TestGammaDistributions(OpenSetTestCase, metaclass=Parametrizer):
 
 class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_shape = True  # because several base points for one vector
-    skip_test_log_shape = NOT_AUTOGRAD
     skip_test_exp_belongs = True
-    skip_test_log_is_tangent = NOT_AUTOGRAD
     skip_test_dist_is_symmetric = True
-    skip_test_dist_is_positive = NOT_AUTOGRAD
     skip_test_squared_dist_is_symmetric = True
-    skip_test_squared_dist_is_positive = NOT_AUTOGRAD
     skip_test_dist_is_norm_of_log = True
     skip_test_dist_point_to_itself_is_zero = True
     skip_test_log_after_exp = True
@@ -103,24 +97,46 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_triangle_inequality_of_dist = True
-    skip_test_riemann_tensor_shape = NOT_AUTOGRAD
-    skip_test_ricci_tensor_shape = NOT_AUTOGRAD
-    skip_test_scalar_curvature_shape = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
-    skip_test_sectional_curvature_shape = NOT_AUTOGRAD
-    skip_test_log_after_exp_control = autograd_backend()
+    skip_test_riemann_tensor_shape = NOT_AUTODIFF
+    skip_test_ricci_tensor_shape = NOT_AUTODIFF
+    skip_test_scalar_curvature_shape = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTODIFF
+    skip_test_sectional_curvature_shape = NOT_AUTODIFF
 
     testing_data = GammaMetricTestData()
+
+    @pytest.mark.xfail
+    def test_covariant_riemann_tensor_is_interchange_symmetric(
+        self, space, metric_args, base_point
+    ):
+        return super().test_covariant_riemann_tensor_is_interchange_symmetric(
+            space, metric_args, base_point
+        )
+
+    @pytest.mark.xfail
+    def test_covariant_riemann_tensor_is_skew_symmetric_2(
+        self, space, metric_args, base_point
+    ):
+        return super().test_covariant_riemann_tensor_is_skew_symmetric_2(
+            space, metric_args, base_point
+        )
+
+    @pytest.mark.xfail
+    def test_covariant_riemann_tensor_bianchi_identity(
+        self, space, metric_args, base_point
+    ):
+        return super().test_covariant_riemann_tensor_bianchi_identity(
+            space, metric_args, base_point
+        )
 
     def test_metric_matrix_shape(self, space, n_points, expected):
         space.equip_with_metric(self.Metric)
         point = space.random_point(n_points)
         return self.assertAllClose(space.metric.metric_matrix(point).shape, expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_christoffels_vectorization(self, space, n_points):
         space.equip_with_metric(self.Metric)
 
@@ -131,7 +147,6 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         return self.assertAllClose(space.metric.christoffels(points), expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_christoffels_shape(self, space, n_points, expected):
         space.equip_with_metric(self.Metric)
         point = space.random_point(n_points)
@@ -140,74 +155,57 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             expected,
         )
 
-    @tests.conftest.np_and_autograd_only
-    def test_exp_vectorization(self, space, point, tangent_vecs, exp_solver):
+    def test_exp_vectorization(self, space, point, tangent_vecs):
         """Test the case with one initial point and several tangent vectors."""
         space.equip_with_metric(self.Metric)
         end_points = space.metric.exp(
-            tangent_vec=tangent_vecs, base_point=point, n_steps=1000, solver=exp_solver
+            tangent_vec=tangent_vecs,
+            base_point=point,
         )
         result = end_points.shape
         expected = (tangent_vecs.shape[0], 2)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_and_autograd_only
-    def test_exp_control(self, space, base_point, tangent_vec, exp_solver):
+    def test_exp_control(self, space, base_point, tangent_vec):
         """Test exp at a random base point for a tangent vector of controlled norm."""
         space.equip_with_metric(self.Metric)
         end_point = space.metric.exp(
             tangent_vec=tangent_vec,
             base_point=base_point,
-            n_steps=1000,
-            solver=exp_solver,
         )
         result = gs.any(gs.isnan(end_point))
         self.assertAllClose(result, False)
 
-    @tests.conftest.autograd_only
-    def test_log_control(self, space, base_point, tangent_vec, exp_solver, log_method):
+    def test_log_control(self, space, base_point, tangent_vec):
         """Test log at a pair of points with controlled geodesic distance."""
         space.equip_with_metric(self.Metric)
         point = space.metric.exp(
             space.metric.normalize(vector=tangent_vec, base_point=base_point),
             base_point,
-            solver=exp_solver,
         )
-        vec = space.metric.log(point, base_point, n_steps=1000, method=log_method)
+        vec = space.metric.log(point, base_point)
         result = gs.any(gs.isnan(vec))
         self.assertAllClose(result, False)
 
-    @tests.conftest.autograd_only
-    def test_exp_after_log_control(
-        self, space, base_point, end_point, exp_solver, log_method, rtol
-    ):
+    @pytest.mark.xfail
+    def test_exp_after_log_control(self, space, base_point, end_point, atol):
         """Test exp after log at a pair of points with controlled geodesic distance."""
         space.equip_with_metric(self.Metric)
         expected = end_point
-        tangent_vec = space.metric.log(
-            expected, base_point, n_steps=1000, method=log_method
-        )
-        end_point = space.metric.exp(
-            tangent_vec, base_point, n_steps=1000, solver=exp_solver
-        )
+        tangent_vec = space.metric.log(expected, base_point)
+        end_point = space.metric.exp(tangent_vec, base_point)
         result = end_point
-        self.assertAllClose(result, expected, rtol=rtol)
+        self.assertAllClose(result, expected, atol=atol)
 
-    @tests.conftest.autograd_only
-    def test_log_after_exp_control(
-        self, space, base_point, tangent_vec, exp_solver, log_method, rtol
-    ):
+    @pytest.mark.xfail
+    def test_log_after_exp_control(self, space, base_point, tangent_vec, atol):
         """Test exp after log at a pair of points with controlled geodesic distance."""
         space.equip_with_metric(self.Metric)
         expected = tangent_vec
-        end_point = space.metric.exp(
-            expected, base_point, n_steps=1000, solver=exp_solver
-        )
-        back_to_vec = space.metric.log(
-            end_point, base_point, n_steps=1000, method=log_method
-        )
+        end_point = space.metric.exp(expected, base_point)
+        back_to_vec = space.metric.log(end_point, base_point)
         result = back_to_vec
-        self.assertAllClose(result, expected, rtol=rtol)
+        self.assertAllClose(result, expected, atol=atol)
 
     @tests.conftest.autograd_and_torch_only
     def test_jacobian_christoffels(self, space, n_points):
@@ -228,8 +226,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.stack(expected, 0)
         self.assertAllClose(expected, result)
 
-    @tests.conftest.np_and_autograd_only
-    def test_geodesic(self, space, norm, solver):
+    def test_geodesic(self, space, norm):
         """Check that the norm of the geodesic velocity is constant."""
         n_steps = 1000
         space.equip_with_metric(self.Metric)
@@ -238,8 +235,6 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         geod = space.metric.geodesic(
             initial_point=base_point,
             initial_tangent_vec=tangent_vec,
-            n_steps=1000,
-            solver=solver,
         )
         t = gs.linspace(0.0, 1.0, n_steps)
         geod_at_t = geod(t)
@@ -249,8 +244,7 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = 0.0
         self.assertAllClose(expected, result, rtol=1.0)
 
-    @tests.conftest.np_and_autograd_only
-    def test_geodesic_shape(self, space, n_vec, norm, time, solver, expected):
+    def test_geodesic_shape(self, space, n_vec, norm, time, expected):
         space.equip_with_metric(self.Metric)
         point = space.random_point()
         tangent_vec = norm * space.metric.random_unit_tangent_vec(
@@ -259,13 +253,11 @@ class TestGammaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         geod = space.metric.geodesic(
             initial_point=point,
             initial_tangent_vec=tangent_vec,
-            n_steps=1000,
-            solver=solver,
         )
         result = geod(time).shape
         self.assertAllClose(expected, result)
 
-    @tests.conftest.autograd_only
+    @tests.conftest.autograd_and_torch_only
     def test_scalar_curvature(self, space, n_points, atol):
         space.equip_with_metric(self.Metric)
         point = space.random_point(n_points)

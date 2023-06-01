@@ -12,8 +12,6 @@ from geomstats.information_geometry.dirichlet import (
     DirichletMetric,
 )
 
-EPSILON = 1e-6
-
 
 class BetaDistributions(DirichletDistributions):
     r"""Class for the manifold of beta distributions.
@@ -107,7 +105,7 @@ class BetaDistributions(DirichletDistributions):
         return pdf
 
     @staticmethod
-    def maximum_likelihood_fit(data, loc=0, scale=1):
+    def maximum_likelihood_fit(data, loc=0, scale=1, epsilon=1e-6):
         """Estimate parameters from samples.
 
         This a wrapper around scipy's maximum likelihood estimator to
@@ -132,8 +130,8 @@ class BetaDistributions(DirichletDistributions):
         parameter : array-like, shape=[..., 2]
             Estimate of parameter obtained by maximum likelihood.
         """
-        data = gs.where(data == 1.0, 1.0 - EPSILON, data)
-        data = gs.where(data == 0.0, EPSILON, data)
+        data = gs.where(data == 1.0, 1.0 - epsilon, data)
+        data = gs.where(data == 0.0, epsilon, data)
         data = gs.to_ndarray(data, to_ndim=2)
         parameters = []
         for sample in data:
