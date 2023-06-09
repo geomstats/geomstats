@@ -7,6 +7,8 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
+from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
+from geomstats.numerics.ivp import GSIVPIntegrator
 from geomstats.vectorization import repeat_out
 
 EPSILON = 1e-6
@@ -49,6 +51,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
             metric_mat_at_identity = gs.eye(space.dim)
         self.metric_mat_at_identity = metric_mat_at_identity
         self.left = left
+
+        self.log_solver = LogShootingSolver()
+        self.exp_solver = ExpODESolver(
+            integrator=GSIVPIntegrator(n_steps=15, step_type="rk4"),
+        )
 
     @property
     def reshaped_metric_matrix(self):
@@ -530,7 +537,18 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         return translation_map(value_at_id)
 
-    def exp(self, tangent_vec, base_point=None, n_steps=10, step="rk4", **kwargs):
+    def _pre_exp(self, tangent_vec, base_point):
+        if base_point is None:
+            base_point = self._space.identity
+            left_angular_vel = tangent_vec
+        else:
+            left_angular_vel = self._space.tangent_translation_map(
+                base_point, left=self.left, inverse=True
+            )(tangent_vec)
+
+        return base_point, self._space.to_tangent(left_angular_vel)
+
+    def exp(self, tangent_vec, base_point=None):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
         If :math:`\gamma` is a geodesic, then it satisfies the
@@ -557,12 +575,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
         base_point : array-like, shape=[..., n, n]
             Point in the group.
             Optional, defaults to identity if None.
-        n_steps : int,
-            Number of integration steps.
-            Optional, default : 15.
-        step : str, {'euler', 'rk2', 'rk4'}
-            Scheme to use in the integration.
-            Optional, default : 'rk4'.
 
         Returns
         -------
@@ -578,48 +590,14 @@ class _InvariantMetricMatrix(RiemannianMetric):
                      Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
-        basis = self.normal_basis(self._space.lie_algebra.basis)
-        sign = 1.0 if self.left else -1.0
+        base_point, left_angular_vel = self._pre_exp(tangent_vec, base_point)
+        return self.exp_solver.exp(
+            self._space,
+            left_angular_vel,
+            base_point,
+        )
 
-        def lie_acceleration(state, _time):
-            """Compute the right-hand side of the geodesic equation."""
-            point, vector = state
-            velocity = self._space.tangent_translation_map(point, left=self.left)(
-                vector
-            )
-            coefficients = gs.array(
-                [
-                    self.structure_constant(vector, basis_vector, vector)
-                    for basis_vector in basis
-                ]
-            )
-            acceleration = gs.einsum("i...,ijk->...jk", coefficients, basis)
-            return gs.stack([velocity, sign * acceleration])
-
-        if base_point is None:
-            base_point = self._space.identity
-            left_angular_vel = tangent_vec
-        else:
-            left_angular_vel = self._space.tangent_translation_map(
-                base_point, left=self.left, inverse=True
-            )(tangent_vec)
-        if (base_point.ndim == 2 or base_point.shape[0] == 1) and tangent_vec.ndim == 3:
-            base_point = gs.stack([base_point] * len(tangent_vec))
-            base_point = gs.reshape(base_point, tangent_vec.shape)
-        initial_state = gs.stack([base_point, self._space.to_tangent(left_angular_vel)])
-        flow = integrate(lie_acceleration, initial_state, n_steps=n_steps, step=step)
-        return flow[-1][0]
-
-    def log(
-        self,
-        point,
-        base_point,
-        n_steps=15,
-        step="rk4",
-        verbose=False,
-        max_iter=25,
-        tol=1e-10,
-    ):
+    def log(self, point, base_point):
         r"""Compute Riemannian logarithm of a point from a base point.
 
         The log is computed by solving an optimization problem.
@@ -640,23 +618,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
         base_point : array-like, shape=[..., n, n]
             Point in the group, from which to compute the log.
             Optional, default: identity.
-        n_steps : int,
-            Number of integration steps to compute the exponential in the
-            loss.
-            Optional, default : 15.
-        step : str, {'euler', 'rk2', 'rk4'}
-            Scheme to use in the integration procedure of the exponential in
-            the loss.
-            Optional, default : 'rk4'.
-        verbose : bool,
-            Verbosity level of the optimization procedure.
-            Optional. default : False.
-        max_iter : int,
-            Maximum of iteration of the optimization procedure.
-            Optional, default : 25.
-        tol : float,
-            Tolerance for the stopping criterion of the optimization.
-            Optional, default : 1e-10.
 
         Returns
         -------
@@ -678,16 +639,59 @@ class _InvariantMetricMatrix(RiemannianMetric):
                 f" antipodal matrices: {point} and {base_point}."
             )
         return self._space.to_tangent(
-            super().log(
-                point,
-                base_point,
-                n_steps=n_steps,
-                step=step,
-                verbose=verbose,
-                max_iter=max_iter,
-                tol=tol,
-            ),
+            self.log_solver.log(self._space, point, base_point),
             base_point,
+        )
+
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., dim], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., dim],
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError(
+                "Specify an end point or an initial tangent "
+                "vector to define the geodesic."
+            )
+        if end_point is not None:
+            if initial_tangent_vec is not None:
+                raise ValueError(
+                    "Cannot specify both an end point and an initial tangent vector."
+                )
+            return self.log_solver.geodesic_bvp(
+                self._space,
+                end_point,
+                initial_point,
+            )
+
+        initial_point, left_angular_vel = self._pre_exp(
+            initial_tangent_vec, initial_point
+        )
+        return self.exp_solver.geodesic_ivp(
+            self._space, left_angular_vel, initial_point
         )
 
     def parallel_transport(
