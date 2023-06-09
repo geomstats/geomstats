@@ -66,11 +66,14 @@ class PreShapeSpaceBundleTestData(FiberBundleTestData):
 
 class PreShapeMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
 
 
 class KendallShapeMetricTestData(QuotientMetricTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
 
     tolerances = {
-        "parallel_transport_transported_is_tangent": {"atol": 1e-4},
+        "parallel_transport_bvp_transported_is_tangent": {"atol": 1e-4},
+        "parallel_transport_ivp_transported_is_tangent": {"atol": 1e-4},
     }

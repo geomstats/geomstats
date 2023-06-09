@@ -11,6 +11,8 @@ from geomstats.test.vectorization import generate_vectorization_data
 
 class FiberBundleTestCase(TestCase):
     # TODO: may need to be adapted
+    tangent_to_multiple = False
+
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = FiberBundleRandomDataGenerator(

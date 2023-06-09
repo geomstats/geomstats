@@ -54,9 +54,19 @@ class SPDMatricesTestData(SPDMatricesMixinsTestData, OpenSetTestData):
     pass
 
 
+class SPDAffineMetricPower1TestData(RiemannianMetricTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
+
+
 class SPDAffineMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
+
+    skips = (
+        "parallel_transport_ivp_norm",
+        "parallel_transport_bvp_norm",
+    )
 
 
 class SPDBuresWassersteinMetricTestData(RiemannianMetricTestData):

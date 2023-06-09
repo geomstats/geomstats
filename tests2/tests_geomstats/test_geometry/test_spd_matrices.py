@@ -20,6 +20,7 @@ from geomstats.test_cases.geometry.spd_matrices import (
 )
 
 from .data.spd_matrices import (
+    SPDAffineMetricPower1TestData,
     SPDAffineMetricTestData,
     SPDBuresWassersteinMetricTestData,
     SPDEuclideanMetricPower1TestData,
@@ -50,6 +51,25 @@ class TestSPDMatrices(SPDMatricesTestCase, metaclass=DataBasedParametrizer):
     params=[
         (2, 1),
         (random.randint(3, 5), 1),
+    ],
+)
+def spd_with_affine_metric_power_1(request):
+    n, power_affine = request.param
+    space = SPDMatrices(n=n, equip=False)
+    request.cls.space = space
+    space.equip_with_metric(SPDAffineMetric, power_affine=power_affine)
+
+
+@pytest.mark.usefixtures("spd_with_affine_metric_power_1")
+class TestSPDAffineMetricPower1(
+    SPDAffineMetricTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = SPDAffineMetricPower1TestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
         (2, 0.5),
         (random.randint(3, 5), 0.5),
         (2, -0.5),

@@ -602,7 +602,7 @@ class ConnectionTestCase(TestCase):
         self._test_vectorization(vec_data, test_fnc_name="test_parallel_transport")
 
     @pytest.mark.random
-    def test_parallel_transport_transported_bvp_is_tangent(self, n_points, atol):
+    def test_parallel_transport_bvp_transported_is_tangent(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
         end_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
@@ -619,7 +619,7 @@ class ConnectionTestCase(TestCase):
         self.assertAllEqual(res, expected)
 
     @pytest.mark.random
-    def test_parallel_transport_transported_ivp_is_tangent(self, n_points, atol):
+    def test_parallel_transport_ivp_transported_is_tangent(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
         direction = self.data_generator.random_tangent_vec(base_point)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
@@ -628,7 +628,7 @@ class ConnectionTestCase(TestCase):
             tangent_vec, base_point, direction=direction
         )
 
-        end_point = self.space.metric.exp(tangent_vec, base_point)
+        end_point = self.space.metric.exp(direction, base_point)
 
         res = self.space.is_tangent(transported, end_point, atol=atol)
 

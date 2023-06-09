@@ -68,10 +68,10 @@ class ConnectionTestData(TestData):
     def parallel_transport_bvp_vec_test_data(self):
         return self.generate_vec_data()
 
-    def parallel_transport_transported_bvp_is_tangent_test_data(self):
+    def parallel_transport_bvp_transported_is_tangent_test_data(self):
         return self.generate_random_data()
 
-    def parallel_transport_transported_ivp_is_tangent_test_data(self):
+    def parallel_transport_ivp_transported_is_tangent_test_data(self):
         return self.generate_random_data()
 
     def injectivity_radius_vec_test_data(self):

@@ -22,7 +22,7 @@ def _create_params():
         for solver in (
             LogShootingSolver(flatten=True),
             LogShootingSolver(flatten=False),
-            LogODESolver(n_nodes=10),
+            LogODESolver(n_nodes=10, use_jac=False),
         ):
             params.append((space, solver))
 
@@ -51,7 +51,7 @@ def _create_params_type_check():
     for solver in (
         LogShootingSolver(flatten=True),
         LogShootingSolver(flatten=False),
-        LogODESolver(n_nodes=10),
+        LogODESolver(n_nodes=10, use_jac=False),
     ):
         params.append((space, solver))
 
