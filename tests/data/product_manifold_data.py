@@ -133,7 +133,11 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
         (4 + 6,),
         (4 + 3,),
         (7,),
-        (3, 2, 2,),
+        (
+            3,
+            2,
+            2,
+        ),
     ]
 
     if len(manifolds_list) != len(default_point_list) or len(manifolds_list) != len(
