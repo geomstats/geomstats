@@ -1,11 +1,13 @@
 """Geodesic solvers implementation."""
 
+import math
 from abc import ABC, abstractmethod
 
 import geomstats.backend as gs
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.ivp import GSIVPIntegrator
 from geomstats.numerics.optimizers import ScipyMinimize
+from geomstats.vectorization import get_batch_shape
 
 
 class ExpSolver(ABC):
@@ -66,18 +68,30 @@ class ExpODESolver(ExpSolver):
         self.integrator = integrator
 
     def _solve(self, space, tangent_vec, base_point, t_eval=None):
+        batch_shape = get_batch_shape(space, base_point, tangent_vec)
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
         if self.integrator.state_is_raveled:
+            if space.point_ndim > 1:
+                dim_vec = math.prod(space.shape)
+                batch_shape_ = (-1,) if batch_shape else ()
+
+                base_point = gs.reshape(base_point, batch_shape_ + (dim_vec,))
+                tangent_vec = gs.reshape(tangent_vec, batch_shape_ + (dim_vec,))
+
             initial_state = gs.hstack([base_point, tangent_vec])
         else:
             initial_state = gs.stack([base_point, tangent_vec])
 
         force = self._get_force(space)
         if t_eval is None:
-            return self.integrator.integrate(force, initial_state)
+            result = self.integrator.integrate(force, initial_state)
+        else:
+            result = self.integrator.integrate_t(force, initial_state, t_eval)
 
-        return self.integrator.integrate_t(force, initial_state, t_eval)
+        result.batch_shape = batch_shape
+
+        return result
 
     def exp(self, space, tangent_vec, base_point):
         """Exponential map.
@@ -86,14 +100,14 @@ class ExpODESolver(ExpSolver):
         ----------
         space : Manifold
             Equipped manifold.
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *space.shape]
             Tangent vector at the base point.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *space.shape]
             Point on the manifold.
 
         Returns
         -------
-        end_point : array-like, shape=[..., dim]
+        end_point : array-like, shape=[..., *space.shape]
             Point on the manifold.
         """
         result = self._solve(space, tangent_vec, base_point)
@@ -106,9 +120,9 @@ class ExpODESolver(ExpSolver):
         ----------
         space : Manifold
             Equipped manifold.
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *space.shape]
             Tangent vector at the base point.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *space.shape]
             Point on the manifold.
 
         Returns
@@ -127,7 +141,7 @@ class ExpODESolver(ExpSolver):
 
             Returns
             -------
-            geodesic_points : array-like, shape=[..., n_times, dim]
+            geodesic_points : array-like, shape=[..., n_times, *space.shape]
                 Geodesic points evaluated at t.
             """
             if not gs.is_array(t):
@@ -156,7 +170,7 @@ class ExpODESolver(ExpSolver):
         # input: (n,)
 
         # assumes unvectorize
-        state = gs.reshape(raveled_initial_state, (2, space.dim))
+        state = gs.reshape(raveled_initial_state, (2,) + space.shape)
 
         eq = space.metric.geodesic_equation(state, _)
 
@@ -169,7 +183,12 @@ class ExpODESolver(ExpSolver):
         y = result.get_last_y()
 
         if self.integrator.state_is_raveled:
-            return y[..., : space.dim]
+            dim_vec = math.prod(space.shape)
+            exp = y[..., :dim_vec]
+            if space.point_ndim > 1:
+                return gs.reshape(exp, result.batch_shape + space.shape)
+
+            return exp
 
         return y[0]
 
@@ -178,14 +197,18 @@ class ExpODESolver(ExpSolver):
         y = result.y
 
         if self.integrator.state_is_raveled:
-            y = y[..., : space.dim]
+            dim_vec = math.prod(space.shape)
+            y = y[..., :dim_vec]
 
-            if gs.ndim(y) > 2:
+            if space.point_ndim > 1:
+                y = gs.reshape(y, y.shape[:-1] + space.shape)
+
+            if result.batch_shape:
                 return gs.moveaxis(y, 0, 1)
             return y
 
         y = y[:, 0, :, ...]
-        if gs.ndim(y) > 2:
+        if result.batch_shape:
             return gs.moveaxis(y, 1, 0)
         return y
 
@@ -236,7 +259,8 @@ class _GeodesicBVPFromExpMixins:
     """Provides method to get geodesic given exp."""
 
     def _geodesic_bvp_single(self, space, t, tangent_vec, base_point):
-        tangent_vec_ = gs.einsum("...,...i->...i", t, tangent_vec)
+        idx = "ijk"[: space.point_ndim]
+        tangent_vec_ = gs.einsum(f"...,...{idx}->...{idx}", t, tangent_vec)
         return space.metric.exp(tangent_vec_, base_point)
 
     def geodesic_bvp(self, space, point, base_point):
@@ -258,6 +282,8 @@ class _GeodesicBVPFromExpMixins:
         """
         tangent_vec = self.log(space, point, base_point)
         is_batch = tangent_vec.ndim > space.point_ndim
+        if base_point.ndim < tangent_vec.ndim:
+            base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
         def path(t):
             """Time parametrized geodesic curve.
@@ -399,14 +425,14 @@ class _LogShootingSolverFlatten(_GeodesicBVPFromExpMixins, LogSolver):
         ----------
         space : Manifold
             Equipped manifold.
-        end_point : array-like, shape=[..., dim]
+        end_point : array-like, shape=[..., *space.shape]
             Point on the manifold.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *space.shape]
             Point on the manifold.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *space.shape]
             Tangent vector at the base point.
         """
         if point.ndim != base_point.ndim:
@@ -439,14 +465,36 @@ class _LogShootingSolverUnflatten(
         return point - base_point
 
     def _objective(self, velocity, space, point, base_point):
+        if space.point_ndim > 1:
+            velocity = gs.reshape(velocity, space.shape)
+
         delta = space.metric.exp(velocity, base_point) - point
         return gs.sum(delta**2)
 
     def _log_single(self, space, point, base_point):
+        """Logarithm map.
+
+        Parameters
+        ----------
+        space : Manifold
+            Equipped manifold.
+        end_point : array-like, shape=[*space.shape]
+            Point on the manifold.
+        base_point : array-like, shape=[*space.shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[*space.shape]
+            Tangent vector at the base point.
+        """
         objective = lambda velocity: self._objective(velocity, space, point, base_point)
         init_tangent_vec = self.initialization(space, point, base_point)
 
-        res = self.optimizer.minimize(objective, init_tangent_vec)
+        res = self.optimizer.minimize(objective, gs.flatten(init_tangent_vec))
+
+        if space.point_ndim > 1:
+            return gs.reshape(res.x, space.shape)
 
         return res.x
 
