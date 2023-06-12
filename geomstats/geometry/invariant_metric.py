@@ -52,6 +52,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
         self.metric_mat_at_identity = metric_mat_at_identity
         self.left = left
 
+        self._instantiate_solvers()
+
+    def _instantiate_solvers(self):
         self.log_solver = LogShootingSolver()
         self.exp_solver = ExpODESolver(
             integrator=GSIVPIntegrator(n_steps=15, step_type="rk4"),
