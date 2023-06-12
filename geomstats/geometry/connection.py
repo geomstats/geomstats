@@ -9,20 +9,26 @@ import geomstats.backend as gs
 import geomstats.errors
 
 
-def _check_log_solver(connection):
+def _check_log_solver(connection, raise_=True):
     if not hasattr(connection, "log_solver"):
-        raise ValueError(
-            "Requires `self.log_solver`. "
-            "Check `geomstats.numerics.geodesic` for available solvers."
-        )
+        if raise_:
+            raise ValueError(
+                "Requires `self.log_solver`. "
+                "Check `geomstats.numerics.geodesic` for available solvers."
+            )
+        return False
+    return True
 
 
-def _check_exp_solver(connection):
+def _check_exp_solver(connection, raise_=True):
     if not hasattr(connection, "exp_solver"):
-        raise ValueError(
-            "Requires `self.exp_solver`. "
-            "Check `geomstats.numerics.geodesic` for available solvers."
-        )
+        if raise_:
+            raise ValueError(
+                "Requires `self.exp_solver`. "
+                "Check `geomstats.numerics.geodesic` for available solvers."
+            )
+        return False
+    return True
 
 
 class Connection(ABC):
@@ -564,6 +570,72 @@ class Connection(ABC):
             tangent_vec_a, tangent_vec_b, tangent_vec_a, tangent_vec_b, base_point
         )
 
+    def _geodesic_from_exp(self, initial_point, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        initial_tangent_vec : array-like, shape=[..., dim],
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        point_type = self._space.default_point_type
+
+        if point_type == "vector":
+            initial_point = gs.to_ndarray(initial_point, to_ndim=2)
+            initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=2)
+
+        else:
+            initial_point = gs.to_ndarray(initial_point, to_ndim=3)
+            initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=3)
+        n_initial_conditions = initial_tangent_vec.shape[0]
+
+        if n_initial_conditions > 1 and len(initial_point) == 1:
+            initial_point = gs.stack([initial_point[0]] * n_initial_conditions)
+
+        def path(t):
+            """Generate parameterized function for geodesic curve.
+
+            Parameters
+            ----------
+            t : array-like, shape=[n_points,]
+                Times at which to compute points of the geodesics.
+            """
+            t = gs.array(t)
+            t = gs.cast(t, initial_tangent_vec.dtype)
+            t = gs.to_ndarray(t, to_ndim=1)
+            if point_type == "vector":
+                tangent_vecs = gs.einsum("i,...k->...ik", t, initial_tangent_vec)
+            else:
+                tangent_vecs = gs.einsum("i,...kl->...ikl", t, initial_tangent_vec)
+
+            points_at_time_t = [
+                self.exp(tv, pt) for tv, pt in zip(tangent_vecs, initial_point)
+            ]
+            points_at_time_t = gs.stack(points_at_time_t, axis=0)
+
+            return (
+                points_at_time_t[0] if n_initial_conditions == 1 else points_at_time_t
+            )
+
+        return path
+
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
@@ -603,18 +675,21 @@ class Connection(ABC):
                     "Cannot specify both an end point and an initial tangent vector."
                 )
 
-            # TODO: do it from exp otherwise
-            _check_log_solver(self)
-            return self.log_solver.geodesic_bvp(
-                self._space,
-                end_point,
-                initial_point,
+            if _check_log_solver(self, raise_=False):
+                return self.log_solver.geodesic_bvp(
+                    self._space,
+                    end_point,
+                    initial_point,
+                )
+
+            initial_tangent_vec = self.log(end_point, initial_point)
+
+        if _check_exp_solver(self, raise_=False):
+            return self.exp_solver.geodesic_ivp(
+                self._space, initial_tangent_vec, initial_point
             )
 
-        _check_exp_solver(self)
-        return self.exp_solver.geodesic_ivp(
-            self._space, initial_tangent_vec, initial_point
-        )
+        return self._geodesic_from_exp(initial_point, initial_tangent_vec)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
