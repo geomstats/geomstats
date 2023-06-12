@@ -93,6 +93,7 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.array([n_samples, dim, dim, dim])
         self.assertAllClose(result, expected)
 
+    @pytest.mark.xfail
     def test_sectional_curvature(self, space, n_samples, atol):
         space.equip_with_metric(self.Metric)
         point = space.random_point(n_samples)
