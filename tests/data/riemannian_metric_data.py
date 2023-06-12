@@ -2,6 +2,8 @@ import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
+from geomstats.numerics.ivp import GSIVPIntegrator
 from tests.data_generation import TestData
 
 
@@ -25,9 +27,17 @@ class RiemannianMetricTestData(TestData):
 
     new_euc_metric = RiemannianMetric(euc)
     new_euc_metric.metric_matrix = _euc_metric_matrix
+    new_euc_metric.log_solver = LogShootingSolver()
+    new_euc_metric.exp_solver = ExpODESolver(
+        integrator=GSIVPIntegrator(n_steps=100, step_type="euler"),
+    )
 
     new_sphere_metric = RiemannianMetric(sphere)
     new_sphere_metric.metric_matrix = _sphere_metric_matrix
+    new_sphere_metric.log_solver = LogShootingSolver()
+    new_sphere_metric.exp_solver = ExpODESolver(
+        integrator=GSIVPIntegrator(n_steps=100, step_type="euler"),
+    )
 
     def cometric_matrix_test_data(self):
         random_data = [
