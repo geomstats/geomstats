@@ -28,6 +28,7 @@ class GammaDistributionsTestData(InformationManifoldMixinTestData, OpenSetTestDa
 
 
 class GammaMetricTestData(RiemannianMetricTestData):
+    trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
@@ -39,12 +40,8 @@ class GammaMetricTestData(RiemannianMetricTestData):
     }
 
     xfails = (
-        # fail often, usually not by far
-        "dist_is_symmetric",
-        "squared_dist_is_symmetric",
-        "exp_after_log",
-        # rarely fail, but can fail by noisely
-        "exp_geodesic_ivp",
+        # # fail often, usually not by far
+        # "squared_dist_is_symmetric",
     )
 
     def jacobian_christoffels_vec_test_data(self):

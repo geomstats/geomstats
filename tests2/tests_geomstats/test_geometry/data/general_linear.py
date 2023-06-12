@@ -5,6 +5,7 @@ from .lie_group import MatrixLieGroupTestData
 
 
 class GeneralLinearTestData(MatrixLieGroupTestData, OpenSetTestData):
+    trials = 3
     xfails = ("exp_after_log",)
 
     def orbit_vec_test_data(self):

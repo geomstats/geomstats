@@ -14,13 +14,13 @@ class MultinomialDistributionsTestData(
 
 
 class MultinomialMetricTestData(RiemannianMetricTestData):
+    trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
-    xfails = (
-        # fail often, usually not by far
-        "log_after_exp",
-    )
+    tolerances = {
+        "log_after_exp": {"atol": 1e-3},
+    }
 
     def simplex_to_sphere_vec_test_data(self):
         return self.generate_vec_data()

@@ -121,6 +121,7 @@ class DataBasedParametrizer(type):
             if hasattr(testing_data, "fail_for_not_implemented_errors")
             else True
         )
+        trials = testing_data.trials if hasattr(testing_data, "trials") else 1
 
         data_names_ls = _collect_testing_data_tests(testing_data)
         test_attrs_with_data = _filter_test_funcs_given_data(
@@ -142,6 +143,7 @@ class DataBasedParametrizer(type):
                 attr_value,
                 fail_for_autodiff_exceptions=fail_for_autodiff_exceptions,
                 fail_for_not_implemented_errors=fail_for_not_implemented_errors,
+                trials=trials,
             )
             test_func = _parametrize_test_func(
                 test_func, attr_name, testing_data, default_values
@@ -189,11 +191,29 @@ def _except_not_implemented_errors(func):
     return _wrapped
 
 
+def _multiple_trials(func, trials):
+    @functools.wraps(func)
+    def _wrapped(*args, **kwargs):
+        trial = 0
+        while True:
+            try:
+                trial += 1
+                return func(*args, **kwargs)
+            except Exception as exception:
+                if trial < trials:
+                    continue
+
+                raise exception
+
+    return _wrapped
+
+
 def _copy_func(
     f,
     name=None,
     fail_for_autodiff_exceptions=True,
     fail_for_not_implemented_errors=True,
+    trials=1,
 ):
     """Copy function.
 
@@ -224,6 +244,9 @@ def _copy_func(
 
     if not fail_for_not_implemented_errors:
         fn = _except_not_implemented_errors(fn)
+
+    if trials > 1:
+        fn = _multiple_trials(fn, trials=trials)
 
     return fn, defaults
 

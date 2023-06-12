@@ -80,5 +80,3 @@ class SpecialEuclideanMatrixLieAlgebra2TestData(TestData):
 class SpecialEuclideanMatrixCanonicalLeftMetricTestData(InvariantMetricMatrixTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
-
-    xfails = ("exp_at_identity_vec",)

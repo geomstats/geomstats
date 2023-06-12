@@ -12,6 +12,7 @@ class DirichletDistributionsTestData(InformationManifoldMixinTestData, OpenSetTe
 
 
 class DirichletMetricTestData(RiemannianMetricTestData):
+    trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
@@ -27,7 +28,6 @@ class DirichletMetricTestData(RiemannianMetricTestData):
         "dist_is_symmetric",
         "squared_dist_is_symmetric",
         # fail often, usually not by far
-        "log_after_exp",
         "exp_after_log",
     )
 

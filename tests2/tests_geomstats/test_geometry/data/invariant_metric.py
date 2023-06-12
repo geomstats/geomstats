@@ -42,60 +42,46 @@ class InvariantMetricMatrixTestData(_InvariantMetricMixinsTestData):
 
 
 class InvariantMetricMatrixSOTestData(InvariantMetricMatrixTestData):
+    trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
     tolerances = {
-        # basically all the methods that depend on numerical solvers
-        "dist_vec": {"atol": 1e-4},
-        "dist_is_log_norm": {"atol": 1e-4},
-        "dist_is_symmetric": {"atol": 1e-4},
         "dist_triangle_inequality": {"atol": 1e-4},
-        "exp_belongs": {"atol": 1e-4},
-        "exp_at_identity_vec": {"atol": 1e-4},
         "exp_after_log": {"atol": 1e-4},
         "exp_after_log_at_identity": {"atol": 1e-4},
-        "log_after_exp": {"atol": 1e-4},
-        "log_vec": {"atol": 1e-4},
-        "geodesic_bvp_vec": {"atol": 1e-4},
         "geodesic_boundary_points": {"atol": 1e-4},
         "geodesic_bvp_reverse": {"atol": 1e-4},
-        "geodesic_bvp_belongs": {"atol": 1e-4},
-        "geodesic_ivp_belongs": {"atol": 1e-4},
-        "parallel_transport_transported_is_tangent": {"atol": 1e-4},
-        "parallel_transport_vec_with_end_point": {"atol": 1e-4},
-        "squared_dist_is_symmetric": {"atol": 1e-4},
-        "squared_dist_vec": {"atol": 1e-4},
+        "parallel_transport_bvp_transported_is_tangent": {"atol": 1e-4},
+        "parallel_transport_bvp_norm": {"atol": 1e-4},
+        "parallel_transport_bvp_vec": {"atol": 1e-4},
     }
-    xfails = tuple(tolerances.keys())
 
 
 class InvariantMetricMatrixSETestData(InvariantMetricMatrixTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
     tolerances = {
-        # basically all the methods that depend on numerical solvers
-        "dist_vec": {"atol": 1e-4},
-        "dist_is_log_norm": {"atol": 1e-4},
-        "dist_point_to_itself_is_zero": {"atol": 1e-4},
-        "dist_is_symmetric": {"atol": 1e-4},
-        "dist_triangle_inequality": {"atol": 1e-4},
-        "exp_belongs": {"atol": 1e-4},
-        "exp_at_identity_vec": {"atol": 1e-4},
-        "exp_after_log": {"atol": 1e-4},
-        "exp_after_log_at_identity": {"atol": 1e-4},
-        "log_after_exp": {"atol": 1e-4},
-        "log_vec": {"atol": 1e-4},
-        "geodesic_bvp_vec": {"atol": 1e-4},
-        "geodesic_boundary_points": {"atol": 1e-4},
-        "geodesic_bvp_reverse": {"atol": 1e-4},
-        "geodesic_bvp_belongs": {"atol": 1e-4},
-        "geodesic_ivp_belongs": {"atol": 1e-4},
-        "parallel_transport_transported_is_tangent": {"atol": 1e-4},
-        "parallel_transport_vec_with_end_point": {"atol": 1e-4},
-        "squared_dist_is_symmetric": {"atol": 1e-4},
-        "squared_dist_vec": {"atol": 1e-4},
+        # "dist_vec": {"atol": 1e-4},
+        # "dist_is_log_norm": {"atol": 1e-4},
+        # "dist_point_to_itself_is_zero": {"atol": 1e-4},
+        # "dist_is_symmetric": {"atol": 1e-4},
+        # "dist_triangle_inequality": {"atol": 1e-4},
+        # "exp_belongs": {"atol": 1e-4},
+        # "exp_at_identity_vec": {"atol": 1e-4},
+        # "exp_after_log": {"atol": 1e-4},
+        # "exp_after_log_at_identity": {"atol": 1e-4},
+        # "log_after_exp": {"atol": 1e-4},
+        # "log_vec": {"atol": 1e-4},
+        # "geodesic_bvp_vec": {"atol": 1e-4},
+        # "geodesic_boundary_points": {"atol": 1e-4},
+        # "geodesic_bvp_reverse": {"atol": 1e-4},
+        # "geodesic_bvp_belongs": {"atol": 1e-4},
+        # "parallel_transport_bvp_transported_is_tangent": {"atol": 1e-4},
+        # "parallel_transport_bvp_norm": {"atol": 1e-4},
+        # "parallel_transport_bvp_vec": {"atol": 1e-4},
+        # "squared_dist_is_symmetric": {"atol": 1e-4},
+        # "squared_dist_vec": {"atol": 1e-4},
     }
-    xfails = tuple(tolerances.keys())
 
 
 class InvariantMetricVectorTestData(_InvariantMetricMixinsTestData):
@@ -135,9 +121,12 @@ class BiInvariantMetricVectorSO3TestData(BiInvariantMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
     skips = (
-        "parallel_transport_transported_is_tangent",
-        "parallel_transport_vec_with_end_point",
-        "parallel_transport_vec_with_direction",
+        "parallel_transport_bvp_norm",
+        "parallel_transport_ivp_norm",
+        "parallel_transport_bvp_transported_is_tangent",
+        "parallel_transport_ivp_transported_is_tangent",
+        "parallel_transport_bvp_vec",
+        "parallel_transport_ivp_vec",
     )
 
 

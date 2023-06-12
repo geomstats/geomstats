@@ -46,18 +46,11 @@ class DiagonalNormalDistributionsTestData(
 
 
 class DiagonalNormalMetricTestData(RiemannianMetricTestData):
+    trials = 2
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
     tolerances = {"geodesic_ivp_belongs": {"atol": 1e-3}}
-
-    xfails = (
-        # rarely fail
-        "geodesic_ivp_belongs",
-        "exp_geodesic_ivp",
-        "exp_belongs",
-        "log_after_exp",
-    )
 
 
 class GeneralNormalDistributionsTestData(

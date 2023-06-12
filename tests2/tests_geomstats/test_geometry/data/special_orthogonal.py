@@ -31,7 +31,6 @@ class _SpecialOrthogonalMixinsTestData:
 class SpecialOrthogonalMatricesTestData(
     _SpecialOrthogonalMixinsTestData, MatrixLieGroupTestData, LevelSetTestData
 ):
-    xfails = ("log_after_exp",)
     tolerances = {
         "projection_belongs": {"atol": 1e-5},
         "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},
