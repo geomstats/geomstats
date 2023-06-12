@@ -1041,7 +1041,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
             self._space, inner_prod, base_point, tangent_vec_a, tangent_vec_b
         )
 
-    def exp(self, tangent_vec, base_point=None, n_steps=10, step="rk4", **kwargs):
+    def exp(self, tangent_vec, base_point=None):
         """Exponential map associated to the cannonical metric.
 
         Exponential map at `base_point` of `tangent_vec`. The geodesics of this
@@ -1077,7 +1077,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
 
         return homogeneous_representation(rotation_exp, translation_exp, 1.0)
 
-    def log(self, point, base_point=None, **kwargs):
+    def log(self, point, base_point=None):
         """Compute logarithm map associated to the canonical metric.
 
         Log map at `base_point` of `point`. The geodesics of this
