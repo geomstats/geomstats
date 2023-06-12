@@ -132,7 +132,7 @@ class Connection(ABC):
         return self.log_solver.log(self._space, point, base_point)
 
     def _pole_ladder_step(
-        self, base_point, next_point, base_shoot, return_geodesics=False, **kwargs
+        self, base_point, next_point, base_shoot, return_geodesics=False
     ):
         """Compute one Pole Ladder step.
 
@@ -172,20 +172,16 @@ class Connection(ABC):
             Verlag, 2013,50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
         """
         mid_tangent_vector_to_shoot = (
-            1.0 / 2.0 * self.log(base_point=base_point, point=next_point, **kwargs)
+            1.0 / 2.0 * self.log(base_point=base_point, point=next_point)
         )
 
         mid_point = self.exp(
-            base_point=base_point, tangent_vec=mid_tangent_vector_to_shoot, **kwargs
+            base_point=base_point, tangent_vec=mid_tangent_vector_to_shoot
         )
 
-        tangent_vector_to_shoot = -self.log(
-            base_point=mid_point, point=base_shoot, **kwargs
-        )
+        tangent_vector_to_shoot = -self.log(base_point=mid_point, point=base_shoot)
 
-        end_shoot = self.exp(
-            base_point=mid_point, tangent_vec=tangent_vector_to_shoot, **kwargs
-        )
+        end_shoot = self.exp(base_point=mid_point, tangent_vec=tangent_vector_to_shoot)
 
         geodesics = []
         if return_geodesics:
@@ -200,7 +196,7 @@ class Connection(ABC):
         return {"geodesics": geodesics, "end_point": end_shoot}
 
     def _schild_ladder_step(
-        self, base_point, next_point, base_shoot, return_geodesics=False, **kwargs
+        self, base_point, next_point, base_shoot, return_geodesics=False
     ):
         """Compute one Schild's Ladder step.
 
@@ -237,20 +233,16 @@ class Connection(ABC):
             Verlag, 2013,50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
         """
         mid_tangent_vector_to_shoot = (
-            1.0 / 2.0 * self.log(base_point=base_shoot, point=next_point, **kwargs)
+            1.0 / 2.0 * self.log(base_point=base_shoot, point=next_point)
         )
 
         mid_point = self.exp(
-            base_point=base_shoot, tangent_vec=mid_tangent_vector_to_shoot, **kwargs
+            base_point=base_shoot, tangent_vec=mid_tangent_vector_to_shoot
         )
 
-        tangent_vector_to_shoot = -self.log(
-            base_point=mid_point, point=base_point, **kwargs
-        )
+        tangent_vector_to_shoot = -self.log(base_point=mid_point, point=base_point)
 
-        end_shoot = self.exp(
-            base_point=mid_point, tangent_vec=tangent_vector_to_shoot, **kwargs
-        )
+        end_shoot = self.exp(base_point=mid_point, tangent_vec=tangent_vector_to_shoot)
 
         geodesics = []
         if return_geodesics:
@@ -275,7 +267,7 @@ class Connection(ABC):
         n_rungs=1,
         scheme="pole",
         alpha=1,
-        **single_step_kwargs,
+        return_geodesics=False,
     ):
         """Approximate parallel transport using the pole ladder scheme.
 
@@ -307,7 +299,6 @@ class Connection(ABC):
             Exponent for the scaling of the vector to transport. Must be
             greater or equal to 1, 2 is optimal. See [GP2020]_.
             Optional, default: 2
-        **single_step_kwargs : keyword arguments for the step functions
 
         Returns
         -------
@@ -348,7 +339,7 @@ class Connection(ABC):
                 base_point=current_point,
                 next_point=next_point,
                 base_shoot=base_shoot,
-                **single_step_kwargs,
+                return_geodesics=return_geodesics,
             )
             current_point = next_point
             base_shoot = next_step["end_point"]
