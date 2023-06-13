@@ -1065,8 +1065,10 @@ class _ExpSolver:
         next_point = gs.array(next_point)
         n_vertices = current_point.shape[-2]
 
-        zeros = gs.zeros_like(current_point).requires_grad_(True)
-        next_point_clone = next_point.clone().requires_grad_(True)
+        zeros = gs.zeros_like(current_point)  # .requires_grad_(True)
+        next_point_clone = gs.copy(
+            next_point
+        )  # next_point.clone() #.requires_grad_(True)
 
         def energy_objective(next_next_point):
             """Compute the energy objective to minimize.
@@ -1086,16 +1088,34 @@ class _ExpSolver:
             next_to_next_next = next_next_point - next_point
 
             def _inner_product_with_current_to_next(tangent_vec):
+                """Compute inner-product with tangent vector `current_to_next`.
+
+                The tangent vector `current_to_next` is the vector going from the
+                current point, i.e. discrete surface, to the next point on the
+                geodesic that is being computed.
+                """
                 return space.metric.inner_product(
                     current_to_next, tangent_vec, current_point
                 )
 
             def _inner_product_with_next_to_next_next(tangent_vec):
+                """Compute inner-product with tangent vector `next_to_next_next`.
+
+                The tangent vector `next_to_next_next` is the vector going from the
+                next point, i.e. discrete surface, to the next next point on the
+                geodesic that is being computed.
+                """
                 return space.metric.inner_product(
                     next_to_next_next, tangent_vec, next_point
                 )
 
             def _norm(base_point):
+                """Compute norm of `next_to_next_next` at the base_point.
+
+                The tangent vector `next_to_next_next` is the vector going from the
+                next point, i.e. discrete surface, to the next next point on the
+                geodesic that is being computed.
+                """
                 return space.metric.squared_norm(next_to_next_next, base_point)
 
             _, energy_1 = gs.autodiff.value_and_grad(
@@ -1104,9 +1124,13 @@ class _ExpSolver:
             _, energy_2 = gs.autodiff.value_and_grad(
                 _inner_product_with_next_to_next_next
             )(zeros)
-            _, energy_3 = gs.autodiff.value_and_grad(_norm)(next_point_clone)
+            print(f"next_next_point.shape: {next_next_point.shape}")
+            _, energy_3 = gs.autodiff.value_and_grad(_norm, argnums=(0, 1))(
+                next_point_clone
+            )
 
-            energy_3 = energy_3.requires_grad_(True)
+            # energy_3 = energy_3.requires_grad_(True)
+            print(f"energy_3.requires_grad: {energy_3.requires_grad}")
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
             return gs.sum(energy_tot**2)

@@ -292,10 +292,14 @@ def value_and_grad(func, argnums=0, to_numpy=False):
                 one_arg = _torch.from_numpy(one_arg)
 
             requires_grad = i_arg in argnums
+            print(f"USING REQUIRES GRAD: {requires_grad}")
             one_arg = one_arg.detach().requires_grad_(requires_grad)
+            print(f"ONE ARG: {one_arg.requires_grad}")
             new_args.append(one_arg)
 
         value = func(*new_args, **kwargs)
+        print(f"value.requires_grad: {value.requires_grad}")
+        value = value.requires_grad_(True)
 
         if value.ndim > 0:
             sum_value = value.sum()
