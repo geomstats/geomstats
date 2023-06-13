@@ -1179,18 +1179,22 @@ class _LogSolver:
         """
         logs = []
         need_squeeze = False
-
         if point.ndim == 2:
             point = gs.expand_dims(point, axis=0)
             need_squeeze = True
         if base_point.ndim == 2:
             base_point = gs.expand_dims(base_point, axis=0)
             need_squeeze = True
+        n_points = gs.maximum(len(point), len(base_point))
 
-        for one_point in point:
-            for one_base_point in base_point:
-                geod = self._bvp(space, one_base_point, one_point)
-                logs.append(geod[1] - geod[0])
+        if len(point) != n_points:
+            point = gs.tile(point, (n_points, 1, 1))
+        if len(base_point) != n_points:
+            base_point = gs.tile(base_point, (n_points, 1, 1))
+
+        for one_point, one_base_point in zip(point, base_point):
+            geod = self._bvp(space, one_base_point, one_point)
+            logs.append(geod[1] - geod[0])
 
         logs = gs.array(logs)
         if need_squeeze:
