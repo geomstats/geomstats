@@ -4,14 +4,11 @@ Lead authors: Emmanuel Hartman, Adele Myers.
 """
 import math
 
-from scipy.optimize import minimize
-
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-
-N_STEPS = 10
+from geomstats.numerics.optimizers import ScipyMinimize
 
 
 class DiscreteSurfaces(Manifold):
@@ -500,6 +497,9 @@ class ElasticMetric(RiemannianMetric):
         self.d1 = d1
         self.a2 = a2
 
+        self.exp_solver = _ExpSolver(n_steps=10)
+        self.log_solver = _LogSolver(n_steps=10)
+
     def _inner_product_a0(self, tangent_vec_a, tangent_vec_b, vertex_areas_bp):
         r"""Compute term of order 0 within the inner-product.
 
@@ -931,7 +931,92 @@ class ElasticMetric(RiemannianMetric):
         """
         return 0.5 * gs.sum(self.path_energy_per_time(path))
 
-    def _ivp(self, initial_point, initial_tangent_vec, times):
+    def exp(self, tangent_vec, base_point):
+        """Compute the exponential map.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., dim]
+            End point of the geodesic starting at base_point with
+            initial velocity tangent_vec and stopping at time 1.
+        """
+        return self.exp_solver.exp(self._space, tangent_vec, base_point)
+
+    def log(self, point, base_point):
+        """Compute the logarithm map.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point.
+        base_point : array-like, shape=[..., dim]
+            Base po int.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Initial velocity of the geodesic starting at base_point and
+            reaching point at time 1.
+        """
+        return self.log_solver.log(self._space, point, base_point)
+
+
+class _ExpSolver:
+    def __init__(self, n_steps=10, optimizer=None):
+        if optimizer is None:
+            optimizer = ScipyMinimize(
+                method="L-BFGS-B",
+                jac="autodiff",
+                options={"disp": False, "ftol": 0.00001},
+            )
+
+        self.n_steps = n_steps
+        self.optimizer = optimizer
+
+    def exp(self, space, tangent_vec, base_point):
+        """Compute exponential map associated to the Riemmannian metric.
+
+        Exponential map at base_point of tangent_vec computed
+        by discrete geodesic calculus methods.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_vertices, 3]
+            Tangent vector at the base point.
+        base_point : array-like, shape=[n_vertices, 3]
+            Point on the manifold.
+        n_steps : int
+            Number of time steps on the geodesic.
+
+        Returns
+        -------
+        exp : array-like, shape=[n_vertices, 3]
+            Point on the manifold.
+        """
+        exps = []
+        need_squeeze = False
+        times = gs.linspace(start=0.0, stop=1.0, num=self.n_steps)
+        if tangent_vec.ndim == 2:
+            tangent_vec = gs.expand_dims(tangent_vec, axis=0)
+            need_squeeze = True
+
+        for one_tangent_vec in tangent_vec:
+            geod = self._ivp(space, base_point, one_tangent_vec, times=times)
+            exps.append(geod[-1])
+
+        exps = gs.array(exps)
+        if need_squeeze:
+            exps = gs.squeeze(exps, axis=0)
+        return exps
+
+    def _ivp(self, space, initial_point, initial_tangent_vec, times):
         """Solve initial value problem (IVP).
 
         Given an initial point and an initial vector, solve the geodesic equation.
@@ -956,13 +1041,12 @@ class ElasticMetric(RiemannianMetric):
         next_point = initial_point + initial_tangent_vec
         geod = [initial_point, next_point]
         for _ in range(2, n_times):
-            next_next_point = self._stepforward(initial_point, next_point)
+            next_next_point = self._stepforward(space, initial_point, next_point)
             geod += [next_next_point]
-            initial_point = next_point
-            next_point = next_next_point
+            initial_point, next_point = next_point, next_next_point
         return gs.stack(geod, axis=0)
 
-    def _stepforward(self, current_point, next_point):
+    def _stepforward(self, space, current_point, next_point):
         """Compute the next point on the geodesic.
 
         Parameters
@@ -980,6 +1064,7 @@ class ElasticMetric(RiemannianMetric):
         current_point = gs.array(current_point)
         next_point = gs.array(next_point)
         n_vertices = current_point.shape[-2]
+
         zeros = gs.zeros([n_vertices, 3]).requires_grad_(True)
         next_point_clone = next_point.clone().requires_grad_(True)
 
@@ -1001,13 +1086,17 @@ class ElasticMetric(RiemannianMetric):
             next_to_next_next = next_next_point - next_point
 
             def _inner_product_with_current_to_next(tangent_vec):
-                return self.inner_product(current_to_next, tangent_vec, current_point)
+                return space.metric.inner_product(
+                    current_to_next, tangent_vec, current_point
+                )
 
             def _inner_product_with_next_to_next_next(tangent_vec):
-                return self.inner_product(next_to_next_next, tangent_vec, next_point)
+                return space.metric.inner_product(
+                    next_to_next_next, tangent_vec, next_point
+                )
 
             def _norm(base_point):
-                return self.squared_norm(next_to_next_next, base_point)
+                return space.metric.squared_norm(next_to_next_next, base_point)
 
             _, energy_1 = gs.autodiff.value_and_grad(
                 _inner_product_with_current_to_next
@@ -1016,6 +1105,7 @@ class ElasticMetric(RiemannianMetric):
                 _inner_product_with_next_to_next_next
             )(zeros)
             _, energy_3 = gs.autodiff.value_and_grad(_norm)(next_point_clone)
+
             energy_3 = energy_3.requires_grad_(True)
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
@@ -1025,50 +1115,27 @@ class ElasticMetric(RiemannianMetric):
             (2 * (next_point - current_point) + current_point)
         )
 
-        sol = minimize(
-            gs.autodiff.value_and_grad(energy_objective, to_numpy=True),
-            initial_next_next_point.detach().numpy(),
-            method="L-BFGS-B",
-            jac=True,
-            options={"disp": True, "ftol": 0.1},
+        sol = self.optimizer.minimize(
+            energy_objective,
+            initial_next_next_point,
         )
+
         return gs.reshape(gs.array(sol.x), (n_vertices, 3))
 
-    def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step=None):
-        """Compute exponential map associated to the Riemmannian metric.
 
-        Exponential map at base_point of tangent_vec computed
-        by discrete geodesic calculus methods.
+class _LogSolver:
+    def __init__(self, n_steps=10, optimizer=None):
+        if optimizer is None:
+            optimizer = ScipyMinimize(
+                method="L-BFGS-B",
+                jac="autodiff",
+                options={"disp": False, "ftol": 0.001},
+            )
 
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[n_vertices, 3]
-            Tangent vector at the base point.
-        base_point : array-like, shape=[n_vertices, 3]
-            Point on the manifold.
-        n_steps : int
-            Number of time steps on the geodesic.
+        self.n_steps = n_steps
+        self.optimizer = optimizer
 
-        Returns
-        -------
-        exp : array-like, shape=[n_vertices, 3]
-            Point on the manifold.
-        """
-        exps = []
-        need_squeeze = False
-        times = gs.linspace(start=0.0, stop=1.0, num=n_steps)
-        if tangent_vec.ndim == 2:
-            tangent_vec = gs.expand_dims(tangent_vec, axis=0)
-            need_squeeze = True
-        for one_tangent_vec in tangent_vec:
-            geod = self._ivp(base_point, one_tangent_vec, times=times)
-            exps.append(geod[-1])
-        exps = gs.array(exps)
-        if need_squeeze:
-            exps = gs.squeeze(exps, axis=0)
-        return exps
-
-    def log(self, point, base_point):
+    def log(self, space, point, base_point):
         """Compute logarithm map associated to the Riemannian metric.
 
         Solve the boundary value problem associated to the geodesic equation
@@ -1088,7 +1155,7 @@ class ElasticMetric(RiemannianMetric):
         """
         logs = []
         need_squeeze = False
-        times = gs.linspace(0.0, 1.0, N_STEPS)
+        times = gs.linspace(0.0, 1.0, self.n_steps)
 
         if point.ndim == 2:
             point = gs.expand_dims(point, axis=0)
@@ -1096,16 +1163,18 @@ class ElasticMetric(RiemannianMetric):
         if base_point.ndim == 2:
             base_point = gs.expand_dims(base_point, axis=0)
             need_squeeze = True
+
         for one_point in point:
             for one_base_point in base_point:
-                geod = self._bvp(one_base_point, one_point, times)
+                geod = self._bvp(space, one_base_point, one_point, times)
                 logs.append(geod[1] - geod[0])
+
         logs = gs.array(logs)
         if need_squeeze:
             logs = gs.squeeze(logs, axis=0)
         return logs
 
-    def _bvp(self, initial_point, end_point, times):
+    def _bvp(self, space, initial_point, end_point, times):
         """Solve boundary value problem (IVP).
 
         Given an initial point and an end point, solve the geodesic equation.
@@ -1178,17 +1247,15 @@ class ElasticMetric(RiemannianMetric):
                 )
                 paths.append(one_path)
             paths = gs.array(paths)
-            return self.path_energy(paths)
+            return space.metric.path_energy(paths)
 
         initial_geod = gs.flatten(midpoints)
 
-        sol = minimize(
-            gs.autodiff.value_and_grad(objective, to_numpy=True),
-            initial_geod.detach().numpy(),
-            method="L-BFGS-B",
-            jac=True,
-            options={"disp": True, "ftol": 1},
+        sol = self.optimizer.minimize(
+            objective,
+            initial_geod,
         )
+
         out = gs.reshape(gs.array(sol.x), (num_points, len(times) - 2, n_points, 3))
 
         geod = []
