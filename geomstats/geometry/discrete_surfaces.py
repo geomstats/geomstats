@@ -921,15 +921,15 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        path : array-like, shape=[n_times, n_vertices, 3]
+        path : array-like, shape=[..., n_times, n_vertices, 3]
             Piecewise linear path of discrete surfaces.
 
         Returns
         -------
-        energy : array-like, shape=[,]
+        energy : array-like, shape=[...,]
             Path energy.
         """
-        return 0.5 * gs.sum(self.path_energy_per_time(path))
+        return 0.5 * gs.sum(self.path_energy_per_time(path), axis=(-1, -2))
 
     def exp(self, tangent_vec, base_point):
         """Compute the exponential map.
@@ -1065,7 +1065,8 @@ class _ExpSolver:
         next_point = gs.array(next_point)
         n_vertices = current_point.shape[-2]
 
-        zeros = gs.zeros([n_vertices, 3]).requires_grad_(True)
+        # zeros = gs.array(gs.zeros([n_vertices, 3])).requires_grad_(True)
+        zeros = gs.zeros_like(current_point).requires_grad_(True)
         next_point_clone = next_point.clone().requires_grad_(True)
 
         def energy_objective(next_next_point):
