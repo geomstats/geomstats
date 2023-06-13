@@ -936,14 +936,14 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., n_vertices, 3]
             Tangent vector at base point.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., n_vertices, 3]
             Base point.
 
         Returns
         -------
-        exp : array-like, shape=[..., dim]
+        exp : array-like, shape=[..., n_vertices, 3]
             End point of the geodesic starting at base_point with
             initial velocity tangent_vec and stopping at time 1.
         """
@@ -954,14 +954,14 @@ class ElasticMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., n_vertices, 3]
             Point.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., n_vertices, 3]
             Base po int.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., n_vertices, 3]
             Initial velocity of the geodesic starting at base_point and
             reaching point at time 1.
         """
@@ -969,6 +969,8 @@ class ElasticMetric(RiemannianMetric):
 
 
 class _ExpSolver:
+    """Class to solve the initial value problem (IVP) for exp."""
+
     def __init__(self, n_steps=10, optimizer=None):
         if optimizer is None:
             optimizer = ScipyMinimize(
@@ -1140,6 +1142,8 @@ class _ExpSolver:
 
 
 class _LogSolver:
+    """Class to solve the boundary value problem (BVP) for exp."""
+
     def __init__(self, n_steps=10, optimizer=None):
         if optimizer is None:
             optimizer = ScipyMinimize(
