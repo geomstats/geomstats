@@ -1004,13 +1004,12 @@ class _ExpSolver:
         """
         exps = []
         need_squeeze = False
-        times = gs.linspace(start=0.0, stop=1.0, num=self.n_steps)
         if tangent_vec.ndim == 2:
             tangent_vec = gs.expand_dims(tangent_vec, axis=0)
             need_squeeze = True
 
         for one_tangent_vec in tangent_vec:
-            geod = self._ivp(space, base_point, one_tangent_vec, times=times)
+            geod = self._ivp(space, base_point, one_tangent_vec)
             exps.append(geod[-1])
 
         exps = gs.array(exps)
@@ -1018,7 +1017,7 @@ class _ExpSolver:
             exps = gs.squeeze(exps, axis=0)
         return exps
 
-    def _ivp(self, space, initial_point, initial_tangent_vec, times):
+    def _ivp(self, space, initial_point, initial_tangent_vec):
         """Solve initial value problem (IVP).
 
         Given an initial point and an initial vector, solve the geodesic equation.
@@ -1037,12 +1036,11 @@ class _ExpSolver:
         geod : array-like, shape=[n_times, n_vertices, 3]
             Geodesic discretized along the times given as inputs.
         """
-        n_times = len(times)
-        initial_tangent_vec = initial_tangent_vec / (n_times - 1)
+        initial_tangent_vec = initial_tangent_vec / (self.n_steps - 1)
 
         next_point = initial_point + initial_tangent_vec
         geod = [initial_point, next_point]
-        for _ in range(2, n_times):
+        for _ in range(2, self.n_steps):
             next_next_point = self._stepforward(space, initial_point, next_point)
             geod += [next_next_point]
             initial_point, next_point = next_point, next_next_point
@@ -1175,7 +1173,6 @@ class _LogSolver:
         """
         logs = []
         need_squeeze = False
-        times = gs.linspace(0.0, 1.0, self.n_steps)
 
         if point.ndim == 2:
             point = gs.expand_dims(point, axis=0)
@@ -1186,7 +1183,7 @@ class _LogSolver:
 
         for one_point in point:
             for one_base_point in base_point:
-                geod = self._bvp(space, one_base_point, one_point, times)
+                geod = self._bvp(space, one_base_point, one_point)
                 logs.append(geod[1] - geod[0])
 
         logs = gs.array(logs)
@@ -1194,7 +1191,7 @@ class _LogSolver:
             logs = gs.squeeze(logs, axis=0)
         return logs
 
-    def _bvp(self, space, initial_point, end_point, times):
+    def _bvp(self, space, initial_point, end_point):
         """Solve boundary value problem (IVP).
 
         Given an initial point and an end point, solve the geodesic equation.
@@ -1213,10 +1210,11 @@ class _LogSolver:
         geod : array-like, shape=[n_times, n_vertices, 3]
             Geodesic discretized on the times given as inputs.
         """
+        times = gs.linspace(0.0, 1.0, self.n_steps)
         n_points = initial_point.shape[-2]
-        step = (end_point - initial_point) / (len(times) - 1)
+        step = (end_point - initial_point) / (self.n_steps - 1)
         geod = gs.array([initial_point + i * step for i in times])
-        midpoints = geod[1 : len(times) - 1]
+        midpoints = geod[1 : self.n_steps - 1]
 
         all_need_squeeze = False
         if midpoints.ndim == 3:
@@ -1250,7 +1248,7 @@ class _LogSolver:
                 Energy of the path going through this midpoint.
             """
             midpoint = gs.reshape(
-                gs.array(midpoint), (num_points, len(times) - 2, n_points, 3)
+                gs.array(midpoint), (num_points, self.n_steps - 2, n_points, 3)
             )
 
             paths = []
@@ -1276,7 +1274,7 @@ class _LogSolver:
             initial_geod,
         )
 
-        out = gs.reshape(gs.array(sol.x), (num_points, len(times) - 2, n_points, 3))
+        out = gs.reshape(gs.array(sol.x), (num_points, self.n_steps - 2, n_points, 3))
 
         geod = []
         for one_out, one_initial_point, one_end_point in zip(

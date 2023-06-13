@@ -667,18 +667,20 @@ class Connection(ABC):
                 )
 
             if _check_log_solver(self, raise_=False):
-                return self.log_solver.geodesic_bvp(
-                    self._space,
-                    end_point,
-                    initial_point,
-                )
+                if hasattr(self.log_solver, "geodesic_bvp"):
+                    return self.log_solver.geodesic_bvp(
+                        self._space,
+                        end_point,
+                        initial_point,
+                    )
 
             initial_tangent_vec = self.log(end_point, initial_point)
 
         if _check_exp_solver(self, raise_=False):
-            return self.exp_solver.geodesic_ivp(
-                self._space, initial_tangent_vec, initial_point
-            )
+            if hasattr(self.exp_solver, "geodesic_ivp"):
+                return self.exp_solver.geodesic_ivp(
+                    self._space, initial_tangent_vec, initial_point
+                )
 
         return self._geodesic_from_exp(initial_point, initial_tangent_vec)
 
