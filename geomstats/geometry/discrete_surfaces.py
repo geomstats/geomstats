@@ -1065,7 +1065,6 @@ class _ExpSolver:
         next_point = gs.array(next_point)
         n_vertices = current_point.shape[-2]
 
-        # zeros = gs.array(gs.zeros([n_vertices, 3])).requires_grad_(True)
         zeros = gs.zeros_like(current_point).requires_grad_(True)
         next_point_clone = next_point.clone().requires_grad_(True)
 
