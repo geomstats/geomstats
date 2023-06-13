@@ -164,9 +164,15 @@ class DiscreteSurfaces(Manifold):
             vertex_i : array-like, shape=[..., n_faces, 3]
                 3D coordinates of the ith vertex of that face.
         """
-        vertex_0, vertex_1, vertex_2 = tuple(
-            gs.take(point, indices=self.faces[:, i], axis=-2) for i in range(3)
-        )
+        vertex = []
+        for i in range(3):
+            if point.ndim == 2:
+                vertex_i = [point[index, :] for index in self.faces[:, i]]
+            if point.ndim == 3:
+                vertex_i = [point[:, index, :] for index in self.faces[:, i]]
+            vertex.append(gs.stack(vertex_i, axis=-2))
+        vertex_0, vertex_1, vertex_2 = vertex
+
         if point.ndim == 3 and vertex_0.ndim == 2:
             vertex_0 = gs.expand_dims(vertex_0, axis=0)
             vertex_1 = gs.expand_dims(vertex_1, axis=0)

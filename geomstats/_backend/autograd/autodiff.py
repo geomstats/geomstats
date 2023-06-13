@@ -113,6 +113,8 @@ def value_and_grad(func, argnums=0, to_numpy=False):
 
     def _value_and_grad(*x, **kwargs):
         if not hasattr(x[0], "ndim") or x[0].ndim < 2:
+            # vjp, ans = _autograd.differential_operators._make_vjp(func, x[0])
+            # return ans, vjp(_autograd.differential_operators.vspace(ans).ones())
             return _autograd.value_and_grad(func, argnum=argnums)(*x, **kwargs)
         return _elementwise_value_and_grad(func, argnum=argnums)(*x, **kwargs)
 
