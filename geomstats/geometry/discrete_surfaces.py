@@ -1198,7 +1198,7 @@ class _LogSolver:
         return logs
 
     def _bvp(self, space, initial_point, end_point):
-        """Solve boundary value problem (IVP).
+        """Solve boundary value problem (BVP).
 
         Given an initial point and an end point, solve the geodesic equation.
 
