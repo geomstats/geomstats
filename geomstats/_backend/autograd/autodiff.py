@@ -113,10 +113,8 @@ def value_and_grad(func, argnums=0, to_numpy=False):
 
     def _value_and_grad(*x, **kwargs):
         if not hasattr(x[0], "ndim") or x[0].ndim < 2:
-            v, g = _autograd.value_and_grad(func, argnum=argnums)(*x, **kwargs)
-            return v, g
-        v, g = _elementwise_value_and_grad(func, argnum=argnums)(*x, **kwargs)
-        return v, g
+            return _autograd.value_and_grad(func, argnum=argnums)(*x, **kwargs)
+        return _elementwise_value_and_grad(func, argnum=argnums)(*x, **kwargs)
 
     return _value_and_grad
 
