@@ -7,6 +7,8 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
+from geomstats.numerics.ivp import GSIVPIntegrator
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
 
@@ -28,6 +30,16 @@ class PullbackMetric(RiemannianMetric):
 
     :math:`N=\mathbb{R}^n`.
     """
+
+    def __init__(self, space, signature=None):
+        super().__init__(space, signature)
+        self._instantiate_solvers()
+
+    def _instantiate_solvers(self):
+        self.log_solver = LogShootingSolver()
+        self.exp_solver = ExpODESolver(
+            integrator=GSIVPIntegrator(n_steps=100, step_type="euler"),
+        )
 
     def metric_matrix(self, base_point):
         r"""Metric matrix at the tangent space at a base point.

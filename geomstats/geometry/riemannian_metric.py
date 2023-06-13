@@ -12,10 +12,6 @@ from geomstats.geometry.connection import Connection
 from geomstats.vectorization import check_is_batch
 
 EPSILON = 1e-4
-N_CENTERS = 10
-N_REPETITIONS = 20
-N_MAX_ITERATIONS = 50000
-N_STEPS = 10
 
 
 class RiemannianMetric(Connection, ABC):
