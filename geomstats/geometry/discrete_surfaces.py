@@ -1065,10 +1065,8 @@ class _ExpSolver:
         next_point = gs.array(next_point)
         n_vertices = current_point.shape[-2]
 
-        zeros = gs.zeros_like(current_point)  # .requires_grad_(True)
-        next_point_clone = gs.copy(
-            next_point
-        )  # next_point.clone() #.requires_grad_(True)
+        zeros = gs.zeros_like(current_point)
+        next_point_clone = gs.copy(next_point)
 
         def energy_objective(next_next_point):
             """Compute the energy objective to minimize.
@@ -1124,13 +1122,7 @@ class _ExpSolver:
             _, energy_2 = gs.autodiff.value_and_grad(
                 _inner_product_with_next_to_next_next
             )(zeros)
-            print(f"next_next_point.shape: {next_next_point.shape}")
-            _, energy_3 = gs.autodiff.value_and_grad(_norm, argnums=(0, 1))(
-                next_point_clone
-            )
-
-            # energy_3 = energy_3.requires_grad_(True)
-            print(f"energy_3.requires_grad: {energy_3.requires_grad}")
+            _, energy_3 = gs.autodiff.value_and_grad(_norm)(next_point_clone)
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
             return gs.sum(energy_tot**2)
