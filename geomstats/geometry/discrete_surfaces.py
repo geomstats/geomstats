@@ -33,7 +33,11 @@ class DiscreteSurfaces(Manifold):
         Each face is given by 3 indices that indicate its vertices.
     """
 
-    def __init__(self, faces):
+    def __init__(
+        self,
+        faces,
+        equip=True,
+    ):
         ambient_dim = 3
         self.ambient_manifold = Euclidean(dim=ambient_dim)
         self.faces = faces
@@ -43,8 +47,13 @@ class DiscreteSurfaces(Manifold):
         super().__init__(
             dim=self.n_vertices * ambient_dim,
             shape=(self.n_vertices, 3),
-            equip=False,
+            equip=equip,
         )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return ElasticMetric
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate whether a point belongs to the manifold.
