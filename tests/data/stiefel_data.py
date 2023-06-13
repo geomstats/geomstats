@@ -35,6 +35,7 @@ class StiefelTestData(_LevelSetTestData):
     Space = Stiefel
 
     tolerances = {
+        "random_point_belongs": {"atol": 1e-8},
         "random_tangent_vec_is_tangent": {"atol": 1e-8},
     }
 

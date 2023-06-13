@@ -615,7 +615,7 @@ class ComplexOpenSet(ComplexManifold, abc.ABC):
     def __init__(self, embedding_space, shape=None, **kwargs):
         if shape is None:
             shape = embedding_space.shape
-        super().__init__(shape=shape, **kwargs)
+        super().__init__(shape=shape, default_coords_type="extrinsic", **kwargs)
         self.embedding_space = embedding_space
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
