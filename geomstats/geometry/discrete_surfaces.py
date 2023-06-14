@@ -1005,10 +1005,10 @@ class _ExpSolver:
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_vertices, 3]
+        tangent_vec : array-like, shape=[..., n_vertices, 3]
             Tangent vector at the base point.
-        base_point : array-like, shape=[n_vertices, 3]
-            Point on the manifold.
+        base_point : array-like, shape=[..., n_vertices, 3]
+            Point on the manifold, i.e.
         n_steps : int
             Number of time steps on the geodesic.
 
@@ -1022,9 +1022,17 @@ class _ExpSolver:
         if tangent_vec.ndim == 2:
             tangent_vec = gs.expand_dims(tangent_vec, axis=0)
             need_squeeze = True
+        if base_point.ndim == 2:
+            base_point = gs.expand_dims(base_point, axis=0)
+            need_squeeze = True
+        n_exps = gs.maximum(len(tangent_vec), len(base_point))
+        if len(tangent_vec) != n_exps:
+            tangent_vec = gs.tile(tangent_vec, (n_exps, 1, 1))
+        if len(base_point) != n_exps:
+            base_point = gs.tile(base_point, (n_exps, 1, 1))
 
-        for one_tangent_vec in tangent_vec:
-            geod = self._ivp(space, base_point, one_tangent_vec)
+        for one_tangent_vec, one_base_point in zip(tangent_vec, base_point):
+            geod = self._ivp(space, one_base_point, one_tangent_vec)
             exps.append(geod[-1])
 
         exps = gs.array(exps)
@@ -1194,12 +1202,12 @@ class _LogSolver:
         if base_point.ndim == 2:
             base_point = gs.expand_dims(base_point, axis=0)
             need_squeeze = True
-        n_points = gs.maximum(len(point), len(base_point))
+        n_logs = gs.maximum(len(point), len(base_point))
 
-        if len(point) != n_points:
-            point = gs.tile(point, (n_points, 1, 1))
-        if len(base_point) != n_points:
-            base_point = gs.tile(base_point, (n_points, 1, 1))
+        if len(point) != n_logs:
+            point = gs.tile(point, (n_logs, 1, 1))
+        if len(base_point) != n_logs:
+            base_point = gs.tile(base_point, (n_logs, 1, 1))
 
         for one_point, one_base_point in zip(point, base_point):
             geod = self._bvp(space, one_base_point, one_point)
