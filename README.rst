@@ -261,7 +261,7 @@ This work is supported by:
    :target: https://zenodo.org/badge/latestdoi/108200238
 .. |Downloads| image:: https://static.pepy.tech/personalized-badge/geomstats?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
    :target: https://pepy.tech/project/geomstats
-.. |python| image:: https://img.shields.io/badge/python-3.7+-blue?logo=python
+.. |python| image:: https://img.shields.io/badge/python-3.11+-blue?logo=python
    :target: https://www.python.org/
 .. |tutorial| image:: https://img.shields.io/youtube/views/Ju-Wsd84uG0?label=watch&style=social
    :target: https://www.youtube.com/watch?v=Ju-Wsd84uG0
