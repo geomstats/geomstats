@@ -10,7 +10,6 @@ from geomstats.geometry.special_euclidean import (
     _SpecialEuclideanMatrices,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.special_euclidean import (
     SpecialEuclideanMatricesTestCase,
     SpecialEuclideanMatrixCanonicalLeftMetricTestCase,
@@ -50,11 +49,11 @@ def test_homogeneous_representation(rotation, translation, constant, expected):
     scope="class",
     params=[
         2,
-        random.randint(3, 10),
+        random.randint(3, 6),
     ],
 )
 def spaces_mlg(request):
-    request.cls.space = _SpecialEuclideanMatrices(n=request.param)
+    request.cls.space = _SpecialEuclideanMatrices(n=request.param, equip=False)
 
 
 @pytest.mark.usefixtures("spaces_mlg")

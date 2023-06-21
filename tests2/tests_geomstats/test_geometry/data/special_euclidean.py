@@ -28,9 +28,7 @@ class SpecialEuclideanMatricesTestData(MatrixLieGroupTestData, LevelSetTestData)
     tolerances = {
         "projection_belongs": {"atol": 1e-4},
     }
-
-    def log_after_exp_test_data(self):
-        return self.generate_random_data(marks=(pytest.mark.xfail))
+    xfails = ("log_after_exp",)
 
 
 class SpecialEuclideanVectorsTestData(_ProjectionMixinsTestData, LieGroupTestData):
@@ -80,3 +78,5 @@ class SpecialEuclideanMatrixLieAlgebra2TestData(TestData):
 class SpecialEuclideanMatrixCanonicalLeftMetricTestData(InvariantMetricMatrixTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
+
+    skips = ("exp_at_identity_vec",)

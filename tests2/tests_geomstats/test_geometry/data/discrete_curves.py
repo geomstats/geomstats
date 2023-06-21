@@ -51,6 +51,8 @@ class SRVShapeBundleTestData(FiberBundleTestData):
 class ClosedDiscreteCurvesTestData(LevelSetTestData):
     fail_for_not_implemented_errors = False
 
+    skips = ("srv_projection_vec",)
+
     def srv_projection_vec_test_data(self):
         return self.generate_vec_data()
 

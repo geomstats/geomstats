@@ -24,10 +24,8 @@ class DirichletMetricTestData(RiemannianMetricTestData):
     }
 
     xfails = (
-        # rarely fail, but can fail by far
         "dist_is_symmetric",
         "squared_dist_is_symmetric",
-        # fail often, usually not by far
         "exp_after_log",
     )
 

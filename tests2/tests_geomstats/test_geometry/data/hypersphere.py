@@ -55,12 +55,12 @@ class _HypersphereMixinsTestData:
 
 
 class HypersphereExtrinsicTestData(_HypersphereMixinsTestData, LevelSetTestData):
+    trials = 2
     tolerances = {
         "random_von_mises_fisher_sample_mean": {"atol": 1e-2},
         "random_von_mises_fisher_sample_kappa": {"atol": 1e-1},
         "random_riemannian_normal_frechet_mean": {"atol": 1e-1},
     }
-    xfails = ("random_riemannian_normal_frechet_mean",)
 
     def replace_values_test_data(self):
         return self.generate_tests([dict(n_points=random.randint(2, 10))])

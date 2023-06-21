@@ -8,6 +8,7 @@ from geomstats.geometry.rank_k_psd_matrices import (
     BuresWassersteinBundle,
     PSDBuresWassersteinMetric,
     PSDMatrices,
+    RankKPSDMatrices,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.rank_k_psd_matrices import (
@@ -42,21 +43,18 @@ def _get_random_params():
 @pytest.fixture(
     scope="class",
     params=[
-        random.randint(2, 5),
         (3, 2),
         _get_random_params(),
     ],
 )
 def spaces(request):
-    if isinstance(request.param, int):
-        n = k = request.param
-    else:
-        n, k = request.param
-    request.cls.space = PSDMatrices(n=n, k=k, equip=False)
+    n, k = request.param
+    request.cls.space = RankKPSDMatrices(n=n, k=k, equip=False)
 
 
 @pytest.mark.usefixtures("spaces")
 class TestRankKPSDMatrices(RankKPSDMatricesTestCase, metaclass=DataBasedParametrizer):
+    # TODO: fix to_tangent?
     testing_data = RankKPSDMatricesTestData()
 
 

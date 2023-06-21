@@ -156,6 +156,7 @@ class SRVShapeBundleTestCase(FiberBundleTestCase):
 
 class ClosedDiscreteCurvesTestCase(LevelSetTestCase):
     def _get_srv_point(self, n_points=1):
+        # TODO: move into data_generator?
         return DiscreteCurves(
             ambient_manifold=self.space.ambient_manifold,
             k_sampling_points=self.space.k_sampling_points,
