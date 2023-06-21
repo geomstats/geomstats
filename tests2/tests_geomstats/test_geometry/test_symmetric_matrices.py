@@ -34,6 +34,7 @@ class TestSymmetricMatrices(SymmetricMatricesTestCase, metaclass=DataBasedParame
     testing_data = SymmetricMatricesTestData()
 
 
+@pytest.mark.random
 class TestSymmetricMatrices1(
     SymmetricMatricesTestCase, metaclass=DataBasedParametrizer
 ):
@@ -41,6 +42,7 @@ class TestSymmetricMatrices1(
     testing_data = SymmetricMatrices1TestData()
 
 
+@pytest.mark.random
 class TestSymmetricMatrices2(
     SymmetricMatricesTestCase, metaclass=DataBasedParametrizer
 ):
@@ -48,6 +50,7 @@ class TestSymmetricMatrices2(
     testing_data = SymmetricMatrices2TestData()
 
 
+@pytest.mark.random
 class TestSymmetricMatrices3(
     SymmetricMatricesTestCase, metaclass=DataBasedParametrizer
 ):
@@ -61,6 +64,7 @@ def test_dim(n, expected):
     assert space.dim == expected
 
 
+@pytest.mark.random
 class TestSymmetricMatricesOps(
     SymmetricMatricesOpsTestCase, metaclass=DataBasedParametrizer
 ):

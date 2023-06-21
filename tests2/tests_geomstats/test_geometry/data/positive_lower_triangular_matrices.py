@@ -1,3 +1,7 @@
+from tests2.tests_geomstats.test_geometry.data.riemannian_metric import (
+    RiemannianMetricTestData,
+)
+
 from .base import OpenSetTestData
 
 
@@ -19,3 +23,14 @@ class PositiveLowerTriangularMatricesTestData(OpenSetTestData):
 
     def inverse_differential_gram_belongs_to_lower_triangular_matrices_test_data(self):
         return self.generate_random_data()
+
+
+class CholeskyMetricTestData(RiemannianMetricTestData):
+    fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
+
+    def diag_inner_product_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def strictly_lower_inner_product_vec_test_data(self):
+        return self.generate_vec_data()

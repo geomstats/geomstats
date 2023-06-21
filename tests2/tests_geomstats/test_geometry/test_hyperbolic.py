@@ -4,9 +4,12 @@ import pytest
 
 from geomstats.geometry._hyperbolic import _Hyperbolic
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.hyperbolic import HyperbolicTestCase
+from geomstats.test_cases.geometry.hyperbolic import HyperbolicCoordsTransformTestCase
 
-from .data.hyperbolic import HyperbolicTestData
+from .data.hyperbolic import (
+    HyperbolicCoordsTransform2TestData,
+    HyperbolicCoordsTransformTestData,
+)
 
 
 @pytest.fixture(
@@ -22,5 +25,15 @@ def dims(request):
 
 
 @pytest.mark.usefixtures("dims")
-class TestHyperbolic(HyperbolicTestCase, metaclass=DataBasedParametrizer):
-    testing_data = HyperbolicTestData()
+class TestHyperbolicCoordsTransform(
+    HyperbolicCoordsTransformTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = HyperbolicCoordsTransformTestData()
+
+
+@pytest.mark.random
+class TestHyperbolicCoordsTransform2(
+    HyperbolicCoordsTransformTestCase, metaclass=DataBasedParametrizer
+):
+    space = _Hyperbolic
+    testing_data = HyperbolicCoordsTransform2TestData()

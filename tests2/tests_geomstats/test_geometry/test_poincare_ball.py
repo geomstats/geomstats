@@ -9,7 +9,12 @@ from geomstats.test_cases.geometry.poincare_ball import (
     PoincareBallTestCase,
 )
 
-from .data.poincare_ball import PoincareBallMetricTestData, PoincareBallTestData
+from .data.poincare_ball import (
+    PoincareBall2MetricTestData,
+    PoincareBall2TestData,
+    PoincareBallMetricTestData,
+    PoincareBallTestData,
+)
 
 
 @pytest.fixture(
@@ -45,3 +50,17 @@ class TestPoincareBallMetric(
     PoincareBallMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = PoincareBallMetricTestData()
+
+
+@pytest.mark.smoke
+class TestPoincareBall2(PoincareBallTestCase, metaclass=DataBasedParametrizer):
+    space = PoincareBall(dim=2, equip=False)
+    testing_data = PoincareBall2TestData()
+
+
+@pytest.mark.smoke
+class TestPoincareBall2Metric(
+    PoincareBallMetricTestCase, metaclass=DataBasedParametrizer
+):
+    space = PoincareBall(dim=2, equip=True)
+    testing_data = PoincareBall2MetricTestData()

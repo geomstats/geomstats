@@ -7,7 +7,7 @@ from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
 
 
-class HyperbolicTestCase(TestCase):
+class HyperbolicCoordsTransformTestCase(TestCase):
     def _get_space(self, default_coords_type):
         return Hyperbolic(dim=self.dim, default_coords_type=default_coords_type)
 

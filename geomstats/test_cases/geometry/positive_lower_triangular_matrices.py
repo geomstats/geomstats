@@ -5,6 +5,7 @@ from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class PositiveLowerTriangularMatricesTestCase(OpenSetTestCase):
@@ -109,3 +110,75 @@ class PositiveLowerTriangularMatricesTestCase(OpenSetTestCase):
         res = self.space.embedding_space.belongs(inverse_differential_gram)
         expected = gs.ones(n_points, dtype=bool)
         self.assertAllEqual(res, expected)
+
+
+class CholeskyMetricTestCase(RiemannianMetricTestCase):
+    def test_diag_inner_product(
+        self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
+    ):
+        res = self.space.metric.diag_inner_product(
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
+        )
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_diag_inner_product_vec(self, n_reps, atol):
+        base_point = self.data_generator.random_point()
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+
+        expected = self.space.metric.diag_inner_product(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    base_point=base_point,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    def test_strictly_lower_inner_product(
+        self, tangent_vec_a, tangent_vec_b, expected, atol
+    ):
+        res = self.space.metric.strictly_lower_inner_product(
+            tangent_vec_a,
+            tangent_vec_b,
+        )
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_strictly_lower_inner_product_vec(self, n_reps, atol):
+        base_point = self.data_generator.random_point()
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+
+        expected = self.space.metric.strictly_lower_inner_product(
+            tangent_vec_a, tangent_vec_b
+        )
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    tangent_vec_a=tangent_vec_a,
+                    tangent_vec_b=tangent_vec_b,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["tangent_vec_a", "tangent_vec_b"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)

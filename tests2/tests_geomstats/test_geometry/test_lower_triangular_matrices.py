@@ -33,6 +33,7 @@ class TestLowerTriangularMatrices(
     testing_data = LowerTriangularMatricesTestData()
 
 
+@pytest.mark.smoke
 class TestLowerTriangularMatrices2(
     LowerTriangularMatricesTestCase, metaclass=DataBasedParametrizer
 ):
@@ -40,6 +41,7 @@ class TestLowerTriangularMatrices2(
     testing_data = LowerTriangularMatrices2TestData()
 
 
+@pytest.mark.smoke
 class TestLowerTriangularMatrices3(
     LowerTriangularMatricesTestCase, metaclass=DataBasedParametrizer
 ):

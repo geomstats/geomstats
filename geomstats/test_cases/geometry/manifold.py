@@ -17,6 +17,9 @@ class _ManifoldTestCaseMixins:
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.space)
 
+    def test_dim(self, expected):
+        self.assertEqual(self.space.dim, expected)
+
     def test_belongs(self, point, expected, atol):
         res = self.space.belongs(point, atol=atol)
         self.assertAllEqual(res, expected)

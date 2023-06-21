@@ -1,13 +1,14 @@
 import pytest
 
 import geomstats.backend as gs
+from geomstats.test.random import VectorSpaceRandomDataGenerator
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import VectorSpaceTestCase
 from geomstats.test_cases.geometry.lie_group import LieGroupTestCase
 
 
-class HeisenbergVectorsTestCase(LieGroupTestCase, VectorSpaceTestCase):
-    def _generate_random_upper_triangular_matrix(self, n_points=1):
+class HeisenbergVectorsRandomDataGenerator(VectorSpaceRandomDataGenerator):
+    def random_upper_triangular_matrix(self, n_points=1):
         if n_points == 1:
             size = 3
             expected_shape = (3, 3)
@@ -22,13 +23,19 @@ class HeisenbergVectorsTestCase(LieGroupTestCase, VectorSpaceTestCase):
         vec = gs.random.uniform(size=size)
         return gs.array_from_sparse(indices, vec, expected_shape) + gs.eye(3)
 
+
+class HeisenbergVectorsTestCase(LieGroupTestCase, VectorSpaceTestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = HeisenbergVectorsRandomDataGenerator(self.space)
+
     def test_upper_triangular_matrix_from_vector(self, point, expected, atol):
         res = self.space.upper_triangular_matrix_from_vector(point)
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.vec
     def test_upper_triangular_matrix_from_vector_vec(self, n_reps, atol):
-        point = self.space.random_point()
+        point = self.data_generator.random_point()
 
         expected = self.space.upper_triangular_matrix_from_vector(point)
 
@@ -46,7 +53,7 @@ class HeisenbergVectorsTestCase(LieGroupTestCase, VectorSpaceTestCase):
 
     @pytest.mark.vec
     def test_vector_from_upper_triangular_matrix_vec(self, n_reps, atol):
-        matrix = self._generate_random_upper_triangular_matrix()
+        matrix = self.data_generator.random_upper_triangular_matrix()
         expected = self.space.vector_from_upper_triangular_matrix(matrix)
 
         vec_data = generate_vectorization_data(
@@ -61,7 +68,7 @@ class HeisenbergVectorsTestCase(LieGroupTestCase, VectorSpaceTestCase):
     def test_vector_from_upper_triangular_matrix_after_upper_triangular_matrix_from_vector(
         self, n_points, atol
     ):
-        vector = self.space.random_point(n_points)
+        vector = self.data_generator.random_point(n_points)
         mat = self.space.upper_triangular_matrix_from_vector(vector)
         vector_ = self.space.vector_from_upper_triangular_matrix(mat)
         self.assertAllClose(vector_, vector, atol=atol)
@@ -70,7 +77,7 @@ class HeisenbergVectorsTestCase(LieGroupTestCase, VectorSpaceTestCase):
     def test_upper_triangular_matrix_from_vector_after_vector_from_upper_triangular_matrix(
         self, n_points, atol
     ):
-        mat = self._generate_random_upper_triangular_matrix(n_points)
+        mat = self.data_generator.random_upper_triangular_matrix(n_points)
         vec = self.space.vector_from_upper_triangular_matrix(mat)
         mat_ = self.space.upper_triangular_matrix_from_vector(vec)
         self.assertAllClose(mat_, mat, atol=atol)
