@@ -429,7 +429,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
         radius = gs.array(math.inf)
