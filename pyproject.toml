@@ -111,6 +111,7 @@ per-file-ignores = [
     "geomstats/learning/_sklearn_wrapper.py: D101, D102, D105",
     "geomstats/_backend/*:F401, D103",
     "geomstats/numerics/*:D104,E731",
+    "geomstats/test_cases/backend/__init__.py: D104, F401",
     "geomstats/visualization/*: D101, D102",
     "geomstats/visualization/__init__.py: F401",
     "geomstats/tests.py : D101, D102",
