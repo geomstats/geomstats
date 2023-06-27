@@ -14,6 +14,15 @@ from tests.data.connection_data import ConnectionTestData
 
 
 class TestConnection(TestCase, metaclass=Parametrizer):
+    """Connection tests.
+
+    Notes
+    -----
+    * `space.equip_with_metric(Connection)` is used in some tests. This is done
+    only for testing purposes and should not be looked at from a mathematical
+    point of view.
+    """
+
     testing_data = ConnectionTestData()
 
     def test_metric_matrix(self, space, point, expected):
