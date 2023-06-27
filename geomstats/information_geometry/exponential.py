@@ -288,9 +288,7 @@ class ExponentialMetric(RiemannianMetric):
 
         return path
 
-    def geodesic(
-        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
-    ):
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
