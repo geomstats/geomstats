@@ -545,7 +545,6 @@ class TestKendallShapeMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
             "...ij,...->...ij", tan_a, 1.0 / space.metric.norm(tan_a, base_point)
         )
 
-        print(space.metric)
         transported = space.metric.parallel_transport(
             tan_a, base_point, direction=tan_b, n_steps=400, step="rk4"
         )

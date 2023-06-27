@@ -639,8 +639,6 @@ class ConnectionTestCase(TestCase):
         """
         space.equip_with_metric(self.Metric, **connection_args)
 
-        print(point.shape, base_point.shape)
-
         log = space.metric.log(point, base_point)
         result = gs.shape(log)
         self.assertAllClose(result, expected)
