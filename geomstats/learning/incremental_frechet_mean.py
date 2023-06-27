@@ -30,11 +30,13 @@ class IncrementalFrechetMean(BaseEstimator):
 
     Parameters
     ----------
-    metric : RiemannianMetric
-        Riemannian metric.
+    space : Manifold
+        Equipped manifold.
     verbose : bool
         Verbose option.
         Optional, default: False.
+    clean_state : bool
+        If keeping track of last iteration or clean state of estimator.
 
     References
     ----------
@@ -47,13 +49,16 @@ class IncrementalFrechetMean(BaseEstimator):
 
     def __init__(
         self,
-        metric,
+        space,
         verbose=False,
+        clean_state=True,
     ):
-        self.metric = metric
+        self.space = space
         self.verbose = verbose
+        self.clean_state = clean_state
+
+        self.iter = 0
         self.estimate_ = None
-        self.k = 0
 
     def fit(self, X, y=None, init=None):
         """Compute the incremental Frechet mean.
@@ -82,13 +87,16 @@ class IncrementalFrechetMean(BaseEstimator):
             idxs = range(N)
         else:
             m_curr = X[0]
-            self.k = self.k + 1
+            self.iter += 1
             idxs = range(1, N)
 
         for i in idxs:
-            geodesic = self.metric.geodesic(m_curr, X[i])
-            m_curr = geodesic(1 / (self.k + 1))
-            self.k = self.k + 1
+            geod_func = self.space.metric.geodesic(m_curr, X[i])
+            m_curr = geod_func(1 / (self.iter + 1))
+            self.iter += 1
 
-        self.estimate_ = m_curr
+        if self.clean_state:
+            self.iter = 0
+
+        self.estimate_ = m_curr[0]
         return self
