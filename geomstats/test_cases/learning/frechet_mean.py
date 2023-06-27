@@ -5,16 +5,11 @@ from geomstats.geometry.discrete_curves import SRVMetric
 from geomstats.learning.frechet_mean import GradientDescent
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
+from geomstats.test_cases.learning._base import BaseEstimatorTestCase
 from geomstats.vectorization import repeat_point
 
-# TODO: inherit from BaseEstimatorTestCase
 
-
-class FrechetMeanTestCase(TestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = RandomDataGenerator(self.estimator.space)
-
+class FrechetMeanTestCase(BaseEstimatorTestCase):
     @pytest.mark.random
     def test_one_point(self, atol):
         X = gs.expand_dims(self.data_generator.random_point(n_points=1), axis=0)
@@ -69,16 +64,15 @@ class ElasticMeanTestCase(FrechetMeanTestCase):
 class CircularMeanTestCase(FrechetMeanTestCase):
     @pytest.mark.random
     def test_against_optimization(self, n_points, atol):
-        X = self.data_generator.random_point(n_points)
         space = self.estimator.space
+        X = self.data_generator.random_point(n_points)
 
         mean = self.estimator.fit(X).estimate_
 
-        optimizer = GradientDescent()
-        mean_gd = optimizer.minimize(space, points=X, weights=None)
+        mean_gd = GradientDescent().minimize(space, points=X, weights=None)
 
-        sum_sd_mean = gs.sum(space.metric.dist(X, mean) ** 2)
-        sum_sd_mean_gd = gs.sum(space.metric.dist(X, mean_gd) ** 2)
+        sum_sd_mean = gs.sum(space.metric.squared_dist(X, mean))
+        sum_sd_mean_gd = gs.sum(space.metric.squared_dist(X, mean_gd))
 
         msg = f"circular mean: {mean}, {sum_sd_mean}\ngd: {mean_gd}, {sum_sd_mean_gd}"
         self.assertTrue(sum_sd_mean < sum_sd_mean_gd + atol, msg)
