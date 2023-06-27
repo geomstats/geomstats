@@ -231,6 +231,8 @@ class BatchGradientDescent(BaseGradientDescent):
         iteration = 0
         convergence_old = convergence
 
+        step_size = self.init_step_size
+
         while convergence > self.epsilon and self.max_iter > iteration:
             iteration += 1
             estimates_broadcast, _ = gs.broadcast_arrays(estimates, points)
@@ -241,16 +243,14 @@ class BatchGradientDescent(BaseGradientDescent):
 
             tangent_mean = _batchscalarmulsum(weights, tangent_grad) / n_points
 
-            next_estimates = space.metric.exp(
-                self.init_step_size * tangent_mean, estimates
-            )
+            next_estimates = space.metric.exp(step_size * tangent_mean, estimates)
             convergence = gs.sum(space.metric.squared_norm(tangent_mean, estimates))
             estimates = next_estimates
 
             if convergence < convergence_old:
                 convergence_old = convergence
             elif convergence > convergence_old:
-                init_step_size = self.init_step_size / 2.0
+                step_size = step_size / 2.0
 
         if iteration == self.max_iter:
             logging.warning(
@@ -263,7 +263,7 @@ class BatchGradientDescent(BaseGradientDescent):
                 "n_iter: %d, final dist: %e, final step size: %e",
                 iteration,
                 convergence,
-                init_step_size,
+                step_size,
             )
 
         return estimates
@@ -387,7 +387,7 @@ class ElasticMean(BaseEstimator):
         self.space = space
         self.estimate_ = None
 
-        self._ambient_frechet_estimator = FrechetMean(self.space.ambient_manifold)
+        self.ambient_frechet_estimator = FrechetMean(self.space.ambient_manifold)
 
     def _elastic_mean(self, points, weights=None):
         """Compute the weighted mean of elastic curves.
@@ -418,7 +418,7 @@ class ElasticMean(BaseEstimator):
         transformed = self.space.metric.f_transform(points)
         transformed_linear_mean = linear_mean(transformed, weights=weights)
 
-        starting_sampling_point = self._ambient_frechet_estimator.fit(
+        starting_sampling_point = self.ambient_frechet_estimator.fit(
             points[:, 0, :], weights=weights
         ).estimate_
         starting_sampling_point = gs.expand_dims(starting_sampling_point, axis=0)
@@ -559,6 +559,17 @@ class FrechetMean(BaseEstimator):
         self.method = method
 
         self.estimate_ = None
+
+    def set(self, param_name, value):
+        """Set optimizer parameters.
+
+        Especially useful for one line instantiations.
+        """
+        if not hasattr(self.optimizer, param_name):
+            raise ValueError(f"Unknown parameter {param_name}.")
+
+        setattr(self.optimizer, param_name, value)
+        return self
 
     @property
     def method(self):
