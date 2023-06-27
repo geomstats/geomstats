@@ -159,7 +159,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
                 parameters provided by point.
             """
             k = gs.reshape(gs.array(k), (-1,))
-            return point**k * gs.exp(-point) / factorial(k)
+            return point**k * gs.exp(-point) / gs.from_numpy(factorial(k))
 
         return pmf
 
