@@ -159,7 +159,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
                 parameters provided by point.
             """
             k = gs.reshape(gs.array(k), (-1,))
-            return point**k * gs.exp(-point) / factorial(k)
+            return point**k * gs.exp(-point) / gs.from_numpy(factorial(k))
 
         return pmf
 
@@ -289,9 +289,7 @@ class PoissonMetric(RiemannianMetric):
 
         return path
 
-    def geodesic(
-        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
-    ):
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:

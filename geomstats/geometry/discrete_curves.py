@@ -1213,7 +1213,6 @@ class SRVMetric(PullbackDiffeoMetric):
         embedding_space : Manifold object
             Embedding space.
         """
-        print("here")
         embedding_space = DiscreteCurves(
             ambient_manifold=self._space.ambient_manifold,
             k_sampling_points=self._space.k_sampling_points - 1,
