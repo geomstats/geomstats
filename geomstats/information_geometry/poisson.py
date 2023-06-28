@@ -47,6 +47,10 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
             Boolean indicating whether point represents an Poisson
             distribution.
         """
+        belongs_shape = self.shape == point.shape[-self.point_ndim :]
+        if not belongs_shape:
+            shape = point.shape[: -self.point_ndim]
+            return gs.zeros(shape, dtype=bool)
         return gs.squeeze(point >= atol)
 
     def random_point(self, n_samples=1, bound=1.0):
@@ -155,7 +159,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
                 parameters provided by point.
             """
             k = gs.reshape(gs.array(k), (-1,))
-            return point**k * gs.exp(-point) / factorial(k)
+            return point**k * gs.exp(-point) / gs.from_numpy(factorial(k))
 
         return pmf
 
@@ -285,9 +289,7 @@ class PoissonMetric(RiemannianMetric):
 
         return path
 
-    def geodesic(
-        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
-    ):
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:

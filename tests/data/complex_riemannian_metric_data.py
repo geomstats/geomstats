@@ -1,6 +1,8 @@
 import geomstats.backend as gs
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian import Hermitian, HermitianMetric
+from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
+from geomstats.numerics.ivp import GSIVPIntegrator
 from tests.data_generation import _RiemannianMetricTestData
 
 CDTYPE = gs.get_default_cdtype()
@@ -18,6 +20,10 @@ class ComplexRiemannianMetricTestData(_RiemannianMetricTestData):
 
     complex_riem_metric = ComplexRiemannianMetric(herm)
     complex_riem_metric.metric_matrix = _herm_metric_matrix
+    complex_riem_metric.log_solver = LogShootingSolver()
+    complex_riem_metric.exp_solver = ExpODESolver(
+        integrator=GSIVPIntegrator(n_steps=100, step_type="euler"),
+    )
 
     metric_args_list = [(2,)]
     connection_args_list = metric_args_list = [{}]

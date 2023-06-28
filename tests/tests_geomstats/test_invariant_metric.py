@@ -225,11 +225,8 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         vector = gs.random.rand(2, len(basis))
         tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         identity = group.identity
-        result = group.metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
+        result = group.metric.exp(tangent_vec, identity)
         expected = group.exp(tangent_vec, identity)
-        self.assertAllClose(expected, result, atol=1e-4)
-
-        result = group.metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
         self.assertAllClose(expected, result, atol=1e-4)
 
     def test_integrated_se3_exp_at_id(self, group):
@@ -243,11 +240,8 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         vector = gs.random.rand(len(basis))
         tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         identity = group.identity
-        result = group.metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
+        result = group.metric.exp(tangent_vec, identity)
         expected = canonical_metric.exp(tangent_vec, identity)
-        self.assertAllClose(expected, result, atol=1e-4)
-
-        result = group.metric.exp(tangent_vec, identity, n_steps=100, step="rk2")
         self.assertAllClose(expected, result, atol=1e-4)
 
     @tests.conftest.autograd_and_torch_only
@@ -260,8 +254,8 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         tangent_vec = gs.einsum("...j,jkl->...kl", vector, basis)
         identity = group.identity
 
-        exp = group.metric.exp(tangent_vec, identity, n_steps=100, step="rk4")
-        result = group.metric.log(exp, identity, n_steps=15, step="rk4", verbose=False)
+        exp = group.metric.exp(tangent_vec, identity)
+        result = group.metric.log(exp, identity)
         self.assertAllClose(tangent_vec, result, atol=1e-5)
 
     def test_integrated_parallel_transport(self, group, n, n_samples):
@@ -290,7 +284,7 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         result, end_point_result = group.metric.parallel_transport(
             tan_a, point, tan_b, n_steps=20, step="rk4", return_endpoint=True
         )
-        expected_end_point = group.metric.exp(tan_b, point, n_steps=20)
+        expected_end_point = group.metric.exp(tan_b, point)
 
         self.assertAllClose(end_point_result, expected_end_point, atol=gs.atol * 1000)
         self.assertAllClose(expected, result, atol=gs.atol * 1000)
@@ -300,7 +294,6 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         with expected:
             group.metric.log(rotation_mat1, rotation_mat2)
 
-    @tests.conftest.np_and_autograd_only
     def test_left_exp_and_exp_from_identity_left_diag_metrics(
         self, group, metric_args, point
     ):
@@ -311,7 +304,6 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(left_exp_from_id, exp_from_id)
 
-    @tests.conftest.np_and_autograd_only
     def test_left_log_and_log_from_identity_left_diag_metrics(
         self, group, metric_args, point
     ):
@@ -321,7 +313,6 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         log_from_id = group.metric.log_from_identity(point)
         self.assertAllClose(left_log_from_id, log_from_id)
 
-    @tests.conftest.np_and_autograd_only
     def test_exp_log_composition_at_identity(self, group, metric_args, tangent_vec):
         group.equip_with_metric(self.Metric, **metric_args)
 
@@ -330,7 +321,6 @@ class TestInvariantMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
         self.assertAllClose(result, tangent_vec)
 
-    @tests.conftest.np_and_autograd_only
     def test_log_exp_composition_at_identity(self, group, metric_args, point):
         group.equip_with_metric(self.Metric, **metric_args)
 

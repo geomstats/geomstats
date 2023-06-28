@@ -10,6 +10,7 @@ from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import get_batch_shape
 
 COMPLEX_OBJECTS = (ComplexRiemannianMetric, ComplexManifold)
 
@@ -117,13 +118,14 @@ class _IterateOverFactorsMixins:
 
         if self.default_point_type == "vector":
             points_ = []
-            for response, factor in zip(points, self.factors):
-                if gs.ndim(response) > len(factor.shape):
-                    response = gs.reshape(response, (-1, math.prod(response.shape[1:])))
+            for point, factor in zip(points, self.factors):
+                if gs.ndim(point) > len(factor.shape):
+                    batch_shape = get_batch_shape(factor, point)
+                    point = gs.reshape(point, batch_shape + (-1,))
                 else:
-                    response = gs.flatten(response)
+                    point = gs.flatten(point)
 
-                points_.append(response)
+                points_.append(point)
             return gs.concatenate(points_, axis=-1)
         stacking_axis = -1 * len(self.shape)
         return gs.stack(points, axis=stacking_axis)
@@ -303,7 +305,9 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
                 for manifold in factors
             ]
             # TODO: need to revisit due to removal of scales
-            self.embedding_space = ProductManifold(factor_embedding_spaces)
+            self.embedding_space = ProductManifold(
+                factor_embedding_spaces, default_point_type, equip=equip
+            )
 
         cum_index = (
             gs.cumsum(factor_dims)[:-1]
@@ -584,12 +588,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         )
         return _block_diagonal(factor_matrices)
 
-    def inner_product(
-        self,
-        tangent_vec_a,
-        tangent_vec_b,
-        base_point=None,
-    ):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner-product of two tangent vectors at a base point.
 
         Inner product defined by the Riemannian metric at point `base_point`
@@ -618,7 +617,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         inner_products = self._iterate_over_factors("inner_product", args)
         return sum(inner_products)
 
-    def exp(self, tangent_vec, base_point=None, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -637,12 +636,9 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         """
         args = {"tangent_vec": tangent_vec, "base_point": base_point}
         exp = self._iterate_over_factors("exp", args)
+        return self._space.embed_to_product(exp)
 
-        if self.default_point_type == "vector":
-            return gs.concatenate(exp, -1)
-        return gs.stack(exp, axis=-len(self.shape))
-
-    def log(self, point, base_point=None, **kwargs):
+    def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -661,6 +657,65 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         """
         args = {"point": point, "base_point": base_point}
         logs = self._iterate_over_factors("log", args)
-        if self.default_point_type == "vector":
-            return gs.concatenate(logs, axis=-1)
-        return gs.stack(logs, axis=-len(self.shape))
+        return self._space.embed_to_product(logs)
+
+    def dist(self, point_a, point_b):
+        """Geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., self.shape]
+            Point.
+        point_b : array-like, shape=[..., self.shape]
+            Point.
+
+        Returns
+        -------
+        dist : array-like, shape=[...,]
+            Distance.
+        """
+        args = {"point_a": point_a, "point_b": point_b}
+        dists = gs.array(self._iterate_over_factors("dist", args))
+        return gs.linalg.norm(dists, ord=2, axis=0)
+
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., dim], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., dim],
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        args = {
+            "initial_point": initial_point,
+            "end_point": end_point,
+            "initial_tangent_vec": initial_tangent_vec,
+        }
+        geodesics = self._iterate_over_factors("geodesic", args)
+
+        def geod_fun(t):
+            t = gs.to_ndarray(t, to_ndim=1)
+            values = [geodesic(t) for geodesic in geodesics]
+            return self._space.embed_to_product(values)
+
+        return geod_fun

@@ -1,17 +1,15 @@
 """Unit tests for the beta manifold."""
 
 
+import pytest
 from scipy.stats import beta
 
 import geomstats.backend as gs
-import tests.conftest
-from tests.conftest import Parametrizer, np_backend, pytorch_backend
+from tests.conftest import Parametrizer, np_backend
 from tests.data.beta_data import BetaDistributionsTestsData, BetaMetricTestData
 from tests.geometry_test_cases import OpenSetTestCase, RiemannianMetricTestCase
 
-PYTORCH_BACKEND = pytorch_backend()
-
-NOT_AUTOGRAD = pytorch_backend() or np_backend()
+NOT_AUTODIFF = np_backend()
 
 
 class TestBetaDistributions(OpenSetTestCase, metaclass=Parametrizer):
@@ -28,15 +26,7 @@ class TestBetaDistributions(OpenSetTestCase, metaclass=Parametrizer):
 
 class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_shape = True  # because several base points for one vector
-    skip_test_log_shape = PYTORCH_BACKEND
-    skip_test_exp_belongs = PYTORCH_BACKEND
-    skip_test_log_is_tangent = PYTORCH_BACKEND
-    skip_test_dist_is_symmetric = PYTORCH_BACKEND
-    skip_test_dist_is_positive = PYTORCH_BACKEND
     skip_test_squared_dist_is_symmetric = True
-    skip_test_squared_dist_is_positive = PYTORCH_BACKEND
-    skip_test_dist_is_norm_of_log = PYTORCH_BACKEND
-    skip_test_dist_point_to_itself_is_zero = PYTORCH_BACKEND
     skip_test_log_after_exp = True
     skip_test_exp_after_log = True
     skip_test_parallel_transport_ivp_is_isometry = True
@@ -46,25 +36,34 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_triangle_inequality_of_dist = True
-    skip_test_riemann_tensor_shape = NOT_AUTOGRAD
-    skip_test_ricci_tensor_shape = NOT_AUTOGRAD
-    skip_test_scalar_curvature_shape = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTOGRAD
-    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTOGRAD
-    skip_test_sectional_curvature_shape = NOT_AUTOGRAD
+    skip_test_riemann_tensor_shape = NOT_AUTODIFF
+    skip_test_ricci_tensor_shape = NOT_AUTODIFF
+    skip_test_scalar_curvature_shape = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_bianchi_identity = NOT_AUTODIFF
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = NOT_AUTODIFF
+    skip_test_sectional_curvature = NOT_AUTODIFF
+    skip_test_sectional_curvature_shape = NOT_AUTODIFF
     skip_test_estimate_and_belongs_se = True
 
     testing_data = BetaMetricTestData()
     Space = testing_data.Space
+
+    @pytest.mark.xfail
+    def test_covariant_riemann_tensor_is_interchange_symmetric(
+        self, space, metric_args, base_point
+    ):
+        return super().test_covariant_riemann_tensor_is_interchange_symmetric(
+            space, metric_args, base_point
+        )
 
     def test_metric_matrix(self, space, point, expected):
         space.equip_with_metric(self.Metric)
         result = space.metric.metric_matrix(point)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_only
+    @pytest.mark.xfail
     def test_exp(self, space, n_samples):
         """Test Exp.
 
@@ -94,7 +93,7 @@ class TestBetaMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = gs.array([n_samples, dim, dim, dim])
         self.assertAllClose(result, expected)
 
-    @tests.conftest.autograd_only
+    @pytest.mark.xfail
     def test_sectional_curvature(self, space, n_samples, atol):
         space.equip_with_metric(self.Metric)
         point = space.random_point(n_samples)

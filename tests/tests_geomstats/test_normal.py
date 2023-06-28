@@ -22,21 +22,21 @@ from tests.geometry_test_cases import (
 class TestCenteredNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = CenteredNormalDistributionsTestData()
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_belongs(self, sample_dim, point, expected):
         self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_random_point_shape(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_sample(self, sample_dim, point, n_samples, expected):
         self.assertAllClose(
             self.Space(sample_dim).sample(point, n_samples).shape, expected
         )
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_point_to_pdf(self, sample_dim, point, n_samples):
         space = self.Space(sample_dim)
         samples = space.sample(space.random_point(), n_samples)
@@ -59,21 +59,21 @@ class TestCenteredNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
 class TestDiagonalNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
     testing_data = DiagonalNormalDistributionsTestData()
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_belongs(self, sample_dim, point, expected):
         self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_random_point_shape(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_sample(self, sample_dim, point, n_samples, expected):
         self.assertAllClose(
             self.Space(sample_dim).sample(point, n_samples).shape, expected
         )
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_point_to_pdf(self, sample_dim, point, n_samples):
         space = self.Space(sample_dim)
         samples = space.sample(space.random_point(), n_samples)
@@ -103,21 +103,21 @@ class TestGeneralNormalDistributions(ManifoldTestCase, metaclass=Parametrizer):
         self.assertAllClose(mean.shape, mean_expected)
         self.assertAllClose(cov.shape, cov_expected)
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_belongs(self, sample_dim, point, expected):
         self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_random_point_shape(self, point, expected):
         self.assertAllClose(point.shape, expected)
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_sample(self, sample_dim, point, n_samples, expected):
         self.assertAllClose(
             self.Space(sample_dim).sample(point, n_samples).shape, expected
         )
 
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_point_to_pdf(self, sample_dim, point, n_samples):
         space = self.Space(sample_dim)
         samples = space.sample(space.random_point(), n_samples)
@@ -165,14 +165,7 @@ class TestCenteredNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer)
         result = result.shape
         self.assertAllClose(result, expected)
 
-    @pytest.mark.skip(reason="Flaky test.")
-    def test_log_after_exp(self, connection_args, tangent_vec, base_point, rtol, atol):
-        connection = self.Metric(*connection_args)
-        exp = connection.exp(tangent_vec=tangent_vec, base_point=base_point)
-        result = connection.log(exp, base_point=base_point)
-        self.assertAllClose(result, gs.squeeze(tangent_vec), rtol=rtol, atol=atol)
-
-    @pytest.mark.skip(reason="Flaky test.")
+    @pytest.mark.xfail
     def test_dist(self, metric, point_a, point_b, expected):
         result = metric.dist(point_a, point_b)
         self.assertAllClose(result, expected)

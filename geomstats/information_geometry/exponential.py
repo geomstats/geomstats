@@ -46,6 +46,10 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
             Boolean indicating whether point represents an exponential
             distribution.
         """
+        belongs_shape = self.shape == point.shape[-self.point_ndim :]
+        if not belongs_shape:
+            shape = point.shape[: -self.point_ndim]
+            return gs.zeros(shape, dtype=bool)
         return gs.squeeze(point >= atol)
 
     def random_point(self, n_samples=1, lower_bound=0.1, upper_bound=1.0):
@@ -284,9 +288,7 @@ class ExponentialMetric(RiemannianMetric):
 
         return path
 
-    def geodesic(
-        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
-    ):
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
