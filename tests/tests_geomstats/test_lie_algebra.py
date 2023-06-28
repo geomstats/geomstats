@@ -7,7 +7,6 @@ from tests.data.lie_algebra_data import TestDataLieAlgebra
 
 
 class TestLieAlgebra(TestCase, metaclass=Parametrizer):
-
     testing_data = TestDataLieAlgebra()
 
     def test_dimension(self, algebra, expected):

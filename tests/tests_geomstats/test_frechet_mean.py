@@ -4,13 +4,13 @@ import math
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.geometry.discrete_curves import R2, DiscreteCurves, ElasticMetric
+from geomstats.geometry.discrete_curves import DiscreteCurves, ElasticMetric
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.stiefel import Stiefel
 from geomstats.learning.frechet_mean import FrechetMean, variance
@@ -27,13 +27,20 @@ class TestFrechetMean(tests.conftest.TestCase):
         self.minkowski = Minkowski(dim=2)
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.so_matrix = SpecialOrthogonal(n=3)
-        self.curves_2d = DiscreteCurves(R2)
-        self.curves_2d_many_sampling_points = DiscreteCurves(R2, k_sampling_points=300)
-        self.elastic_metric = ElasticMetric(a=1, b=1, ambient_manifold=R2)
+        self.curves_2d = DiscreteCurves(Euclidean(dim=2))
+        self.curves_2d_many_sampling_points = DiscreteCurves(
+            Euclidean(dim=2), k_sampling_points=300
+        )
+
+        discrete_curves_with_elastic = DiscreteCurves(
+            ambient_manifold=Euclidean(dim=2), equip=False
+        )
+        discrete_curves_with_elastic.equip_with_metric(ElasticMetric, a=1, b=1)
+        self.elastic_metric = discrete_curves_with_elastic.metric
 
     def test_logs_at_mean_curves_2d(self):
         n_tests = 10
-        metric = self.curves_2d.srv_metric
+        metric = self.curves_2d.metric
         estimator = FrechetMean(metric=metric, init_step_size=1.0)
 
         result = []
@@ -49,7 +56,7 @@ class TestFrechetMean(tests.conftest.TestCase):
             mean = gs.tile(mean, (2, 1, 1))
 
             logs = metric.log(point=points, base_point=mean)
-            logs_srv = metric.aux_differential_srv_transform(logs, point=mean)
+            logs_srv = metric.tangent_diffeomorphism(logs, base_point=mean)
             # Note that the logs are NOT inverse, only the logs_srv are.
             result.append(gs.linalg.norm(logs_srv[1, :] + logs_srv[0, :]))
         result = gs.stack(result)
@@ -132,7 +139,7 @@ class TestFrechetMean(tests.conftest.TestCase):
         points = self.curves_2d_many_sampling_points.random_point(n_samples=1000)
 
         mean = FrechetMean(
-            metric=self.curves_2d_many_sampling_points.srv_metric, method="default"
+            metric=self.curves_2d_many_sampling_points.metric, method="default"
         )
         mean.fit(points)
         result = mean.estimate_
@@ -151,7 +158,7 @@ class TestFrechetMean(tests.conftest.TestCase):
     def test_estimate_shape_metric(self):
         points = self.curves_2d.random_point(n_samples=2)
 
-        mean = FrechetMean(metric=self.curves_2d.srv_metric)
+        mean = FrechetMean(metric=self.curves_2d.metric)
         mean.fit(points)
         result = mean.estimate_
 
@@ -172,7 +179,7 @@ class TestFrechetMean(tests.conftest.TestCase):
     def test_estimate_and_belongs_curves_2d(self):
         points = self.curves_2d.random_point(n_samples=2)
 
-        mean = FrechetMean(metric=self.curves_2d.srv_metric)
+        mean = FrechetMean(metric=self.curves_2d.metric)
         mean.fit(points)
 
         result = self.curves_2d.belongs(mean.estimate_)
@@ -183,11 +190,11 @@ class TestFrechetMean(tests.conftest.TestCase):
         points = self.so3.random_uniform(2)
 
         mean_vec = FrechetMean(
-            metric=self.so3.bi_invariant_metric, method="default", init_step_size=1.0
+            metric=self.so3.metric, method="default", init_step_size=1.0
         )
         mean_vec.fit(points)
 
-        logs = self.so3.bi_invariant_metric.log(points, mean_vec.estimate_)
+        logs = self.so3.metric.log(points, mean_vec.estimate_)
         result = gs.sum(logs, axis=0)
         expected = gs.zeros_like(points[0])
         self.assertAllClose(result, expected)
@@ -195,45 +202,45 @@ class TestFrechetMean(tests.conftest.TestCase):
     def test_estimate_and_belongs_default_gradient_descent_so3(self):
         point = self.so3.random_uniform(10)
 
-        mean_vec = FrechetMean(metric=self.so3.bi_invariant_metric, method="default")
+        mean_vec = FrechetMean(metric=self.so3.metric, method="default")
         mean_vec.fit(point)
 
         result = self.so3.belongs(mean_vec.estimate_)
         expected = True
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_default_gradient_descent_so_matrix(self):
         points = self.so_matrix.random_uniform(2)
         mean_vec = FrechetMean(
-            metric=self.so_matrix.bi_invariant_metric,
+            metric=self.so_matrix.metric,
             method="default",
             init_step_size=1.0,
         )
         mean_vec.fit(points)
-        logs = self.so_matrix.bi_invariant_metric.log(points, mean_vec.estimate_)
+        logs = self.so_matrix.metric.log(points, mean_vec.estimate_)
         result = gs.sum(logs, axis=0)
         expected = gs.zeros_like(points[0])
 
         self.assertAllClose(result, expected, atol=1e-5)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_and_belongs_default_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
-        mean = FrechetMean(metric=self.so_matrix.bi_invariant_metric, method="default")
+        mean = FrechetMean(metric=self.so_matrix.metric, method="default")
         mean.fit(point)
 
         result = self.so_matrix.belongs(mean.estimate_)
         expected = True
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_and_belongs_adaptive_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
         mean = FrechetMean(
-            metric=self.so_matrix.bi_invariant_metric,
+            metric=self.so_matrix.metric,
             method="adaptive",
             init_step_size=0.5,
             verbose=True,
@@ -243,15 +250,15 @@ class TestFrechetMean(tests.conftest.TestCase):
         result = self.so_matrix.belongs(mean.estimate_)
         self.assertTrue(result)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_and_coincide_default_so_vec_and_mat(self):
         point = self.so_matrix.random_uniform(3)
 
-        mean = FrechetMean(metric=self.so_matrix.bi_invariant_metric, method="default")
+        mean = FrechetMean(metric=self.so_matrix.metric, method="default")
         mean.fit(point)
         expected = mean.estimate_
 
-        mean_vec = FrechetMean(metric=self.so3.bi_invariant_metric, method="default")
+        mean_vec = FrechetMean(metric=self.so3.metric, method="default")
         point_vec = self.so3.rotation_vector_from_matrix(point)
         mean_vec.fit(point_vec)
         result_vec = mean_vec.estimate_
@@ -308,7 +315,7 @@ class TestFrechetMean(tests.conftest.TestCase):
         point = self.curves_2d.random_point(n_samples=1)
         points = gs.array([point, point])
 
-        mean = FrechetMean(metric=self.curves_2d.srv_metric)
+        mean = FrechetMean(metric=self.curves_2d.metric)
         mean.fit(X=points)
 
         result = mean.estimate_
@@ -329,9 +336,10 @@ class TestFrechetMean(tests.conftest.TestCase):
         self.assertAllClose(expected, result)
 
     def test_estimate_spd(self):
-        point = SPDMatrices(3).random_point()
+        space = SPDMatrices(3)
+        point = space.random_point()
         points = gs.array([point, point])
-        mean = FrechetMean(metric=SPDMetricAffine(3))
+        mean = FrechetMean(metric=space.metric)
         mean.fit(X=points)
         result = mean.estimate_
         expected = point
@@ -339,7 +347,7 @@ class TestFrechetMean(tests.conftest.TestCase):
 
     def test_estimate_spd_two_samples(self):
         space = SPDMatrices(3)
-        metric = SPDMetricAffine(3)
+        metric = space.metric
         point = space.random_point(2)
         mean = FrechetMean(metric)
         mean.fit(point)
@@ -522,7 +530,7 @@ class TestFrechetMean(tests.conftest.TestCase):
 
     def test_batched(self):
         space = SPDMatrices(3)
-        metric = SPDMetricAffine(3)
+        metric = space.metric
         point = space.random_point(4)
         mean_batch = FrechetMean(metric, method="batch", verbose=True)
         data = gs.stack([point[:2], point[2:]], axis=1)
@@ -555,7 +563,7 @@ class TestFrechetMean(tests.conftest.TestCase):
         point = space.random_point(2)
         mean = FrechetMean(metric, method="default", init_step_size=0.5, verbose=True)
         mean.fit(point)
-        result = space.belongs(mean.estimate_)
+        result = space.belongs(mean.estimate_, atol=1e-8)
         self.assertTrue(result)
 
     def test_circle_mean(self):

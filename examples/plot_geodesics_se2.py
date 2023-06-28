@@ -11,12 +11,20 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.special_euclidean import (
+    SpecialEuclidean,
+    SpecialEuclideanMatrixCanonicalLeftMetric,
+)
 
-SE2_GROUP = SpecialEuclidean(n=2, point_type="matrix")
+SE2_GROUP = SpecialEuclidean(n=2, point_type="matrix", equip=False)
 N_STEPS = 40
-LEFT_METRIC = SE2_GROUP.left_canonical_metric
-RIGHT_METRIC = SE2_GROUP.right_canonical_metric
+
+SE2_GROUP_LEFT_METRIC = SpecialEuclidean(n=2, point_type="matrix", equip=False)
+SE2_GROUP_LEFT_METRIC.equip_with_metric(SpecialEuclideanMatrixCanonicalLeftMetric)
+
+SE2_GROUP_RIGHT_METRIC = SpecialEuclidean(n=2, point_type="matrix", equip=False)
+SE2_GROUP_RIGHT_METRIC.equip_with_metric(InvariantMetric, left=False)
 
 
 def main():
@@ -28,8 +36,8 @@ def main():
     t = gs.linspace(-2.0, 2.0, N_STEPS + 1)
     tangent_vec = gs.einsum("t,ij->tij", t, initial_tangent_vec)
     group_geo_points = SE2_GROUP.exp(tangent_vec)
-    left_geo_points = LEFT_METRIC.exp(tangent_vec)
-    right_geo_points = RIGHT_METRIC.exp(tangent_vec)
+    left_geo_points = SE2_GROUP_LEFT_METRIC.metric.exp(tangent_vec)
+    right_geo_points = SE2_GROUP_RIGHT_METRIC.metric.exp(tangent_vec)
 
     ax = visualization.plot(
         group_geo_points, space="SE2_GROUP", color="black", label="Group"

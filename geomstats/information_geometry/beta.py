@@ -12,8 +12,6 @@ from geomstats.information_geometry.dirichlet import (
     DirichletMetric,
 )
 
-EPSILON = 1e-6
-
 
 class BetaDistributions(DirichletDistributions):
     r"""Class for the manifold of beta distributions.
@@ -29,9 +27,13 @@ class BetaDistributions(DirichletDistributions):
         Embedding manifold.
     """
 
-    def __init__(self):
-        super().__init__(dim=2)
-        self.metric = BetaMetric()
+    def __init__(self, equip=True):
+        super().__init__(dim=2, equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return BetaMetric
 
     def sample(self, point, n_samples=1):
         """Sample from the beta distribution.
@@ -76,32 +78,34 @@ class BetaDistributions(DirichletDistributions):
             Probability density function of the beta distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-        a_params = point[..., 0]
-        b_params = point[..., 1]
+        alpha = gs.expand_dims(point[..., 0], axis=-1)
+        beta = gs.expand_dims(point[..., 1], axis=-1)
 
         def pdf(x):
             """Generate parameterized function for normal pdf.
 
             Parameters
             ----------
-            x : array-like, shape=[n_points,]
+            x : array-like, shape=[n_samples,]
                 Points at which to compute the probability density function.
+
+            Returns
+            -------
+            pdf_at_x : array-like, shape=[..., n_samples]
+                Values of pdf at x for each value of the parameters provided
+                by point.
             """
-            x = gs.to_ndarray(x, to_ndim=1)
-
-            pdf_at_x = [
-                gs.array(beta.pdf(x, a=a, b=b)) for a, b in zip(a_params, b_params)
-            ]
-            pdf_at_x = gs.squeeze(gs.stack(pdf_at_x, axis=-1))
-
-            return pdf_at_x
+            x = gs.reshape(gs.array(x), (-1,))
+            return (
+                x ** (alpha - 1)
+                * (1 - x) ** (beta - 1)
+                / (gs.gamma(alpha) * gs.gamma(beta) / gs.gamma(alpha + beta))
+            )
 
         return pdf
 
     @staticmethod
-    def maximum_likelihood_fit(data, loc=0, scale=1):
+    def maximum_likelihood_fit(data, loc=0, scale=1, epsilon=1e-6):
         """Estimate parameters from samples.
 
         This a wrapper around scipy's maximum likelihood estimator to
@@ -126,8 +130,8 @@ class BetaDistributions(DirichletDistributions):
         parameter : array-like, shape=[..., 2]
             Estimate of parameter obtained by maximum likelihood.
         """
-        data = gs.where(data == 1.0, 1.0 - EPSILON, data)
-        data = gs.where(data == 0.0, EPSILON, data)
+        data = gs.where(data == 1.0, 1.0 - epsilon, data)
+        data = gs.where(data == 0.0, epsilon, data)
         data = gs.to_ndarray(data, to_ndim=2)
         parameters = []
         for sample in data:
@@ -138,9 +142,6 @@ class BetaDistributions(DirichletDistributions):
 
 class BetaMetric(DirichletMetric):
     """Class for the Fisher information metric on beta distributions."""
-
-    def __init__(self):
-        super().__init__(dim=2)
 
     @staticmethod
     def metric_det(param_a, param_b):

@@ -23,14 +23,15 @@ class Minkowski(Euclidean):
        Dimension of Minkowski space.
     """
 
-    def __new__(cls, dim, **kwargs):
+    def __new__(cls, dim, equip=True):
         """Instantiate a Minkowski space.
 
         This is an instance of the `Euclidean` class endowed with the
         `MinkowskiMetric`.
         """
-        space = Euclidean(dim)
-        space._metric = MinkowskiMetric(dim)
+        space = Euclidean(dim, equip=False)
+        if equip:
+            space.equip_with_metric(MinkowskiMetric)
         return space
 
 
@@ -38,15 +39,10 @@ class MinkowskiMetric(RiemannianMetric):
     """Class for the pseudo-Riemannian Minkowski metric.
 
     The metric is flat: the inner product is independent of the base point.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the Minkowski space.
     """
 
-    def __init__(self, dim):
-        super().__init__(dim=dim, signature=(dim - 1, 1))
+    def __init__(self, space):
+        super().__init__(space=space, signature=(space.dim - 1, 1))
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.
@@ -63,7 +59,10 @@ class MinkowskiMetric(RiemannianMetric):
         """
         q, p = self.signature
         diagonal = gs.array([-1.0] * p + [1.0] * q)
-        return from_vector_to_diagonal_matrix(diagonal)
+        mat = from_vector_to_diagonal_matrix(diagonal)
+        if base_point is not None and base_point.ndim > 1:
+            mat = gs.broadcast_to(mat, base_point.shape + (p + q,))
+        return mat
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.

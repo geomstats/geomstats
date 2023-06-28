@@ -388,7 +388,7 @@ class _AACRegression(BaseEstimator):
             iteration += 1
 
             # align point to point using previous computed alignment
-            aligned_y = self.metric.space.permute(aligned_y, self.metric.perm_)
+            aligned_y = self.metric._space.permute(aligned_y, self.metric.perm_)
 
             self.total_space_estimator.fit(X, aligned_y)
             y_pred = self.total_space_estimator.predict(X)

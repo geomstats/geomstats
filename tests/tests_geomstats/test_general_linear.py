@@ -18,40 +18,34 @@ class TestGeneralLinear(LieGroupTestCase, OpenSetTestCase, metaclass=Parametrize
 
     def test_belongs(self, n, point, expected):
         group = self.Space(n)
-        self.assertAllClose(group.belongs(gs.array(point)), gs.array(expected))
+        self.assertAllClose(group.belongs(point), expected)
 
     def test_compose(self, n, mat1, mat2, expected):
         group = self.Space(n)
-        self.assertAllClose(
-            group.compose(gs.array(mat1), gs.array(mat2)), gs.array(expected)
-        )
+        self.assertAllClose(group.compose(mat1, mat2), expected)
 
     def test_inv(self, n, mat, expected):
         group = self.Space(n)
-        self.assertAllClose(group.inverse(gs.array(mat)), gs.array(expected))
+        self.assertAllClose(group.inverse(mat), expected)
 
     def test_exp(self, n, tangent_vec, base_point, expected):
         group = self.Space(n)
-        expected = gs.cast(gs.array(expected), gs.float64)
-        tangent_vec = gs.cast(gs.array(tangent_vec), gs.float64)
-        base_point = (
-            None if base_point is None else gs.cast(gs.array(base_point), gs.float64)
-        )
-        self.assertAllClose(group.exp(tangent_vec, base_point), gs.array(expected))
+        expected = gs.cast(expected, gs.float64)
+        tangent_vec = gs.cast(tangent_vec, gs.float64)
+        base_point = None if base_point is None else gs.cast(base_point, gs.float64)
+        self.assertAllClose(group.exp(tangent_vec, base_point), expected)
 
     def test_log(self, n, point, base_point, expected):
         group = self.Space(n)
-        expected = gs.cast(gs.array(expected), gs.float64)
-        point = gs.cast(gs.array(point), gs.float64)
-        base_point = (
-            None if base_point is None else gs.cast(gs.array(base_point), gs.float64)
-        )
+        expected = gs.cast(expected, gs.float64)
+        point = gs.cast(point, gs.float64)
+        base_point = None if base_point is None else gs.cast(base_point, gs.float64)
         self.assertAllClose(group.log(point, base_point), expected)
 
     def test_orbit(self, n, point, base_point, time, expected):
         group = self.Space(n)
-        result = group.orbit(gs.array(point), gs.array(base_point))(time)
-        self.assertAllClose(result, gs.array(expected))
+        result = group.orbit(point, base_point)(time)
+        self.assertAllClose(result, expected)
 
 
 class TestSquareMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer):
@@ -59,4 +53,4 @@ class TestSquareMatrices(MatrixLieAlgebraTestCase, metaclass=Parametrizer):
 
     def test_belongs(self, n, mat, expected):
         space = self.Space(n)
-        self.assertAllClose(space.belongs(gs.array(mat)), gs.array(expected))
+        self.assertAllClose(space.belongs(mat), expected)

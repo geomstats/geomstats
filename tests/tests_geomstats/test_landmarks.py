@@ -16,10 +16,18 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_geodesic_ivp = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
 
     testing_data = TestDataL2LandmarksMetric()
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_l2_metric_inner_product_vectorization(
         self,
         l2_metric_s2,
@@ -41,7 +49,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(gs.shape(result), (n_landmark_sets,))
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_l2_metric_exp_vectorization(
         self, l2_metric_s2, times, landmarks_a, landmarks_b, landmarks_c
     ):
@@ -56,7 +64,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
         result = l2_metric_s2.exp(tangent_vec=tangent_vecs, base_point=landmarks_ab)
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_l2_metric_log_vectorization(
         self, l2_metric_s2, times, landmarks_a, landmarks_b, landmarks_c
     ):
@@ -71,7 +79,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
         result = tangent_vecs
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_l2_metric_geodesic(
         self, l2_metric_s2, times, k_sampling_points, landmarks_a, landmarks_b
     ):
@@ -82,7 +90,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
         result = landmarks_ab
         expected = []
         for k in range(k_sampling_points):
-            geod = l2_metric_s2.ambient_metric.geodesic(
+            geod = l2_metric_s2._space.base_manifold.metric.geodesic(
                 initial_point=landmarks_a[k, :], end_point=landmarks_b[k, :]
             )
             expected.append(geod(times))

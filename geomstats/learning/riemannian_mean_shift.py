@@ -62,7 +62,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         max_iter=100,
         init_centers="from_points",
         kernel="flat",
-        **frechet_mean_kwargs
+        **frechet_mean_kwargs,
     ):
         self.manifold = manifold
         self.metric = metric

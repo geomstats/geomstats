@@ -1,12 +1,12 @@
 """Unit tests for pre-processing transformers."""
 
 import geomstats.backend as gs
-import geomstats.geometry.spd_matrices as spd
 import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry.spd_matrices import SPDLogEuclideanMetric, SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.preprocessing import ToTangentSpace
 
@@ -42,7 +42,7 @@ class TestToTangentSpace(tests.conftest.TestCase):
         expected = point
         self.assertAllClose(expected, result)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_estimate_transform_so_group(self):
         point = self.so_matrix.random_uniform()
         points = gs.array([point, point])
@@ -54,9 +54,10 @@ class TestToTangentSpace(tests.conftest.TestCase):
         self.assertAllClose(expected, result)
 
     def test_estimate_transform_spd(self):
-        point = spd.SPDMatrices(3).random_point()
+        space = SPDMatrices(3)
+        point = space.random_point()
         points = gs.stack([point, point])
-        transformer = ToTangentSpace(geometry=spd.SPDMetricAffine(3))
+        transformer = ToTangentSpace(geometry=space)
         transformer.fit(X=points)
         result = transformer.transform(points)
         expected = gs.zeros((2, 6))
@@ -65,37 +66,40 @@ class TestToTangentSpace(tests.conftest.TestCase):
     def test_fit_transform_hyperbolic(self):
         point = gs.array([2.0, 1.0, 1.0, 1.0])
         points = gs.array([point, point])
-        transformer = ToTangentSpace(geometry=self.hyperbolic.metric)
+        transformer = ToTangentSpace(geometry=self.hyperbolic)
         result = transformer.fit_transform(X=points)
         expected = gs.zeros_like(points)
         self.assertAllClose(expected, result)
 
     def test_inverse_transform_hyperbolic(self):
         points = self.hyperbolic.random_point(10)
-        transformer = ToTangentSpace(geometry=self.hyperbolic.metric)
+        transformer = ToTangentSpace(geometry=self.hyperbolic)
         X = transformer.fit_transform(X=points)
         result = transformer.inverse_transform(X)
         expected = points
         self.assertAllClose(expected, result)
 
     def test_inverse_transform_spd(self):
-        point = spd.SPDMatrices(3).random_point(10)
-        transformer = ToTangentSpace(geometry=spd.SPDMetricLogEuclidean(3))
+        space = SPDMatrices(3, equip=False)
+        space.equip_with_metric(SPDLogEuclideanMetric)
+        point = space.random_point(10)
+        transformer = ToTangentSpace(geometry=space)
         X = transformer.fit_transform(X=point)
         result = transformer.inverse_transform(X)
         expected = point
         self.assertAllClose(expected, result, atol=1e-4)
 
-        transformer = ToTangentSpace(geometry=spd.SPDMetricAffine(3))
+        space = SPDMatrices(3, equip=True)
+        transformer = ToTangentSpace(geometry=space)
         X = transformer.fit_transform(X=point)
         result = transformer.inverse_transform(X)
         expected = point
         self.assertAllClose(expected, result, atol=1e-4)
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_inverse_transform_so(self):
         point = self.so_matrix.random_uniform(10)
-        transformer = ToTangentSpace(geometry=self.so_matrix.bi_invariant_metric)
+        transformer = ToTangentSpace(geometry=self.so_matrix)
         X = transformer.transform(X=point, base_point=self.so_matrix.identity)
         result = transformer.inverse_transform(X, base_point=self.so_matrix.identity)
         expected = point

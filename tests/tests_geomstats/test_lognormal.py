@@ -8,9 +8,9 @@ from geomstats.distributions.lognormal import LogNormal
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import (
+    SPDAffineMetric,
+    SPDLogEuclideanMetric,
     SPDMatrices,
-    SPDMetricAffine,
-    SPDMetricLogEuclidean,
 )
 
 
@@ -22,9 +22,15 @@ class TestLogNormal(tests.conftest.TestCase):
         self.n = 3
         self.spd_cov_n = (self.n * (self.n + 1)) // 2
         self.samples = 5
-        self.spd = SPDMatrices(self.n)
-        self.log_euclidean = SPDMetricLogEuclidean(self.n)
-        self.affine_invariant = SPDMetricAffine(self.n)
+
+        self.spd = SPDMatrices(self.n, equip=False)
+
+        self.spd_log_euclidean = SPDMatrices(self.n, equip=False)
+        self.spd_log_euclidean.equip_with_metric(SPDLogEuclideanMetric)
+
+        self.spd_affine_invariant = SPDMatrices(self.n, equip=False)
+        self.spd_affine_invariant.equip_with_metric(SPDAffineMetric)
+
         self.euclidean = Euclidean(self.n)
 
     def test_euclidean_belongs(self):
@@ -43,15 +49,13 @@ class TestLogNormal(tests.conftest.TestCase):
         mean = 2 * gs.eye(self.n)
         cov = gs.eye(self.spd_cov_n)
 
-        self.spd.metric = self.log_euclidean
-        LogNormalSampler = LogNormal(self.spd, mean, cov)
+        LogNormalSampler = LogNormal(self.spd_log_euclidean, mean, cov)
         data = LogNormalSampler.sample(self.samples)
         result = gs.all(self.spd.belongs(data))
         expected = True
         self.assertAllClose(result, expected)
 
-        self.spd.metric = self.affine_invariant
-        LogNormalSampler = LogNormal(self.spd, mean, cov)
+        LogNormalSampler = LogNormal(self.spd_affine_invariant, mean, cov)
         data = LogNormalSampler.sample(self.samples)
         result = gs.all(self.spd.belongs(data))
         expected = True
@@ -73,7 +77,7 @@ class TestLogNormal(tests.conftest.TestCase):
         """Test if the frechet mean of the samples is close to mean"""
         mean = gs.eye(self.n)
         cov = gs.eye(self.spd_cov_n)
-        data = LogNormal(self.spd, mean, cov).sample(5000)
+        data = LogNormal(self.spd_log_euclidean, mean, cov).sample(5000)
         _fm = gs.mean(self.spd.logm(data), axis=0)
         fm = self.spd.expm(_fm)
 

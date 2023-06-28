@@ -6,7 +6,6 @@ Lead author: Yann Thanwerdas.
 import logging
 
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
@@ -21,10 +20,14 @@ class SymmetricMatrices(VectorSpace):
         Integer representing the shapes of the matrices: n x n.
     """
 
-    def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", MatricesMetric(n, n))
-        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), **kwargs)
+    def __init__(self, n, equip=True):
+        super().__init__(dim=int(n * (n + 1) / 2), shape=(n, n), equip=equip)
         self.n = n
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
 
     def _create_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
@@ -79,7 +82,9 @@ class SymmetricMatrices(VectorSpace):
         return Matrices.to_symmetric(point)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample a symmetric matrix with a uniform distribution in a box.
+        """Sample a symmetric matrix.
+
+        Samples from a uniform distribution in a box and then converts to symmetric.
 
         Parameters
         ----------
@@ -112,13 +117,9 @@ class SymmetricMatrices(VectorSpace):
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
         """
-        if not gs.all(Matrices.is_symmetric(mat)):
-            logging.warning("non-symmetric matrix encountered.")
-        mat = Matrices.to_symmetric(mat)
         return gs.triu_to_vec(mat)
 
     @staticmethod
-    @geomstats.vectorization.decorator(["vector", "else"])
     def from_vector(vec):
         """Convert a vector into a symmetric matrix.
 
@@ -143,9 +144,13 @@ class SymmetricMatrices(VectorSpace):
         shape = (mat_dim, mat_dim)
         mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
         indices = list(zip(*gs.triu_indices(mat_dim)))
-        upper_triangular = gs.stack(
-            [gs.array_from_sparse(indices, data, shape) for data in vec]
-        )
+        if gs.ndim(vec) == 1:
+            upper_triangular = gs.array_from_sparse(indices, vec, shape)
+        else:
+            upper_triangular = gs.stack(
+                [gs.array_from_sparse(indices, data, shape) for data in vec]
+            )
+
         mat = Matrices.to_symmetric(upper_triangular) * mask
         return mat
 
@@ -224,7 +229,7 @@ class SymmetricMatrices(VectorSpace):
             except AttributeError:
                 name = function[0].__name__
 
-            logging.warning("Negative eigenvalue encountered in" " {}".format(name))
+            logging.warning("Negative eigenvalue encountered in %s", name)
 
         return_list = True
         if not isinstance(function, list):

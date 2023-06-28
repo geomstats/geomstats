@@ -2,19 +2,17 @@ name: "Docs check and Deployment"
 
 on:
   push:
-    branches: [master,github-actions-test]
+    branches: [master, github-actions-test]
   pull_request:
     branches: [master]
 
-
 jobs:
   build:
-
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.8]
+        python-version: [3.11]
 
     steps:
       - uses: actions/checkout@v3
@@ -23,8 +21,13 @@ jobs:
         with:
           python-version: ${{matrix.python-version}}
 
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: docs-${{matrix.os}}-${{matrix.python-version}}-${{ hashFiles('pyproject.toml') }}
+
       - name: Install dependencies [pip]
-        run:  |
+        run: |
           pip install --upgrade pip setuptools wheel
           pip install -e .[doc,opt,backends]
 
@@ -38,10 +41,10 @@ jobs:
 
       - name: Deployement of Docs
         uses: JamesIves/github-pages-deploy-action@v4.2.2
-        if : ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'geomstats/geomstats' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'geomstats/geomstats' }}
         with:
-          branch : master
+          branch: master
           folder: docs/_build
-          token : ${{ secrets.DOCUMENTATION_KEY }}
-          repository-name : geomstats/geomstats.github.io
-          clean : true
+          token: ${{ secrets.DOCUMENTATION_KEY }}
+          repository-name: geomstats/geomstats.github.io
+          clean: true

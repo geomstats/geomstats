@@ -3,6 +3,8 @@
 This abstracts the backend type.
 """
 
+import math
+
 import geomstats.backend as gs
 
 POINT_TYPES = ["scalar", "vector", "matrix"]
@@ -14,32 +16,141 @@ POINT_TYPES_TO_NDIMS = {"scalar": 2, "vector": 2, "matrix": 3}
 ERROR_MSG = "Invalid type: %s."
 
 
-def get_n_points(points, point_type):
+def _get_max_ndim_point(*point):
+    """Identify point with higher dimension.
+
+    Parameters
+    ----------
+    point : array-like
+
+    Returns
+    -------
+    max_ndim_point : array-like
+        Point with higher dimension.
+    """
+    max_ndim_point = point[0]
+    for point_ in point[1:]:
+        if point_.ndim > max_ndim_point.ndim:
+            max_ndim_point = point_
+
+    return max_ndim_point
+
+
+def get_n_points(space, *point):
     """Compute the number of points.
 
     Parameters
     ----------
-    points : array-like
-        Input points.
-    point_type : str, {'scalar', ''vector', 'matrix'}
-        Type of input points.
+    space : Manifold object
+        Space to which point belongs.
+    point : array-like
+        Point belonging to the space.
 
     Returns
     -------
     n_points : int
         Number of points.
     """
-    n_points = 1
+    point_max_ndim = _get_max_ndim_point(*point)
 
-    points_ndim = gs.ndim(points)
+    if space.point_ndim == point_max_ndim.ndim:
+        return 1
 
-    is_vect_scalar = point_type == "scalar" and points_ndim == 1
-    is_vect_vector = point_type == "vector" and points_ndim == 2
-    is_vect_matrix = point_type == "matrix" and points_ndim == 3
+    return math.prod(point_max_ndim.shape[: -space.point_ndim])
 
-    if is_vect_scalar or is_vect_vector or is_vect_matrix:
-        n_points = gs.shape(points)[0]
-    return n_points
+
+def check_is_batch(space, *point):
+    """Check if inputs are batch.
+
+    Parameters
+    ----------
+    space : Manifold object
+        Space to which point belongs.
+    point : array-like
+        Point belonging to the space.
+
+    Returns
+    -------
+    is_batch : bool
+        Returns True if point contains several points.
+    """
+    return any(point_.ndim > space.point_ndim for point_ in point)
+
+
+def get_batch_shape(space, *point):
+    """Get batch shape.
+
+    Parameters
+    ----------
+    space : Manifold
+        Space to which point belongs.
+    point : array-like or None
+        Point belonging to the space.
+
+    Returns
+    -------
+    batch_shape : tuple
+        Returns the shape related with batch. () if only one point.
+    """
+    point = list(filter(_is_not_none, point))
+    if len(point) == 0:
+        return ()
+    point_max_ndim = _get_max_ndim_point(*point)
+    return point_max_ndim.shape[: -space.point_ndim]
+
+
+def repeat_point(point, n_reps=2, expand=False):
+    """Repeat point.
+
+    Parameters
+    ----------
+    point : array-like
+        Point of a space.
+    n_reps : int
+        Number of times the point should be repeated.
+    expand : bool
+        Repeat even if n_reps == 1.
+
+    Returns
+    -------
+    rep_point : array-like
+        point repeated n_reps times.
+    """
+    if not expand and n_reps == 1:
+        return gs.copy(point)
+
+    return gs.repeat(gs.expand_dims(point, 0), n_reps, axis=0)
+
+
+def _is_not_none(value):
+    """Check if a value is None."""
+    return value is not None
+
+
+def repeat_out(space, out, *point, out_shape=()):
+    """Repeat out shape after finding batch shape.
+
+    Parameters
+    ----------
+    space : Manifold
+        Space to which point belongs.
+    out : array-like
+        Output to be repeated
+    point : array-like or None
+        Point belonging to the space.
+    out_shape : tuple
+        Indicates out shape for no batch computations.
+
+    Returns
+    -------
+    out : array-like
+        If no batch, then input is returned. Otherwise it is broadcasted.
+    """
+    point = filter(_is_not_none, point)
+    batch_shape = get_batch_shape(space, *point)
+    if out.shape[: -len(out_shape)] != batch_shape:
+        return gs.broadcast_to(out, batch_shape + out_shape)
+    return out
 
 
 def decorator(input_types):
@@ -149,10 +260,9 @@ def get_types(input_types, args, kwargs):
     if len(input_types) > len_total:
         opt_kwargs_types = input_types[len_total:]
         last_input_type = input_types[-1]
-        if "output_" in last_input_type:
-            if last_input_type != "output_scalar":
-                is_scal = False
-                opt_kwargs_types = input_types[len_total:-1]
+        if "output_" in last_input_type and last_input_type != "output_scalar":
+            is_scal = False
+            opt_kwargs_types = input_types[len_total:-1]
     return (args_types, kwargs_types, opt_kwargs_types, is_scal)
 
 
@@ -350,9 +460,11 @@ def adapt_result(result, initial_shapes, args_kwargs_types, is_scal):
         if result.shape[1] == 1:
             result = gs.squeeze(result, axis=1)
 
-    if squeeze_output_dim_0(result, initial_shapes, args_kwargs_types):
-        if result.shape[0] == 1:
-            result = gs.squeeze(result, axis=0)
+    if (
+        squeeze_output_dim_0(result, initial_shapes, args_kwargs_types)
+        and result.shape[0] == 1
+    ):
+        result = gs.squeeze(result, axis=0)
 
     return result
 

@@ -279,7 +279,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         max_iter_mean=100,
         tol_mean=1e-4,
     ):
-
         self.n_gaussians = n_gaussians
         self.metric = metric
         self.initialisation_method = initialisation_method
@@ -381,7 +380,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         valid_pdf_condition = gs.amin(gs.sum(num_normalized_pdf, -1))
 
         if valid_pdf_condition <= PDF_TOL:
-
             num_normalized_pdf[gs.sum(num_normalized_pdf, -1) <= PDF_TOL] = 1
 
         sum_pdf = gs.sum(num_normalized_pdf, -1)
@@ -390,7 +388,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         )
 
         if gs.any(gs.mean(posterior_probabilities)) is None:
-
             logging.warning(
                 "EXPECTATION : posterior probabilities "
                 "contain elements that are not numbers."
@@ -401,7 +398,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             >= gs.mean(gs.sum(posterior_probabilities, 1))
             >= 1 + SUM_CHECK_PDF
         ):
-
             logging.warning("EXPECTATION : posterior probabilities " "do not sum to 1.")
 
         if gs.any(gs.sum(posterior_probabilities, 0) < PDF_TOL):

@@ -8,7 +8,6 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.invariant_metric import BiInvariantMetric, InvariantMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from tests.conftest import tf_backend
 from tests.data_generation import TestData, _InvariantMetricTestData, _LieGroupTestData
 
 
@@ -46,13 +45,6 @@ elements_all = {
 
 
 elements = elements_all
-if tf_backend():
-    # Tf is extremely slow
-    elements = {
-        "angle_in_pi_2pi": angle_in_pi_2pi,
-        "angle_close_pi_low": angle_close_pi_low,
-    }
-
 
 coords = ["extrinsic", "intrinsic"]
 orders = ["xyz", "zyx"]
@@ -70,9 +62,6 @@ angles_close_to_pi_all = [
 ]
 
 angles_close_to_pi = angles_close_to_pi_all
-
-if tf_backend():
-    angles_close_to_pi = ["angle_close_pi_low"]
 
 
 class SpecialOrthogonalTestData(_LieGroupTestData):
@@ -131,7 +120,12 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
         smoke_data = [
             dict(n=2, vec=vec_1, base_point=None, expected=True),
             dict(n=2, vec=vec_2, base_point=None, expected=False),
-            dict(n=2, vec=[vec_1, vec_2], base_point=None, expected=[True, False]),
+            dict(
+                n=2,
+                vec=gs.stack([vec_1, vec_2]),
+                base_point=None,
+                expected=[True, False],
+            ),
             dict(
                 n=2,
                 vec=SpecialOrthogonal(2).compose(point, vec_1),
@@ -265,11 +259,13 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
             dict(
                 n=3,
                 point_type="vector",
-                point=[
-                    [1.0, 0.0, 0.0],
-                    [0.0, gs.cos(angle), -gs.sin(angle)],
-                    [0, gs.sin(angle), gs.cos(angle)],
-                ],
+                point=gs.array(
+                    [
+                        [1.0, 0.0, 0.0],
+                        [0.0, gs.cos(angle), -gs.sin(angle)],
+                        [0, gs.sin(angle), gs.cos(angle)],
+                    ]
+                ),
                 expected=0.12 * gs.array([1.0, 0.0, 0.0]),
             ),
             dict(
@@ -347,7 +343,6 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
         return self.generate_tests([], random_data)
 
     def matrix_from_rotation_vector_test_data(self):
-
         rot_vec_3 = 1e-11 * gs.array([12.0, 1.0, -81.0])
         angle = gs.linalg.norm(rot_vec_3)
         skew_rot_vec_3 = 1e-11 * gs.array(
@@ -503,14 +498,15 @@ class SpecialOrthogonal3TestData(TestData):
         data = {"xyz": xyz, "zyx": zyx}
         smoke_data = []
 
-        for coord, order in itertools.product(coords, orders):
+        for extrinsic, order in itertools.product([False, True], orders):
             for i in range(3):
                 vec = gs.squeeze(gs.array_from_sparse([(0, i)], [angle_pi_6], (1, 3)))
+                zyx = order == "zyx"
                 smoke_data += [
-                    dict(coord=coord, order=order, vec=vec, mat=data[order][i])
+                    dict(extrinsic=extrinsic, zyx=zyx, vec=vec, mat=data[order][i])
                 ]
             smoke_data += [
-                dict(coord=coord, order=order, vec=gs.zeros(3), mat=gs.eye(3))
+                dict(extrinsic=extrinsic, zyx=zyx, vec=gs.zeros(3), mat=gs.eye(3))
             ]
         return self.generate_tests(smoke_data)
 
@@ -527,13 +523,14 @@ class SpecialOrthogonal3TestData(TestData):
         data = {"xyz": xyz, "zyx": zyx}
         smoke_data = []
         e1 = gs.array([1.0, 0.0, 0.0, 0.0])
-        for coord, order in itertools.product(["intrinsic", "extrinsic"], orders):
+        for extrinsic, order in itertools.product([False, True], orders):
             for i in range(3):
                 vec = gs.squeeze(gs.array_from_sparse([(0, i)], [angle_pi_6], (1, 3)))
+                zyx = order == "zyx"
                 smoke_data += [
-                    dict(coord=coord, order=order, vec=vec, quat=data[order][i])
+                    dict(extrinsic=extrinsic, zyx=zyx, vec=vec, quat=data[order][i])
                 ]
-            smoke_data += [dict(coord=coord, order=order, vec=gs.zeros(3), quat=e1)]
+            smoke_data += [dict(extrinsic=extrinsic, zyx=zyx, vec=gs.zeros(3), quat=e1)]
         return self.generate_tests(smoke_data)
 
     def quaternion_from_rotation_vector_tait_bryan_angles_test_data(self):
@@ -729,9 +726,11 @@ class SpecialOrthogonal3TestData(TestData):
 
 class BiInvariantMetricTestData(_InvariantMetricTestData):
     dim_list = random.sample(range(2, 4), 2)
-    metric_args_list = [(SpecialOrthogonal(dim),) for dim in dim_list]
+
+    metric_args_list = [{} for _ in dim_list]
     shape_list = [(dim, dim) for dim in dim_list]
-    group_list = space_list = [SpecialOrthogonal(dim) for dim in dim_list]
+    group_list = space_list = [SpecialOrthogonal(dim, equip=False) for dim in dim_list]
+
     n_points_list = random.sample(range(1, 4), 2)
     n_tangent_vecs_list = random.sample(range(1, 4), 2)
     n_points_a_list = random.sample(range(1, 4), 2)
@@ -760,11 +759,17 @@ class BiInvariantMetricTestData(_InvariantMetricTestData):
         smoke_data = []
         for angle_type_1, angle_type_2 in zip(elements, elements):
             smoke_data += [
-                dict(point_1=elements[angle_type_1], point_2=elements[angle_type_2])
+                dict(
+                    group=SpecialOrthogonal(3, "vector", equip=False),
+                    point_1=elements[angle_type_1],
+                    point_2=elements[angle_type_2],
+                )
             ]
         return self.generate_tests(smoke_data)
 
     def exp_test_data(self):
+        group = SpecialOrthogonal(3, "vector", equip=False)
+
         theta = gs.pi / 5.0
         rot_vec_base_point = theta / gs.sqrt(3.0) * gs.array([1.0, 1.0, 1.0])
         rot_vec_2 = gs.pi / 4 * gs.array([1.0, 0.0, 0.0])
@@ -776,17 +781,19 @@ class BiInvariantMetricTestData(_InvariantMetricTestData):
             + gs.pi / (10 * gs.sqrt(3.0)) * skew
         )
         inv_jacobian = gs.linalg.inv(jacobian)
-        expected = SpecialOrthogonal(3, "vector").compose(
+        expected = group.compose(
             (gs.pi / 5.0) / gs.sqrt(3.0) * gs.array([1.0, 1.0, 1.0]),
             gs.dot(inv_jacobian, rot_vec_2),
         )
         smoke_data = [
             dict(
+                group=group,
                 tangent_vec=gs.array([0.0, 0.0, 0.0]),
                 base_point=rot_vec_base_point,
                 expected=rot_vec_base_point,
             ),
             dict(
+                group=group,
                 tangent_vec=rot_vec_2,
                 base_point=rot_vec_base_point,
                 expected=expected,
@@ -795,6 +802,7 @@ class BiInvariantMetricTestData(_InvariantMetricTestData):
         return self.generate_tests(smoke_data)
 
     def log_test_data(self):
+        group = SpecialOrthogonal(3, "vector", equip=False)
         theta = gs.pi / 5.0
         rot_vec_base_point = theta / gs.sqrt(3.0) * gs.array([1.0, 1.0, 1.0])
         # Note: the rotation vector for the reference point
@@ -814,15 +822,17 @@ class BiInvariantMetricTestData(_InvariantMetricTestData):
         )
         inv_jacobian = gs.linalg.inv(jacobian)
         aux = gs.dot(inv_jacobian, expected)
-        rot_vec_2 = SpecialOrthogonal(3, "vector").compose(rot_vec_base_point, aux)
+        rot_vec_2 = group.compose(rot_vec_base_point, aux)
 
         smoke_data = [
             dict(
+                group=group,
                 point=rot_vec_base_point,
                 base_point=rot_vec_base_point,
                 expected=gs.array([0.0, 0.0, 0.0]),
             ),
             dict(
+                group=group,
                 point=rot_vec_2,
                 base_point=rot_vec_base_point,
                 expected=expected,
@@ -831,7 +841,7 @@ class BiInvariantMetricTestData(_InvariantMetricTestData):
         return self.generate_tests(smoke_data)
 
     def distance_broadcast_test_data(self):
-        smoke_data = [dict(n=2)]
+        smoke_data = [dict(group=SpecialOrthogonal(n=2, equip=False))]
         return self.generate_tests(smoke_data)
 
 
@@ -840,14 +850,13 @@ class InvariantMetricTestData(TestData):
 
     def squared_dist_is_symmetric_test_data(self):
         smoke_data = []
-        for angle_type_1, angle_type_2, left_or_right in zip(
-            elements, elements, ["left", "right"]
-        ):
+        group = SpecialOrthogonal(3, "vector", equip=False)
+        for angle_type_1, angle_type_2, left in zip(elements, elements, [True, False]):
             smoke_data += [
                 dict(
-                    metric_mat_at_identity=9
-                    * gs.eye(SpecialOrthogonal(3, "vector").dim),
-                    left_or_right=left_or_right,
+                    group=group,
+                    metric_mat_at_identity=9 * gs.eye(group.dim),
+                    left=left,
                     point_1=elements[angle_type_1],
                     point_2=elements[angle_type_2],
                 )

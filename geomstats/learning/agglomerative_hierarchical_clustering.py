@@ -101,6 +101,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
         linkage="average",
         distance_threshold=None,
     ):
+        self.distance = distance
 
         if isinstance(distance, str):
             affinity = distance
@@ -118,7 +119,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
 
         super().__init__(
             n_clusters=n_clusters,
-            affinity=affinity,
+            metric=affinity,
             memory=memory,
             connectivity=connectivity,
             compute_full_tree=compute_full_tree,

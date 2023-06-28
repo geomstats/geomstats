@@ -2,18 +2,17 @@ name: "Linting"
 
 on:
   push:
-    branches: [master,github-actions-test]
+    branches: [master, github-actions-test]
   pull_request:
     branches: [master]
 
 jobs:
   lint:
-
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: [3.9]
+        python-version: [3.11]
       fail-fast: false
 
     steps:
@@ -23,8 +22,13 @@ jobs:
         with:
           python-version: ${{matrix.python-version}}
 
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: lint-${{matrix.os}}-${{matrix.python-version}}-${{ hashFiles('pyproject.toml') }}
+
       - name: install dependencies [pip]
-        run:  |
+        run: |
           pip install --upgrade pip setuptools wheel
           pip install -e .[lint]
 
@@ -35,7 +39,7 @@ jobs:
         run: |
           flake8 geomstats/ tests/
 
-      - name : linting [black and isort]
+      - name: linting [black and isort]
         run: |
           black . --check
           isort --profile black --check .

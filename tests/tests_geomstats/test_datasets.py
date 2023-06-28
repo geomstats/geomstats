@@ -43,7 +43,6 @@ class TestDatasets(tests.conftest.TestCase):
 
         self.assertTrue(gs.all(result))
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_karate_graph(self):
         """Test the correct number of edges and nodes for each graph."""
         graph = data_utils.load_karate_graph()
@@ -51,7 +50,6 @@ class TestDatasets(tests.conftest.TestCase):
         expected = 68
         self.assertTrue(result == expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_random_graph(self):
         """Test the correct number of edges and nodes for each graph."""
         graph = data_utils.load_random_graph()
@@ -59,7 +57,6 @@ class TestDatasets(tests.conftest.TestCase):
         expected = 20
         self.assertTrue(result == expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_random_walks_random_graph(self):
         """Test that random walks have the right length and number."""
         graph = data_utils.load_random_graph()
@@ -75,7 +72,6 @@ class TestDatasets(tests.conftest.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_random_walks_karate_graph(self):
         """Test that random walks have the right length and number."""
         graph = data_utils.load_karate_graph()
@@ -197,3 +193,9 @@ class TestDatasets(tests.conftest.TestCase):
 
         result = [treatment in ["control", "cytd", "jasp"] for treatment in treatments]
         self.assertTrue(gs.all(result))
+
+    def test_load_cube(self):
+        """Test that the cube loads correctly."""
+        vertices, faces = data_utils.load_cube()
+        assert vertices.shape == (8, 3)
+        assert faces.shape == (12, 3)

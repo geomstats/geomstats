@@ -1,5 +1,6 @@
 import random
 
+import geomstats.backend as gs
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from tests.data_generation import _MatrixLieAlgebraTestData
 
@@ -15,8 +16,8 @@ class SkewSymmetricMatricesTestData(_MatrixLieAlgebraTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(n=2, mat=[[0.0, -1.0], [1.0, 0.0]], expected=True),
-            dict(n=3, mat=[[0.0, -1.0], [1.0, 0.0]], expected=False),
+            dict(n=2, mat=gs.array([[0.0, -1.0], [1.0, 0.0]]), expected=True),
+            dict(n=3, mat=gs.array([[0.0, -1.0], [1.0, 0.0]]), expected=False),
         ]
         return self.generate_tests(smoke_data)
 

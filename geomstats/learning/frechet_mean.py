@@ -10,19 +10,21 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
-from geomstats.geometry.discrete_curves import ElasticMetric
-from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
+from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
+from geomstats.geometry.matrices import MatricesMetric
+from geomstats.geometry.minkowski import MinkowskiMetric
 
 EPSILON = 1e-4
 
-LINEAR_METRICS = ["EuclideanMetric", "MatricesMetric", "MinkowskiMetric"]
+LINEAR_METRICS = [EuclideanMetric, MatricesMetric, MinkowskiMetric]
+ELASTIC_METRICS = [SRVMetric, ElasticMetric]
 
-ELASTIC_METRICS = ["SRVMetric", "ElasticMetric"]
 
-
-def _is_metric_in_list(metric_str, metric_names):
-    for cmp_str in metric_names:
-        if cmp_str in metric_str:
+def _is_metric_in_list(metric, metric_classes):
+    for metric_class in metric_classes:
+        if isinstance(metric, metric_class):
             return True
 
     return False
@@ -32,8 +34,8 @@ def _is_linear_metric(metric_str):
     return _is_metric_in_list(metric_str, LINEAR_METRICS)
 
 
-def _is_elastic_metric(metric_str):
-    return _is_metric_in_list(metric_str, ELASTIC_METRICS)
+def _is_elastic_metric(metric):
+    return _is_metric_in_list(metric, ELASTIC_METRICS)
 
 
 def _scalarmul(scalar, array):
@@ -144,7 +146,7 @@ def elastic_mean(points, weights=None, metric=None):
     transformed_linear_mean = linear_mean(transformed, weights=weights)
 
     starting_sampling_point = (
-        FrechetMean(metric.ambient_metric)
+        FrechetMean(metric._space.ambient_manifold.metric)
         .fit(points[:, 0, :], weights=weights)
         .estimate_
     )
@@ -198,7 +200,7 @@ def _default_gradient_descent(
 
         var_is_0 = gs.isclose(var, 0.0)
 
-        metric_dim = metric.dim
+        metric_dim = metric._space.dim
         if isinstance(metric, ElasticMetric):
             metric_dim = tangent_mean.shape[-2] * tangent_mean.shape[-1]
 
@@ -219,8 +221,8 @@ def _default_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. "
-            "The mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
@@ -262,7 +264,6 @@ def _batch_gradient_descent(
     convergence_old = convergence
 
     while convergence > epsilon and max_iter > iteration:
-
         iteration += 1
         estimates_broadcast, _ = gs.broadcast_arrays(estimates, points)
         estimates_flattened = gs.reshape(estimates_broadcast, flat_shape)
@@ -283,14 +284,16 @@ def _batch_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. The "
-            "mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
         logging.info(
-            "n_iter: {}, final dist: {},"
-            "final step size: {}".format(iteration, convergence, init_step_size)
+            "n_iter: %d, final dist: %e, final step size: %e",
+            iteration,
+            convergence,
+            init_step_size,
         )
 
     return estimates
@@ -388,16 +391,17 @@ def _adaptive_gradient_descent(
 
     if iteration == max_iter:
         logging.warning(
-            "Maximum number of iterations {} reached. "
-            "The mean may be inaccurate".format(max_iter)
+            "Maximum number of iterations %d reached. The mean may be inaccurate",
+            max_iter,
         )
 
     if verbose:
         logging.info(
-            "n_iter: {}, final variance: {}, final dist: {},"
-            " final_step_size: {}".format(
-                iteration, var, sq_norm_current_tangent_mean, tau
-            )
+            "n_iter: %d, final variance: %e, final dist: %e, final_step_size: %e",
+            iteration,
+            var,
+            sq_norm_current_tangent_mean,
+            tau,
         )
 
     return current_mean
@@ -414,8 +418,8 @@ def _circle_mean(points):
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples,]
-        Data set of angles.
+    points : array-like, shape=[n_samples, 1]
+        Data set of angles (intrinsic coordinates).
 
     Reference
     ---------
@@ -424,14 +428,10 @@ def _circle_mean(points):
         Statistical Mathematics 67 (1), 177–193.
         https://arxiv.org/abs/1108.2141
     """
-    if points.ndim > 1:
-        points_ = Hypersphere.extrinsic_to_angle(points)
-    else:
-        points_ = gs.copy(points)
-    sample_size = points_.shape[0]
-    mean0 = gs.mean(points_)
-    var0 = gs.sum((points_ - mean0) ** 2)
-    sorted_points = gs.sort(points_)
+    sample_size = points.shape[0]
+    mean0 = gs.mean(points)
+    var0 = gs.sum((points - mean0) ** 2)
+    sorted_points = gs.sort(points, axis=0)
     means = _circle_variances(mean0, var0, sample_size, sorted_points)
     return means[gs.argmin(means[:, 1]), 0]
 
@@ -459,7 +459,7 @@ def _circle_variances(mean, var, n_samples, points):
     """
     means = (mean + gs.linspace(0.0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
     means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
-    parts = gs.array([sum(points) / n_samples if means[0] < 0 else 0])
+    parts = gs.array([gs.sum(points) / n_samples if means[0] < 0 else 0])
     m_plus = means >= 0
     left_sums = gs.cumsum(points)
     right_sums = left_sums[-1] - left_sums
@@ -589,15 +589,15 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-        metric_str = self.metric.__str__()
+        if isinstance(self.metric, HypersphereMetric) and self.metric._space.dim == 1:
+            mean = Hypersphere.angle_to_extrinsic(
+                _circle_mean(Hypersphere.extrinsic_to_angle(X))
+            )
 
-        if "HypersphereMetric" in metric_str and self.metric.dim == 1:
-            mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
-
-        elif _is_linear_metric(metric_str):
+        elif _is_linear_metric(self.metric):
             mean = linear_mean(points=X, weights=weights)
 
-        elif _is_elastic_metric(metric_str):
+        elif _is_elastic_metric(self.metric):
             mean = elastic_mean(points=X, weights=weights, metric=self.metric)
 
         else:

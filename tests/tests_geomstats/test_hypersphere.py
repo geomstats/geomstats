@@ -3,10 +3,9 @@
 import scipy.special
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import FrechetMean
-from tests.conftest import Parametrizer
+from tests.conftest import Parametrizer, np_backend
 from tests.data.hypersphere_data import HypersphereMetricTestData, HypersphereTestData
 from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 
@@ -16,14 +15,11 @@ ONLINE_KMEANS_TOL = 1e-1
 
 
 class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
-
     testing_data = HypersphereTestData()
 
     def test_replace_values(self, dim, points, new_points, indcs, expected):
         space = self.Space(dim)
-        result = space._replace_values(
-            gs.array(points), gs.array(new_points), gs.array(indcs)
-        )
+        result = space._replace_values(points, new_points, indcs)
         self.assertAllClose(result, expected)
 
     def test_angle_to_extrinsic(self, dim, point, expected):
@@ -85,7 +81,6 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
                 tangent_vec, base_point, base_point_spherical
             )
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_riemannian_normal_frechet_mean(self, dim):
         space = self.Space(dim)
         mean = space.random_uniform()
@@ -96,7 +91,6 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
         estimate = estimator.estimate_
         self.assertAllClose(estimate, mean, atol=1e-1)
 
-    @tests.conftest.np_autograd_and_torch_only
     def test_riemannian_normal_and_belongs(self, dim, n_points):
         space = self.Space(dim)
         mean = space.random_uniform()
@@ -145,48 +139,114 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
 
 class HypersphereMetricTestCase(RiemannianMetricTestCase):
     def test_inner_product(
-        self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.Metric(dim)
-        result = metric.inner_product(
-            gs.array(tangent_vec_a), gs.array(tangent_vec_b), gs.array(base_point)
-        )
+        space.equip_with_metric(self.Metric)
+        result = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(result, expected)
 
-    def test_dist(self, dim, point_a, point_b, expected):
-        metric = self.Metric(dim)
-        result = metric.dist(gs.array(point_a), gs.array(point_b))
-        self.assertAllClose(result, gs.array(expected))
+    def test_dist(self, space, point_a, point_b, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.dist(point_a, point_b)
+        self.assertAllClose(result, expected)
 
-    def test_dist_pairwise(self, dim, point, expected, rtol):
-        metric = self.Metric(dim)
-        result = metric.dist_pairwise(gs.array(point))
-        self.assertAllClose(result, gs.array(expected), rtol=rtol)
+    def test_dist_pairwise(self, space, point, expected, rtol):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.dist_pairwise(point)
+        self.assertAllClose(result, expected, rtol=rtol)
 
-    def test_diameter(self, dim, points, expected):
-        metric = self.Metric(dim)
-        result = metric.diameter(gs.array(points))
-        self.assertAllClose(result, gs.array(expected))
+    def test_diameter(self, space, points, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.diameter(points)
+        self.assertAllClose(result, expected)
 
-    def test_christoffels_shape(self, dim, point, expected):
-        metric = self.Metric(dim)
-        result = metric.christoffels(point)
+    def test_christoffels_shape(self, space, point, expected):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.christoffels(point)
         self.assertAllClose(gs.shape(result), expected)
 
+    def test_riemann_tensor_spherical_coords_shape(self, space, base_point, expected):
+        """Test the shape of the Riemann tensor on the sphere.
+
+        Note that the base_point is input in spherical coordinates.
+        """
+        space.equip_with_metric(self.Metric)
+        result = space.metric.riemann_tensor(base_point).shape
+        self.assertAllClose(expected, result)
+
+    def test_riemann_tensor_spherical_coords(self, space, base_point):
+        """Test the Riemann tensor on the sphere.
+
+        riemann_tensor[...,i,j,k,l] = R_{ijk}^l
+            Riemannian tensor curvature,
+            with the contravariant index on the last dimension.
+
+        Note that the base_point is input in spherical coordinates.
+
+        Expected formulas taken from:
+        https://digitalcommons.latech.edu/cgi/viewcontent.cgi?
+        article=1008&context=mathematics-senior-capstone-papers
+        """
+        space.equip_with_metric(self.Metric)
+        riemann_tensor_ijk_l = space.metric.riemann_tensor(base_point)
+        theta, _ = base_point[0], base_point[1]
+        expected_212_1 = gs.sin(theta) ** 2
+        expected_221_1 = -gs.sin(theta) ** 2
+        expected_121_2 = 1
+        expected_112_2 = -1
+        result_212_1 = riemann_tensor_ijk_l[1, 0, 1, 0]
+        result_221_1 = riemann_tensor_ijk_l[1, 1, 0, 0]
+        result_121_2 = riemann_tensor_ijk_l[0, 1, 0, 1]
+        result_112_2 = riemann_tensor_ijk_l[0, 0, 1, 1]
+        self.assertAllClose(expected_212_1, result_212_1)
+        self.assertAllClose(expected_221_1, result_221_1)
+        self.assertAllClose(expected_121_2, result_121_2)
+        self.assertAllClose(expected_112_2, result_112_2)
+
+    def test_ricci_tensor_spherical_coords_shape(self, space, base_point, expected):
+        """Test the shape of the Ricci tensor on the sphere.
+
+        ricci_tensor[...,i,j] = R_{ij}
+            Ricci tensor curvature.
+
+        Note that the base_point is input in spherical coordinates.
+        """
+        space.equip_with_metric(self.Metric)
+        result = space.metric.ricci_tensor(base_point).shape
+        self.assertAllClose(expected, result)
+
+    def test_ricci_tensor_spherical_coords(self, space, base_point, expected):
+        """Test the Ricci tensor on the sphere.
+
+        ricci_tensor[...,i,j] = R_{ij}
+            Ricci tensor curvature.
+
+        Note that the base_point is input in spherical coordinates.
+
+        Expected formulas taken from:
+        https://digitalcommons.latech.edu/cgi/viewcontent.cgi?
+        article=1008&context=mathematics-senior-capstone-papers
+        """
+        space.equip_with_metric(self.Metric)
+        result = space.metric.ricci_tensor(base_point)
+        self.assertAllClose(expected, result)
+
     def test_sectional_curvature(
-        self, dim, tangent_vec_a, tangent_vec_b, base_point, expected
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
     ):
-        metric = self.Metric(dim)
-        result = metric.sectional_curvature(tangent_vec_a, tangent_vec_b, base_point)
+        space.equip_with_metric(self.Metric)
+        result = space.metric.sectional_curvature(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
         self.assertAllClose(result, expected, atol=1e-2)
 
     def test_exp_and_dist_and_projection_to_tangent_space(
-        self, dim, vector, base_point
+        self, space, vector, base_point
     ):
-        metric = self.Metric(dim)
-        tangent_vec = Hypersphere(dim).to_tangent(vector=vector, base_point=base_point)
-        exp = metric.exp(tangent_vec=tangent_vec, base_point=base_point)
-        result = metric.dist(base_point, exp)
+        space.equip_with_metric(self.Metric)
+        tangent_vec = space.to_tangent(vector=vector, base_point=base_point)
+        exp = space.metric.exp(tangent_vec=tangent_vec, base_point=base_point)
+        result = space.metric.dist(base_point, exp)
         expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
         self.assertAllClose(result, expected)
 
@@ -194,5 +254,18 @@ class HypersphereMetricTestCase(RiemannianMetricTestCase):
 class TestHypersphereMetric(HypersphereMetricTestCase, metaclass=Parametrizer):
     skip_test_exp_geodesic_ivp = True
     skip_test_dist_point_to_itself_is_zero = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature = True
+    skip_test_sectional_curvature_shape = True
+    skip_test_riemann_tensor_spherical_coords_shape = np_backend()
+    skip_test_ricci_tensor_spherical_coords_shape = True
+    skip_test_riemann_tensor_spherical_coords = np_backend()
+    skip_test_ricci_tensor_spherical_coords = True
 
     testing_data = HypersphereMetricTestData()

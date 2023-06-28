@@ -26,7 +26,6 @@ class BackendsTestData(TestData):
         return [{"func_name": func_name, "args": args_} for args_ in args]
 
     def _additional_array_data(self):
-
         data = [
             dict(func_name="zeros", args=(2,)),
             dict(func_name="zeros", args=((2, 2),)),
@@ -615,6 +614,23 @@ class DtypesTestData(TestData):
                 shape_a=(3, 3),
                 shape_b=(1, 1),
                 shape_c=(3, 1),
+            ),
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def random_distrib_complex_test_data(self):
+        smoke_data = [
+            dict(
+                func_name="random.rand",
+                args=(2,),
+            ),
+            dict(func_name="random.uniform", kwargs={"size": (2,)}),
+            dict(func_name="random.normal", kwargs={"size": (2,)}),
+            dict(
+                func_name="random.multivariate_normal",
+                args=(gs.zeros(2), SPDMatrices(2).random_point()),
+                kwargs={"size": (2,)},
             ),
         ]
 

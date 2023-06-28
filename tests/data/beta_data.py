@@ -11,7 +11,7 @@ class BetaDistributionsTestsData(_OpenSetTestData):
     shape_list = [(2,)]
     n_samples_list = random.sample(range(2, 5), 2)
     n_points_list = random.sample(range(1, 5), 2)
-    n_vecs_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = n_vecs_list = random.sample(range(2, 5), 2)
 
     def belongs_test_data(self):
         smoke_data = [
@@ -30,17 +30,15 @@ class BetaDistributionsTestsData(_OpenSetTestData):
         return self.generate_tests([], random_data)
 
     def point_to_pdf_test_data(self):
-        smoke_data = [dict(x=gs.linspace(0.0, 1.0, 10))]
-        return self.generate_tests(smoke_data)
-
-    def point_to_pdf_vectorization_test_data(self):
-        smoke_data = [dict(x=gs.linspace(0.0, 1.0, 10))]
+        smoke_data = [
+            dict(point=self.Space().random_point(1), x=gs.linspace(0.0, 1.0, 10)),
+            dict(point=self.Space().random_point(3), x=gs.linspace(0.0, 1.0, 10)),
+        ]
         return self.generate_tests(smoke_data)
 
 
 class BetaMetricTestData(_RiemannianMetricTestData):
-
-    metric_args_list = [()]
+    connection_args_list = metric_args_list = [{}]
     shape_list = [(2,)]
     space_list = [BetaDistributions()]
     n_samples_list = random.sample(range(2, 5), 2)
@@ -54,11 +52,13 @@ class BetaMetricTestData(_RiemannianMetricTestData):
         "dist_point_to_itself_is_zero": {"atol": 5e-6},
         "dist_is_symmetric": {"atol": 5e-1},
         "dist_is_norm_of_log": {"atol": 5e-1},
+        "sectional_curvature": {"atol": 1e-8},
     }
 
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(
+                space=self.space_list[0],
                 point=gs.array([1.0, 1.0]),
                 expected=gs.array([[1.0, -0.644934066], [-0.644934066, 1.0]]),
             )
@@ -66,9 +66,13 @@ class BetaMetricTestData(_RiemannianMetricTestData):
         return self.generate_tests(smoke_data)
 
     def exp_test_data(self):
-        smoke_data = [dict(n_samples=10)]
+        smoke_data = [dict(space=self.space_list[0], n_samples=10)]
         return self.generate_tests(smoke_data)
 
     def christoffels_shape_test_data(self):
-        smoke_data = [dict(n_samples=10)]
+        smoke_data = [dict(space=self.space_list[0], n_samples=10)]
+        return self.generate_tests(smoke_data)
+
+    def sectional_curvature_test_data(self):
+        smoke_data = [dict(space=self.space_list[0], n_samples=10)]
         return self.generate_tests(smoke_data)

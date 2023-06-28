@@ -3,7 +3,6 @@ import random
 import numpy as np
 
 import geomstats.backend as gs
-import tests.conftest
 from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
     PoincareHalfSpaceMetric,
@@ -22,18 +21,20 @@ class PoincareHalfSpaceTestData(_OpenSetTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(dim=2, vec=[1.5, 2.3], expected=True),
-            dict(dim=2, vec=[[1.5, 2.0], [2.5, -0.3]], expected=[True, False]),
+            dict(dim=2, vec=gs.array([1.5, 2.3]), expected=True),
+            dict(
+                dim=2, vec=gs.array([[1.5, 2.0], [2.5, -0.3]]), expected=[True, False]
+            ),
         ]
         return self.generate_tests(smoke_data)
 
     def half_space_to_ball_coordinates_test_data(self):
         smoke_data = [
-            dict(dim=2, point=[0.0, 1.0], expected=gs.zeros(2)),
+            dict(dim=2, point=gs.array([0.0, 1.0]), expected=gs.zeros(2)),
             dict(
                 dim=2,
-                point=[[0.0, 1.0], [0.0, 2.0]],
-                expected=[[0.0, 0.0], [0.0, 1.0 / 3.0]],
+                point=gs.array([[0.0, 1.0], [0.0, 2.0]]),
+                expected=gs.array([[0.0, 0.0], [0.0, 1.0 / 3.0]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -59,9 +60,11 @@ class PoincareHalfSpaceTestData(_OpenSetTestData):
 
 class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
     dim_list = random.sample(range(2, 5), 2)
-    metric_args_list = [(dim,) for dim in dim_list]
+
     shape_list = [(dim,) for dim in dim_list]
-    space_list = [PoincareHalfSpace(dim) for dim in dim_list]
+    space_list = [PoincareHalfSpace(dim, equip=False) for dim in dim_list]
+    metric_args_list = [{} for _ in dim_list]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
@@ -72,14 +75,16 @@ class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
 
     Metric = PoincareHalfSpaceMetric
 
+    poincare_half_space_2 = PoincareHalfSpace(2, equip=False)
+
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                dim=2,
-                tangent_vec_a=[[1.0, 2.0], [3.0, 4.0]],
-                tangent_vec_b=[[1.0, 2.0], [3.0, 4.0]],
-                base_point=[[0.0, 1.0], [0.0, 5.0]],
-                expected=[5.0, 1.0],
+                space=self.poincare_half_space_2,
+                tangent_vec_a=gs.array([[1.0, 2.0], [3.0, 4.0]]),
+                tangent_vec_b=gs.array([[1.0, 2.0], [3.0, 4.0]]),
+                base_point=gs.array([[0.0, 1.0], [0.0, 5.0]]),
+                expected=gs.array([5.0, 1.0]),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -87,7 +92,7 @@ class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
     def exp_and_coordinates_tangent_test_data(self):
         smoke_data = [
             dict(
-                dim=2,
+                space=self.poincare_half_space_2,
                 tangent_vec=gs.array([0.0, 1.0]),
                 base_point=gs.array([1.5, 2.3]),
             )
@@ -135,16 +140,15 @@ class PoincareHalfSpaceMetricTestData(_RiemannianMetricTestData):
 
         inputs_to_exp = [(gs.array([2.0, 1.0]), gs.array([1.0, 1.0]))]
         smoke_data = []
-        if not tests.conftest.tf_backend():
-            for tangent_vec, base_point in inputs_to_exp:
-                smoke_data.append(
-                    dict(
-                        dim=2,
-                        tangent_vec=tangent_vec,
-                        base_point=base_point,
-                        expected=_exp(tangent_vec, base_point),
-                    )
+        for tangent_vec, base_point in inputs_to_exp:
+            smoke_data.append(
+                dict(
+                    space=self.poincare_half_space_2,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    expected=_exp(tangent_vec, base_point),
                 )
+            )
         return self.generate_tests(smoke_data)
 
     def retraction_lifting_test_data(self):

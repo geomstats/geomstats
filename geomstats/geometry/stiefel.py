@@ -5,17 +5,16 @@ A set of all orthonormal p-frames in n-dimensional space, where p <= n.
 Lead author: Oleg Kachan.
 """
 
+import warnings
+
 import geomstats.backend as gs
 import geomstats.errors
-import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-
-EPSILON = 1e-6
+from geomstats.vectorization import repeat_out
 
 
 class Stiefel(LevelSet):
@@ -32,28 +31,55 @@ class Stiefel(LevelSet):
         Number of basis vectors in the orthonormal frame.
     """
 
-    def __init__(self, n, p, **kwargs):
+    def __init__(self, n, p, equip=True):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(p, "p")
         if p > n:
             raise ValueError("p needs to be smaller than n.")
 
-        dim = int(p * n - (p * (p + 1) / 2))
-        matrices = Matrices(n, p)
-        canonical_metric = StiefelCanonicalMetric(n, p)
-        kwargs.setdefault("metric", canonical_metric)
-        super().__init__(
-            dim=dim,
-            embedding_space=matrices,
-            submersion=lambda x: matrices.mul(matrices.transpose(x), x),
-            value=gs.eye(p),
-            tangent_submersion=lambda v, x: 2
-            * matrices.to_symmetric(matrices.mul(matrices.transpose(x), v)),
-            **kwargs
-        )
-        self.canonical_metric = canonical_metric
         self.n = n
         self.p = p
+        self._value = gs.eye(p)
+
+        dim = int(p * n - (p * (p + 1) / 2))
+        super().__init__(dim=dim, equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return StiefelCanonicalMetric
+
+    def _define_embedding_space(self):
+        return Matrices(self.n, self.p)
+
+    def submersion(self, point):
+        """Submersion that defines the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n, n]
+        """
+        return Matrices.mul(Matrices.transpose(point), point) - self._value
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n, n]
+        """
+        return 2 * Matrices.to_symmetric(
+            Matrices.mul(Matrices.transpose(point), vector)
+        )
 
     @staticmethod
     def to_grassmannian(point):
@@ -175,22 +201,11 @@ class Stiefel(LevelSet):
 
 
 class StiefelCanonicalMetric(RiemannianMetric):
-    """Class that defines the canonical metric for Stiefel manifolds.
+    """Class that defines the canonical metric for Stiefel manifolds."""
 
-    Parameters
-    ----------
-    n : int
-        Dimension of the ambient vector space.
-    p : int
-        Number of basis vectors in the orthonormal frames.
-    """
-
-    def __init__(self, n, p):
-        dim = int(p * n - (p * (p + 1) / 2))
-        super().__init__(dim=dim, signature=(dim, 0, 0), shape=(n, p))
-        self.embedding_metric = EuclideanMetric(n * p)
-        self.n = n
-        self.p = p
+    def __init__(self, space):
+        super().__init__(space=space, signature=(space.dim, 0, 0))
+        self._log_solver = _StiefelLogSolver()
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the inner-product of two tangent vectors at a base point.
@@ -230,13 +245,11 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         aux = gs.matmul(
             Matrices.transpose(tangent_vec_a),
-            gs.eye(self.n) - 0.5 * gs.matmul(base_point, base_point_transpose),
+            gs.eye(self._space.n) - 0.5 * gs.matmul(base_point, base_point_transpose),
         )
-        inner_prod = Matrices.trace_product(aux, tangent_vec_b)
+        return Matrices.trace_product(aux, tangent_vec_b)
 
-        return inner_prod
-
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -252,7 +265,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Point in the Stiefel manifold equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        p = self.p
+        p = self._space.p
         matrix_a = Matrices.mul(Matrices.transpose(base_point), tangent_vec)
         matrix_k = tangent_vec - Matrices.mul(base_point, matrix_a)
 
@@ -269,6 +282,159 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_q, matrix_mn_e[..., p:, :p]
         )
         return exp
+
+    def log(self, point, base_point):
+        """Compute the Riemannian logarithm of a point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, p]
+            Point in the Stiefel manifold.
+        base_point : array-like, shape=[..., n, p]
+            Point in the Stiefel manifold.
+
+        Returns
+        -------
+        log : array-like, shape=[..., n, p]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
+        """
+        return self._log_solver.log(self._space, point, base_point)
+
+    @staticmethod
+    def retraction(tangent_vec, base_point):
+        """Compute the retraction of a tangent vector.
+
+        This computation is based on the QR-decomposition.
+
+        e.g. :math:`P_x(V) = qf(X + V)`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, p]
+            Tangent vector at a base point.
+        base_point : array-like, shape=[..., n, p]
+            Point in the Stiefel manifold.
+
+        Returns
+        -------
+        exp : array-like, shape=[..., n, p]
+            Point in the Stiefel manifold equal to the retraction
+            of tangent_vec at the base point.
+        """
+        matrix_q, matrix_r = gs.linalg.qr(base_point + tangent_vec)
+
+        diagonal = gs.diagonal(matrix_r, axis1=-2, axis2=-1)
+        sign = gs.sign(gs.sign(diagonal) + 0.5)
+        diag = algebra_utils.from_vector_to_diagonal_matrix(sign)
+        result = Matrices.mul(matrix_q, diag)
+
+        return result
+
+    @staticmethod
+    def _matrix_r_single(matrix_m):
+        def _make_minor(i, matrix):
+            return matrix[: i + 1, : i + 1]
+
+        def _make_column_r(i, matrix, columns_list):
+            if i == 0:
+                return gs.array([1.0 / matrix[0, 0]])
+
+            matrix_m_i = _make_minor(i, matrix_m)
+            inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
+            b_i = _make_b(i, matrix_m, columns_list)
+            column_r_i = gs.matvec(inv_matrix_m_i, b_i)
+
+            if column_r_i[i] <= 0:
+                raise ValueError("(r_i)_i <= 0")
+            return column_r_i
+
+        def _make_b(i, matrix, columns_list):
+            return gs.array(
+                [-gs.dot(matrix[i, : j + 1], columns_list[j]) for j in range(i)] + [1.0]
+            )
+
+        n = matrix_m.shape[-1]
+
+        columns_list = []
+        matrix_r = gs.zeros((n, n))
+        for j in range(n):
+            column_r_j = _make_column_r(j, matrix_m, columns_list)
+            columns_list.append(column_r_j)
+
+            matrix_r[: len(column_r_j), j] = column_r_j
+
+        return matrix_r
+
+    def lifting(self, point, base_point):
+        """Compute the lifting of a point.
+
+        This computation is based on the QR-decomposion.
+
+        e.g. :math:`P_x^{-1}(Q) = QR - X`.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, p]
+            Point in the Stiefel manifold.
+        base_point : array-like, shape=[..., n, p]
+            Point in the Stiefel manifold.
+
+        Returns
+        -------
+        log : array-like, shape=[..., dim + 1]
+            Tangent vector at the base point equal to the lifting
+            of point at the base point.
+        """
+        point, base_point = gs.broadcast_arrays(point, base_point)
+
+        matrix_m = gs.matmul(Matrices.transpose(base_point), point)
+
+        if gs.any(matrix_m[..., 0, 0] < 0.0):
+            raise ValueError("Algorithm does no work if m11 <= 0.")
+
+        if point.ndim == 2:
+            matrix_r = self._matrix_r_single(matrix_m)
+        else:
+            matrix_r = gs.stack([self._matrix_r_single(matrix) for matrix in matrix_m])
+
+        return gs.matmul(point, matrix_r) - base_point
+
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
+
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In this case the exact injectivity radius is not known, and we use here
+        a lower bound given by [Rentmeesters2015]_.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, p]
+            Point on the manifold.
+
+        Returns
+        -------
+        radius : array-like, shape=[...,]
+            Injectivity radius.
+
+        References
+        ----------
+        .. [Rentmeesters2015] Rentmeesters, Quentin. “Algorithms for Data
+            Fitting on Some Common Homogeneous Spaces.” UCL - Université
+            Catholique de Louvain, 2013.
+            https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
+        """
+        radius = gs.array(0.89 * gs.pi)
+        return repeat_out(self._space, radius, base_point)
+
+
+class _StiefelLogSolver:
+    def __init__(self, max_iter=500, tol=1e-8, imag_tol=1e-6):
+        self.max_iter = max_iter
+        self.tol = tol
+        self.imag_tol = imag_tol
 
     @staticmethod
     def _normal_component_qr(point, base_point, matrix_m):
@@ -332,6 +498,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             det = gs.linalg.det(matrix_v_final)
             if gs.all(det > 0):
                 break
+
             ones = gs.ones(p)
             reflection_vec = gs.concatenate([ones[:-i], gs.array([-1.0] * i)], axis=0)
             mask = gs.cast(det < 0, matrix_v.dtype)
@@ -339,9 +506,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_d = gs.einsum(
                 "...ij,...i->...ij", Matrices.transpose(matrix_d), sign
             )
+
         return matrix_v_final
 
-    def log(self, point, base_point, max_iter=30, tol=gs.atol, **kwargs):
+    def log(self, space, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
         When p=n, the space St(n,n)~O(n) has two non connected sheets: the
@@ -372,11 +540,11 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         Returns
         -------
-        log : array-like, shape=[..., dim + 1]
+        log : array-like, shape=[..., n, p]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        n, p = self.n, self.p
+        n, p = space.n, space.p
         if p == n:
             det_point = gs.linalg.det(point)
             det_base_point = gs.linalg.det(base_point)
@@ -390,157 +558,40 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         matrix_v = self._orthogonal_completion(matrix_m, matrix_n)
         matrix_v = self._procrustes_preprocessing(p, matrix_v, matrix_m, matrix_n)
-        matrix_v = gs.to_ndarray(matrix_v, to_ndim=3)
-        result = []
-        for x in matrix_v:
-            result.append(self._iter_log(p, x, max_iter, tol))
-        result = gs.stack(result)
+
         matrix_lv = (
-            result[0] if (point.ndim == 2) and (base_point.ndim == 2) else result
+            self._iter_log(p, matrix_v)
+            if gs.ndim(matrix_v) == 2
+            else gs.stack([self._iter_log(p, x) for x in matrix_v])
         )
+
         matrix_xv = gs.matmul(base_point, matrix_lv[..., :p, :p])
         matrix_qv = gs.matmul(matrix_q, matrix_lv[..., p:, :p])
 
         return matrix_xv + matrix_qv
 
-    @staticmethod
-    def _iter_log(p, matrix_v, max_iter, tol):
+    def _iter_log(self, p, matrix_v):
         matrix_lv = gs.zeros_like(matrix_v)
-        for _ in range(max_iter):
+        for _ in range(self.max_iter):
             matrix_lv = gs.linalg.logm(matrix_v)
+
             matrix_c = matrix_lv[..., p:, p:]
             norm_matrix_c = gs.linalg.norm(matrix_c)
-            if norm_matrix_c <= tol:
+            if norm_matrix_c <= self.tol:
                 break
 
             matrix_phi = gs.linalg.expm(-Matrices.to_skew_symmetric(matrix_c))
             aux_matrix = gs.matmul(matrix_v[..., :, p:], matrix_phi)
             matrix_v = gs.concatenate([matrix_v[..., :, :p], aux_matrix], axis=-1)
+
+        else:
+            warnings.warn("`log` hasn't converged.")
+
+        if gs.is_complex(matrix_lv):
+            imag_sum = gs.amax(gs.abs(gs.imag(matrix_lv)))
+            if imag_sum < self.imag_tol:
+                matrix_lv = gs.real(matrix_lv)
+            else:
+                raise ValueError(f"Non-neglible imaginary part. max is {imag_sum}")
+
         return matrix_lv
-
-    @staticmethod
-    def retraction(tangent_vec, base_point):
-        """Compute the retraction of a tangent vector.
-
-        This computation is based on the QR-decomposition.
-
-        e.g. :math:`P_x(V) = qf(X + V)`.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, p]
-            Tangent vector at a base point.
-        base_point : array-like, shape=[..., n, p]
-            Point in the Stiefel manifold.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., n, p]
-            Point in the Stiefel manifold equal to the retraction
-            of tangent_vec at the base point.
-        """
-        matrix_q, matrix_r = gs.linalg.qr(base_point + tangent_vec)
-
-        diagonal = gs.diagonal(matrix_r, axis1=-2, axis2=-1)
-        sign = gs.sign(gs.sign(diagonal) + 0.5)
-        diag = algebra_utils.from_vector_to_diagonal_matrix(sign)
-        result = Matrices.mul(matrix_q, diag)
-
-        return result
-
-    @staticmethod
-    @geomstats.vectorization.decorator(["matrix", "matrix"])
-    def lifting(point, base_point):
-        """Compute the lifting of a point.
-
-        This computation is based on the QR-decomposion.
-
-        e.g. :math:`P_x^{-1}(Q) = QR - X`.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, p]
-            Point in the Stiefel manifold.
-        base_point : array-like, shape=[..., n, p]
-            Point in the Stiefel manifold.
-
-        Returns
-        -------
-        log : array-like, shape=[..., dim + 1]
-            Tangent vector at the base point equal to the lifting
-            of point at the base point.
-        """
-        n_points, _, _ = point.shape
-        n_base_points, _, n = base_point.shape
-
-        if not (n_points == n_base_points or n_points == 1 or n_base_points == 1):
-            raise NotImplementedError
-
-        n_liftings = gs.maximum(n_base_points, n_points)
-
-        def _make_minor(i, matrix):
-            return matrix[: i + 1, : i + 1]
-
-        def _make_column_r(i, matrix):
-            if i == 0:
-                if matrix[0, 0] <= 0:
-                    raise ValueError("M[0,0] <= 0")
-                return gs.array([1.0 / matrix[0, 0]])
-            matrix_m_i = _make_minor(i, matrix_m_k)
-            inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
-            b_i = _make_b(i, matrix_m_k, columns_list)
-            column_r_i = gs.matmul(inv_matrix_m_i, b_i)
-
-            if column_r_i[i] <= 0:
-                raise ValueError("(r_i)_i <= 0")
-            return column_r_i
-
-        def _make_b(i, matrix, list_matrices_r):
-            b = gs.ones(i + 1)
-
-            for j in range(i):
-                b[j] = -gs.matmul(matrix[i, : j + 1], list_matrices_r[j])
-
-            return b
-
-        matrix_r = gs.zeros((n_liftings, n, n))
-        matrix_m = gs.matmul(Matrices.transpose(base_point), point)
-
-        for k in range(n_liftings):
-            columns_list = []
-            matrix_m_k = matrix_m[k]
-
-            for j in range(n):
-                column_r_j = _make_column_r(j, matrix_m_k)
-                columns_list.append(column_r_j)
-                matrix_r[k, : len(column_r_j), j] = gs.array(column_r_j)
-
-        return gs.matmul(point, matrix_r) - base_point
-
-    def injectivity_radius(self, base_point):
-        """Compute the radius of the injectivity domain.
-
-        This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base
-        point onto its image.
-        In this case the exact injectivity radius is not known, and we use here
-        a lower bound given by [Rentmeesters2015]_.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., n, p]
-            Point on the manifold.
-
-        Returns
-        -------
-        radius : float
-            Injectivity radius.
-
-        References
-        ----------
-        .. [Rentmeesters2015] Rentmeesters, Quentin. “Algorithms for Data
-            Fitting on Some Common Homogeneous Spaces.” UCL - Université
-            Catholique de Louvain, 2013.
-            https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
-        """
-        return 0.89 * gs.pi

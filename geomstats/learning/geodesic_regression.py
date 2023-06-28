@@ -137,7 +137,7 @@ class GeodesicRegression(BaseEstimator):
         """
         X_copy = (
             X[:, None]
-            if self.metric.default_point_type == "vector"
+            if self.metric._space.default_point_type == "vector"
             else X[:, None, None]
         )
         return self.metric.exp(X_copy * coef[None], intercept)
@@ -245,7 +245,7 @@ class GeodesicRegression(BaseEstimator):
         intercept_init, coef_init = self.initialize_parameters(y)
         intercept_hat = self.space.projection(intercept_init)
         coef_hat = self.space.to_tangent(coef_init, intercept_hat)
-        initial_guess = gs.vstack([gs.flatten(intercept_hat), gs.flatten(coef_hat)])
+        initial_guess = gs.hstack([gs.flatten(intercept_hat), gs.flatten(coef_hat)])
 
         objective_with_grad = gs.autodiff.value_and_grad(
             lambda param: self._loss(X, y, param, shape, weights), to_numpy=True

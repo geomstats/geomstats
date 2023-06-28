@@ -75,8 +75,10 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
         distance="minkowski",
         distance_params=None,
         n_jobs=None,
-        **kwargs
+        **kwargs,
     ):
+        self.distance = distance
+        self.distance_params = distance_params
 
         super().__init__(
             n_neighbors=n_neighbors,
@@ -86,5 +88,5 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
             metric=distance,
             metric_params=distance_params,
             n_jobs=n_jobs,
-            **kwargs
+            **kwargs,
         )

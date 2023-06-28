@@ -2,19 +2,18 @@
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.geometry import hypersphere
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.kmedoids import RiemannianKMedoids
 
 
-@tests.conftest.np_autograd_and_torch_only
 class TestRiemannianKMedoids(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 
     def test_hypersphere_kmedoids_fit(self):
         gs.random.seed(55)
 
-        manifold = hypersphere.Hypersphere(2)
-        metric = hypersphere.HypersphereMetric(2)
+        manifold = Hypersphere(2)
+        metric = manifold.metric
 
         data = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
@@ -27,8 +26,8 @@ class TestRiemannianKMedoids(tests.conftest.TestCase):
         gs.random.seed(1234)
         dim = 2
 
-        manifold = hypersphere.Hypersphere(dim)
-        metric = hypersphere.HypersphereMetric(dim)
+        manifold = Hypersphere(dim)
+        metric = manifold.metric
 
         data = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
