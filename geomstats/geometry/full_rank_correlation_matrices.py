@@ -21,14 +21,17 @@ class FullRankCorrelationMatrices(LevelSet):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n, **kwargs):
+    def __init__(self, n, equip=True):
         self.n = n
-
-        kwargs.setdefault("metric", FullRankCorrelationAffineQuotientMetric(n))
-        super().__init__(dim=int(n * (n - 1) / 2), **kwargs)
+        super().__init__(dim=int(n * (n - 1) / 2), equip=equip)
 
     def _define_embedding_space(self):
         return SPDMatrices(n=self.n)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return FullRankCorrelationAffineQuotientMetric
 
     def submersion(self, point):
         """Submersion that defines the manifold.
@@ -159,7 +162,7 @@ class FullRankCorrelationMatrices(LevelSet):
         return sym * mask_diag
 
 
-class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
+class CorrelationMatricesBundle(FiberBundle):
     """Fiber bundle to construct the quotient metric on correlation matrices.
 
     Correlation matrices are obtained as the quotient of the space of SPD
@@ -174,11 +177,10 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         https://hal.archives-ouvertes.fr/hal-03157992.
     """
 
-    def __init__(self, n):
+    def __init__(self, total_space):
         super().__init__(
-            n=n,
-            total_space_metric=SPDAffineMetric(n),
-            group_dim=n,
+            total_space=total_space,
+            group_dim=total_space.n,
             group_action=FullRankCorrelationMatrices.diag_action,
         )
 
@@ -219,7 +221,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         diagonal = diagonal_tv / diagonal_bp
         aux = base_point * (diagonal[..., None, :] + diagonal[..., :, None])
         mat = tangent_vec - 0.5 * aux
-        return FullRankCorrelationMatrices.diag_action(diagonal_bp ** (-0.5), mat)
+        return self.group_action(diagonal_bp ** (-0.5), mat)
 
     def vertical_projection(self, tangent_vec, base_point, **kwargs):
         """Compute the vertical projection wrt the affine-invariant metric.
@@ -236,7 +238,7 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         ver : array-like, shape=[..., n, n]
             Vertical projection.
         """
-        n = self.n
+        n = self.total_space.n
         inverse_base_point = GeneralLinear.inverse(base_point)
         operator = gs.eye(n) + base_point * inverse_base_point
         inverse_operator = GeneralLinear.inverse(operator)
@@ -264,9 +266,8 @@ class CorrelationMatricesBundle(SPDMatrices, FiberBundle):
         if fiber_point is None and base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
         diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
-        lift = FullRankCorrelationMatrices.diag_action(diagonal_point, tangent_vec)
-        hor_lift = self.horizontal_projection(lift, base_point=fiber_point)
-        return hor_lift
+        lift = self.group_action(diagonal_point, tangent_vec)
+        return self.horizontal_projection(lift, base_point=fiber_point)
 
 
 class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
@@ -275,16 +276,14 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
     The affine-invariant metric on SPD matrices is invariant under the
     action of diagonal matrices, thus it induces a quotient metric on the
     manifold of full-rank correlation matrices.
-
-    Parameters
-    ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n):
-        fiber_bundle = CorrelationMatricesBundle(n=n)
+    def __init__(self, space, total_space=None):
+        if total_space is None:
+            total_space = SPDMatrices(space.n, equip=False)
+            total_space.equip_with_metric(SPDAffineMetric)
+
         super().__init__(
-            fiber_bundle=fiber_bundle,
-            shape=fiber_bundle.shape,
+            space=space,
+            fiber_bundle=CorrelationMatricesBundle(total_space),
         )

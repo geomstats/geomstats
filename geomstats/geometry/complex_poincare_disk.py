@@ -33,19 +33,17 @@ class ComplexPoincareDisk(ComplexOpenSet):
     space of dimension 2. Its complex dimension is 1.
     """
 
-    def __init__(self, **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate the "
-                "manifold without this parameter and then use "
-                "`scale * metric` to rescale the standard metric."
-            )
+    def __init__(self, equip=True):
         super().__init__(
             dim=1,
             embedding_space=Hermitian(dim=1),
-            metric=ComplexPoincareDiskMetric(),
-            **kwargs
+            equip=equip,
         )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return ComplexPoincareDiskMetric
 
     @staticmethod
     def belongs(point, atol=gs.atol):
@@ -123,19 +121,6 @@ class ComplexPoincareDisk(ComplexOpenSet):
 
 class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
     """Class for the complex Poincaré metric."""
-
-    def __init__(self, **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate scaled "
-                "metrics as `scale * RiemannianMetric`. Note that the "
-                "metric is scaled, not the distance."
-            )
-        super().__init__(
-            dim=1,
-            shape=(1,),
-            signature=(1, 0),
-        )
 
     def metric_matrix(self, base_point):
         """Compute the metric matrix at base point.

@@ -35,11 +35,11 @@ class StiefelTestData(_LevelSetTestData):
     Space = Stiefel
 
     tolerances = {
+        "random_point_belongs": {"atol": 1e-8},
         "random_tangent_vec_is_tangent": {"atol": 1e-8},
     }
 
     def to_grassmannian_test_data(self):
-
         point1 = gs.array([[1.0, -1.0], [1.0, 1.0], [0.0, 0.0]]) / gs.sqrt(2.0)
         batch_points = Matrices.mul(
             GeneralLinear.exp(gs.array([gs.pi * r_z / n for n in [2, 3, 4]])),
@@ -53,12 +53,13 @@ class StiefelTestData(_LevelSetTestData):
 
 
 class StiefelCanonicalMetricTestData(_RiemannianMetricTestData):
-
     n_list = random.sample(range(3, 5), 2)
     p_list = [random.sample(range(2, n), 1)[0] for n in n_list]
-    metric_args_list = list(zip(n_list, p_list))
-    shape_list = metric_args_list
-    space_list = [Stiefel(n, p) for n, p in metric_args_list]
+
+    shape_list = space_args_list = list(zip(n_list, p_list))
+    space_list = [Stiefel(n, p) for n, p in space_args_list]
+    metric_args_list = [{} for _ in shape_list]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
     n_points_b_list = [1]
@@ -70,18 +71,17 @@ class StiefelCanonicalMetricTestData(_RiemannianMetricTestData):
     Metric = StiefelCanonicalMetric
 
     def log_two_sheets_error_test_data(self):
-        stiefel = Stiefel(n=3, p=3)
-        base_point = stiefel.random_point()
+        space = Stiefel(n=3, p=3, equip=False)
+        base_point = space.random_point()
         det_base = gs.linalg.det(base_point)
-        point = stiefel.random_point()
+        point = space.random_point()
         det_point = gs.linalg.det(point)
         if gs.all(det_base * det_point > 0.0):
             point *= -1.0
 
         random_data = [
             dict(
-                n=3,
-                p=3,
+                space=space,
                 point=point,
                 base_point=base_point,
                 expected=pytest.raises(ValueError),

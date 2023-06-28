@@ -35,7 +35,17 @@ from torch import (
     quantile,
 )
 from torch import repeat_interleave as repeat
-from torch import reshape, stack, trapz, uint8, unique, vstack, zeros, zeros_like
+from torch import (
+    reshape,
+    scatter_add,
+    stack,
+    trapz,
+    uint8,
+    unique,
+    vstack,
+    zeros,
+    zeros_like,
+)
 from torch.special import gammaln as _gammaln
 
 from .._backend_config import pytorch_atol as atol
@@ -349,7 +359,30 @@ def trace(x):
 
 
 def linspace(start, stop, num=50, dtype=None):
-    return _torch.linspace(start=start, end=stop, steps=num, dtype=dtype)
+    start_is_array = _torch.is_tensor(start)
+    stop_is_array = _torch.is_tensor(stop)
+
+    if not (start_is_array or stop_is_array):
+        return _torch.linspace(start=start, end=stop, steps=num, dtype=dtype)
+
+    if not start_is_array:
+        start = _torch.tensor(start)
+    if not stop_is_array:
+        stop = _torch.tensor(stop)
+    start, stop = _torch.broadcast_tensors(start, stop)
+    result_shape = (num, *start.shape)
+    start = _torch.flatten(start)
+    stop = _torch.flatten(stop)
+
+    return _torch.reshape(
+        _torch.vstack(
+            [
+                _torch.linspace(start=start[i], end=stop[i], steps=num, dtype=dtype)
+                for i in range(start.shape[0])
+            ]
+        ).T,
+        result_shape,
+    )
 
 
 def equal(a, b, **kwargs):
@@ -401,8 +434,8 @@ def ndim(x):
 
 def hsplit(x, indices_or_section):
     if isinstance(indices_or_section, int):
-        indices_or_section = x.shape[1] // indices_or_section
-    return _torch.split(x, indices_or_section, dim=1)
+        indices_or_section = x.shape[-1] // indices_or_section
+    return _torch.split(x, indices_or_section, dim=-1)
 
 
 def diagonal(x, offset=0, axis1=0, axis2=1):

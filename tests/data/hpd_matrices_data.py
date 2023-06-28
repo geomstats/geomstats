@@ -19,7 +19,6 @@ SINH_1 = math.sinh(1.0)
 
 
 class HPDMatricesTestData(_OpenSetTestData):
-
     smoke_space_args_list = [(2,), (3,), (4,), (5,)]
     smoke_n_points_list = [1, 2, 1, 2]
     n_list = random.sample(range(2, 5), 2)
@@ -32,22 +31,24 @@ class HPDMatricesTestData(_OpenSetTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(n=2, mat=[[3.0, -1.0], [-1.0, 3.0]], expected=True),
-            dict(n=2, mat=[[3j, -1.0], [-1.0, 3.0]], expected=False),
-            dict(n=2, mat=[[1.0, 1.0], [2.0, 1.0]], expected=False),
+            dict(n=2, mat=gs.array([[3.0, -1.0], [-1.0, 3.0]]), expected=True),
+            dict(n=2, mat=gs.array([[3j, -1.0], [-1.0, 3.0]]), expected=False),
+            dict(n=2, mat=gs.array([[1.0, 1.0], [2.0, 1.0]]), expected=False),
             dict(
                 n=3,
-                mat=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                mat=gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]]),
                 expected=False,
             ),
             dict(
                 n=3,
-                mat=[[3.0 + 0j, 0j, 1j], [0j, 4.0 + 0j, 0j], [-0.5j, 0j, 6.0 + 0j]],
+                mat=gs.array(
+                    [[3.0 + 0j, 0j, 1j], [0j, 4.0 + 0j, 0j], [-0.5j, 0j, 6.0 + 0j]]
+                ),
                 expected=False,
             ),
             dict(
                 n=2,
-                mat=[[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]],
+                mat=gs.array([[[1.0, 0.0], [0.0, 1.0]], [[1.0, -1.0], [0.0, 1.0]]]),
                 expected=[True, False],
             ),
         ]
@@ -55,26 +56,33 @@ class HPDMatricesTestData(_OpenSetTestData):
 
     def projection_test_data(self):
         smoke_data = [
-            dict(n=2, mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[1.0, 0.0], [0.0, 1.0]]),
             dict(
                 n=2,
-                mat=[[1.0 + 0.0j, 0.5j], [0.5j, 1.0 + 0.0j]],
-                expected=[[1.0, 0.0], [0.0, 1.0]],
+                mat=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
             ),
             dict(
                 n=2,
-                mat=[[-1.0, 0.0], [0.0, -2.0]],
-                expected=[[gs.atol, 0.0], [0.0, gs.atol]],
+                mat=gs.array([[1.0 + 0.0j, 0.5j], [0.5j, 1.0 + 0.0j]]),
+                expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+            ),
+            dict(
+                n=2,
+                mat=gs.array([[-1.0, 0.0], [0.0, -2.0]]),
+                expected=gs.array([[gs.atol, 0.0], [0.0, gs.atol]]),
             ),
         ]
         return self.generate_tests(smoke_data)
 
     def logm_test_data(self):
         smoke_data = [
-            dict(hpd_mat=[[1.0, 0.0], [0.0, 1.0]], expected=[[0.0, 0.0], [0.0, 0.0]]),
             dict(
-                hpd_mat=[[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
-                expected=[[0.0, 0.0], [0.0, 0.0]],
+                hpd_mat=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[0.0, 0.0], [0.0, 0.0]]),
+            ),
+            dict(
+                hpd_mat=gs.array([[1.0 + 0j, 0j], [0j, 1.0 + 0j]]),
+                expected=gs.array([[0.0, 0.0], [0.0, 0.0]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -83,28 +91,34 @@ class HPDMatricesTestData(_OpenSetTestData):
         smoke_data = [
             dict(
                 n=2,
-                hpd_mat=[[[1.0, 2.0], [2.0, 5.0]], [[1.0, 0.0], [0.0, 1.0]]],
-                expected=[[[1.0, 0.0], [2.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]],
+                hpd_mat=gs.array([[[1.0, 2.0], [2.0, 5.0]], [[1.0, 0.0], [0.0, 1.0]]]),
+                expected=gs.array([[[1.0, 0.0], [2.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]]),
             ),
             dict(
                 n=2,
-                hpd_mat=[
-                    [[1.0 + 0j, 2.0 + 0j], [2.0 + 0j, 5.0 + 0j]],
-                    [[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
-                ],
-                expected=[
-                    [[1.0 + 0j, 0], [2.0 + 0j, 1.0 + 0j]],
-                    [[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
-                ],
+                hpd_mat=gs.array(
+                    [
+                        [[1.0 + 0j, 2.0 + 0j], [2.0 + 0j, 5.0 + 0j]],
+                        [[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
+                    ]
+                ),
+                expected=gs.array(
+                    [
+                        [[1.0 + 0j, 0], [2.0 + 0j, 1.0 + 0j]],
+                        [[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
+                    ]
+                ),
             ),
             dict(
                 n=3,
-                hpd_mat=[[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]],
-                expected=[
-                    [SQRT_2, 0.0, 0.0],
-                    [0.0, SQRT_2, 0.0],
-                    [0.0, 0.0, SQRT_2],
-                ],
+                hpd_mat=gs.array([[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]]),
+                expected=gs.array(
+                    [
+                        [SQRT_2, 0.0, 0.0],
+                        [0.0, SQRT_2, 0.0],
+                        [0.0, 0.0, SQRT_2],
+                    ]
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -121,9 +135,9 @@ class HPDMatricesTestData(_OpenSetTestData):
         smoke_data = [
             dict(
                 n=2,
-                tangent_vec=[[1.0, 1.0], [1.0, 1.0]],
-                base_point=[[4.0, 2.0], [2.0, 5.0]],
-                expected=[[1 / 4, 0.0], [3 / 8, 1 / 16]],
+                tangent_vec=gs.array([[1.0, 1.0], [1.0, 1.0]]),
+                base_point=gs.array([[4.0, 2.0], [2.0, 5.0]]),
+                expected=gs.array([[1 / 4, 0.0], [3 / 8, 1 / 16]]),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -132,13 +146,19 @@ class HPDMatricesTestData(_OpenSetTestData):
         smoke_data = [
             dict(
                 power=0.5,
-                tangent_vec=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
-                expected=[
-                    [1.0, 1 / 3, 1 / 3],
-                    [1 / 3, 0.125, 0.125],
-                    [1 / 3, 0.125, 0.125],
-                ],
+                tangent_vec=gs.array(
+                    [[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]]
+                ),
+                expected=gs.array(
+                    [
+                        [1.0, 1 / 3, 1 / 3],
+                        [1 / 3, 0.125, 0.125],
+                        [1 / 3, 0.125, 0.125],
+                    ]
+                ),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -147,13 +167,17 @@ class HPDMatricesTestData(_OpenSetTestData):
         smoke_data = [
             dict(
                 power=0.5,
-                tangent_vec=[
-                    [1.0, 1 / 3, 1 / 3],
-                    [1 / 3, 0.125, 0.125],
-                    [1 / 3, 0.125, 0.125],
-                ],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
-                expected=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
+                tangent_vec=gs.array(
+                    [
+                        [1.0, 1 / 3, 1 / 3],
+                        [1 / 3, 0.125, 0.125],
+                        [1 / 3, 0.125, 0.125],
+                    ]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]]
+                ),
+                expected=gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -161,13 +185,19 @@ class HPDMatricesTestData(_OpenSetTestData):
     def differential_log_test_data(self):
         smoke_data = [
             dict(
-                tangent_vec=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
-                expected=[
-                    [1.0, 1.0, 2 * LN_2],
-                    [1.0, 1.0, 2 * LN_2],
-                    [2 * LN_2, 2 * LN_2, 1],
-                ],
+                tangent_vec=gs.array(
+                    [[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]]
+                ),
+                expected=gs.array(
+                    [
+                        [1.0, 1.0, 2 * LN_2],
+                        [1.0, 1.0, 2 * LN_2],
+                        [2 * LN_2, 2 * LN_2, 1],
+                    ]
+                ),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -175,13 +205,17 @@ class HPDMatricesTestData(_OpenSetTestData):
     def inverse_differential_log_test_data(self):
         smoke_data = [
             dict(
-                tangent_vec=[
-                    [1.0, 1.0, 2 * LN_2],
-                    [1.0, 1.0, 2 * LN_2],
-                    [2 * LN_2, 2 * LN_2, 1],
-                ],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
-                expected=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
+                tangent_vec=gs.array(
+                    [
+                        [1.0, 1.0, 2 * LN_2],
+                        [1.0, 1.0, 2 * LN_2],
+                        [2 * LN_2, 2 * LN_2, 1],
+                    ]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]]
+                ),
+                expected=gs.array([[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]]),
             )
         ]
 
@@ -190,13 +224,19 @@ class HPDMatricesTestData(_OpenSetTestData):
     def differential_exp_test_data(self):
         smoke_data = [
             dict(
-                tangent_vec=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
-                expected=[
-                    [EXP_1, EXP_1, SINH_1],
-                    [EXP_1, EXP_1, SINH_1],
-                    [SINH_1, SINH_1, 1 / EXP_1],
-                ],
+                tangent_vec=gs.array(
+                    [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]]
+                ),
+                expected=gs.array(
+                    [
+                        [EXP_1, EXP_1, SINH_1],
+                        [EXP_1, EXP_1, SINH_1],
+                        [SINH_1, SINH_1, 1 / EXP_1],
+                    ]
+                ),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -204,13 +244,17 @@ class HPDMatricesTestData(_OpenSetTestData):
     def inverse_differential_exp_test_data(self):
         smoke_data = [
             dict(
-                tangent_vec=[
-                    [EXP_1, EXP_1, SINH_1],
-                    [EXP_1, EXP_1, SINH_1],
-                    [SINH_1, SINH_1, 1 / EXP_1],
-                ],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]],
-                expected=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
+                tangent_vec=gs.array(
+                    [
+                        [EXP_1, EXP_1, SINH_1],
+                        [EXP_1, EXP_1, SINH_1],
+                        [SINH_1, SINH_1, 1 / EXP_1],
+                    ]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]]
+                ),
+                expected=gs.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -219,9 +263,11 @@ class HPDMatricesTestData(_OpenSetTestData):
 class HPDAffineMetricTestData(_ComplexRiemannianMetricTestData):
     n_list = random.sample(range(2, 5), 2)
     power_affine_list = [1.0, -0.5]
-    metric_args_list = list(zip(n_list, power_affine_list))
+
+    metric_args_list = [{"power_affine": power} for power in power_affine_list]
     shape_list = [(n, n) for n in n_list]
-    space_list = [HPDMatrices(n) for n in n_list]
+    space_list = [HPDMatrices(n, equip=False) for n in n_list]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
@@ -233,72 +279,87 @@ class HPDAffineMetricTestData(_ComplexRiemannianMetricTestData):
     Metric = HPDAffineMetric
 
     def inner_product_test_data(self):
+        space = HPDMatrices(3, equip=False)
         smoke_data = [
             dict(
-                n=3,
+                space=space,
                 power_affine=0.5,
-                tangent_vec_a=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-                tangent_vec_b=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
+                tangent_vec_a=gs.array(
+                    [[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]
+                ),
+                tangent_vec_b=gs.array(
+                    [[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]]
+                ),
                 expected=713 / 144,
             ),
             dict(
-                n=3,
+                space=space,
                 power_affine=0.5,
-                tangent_vec_a=[
-                    [2.0 + 0j, 1.0 + 0j, 1.0 + 0j],
-                    [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
-                    [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
-                ],
-                tangent_vec_b=[
-                    [2.0 + 0j, 1.0 + 0j, 1.0 + 0j],
-                    [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
-                    [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
-                ],
-                base_point=[
-                    [1.0 + 0j, 0j, 0],
-                    [0, 2.5 + 0j, 1.5 + 0j],
-                    [0j, 1.5 + 0j, 2.5 + 0j],
-                ],
+                tangent_vec_a=gs.array(
+                    [
+                        [2.0 + 0j, 1.0 + 0j, 1.0 + 0j],
+                        [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
+                        [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
+                    ]
+                ),
+                tangent_vec_b=gs.array(
+                    [
+                        [2.0 + 0j, 1.0 + 0j, 1.0 + 0j],
+                        [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
+                        [1.0 + 0j, 0.5 + 0j, 0.5 + 0j],
+                    ]
+                ),
+                base_point=gs.array(
+                    [
+                        [1.0 + 0j, 0j, 0],
+                        [0, 2.5 + 0j, 1.5 + 0j],
+                        [0j, 1.5 + 0j, 2.5 + 0j],
+                    ]
+                ),
                 expected=713 / 144,
             ),
         ]
         return self.generate_tests(smoke_data)
 
     def exp_test_data(self):
+        space = HPDMatrices(2, equip=False)
         smoke_data = [
             dict(
-                n=2,
+                space=space,
                 power_affine=1.0,
-                tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
-                base_point=[[1.0, 0.0], [0.0, 1.0]],
-                expected=[[EXP_2, 0.0], [0.0, EXP_2]],
+                tangent_vec=gs.array([[2.0, 0.0], [0.0, 2.0]]),
+                base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[EXP_2, 0.0], [0.0, EXP_2]]),
             ),
             dict(
-                n=2,
+                space=space,
                 power_affine=1.0,
-                tangent_vec=[[2.0 + 0j, 0j], [0j, 2.0 + 0j]],
-                base_point=[[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
-                expected=[[EXP_2 + 0j, 0j], [0j, EXP_2 + 0j]],
+                tangent_vec=gs.array([[2.0 + 0j, 0j], [0j, 2.0 + 0j]]),
+                base_point=gs.array([[1.0 + 0j, 0j], [0j, 1.0 + 0j]]),
+                expected=gs.array([[EXP_2 + 0j, 0j], [0j, EXP_2 + 0j]]),
             ),
         ]
         return self.generate_tests(smoke_data)
 
     def log_test_data(self):
+        space = HPDMatrices(2, equip=False)
         smoke_data = [
             dict(
-                n=2,
+                space=space,
                 power_affine=1.0,
-                point=[[1.0, 0.0], [0.0, 1.0]],
-                base_point=[[2.0, 0.0], [0.0, 2.0]],
-                expected=[[-2 * LN_2, 0.0], [0.0, -2 * LN_2]],
+                point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                base_point=gs.array([[2.0, 0.0], [0.0, 2.0]]),
+                expected=gs.array([[-2 * LN_2, 0.0], [0.0, -2 * LN_2]]),
             ),
             dict(
-                n=2,
+                space=space,
                 power_affine=1.0,
-                point=[[1.0 + 0j, 0j], [0j, 1.0 + 0j]],
-                base_point=[[2.0 + 0j, 0j], [0j, 2.0 + 0j]],
-                expected=[[-2 * LN_2 + 0j, 0j], [0j, -2 * LN_2 + 0j]],
+                point=gs.array([[1.0 + 0j, 0j], [0j, 1.0 + 0j]]),
+                base_point=gs.array([[2.0 + 0j, 0j], [0j, 2.0 + 0j]]),
+                expected=gs.array([[-2 * LN_2 + 0j, 0j], [0j, -2 * LN_2 + 0j]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -309,9 +370,11 @@ class HPDAffineMetricTestData(_ComplexRiemannianMetricTestData):
 
 class HPDBuresWassersteinMetricTestData(_ComplexRiemannianMetricTestData):
     n_list = random.sample(range(2, 5), 2)
-    metric_args_list = [(n,) for n in n_list]
+
+    metric_args_list = [{} for _ in n_list]
     shape_list = [(n, n) for n in n_list]
-    space_list = [HPDMatrices(n) for n in n_list]
+    space_list = [HPDMatrices(n, equip=False) for n in n_list]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
@@ -325,10 +388,16 @@ class HPDBuresWassersteinMetricTestData(_ComplexRiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                n=3,
-                tangent_vec_a=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-                tangent_vec_b=[[1.0, 2.0, 4.0], [2.0, 3.0, 8.0], [4.0, 8.0, 5.0]],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 1.5, 0.5], [0.0, 0.5, 1.5]],
+                space=HPDMatrices(3, equip=False),
+                tangent_vec_a=gs.array(
+                    [[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]
+                ),
+                tangent_vec_b=gs.array(
+                    [[1.0, 2.0, 4.0], [2.0, 3.0, 8.0], [4.0, 8.0, 5.0]]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 1.5, 0.5], [0.0, 0.5, 1.5]]
+                ),
                 expected=4.0,
             )
         ]
@@ -337,10 +406,10 @@ class HPDBuresWassersteinMetricTestData(_ComplexRiemannianMetricTestData):
     def exp_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
-                base_point=[[1.0, 0.0], [0.0, 1.0]],
-                expected=[[4.0, 0.0], [0.0, 4.0]],
+                space=HPDMatrices(2, equip=False),
+                tangent_vec=gs.array([[2.0, 0.0], [0.0, 2.0]]),
+                base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[4.0, 0.0], [0.0, 4.0]]),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -348,10 +417,10 @@ class HPDBuresWassersteinMetricTestData(_ComplexRiemannianMetricTestData):
     def log_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                point=[[4.0, 0.0], [0.0, 4.0]],
-                base_point=[[1.0, 0.0], [0.0, 1.0]],
-                expected=[[2.0, 0.0], [0.0, 2.0]],
+                space=HPDMatrices(2, equip=False),
+                point=gs.array([[4.0, 0.0], [0.0, 4.0]]),
+                base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[2.0, 0.0], [0.0, 2.0]]),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -359,7 +428,7 @@ class HPDBuresWassersteinMetricTestData(_ComplexRiemannianMetricTestData):
     def squared_dist_test_data(self):
         smoke_data = [
             dict(
-                n=2,
+                space=HPDMatrices(2, equip=False),
                 point_a=[[1.0, 0.0], [0.0, 1.0]],
                 point_b=[[2.0, 0.0], [0.0, 2.0]],
                 expected=2 + 4 - (2 * 2 * SQRT_2),
@@ -371,17 +440,18 @@ class HPDBuresWassersteinMetricTestData(_ComplexRiemannianMetricTestData):
         return super().log_after_exp_test_data(amplitude=7.0)
 
     def parallel_transport_test_data(self):
-        smoke_data = [dict(n=k) for k in self.metric_args_list]
+        smoke_data = [dict(space=HPDMatrices(n=n, equip=False)) for n in self.n_list]
         return self.generate_tests(smoke_data)
 
 
 class HPDEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
     n_list = random.sample(range(2, 5), 2)
     power_euclidean_list = [1.0, -0.5, 0.5, 1.0, 1.0]
-    metric_args_list = list(zip(n_list, power_euclidean_list))
-    one_metric_args_list = list(zip(n_list, [1.0] * 5))
+
+    metric_args_list = [{"power_euclidean": power} for power in power_euclidean_list]
     shape_list = [(n, n) for n in n_list]
-    space_list = [HPDMatrices(n) for n in n_list]
+    space_list = [HPDMatrices(n, equip=False) for n in n_list]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
@@ -395,11 +465,17 @@ class HPDEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                n=3,
+                space=HPDMatrices(3, equip=False),
                 power_euclidean=0.5,
-                tangent_vec_a=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-                tangent_vec_b=[[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]],
+                tangent_vec_a=gs.array(
+                    [[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]
+                ),
+                tangent_vec_b=gs.array(
+                    [[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]]
+                ),
                 expected=3472 / 576,
             )
         ]
@@ -408,7 +484,7 @@ class HPDEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
     def exp_domain_test_data(self):
         smoke_data = [
             dict(
-                n=3,
+                space=HPDMatrices(3, equip=False),
                 power_euclidean=1.0,
                 tangent_vec=[[-1.0, 0.0, 0.0], [0.0, -0.5, 0.0], [0.0, 0.0, 1.0]],
                 base_point=[[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]],
@@ -420,7 +496,7 @@ class HPDEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
     def exp_test_data(self):
         smoke_data = [
             dict(
-                n=2,
+                space=HPDMatrices(2, equip=False),
                 power_euclidean=1.0,
                 tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
                 base_point=[[1.0, 0.0], [0.0, 1.0]],
@@ -432,11 +508,11 @@ class HPDEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
     def log_test_data(self):
         smoke_data = [
             dict(
-                n=2,
+                space=HPDMatrices(2, equip=False),
                 power_euclidean=1.0,
-                point=[[2.0, 0.0], [0.0, 2.0]],
-                base_point=[[1.0, 0.0], [0.0, 1.0]],
-                expected=[[1.0, 0.0], [0.0, 1.0]],
+                point=gs.array([[2.0, 0.0], [0.0, 2.0]]),
+                base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -444,11 +520,11 @@ class HPDEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
     def parallel_transport_test_data(self):
         smoke_data = [
             dict(
-                n=2,
+                space=HPDMatrices(2, equip=False),
                 power_euclidean=1.0,
-                tangent_vec_a=[[2.0, 0.0], [0.0, 2.0]],
-                base_point=[[1.0, 0.0], [0.0, 1.0]],
-                tangent_vec_b=[[1.0, 0.0], [0.0, 0.5]],
+                tangent_vec_a=gs.array([[2.0, 0.0], [0.0, 2.0]]),
+                base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                tangent_vec_b=gs.array([[1.0, 0.0], [0.0, 0.5]]),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -459,10 +535,14 @@ class HPDEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
 
 class HPDEuclideanMetricPower1TestData(_ComplexRiemannianMetricTestData):
     n_list = random.sample(range(2, 5), 2)
+
     power_euclidean_list = [1.0] * 5
-    connection_args_list = metric_args_list = list(zip(n_list, [1.0] * 5))
+    connection_args_list = metric_args_list = [
+        {"power_euclidean": power} for power in power_euclidean_list
+    ]
     shape_list = [(n, n) for n in n_list]
-    space_list = [HPDMatrices(n) for n in n_list]
+    space_list = [HPDMatrices(n, equip=False) for n in n_list]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = n_vecs_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
@@ -475,11 +555,12 @@ class HPDEuclideanMetricPower1TestData(_ComplexRiemannianMetricTestData):
 
 
 class HPDLogEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
-
     n_list = random.sample(range(2, 4), 2)
-    metric_args_list = [(n,) for n in n_list]
+
+    metric_args_list = [{} for _ in n_list]
     shape_list = [(n, n) for n in n_list]
     space_list = [HPDMatrices(n) for n in n_list]
+
     n_points_list = random.sample(range(1, 4), 2)
     n_samples_list = random.sample(range(1, 4), 2)
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
@@ -494,10 +575,16 @@ class HPDLogEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                n=3,
-                tangent_vec_a=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
-                tangent_vec_b=[[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]],
-                base_point=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]],
+                space=HPDMatrices(3, equip=False),
+                tangent_vec_a=gs.array(
+                    [[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]]
+                ),
+                tangent_vec_b=gs.array(
+                    [[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]]
+                ),
                 expected=5.0 + (4.0 * ((2 * LN_2) ** 2)),
             )
         ]
@@ -506,10 +593,10 @@ class HPDLogEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
     def exp_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                tangent_vec=[[2.0, 0.0], [0.0, 2.0]],
-                base_point=[[1.0, 0.0], [0.0, 1.0]],
-                expected=[[EXP_2, 0.0], [0.0, EXP_2]],
+                space=HPDMatrices(2, equip=False),
+                tangent_vec=gs.array([[2.0, 0.0], [0.0, 2.0]]),
+                base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[EXP_2, 0.0], [0.0, EXP_2]]),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -517,10 +604,10 @@ class HPDLogEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
     def log_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                point=[[2.0, 0.0], [0.0, 2.0]],
-                base_point=[[1.0, 0.0], [0.0, 1.0]],
-                expected=[[LN_2, 0.0], [0.0, LN_2]],
+                space=HPDMatrices(2, equip=False),
+                point=gs.array([[2.0, 0.0], [0.0, 2.0]]),
+                base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[LN_2, 0.0], [0.0, LN_2]]),
             )
         ]
         return self.generate_tests(smoke_data)
@@ -528,9 +615,9 @@ class HPDLogEuclideanMetricTestData(_ComplexRiemannianMetricTestData):
     def dist_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                point_a=[[1.0, 0.0], [0.0, 1.0]],
-                point_b=[[EXP_1, 0.0], [0.0, EXP_1]],
+                space=HPDMatrices(2, equip=False),
+                point_a=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                point_b=gs.array([[EXP_1, 0.0], [0.0, EXP_1]]),
                 expected=SQRT_2,
             )
         ]

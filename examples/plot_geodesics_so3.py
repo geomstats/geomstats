@@ -10,7 +10,7 @@ import geomstats.visualization as visualization
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
-METRIC = SO3_GROUP.bi_invariant_metric
+METRIC = SO3_GROUP.metric
 N_STEPS = 10
 
 

@@ -28,8 +28,8 @@ References
 """
 
 from geomstats.geometry.hpd_matrices import HPDAffineMetric, HPDMatrices
-from geomstats.geometry.product_manifold import ProductManifold
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric  # NOQA
+from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.siegel import Siegel, SiegelMetric
 
 
@@ -48,19 +48,29 @@ class ProductHPDMatricesAndSiegelDisks(ProductManifold):
         Size of the matrices.
     """
 
-    def __init__(self, n_manifolds, n, **kwargs):
-        hpd_matrices = HPDMatrices(n=n)
-        siegel_disk = Siegel(n=n)
-        factors = [hpd_matrices] + (n_manifolds - 1) * [siegel_disk]
+    def __init__(self, n_manifolds, n, equip=True):
+        self.n_manifolds = n_manifolds
+        self.n = n
+
+        factors = [HPDMatrices(n=n, equip=False)] + [
+            Siegel(n=n, equip=False) for _ in range((n_manifolds - 1))
+        ]
+
+        scales = [float(n_manifolds - i_manifold) for i_manifold in range(n_manifolds)]
+        factors[0].metric = ScalarProductMetric(HPDAffineMetric(factors[0]), scales[0])
+        for factor, scale in zip(factors[1:], scales[1:]):
+            factor.metric = ScalarProductMetric(SiegelMetric(factor), scale)
 
         super().__init__(
             factors=factors,
             default_point_type="other",
-            metric=ProductHPDMatricesAndSiegelDisksMetric(
-                n_manifolds=n_manifolds, n=n, **kwargs
-            ),
-            **kwargs
+            equip=equip,
         )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return ProductHPDMatricesAndSiegelDisksMetric
 
 
 class ProductHPDMatricesAndSiegelDisksMetric(ProductRiemannianMetric):
@@ -77,13 +87,6 @@ class ProductHPDMatricesAndSiegelDisksMetric(ProductRiemannianMetric):
     The ProductHPDMatricesAndSiegelDisks metric is inspired by information geometry
     on this specific set of Gaussian distributions.
 
-    Parameters
-    ----------
-    n_manifolds : int
-        Number of manifolds of the product.
-    n : int
-        Size of the matrices.
-
     References
     ----------
     .. [Cabanes2022] Yann Cabanes. Multidimensional complex stationary
@@ -99,11 +102,3 @@ class ProductHPDMatricesAndSiegelDisksMetric(ProductRiemannianMetric):
         matrices with Toeplitz structured blocks, 2016.
         https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
-
-    def __init__(self, n_manifolds, n, **kwargs):
-        scales = [float(n_manifolds - i_manifold) for i_manifold in range(n_manifolds)]
-        metrics = [scales[0] * HPDAffineMetric(n=n)] + [
-            scale * SiegelMetric(n=n) for scale in scales[1:]
-        ]
-
-        super().__init__(metrics=metrics, default_point_type="other", **kwargs)

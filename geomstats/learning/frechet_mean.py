@@ -146,7 +146,7 @@ def elastic_mean(points, weights=None, metric=None):
     transformed_linear_mean = linear_mean(transformed, weights=weights)
 
     starting_sampling_point = (
-        FrechetMean(metric.ambient_metric)
+        FrechetMean(metric._space.ambient_manifold.metric)
         .fit(points[:, 0, :], weights=weights)
         .estimate_
     )
@@ -200,7 +200,7 @@ def _default_gradient_descent(
 
         var_is_0 = gs.isclose(var, 0.0)
 
-        metric_dim = metric.dim
+        metric_dim = metric._space.dim
         if isinstance(metric, ElasticMetric):
             metric_dim = tangent_mean.shape[-2] * tangent_mean.shape[-1]
 
@@ -264,7 +264,6 @@ def _batch_gradient_descent(
     convergence_old = convergence
 
     while convergence > epsilon and max_iter > iteration:
-
         iteration += 1
         estimates_broadcast, _ = gs.broadcast_arrays(estimates, points)
         estimates_flattened = gs.reshape(estimates_broadcast, flat_shape)
@@ -419,8 +418,8 @@ def _circle_mean(points):
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples,]
-        Data set of angles.
+    points : array-like, shape=[n_samples, 1]
+        Data set of angles (intrinsic coordinates).
 
     Reference
     ---------
@@ -429,14 +428,10 @@ def _circle_mean(points):
         Statistical Mathematics 67 (1), 177–193.
         https://arxiv.org/abs/1108.2141
     """
-    if points.ndim > 1:
-        points_ = Hypersphere.extrinsic_to_angle(points)
-    else:
-        points_ = gs.copy(points)
-    sample_size = points_.shape[0]
-    mean0 = gs.mean(points_)
-    var0 = gs.sum((points_ - mean0) ** 2)
-    sorted_points = gs.sort(points_)
+    sample_size = points.shape[0]
+    mean0 = gs.mean(points)
+    var0 = gs.sum((points - mean0) ** 2)
+    sorted_points = gs.sort(points, axis=0)
     means = _circle_variances(mean0, var0, sample_size, sorted_points)
     return means[gs.argmin(means[:, 1]), 0]
 
@@ -464,7 +459,7 @@ def _circle_variances(mean, var, n_samples, points):
     """
     means = (mean + gs.linspace(0.0, 2 * gs.pi, n_samples + 1)[:-1]) % (2 * gs.pi)
     means = gs.where(means >= gs.pi, means - 2 * gs.pi, means)
-    parts = gs.array([sum(points) / n_samples if means[0] < 0 else 0])
+    parts = gs.array([gs.sum(points) / n_samples if means[0] < 0 else 0])
     m_plus = means >= 0
     left_sums = gs.cumsum(points)
     right_sums = left_sums[-1] - left_sums
@@ -594,8 +589,10 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-        if isinstance(self.metric, HypersphereMetric) and self.metric.dim == 1:
-            mean = Hypersphere.angle_to_extrinsic(_circle_mean(X))
+        if isinstance(self.metric, HypersphereMetric) and self.metric._space.dim == 1:
+            mean = Hypersphere.angle_to_extrinsic(
+                _circle_mean(Hypersphere.extrinsic_to_angle(X))
+            )
 
         elif _is_linear_metric(self.metric):
             mean = linear_mean(points=X, weights=weights)

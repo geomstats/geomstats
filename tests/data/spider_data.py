@@ -10,7 +10,6 @@ from tests.data_generation import (
 
 
 class SpiderTestData(_PointSetTestData):
-
     _Point = SpiderPoint
     _PointSet = Spider
 
@@ -35,7 +34,6 @@ class SpiderTestData(_PointSetTestData):
         return self.generate_tests(smoke_data)
 
     def set_to_array_test_data(self):
-
         pt0 = self._Point(0, 0.0)
         pts = [self._Point(1, 2.0), self._Point(3, 3.0)]
 
@@ -56,7 +54,6 @@ class SpiderTestData(_PointSetTestData):
 
 
 class SpiderPointTestData(_PointTestData):
-
     _Point = SpiderPoint
 
     def raise_zero_error_test_data(self):
@@ -74,7 +71,6 @@ class SpiderPointTestData(_PointTestData):
 
 
 class SpiderMetricTestData(_PointMetricTestData):
-
     _PointSetMetric = SpiderMetric
     _PointSet = Spider
     _Point = SpiderPoint
@@ -99,7 +95,6 @@ class SpiderMetricTestData(_PointMetricTestData):
         return self.generate_tests(smoke_data)
 
     def geodesic_test_data(self):
-
         smoke_data = [
             dict(
                 space_args=(12,),

@@ -1,8 +1,5 @@
 """Mixin for manifolds of probability distributions."""
 
-import geomstats.backend as gs
-import geomstats.errors
-
 
 class InformationManifoldMixin:
     """Mixin for manifolds of probability distributions."""
@@ -45,29 +42,7 @@ class InformationManifoldMixin:
             Probability density function of the probability distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-        return lambda x: self.pdf(x, point)
-
-    @staticmethod
-    def pdf(x, point):
-        """Generate parameterized function for pdf.
-
-        Parameters
-        ----------
-        x : array-like, shape=[n_points, dim]
-            Points at which to compute the probability
-            density function.
-        point : array-like, shape=[..., dim]
-            Point representing a probability distribution.
-
-        Returns
-        -------
-        pdf_at_x : array-like, shape=[..., n_points]
-            Values of pdf at x for each value of the parameters provided
-            by point.
-        """
-        raise NotImplementedError("The pdf method has not yet been implemented.")
+        raise NotImplementedError("`point_to_pdf` has not yet been implemented.")
 
     def point_to_cdf(self, point):
         """Compute cdf associated to point.
@@ -86,26 +61,4 @@ class InformationManifoldMixin:
             Cumulative density function of the probability distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-        return lambda x: self.cdf(x, point)
-
-    @staticmethod
-    def cdf(x, point):
-        """Generate parameterized function for cdf.
-
-        Parameters
-        ----------
-        x : array-like, shape=[n_points, dim]
-            Points at which to compute the probability
-            density function.
-        point : array-like, shape=[..., dim]
-            Point representing a probability distribution.
-
-        Returns
-        -------
-        cdf_at_x : array-like, shape=[..., n_points]
-            Values of cdf at x for each value of the parameters provided
-            by point.
-        """
-        raise NotImplementedError("The cdf method has not yet been implemented.")
+        raise NotImplementedError("`point_to_cdf` has not yet been implemented.")

@@ -10,10 +10,9 @@ import math
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry._hyperbolic import HyperbolicMetric, _Hyperbolic
 from geomstats.geometry.base import LevelSet
-from geomstats.geometry.minkowski import Minkowski, MinkowskiMetric
+from geomstats.geometry.minkowski import Minkowski
 
 
 class Hyperboloid(_Hyperbolic, LevelSet):
@@ -23,28 +22,20 @@ class Hyperboloid(_Hyperbolic, LevelSet):
     Minkowski space as the set of points with squared norm equal to -1. For other
     representations of hyperbolic spaces see the `Hyperbolic` class.
 
-    The default_coords_type parameter allows to choose the representation of the
-    points as input.
-
     Parameters
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    default_coords_type : str, {'extrinsic', 'intrinsic'}
-        Default coordinates to represent points in hyperbolic space.
-        Optional, default: 'extrinsic'.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic", **kwargs):
-        if "scale" in kwargs:
-            raise TypeError(
-                "Argument scale is no longer in use: instantiate the "
-                "manifold without this parameter and then use "
-                "`scale * metric` to rescale the standard metric."
-            )
+    def __init__(self, dim, equip=True):
         self.dim = dim
-        kwargs.setdefault("metric", HyperboloidMetric(dim, default_coords_type))
-        super().__init__(dim=dim, default_coords_type=default_coords_type, **kwargs)
+        super().__init__(dim=dim, default_coords_type="extrinsic", equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return HyperboloidMetric
 
     def _define_embedding_space(self):
         return Minkowski(self.dim + 1)
@@ -75,38 +66,6 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         submersed_vector : array-like, shape=[...]
         """
         return self.embedding_space.metric.inner_product(vector, point)
-
-    def belongs(self, point, atol=gs.atol):
-        """Test if a point belongs to the hyperbolic space.
-
-        Test if a point belongs to the hyperbolic space in
-        its hyperboloid representation.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point to be tested.
-        atol : float, optional
-            Tolerance at which to evaluate how close the squared norm
-            is to the reference value.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        belongs : array-like, shape=[...,]
-            Array of booleans indicating whether the corresponding points
-            belong to the hyperbolic space.
-        """
-        point_dim = point.shape[-1]
-        if point_dim is not self.dim + 1:
-            belongs = False
-            if point_dim is self.dim and self.default_coords_type == "intrinsic":
-                belongs = True
-            if gs.ndim(point) == 2:
-                belongs = gs.tile([belongs], (point.shape[0],))
-            return belongs
-
-        return super().belongs(point, atol)
 
     def projection(self, point):
         """Project a point in space on the hyperboloid.
@@ -147,9 +106,6 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             Point in hyperbolic space in canonical representation
             in extrinsic coordinates.
         """
-        if self.default_coords_type == "intrinsic":
-            point = self.intrinsic_to_extrinsic_coords(point)
-
         sq_norm = self.embedding_space.metric.squared_norm(point)
         if not gs.all(sq_norm):
             raise ValueError(
@@ -161,7 +117,6 @@ class Hyperboloid(_Hyperbolic, LevelSet):
 
         return projected_point
 
-    @geomstats.vectorization.decorator(["else", "vector", "vector"])
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the hyperbolic space.
 
@@ -181,37 +136,12 @@ class Hyperboloid(_Hyperbolic, LevelSet):
             Tangent vector at the base point, equal to the projection of
             the vector in Minkowski space.
         """
-        if self.default_coords_type == "intrinsic":
-            base_point = self.intrinsic_to_extrinsic_coords(base_point)
-
         sq_norm = self.embedding_space.metric.squared_norm(base_point)
         inner_prod = self.embedding_space.metric.inner_product(base_point, vector)
 
         coef = inner_prod / sq_norm
 
-        tangent_vec = vector - gs.einsum("...,...j->...j", coef, base_point)
-        return tangent_vec
-
-    def is_tangent(self, vector, base_point, atol=gs.atol):
-        """Check whether the vector is tangent at base_point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., dim + 1]
-            Vector.
-        base_point : array-like, shape=[..., dim + 1]
-            Point on the manifold.
-        atol : float
-            Absolute tolerance.
-            Optional, default: backend atol.
-
-        Returns
-        -------
-        is_tangent : bool
-            Boolean denoting if vector is a tangent vector at the base point.
-        """
-        product = self.embedding_space.metric.inner_product(vector, base_point)
-        return gs.isclose(product, 0.0)
+        return vector - gs.einsum("...,...j->...j", coef, base_point)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert from intrinsic to extrinsic coordinates.
@@ -260,20 +190,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
 
 
 class HyperboloidMetric(HyperbolicMetric):
-    """Class that defines operations using a hyperbolic metric.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the hyperbolic space.
-    default_coords_type : str, {'extrinsic', 'intrinsic', etc}
-        Default coordinates to represent points in hyperbolic space.
-        Optional, default: 'extrinsic'.
-    """
-
-    def __init__(self, dim, default_coords_type="extrinsic"):
-        super().__init__(dim=dim, default_coords_type=default_coords_type)
-        self.embedding_metric = MinkowskiMetric(dim + 1)
+    """Class that defines operations using a hyperbolic metric."""
 
     def metric_matrix(self, base_point=None):
         """Compute the inner product matrix.
@@ -289,7 +206,7 @@ class HyperboloidMetric(HyperbolicMetric):
         inner_prod_mat: array-like, shape=[..., dim+1, dim + 1]
             Inner-product matrix.
         """
-        return self.embedding_metric.metric_matrix(base_point)
+        return self._space.embedding_space.metric.metric_matrix(base_point)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -308,10 +225,9 @@ class HyperboloidMetric(HyperbolicMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        inner_prod = self.embedding_metric.inner_product(
+        return self._space.embedding_space.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point
         )
-        return inner_prod
 
     def squared_norm(self, vector, base_point=None):
         """Compute the squared norm of a vector.
@@ -331,8 +247,7 @@ class HyperboloidMetric(HyperbolicMetric):
         sq_norm : array-like, shape=[...,]
             Squared norm of the vector.
         """
-        sq_norm = self.embedding_metric.squared_norm(vector)
-        return sq_norm
+        return self._space.embedding_space.metric.squared_norm(vector)
 
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
@@ -350,7 +265,9 @@ class HyperboloidMetric(HyperbolicMetric):
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        sq_norm_tangent_vec = self.embedding_metric.squared_norm(tangent_vec)
+        sq_norm_tangent_vec = self._space.embedding_space.metric.squared_norm(
+            tangent_vec
+        )
         sq_norm_tangent_vec = gs.clip(sq_norm_tangent_vec, 0, math.inf)
 
         coef_1 = utils.taylor_exp_even_func(
@@ -364,8 +281,7 @@ class HyperboloidMetric(HyperbolicMetric):
             "...,...j->...j", coef_2, tangent_vec
         )
 
-        exp = Hyperboloid(dim=self.dim).regularize(exp)
-        return exp
+        return self._space.regularize(exp)
 
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
@@ -398,8 +314,7 @@ class HyperboloidMetric(HyperbolicMetric):
 
         log_term_1 = gs.einsum("...,...j->...j", coef_1_, point)
         log_term_2 = -gs.einsum("...,...j->...j", coef_2_, base_point)
-        log = log_term_1 + log_term_2
-        return log
+        return log_term_1 + log_term_2
 
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
@@ -416,15 +331,15 @@ class HyperboloidMetric(HyperbolicMetric):
         dist : array-like, shape=[...,]
             Geodesic distance between the two points.
         """
-        sq_norm_a = self.embedding_metric.squared_norm(point_a)
-        sq_norm_b = self.embedding_metric.squared_norm(point_b)
-        inner_prod = self.embedding_metric.inner_product(point_a, point_b)
+        embedding_metric = self._space.embedding_space.metric
+        sq_norm_a = embedding_metric.squared_norm(point_a)
+        sq_norm_b = embedding_metric.squared_norm(point_b)
+        inner_prod = embedding_metric.inner_product(point_a, point_b)
 
         cosh_angle = -inner_prod / gs.sqrt(sq_norm_a * sq_norm_b)
         cosh_angle = gs.clip(cosh_angle, 1.0, 1e24)
 
-        dist = gs.arccosh(cosh_angle)
-        return dist
+        return gs.arccosh(cosh_angle)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -464,10 +379,10 @@ class HyperboloidMetric(HyperbolicMetric):
                     "Either an end_point or a tangent_vec_b must be given to define the"
                     " geodesic along which to transport."
                 )
-        theta = self.embedding_metric.norm(direction)
+        theta = self._space.embedding_space.metric.norm(direction)
         eps = gs.where(theta == 0.0, 1.0, theta)
         normalized_b = gs.einsum("...,...i->...i", 1 / eps, direction)
-        pb = self.embedding_metric.inner_product(tangent_vec, normalized_b)
+        pb = self._space.embedding_space.metric.inner_product(tangent_vec, normalized_b)
         p_orth = tangent_vec - gs.einsum("...,...i->...i", pb, normalized_b)
         transported = (
             gs.einsum("...,...i->...i", gs.sinh(theta) * pb, base_point)

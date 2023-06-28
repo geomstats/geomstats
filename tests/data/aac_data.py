@@ -2,7 +2,6 @@ import geomstats.backend as gs
 from geomstats.geometry.stratified.graph_space import (
     ExhaustiveAligner,
     GraphSpace,
-    GraphSpaceMetric,
     _GeodesicToPointAligner,
 )
 from geomstats.learning.aac import _AACGGPCA, _AACFrechetMean, _AACRegression
@@ -11,8 +10,8 @@ from tests.data_generation import TestData
 
 class AACTestData(TestData):
     def init_test_data(self):
-        space_2 = GraphSpace(2)
-        metric = GraphSpaceMetric(space_2)
+        space_2 = GraphSpace(2, equip=True)
+        metric = space_2.metric
 
         smoke_data = [
             dict(estimate="frechet_mean", metric=metric, expected_type=_AACFrechetMean),
@@ -30,9 +29,8 @@ class _TrivialData:
         self.n_samples = n_samples
 
     def fit_warn_test_data(self):
-        space_2 = GraphSpace(2)
-        metric = GraphSpaceMetric(space_2)
-        metric.set_point_to_geodesic_aligner("default")
+        space_2 = GraphSpace(2, equip=True)
+        space_2.metric.set_point_to_geodesic_aligner("default")
 
         X = space_2.random_point(self.n_samples)
 
@@ -41,7 +39,7 @@ class _TrivialData:
             y = X
             X = gs.expand_dims(gs.linspace(0, 1, num=self.n_samples), 1)
 
-        return [dict(estimator=self.Estimator(metric), X=X, y=y)]
+        return [dict(estimator=self.Estimator(space_2.metric), X=X, y=y)]
 
 
 class _EstimatorTestData(TestData):
@@ -77,7 +75,7 @@ class _TrivialMeanData:
     def fit_test_data(self):
         smoke_data = []
         for metric, estimator in zip(self.metrics, self.estimators):
-            point = metric.space.random_point()
+            point = metric._space.random_point()
             points = gs.repeat(gs.expand_dims(point, 0), self.n_reps, axis=0)
 
             datum = dict(estimator=estimator, X=points, expected=point)
@@ -89,8 +87,7 @@ class _TrivialMeanData:
 class AACFrechetMeanTestData(_EstimatorTestData):
     def _setup(self):
         space_2 = GraphSpace(2)
-
-        metric = GraphSpaceMetric(space_2)
+        metric = space_2.metric
         metric.set_aligner(ExhaustiveAligner())
 
         metrics = [metric] * 2
@@ -103,10 +100,9 @@ class AACFrechetMeanTestData(_EstimatorTestData):
 
     def fit_id_niter_test_data(self):
         space_3 = GraphSpace(3)
-        metric = GraphSpaceMetric(space_3)
 
         smoke_data = [
-            dict(estimator=_AACFrechetMean(metric), X=space_3.random_point(4)),
+            dict(estimator=_AACFrechetMean(space_3.metric), X=space_3.random_point(4)),
         ]
 
         return self.generate_tests(smoke_data)
@@ -121,7 +117,7 @@ class _TrivialGeodesicData:
     def fit_test_data(self):
         smoke_data = []
         for metric, estimator in zip(self.metrics, self.estimators):
-            init_point, end_point = metric.space.random_point(2)
+            init_point, end_point = metric._space.random_point(2)
             geo = metric.geodesic(init_point, end_point)
 
             s = gs.linspace(0.0, 1.0, self.n_points)
@@ -140,8 +136,8 @@ class AACGGPCATestData(_EstimatorTestData):
 
     def _setup(self):
         space_2 = GraphSpace(2)
+        metric = space_2.metric
 
-        metric = GraphSpaceMetric(space_2)
         metric.set_aligner(ExhaustiveAligner())
 
         aligner = _GeodesicToPointAligner()
@@ -169,7 +165,7 @@ class _TrivialRegressionData:
 
         for p, metric, estimator in zip(self.input_dim, self.metrics, self.estimators):
             y = gs.repeat(
-                gs.expand_dims(metric.space.random_point(), 0),
+                gs.expand_dims(metric._space.random_point(), 0),
                 self.n_samples,
                 axis=0,
             )
@@ -186,10 +182,9 @@ class _TrivialRegressionData:
 
 class AACRegressionTestData(_EstimatorTestData):
     def _setup(self):
-
         space_2 = GraphSpace(2)
+        metric = space_2.metric
 
-        metric = GraphSpaceMetric(space_2)
         metric.set_aligner(ExhaustiveAligner())
 
         metric.set_point_to_geodesic_aligner(

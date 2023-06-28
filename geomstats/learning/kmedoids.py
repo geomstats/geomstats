@@ -101,7 +101,6 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         return self.cluster_centers_
 
     def _update_medoid_indexes(self, distances, labels, medoid_indices):
-
         for cluster in range(self.n_clusters):
             cluster_index = gs.where(labels == cluster)[0]
             if len(cluster_index) == 0:

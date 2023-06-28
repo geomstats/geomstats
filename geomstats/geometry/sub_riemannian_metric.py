@@ -16,10 +16,7 @@ class SubRiemannianMetric:
 
     Parameters
     ----------
-    dim : int
-        Dimension of the manifold.
-    dist_dim : int
-        Dimension of the distribution
+    space : Manifold object
     cometric_matrix : callable
         Optional, default: 'None'
 
@@ -42,29 +39,24 @@ class SubRiemannianMetric:
             _ : array-like, shape=[..., dim, dist_dim]
                 Frame field matrix. Each column is a vector field of the frame
                 spanning the distribution.
-
-    default_point_type : str, {'vector'}
-        Point type.
-        Optional, default: 'vector'.
     """
 
     def __init__(
         self,
-        dim,
+        space,
         cometric_matrix=None,
         frame=None,
     ):
         if not bool(cometric_matrix is not None) ^ bool(frame is not None):
             raise ValueError(
-                "Either 'cometric_matrix' or 'frame' must be passed," " and not both."
+                "Either 'cometric_matrix' or 'frame' must be passed, and not both."
             )
 
-        self.dim = dim
+        if space.default_point_type != "vector":
+            raise ValueError("Can only handle 'vector' point types.")
 
         self.cometric_matrix = cometric_matrix
         self.frame = frame
-
-        self.default_point_type = "vector"
 
         self._def_type = "cometric" if self.frame is None else "frame"
 

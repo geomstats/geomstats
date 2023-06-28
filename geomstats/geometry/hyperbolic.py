@@ -31,7 +31,7 @@ class Hyperbolic:
         Optional, default: 'extrinsic'.
     """
 
-    def __new__(cls, *args, default_coords_type="extrinsic", **kwargs):
+    def __new__(cls, dim, default_coords_type="extrinsic", equip=True):
         """Instantiate class that corresponds to the default_coords_type."""
         errors.check_parameter_accepted_values(
             default_coords_type,
@@ -39,7 +39,7 @@ class Hyperbolic:
             ["extrinsic", "ball", "half-space"],
         )
         if default_coords_type == "extrinsic":
-            return Hyperboloid(*args, default_coords_type=default_coords_type, **kwargs)
+            return Hyperboloid(dim, equip=equip)
         if default_coords_type == "ball":
-            return PoincareBall(*args, **kwargs)
-        return PoincareHalfSpace(*args, **kwargs)
+            return PoincareBall(dim, equip=equip)
+        return PoincareHalfSpace(dim, equip=equip)

@@ -36,9 +36,11 @@ class GrassmannianTestData(_LevelSetTestData):
 class GrassmannianCanonicalMetricTestData(_RiemannianMetricTestData):
     n_list = random.sample(range(3, 5), 2)
     k_list = [random.sample(range(2, n), 1)[0] for n in n_list]
-    metric_args_list = list(zip(n_list, k_list))
+
     shape_list = [(n, n) for n in n_list]
-    space_list = [Grassmannian(n, p) for n, p in metric_args_list]
+    space_list = [Grassmannian(n, p) for n, p in list(zip(n_list, k_list))]
+    metric_args_list = [{} for _ in shape_list]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
     n_points_b_list = [1]
@@ -52,15 +54,13 @@ class GrassmannianCanonicalMetricTestData(_RiemannianMetricTestData):
     def exp_test_data(self):
         smoke_data = [
             dict(
-                n=3,
-                p=2,
+                space=Grassmannian(3, 2, equip=False),
                 tangent_vec=Matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz])),
                 base_point=gs.array([p_xy, p_yz]),
                 expected=gs.array([p_yz, p_xy]),
             ),
             dict(
-                n=3,
-                p=2,
+                space=Grassmannian(3, 2, equip=False),
                 tangent_vec=Matrices.bracket(
                     pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz])
                 ),

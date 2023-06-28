@@ -214,7 +214,6 @@ class TestCase:
         )
 
     def assertAllEqual(self, a, b):
-
         if np_backend() or autograd_backend():
             return np.testing.assert_array_equal(a, b)
 
@@ -281,7 +280,6 @@ def _get_test_data(test_name, testing_data, test_arg_names, cls_tols, default_va
 
 
 def _dictify_test_data(test_data, arg_names):
-
     tests = []
     for test_datum in test_data:
         if not isinstance(test_datum, dict):
@@ -295,7 +293,6 @@ def _dictify_test_data(test_data, arg_names):
 
 
 def _handle_tolerances(func_name, arg_names, test_data, cls_tols):
-
     has_tol = False
     for arg_name in arg_names:
         if arg_name.endswith("tol"):

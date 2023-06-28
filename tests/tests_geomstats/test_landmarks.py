@@ -90,7 +90,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
         result = landmarks_ab
         expected = []
         for k in range(k_sampling_points):
-            geod = l2_metric_s2.ambient_metric.geodesic(
+            geod = l2_metric_s2._space.base_manifold.metric.geodesic(
                 initial_point=landmarks_a[k, :], end_point=landmarks_b[k, :]
             )
             expected.append(geod(times))

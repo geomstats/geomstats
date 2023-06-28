@@ -13,7 +13,6 @@ ALL_BACKENDS = ["numpy", "pytorch", "autograd"]
 
 
 def _exec_notebook(path):
-
     file_name = tempfile.NamedTemporaryFile(suffix=".ipynb").name
     args = [
         "jupyter",
@@ -36,7 +35,7 @@ paths = sorted(glob.glob(f"{NOTEBOOKS_DIR}/*.ipynb"))
 
 @pytest.mark.parametrize("path", paths)
 def test_notebook(path):
-    with open(path, "r") as file:
+    with open(path, "r", encoding="utf8") as file:
         metadata = json.load(file).get("metadata")
 
     backends = metadata.get("backends", ALL_BACKENDS)

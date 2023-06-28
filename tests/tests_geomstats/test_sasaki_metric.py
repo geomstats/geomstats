@@ -6,7 +6,6 @@ from tests.geometry_test_cases import TestCase
 
 
 class TestSasakiMetric(TestCase, metaclass=Parametrizer):
-
     testing_data = SasakiMetricTestData()
 
     def test_inner_product(

@@ -4,10 +4,12 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 """
 
 import abc
+import math
 
 import geomstats.backend as gs
 from geomstats.geometry.complex_manifold import ComplexManifold
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.pullback_metric import PullbackMetric
 
 
 class VectorSpace(Manifold, abc.ABC):
@@ -20,9 +22,10 @@ class VectorSpace(Manifold, abc.ABC):
         product of these values by default.
     """
 
-    def __init__(self, shape, **kwargs):
-        kwargs.setdefault("dim", int(gs.prod(gs.array(shape))))
-        super().__init__(shape=shape, **kwargs)
+    def __init__(self, shape, dim=None, **kwargs):
+        if dim is None:
+            dim = math.prod(shape)
+        super().__init__(dim=dim, shape=shape, **kwargs)
         self._basis = None
 
     def belongs(self, point, atol=gs.atol):
@@ -163,10 +166,10 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         Optional, default: 'vector'.
     """
 
-    def __init__(self, shape, **kwargs):
-        kwargs.setdefault("dim", int(gs.prod(gs.array(shape))))
-        super(ComplexVectorSpace, self).__init__(shape=shape, **kwargs)
-        self.shape = shape
+    def __init__(self, shape, dim=None, **kwargs):
+        if dim is None:
+            dim = math.prod(shape)
+        super().__init__(shape=shape, dim=dim, **kwargs)
         self._basis = None
 
     def belongs(self, point, atol=gs.atol):
@@ -309,22 +312,18 @@ class LevelSet(Manifold, abc.ABC):
 
     Parameters
     ----------
-    dim : int
-        Dimension of the embedded manifold.
     default_coords_type : str, {'intrinsic', 'extrinsic', etc}
         Coordinate type.
         Optional, default: 'extrinsic'.
     """
 
-    def __init__(self, dim, default_coords_type="extrinsic", shape=None, **kwargs):
+    def __init__(self, default_coords_type="extrinsic", shape=None, **kwargs):
         self.embedding_space = self._define_embedding_space()
 
         if shape is None:
             shape = self.embedding_space.shape
 
-        super().__init__(
-            dim=dim, default_coords_type=default_coords_type, shape=shape, **kwargs
-        )
+        super().__init__(default_coords_type=default_coords_type, shape=shape, **kwargs)
 
     @abc.abstractmethod
     def _define_embedding_space(self):
@@ -390,7 +389,11 @@ class LevelSet(Manifold, abc.ABC):
         n_batch = gs.ndim(point) - len(self.shape)
         axis = tuple(range(-len(submersed_point.shape) + n_batch, 0))
 
-        constraint = gs.isclose(submersed_point, 0.0, atol=atol)
+        if gs.is_complex(submersed_point):
+            constraint = gs.isclose(submersed_point, 0.0 + 0.0j, atol=atol)
+        else:
+            constraint = gs.isclose(submersed_point, 0.0, atol=atol)
+
         if axis:
             constraint = gs.all(constraint, axis=axis)
 
@@ -501,17 +504,15 @@ class OpenSet(Manifold, abc.ABC):
 
     Parameters
     ----------
-    dim: int
-        Dimension of the manifold. It is often the same as the embedding space
-        dimension but may differ in some cases.
     embedding_space: VectorSpace
         Embedding space that contains the manifold.
     """
 
-    def __init__(self, dim, embedding_space, **kwargs):
-        kwargs.setdefault("shape", embedding_space.shape)
-        super().__init__(dim=dim, **kwargs)
+    def __init__(self, embedding_space, shape=None, **kwargs):
         self.embedding_space = embedding_space
+        if shape is None:
+            shape = embedding_space.shape
+        super().__init__(shape=shape, **kwargs)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -611,9 +612,10 @@ class ComplexOpenSet(ComplexManifold, abc.ABC):
         Embedding space that contains the manifold.
     """
 
-    def __init__(self, dim, embedding_space, **kwargs):
-        kwargs.setdefault("shape", embedding_space.shape)
-        super().__init__(dim=dim, **kwargs)
+    def __init__(self, embedding_space, shape=None, **kwargs):
+        if shape is None:
+            shape = embedding_space.shape
+        super().__init__(shape=shape, default_coords_type="extrinsic", **kwargs)
         self.embedding_space = embedding_space
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
@@ -695,3 +697,195 @@ class ComplexOpenSet(ComplexManifold, abc.ABC):
         projected : array-like, shape=[..., *point_shape]
             Projected point.
         """
+
+
+class ImmersedSet(Manifold, abc.ABC):
+    """Class for manifolds embedded in a vector space by an immersion.
+
+    The manifold is represented with intrinsic coordinates, such that
+    the immersion gives a parameterization of the manifold in these
+    coordinates.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the embedded manifold.
+    """
+
+    def __init__(self, dim, equip=True):
+        super().__init__(
+            dim=dim, shape=(dim,), default_coords_type="intrinsic", equip=equip
+        )
+        self.embedding_space = self._define_embedding_space()
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return PullbackMetric
+
+    @abc.abstractmethod
+    def _define_embedding_space(self):
+        """Define embedding space of the manifold.
+
+        Returns
+        -------
+        embedding_space : Manifold
+            Instance of Manifold.
+        """
+
+    @abc.abstractmethod
+    def immersion(self, point):
+        """Evaluate the immersion function at a point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point in the immersed manifold.
+
+        Returns
+        -------
+        immersion : array-like, shape=[..., dim_embedding]
+            Immersion of the point.
+        """
+
+    def tangent_immersion(self, tangent_vec, base_point):
+        """Evaluate the tangent immersion at a tangent vec and point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
+            Point in the immersed manifold.
+
+        Returns
+        -------
+        tangent_vec_emb : array-like, shape=[..., dim_embedding]
+        """
+        jacobian_immersion = self.jacobian_immersion(base_point)
+        return gs.matvec(jacobian_immersion, tangent_vec)
+
+    def jacobian_immersion(self, base_point):
+        """Evaluate the Jacobian of the immersion at a point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Point in the immersed manifold.
+
+        Returns
+        -------
+        jacobian_immersion : array-like, shape=[..., dim_embedding, dim]
+        """
+        return gs.autodiff.jacobian_vec(self.immersion)(base_point)
+
+    def hessian_immersion(self, base_point):
+        """Compute the Hessian of the immersion.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., dim]
+            Base point.
+
+        Returns
+        -------
+        hessian_immersion : array-like, shape=[..., embedding_dim, dim, dim]
+            Hessian at the base point
+        """
+        return gs.autodiff.hessian_vec(
+            self.immersion, func_out_ndim=self.embedding_space.dim
+        )(base_point)
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        raise NotImplementedError("`is_tangent` is not implemented yet")
+
+    def belongs(self, point, atol=gs.atol):
+        """Evaluate if a point belongs to the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point to evaluate.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the manifold.
+        """
+        raise NotImplementedError("`is_tangent` is not implemented yet")
+
+    def projection(self, point):
+        """Project a point to the embedded manifold.
+
+        This is simply point, since we are in intrinsic coordinates.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim_embedding]
+            Point in the embedding manifold.
+
+        Returns
+        -------
+        projected_point : array-like, shape=[..., dim]
+            Point in the embedded manifold.
+        """
+        raise NotImplementedError("`projection` is not implemented yet")
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        This is simply the vector since we are in intrinsic coordinates.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim_embedding]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point in the embedded manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        raise NotImplementedError("`to_tangent` is not implemented yet")
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample random points on the manifold according to some distribution.
+
+        If the manifold is compact, preferably a uniform distribution will be used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., *point_shape]
+            Points sampled on the manifold.
+        """
+        raise NotImplementedError("`random_point` is not implemented yet")

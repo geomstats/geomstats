@@ -60,7 +60,10 @@ logm = _Logm.apply
 
 def sqrtm(x):
     np_sqrtm = _np.vectorize(_scipy.linalg.sqrtm, signature="(n,m)->(n,m)")(x)
-    return _torch.as_tensor(np_sqrtm, dtype=x.dtype)
+    if np_sqrtm.dtype.kind == "c":
+        np_sqrtm = np_sqrtm.astype(f"complex{int(np_sqrtm.dtype.name[7:]) // 2}")
+
+    return _torch.from_numpy(np_sqrtm)
 
 
 def svd(x, full_matrices=True, compute_uv=True):

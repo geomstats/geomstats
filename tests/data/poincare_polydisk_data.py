@@ -10,7 +10,6 @@ from tests.data_generation import TestData, _OpenSetTestData
 
 
 class PoincarePolydiskTestData(_OpenSetTestData):
-
     n_disks_list = random.sample(range(2, 4), 2)
     space_args_list = [(n_disks,) for n_disks in n_disks_list]
     shape_list = [(n_disks, 3) for n_disks in n_disks_list]
@@ -25,11 +24,12 @@ class PoincarePolydiskTestData(_OpenSetTestData):
 
 
 class PoincarePolydiskMetricTestData(TestData):
-
     n_disks_list = random.sample(range(2, 4), 2)
-    metric_args_list = [(n_disks,) for n_disks in n_disks_list]
+
     shape_list = [(n_disks, 3) for n_disks in n_disks_list]
-    space_list = [PoincarePolydisk(n_disks) for n_disks in n_disks_list]
+    space_list = [PoincarePolydisk(n_disks, equip=False) for n_disks in n_disks_list]
+    metric_args_list = [{} for _ in n_disks_list]
+
     n_points_list = random.sample(range(1, 4), 2)
     n_tangent_vecs_list = random.sample(range(1, 4), 2)
     n_points_a_list = random.sample(range(1, 4), 2)
@@ -42,15 +42,15 @@ class PoincarePolydiskMetricTestData(TestData):
 
     def signature_test_data(self):
         smoke_data = [
-            dict(n_disks=2, expected=(4, 0)),
-            dict(n_disks=4, expected=(8, 0)),
+            dict(space=PoincarePolydisk(2, equip=False), expected=(4, 0)),
+            dict(space=PoincarePolydisk(4, equip=False), expected=(8, 0)),
         ]
         return self.generate_tests(smoke_data)
 
     def product_distance_test_data(self):
         point_a_intrinsic = gs.array([0.01, 0.0])
         point_b_intrinsic = gs.array([0.0, 0.0])
-        hyperbolic_space = Hyperboloid(dim=2)
+        hyperbolic_space = Hyperboloid(dim=2, equip=False)
         point_a_extrinsic = hyperbolic_space.from_coordinates(
             point_a_intrinsic, "intrinsic"
         )
@@ -59,14 +59,12 @@ class PoincarePolydiskMetricTestData(TestData):
         )
         smoke_data = [
             dict(
-                m_disks=1,
-                n_disks=2,
+                space=PoincarePolydisk(2, equip=False),
                 point_a_extrinsic=point_a_extrinsic,
                 point_b_extrinsic=point_b_extrinsic,
             ),
             dict(
-                m_disks=1,
-                n_disks=3,
+                space=PoincarePolydisk(3, equip=False),
                 point_a_extrinsic=point_a_extrinsic,
                 point_b_extrinsic=point_b_extrinsic,
             ),

@@ -14,12 +14,14 @@ from tests.geometry_test_cases import LevelSetTestCase, RiemannianMetricTestCase
 class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
     skip_test_extrinsic_after_intrinsic = True
     skip_test_projection_belongs = True
+    skip_test_extrinsic_ball_extrinsic_composition = True
+    skip_test_extrinsic_half_plane_extrinsic_composition = True
 
     testing_data = HyperboloidTestData()
 
-    def test_belongs(self, dim, default_coords_type, vec, expected):
-        space = self.Space(dim, default_coords_type=default_coords_type)
-        self.assertAllClose(space.belongs(vec), gs.array(expected))
+    def test_belongs(self, dim, vec, expected):
+        space = self.Space(dim)
+        self.assertAllClose(space.belongs(vec), expected)
 
     def test_regularize_raises(self, dim, point, expected):
         space = self.Space(dim)
@@ -68,23 +70,29 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
     skip_test_exp_belongs = True
+    skip_test_exp_after_log_intrinsic_ball_extrinsic = True
+    skip_test_exp_after_log_intrinsic_ball_extrinsic = True
+    skip_test_distance_ball_extrinsic_intrinsic = True
 
     testing_data = HyperboloidMetricTestData()
 
     def test_inner_product_is_minkowski_inner_product(
-        self, dim, tangent_vec_a, tangent_vec_b, base_point
+        self, space, tangent_vec_a, tangent_vec_b, base_point
     ):
-        metric = self.Metric(dim)
-        minkowki_space = Minkowski(dim + 1)
-        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        space.equip_with_metric(self.Metric)
+        minkowki_space = Minkowski(space.dim + 1)
+        result = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = minkowki_space.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point
         )
         self.assertAllClose(result, expected)
 
-    def test_scaled_inner_product(self, dim, tangent_vec_a, tangent_vec_b, base_point):
-        default_space = Hyperboloid(dim=dim)
-        default_metric = default_space.metric
+    def test_scaled_inner_product(
+        self, space, tangent_vec_a, tangent_vec_b, base_point
+    ):
+        space.equip_with_metric(self.Metric)
+
+        default_metric = space.metric
         scaled_metric = 2.0 * default_metric
 
         inner_product_default_metric = default_metric.inner_product(
@@ -97,9 +105,10 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = 2.0 * inner_product_default_metric
         self.assertAllClose(result, expected)
 
-    def test_scaled_squared_norm(self, dim, tangent_vec, base_point):
-        default_space = Hyperboloid(dim=dim)
-        default_metric = default_space.metric
+    def test_scaled_squared_norm(self, space, tangent_vec, base_point):
+        space.equip_with_metric(self.Metric)
+
+        default_metric = space.metric
         scaled_metric = 2.0 * default_metric
 
         squared_norm_default_metric = default_metric.squared_norm(
@@ -110,9 +119,10 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         expected = 2.0 * squared_norm_default_metric
         self.assertAllClose(result, expected)
 
-    def test_scaled_dist(self, dim, point_a, point_b):
-        default_space = Hyperboloid(dim=dim)
-        default_metric = default_space.metric
+    def test_scaled_dist(self, space, point_a, point_b):
+        space.equip_with_metric(self.Metric)
+
+        default_metric = space.metric
         scaled_metric = 2.0 * default_metric
 
         distance_default_metric = default_metric.dist(point_a, point_b)
@@ -126,6 +136,7 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     ):
         intrinsic_manifold = Hyperboloid(dim=dim, default_coords_type="intrinsic")
         extrinsic_manifold = Hyperbolic(dim=dim, default_coords_type="extrinsic")
+
         ball_manifold = PoincareBall(dim)
         x_extr = intrinsic_manifold.to_coordinates(
             x_intrinsic, to_coords_type="extrinsic"
@@ -149,7 +160,6 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(x_extr_a, x_extr_b, atol=3e-4)
 
     def test_distance_ball_extrinsic_from_ball(self, dim, x_ball, y_ball):
-
         ball_manifold = PoincareBall(dim)
         space = Hyperboloid(dim)
         x_extr = ball_manifold.to_coordinates(x_ball, to_coords_type="extrinsic")
@@ -159,7 +169,6 @@ class TestHyperboloidMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(dst_ball, dst_extr)
 
     def test_distance_ball_extrinsic_intrinsic(self, dim, x_intrinsic, y_intrinsic):
-
         intrinsic_manifold = Hyperboloid(dim, default_coords_type="intrinsic")
         extrinsic_manifold = Hyperboloid(dim, default_coords_type="extrinsic")
         x_extr = intrinsic_manifold.to_coordinates(

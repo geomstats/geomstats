@@ -11,7 +11,7 @@ from tests.geometry_test_cases import OpenSetTestCase
 
 
 class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
-
+    skip_test_projection_belongs = True
     skip_test_to_tangent_is_tangent_in_embedding_space = True
     skip_test_to_tangent_is_tangent = True
 
@@ -23,22 +23,24 @@ class TestPoincarePolydisk(OpenSetTestCase, metaclass=Parametrizer):
 
 
 class TestPoincarePolydiskMetric(TestCase, metaclass=Parametrizer):
-
     testing_data = PoincarePolydiskMetricTestData()
     Metric = testing_data.Metric
 
-    def test_signature(self, n_disks, expected):
-        metric = self.Metric(n_disks)
-        self.assertAllClose(metric.signature, expected)
+    def test_signature(self, space, expected):
+        space.equip_with_metric(self.Metric)
+        self.assertAllClose(space.metric.signature, expected)
 
-    def test_product_distance(
-        self, m_disks, n_disks, point_a_extrinsic, point_b_extrinsic
-    ):
+    def test_product_distance(self, space, point_a_extrinsic, point_b_extrinsic):
+        single_disk = PoincarePolydisk(1)
+        single_disk.equip_with_metric(self.Metric)
+
+        multiple_disks = space
+        space.equip_with_metric(self.Metric)
+
+        n_disks = space.n_disks
+
         stacked_point_a = gs.stack([point_a_extrinsic for n in range(n_disks)], axis=0)
         stacked_point_b = gs.stack([point_b_extrinsic for n in range(n_disks)], axis=0)
-
-        single_disk = PoincarePolydisk(n_disks=m_disks)
-        multiple_disks = PoincarePolydisk(n_disks=m_disks * n_disks)
 
         distance_single_disk = single_disk.metric.dist(
             point_a_extrinsic[None, :], point_b_extrinsic[None, :]

@@ -1,5 +1,6 @@
 import random
 
+import geomstats.backend as gs
 from geomstats.geometry.heisenberg import HeisenbergVectors
 from tests.data_generation import _LieGroupTestData, _VectorSpaceTestData
 
@@ -30,7 +31,7 @@ class HeisenbergVectorsTestData(_LieGroupTestData, _VectorSpaceTestData):
     def is_tangent_test_data(self):
         smoke_data = [
             dict(
-                vector=[[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]],
+                vector=gs.array([[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]]),
                 expected=[False, False],
             )
         ]
@@ -39,11 +40,13 @@ class HeisenbergVectorsTestData(_LieGroupTestData, _VectorSpaceTestData):
     def jacobian_translation_test_data(self):
         smoke_data = [
             dict(
-                vec=[[1.0, -10.0, 0.2], [-2.0, 100.0, 0.5]],
-                expected=[
-                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [5.0, 0.5, 1.0]],
-                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [-50.0, -1.0, 1.0]],
-                ],
+                vec=gs.array([[1.0, -10.0, 0.2], [-2.0, 100.0, 0.5]]),
+                expected=gs.array(
+                    [
+                        [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [5.0, 0.5, 1.0]],
+                        [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [-50.0, -1.0, 1.0]],
+                    ]
+                ),
             )
         ]
         return self.generate_tests(smoke_data)

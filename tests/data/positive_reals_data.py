@@ -11,7 +11,6 @@ EXP_2 = math.exp(2.0)
 
 
 class PositiveRealsTestData(_OpenSetTestData):
-
     smoke_space_args_list = [(1,), (1,), (1,), (1,)]
     smoke_n_points_list = [1, 2, 1, 2]
     n_list = random.sample(range(2, 5), 2)
@@ -24,23 +23,23 @@ class PositiveRealsTestData(_OpenSetTestData):
 
     def belongs_test_data(self):
         smoke_data = [
-            dict(point=[[10.0]], expected=[True]),
-            dict(point=[[10 + 0j]], expected=[True]),
-            dict(point=[[10 + 1j]], expected=[False]),
-            dict(point=[[-10.0]], expected=[False]),
+            dict(point=gs.array([[10.0]]), expected=[True]),
+            dict(point=gs.array([[10 + 0j]]), expected=[True]),
+            dict(point=gs.array([[10 + 1j]]), expected=[False]),
+            dict(point=gs.array([[-10.0]]), expected=[False]),
             dict(
-                point=[[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]],
+                point=gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]]),
                 expected=[False, False, False],
             ),
-            dict(point=[[1.0], [-1.5]], expected=[True, False]),
+            dict(point=gs.array([[1.0], [-1.5]]), expected=[True, False]),
         ]
         return self.generate_tests(smoke_data)
 
     def projection_test_data(self):
         smoke_data = [
-            dict(point=[[1.0]], expected=[[1.0]]),
+            dict(point=gs.array([[1.0]]), expected=[[1.0]]),
             dict(
-                point=[[-1.0]],
+                point=gs.array([[-1.0]]),
                 expected=[[gs.atol]],
             ),
         ]
@@ -48,10 +47,10 @@ class PositiveRealsTestData(_OpenSetTestData):
 
 
 class PositiveRealsMetricTestData(_RiemannianMetricTestData):
-    n_manifolds = 2
-    metric_args_list = [() for n in range(n_manifolds)]
-    shape_list = [(1,) for i_manifold in range(n_manifolds)]
-    space_list = [PositiveReals() for i_manifold in range(n_manifolds)]
+    shape_list = [(1,)]
+    space_list = [PositiveReals(equip=False)]
+    metric_args_list = [{}]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
@@ -65,12 +64,14 @@ class PositiveRealsMetricTestData(_RiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
+                space=self.space_list[0],
                 tangent_vec_a=gs.array([1.0]),
                 tangent_vec_b=gs.array([2.0]),
                 base_point=gs.array([3.0]),
                 expected=2 / 9,
             ),
             dict(
+                space=self.space_list[0],
                 tangent_vec_a=gs.array([-2.0]),
                 tangent_vec_b=gs.array([3.0]),
                 base_point=gs.array([4.0]),
@@ -82,19 +83,22 @@ class PositiveRealsMetricTestData(_RiemannianMetricTestData):
     def exp_test_data(self):
         smoke_data = [
             dict(
-                tangent_vec=[[1.0]],
-                base_point=[[1.0]],
-                expected=[[EXP_1]],
+                space=self.space_list[0],
+                tangent_vec=gs.array([[1.0]]),
+                base_point=gs.array([[1.0]]),
+                expected=gs.array([[EXP_1]]),
             ),
             dict(
-                tangent_vec=[[4.0]],
-                base_point=[[2.0]],
-                expected=[[2 * EXP_2]],
+                space=self.space_list[0],
+                tangent_vec=gs.array([[4.0]]),
+                base_point=gs.array([[2.0]]),
+                expected=gs.array([[2 * EXP_2]]),
             ),
             dict(
-                tangent_vec=[[1.0], [2.0]],
-                base_point=[[1.0]],
-                expected=[[EXP_1], [EXP_2]],
+                space=self.space_list[0],
+                tangent_vec=gs.array([[1.0], [2.0]]),
+                base_point=gs.array([[1.0]]),
+                expected=gs.array([[EXP_1], [EXP_2]]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -102,19 +106,22 @@ class PositiveRealsMetricTestData(_RiemannianMetricTestData):
     def log_test_data(self):
         smoke_data = [
             dict(
-                point=[[4.0]],
-                base_point=[[2.0]],
-                expected=[[2 * LN_2]],
+                space=self.space_list[0],
+                point=gs.array([[4.0]]),
+                base_point=gs.array([[2.0]]),
+                expected=gs.array([[2 * LN_2]]),
             ),
             dict(
-                point=[[2.0]],
-                base_point=[[4.0]],
-                expected=[[-4 * LN_2]],
+                space=self.space_list[0],
+                point=gs.array([[2.0]]),
+                base_point=gs.array([[4.0]]),
+                expected=gs.array([[-4 * LN_2]]),
             ),
             dict(
-                point=[[1.0], [2.0]],
-                base_point=[[1.0]],
-                expected=[[0], [LN_2]],
+                space=self.space_list[0],
+                point=gs.array([[1.0], [2.0]]),
+                base_point=gs.array([[1.0]]),
+                expected=gs.array([[0], [LN_2]]),
             ),
         ]
         return self.generate_tests(smoke_data)

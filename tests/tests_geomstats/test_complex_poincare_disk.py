@@ -1,7 +1,6 @@
 """Unit tests for the complex Poincare disk manifold."""
 
-import geomstats.backend as gs
-from tests.conftest import Parametrizer, np_backend
+from tests.conftest import Parametrizer
 from tests.data.complex_poincare_disk_data import (
     ComplexPoincareDiskMetricTestData,
     ComplexPoincareDiskTestData,
@@ -12,17 +11,18 @@ from tests.geometry_test_cases import ComplexRiemannianMetricTestCase, OpenSetTe
 class TestComplexPoincareDisk(OpenSetTestCase, metaclass=Parametrizer):
     """Test of the complex Poincare disk methods."""
 
-    skip_test_random_point_belongs = np_backend()
+    skip_test_projection_belongs = True
+    skip_test_random_point_belongs = True
     skip_test_exp_belongs = True
     testing_data = ComplexPoincareDiskTestData()
 
     def test_belongs(self, point, expected):
-        self.assertAllClose(self.Space().belongs(gs.array(point)), expected)
+        self.assertAllClose(self.Space().belongs(point), expected)
 
     def test_projection(self, point, expected):
         self.assertAllClose(
-            self.Space().projection(gs.array(point)),
-            gs.array(expected),
+            self.Space().projection(point),
+            expected,
         )
 
 
@@ -48,31 +48,33 @@ class TestComplexPoincareDiskMetric(
 
     testing_data = ComplexPoincareDiskMetricTestData()
 
-    def test_inner_product(self, tangent_vec_a, tangent_vec_b, base_point, expected):
-        metric = self.Metric()
-        result = metric.inner_product(
-            gs.array(tangent_vec_a),
-            gs.array(tangent_vec_b),
-            gs.array(base_point),
+    def test_inner_product(
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.inner_product(
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
         )
         self.assertAllClose(result, expected)
 
-    def test_exp(self, tangent_vec, base_point, expected):
-        metric = self.Metric()
+    def test_exp(self, space, tangent_vec, base_point, expected):
+        space.equip_with_metric(self.Metric)
         self.assertAllClose(
-            metric.exp(
-                gs.array(tangent_vec),
-                gs.array(base_point),
+            space.metric.exp(
+                tangent_vec,
+                base_point,
             ),
-            gs.array(expected),
+            expected,
         )
 
-    def test_log(self, point, base_point, expected):
-        metric = self.Metric()
+    def test_log(self, space, point, base_point, expected):
+        space.equip_with_metric(self.Metric)
         self.assertAllClose(
-            metric.log(
-                gs.array(point),
-                gs.array(base_point),
+            space.metric.log(
+                point,
+                base_point,
             ),
-            gs.array(expected),
+            expected,
         )

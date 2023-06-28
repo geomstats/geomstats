@@ -42,7 +42,6 @@ class TestDataLandmarks(_ManifoldTestData):
 
 
 class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
-
     dim_list = random.sample(range(2, 4), 2)
     n_landmarks_list = random.sample(range(2, 5), 2)
     space_args_list = [
@@ -52,13 +51,13 @@ class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
         (Euclidean(dim + 1), n_landmarks)
         for dim, n_landmarks in zip(dim_list, n_landmarks_list)
     ]
-    metric_args_list = [
-        (space.metric, n_landmarks) for space, n_landmarks in space_args_list
-    ]
-    space_list = [Landmarks(*space_arg) for space_arg in space_args_list]
+
+    space_list = [Landmarks(*space_arg, equip=False) for space_arg in space_args_list]
     shape_list = [
         (n_landmark, dim + 1) for dim, n_landmark in zip(dim_list, n_landmarks_list)
     ] * 2
+    metric_args_list = [{} for _ in shape_list]
+
     n_points_list = random.sample(range(2, 5), 2)
     n_tangent_vecs_list = random.sample(range(2, 5), 2)
     n_points_a_list = random.sample(range(2, 5), 2)
@@ -155,7 +154,7 @@ class TestDataL2LandmarksMetric(_RiemannianMetricTestData):
     def innerproduct_is_sum_of_innerproducts_test_data(self):
         smoke_data = [
             dict(
-                metric_args=(Hypersphere(dim=2).metric, self.k_sampling_points),
+                metric_args=(Landmarks(Hypersphere(dim=2), self.k_sampling_points),),
                 tangent_vec_a=self.landmark_set_a,
                 tangent_vec_b=self.landmark_set_b,
                 base_point=self.landmark_set_c,

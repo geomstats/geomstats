@@ -122,34 +122,25 @@ Dependencies and a virtual environment
 
 We recommend using `conda virtual environments <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_ to separate your development environment from any other geomstats versions installed on your system (this simplifies e.g. requirements management). 
 
-From the geomstats folder, create a virtual environment and install the minimum requirements:
+From the geomstats folder, create a virtual environment:
 
     .. code-block:: bash
 
-      $ conda env create --file environment.yml
+      $ conda create -n geomstats-3.11 python=3.11
 
-This command will create a new environment named `geomstats-3.8`.
+
+This command will create a new environment named `geomstats-3.11`.
 
 
 Then, activate the environment and install geomstats in editable mode:
 
   .. code-block:: bash
 
-    $ conda activate geomstats-3.8
+    $ conda activate geomstats-3.11
     $ pip install -e .
 
 
 Editable mode means that your changes in geomstats will be immediately reflected in any code that runs within this environment.
-
-
-Alternatively, you create a virtual environment from scratch using:
-
-    .. code-block:: bash
-
-      $ conda create -n <env-name>
-
-
-Then, activate it and install geomstats as above (the required packages will be installed automatically).
 
 
 .. note::
@@ -157,7 +148,7 @@ Then, activate it and install geomstats as above (the required packages will be 
 
 
 .. note::
-   See the `setup.cfg` file for details on all project requirements.
+   See the `pyproject.toml` file for details on all project requirements.
 
 
 .. _backends-dev
@@ -539,7 +530,7 @@ complies with the following rules. The **bolded** ones are especially important:
 
    Then before any commit, run::
 
-    $ flake8 geomstats tests --config setup.cfg
+    $ flake8 geomstats tests
 
    To prevent adding commits which fail to adhere to the PEP8 guidelines, we
    include a `pre-commit <https://pre-commit.com/>`_ config, which immediately

@@ -3,6 +3,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import repeat_out
 
 
 class Euclidean(VectorSpace):
@@ -17,11 +18,17 @@ class Euclidean(VectorSpace):
         Dimension of the Euclidean space.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, equip=True):
         super().__init__(
+            dim=dim,
             shape=(dim,),
-            metric=EuclideanMetric(dim, shape=(dim,)),
+            equip=equip,
         )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return EuclideanMetric
 
     @property
     def identity(self):
@@ -63,19 +70,7 @@ class EuclideanMetric(RiemannianMetric):
     - flat: the inner-product is independent of the base point;
     - positive definite: it has signature (dimension, 0, 0),
       where dimension is the dimension of the Euclidean space.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the Euclidean space.
     """
-
-    def __init__(self, dim, shape=None):
-        super().__init__(
-            dim=dim,
-            shape=shape,
-            signature=(dim, 0),
-        )
 
     def metric_matrix(self, base_point=None):
         """Compute the inner-product matrix, independent of the base point.
@@ -91,10 +86,9 @@ class EuclideanMetric(RiemannianMetric):
         inner_prod_mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        mat = gs.eye(self.dim)
-        if base_point is not None and base_point.ndim > 1:
-            mat = gs.broadcast_to(mat, base_point.shape + (self.dim,))
-        return mat
+        dim = self._space.dim
+        mat = gs.eye(dim)
+        return repeat_out(self._space, mat, base_point, out_shape=(dim, dim))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
@@ -114,7 +108,10 @@ class EuclideanMetric(RiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return gs.dot(tangent_vec_a, tangent_vec_b)
+        inner_product = gs.dot(tangent_vec_a, tangent_vec_b)
+        return repeat_out(
+            self._space, inner_product, tangent_vec_a, tangent_vec_b, base_point
+        )
 
     def norm(self, vector, base_point=None):
         """Compute norm of a vector.
@@ -138,7 +135,8 @@ class EuclideanMetric(RiemannianMetric):
         norm : array-like, shape=[...,]
             Norm.
         """
-        return gs.linalg.norm(vector, axis=-1)
+        norm = gs.linalg.norm(vector, axis=-1)
+        return repeat_out(self._space, norm, vector, base_point)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute exp map of a base point in tangent vector direction.
@@ -157,8 +155,7 @@ class EuclideanMetric(RiemannianMetric):
         exp : array-like, shape=[..., dim]
             Riemannian exponential.
         """
-        exp = base_point + tangent_vec
-        return exp
+        return base_point + tangent_vec
 
     def log(self, point, base_point, **kwargs):
         """Compute log map using a base point and other point.
@@ -177,8 +174,7 @@ class EuclideanMetric(RiemannianMetric):
         log: array-like, shape=[..., dim]
             Riemannian logarithm.
         """
-        log = point - base_point
-        return log
+        return point - base_point
 
     def parallel_transport(
         self, tangent_vec, base_point=None, direction=None, end_point=None
@@ -208,4 +204,13 @@ class EuclideanMetric(RiemannianMetric):
         transported_tangent_vec: array-like, shape=[..., dim]
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
-        return tangent_vec
+        transported_tangent_vec = gs.copy(tangent_vec)
+        return repeat_out(
+            self._space,
+            transported_tangent_vec,
+            tangent_vec,
+            base_point,
+            direction,
+            end_point,
+            out_shape=self._space.shape,
+        )
