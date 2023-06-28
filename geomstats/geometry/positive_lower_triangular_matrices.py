@@ -5,12 +5,14 @@ Lead author: Saiteja Utpala.
 
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpaceOpenSet
+from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
+from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class PositiveLowerTriangularMatrices(VectorSpaceOpenSet):
+class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
     """Manifold of lower triangular matrices with >0 diagonal.
 
     This manifold is also called the cholesky space.
@@ -30,6 +32,8 @@ class PositiveLowerTriangularMatrices(VectorSpaceOpenSet):
 
     def __init__(self, n, equip=True):
         super().__init__(
+            representation_dim=n,
+            lie_algebra=LowerTriangularMatrices(n, equip=False),
             dim=int(n * (n + 1) / 2),
             embedding_space=LowerTriangularMatrices(n, equip=False),
             equip=equip,
@@ -274,3 +278,30 @@ class CholeskyMetric(RiemannianMetric):
         sl_diff = sl_a - sl_b
         squared_dist_sl = Matrices.frobenius_product(sl_diff, sl_diff)
         return squared_dist_sl + squared_dist_diag
+
+
+class InvariantPositiveLowerTriangularMatricesMetric(_InvariantMetricMatrix):
+    """Invariant metric on the positive lower triangular matrices."""
+
+    def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
+        """Compute inner product at tangent space at identity.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            First tangent vector at identity.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Second tangent vector at identity.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...]
+            Inner-product of the two tangent vectors.
+        """
+        if Matrices.is_diagonal(self.metric_mat_at_identity):
+            return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+
+        return gs.dot(
+            gs.tril_to_vec(tangent_vec_a),
+            gs.matvec(self.metric_mat_at_identity, gs.tril_to_vec(tangent_vec_b)),
+        )
