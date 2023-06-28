@@ -115,7 +115,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
                     [[0.0, 22025.465795], [147.413159, 21878.052636]]
                 )
             else:
-                raise ValueError("Invalid metric: {}".format(Metric))
+                raise ValueError(f"Invalid metric: {Metric}")
 
             self.assertAllClose(dist_test, dist_expected)
 
