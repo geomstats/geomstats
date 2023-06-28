@@ -3,6 +3,7 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.positive_lower_triangular_matrices import (
+    CholeskyMetric,
     PositiveLowerTriangularMatrices,
 )
 from tests.data_generation import _OpenSetTestData, _RiemannianMetricTestData
@@ -18,30 +19,36 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    Space = PositiveLowerTriangularMatrices
+
     def belongs_test_data(self):
         smoke_data = [
-            dict(n=2, mat=[[1.0, 0.0], [-1.0, 3.0]], expected=True),
-            dict(n=2, mat=[[1.0, -1.0], [-1.0, 3.0]], expected=False),
-            dict(n=2, mat=[[-1.0, 0.0], [-1.0, 3.0]], expected=False),
-            dict(n=3, mat=[[1.0, 0], [0, 1.0]], expected=False),
+            dict(n=2, mat=gs.array([[1.0, 0.0], [-1.0, 3.0]]), expected=True),
+            dict(n=2, mat=gs.array([[1.0, -1.0], [-1.0, 3.0]]), expected=False),
+            dict(n=2, mat=gs.array([[-1.0, 0.0], [-1.0, 3.0]]), expected=False),
+            dict(n=3, mat=gs.array([[1.0, 0], [0, 1.0]]), expected=False),
             dict(
                 n=2,
-                mat=[
-                    [[1.0, 0], [0, 1.0]],
-                    [[1.0, 2.0], [2.0, 1.0]],
-                    [[-1.0, 0.0], [1.0, 1.0]],
-                    [[0.0, 0.0], [1.0, 1.0]],
-                ],
+                mat=gs.array(
+                    [
+                        [[1.0, 0], [0, 1.0]],
+                        [[1.0, 2.0], [2.0, 1.0]],
+                        [[-1.0, 0.0], [1.0, 1.0]],
+                        [[0.0, 0.0], [1.0, 1.0]],
+                    ]
+                ),
                 expected=[True, False, False, False],
             ),
             dict(
                 n=3,
-                mat=[
-                    [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                    [[0.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                    [[1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                    [[-1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-                ],
+                mat=gs.array(
+                    [
+                        [[1.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                        [[0.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                        [[1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                        [[-1.0, 0.0, 0.0], [2.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+                    ]
+                ),
                 expected=[False, False, True, False],
             ),
         ]
@@ -95,15 +102,21 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
         smoke_data = [
             dict(
                 n=2,
-                tangent_vec=[[1.0, 2.0], [2.0, 5.0]],
-                base_point=[[1.0, 0.0], [2.0, 2.0]],
-                expected=[[0.5, 0.0], [1.0, 0.25]],
+                tangent_vec=gs.array([[1.0, 2.0], [2.0, 5.0]]),
+                base_point=gs.array([[1.0, 0.0], [2.0, 2.0]]),
+                expected=gs.array([[0.5, 0.0], [1.0, 0.25]]),
             ),
             dict(
                 n=2,
-                tangent_vec=[[[-4.0, 1.0], [1.0, -4.0]], [[0.0, 4.0], [4.0, -8.0]]],
-                base_point=[[[2.0, 0.0], [-1.0, 2.0]], [[4.0, 0.0], [-1.0, 2.0]]],
-                expected=[[[-1.0, 0.0], [0.0, -1.0]], [[0.0, 0.0], [1.0, -1.5]]],
+                tangent_vec=gs.array(
+                    [[[-4.0, 1.0], [1.0, -4.0]], [[0.0, 4.0], [4.0, -8.0]]]
+                ),
+                base_point=gs.array(
+                    [[[2.0, 0.0], [-1.0, 2.0]], [[4.0, 0.0], [-1.0, 2.0]]]
+                ),
+                expected=gs.array(
+                    [[[-1.0, 0.0], [0.0, -1.0]], [[0.0, 0.0], [1.0, -1.5]]]
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -111,12 +124,11 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
     def differential_gram_belongs_test_data(self):
         n_list = [1, 2, 2, 3, 10]
         n_samples_list = [1, 1, 2, 10, 5]
-        space = PositiveLowerTriangularMatrices
         random_data = [
             dict(
                 n=n,
-                tangent_vec=space(n).ambient_space.random_point(n_samples),
-                base_point=space(n).random_point(n_samples),
+                tangent_vec=self.Space(n).embedding_space.random_point(n_samples),
+                base_point=self.Space(n).random_point(n_samples),
             )
             for n, n_samples in zip(n_list, n_samples_list)
         ]
@@ -125,56 +137,24 @@ class PositiveLowerTriangularMatricesTestData(_OpenSetTestData):
     def inverse_differential_gram_belongs_test_data(self):
         n_list = [1, 2, 2, 3, 10]
         n_samples_list = [1, 1, 2, 10, 5]
-        space = PositiveLowerTriangularMatrices
         random_data = [
             dict(
                 n=n,
-                tangent_vec=space(n).ambient_space.random_point(n_samples),
-                base_point=space(n).random_point(n_samples),
+                tangent_vec=self.Space(n).embedding_space.random_point(n_samples),
+                base_point=self.Space(n).random_point(n_samples),
             )
             for n, n_samples in zip(n_list, n_samples_list)
         ]
         return self.generate_tests([], random_data)
 
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            PositiveLowerTriangularMatrices,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def to_tangent_is_tangent_in_ambient_space_test_data(self):
-        return self._to_tangent_is_tangent_in_ambient_space_test_data(
-            PositiveLowerTriangularMatrices, self.space_args_list, self.shape_list
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            PositiveLowerTriangularMatrices, self.space_args_list, self.n_vecs_list
-        )
-
 
 class CholeskyMetricTestData(_RiemannianMetricTestData):
     n_list = random.sample(range(2, 5), 2)
-    metric_args_list = [(n,) for n in n_list]
+
     shape_list = [(n, n) for n in n_list]
-    space_list = [PositiveLowerTriangularMatrices(n) for n in n_list]
+    space_list = [PositiveLowerTriangularMatrices(n, equip=False) for n in n_list]
+    metric_args_list = [{} for _ in n_list]
+
     n_points_list = random.sample(range(1, 5), 2)
     n_tangent_vecs_list = random.sample(range(1, 5), 2)
     n_points_a_list = random.sample(range(1, 5), 2)
@@ -184,13 +164,17 @@ class CholeskyMetricTestData(_RiemannianMetricTestData):
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
 
+    Metric = CholeskyMetric
+
+    space_2 = PositiveLowerTriangularMatrices(2, equip=False)
+
     def diag_inner_product_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                tangent_vec_a=[[1.0, 0.0], [-2.0, -1.0]],
-                tangent_vec_b=[[2.0, 0.0], [-3.0, -1.0]],
-                base_point=[[SQRT_2, 0.0], [-3.0, 1.0]],
+                space=self.space_2,
+                tangent_vec_a=gs.array([[1.0, 0.0], [-2.0, -1.0]]),
+                tangent_vec_b=gs.array([[2.0, 0.0], [-3.0, -1.0]]),
+                base_point=gs.array([[SQRT_2, 0.0], [-3.0, 1.0]]),
                 expected=2.0,
             )
         ]
@@ -199,9 +183,9 @@ class CholeskyMetricTestData(_RiemannianMetricTestData):
     def strictly_lower_inner_product_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                tangent_vec_a=[[1.0, 0.0], [-2.0, -1.0]],
-                tangent_vec_b=[[2.0, 0.0], [-3.0, -1.0]],
+                space=self.space_2,
+                tangent_vec_a=gs.array([[1.0, 0.0], [-2.0, -1.0]]),
+                tangent_vec_b=gs.array([[2.0, 0.0], [-3.0, -1.0]]),
                 expected=6.0,
             )
         ]
@@ -210,21 +194,25 @@ class CholeskyMetricTestData(_RiemannianMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                tangent_vec_a=[[1.0, 0.0], [-2.0, -1.0]],
-                tangent_vec_b=[[2.0, 0.0], [-3.0, -1.0]],
-                base_point=[[SQRT_2, 0.0], [-3.0, 1.0]],
+                space=self.space_2,
+                tangent_vec_a=gs.array([[1.0, 0.0], [-2.0, -1.0]]),
+                tangent_vec_b=gs.array([[2.0, 0.0], [-3.0, -1.0]]),
+                base_point=gs.array([[SQRT_2, 0.0], [-3.0, 1.0]]),
                 expected=8.0,
             ),
             dict(
-                n=2,
-                tangent_vec_a=[
-                    [[3.0, 0.0], [4.0, 2.0]],
-                    [[-1.0, 0.0], [2.0, -4.0]],
-                ],
-                tangent_vec_b=[[[4.0, 0.0], [3.0, 3.0]], [[3.0, 0.0], [-6.0, 2.0]]],
-                base_point=[[[3, 0.0], [-2.0, 6.0]], [[1, 0.0], [-1.0, 1.0]]],
-                expected=[13.5, -23.0],
+                space=self.space_2,
+                tangent_vec_a=gs.array(
+                    [
+                        [[3.0, 0.0], [4.0, 2.0]],
+                        [[-1.0, 0.0], [2.0, -4.0]],
+                    ]
+                ),
+                tangent_vec_b=gs.array(
+                    [[[4.0, 0.0], [3.0, 3.0]], [[3.0, 0.0], [-6.0, 2.0]]]
+                ),
+                base_point=gs.array([[[3, 0.0], [-2.0, 6.0]], [[1, 0.0], [-1.0, 1.0]]]),
+                expected=gs.array([13.5, -23.0]),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -232,19 +220,25 @@ class CholeskyMetricTestData(_RiemannianMetricTestData):
     def exp_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                tangent_vec=[[-1.0, 0.0], [2.0, 3.0]],
-                base_point=[[1.0, 0.0], [2.0, 2.0]],
-                expected=[[1 / EULER, 0.0], [4.0, 2 * gs.exp(1.5)]],
+                space=self.space_2,
+                tangent_vec=gs.array([[-1.0, 0.0], [2.0, 3.0]]),
+                base_point=gs.array([[1.0, 0.0], [2.0, 2.0]]),
+                expected=gs.array([[1 / EULER, 0.0], [4.0, 2 * gs.exp(1.5)]]),
             ),
             dict(
-                n=2,
-                tangent_vec=[[[0.0, 0.0], [2.0, 0.0]], [[1.0, 0.0], [0.0, 0.0]]],
-                base_point=[[[1.0, 0.0], [2.0, 2.0]], [[1.0, 0.0], [0.0, 2.0]]],
-                expected=[
-                    [[1.0, 0.0], [4.0, 2.0]],
-                    [[gs.exp(1.0), 0.0], [0.0, 2.0]],
-                ],
+                space=self.space_2,
+                tangent_vec=gs.array(
+                    [[[0.0, 0.0], [2.0, 0.0]], [[1.0, 0.0], [0.0, 0.0]]]
+                ),
+                base_point=gs.array(
+                    [[[1.0, 0.0], [2.0, 2.0]], [[1.0, 0.0], [0.0, 2.0]]]
+                ),
+                expected=gs.array(
+                    [
+                        [[1.0, 0.0], [4.0, 2.0]],
+                        [[gs.exp(1.0), 0.0], [0.0, 2.0]],
+                    ]
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -252,19 +246,25 @@ class CholeskyMetricTestData(_RiemannianMetricTestData):
     def log_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                point=[[EULER, 0.0], [2.0, EULER**3]],
-                base_point=[[EULER**3, 0.0], [4.0, EULER**4]],
-                expected=[[-2.0 * EULER**3, 0.0], [-2.0, -1 * EULER**4]],
+                space=self.space_2,
+                point=gs.array([[EULER, 0.0], [2.0, EULER**3]]),
+                base_point=gs.array([[EULER**3, 0.0], [4.0, EULER**4]]),
+                expected=gs.array([[-2.0 * EULER**3, 0.0], [-2.0, -1 * EULER**4]]),
             ),
             dict(
-                n=2,
-                point=[
-                    [[gs.exp(-2.0), 0.0], [0.0, gs.exp(2.0)]],
-                    [[gs.exp(-3.0), 0.0], [2.0, gs.exp(3.0)]],
-                ],
-                base_point=[[[1.0, 0.0], [-1.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]],
-                expected=[[[-2.0, 0.0], [1.0, 2.0]], [[-3.0, 0.0], [2.0, 3.0]]],
+                space=self.space_2,
+                point=gs.array(
+                    [
+                        [[gs.exp(-2.0), 0.0], [0.0, gs.exp(2.0)]],
+                        [[gs.exp(-3.0), 0.0], [2.0, gs.exp(3.0)]],
+                    ]
+                ),
+                base_point=gs.array(
+                    [[[1.0, 0.0], [-1.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]]
+                ),
+                expected=gs.array(
+                    [[[-2.0, 0.0], [1.0, 2.0]], [[-3.0, 0.0], [2.0, 3.0]]]
+                ),
             ),
         ]
         return self.generate_tests(smoke_data)
@@ -272,197 +272,26 @@ class CholeskyMetricTestData(_RiemannianMetricTestData):
     def squared_dist_test_data(self):
         smoke_data = [
             dict(
-                n=2,
-                point_a=[[EULER, 0.0], [2.0, EULER**3]],
-                point_b=[[EULER**3, 0.0], [4.0, EULER**4]],
+                space=self.space_2,
+                point_a=gs.array([[EULER, 0.0], [2.0, EULER**3]]),
+                point_b=gs.array([[EULER**3, 0.0], [4.0, EULER**4]]),
                 expected=9,
             ),
             dict(
-                n=2,
-                point_a=[
-                    [[EULER, 0.0], [2.0, EULER**3]],
-                    [[EULER, 0.0], [4.0, EULER**3]],
-                ],
-                point_b=[
-                    [[EULER**3, 0.0], [4.0, EULER**4]],
-                    [[EULER**3, 0.0], [7.0, EULER**4]],
-                ],
-                expected=[9, 14],
+                space=self.space_2,
+                point_a=gs.array(
+                    [
+                        [[EULER, 0.0], [2.0, EULER**3]],
+                        [[EULER, 0.0], [4.0, EULER**3]],
+                    ]
+                ),
+                point_b=gs.array(
+                    [
+                        [[EULER**3, 0.0], [4.0, EULER**4]],
+                        [[EULER**3, 0.0], [7.0, EULER**4]],
+                    ]
+                ),
+                expected=gs.array([9, 14]),
             ),
         ]
         return self.generate_tests(smoke_data)
-
-    def exp_shape_test_data(self):
-        return self._exp_shape_test_data(
-            self.metric_args_list, self.space_list, self.shape_list
-        )
-
-    def log_shape_test_data(self):
-        return self._log_shape_test_data(self.metric_args_list, self.space_list)
-
-    def squared_dist_is_symmetric_test_data(self):
-        return self._squared_dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-            atol=gs.atol * 1000,
-        )
-
-    def exp_belongs_test_data(self):
-        return self._exp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def log_is_tangent_test_data(self):
-        return self._log_is_tangent_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            is_tangent_atol=gs.atol * 1000,
-        )
-
-    def geodesic_ivp_belongs_test_data(self):
-        return self._geodesic_ivp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def geodesic_bvp_belongs_test_data(self):
-        return self._geodesic_bvp_belongs_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            belongs_atol=gs.atol * 1000,
-        )
-
-    def exp_after_log_test_data(self):
-        return self._exp_after_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 10000,
-        )
-
-    def log_after_exp_test_data(self):
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 10000,
-        )
-
-    def exp_ladder_parallel_transport_test_data(self):
-        return self._exp_ladder_parallel_transport_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_rungs_list,
-            self.alpha_list,
-            self.scheme_list,
-        )
-
-    def exp_geodesic_ivp_test_data(self):
-        return self._exp_geodesic_ivp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            self.n_points_list,
-            rtol=gs.rtol * 100000,
-            atol=gs.atol * 100000,
-        )
-
-    def parallel_transport_ivp_is_isometry_test_data(self):
-        return self._parallel_transport_ivp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 1000,
-        )
-
-    def parallel_transport_bvp_is_isometry_test_data(self):
-        return self._parallel_transport_bvp_is_isometry_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            is_tangent_atol=gs.atol * 1000,
-            atol=gs.atol * 1000,
-        )
-
-    def dist_is_symmetric_test_data(self):
-        return self._dist_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_positive_test_data(self):
-        return self._dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def squared_dist_is_positive_test_data(self):
-        return self._squared_dist_is_positive_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_is_norm_of_log_test_data(self):
-        return self._dist_is_norm_of_log_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_a_list,
-            self.n_points_b_list,
-        )
-
-    def dist_point_to_itself_is_zero_test_data(self):
-        return self._dist_point_to_itself_is_zero_test_data(
-            self.metric_args_list, self.space_list, self.n_points_list
-        )
-
-    def inner_product_is_symmetric_test_data(self):
-        return self._inner_product_is_symmetric_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-        )
-
-    def triangle_inequality_of_dist_test_data(self):
-        return self._triangle_inequality_of_dist_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.n_points_list,
-            atol=gs.atol * 1000,
-        )
-
-    def retraction_lifting_test_data(self):
-        return self._log_after_exp_test_data(
-            self.metric_args_list,
-            self.space_list,
-            self.shape_list,
-            self.n_tangent_vecs_list,
-            rtol=gs.rtol * 100,
-            atol=gs.atol * 10000,
-        )

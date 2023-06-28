@@ -4,8 +4,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
-import geomstats.tests
 import geomstats.visualization as visualization
+import tests.conftest
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import Matrices
@@ -21,7 +21,7 @@ from geomstats.geometry.special_orthogonal import (
 matplotlib.use("Agg")  # NOQA
 
 
-class TestVisualization(geomstats.tests.TestCase):
+class TestVisualization(tests.conftest.TestCase):
     def setup_method(self):
         self.n_samples = 10
         self.SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
@@ -35,6 +35,8 @@ class TestVisualization(geomstats.tests.TestCase):
         self.KS = visualization.KendallSphere()
         self.M33 = Matrices(m=3, n=3)
         self.S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
+        self.S33.equip_with_group_action("rotations")
+        self.S33.equip_with_quotient_structure()
         self.KD = visualization.KendallDisk()
         self.spd = SPDMatrices(n=2)
 
@@ -69,7 +71,7 @@ class TestVisualization(geomstats.tests.TestCase):
         tangent_vec = self.S32.to_tangent(vec, base_point)
         times = gs.linspace(0.0, 1.0, 1000)
         speeds = gs.array([-t * tangent_vec for t in times])
-        points = self.S32.ambient_metric.exp(speeds, base_point)
+        points = self.S32.metric.exp(speeds, base_point)
         self.KS.add_points(points)
         self.KS.draw_curve()
         self.KS.clear_points()
@@ -114,10 +116,10 @@ class TestVisualization(geomstats.tests.TestCase):
         base_point = self.S33.random_point()
         vec = self.S33.random_point()
         tangent_vec = self.S33.to_tangent(vec, base_point)
-        tangent_vec = 0.5 * tangent_vec / self.S33.ambient_metric.norm(tangent_vec)
+        tangent_vec = 0.5 * tangent_vec / self.S33.metric.norm(tangent_vec)
         times = gs.linspace(0.0, 1.0, 1000)
         speeds = gs.array([-t * tangent_vec for t in times])
-        points = self.S33.ambient_metric.exp(speeds, base_point)
+        points = self.S33.metric.exp(speeds, base_point)
         self.KD.add_points(points)
         self.KD.draw_curve()
         self.KD.clear_points()
@@ -138,7 +140,6 @@ class TestVisualization(geomstats.tests.TestCase):
         result = [r <= 1.0 for r in radius]
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_autograd_and_torch_only
     def test_plot_points_s1(self):
         points = self.S1.random_uniform(self.n_samples)
         visualization.plot(points, space="S1")
@@ -154,7 +155,7 @@ class TestVisualization(geomstats.tests.TestCase):
     def test_plot_points_h2_poincare_half_plane_ext(self):
         points = self.H2.random_point(self.n_samples)
         visualization.plot(
-            points, space="H2_poincare_half_plane", point_type="extrinsic"
+            points, space="H2_poincare_half_plane", coords_type="extrinsic"
         )
 
     def test_plot_points_h2_poincare_half_plane_none(self):
@@ -164,7 +165,7 @@ class TestVisualization(geomstats.tests.TestCase):
     def test_plot_points_h2_poincare_half_plane_hs(self):
         points = self.H2_half_plane.random_point(self.n_samples)
         visualization.plot(
-            points, space="H2_poincare_half_plane", point_type="half_space"
+            points, space="H2_poincare_half_plane", coords_type="half_space"
         )
 
     def test_plot_points_h2_klein_disk(self):
@@ -187,7 +188,7 @@ class TestVisualization(geomstats.tests.TestCase):
 
     def test_compute_coordinates_spd2(self):
         point = gs.eye(2)
-        ellipsis = visualization.Ellipses(n_sampling_points=4)
+        ellipsis = visualization.Ellipses(k_sampling_points=4)
         x, y = ellipsis.compute_coordinates(point)
         self.assertAllClose(x, gs.array([1, 0, -1, 0, 1]))
         self.assertAllClose(y, gs.array([0, 1, 0, -1, 0]))

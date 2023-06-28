@@ -4,38 +4,44 @@ NumPy backend does not offer automatic differentiation.
 The following functions return error messages.
 """
 
+from geomstats.exceptions import AutodiffNotImplementedError
 
-def detach(x):
-    """Return a new tensor detached from the current graph.
-
-    This is a placeholder in order to have consistent backend APIs.
-
-    Parameters
-    ----------
-    x : array-like
-        Tensor to detach.
-    """
-    return x
+_USE_OTHER_BACKEND_MSG = (
+    "Automatic differentiation is not supported with numpy backend. "
+    "Use autograd or pytorch backend instead.\n"
+    "Change backend via the command "
+    "export GEOMSTATS_BACKEND=autograd in a terminal."
+)
 
 
 def value_and_grad(*args, **kwargs):
     """Return an error when using automatic differentiation with numpy."""
-    raise RuntimeError(
-        "Automatic differentiation is not supported with numpy backend. "
-        "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal."
-    )
+    raise AutodiffNotImplementedError(_USE_OTHER_BACKEND_MSG)
 
 
-def jacobian(func):
+def jacobian(*args, **kwargs):
     """Return an error when using automatic differentiation with numpy."""
-    raise RuntimeError(
-        "Automatic differentiation is not supported with numpy backend. "
-        "Use autograd, pytorch or tensorflow backend instead.\n"
-        "Change backend via the command "
-        "export GEOMSTATS_BACKEND=autograd in a terminal."
-    )
+    raise AutodiffNotImplementedError(_USE_OTHER_BACKEND_MSG)
+
+
+def jacobian_vec(*args, **kwargs):
+    """Return an error when using automatic differentiation with numpy."""
+    raise AutodiffNotImplementedError(_USE_OTHER_BACKEND_MSG)
+
+
+def hessian(*args, **kwargs):
+    """Return an error when using automatic differentiation with numpy."""
+    raise AutodiffNotImplementedError(_USE_OTHER_BACKEND_MSG)
+
+
+def hessian_vec(*args, **kwargs):
+    """Return an error when using automatic differentiation with numpy."""
+    raise AutodiffNotImplementedError(_USE_OTHER_BACKEND_MSG)
+
+
+def jacobian_and_hessian(*args, **kwargs):
+    """Return an error when using automatic differentiation with numpy."""
+    raise AutodiffNotImplementedError(_USE_OTHER_BACKEND_MSG)
 
 
 def custom_gradient(*grad_funcs):
@@ -48,3 +54,7 @@ def custom_gradient(*grad_funcs):
         return func
 
     return decorator
+
+
+def value_jacobian_and_hessian(*args, **kwargs):
+    raise AutodiffNotImplementedError(_USE_OTHER_BACKEND_MSG)

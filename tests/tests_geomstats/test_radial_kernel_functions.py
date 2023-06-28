@@ -3,7 +3,7 @@
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.learning.radial_kernel_functions import (
     biweight_radial_kernel,
@@ -23,7 +23,7 @@ from geomstats.learning.radial_kernel_functions import (
 )
 
 
-class TestRadialKernelFunctions(geomstats.tests.TestCase):
+class TestRadialKernelFunctions(tests.conftest.TestCase):
     """Class defining the radial kernel functions tests."""
 
     def setup_method(self):

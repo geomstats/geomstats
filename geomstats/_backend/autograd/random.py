@@ -1,15 +1,5 @@
 """Autograd based random backend."""
+import autograd.numpy as _np
+from autograd.numpy.random import randint, seed
 
-from autograd.numpy.random import (  # NOQA
-    default_rng,
-    multivariate_normal,
-    normal,
-    rand,
-    randint,
-    seed,
-    uniform,
-)
-
-
-def choice(*args, **kwargs):
-    return default_rng().choice(*args, **kwargs)
+from .._shared_numpy.random import choice, multivariate_normal, normal, rand, uniform

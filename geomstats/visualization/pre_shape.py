@@ -4,21 +4,25 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
+from geomstats.geometry.pre_shape import PreShapeSpace
 
 M32 = Matrices(m=3, n=2)
+
 S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
-METRIC_S32 = KendallShapeMetric(k_landmarks=3, m_ambient=2)
+S32.equip_with_group_action("rotations")
+S32.equip_with_quotient_structure()
+
 M33 = Matrices(m=3, n=3)
 S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
-METRIC_S33 = KendallShapeMetric(k_landmarks=3, m_ambient=3)
+S33.equip_with_group_action("rotations")
+S33.equip_with_quotient_structure()
 
 
 class KendallSphere:
     """Class used to plot points in Kendall shape space of 2D triangles.
 
     David G. Kendall showed that the shape space of 2D triangles is isometric
-    to the 2-sphere of radius 1/2 [K1984]. This class encodes this isometric
+    to the 2-sphere of radius 1/2 [K1984]_. This class encodes this isometric
     representation, offering a 3D visualization of Kendall shape space of order
     (3,2), and its related objects.
 
@@ -26,7 +30,7 @@ class KendallSphere:
     ----------
     points : list
         List of points to plot on the Kendall sphere.
-    point_type : str
+    coords_type : str
         Type of the points. Can be either 'pre-shape' (for points in Kendall
         pre-shape space) or 'extrinsic' (for points given as 3x2 matrices).
         Optional, default: 'pre-shape'.
@@ -43,14 +47,14 @@ class KendallSphere:
     References
     ----------
     .. [K1984] David G. Kendall. "Shape Manifolds, Procrustean Metrics, and
-       Complex Projective Spaces." Bulletin of the London Mathematical
-       Society, Volume 16, Issue 2, March 1984, Pages 81–121.
-       https://doi.org/10.1112/blms/16.2.81
+        Complex Projective Spaces." Bulletin of the London Mathematical
+        Society, Volume 16, Issue 2, March 1984, Pages 81–121.
+        https://doi.org/10.1112/blms/16.2.81
     """
 
-    def __init__(self, points=None, point_type="pre-shape"):
+    def __init__(self, points=None, coords_type="pre-shape"):
         self.points = []
-        self.point_type = point_type
+        self.coords_type = coords_type
         self.ax = None
         self.elev, self.azim = None, None
 
@@ -66,8 +70,8 @@ class KendallSphere:
             [[0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2], [-1.0, 0.0]]
         ) / gs.sqrt(3.0)
 
-        self.na = self.ub - S32.ambient_metric.inner_product(self.ub, self.ua) * self.ua
-        self.na = self.na / S32.ambient_metric.norm(self.na)
+        self.na = self.ub - S32.metric.inner_product(self.ub, self.ua) * self.ua
+        self.na = self.na / S32.metric.norm(self.na)
 
         if points is not None:
             self.add_points(points)
@@ -99,14 +103,14 @@ class KendallSphere:
 
     def convert_to_polar_coordinates(self, points):
         """Assign polar coordinates to given pre-shapes."""
-        aligned_points = S32.align(points, self.pole)
-        speeds = S32.ambient_metric.log(aligned_points, self.pole)
+        aligned_points = S32.fiber_bundle.align(points, self.pole)
+        speeds = S32.metric.log(aligned_points, self.pole)
 
         coords_theta = gs.arctan2(
-            S32.ambient_metric.inner_product(speeds, self.na),
-            S32.ambient_metric.inner_product(speeds, self.ua),
+            S32.metric.inner_product(speeds, self.na),
+            S32.metric.inner_product(speeds, self.ua),
         )
-        coords_phi = 2.0 * S32.ambient_metric.dist(self.pole, aligned_points)
+        coords_phi = 2.0 * S32.metric.dist(self.pole, aligned_points)
 
         return coords_theta, coords_phi
 
@@ -121,11 +125,11 @@ class KendallSphere:
 
     def add_points(self, points):
         """Add points to draw on the Kendall sphere."""
-        if self.point_type == "extrinsic":
+        if self.coords_type == "extrinsic":
             if not gs.all(M32.belongs(points)):
                 raise ValueError("Points do not belong to Matrices(3, 2).")
             points = S32.projection(points)
-        elif self.point_type == "pre-shape" and not gs.all(S32.belongs(points)):
+        elif self.coords_type == "pre-shape" and not gs.all(S32.belongs(points)):
             raise ValueError("Points do not belong to the pre-shape space.")
         points = self.convert_to_spherical_coordinates(points)
         if not isinstance(points, list):
@@ -250,8 +254,8 @@ class KendallSphere:
 
     def draw_vector(self, tangent_vec, base_point, **kwargs):
         """Draw one vector in the tangent space to sphere at a base point."""
-        norm = METRIC_S32.norm(tangent_vec, base_point)
-        exp = METRIC_S32.exp(tangent_vec, base_point)
+        norm = S32.quotient.metric.norm(tangent_vec, base_point)
+        exp = S32.quotient.metric.exp(tangent_vec, base_point)
         bp = self.convert_to_spherical_coordinates(base_point)
         exp = self.convert_to_spherical_coordinates(exp)
         tv = exp - gs.dot(exp, 2.0 * bp) * 2.0 * bp
@@ -263,8 +267,8 @@ class KendallDisk:
     """Class used to plot points in Kendall shape space of 3D triangles.
 
     The shape space of 2D triangles is isometric to the 2-sphere of radius 1/2
-    [K1984]. This isometry induced another isometry between the shape space of
-    3D triangle and the 1-ball of radius pi/4 [LK1993]. Following the first
+    [K1984]_. This isometry induced another isometry between the shape space of
+    3D triangle and the 1-ball of radius pi/4 [LK1993]_. Following the first
     visualization class "KendallSphere" for 2D triangles, this class encodes
     the 2D isometric representation of Kendall shape space of order (3,3).
 
@@ -272,7 +276,7 @@ class KendallDisk:
     ----------
     points : list
         List of points to plot on the Kendall sphere.
-    point_type : str
+    coords_type : str
         Type of the points. Can be either 'pre-shape' (for points in Kendall
         pre-shape space) or 'extrinsic' (for points given as 3x2 matrices).
         Optional, default: 'pre-shape'.
@@ -291,18 +295,18 @@ class KendallDisk:
     References
     ----------
     .. [K1984] David G. Kendall. "Shape Manifolds, Procrustean Metrics, and
-       Complex Projective Spaces." Bulletin of the London Mathematical
-       Society, Volume 16, Issue 2, March 1984, Pages 81–121.
-       https://doi.org/10.1112/blms/16.2.81
+        Complex Projective Spaces." Bulletin of the London Mathematical
+        Society, Volume 16, Issue 2, March 1984, Pages 81–121.
+        https://doi.org/10.1112/blms/16.2.81
     .. [LK1993] Huiling Le and David G. Kendall. "The Riemannian structure of
-       Euclidean shape spaces: a novel environment for statistics." Annals of
-       statistics, 1993, vol. 21, no 3, p. 1225-1271.
-       https://doi.org/10.1112/blms/16.2.81
+        Euclidean shape spaces: a novel environment for statistics." Annals of
+        statistics, 1993, vol. 21, no 3, p. 1225-1271.
+        https://doi.org/10.1112/blms/16.2.81
     """
 
-    def __init__(self, points=None, point_type="pre-shape"):
+    def __init__(self, points=None, coords_type="pre-shape"):
         self.points = []
-        self.point_type = point_type
+        self.coords_type = coords_type
         self.ax = None
 
         self.pole = gs.array(
@@ -325,8 +329,8 @@ class KendallDisk:
             [[0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2], [-1.0, 0.0]]
         ) / gs.sqrt(3.0)
 
-        self.na = self.ub - S32.ambient_metric.inner_product(self.ub, self.ua) * self.ua
-        self.na = self.na / S32.ambient_metric.norm(self.na)
+        self.na = self.ub - S32.metric.inner_product(self.ub, self.ua) * self.ua
+        self.na = self.na / S32.metric.norm(self.na)
 
         if points is not None:
             self.add_points(points)
@@ -342,14 +346,14 @@ class KendallDisk:
 
     def convert_to_polar_coordinates(self, points):
         """Assign polar coordinates to given pre-shapes."""
-        aligned_points = S33.align(points, self.centre)
+        aligned_points = S33.fiber_bundle.align(points, self.centre)
         aligned_points2d = aligned_points[..., :, :2]
-        speeds = S32.ambient_metric.log(aligned_points2d, self.pole)
+        speeds = S32.metric.log(aligned_points2d, self.pole)
 
-        coords_r = S32.ambient_metric.dist(self.pole, aligned_points2d)
+        coords_r = S32.metric.dist(self.pole, aligned_points2d)
         coords_theta = gs.arctan2(
-            S32.ambient_metric.inner_product(speeds, self.na),
-            S32.ambient_metric.inner_product(speeds, self.ua),
+            S32.metric.inner_product(speeds, self.na),
+            S32.metric.inner_product(speeds, self.ua),
         )
 
         return coords_r, coords_theta
@@ -364,11 +368,11 @@ class KendallDisk:
 
     def add_points(self, points):
         """Add points to draw on the Kendall disk."""
-        if self.point_type == "extrinsic":
+        if self.coords_type == "extrinsic":
             if not gs.all(M33.belongs(points)):
                 raise ValueError("Points do not belong to Matrices(3, 3).")
             points = S33.projection(points)
-        elif self.point_type == "pre-shape" and not gs.all(S33.belongs(points)):
+        elif self.coords_type == "pre-shape" and not gs.all(S33.belongs(points)):
             raise ValueError("Points do not belong to the pre-shape space.")
         points = self.convert_to_planar_coordinates(points)
         if not isinstance(points, list):
@@ -466,8 +470,9 @@ class KendallDisk:
             ]
         )
         r_exp, th_exp = self.convert_to_polar_coordinates(
-            METRIC_S33.exp(
-                tol * tangent_vec / METRIC_S33.norm(tangent_vec, base_point), base_point
+            S33.quotient.metric.exp(
+                tol * tangent_vec / S33.quotient.metric.norm(tangent_vec, base_point),
+                base_point,
             )
         )
         exp = gs.array(
@@ -490,6 +495,8 @@ class KendallDisk:
         bp = self.convert_to_planar_coordinates(base_point)
         u_r = bp / gs.linalg.norm(bp)
         u_th = gs.array([[0.0, -1.0], [1.0, 0.0]]) @ u_r
-        tv = METRIC_S33.norm(tangent_vec, base_point) * (x_r * u_r + x_th * u_th)
+        tv = S33.quotient.metric.norm(tangent_vec, base_point) * (
+            x_r * u_r + x_th * u_th
+        )
 
         self.ax.quiver(bp[0], bp[1], tv[0], tv[1], **kwargs)

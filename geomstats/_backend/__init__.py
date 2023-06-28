@@ -3,10 +3,21 @@
 Lead authors: Johan Mathe and Niklas Koep.
 """
 
+import importlib
 import logging
 import os
 import sys
 import types
+
+import geomstats._backend._common as common
+
+
+def get_backend_name():
+    return os.environ.get("GEOMSTATS_BACKEND", "numpy")
+
+
+BACKEND_NAME = get_backend_name()
+
 
 BACKEND_ATTRIBUTES = {
     "": [
@@ -15,6 +26,8 @@ BACKEND_ATTRIBUTES = {
         "int64",
         "float32",
         "float64",
+        "complex64",
+        "complex128",
         "uint8",
         # Functions
         "abs",
@@ -34,6 +47,7 @@ BACKEND_ATTRIBUTES = {
         "argmin",
         "array",
         "array_from_sparse",
+        "as_dtype",
         "assignment",
         "assignment_by_sum",
         "atol",
@@ -68,7 +82,9 @@ BACKEND_ATTRIBUTES = {
         "flip",
         "floor",
         "from_numpy",
-        "get_mask_i_float",
+        "gamma",
+        "get_default_dtype",
+        "get_default_cdtype",
         "get_slice",
         "greater",
         "hsplit",
@@ -76,6 +92,10 @@ BACKEND_ATTRIBUTES = {
         "imag",
         "isclose",
         "isnan",
+        "is_array",
+        "is_complex",
+        "is_floating",
+        "is_bool",
         "kron",
         "less",
         "less_equal",
@@ -85,25 +105,32 @@ BACKEND_ATTRIBUTES = {
         "logical_or",
         "mat_from_diag_triu_tril",
         "matmul",
+        "matvec",
         "maximum",
         "mean",
         "meshgrid",
         "minimum",
         "mod",
+        "moveaxis",
         "ndim",
         "one_hot",
         "ones",
         "ones_like",
         "outer",
+        "pad",
+        "pi",
         "polygamma",
         "power",
         "prod",
+        "quantile",
         "ravel_tril_indices",
         "real",
         "repeat",
         "reshape",
         "rtol",
+        "scatter_add",
         "searchsorted",
+        "set_default_dtype",
         "set_diag",
         "shape",
         "sign",
@@ -116,6 +143,7 @@ BACKEND_ATTRIBUTES = {
         "stack",
         "std",
         "sum",
+        "take",
         "tan",
         "tanh",
         "tile",
@@ -136,8 +164,18 @@ BACKEND_ATTRIBUTES = {
         "where",
         "zeros",
         "zeros_like",
+        "trapz",
     ],
-    "autodiff": ["custom_gradient", "detach", "jacobian", "value_and_grad"],
+    "autodiff": [
+        "custom_gradient",
+        "hessian",
+        "hessian_vec",
+        "jacobian",
+        "jacobian_vec",
+        "jacobian_and_hessian",
+        "value_and_grad",
+        "value_jacobian_and_hessian",
+    ],
     "linalg": [
         "cholesky",
         "det",
@@ -145,6 +183,7 @@ BACKEND_ATTRIBUTES = {
         "eigh",
         "eigvalsh",
         "expm",
+        "fractional_matrix_power",
         "inv",
         "is_single_matrix_pd",
         "logm",
@@ -180,17 +219,10 @@ class BackendImporter:
 
     @staticmethod
     def _import_backend(backend_name):
-        if backend_name == "autograd":
-            from geomstats._backend import autograd as backend
-        elif backend_name == "numpy":
-            from geomstats._backend import numpy as backend
-        elif backend_name == "pytorch":
-            from geomstats._backend import pytorch as backend
-        elif backend_name == "tensorflow":
-            from geomstats._backend import tensorflow as backend
-        else:
-            raise RuntimeError("Unknown backend '{:s}'".format(backend_name))
-        return backend
+        try:
+            return importlib.import_module(f"geomstats._backend.{backend_name}")
+        except ModuleNotFoundError:
+            raise RuntimeError(f"Unknown backend '{backend_name}'")
 
     def _create_backend_module(self, backend_name):
         backend = self._import_backend(backend_name)
@@ -204,13 +236,9 @@ class BackendImporter:
                     submodule = getattr(backend, module_name)
                 except AttributeError:
                     raise RuntimeError(
-                        "Backend '{}' exposes no '{}' module".format(
-                            backend_name, module_name
-                        )
+                        f"Backend '{backend_name}' exposes no '{module_name}' module"
                     ) from None
-                new_submodule = types.ModuleType(
-                    "{}.{}".format(self._path, module_name)
-                )
+                new_submodule = types.ModuleType(f"{self._path}.{module_name}")
                 new_submodule.__file__ = submodule.__file__
                 setattr(new_module, module_name, new_submodule)
             else:
@@ -218,26 +246,26 @@ class BackendImporter:
                 new_submodule = new_module
             for attribute_name in attributes:
                 try:
-                    attribute = getattr(submodule, attribute_name)
+                    submodule_ = submodule
+                    if module_name == "" and not hasattr(submodule, attribute_name):
+                        submodule_ = common
+                    attribute = getattr(submodule_, attribute_name)
+
                 except AttributeError:
                     if module_name:
                         error = (
-                            "Module '{}' of backend '{}' has no "
-                            "attribute '{}'".format(
-                                module_name, backend_name, attribute_name
-                            )
+                            f"Module '{module_name}' of backend '{backend_name}' "
+                            f"has no attribute '{attribute_name}'"
                         )
                     else:
-                        error = "Backend '{}' has no attribute '{}'".format(
-                            backend_name, attribute_name
+                        error = (
+                            f"Backend '{backend_name}' has no "
+                            f"attribute '{attribute_name}'"
                         )
+
                     raise RuntimeError(error) from None
                 else:
                     setattr(new_submodule, attribute_name, attribute)
-
-        from numpy import pi
-
-        new_module.pi = pi
 
         return new_module
 
@@ -252,15 +280,14 @@ class BackendImporter:
         if fullname in sys.modules:
             return sys.modules[fullname]
 
-        _BACKEND = os.environ.get("GEOMSTATS_BACKEND")
-        if _BACKEND is None:
-            os.environ["GEOMSTATS_BACKEND"] = _BACKEND = "numpy"
-
-        module = self._create_backend_module(_BACKEND)
+        module = self._create_backend_module(BACKEND_NAME)
+        module.__name__ = f"geomstats.{BACKEND_NAME}"
         module.__loader__ = self
         sys.modules[fullname] = module
 
-        logging.info("Using {:s} backend".format(_BACKEND))
+        module.set_default_dtype("float64")
+
+        logging.info(f"Using {BACKEND_NAME} backend")
         return module
 
 

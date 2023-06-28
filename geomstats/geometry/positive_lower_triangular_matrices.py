@@ -22,18 +22,24 @@ class PositiveLowerTriangularMatrices(OpenSet):
 
     References
     ----------
-    .. [TP2019] . "Riemannian Geometry of Symmetric
-    Positive Definite Matrices Via Cholesky Decomposition"
-    SIAM journal on Matrix Analysis and Applications , 2019.
-    https://arxiv.org/abs/1908.09326
+    .. [TP2019] Z Lin. "Riemannian Geometry of Symmetric
+        Positive Definite Matrices Via Cholesky Decomposition"
+        SIAM journal on Matrix Analysis and Applications , 2019.
+        https://arxiv.org/abs/1908.09326
     """
 
-    def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", CholeskyMetric(n))
-        super(PositiveLowerTriangularMatrices, self).__init__(
-            dim=int(n * (n + 1) / 2), ambient_space=LowerTriangularMatrices(n), **kwargs
+    def __init__(self, n, equip=True):
+        super().__init__(
+            dim=int(n * (n + 1) / 2),
+            embedding_space=LowerTriangularMatrices(n),
+            equip=equip,
         )
         self.n = n
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return CholeskyMetric
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample from the manifold.
@@ -44,7 +50,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
             Number of samples.
             Optional, default: 1.
         bound : float
-            Side of hypercube support of the uniform distribution.
+            Side of hypercube support.
             Optional, default: 1.0
 
         Returns
@@ -52,9 +58,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         point : array-like, shape=[..., n, n]
            Sample.
         """
-        sample = super(PositiveLowerTriangularMatrices, self).random_point(
-            n_samples, bound
-        )
+        sample = super().random_point(n_samples, bound)
         return self.projection(sample)
 
     def belongs(self, mat, atol=gs.atol):
@@ -73,11 +77,10 @@ class PositiveLowerTriangularMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat belongs to cholesky space.
         """
-        is_lower_triangular = self.ambient_space.belongs(mat, atol)
+        is_lower_triangular = self.embedding_space.belongs(mat, atol)
         diagonal = Matrices.diagonal(mat)
         is_positive = gs.all(diagonal > 0, axis=-1)
-        belongs = gs.logical_and(is_lower_triangular, is_positive)
-        return belongs
+        return gs.logical_and(is_lower_triangular, is_positive)
 
     def projection(self, point):
         """Project a matrix to the Cholesksy space.
@@ -98,8 +101,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         vec_diag = gs.abs(Matrices.diagonal(point) - 0.1) + 0.1
         diag = gs.vec_to_diag(vec_diag)
         strictly_lower_triangular = Matrices.to_lower_triangular(point)
-        projection = diag + strictly_lower_triangular
-        return projection
+        return diag + strictly_lower_triangular
 
     @staticmethod
     def gram(point):
@@ -128,7 +130,6 @@ class PositiveLowerTriangularMatrices(OpenSet):
         ----------
         tangent_vec : array_like, shape=[..., n, n]
             Tangent vector at base point.
-            Symmetric Matrix.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -148,8 +149,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
         Parameters
         ----------
         tangent_vec : array_like, shape=[..., n, n]
-            tanget vector at gram(base_point)
-            Symmetric Matrix.
+            Tangent vector at gram(base_point).
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -164,34 +164,19 @@ class PositiveLowerTriangularMatrices(OpenSet):
         aux = Matrices.to_lower_triangular_diagonal_scaled(
             Matrices.mul(inv_base_point, tangent_vec, inv_transpose_base_point)
         )
-        inverse_differential_gram = Matrices.mul(base_point, aux)
-        return inverse_differential_gram
+        return Matrices.mul(base_point, aux)
 
 
 class CholeskyMetric(RiemannianMetric):
-    """Class for cholesky metric on cholesky space.
-
-    Parameters
-    ----------
-    n : int
-        Integer representing the shape of the matrices: n x n.
-
+    """Class for Cholesky metric on Cholesky space.
 
     References
     ----------
-        .. [TP2019] . "Riemannian Geometry of Symmetric
+    .. [TP2019] . "Riemannian Geometry of Symmetric
         Positive Definite Matrices Via Cholesky Decomposition"
         SIAM journal on Matrix Analysis and Applications , 2019.
         https://arxiv.org/abs/1908.09326
     """
-
-    def __init__(self, n):
-        """ """
-        dim = int(n * (n + 1) / 2)
-        super(CholeskyMetric, self).__init__(
-            dim=dim, signature=(dim, 0), default_point_type="matrix"
-        )
-        self.n = n
 
     @staticmethod
     def diag_inner_product(tangent_vec_a, tangent_vec_b, base_point):
@@ -215,8 +200,7 @@ class CholeskyMetric(RiemannianMetric):
         tangent_vec_a_diagonal = Matrices.diagonal(tangent_vec_a)
         tangent_vec_b_diagonal = Matrices.diagonal(tangent_vec_b)
         prod = tangent_vec_a_diagonal * tangent_vec_b_diagonal * inv_sqrt_diagonal
-        ip_diagonal = gs.sum(prod, axis=-1)
-        return ip_diagonal
+        return gs.sum(prod, axis=-1)
 
     @staticmethod
     def strictly_lower_inner_product(tangent_vec_a, tangent_vec_b):
@@ -236,7 +220,7 @@ class CholeskyMetric(RiemannianMetric):
         """
         sl_tagnet_vec_a = gs.tril_to_vec(tangent_vec_a, k=-1)
         sl_tagnet_vec_b = gs.tril_to_vec(tangent_vec_b, k=-1)
-        ip_sl = gs.einsum("...i,...i->...", sl_tagnet_vec_a, sl_tagnet_vec_b)
+        ip_sl = gs.dot(sl_tagnet_vec_a, sl_tagnet_vec_b)
         return ip_sl
 
     @classmethod
@@ -295,8 +279,7 @@ class CholeskyMetric(RiemannianMetric):
 
         sl_exp = sl_base_point + sl_tangent_vec
         diag_exp = gs.vec_to_diag(diag_base_point * diag_product_expm)
-        exp = sl_exp + diag_exp
-        return exp
+        return sl_exp + diag_exp
 
     def log(self, point, base_point, **kwargs):
         """Compute the Cholesky logarithm map.
@@ -325,8 +308,7 @@ class CholeskyMetric(RiemannianMetric):
 
         sl_log = sl_point - sl_base_point
         diag_log = gs.vec_to_diag(diag_base_point * diag_product_logm)
-        log = sl_log + diag_log
-        return log
+        return sl_log + diag_log
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Compute the Cholesky Metric squared distance.

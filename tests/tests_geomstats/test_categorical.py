@@ -3,14 +3,12 @@
 import warnings
 
 import geomstats.backend as gs
-import geomstats.tests
-from geomstats.information_geometry.categorical import (
-    CategoricalDistributions,
-    CategoricalMetric,
-)
+import tests.conftest
+from geomstats.information_geometry.categorical import CategoricalDistributions
+from geomstats.information_geometry.multinomial import MultinomialDistributions
 
 
-class TestCategoricalDistributions(geomstats.tests.TestCase):
+class TestCategoricalDistributions(tests.conftest.TestCase):
     """Class defining the categorical distributions tests."""
 
     def setup_method(self):
@@ -19,7 +17,7 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         warnings.simplefilter("ignore", category=UserWarning)
         self.dim = 3
         self.categorical = CategoricalDistributions(self.dim)
-        self.metric = CategoricalMetric(self.dim)
+        self.metric = self.categorical.metric
         self.n_points = 10
         self.n_samples = 20
 
@@ -56,7 +54,6 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         expected = gs.zeros(self.n_points)
         self.assertAllClose(expected, result, atol=1e-05)
 
-    @geomstats.tests.np_and_autograd_only
     def test_sample(self):
         """Test sample.
 
@@ -170,7 +167,10 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         )
         time = 0.5
         result = geod(time).shape
-        expected = (self.dim + 1,)
+        expected = (
+            1,
+            self.dim + 1,
+        )
         self.assertAllClose(expected, result)
 
         n_vecs = 5
@@ -189,5 +189,20 @@ class TestCategoricalDistributions(geomstats.tests.TestCase):
         geod = self.metric.geodesic(initial_point=initial_point, end_point=end_points)
         time = 0.5
         result = geod(time).shape
-        expected = (self.n_points, self.dim + 1)
+        expected = (self.n_points, 1, self.dim + 1)
+        self.assertAllClose(expected, result)
+
+    def test_dist(self):
+        """Check distance.
+
+        Check that the distance between two multinomial distributions with
+        n_draws is equal to the square root of n_draws times the distance
+        of the corresponding categorical distributions (n_draws=1).
+        """
+        n_draws = 10
+        multinomial = MultinomialDistributions(n_draws=n_draws, dim=self.dim)
+        point_a = multinomial.random_point()
+        point_b = multinomial.random_point()
+        result = multinomial.metric.dist(point_a, point_b)
+        expected = n_draws ** (1 / 2) * self.categorical.metric.dist(point_a, point_b)
         self.assertAllClose(expected, result)

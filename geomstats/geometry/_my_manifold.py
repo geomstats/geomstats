@@ -35,8 +35,8 @@ class MyManifold(Manifold):
         Dimension of the manifold.
     """
 
-    def __init__(self, dim, another_parameter, **kwargs):
-        super(MyManifold, self).__init__(dim, shape=(dim,))
+    def __init__(self, dim, another_parameter):
+        super().__init__(dim, shape=(dim,), equip=False)
         self.another_parameter = another_parameter
 
     # Implement the main methods of MyManifold, for example belongs:
@@ -132,7 +132,7 @@ class MyManifold(Manifold):
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
 
-        If the manifold is compact, a uniform distribution is used.
+        If the manifold is compact, preferably a uniform distribution will be used.
 
         Parameters
         ----------

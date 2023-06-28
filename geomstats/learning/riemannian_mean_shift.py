@@ -62,7 +62,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         max_iter=100,
         init_centers="from_points",
         kernel="flat",
-        **frechet_mean_kwargs
+        **frechet_mean_kwargs,
     ):
         self.manifold = manifold
         self.metric = metric
@@ -177,7 +177,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         self.centers = centers
 
     def predict(self, points):
-        """Predict the closest cluster each point in 'points' belongs to.
+        """Predict the closest cluster each point in `points` belongs to.
 
         Parameters
         ----------
@@ -187,9 +187,19 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         if self.centers is None:
             raise Exception("Not fitted")
 
-        closest_centers = []
-        for point in points:
-            closest_center = self.metric.closest_neighbor_index(point, self.centers)
-            closest_centers.append(self.centers[closest_center, :])
+        indices = self.metric.closest_neighbor_index(points, self.centers)
 
-        return gs.array(closest_centers)
+        return gs.take(self.centers, indices, axis=0)
+
+    def predict_labels(self, points):
+        """Predict the closest cluster label each point in `points` belongs to.
+
+        Parameters
+        ----------
+        points : array-like, shape=[..., n_features]
+            Clusters of points.
+        """
+        if self.centers is None:
+            raise Exception("Not fitted")
+
+        return self.metric.closest_neighbor_index(points, self.centers)

@@ -36,7 +36,6 @@ def plot_gaussian_mixture_distribution(
     z_axis_samples = gs.zeros((plot_precision, plot_precision))
 
     for z_index, _ in enumerate(z_axis_samples):
-
         x_y_plane_mesh = gs.concatenate(
             (
                 gs.expand_dims(x_axis_samples[z_index], -1),
@@ -56,7 +55,7 @@ def plot_gaussian_mixture_distribution(
         "via Expectation Maximization on Poincaré Disc"
     )
 
-    ax = fig.gca(projection="3d")
+    ax = fig.add_subplot(projection="3d")
     ax.plot_surface(
         x_axis_samples,
         y_axis_samples,

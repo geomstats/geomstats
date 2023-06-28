@@ -1,21 +1,22 @@
 """Unit tests for Riemannian KMeans."""
 
 import geomstats.backend as gs
-import geomstats.tests
-from geomstats.geometry import hypersphere, spd_matrices
+import tests.conftest
+from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.kmeans import RiemannianKMeans
 
 
-@geomstats.tests.np_and_autograd_only
-class TestRiemannianKMeans(geomstats.tests.TestCase):
+@tests.conftest.np_and_autograd_only
+class TestRiemannianKMeans(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 
     def test_hypersphere_kmeans_fit(self):
         gs.random.seed(55)
 
-        manifold = hypersphere.Hypersphere(2)
-        metric = hypersphere.HypersphereMetric(2)
+        manifold = Hypersphere(2)
+        metric = manifold.metric
 
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
@@ -34,15 +35,15 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         gs.random.seed(0)
         dim = 3
         n_points = 2
-        space = spd_matrices.SPDMatrices(dim)
+        space = SPDMatrices(dim)
         data = space.random_point(n_samples=n_points)
-        metric = spd_matrices.SPDMetricAffine(dim)
+        metric = space.metric
 
         kmeans = RiemannianKMeans(metric, n_clusters=1, init_step_size=1.0)
         kmeans.fit(data)
         result = kmeans.centroids
 
-        mean = FrechetMean(metric=metric, max_iter=100, point_type="matrix")
+        mean = FrechetMean(metric=metric, max_iter=100)
         mean.fit(data)
         expected = mean.estimate_
         self.assertAllClose(result, expected)
@@ -51,8 +52,8 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         gs.random.seed(1234)
         dim = 2
 
-        manifold = hypersphere.Hypersphere(dim)
-        metric = hypersphere.HypersphereMetric(dim)
+        manifold = Hypersphere(dim)
+        metric = manifold.metric
 
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
@@ -71,7 +72,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
     ):
         gs.random.seed(seed)
 
-        manifold = hypersphere.Hypersphere(n_features - 1)
+        manifold = Hypersphere(n_features - 1)
 
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
@@ -92,7 +93,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         n_features = 4
         n_clusters = 3
 
-        manifold = hypersphere.Hypersphere(n_features - 1)
+        manifold = Hypersphere(n_features - 1)
         centroids = manifold.random_von_mises_fisher(kappa=10, n_samples=n_clusters)
 
         self._test_hypersphere_kmeans_init(
@@ -104,7 +105,7 @@ class TestRiemannianKMeans(geomstats.tests.TestCase):
         # make_centroids is called by RiemannianKMeans.fit.
         def make_centroids(X, n_clusters):
             n_features = X.shape[1]
-            manifold = hypersphere.Hypersphere(n_features - 1)
+            manifold = Hypersphere(n_features - 1)
             centroids = manifold.random_von_mises_fisher(kappa=10, n_samples=n_clusters)
             return centroids
 

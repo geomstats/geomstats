@@ -44,7 +44,7 @@ def kmedoids_poincare_ball():
         space="H2_poincare_disk",
         marker=".",
         color="black",
-        point_type=manifold.point_type,
+        coords_type=manifold.default_coords_type,
     )
 
     for i in range(n_clusters):
@@ -54,7 +54,7 @@ def kmedoids_poincare_ball():
             space="H2_poincare_disk",
             marker=".",
             color=colors[i],
-            point_type=manifold.point_type,
+            coords_type=manifold.default_coords_type,
         )
 
     ax = visualization.plot(
@@ -64,7 +64,7 @@ def kmedoids_poincare_ball():
         marker="*",
         color="green",
         s=100,
-        point_type=manifold.point_type,
+        coords_type=manifold.default_coords_type,
     )
 
     ax.set_title("Kmedoids on Poincaré Ball Manifold")
@@ -124,7 +124,6 @@ def main():
 
 
 if __name__ == "__main__":
-
     compatible_backends = ["numpy", "pytorch"]
 
     if os.environ["GEOMSTATS_BACKEND"] not in compatible_backends:

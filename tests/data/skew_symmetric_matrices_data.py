@@ -1,5 +1,6 @@
 import random
 
+import geomstats.backend as gs
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from tests.data_generation import _MatrixLieAlgebraTestData
 
@@ -11,10 +12,12 @@ class SkewSymmetricMatricesTestData(_MatrixLieAlgebraTestData):
     n_points_list = random.sample(range(2, 5), 2)
     n_vecs_list = random.sample(range(2, 5), 2)
 
+    Space = SkewSymmetricMatrices
+
     def belongs_test_data(self):
         smoke_data = [
-            dict(n=2, mat=[[0.0, -1.0], [1.0, 0.0]], expected=True),
-            dict(n=3, mat=[[0.0, -1.0], [1.0, 0.0]], expected=False),
+            dict(n=2, mat=gs.array([[0.0, -1.0], [1.0, 0.0]]), expected=True),
+            dict(n=3, mat=gs.array([[0.0, -1.0], [1.0, 0.0]]), expected=False),
         ]
         return self.generate_tests(smoke_data)
 
@@ -49,60 +52,3 @@ class SkewSymmetricMatricesTestData(_MatrixLieAlgebraTestData):
                 )
 
         return self.generate_tests(smoke_data)
-
-    def matrix_representation_after_basis_representation_test_data(self):
-        return self._matrix_representation_after_basis_representation_test_data(
-            SkewSymmetricMatrices, self.space_args_list, self.n_points_list
-        )
-
-    def basis_representation_after_matrix_representation_test_data(self):
-        return self._basis_representation_after_matrix_representation_test_data(
-            SkewSymmetricMatrices, self.space_args_list, self.n_points_list
-        )
-
-    def basis_belongs_test_data(self):
-        return self._basis_belongs_test_data(self.space_args_list)
-
-    def basis_cardinality_test_data(self):
-        return self._basis_cardinality_test_data(self.space_args_list)
-
-    def random_point_belongs_test_data(self):
-        smoke_space_args_list = [(2,), (3,)]
-        smoke_n_points_list = [1, 2]
-        return self._random_point_belongs_test_data(
-            smoke_space_args_list,
-            smoke_n_points_list,
-            self.space_args_list,
-            self.n_points_list,
-        )
-
-    def projection_belongs_test_data(self):
-        return self._projection_belongs_test_data(
-            self.space_args_list, self.shape_list, self.n_points_list
-        )
-
-    def to_tangent_is_tangent_test_data(self):
-        return self._to_tangent_is_tangent_test_data(
-            SkewSymmetricMatrices,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_tangent_vec_is_tangent_test_data(self):
-        return self._random_tangent_vec_is_tangent_test_data(
-            SkewSymmetricMatrices, self.space_args_list, self.n_vecs_list
-        )
-
-    def to_tangent_is_projection_test_data(self):
-        return self._to_tangent_is_projection_test_data(
-            SkewSymmetricMatrices,
-            self.space_args_list,
-            self.shape_list,
-            self.n_vecs_list,
-        )
-
-    def random_point_is_tangent_test_data(self):
-        return self._random_point_is_tangent_test_data(
-            self.space_args_list, self.n_points_list
-        )

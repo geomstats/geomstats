@@ -3,27 +3,27 @@
 import pytest
 
 import geomstats.backend as gs
-import geomstats.tests
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+import tests.conftest
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
 from geomstats.learning.pca import TangentPCA
 
 
-@geomstats.tests.np_and_autograd_only
-class TestTangentPCA(geomstats.tests.TestCase):
+@tests.conftest.np_and_autograd_only
+class TestTangentPCA(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 
     def setup_method(self):
         self.so3 = SpecialOrthogonal(n=3, point_type="vector")
         self.spd = SPDMatrices(3)
-        self.spd_metric = SPDMetricAffine(3)
+        self.spd_metric = self.spd.metric
 
         self.n_samples = 10
 
         self.X = self.so3.random_uniform(n_samples=self.n_samples)
-        self.metric = self.so3.bi_invariant_metric
+        self.metric = self.so3.metric
         self.n_components = 2
 
     def test_tangent_pca_error(self):
@@ -102,6 +102,10 @@ class TestTangentPCA(geomstats.tests.TestCase):
 
     def test_fit_matrix_se(self):
         se_mat = SpecialEuclidean(n=3)
+        # TODO: update after refactoring learning
+        se_mat.metric = se_mat
+        se_mat._space = se_mat
+
         X = se_mat.random_point(self.n_samples)
         estimator = ExponentialBarycenter(se_mat)
         estimator.fit(X)

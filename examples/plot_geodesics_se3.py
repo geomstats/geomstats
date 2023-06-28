@@ -10,7 +10,7 @@ import geomstats.visualization as visualization
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 SE3_GROUP = SpecialEuclidean(n=3, point_type="vector")
-METRIC = SE3_GROUP.left_canonical_metric
+METRIC = SE3_GROUP.metric
 N_STEPS = 40
 
 

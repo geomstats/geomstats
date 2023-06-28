@@ -66,6 +66,9 @@ def empirical_frechet_var_bubble(n_samples, theta, dim, n_expectation=1000):
         estimator = FrechetMean(
             sphere.metric, max_iter=32, method="adaptive", init_point=north_pole
         )
+        if n_samples == 1:
+            data = gs.expand_dims(data, 0)
+
         estimator.fit(data)
         current_mean = estimator.estimate_
         var.append(sphere.metric.squared_dist(north_pole, current_mean))
@@ -154,7 +157,7 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
         )
         measured_modulation_factor.append(var)
         error.append(std_var)
-        logging.info("{} {} {} {}\n".format(n_samples, theta_i, var, std_var))
+        logging.info("%d %f %f %f", n_samples, theta_i, var, std_var)
         small_var_modulation_factor.append(
             1.0 + 2.0 / 3.0 * theta_i**2 * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples)
         )
@@ -167,14 +170,9 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
     plt.plot(theta, asymptotic_modulation_factor, "grey", label="Asymptotic prediction")
     plt.xlabel(r"Standard deviation $\theta$")
     plt.ylabel(r"Modulation factor $\alpha$")
-    plt.title(
-        "Convergence rate modulation factor, "
-        "sphere dim={1}, n={0}".format(n_samples, dim)
-    )
+    plt.title(f"Convergence rate modulation factor, sphere dim={n_samples}, n={dim}")
     plt.legend(loc="best")
     plt.draw()
-    plt.pause(0.01)
-    return plt
 
 
 def main():
@@ -190,35 +188,27 @@ def main():
     n_expectation = 10
 
     logging.info(
-        "Var of empirical mean for 1 sample, theta=0.1 "
-        "in S2 {} \n".format(
-            empirical_frechet_var_bubble(1, 0.1, 2, n_expectation=n_expectation)
-        )
+        "Var of empirical mean for 1 sample, theta=0.1 in S2 (%f, %e)",
+        *empirical_frechet_var_bubble(1, 0.1, 2, n_expectation=n_expectation),
     )
     logging.info(
-        "Var of empirical mean for 1 sample, theta=0.1 "
-        "in S3 {} \n".format(
-            empirical_frechet_var_bubble(1, 0.1, 3, n_expectation=n_expectation)
-        )
+        "Var of empirical mean for 1 sample, theta=0.1 in S3 (%f, %e)",
+        *empirical_frechet_var_bubble(1, 0.1, 3, n_expectation=n_expectation),
     )
 
     logging.info(
         "Modulation factor for 1 sample theta=0.1 in S2 "
-        "(should be close to 1): {} \n".format(
-            modulation_factor(1, 0.1, 2, n_expectation=n_expectation)
-        )
+        "(should be close to 1): (%f, %e)",
+        *modulation_factor(1, 0.1, 2, n_expectation=n_expectation),
     )
 
     logging.info(
         "Modulation factor for 500 sample theta close to Pi/2 in S5 "
-        "(should be around 25): {} \n".format(
-            modulation_factor(500, gs.pi / 2 - 0.001, 5, n_expectation=n_expectation)
-        )
+        "(should be around 25): (%f, %e)",
+        *modulation_factor(500, gs.pi / 2 - 0.001, 5, n_expectation=n_expectation),
     )
 
     plot_modulation_factor(2, 2, n_expectation=n_expectation)
-
-    plt.figure()
     plt.show()
 
 

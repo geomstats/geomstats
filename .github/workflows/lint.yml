@@ -2,40 +2,44 @@ name: "Linting"
 
 on:
   push:
-    branches: [master,github-actions-test]
+    branches: [master, github-actions-test]
   pull_request:
     branches: [master]
 
 jobs:
   lint:
-
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-18.04]
-        python-version: [3.9]
+        os: [ubuntu-latest]
+        python-version: [3.11]
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Linting
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{matrix.python-version}}
 
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: lint-${{matrix.os}}-${{matrix.python-version}}-${{ hashFiles('pyproject.toml') }}
+
       - name: install dependencies [pip]
-        run:  |
+        run: |
           pip install --upgrade pip setuptools wheel
-          pip install -e .[dev]
+          pip install -e .[lint]
 
       - name: Setup flake8 annotations
         uses: rbialon/flake8-annotations@v1
-      
+
       - name: linting [flake8]
         run: |
           flake8 geomstats/ tests/
 
-      - name : linting [black and isort]
+      - name: linting [black and isort]
         run: |
           black . --check
           isort --profile black --check .

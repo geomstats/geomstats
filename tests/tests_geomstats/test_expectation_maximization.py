@@ -1,7 +1,7 @@
 """Unit tests for Expectation Maximization."""
 
 import geomstats.backend as gs
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.learning.expectation_maximization import (
@@ -17,7 +17,7 @@ ZETA_UPPER_BOUND = 2.0
 ZETA_STEP = 0.001
 
 
-class TestEM(geomstats.tests.TestCase):
+class TestEM(tests.conftest.TestCase):
     """Class for testing Expectation Maximization."""
 
     def setup_method(self):
@@ -27,7 +27,6 @@ class TestEM(geomstats.tests.TestCase):
         self.space = PoincareBall(dim=self.dim)
         self.metric = self.space.metric
         self.initialisation_method = "random"
-        self.mean_method = "batch"
 
         cluster_1 = gs.random.uniform(
             low=0.2, high=0.6, size=(self.n_samples, self.dim)
@@ -41,7 +40,7 @@ class TestEM(geomstats.tests.TestCase):
         self.n_gaussian = 3
         self.data = gs.concatenate((cluster_1, cluster_2, cluster_3), axis=0)
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_fit_init_kmeans(self):
         """Test fitting data into a GMM."""
         gmm_learning = RiemannianEM(
@@ -68,7 +67,7 @@ class TestEM(geomstats.tests.TestCase):
         self.assertTrue((variances < 1).all() and (variances > 0).all())
         self.assertTrue(self.space.belongs(means).all())
 
-    @geomstats.tests.np_and_autograd_only
+    @tests.conftest.np_and_autograd_only
     def test_fit_init_random(self):
         """Test fitting data into a GMM."""
         gmm_learning = RiemannianEM(
@@ -99,9 +98,7 @@ class TestEM(geomstats.tests.TestCase):
         """Test for weighted mean."""
         data = gs.array([[0.1, 0.2], [0.25, 0.35]])
         weights = gs.array([3.0, 1.0])
-        mean_o = FrechetMean(
-            metric=self.metric, point_type="vector", init_step_size=1.0
-        )
+        mean_o = FrechetMean(metric=self.metric, init_step_size=1.0)
         mean_o.fit(data, weights=weights)
         result = mean_o.estimate_
         expected = self.metric.exp(
@@ -109,7 +106,6 @@ class TestEM(geomstats.tests.TestCase):
         )
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_autograd_and_torch_only
     def test_normalization_factor(self):
         """Test for Gaussian distribution normalization factor."""
         gmm = RiemannianEM(self.metric)
@@ -148,7 +144,7 @@ class TestEM(geomstats.tests.TestCase):
         find_var_verdict = gs.array([0.481, 0.434, 0.378, 0.311])
         self.assertAllClose(find_var_test, find_var_verdict, TOLERANCE)
 
-    @geomstats.tests.autograd_only
+    @tests.conftest.autograd_only
     def test_fit_init_random_sphere(self):
         """Test fitting data into a GMM."""
         space = Hypersphere(2)

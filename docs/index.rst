@@ -1,79 +1,78 @@
 Geomstats
 =========
 
-Geomstats is an open-source Python package for computations and statistics on
-nonlinear manifolds. The mathematical definition of
-`manifold <https://en.wikipedia.org/wiki/Manifold>`_ is beyond the scope of this documentation.
-However, in order to use Geomstats, you can visualize it as a smooth subset of the
-Euclidean space. Simple examples of manifolds include the sphere or the space of 3D rotations.
+.. image:: geomstats_logo.jpg
+  :width: 160
+  :alt: Geomstats Logo
 
-Data from many application fields are elements of manifolds. For instance,
-the manifold of 3D rotations SO(3), or the manifold of 3D rotations and translations SE(3),
-appear naturally when performing statistical learning on articulated objects like the human
-spine or robotics arms. Other examples of data that belong to manifolds
-are introduced in our `paper <https://arxiv.org/abs/2004.04667>`_.
+**Geomstats** is an open-source Python package for computations, statistics, and machine learning on
+nonlinear manifolds. Data from many application fields are elements of manifolds. For instance,
+the manifold of 3D rotations SO(3) naturally appears when performing statistical learning on 
+articulated objects like the human spine or robotics arms. Likewise, shape spaces modeling biological shapes or other natural shapes 
+are manifolds. Additional examples are introduced in Geomstats `paper <https://arxiv.org/abs/2004.04667>`_. Geomstats' `source code <https://github.com/geomstats/geomstats>`_ is freely available on GitHub.
 
-Computations on manifolds require special tools of
+.. figure:: geomstats_examples.jpg
+   :alt: natural shapes
+   :target: https://geomstats.github.io/notebooks/11_real_world_applications__cell_shapes_analysis.html
+   :class: with-shadow
+   :width: 1000px
+
+   **Figure**: Shapes in natural sciences can be represented as data points on "manifolds". Images credits: Self Reflected, `Greg Dunn Neuro Art <www.gregadunn.com>`_, British Art Foundation, Ashok Prasad, Matematik Dunyasi, Gabriel Pérez.
+
+Computations and statistics on manifolds require special tools of
 `differential geometry <https://en.wikipedia.org/wiki/Differential_geometry>`_. Computing
 the mean of two rotation matrices :math:`R_1, R_2` as :math:`\frac{R_1 + R_2}{2}` does not
 generally give a rotation matrix. Statistics for data on manifolds need to be extended to
 "geometric statistics" to perform consistent operations.
 
-In this context, Geomstats provides code to fulfill four objectives:
+Objectives
+----------
 
-- provide educational support to learn "hands-on" differential geometry and geometric statistics, through its examples and visualizations.
-- foster research in differential geometry and geometric statistics by providing operations on manifolds to gain intuition on results of a research paper;
-- democratize the use of geometric statistics by implementing user-friendly geometric learning algorithms using Scikit-Learn API; and
-- provide a platform to share learning algorithms on manifolds.
+Geomstats is here to fulfill four objectives:
 
-The `source code <https://github.com/geomstats/geomstats>`_ is freely available on GitHub.
+1. provide educational support to learn "hands-on" differential geometry and geometric statistics, through its examples and visualizations.
+2. foster research in differential geometry and geometric statistics by providing operations on manifolds to gain intuition on results of a research paper;
+3. democratize the use of geometric statistics by implementing user-friendly geometric learning algorithms using Scikit-Learn API; and
+4. provide a platform to share learning algorithms on manifolds.
 
-The package is organized into two main modules:
-`geometry` and `learning`.
+Design
+------
 
-The module `geometry` implements concepts in differential geometry,
-such as manifolds and Riemannian metrics, with associated exponential
-and logarithmic maps, geodesics, and parallel transport.
+Geomstats is organized into two main modules: `geometry` and `learning`.
 
-The module `learning` implements statistics and learning algorithms for data
-on manifolds, such as estimation, clustering and dimension reduction.
-The code is object-oriented and classes inherit from
-scikit-learn's base classes and mixins.
+The module `geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/geometry>`_ implements concepts from differential geometry,
+such as manifolds and Riemannian metrics. The module `learning <https://github.com/geomstats/geomstats/tree/master/geomstats/learning>`_ implements statistics and learning algorithms for data
+on manifolds, such as supervised and unsupervised learning techniques.
 
-In both modules, the operations are vectorized for batch computation and provide
-support for different execution backends---namely NumPy, PyTorch, and TensorFlow.
+.. figure:: conn_parallel_vector_field.jpeg
+   :alt: parallel vector field
+   :target: https://github.com/geomstats/geomstats/blob/master/notebooks/01_foundations__manifolds.ipynb
+   :class: with-shadow
+   :width: 1000px
 
-To learn how to use `geomstats`, visit the page :ref:`first_steps`.
-To contribute to `geomstats` visit the page :ref:`contributing`.
+   **Figure**: Parallel transport of a vector X (pink) along a geodesic (green) on the manifold M, e.g. representing a deformation's force acting on the time evolution of an organ shape. Image credits: `Adele Myers <https://ahma2017.wixsite.com/adelemyers>`_.
+
+The code is object-oriented and follows Scikit-Learn's API. The operations are vectorized for batch computation and provide
+support for different execution backends --- namely NumPy, PyTorch and Autograd.
+
+Learn More
+----------
+
+To learn how to use `geomstats`, visit :ref:`first_steps`. To contribute to `geomstats` visit :ref:`contributing`. To learn more about differential geometry and manifolds, visit :ref:`explanation`. To find more advanced examples, visit :ref:`tutorials`.
+
+
 
 .. toctree::
    :maxdepth: 1
-   :caption: Getting started
+   :hidden:
 
-   first-steps.rst
-   examples.rst
-   api-reference.rst
-   contributing.rst
-   gsod.rst
+   getting_started/index
+   explanation/index
+   tutorials/index
+   contributing/index
+   api/index
+   Roadmap <roadmap>
+   Governance <governance>
+   Google Season of Docs <gsod>
+   Hackathons <hackathons>
 
-.. nbgallery::
-   :maxdepth: 1
-   :caption: Tutorials
-
-
-   notebooks/00_foundations__introduction_to_geomstats.ipynb
-   notebooks/01_foundations__manifolds.ipynb
-   notebooks/03_practical_methods__data_on_manifolds.ipynb
-   notebooks/04_practical_methods__from_vector_spaces_to_manifolds.ipynb
-   notebooks/05_practical_methods__simple_machine_learning_on_tangent_spaces.ipynb
-   notebooks/06_practical_methods__riemannian_frechet_mean_and_tangent_pca.ipynb
-   notebooks/07_practical_methods__riemannian_kmeans.ipynb
-   notebooks/08_practical_methods__information_geometry.ipynb
-   notebooks/09_practical_methods__implement_your_own_riemannian_geometry.ipynb
-   notebooks/10_practical_methods__shape_analysis.ipynb
-   notebooks/11_real_world_applications__cell_shapes_analysis.ipynb
-   notebooks/12_real_world_applications__emg_sign_classification_in_spd_manifold.ipynb
-   notebooks/13_real_world_applications__graph_embedding_and_clustering_in_hyperbolic_space.ipynb
-   notebooks/14_real_world_applications__hand_poses_analysis_in_kendall_shape_space.ipynb
-   notebooks/15_real_world_applications__optic_nerve_heads_analysis_in_kendall_shape_space.ipynb
-   notebooks/16_real_world_applications__visualizations_in_kendall_shape_spaces.ipynb

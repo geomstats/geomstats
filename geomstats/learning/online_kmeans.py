@@ -69,7 +69,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20, atol=1e-5, max_iter=5
         step_size = gs.floor(gs.array(iteration / n_repetitions)) + 1
 
         random_index = gs.random.randint(low=0, high=n_samples, size=(1,))
-        point = gs.get_slice(X, gs.cast(random_index, gs.int32))
+        point = gs.get_slice(X, gs.cast(random_index, gs.int32))[0]
 
         index_to_update = metric.closest_neighbor_index(point, cluster_centers)
         center_to_update = gs.copy(gs.get_slice(cluster_centers, index_to_update))
@@ -95,9 +95,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20, atol=1e-5, max_iter=5
             "clustering may be inaccurate".format(max_iter)
         )
 
-    labels = gs.zeros(n_samples)
-    for i in range(n_samples):
-        labels[i] = int(metric.closest_neighbor_index(X[i], cluster_centers))
+    labels = metric.closest_neighbor_index(X, cluster_centers)
 
     return cluster_centers, labels
 
@@ -173,6 +171,8 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         self.max_iter = max_iter
         self.point_type = point_type
 
+        self.cluster_centers_ = self.labels_ = None
+
     def fit(self, X):
         """Perform clustering.
 
@@ -205,4 +205,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         labels : int
             Index of the cluster each sample belongs to.
         """
+        if self.cluster_centers_ is None:
+            raise Exception("Not fitted")
+
         return self.metric.closest_neighbor_index(point, self.cluster_centers_)

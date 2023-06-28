@@ -4,10 +4,38 @@ Lead authors: Anna Calissano & Jonas Lueg
 """
 
 import functools
+import itertools
 from abc import ABC, abstractmethod
 
 
-def _vectorize_point(*args_positions):
+def broadcast_lists(list_a, list_b):
+    """Broadcast two lists.
+
+    Similar behavior as ``gs.broadcast_arrays``, but for lists.
+    """
+    n_a = len(list_a)
+    n_b = len(list_b)
+
+    if n_a == n_b:
+        return list_a, list_b
+
+    if n_a == 1:
+        return itertools.zip_longest(list_a, list_b, fillvalue=list_a[0])
+
+    if n_b == 1:
+        return itertools.zip_longest(list_a, list_b, fillvalue=list_b[0])
+
+    raise Exception(f"Cannot broadcast lens {n_a} and {n_b}")
+
+
+def _manipulate_input(arg):
+    if not (type(arg) in [list, tuple]):
+        return [arg]
+
+    return arg
+
+
+def _vectorize_point(*args_positions, manipulate_input=_manipulate_input):
     """Check point type and transform in iterable if not the case.
 
     Parameters
@@ -22,20 +50,14 @@ def _vectorize_point(*args_positions):
     """
 
     def _dec(func):
-        def _manipulate_input(arg):
-            if not (type(arg) in [list, tuple]):
-                return [arg]
-
-            return arg
-
         @functools.wraps(func)
         def _wrapped(*args, **kwargs):
             args = list(args)
             for pos, name in args_positions:
                 if name in kwargs:
-                    kwargs[name] = _manipulate_input(kwargs[name])
+                    kwargs[name] = manipulate_input(kwargs[name])
                 else:
-                    args[pos] = _manipulate_input(args[pos])
+                    args[pos] = manipulate_input(args[pos])
 
             return func(*args, **kwargs)
 
@@ -67,21 +89,30 @@ class Point(ABC):
 
 
 class PointSet(ABC):
-    r"""Class for a set of points of type Point.
+    r"""Class for a set of points of type Point."""
 
-    Parameters
-    ----------
-    param: int
-        Parameter defining the pointset.
+    def __init__(self, equip=True):
+        if equip:
+            self.equip_with_metric()
 
-    default_point_type : str, {\'vector\', \'matrix\', \'Point\'}
-        Point type.
-        Optional, default: \'Point\'.
+    def equip_with_metric(self, Metric=None, **metric_kwargs):
+        """Equip manifold with Metric.
 
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
-        Coordinate type.
-        Optional, default: \'intrinsic\'.
-    """
+        Parameters
+        ----------
+        Metric : PointSetMetric object
+            If None, default metric will be used.
+        """
+        if Metric is None:
+            out = self.default_metric()
+            if isinstance(out, tuple):
+                Metric, kwargs = out
+                kwargs.update(metric_kwargs)
+                metric_kwargs = kwargs
+            else:
+                Metric = out
+
+        self.metric = Metric(self, **metric_kwargs)
 
     @abstractmethod
     def belongs(self, point, atol):
@@ -135,23 +166,10 @@ class PointSet(ABC):
 
 
 class PointSetMetric(ABC):
-    r"""Class for the lenght spaces.
+    r"""Class for the lenght spaces."""
 
-    Parameters
-    ----------
-    Set : PointSet
-        Underling PointSet.
-    default_point_type : str, {\'vector\', \'matrix\', \'Point\' }
-        Point type.
-        Optional, default: \'Point\'.
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
-        Coordinate type.
-        Optional, default: \'intrinsic\'.
-    """
-
-    def __init__(self, space: PointSet, **kwargs):
-        super(PointSetMetric, self).__init__(**kwargs)
-        self.space = space
+    def __init__(self, space):
+        self._space = space
 
     @abstractmethod
     def dist(self, point_a, point_b, **kwargs):

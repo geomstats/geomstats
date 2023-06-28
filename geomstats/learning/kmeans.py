@@ -76,7 +76,6 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.init_step_size = init_step_size
         self.verbose = verbose
         self.mean_method = mean_method
-        self.point_type = metric.default_point_type
         self.max_iter = max_iter
         self.max_iter_mean = max_iter_mean
 
@@ -93,7 +92,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[..., n_features]
+        X : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples and
             n_features is the number of features.
         max_iter : int
@@ -111,29 +110,24 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         if isinstance(self.init, str):
             if self.init == "kmeans++":
-                centroids = [gs.expand_dims(X[randint(0, n_samples - 1)], 0)]
+                centroids = [X[randint(0, n_samples - 1)]]
                 for i in range(self.n_clusters - 1):
-                    dists = [
-                        gs.to_ndarray(self.metric.dist(centroids[j], X), 2, 1)
-                        for j in range(i + 1)
-                    ]
-                    dists = gs.hstack(dists)
-                    dists_to_closest_centroid = gs.amin(dists, 1)
+                    dists = [self.metric.dist(centroids[j], X) for j in range(i + 1)]
+                    dists_to_closest_centroid = gs.amin(dists, 0)
                     indices = gs.arange(n_samples)
                     weights = dists_to_closest_centroid / gs.sum(
                         dists_to_closest_centroid
                     )
                     index = rv_discrete(values=(indices, weights)).rvs()
-                    centroids.append(gs.expand_dims(X[index], 0))
+                    centroids.append(X[index])
             elif self.init == "random":
                 centroids = [
-                    gs.expand_dims(X[randint(0, n_samples - 1)], 0)
-                    for i in range(self.n_clusters)
+                    X[randint(0, n_samples - 1)] for i in range(self.n_clusters)
                 ]
             else:
                 raise ValueError(f"Unknown initial centroids method '{self.init}'.")
 
-            centroids = gs.concatenate(centroids, axis=0)
+            centroids = gs.stack(centroids, axis=0)
         else:
             if callable(self.init):
                 centroids = self.init(X, self.n_clusters)
@@ -158,6 +152,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         dists = gs.hstack(dists)
         self.labels = gs.argmin(dists, 1)
         index = 0
+
+        mean_estimator = FrechetMean(
+            metric=self.metric,
+            max_iter=self.max_iter_mean,
+            method=self.mean_method,
+            init_step_size=self.init_step_size,
+        )
         while index < self.max_iter:
             index += 1
             if self.verbose > 0:
@@ -165,20 +166,11 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
             old_centroids = gs.copy(self.centroids)
             for i in range(self.n_clusters):
-                fold = gs.squeeze(X[self.labels == i])
+                fold = X[self.labels == i]
 
                 if len(fold) > 0:
-
-                    mean = FrechetMean(
-                        metric=self.metric,
-                        max_iter=self.max_iter_mean,
-                        point_type=self.point_type,
-                        method=self.mean_method,
-                        init_step_size=self.init_step_size,
-                    )
-                    mean.fit(fold)
-
-                    self.centroids[i] = mean.estimate_
+                    mean_estimator.fit(fold)
+                    self.centroids[i] = mean_estimator.estimate_
                 else:
                     self.centroids[i] = X[randint(0, n_samples - 1)]
 

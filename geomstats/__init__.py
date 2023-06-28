@@ -1,6 +1,6 @@
 """Import main modules."""
 
-__version__ = "2.5.0"
+__version__ = "2.6.0"
 
 import geomstats._backend
 import geomstats._logging
@@ -16,7 +16,6 @@ import geomstats.geometry.manifold
 import geomstats.geometry.minkowski
 import geomstats.geometry.poincare_polydisk
 import geomstats.geometry.product_manifold
-import geomstats.geometry.product_riemannian_metric
 import geomstats.geometry.riemannian_metric
 import geomstats.geometry.skew_symmetric_matrices
 import geomstats.geometry.spd_matrices

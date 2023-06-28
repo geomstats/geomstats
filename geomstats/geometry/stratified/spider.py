@@ -2,35 +2,35 @@
 
 Lead authors: Anna Calissano & Jonas Lueg
 """
-import itertools
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.stratified.point_set import (
     Point,
     PointSet,
     PointSetMetric,
     _vectorize_point,
+    broadcast_lists,
 )
 
 
 class SpiderPoint(Point):
     r"""Class for points of the Spider.
 
-    A point in the Spider is `math:`(s,c) \in \mathbb{N} \times \mathbb{R}`.
+    A point in the Spider is :math:`(s,c) \in \mathbb{N} \times \mathbb{R}`.
 
     Parameters
     ----------
     stratum : int
-        The stratum, an integer indicating the stratum the point lies in. If zero, then
-        the point is on the origin.
+        The stratum, an integer indicating the stratum the point lies in.
+        If zero, then the point is on the origin.
     stratum_coord : float
-        A positive number, the coordinate of the point. It must be zero if and only if
-        the stratum is zero, i.e. the origin.
+        A positive number, the coordinate of the point. It must be zero if and
+        only if the stratum is zero, i.e. the origin.
     """
 
     def __init__(self, stratum, stratum_coord):
-        super(SpiderPoint, self).__init__()
+        super().__init__()
         if stratum == 0 and stratum_coord != 0:
             raise ValueError("If the stratum is zero, x must be zero.")
         self.stratum = stratum
@@ -38,7 +38,7 @@ class SpiderPoint(Point):
 
     def __repr__(self):
         """Return a readable representation of the instance."""
-        return f"s{self.stratum}: {self.stratum_coord}"
+        return f"r{self.stratum}: {self.stratum_coord}"
 
     def __hash__(self):
         """Return the hash of the instance."""
@@ -60,7 +60,7 @@ class Spider(PointSet):
     r"""Spider: a set of rays attached to the origin.
 
     The k-spider consists of k copies of the positive real line
-    `math:`\mathbb{R}_{\geq 0}` glued together at the origin [Feragen2020].
+    :math:`\mathbb{R}_{\geq 0}` glued together at the origin [Feragen2020]_.
 
     Parameters
     ----------
@@ -70,14 +70,19 @@ class Spider(PointSet):
 
     References
     ----------
-    ..[Feragen2020]  Feragen, Aasa, and Tom Nye. "Statistics on stratified spaces."
-    Riemannian Geometric Statistics in Medical Image Analysis.
-    Academic Press, 2020. 299-342.
+    .. [Feragen2020]  Feragen, Aasa, and Tom Nye. "Statistics on stratified spaces."
+        Riemannian Geometric Statistics in Medical Image Analysis.
+        Academic Press, 2020. 299-342.
     """
 
-    def __init__(self, n_rays):
-        super(Spider, self).__init__()
+    def __init__(self, n_rays, equip=True):
+        super().__init__(equip=equip)
         self.n_rays = n_rays
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return SpiderMetric
 
     def random_point(self, n_samples=1):
         r"""Compute a random point of the spider set.
@@ -121,7 +126,6 @@ class Spider(PointSet):
             results += [
                 self._coord_check(single_point)
                 and self._n_rays_check(single_point)
-                and self._zero_check(single_point)
                 and type(single_point) is SpiderPoint
             ]
         return gs.array(results)
@@ -140,24 +144,6 @@ class Spider(PointSet):
             Boolean denoting if the point has a ray in the rays set.
         """
         if single_point.stratum not in list(range(self.n_rays + 1)):
-            return False
-        return True
-
-    @staticmethod
-    def _zero_check(single_point):
-        r"""Check if a random point satisfy the zero condition.
-
-        Parameters
-        ----------
-        single_point : SpiderPoint
-             Point to be checked.
-
-        Returns
-        -------
-        belongs : boolean
-            Boolean denoting if the point has zero length when it has zero ray.
-        """
-        if single_point.stratum == 0 and single_point.stratum_coord != 0:
             return False
         return True
 
@@ -202,14 +188,16 @@ class Spider(PointSet):
 class SpiderMetric(PointSetMetric):
     """Geometry on the Spider, induced by the rays Geometry."""
 
-    def __init__(self, space, ray_metric=EuclideanMetric(1)):
-        super(SpiderMetric, self).__init__(space=space)
+    def __init__(self, space, ray_metric=None):
+        super().__init__(space=space)
+        if ray_metric is None:
+            ray_metric = Euclidean(dim=1, equip=True).metric
         self.ray_metric = ray_metric
 
     @property
     def n_rays(self):
         """Get number of rays."""
-        return self.space.n_rays
+        return self._space.n_rays
 
     @_vectorize_point((1, "a"), (2, "b"))
     def dist(self, point_a, point_b):
@@ -230,15 +218,10 @@ class SpiderMetric(PointSetMetric):
         point_array : array-like, shape=[...]
             An array with the distance.
         """
-        if len(point_a) == 1:
-            values = itertools.zip_longest(point_a, point_b, fillvalue=point_a[0])
-        elif len(point_b) == 1:
-            values = itertools.zip_longest(point_a, point_b, fillvalue=point_b[0])
-        else:
-            values = itertools.zip_longest(point_a, point_b)
+        point_a, point_b = broadcast_lists(point_a, point_b)
 
         result = []
-        for point_a_, point_b_ in values:
+        for point_a_, point_b_ in zip(point_a, point_b):
             if (
                 point_a_.stratum == point_b_.stratum
                 or point_a_.stratum == 0
@@ -276,13 +259,12 @@ class SpiderMetric(PointSetMetric):
 
             return [fnc(t) for fnc in fncs]
 
-        if len(initial_point) == 1 and len(end_point) != 1:
-            values = itertools.zip_longest(
-                initial_point, end_point, fillvalue=initial_point[0]
-            )
-        else:
-            values = zip(initial_point, end_point)
-        fncs = [self._point_geodesic(pt_a, pt_b) for (pt_a, pt_b) in values]
+        initial_point, end_point = broadcast_lists(initial_point, end_point)
+
+        fncs = [
+            self._point_geodesic(pt_a, pt_b)
+            for (pt_a, pt_b) in zip(initial_point, end_point)
+        ]
         return lambda t: _vec(t, fncs=fncs)
 
     def _point_geodesic(self, initial_point, end_point):

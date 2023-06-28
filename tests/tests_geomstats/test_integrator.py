@@ -4,12 +4,12 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.integrator as integrator
-import geomstats.tests
+import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.matrices import Matrices
 
 
-class TestIntegrator(geomstats.tests.TestCase):
+class TestIntegrator(tests.conftest.TestCase):
     def setup_method(self):
         self.dimension = 4
         self.dt = 0.1

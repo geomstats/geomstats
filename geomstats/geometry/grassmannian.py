@@ -6,79 +6,42 @@ subspaces in n-dimensional Euclidean space.
 
 Lead author: Olivier Peltre.
 
-:math:`Gr(n, k)` is represented by
+:math:`Gr(n, p)` is represented by
 :math:`n \times n` matrices
-of rank :math:`k`  satisfying :math:`P^2 = P` and :math:`P^T = P`.
-Each :math:`P \in Gr(n, k)` is identified with the unique
+of rank :math:`p`  satisfying :math:`P^2 = P` and :math:`P^T = P`.
+Each :math:`P \in Gr(n, p)` is identified with the unique
 orthogonal projector onto :math:`{\rm Im}(P)`.
 
-:math:`Gr(n, k)` is a homogoneous space, quotient of the special orthogonal
-group by the subgroup of rotations stabilising a k-dimensional subspace:
+:math:`Gr(n, p)` is a homogoneous space, quotient of the special orthogonal
+group by the subgroup of rotations stabilising a :math:`p`-dimensional subspace:
 
 .. math::
 
-    Gr(n, k) \simeq \frac {SO(n)} {SO(k) \times SO(n-k)}
+    Gr(n, p) \simeq \frac {SO(n)} {SO(p) \times SO(n-p)}
 
 It is therefore customary to represent the Grassmannian
-by equivalence classes of orthogonal :math:`k`-frames in :math:`{\mathbb R}^n`.
+by equivalence classes of orthogonal :math:`p`-frames in :math:`{\mathbb R}^n`.
 For such a representation, work in the Stiefel manifold instead.
 
 .. math::
 
-    Gr(n, k) \simeq St(n, k) / SO(k)
+    Gr(n, p) \simeq St(n, p) / SO(p)
 
 References
 ----------
-.. [Batzies15]   Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
-                “Geometric Mean and Geodesic Regression on Grassmannians.”
-                Linear Algebra and Its Applications 466 (February 1, 2015):
-                83–101. https://doi.org/10.1016/j.laa.2014.10.003.
+.. [Batzies15] Batzies, E., K. Hüper, L. Machado, and F. Silva Leite.
+    “Geometric Mean and Geodesic Regression on Grassmannians.”
+    Linear Algebra and Its Applications 466 (February 1, 2015):
+    83–101. https://doi.org/10.1016/j.laa.2014.10.003.
 """
 
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.base import LevelSet
-from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-
-
-def submersion(point, k):
-    r"""Submersion that defines the Grassmann manifold.
-
-    The Grassmann manifold is defined here as embedded in the set of
-    symmetric matrices, as the pre-image of the function defined around the
-    projector on the space spanned by the first k columns of the identity
-    matrix by (see Exercise E.25 in [Pau07]_).
-    .. math:
-
-            \begin{pmatrix} I_k + A & B^T \\ B & D \end{pmatrix} \mapsto
-                (D - B(I_k + A)^{-1}B^T, A + A^2 + B^TB
-
-    This map is a submersion and its zero space is the set of orthogonal
-    rank-k projectors.
-
-    References
-    ----------
-    .. [Pau07]   Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
-                 https://www.imo.universite-paris-saclay.fr/~paulin
-                 /notescours/cours_geodiff.pdf.
-    """
-    _, eigvecs = gs.linalg.eigh(point)
-    eigvecs = gs.flip(eigvecs, -1)
-    flipped_point = Matrices.mul(Matrices.transpose(eigvecs), point, eigvecs)
-    b = flipped_point[..., k:, :k]
-    d = flipped_point[..., k:, k:]
-    a = flipped_point[..., :k, :k] - gs.eye(k)
-    first = d - Matrices.mul(
-        b, GeneralLinear.inverse(a + gs.eye(k)), Matrices.transpose(b)
-    )
-    second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
-    row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
-    row_2 = gs.concatenate([Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
-    return gs.concatenate([row_1, row_2], axis=-2)
+from geomstats.vectorization import repeat_out
 
 
 def _squared_dist_grad_point_a(point_a, point_b, metric):
@@ -93,7 +56,7 @@ def _squared_dist_grad_point_a(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -117,7 +80,7 @@ def _squared_dist_grad_point_b(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -137,10 +100,9 @@ def _squared_dist(point_a, point_b, metric):
     and point_b, as defined by the metric.
 
     This is an auxiliary private function that:
+
     - is called by the method `squared_dist` of the class
-    SpecialEuclideanMatrixCannonicalLeftMetric,
-    - has been created to support the implementation
-    of custom_gradient in tensorflow backend.
+      SpecialEuclideanMatrixCanonicalLeftMetric,
 
     Parameters
     ----------
@@ -148,7 +110,7 @@ def _squared_dist(point_a, point_b, metric):
         Point.
     point_b : array-like, shape=[..., dim]
         Point.
-    metric : SpecialEuclideanMatrixCannonicalLeftMetric
+    metric : SpecialEuclideanMatrixCanonicalLeftMetric
         Metric defining the distance.
 
     Returns
@@ -156,50 +118,109 @@ def _squared_dist(point_a, point_b, metric):
     _ : array-like, shape=[...,]
         Geodesic distance between point_a and point_b.
     """
-    return metric.private_squared_dist(point_a, point_b)
+    return metric._squared_dist(point_a, point_b)
 
 
 class Grassmannian(LevelSet):
-    """Class for Grassmann manifolds Gr(n, k).
+    """Class for Grassmann manifolds :math:`Gr(n, p)`.
 
     Parameters
     ----------
     n : int
         Dimension of the Euclidean space.
-    k : int
+    p : int
         Dimension of the subspaces.
     """
 
-    def __init__(self, n, k, **kwargs):
-        geomstats.errors.check_integer(k, "k")
+    def __init__(self, n, p, equip=True):
+        geomstats.errors.check_integer(p, "p")
         geomstats.errors.check_integer(n, "n")
-        if k > n:
+        if p > n:
             raise ValueError(
-                "k < n is required: k-dimensional subspaces in n dimensions."
+                "p < n is required: p-dimensional subspaces in n dimensions."
             )
 
         self.n = n
-        self.k = k
+        self.p = p
 
-        kwargs.setdefault("metric", GrassmannianCanonicalMetric(n, k))
-        dim = int(k * (n - k))
-        super(Grassmannian, self).__init__(
-            dim=dim,
-            embedding_space=SymmetricMatrices(n),
-            submersion=lambda x: submersion(x, k),
-            value=gs.zeros((n, n)),
-            tangent_submersion=lambda v, x: 2
-            * Matrices.to_symmetric(Matrices.mul(x, v))
-            - v,
-            **kwargs
+        dim = int(p * (n - p))
+        super().__init__(dim=dim, equip=equip)
+
+    def _define_embedding_space(self):
+        return SymmetricMatrices(self.n)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return GrassmannianCanonicalMetric
+
+    def submersion(self, point):
+        r"""Submersion that defines the Grassmann manifold.
+
+        The Grassmann manifold is defined here as embedded in the set of
+        symmetric matrices, as the pre-image of the function defined around the
+        projector on the space spanned by the first :math:`p` columns of the identity
+        matrix by (see Exercise E.25 in [Pau07]_).
+
+        .. math::
+
+            \begin{pmatrix} I_p + A & B^T \\ B & D \end{pmatrix} \mapsto
+                (D - B(I_p + A)^{-1}B^T, A + A^2 + B^TB)
+
+        This map is a submersion and its zero space is the set of orthogonal
+        rank-:math:`p` projectors.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_point : array-like, shape=[..., n, n]
+
+        References
+        ----------
+        .. [Pau07] Paulin, Frédéric. “Géométrie diﬀérentielle élémentaire,” 2007.
+            https://www.imo.universite-paris-saclay.fr/~paulin/notescours/
+            cours_geodiff.pdf.
+        """
+        p = self.p
+
+        _, eigvecs = gs.linalg.eigh(point)
+        eigvecs = gs.flip(eigvecs, -1)
+        flipped_point = Matrices.mul(Matrices.transpose(eigvecs), point, eigvecs)
+        b = flipped_point[..., p:, :p]
+        d = flipped_point[..., p:, p:]
+        a = flipped_point[..., :p, :p] - gs.eye(p)
+        first = d - Matrices.mul(
+            b, GeneralLinear.inverse(a + gs.eye(p)), Matrices.transpose(b)
         )
+        second = a + Matrices.mul(a, a) + Matrices.mul(Matrices.transpose(b), b)
+        row_1 = gs.concatenate([first, gs.zeros_like(b)], axis=-1)
+        row_2 = gs.concatenate([Matrices.transpose(gs.zeros_like(b)), second], axis=-1)
+        return gs.concatenate([row_1, row_2], axis=-2)
+
+    def tangent_submersion(self, vector, point):
+        """Tangent submersion.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
+
+        Returns
+        -------
+        submersed_vector : array-like, shape=[..., n, n]
+        """
+        return 2 * Matrices.to_symmetric(Matrices.mul(point, vector)) - vector
 
     def random_uniform(self, n_samples=1):
-        """Sample random points from a uniform distribution.
+        r"""Sample random points from a uniform distribution.
 
-        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
+        Following [Chikuse03]_, :math:`n\_samples * n * p` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
-        the projectors on their first k columns follow a uniform distribution.
+        the projectors on their first :math:`p` columns follow a uniform
+        distribution.
 
         Parameters
         ----------
@@ -215,9 +236,9 @@ class Grassmannian(LevelSet):
         References
         ----------
         .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
-        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
+            New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
-        points = gs.random.normal(size=(n_samples, self.n, self.k))
+        points = gs.random.normal(size=(n_samples, self.n, self.p))
         full_rank = Matrices.mul(Matrices.transpose(points), points)
         projector = Matrices.mul(
             points, GeneralLinear.inverse(full_rank), Matrices.transpose(points)
@@ -225,11 +246,12 @@ class Grassmannian(LevelSet):
         return projector[0] if n_samples == 1 else projector
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points from a uniform distribution.
+        r"""Sample random points from a uniform distribution.
 
-        Following [Chikuse03]_, :math: `n_samples * n * k` scalars are sampled
+        Following [Chikuse03]_, :math:`n\_samples * n * p` scalars are sampled
         from a standard normal distribution and reshaped to matrices,
-        the projectors on their first k columns follow a uniform distribution.
+        the projectors on their first :math:`p` columns follow a uniform
+        distribution.
 
         Parameters
         ----------
@@ -245,7 +267,7 @@ class Grassmannian(LevelSet):
         References
         ----------
         .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
-        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
+            New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
         return self.random_uniform(n_samples)
 
@@ -287,38 +309,20 @@ class Grassmannian(LevelSet):
         """
         mat = Matrices.to_symmetric(point)
         _, eigvecs = gs.linalg.eigh(mat)
-        diagonal = gs.array([0.0] * (self.n - self.k) + [1.0] * self.k)
+        diagonal = gs.array([0.0] * (self.n - self.p) + [1.0] * self.p)
         p_d = gs.einsum("...ij,...j->...ij", eigvecs, diagonal)
         return Matrices.mul(p_d, Matrices.transpose(eigvecs))
 
 
-class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
+class GrassmannianCanonicalMetric(MatricesMetric):
     """Canonical metric of the Grassmann manifold.
 
     Coincides with the Frobenius metric.
-
-    Parameters
-    ----------
-    n : int
-        Dimension of the Euclidean space.
-    k : int
-        Dimension of the subspaces.
     """
 
-    def __init__(self, n, p):
-        geomstats.errors.check_integer(p, "p")
-        geomstats.errors.check_integer(n, "n")
-        if p > n:
-            raise ValueError("p <= n is required.")
-
-        dim = int(p * (n - p))
-        super(GrassmannianCanonicalMetric, self).__init__(
-            m=n, n=n, dim=dim, signature=(dim, 0, 0)
-        )
-
-        self.n = n
-        self.p = p
-        self.embedding_metric = EuclideanMetric(n * p)
+    def __init__(self, space):
+        super().__init__(space=space, signature=(space.dim, 0, 0))
+        self._general_linear = GeneralLinear(space.n, equip=False)
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Exponentiate the invariant vector field v from base point p.
@@ -345,7 +349,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
     def log(self, point, base_point, **kwargs):
         r"""Compute the Riemannian logarithm of point w.r.t. base_point.
 
-        Given :math:`P, P'` in Gr(n, k) the logarithm from :math:`P`
+        Given :math:`P, P'` in :math:`Gr(n, p)` the logarithm from :math:`P`
         to :math:`P` is induced by the infinitesimal rotation [Batzies2015]_:
 
         .. math::
@@ -373,22 +377,21 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             "Geometric Mean and Geodesic Regression on Grassmannians"
             Linear Algebra and its Applications, 466, 83-101, 2015.
         """
-        GLn = GeneralLinear(self.n)
-        id_n = GLn.identity
+        id_n = self._general_linear.identity
         id_n, point, base_point = gs.convert_to_wider_dtype([id_n, point, base_point])
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
-        rot = GLn.compose(sym2, sym1)
-        return Matrices.bracket(GLn.log(rot) / 2, base_point)
+        rot = self._general_linear.compose(sym2, sym1)
+        return Matrices.bracket(self._general_linear.log(rot) / 2, base_point)
 
     def parallel_transport(
-        self, tangent_vec, base_point, tangent_vec_b=None, end_point=None
+        self, tangent_vec, base_point, direction=None, end_point=None
     ):
         r"""Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`.
 
         Parameters
@@ -397,52 +400,50 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             Tangent vector at base point to be transported.
         base_point : array-like, shape=[..., n, n]
             Point on the Grassmann manifold. Point to transport from.
-        tangent_vec_b : array-like, shape=[..., n, n]
+        direction : array-like, shape=[..., n, n]
             Tangent vector at base point, along which the parallel transport
             is computed.
             Optional, default: None
         end_point : array-like, shape=[..., n, n]
-            Point on the Grassmann manifold to transport to. Unused if `tangent_vec_b`
-            is given.
+            Point on the Grassmann manifold to transport to. Unused if
+            `direction` is given.
             Optional, default: None
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., n, n]
-            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at `exp_(base_point)(direction)`.
 
         References
         ----------
         .. [BZA20]  Bendokat, Thomas, Ralf Zimmermann, and P.-A. Absil.
-                    “A Grassmann Manifold Handbook: Basic Geometry and
-                    Computational Aspects.”
-                    ArXiv:2011.13699 [Cs, Math], November 27, 2020.
-                    https://arxiv.org/abs/2011.13699.
+            “A Grassmann Manifold Handbook: Basic Geometry and Computational
+            Aspects.” ArXiv:2011.13699 [Cs, Math], November 27, 2020.
+            https://arxiv.org/abs/2011.13699.
         """
-        if tangent_vec_b is None:
+        if direction is None:
             if end_point is not None:
-                tangent_vec_b = self.log(end_point, base_point)
+                direction = self.log(end_point, base_point)
             else:
                 raise ValueError(
-                    "Either an end_point or a tangent_vec_b must be given to define the"
+                    "Either an end_point or a direction must be given to define the"
                     " geodesic along which to transport."
                 )
         expm = gs.linalg.expm
         mul = Matrices.mul
-        rot = -Matrices.bracket(base_point, tangent_vec_b)
+        rot = -Matrices.bracket(base_point, direction)
         return mul(expm(rot), tangent_vec, expm(-rot))
 
-    def private_squared_dist(self, point_a, point_b):
+    def _squared_dist(self, point_a, point_b):
         """Compute geodesic distance between two points.
 
         Compute the squared geodesic distance between point_a
         and point_b, as defined by the metric.
 
         This is an auxiliary private function that:
+
         - is called by the method `squared_dist` of the class
-        GrassmannianCanonicalMetric,
-        - has been created to support the implementation
-        of custom_gradient in tensorflow backend.
+          GrassmannianCanonicalMetric,
 
         Parameters
         ----------
@@ -456,8 +457,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         _ : array-like, shape=[...,]
             Geodesic distance between point_a and point_b.
         """
-        dist = super().squared_dist(point_a, point_b)
-        return dist
+        return super().squared_dist(point_a, point_b)
 
     def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
@@ -474,15 +474,14 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        dist = _squared_dist(point_a, point_b, metric=self)
-        return dist
+        return _squared_dist(point_a, point_b, metric=self)
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
         In this case it is Pi / 2 everywhere.
 
         Parameters
@@ -492,7 +491,7 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
 
         References
@@ -503,4 +502,5 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             ArXiv:2011.13699 [Cs, Math], November 27, 2020.
             https://arxiv.org/abs/2011.13699.
         """
-        return gs.pi / 2
+        radius = gs.array(gs.pi / 2)
+        return repeat_out(self._space, radius, base_point)

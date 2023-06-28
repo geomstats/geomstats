@@ -150,7 +150,6 @@ def main():
     for epoch in range(max_epochs):
         total_loss = []
         for path in random_walks:
-
             for example_index, one_path in enumerate(path):
                 context_index = path[
                     max(0, example_index - context_size) : min(
@@ -185,7 +184,7 @@ def main():
             "iteration %d loss_value %f", epoch, sum(total_loss, 0) / len(total_loss)
         )
 
-    circle = visualization.PoincareDisk(point_type="ball")
+    circle = visualization.PoincareDisk(coords_type="ball")
     plt.figure()
     ax = plt.subplot(111)
     circle.add_points(gs.array([[0, 0]]))

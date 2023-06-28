@@ -8,21 +8,18 @@ Lead author: Yann Cabanes.
 
 References
 ----------
-    .. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
-      matrices with Toeplitz structured blocks, 2016.
-      https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+.. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+    matrices with Toeplitz structured blocks, 2016.
+    https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
-from geomstats.geometry.base import OpenSet
-from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
-from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.product_manifold import ProductManifold
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric  # NOQA
+from geomstats.geometry.hyperboloid import Hyperboloid
+from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 
 
-class PoincarePolydisk(ProductManifold, OpenSet):
+class PoincarePolydisk(NFoldManifold):
     r"""Class for the Poincare polydisk.
 
     The Poincare polydisk is a direct product of n Poincare disks,
@@ -32,28 +29,16 @@ class PoincarePolydisk(ProductManifold, OpenSet):
     ----------
     n_disks : int
         Number of disks.
-    coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
-        Coordinate type.
-        Optional, default: \'extrinsic\'.
     """
 
-    default_coords_type = "extrinsic"
-    default_point_type = "matrix"
-
-    def __init__(self, n_disks, coords_type="extrinsic"):
+    def __init__(self, n_disks, equip=True):
         self.n_disks = n_disks
-        self.coords_type = coords_type
-        self.point_type = PoincarePolydisk.default_point_type
-        disk = Hyperboloid(2, coords_type=coords_type)
-        list_disks = [
-            disk,
-        ] * n_disks
-        super(PoincarePolydisk, self).__init__(
-            manifolds=list_disks,
-            default_point_type="matrix",
-            ambient_space=Matrices(n_disks, 2),
-        )
-        self._metric = PoincarePolydiskMetric(n_disks=n_disks, coords_type=coords_type)
+        super().__init__(base_manifold=Hyperboloid(2), n_copies=n_disks, equip=equip)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return PoincarePolydiskMetric
 
     @staticmethod
     def intrinsic_to_extrinsic_coords(point_intrinsic):
@@ -85,39 +70,8 @@ class PoincarePolydisk(ProductManifold, OpenSet):
         )
         return point_extrinsic
 
-    def to_tangent(self, vector, base_point):
-        """Project a vector in the tangent space.
 
-        Project a vector in Minkowski space
-        on the tangent space of the hyperbolic space at a base point.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[..., n_disks, dim + 1]
-            Vector.
-        base_point : array-like, shape=[..., n_disks, dim + 1]
-            Base point.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., n_disks, dim + 1]
-            Tangent vector at base point.
-        """
-        n_disks = self.n_disks
-        hyperbolic_space = Hyperboloid(2, self.coords_type)
-        tangent_vec = gs.stack(
-            [
-                hyperbolic_space.to_tangent(
-                    vector=vector[..., i_disk, :], base_point=base_point[..., i_disk, :]
-                )
-                for i_disk in range(n_disks)
-            ],
-            axis=1,
-        )
-        return tangent_vec
-
-
-class PoincarePolydiskMetric(ProductRiemannianMetric):
+class PoincarePolydiskMetric(NFoldMetric):
     r"""Class defining the Poincare polydisk metric.
 
     The Poincare polydisk metric is a product of n Poincare metrics,
@@ -127,31 +81,16 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     This metric comes from a model used to represent
     stationary complex autoregressive Gaussian signals.
 
-    Parameters
-    ----------
-    n_disks : int
-        Number of disks.
-    coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
-        Coordinate type.
-        Optional, default: \'extrinsic\'.
 
     References
     ----------
     .. [JV2016] B. Jeuris and R. Vandebril. The Kähler mean of Block-Toeplitz
-      matrices with Toeplitz structured blocks, 2016.
-      https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+        matrices with Toeplitz structured blocks, 2016.
+        https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
-    default_coords_type = "extrinsic"
-
-    def __init__(self, n_disks, coords_type="extrinsic"):
-        self.n_disks = n_disks
-        self.coords_type = coords_type
-        list_metrics = []
-        for i_disk in range(n_disks):
-            scale_i = (n_disks - i_disk) ** 0.5
-            metric_i = HyperboloidMetric(2, coords_type, scale_i)
-            list_metrics.append(metric_i)
-        super(PoincarePolydiskMetric, self).__init__(
-            metrics=list_metrics, default_point_type="matrix"
+    def __init__(self, space):
+        scales = gs.array(
+            [float(space.n_disks - i_disk) for i_disk in range(space.n_disks)]
         )
+        super().__init__(space, scales=scales)

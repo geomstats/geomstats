@@ -28,7 +28,7 @@ class Arrow3D:
             self.vector[0],
             self.vector[1],
             self.vector[2],
-            **quiver_kwargs
+            **quiver_kwargs,
         )
 
 
@@ -83,10 +83,11 @@ def convert_to_trihedron(point, space=None):
     """Transform a rigid point into a trihedron.
 
     Transform a rigid point into a trihedron such that:
+
     - the trihedron's base point is the translation of the origin
-    of R^3 by the translation part of point,
+      of R^3 by the translation part of point,
     - the trihedron's orientation is the rotation of the canonical basis
-    of R^3 by the rotation part of point.
+      of R^3 by the rotation part of point.
     """
     point = gs.to_ndarray(point, to_ndim=2)
     n_points, _ = point.shape

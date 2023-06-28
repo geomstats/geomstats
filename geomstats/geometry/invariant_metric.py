@@ -4,10 +4,12 @@ Lead authors: Nicolas Guigui and Nina Miolane.
 """
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.integrator import integrate
+from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
+from geomstats.numerics.ivp import GSIVPIntegrator
+from geomstats.vectorization import repeat_out
 
 EPSILON = 1e-6
 
@@ -20,14 +22,14 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
     Parameters
     ----------
-    group : LieGroup
-        Group to equip with the invariant metric
+    space : LieGroup
+        Group to equip with the invariant metric.
     metric_mat_at_identity : array-like, shape=[dim, dim]
         Matrix that defines the metric at identity.
         Optional, defaults to identity matrix if None.
-    left_or_right : str, {'left', 'right'}
+    left : bool
         Whether to use a left or right invariant metric.
-        Optional, default: 'left'.
+        Optional, default: True.
 
     References
     ----------
@@ -43,30 +45,27 @@ class _InvariantMetricMatrix(RiemannianMetric):
                    https://doi.org/10.1007/978-3-030-46040-2.
     """
 
-    def __init__(
-        self, group, metric_mat_at_identity=None, left_or_right="left", **kwargs
-    ):
-        super(_InvariantMetricMatrix, self).__init__(
-            dim=group.dim, default_point_type="matrix", **kwargs
-        )
-
-        self.group = group
-        self.lie_algebra = group.lie_algebra
+    def __init__(self, space, metric_mat_at_identity=None, left=True):
+        super().__init__(space=space)
         if metric_mat_at_identity is None:
-            metric_mat_at_identity = gs.eye(self.group.dim)
+            metric_mat_at_identity = gs.eye(space.dim)
+        self.metric_mat_at_identity = metric_mat_at_identity
+        self.left = left
 
-        geomstats.errors.check_parameter_accepted_values(
-            left_or_right, "left_or_right", ["left", "right"]
+        self._instantiate_solvers()
+
+    def _instantiate_solvers(self):
+        self.log_solver = LogShootingSolver()
+        self.exp_solver = ExpODESolver(
+            integrator=GSIVPIntegrator(n_steps=15, step_type="rk4"),
         )
 
-        self.metric_mat_at_identity = metric_mat_at_identity
-        self.left_or_right = left_or_right
-
-    def reshape_metric_matrix(self):
-        """Reshape diagonal metric matrix to a symmetric matrix of size n.
+    @property
+    def reshaped_metric_matrix(self):
+        """Diagonal metric matrix reshaped to a symmetric matrix of size n.
 
         Reshape a diagonal metric matrix of size `dim x dim` into a symmetric
-        matrix of size `n x n` where :math: `dim= n (n -1) / 2` is the
+        matrix of size `n x n` where :math:`dim= n (n -1) / 2` is the
         dimension of the space of skew symmetric matrices. The
         non-diagonal coefficients in the output matrix correspond to the
         basis matrices of this space. The diagonal is filled with ones.
@@ -79,11 +78,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """
         if Matrices.is_diagonal(self.metric_mat_at_identity):
             metric_coeffs = gs.diagonal(self.metric_mat_at_identity)
-            metric_mat = gs.abs(self.lie_algebra.matrix_representation(metric_coeffs))
+            metric_mat = gs.abs(
+                self._space.lie_algebra.matrix_representation(metric_coeffs)
+            )
             return metric_mat
         raise ValueError("This is only possible for a diagonal matrix")
-
-    reshaped_metric_matrix = property(reshape_metric_matrix)
 
     def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
         """Compute inner product at tangent space at identity.
@@ -102,10 +101,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """
         tan_b = tangent_vec_b
         metric_mat = self.metric_mat_at_identity
-        if Matrices.is_diagonal(metric_mat) and self.lie_algebra is not None:
+        if Matrices.is_diagonal(metric_mat) and self._space.lie_algebra is not None:
             tan_b = tangent_vec_b * self.reshaped_metric_matrix
-        inner_prod = Matrices.frobenius_product(tangent_vec_a, tan_b)
-        return inner_prod
+        return Matrices.frobenius_product(tangent_vec_a, tan_b)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -128,21 +126,18 @@ class _InvariantMetricMatrix(RiemannianMetric):
         if base_point is None:
             return self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
-        tangent_translation = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True
+        tangent_translation = self._space.tangent_translation_map(
+            base_point, left=self.left, inverse=True
         )
         tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
         tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
-        inner_prod = self.inner_product_at_identity(
-            tangent_vec_a_at_id, tangent_vec_b_at_id
-        )
-        return inner_prod
+        return self.inner_product_at_identity(tangent_vec_a_at_id, tangent_vec_b_at_id)
 
     def structure_constant(self, tangent_vec_a, tangent_vec_b, tangent_vec_c):
         r"""Compute the structure constant of the metric.
 
-        For three tangent vectors :math: `x, y, z` at identity,
-        compute  :math: `<[x,y], z>`.
+        For three tangent vectors :math:`x, y, z` at identity,
+        compute :math:`<[x,y], z>`.
 
         Parameters
         ----------
@@ -163,9 +158,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def dual_adjoint(self, tangent_vec_a, tangent_vec_b):
         r"""Compute the metric dual adjoint map.
 
-        For two tangent vectors at identity :math: `x,y`, this corresponds to
+        For two tangent vectors at identity :math:`x,y`, this corresponds to
         the vector :math:`a` such that
-        :math: `\forall z, <[x,z], y > = <a, z>`.
+        :math:`\forall z, <[x,z], y > = <a, z>`.
 
         Parameters
         ----------
@@ -177,7 +172,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
         Returns
         -------
         ad_star : array-like, shape=[..., n, n]
-            Tangent vector at identity corresponding to :math: `ad_x^*(y)`.
+            Tangent vector at identity corresponding to :math:`ad_x^*(y)`.
 
         References
         ----------
@@ -190,7 +185,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
-        basis = self.normal_basis(self.lie_algebra.basis)
+        basis = self.normal_basis(self._space.lie_algebra.basis)
         return -gs.einsum(
             "i...,ijk->...jk",
             gs.array(
@@ -205,9 +200,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def connection_at_identity(self, tangent_vec_a, tangent_vec_b):
         r"""Compute the Levi-Civita connection at identity.
 
-        For two tangent vectors at identity :math: `x,y`, one can associate
-        left (respectively right) invariant vector fields :math: `\tilde{x},
-        \tilde{y}`. Then the vector :math: `(\nabla_\tilde{x}(\tilde{x}))_{
+        For two tangent vectors at identity :math:`x,y`, one can associate
+        left (respectively right) invariant vector fields :math:`\tilde{x},
+        \tilde{y}`. Then the vector :math:`(\nabla_\tilde{x}(\tilde{x}))_{
         Id}` is computed using the lie bracket and the dual adjoint map. This
         is a bilinear map that characterizes the connection [Gallier]_.
 
@@ -230,7 +225,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
                        Geonger International Publishing, 2020.
                        https://doi.org/10.1007/978-3-030-46040-2.
         """
-        sign = 1.0 if self.left_or_right == "left" else -1.0
+        sign = 1.0 if self.left else -1.0
         return (
             sign
             / 2
@@ -244,9 +239,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def connection(self, tangent_vec_a, tangent_vec_b, base_point=None):
         r"""Compute the Levi-Civita connection of invariant vector fields.
 
-        For two tangent vectors at a base point :math: `p, x,y`, one can
+        For two tangent vectors at a base point :math:`p, x,y`, one can
         associate left (respectively right) invariant vector fields :math:
-        `\tilde{x}, \tilde{y}`. Then the vector :math: `(\nabla_\tilde{x}(
+        `\tilde{x}, \tilde{y}`. Then the vector :math:`(\nabla_\tilde{x}(
         \tilde{x}))_{p}` is computed using the invariance of the connection
         and its value at identity [Gallier]_.
 
@@ -273,14 +268,14 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """
         if base_point is None:
             return self.connection_at_identity(tangent_vec_a, tangent_vec_b)
-        translation_map = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True
+        translation_map = self._space.tangent_translation_map(
+            base_point, left=self.left, inverse=True
         )
         tan_a_at_id = translation_map(tangent_vec_a)
         tan_b_at_id = translation_map(tangent_vec_b)
 
-        translation_map = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=False
+        translation_map = self._space.tangent_translation_map(
+            base_point, left=self.left, inverse=False
         )
 
         value_at_id = self.connection_at_identity(tan_a_at_id, tan_b_at_id)
@@ -289,9 +284,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def curvature_at_identity(self, tangent_vec_a, tangent_vec_b, tangent_vec_c):
         r"""Compute the curvature at identity.
 
-        For three tangent vectors at identity :math: `x,y,z`,
+        For three tangent vectors at identity :math:`x,y,z`,
         the curvature is defined by
-        :math: `R(x, y)z = \nabla_{[x,y]}z
+        :math:`R(x, y)z = \nabla_{[x,y]}z
         - \nabla_x\nabla_y z + \nabla_y\nabla_x z`.
 
         Parameters
@@ -324,9 +319,9 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point=None):
         r"""Compute the curvature.
 
-        For three tangent vectors at a base point :math: `x,y,z`,
+        For three tangent vectors at a base point :math:`x,y,z`,
         the curvature is defined by
-        :math: `R(x, y)z = \nabla_{[x,y]}z
+        :math:`R(x, y)z = \nabla_{[x,y]}z
         - \nabla_x\nabla_y z + \nabla_y\nabla_x z`. It is computed using
         the invariance of the connection and its value at identity.
 
@@ -351,15 +346,15 @@ class _InvariantMetricMatrix(RiemannianMetric):
                 tangent_vec_a, tangent_vec_b, tangent_vec_c
             )
 
-        translation_map = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True
+        translation_map = self._space.tangent_translation_map(
+            base_point, left=self.left, inverse=True
         )
         tan_a_at_id = translation_map(tangent_vec_a)
         tan_b_at_id = translation_map(tangent_vec_b)
         tan_c_at_id = translation_map(tangent_vec_c)
 
-        translation_map = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=False
+        translation_map = self._space.tangent_translation_map(
+            base_point, left=self.left, inverse=False
         )
         value_at_id = self.curvature_at_identity(tan_a_at_id, tan_b_at_id, tan_c_at_id)
 
@@ -368,8 +363,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def sectional_curvature_at_identity(self, tangent_vec_a, tangent_vec_b):
         """Compute the sectional curvature at identity.
 
-        For two orthonormal tangent vectors at identity :math: `x,y`,
-        the sectional curvature is defined by :math: `< R(x, y)x,
+        For two orthonormal tangent vectors at identity :math:`x,y`,
+        the sectional curvature is defined by :math:`< R(x, y)x,
         y>`. Non-orthonormal vectors can be given.
 
         Parameters
@@ -407,8 +402,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     def sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the sectional curvature.
 
-        For two orthonormal tangent vectors at a base point :math: `x,y`,
-        the sectional curvature is defined by :math: `<R(x, y)x,
+        For two orthonormal tangent vectors at a base point :math:`x,y`,
+        the sectional curvature is defined by :math:`<R(x, y)x,
         y>`. Non-orthonormal vectors can be given.
 
         Parameters
@@ -435,8 +430,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
         """
         if base_point is None:
             return self.sectional_curvature_at_identity(tangent_vec_a, tangent_vec_b)
-        translation_map = self.group.tangent_translation_map(
-            base_point, inverse=True, left_or_right=self.left_or_right
+        translation_map = self._space.tangent_translation_map(
+            base_point, inverse=True, left=self.left
         )
         tan_a_at_id = translation_map(tangent_vec_a)
         tan_b_at_id = translation_map(tangent_vec_b)
@@ -447,8 +442,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature at identity.
 
-        For four tangent vectors at identity :math: `x, y, z, t`,
-        the covariant derivative of the curvature :math: `(\nabla_x R)(y, z)t`
+        For four tangent vectors at identity :math:`x, y, z, t`,
+        the covariant derivative of the curvature :math:`(\nabla_x R)(y, z)t`
         is computed using Leibniz formula.
 
         Parameters
@@ -502,8 +497,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four tangent vectors at a base point :math: `x, y, z, t`,
-        the covariant derivative of the curvature :math: `(\nabla_x R)(y, z)t`
+        For four tangent vectors at a base point :math:`x, y, z, t`,
+        the covariant derivative of the curvature :math:`(\nabla_x R)(y, z)t`
         is computed at the base point using Leibniz formula.
 
         Parameters
@@ -528,8 +523,8 @@ class _InvariantMetricMatrix(RiemannianMetric):
             return self.curvature_derivative_at_identity(
                 tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d
             )
-        translation_map = self.group.tangent_translation_map(
-            base_point, inverse=True, left_or_right=self.left_or_right
+        translation_map = self._space.tangent_translation_map(
+            base_point, inverse=True, left=self.left
         )
         tan_a_at_id = translation_map(tangent_vec_a)
         tan_b_at_id = translation_map(tangent_vec_b)
@@ -539,28 +534,40 @@ class _InvariantMetricMatrix(RiemannianMetric):
         value_at_id = self.curvature_derivative_at_identity(
             tan_a_at_id, tan_b_at_id, tan_c_at_id, tan_d_at_id
         )
-        translation_map = self.group.tangent_translation_map(
-            base_point, inverse=False, left_or_right=self.left_or_right
+        translation_map = self._space.tangent_translation_map(
+            base_point, inverse=False, left=self.left
         )
 
         return translation_map(value_at_id)
 
-    def exp(self, tangent_vec, base_point=None, n_steps=10, step="rk4", **kwargs):
+    def _pre_exp(self, tangent_vec, base_point):
+        if base_point is None:
+            base_point = self._space.identity
+            left_angular_vel = tangent_vec
+        else:
+            left_angular_vel = self._space.tangent_translation_map(
+                base_point, left=self.left, inverse=True
+            )(tangent_vec)
+
+        return base_point, self._space.to_tangent(left_angular_vel)
+
+    def exp(self, tangent_vec, base_point=None):
         r"""Compute Riemannian exponential of tan. vector wrt to base point.
 
-        If :math: `\gamma` is a geodesic, then it satisfies the
+        If :math:`\gamma` is a geodesic, then it satisfies the
         Euler-Poincare equation [Kolev]_:
-        .. math:
 
-                        \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
-                        \dot{X}(t) = ad^*_{X(t)}X(t)
+        .. math::
 
-        where :math: `ad^*` is the dual adjoint map with respect to the
-        metric. For a right-invariant metric, :math: `dR` is used instead of
-        :math: `dL` and :math: `ad^*` is replaced by :math: `-ad^*`. The
+            \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
+            \dot{X}(t) = ad^*_{X(t)}X(t)
+
+        where :math:`ad^*` is the dual adjoint map with respect to the
+        metric. For a right-invariant metric, :math:`dR` is used instead of
+        :math:`dL` and :math:`ad^*` is replaced by :math:`-ad^*`. The
         exponential map is approximated by numerical integration
-        of this equation, with initial conditions :math: `\dot{\gamma}(0)`
-        given by the argument `tangent_vec` and :math: `\gamma(0)` by
+        of this equation, with initial conditions :math:`\dot{\gamma}(0)`
+        given by the argument `tangent_vec` and :math:`\gamma(0)` by
         `base_point`. A Runge-Kutta scheme of order 2 or 4 is used for
         integration.
 
@@ -571,12 +578,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
         base_point : array-like, shape=[..., n, n]
             Point in the group.
             Optional, defaults to identity if None.
-        n_steps : int,
-            Number of integration steps.
-            Optional, default : 15.
-        step : str, {'euler', 'rk2', 'rk4'}
-            Scheme to use in the integration.
-            Optional, default : 'rk4'.
 
         Returns
         -------
@@ -592,58 +593,24 @@ class _InvariantMetricMatrix(RiemannianMetric):
                      Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
-        group = self.group
-        basis = self.normal_basis(self.lie_algebra.basis)
-        sign = 1.0 if self.left_or_right == "left" else -1.0
+        base_point, left_angular_vel = self._pre_exp(tangent_vec, base_point)
+        return self.exp_solver.exp(
+            self._space,
+            left_angular_vel,
+            base_point,
+        )
 
-        def lie_acceleration(state, _time):
-            """Compute the right-hand side of the geodesic equation."""
-            point, vector = state
-            velocity = self.group.tangent_translation_map(
-                point, left_or_right=self.left_or_right
-            )(vector)
-            coefficients = gs.array(
-                [
-                    self.structure_constant(vector, basis_vector, vector)
-                    for basis_vector in basis
-                ]
-            )
-            acceleration = gs.einsum("i...,ijk->...jk", coefficients, basis)
-            return gs.stack([velocity, sign * acceleration])
-
-        if base_point is None:
-            base_point = group.identity
-            left_angular_vel = tangent_vec
-        else:
-            left_angular_vel = self.group.tangent_translation_map(
-                base_point, left_or_right=self.left_or_right, inverse=True
-            )(tangent_vec)
-        if (base_point.ndim == 2 or base_point.shape[0] == 1) and tangent_vec.ndim == 3:
-            base_point = gs.stack([base_point] * len(tangent_vec))
-            base_point = gs.reshape(base_point, tangent_vec.shape)
-        initial_state = gs.stack([base_point, group.to_tangent(left_angular_vel)])
-        flow = integrate(lie_acceleration, initial_state, n_steps=n_steps, step=step)
-        return flow[-1][0]
-
-    def log(
-        self,
-        point,
-        base_point,
-        n_steps=15,
-        step="rk4",
-        verbose=False,
-        max_iter=25,
-        tol=1e-10,
-    ):
+    def log(self, point, base_point):
         r"""Compute Riemannian logarithm of a point from a base point.
 
         The log is computed by solving an optimization problem.
         The cost function to be optimized is defined by:
-        .. math:
 
-                    L(v) = \Vert exp_x(v) - y \Vert^2
+        .. math::
 
-        where :math: `x,y` are respectively `base_point` and `point`,
+            L(v) = \Vert exp_x(v) - y \Vert^2
+
+        where :math:`x,y` are respectively `base_point` and `point`,
         an extrinsic 2-norm is used, and exp is computed by integration
         of the Euler-Poincare equation [Kolev]_.
 
@@ -654,23 +621,6 @@ class _InvariantMetricMatrix(RiemannianMetric):
         base_point : array-like, shape=[..., n, n]
             Point in the group, from which to compute the log.
             Optional, default: identity.
-        n_steps : int,
-            Number of integration steps to compute the exponential in the
-            loss.
-            Optional, default : 15.
-        step : str, {'euler', 'rk2', 'rk4'}
-            Scheme to use in the integration procedure of the exponential in
-            the loss.
-            Optional, default : 'rk4'.
-        verbose : bool,
-            Verbosity level of the optimization procedure.
-            Optional. default : False.
-        max_iter : int,
-            Maximum of iteration of the optimization procedure.
-            Optional, default : 25.
-        tol : float,
-            Tolerance for the stopping criterion of the optimization.
-            Optional, default : 1e-10.
 
         Returns
         -------
@@ -684,24 +634,67 @@ class _InvariantMetricMatrix(RiemannianMetric):
                      Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
                      480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
-        if hasattr(self.group, "are_antipodals") and not gs.all(
-            ~self.group.are_antipodals(point, base_point)
+        if hasattr(self._space, "are_antipodals") and not gs.all(
+            ~self._space.are_antipodals(point, base_point)
         ):
             raise ValueError(
                 "The Logarithm map is not well-defined for"
                 f" antipodal matrices: {point} and {base_point}."
             )
-        return self.group.to_tangent(
-            super(_InvariantMetricMatrix, self).log(
-                point,
-                base_point,
-                n_steps=n_steps,
-                step=step,
-                verbose=verbose,
-                max_iter=max_iter,
-                tol=tol,
-            ),
+        return self._space.to_tangent(
+            self.log_solver.log(self._space, point, base_point),
             base_point,
+        )
+
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., dim], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., dim],
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError(
+                "Specify an end point or an initial tangent "
+                "vector to define the geodesic."
+            )
+        if end_point is not None:
+            if initial_tangent_vec is not None:
+                raise ValueError(
+                    "Cannot specify both an end point and an initial tangent vector."
+                )
+            return self.log_solver.geodesic_bvp(
+                self._space,
+                end_point,
+                initial_point,
+            )
+
+        initial_point, left_angular_vel = self._pre_exp(
+            initial_tangent_vec, initial_point
+        )
+        return self.exp_solver.geodesic_ivp(
+            self._space, left_angular_vel, initial_point
         )
 
     def parallel_transport(
@@ -718,7 +711,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         Approximate solution for the parallel transport of a tangent vector a
         along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t\mapsto exp_(base_point)(
+        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
         t*direction)`. The parallel transport equation is written entirely
         in the Lie algebra and solved with an integration scheme.
 
@@ -760,7 +753,7 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         References
         ----------
-        [GP21]_    Guigui, Nicolas, and Xavier Pennec. “A Reduced Parallel
+        .. [GP21]  Guigui, Nicolas, and Xavier Pennec. “A Reduced Parallel
                    Transport Equation on Lie Groups with a Left-Invariant
                    Metric.” 5th conference on Geometric Science of Information,
                    Paris 2021. Springer. Lecture Notes in Computer Science.
@@ -777,12 +770,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
         else:
             tangent_vec_b_ = direction
 
-        group = self.group
-        translation_map = group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True
+        translation_map = self._space.tangent_translation_map(
+            base_point, left=self.left, inverse=True
         )
-        left_angular_vel_a = group.to_tangent(translation_map(tangent_vec))
-        left_angular_vel_b = group.to_tangent(translation_map(tangent_vec_b_))
+        left_angular_vel_a = self._space.to_tangent(translation_map(tangent_vec))
+        left_angular_vel_b = self._space.to_tangent(translation_map(tangent_vec_b_))
 
         def acceleration(state, time):
             """Compute the right-hand-side of the parallel transport eq."""
@@ -791,21 +783,15 @@ class _InvariantMetricMatrix(RiemannianMetric):
             zeta_dot = -self.connection_at_identity(omega, zeta)
             return gs.stack([gam_dot, omega_dot, zeta_dot])
 
-        if (base_point.ndim == 2 or base_point.shape[0] == 1) and (
-            3 in (tangent_vec.ndim, tangent_vec_b_.ndim)
-        ):
-            n_sample = (
-                tangent_vec.shape[0]
-                if tangent_vec.ndim == 3
-                else tangent_vec_b_.shape[0]
-            )
-            base_point = gs.stack([base_point] * n_sample)
-
+        base_point, left_angular_vel_a, left_angular_vel_b = gs.broadcast_arrays(
+            base_point, left_angular_vel_a, left_angular_vel_b
+        )
         initial_state = gs.stack([base_point, left_angular_vel_b, left_angular_vel_a])
+
         flow = integrate(acceleration, initial_state, n_steps=n_steps, step=step)
         gamma, _, zeta_t = flow[-1]
-        transported = group.tangent_translation_map(
-            gamma, left_or_right=self.left_or_right, inverse=False
+        transported = self._space.tangent_translation_map(
+            gamma, left=self.left, inverse=False
         )(zeta_t)
         return (transported, gamma) if return_endpoint else transported
 
@@ -813,10 +799,11 @@ class _InvariantMetricMatrix(RiemannianMetric):
         r"""Compute the geodesic ODE associated with the invariant metric.
 
         This is a reduced geodesic equation written entirely in the Lie
-        algebra. It is known as Euler-Poincare equation [Kolev].
-        .. math:
-                        \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
-                        \dot{X}(t) = ad^*_{X(t)}X(t)
+        algebra. It is known as Euler-Poincare equation [Kolev]_.
+
+        .. math::
+            \dot{\gamma}(t) = (dL_{\gamma(t)}) X(t)
+            \dot{X}(t) = ad^*_{X(t)}X(t)
 
         Parameters
         ----------
@@ -833,17 +820,15 @@ class _InvariantMetricMatrix(RiemannianMetric):
 
         References
         ----------
-        .. [Kolev]   Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
-             Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
-             480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
+        .. [Kolev] Kolev, Boris. “Lie Groups and Mechanics: An Introduction.”
+            Journal of Nonlinear Mathematical Physics 11, no. 4, 2004:
+            480–98. https://doi.org/10.2991/jnmp.2004.11.4.5.
         """
-        sign = 1.0 if self.left_or_right == "left" else -1.0
-        basis = self.normal_basis(self.lie_algebra.basis)
+        sign = 1.0 if self.left else -1.0
+        basis = self.normal_basis(self._space.lie_algebra.basis)
 
         point, vector = state
-        velocity = self.group.tangent_translation_map(
-            point, left_or_right=self.left_or_right
-        )(vector)
+        velocity = self._space.tangent_translation_map(point, left=self.left)(vector)
         coefficients = gs.array(
             [
                 self.structure_constant(vector, basis_vector, vector)
@@ -859,23 +844,17 @@ class _InvariantMetricVector(RiemannianMetric):
 
     Parameters
     ----------
-    group : LieGroup
+    space : LieGroup
         Group to equip with the invariant metric
-    left_or_right : str, {'left', 'right'}
+    left : bool
         Whether to use a left or right invariant metric.
-        Optional, default: 'left'.
+        Optional, default: True.
     """
 
-    def __init__(self, group, left_or_right="left", **kwargs):
-        super(_InvariantMetricVector, self).__init__(dim=group.dim, **kwargs)
-
-        self.group = group
-        self.metric_mat_at_identity = gs.eye(group.dim)
-        self.left_or_right = left_or_right
-
-        geomstats.errors.check_parameter_accepted_values(
-            left_or_right, "left_or_right", ["left", "right"]
-        )
+    def __init__(self, space, left=True):
+        super().__init__(space=space)
+        self.metric_mat_at_identity = gs.eye(space.dim)
+        self.left = left
 
     @staticmethod
     def inner_product_at_identity(tangent_vec_a, tangent_vec_b):
@@ -893,7 +872,7 @@ class _InvariantMetricVector(RiemannianMetric):
         inner_prod : array-like, shape=[..., dim]
             Inner-product of the two tangent vectors.
         """
-        return gs.einsum("...i,...i->...", tangent_vec_a, tangent_vec_b)
+        return gs.dot(tangent_vec_a, tangent_vec_b)
 
     def metric_matrix(self, base_point=None):
         """Compute inner product matrix at the tangent space at a base point.
@@ -911,18 +890,15 @@ class _InvariantMetricVector(RiemannianMetric):
         if base_point is None:
             return self.metric_mat_at_identity
 
-        base_point = self.group.regularize(base_point)
-        jacobian = self.group.jacobian_translation(
-            point=base_point, left_or_right=self.left_or_right
-        )
+        base_point = self._space.regularize(base_point)
+        jacobian = self._space.jacobian_translation(point=base_point, left=self.left)
 
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
-        metric_mat = Matrices.mul(
+        return Matrices.mul(
             inv_jacobian_transposed, self.metric_mat_at_identity, inv_jacobian
         )
-        return metric_mat
 
     def left_exp_from_identity(self, tangent_vec):
         """Compute the exponential from identity with the left-invariant metric.
@@ -944,10 +920,7 @@ class _InvariantMetricVector(RiemannianMetric):
         exp : array-like, shape=[..., dim]
             Point in the group.
         """
-        tangent_vec = self.group.regularize_tangent_vec_at_identity(
-            tangent_vec=tangent_vec, metric=self
-        )
-        return tangent_vec
+        return self._space.regularize_tangent_vec_at_identity(tangent_vec=tangent_vec)
 
     def exp_from_identity(self, tangent_vec):
         """Compute Riemannian exponential of tangent vector from the identity.
@@ -962,15 +935,14 @@ class _InvariantMetricVector(RiemannianMetric):
         exp : array-like, shape=[..., dim]
             Point in the group.
         """
-        if self.left_or_right == "left":
+        if self.left:
             exp = self.left_exp_from_identity(tangent_vec)
 
         else:
             opp_left_exp = self.left_exp_from_identity(-tangent_vec)
-            exp = self.group.inverse(opp_left_exp)
+            exp = self._space.inverse(opp_left_exp)
 
-        exp = self.group.regularize(exp)
-        return exp
+        return self._space.regularize(exp)
 
     def exp(self, tangent_vec, base_point=None, **kwargs):
         """Compute Riemannian exponential of tan. vector wrt to base point.
@@ -989,29 +961,28 @@ class _InvariantMetricVector(RiemannianMetric):
             Point in the group equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        identity = self.group.identity
+        identity = self._space.identity
 
         if base_point is None:
             base_point = identity
         else:
-            base_point = self.group.regularize(base_point)
+            base_point = self._space.regularize(base_point)
 
         if gs.allclose(base_point, identity):
             return self.exp_from_identity(tangent_vec)
 
-        tangent_vec_at_id = self.group.tangent_translation_map(
-            point=base_point, left_or_right=self.left_or_right, inverse=True
+        tangent_vec_at_id = self._space.tangent_translation_map(
+            point=base_point, left=self.left, inverse=True
         )(tangent_vec)
         exp_from_id = self.exp_from_identity(tangent_vec_at_id)
 
-        if self.left_or_right == "left":
-            exp = self.group.compose(base_point, exp_from_id)
+        if self.left:
+            exp = self._space.compose(base_point, exp_from_id)
 
         else:
-            exp = self.group.compose(exp_from_id, base_point)
+            exp = self._space.compose(exp_from_id, base_point)
 
-        exp = self.group.regularize(exp)
-        return exp
+        return self._space.regularize(exp)
 
     def left_log_from_identity(self, point):
         """Compute Riemannian log of a point wrt. id of left-invar. metric.
@@ -1034,11 +1005,8 @@ class _InvariantMetricVector(RiemannianMetric):
             Tangent vector at the identity equal to the Riemannian logarithm
             of point at the identity.
         """
-        point = self.group.regularize(point)
-        log = self.group.regularize_tangent_vec_at_identity(
-            tangent_vec=point, metric=self
-        )
-        return log
+        point = self._space.regularize(point)
+        return self._space.regularize_tangent_vec_at_identity(tangent_vec=point)
 
     def log_from_identity(self, point):
         """Compute Riemannian logarithm of a point wrt the identity.
@@ -1054,16 +1022,13 @@ class _InvariantMetricVector(RiemannianMetric):
             Tangent vector at the identity equal to the Riemannian logarithm
             of point at the identity.
         """
-        point = self.group.regularize(point)
-        if self.left_or_right == "left":
-            log = self.left_log_from_identity(point)
+        point = self._space.regularize(point)
+        if self.left:
+            return self.left_log_from_identity(point)
 
-        else:
-            inv_point = self.group.inverse(point)
-            left_log = self.left_log_from_identity(inv_point)
-            log = -left_log
-
-        return log
+        inv_point = self._space.inverse(point)
+        left_log = self.left_log_from_identity(inv_point)
+        return -left_log
 
     def log(self, point, base_point=None, **kwargs):
         """Compute Riemannian logarithm of a point from a base point.
@@ -1082,29 +1047,28 @@ class _InvariantMetricVector(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        identity = self.group.identity
+        identity = self._space.identity
 
         if base_point is None:
             base_point = identity
         else:
-            base_point = self.group.regularize(base_point)
+            base_point = self._space.regularize(base_point)
 
         if gs.allclose(base_point, identity):
             return self.log_from_identity(point)
 
-        point = self.group.regularize(point)
+        point = self._space.regularize(point)
 
-        if self.left_or_right == "left":
-            point_near_id = self.group.compose(self.group.inverse(base_point), point)
+        if self.left:
+            point_near_id = self._space.compose(self._space.inverse(base_point), point)
 
         else:
-            point_near_id = self.group.compose(point, self.group.inverse(base_point))
+            point_near_id = self._space.compose(point, self._space.inverse(base_point))
 
         log_from_id = self.log_from_identity(point_near_id)
-        log = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right
-        )(log_from_id)
-        return log
+        return self._space.tangent_translation_map(base_point, left=self.left)(
+            log_from_id
+        )
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -1127,15 +1091,12 @@ class _InvariantMetricVector(RiemannianMetric):
         if base_point is None:
             return self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
 
-        tangent_translation = self.group.tangent_translation_map(
-            base_point, left_or_right=self.left_or_right, inverse=True
+        tangent_translation = self._space.tangent_translation_map(
+            base_point, left=self.left, inverse=True
         )
         tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
         tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
-        inner_prod = self.inner_product_at_identity(
-            tangent_vec_a_at_id, tangent_vec_b_at_id
-        )
-        return inner_prod
+        return self.inner_product_at_identity(tangent_vec_a_at_id, tangent_vec_b_at_id)
 
 
 class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
@@ -1144,38 +1105,31 @@ class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
     This class supports both left and right invariant metrics
     which exist on Lie groups.
 
-    If `point_type='vector'`, points are parameterized by the Riemannian
+    If `point_type == 'vector'`, points are parameterized by the Riemannian
     logarithm for the canonical left-invariant metric.
 
     Parameters
     ----------
-    group : LieGroup
+    space : LieGroup
         Group to equip with the invariant metric
     metric_mat_at_identity : array-like, shape=[dim, dim]
         Matrix that defines the metric at identity.
         Optional, defaults to identity matrix if None.
-    left_or_right : str, {'left', 'right'}
+    left : bool
         Whether to use a left or right invariant metric.
-        Optional, default: 'left'.
-    point_type : str, {'vector', 'matrix'}
-        Point representation.
-        Optional, default: group.default_point_type.
+        Optional, default: True.
     """
 
-    def __new__(
-        cls, group, metric_mat_at_identity=None, left_or_right="left", point_type=None
-    ):
+    def __new__(cls, space, metric_mat_at_identity=None, left=True):
         """Instantiate a special euclidean group.
 
         Select the object to instantiate depending on the point_type.
         """
-        if point_type is None:
-            point_type = group.default_point_type
-        if point_type == "vector":
-            return _InvariantMetricVector(group, left_or_right=left_or_right)
+        if space.default_point_type == "vector":
+            return _InvariantMetricVector(space, left=left)
         return _InvariantMetricMatrix(
-            group,
-            left_or_right=left_or_right,
+            space,
+            left=left,
             metric_mat_at_identity=metric_mat_at_identity,
         )
 
@@ -1189,28 +1143,26 @@ class BiInvariantMetric(_InvariantMetricVector):
 
     Parameters
     ----------
-    group : LieGroup
+    space : LieGroup
         The group to equip with the bi-invariant metric
 
     References
     ----------
-    .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
-                   and Lie Groups: A Computational Perspective.
-                   Geonger International Publishing, 2020.
-                   https://doi.org/10.1007/978-3-030-46040-2.
+    .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential Geometry
+        and Lie Groups: A Computational Perspective.
+        Geonger International Publishing, 2020.
+        https://doi.org/10.1007/978-3-030-46040-2.
     """
 
-    def __init__(self, group):
-        super(BiInvariantMetric, self).__init__(group=group, shape=group.shape)
-        condition = (
-            "SpecialOrthogonal" not in group.__str__()
-            and "SO" not in group.__str__()
-            and "SpecialOrthogonal3" not in group.__str__()
-        )
-        # TODO (nguigs): implement it for SE(3)
-        if condition:
+    def __init__(self, space):
+        if not self._check_implemented(space):
             raise ValueError("The bi-invariant metric is only implemented for SO(n)")
-        self.default_point_type = group.default_point_type
+
+        super().__init__(space=space)
+
+    def _check_implemented(self, space):
+        # TODO (nguigs): implement it for SE(3)
+        return "SpecialOrthogonal" in space.__str__() or "SO" in space.__str__()
 
     def exp(self, tangent_vec, base_point=None, **kwargs):
         """Compute Riemannian exponential of tangent vector from the identity.
@@ -1232,12 +1184,12 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         References
         ----------
-        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
-                       Geometry and Lie Groups: A Computational Perspective.
-                       Geonger International Publishing, 2020.
-                       https://doi.org/10.1007/978-3-030-46040-2.
+        .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential
+            Geometry and Lie Groups: A Computational Perspective.
+            Geonger International Publishing, 2020.
+            https://doi.org/10.1007/978-3-030-46040-2.
         """
-        return self.group.exp(tangent_vec, base_point)
+        return self._space.exp(tangent_vec, base_point)
 
     def log(self, point, base_point=None, **kwargs):
         """Compute Riemannian logarithm of a point wrt the identity.
@@ -1260,13 +1212,13 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         References
         ----------
-        .. [Gallier]   Gallier, Jean, and Jocelyn Quaintance. Differential
-                       Geometry and Lie Groups: A Computational Perspective.
-                       Geonger International Publishing, 2020.
-                       https://doi.org/10.1007/978-3-030-46040-2.
+        .. [Gallier] Gallier, Jean, and Jocelyn Quaintance. Differential
+            Geometry and Lie Groups: A Computational Perspective.
+            Geonger International Publishing, 2020.
+            https://doi.org/10.1007/978-3-030-46040-2.
         """
-        log = self.group.log(point, base_point)
-        return self.group.to_tangent(log, base_point)
+        log = self._space.log(point, base_point)
+        return self._space.to_tangent(log, base_point)
 
     def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
         """Compute inner product at tangent space at identity.
@@ -1283,10 +1235,9 @@ class BiInvariantMetric(_InvariantMetricVector):
         inner_prod : array-like, shape=[...]
             Inner-product of the two tangent vectors.
         """
-        if self.default_point_type == "vector":
-            return super(BiInvariantMetric, self).inner_product_at_identity(
-                tangent_vec_a, tangent_vec_b
-            )
+        if self._space.default_point_type == "vector":
+            return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -1307,12 +1258,15 @@ class BiInvariantMetric(_InvariantMetricVector):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        if base_point is None or self.default_point_type == "matrix":
-            return self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+        if base_point is None or self._space.default_point_type == "matrix":
+            inner_prod = self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+            if base_point is not None:
+                return repeat_out(
+                    self._space, inner_prod, base_point, tangent_vec_a, tangent_vec_b
+                )
+            return inner_prod
 
-        return super(BiInvariantMetric, self).inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
+        return super().inner_product(tangent_vec_a, tangent_vec_b, base_point)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -1321,7 +1275,7 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic between the base point and an end point, or alternatively
-        defined by :math: `t \mapsto exp_(base_point)(t*direction)`.
+        defined by :math:`t \mapsto exp_{(base\_point)}(t*direction)`.
         As a compact Lie group endowed with its canonical bi-invariant metric is a
         symmetric space, parallel transport is achieved by a geodesic symmetry, or
         equivalently, one step of the pole ladder scheme.
@@ -1343,7 +1297,8 @@ class BiInvariantMetric(_InvariantMetricVector):
         Returns
         -------
         transported_tangent_vec: array-like, shape=[..., n, n]
-            Transported tangent vector at `end_point=exp_(base_point)(tangent_vec_b)`.
+            Transported tangent vector at
+            `end_point=exp_(base_point)(tangent_vec_b)`.
         """
         if direction is None:
             if end_point is not None:
@@ -1362,9 +1317,10 @@ class BiInvariantMetric(_InvariantMetricVector):
         """Compute the radius of the injectivity domain.
 
         This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of a bi-invariant metric, it does not depend on the base point.
+        diffeomorphism from the open ball of radius r centered at the base
+        point onto its image.
+        In the case of a bi-invariant metric, it does not depend on the base
+        point.
 
         Parameters
         ----------
@@ -1373,7 +1329,8 @@ class BiInvariantMetric(_InvariantMetricVector):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return gs.pi * self.dim**0.5
+        radius = gs.array(gs.pi * self._space.dim**0.5)
+        return repeat_out(self._space, radius, base_point)

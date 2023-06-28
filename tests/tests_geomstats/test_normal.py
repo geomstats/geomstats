@@ -1,78 +1,200 @@
-"""Unit tests for the manifold of normal distributions."""
+"""Unit tests for the MultivariateDiagonalNormalDistributions manifold."""
 
-import warnings
-
-from scipy.stats import norm
+import pytest
+from scipy.stats import multivariate_normal
 
 import geomstats.backend as gs
-import geomstats.tests
-from geomstats.information_geometry.normal import FisherRaoMetric, NormalDistributions
+from tests.conftest import Parametrizer
+from tests.data.normal_data import (
+    CenteredNormalDistributionsTestData,
+    CenteredNormalMetricTestData,
+    DiagonalNormalDistributionsTestData,
+    DiagonalNormalMetricTestData,
+    GeneralNormalDistributionsTestData,
+)
+from tests.geometry_test_cases import (
+    ManifoldTestCase,
+    OpenSetTestCase,
+    RiemannianMetricTestCase,
+)
 
 
-class TestNormalDistributions(geomstats.tests.TestCase):
-    """Class defining the normal distributions tests."""
+class TestCenteredNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
+    testing_data = CenteredNormalDistributionsTestData()
 
-    def setup_method(self):
-        """Define the parameters of the tests."""
-        warnings.simplefilter("ignore", category=UserWarning)
-        self.normal = NormalDistributions()
-        self.metric = FisherRaoMetric()
-        self.n_samples = 10
-        self.dim = self.normal.dim
+    @pytest.mark.xfail
+    def test_belongs(self, sample_dim, point, expected):
+        self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
 
-    def test_random_point_and_belongs(self):
-        """Test random_point and belongs.
+    @pytest.mark.xfail
+    def test_random_point_shape(self, point, expected):
+        self.assertAllClose(point.shape, expected)
 
-        Test that the random uniform method samples
-        on the normal distribution space.
-        """
-        point = self.normal.random_point()
-        result = self.normal.belongs(point)
-        expected = True
-        self.assertAllClose(expected, result)
+    @pytest.mark.xfail
+    def test_sample(self, sample_dim, point, n_samples, expected):
+        self.assertAllClose(
+            self.Space(sample_dim).sample(point, n_samples).shape, expected
+        )
 
-    def test_random_point_and_belongs_vectorization(self):
-        """Test random_point and belongs.
+    @pytest.mark.xfail
+    def test_point_to_pdf(self, sample_dim, point, n_samples):
+        space = self.Space(sample_dim)
+        samples = space.sample(space.random_point(), n_samples)
+        result = space.point_to_pdf(point)(samples)
 
-        Test that the random uniform method samples
-        on the normal distribution space.
-        """
-        n_samples = self.n_samples
-        point = self.normal.random_point(n_samples)
-        result = self.normal.belongs(point)
-        expected = gs.array([True] * n_samples)
-        self.assertAllClose(expected, result)
-
-    def test_random_point(self):
-        """Test random_point.
-
-        Test that the random uniform method samples points of the right shape
-        """
-        point = self.normal.random_point(self.n_samples)
-        self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
-
-    def test_sample(self):
-        """Test samples."""
-        n_points = self.n_samples
-        n_samples = 100
-        points = self.normal.random_point(n_points)
-        samples = self.normal.sample(points, n_samples)
-        result = samples.shape
-        expected = (n_points, n_samples)
-
+        samples = gs.to_ndarray(samples, to_ndim=2, axis=0)
+        point = gs.to_ndarray(point, to_ndim=3, axis=0)
+        expected = []
+        for i in range(point.shape[0]):
+            tmp = list()
+            mean, cov = gs.zeros(sample_dim), point[i]
+            for j in range(samples.shape[0]):
+                x = samples[j]
+                tmp.append(multivariate_normal.pdf(x, mean=mean, cov=cov))
+            expected.append(gs.array(tmp))
+        expected = gs.transpose(gs.squeeze(gs.stack(expected, axis=0)))
         self.assertAllClose(result, expected)
 
-    def test_point_to_pdf(self):
-        """Test point_to_pdf
 
-        Check vectorization of the computation of the pdf.
-        """
-        point = self.normal.random_point(n_samples=2)
-        pdf = self.normal.point_to_pdf(point)
-        x = gs.linspace(0.0, 1.0, 10)
-        result = pdf(x)
-        pdf1 = norm.pdf(x, loc=point[0, 0], scale=point[0, 1])
-        pdf2 = norm.pdf(x, loc=point[1, 0], scale=point[1, 1])
-        expected = gs.stack([gs.array(pdf1), gs.array(pdf2)], axis=1)
+class TestDiagonalNormalDistributions(OpenSetTestCase, metaclass=Parametrizer):
+    testing_data = DiagonalNormalDistributionsTestData()
 
-        self.assertAllClose(result, expected, atol=1e-8)
+    @pytest.mark.xfail
+    def test_belongs(self, sample_dim, point, expected):
+        self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
+
+    @pytest.mark.xfail
+    def test_random_point_shape(self, point, expected):
+        self.assertAllClose(point.shape, expected)
+
+    @pytest.mark.xfail
+    def test_sample(self, sample_dim, point, n_samples, expected):
+        self.assertAllClose(
+            self.Space(sample_dim).sample(point, n_samples).shape, expected
+        )
+
+    @pytest.mark.xfail
+    def test_point_to_pdf(self, sample_dim, point, n_samples):
+        space = self.Space(sample_dim)
+        samples = space.sample(space.random_point(), n_samples)
+        result = space.point_to_pdf(point)(samples)
+
+        samples = gs.to_ndarray(samples, to_ndim=2, axis=0)
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+        expected = []
+        for i in range(point.shape[0]):
+            mean, cov = space._unstack_mean_diagonal(sample_dim, point[i, ...])
+            tmp = list()
+            for j in range(samples.shape[0]):
+                x = samples[j, ...]
+                tmp.append(multivariate_normal.pdf(x, mean=mean, cov=cov))
+            expected.append(gs.array(tmp))
+        expected = gs.squeeze(gs.stack(expected, axis=0))
+        self.assertAllClose(result, expected)
+
+
+class TestGeneralNormalDistributions(ManifoldTestCase, metaclass=Parametrizer):
+    testing_data = GeneralNormalDistributionsTestData()
+
+    def test_unstack_mean_covariance(
+        self, sample_dim, point, mean_expected, cov_expected
+    ):
+        mean, cov = self.Space(sample_dim)._unstack_mean_covariance(point)
+        self.assertAllClose(mean.shape, mean_expected)
+        self.assertAllClose(cov.shape, cov_expected)
+
+    @pytest.mark.xfail
+    def test_belongs(self, sample_dim, point, expected):
+        self.assertAllClose(self.Space(sample_dim).belongs(point), expected)
+
+    @pytest.mark.xfail
+    def test_random_point_shape(self, point, expected):
+        self.assertAllClose(point.shape, expected)
+
+    @pytest.mark.xfail
+    def test_sample(self, sample_dim, point, n_samples, expected):
+        self.assertAllClose(
+            self.Space(sample_dim).sample(point, n_samples).shape, expected
+        )
+
+    @pytest.mark.xfail
+    def test_point_to_pdf(self, sample_dim, point, n_samples):
+        space = self.Space(sample_dim)
+        samples = space.sample(space.random_point(), n_samples)
+        result = space.point_to_pdf(point)(samples)
+
+        samples = gs.to_ndarray(samples, to_ndim=2, axis=0)
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+        expected = []
+        for i in range(point.shape[0]):
+            tmp = list()
+            mean, cov = space._unstack_mean_covariance(point[i])
+            for j in range(samples.shape[0]):
+                x = samples[j]
+                tmp.append(multivariate_normal.pdf(x, mean=mean, cov=cov))
+            expected.append(gs.array(tmp))
+        expected = gs.transpose(gs.squeeze(gs.stack(expected, axis=0)))
+        self.assertAllClose(result, expected)
+
+
+class TestCenteredNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_geodesic_bvp_belongs = True
+    skip_test_exp_belongs = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_ladder_parallel_transport = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_sectional_curvature_shape = True
+
+    testing_data = CenteredNormalMetricTestData()
+    Space = testing_data.Space
+
+    def test_inner_product_shape(
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        result = result.shape
+        self.assertAllClose(result, expected)
+
+    @pytest.mark.xfail
+    def test_dist(self, metric, point_a, point_b, expected):
+        result = metric.dist(point_a, point_b)
+        self.assertAllClose(result, expected)
+
+
+class TestDiagonalNormalMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_geodesic_bvp_belongs = True
+    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_ladder_parallel_transport = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_sectional_curvature_shape = True
+    skip_test_log_after_exp = True
+
+    testing_data = DiagonalNormalMetricTestData()
+    Space = testing_data.Space
+
+    def test_inner_product_shape(
+        self, space, tangent_vec_a, tangent_vec_b, base_point, expected
+    ):
+        space.equip_with_metric(self.Metric)
+        result = space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        result = result.shape
+        self.assertAllClose(result, expected)

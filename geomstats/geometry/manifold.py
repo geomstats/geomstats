@@ -10,9 +10,6 @@ import abc
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.riemannian_metric import RiemannianMetric
-
-POINT_TYPES = {1: "vector", 2: "matrix"}
 
 
 class Manifold(abc.ABC):
@@ -25,42 +22,102 @@ class Manifold(abc.ABC):
     shape : tuple of int
         Shape of one element of the manifold.
         Optional, default : None.
-    metric : RiemannianMetric
-        Metric object to use on the manifold.
-    default_point_type : str, {\'vector\', \'matrix\'}
-        Point type.
-        Optional, default: 'vector'.
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
         Coordinate type.
         Optional, default: 'intrinsic'.
+    equip : bool
+        If True, equip space with default metric.
+
+    Attributes
+    ----------
+    point_ndim : int
+        Dimension of point array.
+    default_point_type : str
+        Point type: "vector" or "matrix".
     """
 
     def __init__(
         self,
         dim,
         shape,
-        metric=None,
-        default_point_type=None,
         default_coords_type="intrinsic",
-        **kwargs
+        equip=True,
     ):
-        super(Manifold, self).__init__(**kwargs)
         geomstats.errors.check_integer(dim, "dim")
 
         if not isinstance(shape, tuple):
             raise ValueError("Expected a tuple for the shape argument.")
-        if default_point_type is None:
-            default_point_type = POINT_TYPES[len(shape)]
-
-        geomstats.errors.check_parameter_accepted_values(
-            default_point_type, "default_point_type", ["vector", "matrix"]
-        )
 
         self.dim = dim
         self.shape = shape
-        self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
-        self._metric = metric
+
+        self.point_ndim = len(self.shape)
+        if self.point_ndim == 1:
+            self.default_point_type = "vector"
+        elif self.point_ndim == 2:
+            self.default_point_type = "matrix"
+        else:
+            self.default_point_type = "other"
+
+        if equip:
+            self.equip_with_metric()
+
+    def equip_with_metric(self, Metric=None, **metric_kwargs):
+        """Equip manifold with a Riemannian metric.
+
+        Parameters
+        ----------
+        Metric : RiemannianMetric object
+            If None, default metric will be used.
+        """
+        if Metric is None:
+            out = self.default_metric()
+            if isinstance(out, tuple):
+                Metric, kwargs = out
+                kwargs.update(metric_kwargs)
+                metric_kwargs = kwargs
+            else:
+                Metric = out
+
+        self.metric = Metric(self, **metric_kwargs)
+
+    def equip_with_group_action(self, group_action):
+        """Equip manifold with group action.
+
+        Parameters
+        ----------
+        group_action : str
+            Group action.
+        """
+        self.group_action = group_action
+
+    def _check_equip_with_quotient_structure(self):
+        if not hasattr(self, "_quotient_map"):
+            raise ValueError("No quotient structure defined for this manifold.")
+
+        for structure_name in ("metric", "group_action"):
+            if not hasattr(self, structure_name):
+                raise ValueError(f"Need to equip with `{structure_name}` first")
+
+    def equip_with_quotient_structure(self):
+        """Equip manifold with quotient structure.
+
+        Creates attributes `quotient` and `fiber_bundle`.
+        """
+        self._check_equip_with_quotient_structure()
+
+        key = type(self.metric), self.group_action
+
+        out = self._quotient_map.get(key, None)
+        if out is None:
+            raise ValueError(f"No mapping for key: {key}")
+        FiberBundle_, QuotientMetric_ = out
+
+        self.fiber_bundle = FiberBundle_(total_space=self)
+
+        self.quotient = self.new(equip=False)
+        self.quotient.equip_with_metric(QuotientMetric_, fiber_bundle=self.fiber_bundle)
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
@@ -68,7 +125,7 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        point : array-like, shape=[..., *point_shape]
             Point to evaluate.
         atol : float
             Absolute tolerance.
@@ -86,9 +143,9 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
         atol : float
             Absolute tolerance.
@@ -106,22 +163,22 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., dim]
+        vector : array-like, shape=[..., *point_shape]
             Vector.
-        base_point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., *point_shape]
             Point on the manifold.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vector at base point.
         """
 
     @abc.abstractmethod
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points on the manifold.
+        """Sample random points on the manifold according to some distribution.
 
-        If the manifold is compact, a uniform distribution is used.
+        If the manifold is compact, preferably a uniform distribution will be used.
 
         Parameters
         ----------
@@ -134,7 +191,7 @@ class Manifold(abc.ABC):
 
         Returns
         -------
-        samples : array-like, shape=[..., {dim, [n, n]}]
+        samples : array-like, shape=[..., *point_shape]
             Points sampled on the manifold.
         """
 
@@ -148,25 +205,10 @@ class Manifold(abc.ABC):
 
         Returns
         -------
-        regularized_point : array-like, shape=[..., dim]
+        regularized_point : array-like, shape=[..., *point_shape]
             Regularized point.
         """
-        regularized_point = point
-        return regularized_point
-
-    @property
-    def metric(self):
-        """Riemannian Metric associated to the Manifold."""
-        return self._metric
-
-    @metric.setter
-    def metric(self, metric):
-        if metric is not None:
-            if not isinstance(metric, RiemannianMetric):
-                raise ValueError("The argument must be a RiemannianMetric object")
-            if metric.dim != self.dim:
-                metric.dim = self.dim
-        self._metric = metric
+        return gs.copy(point)
 
     def random_tangent_vec(self, base_point, n_samples=1):
         """Generate random tangent vec.
@@ -176,12 +218,12 @@ class Manifold(abc.ABC):
         n_samples : int
             Number of samples.
             Optional, default: 1.
-        base_point :  array-like, shape=[..., dim]
+        base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
             Point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., dim]
+        tangent_vec : array-like, shape=[..., *point_shape]
             Tangent vec at base point.
         """
         if (
@@ -191,10 +233,9 @@ class Manifold(abc.ABC):
         ):
             raise ValueError(
                 "The number of base points must be the same as the "
-                "number of samples, when different from 1."
+                "number of samples, when the number of base points is different from 1."
             )
-        return gs.squeeze(
-            self.to_tangent(
-                gs.random.normal(size=(n_samples,) + self.shape), base_point
-            )
+        batch_size = () if n_samples == 1 else (n_samples,)
+        return self.to_tangent(
+            gs.random.normal(size=batch_size + self.shape), base_point
         )
