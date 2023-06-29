@@ -12,15 +12,15 @@ class GeometricMedian(BaseEstimator):
 
     Parameters
     ----------
-    metric : RiemannianMetric
-        Riemannian metric.
+    space : Manifold
+        Equipped manifold.
     max_iter : int
         Maximum number of iterations for the algorithm.
         Optional, default : 100
     lr : float
         Learning rate to be used for the algorithm.
         Optional, default : 1.0
-    init_point : array-like, shape=[*metric.shape]
+    init_point : array-like, shape=[*space.shape]
         Initialization to be used in the start.
         Optional, default : None, in which case it uses last sample.
     print_every : int
@@ -33,7 +33,7 @@ class GeometricMedian(BaseEstimator):
 
     Attributes
     ----------
-    estimate_ : array-like, shape=[*metric.shape]
+    estimate_ : array-like, shape=[*space.shape]
         If fit, geometric median.
 
     References
@@ -46,19 +46,20 @@ class GeometricMedian(BaseEstimator):
 
     def __init__(
         self,
-        metric,
+        space,
         max_iter=100,
         lr=1.0,
         init_point=None,
         print_every=None,
         epsilon=gs.atol,
     ):
-        self.metric = metric
+        self.space = space
         self.max_iter = max_iter
         self.lr = lr
         self.init_point = init_point
         self.print_every = print_every
         self.epsilon = epsilon
+
         self.estimate_ = None
 
     def _iterate_once(self, current_median, X, weights, lr):
@@ -66,9 +67,9 @@ class GeometricMedian(BaseEstimator):
 
         Parameters
         ----------
-        current_median : array-like, shape=[*metric.shape]
+        current_median : array-like, shape=[*space.shape]
             Current median.
-        X : array-like, shape=[n_samples, *metric.shape]
+        X : array-like, shape=[n_samples, *space.shape]
             Training input samples.
         weights : array-like, shape=[n_samples,]
             Weights for weighted sum.
@@ -80,15 +81,15 @@ class GeometricMedian(BaseEstimator):
         updated_median : array-like, shape=[*metric.shape]
             Updated median after single iteration.
         """
-        dists = self.metric.dist(current_median, X)
+        dists = self.space.metric.dist(current_median, X)
         is_non_zero = dists > gs.atol
         if not gs.any(is_non_zero):
             return current_median
 
         w = weights[is_non_zero] / dists[is_non_zero]
-        logs = self.metric.log(X[is_non_zero], current_median)
+        logs = self.space.metric.log(X[is_non_zero], current_median)
         v_k = gs.einsum("n,n...->...", w / gs.sum(w), logs)
-        updated_median = self.metric.exp(lr * v_k, current_median)
+        updated_median = self.space.metric.exp(lr * v_k, current_median)
         return updated_median
 
     def fit(self, X, y=None, weights=None):
@@ -111,15 +112,14 @@ class GeometricMedian(BaseEstimator):
         self : object
             Returns self.
         """
-        n_points = X.shape[0]
         median = X[-1] if self.init_point is None else self.init_point
         if weights is None:
-            weights = gs.ones(n_points)
+            weights = gs.ones(X.shape[0])
         weights /= gs.sum(weights)
 
         for iteration in range(self.max_iter):
             new_median = self._iterate_once(median, X, weights, self.lr)
-            shift = self.metric.dist(new_median, median)
+            shift = self.space.metric.dist(new_median, median)
 
             if shift < self.epsilon:
                 break

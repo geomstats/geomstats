@@ -17,10 +17,11 @@ class TestGeometricMedian(TestCase, metaclass=Parametrizer):
             atol=1e-5,
         )
 
-    def test_fit_sanity(self, estimator, space):
+    def test_fit_sanity(self, estimator):
         # Test estimate belongs to space,
         # and weights=None is equivalent to uniform weights.
         n_samples = 5
+        space = estimator.space
         X = space.random_point(n_samples)
 
         med = estimator.fit(X).estimate_
