@@ -3,6 +3,8 @@ from geomstats.test.test_case import TestCase
 
 # TODO: estimate_belongs as a first general test?
 
+# TODO: update notion of `RandomDataGenerator` for learning -> add random_dataset(n_samples)
+
 
 class BaseEstimatorTestCase(TestCase):
     def setup_method(self):
