@@ -65,11 +65,9 @@ class IncrementalFrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[..., {dim, [n, n]}]
+        X : array-like, shape=[n_samples, {dim, [n, n]}]
             Training input samples.
-        y : array-like, shape=[...,] or [..., n_outputs]
-            Target values (class labels in classification, real numbers in
-            regression).
+        y : None
             Ignored.
         init : array-like, shape=[{dim, [n, n]}]
             If not None, starts mean computation from init, could be useful
