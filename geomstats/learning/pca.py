@@ -99,16 +99,23 @@ class TangentPCA(_BasePCA):
 
     Parameters
     ----------
-    metric : RiemannianMetric
-        Riemannian metric.
+    space : Manifold
+        Equipped manifold.
     n_components : int
         Number of principal components.
         Optional, default: None.
+
+    Notes
+    -----
+    * Required "metric" methods: `exp`, `log`.
+    * If `base_point=None`, also requires `FrechetMean` required methods.
+    * Lie groups can be used without a metric, but `base_point` or `mean_estimator`
+     need to be specified.
     """
 
     def __init__(
         self,
-        metric,
+        space,
         n_components=None,
         copy=True,
         whiten=False,
@@ -116,15 +123,26 @@ class TangentPCA(_BasePCA):
         iterated_power="auto",
         random_state=None,
     ):
-        self.metric = metric
+        self.space = space
         self.n_components = n_components
         self.copy = copy
         self.whiten = whiten
         self.tol = tol
         self.iterated_power = iterated_power
         self.random_state = random_state
-        self.point_type = metric._space.default_point_type
-        self.base_point_fit = None
+
+        if hasattr(self.space, "metric"):
+            self.mean_estimator = FrechetMean(space)
+
+        self.base_point_ = None
+
+    @property
+    def _active_obj(self):
+        """Object where `exp` and `log` are defined."""
+        if hasattr(self.space, "metric"):
+            return self.space.metric
+
+        return self.space
 
     def fit(self, X, y=None, base_point=None):
         """Fit the model with X.
@@ -187,8 +205,8 @@ class TangentPCA(_BasePCA):
         X_new : array-like, shape=[..., n_components]
             Projected data.
         """
-        tangent_vecs = self.metric.log(X, base_point=self.base_point_fit)
-        if self.point_type == "matrix":
+        tangent_vecs = self._active_obj.log(X, base_point=self.base_point_)
+        if self.space.default_point_type == "matrix":
             if Matrices.is_symmetric(tangent_vecs).all():
                 X = SymmetricMatrices.to_vector(tangent_vecs)
             else:
@@ -217,15 +235,16 @@ class TangentPCA(_BasePCA):
             Original data.
         """
         scores = self.mean_ + gs.matmul(X, self.components_)
-        if self.point_type == "matrix":
-            if Matrices.is_symmetric(self.base_point_fit).all():
-                scores = SymmetricMatrices(self.base_point_fit.shape[-1]).from_vector(
+
+        if self.space.point_ndim > 1:
+            if gs.all(Matrices.is_symmetric(self.base_point_)):
+                scores = SymmetricMatrices(self.base_point_.shape[-1]).from_vector(
                     scores
                 )
             else:
-                dim = self.base_point_fit.shape[-1]
+                dim = self.base_point_.shape[-1]
                 scores = gs.reshape(scores, (len(scores), dim, dim))
-        return self.metric.exp(scores, self.base_point_fit)
+        return self._active_obj.exp(scores, self.base_point_)
 
     def _fit(self, X, base_point=None):
         """Fit the model by computing full SVD on X.
@@ -246,14 +265,12 @@ class TangentPCA(_BasePCA):
             Matrices of the SVD decomposition
         """
         if base_point is None:
-            mean = FrechetMean(metric=self.metric)
-            mean.fit(X)
-            base_point = mean.estimate_
+            base_point = self.mean_estimator.fit(X).estimate_
 
-        tangent_vecs = self.metric.log(X, base_point=base_point)
+        tangent_vecs = self._active_obj.log(X, base_point=base_point)
 
-        if self.point_type == "matrix":
-            if Matrices.is_symmetric(tangent_vecs).all():
+        if self.space.point_ndim > 1:
+            if gs.all(Matrices.is_symmetric(tangent_vecs)):
                 X = SymmetricMatrices.to_vector(tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), -1))
@@ -269,7 +286,7 @@ class TangentPCA(_BasePCA):
         if n_components == "mle":
             if n_samples < n_features:
                 raise ValueError(
-                    "n_components='mle' is only supported " "if n_samples >= n_features"
+                    "n_components='mle' is only supported if n_samples >= n_features"
                 )
         elif not 0 <= n_components <= min(n_samples, n_features):
             raise ValueError(
@@ -298,6 +315,7 @@ class TangentPCA(_BasePCA):
         explained_variance_ = (S**2) / (n_samples - 1)
         total_var = explained_variance_.sum()
         explained_variance_ratio_ = explained_variance_ / total_var
+        # TODO: why a copy?
         singular_values_ = gs.copy(S)  # Store the singular values.
 
         # Postprocess the number of components required
@@ -316,7 +334,7 @@ class TangentPCA(_BasePCA):
         else:
             self.noise_variance_ = 0.0
 
-        self.base_point_fit = base_point
+        self.base_point_ = base_point
         self.n_samples_, self.n_features_ = n_samples, n_features
         self.components_ = components_[:n_components]
         self.n_components_ = int(n_components)
