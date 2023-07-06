@@ -18,8 +18,8 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
 
     Parameters
     ----------
-    metric : object of class RiemannianMetric
-        The geomstats Riemmanian metric associate to the space used.
+    space : Manifold
+        Equipped manifold.
     n_clusters : int
         Number of clusters (k value of k-medoids).
         Optional, default: 8.
@@ -32,20 +32,25 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         Number of jobs to run in parallel. `-1` means using all processors.
         Optional, default: 1.
 
+    Notes
+    -----
+    * Required metric methods: `dist`, `dist_pairwise`.
+
     Example
     -------
     Available example on the Poincaré Ball and Hypersphere manifolds
     :mod:`examples.plot_kmedoids_manifolds`
     """
 
-    def __init__(self, metric, n_clusters=8, init="random", n_jobs=1):
-        self.metric = metric
+    def __init__(self, space, n_clusters=8, init="random", n_jobs=1):
+        self.space = space
         self.n_clusters = n_clusters
         self.init = init
+        self.n_jobs = n_jobs
+
         self.cluster_centers_ = None
         self.labels_ = None
         self.medoid_indices_ = None
-        self.n_jobs = n_jobs
 
     def _initialize_medoids(self, distances):
         """Select initial medoids when beginning clustering."""
@@ -74,10 +79,11 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Returns
         -------
-        self : array-like, shape=[n_clusters,]
-            Centroids.
+        self : object
+            Returns self.
         """
-        distances = self.metric.dist_pairwise(data, n_jobs=self.n_jobs)
+        # TODO: move `dist_pairwise` to `vectorization`?
+        distances = self.space.metric.dist_pairwise(data, n_jobs=self.n_jobs)
         medoids_indices = self._initialize_medoids(distances)
 
         for iteration in range(max_iter):
@@ -98,7 +104,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         self.labels_ = labels
         self.medoid_indices_ = medoids_indices
 
-        return self.cluster_centers_
+        return self
 
     def _update_medoid_indexes(self, distances, labels, medoid_indices):
         for cluster in range(self.n_clusters):
@@ -139,7 +145,9 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         for point_index, point_value in enumerate(data):
             distances = gs.zeros(len(self.cluster_centers_))
             for cluster_index, cluster_value in enumerate(self.cluster_centers_):
-                distances[cluster_index] = self.metric.dist(point_value, cluster_value)
+                distances[cluster_index] = self.space.metric.dist(
+                    point_value, cluster_value
+                )
 
             labels[point_index] = gs.argmin(distances)
 
