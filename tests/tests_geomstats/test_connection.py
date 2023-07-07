@@ -14,6 +14,15 @@ from tests.data.connection_data import ConnectionTestData
 
 
 class TestConnection(TestCase, metaclass=Parametrizer):
+    """Connection tests.
+
+    Notes
+    -----
+    * `space.equip_with_metric(Connection)` is used in some tests. This is done
+    only for testing purposes and should not be looked at from a mathematical
+    point of view.
+    """
+
     testing_data = ConnectionTestData()
 
     def test_metric_matrix(self, space, point, expected):
@@ -92,9 +101,13 @@ class TestConnection(TestCase, metaclass=Parametrizer):
 
     def test_exp_connection_metric(self, dim, tangent_vec, base_point):
         sphere = Hypersphere(dim)
-        connection = Connection(sphere)
+        sphere_with_connection = Hypersphere(dim, equip=False)
+        sphere_with_connection.equip_with_metric(Connection)
+        connection = sphere_with_connection.metric
+
         point_ext = sphere.spherical_to_extrinsic(base_point)
         vector_ext = sphere.tangent_spherical_to_extrinsic(tangent_vec, base_point)
+
         connection.christoffels = sphere.metric.christoffels
         connection.exp_solver = ExpODESolver(
             integrator=GSIVPIntegrator(n_steps=50, step_type="rk4"),
@@ -106,12 +119,13 @@ class TestConnection(TestCase, metaclass=Parametrizer):
 
         self.assertAllClose(result, expected)
 
-    @pytest.mark.skip
     @tests.conftest.autograd_and_torch_only
     def test_log_connection_metric(self, dim, point, base_point, atol):
         sphere = Hypersphere(dim)
-        sphere.shape = (dim,)
-        connection = Connection(sphere)
+
+        sphere_with_connection = Hypersphere(dim, equip=False)
+        sphere_with_connection.equip_with_metric(Connection)
+        connection = sphere_with_connection.metric
         connection.christoffels = sphere.metric.christoffels
 
         connection.exp_solver = ExpODESolver(
@@ -123,7 +137,6 @@ class TestConnection(TestCase, metaclass=Parametrizer):
 
         vector = connection.log(point=point, base_point=base_point)
 
-        sphere.shape = (dim + 1,)
         result = sphere.tangent_spherical_to_extrinsic(vector, base_point)
         p_ext = sphere.spherical_to_extrinsic(base_point)
         q_ext = sphere.spherical_to_extrinsic(point)
@@ -135,7 +148,10 @@ class TestConnection(TestCase, metaclass=Parametrizer):
         self, dim, point, tangent_vec, n_times, n_steps, expected, atol
     ):
         sphere = Hypersphere(dim)
-        connection = Connection(sphere)
+
+        sphere_with_connection = Hypersphere(dim, equip=False)
+        sphere_with_connection.equip_with_metric(Connection)
+        connection = sphere_with_connection.metric
         connection.christoffels = sphere.metric.christoffels
         connection.exp_solver = ExpODESolver(
             integrator=GSIVPIntegrator(n_steps=25, step_type="euler"),
@@ -153,7 +169,11 @@ class TestConnection(TestCase, metaclass=Parametrizer):
         self, dim, point, end_point, n_times, n_steps, expected, atol
     ):
         sphere = Hypersphere(dim)
-        connection = Connection(sphere)
+
+        sphere_with_connection = Hypersphere(dim, equip=False)
+        sphere_with_connection.equip_with_metric(Connection)
+        connection = sphere_with_connection.metric
+
         connection.christoffels = sphere.metric.christoffels
 
         connection.exp_solver = ExpODESolver(
