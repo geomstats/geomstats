@@ -9,96 +9,6 @@ from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
 
-# TODO (nkoep): Move this into the OnlineKMeans class.
-
-
-def online_kmeans(X, metric, n_clusters, n_repetitions=20, atol=1e-5, max_iter=5e4):
-    """Perform online K-means clustering.
-
-    Perform online version of k-means algorithm on data contained in X.
-    The data points are treated sequentially and the cluster centers are
-    updated one at a time. This version of k-means avoids computing the
-    mean of each cluster at each iteration and is therefore less
-    computationally intensive than the offline version.
-
-    In the setting of quantization of probability distributions, this
-    algorithm is also known as Competitive Learning Riemannian Quantization.
-    It computes the closest approximation of the empirical distribution of
-    data by a discrete distribution supported by a smaller number of points
-    with respect to the Wasserstein distance. This smaller number of points
-    is n_clusters.
-
-    Parameters
-    ----------
-    X : array-like, shape=[..., n_features]
-        Input data. It is treated sequentially by the algorithm, i.e.
-        one datum is chosen randomly at each iteration.
-    metric : object
-        Metric of the space in which the data lives. At each iteration,
-        one of the cluster centers is moved in the direction of the new
-        datum, according the exponential map of the underlying space, which
-        is a method of metric.
-    n_clusters : int
-        Number of clusters of the k-means clustering, or number of desired
-        atoms of the quantized distribution.
-    n_repetitions : int, default=20
-        The cluster centers are updated using decreasing step sizes, each
-        of which stays constant for n_repetitions iterations to allow a better
-        exploration of the data points.
-    max_iter : int, default=5e4
-        Maximum number of iterations. If it is reached, the
-        quantization may be inacurate.
-
-    Returns
-    -------
-    cluster_centers : array, shape=[n_clusters, n_features]
-        Coordinates of cluster centers.
-    labels : array, shape=[n_samples]
-        Cluster labels for each point.
-    """
-    n_samples = X.shape[0]
-
-    random_indices = gs.random.randint(low=0, high=n_samples, size=(n_clusters,))
-    cluster_centers = gs.get_slice(X, gs.cast(random_indices, gs.int32))
-
-    gap = 1.0
-    iteration = 0
-
-    while iteration < max_iter:
-        iteration += 1
-        step_size = gs.floor(gs.array(iteration / n_repetitions)) + 1
-
-        random_index = gs.random.randint(low=0, high=n_samples, size=(1,))
-        point = gs.get_slice(X, gs.cast(random_index, gs.int32))[0]
-
-        index_to_update = metric.closest_neighbor_index(point, cluster_centers)
-        center_to_update = gs.copy(gs.get_slice(cluster_centers, index_to_update))
-
-        tangent_vec_update = metric.log(point=point, base_point=center_to_update) / (
-            step_size + 1
-        )
-        new_center = metric.exp(
-            tangent_vec=tangent_vec_update, base_point=center_to_update
-        )
-        gap = metric.dist(center_to_update, new_center)
-        if gap == 0 and iteration == 1:
-            gap = gs.array(1.0)
-
-        cluster_centers[index_to_update, :] = new_center
-
-        if gs.isclose(gap, 0, atol=atol):
-            break
-
-    if iteration == max_iter - 1:
-        logging.warning(
-            "Maximum number of iterations {} reached. The"
-            "clustering may be inaccurate".format(max_iter)
-        )
-
-    labels = metric.closest_neighbor_index(X, cluster_centers)
-
-    return cluster_centers, labels
-
 
 class OnlineKMeans(BaseEstimator, ClusterMixin):
     """Online k-means clustering.
@@ -114,8 +24,8 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
 
     Parameters
     ----------
-    metric : object
-        Metric of the space in which the data lives. At each iteration,
+    space : Manifold
+        Equipped manifold. At each iteration,
         one of the cluster centers is moved in the direction of the new
         datum, according the exponential map of the underlying space, which
         is a method of metric.
@@ -137,6 +47,10 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
     labels_ :
         Labels of each point.
 
+    Notes
+    -----
+    * Required metric methods: `exp`, `log`, `dist`, `closest_neighbor_index`.
+
     Example
     -------
     >>> from geomstats.geometry.hypersphere import Hypersphere
@@ -148,6 +62,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
     >>> clustering.cluster_centers_
     >>> clustering.labels_
 
+
     References
     ----------
     .. [LBP2019] A. Le Brigant and S. Puechmorel, Optimal Riemannian
@@ -157,47 +72,103 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
 
     def __init__(
         self,
-        metric,
+        space,
         n_clusters,
         n_repetitions=20,
         atol=1e-5,
-        max_iter=5e4,
-        point_type="vector",
+        max_iter=500,
     ):
-        self.metric = metric
+        self.space = space
         self.n_clusters = n_clusters
         self.n_repetitions = n_repetitions
         self.atol = atol
         self.max_iter = max_iter
-        self.point_type = point_type
 
-        self.cluster_centers_ = self.labels_ = None
+        self.cluster_centers_ = None
+        self.labels_ = None
 
-    def fit(self, X):
+    def fit(self, X, y=None):
         """Perform clustering.
+
+        Perform online version of k-means algorithm on data contained in X.
+        The data points are treated sequentially and the cluster centers are
+        updated one at a time. This version of k-means avoids computing the
+        mean of each cluster at each iteration and is therefore less
+        computationally intensive than the offline version.
+
+        In the setting of quantization of probability distributions, this
+        algorithm is also known as Competitive Learning Riemannian Quantization.
+        It computes the closest approximation of the empirical distribution of
+        data by a discrete distribution supported by a smaller number of points
+        with respect to the Wasserstein distance. This smaller number of points
+        is n_clusters.
 
         Parameters
         ----------
-        X : array-like, shape=[n_features, n_samples]
-            Samples to cluster.
+        X : array-like, shape=[n_samples, n_features]
+            Input data. It is treated sequentially by the algorithm, i.e.
+            one datum is chosen randomly at each iteration.
+        y : None
+            Target values. Ignored.
+
+        Returns
+        -------
+        self : object
+            Returns self.
         """
-        self.cluster_centers_, self.labels_ = online_kmeans(
-            X=X,
-            metric=self.metric,
-            n_clusters=self.n_clusters,
-            n_repetitions=self.n_repetitions,
-            atol=self.atol,
-            max_iter=self.max_iter,
+        n_samples = X.shape[0]
+
+        random_indices = gs.random.randint(
+            low=0, high=n_samples, size=(self.n_clusters,)
         )
+        cluster_centers = gs.get_slice(X, random_indices)
+
+        gap = 1.0
+
+        for iteration in range(self.max_iter):
+            step_size = gs.floor(gs.array((iteration + 1) / self.n_repetitions)) + 1
+
+            random_index = gs.random.randint(low=0, high=n_samples, size=(1,))
+            point = gs.get_slice(X, random_index)[0]
+
+            index_to_update = self.space.metric.closest_neighbor_index(
+                point, cluster_centers
+            )
+            center_to_update = gs.copy(gs.get_slice(cluster_centers, index_to_update))
+
+            tangent_vec_update = self.space.metric.log(
+                point=point, base_point=center_to_update
+            ) / (step_size + 1)
+            new_center = self.space.metric.exp(
+                tangent_vec=tangent_vec_update, base_point=center_to_update
+            )
+            gap = self.space.metric.dist(center_to_update, new_center)
+            if gap == 0 and iteration == 0:
+                gap = gs.array(1.0)
+
+            cluster_centers[index_to_update, :] = new_center
+
+            if gs.isclose(gap, 0, atol=self.atol):
+                break
+        else:
+            logging.warning(
+                "Maximum number of iterations {} reached. The"
+                "clustering may be inaccurate".format(self.max_iter)
+            )
+
+        labels = self.space.metric.closest_neighbor_index(X, cluster_centers)
+
+        self.cluster_centers_ = cluster_centers
+        self.labels_ = labels
 
         return self
 
-    def predict(self, point):
+    def predict(self, X):
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
         ----------
-        X : array-like, shape=[n_features]
+        X : array-like, shape=[n_samples, n_features]
             New data to predict.
 
         Returns
@@ -208,4 +179,4 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         if self.cluster_centers_ is None:
             raise Exception("Not fitted")
 
-        return self.metric.closest_neighbor_index(point, self.cluster_centers_)
+        return self.space.metric.closest_neighbor_index(X, self.cluster_centers_)

@@ -14,25 +14,26 @@ class TestOnlineKmeans(tests.conftest.TestCase):
 
         self.dimension = 2
         self.space = Hypersphere(dim=self.dimension)
-        self.metric = self.space.metric
         self.data = self.space.random_von_mises_fisher(kappa=100, n_samples=50)
 
     def test_fit(self):
         X = self.data
-        clustering = OnlineKMeans(metric=self.metric, n_clusters=1, n_repetitions=10)
+        clustering = OnlineKMeans(
+            self.space, n_clusters=1, n_repetitions=10, max_iter=50000
+        )
         clustering.fit(X)
 
         center = clustering.cluster_centers_
-        mean = FrechetMean(metric=self.metric, init_step_size=1.0)
+        mean = FrechetMean(self.space)
         mean.fit(X)
 
-        result = self.metric.dist(center, mean.estimate_)
+        result = self.space.metric.dist(center, mean.estimate_)
         expected = 0.0
         self.assertAllClose(expected, result, atol=1e-3)
 
     def test_predict(self):
         X = self.data
-        clustering = OnlineKMeans(metric=self.metric, n_clusters=3, n_repetitions=1)
+        clustering = OnlineKMeans(self.space, n_clusters=3, n_repetitions=1)
         clustering.fit(X)
 
         point = self.data[0, :]
