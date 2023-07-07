@@ -41,7 +41,7 @@ class TestRiemannianKMeans(tests.conftest.TestCase):
         kmeans.fit(data)
         result = kmeans.centroids_[0]
 
-        mean = FrechetMean(space).set("max_iter", 100)
+        mean = FrechetMean(space).set(max_iter=100)
         mean.fit(data)
         expected = mean.estimate_
         self.assertAllClose(result, expected)

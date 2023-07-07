@@ -170,9 +170,6 @@ class GeodesicRegression(BaseEstimator):
     method : str, {\'extrinsic\', \'riemannian\'}
         Gradient descent method.
         Optional, default: extrinsic.
-    verbose : bool
-        Verbose option.
-        Optional, default: False.
     initialization : str or array-like,
         {'random', 'data', 'frechet', warm_start'}
         Initial values of the parameters for the optimization,
@@ -185,6 +182,12 @@ class GeodesicRegression(BaseEstimator):
     compute_training_score : bool
         Whether to compute R^2.
         Optional, default: False.
+
+    Notes
+    -----
+    * Required metric methods:
+        * all: `exp`, `squared_dist`
+        * if `riemannian`: `parallel transport` or `to_tangent`
     """
 
     def __init__(
@@ -211,15 +214,16 @@ class GeodesicRegression(BaseEstimator):
 
         self.mean_estimator = FrechetMean(self.space)
 
-    def set(self, param_name, value):
+    def set(self, **kwargs):
         """Set optimizer parameters.
 
         Especially useful for one line instantiations.
         """
-        if not hasattr(self.optimizer, param_name):
-            raise ValueError(f"Unknown parameter {param_name}.")
+        for param_name, value in kwargs.items():
+            if not hasattr(self.optimizer, param_name):
+                raise ValueError(f"Unknown parameter {param_name}.")
 
-        setattr(self.optimizer, param_name, value)
+            setattr(self.optimizer, param_name, value)
         return self
 
     @property
@@ -316,7 +320,7 @@ class GeodesicRegression(BaseEstimator):
             weights = 1.0
         return 1.0 / 2.0 * gs.sum(weights * distances) + penalty
 
-    def initialize_parameters(self, y):
+    def _initialize_parameters(self, y):
         """Set initial values for the parameters of the model.
 
         Set initial parameters for the optimization, depending on the value
@@ -343,9 +347,8 @@ class GeodesicRegression(BaseEstimator):
             Initial value for the coefficient.
         """
         init = self.initialization
-        shape = (
-            y.shape[-1:] if self.space.default_point_type == "vector" else y.shape[-2:]
-        )
+        shape = self.space.shape
+
         if isinstance(init, str):
             if init == "random":
                 return gs.random.normal(size=(2,) + shape)
@@ -429,7 +432,7 @@ class GeodesicRegression(BaseEstimator):
         res : OptimizeResult
             Scipy's optimize result.
         """
-        intercept_init, coef_init = self.initialize_parameters(y)
+        intercept_init, coef_init = self._initialize_parameters(y)
         intercept_hat = self.space.projection(intercept_init)
         coef_hat = self.space.to_tangent(coef_init, intercept_hat)
         initial_guess = gs.hstack([gs.flatten(intercept_hat), gs.flatten(coef_hat)])
@@ -464,7 +467,7 @@ class GeodesicRegression(BaseEstimator):
         """
         objective_with_grad = lambda params: self._loss(X, y, params, weights)
 
-        intercept_init, coef_init = self.initialize_parameters(y)
+        intercept_init, coef_init = self._initialize_parameters(y)
         x0 = gs.vstack([gs.flatten(intercept_init), gs.flatten(coef_init)])
 
         return self.optimizer.minimize(self.space, objective_with_grad, x0)

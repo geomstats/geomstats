@@ -13,6 +13,7 @@ from sklearn.utils.extmath import stable_cumsum, svd_flip
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.learning.exponential_barycenter import ExponentialBarycenter
 from geomstats.learning.frechet_mean import FrechetMean
 
 
@@ -107,7 +108,7 @@ class TangentPCA(_BasePCA):
 
     Notes
     -----
-    * Required "metric" methods: `exp`, `log`.
+    * Required geometry methods: `exp`, `log`.
     * If `base_point=None`, also requires `FrechetMean` required methods.
     * Lie groups can be used without a metric, but `base_point` or `mean_estimator`
      need to be specified.
@@ -133,11 +134,13 @@ class TangentPCA(_BasePCA):
 
         if hasattr(self.space, "metric"):
             self.mean_estimator = FrechetMean(space)
+        else:
+            self.mean_estimator = ExponentialBarycenter(space)
 
         self.base_point_ = None
 
     @property
-    def _active_obj(self):
+    def _geometry(self):
         """Object where `exp` and `log` are defined."""
         if hasattr(self.space, "metric"):
             return self.space.metric
@@ -205,7 +208,7 @@ class TangentPCA(_BasePCA):
         X_new : array-like, shape=[..., n_components]
             Projected data.
         """
-        tangent_vecs = self._active_obj.log(X, base_point=self.base_point_)
+        tangent_vecs = self._geometry.log(X, base_point=self.base_point_)
         if self.space.default_point_type == "matrix":
             if Matrices.is_symmetric(tangent_vecs).all():
                 X = SymmetricMatrices.to_vector(tangent_vecs)
@@ -244,7 +247,7 @@ class TangentPCA(_BasePCA):
             else:
                 dim = self.base_point_.shape[-1]
                 scores = gs.reshape(scores, (len(scores), dim, dim))
-        return self._active_obj.exp(scores, self.base_point_)
+        return self._geometry.exp(scores, self.base_point_)
 
     def _fit(self, X, base_point=None):
         """Fit the model by computing full SVD on X.
@@ -267,7 +270,7 @@ class TangentPCA(_BasePCA):
         if base_point is None:
             base_point = self.mean_estimator.fit(X).estimate_
 
-        tangent_vecs = self._active_obj.log(X, base_point=base_point)
+        tangent_vecs = self._geometry.log(X, base_point=base_point)
 
         if self.space.point_ndim > 1:
             if gs.all(Matrices.is_symmetric(tangent_vecs)):

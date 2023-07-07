@@ -36,6 +36,10 @@ class GeometricMedian(BaseEstimator):
     estimate_ : array-like, shape=[*space.shape]
         If fit, geometric median.
 
+    Notes
+    -----
+    * Required metric methods: `dist`, `log`, `exp`.
+
     References
     ----------
     .. [FVJ2009] Fletcher PT, Venkatasubramanian S and Joshi S.

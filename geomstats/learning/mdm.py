@@ -153,11 +153,10 @@ class RiemannianMinimumDistanceToMean(
         dist : ndarray, shape=[n_samples, n_classes]
             Distances to each centroid.
         """
-        n_samples = X.shape[0]
         dists = []
-        for i in range(n_samples):
-            dist = self.riemannian_metric.dist(
-                X[i],
+        for x in X:
+            dist = self.space.metric.dist(
+                x,
                 self.mean_estimates_,
             )
             dists.append(dist)

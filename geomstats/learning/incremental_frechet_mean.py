@@ -38,6 +38,10 @@ class IncrementalFrechetMean(BaseEstimator):
     clean_state : bool
         If keeping track of last iteration or clean state of estimator.
 
+    Notes
+    -----
+    * Required metric methods: `geodesic`.
+
     References
     ----------
     .. [CHSV2016] Cheng, Ho, Salehian, Vemuri.

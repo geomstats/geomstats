@@ -49,11 +49,13 @@ def _batchscalarmulsum(array_1, array_2):
     return gs.einsum("ni,ni...->i...", array_1, array_2)
 
 
-def variance(points, base_point, metric, weights=None):
+def variance(space, points, base_point, weights=None):
     """Variance of (weighted) points wrt a base point.
 
     Parameters
     ----------
+    space : Manifold
+        Equipped manifold.
     points : array-like, shape=[n_samples, dim]
         Points.
     weights : array-like, shape=[n_samples,]
@@ -70,7 +72,7 @@ def variance(points, base_point, metric, weights=None):
         weights = gs.ones((n_points,))
 
     sum_weights = gs.sum(weights)
-    sq_dists = metric.squared_dist(base_point, points)
+    sq_dists = space.metric.squared_dist(base_point, points)
     var = weights * sq_dists
 
     var = gs.sum(var)
@@ -118,12 +120,18 @@ class BaseGradientDescent(abc.ABC):
     ----------
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
+    epsilon : float, optional
+        Tolerance for stopping the gradient descent.
     init_point : array-like, shape=[*metric.shape]
         Initial point.
         Optional, default : None. In this case the first sample of the input
         data is used.
-    epsilon : float, optional
-        Tolerance for stopping the gradient descent.
+    init_step_size : float
+        Learning rate in the gradient descent.
+        Optional, default: 1.
+    verbose : bool
+        Level of verbosity to inform about convergence.
+        Optional, default: False.
     """
 
     def __init__(
@@ -158,7 +166,6 @@ class GradientDescent(BaseGradientDescent):
             return mean
 
         sum_weights = gs.sum(weights)
-        sq_dists_between_iterates = []
         iteration = 0
         sq_dist = 0.0
         var = 0.0
@@ -176,7 +183,6 @@ class GradientDescent(BaseGradientDescent):
             norm = gs.linalg.norm(tangent_mean)
 
             sq_dist = space.metric.squared_norm(tangent_mean, mean)
-            sq_dists_between_iterates.append(sq_dist)
 
             var_is_0 = gs.isclose(var, 0.0)
 
@@ -387,7 +393,7 @@ class ElasticMean(BaseEstimator):
         self.space = space
         self.estimate_ = None
 
-        self.ambient_frechet_estimator = FrechetMean(self.space.ambient_manifold)
+        self.ambient_mean_estimator = FrechetMean(self.space.ambient_manifold)
 
     def _elastic_mean(self, points, weights=None):
         """Compute the weighted mean of elastic curves.
@@ -418,7 +424,7 @@ class ElasticMean(BaseEstimator):
         transformed = self.space.metric.f_transform(points)
         transformed_linear_mean = linear_mean(transformed, weights=weights)
 
-        starting_sampling_point = self.ambient_frechet_estimator.fit(
+        starting_sampling_point = self.ambient_mean_estimator.fit(
             points[:, 0, :], weights=weights
         ).estimate_
         starting_sampling_point = gs.expand_dims(starting_sampling_point, axis=0)
@@ -538,6 +544,11 @@ class FrechetMean(BaseEstimator):
     ----------
     estimate_ : array-like, shape=[*space.shape]
         If fit, Frechet mean.
+
+    Notes
+    -----
+    * Required metric methods for general case:
+        * `log`, `exp`, `squared_norm` (for convergence criteria)
     """
 
     def __new__(cls, space, **kwargs):
@@ -560,15 +571,16 @@ class FrechetMean(BaseEstimator):
 
         self.estimate_ = None
 
-    def set(self, param_name, value):
+    def set(self, **kwargs):
         """Set optimizer parameters.
 
         Especially useful for one line instantiations.
         """
-        if not hasattr(self.optimizer, param_name):
-            raise ValueError(f"Unknown parameter {param_name}.")
+        for param_name, value in kwargs.items():
+            if not hasattr(self.optimizer, param_name):
+                raise ValueError(f"Unknown parameter {param_name}.")
 
-        setattr(self.optimizer, param_name, value)
+            setattr(self.optimizer, param_name, value)
         return self
 
     @property

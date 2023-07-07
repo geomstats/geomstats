@@ -47,6 +47,10 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         If verbose > 0, information will be printed during learning.
         Optional, default: 0.
 
+    Notes
+    -----
+    * Required metric methods: `dist`.
+
     Example
     -------
     Available example on the Poincaré Ball and Hypersphere manifolds
@@ -71,21 +75,18 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.max_iter = max_iter
 
         self.init_centroids = None
-        self.labels = None
-        self.inertia = None
 
-        self.mean_estimator = (
-            FrechetMean(
-                space=space,
-                method="default",
-            )
-            .set("max_iter", 100)
-            .set("init_step_size", 1.0)
-        )
+        self.mean_estimator = FrechetMean(
+            space=space,
+            method="default",
+        ).set(max_iter=100, init_step_size=1.0)
 
         self.centroids_ = None
+        self.labels_ = None
+        self.inertia_ = None
 
     def _pick_init_centroids(self, X):
+        # TODO: clean this part of the code?
         n_samples = X.shape[0]
 
         if isinstance(self.init, str):
@@ -155,7 +156,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             for i in range(self.n_clusters)
         ]
         dists = gs.hstack(dists)
-        self.labels = gs.argmin(dists, 1)
+        self.labels_ = gs.argmin(dists, 1)
 
         for index in range(self.max_iter):
             if self.verbose > 0:
@@ -163,7 +164,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
             old_centroids = gs.copy(centroids)
             for i in range(self.n_clusters):
-                fold = X[self.labels == i]
+                fold = X[self.labels_ == i]
 
                 if len(fold) > 0:
                     self.mean_estimator.fit(fold)
@@ -176,9 +177,9 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 for i in range(self.n_clusters)
             ]
             dists = gs.hstack(dists)
-            self.labels = gs.argmin(dists, 1)
+            self.labels_ = gs.argmin(dists, 1)
             dists_to_closest_centroid = gs.amin(dists, 1)
-            self.inertia = gs.sum(dists_to_closest_centroid**2)
+            self.inertia_ = gs.sum(dists_to_closest_centroid**2)
             centroids_distances = self.space.metric.dist(old_centroids, centroids)
             if self.verbose > 0:
                 logging.info(
@@ -209,12 +210,12 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[..., n_features]
+        X : array-like, shape[n_samples, n_features]
             Input data.
 
         Returns
         -------
-        self : array-like, shape=[...,]
+        labels : array-like, shape=[n_samples,]
             Array of predicted cluster indices for each sample.
         """
         if self.centroids_ is None:

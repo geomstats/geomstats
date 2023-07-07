@@ -113,7 +113,7 @@ class TestFrechetMean(tests.conftest.TestCase):
         point_b = gs.array([0.0, 1.0, 0.0, 0.0, 0.0])
         points = gs.array([point_a, point_b])
 
-        mean = FrechetMean(self.sphere, method="default").set("verbose", True)
+        mean = FrechetMean(self.sphere, method="default").set(verbose=True)
         mean.fit(points)
         result = mean.estimate_
 
@@ -240,14 +240,10 @@ class TestFrechetMean(tests.conftest.TestCase):
     def test_estimate_and_belongs_adaptive_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
-        mean = (
-            FrechetMean(
-                self.so_matrix,
-                method="adaptive",
-            )
-            .set("init_step_size", 0.5)
-            .set("verbose", True)
-        )
+        mean = FrechetMean(
+            self.so_matrix,
+            method="adaptive",
+        ).set(init_step_size=0.5, verbose=True)
         mean.fit(point)
 
         result = self.so_matrix.belongs(mean.estimate_)
@@ -533,7 +529,7 @@ class TestFrechetMean(tests.conftest.TestCase):
     def test_batched(self):
         space = SPDMatrices(3)
         point = space.random_point(4)
-        mean_batch = FrechetMean(space, method="batch").set("verbose", True)
+        mean_batch = FrechetMean(space, method="batch").set(verbose=True)
         data = gs.stack([point[:2], point[2:]], axis=1)
         mean_batch.fit(data)
         result = mean_batch.estimate_
@@ -560,10 +556,8 @@ class TestFrechetMean(tests.conftest.TestCase):
     def test_stiefel_n_samples(self):
         space = Stiefel(3, 2)
         point = space.random_point(2)
-        mean = (
-            FrechetMean(space, method="default")
-            .set("init_step_size", 0.5)
-            .set("verbose", True)
+        mean = FrechetMean(space, method="default").set(
+            init_step_size=0.5, verbose=True
         )
         mean.fit(point)
         result = space.belongs(mean.estimate_, atol=1e-8)
