@@ -17,10 +17,10 @@ class LocalizationLinear:
     measurements of the position.
     """
 
-    group = Euclidean(2)
-    dim = group.dim
-    dim_noise = 1
-    dim_obs = 1
+    def __init__(self):
+        self.group = Euclidean(2, equip=False)
+        self.dim_noise = 1
+        self.dim_obs = 1
 
     @staticmethod
     def propagate(state, sensor_input):
@@ -48,8 +48,7 @@ class LocalizationLinear:
         speed = speed + dt * acc
         return gs.array([pos, speed])
 
-    @staticmethod
-    def propagation_jacobian(state, sensor_input):
+    def propagation_jacobian(self, state, sensor_input):
         r"""Compute the Jacobian associated to the affine propagation..
 
         The Jacobian is given by :math:`\begin{bmatrix} 1 & dt \\ & 1
@@ -67,14 +66,13 @@ class LocalizationLinear:
             Jacobian of the propagation.
         """
         dt, _ = sensor_input
-        dim = LocalizationLinear.dim
+        dim = self.group.dim
         position_line = gs.hstack((gs.eye(dim // 2), dt * gs.eye(dim // 2)))
         speed_line = gs.hstack((gs.zeros((dim // 2, dim // 2)), gs.eye(dim // 2)))
         jac = gs.vstack((position_line, speed_line))
         return jac
 
-    @staticmethod
-    def noise_jacobian(state, sensor_input):
+    def noise_jacobian(self, state, sensor_input):
         r"""Compute the matrix associated to the propagation noise.
 
         The noise is supposed additive and only applies to the speed part.
@@ -93,14 +91,13 @@ class LocalizationLinear:
             Jacobian of the propagation w.r.t. the noise.
         """
         dt, _ = sensor_input
-        dim = LocalizationLinear.dim
+        dim = self.group.dim
         position_wrt_noise = gs.zeros((dim // 2, dim // 2))
         speed_wrt_noise = gs.sqrt(dt) * gs.eye(dim // 2)
         jac = gs.vstack((position_wrt_noise, speed_wrt_noise))
         return jac
 
-    @staticmethod
-    def observation_jacobian(state, observation):
+    def observation_jacobian(self, state, observation):
         r"""Compute the matrix associated to the observation model.
 
         The Jacobian is given by :math:`\begin{bmatrix} 1 & 0 \end{bmatrix}`.
@@ -115,7 +112,7 @@ class LocalizationLinear:
         jacobian : array-like, shape=[dim_obs, dim]
             Jacobian of the observation.
         """
-        return gs.eye(LocalizationLinear.dim_obs, LocalizationLinear.dim)
+        return gs.eye(self.dim_obs, self.group.dim)
 
     @staticmethod
     def get_measurement_noise_cov(state, observation_cov):
@@ -132,7 +129,7 @@ class LocalizationLinear:
         covariance : array-like, shape=[dim_obs, dim_obs]
             Covariance of the observation.
         """
-        return observation_cov
+        return gs.copy(observation_cov)
 
     @staticmethod
     def observation_model(state):
@@ -153,8 +150,7 @@ class LocalizationLinear:
         """
         return state[:1]
 
-    @staticmethod
-    def innovation(state, observation):
+    def innovation(self, state, observation):
         """Discrepancy between the measurement and its expected value.
 
         Parameters
@@ -169,7 +165,7 @@ class LocalizationLinear:
         innovation : array-like, shape=[dim_obs]
             Error between the measurement and the expected value.
         """
-        return observation - LocalizationLinear.observation_model(state)
+        return observation - self.observation_model(state)
 
 
 class Localization:
@@ -181,14 +177,12 @@ class Localization:
     sparse position observations.
     """
 
-    group = SpecialEuclidean(2, "vector")
-    dim = group.dim
-    dim_rot = group.rotations.dim
-    dim_noise = 3
-    dim_obs = 2
+    def __init__(self):
+        self.group = SpecialEuclidean(2, point_type="vector", equip=False)
+        self.dim_noise = 3
+        self.dim_obs = 2
 
-    @staticmethod
-    def preprocess_input(sensor_input):
+    def preprocess_input(self, sensor_input):
         """Separate the input into its main parts.
 
         Each input is the concatenation of four parts: the time step, the 2D
@@ -210,12 +204,11 @@ class Localization:
         """
         return (
             sensor_input[0],
-            sensor_input[1 : Localization.group.n + 1],
-            sensor_input[Localization.group.n + 1 :],
+            sensor_input[1 : self.group.n + 1],
+            sensor_input[self.group.n + 1 :],
         )
 
-    @staticmethod
-    def rotation_matrix(theta):
+    def rotation_matrix(self, theta):
         """Construct the rotation matrix associated to the angle theta.
 
         Parameters
@@ -230,17 +223,15 @@ class Localization:
         """
         if gs.ndim(gs.array(theta)) <= 1:
             theta = gs.array([theta])
-        return Localization.group.rotations.matrix_from_rotation_vector(theta)
+        return self.group.rotations.matrix_from_rotation_vector(theta)
 
-    @staticmethod
-    def regularize_angle(theta):
+    def regularize_angle(self, theta):
         """Bring back angle theta in ]-pi, pi]."""
         if gs.ndim(gs.array(theta)) < 1:
             theta = gs.array([theta])
-        return Localization.group.rotations.log_from_identity(theta)
+        return self.group.rotations.log_from_identity(theta)
 
-    @staticmethod
-    def adjoint_map(state):
+    def adjoint_map(self, state):
         r"""Construct the matrix associated to the adjoint representation.
 
         The inner automorphism is given by :math:`Ad_X : g |-> XgX^-1`. For a
@@ -262,17 +253,16 @@ class Localization:
         """
         theta, _, _ = state
         tangent_base = gs.array([[0.0, -1.0], [1.0, 0.0]])
-        orientation_part = gs.eye(Localization.dim_rot, Localization.dim)
-        pos_column = gs.reshape(state[1:], (Localization.group.n, 1))
+        orientation_part = gs.eye(self.group.rotations.dim, self.group.dim)
+        pos_column = gs.reshape(state[1:], (self.group.n, 1))
         position_wrt_orientation = Matrices.mul(-tangent_base, pos_column)
-        position_wrt_position = Localization.rotation_matrix(theta)
+        position_wrt_position = self.rotation_matrix(theta)
         last_lines = gs.hstack((position_wrt_orientation, position_wrt_position))
         ad = gs.vstack((orientation_part, last_lines))
 
         return ad
 
-    @staticmethod
-    def propagate(state, sensor_input):
+    def propagate(self, state, sensor_input):
         r"""Propagate state with constant velocity motion model on SE(2).
 
         From a given state (orientation, position) pair :math:`(\theta, x)`,
@@ -292,16 +282,15 @@ class Localization:
         new_state : array-like, shape=[dim]
             Vector representing the propagated state.
         """
-        dt, linear_vel, angular_vel = Localization.preprocess_input(sensor_input)
+        dt, linear_vel, angular_vel = self.preprocess_input(sensor_input)
         theta, _, _ = state
-        local_vel = gs.matvec(Localization.rotation_matrix(theta), linear_vel)
+        local_vel = gs.matvec(self.rotation_matrix(theta), linear_vel)
         new_pos = state[1:] + dt * local_vel
         theta = theta + dt * angular_vel
-        theta = Localization.regularize_angle(theta)
+        theta = self.regularize_angle(theta)
         return gs.concatenate((theta, new_pos), axis=0)
 
-    @staticmethod
-    def propagation_jacobian(state, sensor_input):
+    def propagation_jacobian(self, state, sensor_input):
         r"""Compute the Jacobian associated to the input.
 
         Since the propagation writes f(x) = x*u, and the error is modeled on
@@ -318,14 +307,13 @@ class Localization:
         jacobian : array-like, shape=[dim, dim]
             Jacobian of the propagation.
         """
-        dt, linear_vel, angular_vel = Localization.preprocess_input(sensor_input)
+        dt, linear_vel, angular_vel = self.preprocess_input(sensor_input)
         input_vector_form = dt * gs.concatenate((angular_vel, linear_vel), axis=0)
-        input_inv = Localization.group.inverse(input_vector_form)
+        input_inv = self.group.inverse(input_vector_form)
 
-        return Localization.adjoint_map(input_inv)
+        return self.adjoint_map(input_inv)
 
-    @staticmethod
-    def noise_jacobian(state, sensor_input):
+    def noise_jacobian(self, state, sensor_input):
         r"""Compute the matrix associated to the propagation noise.
 
         The noise being considered multiplicative, it is simply the identity
@@ -342,11 +330,10 @@ class Localization:
         jacobian : array-like, shape=[dim_noise, dim]
             Jacobian of the propagation w.r.t. the noise.
         """
-        dt, _, _ = Localization.preprocess_input(sensor_input)
-        return gs.sqrt(dt) * gs.eye(Localization.dim_noise)
+        dt, _, _ = self.preprocess_input(sensor_input)
+        return gs.sqrt(dt) * gs.eye(self.dim_noise)
 
-    @staticmethod
-    def observation_jacobian(state, observation):
+    def observation_jacobian(self, state, observation):
         r"""Compute the matrix associated to the observation model.
 
         The Jacobian is given by :math:`\begin{bmatrix} 0 & I_2 \end{bmatrix}`.
@@ -361,12 +348,11 @@ class Localization:
         jacobian : array-like, shape=[dim_obs, dim]
             Jacobian of the observation.
         """
-        orientation_part = gs.zeros((Localization.dim_obs, Localization.dim_rot))
-        position_part = gs.eye(Localization.dim_obs, Localization.group.n)
+        orientation_part = gs.zeros((self.dim_obs, self.group.rotations.dim))
+        position_part = gs.eye(self.dim_obs, self.group.n)
         return gs.hstack((orientation_part, position_part))
 
-    @staticmethod
-    def get_measurement_noise_cov(state, observation_cov):
+    def get_measurement_noise_cov(self, state, observation_cov):
         r"""Get the observation covariance.
 
         For an observation y and an orientation theta, the modified observation
@@ -386,11 +372,10 @@ class Localization:
             Covariance of the observation.
         """
         theta, _, _ = state
-        rot = Localization.rotation_matrix(theta)
+        rot = self.rotation_matrix(theta)
         return Matrices.mul(Matrices.transpose(rot), observation_cov, rot)
 
-    @staticmethod
-    def observation_model(state):
+    def observation_model(self, state):
         """Model used to create the measurements.
 
         This model simply outputs the position part of the state, i.e. its
@@ -406,10 +391,9 @@ class Localization:
         observation : array-like, shape=[dim_obs]
             Expected observation of the state.
         """
-        return state[Localization.dim_rot :]
+        return state[self.group.rotations.dim :]
 
-    @staticmethod
-    def innovation(state, observation):
+    def innovation(self, state, observation):
         """Discrepancy between the measurement and its expected value.
 
         The linear error (observation - expected) is cast into the state's
@@ -428,8 +412,8 @@ class Localization:
             Error between the measurement and the expected value.
         """
         theta, _, _ = state
-        rot = Localization.rotation_matrix(theta)
-        expected = Localization.observation_model(state)
+        rot = self.rotation_matrix(theta)
+        expected = self.observation_model(state)
         return gs.matvec(Matrices.transpose(rot), observation - expected)
 
 
@@ -450,7 +434,7 @@ class KalmanFilter:
     def __init__(self, model):
         self.model = model
         self.state = model.group.identity
-        self.covariance = gs.zeros((self.model.dim, self.model.dim))
+        self.covariance = gs.zeros((self.model.group.dim, self.model.group.dim))
         self.process_noise = gs.zeros((self.model.dim_noise, self.model.dim_noise))
         self.measurement_noise = gs.zeros((self.model.dim_obs, self.model.dim_obs))
 
@@ -530,7 +514,7 @@ class KalmanFilter:
         innovation = self.model.innovation(self.state, observation)
         gain = self.compute_gain(observation)
         obs_jac = self.model.observation_jacobian(self.state, observation)
-        cov_factor = gs.eye(self.model.dim) - Matrices.mul(gain, obs_jac)
+        cov_factor = gs.eye(self.model.group.dim) - Matrices.mul(gain, obs_jac)
         self.covariance = Matrices.mul(cov_factor, self.covariance)
         state_upd = gs.matvec(gain, innovation)
         self.state = self.model.group.exp(state_upd, self.state)
