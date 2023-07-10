@@ -85,7 +85,7 @@ def estimate_dominant_eigenvector(matrix):
 
 
 if __name__ == "__main__":
-    if os.environ.get("GEOMSTATS_BACKEND") != "numpy":
+    if os.environ.get("GEOMSTATS_BACKEND", "numpy") != "numpy":
         raise SystemExit("This example currently only supports the numpy backend")
 
     ambient_dim = 128

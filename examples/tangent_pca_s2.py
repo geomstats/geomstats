@@ -19,12 +19,12 @@ def main():
 
     data = sphere.random_von_mises_fisher(kappa=15, n_samples=140)
 
-    mean = FrechetMean(metric=sphere.metric)
+    mean = FrechetMean(sphere)
     mean.fit(data)
 
     mean_estimate = mean.estimate_
 
-    tpca = TangentPCA(metric=sphere.metric, n_components=2)
+    tpca = TangentPCA(sphere, n_components=2)
     tpca = tpca.fit(data, base_point=mean_estimate)
     tangent_projected_data = tpca.transform(data)
 

@@ -14,7 +14,6 @@ from geomstats.learning.knn import KNearestNeighborsClassifier
 def main():
     """Plot the result of a KNN classification on the sphere."""
     sphere = Hypersphere(dim=2)
-    sphere_distance = sphere.metric.dist
 
     n_labels = 2
     n_samples_per_dataset = 10
@@ -32,7 +31,7 @@ def main():
     labels = gs.concatenate((labels_dataset_1, labels_dataset_2))
     target = sphere.random_uniform(n_samples=n_targets)
 
-    neigh = KNearestNeighborsClassifier(n_neighbors=2, distance=sphere_distance)
+    neigh = KNearestNeighborsClassifier(sphere, n_neighbors=2)
     neigh.fit(training_dataset, labels)
     target_labels = neigh.predict(target)
 
@@ -58,7 +57,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if os.environ["GEOMSTATS_BACKEND"] != "numpy":
+    if os.environ.get("GEOMSTATS_BACKEND", "numpy") != "numpy":
         logging.info(
             "Examples with visualizations are only implemented "
             "with numpy backend.\n"

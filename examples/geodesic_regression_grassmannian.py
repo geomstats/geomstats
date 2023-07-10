@@ -14,8 +14,6 @@ import geomstats.backend as gs
 from geomstats.geometry.grassmannian import GeneralLinear, Grassmannian
 from geomstats.learning.geodesic_regression import GeodesicRegression
 
-SPACE = Grassmannian(3, 2)
-METRIC = SPACE.metric
 gs.random.seed(0)
 
 
@@ -31,36 +29,39 @@ def main():
     - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
     - :math:`X` is called the input, :math:`Y` is called the y.
     """
+    space = Grassmannian(3, 2)
+
     # Generate data
     n_samples = 10
     data = gs.random.rand(n_samples)
     data -= gs.mean(data)
 
-    intercept = SPACE.random_uniform()
-    beta = SPACE.to_tangent(GeneralLinear(3).random_point(), intercept)
-    target = METRIC.exp(
+    intercept = space.random_uniform()
+    beta = space.to_tangent(GeneralLinear(3).random_point(), intercept)
+    target = space.metric.exp(
         tangent_vec=gs.einsum("...,jk->...jk", data, beta), base_point=intercept
     )
 
     # Fit geodesic regression
     gr = GeodesicRegression(
-        SPACE,
-        metric=METRIC,
+        space,
         center_X=False,
         method="riemannian",
+        compute_training_score=True,
+    ).set(
         max_iter=50,
         init_step_size=0.1,
         verbose=True,
     )
 
-    gr.fit(data, target, compute_training_score=True)
+    gr.fit(data, target)
     intercept_hat, beta_hat = gr.intercept_, gr.coef_
 
     # Measure Mean Squared Error
-    mse_intercept = METRIC.squared_dist(intercept_hat, intercept)
-    mse_beta = METRIC.squared_norm(
-        METRIC.parallel_transport(
-            beta_hat, METRIC.log(intercept_hat, intercept), intercept_hat
+    mse_intercept = space.metric.squared_dist(intercept_hat, intercept)
+    mse_beta = space.metric.squared_norm(
+        space.metric.parallel_transport(
+            beta_hat, space.metric.log(intercept_hat, intercept), intercept_hat
         )
         - beta,
         intercept,
