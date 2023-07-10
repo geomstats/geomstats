@@ -281,7 +281,7 @@ class TestFrechetMean(tests.conftest.TestCase):
         point = gs.array([0.0, 0.0, 0.0, 0.0, 1.0])
         points = gs.array([point, point])
 
-        result = variance(points, base_point=point, metric=self.sphere.metric)
+        result = variance(self.sphere, points, base_point=point)
         expected = gs.array(0.0)
 
         self.assertAllClose(expected, result)
@@ -356,7 +356,7 @@ class TestFrechetMean(tests.conftest.TestCase):
     def test_variance_hyperbolic(self):
         point = gs.array([2.0, 1.0, 1.0, 1.0])
         points = gs.array([point, point])
-        result = variance(points, base_point=point, metric=self.hyperbolic.metric)
+        result = variance(self.hyperbolic, points, base_point=point)
         expected = gs.array(0.0)
 
         self.assertAllClose(result, expected)
@@ -427,7 +427,10 @@ class TestFrechetMean(tests.conftest.TestCase):
         weights = gs.array([1.0, 2.0, 1.0, 2.0])
         base_point = gs.zeros(2)
         result = variance(
-            points, weights=weights, base_point=base_point, metric=self.euclidean.metric
+            self.euclidean,
+            points,
+            weights=weights,
+            base_point=base_point,
         )
         # we expect the average of the points' sq norms.
         expected = gs.array((1 * 5.0 + 2 * 13.0 + 1 * 25.0 + 2 * 41.0) / 6.0)
@@ -502,7 +505,10 @@ class TestFrechetMean(tests.conftest.TestCase):
         weights = gs.array([1.0, 2.0, 1.0, 2.0])
         base_point = gs.array([-1.0, 0.0])
         var = variance(
-            points, weights=weights, base_point=base_point, metric=self.minkowski.metric
+            self.minkowski,
+            points,
+            weights=weights,
+            base_point=base_point,
         )
         result = var != 0
         # we expect the average of the points' Minkowski sq norms.

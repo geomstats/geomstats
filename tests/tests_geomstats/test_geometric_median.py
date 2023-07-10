@@ -24,7 +24,8 @@ class TestGeometricMedian(TestCase, metaclass=Parametrizer):
         space = estimator.space
         X = space.random_point(n_samples)
 
-        med = estimator.fit(X).estimate_
+        estimator.fit(X)
+        med = estimator.estimate_
         self.assertTrue(space.belongs(med))
 
         weights = gs.ones(n_samples)

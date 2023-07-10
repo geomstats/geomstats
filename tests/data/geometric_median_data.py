@@ -65,6 +65,8 @@ class GeometricMedianTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def fit_sanity_test_data(self):
+        spd_matrices = SPDMatrices(4, equip=False)
+        spd_matrices.equip_with_metric(SPDLogEuclideanMetric)
         smoke_data = [
             dict(
                 estimator=GeometricMedian(Euclidean(2)),
@@ -76,9 +78,7 @@ class GeometricMedianTestData(TestData):
                 estimator=GeometricMedian(Hypersphere(4)),
             ),
             dict(
-                estimator=GeometricMedian(
-                    SPDMatrices(4, equip=False).equip_with_metric(SPDLogEuclideanMetric)
-                ),
+                estimator=GeometricMedian(spd_matrices),
             ),
         ]
 

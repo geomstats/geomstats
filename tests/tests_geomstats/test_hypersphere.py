@@ -86,7 +86,7 @@ class TestHypersphere(LevelSetTestCase, metaclass=Parametrizer):
         mean = space.random_uniform()
         precision = gs.eye(space.dim) * 10
         sample = space.random_riemannian_normal(mean, precision, 30000)
-        estimator = FrechetMean(space.metric, method="adaptive")
+        estimator = FrechetMean(space, method="adaptive")
         estimator.fit(sample)
         estimate = estimator.estimate_
         self.assertAllClose(estimate, mean, atol=1e-1)

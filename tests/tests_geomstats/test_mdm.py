@@ -107,7 +107,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
             space = SPDMatrices(n=2, equip=False)
             space.equip_with_metric(Metric)
 
-            MDM = RiemannianMinimumDistanceToMean(space.metric)
+            MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
             dist_test = MDM.transform(X_test)
 
