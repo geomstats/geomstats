@@ -17,7 +17,7 @@ class TestRiemannianKMedoids(tests.conftest.TestCase):
         data = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
         kmedoids = RiemannianKMedoids(manifold, n_clusters=1)
-        center = kmedoids.fit(data).cluster_centers_
+        center = kmedoids.fit(data).centroids_
 
         self.assertTrue(manifold.belongs(center))
 
@@ -29,8 +29,8 @@ class TestRiemannianKMedoids(tests.conftest.TestCase):
 
         data = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmedoids = RiemannianKMedoids(manifold, n_clusters=5)
-        centroids = kmedoids.fit(data, max_iter=100).cluster_centers_
+        kmedoids = RiemannianKMedoids(manifold, n_clusters=5, max_iter=100)
+        centroids = kmedoids.fit(data).centroids_
         result = kmedoids.predict(data)
 
         expected = gs.array(

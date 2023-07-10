@@ -23,6 +23,9 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
     n_clusters : int
         Number of clusters (k value of k-medoids).
         Optional, default: 8.
+    max_iter : int
+        Maximum number of iterations.
+        Optional, default: 100.
     init : str
         How to initialize centroids at the beginning of the algorithm. The
         choice 'random' will select training points as initial centroids
@@ -42,13 +45,14 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
     :mod:`examples.plot_kmedoids_manifolds`
     """
 
-    def __init__(self, space, n_clusters=8, init="random", n_jobs=1):
+    def __init__(self, space, n_clusters=8, init="random", max_iter=100, n_jobs=1):
         self.space = space
         self.n_clusters = n_clusters
+        self.max_iter = max_iter
         self.init = init
         self.n_jobs = n_jobs
 
-        self.cluster_centers_ = None
+        self.centroids_ = None
         self.labels_ = None
         self.medoid_indices_ = None
 
@@ -61,7 +65,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
 
         return medoids
 
-    def fit(self, data, max_iter=100):
+    def fit(self, X):
         """Provide clusters centroids and data labels.
 
         Labels data by minimizing the distance between data points
@@ -70,37 +74,33 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        data : array-like, shape=[n_samples, dim]
+        X : array-like, shape=[n_samples, dim]
             Training data, where n_samples is the number of samples and
             dim is the number of dimensions.
-        max_iter : int
-            Maximum number of iterations.
-            Optional, default: 100.
 
         Returns
         -------
         self : object
             Returns self.
         """
-        # TODO: move `dist_pairwise` to `vectorization`?
-        distances = self.space.metric.dist_pairwise(data, n_jobs=self.n_jobs)
+        distances = self.space.metric.dist_pairwise(X, n_jobs=self.n_jobs)
         medoids_indices = self._initialize_medoids(distances)
 
-        for iteration in range(max_iter):
+        for iteration in range(self.max_iter):
             old_medoids_indices = gs.copy(medoids_indices)
             labels = gs.argmin(distances[medoids_indices, :], axis=0)
             self._update_medoid_indexes(distances, labels, medoids_indices)
 
             if gs.all(old_medoids_indices == medoids_indices):
                 break
-            if iteration == max_iter - 1:
+            if iteration == self.max_iter - 1:
                 logging.warning(
                     "Maximum number of iteration reached before "
                     "convergence. Consider increasing max_iter to "
                     "improve the fit."
                 )
 
-        self.cluster_centers_ = data[medoids_indices]
+        self.centroids_ = X[medoids_indices]
         self.labels_ = labels
         self.medoid_indices_ = medoids_indices
 
@@ -126,12 +126,12 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
             if min_cost < current_cost:
                 medoid_indices[cluster] = cluster_index[min_cost_index]
 
-    def predict(self, data):
+    def predict(self, X):
         """Predict the closest cluster for each sample in X.
 
         Parameters
         ----------
-        data : array-like, shape=[n_samples, dim,]
+        X : array-like, shape=[n_samples, dim,]
             Training data, where n_samples is the number of samples and
             dim is the number of dimensions.
 
@@ -140,11 +140,11 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         labels : array-like, shape=[n_samples,]
             Index of the cluster each sample belongs to.
         """
-        labels = gs.zeros(len(data))
+        labels = gs.zeros(len(X))
 
-        for point_index, point_value in enumerate(data):
-            distances = gs.zeros(len(self.cluster_centers_))
-            for cluster_index, cluster_value in enumerate(self.cluster_centers_):
+        for point_index, point_value in enumerate(X):
+            distances = gs.zeros(len(self.centroids_))
+            for cluster_index, cluster_value in enumerate(self.centroids_):
                 distances[cluster_index] = self.space.metric.dist(
                     point_value, cluster_value
                 )

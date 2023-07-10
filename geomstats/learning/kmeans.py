@@ -86,7 +86,6 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.inertia_ = None
 
     def _pick_init_centroids(self, X):
-        # TODO: clean this part of the code?
         n_samples = X.shape[0]
 
         if isinstance(self.init, str):

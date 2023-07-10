@@ -33,6 +33,8 @@ from geomstats.numerics.optimizers import ScipyMinimize
 
 
 class RiemannianGradientDescent:
+    """Riemannian gradient descent."""
+
     def __init__(self, max_iter=100, init_step_size=0.1, tol=1e-5, verbose=False):
         self.max_iter = max_iter
         self.init_step_size = init_step_size
@@ -41,7 +43,6 @@ class RiemannianGradientDescent:
         self.jac = "autodiff"
 
     def _handle_jac(self, fun):
-        # TODO: similar in geomststs.numerics.optimizers
         if self.jac == "autodiff":
 
             def fun_(x):
@@ -57,7 +58,6 @@ class RiemannianGradientDescent:
 
     def _get_vector_transport(self, space):
         if hasattr(space.metric, "parallel_transport"):
-            # TODO: it will always enter here...
 
             def vector_transport(tan_a, tan_b, base_point, _):
                 return space.metric.parallel_transport(tan_a, base_point, tan_b)
@@ -70,7 +70,7 @@ class RiemannianGradientDescent:
         return vector_transport
 
     def minimize(self, space, fun, x0):
-        # TODO: play with jacobian as with other optimizers
+        """Perform gradient descent."""
         fun = self._handle_jac(fun)
         vector_transport = self._get_vector_transport(space)
 
@@ -127,7 +127,6 @@ class RiemannianGradientDescent:
 
             param = gs.vstack([gs.flatten(intercept_hat_new), gs.flatten(coef_hat_new)])
 
-            # TODO: implement callback to save loss history?
             current_loss = loss
             current_grad = grad
 

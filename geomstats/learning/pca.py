@@ -318,7 +318,6 @@ class TangentPCA(_BasePCA):
         explained_variance_ = (S**2) / (n_samples - 1)
         total_var = explained_variance_.sum()
         explained_variance_ratio_ = explained_variance_ / total_var
-        # TODO: why a copy?
         singular_values_ = gs.copy(S)  # Store the singular values.
 
         # Postprocess the number of components required

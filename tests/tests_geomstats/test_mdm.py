@@ -26,7 +26,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
         for Metric in METRICS:
             space = SPDMatrices(n=2, equip=False)
             space.equip_with_metric(Metric)
-            
+
             MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
             bary_a_fit = MDM.mean_estimates_[0]

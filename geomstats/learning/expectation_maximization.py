@@ -17,9 +17,6 @@ SUM_CHECK_PDF = 1e-4
 MIN_VAR_INIT = 1e-3
 
 
-# TODO: remove `normalization_factor` and `norm_factor_gradient` from `RiemannianMetric`?
-
-
 class GaussianMixtureModel:
     r"""Gaussian mixture model (GMM).
 

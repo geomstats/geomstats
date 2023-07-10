@@ -55,6 +55,7 @@ class RiemannianMinimumDistanceToMean(
 
     @property
     def n_classes_(self):
+        """Number of classes."""
         return len(self.classes_)
 
     def fit(self, X, y, weights=None):

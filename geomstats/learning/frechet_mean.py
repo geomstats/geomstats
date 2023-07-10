@@ -150,10 +150,13 @@ class BaseGradientDescent(abc.ABC):
 
     @abc.abstractmethod
     def minimize(self, space, points, weights=None):
+        """Perform gradient descent."""
         pass
 
 
 class GradientDescent(BaseGradientDescent):
+    """Default gradient descent."""
+
     def minimize(self, space, points, weights=None):
         """Perform default gradient descent."""
         n_points = gs.shape(points)[0]
@@ -218,6 +221,8 @@ class GradientDescent(BaseGradientDescent):
 
 
 class BatchGradientDescent(BaseGradientDescent):
+    """Batch gradient descent."""
+
     def minimize(self, space, points, weights=None):
         """Perform batch gradient descent."""
         shape = points.shape
@@ -276,6 +281,8 @@ class BatchGradientDescent(BaseGradientDescent):
 
 
 class AdaptiveGradientDescent(BaseGradientDescent):
+    """Adaptive gradient descent."""
+
     def minimize(self, space, points, weights=None):
         """Perform adaptive gradient descent.
 
@@ -379,16 +386,59 @@ class AdaptiveGradientDescent(BaseGradientDescent):
 
 
 class LinearMean(BaseEstimator):
+    """Linear mean.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+
+    Attributes
+    ----------
+    estimate_ : array-like, shape=[*space.shape]
+        If fit, Frechet mean.
+    """
+
     def __init__(self, space):
         self.space = space
         self.estimate_ = None
 
     def fit(self, X, y=None, weights=None):
+        """Compute the Euclidean mean.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, *metric.shape]
+            Training input samples.
+        y : None
+            Target values. Ignored.
+        weights : array-like, shape=[n_samples,]
+            Weights associated to the samples.
+            Optional, default: None, in which case it is equally weighted.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
         self.estimate_ = linear_mean(points=X, weights=weights)
         return self
 
 
 class ElasticMean(BaseEstimator):
+    """Elastic mean.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+
+    Attributes
+    ----------
+    estimate_ : array-like, shape=[*space.shape]
+        If fit, Frechet mean.
+    """
+
     def __init__(self, space):
         self.space = space
         self.estimate_ = None
@@ -435,11 +485,41 @@ class ElasticMean(BaseEstimator):
         return mean
 
     def fit(self, X, y=None, weights=None):
+        """Compute the elastic mean.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, *metric.shape]
+            Training input samples.
+        y : None
+            Target values. Ignored.
+        weights : array-like, shape=[n_samples,]
+            Weights associated to the samples.
+            Optional, default: None, in which case it is equally weighted.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
         self.estimate_ = self._elastic_mean(X, weights=weights)
         return self
 
 
 class CircleMean(BaseEstimator):
+    """Circle mean.
+
+    Parameters
+    ----------
+    space : Manifold
+        Equipped manifold.
+
+    Attributes
+    ----------
+    estimate_ : array-like, shape=[2,]
+        If fit, Frechet mean.
+    """
+
     def __init__(self, space):
         self.space = space
         self.estimate_ = None
@@ -519,6 +599,23 @@ class CircleMean(BaseEstimator):
         return means
 
     def fit(self, X, y=None):
+        """Compute the circle mean.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, 2]
+            Training input samples.
+        y : None
+            Target values. Ignored.
+        weights : array-like, shape=[n_samples,]
+            Weights associated to the samples.
+            Optional, default: None, in which case it is equally weighted.
+
+        Returns
+        -------
+        self : object
+            Returns self.
+        """
         self.estimate_ = self.space.angle_to_extrinsic(
             self._circle_mean(self.space.extrinsic_to_angle(X))
         )
@@ -552,6 +649,7 @@ class FrechetMean(BaseEstimator):
     """
 
     def __new__(cls, space, **kwargs):
+        """Interface for instantiating proper algorithm."""
         if isinstance(space.metric, HypersphereMetric) and space.dim == 1:
             return CircleMean(space, **kwargs)
 

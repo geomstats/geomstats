@@ -90,6 +90,7 @@ class ExponentialBarycenter(BaseEstimator):
     """
 
     def __new__(cls, space):
+        """Interface for instantiating proper algorithm."""
         if isinstance(space, Euclidean):
             return LinearMean(space)
 
