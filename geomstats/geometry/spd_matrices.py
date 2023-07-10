@@ -1,6 +1,6 @@
 """The manifold of symmetric positive definite (SPD) matrices.
 
-Lead author: Yann Thanwerdas.
+Lead authors: Yann Thanwerdas and Olivier Bisson.
 """
 
 import math
@@ -12,6 +12,10 @@ from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import apply_func_to_eigvalsh, expmh, powermh
 from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    InvariantPositiveLowerTriangularMatricesMetric,
+    PositiveLowerTriangularMatrices,
+)
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
@@ -1052,3 +1056,25 @@ class SPDPowerMetric(PullbackDiffeoMetric):
         diffeo = MatrixPower(power)
 
         super().__init__(space, diffeo, image_space)
+
+
+class LieCholeskyMetric(PullbackDiffeoMetric):
+    """Pullback metric via a diffeomorphism.
+
+    Diffeormorphism between SPD matrices and PLT matrices equipped with
+    left invariant metric (see chapter 7 [TP2022]_).
+
+    References
+    ----------
+    .. [T2022] Yann Thanwerdas. Riemannian and stratified
+    geometries on covariance and correlation matrices. Differential
+    Geometry [math.DG]. Université Côte d'Azur, 2022.
+    """
+
+    def __init__(self, space):
+        image_space = PositiveLowerTriangularMatrices(space.n, equip=False)
+        image_space.equip_with_metric(InvariantPositiveLowerTriangularMatricesMetric)
+
+        diffeo = CholeskyMap()
+
+        super().__init__(space=space, diffeo=diffeo, image_space=image_space)

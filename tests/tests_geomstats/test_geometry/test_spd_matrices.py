@@ -9,6 +9,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.spd_matrices import (
     CholeskyMap,
+    LieCholeskyMetric,
     MatrixPower,
     SPDAffineMetric,
     SPDBuresWassersteinMetric,
@@ -32,6 +33,7 @@ from geomstats.test_cases.geometry.spd_matrices import (
 from .data.diffeo import DiffeoTestData
 from .data.spd_matrices import (
     CholeskyMapSmokeTestData,
+    LieCholeskyMetricTestData,
     MatrixPower05TestData,
     SPD2AffineMetricTestData,
     SPD2BuresWassersteinMetricTestData,
@@ -292,3 +294,13 @@ class TestSPD3LogEuclideanMetric(
     space = SPDMatrices(n=3, equip=False)
     space.equip_with_metric(SPDLogEuclideanMetric)
     testing_data = SPD3LogEuclideanMetricTestData()
+
+
+@pytest.mark.slow
+@pytest.mark.redundant
+class TestLieCholeskyMetric(
+    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
+):
+    _n = random.randint(2, 5)
+    space = SPDMatrices(n=_n, equip=False).equip_with_metric(LieCholeskyMetric)
+    testing_data = LieCholeskyMetricTestData()

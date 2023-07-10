@@ -509,3 +509,9 @@ class SPD3LogEuclideanMetricTestData(TestData):
             )
         ]
         return self.generate_tests(data)
+
+
+class LieCholeskyMetricTestData(PullbackDiffeoMetricTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
+    skip_vec = True
