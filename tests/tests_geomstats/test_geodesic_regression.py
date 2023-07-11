@@ -172,7 +172,6 @@ class TestGeodesicRegression(tests.conftest.TestCase):
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.0))
 
-    @tests.conftest.autograd_only
     def test_loss_se2(self):
         """Test that the loss is 0 at the true parameters."""
         gr = GeodesicRegression(
@@ -184,7 +183,6 @@ class TestGeodesicRegression(tests.conftest.TestCase):
         self.assertAllClose(loss.shape, ())
         self.assertTrue(gs.isclose(loss, 0.0))
 
-    @tests.conftest.autograd_only
     def test_loss_curves_2d(self):
         """Test that the loss is 0 at the true parameters."""
         gr = GeodesicRegression(
@@ -250,7 +248,7 @@ class TestGeodesicRegression(tests.conftest.TestCase):
         )
 
         def loss_of_param(param):
-            return gr._loss(self.X_sphere, self.y_sphere, param, self.sphere.shape)
+            return gr._loss(self.X_sphere, self.y_sphere, param)
 
         # Without numpy conversion
         objective_with_grad = gs.autodiff.value_and_grad(loss_of_param)

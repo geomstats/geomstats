@@ -46,9 +46,7 @@ class RiemannianGradientDescent:
         if self.jac == "autodiff":
 
             def fun_(x):
-                value, grad = gs.autodiff.value_and_grad(fun, to_numpy=True)(
-                    gs.from_numpy(x)
-                )
+                value, grad = gs.autodiff.value_and_grad(fun, to_numpy=False)(x)
                 return value, grad
 
         else:
