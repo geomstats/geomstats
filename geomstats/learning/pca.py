@@ -6,6 +6,7 @@ Lead author: Nina Miolane.
 import numbers
 from math import log
 
+from scipy.linalg import pinvh
 from scipy.special import gammaln
 from sklearn.decomposition._base import _BasePCA
 from sklearn.utils.extmath import stable_cumsum, svd_flip
@@ -167,10 +168,10 @@ class TangentPCA(_BasePCA):
         """
         U, S, _ = self._fit(X, base_point=base_point)
 
-        U = U[:, : self.n_components_]
+        # U = U[:, : self.n_components_]
 
-        U *= S[: self.n_components_]
-        return U
+        # U *= S[: self.n_components_]
+        return self.coordinates_on_components
 
     def transform(self, X, y=None):
         """Project X on the principal components.
@@ -187,17 +188,25 @@ class TangentPCA(_BasePCA):
         X_new : array-like, shape=[..., n_components]
             Projected data.
         """
-        tangent_vecs = self.metric.log(X, base_point=self.base_point_fit)
+        log_in_riemannian_basis = self.metric.log(X, base_point=self.base_point_fit)
         if self.point_type == "matrix":
-            if Matrices.is_symmetric(tangent_vecs).all():
-                X = SymmetricMatrices.to_vector(tangent_vecs)
+            if Matrices.is_symmetric(log_in_riemannian_basis).all():
+                X = SymmetricMatrices.to_vector(log_in_riemannian_basis)
             else:
-                X = gs.reshape(tangent_vecs, (len(X), -1))
+                X = gs.reshape(log_in_riemannian_basis, (len(X), -1))
         else:
-            X = tangent_vecs
+            X = log_in_riemannian_basis
         X = X - self.mean_
-        X_transformed = gs.matmul(X, gs.transpose(self.components_))
-        return X_transformed
+        log_in_riemannian_basis = X
+        log_in_euclidean_basis = log_in_riemannian_basis @ self.scalar_product_matrix_at_mean_sqrt
+        # X_transformed = gs.matmul(X, gs.transpose(gs.conj(self.components_)))
+        coordinates_on_components = log_in_euclidean_basis @ gs.transpose(
+            gs.conj(self.components_in_euclidean_basis))
+        transformed_log_in_riemannian_basis = gs.einsum(
+            'ij, j...->i...',
+            coordinates_on_components[:, :self.n_components],
+            log_in_riemannian_basis[:self.n_components])
+        return coordinates_on_components
 
     def inverse_transform(self, X):
         """Low-dimensional reconstruction of X.
@@ -216,7 +225,7 @@ class TangentPCA(_BasePCA):
         X_original : array-like, shape=[..., n_features]
             Original data.
         """
-        scores = self.mean_ + gs.matmul(X, self.components_)
+        scores = self.mean_ + gs.matmul(X, self.components_in_riemannian_basis)
         if self.point_type == "matrix":
             if Matrices.is_symmetric(self.base_point_fit).all():
                 scores = SymmetricMatrices(self.base_point_fit.shape[-1]).from_vector(
@@ -250,21 +259,21 @@ class TangentPCA(_BasePCA):
             mean.fit(X)
             base_point = mean.estimate_
 
-        tangent_vecs = self.metric.log(X, base_point=base_point)
+        log_in_riemannian_basis = self.metric.log(X, base_point=base_point)
 
         if self.point_type == "matrix":
-            if Matrices.is_symmetric(tangent_vecs).all():
-                X = SymmetricMatrices.to_vector(tangent_vecs)
+            if Matrices.is_symmetric(log_in_riemannian_basis).all():
+                log_in_riemannian_basis = SymmetricMatrices.to_vector(log_in_riemannian_basis)
             else:
-                X = gs.reshape(tangent_vecs, (len(X), -1))
-        else:
-            X = tangent_vecs
+                log_in_riemannian_basis = gs.reshape(log_in_riemannian_basis, (len(X), -1))
+        # else:
+        #     X = log_in_riemannian_basis
 
         if self.n_components is None:
-            n_components = min(X.shape)
+            n_components = min(log_in_riemannian_basis.shape)
         else:
             n_components = self.n_components
-        n_samples, n_features = X.shape
+        n_samples, n_features = log_in_riemannian_basis.shape
 
         if n_components == "mle":
             if n_samples < n_features:
@@ -285,14 +294,25 @@ class TangentPCA(_BasePCA):
             )
 
         # Center data - the mean should be 0 if base_point is the Frechet mean
-        self.mean_ = gs.mean(X, axis=0)
-        X -= self.mean_
+        self.mean_ = gs.mean(log_in_riemannian_basis, axis=0)
+        log_in_riemannian_basis -= self.mean_
 
-        U, S, V = gs.linalg.svd(X, full_matrices=False)
+        scalar_product_matrix_at_mean = self.metric.inner_product_matrix(base_point)
+        dim = scalar_product_matrix_at_mean.shape[-1]
+        scalar_product_matrix_at_mean = gs.reshape(scalar_product_matrix_at_mean, (dim, dim))
+        scalar_product_matrix_at_mean_sqrt = SymmetricMatrices.powerm(scalar_product_matrix_at_mean, 1 / 2)
+        self.scalar_product_matrix_at_mean_sqrt = scalar_product_matrix_at_mean_sqrt
+        log_in_euclidean_basis = log_in_riemannian_basis @ scalar_product_matrix_at_mean_sqrt
+
+        U, S, V = gs.linalg.svd(log_in_euclidean_basis, full_matrices=False)
         # flip eigenvectors' sign to enforce deterministic output
         U, V = svd_flip(U, V)
 
-        components_ = V
+        components_in_euclidean_basis = V
+        components_in_riemannian_basis = V @ pinvh(
+            scalar_product_matrix_at_mean_sqrt)
+
+        coordinates_on_components = log_in_euclidean_basis @ gs.transpose(gs.conj(V))
 
         # Get variance explained by singular values
         explained_variance_ = (S**2) / (n_samples - 1)
@@ -309,6 +329,11 @@ class TangentPCA(_BasePCA):
             ratio_cumsum = stable_cumsum(explained_variance_ratio_)
             n_components = gs.searchsorted(ratio_cumsum, n_components) + 1
 
+        transformed_log_in_riemannian_basis = gs.einsum(
+            'ij, j...->i...',
+            coordinates_on_components[:, :n_components],
+            log_in_riemannian_basis[:n_components])
+
         # Compute noise covariance using Probabilistic PCA model
         # The sigma2 maximum likelihood (cf. eq. 12.46)
         if n_components < min(n_features, n_samples):
@@ -318,8 +343,11 @@ class TangentPCA(_BasePCA):
 
         self.base_point_fit = base_point
         self.n_samples_, self.n_features_ = n_samples, n_features
-        self.components_ = components_[:n_components]
         self.n_components_ = int(n_components)
+        self.components_in_euclidean_basis = components_in_euclidean_basis[:n_components]
+        self.components_in_riemannian_basis = components_in_riemannian_basis[:n_components]
+        self.coordinates_on_components = coordinates_on_components[:n_components]
+        self.transformed_log_in_riemannian_basis = transformed_log_in_riemannian_basis
         self.explained_variance_ = explained_variance_[:n_components]
         self.explained_variance_ratio_ = explained_variance_ratio_[:n_components]
         self.singular_values_ = singular_values_[:n_components]
