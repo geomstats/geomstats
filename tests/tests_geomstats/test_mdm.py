@@ -26,7 +26,8 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
         for Metric in METRICS:
             space = SPDMatrices(n=2, equip=False)
             space.equip_with_metric(Metric)
-            MDM = RiemannianMinimumDistanceToMean(space.metric)
+
+            MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
             bary_a_fit = MDM.mean_estimates_[0]
             bary_b_fit = MDM.mean_estimates_[1]
@@ -60,7 +61,8 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
         for Metric in METRICS:
             space = SPDMatrices(n=2, equip=False)
             space.equip_with_metric(Metric)
-            MDM = RiemannianMinimumDistanceToMean(space.metric)
+
+            MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
             y_test = MDM.predict(X_test)
 
@@ -78,7 +80,8 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
         for Metric in METRICS:
             space = SPDMatrices(n=2, equip=False)
             space.equip_with_metric(Metric)
-            MDM = RiemannianMinimumDistanceToMean(space.metric)
+
+            MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
             proba_test = MDM.predict_proba(X_test)
 
@@ -104,7 +107,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
             space = SPDMatrices(n=2, equip=False)
             space.equip_with_metric(Metric)
 
-            MDM = RiemannianMinimumDistanceToMean(space.metric)
+            MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
             dist_test = MDM.transform(X_test)
 
@@ -132,7 +135,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
             space = SPDMatrices(n=2, equip=False)
             space.equip_with_metric(Metric)
 
-            MDM = RiemannianMinimumDistanceToMean(space.metric)
+            MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
 
             if Metric in [SPDAffineMetric, SPDLogEuclideanMetric]:
