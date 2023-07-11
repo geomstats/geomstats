@@ -918,7 +918,9 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
 
         horizontal_velocity = gs.matmul(inverse_square_root_bp, square_root_lift)
         partial_horizontal_velocity = Matrices.mul(horizontal_velocity, square_root_bp)
-        partial_horizontal_velocity += Matrices.transpose(partial_horizontal_velocity)
+        partial_horizontal_velocity = partial_horizontal_velocity + Matrices.transpose(
+            partial_horizontal_velocity
+        )
 
         def force(state, time):
             horizontal_geodesic_t = (
