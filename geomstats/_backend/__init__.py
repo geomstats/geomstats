@@ -11,6 +11,14 @@ import types
 
 import geomstats._backend._common as common
 
+
+def get_backend_name():
+    return os.environ.get("GEOMSTATS_BACKEND", "numpy")
+
+
+BACKEND_NAME = get_backend_name()
+
+
 BACKEND_ATTRIBUTES = {
     "": [
         # Types
@@ -87,6 +95,7 @@ BACKEND_ATTRIBUTES = {
         "is_array",
         "is_complex",
         "is_floating",
+        "is_bool",
         "kron",
         "less",
         "less_equal",
@@ -119,6 +128,7 @@ BACKEND_ATTRIBUTES = {
         "repeat",
         "reshape",
         "rtol",
+        "scatter_add",
         "searchsorted",
         "set_default_dtype",
         "set_diag",
@@ -158,13 +168,13 @@ BACKEND_ATTRIBUTES = {
     ],
     "autodiff": [
         "custom_gradient",
-        "detach",
         "hessian",
         "hessian_vec",
         "jacobian",
         "jacobian_vec",
         "jacobian_and_hessian",
         "value_and_grad",
+        "value_jacobian_and_hessian",
     ],
     "linalg": [
         "cholesky",
@@ -173,6 +183,7 @@ BACKEND_ATTRIBUTES = {
         "eigh",
         "eigvalsh",
         "expm",
+        "fractional_matrix_power",
         "inv",
         "is_single_matrix_pd",
         "logm",
@@ -269,18 +280,14 @@ class BackendImporter:
         if fullname in sys.modules:
             return sys.modules[fullname]
 
-        _BACKEND = os.environ.get("GEOMSTATS_BACKEND")
-        if _BACKEND is None:
-            os.environ["GEOMSTATS_BACKEND"] = _BACKEND = "numpy"
-
-        module = self._create_backend_module(_BACKEND)
-        module.__name__ = f"geomstats.{_BACKEND}"
+        module = self._create_backend_module(BACKEND_NAME)
+        module.__name__ = f"geomstats.{BACKEND_NAME}"
         module.__loader__ = self
         sys.modules[fullname] = module
 
         module.set_default_dtype("float64")
 
-        logging.info(f"Using {_BACKEND} backend")
+        logging.info(f"Using {BACKEND_NAME} backend")
         return module
 
 

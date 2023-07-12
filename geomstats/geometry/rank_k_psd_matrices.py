@@ -24,22 +24,30 @@ class RankKPSDMatrices(Manifold):
     ----------
     n : int
         Integer representing the shape of the matrices: n x n.
-    k: int
+    k : int
         Integer representing the rank of the matrix (k<n).
     """
 
-    def __init__(self, n, k, **kwargs):
-        kwargs.setdefault("metric", PSDMetricBuresWasserstein(n, k))
+    def __init__(self, n, k, equip=True):
+        if not k < n:
+            raise ValueError("k must be lower than n")
+
         super().__init__(
-            **kwargs,
             dim=int(k * n - k * (k + 1) / 2),
             shape=(n, n),
+            equip=equip,
+            default_coords_type="extrinsic",
         )
         self.n = n
         self.rank = k
-        self.sym = SymmetricMatrices(self.n)
+        self.sym = SymmetricMatrices(self.n, equip=False)
 
-    def belongs(self, mat, atol=gs.atol):
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return PSDEuclideanMetric
+
+    def belongs(self, point, atol=gs.atol):
         r"""Check if the matrix belongs to the space.
 
         Parameters
@@ -55,14 +63,16 @@ class RankKPSDMatrices(Manifold):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat is an SPD matrix.
         """
-        is_symmetric = self.sym.belongs(mat, atol)
-        eigvalues = gs.linalg.eigvalsh(mat)
+        shape_belongs = self.shape == point.shape[-self.point_ndim :]
+        if not shape_belongs:
+            shape = point.shape[: -self.point_ndim]
+            return gs.zeros(shape, dtype=bool)
+
+        is_symmetric = self.sym.belongs(point, atol)
+        eigvalues = gs.linalg.eigvalsh(point)
         is_semipositive = gs.all(eigvalues > -atol, axis=-1)
         is_rankk = gs.sum(gs.where(eigvalues < atol, 0, 1), axis=-1) == self.rank
-        belongs = gs.logical_and(
-            gs.logical_and(is_symmetric, is_semipositive), is_rankk
-        )
-        return belongs
+        return gs.logical_and(gs.logical_and(is_symmetric, is_semipositive), is_rankk)
 
     def projection(self, point):
         r"""Project a matrix to the space of PSD matrices of rank k.
@@ -80,7 +90,7 @@ class RankKPSDMatrices(Manifold):
 
         Returns
         -------
-        projected: array-like, shape=[..., n, n]
+        projected : array-like, shape=[..., n, n]
             PSD matrix rank k.
 
         References
@@ -95,9 +105,10 @@ class RankKPSDMatrices(Manifold):
         h = gs.matmul(Matrices.transpose(v), s[..., None] * v)
         sym_proj = (sym + h) / 2
         eigvals, eigvecs = gs.linalg.eigh(sym_proj)
-        i = gs.array([0] * (self.n - self.rank) + [2 * gs.atol] * self.rank)
+        k = self.n - self.rank
+        i = gs.array([0.0] * k + [2 * gs.atol] * self.rank)
         regularized = (
-            gs.assignment(eigvals, 0, gs.arange((self.n - self.rank)), axis=0) + i
+            gs.hstack([gs.zeros(point.shape[:-2] + (k,)), eigvals[..., k:]]) + i
         )
         reconstruction = gs.einsum("...ij,...j->...ij", eigvecs, regularized)
 
@@ -126,7 +137,7 @@ class RankKPSDMatrices(Manifold):
         spd_mat = GeneralLinear.exp(Matrices.to_symmetric(mat))
         return self.projection(spd_mat)
 
-    def is_tangent(self, vector, base_point, tangent_atol=gs.atol):
+    def is_tangent(self, vector, base_point, atol=gs.atol):
         r"""Check if the vector belongs to the tangent space.
 
         Parameters
@@ -136,7 +147,7 @@ class RankKPSDMatrices(Manifold):
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
             Optional, default: None.
-        tangent_atol: float
+        atol : float
             Absolute tolerance.
             Optional, default: backend atol.
 
@@ -146,15 +157,14 @@ class RankKPSDMatrices(Manifold):
             Boolean denoting if vector belongs to tangent space
             at base_point.
         """
-        vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
+        vector_sym = Matrices.to_symmetric(vector)
 
         r, _, _ = gs.linalg.svd(base_point)
         r_ort = r[..., :, -(self.n - self.rank) :]
         r_ort_t = Matrices.transpose(r_ort)
         rr = gs.matmul(r_ort, r_ort_t)
         candidates = Matrices.mul(rr, vector_sym, rr)
-        result = gs.all(gs.isclose(candidates, 0.0, tangent_atol), axis=(-2, -1))
-        return result
+        return gs.all(gs.isclose(candidates, 0.0, atol=atol), axis=(-2, -1))
 
     def to_tangent(self, vector, base_point):
         r"""Project to the tangent space of PSD(n,k) at base_point.
@@ -169,10 +179,10 @@ class RankKPSDMatrices(Manifold):
 
         Returns
         -------
-        tangent : array-like, shape=[...,n,n]
+        tangent : array-like, shape=[..., n, n]
             Projection of the tangent vector at base_point.
         """
-        vector_sym = Matrices(self.n, self.n).to_symmetric(vector)
+        vector_sym = Matrices.to_symmetric(vector)
         r, _, _ = gs.linalg.svd(base_point)
         r_ort = r[..., :, : (self.rank - 1)]
         r_ort_t = Matrices.transpose(r_ort)
@@ -183,7 +193,7 @@ class RankKPSDMatrices(Manifold):
 PSDEuclideanMetric = SPDEuclideanMetric
 
 
-class PSDMatrices(RankKPSDMatrices, SPDMatrices):
+class PSDMatrices:
     r"""Class for the psd matrices.
 
     The class is redirecting to the correct embedding manifold.
@@ -203,25 +213,23 @@ class PSDMatrices(RankKPSDMatrices, SPDMatrices):
         cls,
         n,
         k,
-        **kwargs,
+        equip=True,
     ):
         """Instantiate class from one of the parent classes."""
         if n > k:
-            return RankKPSDMatrices(n, k, **kwargs)
+            return RankKPSDMatrices(n, k, equip=equip)
         if n == k:
-            return SPDMatrices(n, **kwargs)
+            return SPDMatrices(n, equip=equip)
         raise NotImplementedError("The PSD matrices is not implemented yet.")
 
 
-class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
+class BuresWassersteinBundle(FiberBundle):
     """Class for the quotient structure on PSD matrices."""
 
-    def __init__(self, n, k):
+    def __init__(self, total_space):
         super().__init__(
-            n=n,
-            k=k,
-            group=SpecialOrthogonal(k),
-            total_space_metric=MatricesMetric(n, k),
+            total_space=total_space,
+            group=SpecialOrthogonal(total_space.k, equip=False),
         )
 
     @staticmethod
@@ -236,13 +244,15 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
 
     def lift(self, point):
         """Find a representer in top space."""
+        k = self.total_space.k
         eigvals, eigvecs = gs.linalg.eigh(point)
         return gs.einsum(
-            "...ij,...j->...ij", eigvecs[..., -self.k :], eigvals[..., -self.k :] ** 0.5
+            "...ij,...j->...ij", eigvecs[..., -k:], eigvals[..., -k:] ** 0.5
         )
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
         """Horizontal lift of a tangent vector."""
+        n = self.total_space.n
         if fiber_point is None:
             fiber_point = self.lift(base_point)
         transposed_point = Matrices.transpose(fiber_point)
@@ -251,7 +261,7 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
         right_term = Matrices.mul(transposed_point, tangent_vec, fiber_point)
         sylvester = gs.linalg.solve_sylvester(alignment, alignment, right_term)
         skew_term = Matrices.mul(projector, sylvester)
-        orth_proj = gs.eye(self.n) - Matrices.mul(projector, transposed_point)
+        orth_proj = gs.eye(n) - Matrices.mul(projector, transposed_point)
         orth_part = Matrices.mul(orth_proj, tangent_vec, projector)
         return skew_term + orth_part
 
@@ -313,9 +323,13 @@ class BuresWassersteinBundle(FullRankMatrices, FiberBundle):
         return Matrices.align_matrices(point, base_point)
 
 
-class PSDMetricBuresWasserstein(QuotientMetric):
+class PSDBuresWassersteinMetric(QuotientMetric):
     """Bures-Wasserstein metric for fixed rank PSD matrices."""
 
-    def __init__(self, n, k):
-        fiber_bundle = BuresWassersteinBundle(n, k)
-        super().__init__(fiber_bundle=fiber_bundle, shape=(n, n))
+    def __init__(self, space, total_space=None):
+        if total_space is None:
+            k = space.rank if hasattr(space, "rank") else space.n
+            total_space = FullRankMatrices(space.n, k, equip=False)
+            total_space.equip_with_metric(MatricesMetric)
+
+        super().__init__(space=space, fiber_bundle=BuresWassersteinBundle(total_space))

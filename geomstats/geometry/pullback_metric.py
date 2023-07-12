@@ -3,15 +3,13 @@
 Lead author: Nina Miolane.
 """
 import abc
-import itertools
 import math
-from functools import partial
-
-import joblib
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
+from geomstats.numerics.ivp import GSIVPIntegrator
+from geomstats.vectorization import check_is_batch, get_batch_shape
 
 
 class PullbackMetric(RiemannianMetric):
@@ -31,40 +29,19 @@ class PullbackMetric(RiemannianMetric):
     immersion into the Euclidean space, i.e. for
 
     :math:`N=\mathbb{R}^n`.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the underlying manifold.
-    embedding_dim : int
-        Dimension of the embedding Euclidean space.
-    immersion : callable
-        Map defining the immersion into the Euclidean space.
     """
 
-    def __init__(
-        self,
-        dim,
-        embedding_dim,
-        immersion,
-        jacobian_immersion=None,
-        tangent_immersion=None,
-    ):
-        super().__init__(dim=dim)
-        self.embedding_metric = EuclideanMetric(embedding_dim)
-        self.immersion = immersion
-        if jacobian_immersion is None:
-            jacobian_immersion = gs.autodiff.jacobian(immersion)
-        self.jacobian_immersion = jacobian_immersion
-        if tangent_immersion is None:
+    def __init__(self, space, signature=None):
+        super().__init__(space, signature)
+        self._instantiate_solvers()
 
-            def _tangent_immersion(v, x):
-                return gs.squeeze(gs.matvec(jacobian_immersion(x), v))
+    def _instantiate_solvers(self):
+        self.log_solver = LogShootingSolver()
+        self.exp_solver = ExpODESolver(
+            integrator=GSIVPIntegrator(n_steps=100, step_type="euler"),
+        )
 
-        self.tangent_immersion = _tangent_immersion
-        self._hessian_immersion = None
-
-    def metric_matrix(self, base_point=None, n_jobs=1, **joblib_kwargs):
+    def metric_matrix(self, base_point):
         r"""Metric matrix at the tangent space at a base point.
 
         Let :math:`f` be the immersion
@@ -86,81 +63,48 @@ class PullbackMetric(RiemannianMetric):
         mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        immersed_base_point = self.immersion(base_point)
-        jacobian_immersion = self.jacobian_immersion(base_point)
-        basis_elements = gs.eye(self.dim)
+        dim, dim_embedding = self._space.dim, self._space.embedding_space.dim
+        is_vec = check_is_batch(self._space, base_point)
 
-        @joblib.delayed
-        @joblib.wrap_non_picklable_objects
-        def pickable_inner_product(i, j):
-            immersed_basis_element_i = gs.squeeze(
-                gs.matvec(jacobian_immersion, basis_elements[i])
+        immersed_base_point = self._space.immersion(base_point)
+        jacobian_immersion = self._space.jacobian_immersion(base_point)
+
+        basis_elements = gs.eye(dim)
+
+        if is_vec:
+            reshaped_jacobian_immersion = gs.reshape(jacobian_immersion, (-1, dim))
+            reshaped_immersed_basis_elements = gs.matvec(
+                reshaped_jacobian_immersion, basis_elements
             )
-            immersed_basis_element_j = gs.squeeze(
-                gs.matvec(jacobian_immersion, basis_elements[j])
-            )
-            return self.embedding_metric.inner_product(
-                immersed_basis_element_i,
-                immersed_basis_element_j,
-                base_point=immersed_base_point,
+            immersed_basis_elements = gs.moveaxis(
+                gs.reshape(reshaped_immersed_basis_elements, (dim, -1, dim_embedding)),
+                0,
+                1,
             )
 
-        pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
-        out = pool(
-            pickable_inner_product(i, j)
-            for i, j in itertools.product(range(self.dim), range(self.dim))
-        )
-        metric_mat = gs.reshape(gs.array(out), (-1, self.dim, self.dim))
-        return metric_mat[0] if base_point.ndim == 1 else metric_mat
+        else:
+            immersed_basis_elements = gs.matvec(jacobian_immersion, basis_elements)
 
-    def _hessian_immersion_func(self):
-        """Compute the Hessian of the immersion.
+        elems = {}
+        for i in range(dim):
+            for j in range(i, dim):
+                elem = self._space.embedding_space.metric.inner_product(
+                    immersed_basis_elements[..., i, :],
+                    immersed_basis_elements[..., j, :],
+                    immersed_base_point,
+                )
+                elems[(i, j)] = elem
 
-        Returns
-        -------
-        hessian_immersion : list of callable
-            List of embedding_dim hessians of the scalar
-            functions defining the components of the immersion.
-        """
+        mat = []
+        for i in range(dim):
+            for j in range(dim):
+                elem = elems[(i, j)] if j > i else elems[(j, i)]
+                mat.append(elem)
 
-        def _immersion(base_point, a):
-            """Compute the component a of the immersion at a base point.
+        shape = (-1, dim, dim) if is_vec else (dim, dim)
+        return gs.reshape(gs.stack(mat, axis=-1), shape)
 
-            Parameters
-            ----------
-            base_point : array-like, shape=[..., dim]
-                Base point.
-            a : int
-                Index of the component of the immersion.
-            """
-            return gs.array([self.immersion(base_point)[a]])
-
-        hessians = [
-            gs.autodiff.hessian(partial(_immersion, a=a))
-            for a in range(self.embedding_metric.dim)
-        ]
-        return hessians
-
-    def hessian_immersion(self, base_point):
-        """Compute the Hessian of the immersion.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Base point.
-
-        Returns
-        -------
-        hessian_immersion : array-like, shape=[..., embedding_dim, dim, dim]
-            Hessian at the base point
-        """
-        if self._hessian_immersion is None:
-            self._hessian_immersion = self._hessian_immersion_func()
-
-        hessian_values = [hes(base_point) for hes in self._hessian_immersion]
-        return gs.stack(hessian_values, axis=0)
-
-    def inner_product_derivative_matrix(self, base_point=None):
+    def inner_product_derivative_matrix(self, base_point):
         r"""Compute the inner-product derivative matrix.
 
         The derivative of the metrix matrix is given by
@@ -181,25 +125,11 @@ class PullbackMetric(RiemannianMetric):
             Inner-product derivative matrix, where the index of the derivation
             is last: :math:`mat_{ij}_k = \partial_k g_{ij}`.
         """
-        initial_ndim = base_point.ndim
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        inner_prod_deriv_mats = []
-        for point in base_point:
-            jacobian_ai = self.jacobian_immersion(point)
-            if self.dim == 1 and jacobian_ai.ndim > 2:
-                jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
-
-            hessian_aij = self.hessian_immersion(point)
-            if self.dim == 1 and hessian_aij.ndim > 3:
-                hessian_aij = gs.squeeze(hessian_aij, axis=-1)
-
-            inner_prod_deriv_mat = gs.einsum(
-                "aki,aj->ijk", hessian_aij, jacobian_ai
-            ) + gs.einsum("akj,ai->ijk", hessian_aij, jacobian_ai)
-            inner_prod_deriv_mats.append(inner_prod_deriv_mat)
-
-        inner_prod_deriv_mat = gs.stack(inner_prod_deriv_mats, axis=0)
-        return inner_prod_deriv_mat[0] if initial_ndim == 1 else inner_prod_deriv_mat
+        jacobian_ai = self._space.jacobian_immersion(base_point)
+        hessian_aij = self._space.hessian_immersion(base_point)
+        return gs.einsum("...aki,...aj->...ijk", hessian_aij, jacobian_ai) + gs.einsum(
+            "...akj,...ai->...ijk", hessian_aij, jacobian_ai
+        )
 
     def second_fundamental_form(self, base_point):
         r"""Compute the second fundamental form.
@@ -221,38 +151,12 @@ class PullbackMetric(RiemannianMetric):
             Second fundamental form :math:`\RN{2}(p)_{ij}^\alpha` where the
              :math:`\alpha` index is first.
         """
-        initial_ndim = base_point.ndim
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        second_fundamental_forms = []
-        for point in base_point:
-            christoffels = self.christoffels(point)
+        christoffels = self.christoffels(base_point)
 
-            jacobian_ai = self.jacobian_immersion(point)
-            if self.dim == 1 and jacobian_ai.ndim > 2:
-                jacobian_ai = gs.squeeze(jacobian_ai, axis=-1)
+        jacobian = self._space.jacobian_immersion(base_point)
+        hessian = self._space.hessian_immersion(base_point)
 
-            hessian_aij = self.hessian_immersion(point)
-            if self.dim == 1 and hessian_aij.ndim > 3:
-                hessian_aij = gs.squeeze(hessian_aij, axis=-1)
-
-            second_fundamental_form_aij = []
-            for a in range(self.embedding_metric.dim):
-                jacobian_a = jacobian_ai[a]
-                hessian_a = hessian_aij[a]
-
-                second_fundamental_form_a = hessian_a - gs.einsum(
-                    "kij,k->ij", christoffels, jacobian_a
-                )
-                second_fundamental_form_aij.append(second_fundamental_form_a)
-
-            second_fundamental_forms_aij = gs.stack(second_fundamental_form_aij, axis=0)
-            second_fundamental_forms.append(second_fundamental_forms_aij)
-        second_fundamental_forms = gs.stack(second_fundamental_forms, axis=0)
-        return (
-            second_fundamental_forms[0]
-            if initial_ndim == 1
-            else second_fundamental_forms
-        )
+        return hessian - gs.einsum("...kij,...dk->...dij", christoffels, jacobian)
 
     def mean_curvature_vector(self, base_point):
         r"""Compute the mean curvature vector.
@@ -273,20 +177,13 @@ class PullbackMetric(RiemannianMetric):
         mean_curvature_vector : array-like, shape=[..., embedding_dim]
             Mean curvature vector.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-
-        mean_curvature = []
-        for point in base_point:
-            second_fund_form = self.second_fundamental_form(point)
-            cometric = self.cometric_matrix(point)
-            mean_curvature.append(gs.einsum("ij,aij->a", cometric, second_fund_form))
-
-        return gs.stack(mean_curvature, axis=0)
+        second_fund_form = self.second_fundamental_form(base_point)
+        cometric = self.cometric_matrix(base_point)
+        return gs.einsum("...ij,...aij->...a", cometric, second_fund_form)
 
 
 class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
-    """
-    Pullback metric via a diffeomorphism.
+    """Pullback metric via a diffeomorphism.
 
     Parameters
     ----------
@@ -297,40 +194,22 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         Optional, default : None.
     """
 
-    def __init__(self, dim, shape=None):
-        super().__init__(dim=dim, shape=shape)
+    def __init__(self, space, signature=None):
+        super().__init__(space=space, signature=signature)
 
-        self._embedding_metric = None
-        self._raw_jacobian_diffeomorphism = None
-        self._raw_inverse_jacobian_diffeomorphism = None
-
-        self.shape_dim = math.prod(shape) if shape is not None else None
-        self.embedding_space_shape_dim = math.prod(self.embedding_metric.shape)
+        self.embedding_space = self._define_embedding_space()
+        self._shape_prod = math.prod(self._space.shape)
+        self._embedding_shape_prod = math.prod(self.embedding_space.shape)
 
     @abc.abstractmethod
-    def define_embedding_metric(self):
-        r"""Create the metric this metric is in diffeomorphism with.
+    def _define_embedding_space(self):
+        r"""Create the image space of the diffeormorphism.
 
-        This instantiate the metric to use as image space of the
-        diffeomorphism.
-
-        -------
-        embedding_metric : RiemannianMetric object
-            The metric of the embedding space
+        Parameters
+        ----------
+        embedding_space : Manifold object
+            Embedding space.
         """
-
-    @property
-    def embedding_metric(self):
-        r"""Property wrapper around the metric.
-
-        -------
-        embedding_metric : RiemannianMetric object
-            The metric of the embedding space
-        """
-        self._embedding_metric = (
-            self._embedding_metric or self.define_embedding_metric()
-        )
-        return self._embedding_metric
 
     @abc.abstractmethod
     def diffeomorphism(self, base_point):
@@ -350,96 +229,6 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_point : array-like, shape=[..., *i_shape]
             Inner-product matrix.
         """
-
-    def raw_jacobian_diffeomorphism(self, base_point):
-        r"""Raw jacobian of the diffeomorphism.
-
-        Raw jacobian autodiff of diffeomorphism regardless of vectorization.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., *shape]
-            Base point.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., *i_shape, ..., *shape]
-            Inner-product matrix.
-        """
-        if self._raw_jacobian_diffeomorphism is None:
-            self._raw_jacobian_diffeomorphism = gs.autodiff.jacobian(
-                self.diffeomorphism
-            )
-        return self._raw_jacobian_diffeomorphism(base_point)
-
-    def jacobian_diffeomorphism(self, base_point):
-        r"""Jacobian of the diffeomorphism at base point.
-
-        Let :math:`f` be the diffeomorphism
-        :math:`f: M \rightarrow N` of the manifold
-        :math:`M` into the manifold `N`.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., *shape]
-            Base point.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., *i_shape, *shape]
-            Inner-product matrix.
-        """
-        rad = base_point.shape[: -len(self.shape)]
-        base_point = gs.reshape(base_point, (-1,) + self.shape)
-
-        J = self.raw_jacobian_diffeomorphism(base_point)
-        J = gs.moveaxis(
-            gs.diagonal(J, axis1=0, axis2=len(self.embedding_metric.shape) + 1),
-            -1,
-            0,
-        )
-        J = gs.reshape(J, rad + self.embedding_metric.shape + self.shape)
-
-        return J
-
-    def tangent_diffeomorphism(self, tangent_vec, base_point):
-        r"""Tangent diffeomorphism at base point.
-
-        Let :math:`f` be the diffeomorphism
-        :math:`f: M \rightarrow N` of the manifold
-        :math:`M` into the manifold `N`.
-
-        df_p is a linear map from T_pM to T_f(p)N called
-        the tangent immersion
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., *shape]
-            Tangent vector at base point.
-
-        base_point : array-like, shape=[..., *shape]
-            Base point.
-
-        Returns
-        -------
-        image_tangent_vec : array-like, shape=[..., *i_shape]
-            Image tangent vector at image of the base point.
-        """
-        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
-        rad = base_point.shape[: -len(self.shape)]
-
-        J_flat = gs.reshape(
-            self.jacobian_diffeomorphism(base_point),
-            (-1, self.embedding_space_shape_dim, self.shape_dim),
-        )
-        tv_flat = gs.reshape(tangent_vec, (-1, self.shape_dim))
-
-        image_tv = gs.reshape(
-            gs.einsum("...ij,...j->...i", J_flat, tv_flat),
-            rad + self.embedding_metric.shape,
-        )
-
-        return image_tv
 
     @abc.abstractmethod
     def inverse_diffeomorphism(self, image_point):
@@ -462,27 +251,65 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             Inner-product matrix.
         """
 
-    def raw_inverse_jacobian_diffeomorphism(self, image_point):
-        r"""Raw jacobian of the inverse_diffeomorphism.
+    def jacobian_diffeomorphism(self, base_point):
+        r"""Jacobian of the diffeomorphism at base point.
 
-        Raw jacobian autodiff of inverse_diffeomorphism regardless of
-        vectorization.
+        Let :math:`f` be the diffeomorphism
+        :math:`f: M \rightarrow N` of the manifold
+        :math:`M` into the manifold `N`.
 
         Parameters
         ----------
-        image_point : array-like, shape=[..., *i_shape]
+        base_point : array-like, shape=[..., *shape]
             Base point.
 
         Returns
         -------
-        mat : array-like, shape=[..., *shape, ..., *i_shape]
+        mat : array-like, shape=[..., *i_shape, *shape]
             Inner-product matrix.
         """
-        if self._raw_inverse_jacobian_diffeomorphism is None:
-            self._raw_inverse_jacobian_diffeomorphism = gs.autodiff.jacobian(
-                self.inverse_diffeomorphism
-            )
-        return self._raw_inverse_jacobian_diffeomorphism(image_point)
+        return gs.autodiff.jacobian_vec(
+            self.diffeomorphism, point_ndim=self._space.point_ndim
+        )(base_point)
+
+    def tangent_diffeomorphism(self, tangent_vec, base_point):
+        r"""Tangent diffeomorphism at base point.
+
+        Let :math:`f` be the diffeomorphism
+        :math:`f: M \rightarrow N` of the manifold
+        :math:`M` into the manifold `N`.
+
+        df_p is a linear map from T_pM to T_f(p)N called
+        the tangent immersion.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., *shape]
+            Tangent vector at base point.
+
+        base_point : array-like, shape=[..., *shape]
+            Base point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., *i_shape]
+            Image tangent vector at image of the base point.
+        """
+        batch_shape = get_batch_shape(self._space, tangent_vec, base_point)
+        flat_batch_shape = (-1,) if batch_shape else ()
+
+        J_flat = gs.reshape(
+            self.jacobian_diffeomorphism(base_point),
+            flat_batch_shape + (self._embedding_shape_prod, self._shape_prod),
+        )
+        tv_flat = gs.reshape(tangent_vec, flat_batch_shape + (self._shape_prod,))
+
+        image_tv = gs.reshape(
+            gs.einsum("...ij,...j->...i", J_flat, tv_flat),
+            batch_shape + self.embedding_space.shape,
+        )
+
+        return image_tv
 
     def inverse_jacobian_diffeomorphism(self, image_point):
         r"""Inverse Jacobian of the diffeomorphism at image point.
@@ -497,14 +324,9 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         mat : array-like, shape=[..., *shape, *i_shape]
             Inner-product matrix.
         """
-        rad = image_point.shape[: -len(self.embedding_metric.shape)]
-        image_point = gs.reshape(image_point, (-1,) + self.embedding_metric.shape)
-
-        J = self.raw_inverse_jacobian_diffeomorphism(image_point)
-        J = gs.moveaxis(gs.diagonal(J, axis1=0, axis2=len(self.shape) + 1), -1, 0)
-        J = gs.reshape(J, rad + self.shape + self.embedding_metric.shape)
-
-        return J
+        return gs.autodiff.jacobian_vec(
+            self.inverse_diffeomorphism, point_ndim=self.embedding_space.point_ndim
+        )(image_point)
 
     def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
         r"""Tangent diffeomorphism at base point.
@@ -529,18 +351,23 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_tangent_vec : array-like, shape=[..., *shape]
             Image tangent vector at image of the base point.
         """
-        image_point = gs.broadcast_to(image_point, image_tangent_vec.shape)
-        rad = image_tangent_vec.shape[: -len(self.embedding_metric.shape)]
+        batch_shape = get_batch_shape(
+            self.embedding_space, image_tangent_vec, image_point
+        )
+        flat_batch_shape = (-1,) if batch_shape else ()
 
         J_flat = gs.reshape(
             self.inverse_jacobian_diffeomorphism(image_point),
-            (-1, self.shape_dim, self.embedding_space_shape_dim),
+            flat_batch_shape + (self._shape_prod, self._embedding_shape_prod),
         )
 
-        itv_flat = gs.reshape(image_tangent_vec, (-1, self.embedding_space_shape_dim))
+        itv_flat = gs.reshape(
+            image_tangent_vec, flat_batch_shape + (self._embedding_shape_prod,)
+        )
 
         tv = gs.reshape(
-            gs.einsum("...ij,...j->...i", J_flat, itv_flat), rad + self.shape
+            gs.einsum("...ij,...j->...i", J_flat, itv_flat),
+            batch_shape + self._space.shape,
         )
         return tv
 
@@ -581,7 +408,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        return self.embedding_metric.inner_product(
+        return self.embedding_space.metric.inner_product(
             self.tangent_diffeomorphism(tangent_vec_a, base_point),
             self.tangent_diffeomorphism(tangent_vec_b, base_point),
             self.diffeomorphism(base_point),
@@ -604,11 +431,10 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         """
         image_base_point = self.diffeomorphism(base_point)
         image_tangent_vec = self.tangent_diffeomorphism(tangent_vec, base_point)
-        image_exp = self.embedding_metric.exp(
+        image_exp = self.embedding_space.metric.exp(
             image_tangent_vec, image_base_point, **kwargs
         )
-        exp = self.inverse_diffeomorphism(image_exp)
-        return exp
+        return self.inverse_diffeomorphism(image_exp)
 
     def log(self, point, base_point, **kwargs):
         """Compute the logarithm map via diffeomorphic pullback.
@@ -627,9 +453,10 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         """
         image_base_point = self.diffeomorphism(base_point)
         image_point = self.diffeomorphism(point)
-        image_log = self.embedding_metric.log(image_point, image_base_point, **kwargs)
-        log = self.inverse_tangent_diffeomorphism(image_log, image_base_point)
-        return log
+        image_log = self.embedding_space.metric.log(
+            image_point, image_base_point, **kwargs
+        )
+        return self.inverse_tangent_diffeomorphism(image_log, image_base_point)
 
     def dist(self, point_a, point_b, **kwargs):
         """Compute the distance via diffeomorphic pullback.
@@ -648,8 +475,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         """
         image_point_a = self.diffeomorphism(point_a)
         image_point_b = self.diffeomorphism(point_b)
-        distance = self.embedding_metric.dist(image_point_a, image_point_b, **kwargs)
-        return distance
+        return self.embedding_space.metric.dist(image_point_a, image_point_b, **kwargs)
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         """Compute the curvature via diffeomorphic pullback.
@@ -674,16 +500,13 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_tangent_vec_a = self.tangent_diffeomorphism(tangent_vec_a, base_point)
         image_tangent_vec_b = self.tangent_diffeomorphism(tangent_vec_b, base_point)
         image_tangent_vec_c = self.tangent_diffeomorphism(tangent_vec_c, base_point)
-        image_curvature = self.embedding_metric.curvature(
+        image_curvature = self.embedding_space.metric.curvature(
             image_tangent_vec_a,
             image_tangent_vec_b,
             image_tangent_vec_c,
             image_base_point,
         )
-        curvature = self.inverse_tangent_diffeomorphism(
-            image_curvature, image_base_point
-        )
-        return curvature
+        return self.inverse_tangent_diffeomorphism(image_curvature, image_base_point)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -716,13 +539,12 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         )
         image_end_point = None if end_point is None else self.diffeomorphism(end_point)
 
-        image_parallel_transport = self.embedding_metric.parallel_transport(
+        image_parallel_transport = self.embedding_space.metric.parallel_transport(
             image_tangent_vec,
             image_base_point,
             direction=image_direction,
             end_point=image_end_point,
         )
-        parallel_transport = self.inverse_tangent_diffeomorphism(
+        return self.inverse_tangent_diffeomorphism(
             image_parallel_transport, image_base_point
         )
-        return parallel_transport

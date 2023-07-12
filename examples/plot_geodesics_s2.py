@@ -6,17 +6,16 @@ import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
 
-SPHERE2 = Hypersphere(dim=2)
-METRIC = SPHERE2.metric
-
 
 def main():
     """Plot a geodesic on the sphere."""
+    space = Hypersphere(dim=2)
+
     initial_point = gs.array([1.0, 0.0, 0.0])
-    initial_tangent_vec = SPHERE2.to_tangent(
+    initial_tangent_vec = space.to_tangent(
         vector=gs.array([1.0, 2.0, 0.8]), base_point=initial_point
     )
-    geodesic = METRIC.geodesic(
+    geodesic = space.metric.geodesic(
         initial_point=initial_point, initial_tangent_vec=initial_tangent_vec
     )
 

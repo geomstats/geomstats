@@ -25,19 +25,20 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int, optional
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
     """
 
-    def __init__(self, dim, scale=1):
+    def __init__(self, dim, equip=True):
         super().__init__(
             dim=dim,
             embedding_space=Euclidean(dim),
-            scale=scale,
-            metric=PoincareHalfSpaceMetric(dim, scale),
             default_coords_type="half-space",
+            equip=equip,
         )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return PoincareHalfSpaceMetric
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the upper half space.
@@ -57,8 +58,7 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        belongs = gs.logical_and(belongs, point[..., -1] >= atol)
-        return belongs
+        return gs.logical_and(belongs, point[..., -1] >= atol)
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
@@ -78,8 +78,7 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
             Projected point.
         """
         last = gs.where(point[..., -1] < atol, atol, point[..., -1])
-        projected = gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
-        return projected
+        return gs.concatenate([point[..., :-1], last[..., None]], axis=-1)
 
 
 class PoincareHalfSpaceMetric(RiemannianMetric):
@@ -87,25 +86,11 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
 
     Class for the metric of the n-dimensional hyperbolic space
     as embedded in the Poincaré half space model.
-
-    Parameters
-    ----------
-    dim : int
-        Dimension of the hyperbolic space.
-    scale : int
-        Scale of the hyperbolic space, defined as the set of points
-        in Minkowski space whose squared norm is equal to -scale.
-        Optional, default: 1.
     """
 
-    def __init__(self, dim, scale=1.0):
-        self.poincare_ball = PoincareBall(dim=dim, scale=scale)
-        super().__init__(
-            dim=dim,
-            signature=(dim, 0),
-            default_coords_type=self.poincare_ball.default_coords_type,
-        )
-        self.scale = scale
+    def __init__(self, space):
+        super().__init__(space=space)
+        self._poincare_ball = PoincareBall(dim=space.dim)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -126,7 +111,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         """
         inner_prod = gs.sum(tangent_vec_a * tangent_vec_b, axis=-1)
         inner_prod = inner_prod / base_point[..., -1] ** 2
-        return self.scale * inner_prod
+        return inner_prod
 
     def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential.
@@ -144,15 +129,14 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             Point in the Poincare half space, reached by the geodesic
             starting from `base_point` with initial velocity `tangent_vec`
         """
-        base_point_ball = self.poincare_ball.half_space_to_ball_coordinates(base_point)
-        tangent_vec_ball = self.poincare_ball.half_space_to_ball_tangent(
+        base_point_ball = self._poincare_ball.half_space_to_ball_coordinates(base_point)
+        tangent_vec_ball = self._poincare_ball.half_space_to_ball_tangent(
             tangent_vec, base_point
         )
-        end_point_ball = self.poincare_ball.metric.exp(
+        end_point_ball = self._poincare_ball.metric.exp(
             tangent_vec_ball, base_point_ball
         )
-        end_point = self.poincare_ball.ball_to_half_space_coordinates(end_point_ball)
-        return end_point
+        return self._poincare_ball.ball_to_half_space_coordinates(end_point_ball)
 
     def log(self, point, base_point, **kwargs):
         """Compute Riemannian logarithm of a point wrt a base point.
@@ -170,11 +154,10 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        point_ball = self.poincare_ball.half_space_to_ball_coordinates(point)
-        base_point_ball = self.poincare_ball.half_space_to_ball_coordinates(base_point)
-        log_ball = self.poincare_ball.metric.log(point_ball, base_point_ball)
-        log = self.poincare_ball.ball_to_half_space_tangent(log_ball, base_point_ball)
-        return log
+        point_ball = self._poincare_ball.half_space_to_ball_coordinates(point)
+        base_point_ball = self._poincare_ball.half_space_to_ball_coordinates(base_point)
+        log_ball = self._poincare_ball.metric.log(point_ball, base_point_ball)
+        return self._poincare_ball.ball_to_half_space_tangent(log_ball, base_point_ball)
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.

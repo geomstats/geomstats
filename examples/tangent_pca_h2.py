@@ -19,13 +19,14 @@ def main():
 
     data = hyperbolic_plane.random_point(n_samples=140)
 
-    mean = FrechetMean(metric=hyperbolic_plane.metric)
+    mean = FrechetMean(hyperbolic_plane)
     mean.fit(data)
 
     mean_estimate = mean.estimate_
 
-    tpca = TangentPCA(metric=hyperbolic_plane.metric, n_components=2)
-    tpca = tpca.fit(data, base_point=mean_estimate)
+    tpca = TangentPCA(hyperbolic_plane, n_components=2)
+
+    tpca.fit(data, base_point=mean_estimate)
     tangent_projected_data = tpca.transform(data)
 
     geodesic_0 = hyperbolic_plane.metric.geodesic(

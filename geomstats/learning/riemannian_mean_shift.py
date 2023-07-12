@@ -21,11 +21,8 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
     Parameters
     ----------
-    manifold : object of class RiemannianManifold
-        Geomstats Riemannian manifold on which the
-        Riemannian Mean Shift algorithm is to be applied.
-    metric : object of class RiemannianMetric
-        Geomstats Riemannian metric associated to the space used.
+    space : Manifold
+        Equipped manifold.
     bandwidth : float
         Size of neighbourhood around each center. All points in 'bandwidth'
         size around center are considered for calculating new mean centers.
@@ -49,12 +46,15 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
     kernel : str
         Weighing function to assign kernel weights to each center.
         Optional, default : "flat".
+
+    Notes
+    -----
+    * Required metric methods: `dist`, `closest_neighbor_index`.
     """
 
     def __init__(
         self,
-        manifold,
-        metric,
+        space,
         bandwidth,
         tol=1e-2,
         n_centers=1,
@@ -62,21 +62,21 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         max_iter=100,
         init_centers="from_points",
         kernel="flat",
-        **frechet_mean_kwargs
     ):
-        self.manifold = manifold
-        self.metric = metric
+        self.space = space
         self.bandwidth = bandwidth
         self.tol = tol
-        self.mean = FrechetMean(self.metric, **frechet_mean_kwargs)
         self.n_centers = n_centers
         self.n_jobs = n_jobs
         self.max_iter = max_iter
         self.init_centers = init_centers
         self.kernel = kernel
-        self.centers = None
 
-    def dist_intersets(self, points_a, points_b, **joblib_kwargs):
+        self.centers_ = None
+
+        self.mean_estimator = FrechetMean(space)
+
+    def _dist_intersets(self, points_a, points_b):
         """Parallel computation of distances between two sets of points.
 
         Parameters
@@ -100,9 +100,9 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
             y : array-like, shape=[1, n_features]
                 Single point on manifold.
             """
-            return self.metric.dist(x, y)
+            return self.space.metric.dist(x, y)
 
-        pool = joblib.Parallel(n_jobs=self.n_jobs, **joblib_kwargs)
+        pool = joblib.Parallel(n_jobs=self.n_jobs)
         out = pool(
             pickable_dist(point_a, point_b)
             for point_a in points_a
@@ -111,13 +111,29 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
         return gs.array(out).reshape((n_a, n_b))
 
-    def fit(self, x, y=None):
+    def _initialization(self, X):
+        if self.init_centers == "from_points":
+            n_points = X.shape[0]
+            centers = X[gs.random.randint(n_points, size=(self.n_centers,)), :]
+        elif self.init_centers == "random_uniform":
+            centers = self.manifold.random_uniform(n_samples=self.n_centers)
+
+        return centers
+
+    def fit(self, X, y=None):
         """Fit centers in all the input points.
 
         Parameters
         ----------
-        x : array-like, shape=[..., n_features]
+        X : array-like, shape=[n_samples, n_features]
             Clusters of points.
+        y : None
+            Target values. Ignored.
+
+        Returns
+        -------
+        self : object
+            Returns self.
         """
 
         @joblib.delayed
@@ -132,16 +148,12 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
             weights : array-like,
                 Weight associated with each point in cluster.
             """
-            return self.mean.fit(points, weights=weights).estimate_
+            return self.mean_estimator.fit(points, weights=weights).estimate_
 
-        if self.init_centers == "from_points":
-            n_points = x.shape[0]
-            centers = x[gs.random.randint(n_points, size=(self.n_centers,)), :]
-        elif self.init_centers == "random_uniform":
-            centers = self.manifold.random_uniform(n_samples=self.n_centers)
+        centers = self._initialization(X)
 
         for _ in range(self.max_iter):
-            dists = self.dist_intersets(centers, x)
+            dists = self._dist_intersets(centers, X)
 
             if self.kernel == "flat":
                 weights = gs.ones_like(dists)
@@ -157,7 +169,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
                     weights[j][indexes],
                 ]
                 points_to_average += [
-                    x[indexes],
+                    X[indexes],
                 ]
 
             pool = joblib.Parallel(n_jobs=self.n_jobs)
@@ -168,38 +180,40 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
             new_centers = gs.array(out)
 
-            displacements = [self.metric.dist(centers, new_centers)]
+            displacements = [self.space.metric.dist(centers, new_centers)]
             centers = new_centers
 
             if (gs.array(displacements) < self.tol).all():
                 break
 
-        self.centers = centers
+        self.centers_ = centers
 
-    def predict(self, points):
+        return self
+
+    def predict(self, X):
         """Predict the closest cluster each point in `points` belongs to.
 
         Parameters
         ----------
-        points : array-like, shape=[..., n_features]
+        points : array-like, shape=[n_samples, n_features]
             Clusters of points.
         """
-        if self.centers is None:
+        if self.centers_ is None:
             raise Exception("Not fitted")
 
-        indices = self.metric.closest_neighbor_index(points, self.centers)
+        indices = self.space.metric.closest_neighbor_index(X, self.centers_)
 
-        return gs.take(self.centers, indices, axis=0)
+        return gs.take(self.centers_, indices, axis=0)
 
-    def predict_labels(self, points):
+    def predict_labels(self, X):
         """Predict the closest cluster label each point in `points` belongs to.
 
         Parameters
         ----------
-        points : array-like, shape=[..., n_features]
+        X : array-like, shape=[n_samples, n_features]
             Clusters of points.
         """
-        if self.centers is None:
+        if self.centers_ is None:
             raise Exception("Not fitted")
 
-        return self.metric.closest_neighbor_index(points, self.centers)
+        return self.space.metric.closest_neighbor_index(X, self.centers_)

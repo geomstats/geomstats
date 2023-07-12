@@ -18,40 +18,38 @@ import timeit
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
-from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-N = 3
 MAX_ORDER = 10
-
-GROUP = SpecialOrthogonal(n=N)
-
-DIM = int(N * (N - 1) / 2)
-ALGEBRA = SkewSymmetricMatrices(n=N)
 
 
 def main():
     """Visualize convergence of the BCH formula approximation on so(n)."""
-    norm_rv_1 = gs.random.normal(size=DIM)
-    tan_rv_1 = ALGEBRA.matrix_representation(
+    group = SpecialOrthogonal(n=3)
+
+    norm_rv_1 = gs.random.normal(size=group.dim)
+    tan_rv_1 = group.lie_algebra.matrix_representation(
         norm_rv_1 / gs.linalg.norm(norm_rv_1, axis=0) / 2
     )
     exp_1 = gs.linalg.expm(tan_rv_1)
 
-    norm_rv_2 = gs.random.normal(size=DIM)
-    tan_rv_2 = ALGEBRA.matrix_representation(
+    norm_rv_2 = gs.random.normal(size=group.dim)
+    tan_rv_2 = group.lie_algebra.matrix_representation(
         norm_rv_2 / gs.linalg.norm(norm_rv_2, axis=0) / 2
     )
     exp_2 = gs.linalg.expm(tan_rv_2)
 
-    composition = GROUP.compose(exp_1, exp_2)
+    composition = group.compose(exp_1, exp_2)
 
     orders = gs.arange(1, MAX_ORDER + 1)
     bch_approximations = gs.array(
-        [ALGEBRA.baker_campbell_hausdorff(tan_rv_1, tan_rv_2, order=n) for n in orders]
+        [
+            group.lie_algebra.baker_campbell_hausdorff(tan_rv_1, tan_rv_2, order=n)
+            for n in orders
+        ]
     )
-    bch_approximations = ALGEBRA.basis_representation(bch_approximations)
-    correct = ALGEBRA.basis_representation(gs.linalg.logm(composition))
+    bch_approximations = group.lie_algebra.basis_representation(bch_approximations)
+    correct = group.lie_algebra.basis_representation(gs.linalg.logm(composition))
     t_numpy = timeit.timeit(
         lambda: gs.linalg.logm(
             gs.matmul(gs.linalg.expm(tan_rv_1), gs.linalg.expm(tan_rv_2))
@@ -60,7 +58,9 @@ def main():
     )
     t_bch = [
         timeit.timeit(
-            lambda: ALGEBRA.baker_campbell_hausdorff(tan_rv_1, tan_rv_2, order=n),
+            lambda order=n: group.lie_algebra.baker_campbell_hausdorff(
+                tan_rv_1, tan_rv_2, order=order
+            ),
             number=100,
         )
         for n in orders

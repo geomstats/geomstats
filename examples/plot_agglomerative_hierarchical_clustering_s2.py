@@ -16,7 +16,6 @@ from geomstats.learning.agglomerative_hierarchical_clustering import (
 def main():
     """Plot an Agglomerative Hierarchical Clustering on the sphere."""
     sphere = Hypersphere(dim=2)
-    sphere_distance = sphere.metric.dist
 
     n_clusters = 2
     n_samples_per_dataset = 50
@@ -29,9 +28,7 @@ def main():
     )
     dataset = gs.concatenate((dataset_1, dataset_2), axis=0)
 
-    clustering = AgglomerativeHierarchicalClustering(
-        n_clusters=n_clusters, distance=sphere_distance
-    )
+    clustering = AgglomerativeHierarchicalClustering(sphere, n_clusters=n_clusters)
 
     clustering.fit(dataset)
 
@@ -50,7 +47,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if os.environ["GEOMSTATS_BACKEND"] == "tensorflow":
+    if os.environ.get("GEOMSTATS_BACKEND", "numpy") != "numpy":
         logging.info(
             "Examples with visualizations are only implemented "
             "with numpy backend.\n"

@@ -18,8 +18,6 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.learning.frechet_mean import FrechetMean, variance
 from geomstats.learning.geodesic_regression import GeodesicRegression
 
-SPACE = SpecialEuclidean(2)
-METRIC = SPACE.left_canonical_metric
 gs.random.seed(0)
 
 
@@ -35,51 +33,54 @@ def main():
     - :math:`\epsilon \sim N(0, 1)` is a standard Gaussian noise,
     - :math:`X` is the input, :math:`Y` is the target.
     """
+    space = SpecialEuclidean(2)
+
     # Generate noise-free data
     n_samples = 20
     X = gs.random.normal(size=(n_samples,))
     X -= gs.mean(X)
 
-    intercept = SPACE.random_point()
-    coef = SPACE.to_tangent(5.0 * gs.random.rand(3, 3), intercept)
-    y = METRIC.exp(X[:, None, None] * coef[None], intercept)
+    intercept = space.random_point()
+    coef = space.to_tangent(5.0 * gs.random.rand(3, 3), intercept)
+    y = space.metric.exp(X[:, None, None] * coef[None], intercept)
 
     # Generate normal noise in the Lie algebra
     normal_noise = gs.random.normal(size=(n_samples, 3))
-    normal_noise = SPACE.lie_algebra.matrix_representation(normal_noise)
-    noise = SPACE.tangent_translation_map(y)(normal_noise) / gs.pi
+    normal_noise = space.lie_algebra.matrix_representation(normal_noise)
+    noise = space.tangent_translation_map(y)(normal_noise) / gs.pi
 
-    rss = gs.sum(METRIC.squared_norm(noise, y)) / n_samples
+    rss = gs.sum(space.metric.squared_norm(noise, y)) / n_samples
 
     # Add noise
-    y = METRIC.exp(noise, y)
+    y = space.metric.exp(noise, y)
 
     # True noise level and R2
-    estimator = FrechetMean(METRIC)
+    estimator = FrechetMean(space)
     estimator.fit(y)
-    variance_ = variance(y, estimator.estimate_, metric=METRIC)
+    variance_ = variance(space, y, estimator.estimate_)
     r2 = 1 - rss / variance_
 
     # Fit geodesic regression
     gr = GeodesicRegression(
-        SPACE,
-        metric=METRIC,
+        space,
         center_X=False,
         method="riemannian",
+        initialization="frechet",
+        compute_training_score=True,
+    ).set(
         max_iter=100,
         init_step_size=0.1,
         verbose=True,
-        initialization="frechet",
     )
-    gr.fit(X, y, compute_training_score=True)
+    gr.fit(X, y)
 
     intercept_hat, beta_hat = gr.intercept_, gr.coef_
 
     # Measure Mean Squared Error
-    mse_intercept = METRIC.squared_dist(intercept_hat, intercept)
-    mse_beta = METRIC.squared_norm(
-        METRIC.parallel_transport(
-            beta_hat, intercept_hat, METRIC.log(intercept_hat, intercept)
+    mse_intercept = space.metric.squared_dist(intercept_hat, intercept)
+    mse_beta = space.metric.squared_norm(
+        space.metric.parallel_transport(
+            beta_hat, intercept_hat, space.metric.log(intercept_hat, intercept)
         )
         - coef,
         intercept,
@@ -100,7 +101,9 @@ def main():
     sphere_visu = visualization.SpecialEuclidean2()
     ax = sphere_visu.set_ax(ax=ax)
 
-    path = METRIC.geodesic(initial_point=intercept_hat, initial_tangent_vec=beta_hat)
+    path = space.metric.geodesic(
+        initial_point=intercept_hat, initial_tangent_vec=beta_hat
+    )
     regressed_geodesic = path(gs.linspace(min(X), max(X), 100))
 
     sphere_visu.draw_points(ax, y, marker="o", c="black")

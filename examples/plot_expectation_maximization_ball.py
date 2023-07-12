@@ -14,19 +14,22 @@ from matplotlib.patches import Circle
 
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.learning.expectation_maximization import RiemannianEM, weighted_gmm_pdf
+from geomstats.learning.expectation_maximization import (
+    GaussianMixtureModel,
+    RiemannianEM,
+)
 
 DEFAULT_PLOT_PRECISION = 100
 
 
 def plot_gaussian_mixture_distribution(
+    space,
     data,
     mixture_coefficients,
     means,
     variances,
     plot_precision=DEFAULT_PLOT_PRECISION,
     save_path="",
-    metric=None,
 ):
     """Plot Gaussian Mixture Model."""
     x_axis_samples = gs.linspace(-1, 1, plot_precision)
@@ -36,7 +39,6 @@ def plot_gaussian_mixture_distribution(
     z_axis_samples = gs.zeros((plot_precision, plot_precision))
 
     for z_index, _ in enumerate(z_axis_samples):
-
         x_y_plane_mesh = gs.concatenate(
             (
                 gs.expand_dims(x_axis_samples[z_index], -1),
@@ -45,8 +47,8 @@ def plot_gaussian_mixture_distribution(
             axis=-1,
         )
 
-        mesh_probabilities = weighted_gmm_pdf(
-            mixture_coefficients, x_y_plane_mesh, means, variances, metric
+        mesh_probabilities = GaussianMixtureModel(space, means, variances).weighted_pdf(
+            mixture_coefficients, x_y_plane_mesh
         )
 
         z_axis_samples[z_index] = mesh_probabilities.sum(-1)
@@ -113,23 +115,22 @@ def expectation_maximisation_poincare_ball():
 
     manifold = PoincareBall(dim=2)
 
-    metric = manifold.metric
+    EM = RiemannianEM(manifold, n_gaussians=n_clusters, initialisation_method="random")
 
-    EM = RiemannianEM(
-        n_gaussians=n_clusters, metric=metric, initialisation_method="random"
-    )
-
-    means, variances, mixture_coefficients = EM.fit(data=data)
+    EM.fit(X=data)
+    means = EM.means_
+    variances = EM.variances_
+    mixture_coefficients = EM.mixture_coefficients_
 
     # Plot result
     plot = plot_gaussian_mixture_distribution(
+        manifold,
         data,
         mixture_coefficients,
         means,
         variances,
         plot_precision=100,
         save_path="result.png",
-        metric=metric,
     )
 
     return plot
@@ -149,7 +150,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if os.environ["GEOMSTATS_BACKEND"] != "numpy":
+    if os.environ.get("GEOMSTATS_BACKEND", "numpy") != "numpy":
         print(
             "Expectation Maximization example\n"
             "works with\n"

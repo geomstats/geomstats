@@ -90,7 +90,7 @@ class _AACFrechetMean(BaseEstimator):
 
         self.total_space_estimator_kwargs = total_space_estimator_kwargs or {}
         self.total_space_estimator = FrechetMean(
-            self.metric.total_space_metric, **self.total_space_estimator_kwargs
+            self.metric._space.total_space, **self.total_space_estimator_kwargs
         )
 
         self.estimate_ = None
@@ -388,7 +388,7 @@ class _AACRegression(BaseEstimator):
             iteration += 1
 
             # align point to point using previous computed alignment
-            aligned_y = self.metric.space.permute(aligned_y, self.metric.perm_)
+            aligned_y = self.metric._space.permute(aligned_y, self.metric.perm_)
 
             self.total_space_estimator.fit(X, aligned_y)
             y_pred = self.total_space_estimator.predict(X)

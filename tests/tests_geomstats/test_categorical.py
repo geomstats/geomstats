@@ -4,10 +4,7 @@ import warnings
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.information_geometry.categorical import (
-    CategoricalDistributions,
-    CategoricalMetric,
-)
+from geomstats.information_geometry.categorical import CategoricalDistributions
 from geomstats.information_geometry.multinomial import MultinomialDistributions
 
 
@@ -20,7 +17,7 @@ class TestCategoricalDistributions(tests.conftest.TestCase):
         warnings.simplefilter("ignore", category=UserWarning)
         self.dim = 3
         self.categorical = CategoricalDistributions(self.dim)
-        self.metric = CategoricalMetric(self.dim)
+        self.metric = self.categorical.metric
         self.n_points = 10
         self.n_samples = 20
 
@@ -57,7 +54,6 @@ class TestCategoricalDistributions(tests.conftest.TestCase):
         expected = gs.zeros(self.n_points)
         self.assertAllClose(expected, result, atol=1e-05)
 
-    @tests.conftest.np_and_autograd_only
     def test_sample(self):
         """Test sample.
 
@@ -171,7 +167,10 @@ class TestCategoricalDistributions(tests.conftest.TestCase):
         )
         time = 0.5
         result = geod(time).shape
-        expected = (self.dim + 1,)
+        expected = (
+            1,
+            self.dim + 1,
+        )
         self.assertAllClose(expected, result)
 
         n_vecs = 5
@@ -190,7 +189,7 @@ class TestCategoricalDistributions(tests.conftest.TestCase):
         geod = self.metric.geodesic(initial_point=initial_point, end_point=end_points)
         time = 0.5
         result = geod(time).shape
-        expected = (self.n_points, self.dim + 1)
+        expected = (self.n_points, 1, self.dim + 1)
         self.assertAllClose(expected, result)
 
     def test_dist(self):

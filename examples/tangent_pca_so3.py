@@ -10,25 +10,24 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.pca import TangentPCA
 
-SO3_GROUP = SpecialOrthogonal(n=3, point_type="vector")
-METRIC = SO3_GROUP.bi_invariant_metric
-
-N_SAMPLES = 10
-N_COMPONENTS = 2
-
 
 def main():
     """Perform tangent PCA at the mean on SO(3)."""
     fig = plt.figure(figsize=(15, 5))
 
-    data = SO3_GROUP.random_uniform(n_samples=N_SAMPLES)
+    n_samples = 10
+    n_components = 2
 
-    mean = FrechetMean(metric=METRIC)
+    space = SpecialOrthogonal(n=3, point_type="vector")
+
+    data = space.random_uniform(n_samples=n_samples)
+
+    mean = FrechetMean(space)
     mean.fit(data)
 
     mean_estimate = mean.estimate_
 
-    tpca = TangentPCA(metric=METRIC, n_components=N_COMPONENTS)
+    tpca = TangentPCA(space, n_components=n_components)
     tpca = tpca.fit(data, base_point=mean_estimate)
     tangent_projected_data = tpca.transform(data)
     logging.info(
@@ -38,7 +37,7 @@ def main():
     logging.info("\n{}".format(tangent_projected_data[:5]))
 
     ax_var = fig.add_subplot(121)
-    xticks = np.arange(1, N_COMPONENTS + 1, 1)
+    xticks = np.arange(1, n_components + 1, 1)
     ax_var.xaxis.set_ticks(xticks)
     ax_var.set_title("Explained variance")
     ax_var.set_xlabel("Number of Principal Components")

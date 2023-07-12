@@ -14,18 +14,14 @@ class TestKNearestNeighborsClassifier(tests.conftest.TestCase):
         """Define the parameters to test."""
         gs.random.seed(1234)
         self.n_neighbors = 3
-        self.dimension = 2
-        self.space = Euclidean(dim=self.dimension)
-        self.distance = self.space.metric.dist
 
     def test_predict(self):
         """Test the 'predict' class method."""
-        training_dataset = gs.array([[0], [1], [2], [3]])
+        space = Euclidean(dim=1)
+        training_dataset = gs.array([[0.0], [1.0], [2.0], [3.0]])
         labels = [0, 0, 1, 1]
 
-        neigh = KNearestNeighborsClassifier(
-            n_neighbors=self.n_neighbors, distance=self.distance
-        )
+        neigh = KNearestNeighborsClassifier(space, n_neighbors=self.n_neighbors)
         neigh.fit(training_dataset, labels)
         result = neigh.predict([[1.1]])
         expected = gs.array([0])
@@ -33,10 +29,12 @@ class TestKNearestNeighborsClassifier(tests.conftest.TestCase):
 
     def test_predict_proba(self):
         """Test the 'predict_proba' class method."""
-        training_dataset = gs.array([[0], [1], [2], [3]])
+        space = Euclidean(dim=1)
+        training_dataset = gs.array([[0.0], [1.0], [2.0], [3.0]])
         labels = [0, 0, 1, 1]
         neigh = KNearestNeighborsClassifier(
-            n_neighbors=self.n_neighbors, distance=self.distance
+            space,
+            n_neighbors=self.n_neighbors,
         )
         neigh.fit(training_dataset, labels)
         result = neigh.predict_proba([[0.9]])

@@ -2,6 +2,7 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data.hypersphere_data import HypersphereMetricTestData
@@ -12,17 +13,18 @@ ATOL = 1e-5
 
 
 class CircleAsSO2Metric(PullbackDiffeoMetric):
-    def __init__(self, dim=1):
-        # dim is let only to match real Hypersphere signature
-        if not dim == 1:
+    def __init__(self, space):
+        if not space.dim == 1:
             raise ValueError(
                 "This dummy class using SO(2) metric for S1 has "
                 "a meaning only when dim=1"
             )
-        super().__init__(dim=1, shape=(2,))
+        super().__init__(space=space)
 
-    def define_embedding_metric(self):
-        return SpecialOrthogonal(n=2, point_type="matrix").bi_invariant_metric
+    def _define_embedding_space(self):
+        space = SpecialOrthogonal(n=2, point_type="matrix", equip=False)
+        space.equip_with_metric(BiInvariantMetric)
+        return space
 
     def diffeomorphism(self, base_point):
         second_column = gs.stack([-base_point[..., 1], base_point[..., 0]], axis=-1)
@@ -32,23 +34,11 @@ class CircleAsSO2Metric(PullbackDiffeoMetric):
         return image_point[..., 0]
 
 
-class CircleAsSO2(Hypersphere):
-    def __init__(self, dim=1):
-        if not dim == 1:
-            # dim is let only to match real Hypersphere signature
-            raise ValueError(
-                "This dummy class using SO(2) metric for S1 has "
-                "a meaning only when dim=1"
-            )
-        super().__init__(1, "extrinsic")
-        self._metric = CircleAsSO2Metric(1)
-
-
 class CircleAsSO2MetricTestData(HypersphereMetricTestData):
-    dim_list = [1] * 4
-    metric_args_list = [() for n in dim_list]
-    shape_list = [(dim + 1,) for dim in dim_list]
-    space_list = [CircleAsSO2(n) for n in dim_list]
+    metric_args_list = [{}]
+    shape_list = [(2,)]
+    space_list = [Hypersphere(dim=1, equip=False)]
+
     n_points_list = random.sample(range(1, 5), 4)
     n_tangent_vecs_list = random.sample(range(1, 5), 4)
     n_points_a_list = [3] * 4
@@ -62,10 +52,10 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
     def inner_product_test_data(self):
         smoke_data = [
             dict(
-                dim=1,
-                tangent_vec_a=[1.0, 0.0],
-                tangent_vec_b=[2.0, 0.0],
-                base_point=[0.0, 1.0],
+                space=self.space_list[0],
+                tangent_vec_a=gs.array([1.0, 0.0]),
+                tangent_vec_b=gs.array([2.0, 0.0]),
+                base_point=gs.array([0.0, 1.0]),
                 expected=2.0,
             )
         ]
@@ -77,7 +67,14 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
         point_a = point_a / gs.linalg.norm(point_a)
         point_b = gs.array([2.0, 10])
         point_b = point_b / gs.linalg.norm(point_b)
-        smoke_data = [dict(dim=1, point_a=point_a, point_b=point_b, expected=gs.pi / 2)]
+        smoke_data = [
+            dict(
+                space=self.space_list[0],
+                point_a=point_a,
+                point_b=point_b,
+                expected=gs.pi / 2,
+            )
+        ]
         return self.generate_tests(smoke_data)
 
     def diameter_test_data(self):
@@ -86,14 +83,18 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
         point_c = gs.array([[1.0, 0.0]])
         smoke_data = [
             dict(
-                dim=1, points=gs.vstack((point_a, point_b, point_c)), expected=gs.pi / 2
+                space=self.space_list[0],
+                points=gs.vstack((point_a, point_b, point_c)),
+                expected=gs.pi / 2,
             )
         ]
         return self.generate_tests(smoke_data)
 
     def christoffels_shape_test_data(self):
         point = gs.array([[gs.pi / 2], [gs.pi / 6]])
-        smoke_data = [dict(dim=1, point=point, expected=[2, 1, 1, 1])]
+        smoke_data = [
+            dict(space=self.space_list[0], point=point, expected=[2, 1, 1, 1])
+        ]
         return self.generate_tests(smoke_data)
 
     def sectional_curvature_test_data(self):
@@ -112,7 +113,7 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
             expected = gs.ones(n_samples)  # try shape here
             random_data.append(
                 dict(
-                    dim=dim,
+                    space=self.space_list[0],
                     tangent_vec_a=tangent_vec_a,
                     tangent_vec_b=tangent_vec_b,
                     base_point=base_point,
@@ -124,11 +125,13 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
     def dist_pairwise_test_data(self):
         smoke_data = [
             dict(
-                dim=1,
-                point=[
-                    gs.array([1.0, 0.0]),
-                    gs.array([0.0, 1.0]),
-                ],
+                space=self.space_list[0],
+                point=gs.array(
+                    [
+                        [1.0, 0.0],
+                        [0.0, 1.0],
+                    ]
+                ),
                 expected=gs.array([[0.0, gs.pi / 2], [gs.pi / 2, 0.0]]),
                 rtol=1e-3,
             )
@@ -144,7 +147,8 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
         point = point / gs.linalg.norm(point)
         smoke_data = [
             dict(
-                connection_args=(1,),
+                space=self.space_list[0],
+                connection_args={},
                 point=point,
                 base_point=base_point,
             )
@@ -157,7 +161,8 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
 
         smoke_data = [
             dict(
-                connection_args=(1,),
+                space=self.space_list[0],
+                connection_args={},
                 tangent_vec=tangent_vec,
                 base_point=base_point,
             )
@@ -174,7 +179,7 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
         base_point = unnorm_base_point / gs.linalg.norm(unnorm_base_point)
         smoke_data = [
             dict(
-                dim=1,
+                space=self.space_list[0],
                 vector=gs.array([0.1, 0.8]),
                 base_point=base_point,
             )
@@ -193,9 +198,9 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
         tangent_vecs_0 = space.to_tangent(space.random_point(2), base_points[0])
 
         data = [
-            [metric_args, tangent_vecs[0], base_points[0], base_points[0].shape],
-            [metric_args, tangent_vecs, base_points, base_points.shape],
-            [metric_args, tangent_vecs_0, base_points[0], tangent_vecs_0.shape],
+            [space, metric_args, tangent_vecs[0], base_points[0], base_points[0].shape],
+            [space, metric_args, tangent_vecs, base_points, base_points.shape],
+            [space, metric_args, tangent_vecs_0, base_points[0], tangent_vecs_0.shape],
         ]
 
         return self.generate_tests([], data)
@@ -203,11 +208,13 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
 
 class CircleAsSO2PullbackDiffeoMetricTestData(TestData):
     Metric = CircleAsSO2Metric
+    space_list = [Hypersphere(dim=1, equip=False)]
 
     def diffeomorphism_is_reciprocal_test_data(self):
         smoke_data = [
             dict(
-                metric_args=[],
+                space=self.space_list[0],
+                metric_args={},
                 point=gs.array(
                     [
                         [1.0, 0.0],
@@ -224,7 +231,8 @@ class CircleAsSO2PullbackDiffeoMetricTestData(TestData):
     def tangent_diffeomorphism_is_reciprocal_test_data(self):
         smoke_data = [
             dict(
-                metric_args=[],
+                space=self.space_list[0],
+                metric_args={},
                 point=gs.array(
                     [
                         [1.0, 0.0],

@@ -5,13 +5,30 @@ Lead author: Nicolas Guigui.
 
 from abc import ABC
 
-from scipy.optimize import minimize
-
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.integrator import integrate
 
-N_STEPS = 100
+
+def _check_log_solver(connection, raise_=True):
+    if not hasattr(connection, "log_solver"):
+        if raise_:
+            raise ValueError(
+                "Requires `self.log_solver`. "
+                "Check `geomstats.numerics.geodesic` for available solvers."
+            )
+        return False
+    return True
+
+
+def _check_exp_solver(connection, raise_=True):
+    if not hasattr(connection, "exp_solver"):
+        if raise_:
+            raise ValueError(
+                "Requires `self.exp_solver`. "
+                "Check `geomstats.numerics.geodesic` for available solvers."
+            )
+        return False
+    return True
 
 
 class Connection(ABC):
@@ -19,35 +36,12 @@ class Connection(ABC):
 
     Parameters
     ----------
-    dim : int
-        Dimension of the underlying manifold.
-    shape : tuple of int
-        Shape of one element of the manifold.
-        Optional, default : (dim, ).
-    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
-        Coordinate type.
-        Optional, default: \'intrinsic\'.
+    space : Manifold object
+        M in the tuple (M, g).
     """
 
-    def __init__(self, dim, shape=None, default_coords_type="intrinsic"):
-        geomstats.errors.check_integer(dim, "dim")
-
-        if shape is None:
-            shape = (dim,)
-
-        self.dim = dim
-        self.shape = shape
-        self.default_coords_type = default_coords_type
-
-    @property
-    def default_point_type(self):
-        """Point type.
-
-        `vector` or `matrix`.
-        """
-        if len(self.shape) == 1:
-            return "vector"
-        return "matrix"
+    def __init__(self, space):
+        self._space = space
 
     def christoffels(self, base_point):
         """Christoffel symbols associated with the connection.
@@ -89,12 +83,8 @@ class Connection(ABC):
         equation = -gs.einsum("...kj,...j->...k", equation, velocity)
         return gs.stack([velocity, equation])
 
-    def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step="euler", **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Exponential map associated to the affine connection.
-
-        Exponential map at base_point of tangent_vec computed by integration
-        of the geodesic equation (initial value problem), using the
-        christoffel symbols.
 
         Parameters
         ----------
@@ -102,39 +92,16 @@ class Connection(ABC):
             Tangent vector at the base point.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-        n_steps : int
-            Number of discrete time steps to take in the integration.
-            Optional, default: N_STEPS.
-        step : str, {'euler', 'rk4'}
-            The numerical scheme to use for integration.
-            Optional, default: 'euler'.
 
         Returns
         -------
         exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
-        base_point = gs.broadcast_to(base_point, tangent_vec.shape)
+        _check_exp_solver(self)
+        return self.exp_solver.exp(self._space, tangent_vec, base_point)
 
-        initial_state = gs.stack([base_point, tangent_vec])
-
-        flow = integrate(
-            self.geodesic_equation, initial_state, n_steps=n_steps, step=step
-        )
-
-        exp = flow[-1][0]
-        return exp
-
-    def log(
-        self,
-        point,
-        base_point,
-        n_steps=N_STEPS,
-        step="euler",
-        max_iter=25,
-        verbose=False,
-        tol=gs.atol,
-    ):
+    def log(self, point, base_point):
         """Compute logarithm map associated to the affine connection.
 
         Solve the boundary value problem associated to the geodesic equation
@@ -161,38 +128,11 @@ class Connection(ABC):
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
-        max_shape = point.shape
-        if len(point.shape) <= len(base_point.shape):
-            max_shape = base_point.shape
-
-        def objective(velocity):
-            """Define the objective function."""
-            velocity = gs.array(velocity)
-            velocity = gs.cast(velocity, dtype=base_point.dtype)
-            velocity = gs.reshape(velocity, max_shape)
-            delta = self.exp(velocity, base_point, n_steps, step) - point
-            return gs.sum(delta**2)
-
-        objective_with_grad = gs.autodiff.value_and_grad(objective, to_numpy=True)
-
-        tangent_vec = gs.flatten(gs.random.rand(*max_shape))
-
-        res = minimize(
-            objective_with_grad,
-            tangent_vec,
-            method="L-BFGS-B",
-            jac=True,
-            options={"disp": verbose, "maxiter": max_iter},
-            tol=tol,
-        )
-
-        tangent_vec = gs.array(res.x)
-        tangent_vec = gs.reshape(tangent_vec, max_shape)
-        tangent_vec = gs.cast(tangent_vec, dtype=base_point.dtype)
-        return tangent_vec
+        _check_log_solver(self)
+        return self.log_solver.log(self._space, point, base_point)
 
     def _pole_ladder_step(
-        self, base_point, next_point, base_shoot, return_geodesics=False, **kwargs
+        self, base_point, next_point, base_shoot, return_geodesics=False
     ):
         """Compute one Pole Ladder step.
 
@@ -232,20 +172,16 @@ class Connection(ABC):
             Verlag, 2013,50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
         """
         mid_tangent_vector_to_shoot = (
-            1.0 / 2.0 * self.log(base_point=base_point, point=next_point, **kwargs)
+            1.0 / 2.0 * self.log(base_point=base_point, point=next_point)
         )
 
         mid_point = self.exp(
-            base_point=base_point, tangent_vec=mid_tangent_vector_to_shoot, **kwargs
+            base_point=base_point, tangent_vec=mid_tangent_vector_to_shoot
         )
 
-        tangent_vector_to_shoot = -self.log(
-            base_point=mid_point, point=base_shoot, **kwargs
-        )
+        tangent_vector_to_shoot = -self.log(base_point=mid_point, point=base_shoot)
 
-        end_shoot = self.exp(
-            base_point=mid_point, tangent_vec=tangent_vector_to_shoot, **kwargs
-        )
+        end_shoot = self.exp(base_point=mid_point, tangent_vec=tangent_vector_to_shoot)
 
         geodesics = []
         if return_geodesics:
@@ -260,7 +196,7 @@ class Connection(ABC):
         return {"geodesics": geodesics, "end_point": end_shoot}
 
     def _schild_ladder_step(
-        self, base_point, next_point, base_shoot, return_geodesics=False, **kwargs
+        self, base_point, next_point, base_shoot, return_geodesics=False
     ):
         """Compute one Schild's Ladder step.
 
@@ -297,20 +233,16 @@ class Connection(ABC):
             Verlag, 2013,50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
         """
         mid_tangent_vector_to_shoot = (
-            1.0 / 2.0 * self.log(base_point=base_shoot, point=next_point, **kwargs)
+            1.0 / 2.0 * self.log(base_point=base_shoot, point=next_point)
         )
 
         mid_point = self.exp(
-            base_point=base_shoot, tangent_vec=mid_tangent_vector_to_shoot, **kwargs
+            base_point=base_shoot, tangent_vec=mid_tangent_vector_to_shoot
         )
 
-        tangent_vector_to_shoot = -self.log(
-            base_point=mid_point, point=base_point, **kwargs
-        )
+        tangent_vector_to_shoot = -self.log(base_point=mid_point, point=base_point)
 
-        end_shoot = self.exp(
-            base_point=mid_point, tangent_vec=tangent_vector_to_shoot, **kwargs
-        )
+        end_shoot = self.exp(base_point=mid_point, tangent_vec=tangent_vector_to_shoot)
 
         geodesics = []
         if return_geodesics:
@@ -335,7 +267,7 @@ class Connection(ABC):
         n_rungs=1,
         scheme="pole",
         alpha=1,
-        **single_step_kwargs
+        return_geodesics=False,
     ):
         """Approximate parallel transport using the pole ladder scheme.
 
@@ -367,7 +299,6 @@ class Connection(ABC):
             Exponent for the scaling of the vector to transport. Must be
             greater or equal to 1, 2 is optimal. See [GP2020]_.
             Optional, default: 2
-        **single_step_kwargs : keyword arguments for the step functions
 
         Returns
         -------
@@ -408,7 +339,7 @@ class Connection(ABC):
                 base_point=current_point,
                 next_point=next_point,
                 base_shoot=base_shoot,
-                **single_step_kwargs
+                return_geodesics=return_geodesics,
             )
             current_point = next_point
             base_shoot = next_step["end_point"]
@@ -454,21 +385,13 @@ class Connection(ABC):
             Riemannian tensor curvature,
             with the contravariant index on the last dimension.
         """
-        if len(self.shape) > 1:
+        if len(self._space.shape) > 1:
             raise NotImplementedError(
                 "Riemann tensor not implemented for manifolds with points of ndim > 1."
             )
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
         christoffels = self.christoffels(base_point)
-        jacobian_christoffels = gs.squeeze(
-            gs.stack(
-                [
-                    gs.autodiff.jacobian(self.christoffels)(point)
-                    for point in base_point
-                ],
-                axis=0,
-            )
-        )
+        jacobian_christoffels = gs.autodiff.jacobian_vec(self.christoffels)(base_point)
+
         prod_christoffels = gs.einsum(
             "...ijk,...klm->...ijlm", christoffels, christoffels
         )
@@ -478,8 +401,6 @@ class Connection(ABC):
             + gs.einsum("...ijlm->...mjli", prod_christoffels)
             - gs.einsum("...ijlm->...lmji", prod_christoffels)
         )
-        if riemann_curvature.ndim == 5 and base_point.ndim == 1:
-            riemann_curvature = riemann_curvature[0]
 
         return riemann_curvature
 
@@ -640,9 +561,7 @@ class Connection(ABC):
             tangent_vec_a, tangent_vec_b, tangent_vec_a, tangent_vec_b, base_point
         )
 
-    def geodesic(
-        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
-    ):
+    def _geodesic_from_exp(self, initial_point, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
@@ -654,9 +573,6 @@ class Connection(ABC):
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
-            Point on the manifold, end point of the geodesic. If None,
-            an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim],
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
@@ -670,22 +586,7 @@ class Connection(ABC):
             represents the different initial conditions, and the second
             corresponds to time.
         """
-        point_type = self.default_point_type
-
-        if end_point is None and initial_tangent_vec is None:
-            raise ValueError(
-                "Specify an end point or an initial tangent "
-                "vector to define the geodesic."
-            )
-        if end_point is not None:
-            shooting_tangent_vec = self.log(point=end_point, base_point=initial_point)
-            if initial_tangent_vec is not None:
-                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
-                    raise RuntimeError(
-                        "The shooting tangent vector is too"
-                        " far from the input initial tangent vector."
-                    )
-            initial_tangent_vec = shooting_tangent_vec
+        point_type = self._space.default_point_type
 
         if point_type == "vector":
             initial_point = gs.to_ndarray(initial_point, to_ndim=2)
@@ -716,8 +617,7 @@ class Connection(ABC):
                 tangent_vecs = gs.einsum("i,...kl->...ikl", t, initial_tangent_vec)
 
             points_at_time_t = [
-                self.exp(tv, pt, **exp_kwargs)
-                for tv, pt in zip(tangent_vecs, initial_point)
+                self.exp(tv, pt) for tv, pt in zip(tangent_vecs, initial_point)
             ]
             points_at_time_t = gs.stack(points_at_time_t, axis=0)
 
@@ -726,6 +626,61 @@ class Connection(ABC):
             )
 
         return path
+
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+
+        - an initial point and an initial tangent vector,
+        - an initial point and an end point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        end_point : array-like, shape=[..., dim], optional
+            Point on the manifold, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+        initial_tangent_vec : array-like, shape=[..., dim],
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError(
+                "Specify an end point or an initial tangent "
+                "vector to define the geodesic."
+            )
+        if end_point is not None:
+            if initial_tangent_vec is not None:
+                raise ValueError(
+                    "Cannot specify both an end point and an initial tangent vector."
+                )
+
+            if _check_log_solver(self, raise_=False):
+                return self.log_solver.geodesic_bvp(
+                    self._space,
+                    end_point,
+                    initial_point,
+                )
+
+            initial_tangent_vec = self.log(end_point, initial_point)
+
+        if _check_exp_solver(self, raise_=False):
+            return self.exp_solver.geodesic_ivp(
+                self._space, initial_tangent_vec, initial_point
+            )
+
+        return self._geodesic_from_exp(initial_point, initial_tangent_vec)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -775,7 +730,7 @@ class Connection(ABC):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
         raise NotImplementedError("The injectivity range is not implemented yet.")

@@ -2,24 +2,22 @@
 
 import geomstats.backend as gs
 import tests.conftest
-from geomstats.geometry import hypersphere
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.kmedoids import RiemannianKMedoids
 
 
-@tests.conftest.np_autograd_and_torch_only
 class TestRiemannianKMedoids(tests.conftest.TestCase):
     _multiprocess_can_split_ = True
 
     def test_hypersphere_kmedoids_fit(self):
         gs.random.seed(55)
 
-        manifold = hypersphere.Hypersphere(2)
-        metric = hypersphere.HypersphereMetric(2)
+        manifold = Hypersphere(2)
 
         data = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmedoids = RiemannianKMedoids(metric=metric, n_clusters=1)
-        center = kmedoids.fit(data)
+        kmedoids = RiemannianKMedoids(manifold, n_clusters=1)
+        center = kmedoids.fit(data).centroids_
 
         self.assertTrue(manifold.belongs(center))
 
@@ -27,16 +25,18 @@ class TestRiemannianKMedoids(tests.conftest.TestCase):
         gs.random.seed(1234)
         dim = 2
 
-        manifold = hypersphere.Hypersphere(dim)
-        metric = hypersphere.HypersphereMetric(dim)
+        manifold = Hypersphere(dim)
 
         data = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmedoids = RiemannianKMedoids(metric, n_clusters=5)
-        centroids = kmedoids.fit(data, max_iter=100)
+        kmedoids = RiemannianKMedoids(manifold, n_clusters=5, max_iter=100)
+        centroids = kmedoids.fit(data).centroids_
         result = kmedoids.predict(data)
 
         expected = gs.array(
-            [int(metric.closest_neighbor_index(x_i, centroids)) for x_i in data]
+            [
+                int(manifold.metric.closest_neighbor_index(x_i, centroids))
+                for x_i in data
+            ]
         )
         self.assertAllClose(expected, result)

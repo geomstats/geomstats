@@ -1,7 +1,9 @@
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
-from geomstats.geometry.hypersphere import Hypersphere, HypersphereMetric
+from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.numerics.geodesic import ExpODESolver, LogShootingSolver
+from geomstats.numerics.ivp import GSIVPIntegrator
 from tests.data_generation import TestData
 
 
@@ -19,26 +21,28 @@ def _sphere_metric_matrix(base_point):
 
 
 class RiemannianMetricTestData(TestData):
-
     dim = 2
     euc = Euclidean(dim=dim)
     sphere = Hypersphere(dim=dim)
-    euc_metric = EuclideanMetric(dim=dim)
-    sphere_metric = HypersphereMetric(dim=dim)
 
-    new_euc_metric = RiemannianMetric(dim=dim)
+    new_euc_metric = RiemannianMetric(euc)
     new_euc_metric.metric_matrix = _euc_metric_matrix
+    new_euc_metric.log_solver = LogShootingSolver()
+    new_euc_metric.exp_solver = ExpODESolver(
+        integrator=GSIVPIntegrator(n_steps=100, step_type="euler"),
+    )
 
-    new_sphere_metric = RiemannianMetric(dim=dim)
+    new_sphere_metric = RiemannianMetric(sphere)
     new_sphere_metric.metric_matrix = _sphere_metric_matrix
-
-    new_euc_metric = new_euc_metric
-    new_sphere_metric = new_sphere_metric
+    new_sphere_metric.log_solver = LogShootingSolver()
+    new_sphere_metric.exp_solver = ExpODESolver(
+        integrator=GSIVPIntegrator(n_steps=100, step_type="euler"),
+    )
 
     def cometric_matrix_test_data(self):
         random_data = [
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 base_point=self.euc.random_point(),
                 expected=gs.eye(self.dim),
             )
@@ -52,14 +56,14 @@ class RiemannianMetricTestData(TestData):
 
         smoke_data = [
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 cotangent_vec_a=gs.array([1.0, 2.0]),
                 cotangent_vec_b=gs.array([1.0, 2.0]),
                 base_point=self.euc.random_point(),
                 expected=5.0,
             ),
             dict(
-                metric=self.sphere_metric,
+                metric=self.sphere.metric,
                 cotangent_vec_a=cotangent_vec_a,
                 cotangent_vec_b=cotangent_vec_b,
                 base_point=base_point,
@@ -69,17 +73,16 @@ class RiemannianMetricTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def hamiltonian_test_data(self):
-
         smoke_data = [
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 state=(gs.array([1.0, 2.0]), gs.array([1.0, 2.0])),
                 expected=2.5,
             )
         ]
         smoke_data += [
             dict(
-                metric=self.sphere_metric,
+                metric=self.sphere.metric,
                 state=(gs.array([0.0, 0.0, 1.0]), gs.array([1.0, 2.0, 1.0])),
                 expected=3.0,
             )
@@ -97,7 +100,7 @@ class RiemannianMetricTestData(TestData):
         ]
         random_data += [
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 base_point=base_point,
                 expected=gs.zeros((self.dim,) * 3),
             )
@@ -110,7 +113,7 @@ class RiemannianMetricTestData(TestData):
         tangent_vec_b = self.euc.random_point()
         random_data = [
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 tangent_vec_a=tangent_vec_a,
                 tangent_vec_b=tangent_vec_b,
                 base_point=base_point,
@@ -137,21 +140,21 @@ class RiemannianMetricTestData(TestData):
         multiple_vectors = self.euc.random_point(n_points)
         random_data = [
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 tangent_vec=single_vector,
                 point=single_point,
                 expected=1,
                 atol=1e-5,
             ),
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 tangent_vec=multiple_vectors,
                 point=single_point,
                 expected=gs.ones(n_points),
                 atol=1e-5,
             ),
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 tangent_vec=multiple_vectors,
                 point=multiple_points,
                 expected=gs.ones(n_points),
@@ -167,21 +170,21 @@ class RiemannianMetricTestData(TestData):
         n_vectors = 4
         random_data = [
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 point=single_point,
                 n_vectors=1,
                 expected=1,
                 atol=1e-5,
             ),
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 point=multiple_points,
                 n_vectors=1,
                 expected=gs.ones(n_points),
                 atol=1e-5,
             ),
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 point=single_point,
                 n_vectors=n_vectors,
                 expected=gs.ones(n_vectors),
@@ -199,7 +202,7 @@ class RiemannianMetricTestData(TestData):
             dict(
                 metric=self.new_sphere_metric,
                 base_point=gs.array([gs.pi / 10.0, gs.pi / 9.0]),
-                expected=self.sphere_metric.christoffels(base_point),
+                expected=self.sphere.metric.christoffels(base_point),
             )
         ]
         random_data += [
@@ -211,7 +214,7 @@ class RiemannianMetricTestData(TestData):
         ]
         random_data += [
             dict(
-                metric=self.euc_metric,
+                metric=self.euc.metric,
                 base_point=self.euc.random_point(),
                 expected=gs.zeros((self.dim,) * 3),
             )

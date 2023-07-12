@@ -133,7 +133,6 @@ class Sphere:
         """Plot points."""
         if points is None:
             points = self.points
-        points = [gs.autodiff.detach(point) for point in points]
         points = [gs.to_numpy(point) for point in points]
         points_x = [point[0] for point in points]
         points_y = [point[1] for point in points]

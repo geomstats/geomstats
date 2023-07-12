@@ -18,7 +18,6 @@ from geomstats.learning.radial_kernel_functions import triangular_radial_kernel
 def main():
     """Plot a Kernel Density Estimation Classification on the sphere."""
     sphere = Hypersphere(dim=2)
-    sphere_distance = sphere.metric.dist
 
     n_labels = 2
     n_samples_per_dataset = 10
@@ -46,8 +45,8 @@ def main():
     labels_colors[1, :] = gs.array([1, 0, 0])
 
     kde = KernelDensityEstimationClassifier(
+        sphere,
         radius=radius,
-        distance=sphere_distance,
         kernel=kernel,
         bandwidth=bandwidth,
         outlier_label="most_frequent",
@@ -88,7 +87,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if os.environ["GEOMSTATS_BACKEND"] == "tensorflow":
+    if os.environ.get("GEOMSTATS_BACKEND", "numpy") != "numpy":
         logging.info(
             "Examples with visualizations are only implemented "
             "with numpy backend.\n"

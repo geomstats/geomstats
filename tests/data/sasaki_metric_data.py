@@ -1,7 +1,5 @@
-import os
-
 import geomstats.backend as gs
-from geomstats.geometry.hypersphere import HypersphereMetric
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.sasaki_metric import SasakiMetric
 from tests.data_generation import TestData
 
@@ -9,8 +7,8 @@ from tests.data_generation import TestData
 class SasakiMetricTestData(TestData):
     dim = 2
     sas_sphere_metric = SasakiMetric(
-        HypersphereMetric(dim=dim),
-        os.cpu_count() if (os.environ["GEOMSTATS_BACKEND"] != "tensorflow") else 1,
+        Hypersphere(dim=dim),
+        n_jobs=1,
     )
 
     # fix elements in TS
@@ -26,7 +24,9 @@ class SasakiMetricTestData(TestData):
     def inner_product_test_data(self):
         _sqrt2 = 1.0 / gs.sqrt(2.0)
         base_point = gs.array([[_sqrt2, -_sqrt2, 0], [_sqrt2, _sqrt2, 1]])
-        _log = self.sas_sphere_metric.log(gs.array([self.pu0, self.pu1]), base_point)
+        end_point = gs.stack([self.pu0, self.pu1])
+
+        _log = self.sas_sphere_metric.log(end_point, base_point)
 
         smoke_data = [
             dict(

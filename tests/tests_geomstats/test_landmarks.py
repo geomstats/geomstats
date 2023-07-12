@@ -27,7 +27,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
 
     testing_data = TestDataL2LandmarksMetric()
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_l2_metric_inner_product_vectorization(
         self,
         l2_metric_s2,
@@ -49,7 +49,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
 
         self.assertAllClose(gs.shape(result), (n_landmark_sets,))
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_l2_metric_exp_vectorization(
         self, l2_metric_s2, times, landmarks_a, landmarks_b, landmarks_c
     ):
@@ -64,7 +64,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
         result = l2_metric_s2.exp(tangent_vec=tangent_vecs, base_point=landmarks_ab)
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_l2_metric_log_vectorization(
         self, l2_metric_s2, times, landmarks_a, landmarks_b, landmarks_c
     ):
@@ -79,7 +79,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
         result = tangent_vecs
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
 
-    @tests.conftest.np_autograd_and_tf_only
+    @tests.conftest.np_and_autograd_only
     def test_l2_metric_geodesic(
         self, l2_metric_s2, times, k_sampling_points, landmarks_a, landmarks_b
     ):
@@ -90,7 +90,7 @@ class TestL2LandmarksMetric(NFoldMetricTestCase, metaclass=Parametrizer):
         result = landmarks_ab
         expected = []
         for k in range(k_sampling_points):
-            geod = l2_metric_s2.ambient_metric.geodesic(
+            geod = l2_metric_s2._space.base_manifold.metric.geodesic(
                 initial_point=landmarks_a[k, :], end_point=landmarks_b[k, :]
             )
             expected.append(geod(times))

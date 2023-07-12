@@ -4,14 +4,18 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.pre_shape import KendallShapeMetric, PreShapeSpace
+from geomstats.geometry.pre_shape import PreShapeSpace
 
 M32 = Matrices(m=3, n=2)
+
 S32 = PreShapeSpace(k_landmarks=3, m_ambient=2)
-METRIC_S32 = KendallShapeMetric(k_landmarks=3, m_ambient=2)
+S32.equip_with_group_action("rotations")
+S32.equip_with_quotient_structure()
+
 M33 = Matrices(m=3, n=3)
 S33 = PreShapeSpace(k_landmarks=3, m_ambient=3)
-METRIC_S33 = KendallShapeMetric(k_landmarks=3, m_ambient=3)
+S33.equip_with_group_action("rotations")
+S33.equip_with_quotient_structure()
 
 
 class KendallSphere:
@@ -66,10 +70,8 @@ class KendallSphere:
             [[0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2], [-1.0, 0.0]]
         ) / gs.sqrt(3.0)
 
-        self.na = (
-            self.ub - S32.total_space_metric.inner_product(self.ub, self.ua) * self.ua
-        )
-        self.na = self.na / S32.total_space_metric.norm(self.na)
+        self.na = self.ub - S32.metric.inner_product(self.ub, self.ua) * self.ua
+        self.na = self.na / S32.metric.norm(self.na)
 
         if points is not None:
             self.add_points(points)
@@ -101,14 +103,14 @@ class KendallSphere:
 
     def convert_to_polar_coordinates(self, points):
         """Assign polar coordinates to given pre-shapes."""
-        aligned_points = S32.align(points, self.pole)
-        speeds = S32.total_space_metric.log(aligned_points, self.pole)
+        aligned_points = S32.fiber_bundle.align(points, self.pole)
+        speeds = S32.metric.log(aligned_points, self.pole)
 
         coords_theta = gs.arctan2(
-            S32.total_space_metric.inner_product(speeds, self.na),
-            S32.total_space_metric.inner_product(speeds, self.ua),
+            S32.metric.inner_product(speeds, self.na),
+            S32.metric.inner_product(speeds, self.ua),
         )
-        coords_phi = 2.0 * S32.total_space_metric.dist(self.pole, aligned_points)
+        coords_phi = 2.0 * S32.metric.dist(self.pole, aligned_points)
 
         return coords_theta, coords_phi
 
@@ -252,8 +254,8 @@ class KendallSphere:
 
     def draw_vector(self, tangent_vec, base_point, **kwargs):
         """Draw one vector in the tangent space to sphere at a base point."""
-        norm = METRIC_S32.norm(tangent_vec, base_point)
-        exp = METRIC_S32.exp(tangent_vec, base_point)
+        norm = S32.quotient.metric.norm(tangent_vec, base_point)
+        exp = S32.quotient.metric.exp(tangent_vec, base_point)
         bp = self.convert_to_spherical_coordinates(base_point)
         exp = self.convert_to_spherical_coordinates(exp)
         tv = exp - gs.dot(exp, 2.0 * bp) * 2.0 * bp
@@ -327,10 +329,8 @@ class KendallDisk:
             [[0.5, gs.sqrt(3.0) / 2.0], [0.5, -gs.sqrt(3.0) / 2], [-1.0, 0.0]]
         ) / gs.sqrt(3.0)
 
-        self.na = (
-            self.ub - S32.total_space_metric.inner_product(self.ub, self.ua) * self.ua
-        )
-        self.na = self.na / S32.total_space_metric.norm(self.na)
+        self.na = self.ub - S32.metric.inner_product(self.ub, self.ua) * self.ua
+        self.na = self.na / S32.metric.norm(self.na)
 
         if points is not None:
             self.add_points(points)
@@ -346,14 +346,14 @@ class KendallDisk:
 
     def convert_to_polar_coordinates(self, points):
         """Assign polar coordinates to given pre-shapes."""
-        aligned_points = S33.align(points, self.centre)
+        aligned_points = S33.fiber_bundle.align(points, self.centre)
         aligned_points2d = aligned_points[..., :, :2]
-        speeds = S32.total_space_metric.log(aligned_points2d, self.pole)
+        speeds = S32.metric.log(aligned_points2d, self.pole)
 
-        coords_r = S32.total_space_metric.dist(self.pole, aligned_points2d)
+        coords_r = S32.metric.dist(self.pole, aligned_points2d)
         coords_theta = gs.arctan2(
-            S32.total_space_metric.inner_product(speeds, self.na),
-            S32.total_space_metric.inner_product(speeds, self.ua),
+            S32.metric.inner_product(speeds, self.na),
+            S32.metric.inner_product(speeds, self.ua),
         )
 
         return coords_r, coords_theta
@@ -470,8 +470,9 @@ class KendallDisk:
             ]
         )
         r_exp, th_exp = self.convert_to_polar_coordinates(
-            METRIC_S33.exp(
-                tol * tangent_vec / METRIC_S33.norm(tangent_vec, base_point), base_point
+            S33.quotient.metric.exp(
+                tol * tangent_vec / S33.quotient.metric.norm(tangent_vec, base_point),
+                base_point,
             )
         )
         exp = gs.array(
@@ -494,6 +495,8 @@ class KendallDisk:
         bp = self.convert_to_planar_coordinates(base_point)
         u_r = bp / gs.linalg.norm(bp)
         u_th = gs.array([[0.0, -1.0], [1.0, 0.0]]) @ u_r
-        tv = METRIC_S33.norm(tangent_vec, base_point) * (x_r * u_r + x_th * u_th)
+        tv = S33.quotient.metric.norm(tangent_vec, base_point) * (
+            x_r * u_r + x_th * u_th
+        )
 
         self.ax.quiver(bp[0], bp[1], tv[0], tv[1], **kwargs)

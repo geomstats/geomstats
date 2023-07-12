@@ -2,11 +2,9 @@
 
 Lead author: Alice Le Brigant.
 """
-import logging
 import math
 
 import numpy as np
-from scipy.integrate import odeint, solve_bvp
 from scipy.optimize import minimize
 from scipy.stats import dirichlet
 
@@ -17,8 +15,10 @@ from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.information_geometry.base import InformationManifoldMixin
-
-N_STEPS = 100
+from geomstats.numerics.bvp import ScipySolveBVP
+from geomstats.numerics.geodesic import ExpODESolver, LogODESolver
+from geomstats.numerics.ivp import ScipySolveIVP
+from geomstats.vectorization import repeat_out
 
 
 class DirichletDistributions(InformationManifoldMixin, OpenSet):
@@ -33,10 +33,15 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
         Dimension of the manifold of Dirichlet distributions.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, equip=True):
         super().__init__(
-            dim=dim, embedding_space=Euclidean(dim=dim), metric=DirichletMetric(dim=dim)
+            dim=dim, embedding_space=Euclidean(dim=dim, equip=False), equip=equip
         )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return DirichletMetric
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a point belongs to the manifold of Dirichlet distributions.
@@ -58,10 +63,11 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
             Boolean indicating whether point represents a Dirichlet
             distribution.
         """
-        point_dim = point.shape[-1]
-        belongs = point_dim == self.dim
-        belongs = gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
-        return belongs
+        belongs = point.shape[-1] == self.dim
+        if not belongs:
+            return gs.zeros(point.shape[:-1], dtype=bool)
+
+        return gs.all(point >= atol, axis=-1)
 
     def random_point(self, n_samples=1, bound=5.0):
         """Sample parameters of Dirichlet distributions.
@@ -120,7 +126,7 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., n_samples]
+        samples : array-like, shape=[..., n_samples, dim]
             Sample from the Dirichlet distributions.
         """
         geomstats.errors.check_belongs(point, self)
@@ -190,10 +196,15 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
 class DirichletMetric(RiemannianMetric):
     """Class for the Fisher information metric on Dirichlet distributions."""
 
-    def __init__(self, dim):
-        super().__init__(dim=dim)
+    def __init__(self, space):
+        super().__init__(space=space)
 
-    def metric_matrix(self, base_point=None):
+        self.log_solver = LogODESolver(
+            n_nodes=1000, integrator=ScipySolveBVP(max_nodes=1000)
+        )
+        self.exp_solver = ExpODESolver(integrator=ScipySolveIVP(method="LSODA"))
+
+    def metric_matrix(self, base_point):
         """Compute the inner-product matrix.
 
         Compute the inner-product matrix of the Fisher information metric
@@ -209,14 +220,10 @@ class DirichletMetric(RiemannianMetric):
         mat : array-like, shape=[..., dim, dim]
             Inner-product matrix.
         """
-        if base_point is None:
-            raise ValueError(
-                "A base point must be given to compute the " "metric matrix"
-            )
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         n_points = base_point.shape[0]
 
-        mat_ones = gs.ones((n_points, self.dim, self.dim))
+        mat_ones = gs.ones((n_points, self._space.dim, self._space.dim))
         poly_sum = gs.polygamma(1, gs.sum(base_point, -1))
         mat_diag = from_vector_to_diagonal_matrix(gs.polygamma(1, base_point))
 
@@ -263,14 +270,14 @@ class DirichletMetric(RiemannianMetric):
             )
             c2 = -c1 * gs.polygamma(2, param_sum) / gs.polygamma(1, param_sum)
 
-            mat_ones = gs.ones((n_points, self.dim, self.dim))
+            mat_ones = gs.ones((n_points, self._space.dim, self._space.dim))
             mat_diag = from_vector_to_diagonal_matrix(
                 -gs.polygamma(2, base_point) / gs.polygamma(1, base_point)
             )
             arrays = [
                 gs.zeros((1, ind_k)),
                 gs.ones((1, 1)),
-                gs.zeros((1, self.dim - ind_k - 1)),
+                gs.zeros((1, self._space.dim - ind_k - 1)),
             ]
             vec_k = gs.tile(gs.hstack(arrays), (n_points, 1))
             val_k = gs.polygamma(2, param_k) / gs.polygamma(1, param_k)
@@ -286,7 +293,7 @@ class DirichletMetric(RiemannianMetric):
             return 1 / 2 * mat
 
         christoffels = []
-        for ind_k in range(self.dim):
+        for ind_k in range(self._space.dim):
             christoffels.append(coefficients(ind_k))
         christoffels = gs.stack(christoffels, 1)
 
@@ -309,6 +316,7 @@ class DirichletMetric(RiemannianMetric):
             Jacobian of the Christoffel symbols.
             :math: 'jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l'
         """
+        dim = self._space.dim
         n_dim = base_point.ndim
         param = gs.transpose(base_point)
         sum_param = gs.sum(param, 0)
@@ -329,16 +337,16 @@ class DirichletMetric(RiemannianMetric):
         term_9 = term_2 - gs.sum(term_1, 0)
 
         jac_1 = term_1 * term_8 / term_9
-        jac_1_mat = gs.squeeze(gs.tile(jac_1, (self.dim, self.dim, self.dim, 1, 1)))
+        jac_1_mat = gs.squeeze(gs.tile(jac_1, (dim, dim, dim, 1, 1)))
         jac_2 = (
             -term_6
             / term_9**2
             * gs.einsum("j...,i...->ji...", term_4 - term_3, term_1)
         )
-        jac_2_mat = gs.squeeze(gs.tile(jac_2, (self.dim, self.dim, 1, 1, 1)))
+        jac_2_mat = gs.squeeze(gs.tile(jac_2, (dim, dim, 1, 1, 1)))
         jac_3 = term_3 * term_6 / term_9
         jac_3_mat = gs.transpose(from_vector_to_diagonal_matrix(gs.transpose(jac_3)))
-        jac_3_mat = gs.squeeze(gs.tile(jac_3_mat, (self.dim, self.dim, 1, 1, 1)))
+        jac_3_mat = gs.squeeze(gs.tile(jac_3_mat, (dim, dim, 1, 1, 1)))
         jac_4 = (
             1
             / term_9**2
@@ -382,122 +390,27 @@ class DirichletMetric(RiemannianMetric):
             else gs.transpose(jac, [4, 3, 1, 0, 2])
         )
 
-    def _geodesic_ivp(self, initial_point, initial_tangent_vec, n_steps=N_STEPS):
-        """Solve geodesic initial value problem.
+    def injectivity_radius(self, base_point):
+        """Compute the radius of the injectivity domain.
 
-        Compute the parameterized function for the geodesic starting at
-        initial_point with initial velocity given by initial_tangent_vec.
-        This is acheived by integrating the geodesic equation.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., dim]
-            Initial point.
-
-        initial_tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at initial point.
-
-        Returns
-        -------
-        path : function
-            Parameterized function for the geodesic curve starting at
-            initial_point with velocity initial_tangent_vec.
-        """
-        initial_point = gs.to_ndarray(initial_point, to_ndim=2)
-        initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=2)
-
-        n_initial_points = initial_point.shape[0]
-        n_initial_tangent_vecs = initial_tangent_vec.shape[0]
-        if n_initial_points > n_initial_tangent_vecs:
-            raise ValueError(
-                "There cannot be more initial points than " "initial tangent vectors."
-            )
-        if n_initial_tangent_vecs > n_initial_points:
-            if n_initial_points > 1:
-                raise ValueError(
-                    "For several initial tangent vectors, "
-                    "specify either one or the same number of "
-                    "initial points."
-                )
-            initial_point = gs.tile(initial_point, (n_initial_tangent_vecs, 1))
-
-        def ivp(state, _):
-            """Reformat the initial value problem geodesic ODE."""
-            position, velocity = state[: self.dim], state[self.dim :]
-            state = gs.stack([position, velocity])
-            vel, acc = self.geodesic_equation(state, _)
-            eq = (vel, acc)
-            return gs.hstack(eq)
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_times,]
-                Times at which to compute points of the geodesics.
-
-            Returns
-            -------
-            geodesic : array-like, shape=[..., n_times, dim]
-                Values of the geodesic at times t.
-            """
-            t = gs.to_ndarray(t, to_ndim=1)
-            n_times = len(t)
-            geod = []
-
-            if n_times < n_steps:
-                t_int = gs.linspace(0, 1, n_steps + 1)
-                tangent_vecs = gs.einsum("i,...k->...ik", t, initial_tangent_vec)
-                for point, vec in zip(initial_point, tangent_vecs):
-                    point = gs.tile(point, (n_times, 1))
-                    exp = []
-                    for pt, vc in zip(point, vec):
-                        initial_state = gs.hstack([pt, vc])
-                        solution = odeint(ivp, initial_state, t_int, ())
-                        exp.append(solution[-1, : self.dim])
-                    exp = exp[0] if n_times == 1 else gs.stack(exp)
-                    geod.append(exp)
-            else:
-                t_int = t
-                for point, vec in zip(initial_point, initial_tangent_vec):
-                    initial_state = gs.hstack([point, vec])
-                    solution = odeint(ivp, initial_state, t_int, ())
-                    geod.append(solution[:, : self.dim])
-
-            geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)
-            return gs.where(geod < gs.atol, gs.atol, geod)
-
-        return path
-
-    def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
-        """Compute the exponential map.
-
-        Comute the exponential map associated to the Fisher information metric
-        by solving the initial value problem associated to the geodesic
-        ordinary differential equation (ODE) using the Christoffel symbols.
+        This is is the supremum of radii r for which the exponential map is a
+        diffeomorphism from the open ball of radius r centered at the base point onto
+        its image.
+        In the case of the hyperbolic space, it does not depend on the base point and
+        is infinite everywhere, because of the negative curvature.
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at base point.
         base_point : array-like, shape=[..., dim]
-            Base point.
-        n_steps : int
-            Number of steps for integration.
-            Optional, default: 100.
+            Point on the manifold.
 
         Returns
         -------
-        exp : array-like, shape=[..., dim]
-            End point of the geodesic starting at base_point with
-            initial velocity tangent_vec and stopping at time 1.
+        radius : array-like, shape=[...,]
+            Injectivity radius.
         """
-        stop_time = 1.0
-        geodesic = self._geodesic_ivp(base_point, tangent_vec, n_steps)
-        exp = geodesic(stop_time)
-
-        return exp
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)
 
     def _approx_geodesic_bvp(
         self,
@@ -647,304 +560,3 @@ class DirichletMetric(RiemannianMetric):
         _, dist, curve, velocity = cost_fun(opt_param)
 
         return dist, curve, velocity
-
-    def _geodesic_bvp(
-        self,
-        initial_point,
-        end_point,
-        n_steps=N_STEPS,
-        jacobian=False,
-        init="polynomial",
-    ):
-        """Solve geodesic boundary problem.
-
-        Compute the parameterized function for the geodesic starting at
-        initial_point and ending at end_point. This is acheived by integrating
-        the geodesic equation.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., dim]
-            Initial point.
-        end_point : array-like, shape=[..., dim]
-            End point.
-        jacobian : boolean.
-            If True, the explicit value of the jacobian is used to solve
-            the geodesic boundary value problem.
-            Optional, default: False.
-
-        Returns
-        -------
-        path : function
-            Parameterized function for the geodesic curve starting at
-            initial_point and ending at end_point.
-        """
-        initial_point = gs.to_ndarray(initial_point, to_ndim=2)
-        end_point = gs.to_ndarray(end_point, to_ndim=2)
-        n_initial_points = initial_point.shape[0]
-        n_end_points = end_point.shape[0]
-        if n_initial_points > n_end_points:
-            if n_end_points > 1:
-                raise ValueError(
-                    "For several initial points, specify either"
-                    "one or the same number of end points."
-                )
-            end_point = gs.tile(end_point, (n_initial_points, 1))
-        elif n_end_points > n_initial_points:
-            if n_initial_points > 1:
-                raise ValueError(
-                    "For several end points, specify either "
-                    "one or the same number of initial points."
-                )
-            initial_point = gs.tile(initial_point, (n_end_points, 1))
-
-        def bvp(_, state):
-            """Reformat the boundary value problem geodesic ODE.
-
-            Parameters
-            ----------
-            state :  array-like, shape[2 * dim,]
-                Vector of the state variables: position and speed.
-            _ :  unused
-                Any (time).
-            """
-            position, velocity = state[: self.dim].T, state[self.dim :].T
-            state = gs.stack([position, velocity])
-            vel, acc = self.geodesic_equation(state, _)
-            eq = (vel, acc)
-            return gs.transpose(gs.hstack(eq))
-
-        def boundary_cond(state_0, state_1, point_0, point_1):
-            """Boundary condition for the geodesic ODE."""
-            return gs.hstack(
-                (state_0[: self.dim] - point_0, state_1[: self.dim] - point_1)
-            )
-
-        def jac(_, state):
-            """Jacobian of bvp function.
-
-            Parameters
-            ----------
-            state :  array-like, shape=[2*dim, ...]
-                Vector of the state variables (position and speed)
-            _ :  unused
-                Any (time).
-
-            Returns
-            -------
-            jac : array-like, shape=[dim, dim, ...]
-            """
-            n_dim = state.ndim
-            n_times = state.shape[1] if n_dim > 1 else 1
-            position, velocity = state[: self.dim], state[self.dim :]
-
-            dgamma = self.jacobian_christoffels(gs.transpose(position))
-
-            df_dposition = -gs.einsum(
-                "j...,...ijkl,k...->il...", velocity, dgamma, velocity
-            )
-
-            gamma = self.christoffels(gs.transpose(position))
-            df_dvelocity = -2 * gs.einsum("...ijk,k...->ij...", gamma, velocity)
-
-            jac_nw = (
-                gs.zeros((self.dim, self.dim, state.shape[1]))
-                if n_dim > 1
-                else gs.zeros((self.dim, self.dim))
-            )
-            jac_ne = gs.squeeze(
-                gs.transpose(gs.tile(gs.eye(self.dim), (n_times, 1, 1)))
-            )
-            jac_sw = df_dposition
-            jac_se = df_dvelocity
-            jac = gs.concatenate(
-                (
-                    gs.concatenate((jac_nw, jac_ne), axis=1),
-                    gs.concatenate((jac_sw, jac_se), axis=1),
-                ),
-                axis=0,
-            )
-
-            return jac
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_times,]
-                Times at which to compute points of the geodesics.
-
-            Returns
-            -------
-            geodesic : array-like, shape=[..., n_times, dim]
-                Values of the geodesic at times t.
-            """
-            t = gs.to_ndarray(t, to_ndim=1)
-            geod = []
-
-            def initialize(point_0, point_1):
-                """Initialize the solution of the boundary value problem."""
-                if init == "polynomial":
-                    _, curve, velocity = self._approx_geodesic_bvp(
-                        point_0, point_1, n_times=n_steps
-                    )
-                    return gs.vstack((curve.T, velocity.T))
-
-                lin_init = gs.zeros([2 * self.dim, n_steps])
-                lin_init[: self.dim, :] = gs.transpose(
-                    gs.linspace(point_0, point_1, n_steps)
-                )
-                lin_init[self.dim :, :-1] = n_steps * (
-                    lin_init[: self.dim, 1:] - lin_init[: self.dim, :-1]
-                )
-                lin_init[self.dim :, -1] = lin_init[self.dim :, -2]
-                return lin_init
-
-            t_int = gs.linspace(0.0, 1.0, n_steps)
-            fun_jac = jac if jacobian else None
-
-            for ip, ep in zip(initial_point, end_point):
-
-                def bc(y0, y1, ip=ip, ep=ep):
-                    return boundary_cond(y0, y1, ip, ep)
-
-                solution = solve_bvp(
-                    bvp, bc, t_int, initialize(ip, ep), fun_jac=fun_jac
-                )
-                if solution.status == 1:
-                    logging.warning(
-                        "The maximum number of mesh nodes for solving the  "
-                        "geodesic boundary value problem is exceeded. "
-                        "Result may be inaccurate."
-                    )
-                solution_at_t = solution.sol(t)
-                geodesic = solution_at_t[: self.dim, :]
-                geod.append(gs.squeeze(gs.transpose(geodesic)))
-
-            geod = geod[0] if len(initial_point) == 1 else gs.stack(geod)
-            return gs.where(geod < gs.atol, gs.atol, geod)
-
-        return path
-
-    def log(
-        self, point, base_point, n_steps=N_STEPS, jacobian=False, init="polynomial"
-    ):
-        """Compute the logarithm map.
-
-        Compute logarithm map associated to the Fisher information metric by
-        solving the boundary value problem associated to the geodesic ordinary
-        differential equation (ODE) using the Christoffel symbols.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., dim]
-            Point.
-        base_point : array-like, shape=[..., dim]
-            Base po int.
-        n_steps : int
-            Number of steps for integration.
-            Optional, default: 100.
-        jacobian : boolean.
-            If True, the explicit value of the jacobian is used to solve
-            the geodesic boundary value problem.
-            Optional, default: False.
-        init : str, {'linear', 'polynomial}
-            Initialization used to solve the geodesic boundary value problem.
-            If 'linear', use the Euclidean straight line as initial guess.
-            If 'polynomial', use a curve with coordinates that are polynomial
-            functions of time.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., dim]
-            Initial velocity of the geodesic starting at base_point and
-            reaching point at time 1.
-        """
-        t = gs.linspace(0.0, 1.0, n_steps)
-        geodesic = self._geodesic_bvp(
-            initial_point=base_point, end_point=point, jacobian=jacobian, init=init
-        )
-        geodesic_at_t = geodesic(t)
-        log = n_steps * (geodesic_at_t[..., 1, :] - geodesic_at_t[..., 0, :])
-
-        return gs.squeeze(gs.stack(log))
-
-    def geodesic(
-        self,
-        initial_point,
-        end_point=None,
-        initial_tangent_vec=None,
-        n_steps=N_STEPS,
-        jacobian=False,
-    ):
-        """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial point and an initial tangent vector,
-        - an initial point and an end point.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., dim]
-            Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim], optional
-            Point on the manifold, end point of the geodesic. If None,
-            an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim],
-            Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
-            If None, an end point must be given and a logarithm is computed.
-        jacobian : boolean.
-            If True, the explicit value of the jacobian is used to solve
-            the geodesic boundary value problem.
-            Optional, default: False.
-
-        Returns
-        -------
-        path : callable
-            Time parameterized geodesic curve. If a batch of initial
-            conditions is passed, the output array's first dimension
-            represents time, and the second corresponds to the different
-            initial conditions.
-        """
-        if end_point is None and initial_tangent_vec is None:
-            raise ValueError(
-                "Specify an end point or an initial tangent "
-                "vector to define the geodesic."
-            )
-        if end_point is not None:
-            if initial_tangent_vec is not None:
-                raise ValueError(
-                    "Cannot specify both an end point " "and an initial tangent vector."
-                )
-            path = self._geodesic_bvp(
-                initial_point, end_point, n_steps, jacobian=jacobian
-            )
-
-        if initial_tangent_vec is not None:
-            path = self._geodesic_ivp(initial_point, initial_tangent_vec, n_steps)
-
-        return path
-
-    def injectivity_radius(self, base_point):
-        """Compute the radius of the injectivity domain.
-
-        This is is the supremum of radii r for which the exponential map is a
-        diffeomorphism from the open ball of radius r centered at the base point onto
-        its image.
-        In the case of the hyperbolic space, it does not depend on the base point and
-        is infinite everywhere, because of the negative curvature.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., dim]
-            Point on the manifold.
-
-        Returns
-        -------
-        radius : float
-            Injectivity radius.
-        """
-        return math.inf

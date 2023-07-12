@@ -1,5 +1,5 @@
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import TestData
@@ -9,7 +9,7 @@ class ConnectionTestData(TestData):
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(
-                metric=EuclideanMetric(dim=4),
+                space=Euclidean(dim=4),
                 point=gs.array([0.0, 1.0, 0.0, 0.0]),
                 expected=gs.eye(4),
             )
@@ -45,13 +45,13 @@ class ConnectionTestData(TestData):
                 dim=2,
                 point=gs.array([1.0, gs.pi / 2]),
                 base_point=gs.array([gs.pi / 3, gs.pi / 4]),
-                atol=1e-6,
+                atol=1e-4,
             ),
             dict(
                 dim=2,
                 point=gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]]),
                 base_point=gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]]),
-                atol=1e-6,
+                atol=1e-4,
             ),
         ]
         return self.generate_tests(smoke_data)

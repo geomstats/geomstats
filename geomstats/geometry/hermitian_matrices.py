@@ -10,6 +10,7 @@ import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
+from geomstats.geometry.matrices import Matrices
 
 
 class HermitianMatrices(ComplexVectorSpace):
@@ -21,13 +22,14 @@ class HermitianMatrices(ComplexVectorSpace):
         Integer representing the shapes of the matrices: n x n.
     """
 
-    def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", ComplexMatricesMetric(n, n))
-        super(HermitianMatrices, self).__init__(
-            shape=(n, n), default_point_type="matrix", **kwargs
-        )
+    def __init__(self, n, equip=True):
+        super().__init__(dim=n**2, shape=(n, n), equip=equip)
         self.n = n
-        self.dim = n**2
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return ComplexMatricesMetric
 
     def _create_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
@@ -262,7 +264,5 @@ class HermitianMatrices(ComplexVectorSpace):
         for fun in function:
             eigvals_f = fun(eigvals)
             eigvals_f = algebra_utils.from_vector_to_diagonal_matrix(eigvals_f)
-            reconstruction.append(
-                ComplexMatrices.mul(eigvecs, eigvals_f, transconj_eigvecs)
-            )
+            reconstruction.append(Matrices.mul(eigvecs, eigvals_f, transconj_eigvecs))
         return reconstruction if return_list else reconstruction[0]

@@ -41,14 +41,14 @@ class TestExponentialBarycenter(tests.conftest.TestCase):
     def test_estimate_one_sample_se(self):
         point = self.se_mat.random_point()
         estimator = ExponentialBarycenter(self.se_mat)
-        estimator.fit(point)
+        estimator.fit(gs.expand_dims(point, axis=0))
         result = estimator.estimate_
         expected = point
         self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(1)
         estimator = ExponentialBarycenter(self.so_vec)
-        estimator.fit(point)
+        estimator.fit(gs.expand_dims(point, axis=0))
         result = estimator.estimate_
         expected = point
         self.assertAllClose(result, expected)
@@ -56,7 +56,7 @@ class TestExponentialBarycenter(tests.conftest.TestCase):
     @tests.conftest.np_and_autograd_only
     def test_estimate_and_reach_max_iter_se(self):
         point = self.se_mat.random_point(1)
-        estimator = ExponentialBarycenter(self.se_mat, max_iter=2)
+        estimator = ExponentialBarycenter(self.se_mat).set(max_iter=2)
         points = gs.array([point, point])
         estimator.fit(points)
         result = estimator.estimate_
@@ -64,7 +64,7 @@ class TestExponentialBarycenter(tests.conftest.TestCase):
         self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(1)
-        estimator = ExponentialBarycenter(self.so_vec, max_iter=2)
+        estimator = ExponentialBarycenter(self.so_vec).set(max_iter=2)
         points = gs.array([point, point])
         estimator.fit(points)
         result = estimator.estimate_
@@ -75,7 +75,7 @@ class TestExponentialBarycenter(tests.conftest.TestCase):
     def test_estimate_so_matrix(self):
         points = self.so.random_uniform(2)
 
-        mean_vec = ExponentialBarycenter(group=self.so)
+        mean_vec = ExponentialBarycenter(space=self.so)
         mean_vec.fit(points)
 
         logs = self.so.log(points, mean_vec.estimate_)
@@ -105,14 +105,14 @@ class TestExponentialBarycenter(tests.conftest.TestCase):
     def test_estimate_one_sample_so(self):
         point = self.so.random_uniform(1)
         estimator = ExponentialBarycenter(self.so)
-        estimator.fit(point)
+        estimator.fit(gs.expand_dims(point, axis=0))
         result = estimator.estimate_
         expected = point
         self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(1)
         estimator = ExponentialBarycenter(self.so_vec)
-        estimator.fit(point)
+        estimator.fit(gs.expand_dims(point, axis=0))
         result = estimator.estimate_
         expected = point
         self.assertAllClose(result, expected)
@@ -120,7 +120,7 @@ class TestExponentialBarycenter(tests.conftest.TestCase):
     @tests.conftest.np_and_autograd_only
     def test_estimate_and_reach_max_iter_so(self):
         point = self.so.random_uniform(self.n_samples)
-        estimator = ExponentialBarycenter(self.so, max_iter=2)
+        estimator = ExponentialBarycenter(self.so).set(max_iter=2)
         estimator.fit(point)
         barexp = estimator.estimate_
         result = self.so.belongs(barexp)
@@ -128,7 +128,7 @@ class TestExponentialBarycenter(tests.conftest.TestCase):
         self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(self.n_samples)
-        estimator = ExponentialBarycenter(self.so_vec, max_iter=2)
+        estimator = ExponentialBarycenter(self.so_vec).set(max_iter=2)
         estimator.fit(point)
         barexp = estimator.estimate_
         result = self.so_vec.belongs(barexp)
@@ -139,24 +139,25 @@ class TestExponentialBarycenter(tests.conftest.TestCase):
     def test_coincides_with_frechet_so(self):
         gs.random.seed(0)
         point = self.so.random_uniform(self.n_samples)
-        estimator = ExponentialBarycenter(self.so, max_iter=40, epsilon=1e-10)
+
+        estimator = ExponentialBarycenter(self.so).set(max_iter=40, epsilon=1e-10)
         estimator.fit(point)
         result = estimator.estimate_
-        frechet_estimator = FrechetMean(
-            self.so.bi_invariant_metric,
+
+        frechet_estimator = FrechetMean(self.so, method="adaptive").set(
             max_iter=40,
             epsilon=1e-10,
-            method="adaptive",
             init_step_size=1.0,
         )
         frechet_estimator.fit(point)
         expected = frechet_estimator.estimate_
+
         self.assertAllClose(result, expected, atol=1e-6)
 
     @tests.conftest.np_and_autograd_only
     def test_estimate_weights(self):
         point = self.so.random_uniform(self.n_samples)
-        estimator = ExponentialBarycenter(self.so, verbose=True)
+        estimator = ExponentialBarycenter(self.so).set(verbose=True)
         weights = gs.arange(self.n_samples)
         estimator.fit(point, weights=weights)
         barexp = estimator.estimate_

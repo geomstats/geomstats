@@ -16,7 +16,7 @@ EPSILON = 10e-6
 
 class GeometricMedianTestData(TestData):
     def fit_test_data(self):
-        estimator_0 = GeometricMedian(Euclidean(1).metric)
+        estimator_0 = GeometricMedian(Euclidean(1))
         X_0 = gs.array(
             [
                 [1.0 - 2 * EPSILON],
@@ -28,7 +28,9 @@ class GeometricMedianTestData(TestData):
         )
         expected_0 = gs.array([1.0])
 
-        estimator_1 = GeometricMedian(SPDEuclideanMetric(1))
+        space = SPDMatrices(1, equip=False)
+        space.equip_with_metric(SPDEuclideanMetric)
+        estimator_1 = GeometricMedian(space)
         X_1 = gs.array(
             [
                 [[1.0 - 2 * EPSILON]],
@@ -40,7 +42,9 @@ class GeometricMedianTestData(TestData):
         )
         expected_1 = gs.array([[1.0]])
 
-        estimator_2 = GeometricMedian(SPDAffineMetric(2))
+        space = SPDMatrices(2, equip=False)
+        space.equip_with_metric(SPDAffineMetric)
+        estimator_2 = GeometricMedian(space)
         X_2 = gs.array(
             [
                 [[1.0 + EPSILON, 0.0], [0.0, 1.0 + EPSILON]],
@@ -61,22 +65,20 @@ class GeometricMedianTestData(TestData):
         return self.generate_tests(smoke_data)
 
     def fit_sanity_test_data(self):
+        spd_matrices = SPDMatrices(4, equip=False)
+        spd_matrices.equip_with_metric(SPDLogEuclideanMetric)
         smoke_data = [
             dict(
-                estimator=GeometricMedian(Euclidean(2).metric),
-                space=Euclidean(2),
+                estimator=GeometricMedian(Euclidean(2)),
             ),
             dict(
-                estimator=GeometricMedian(Hyperboloid(3).metric),
-                space=Hyperboloid(3),
+                estimator=GeometricMedian(Hyperboloid(3)),
             ),
             dict(
-                estimator=GeometricMedian(Hypersphere(4).metric),
-                space=Hypersphere(4),
+                estimator=GeometricMedian(Hypersphere(4)),
             ),
             dict(
-                estimator=GeometricMedian(SPDLogEuclideanMetric(4)),
-                space=SPDMatrices(4),
+                estimator=GeometricMedian(spd_matrices),
             ),
         ]
 

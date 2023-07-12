@@ -14,9 +14,7 @@ def wrap(function):
     """Wrap a function to first convert args to arrays."""
 
     def wrapped_function(*args, **kwargs):
-        new_args = ()
-        for array in args:
-            new_args += (gs.array(array),)
+        new_args = map(gs.from_numpy, args)
         return function(*new_args, **kwargs)
 
     return wrapped_function
@@ -52,6 +50,8 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
 
     Parameters
     ----------
+    space : Manifold
+        Equipped manifold.
     radius : float, optional (default = inf)
         Range of parameter space to use by default.
     kernel : string or callable, optional (default = 'distance')
@@ -68,19 +68,6 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
     bandwidth : float, optional (default = 1.0)
         Bandwidth parameter used for the kernel. The kernel parameter is
         used if and only if the kernel is a callable function.
-    p : integer, optional (default = 2)
-        Power parameter for the 'minkowski' string distance.
-        When p = 1, this is equivalent to using manhattan_distance (l1),
-        and euclidean_distance (l2) for p = 2.
-        For arbitrary p, minkowski_distance (l_p) is used.
-    distance : string or callable, optional (default = 'minkowski')
-        The distance metric to use.
-        The default distance is minkowski, and with p=2 is equivalent to the
-        standard Euclidean distance.
-        See the documentation of the DistanceMetric class in the scikit-learn
-        library for a list of available distances.
-        If distance is "precomputed", X is assumed to be a distance matrix and
-        must be square during fit.
     outlier_label : {manual label, 'most_frequent'}, optional (default = None)
         Label for outlier samples (samples with no neighbors in given radius).
 
@@ -88,8 +75,6 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
           or list of manual labels if multi-output is used.
         - 'most_frequent' : assign the most frequent label of y to outliers.
         - None : when any outlier is detected, ValueError will be raised.
-    distance_params : dict, optional (default = None)
-        Additional keyword arguments for the distance function.
     n_jobs : int or None, optional (default = None)
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1; ``-1`` means using all processors.
@@ -120,15 +105,15 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
 
     def __init__(
         self,
+        space,
         radius=math.inf,
         kernel="distance",
         bandwidth=1.0,
-        p=2,
-        distance="minkowski",
-        distance_params=None,
+        leaf_size=30,
+        outlier_label=None,
         n_jobs=None,
-        **kwargs
     ):
+        self.space = space
 
         self.bandwidth = bandwidth
 
@@ -137,88 +122,23 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         else:
 
             def weights(distance_matrix):
-                n_samples = distance_matrix.shape[0]
-                weights_list = []
-                for i_sample in range(n_samples):
-                    weights_list.append(
-                        kernel(
-                            distance=distance_matrix[i_sample], bandwidth=self.bandwidth
-                        )
-                    )
-                weights_matrix = gs.array(weights_list)
+                weights_matrix = gs.array(
+                    [
+                        kernel(distance=dist, bandwidth=self.bandwidth)
+                        for dist in distance_matrix
+                    ]
+                )
                 return weights_matrix
 
-        if callable(distance):
-            distance = wrap(distance)
+        self.kernel = kernel
 
+        distance = wrap(space.metric.dist)
         super().__init__(
             radius=radius,
             weights=weights,
             algorithm="brute",
-            p=p,
+            leaf_size=leaf_size,
             metric=distance,
-            metric_params=distance_params,
+            outlier_label=outlier_label,
             n_jobs=n_jobs,
-            **kwargs
         )
-
-    def fit(self, X, y):
-        """Fit the model using X as training data and y as target values.
-
-        Parameters
-        ----------
-        X : array-like, shape=[..., n_features], [...,] or
-            [..., n_samples] if distance is 'precomputed'
-            Training data.
-        y : array-like, shape=[...,] or [..., n_outputs]
-            Target values.
-        """
-        data_shape = gs.shape(X)
-        if len(data_shape) == 1:
-            n_samples = data_shape[0]
-            X = gs.reshape(X, (n_samples, 1))
-        super().fit(X, y)
-
-    def predict(self, X):
-        """Predict the class labels for the provided data.
-
-        Parameters
-        ----------
-        X : array-like, shape=[n_queries, n_features] or
-            [n_queries, n_indexed] if metric is 'precomputed'
-            Test samples.
-
-        Returns
-        -------
-        y : array-like, shape=[n_queries] or [n_queries, n_outputs]
-            Class labels for each data sample.
-        """
-        data_shape = gs.shape(X)
-        if len(data_shape) == 1:
-            n_samples = data_shape[0]
-            X = gs.reshape(X, (n_samples, 1))
-        y_pred = super().predict(X)
-        return y_pred
-
-    def predict_proba(self, X):
-        """Return probability estimates for the test data X.
-
-        Parameters
-        ----------
-        X : array-like, shape=[n_queries, n_features] or
-            [n_queries, n_indexed] if metric is 'precomputed'
-            Test samples.
-
-        Returns
-        -------
-        probabilities : array-like, shape=[n_queries, n_classes] or a list of
-            n_outputs of such arrays if n_outputs > 1
-            The class probabilities of the input samples. Classes are ordered
-            by lexicographic order.
-        """
-        data_shape = gs.shape(X)
-        if len(data_shape) == 1:
-            n_samples = data_shape[0]
-            X = gs.reshape(X, (n_samples, 1))
-        probabilities = super().predict_proba(X)
-        return probabilities

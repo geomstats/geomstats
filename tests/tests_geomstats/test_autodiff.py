@@ -57,7 +57,7 @@ class TestAutodiff(tests.conftest.TestCase):
         with pytest.raises(RuntimeError):
             gs.autodiff.value_and_grad(lambda v: gs.sum(v**2))(vector)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_value_and_grad_one_vector_var(self):
         n = 10
         vector = gs.ones(n)
@@ -70,7 +70,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @tests.conftest.autograd_and_tf_only
+    @tests.conftest.autograd_only
     def test_value_and_grad_dist(self):
         space = SpecialEuclidean(3)
         metric = space.metric
@@ -86,7 +86,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_value_and_grad_dist_grassmann(self):
         space = Grassmannian(3, 2)
         metric = space.metric
@@ -102,7 +102,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_value_and_grad_one_vector_var_np_input(self):
         n = 10
         vector = _np.ones(n)
@@ -114,47 +114,47 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_value_and_grad_two_scalars_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
         arg_x = 1.0
         arg_y = 2.0
-        val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        val, grad = gs.autodiff.value_and_grad(func, argnums=(0, 1))(arg_x, arg_y)
 
         self.assertAllClose(val, 1.0)
         self.assertTrue(isinstance(grad, tuple))
         self.assertAllClose(grad[0], -2)
         self.assertAllClose(grad[1], 2.0)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_value_and_grad_two_vectors_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
         arg_x = gs.array([1.0, 2.0])
         arg_y = gs.array([2.0, 3.0])
-        val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        val, grad = gs.autodiff.value_and_grad(func, argnums=(0, 1))(arg_x, arg_y)
 
         self.assertAllClose(val, 2.0)
         self.assertTrue(isinstance(grad, tuple))
         self.assertAllClose(grad[0], gs.array([-2.0, -2.0]))
         self.assertAllClose(grad[1], gs.array([2.0, 2.0]))
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_value_and_grad_two_matrix_vars(self):
         def func(x, y):
             return gs.sum((x - y) ** 2)
 
         arg_x = gs.array([[1.0, 3.0], [2.0, 3.0]])
         arg_y = gs.array([[2.0, 5.0], [0.0, 4.0]])
-        val, grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        val, grad = gs.autodiff.value_and_grad(func, argnums=(0, 1))(arg_x, arg_y)
         self.assertAllClose(val, 10.0)
         self.assertAllClose(grad[0], gs.array([[-2.0, -4.0], [4.0, -2.0]]))
         self.assertAllClose(grad[1], gs.array([[2.0, 4.0], [-4.0, 2.0]]))
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_custom_gradient_one_vector_var(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -174,7 +174,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_custom_gradient_two_vector_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -191,7 +191,9 @@ class TestAutodiff(tests.conftest.TestCase):
         arg_x = gs.array([1.0, 3.0])
         arg_y = gs.array([2.0, 5.0])
 
-        result_val, result_grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        result_val, result_grad = gs.autodiff.value_and_grad(func, argnums=(0, 1))(
+            arg_x, arg_y
+        )
 
         self.assertTrue(isinstance(result_grad, tuple))
         result_grad_x, result_grad_y = result_grad
@@ -204,7 +206,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_grad_x, expected_grad_x)
         self.assertAllClose(result_grad_y, expected_grad_y)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_custom_gradient_two_matrix_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -221,7 +223,9 @@ class TestAutodiff(tests.conftest.TestCase):
         arg_x = gs.array([[1.0, 3.0], [2.0, 3.0]])
         arg_y = gs.array([[2.0, 5.0], [0.0, 4.0]])
 
-        result_val, result_grad = gs.autodiff.value_and_grad(func)(arg_x, arg_y)
+        result_val, result_grad = gs.autodiff.value_and_grad(func, argnums=(0, 1))(
+            arg_x, arg_y
+        )
 
         self.assertTrue(isinstance(result_grad, tuple))
         result_grad_x, result_grad_y = result_grad
@@ -234,7 +238,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_grad_x, expected_grad_x)
         self.assertAllClose(result_grad_y, expected_grad_y)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_custom_gradient_composed_two_matrix_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -260,7 +264,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_custom_gradient_composed_with_dummy_two_matrix_vars(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -291,7 +295,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_custom_gradient_chain_rule_one_scalar_var(self):
         """Assign made-up gradient to test custom_gradient."""
 
@@ -321,7 +325,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_grad, expected_grad_explicit)
         self.assertAllClose(result_grad, expected_grad_chain_rule)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_custom_gradient_chain_rule_one_vector_var(self):
         def fun1_grad(x):
             return 6 * x
@@ -349,7 +353,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_grad, expected_grad_explicit)
         self.assertAllClose(result_grad, expected_grad_chain_rule)
 
-    @tests.conftest.autograd_and_tf_only
+    @tests.conftest.autograd_only
     def test_custom_gradient_squared_dist(self):
         def squared_dist_grad_a(point_a, point_b, metric):
             return -2 * metric.log(point_b, point_a)
@@ -363,7 +367,7 @@ class TestAutodiff(tests.conftest.TestCase):
             return dist
 
         space = SpecialEuclidean(n=2)
-        const_metric = space.left_canonical_metric
+        const_metric = space.metric
         const_point_b = space.random_point()
 
         def func(x):
@@ -376,10 +380,10 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(result_value, expected_value)
         self.assertAllClose(result_grad, expected_grad)
 
-    @tests.conftest.autograd_and_tf_only
+    @tests.conftest.autograd_only
     def test_custom_gradient_in_action(self):
         space = SpecialEuclidean(n=2)
-        const_metric = space.left_canonical_metric
+        const_metric = space.metric
         const_point_b = space.random_point()
 
         def func(x):
@@ -398,7 +402,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(loss, 0.0)
         self.assertAllClose(grad, gs.zeros_like(grad))
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_jacobian(self):
         """Test that jacobians are consistent across backends.
 
@@ -438,7 +442,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(jacobian_ai.shape, expected_ai.shape)
         self.assertAllClose(jacobian_ai, expected_ai)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_jacobian_vec(self):
         """Test that jacobian_vec is correctly vectorized.
 
@@ -495,7 +499,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(jacobian_ai.shape, expected_ai.shape)
         self.assertAllClose(jacobian_ai, expected_ai)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_hessian(self):
         radius = 4.0
         dim = 2
@@ -503,7 +507,9 @@ class TestAutodiff(tests.conftest.TestCase):
         point = gs.array([gs.pi / 3, gs.pi])
         theta = point[0]
         phi = point[1]
-        hessian_1ij = gs.autodiff.hessian(_first_component_of_sphere_immersion)(point)
+        hessian_1ij = gs.autodiff.hessian(_first_component_of_sphere_immersion_scalar)(
+            point
+        )
 
         expected_1ij = radius * gs.array(
             [
@@ -516,7 +522,7 @@ class TestAutodiff(tests.conftest.TestCase):
         self.assertAllClose(hessian_1ij.shape, expected_1ij.shape)
         self.assertAllClose(hessian_1ij, expected_1ij)
 
-    @tests.conftest.autograd_tf_and_torch_only
+    @tests.conftest.autograd_and_torch_only
     def test_hessian_vec(self):
         """Hessian is not vectorized by default in torch, tf and autograd."""
         radius = 4.0
@@ -525,9 +531,9 @@ class TestAutodiff(tests.conftest.TestCase):
         points = gs.array([[gs.pi / 3, gs.pi], [gs.pi / 4, gs.pi / 2]])
         thetas = points[:, 0]
         phis = points[:, 1]
-        hessian_1ij = gs.autodiff.hessian_vec(_first_component_of_sphere_immersion)(
-            points
-        )
+        hessian_1ij = gs.autodiff.hessian_vec(
+            _first_component_of_sphere_immersion_scalar
+        )(points)
 
         expected_1ij = gs.stack(
             [
