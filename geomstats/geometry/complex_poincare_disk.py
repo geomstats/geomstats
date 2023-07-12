@@ -251,8 +251,8 @@ class ComplexPoincareDiskMetric(ComplexRiemannianMetric):
         squared_dist : array-like, shape=[...]
             Riemannian squared distance.
         """
-        sq_dist = self._tau(point_a, point_b, atol=atol)
-        return gs.power(sq_dist, 2)
+        dist = self._tau(point_a, point_b, atol=atol)
+        return gs.power(dist, 2)
 
     def dist(self, point_a, point_b, atol=gs.atol):
         """Compute the complex Poincaré disk distance.
