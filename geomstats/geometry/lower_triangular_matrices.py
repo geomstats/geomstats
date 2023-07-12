@@ -138,12 +138,18 @@ class StrictlyLowerTriangularMatrices(VectorSpace):
         Integer representing the shapes of the matrices: n x n.
     """
 
-    def __init__(self, n, **kwargs):
-        kwargs.setdefault("metric", MatricesMetric(n, n))
+    def __init__(self, n, equip=True):
         super().__init__(
             dim=int(n * (n - 1) / 2),
-            shape=(n, n), **kwargs)
+            shape=(n, n),
+            equip=equip,
+        )
         self.n = n
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
 
     def _create_basis(self):
         """Compute the basis of the vector space of lower triangular.
@@ -154,7 +160,6 @@ class StrictlyLowerTriangularMatrices(VectorSpace):
             Basis matrices of the space.
         """
         tril_idxs = gs.ravel_tril_indices(self.n, k=-1)
-        # TODO: use default dtype when available
         vector_bases = gs.cast(
             gs.one_hot(tril_idxs, self.n * self.n),
             dtype=gs.get_default_dtype(),
@@ -178,8 +183,9 @@ class StrictlyLowerTriangularMatrices(VectorSpace):
         """
         belongs = super().belongs(point)
         if gs.any(belongs):
-            is_strictly_lower_triangular = \
-                Matrices.is_strictly_lower_triangular(point, atol)
+            is_strictly_lower_triangular = Matrices.is_strictly_lower_triangular(
+                point, atol
+            )
             return gs.logical_and(belongs, is_strictly_lower_triangular)
         return belongs
 

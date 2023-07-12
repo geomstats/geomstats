@@ -303,10 +303,6 @@ class FullRankCorrelationEuclideanCholeskyMetric(PullbackDiffeoMetric):
     any inner product on strictly lower triangular matrices defines a flat
     complete Riemannian metric on full-rank correlation matrices by pullback.
 
-    Parameters
-    ----------
-    n : int
-        Dimension of correlation matrices.
 
     References
     ----------
@@ -315,12 +311,12 @@ class FullRankCorrelationEuclideanCholeskyMetric(PullbackDiffeoMetric):
     https://arxiv.org/abs/2201.06282
     """
 
-    def __init__(self, n):
-        super().__init__(
-            dim=int(n * (n - 1) / 2),
-        )
-        self._embedding_metric = StrictlyLowerTriangularMatrices(n).metric
-        self.n = n
+    def __init__(self, space):
+        super().__init__(space=space)
+        self._bundle = CorrelationMatricesBundle(space)
+
+    def _define_embedding_space(self):
+        return StrictlyLowerTriangularMatrices(self._space.n)
 
     def diffeomorphism(self, base_point):
         r"""Compute the diffeomorphism :math:`\Theta` at base_point.
@@ -346,8 +342,7 @@ class FullRankCorrelationEuclideanCholeskyMetric(PullbackDiffeoMetric):
         chol = gs.linalg.cholesky(base_point)
         diag = Matrices.to_diagonal(chol)
         diag_inv = GeneralLinear.inverse(diag)
-        image = gs.matmul(diag_inv, chol) - gs.eye(self.n)
-        return image
+        return gs.matmul(diag_inv, chol) - gs.eye(self._space.n)
 
     def tangent_diffeomorphism(self, tangent_vec, base_point):
         r"""Compute the differential of the diffeomorphism.
@@ -362,7 +357,7 @@ class FullRankCorrelationEuclideanCholeskyMetric(PullbackDiffeoMetric):
         chol = gs.linalg.cholesky(base_point)
         diag = Matrices.to_diagonal(chol)
         diag_inv = GeneralLinear.inverse(diag)
-        diag_inv_squared = diag_inv ** 2
+        diag_inv_squared = diag_inv**2
         chol_inv = GeneralLinear.inverse(chol)
         chol_inv_trans = Matrices.transpose(chol_inv)
         prod = gs.matmul(chol_inv, tangent_vec)
@@ -383,10 +378,10 @@ class FullRankCorrelationEuclideanCholeskyMetric(PullbackDiffeoMetric):
         :math:`\Theta^{-1}(L)=cor((I_n+L)(I_n+L)^\top)` where
         :math:`cor(\Sigma)=Diag(\Sigma)^{-1/2}\Sigma Diag(\Sigma)^{-1/2}`.
         """
-        reduced_chol = gs.eye(self.n) + image_point
+        reduced_chol = gs.eye(self._space.n) + image_point
         reduced_chol_trans = Matrices.transpose(reduced_chol)
         product = gs.matmul(reduced_chol, reduced_chol_trans)
-        preimage = CorrelationMatricesBundle.riemannian_submersion(product)
+        preimage = self._bundle.riemannian_submersion(product)
         return preimage
 
     def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
@@ -401,12 +396,13 @@ class FullRankCorrelationEuclideanCholeskyMetric(PullbackDiffeoMetric):
         :math:`(d_C\Theta)^{-1}(V)=(LV^\top-C Diag(LV^\top))Diag(L)
         +Diag(L)(VL^\top-Diag(LV^\top)C)` where :math:`L=Chol(C)`.
         """
-        low_tri = image_point + gs.eye(self.n)
+        low_tri = image_point + gs.eye(self._space.n)
         preimage = gs.matmul(low_tri, Matrices.transpose(low_tri))
         tangent_vec_trans = Matrices.transpose(image_tangent_vec)
         pre_tangent_vec = gs.matmul(image_point, tangent_vec_trans)
         pre_tangent_vec += Matrices.transpose(pre_tangent_vec)
         pre_tangent_vec += 2 * image_tangent_vec
-        pre_tangent_vec = CorrelationMatricesBundle(self.n).\
-            tangent_riemannian_submersion(pre_tangent_vec, preimage)
+        pre_tangent_vec = self._bundle.tangent_riemannian_submersion(
+            pre_tangent_vec, preimage
+        )
         return pre_tangent_vec
