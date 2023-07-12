@@ -45,7 +45,7 @@ References
 .. [Yang_2013] Marc Arnaudon, Frédéric Barbaresco and Le Yang. Riemannian Medians
     and Means With Applications to Radar Signal Processing, IEEE, 2013.
 """
-
+import geomstats.backend as gs
 from geomstats.geometry.complex_poincare_disk import (
     ComplexPoincareDisk,
     ComplexPoincareDiskMetric,
@@ -137,3 +137,25 @@ class ProductPositiveRealsAndComplexPoincareDisksMetric(ProductRiemannianMetric)
     .. [Yang_2013] Marc Arnaudon, Frédéric Barbaresco and Le Yang. Riemannian Medians
         and Means With Applications to Radar Signal Processing, IEEE, 2013.
     """
+
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        sq_norm = self.inner_product(vector, vector, base_point)
+        return gs.real(sq_norm)
