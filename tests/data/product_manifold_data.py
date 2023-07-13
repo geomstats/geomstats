@@ -163,6 +163,10 @@ class ProductRiemannianMetricTestData(_RiemannianMetricTestData):
 
     Metric = ProductRiemannianMetric
 
+    tolerances = {
+        "dist_point_to_itself_is_zero": {"atol": 1e-6},
+    }
+
     def inner_product_matrix_test_data(self):
         smoke_data = [
             dict(

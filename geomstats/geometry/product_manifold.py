@@ -617,6 +617,32 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         inner_products = self._iterate_over_factors("inner_product", args)
         return sum(inner_products)
 
+    def squared_norm(self, vector, base_point=None):
+        """Compute the square of the norm of a vector.
+
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., self.shape]
+            Vector.
+        base_point : array-like, shape=[..., self.shape]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[...,]
+            Squared norm.
+        """
+        args = {
+            "vector": vector,
+            "base_point": base_point,
+        }
+        sq_norms = self._iterate_over_factors("squared_norm", args)
+        return sum(sq_norms)
+
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
