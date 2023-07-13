@@ -8,9 +8,9 @@ from geomstats.geometry.special_orthogonal import (
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.special_orthogonal import (
-    SpecialOrthogonal2VectorsTestCase,
     SpecialOrthogonal3VectorsTestCase,
     SpecialOrthogonalMatricesTestCase,
+    SpecialOrthogonalVectorsTestCase,
 )
 
 from .data.special_orthogonal import (
@@ -39,7 +39,7 @@ class TestSpecialOrthogonalMatrices(
 
 
 class TestSpecialOrthogonal2Vectors(
-    SpecialOrthogonal2VectorsTestCase, metaclass=DataBasedParametrizer
+    SpecialOrthogonalVectorsTestCase, metaclass=DataBasedParametrizer
 ):
     space = SpecialOrthogonal(2, point_type="vector")
     testing_data = SpecialOrthogonal2VectorsTestData()

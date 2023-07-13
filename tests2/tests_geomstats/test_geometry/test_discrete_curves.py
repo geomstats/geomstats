@@ -10,12 +10,15 @@ from geomstats.geometry.discrete_curves import (
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import DiscreteCurvesRandomDataGenerator
+from geomstats.test_cases.geometry.base import _ProjectionTestCaseMixins
 from geomstats.test_cases.geometry.discrete_curves import (
     ClosedDiscreteCurvesTestCase,
-    DiscreteCurvesTestCase,
-    SRVQuotientMetricTestCase,
+    ShapeBundleRandomDataGenerator,
     SRVShapeBundleTestCase,
 )
+from geomstats.test_cases.geometry.manifold import ManifoldTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.discrete_curves import (
     ClosedDiscreteCurvesTestData,
@@ -42,8 +45,14 @@ def discrete_curves_spaces(request):
 
 
 @pytest.mark.usefixtures("discrete_curves_spaces")
-class TestDiscreteCurves(DiscreteCurvesTestCase, metaclass=DataBasedParametrizer):
+class TestDiscreteCurves(
+    _ProjectionTestCaseMixins, ManifoldTestCase, metaclass=DataBasedParametrizer
+):
     testing_data = DiscreteCurvesTestData()
+
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = DiscreteCurvesRandomDataGenerator(self.space)
 
 
 @pytest.fixture(
@@ -121,6 +130,19 @@ def spaces_with_quotient(request):
 
 @pytest.mark.skip
 @pytest.mark.usefixtures("spaces_with_quotient")
-class TestSRVQuotientMetric(SRVQuotientMetricTestCase, metaclass=DataBasedParametrizer):
+class TestSRVQuotientMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     # TODO: failing. need to understand why
     testing_data = SRVQuotientMetricTestData()
+
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            n_discretized_curves = (
+                5
+                if not hasattr(self, "n_discretized_curves")
+                else self.n_discretized_curves
+            )
+            self.data_generator = ShapeBundleRandomDataGenerator(
+                self.space,
+                self.sphere,
+                n_discretized_curves=n_discretized_curves,
+            )

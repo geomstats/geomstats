@@ -5,7 +5,6 @@ from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import OpenSetTestCase
-from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
@@ -183,9 +182,3 @@ class CholeskyMetricTestCase(RiemannianMetricTestCase):
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
-
-
-class InvariantPositiveLowerTriangularMatricesMetricTestCase(
-    InvariantMetricMatrixTestCase
-):
-    pass

@@ -3,7 +3,6 @@ import pytest
 import geomstats.backend as gs
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import VectorSpaceTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class EuclideanTestCase(VectorSpaceTestCase):
@@ -46,7 +45,3 @@ class EuclideanTestCase(VectorSpaceTestCase):
     @pytest.mark.random
     def test_identity_belongs(self, atol):
         self.test_belongs(self.space.identity, gs.array(True), atol)
-
-
-class EuclideanMetricTestCase(RiemannianMetricTestCase):
-    pass

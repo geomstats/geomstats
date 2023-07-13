@@ -332,11 +332,7 @@ class HypersphereCoordsTransformTestCase(TestCase):
         self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
 
 
-class _HypersphereTestCaseMixins:
-    pass
-
-
-class HypersphereExtrinsicTestCase(_HypersphereTestCaseMixins, LevelSetTestCase):
+class HypersphereExtrinsicTestCase(LevelSetTestCase):
     def _get_random_kappa(self, size=1):
         sample = gs.random.uniform(low=1.0, high=10000.0, size=(size,))
         if size == 1:
@@ -514,7 +510,7 @@ class HypersphereExtrinsicTestCase(_HypersphereTestCaseMixins, LevelSetTestCase)
         self.assertAllClose(estimate_, expected, atol=atol)
 
 
-class HypersphereIntrinsicTestCase(_HypersphereTestCaseMixins, ManifoldTestCase):
+class HypersphereIntrinsicTestCase(ManifoldTestCase):
     # TODO: update after refactoring
 
     @pytest.mark.random

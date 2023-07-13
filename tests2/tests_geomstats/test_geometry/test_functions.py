@@ -5,10 +5,9 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.functions import HilbertSphere, HilbertSphereMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.functions import (
-    HilbertSphereMetricTestCase,
-    HilbertSphereTestCase,
-)
+from geomstats.test_cases.geometry.base import _ProjectionTestCaseMixins
+from geomstats.test_cases.geometry.manifold import ManifoldTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from tests2.tests_geomstats.test_geometry.data.functions import (
     HilbertSphereMetricTestData,
     HilbertSphereTestData,
@@ -29,7 +28,9 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestHilbertSphere(HilbertSphereTestCase, metaclass=DataBasedParametrizer):
+class TestHilbertSphere(
+    _ProjectionTestCaseMixins, ManifoldTestCase, metaclass=DataBasedParametrizer
+):
     testing_data = HilbertSphereTestData()
 
 
@@ -49,6 +50,6 @@ def equipped_spaces(request):
 
 @pytest.mark.usefixtures("equipped_spaces")
 class TestHilbertSphereMetric(
-    HilbertSphereMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = HilbertSphereMetricTestData()

@@ -265,14 +265,6 @@ class SPDMatricesTestCase(SPDMatricesTestCaseMixins, OpenSetTestCase):
     pass
 
 
-class SPDAffineMetricTestCase(RiemannianMetricTestCase):
-    pass
-
-
-class SPDBuresWassersteinMetricTestCase(RiemannianMetricTestCase):
-    pass
-
-
 class SPDEuclideanMetricTestCase(RiemannianMetricTestCase):
     def test_exp_domain(self, tangent_vec, base_point, expected, atol):
         res = self.space.metric.exp_domain(tangent_vec, base_point)
@@ -299,7 +291,3 @@ class SPDEuclideanMetricTestCase(RiemannianMetricTestCase):
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
-
-
-class SPDLogEuclideanMetricTestCase(RiemannianMetricTestCase):
-    pass

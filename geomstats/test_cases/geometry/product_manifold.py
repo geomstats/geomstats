@@ -1,7 +1,6 @@
 import pytest
 
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class ProductManifoldTestCase(ManifoldTestCase):
@@ -13,7 +12,3 @@ class ProductManifoldTestCase(ManifoldTestCase):
         point_ = self.space.embed_to_product(factor_point)
 
         self.assertAllClose(point_, point, atol=atol)
-
-
-class ProductRiemannianMetricTestCase(RiemannianMetricTestCase):
-    pass

@@ -11,11 +11,9 @@ from geomstats.geometry.rank_k_psd_matrices import (
     RankKPSDMatrices,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.rank_k_psd_matrices import (
-    BuresWassersteinBundleTestCase,
-    PSDBuresWassersteinMetricTestCase,
-    RankKPSDMatricesTestCase,
-)
+from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
+from geomstats.test_cases.geometry.rank_k_psd_matrices import RankKPSDMatricesTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.rank_k_psd_matrices import (
     BuresWassersteinBundleTestData,
@@ -78,9 +76,7 @@ def bundle_spaces(request):
 
 
 @pytest.mark.usefixtures("bundle_spaces")
-class TestBuresWassersteinBundle(
-    BuresWassersteinBundleTestCase, metaclass=DataBasedParametrizer
-):
+class TestBuresWassersteinBundle(FiberBundleTestCase, metaclass=DataBasedParametrizer):
     testing_data = BuresWassersteinBundleTestData()
 
 
@@ -103,6 +99,6 @@ def spaces_with_quotient_metric(request):
 
 @pytest.mark.usefixtures("spaces_with_quotient_metric")
 class TestPSDBuresWassersteinMetric(
-    PSDBuresWassersteinMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = PSDBuresWassersteinMetricTestData()

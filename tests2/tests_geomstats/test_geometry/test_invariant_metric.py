@@ -12,7 +12,6 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.invariant_metric import (
-    BiInvariantMetricTestCase,
     InvariantMetricMatrixTestCase,
     InvariantMetricVectorTestCase,
 )
@@ -111,7 +110,7 @@ def equipped_SO3_vector_groups(request):
 
 @pytest.mark.usefixtures("equipped_SO3_vector_groups")
 class TestBiInvariantMetricVectorSO3(
-    BiInvariantMetricTestCase, metaclass=DataBasedParametrizer
+    InvariantMetricVectorTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = BiInvariantMetricVectorSO3TestData()
 
@@ -129,6 +128,6 @@ def equipped_SO_matrix_groups(request):
 
 @pytest.mark.usefixtures("equipped_SO_matrix_groups")
 class TestBiInvariantMetricMatrixSO(
-    BiInvariantMetricTestCase, metaclass=DataBasedParametrizer
+    InvariantMetricVectorTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = BiInvariantMetricMatrixSOTestData()

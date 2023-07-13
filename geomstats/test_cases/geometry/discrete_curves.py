@@ -3,26 +3,11 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.discrete_curves import DiscreteCurves
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.test.random import (
-    DiscreteCurvesRandomDataGenerator,
-    FiberBundleRandomDataGenerator,
-    get_random_tangent_vec,
-)
+from geomstats.test.random import FiberBundleRandomDataGenerator, get_random_tangent_vec
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.base import (
-    LevelSetTestCase,
-    _ProjectionTestCaseMixins,
-)
+from geomstats.test_cases.geometry.base import LevelSetTestCase
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
-from geomstats.test_cases.geometry.manifold import ManifoldTestCase
-from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 from geomstats.vectorization import get_batch_shape
-
-
-class DiscreteCurvesTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            self.data_generator = DiscreteCurvesRandomDataGenerator(self.space)
 
 
 class ShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):
@@ -214,18 +199,3 @@ class ClosedDiscreteCurvesTestCase(LevelSetTestCase):
     def test_random_point_is_closed(self, n_points, atol):
         point = self.space.random_point(n_points)
         self.assertAllClose(point[..., 0, :], point[..., -1, :], atol=atol)
-
-
-class SRVQuotientMetricTestCase(QuotientMetricTestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            n_discretized_curves = (
-                5
-                if not hasattr(self, "n_discretized_curves")
-                else self.n_discretized_curves
-            )
-            self.data_generator = ShapeBundleRandomDataGenerator(
-                self.space,
-                self.sphere,
-                n_discretized_curves=n_discretized_curves,
-            )

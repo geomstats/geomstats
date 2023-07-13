@@ -11,11 +11,9 @@ from geomstats.geometry.spd_matrices import (
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from geomstats.test_cases.geometry.spd_matrices import (
-    SPDAffineMetricTestCase,
-    SPDBuresWassersteinMetricTestCase,
     SPDEuclideanMetricTestCase,
-    SPDLogEuclideanMetricTestCase,
     SPDMatricesTestCase,
 )
 
@@ -62,7 +60,7 @@ def spd_with_affine_metric_power_1(request):
 
 @pytest.mark.usefixtures("spd_with_affine_metric_power_1")
 class TestSPDAffineMetricPower1(
-    SPDAffineMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SPDAffineMetricPower1TestData()
 
@@ -84,7 +82,7 @@ def spd_with_affine_metric(request):
 
 
 @pytest.mark.usefixtures("spd_with_affine_metric")
-class TestSPDAffineMetric(SPDAffineMetricTestCase, metaclass=DataBasedParametrizer):
+class TestSPDAffineMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = SPDAffineMetricTestData()
 
 
@@ -105,7 +103,7 @@ def spd_with_bw_metric(request):
 
 @pytest.mark.usefixtures("spd_with_bw_metric")
 class TestSPDBuresWassersteinMetric(
-    SPDBuresWassersteinMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SPDBuresWassersteinMetricTestData()
 
@@ -176,6 +174,6 @@ def spd_with_log_euclidean(request):
 
 @pytest.mark.usefixtures("spd_with_log_euclidean")
 class TestSPDLogEuclideanMetric(
-    SPDLogEuclideanMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SPDLogEuclideanMetricTestData()

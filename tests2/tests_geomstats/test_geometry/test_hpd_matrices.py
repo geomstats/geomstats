@@ -4,7 +4,8 @@ import pytest
 
 from geomstats.geometry.hpd_matrices import HPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.hpd_matrices import HPDMatricesTestCase
+from geomstats.test_cases.geometry.base import ComplexOpenSetTestCase
+from geomstats.test_cases.geometry.spd_matrices import SPDMatricesTestCaseMixins
 
 from .data.hpd_matrices import HPDMatricesTestData
 
@@ -21,5 +22,7 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestHPDMatrices(HPDMatricesTestCase, metaclass=DataBasedParametrizer):
+class TestHPDMatrices(
+    SPDMatricesTestCaseMixins, ComplexOpenSetTestCase, metaclass=DataBasedParametrizer
+):
     testing_data = HPDMatricesTestData()

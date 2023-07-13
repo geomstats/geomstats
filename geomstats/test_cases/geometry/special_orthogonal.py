@@ -223,10 +223,6 @@ class SpecialOrthogonalVectorsTestCase(
         self._test_vectorization(vec_data)
 
 
-class SpecialOrthogonal2VectorsTestCase(SpecialOrthogonalVectorsTestCase):
-    pass
-
-
 class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
     def _assert_quaternion(self, quaternion_, quaternion, atol):
         self.assertAllClose(gs.abs(quaternion_), gs.abs(quaternion), atol=atol)

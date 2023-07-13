@@ -1,9 +1,10 @@
 from geomstats.information_geometry.poisson import PoissonDistributions, PoissonMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.information_geometry.poisson import (
-    PoissonDistributionsTestCase,
-    PoissonMetricTestCase,
+from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.information_geometry.base import (
+    InformationManifoldMixinTestCase,
 )
 from tests2.tests_geomstats.test_information_geometry.data.poisson import (
     PoissonDistributionsTestData,
@@ -12,13 +13,13 @@ from tests2.tests_geomstats.test_information_geometry.data.poisson import (
 
 
 class TestPoissonDistributions(
-    PoissonDistributionsTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase, OpenSetTestCase, metaclass=DataBasedParametrizer
 ):
     space = PoissonDistributions(equip=False)
     testing_data = PoissonDistributionsTestData()
 
 
-class TestPoissonMetric(PoissonMetricTestCase, metaclass=DataBasedParametrizer):
+class TestPoissonMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     space = PoissonDistributions(equip=False)
     space.equip_with_metric(PoissonMetric)
 

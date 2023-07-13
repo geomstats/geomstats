@@ -4,7 +4,7 @@ import pytest
 
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.complex_matrices import ComplexMatricesTestCase
+from geomstats.test_cases.geometry.base import ComplexVectorSpaceTestCase
 
 from .data.complex_matrices import ComplexMatricesTestData
 
@@ -22,5 +22,5 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestComplexMatrices(ComplexMatricesTestCase, metaclass=DataBasedParametrizer):
+class TestComplexMatrices(ComplexVectorSpaceTestCase, metaclass=DataBasedParametrizer):
     testing_data = ComplexMatricesTestData()

@@ -2,17 +2,7 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.base import LevelSetTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
-from geomstats.test_cases.information_geometry.base import (
-    InformationManifoldMixinTestCase,
-)
-
-
-class MultinomialDistributionsTestCase(
-    InformationManifoldMixinTestCase, LevelSetTestCase
-):
-    pass
 
 
 class MultinomialMetricTestCase(RiemannianMetricTestCase):

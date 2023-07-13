@@ -1,18 +1,14 @@
-import random
-
 import pytest
 
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
+from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.siegel import Siegel
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.product_manifold import (
-    ProductManifoldTestCase,
-    ProductRiemannianMetricTestCase,
-)
+from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from tests2.tests_geomstats.test_geometry.data.product_manifold import (
     ProductManifoldTestData,
     ProductRiemannianMetricTestData,
@@ -100,6 +96,6 @@ def equipped_spaces(request):
 
 @pytest.mark.usefixtures("equipped_spaces")
 class TestProductRiemannianMetric(
-    ProductRiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = ProductRiemannianMetricTestData()

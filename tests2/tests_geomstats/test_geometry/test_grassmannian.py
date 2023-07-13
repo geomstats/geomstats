@@ -4,10 +4,8 @@ import pytest
 
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.grassmannian import (
-    GrassmannianCanonicalMetricTestCase,
-    GrassmannianTestCase,
-)
+from geomstats.test_cases.geometry.base import LevelSetTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.grassmannian import (
     Grassmannian32TestData,
@@ -42,11 +40,11 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestGrassmannian(GrassmannianTestCase, metaclass=DataBasedParametrizer):
+class TestGrassmannian(LevelSetTestCase, metaclass=DataBasedParametrizer):
     testing_data = GrassmannianTestData()
 
 
-class TestGrassmannian32(GrassmannianTestCase, metaclass=DataBasedParametrizer):
+class TestGrassmannian32(LevelSetTestCase, metaclass=DataBasedParametrizer):
     space = Grassmannian(3, 2)
     testing_data = Grassmannian32TestData()
 
@@ -67,6 +65,6 @@ def equipped_spaces(request):
 
 @pytest.mark.usefixtures("equipped_spaces")
 class TestGrassmannianCanonicalMetric(
-    GrassmannianCanonicalMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = GrassmannianCanonicalMetricTestData()

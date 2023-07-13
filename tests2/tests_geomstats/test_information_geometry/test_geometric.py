@@ -4,9 +4,10 @@ from geomstats.information_geometry.geometric import (
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.information_geometry.geometric import (
-    GeometricDistributionsTestCase,
-    GeometricMetricTestCase,
+from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.information_geometry.base import (
+    InformationManifoldMixinTestCase,
 )
 from tests2.tests_geomstats.test_information_geometry.data.geometric import (
     GeometricDistributionsTestData,
@@ -15,13 +16,13 @@ from tests2.tests_geomstats.test_information_geometry.data.geometric import (
 
 
 class TestGeometricDistributions(
-    GeometricDistributionsTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase, OpenSetTestCase, metaclass=DataBasedParametrizer
 ):
     space = GeometricDistributions(equip=False)
     testing_data = GeometricDistributionsTestData()
 
 
-class TestGeometricMetric(GeometricMetricTestCase, metaclass=DataBasedParametrizer):
+class TestGeometricMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     space = GeometricDistributions(equip=False)
     space.equip_with_metric(GeometricMetric)
 

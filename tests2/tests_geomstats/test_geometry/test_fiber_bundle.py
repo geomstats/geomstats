@@ -7,8 +7,8 @@ from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.fiber_bundle import (
+    FiberBundleTestCase,
     GeneralLinearBuresWassersteinBundle,
-    GeneralLinearBuresWassersteinBundleTestCase,
 )
 
 from .data.fiber_bundle import GeneralLinearBuresWassersteinBundleTestData
@@ -34,6 +34,6 @@ def bundle_spaces(request):
 
 @pytest.mark.usefixtures("bundle_spaces")
 class TestGeneralLinearBuresWassersteinBundle(
-    GeneralLinearBuresWassersteinBundleTestCase, metaclass=DataBasedParametrizer
+    FiberBundleTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = GeneralLinearBuresWassersteinBundleTestData()

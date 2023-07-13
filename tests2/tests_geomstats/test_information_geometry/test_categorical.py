@@ -8,9 +8,12 @@ from geomstats.information_geometry.categorical import (
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.information_geometry.categorical import (
-    CategoricalDistributionsTestCase,
-    CategoricalMetricTestCase,
+from geomstats.test_cases.geometry.base import LevelSetTestCase
+from geomstats.test_cases.information_geometry.base import (
+    InformationManifoldMixinTestCase,
+)
+from geomstats.test_cases.information_geometry.multinomial import (
+    MultinomialMetricTestCase,
 )
 from tests2.tests_geomstats.test_information_geometry.data.categorical import (
     CategoricalDistributionsTestData,
@@ -31,7 +34,7 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestCategoricalDistributions(
-    CategoricalDistributionsTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase, LevelSetTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = CategoricalDistributionsTestData()
 
@@ -52,5 +55,5 @@ def equipped_spaces(request):
 
 
 @pytest.mark.usefixtures("equipped_spaces")
-class TestCategoricalMetric(CategoricalMetricTestCase, metaclass=DataBasedParametrizer):
+class TestCategoricalMetric(MultinomialMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = CategoricalMetricTestData()

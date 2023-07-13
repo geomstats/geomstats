@@ -4,7 +4,7 @@ import pytest
 
 from geomstats.geometry.siegel import Siegel
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.siegel import SiegelTestCase
+from geomstats.test_cases.geometry.base import ComplexOpenSetTestCase
 
 from .data.siegel import SiegelTestData
 
@@ -21,5 +21,5 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestSiegel(SiegelTestCase, metaclass=DataBasedParametrizer):
+class TestSiegel(ComplexOpenSetTestCase, metaclass=DataBasedParametrizer):
     testing_data = SiegelTestData()

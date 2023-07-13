@@ -4,9 +4,12 @@ import pytest
 
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.base import (
+    MatrixVectorSpaceTestCaseMixins,
+    VectorSpaceTestCase,
+)
 from geomstats.test_cases.geometry.symmetric_matrices import (
     SymmetricMatricesOpsTestCase,
-    SymmetricMatricesTestCase,
 )
 
 from .data.symmetric_matrices import (
@@ -30,29 +33,35 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestSymmetricMatrices(SymmetricMatricesTestCase, metaclass=DataBasedParametrizer):
+class TestSymmetricMatrices(
+    MatrixVectorSpaceTestCaseMixins,
+    VectorSpaceTestCase,
+    metaclass=DataBasedParametrizer,
+):
     testing_data = SymmetricMatricesTestData()
 
 
-@pytest.mark.random
+@pytest.mark.smoke
 class TestSymmetricMatrices1(
-    SymmetricMatricesTestCase, metaclass=DataBasedParametrizer
+    MatrixVectorSpaceTestCaseMixins,
+    VectorSpaceTestCase,
+    metaclass=DataBasedParametrizer,
 ):
     space = SymmetricMatrices(n=1)
     testing_data = SymmetricMatrices1TestData()
 
 
-@pytest.mark.random
-class TestSymmetricMatrices2(
-    SymmetricMatricesTestCase, metaclass=DataBasedParametrizer
-):
+@pytest.mark.smoke
+class TestSymmetricMatrices2(VectorSpaceTestCase, metaclass=DataBasedParametrizer):
     space = SymmetricMatrices(n=2)
     testing_data = SymmetricMatrices2TestData()
 
 
-@pytest.mark.random
+@pytest.mark.smoke
 class TestSymmetricMatrices3(
-    SymmetricMatricesTestCase, metaclass=DataBasedParametrizer
+    MatrixVectorSpaceTestCaseMixins,
+    VectorSpaceTestCase,
+    metaclass=DataBasedParametrizer,
 ):
     space = SymmetricMatrices(n=3)
     testing_data = SymmetricMatrices3TestData()

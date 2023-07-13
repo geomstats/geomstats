@@ -4,7 +4,7 @@ import pytest
 
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.full_rank_matrices import FullRankMatricesTestCase
+from geomstats.test_cases.geometry.base import OpenSetTestCase
 
 from .data.full_rank_matrices import FullRankMatricesTestData
 
@@ -22,5 +22,5 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestFullRankMatrices(FullRankMatricesTestCase, metaclass=DataBasedParametrizer):
+class TestFullRankMatrices(OpenSetTestCase, metaclass=DataBasedParametrizer):
     testing_data = FullRankMatricesTestData()

@@ -8,8 +8,11 @@ from geomstats.information_geometry.multinomial import (
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
+from geomstats.test_cases.geometry.base import LevelSetTestCase
+from geomstats.test_cases.information_geometry.base import (
+    InformationManifoldMixinTestCase,
+)
 from geomstats.test_cases.information_geometry.multinomial import (
-    MultinomialDistributionsTestCase,
     MultinomialMetricTestCase,
 )
 from tests2.tests_geomstats.test_information_geometry.data.multinomial import (
@@ -29,7 +32,7 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestMultinomialDistributions(
-    MultinomialDistributionsTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase, LevelSetTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = MultinomialDistributionsTestData()
 

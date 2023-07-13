@@ -10,10 +10,10 @@ from geomstats.geometry.pre_shape import (
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.pre_shape import (
     KendallShapeMetricTestCase,
-    PreShapeMetricTestCase,
     PreShapeSpaceBundleTestCase,
     PreShapeSpaceTestCase,
 )
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.pre_shape import (
     KendallShapeMetricTestData,
@@ -78,7 +78,7 @@ def equipped_spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestPreShapeMetric(PreShapeMetricTestCase, metaclass=DataBasedParametrizer):
+class TestPreShapeMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = PreShapeMetricTestData()
 
 

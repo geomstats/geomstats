@@ -10,9 +10,8 @@ from geomstats.geometry.full_rank_correlation_matrices import (
 )
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
 from geomstats.test_cases.geometry.full_rank_correlation_matrices import (
-    CorrelationMatricesBundleTestCase,
-    FullRankCorrelationAffineQuotientMetricTestCase,
     FullRankCorrelationMatricesTestCase,
 )
 from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
@@ -59,7 +58,7 @@ def bundles(request):
 
 @pytest.mark.usefixtures("bundles")
 class TestCorrelationMatricesBundle(
-    CorrelationMatricesBundleTestCase, metaclass=DataBasedParametrizer
+    FiberBundleTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = CorrelationMatricesBundleTestData()
 
@@ -79,7 +78,7 @@ def affine_quotient_equipped_spaces(request):
 
 @pytest.mark.usefixtures("affine_quotient_equipped_spaces")
 class TestFullRankCorrelationAffineQuotientMetric(
-    FullRankCorrelationAffineQuotientMetricTestCase, metaclass=DataBasedParametrizer
+    QuotientMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = FullRankCorrelationAffineQuotientMetricTestData()
 

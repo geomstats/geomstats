@@ -50,11 +50,7 @@ class HypersphereCoordsTransformTestData(TestData):
         return self.generate_random_data()
 
 
-class _HypersphereMixinsTestData:
-    pass
-
-
-class HypersphereExtrinsicTestData(_HypersphereMixinsTestData, LevelSetTestData):
+class HypersphereExtrinsicTestData(LevelSetTestData):
     trials = 2
     tolerances = {
         "random_von_mises_fisher_sample_mean": {"atol": 1e-2},
@@ -144,7 +140,7 @@ class HypersphereExtrinsicTestData(_HypersphereMixinsTestData, LevelSetTestData)
         return self.generate_tests(data)
 
 
-class HypersphereIntrinsicTestData(_HypersphereMixinsTestData, ManifoldTestData):
+class HypersphereIntrinsicTestData(ManifoldTestData):
     skips = (
         "to_tangent_vec",
         "to_tangent_is_tangent",

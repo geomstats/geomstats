@@ -10,9 +10,9 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 )
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
 from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
     CholeskyMetricTestCase,
-    InvariantPositiveLowerTriangularMatricesMetricTestCase,
     PositiveLowerTriangularMatricesTestCase,
 )
 from tests2.tests_geomstats.test_geometry.data.positive_lower_triangular_matrices import (
@@ -88,7 +88,7 @@ def spaces_with_invariant(request):
 
 @pytest.mark.usefixtures("spaces_with_invariant")
 class TestInvariantPositiveLowerTriangularMatricesMetric(
-    InvariantPositiveLowerTriangularMatricesMetricTestCase,
+    InvariantMetricMatrixTestCase,
     metaclass=DataBasedParametrizer,
 ):
     testing_data = InvariantPositiveLowerTriangularMatricesMetricTestData()

@@ -7,10 +7,8 @@ from geomstats.geometry.product_positive_reals_and_poincare_disks import (
     ProductPositiveRealsAndComplexPoincareDisksMetric,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.product_positive_reals_and_poincare_disks import (
-    ProductPositiveRealsAndComplexPoincareDisksMetricTestCase,
-    ProductPositiveRealsAndComplexPoincareDisksTestCase,
-)
+from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from tests2.tests_geomstats.test_geometry.data.product_positive_reals_and_poincare_disks import (
     ProductPositiveRealsAndComplexPoincareDisksMetricTestData,
     ProductPositiveRealsAndComplexPoincareDisksTestData,
@@ -32,7 +30,7 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestProductPositiveRealsAndComplexPoincareDisks(
-    ProductPositiveRealsAndComplexPoincareDisksTestCase, metaclass=DataBasedParametrizer
+    ProductManifoldTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = ProductPositiveRealsAndComplexPoincareDisksTestData()
 
@@ -53,7 +51,7 @@ def equipped_spaces(request):
 
 @pytest.mark.usefixtures("equipped_spaces")
 class TestProductPositiveRealsAndComplexPoincareDisksMetric(
-    ProductPositiveRealsAndComplexPoincareDisksMetricTestCase,
+    RiemannianMetricTestCase,
     metaclass=DataBasedParametrizer,
 ):
     testing_data = ProductPositiveRealsAndComplexPoincareDisksMetricTestData()

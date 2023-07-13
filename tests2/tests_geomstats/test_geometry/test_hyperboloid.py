@@ -4,7 +4,7 @@ import pytest
 
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.hyperboloid import HyperboloidTestCase
+from geomstats.test_cases.geometry.base import LevelSetTestCase
 
 from .data.hyperboloid import HyperboloidTestData
 
@@ -21,5 +21,5 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestHyperboloid(HyperboloidTestCase, metaclass=DataBasedParametrizer):
+class TestHyperboloid(LevelSetTestCase, metaclass=DataBasedParametrizer):
     testing_data = HyperboloidTestData()

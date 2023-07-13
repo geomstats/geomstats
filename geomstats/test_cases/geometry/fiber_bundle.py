@@ -493,7 +493,3 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle):
     @staticmethod
     def lift(point):
         return gs.linalg.cholesky(point)
-
-
-class GeneralLinearBuresWassersteinBundleTestCase(FiberBundleTestCase):
-    pass

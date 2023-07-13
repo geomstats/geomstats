@@ -4,10 +4,8 @@ import pytest
 
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.euclidean import (
-    EuclideanMetricTestCase,
-    EuclideanTestCase,
-)
+from geomstats.test_cases.geometry.euclidean import EuclideanTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.euclidean import (
     EuclideanMetric2TestData,
@@ -44,11 +42,11 @@ def equipped_spaces(request):
 
 
 @pytest.mark.usefixtures("equipped_spaces")
-class TestEuclideanMetric(EuclideanMetricTestCase, metaclass=DataBasedParametrizer):
+class TestEuclideanMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = EuclideanMetricTestData()
 
 
 @pytest.mark.smoke
-class TestEuclideanMetric2(EuclideanMetricTestCase, metaclass=DataBasedParametrizer):
+class TestEuclideanMetric2(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     space = Euclidean(dim=2)
     testing_data = EuclideanMetric2TestData()

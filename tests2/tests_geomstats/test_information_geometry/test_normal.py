@@ -13,15 +13,13 @@ from geomstats.information_geometry.normal import (
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.information_geometry.normal import (
-    CenteredNormalDistributionsTestCase,
-    CenteredNormalMetricTestCase,
-    DiagonalNormalDistributionsTestCase,
-    DiagonalNormalMetricTestCase,
-    GeneralNormalDistributionsTestCase,
-    GeneralNormalMetricTestCase,
-    UnivariateNormalDistributionsTestCase,
-    UnivariateNormalMetricTestCase,
+from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.manifold import ManifoldTestCase
+from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.spd_matrices import SPDMatricesTestCase
+from geomstats.test_cases.information_geometry.base import (
+    InformationManifoldMixinTestCase,
 )
 from tests2.tests_geomstats.test_information_geometry.data.normal import (
     CenteredNormalDistributionsTestData,
@@ -36,14 +34,14 @@ from tests2.tests_geomstats.test_information_geometry.data.normal import (
 
 
 class TestUnivariateNormalDistributions(
-    UnivariateNormalDistributionsTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase, OpenSetTestCase, metaclass=DataBasedParametrizer
 ):
     space = UnivariateNormalDistributions(equip=False)
     testing_data = UnivariateNormalDistributionsTestData()
 
 
 class TestUnivariateNormalMetric(
-    UnivariateNormalMetricTestCase, metaclass=DataBasedParametrizer
+    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
 ):
     space = UnivariateNormalDistributions(equip=False)
     space.equip_with_metric(UnivariateNormalMetric)
@@ -69,7 +67,9 @@ def centered_spaces(request):
 
 @pytest.mark.usefixtures("centered_spaces")
 class TestCenteredNormalDistributions(
-    CenteredNormalDistributionsTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase,
+    SPDMatricesTestCase,
+    metaclass=DataBasedParametrizer,
 ):
     testing_data = CenteredNormalDistributionsTestData()
 
@@ -90,7 +90,7 @@ def equipped_centered_spaces(request):
 
 @pytest.mark.usefixtures("equipped_centered_spaces")
 class TestCenteredNormalMetric(
-    CenteredNormalMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = CenteredNormalMetricTestData()
 
@@ -110,7 +110,7 @@ def diagonal_spaces(request):
 
 @pytest.mark.usefixtures("diagonal_spaces")
 class TestDiagonalNormalDistributions(
-    DiagonalNormalDistributionsTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase, OpenSetTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = DiagonalNormalDistributionsTestData()
 
@@ -133,7 +133,7 @@ def equipped_diagonal_spaces(request):
 
 @pytest.mark.usefixtures("equipped_diagonal_spaces")
 class TestDiagonalNormalMetric(
-    DiagonalNormalMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = DiagonalNormalMetricTestData()
 
@@ -153,7 +153,7 @@ def general_spaces(request):
 
 @pytest.mark.usefixtures("general_spaces")
 class TestGeneralNormalDistributions(
-    GeneralNormalDistributionsTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase, ManifoldTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = GeneralNormalDistributionsTestData()
 
@@ -172,7 +172,7 @@ def equipped_general_spaces(request):
 @pytest.mark.skip
 @pytest.mark.usefixtures("equipped_general_spaces")
 class TestGeneralNormalMetric(
-    GeneralNormalMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = GeneralNormalMetricTestData()
 

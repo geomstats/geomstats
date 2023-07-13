@@ -10,16 +10,8 @@ from geomstats.geometry.special_euclidean import (
 from geomstats.test.random import LieGroupVectorRandomDataGenerator
 from geomstats.test.test_case import assert_allclose
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.base import (
-    LevelSetTestCase,
-    _ProjectionTestCaseMixins,
-)
-from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
-from geomstats.test_cases.geometry.lie_algebra import MatrixLieAlgebraTestCase
-from geomstats.test_cases.geometry.lie_group import (
-    LieGroupTestCase,
-    MatrixLieGroupTestCase,
-)
+from geomstats.test_cases.geometry.base import _ProjectionTestCaseMixins
+from geomstats.test_cases.geometry.lie_group import LieGroupTestCase
 
 
 def homogeneous_representation_test_case(
@@ -56,10 +48,6 @@ def homogeneous_representation_vec_test_case(n, n_reps, atol):
     )
     for datum in vec_data:
         homogeneous_representation_test_case(**datum)
-
-
-class SpecialEuclideanMatricesTestCase(MatrixLieGroupTestCase, LevelSetTestCase):
-    pass
 
 
 class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCase):
@@ -139,11 +127,3 @@ class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCas
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
-
-
-class SpecialEuclideanMatrixLieAlgebraTestCase(MatrixLieAlgebraTestCase):
-    pass
-
-
-class SpecialEuclideanMatrixCanonicalLeftMetricTestCase(InvariantMetricMatrixTestCase):
-    pass

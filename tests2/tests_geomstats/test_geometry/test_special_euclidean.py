@@ -10,10 +10,11 @@ from geomstats.geometry.special_euclidean import (
     _SpecialEuclideanMatrices,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.base import LevelSetTestCase
+from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
+from geomstats.test_cases.geometry.lie_algebra import MatrixLieAlgebraTestCase
+from geomstats.test_cases.geometry.lie_group import MatrixLieGroupTestCase
 from geomstats.test_cases.geometry.special_euclidean import (
-    SpecialEuclideanMatricesTestCase,
-    SpecialEuclideanMatrixCanonicalLeftMetricTestCase,
-    SpecialEuclideanMatrixLieAlgebraTestCase,
     SpecialEuclideanVectorsTestCase,
     homogeneous_representation_test_case,
     homogeneous_representation_vec_test_case,
@@ -58,7 +59,7 @@ def spaces_mlg(request):
 
 @pytest.mark.usefixtures("spaces_mlg")
 class TestSpecialEuclideanMatrices(
-    SpecialEuclideanMatricesTestCase, metaclass=DataBasedParametrizer
+    MatrixLieGroupTestCase, LevelSetTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SpecialEuclideanMatricesTestData()
 
@@ -94,7 +95,7 @@ def spaces_mla(request):
 
 @pytest.mark.usefixtures("spaces_mla")
 class TestSpecialEuclideanMatrixLieAlgebra(
-    SpecialEuclideanMatrixLieAlgebraTestCase, metaclass=DataBasedParametrizer
+    MatrixLieAlgebraTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SpecialEuclideanMatrixLieAlgebraTestData()
 
@@ -107,7 +108,7 @@ def test_dim_mla(n, expected):
 
 @pytest.mark.smoke
 class TestSpecialEuclideanMatrixLieAlgebra2(
-    SpecialEuclideanMatrixLieAlgebraTestCase, metaclass=DataBasedParametrizer
+    MatrixLieAlgebraTestCase, metaclass=DataBasedParametrizer
 ):
     space = SpecialEuclideanMatrixLieAlgebra(n=2)
     testing_data = SpecialEuclideanMatrixLieAlgebra2TestData()
@@ -126,6 +127,6 @@ def equipped_SE_matrix_groups(request):
 
 @pytest.mark.usefixtures("equipped_SE_matrix_groups")
 class TestSpecialEuclideanMatrixCanonicalLeftMetric(
-    SpecialEuclideanMatrixCanonicalLeftMetricTestCase, metaclass=DataBasedParametrizer
+    InvariantMetricMatrixTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SpecialEuclideanMatrixCanonicalLeftMetricTestData()

@@ -1,16 +1,8 @@
 from geomstats.test.test_case import TestCase
-from geomstats.test_cases.geometry.base import (
-    MatrixVectorSpaceTestCaseMixins,
-    VectorSpaceTestCase,
-)
 
 # TODO: mixins with MatrixVectorSpaces?
 # TODO: use `self.space.ndim` to control vector dimension
 # TODO: check if from vector gives same order as matrix
-
-
-class SymmetricMatricesTestCase(MatrixVectorSpaceTestCaseMixins, VectorSpaceTestCase):
-    pass
 
 
 class SymmetricMatricesOpsTestCase(TestCase):

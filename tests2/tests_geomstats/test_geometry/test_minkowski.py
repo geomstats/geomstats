@@ -4,7 +4,7 @@ import pytest
 
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.minkowski import MinkowskiTestCase
+from geomstats.test_cases.geometry.euclidean import EuclideanTestCase
 
 from .data.minkowski import MinkowskiTestData
 
@@ -21,6 +21,6 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestMinkowski(MinkowskiTestCase, metaclass=DataBasedParametrizer):
+class TestMinkowski(EuclideanTestCase, metaclass=DataBasedParametrizer):
     # bare minimum testing as Euclidean covers all cases
     testing_data = MinkowskiTestData()

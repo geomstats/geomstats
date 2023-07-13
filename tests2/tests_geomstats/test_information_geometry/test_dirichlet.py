@@ -8,10 +8,11 @@ from geomstats.information_geometry.dirichlet import (
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.information_geometry.dirichlet import (
-    DirichletDistributionsTestCase,
-    DirichletMetricTestCase,
+from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.information_geometry.base import (
+    InformationManifoldMixinTestCase,
 )
+from geomstats.test_cases.information_geometry.dirichlet import DirichletMetricTestCase
 from tests2.tests_geomstats.test_information_geometry.data.dirichlet import (
     DirichletDistributionsTestData,
     DirichletMetricTestData,
@@ -31,7 +32,7 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestDirichletDistributions(
-    DirichletDistributionsTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase, OpenSetTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = DirichletDistributionsTestData()
 

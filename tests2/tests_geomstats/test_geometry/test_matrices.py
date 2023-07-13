@@ -4,10 +4,8 @@ import pytest
 
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.matrices import (
-    MatricesMetricTestCase,
-    MatricesTestCase,
-)
+from geomstats.test_cases.geometry.base import VectorSpaceTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.matrices import MatricesMetricTestData, MatricesTestData
 
@@ -25,7 +23,7 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestMatrices(MatricesTestCase, metaclass=DataBasedParametrizer):
+class TestMatrices(VectorSpaceTestCase, metaclass=DataBasedParametrizer):
     testing_data = MatricesTestData()
 
 
@@ -44,5 +42,5 @@ def equipped_spaces(request):
 
 
 @pytest.mark.usefixtures("equipped_spaces")
-class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
+class TestMatricesMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = MatricesMetricTestData()

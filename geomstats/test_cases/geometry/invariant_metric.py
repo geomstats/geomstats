@@ -443,7 +443,3 @@ class InvariantMetricVectorTestCase(_InvariantMetricTestCaseMixins):
         tangent_vec_ = self.space.metric.log_from_identity(end_point)
 
         self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
-
-
-class BiInvariantMetricTestCase(InvariantMetricVectorTestCase):
-    pass

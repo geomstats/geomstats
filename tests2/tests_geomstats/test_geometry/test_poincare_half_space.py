@@ -7,10 +7,8 @@ from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpaceMetric,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.poincare_half_space import (
-    PoincareHalfSpaceMetricTestCase,
-    PoincareHalfSpaceTestCase,
-)
+from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from tests2.tests_geomstats.test_geometry.data.poincare_half_space import (
     PoincareHalfSpaceMetricTestData,
 )
@@ -34,14 +32,12 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestPoincareHalfSpace(PoincareHalfSpaceTestCase, metaclass=DataBasedParametrizer):
+class TestPoincareHalfSpace(OpenSetTestCase, metaclass=DataBasedParametrizer):
     testing_data = PoincareHalfSpaceTestData()
 
 
 @pytest.mark.smoke
-class TestPoincareHalfSpace2(
-    PoincareHalfSpaceTestCase, metaclass=DataBasedParametrizer
-):
+class TestPoincareHalfSpace2(OpenSetTestCase, metaclass=DataBasedParametrizer):
     space = PoincareHalfSpace(dim=2, equip=False)
     testing_data = PoincareHalfSpace2TestData()
 
@@ -60,14 +56,14 @@ def equipped_spaces(request):
 
 @pytest.mark.usefixtures("equipped_spaces")
 class TestPoincareHalfSpaceMetric(
-    PoincareHalfSpaceMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = PoincareHalfSpaceMetricTestData()
 
 
 @pytest.mark.smoke
 class TestPoincareHalfSpaceMetric2(
-    PoincareHalfSpaceMetricTestCase, metaclass=DataBasedParametrizer
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     space = PoincareHalfSpace(dim=2)
     testing_data = PoincareHalfSpaceMetric2TestData()
