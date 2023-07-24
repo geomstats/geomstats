@@ -1,4 +1,4 @@
-from ._dispatch import _common
+from ._dispatch import BACKEND_NAME, _common
 from ._dispatch import numpy as _np
 
 _is_iterable = _common._is_iterable
@@ -415,6 +415,8 @@ def scatter_add(input, dim, index, src):
     if dim == 1:
         for j in range(len(input)):
             for i, val in zip(index[j], src[j]):
-                input[j, i] += val
+                if not isinstance(val, _np.float64) and BACKEND_NAME == "autograd":
+                    val = float(val._value)
+                input[j, i] += float(val)
         return input
     raise NotImplementedError

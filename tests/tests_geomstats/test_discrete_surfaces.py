@@ -178,25 +178,25 @@ class TestDiscreteSurfaces(ManifoldTestCase, metaclass=Parametrizer):
 
 class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     skip_all = not (autograd_backend() or pytorch_backend())
-    skip_test_exp_shape = True
-    skip_test_log_shape = True
-    skip_test_exp_geodesic_ivp = True
+    skip_test_exp_shape = autograd_backend()
+    skip_test_log_shape = autograd_backend()
     skip_test_parallel_transport_ivp_is_isometry = True
     skip_test_parallel_transport_bvp_is_isometry = True
     skip_test_exp_after_log = True
-    skip_test_exp_belongs = True
-    skip_test_geodesic_bvp_belongs = True
     skip_test_exp_ladder_parallel_transport = True
     skip_test_log_after_exp = True
-    skip_test_log_is_tangent = True
-    skip_test_dist_is_norm_of_log = True
-    skip_test_dist_is_positive = True
+    skip_test_dist_is_positive = autograd_backend()
+    skip_test_dist_point_to_itself_is_zero = autograd_backend()
+    skip_test_exp_belongs = autograd_backend()
+    skip_test_exp_geodesic_ivp = autograd_backend()
+    skip_test_geodesic_bvp_belongs = autograd_backend()
+    skip_test_geodesic_ivp_belongs = autograd_backend()
+    skip_test_log_is_tangent = autograd_backend()
+    skip_test_squared_dist_is_positive = autograd_backend()
     skip_test_dist_is_symmetric = True
-    skip_test_dist_point_to_itself_is_zero = True
+    skip_test_dist_is_norm_of_log = True
     skip_test_triangle_inequality_of_dist = True
     skip_test_squared_dist_is_symmetric = True
-    skip_test_squared_dist_is_positive = True
-    skip_test_geodesic_ivp_belongs = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
     skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
     skip_test_covariant_riemann_tensor_bianchi_identity = True
@@ -217,14 +217,26 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         ----------
         space : DiscreteSurfaces
             Space of discrete surfaces associated with the ElasticMetric.
+        a0, a1, b1, c1, d1, a2 : floats
+            Parameters of the ElasticMetric.
         path : array-like, shape=[n_time_steps, n_vertices, 3]
             Path in the space of discrete surfaces.
         atol : float
             Absolute tolerance to test this property.
         """
+        n_times = len(path)
         space.equip_with_metric(self.Metric, a0=a0, a1=a1, b1=b1, c1=c1, d1=d1, a2=a2)
 
         energy = space.metric.path_energy_per_time(path)
+
+        self.assertAllEqual(energy.shape, (n_times - 1, 1))
+        result = gs.all(energy > -1 * atol)
+        self.assertTrue(result)
+
+        expected_shape = (2, n_times - 1, 1)
+        path = gs.array([path, path])
+        energy = space.metric.path_energy_per_time(path)
+        self.assertAllEqual(energy.shape, expected_shape)
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)
 
@@ -233,8 +245,10 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
         Parameters
         ----------
-        metric_args : tuple
-            Arguments to pass to constructor of the metric.
+        space : DiscreteSurfaces
+            Space of discrete surfaces associated with the ElasticMetric.
+        a0, a1, b1, c1, d1, a2 : floats
+            Parameters of the ElasticMetric.
         path : array-like, shape=[n_time_steps, n_vertices, 3]
             Path in the space of discrete surfaces.
         atol : float
@@ -243,5 +257,12 @@ class TestElasticMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         space.equip_with_metric(self.Metric, a0=a0, a1=a1, b1=b1, c1=c1, d1=d1, a2=a2)
 
         energy = space.metric.path_energy(path)
+        self.assertAllEqual(energy.shape, ())
+        result = gs.all(energy > -1 * atol)
+        self.assertTrue(result)
+
+        path = gs.array([path, path])
+        energy = space.metric.path_energy(path)
+        self.assertAllEqual(energy.shape, (2,))
         result = gs.all(energy > -1 * atol)
         self.assertTrue(result)
