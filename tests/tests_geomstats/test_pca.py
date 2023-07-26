@@ -117,8 +117,9 @@ class TestTangentPCA(tests.conftest.TestCase):
         class AlmostEuclideanDimTwo(VectorSpace):
             """Class for the almost Euclidean space of dimension 2.
 
-            This manifold almost corresponds to the Euclidean space of dimension 2:
-            the Euclidean metric is modified to give more weight to the second axis.
+            This manifold almost corresponds to the Euclidean space
+            of dimension 2: the Euclidean metric is modified to give
+            more weight to the second axis.
 
             Parameters
             ----------
@@ -152,30 +153,13 @@ class TestTangentPCA(tests.conftest.TestCase):
                 """Create the canonical basis."""
                 return gs.eye(2)
 
-            def exp(self, tangent_vec, base_point):
-                """Compute the group exponential, which is simply the addition.
-
-                Parameters
-                ----------
-                tangent_vec : array-like, shape=[..., n]
-                    Tangent vector at base point.
-                base_point : array-like, shape=[..., n]
-                    Point from which the exponential is computed.
-
-                Returns
-                -------
-                point : array-like, shape=[..., n]
-                    Group exponential.
-                """
-                return tangent_vec + base_point
-
         class AlmostEuclideanDimTwoMetric(RiemannianMetric):
             """Class for the almost Euclidean metric in dimension 2.
 
             It almost corresponds to the Euclidean space of dimension 2:
-            the Euclidean metric is modified to give more weight to the second axis.
-            The infinitesimal metric element has the following expression:
-            ds^2 = dx1^2 + 10000 dx2^2
+            the Euclidean metric is modified to give more weight to the
+            second axis. The infinitesimal metric element has the
+            following expression: ds^2 = dx1^2 + 10000 dx2^2
             """
 
             def metric_matrix(self, base_point=None):
@@ -197,7 +181,8 @@ class TestTangentPCA(tests.conftest.TestCase):
                 mat[1, 1] = 10000
                 return repeat_out(self._space, mat, base_point, out_shape=(2, 2))
 
-            def exp(self, tangent_vec, base_point, **kwargs):
+            @staticmethod
+            def exp(tangent_vec, base_point, **kwargs):
                 """Compute exp map of a base point in tangent vector direction.
 
                 The Riemannian exponential is vector addition in the Euclidean space.
@@ -216,7 +201,8 @@ class TestTangentPCA(tests.conftest.TestCase):
                 """
                 return base_point + tangent_vec
 
-            def log(self, point, base_point, **kwargs):
+            @staticmethod
+            def log(point, base_point, **kwargs):
                 """Compute log map using a base point and other point.
 
                 The Riemannian logarithm is the subtraction in the Euclidean space.
@@ -246,7 +232,4 @@ class TestTangentPCA(tests.conftest.TestCase):
         variance_axis_2 = almost_euclidean_dim_two.metric.squared_dist(mean, point_b)
         assert variance_axis_2 >= variance_axis_1
         axis_1 = gs.array([1, 0])
-        axis_2 = gs.array([0, 1])
-        """The tangent PCA return axis_2 as the principal axis since it is the axis which 
-        corresponds to the larger variance. It is returning axis_1 instead."""
         assert gs.all(tpca.components_ == axis_1)
