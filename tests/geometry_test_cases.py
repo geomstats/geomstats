@@ -1,6 +1,5 @@
 """Core parametrizer classes for Tests."""
 
-import math
 from functools import reduce
 
 import pytest
@@ -1613,7 +1612,16 @@ class PullbackMetricTestCase(RiemannianMetricTestCase):
         self.assertAllClose(result, expected, rtol, atol)
 
 
-class PullbackDiffeoMetricTestCase(TestCase):
+class PullbackDiffeoMetricTestCase(RiemannianMetricTestCase):
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
+
     @property
     def Metric(self):
         return self.testing_data.Metric
@@ -1696,41 +1704,6 @@ class PullbackDiffeoMetricTestCase(TestCase):
             Absolute tolerance to test this property.
         """
         # Not yet implemented due to need for local basis implementation
-
-    def test_dist_vectorization(self, space, n_samples):
-        space.equip_with_metric()
-        point_a = space.random_point()
-        point_a = gs.broadcast_to(point_a, (n_samples,) + point_a.shape)
-        point_b = space.random_point()
-        point_b = gs.broadcast_to(point_b, (n_samples,) + point_b.shape)
-
-        results = space.metric.dist(point_a, point_b)
-        result = results[0]
-        expected = gs.broadcast_to(result, n_samples)
-
-        self.assertAllClose(results, expected)
-
-    def test_geodesic(self, space):
-        space.equip_with_metric()
-        point_a = space.random_point()
-        point_b = space.random_point()
-
-        point = space.metric.geodesic(point_a, point_b)(1 / 2)
-        result = math.prod(point.shape)
-        expected = math.prod(space.shape)
-        self.assertAllClose(result, expected)
-
-    def test_geodesic_vectorization(self, space, n_samples):
-        space.equip_with_metric()
-        point_a = space.random_point()
-        point_b = space.random_point()
-        times = gs.broadcast_to(1 / 2, n_samples)
-
-        results = space.metric.geodesic(point_a, point_b)(times)
-        result = results[0]
-        expected = gs.broadcast_to(result, (n_samples,) + result.shape)
-
-        self.assertAllClose(results, expected)
 
 
 class InvariantMetricTestCase(RiemannianMetricTestCase):

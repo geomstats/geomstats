@@ -492,11 +492,11 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         geodesic : callable
             Geodesic between point_a and point_b.
         """
-        image_point_a = self.diffeomorphism(initial_point)
+        image_initial_point = self.diffeomorphism(initial_point)
         if end_point is None:
-            image_point_b = None
+            image_end_point = None
         else:
-            image_point_b = self.diffeomorphism(end_point)
+            image_end_point = self.diffeomorphism(end_point)
         if initial_tangent_vec is None:
             image_initial_tangent_vec = None
         else:
@@ -504,7 +504,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
                 initial_tangent_vec, initial_point
             )
         image_geodesic = self.embedding_space.metric.geodesic(
-            image_point_a, image_point_b, image_initial_tangent_vec
+            image_initial_point, image_end_point, image_initial_tangent_vec
         )
 
         def geod_function(t):
