@@ -208,17 +208,17 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
 
 class CircleAsSO2PullbackDiffeoMetricTestData(_RiemannianMetricTestData):
     Metric = CircleAsSO2Metric
+    metric_args_list = [{}]
+    shape_list = [(2,)]
     space_list = [Hypersphere(dim=1, equip=False)]
-    metric_args_list = []
-    n_points_a_list = []
-    n_points_b_list = []
-    n_points_list = []
-    shape_list = []
-    n_tangent_vecs_list = []
+    n_points_list = random.sample(range(1, 5), 4)
+    n_tangent_vecs_list = random.sample(range(1, 5), 4)
+    n_points_a_list = [3] * 4
+    n_points_b_list = [1]
+    alpha_list = [1] * 4
+    n_rungs_list = [1] * 4
+    scheme_list = ["pole"] * 4
     connection_args_list = []
-    n_rungs_list = []
-    alpha_list = []
-    scheme_list = []
 
     def diffeomorphism_is_reciprocal_test_data(self):
         smoke_data = [
