@@ -10,8 +10,8 @@ from geomstats.geometry.special_euclidean import (
 from geomstats.test.random import LieGroupVectorRandomDataGenerator
 from geomstats.test.test_case import assert_allclose
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.base import _ProjectionTestCaseMixins
 from geomstats.test_cases.geometry.lie_group import LieGroupTestCase
+from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
 
 
 def homogeneous_representation_test_case(
@@ -50,7 +50,7 @@ def homogeneous_representation_vec_test_case(n, n_reps, atol):
         homogeneous_representation_test_case(**datum)
 
 
-class SpecialEuclideanVectorsTestCase(_ProjectionTestCaseMixins, LieGroupTestCase):
+class SpecialEuclideanVectorsTestCase(ProjectionTestCaseMixins, LieGroupTestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = LieGroupVectorRandomDataGenerator(self.space)

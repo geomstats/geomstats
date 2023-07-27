@@ -2,17 +2,10 @@ from geomstats.test.data import TestData
 
 from .complex_manifold import ComplexManifoldTestData
 from .manifold import ManifoldTestData
+from .mixins import ProjectionMixinsTestData
 
 
-class _ProjectionMixinsTestData:
-    def projection_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def projection_belongs_test_data(self):
-        return self.generate_random_data()
-
-
-class _VectorSpaceMixinsTestData(_ProjectionMixinsTestData):
+class _VectorSpaceMixinsTestData(ProjectionMixinsTestData):
     def basis_cardinality_test_data(self):
         return None
 
@@ -57,7 +50,7 @@ class MatrixVectorSpaceMixinsTestData(TestData):
 ComplexMatrixVectorSpaceMixinsTestData = MatrixVectorSpaceMixinsTestData
 
 
-class LevelSetTestData(_ProjectionMixinsTestData, ManifoldTestData):
+class LevelSetTestData(ProjectionMixinsTestData, ManifoldTestData):
     def submersion_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -65,7 +58,7 @@ class LevelSetTestData(_ProjectionMixinsTestData, ManifoldTestData):
         return self.generate_vec_data()
 
 
-class _OpenSetMixinsTestData(_ProjectionMixinsTestData):
+class _OpenSetMixinsTestData(ProjectionMixinsTestData):
     def to_tangent_is_tangent_in_embedding_space_test_data(self):
         return self.generate_random_data()
 

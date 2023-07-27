@@ -3,10 +3,11 @@ import pytest
 import geomstats.backend as gs
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
+from geomstats.test_cases.geometry.mixins import GroupExpTestCaseMixins
 from geomstats.vectorization import repeat_point
 
 
-class _LieGroupTestCaseMixins:
+class _LieGroupTestCaseMixins(GroupExpTestCaseMixins):
     def test_compose(self, point_a, point_b, expected, atol):
         composed = self.space.compose(point_a, point_b)
         self.assertAllClose(composed, expected, atol=atol)
@@ -67,32 +68,6 @@ class _LieGroupTestCaseMixins:
 
         point_ = self.space.compose(self.space.identity, point)
         self.assertAllClose(point_, point, atol=atol)
-
-    def test_exp(self, tangent_vec, base_point, expected, atol):
-        point = self.space.exp(tangent_vec, base_point)
-        self.assertAllClose(point, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_exp_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.exp(tangent_vec, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec=tangent_vec,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec", "base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     def test_log(self, point, base_point, expected, atol):
         vec = self.space.log(point, base_point)
@@ -210,6 +185,9 @@ class _LieGroupTestCaseMixins:
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
+
+    def test_identity(self, expected, atol):
+        self.assertAllClose(self.space.identity, expected, atol=atol)
 
 
 class MatrixLieGroupTestCase(_LieGroupTestCaseMixins, ManifoldTestCase):

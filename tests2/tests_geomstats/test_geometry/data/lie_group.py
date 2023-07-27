@@ -1,7 +1,8 @@
 from .manifold import ManifoldTestData
+from .mixins import GroupExpMixinsTestData
 
 
-class _LieGroupMixinsTestData:
+class _LieGroupMixinsTestData(GroupExpMixinsTestData):
     def compose_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -13,9 +14,6 @@ class _LieGroupMixinsTestData:
 
     def compose_with_identity_is_point_test_data(self):
         return self.generate_random_data()
-
-    def exp_vec_test_data(self):
-        return self.generate_vec_data()
 
     def log_vec_test_data(self):
         return self.generate_vec_data()

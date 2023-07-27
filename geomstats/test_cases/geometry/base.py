@@ -8,6 +8,7 @@ from geomstats.test.random import (
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.complex_manifold import ComplexManifoldTestCase
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
+from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
 from geomstats.vectorization import get_batch_shape
 
 # TODO: vec with tangent_vecs may not be being tested sufficiently well
@@ -22,45 +23,7 @@ from geomstats.vectorization import get_batch_shape
 # TODO: review "passes" in tests (maybe not implemented error?)
 
 
-class _ProjectionTestCaseMixins:
-    # TODO: should projection be part of manifold? (not only in tests)
-
-    def test_projection(self, point, expected, atol):
-        proj_point = self.space.projection(point)
-        self.assertAllClose(proj_point, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_projection_vec(self, n_reps, atol):
-        point = self.data_generator.point_to_project()
-        expected = self.space.projection(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.random
-    def test_projection_belongs(self, n_points, atol):
-        """Check projection belongs to manifold.
-
-        Parameters
-        ----------
-        n_points : int
-            Number of random points to generate.
-        atol : float
-            Absolute tolerance.
-        """
-        point = self.data_generator.point_to_project(n_points)
-        proj_point = self.space.projection(point)
-        expected = gs.ones(n_points, dtype=bool)
-
-        self.test_belongs(proj_point, expected, atol)
-
-
-class _VectorSpaceTestCaseMixins(_ProjectionTestCaseMixins):
+class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = VectorSpaceRandomDataGenerator(self.space)
@@ -222,7 +185,7 @@ class ComplexMatrixVectorSpaceTestCaseMixins(MatrixVectorSpaceTestCaseMixins):
         )
 
 
-class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
+class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
     # TODO: need to develop `intrinsic_after_extrinsic` and `extrinsic_after_intrinsic`
     # TODO: class to handle `extrinsinc-intrinsic` mixins?
 
@@ -291,7 +254,7 @@ class LevelSetTestCase(_ProjectionTestCaseMixins, ManifoldTestCase):
         self._test_vectorization(vec_data)
 
 
-class _OpenSetTestCaseMixins(_ProjectionTestCaseMixins):
+class _OpenSetTestCaseMixins(ProjectionTestCaseMixins):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)

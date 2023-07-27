@@ -1,10 +1,8 @@
 from .base import ComplexVectorSpaceTestData
+from .mixins import GroupExpMixinsTestData
 
 
-class HermitianTestData(ComplexVectorSpaceTestData):
-    def exp_vec_test_data(self):
-        return self.generate_vec_data()
-
+class HermitianTestData(GroupExpMixinsTestData, ComplexVectorSpaceTestData):
     def exp_random_test_data(self):
         return self.generate_random_data()
 

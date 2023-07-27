@@ -2,13 +2,11 @@ import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .base import VectorSpaceTestData
+from .mixins import GroupExpMixinsTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 
-class EuclideanTestData(VectorSpaceTestData):
-    def exp_vec_test_data(self):
-        return self.generate_vec_data()
-
+class EuclideanTestData(GroupExpMixinsTestData, VectorSpaceTestData):
     def exp_random_test_data(self):
         return self.generate_random_data()
 
