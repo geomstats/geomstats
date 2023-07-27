@@ -482,15 +482,15 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
 
         Parameters
         ----------
-        point_a : array-like, shape=[..., *shape]
-            Point a.
-        point_b : array-like, shape=[..., *shape]
-            Point b.
+        initial_point : array-like, shape=[..., *shape]
+            Initial Point.
+        end_point : array-like, shape=[..., *shape]
+            End Point.
 
         Returns
         -------
         geodesic : callable
-            Geodesic between point_a and point_b.
+            Geodesic between initial_point and end_point.
         """
         image_initial_point = self.diffeomorphism(initial_point)
         if end_point is None:
@@ -507,12 +507,12 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             image_initial_point, image_end_point, image_initial_tangent_vec
         )
 
-        def geod_function(t):
+        def path(t):
             image_point_t = image_geodesic(t)
             point_t = self.inverse_diffeomorphism(image_point_t)
             return point_t
 
-        return geod_function
+        return path
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         """Compute the curvature via diffeomorphic pullback.
