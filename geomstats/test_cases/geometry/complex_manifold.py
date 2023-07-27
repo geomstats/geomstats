@@ -6,9 +6,7 @@ from geomstats.test_cases.geometry.manifold import _ManifoldTestCaseMixins
 
 
 class ComplexManifoldTestCase(_ManifoldTestCaseMixins, TestCase):
-    # TODO: add random_point_is_complex
-    # TODO: check imaginary part of random_point
-
+    @pytest.mark.random
     @pytest.mark.type
     def test_random_point_is_complex(self, n_points):
         point = self.data_generator.random_point(n_points)

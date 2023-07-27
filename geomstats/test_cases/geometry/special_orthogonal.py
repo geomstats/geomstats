@@ -12,14 +12,12 @@ from geomstats.test.random import (
     get_random_quaternion,
 )
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.base import (
-    LevelSetTestCase,
-    _ProjectionTestCaseMixins,
-)
+from geomstats.test_cases.geometry.base import LevelSetTestCase
 from geomstats.test_cases.geometry.lie_group import (
     LieGroupTestCase,
     MatrixLieGroupTestCase,
 )
+from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
 
 # TODO: improve random generation
 
@@ -197,7 +195,7 @@ class SpecialOrthogonalMatricesTestCase(
 
 
 class SpecialOrthogonalVectorsTestCase(
-    _ProjectionTestCaseMixins, _SpecialOrthogonalTestCaseMixins, LieGroupTestCase
+    ProjectionTestCaseMixins, _SpecialOrthogonalTestCaseMixins, LieGroupTestCase
 ):
     # TODO: add test on projection matrix belongs?
     def setup_method(self):
@@ -622,3 +620,8 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
             angles, extrinsic=extrinsic, zyx=zyx
         )
         self.assertAllClose(rot_vec_, rot_vec, atol=atol)
+
+    def test_left_jacobian_translation_det(self, point, expected, atol):
+        jacobian = self.space.jacobian_translation(point=point, left=True)
+        result = gs.linalg.det(jacobian)
+        self.assertAllClose(result, expected, atol=atol)

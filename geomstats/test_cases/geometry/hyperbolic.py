@@ -6,6 +6,7 @@ from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.test_case import TestCase
 from geomstats.test.utils import PointTransformer
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class HyperbolicTransformer(PointTransformer):
@@ -176,3 +177,7 @@ class HyperbolicCoordsTransformTestCase(TestCase):
             point_other, to_coordinates_system, from_coordinates_system
         )
         self.assertAllClose(point_, point, atol=atol)
+
+
+class HyperbolicMetricTestCase(RiemannianMetricTestCase):
+    pass

@@ -1,12 +1,8 @@
 import geomstats.backend as gs
+from geomstats.geometry.matrices import Matrices
 from geomstats.test.data import TestData
 
-from .base import LevelSetTestData
 from .matrices import MatricesMetricTestData
-
-
-class GrassmannianTestData(LevelSetTestData):
-    pass
 
 
 class Grassmannian32TestData(TestData):
@@ -24,3 +20,30 @@ class Grassmannian32TestData(TestData):
 
 class GrassmannianCanonicalMetricTestData(MatricesMetricTestData):
     fail_for_not_implemented_errors = False
+
+
+class GrassmannianCanonicalMetric32TestData(TestData):
+    def exp_test_data(self):
+        p_xy = gs.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
+        p_yz = gs.array([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+        p_xz = gs.array([[1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
+
+        r_y = gs.array([[0.0, 0.0, 1.0], [0.0, 0.0, 0.0], [-1.0, 0.0, 0.0]])
+        r_z = gs.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+        pi_2 = gs.pi / 2
+
+        data = [
+            dict(
+                tangent_vec=Matrices.bracket(pi_2 * r_y, gs.array([p_xy, p_yz])),
+                base_point=gs.array([p_xy, p_yz]),
+                expected=gs.array([p_yz, p_xy]),
+            ),
+            dict(
+                tangent_vec=Matrices.bracket(
+                    pi_2 * gs.array([r_y, r_z]), gs.array([p_xy, p_yz])
+                ),
+                base_point=gs.array([p_xy, p_yz]),
+                expected=gs.array([p_yz, p_xz]),
+            ),
+        ]
+        return self.generate_tests(data)

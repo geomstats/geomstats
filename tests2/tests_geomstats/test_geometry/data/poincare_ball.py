@@ -49,7 +49,7 @@ class PoincareBall2MetricTestData(TestData):
             dict(
                 point_a=gs.array([0.5, 0.5]),
                 point_b=gs.array([0.5, -0.5]),
-                expected=2.887270927429199,
+                expected=gs.array(2.887270927429199),
             ),
             dict(
                 point_a=gs.array([0.1, 0.2]),
@@ -59,7 +59,7 @@ class PoincareBall2MetricTestData(TestData):
             dict(
                 point_a=gs.array([0.3, 0.4]),
                 point_b=gs.array([0.5, 0.5]),
-                expected=0.71497076,
+                expected=gs.array(0.71497076),
             ),
         ]
         return self.generate_tests(data)

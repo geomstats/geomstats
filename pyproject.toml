@@ -93,7 +93,7 @@ markers = [
     "type: checks output types.",
     "mathprop: mathematical properties tests.",
     "slow: for slow tests.",
-    "test: testing markers."
+    "redundant: redundant test."
 ]
 
 [tool.flake8]

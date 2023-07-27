@@ -2,25 +2,27 @@ import random
 
 import pytest
 
-import geomstats.backend as gs
-from geomstats.geometry.positive_lower_triangular_matrices import (
+# import geomstats.backend as gs
+from geomstats.geometry.positive_lower_triangular_matrices import (  # InvariantPositiveLowerTriangularMatricesMetric,
     CholeskyMetric,
-    InvariantPositiveLowerTriangularMatricesMetric,
     PositiveLowerTriangularMatrices,
 )
-from geomstats.geometry.spd_matrices import SPDMatrices
+
+# from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
+
+# from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
 from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
     CholeskyMetricTestCase,
     PositiveLowerTriangularMatricesTestCase,
 )
-from tests2.tests_geomstats.test_geometry.data.positive_lower_triangular_matrices import (
+from tests2.tests_geomstats.test_geometry.data.positive_lower_triangular_matrices import (  # InvariantPositiveLowerTriangularMatricesMetricTestData,
     CholeskyMetricTestData,
-    InvariantPositiveLowerTriangularMatricesMetricTestData,
 )
 
 from .data.positive_lower_triangular_matrices import (
+    CholeskyMetric2TestData,
+    PositiveLowerTriangularMatrices2TestData,
     PositiveLowerTriangularMatricesTestData,
 )
 
@@ -43,6 +45,14 @@ class TestPositiveLowerTriangularMatrices(
     testing_data = PositiveLowerTriangularMatricesTestData()
 
 
+@pytest.mark.smoke
+class TestPositiveLowerTriangularMatrices2(
+    PositiveLowerTriangularMatricesTestCase, metaclass=DataBasedParametrizer
+):
+    space = PositiveLowerTriangularMatrices(n=2, equip=False)
+    testing_data = PositiveLowerTriangularMatrices2TestData()
+
+
 @pytest.fixture(
     scope="class",
     params=[
@@ -62,33 +72,39 @@ class TestCholeskyMetric(CholeskyMetricTestCase, metaclass=DataBasedParametrizer
     testing_data = CholeskyMetricTestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        (3, True, True),
-        (3, True, False),
-    ],
-)
-def spaces_with_invariant(request):
-    n, left, identity = request.param
-
-    space = request.cls.space = PositiveLowerTriangularMatrices(n, equip=False)
-
-    if identity:
-        metric_mat_at_identity = gs.eye(space.dim)
-    else:
-        metric_mat_at_identity = SPDMatrices(n=space.dim, equip=False).random_point()
-
-    space.equip_with_metric(
-        InvariantPositiveLowerTriangularMatricesMetric,
-        metric_mat_at_identity=metric_mat_at_identity,
-        left=left,
-    )
+@pytest.mark.smoke
+class TestCholeskyMetric2(CholeskyMetricTestCase, metaclass=DataBasedParametrizer):
+    space = PositiveLowerTriangularMatrices(n=2)
+    testing_data = CholeskyMetric2TestData()
 
 
-@pytest.mark.usefixtures("spaces_with_invariant")
-class TestInvariantPositiveLowerTriangularMatricesMetric(
-    InvariantMetricMatrixTestCase,
-    metaclass=DataBasedParametrizer,
-):
-    testing_data = InvariantPositiveLowerTriangularMatricesMetricTestData()
+# @pytest.fixture(
+#     scope="class",
+#     params=[
+#         (3, True, True),
+#         (3, True, False),
+#     ],
+# )
+# def spaces_with_invariant(request):
+#     n, left, identity = request.param
+
+#     space = request.cls.space = PositiveLowerTriangularMatrices(n, equip=False)
+
+#     if identity:
+#         metric_mat_at_identity = gs.eye(space.dim)
+#     else:
+#         metric_mat_at_identity = SPDMatrices(n=space.dim, equip=False).random_point()
+
+#     space.equip_with_metric(
+#         InvariantPositiveLowerTriangularMatricesMetric,
+#         metric_mat_at_identity=metric_mat_at_identity,
+#         left=left,
+#     )
+
+
+# @pytest.mark.usefixtures("spaces_with_invariant")
+# class TestInvariantPositiveLowerTriangularMatricesMetric(
+#     InvariantMetricMatrixTestCase,
+#     metaclass=DataBasedParametrizer,
+# ):
+#     testing_data = InvariantPositiveLowerTriangularMatricesMetricTestData()

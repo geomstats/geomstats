@@ -6,7 +6,7 @@ from geomstats.test.random import get_random_times
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import LevelSetTestCase
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 from geomstats.vectorization import get_batch_shape
 
 
@@ -690,7 +690,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
         self.assertAllClose(nabla_x_a_y_a_x_y, nabla_x_a_y_a_x_y_qp, atol=atol)
 
 
-class KendallShapeMetricTestCase(RiemannianMetricTestCase):
+class KendallShapeMetricTestCase(QuotientMetricTestCase):
     def _cmp_points(self, point, point_, atol):
         dists = self.space.metric.dist(point, point_)
         batch_shape = get_batch_shape(self.space, point, point_)

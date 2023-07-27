@@ -11,14 +11,14 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import DiscreteCurvesRandomDataGenerator
-from geomstats.test_cases.geometry.base import _ProjectionTestCaseMixins
 from geomstats.test_cases.geometry.discrete_curves import (
     ClosedDiscreteCurvesTestCase,
     ShapeBundleRandomDataGenerator,
     SRVShapeBundleTestCase,
 )
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
+from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 
 from .data.discrete_curves import (
     ClosedDiscreteCurvesTestData,
@@ -46,7 +46,7 @@ def discrete_curves_spaces(request):
 
 @pytest.mark.usefixtures("discrete_curves_spaces")
 class TestDiscreteCurves(
-    _ProjectionTestCaseMixins, ManifoldTestCase, metaclass=DataBasedParametrizer
+    ProjectionTestCaseMixins, ManifoldTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = DiscreteCurvesTestData()
 
@@ -130,7 +130,7 @@ def spaces_with_quotient(request):
 
 @pytest.mark.skip
 @pytest.mark.usefixtures("spaces_with_quotient")
-class TestSRVQuotientMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+class TestSRVQuotientMetric(QuotientMetricTestCase, metaclass=DataBasedParametrizer):
     # TODO: failing. need to understand why
     testing_data = SRVQuotientMetricTestData()
 

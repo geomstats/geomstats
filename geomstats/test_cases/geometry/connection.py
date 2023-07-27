@@ -475,7 +475,7 @@ class ConnectionTestCase(TestCase):
         geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
         points = geod_func(time)
 
-        res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)))
+        res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)), atol=atol)
 
         expected_shape = (
             math.prod(get_batch_shape(self.space, initial_point)) * n_times,
@@ -507,11 +507,12 @@ class ConnectionTestCase(TestCase):
 
         points = geod_func(time)
 
-        res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)))
+        res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)), atol=atol)
 
         expected_shape = (
             math.prod(get_batch_shape(self.space, initial_point)) * n_times,
         )
+
         expected = gs.ones(expected_shape, dtype=bool)
         self.assertAllEqual(res, expected)
 

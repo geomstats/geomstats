@@ -4,10 +4,6 @@ from .riemannian_metric import (
 )
 
 
-class QuotientMetricTestData(RiemannianMetricTestData):
-    pass
-
-
 class SPDBuresWassersteinQuotientMetricCmpTestData(RiemannianMetricComparisonTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
@@ -18,3 +14,7 @@ class SPDBuresWassersteinQuotientMetricCmpTestData(RiemannianMetricComparisonTes
         "parallel_transport_ivp_random",
         "parallel_transport_bvp_random",
     )
+
+
+class QuotientMetricTestData(RiemannianMetricTestData):
+    pass

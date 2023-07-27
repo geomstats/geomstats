@@ -1,11 +1,39 @@
+import geomstats.backend as gs
+from geomstats.test.data import TestData
 from tests2.tests_geomstats.test_geometry.data.manifold import ManifoldTestData
 from tests2.tests_geomstats.test_geometry.data.riemannian_metric import (
     RiemannianMetricTestData,
 )
 
 
+def gaussian(x, mu, sig):
+    a = (x - mu) ** 2 / (2 * (sig**2))
+    b = 1 / (sig * (gs.sqrt(2 * gs.pi)))
+    f = b * gs.exp(-a)
+    l2_norm = gs.sqrt(gs.trapz(f**2, x))
+    f_sinf = f / l2_norm
+
+    return gs.array([f_sinf])
+
+
 class HilbertSphereTestData(ManifoldTestData):
     skips = ("not_belongs",)
+
+
+class HilbertSphereSmokeTestData(TestData):
+    def belongs_test_data(self):
+        domain = gs.linspace(0, 1, num=50)
+        points = gs.squeeze(
+            gs.array([gaussian(domain, a, 0.1) for a in gs.linspace(0.2, 0.8, 5)])
+        )
+
+        data = [
+            dict(point=gaussian(domain, 0.2, 0.1), expected=True),
+            dict(point=gs.sin(gs.linspace(-gs.pi, gs.pi, 50)), expected=False),
+            dict(point=points, expected=gs.ones(points.shape[0], dtype=bool)),
+        ]
+
+        return self.generate_tests(data)
 
 
 class HilbertSphereMetricTestData(RiemannianMetricTestData):

@@ -1,7 +1,7 @@
 from .base import LevelSetTestData
 from .fiber_bundle import FiberBundleTestData
+from .pullback_metric import PullbackDiffeoMetricTestData
 from .quotient_metric import QuotientMetricTestData
-from .spd_matrices import SPDMatricesTestData
 
 
 class FullRankCorrelationMatricesTestData(LevelSetTestData):
@@ -25,6 +25,9 @@ class CorrelationMatricesBundleTestData(FiberBundleTestData):
         "align_vec": {"atol": 1e-2},
     }
 
+    def horizontal_projection_is_horizontal_v2_test_data(self):
+        return self.generate_random_data()
+
 
 class FullRankCorrelationAffineQuotientMetricTestData(QuotientMetricTestData):
     trials = 3
@@ -42,7 +45,7 @@ class FullRankCorrelationAffineQuotientMetricTestData(QuotientMetricTestData):
     }
 
 
-class FullRankEuclideanCholeskyMetricTestData(QuotientMetricTestData):
+class FullRankEuclideanCholeskyMetricTestData(PullbackDiffeoMetricTestData):
     trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False

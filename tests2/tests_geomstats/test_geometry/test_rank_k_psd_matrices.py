@@ -11,13 +11,18 @@ from geomstats.geometry.rank_k_psd_matrices import (
     RankKPSDMatrices,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import RankKPSDMatricesRandomDataGenerator
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
-from geomstats.test_cases.geometry.rank_k_psd_matrices import RankKPSDMatricesTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.manifold import ManifoldTestCase
+from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
+from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 
 from .data.rank_k_psd_matrices import (
     BuresWassersteinBundleTestData,
+    PSD22BuresWassersteinMetricTestData,
+    PSD33BuresWassersteinMetricTestData,
     PSDBuresWassersteinMetricTestData,
+    RankKPSDMatrices32TestData,
     RankKPSDMatricesTestData,
 )
 
@@ -47,13 +52,23 @@ def _get_random_params():
 )
 def spaces(request):
     n, k = request.param
-    request.cls.space = RankKPSDMatrices(n=n, k=k, equip=False)
+    space = request.cls.space = RankKPSDMatrices(n=n, k=k, equip=False)
+
+    request.cls.data_generator = RankKPSDMatricesRandomDataGenerator(space)
 
 
 @pytest.mark.usefixtures("spaces")
-class TestRankKPSDMatrices(RankKPSDMatricesTestCase, metaclass=DataBasedParametrizer):
+class TestRankKPSDMatrices(
+    ProjectionTestCaseMixins, ManifoldTestCase, metaclass=DataBasedParametrizer
+):
     # TODO: fix to_tangent?
     testing_data = RankKPSDMatricesTestData()
+
+
+@pytest.mark.smoke
+class TestRankPSDMatrices32(ManifoldTestCase, metaclass=DataBasedParametrizer):
+    space = RankKPSDMatrices(n=3, k=2, equip=False)
+    testing_data = RankKPSDMatrices32TestData()
 
 
 @pytest.fixture(
@@ -99,6 +114,26 @@ def spaces_with_quotient_metric(request):
 
 @pytest.mark.usefixtures("spaces_with_quotient_metric")
 class TestPSDBuresWassersteinMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    QuotientMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = PSDBuresWassersteinMetricTestData()
+
+
+@pytest.mark.smoke
+class TestPSD22BuresWassersteinMetric(
+    QuotientMetricTestCase, metaclass=DataBasedParametrizer
+):
+    space = PSDMatrices(n=2, k=2, equip=False)
+    space.equip_with_metric(PSDBuresWassersteinMetric)
+
+    testing_data = PSD22BuresWassersteinMetricTestData()
+
+
+@pytest.mark.smoke
+class TestPSD33BuresWassersteinMetric(
+    QuotientMetricTestCase, metaclass=DataBasedParametrizer
+):
+    space = PSDMatrices(n=3, k=3, equip=False)
+    space.equip_with_metric(PSDBuresWassersteinMetric)
+
+    testing_data = PSD33BuresWassersteinMetricTestData()

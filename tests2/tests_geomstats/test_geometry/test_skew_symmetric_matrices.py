@@ -34,6 +34,7 @@ class TestSkewSymmetricMatrices(
     testing_data = SkewSymmetricMatricesTestData()
 
 
+@pytest.mark.smoke
 class TestSkewSymmetricMatrices2(
     SkewSymmetricMatricesTestCase, metaclass=DataBasedParametrizer
 ):
@@ -41,6 +42,7 @@ class TestSkewSymmetricMatrices2(
     testing_data = SkewSymmetricMatrices2TestData()
 
 
+@pytest.mark.smoke
 class TestSkewSymmetricMatrices3(
     SkewSymmetricMatricesTestCase, metaclass=DataBasedParametrizer
 ):

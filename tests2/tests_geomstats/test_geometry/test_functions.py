@@ -5,11 +5,12 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.functions import HilbertSphere, HilbertSphereMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.base import _ProjectionTestCaseMixins
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
+from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from tests2.tests_geomstats.test_geometry.data.functions import (
     HilbertSphereMetricTestData,
+    HilbertSphereSmokeTestData,
     HilbertSphereTestData,
 )
 
@@ -29,9 +30,15 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestHilbertSphere(
-    _ProjectionTestCaseMixins, ManifoldTestCase, metaclass=DataBasedParametrizer
+    ProjectionTestCaseMixins, ManifoldTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = HilbertSphereTestData()
+
+
+@pytest.mark.smoke
+class TestHilbertSphereSmoke(ManifoldTestCase, metaclass=DataBasedParametrizer):
+    space = HilbertSphere(gs.linspace(0, 1, num=50))
+    testing_data = HilbertSphereSmokeTestData()
 
 
 @pytest.fixture(

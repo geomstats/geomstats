@@ -87,3 +87,12 @@ class PoincareHalfSpaceMetric2TestData(TestData):
                 )
             )
         return self.generate_tests(data)
+
+    def exp_and_coordinates_tangent_test_data(self):
+        data = [
+            dict(
+                tangent_vec=gs.array([0.0, 1.0]),
+                base_point=gs.array([1.5, 2.3]),
+            )
+        ]
+        return self.generate_tests(data)

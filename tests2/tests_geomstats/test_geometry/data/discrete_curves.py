@@ -1,10 +1,11 @@
-from .base import LevelSetTestData, _ProjectionMixinsTestData
+from .base import LevelSetTestData
 from .fiber_bundle import FiberBundleTestData
 from .manifold import ManifoldTestData
+from .mixins import ProjectionMixinsTestData
 from .quotient_metric import QuotientMetricTestData
 
 
-class DiscreteCurvesTestData(_ProjectionMixinsTestData, ManifoldTestData):
+class DiscreteCurvesTestData(ProjectionMixinsTestData, ManifoldTestData):
     pass
 
 

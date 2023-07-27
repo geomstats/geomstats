@@ -14,8 +14,12 @@ from geomstats.test_cases.geometry.special_orthogonal import (
 )
 
 from .data.special_orthogonal import (
+    SpecialOrthogonal2VectorsSmokeTestData,
     SpecialOrthogonal2VectorsTestData,
+    SpecialOrthogonal3VectorsSmokeTestData,
     SpecialOrthogonal3VectorsTestData,
+    SpecialOrthogonalMatrices2TestData,
+    SpecialOrthogonalMatrices3TestData,
     SpecialOrthogonalMatricesTestData,
 )
 
@@ -28,7 +32,7 @@ from .data.special_orthogonal import (
     ],
 )
 def mat_spaces(request):
-    request.cls.space = _SpecialOrthogonalMatrices(n=request.param)
+    request.cls.space = _SpecialOrthogonalMatrices(n=request.param, equip=False)
 
 
 @pytest.mark.usefixtures("mat_spaces")
@@ -38,11 +42,35 @@ class TestSpecialOrthogonalMatrices(
     testing_data = SpecialOrthogonalMatricesTestData()
 
 
+@pytest.mark.smoke
+class TestSpecialOrthogonalMatrices2(
+    SpecialOrthogonalMatricesTestCase, metaclass=DataBasedParametrizer
+):
+    space = _SpecialOrthogonalMatrices(n=2)
+    testing_data = SpecialOrthogonalMatrices2TestData()
+
+
+@pytest.mark.smoke
+class TestSpecialOrthogonalMatrices3(
+    SpecialOrthogonalMatricesTestCase, metaclass=DataBasedParametrizer
+):
+    space = _SpecialOrthogonalMatrices(n=3)
+    testing_data = SpecialOrthogonalMatrices3TestData()
+
+
 class TestSpecialOrthogonal2Vectors(
     SpecialOrthogonalVectorsTestCase, metaclass=DataBasedParametrizer
 ):
-    space = SpecialOrthogonal(2, point_type="vector")
+    space = SpecialOrthogonal(2, point_type="vector", equip=False)
     testing_data = SpecialOrthogonal2VectorsTestData()
+
+
+@pytest.mark.smoke
+class TestSpecialOrthogonalVectors2Smoke(
+    SpecialOrthogonalVectorsTestCase, metaclass=DataBasedParametrizer
+):
+    space = SpecialOrthogonal(2, point_type="vector", equip=False)
+    testing_data = SpecialOrthogonal2VectorsSmokeTestData()
 
 
 class TestSpecialOrthogonal3Vectors(
@@ -50,3 +78,11 @@ class TestSpecialOrthogonal3Vectors(
 ):
     space = SpecialOrthogonal(3, point_type="vector")
     testing_data = SpecialOrthogonal3VectorsTestData()
+
+
+@pytest.mark.smoke
+class TestSpecialOrthogonalVectors3Smoke(
+    SpecialOrthogonal3VectorsTestCase, metaclass=DataBasedParametrizer
+):
+    space = SpecialOrthogonal(3, point_type="vector", equip=False)
+    testing_data = SpecialOrthogonal3VectorsSmokeTestData()

@@ -67,3 +67,7 @@ class TestPoincareHalfSpaceMetric2(
 ):
     space = PoincareHalfSpace(dim=2)
     testing_data = PoincareHalfSpaceMetric2TestData()
+
+    def test_exp_and_coordinates_tangent(self, tangent_vec, base_point):
+        end_point = self.space.metric.exp(tangent_vec, base_point)
+        self.assertAllClose(base_point[0], end_point[0])
