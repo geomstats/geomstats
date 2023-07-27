@@ -477,6 +477,43 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_point_b = self.diffeomorphism(point_b)
         return self.embedding_space.metric.dist(image_point_a, image_point_b, **kwargs)
 
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Compute the geodesic via diffeomorphic pullback.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., *shape]
+            Initial Point.
+        end_point : array-like, shape=[..., *shape]
+            End Point.
+
+        Returns
+        -------
+        geodesic : callable
+            Geodesic between initial_point and end_point.
+        """
+        image_initial_point = self.diffeomorphism(initial_point)
+        if end_point is None:
+            image_end_point = None
+        else:
+            image_end_point = self.diffeomorphism(end_point)
+        if initial_tangent_vec is None:
+            image_initial_tangent_vec = None
+        else:
+            image_initial_tangent_vec = self.tangent_diffeomorphism(
+                initial_tangent_vec, initial_point
+            )
+        image_geodesic = self.embedding_space.metric.geodesic(
+            image_initial_point, image_end_point, image_initial_tangent_vec
+        )
+
+        def path(t):
+            image_point_t = image_geodesic(t)
+            point_t = self.inverse_diffeomorphism(image_point_t)
+            return point_t
+
+        return path
+
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         """Compute the curvature via diffeomorphic pullback.
 

@@ -6,7 +6,7 @@ from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data.hypersphere_data import HypersphereMetricTestData
-from tests.data_generation import TestData
+from tests.data_generation import _RiemannianMetricTestData
 
 RTOL = 1e-4
 ATOL = 1e-5
@@ -206,9 +206,19 @@ class CircleAsSO2MetricTestData(HypersphereMetricTestData):
         return self.generate_tests([], data)
 
 
-class CircleAsSO2PullbackDiffeoMetricTestData(TestData):
+class CircleAsSO2PullbackDiffeoMetricTestData(_RiemannianMetricTestData):
     Metric = CircleAsSO2Metric
+    metric_args_list = [{}]
+    shape_list = [(2,)]
     space_list = [Hypersphere(dim=1, equip=False)]
+    n_points_list = random.sample(range(1, 5), 4)
+    n_tangent_vecs_list = random.sample(range(1, 5), 4)
+    n_points_a_list = [3] * 4
+    n_points_b_list = [1]
+    alpha_list = [1] * 4
+    n_rungs_list = [1] * 4
+    scheme_list = ["pole"] * 4
+    connection_args_list = []
 
     def diffeomorphism_is_reciprocal_test_data(self):
         smoke_data = [
