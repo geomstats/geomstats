@@ -231,5 +231,7 @@ class TestTangentPCA(tests.conftest.TestCase):
         variance_axis_1 = almost_euclidean_dim_two.metric.squared_dist(mean, point_a)
         variance_axis_2 = almost_euclidean_dim_two.metric.squared_dist(mean, point_b)
         assert variance_axis_2 >= variance_axis_1
-        axis_1 = gs.array([1, 0])
-        assert gs.all(tpca.components_ == axis_1)
+        normed_riemannian_basis_vector_2 = gs.array([0, 0.01])
+        assert gs.all(
+            tpca.components_in_riemannian_basis == normed_riemannian_basis_vector_2
+        )
