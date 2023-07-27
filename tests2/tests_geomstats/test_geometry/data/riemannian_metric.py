@@ -1,4 +1,9 @@
-from .connection import ConnectionComparisonTestData, ConnectionTestData
+from .connection import (
+    ConnectionCmpWithPointTransformTestData,
+    ConnectionCmpWithTransformTestData,
+    ConnectionComparisonTestData,
+    ConnectionTestData,
+)
 
 
 class RiemannianMetricTestData(ConnectionTestData):
@@ -122,6 +127,38 @@ class RiemannianMetricComparisonTestData(ConnectionComparisonTestData):
         return self.generate_random_data()
 
     def covariant_riemann_tensor_random_test_data(self):
+        return self.generate_random_data()
+
+    def sectional_curvature_random_test_data(self):
+        return self.generate_random_data()
+
+    def scalar_curvature_random_test_data(self):
+        return self.generate_random_data()
+
+
+class RiemannianMetricCmpWithPointTransformTestData(
+    ConnectionCmpWithPointTransformTestData
+):
+    def squared_dist_random_test_data(self):
+        return self.generate_random_data()
+
+    def dist_random_test_data(self):
+        return self.generate_random_data()
+
+
+class RiemannianMetricCmpWithTransformTestData(
+    RiemannianMetricCmpWithPointTransformTestData, ConnectionCmpWithTransformTestData
+):
+    def inner_product_derivative_matrix_random_test_data(self):
+        return self.generate_random_data()
+
+    def inner_product_random_test_data(self):
+        return self.generate_random_data()
+
+    def inner_coproduct_random_test_data(self):
+        return self.generate_random_data()
+
+    def squared_norm_random_test_data(self):
         return self.generate_random_data()
 
     def sectional_curvature_random_test_data(self):

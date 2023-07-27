@@ -1,6 +1,8 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
+from .riemannian_metric import RiemannianMetricCmpWithTransformTestData
+
 FROM_COORDS = ["ball", "half-space", "extrinsic"]
 TO_COORDS = FROM_COORDS + ["intrinsic"]
 
@@ -64,3 +66,7 @@ class HyperbolicCoordsTransform2TestData(TestData):
             ),
         ]
         return self.generate_tests(data)
+
+
+class HyperbolicCmpWithTransformTestData(RiemannianMetricCmpWithTransformTestData):
+    fail_for_not_implemented_errors = False

@@ -685,9 +685,17 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.test_inner_product_derivative_matrix(base_point, atol)
 
     def test_inner_product(self, tangent_vec_a, tangent_vec_b, base_point, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+        tangent_vec_a_ = self.point_transformer.transform_tangent_vec(
+            tangent_vec_a, base_point
+        )
+        tangent_vec_b_ = self.point_transformer.transform_tangent_vec(
+            tangent_vec_b, base_point
+        )
+
         res = self.space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         res_ = self.other_space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
+            tangent_vec_a_, tangent_vec_b_, base_point_
         )
         self.assertAllClose(res, res_, atol=atol)
 
@@ -700,11 +708,19 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.test_inner_product(tangent_vec_a, tangent_vec_b, base_point, atol)
 
     def test_inner_coproduct(self, cotangent_vec_a, cotangent_vec_b, base_point, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+        cotangent_vec_a_ = self.point_transformer.transform_tangent_vec(
+            cotangent_vec_a, base_point
+        )
+        cotangent_vec_b_ = self.point_transformer.transform_tangent_vec(
+            cotangent_vec_b, base_point
+        )
+
         res = self.space.metric.inner_coproduct(
             cotangent_vec_a, cotangent_vec_b, base_point
         )
         res_ = self.other_space.metric.inner_coproduct(
-            cotangent_vec_a, cotangent_vec_b, base_point
+            cotangent_vec_a_, cotangent_vec_b_, base_point_
         )
         self.assertAllClose(res, res_, atol=atol)
 
@@ -717,8 +733,11 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.test_inner_coproduct(cotangent_vec_a, cotangent_vec_b, base_point, atol)
 
     def test_squared_norm(self, vector, base_point, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+        vector_ = self.point_transformer.transform_tangent_vec(vector, base_point)
+
         res = self.space.metric.squared_norm(vector, base_point)
-        res_ = self.other_space.metric.squared_norm(vector, base_point)
+        res_ = self.other_space.metric.squared_norm(vector_, base_point_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -729,8 +748,11 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.test_squared_norm(vector, base_point, atol)
 
     def test_norm(self, vector, base_point, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+        vector_ = self.point_transformer.transform_tangent_vec(vector, base_point)
+
         res = self.space.metric.norm(vector, base_point)
-        res_ = self.other_space.metric.norm(vector, base_point)
+        res_ = self.other_space.metric.norm(vector_, base_point_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -753,8 +775,11 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.test_normalize(vector, base_point, atol)
 
     def test_squared_dist(self, point_a, point_b, atol):
+        point_a_ = self.point_transformer.transform_point(point_a)
+        point_b_ = self.point_transformer.transform_point(point_b)
+
         res = self.space.metric.squared_dist(point_a, point_b)
-        res_ = self.other_space.metric.squared_dist(point_a, point_b)
+        res_ = self.other_space.metric.squared_dist(point_a_, point_b_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -765,8 +790,11 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.test_squared_dist(point_a, point_b, atol)
 
     def test_dist(self, point_a, point_b, atol):
+        point_a_ = self.point_transformer.transform_point(point_a)
+        point_b_ = self.point_transformer.transform_point(point_b)
+
         res = self.space.metric.dist(point_a, point_b)
-        res_ = self.other_space.metric.dist(point_a, point_b)
+        res_ = self.other_space.metric.dist(point_a_, point_b_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -788,11 +816,19 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.test_covariant_riemann_tensor(base_point, atol)
 
     def test_sectional_curvature(self, tangent_vec_a, tangent_vec_b, base_point, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+        tangent_vec_a_ = self.point_transformer.transform_tangent_vec(
+            tangent_vec_a, base_point
+        )
+        tangent_vec_b_ = self.point_transformer.transform_tangent_vec(
+            tangent_vec_b, base_point
+        )
+
         res = self.space.metric.sectional_curvature(
             tangent_vec_a, tangent_vec_b, base_point
         )
         res_ = self.other_space.metric.sectional_curvature(
-            tangent_vec_a, tangent_vec_b, base_point
+            tangent_vec_a_, tangent_vec_b_, base_point_
         )
         self.assertAllClose(res, res_, atol=atol)
 
@@ -805,8 +841,10 @@ class RiemannianMetricComparisonTestCase(ConnectionComparisonTestCase):
         self.test_sectional_curvature(tangent_vec_a, tangent_vec_b, base_point, atol)
 
     def test_scalar_curvature(self, base_point, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+
         res = self.space.metric.scalar_curvature(base_point)
-        res_ = self.other_space.metric.scalar_curvature(base_point)
+        res_ = self.other_space.metric.scalar_curvature(base_point_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random

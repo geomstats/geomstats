@@ -4,7 +4,42 @@ import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.test_case import TestCase
+from geomstats.test.utils import PointTransformer
 from geomstats.test.vectorization import generate_vectorization_data
+
+
+class HyperbolicTransformer(PointTransformer):
+    def __init__(self, space, other_space):
+        self.space = space
+        self.other_space = other_space
+
+    def transform_point(self, point):
+        return self.space.change_coordinates_system(
+            point,
+            self.space.default_coords_type,
+            self.other_space.default_coords_type,
+        )
+
+    def inverse_transform_point(self, other_point):
+        return self.space.change_coordinates_system(
+            other_point,
+            self.other_space.default_coords_type,
+            self.space.default_coords_type,
+        )
+
+
+class BallToHalfSpace(HyperbolicTransformer):
+    def transform_tangent_vec(self, tangent_vec, base_point):
+        return self.space.ball_to_half_space_tangent(
+            tangent_vec,
+            base_point,
+        )
+
+    def inverse_transform_tangent_vec(self, other_tangent_vec, other_base_point):
+        return self.space.half_space_to_ball_tangent(
+            other_tangent_vec,
+            other_base_point,
+        )
 
 
 class HyperbolicCoordsTransformTestCase(TestCase):

@@ -120,3 +120,28 @@ class ConnectionComparisonTestData(TestData):
 
     def injectivity_radius_random_test_data(self):
         return self.generate_random_data()
+
+
+class ConnectionCmpWithPointTransformTestData(TestData):
+    def geodesic_bvp_random_test_data(self):
+        return self.generate_random_data_with_time()
+
+
+class ConnectionCmpWithTransformTestData(ConnectionCmpWithPointTransformTestData):
+    def exp_random_test_data(self):
+        return self.generate_random_data()
+
+    def log_random_test_data(self):
+        return self.generate_random_data()
+
+    def curvature_random_test_data(self):
+        return self.generate_random_data()
+
+    def geodesic_ivp_random_test_data(self):
+        return self.generate_random_data_with_time()
+
+    def parallel_transport_ivp_random_test_data(self):
+        return self.generate_random_data()
+
+    def parallel_transport_bvp_random_test_data(self):
+        return self.generate_random_data()

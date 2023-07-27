@@ -5,6 +5,7 @@ import pytest
 import geomstats.backend as gs
 from geomstats.test.random import RandomDataGenerator, get_random_times
 from geomstats.test.test_case import TestCase
+from geomstats.test.utils import IdentityPointTransformer
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.vectorization import get_batch_shape
 
@@ -661,6 +662,9 @@ class ConnectionComparisonTestCase(TestCase):
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.space)
 
+        if not hasattr(self, "point_transformer"):
+            self.point_transformer = IdentityPointTransformer()
+
     def test_christoffels(self, base_point, atol):
         res = self.space.metric.christoffels(base_point)
         res_ = self.other_space.metric.christoffels(base_point)
@@ -673,8 +677,15 @@ class ConnectionComparisonTestCase(TestCase):
         self.test_christoffels(base_point, atol)
 
     def test_exp(self, tangent_vec, base_point, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+        tangent_vec_ = self.point_transformer.transform_tangent_vec(
+            tangent_vec, base_point
+        )
+
         res = self.space.metric.exp(tangent_vec, base_point)
-        res_ = self.other_space.metric.exp(tangent_vec, base_point)
+        res_ = self.other_space.metric.exp(tangent_vec_, base_point_)
+
+        res_ = self.point_transformer.inverse_transform_point(res_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -685,8 +696,13 @@ class ConnectionComparisonTestCase(TestCase):
         self.test_exp(tangent_vec, base_point, atol)
 
     def test_log(self, point, base_point, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+        point_ = self.point_transformer.transform_point(point)
+
         res = self.space.metric.log(point, base_point)
-        res_ = self.other_space.metric.log(point, base_point)
+        res_ = self.other_space.metric.log(point_, base_point_)
+
+        res_ = self.point_transformer.inverse_transform_tangent_vec(res_, base_point_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -697,8 +713,10 @@ class ConnectionComparisonTestCase(TestCase):
         self.test_log(point, base_point, atol)
 
     def test_riemann_tensor(self, base_point, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+
         res = self.space.metric.riemann_tensor(base_point)
-        res_ = self.other_space.metric.riemann_tensor(base_point)
+        res_ = self.other_space.metric.riemann_tensor(base_point_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -710,11 +728,22 @@ class ConnectionComparisonTestCase(TestCase):
     def test_curvature(
         self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point, atol
     ):
+        base_point_ = self.point_transformer.transform_point(base_point)
+        tangent_vec_a_ = self.point_transformer.transform_tangent_vec(
+            tangent_vec_a, base_point
+        )
+        tangent_vec_b_ = self.point_transformer.transform_tangent_vec(
+            tangent_vec_b, base_point
+        )
+        tangent_vec_c_ = self.point_transformer.transform_tangent_vec(
+            tangent_vec_c, base_point
+        )
+
         res = self.space.metric.curvature(
             tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
         )
         res_ = self.other_space.metric.curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
+            tangent_vec_a_, tangent_vec_b_, tangent_vec_c_, base_point_
         )
         self.assertAllClose(res, res_, atol=atol)
 
@@ -810,10 +839,15 @@ class ConnectionComparisonTestCase(TestCase):
         )
 
     def test_geodesic_bvp(self, initial_point, end_point, time, atol):
+        initial_point_ = self.point_transformer.transform_point(initial_point)
+        end_point_ = self.point_transformer.transform_point(end_point)
+
         res = self.space.metric.geodesic(initial_point, end_point=end_point)(time)
-        res_ = self.other_space.metric.geodesic(initial_point, end_point=end_point)(
+        res_ = self.other_space.metric.geodesic(initial_point_, end_point=end_point_)(
             time
         )
+
+        res_ = self.point_transformer.inverse_transform_point(res_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -825,13 +859,20 @@ class ConnectionComparisonTestCase(TestCase):
         self.test_geodesic_bvp(initial_point, end_point, time, atol)
 
     def test_geodesic_ivp(self, initial_point, initial_tangent_vec, time, atol):
+        initial_point_ = self.point_transformer.transform_point(initial_point)
+        initial_tangent_vec_ = self.point_transformer.transform_tangent_vec(
+            initial_tangent_vec, initial_point
+        )
+
         res = self.space.metric.geodesic(
             initial_point, initial_tangent_vec=initial_tangent_vec
         )(time)
 
         res_ = self.other_space.metric.geodesic(
-            initial_point, initial_tangent_vec=initial_tangent_vec
+            initial_point_, initial_tangent_vec=initial_tangent_vec_
         )(time)
+
+        res_ = self.point_transformer.inverse_transform_point(res_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -843,12 +884,21 @@ class ConnectionComparisonTestCase(TestCase):
         self.test_geodesic_ivp(initial_point, initial_tangent_vec, time, atol)
 
     def test_parallel_transport_ivp(self, base_point, tangent_vec, direction, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+        tangent_vec_ = self.point_transformer.transform_tangent_vec(
+            tangent_vec, base_point
+        )
+        direction_ = self.point_transformer.transform_tangent_vec(direction, base_point)
+
         res = self.space.metric.parallel_transport(
             tangent_vec, base_point, direction=direction
         )
         res_ = self.other_space.metric.parallel_transport(
-            tangent_vec, base_point, direction=direction
+            tangent_vec_, base_point_, direction=direction_
         )
+
+        end_point_ = self.other_space.exp(direction_, base_point_)
+        res_ = self.point_transformer.inverse_transform_tangent_vec(res_, end_point_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
@@ -857,15 +907,23 @@ class ConnectionComparisonTestCase(TestCase):
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
         direction = self.data_generator.random_tangent_vec(base_point)
 
-        self.test_parallel_transport(base_point, tangent_vec, direction, atol)
+        self.test_parallel_transport_ivp(base_point, tangent_vec, direction, atol)
 
     def test_parallel_transport_bvp(self, base_point, end_point, tangent_vec, atol):
+        base_point_ = self.point_transformer.transform_point(base_point)
+        end_point_ = self.point_transformer.transform_point(end_point)
+        tangent_vec_ = self.point_transformer.transform_tangent_vec(
+            tangent_vec, base_point
+        )
+
         res = self.space.metric.parallel_transport(
             tangent_vec, base_point, end_point=end_point
         )
         res_ = self.other_space.metric.parallel_transport(
-            tangent_vec, base_point, end_point=end_point
+            tangent_vec_, base_point_, end_point=end_point_
         )
+
+        res_ = self.point_transformer.inverse_transform_tangent_vec(res_, end_point_)
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
