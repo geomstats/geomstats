@@ -72,6 +72,7 @@ class DiscreteCurves(Manifold):
         )
 
         self._quotient_map = {
+            (SRVMetric, "translations"): (SRVTranslationBundle, SRVTranslationMetric),
             (SRVMetric, "reparametrizations"): (SRVShapeBundle, SRVQuotientMetric),
         }
 
