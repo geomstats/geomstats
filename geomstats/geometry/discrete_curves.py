@@ -1216,7 +1216,7 @@ class SRVMetric(PullbackDiffeoMetric):
         return embedding_space
 
     def diffeomorphism(self, curves):
-        r"""blablabla."""
+        r"""Compute the image of a curve."""
         curve_ndim = gs.ndim(curves)
         curves = gs.to_ndarray(curves, to_ndim=3)
         n_curves, k_sampling_points, dim = curves.shape
@@ -1241,7 +1241,7 @@ class SRVMetric(PullbackDiffeoMetric):
         return result
 
     def inverse_diffeomorphism(self, image_point):
-        r"""Inverse diffeomorphism at image point."""
+        r"""Compute the curve of an image point."""
         dim = self._space.ambient_manifold.dim
         k_sampling_points = self._space.k_sampling_points
 
@@ -1264,16 +1264,16 @@ class SRVMetric(PullbackDiffeoMetric):
         return curves
 
     def tangent_diffeomorphism(self, tangent_vec, point):
-        r"""blablabla."""
+        r"""Equivalent to diffeomorphism."""
         return self.diffeomorphism(tangent_vec)
 
     def inverse_tangent_diffeomorphism(self, tangent_vec, image_point):
-        r"""blablabla."""
+        r"""Equivalent to inverse diffeomorphism."""
         return self.inverse_diffeomorphism(tangent_vec)
 
 
 class SRVTranslationBundle(FiberBundle):
-    r"""blablabla."""
+    r"""Bundle of curves when you quotient by translation."""
 
     def __init__(self, total_space):
         super().__init__(total_space=total_space, group_action="Translation")
@@ -1282,7 +1282,7 @@ class SRVTranslationBundle(FiberBundle):
         )
 
     def riemannian_submersion(self, point):
-        r"""blablabla."""
+        r"""Translate a curve to start at origin."""
         point_ndim = gs.ndim(point)
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, k_sampling_points, dim = point.shape
@@ -1296,11 +1296,11 @@ class SRVTranslationBundle(FiberBundle):
         return result
 
     def horizontal_projection(self, tangent_vec, base_point):
-        r"""blablabla."""
+        r"""Translate a curve to a start origin."""
         return self.riemannian_submersion(tangent_vec)
 
     def align(self, base_point, point):
-        r"""blablabla."""
+        r"""Translate the curve (point) to start the same as base_point."""
         point_ndim = gs.ndim(point)
         base_point_ndim = gs.ndim(base_point)
 
@@ -1324,7 +1324,7 @@ class SRVTranslationBundle(FiberBundle):
 
 
 class SRVTranslationMetric(QuotientMetric, PullbackDiffeoMetric):
-    r"""blablabla."""
+    r"""Square Root Velocity metric on the space of discrete curves."""
 
     def __init__(self, space, fiber_bundle, signature=None):
         super().__init__(space=space, fiber_bundle=fiber_bundle, signature=signature)

@@ -8,6 +8,8 @@ from geomstats.geometry.discrete_curves import (
     ElasticMetric,
     L2CurvesMetric,
     SRVMetric,
+    SRVTranslationBundle,
+    SRVTranslationMetric,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
@@ -126,6 +128,102 @@ class SRVMetricTestData(_RiemannianMetricTestData):
     scheme_list = ["pole"] * 2
 
     Metric = SRVMetric
+
+    def diffeomorphism_and_inverse_diffeomorphism_test_data(self):
+        smoke_data = [
+            dict(
+                space=DiscreteCurves(ambient_manifold=r3, equip=False),
+                rtol=gs.rtol,
+                atol=gs.atol,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def tangent_diffeomorphism_and_inverse_tangent_diffeomorphism_test_data(self):
+        smoke_data = [
+            dict(
+                space=DiscreteCurves(ambient_manifold=r3, equip=False),
+                rtol=gs.rtol,
+                atol=gs.atol,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+
+class SRVTranslationBundleTestData(TestData):
+    ambient_manifolds_list = [r2, r3]
+
+    shape_list = [(10, 2), (10, 3)]
+    space_list = [
+        DiscreteCurves(ambient_manifold, equip=False)
+        for ambient_manifold in ambient_manifolds_list
+    ]
+    metric_args_list = [{} for _ in shape_list]
+
+    n_points_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = random.sample(range(2, 5), 2)
+    n_points_a_list = [1, 2]
+    n_points_b_list = [1, 2]
+    batch_size_list = random.sample(range(2, 5), 2)
+    alpha_list = [1] * 2
+    n_rungs_list = [1] * 2
+    scheme_list = ["pole"] * 2
+
+    Metric = SRVMetric
+    Fiber_bundle = SRVTranslationBundle
+
+    def riemannian_submersion_test_data(self):
+        smoke_data = [
+            dict(
+                space=DiscreteCurves(ambient_manifold=r3, equip=False),
+                rtol=gs.rtol,
+                atol=gs.atol,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def horizontal_projection_test_data(self):
+        smoke_data = [
+            dict(
+                space=DiscreteCurves(ambient_manifold=r3, equip=False),
+                rtol=gs.rtol,
+                atol=gs.atol,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+    def align_test_data(self):
+        smoke_data = [
+            dict(
+                space=DiscreteCurves(ambient_manifold=r3, equip=False),
+                rtol=gs.rtol,
+                atol=gs.atol,
+            )
+        ]
+        return self.generate_tests(smoke_data)
+
+
+class SRVTranslationMetricTestData(_RiemannianMetricTestData):
+    ambient_manifolds_list = [r2, r3]
+
+    shape_list = [(10, 2), (10, 3)]
+    space_list = [
+        DiscreteCurves(ambient_manifold, equip=False)
+        for ambient_manifold in ambient_manifolds_list
+    ]
+    metric_args_list = [{} for _ in shape_list]
+
+    n_points_list = random.sample(range(2, 5), 2)
+    n_tangent_vecs_list = random.sample(range(2, 5), 2)
+    n_points_a_list = [1, 2]
+    n_points_b_list = [1, 2]
+    batch_size_list = random.sample(range(2, 5), 2)
+    alpha_list = [1] * 2
+    n_rungs_list = [1] * 2
+    scheme_list = ["pole"] * 2
+
+    Metric = SRVTranslationMetric
+    Fiber_bundle = SRVTranslationBundle
 
     def srv_transform_and_srv_transform_inverse_test_data(self):
         smoke_data = [

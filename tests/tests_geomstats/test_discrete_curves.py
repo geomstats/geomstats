@@ -19,6 +19,8 @@ from tests.data.discrete_curves_data import (
     SRVMetricTestData,
     SRVQuotientMetricTestData,
     SRVShapeBundleTestData,
+    SRVTranslationBundleTestData,
+    SRVTranslationMetricTestData,
 )
 from tests.geometry_test_cases import (
     ManifoldTestCase,
@@ -110,9 +112,105 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     testing_data = SRVMetricTestData()
 
-    def test_srv_transform_and_srv_transform_inverse(self, space, rtol, atol):
+    def test_diffeomorphism_and_inverse_diffeomorphism(self, space, rtol, atol):
         """Test that srv and its inverse are inverse."""
         space.equip_with_metric(self.Metric)
+        curve = space.random_point(n_samples=2)
+
+        image = space.metric.diffeomorphism(curve)
+        inverse_image = space.metric.inverse_diffeomorphism(image)
+
+        result = inverse_image.shape
+        expected = (curve.shape[0], curve.shape[1], 3)
+        self.assertAllClose(result, expected)
+
+        result = inverse_image
+        expected = curve
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def test_tangent_diffeomorphism_and_inverse_tangent_diffeomorphism(
+        self, space, rtol, atol
+    ):
+        """Test that srv and its inverse are inverse."""
+        space.equip_with_metric(self.Metric)
+        curve = space.random_point(n_samples=2)
+        tangent_vec = space.random_point(n_samples=2)
+
+        image = space.metric.diffeomorphism(curve)
+        image_tangent = space.metric.tangent_diffeomorphism(tangent_vec, curve)
+        inverse_image = space.metric.inverse_tangent_diffeomorphism(
+            image_tangent, image
+        )
+
+        result = inverse_image.shape
+        expected = (curve.shape[0], curve.shape[1], 3)
+        self.assertAllClose(result, expected)
+
+        result = inverse_image
+        expected = curve
+        self.assertAllClose(result, expected, rtol, atol)
+
+
+class TestSRVTranslationBundle(TestCase, metaclass=Parametrizer):
+    testing_data = SRVTranslationBundleTestData()
+
+    def test_riemannian_submersion(self, space, rtol, atol):
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
+        curve = space.random_point(n_samples=2)
+
+        translated = space.fiber_bundle.riemannian_submersion(curve)
+        new_starting_point = translated[:, 0, :]
+
+        result = new_starting_point
+        expected = gs.zeros(new_starting_point.shape)
+
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def test_horizontal_projection(self, space, rtol, atol):
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
+        curve = space.random_point(n_samples=2)
+
+        translated = space.fiber_bundle.riemannian_submersion(curve)
+        new_starting_point = translated[:, 0, :]
+
+        result = new_starting_point
+        expected = gs.zeros(new_starting_point.shape)
+
+        self.assertAllClose(result, expected, rtol, atol)
+
+    def test_align(self, space, rtol, atol):
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
+
+        base_curve = space.random_point(n_samples=2)
+        curve = space.random_point(n_samples=2)
+
+        translated = space.fiber_bundle.align(base_curve, curve)
+
+        result = translated[:, 0, :]
+        expected = base_curve[:, 0, :]
+        self.assertAllClose(result, expected, rtol, atol)
+
+
+class TestSRVTranslationMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
+    skip_test_exp_geodesic_ivp = True
+    skip_test_parallel_transport_ivp_is_isometry = True
+    skip_test_parallel_transport_bvp_is_isometry = True
+    skip_test_geodesic_bvp_belongs = True
+    skip_test_geodesic_ivp_belongs = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
+
+    testing_data = SRVTranslationMetricTestData()
+
+    def test_srv_transform_and_srv_transform_inverse(self, space, rtol, atol):
+        """Test that srv and its inverse are inverse."""
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
 
         curve = space.random_point(n_samples=2)
 
@@ -129,7 +227,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
 
     def test_diffeomorphism_and_inverse_diffeomorphism(self, space, rtol, atol):
         """Test that srv and its inverse are inverse."""
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
         curve = space.random_point(n_samples=2)
 
         image = space.metric.diffeomorphism(curve)
@@ -151,7 +249,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         transform of a path of curves starting at curve with
         initial derivative tangent_vec.
         """
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
 
         sampling_times = gs.linspace(0.0, 1.0, space.k_sampling_points)
         curve_a = curve_fun_a(sampling_times)
@@ -174,7 +272,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         """Test inverse of differential of square root velocity transform.
         Check that it is the inverse of tangent_diffeomorphism.
         """
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
 
         tangent_vec = gs.transpose(
             gs.tile(
@@ -193,7 +291,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         """Test inverse of differential of square root velocity transform.
         Check that it is the inverse of tangent_diffeomorphism.
         """
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
 
         srv = space.metric.diffeomorphism(curve)
         d_srv = space.metric.tangent_diffeomorphism(tangent_vec, curve)
@@ -205,7 +303,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         """Test differential of square root velocity transform.
         Check vectorization.
         """
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
 
         curves = gs.stack((curve_a, curve_b))
         tangent_vecs = gs.random.rand(
@@ -220,7 +318,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         self.assertAllClose(result, expected)
 
     def test_srv_inner_product(self, space, curve, vec_a, vec_b, n_vecs):
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
 
         vecs_a = gs.tile(vec_a, (n_vecs, 1, 1))
         vecs_b = gs.tile(vec_b, (n_vecs, 1, 1))
@@ -245,7 +343,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         Check that the pullback metric gives an elastic metric
         with parameters a=1, b=1/2.
         """
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
         k_sampling_points = space.k_sampling_points
 
         result = space.metric.inner_product(vec_a, vec_b, curve)
@@ -271,7 +369,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         for curves with same / different starting points, and for
         the translation invariant / non invariant SRV metric.
         """
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
         log = space.metric.log(point=curve_b, base_point=curve_a)
         result = space.metric.norm(vector=log, base_point=curve_a)
         expected = space.metric.dist(curve_a, curve_b)
@@ -286,7 +384,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         """Test space derivative.
         Check result on an example and vectorization.
         """
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
 
         n_points = 3
         dim = space.ambient_manifold.dim
@@ -321,7 +419,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
     def test_srv_metric_pointwise_inner_products(
         self, space, curves_ab, curves_bc, n_discretized_curves
     ):
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
         k_sampling_points = space.k_sampling_points
         srv_metric_r3 = space.metric
 
@@ -350,7 +448,7 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         """Test of SRVT and its inverse.
         N.B: Here curves_ab are seen as curves in R3 and not S2.
         """
-        space.equip_with_metric(self.Metric)
+        space.equip_with_metric(self.Metric, fiber_bundle=self.Fiber_bundle)
         srv_curves = space.metric.f_transform(curves)
         starting_points = curves[:, 0, :]
         result = space.metric.f_transform_inverse(srv_curves, starting_points)
