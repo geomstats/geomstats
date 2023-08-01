@@ -143,11 +143,11 @@ class TestSRVMetric(RiemannianMetricTestCase, metaclass=Parametrizer):
         )
 
         result = inverse_image.shape
-        expected = (curve.shape[0], curve.shape[1], 3)
+        expected = (tangent_vec.shape[0], tangent_vec.shape[1], 3)
         self.assertAllClose(result, expected)
 
         result = inverse_image
-        expected = curve
+        expected = tangent_vec
         self.assertAllClose(result, expected, rtol, atol)
 
 
@@ -184,7 +184,7 @@ class TestSRVTranslationBundle(TestCase, metaclass=Parametrizer):
         base_curve = space.random_point(n_samples=2)
         curve = space.random_point(n_samples=2)
 
-        translated = space.fiber_bundle.align(base_curve, curve)
+        translated = space.fiber_bundle.align(curve, base_curve)
 
         result = translated[:, 0, :]
         expected = base_curve[:, 0, :]

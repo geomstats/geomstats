@@ -1277,9 +1277,6 @@ class SRVTranslationBundle(FiberBundle):
 
     def __init__(self, total_space):
         super().__init__(total_space=total_space, group_action="Translation")
-        self._srvmetric = SRVTranslationMetric(
-            space=total_space, fiber_bundle=SRVTranslationBundle
-        )
 
     def riemannian_submersion(self, point):
         r"""Translate a curve to start at origin."""
@@ -1299,7 +1296,7 @@ class SRVTranslationBundle(FiberBundle):
         r"""Translate a curve to a start origin."""
         return self.riemannian_submersion(tangent_vec)
 
-    def align(self, base_point, point):
+    def align(self, point, base_point):
         r"""Translate the curve (point) to start the same as base_point."""
         point_ndim = gs.ndim(point)
         base_point_ndim = gs.ndim(base_point)
