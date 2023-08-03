@@ -24,20 +24,6 @@ class _ManifoldTestCaseMixins:
         res = self.space.belongs(point, atol=atol)
         self.assertAllEqual(res, expected)
 
-    @pytest.mark.vec
-    def test_belongs_vec(self, n_reps, atol):
-        # TODO: mark as unnecessary? random_point_belongs is enough?
-        point = self.data_generator.random_point()
-        res = self.space.belongs(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=res, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     @pytest.mark.random
     def test_not_belongs(self, n_points, atol):
         # TODO: ideally find a way to check one of each in the same output
@@ -90,21 +76,6 @@ class _ManifoldTestCaseMixins:
         res = self.space.is_tangent(vector, base_point, atol=atol)
         self.assertAllEqual(res, expected)
 
-    @pytest.mark.vec
-    def test_is_tangent_vec(self, n_reps, atol):
-        point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(point)
-
-        res = self.space.is_tangent(tangent_vec, point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(vector=tangent_vec, base_point=point, expected=res, atol=atol)],
-            arg_names=["vector", "base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_to_tangent(self, vector, base_point, expected, atol):
         tangent_vec = self.space.to_tangent(vector, base_point)
         self.assertAllClose(tangent_vec, expected, atol=atol)
@@ -146,19 +117,6 @@ class _ManifoldTestCaseMixins:
     def test_regularize(self, point, expected, atol):
         regularized_point = self.space.regularize(point)
         self.assertAllClose(regularized_point, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_regularize_vec(self, n_reps, atol):
-        point = self.data_generator.random_point()
-        expected = self.space.regularize(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_random_tangent_vec_is_tangent(self, n_points, atol):

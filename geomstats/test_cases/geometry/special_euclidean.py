@@ -87,29 +87,6 @@ class SpecialEuclideanVectorsTestCase(ProjectionTestCaseMixins, LieGroupTestCase
         regularized = self.space.regularize_tangent_vec(tangent_vec, base_point)
         self.assertAllClose(regularized, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_regularize_tangent_vec_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.regularize_tangent_vec(tangent_vec, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec=tangent_vec,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec", "base_point"],
-            expected_name="expected",
-            vectorization_type="repeat-0",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_regularize_tangent_vec_at_identity(self, tangent_vec, expected, atol):
         regularized = self.space.regularize_tangent_vec_at_identity(tangent_vec)
         self.assertAllClose(regularized, expected, atol=atol)

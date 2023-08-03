@@ -13,20 +13,6 @@ class GammaDistributionsTestCase(InformationManifoldMixinTestCase, OpenSetTestCa
         res = self.space.natural_to_standard(point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_natural_to_standard_vec(self, n_reps, atol):
-        point = self.data_generator.random_point()
-
-        expected = self.space.natural_to_standard(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_standard_to_natural(self, point, expected, atol):
         res = self.space.standard_to_natural(point)
         self.assertAllClose(res, expected, atol=atol)
@@ -57,22 +43,6 @@ class GammaDistributionsTestCase(InformationManifoldMixinTestCase, OpenSetTestCa
     def test_tangent_natural_to_standard(self, vec, base_point, expected, atol):
         res = self.space.tangent_natural_to_standard(vec, base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_tangent_natural_to_standard_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        vec = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.tangent_natural_to_standard(vec, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(vec=vec, base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["vec", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     def test_tangent_standard_to_natural(self, vec, base_point, expected, atol):
         res = self.space.tangent_standard_to_natural(vec, base_point)
@@ -112,17 +82,3 @@ class GammaMetricTestCase(RiemannianMetricTestCase):
     def test_jacobian_christoffels(self, base_point, expected, atol):
         res = self.space.metric.jacobian_christoffels(base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_jacobian_christoffels_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.jacobian_christoffels(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)

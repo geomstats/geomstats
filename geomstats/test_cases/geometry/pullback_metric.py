@@ -10,20 +10,6 @@ class PullbackDiffeoMetricTestCase(RiemannianMetricTestCase):
         res = self.space.metric.diffeomorphism(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_diffeomorphism_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.diffeomorphism(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     @pytest.mark.random
     def test_diffeomorphism_belongs(self, n_points, atol):
         base_point = self.data_generator.random_point(n_points)
@@ -84,46 +70,9 @@ class PullbackDiffeoMetricTestCase(RiemannianMetricTestCase):
         res = self.space.metric.jacobian_diffeomorphism(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_jacobian_diffeomorphism_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.jacobian_diffeomorphism(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_tangent_diffeomorphism(self, tangent_vec, base_point, expected, atol):
         res = self.space.metric.tangent_diffeomorphism(tangent_vec, base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_tangent_diffeomorphism_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.tangent_diffeomorphism(tangent_vec, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec=tangent_vec,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_tangent_diffeomorphism_is_tangent(self, n_points, atol):

@@ -1,7 +1,29 @@
 import copy
+import inspect
 import itertools
 
 from geomstats.vectorization import repeat_point
+
+KNOWN_POINT_NAMES = (
+    "point",
+    "base_point",
+    "point_a",
+    "point_b",
+    "fiber_point",
+    "mat",
+)
+KNOWN_VECTOR_NAMES = (
+    "vector",
+    "tangent_vec",
+    "tangent_vec_a",
+    "tangent_vec_b",
+    "tangent_vec_c",
+    "tangent_vec_d",
+    "cotangent_vec_a",
+    "cotangent_vec_b",
+    "direction",
+)
+KNOWN_ARGS = KNOWN_POINT_NAMES + KNOWN_VECTOR_NAMES
 
 
 def _filter_combs(n_args, combs, vectorization_type):
@@ -131,3 +153,54 @@ def generate_vectorization_data(
         )
 
     return new_data
+
+
+def _generate_random_data(data_generator, arg_names):
+    data = {}
+    base_point = None
+    for arg_name in arg_names:
+        if arg_name in KNOWN_POINT_NAMES:
+            base_point = data[arg_name] = data_generator.random_point()
+
+    for arg_name in arg_names:
+        if arg_name in KNOWN_VECTOR_NAMES:
+            data[arg_name] = data_generator.random_tangent_vec(base_point)
+
+    return data
+
+
+def _get_vectorization_type(test_case, arg_names):
+    if test_case.tangent_to_multiple:
+        return "sym"
+
+    tangent_vec_type = ""
+    for k, arg_name in enumerate(arg_names):
+        if arg_name in KNOWN_VECTOR_NAMES:
+            tangent_vec_type += f"-{k}"
+
+    return "repeat" + tangent_vec_type if tangent_vec_type else "sym"
+
+
+def test_vectorization(self, test_func, n_reps, atol):
+    # TODO: move this to decorator?
+    # TODO: accept kwargs?
+    arg_names = list(inspect.signature(test_func).parameters.keys())
+    arg_names = list(filter(lambda x: x in KNOWN_ARGS, arg_names))
+    data = _generate_random_data(self.data_generator, arg_names)
+
+    geometry = (
+        self.space.metric
+        if hasattr(self, "is_metric") and self.is_metric
+        else self.space
+    )
+    data["expected"] = getattr(geometry, test_func.__name__[5:])(**data)
+    data["atol"] = atol
+
+    vec_data = generate_vectorization_data(
+        data=[data],
+        arg_names=arg_names,
+        expected_name="expected",
+        n_reps=n_reps,
+        vectorization_type=_get_vectorization_type(self, arg_names),
+    )
+    self._test_vectorization(vec_data, test_fnc_name=test_func.__name__)

@@ -2,27 +2,23 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.test.vectorization import generate_vectorization_data
+from geomstats.test_cases.geometry.base import LevelSetTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.information_geometry.base import (
+    InformationManifoldMixinTestCase,
+)
+
+
+class MultinomialDistributionsTestCase(
+    InformationManifoldMixinTestCase, LevelSetTestCase
+):
+    pass
 
 
 class MultinomialMetricTestCase(RiemannianMetricTestCase):
     def test_simplex_to_sphere(self, point, expected, atol):
         res = self.space.metric.simplex_to_sphere(point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_simplex_to_sphere_vec(self, n_reps, atol):
-        point = self.data_generator.random_point()
-
-        expected = self.space.metric.simplex_to_sphere(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_simplex_to_sphere_belongs(self, n_points, atol):
@@ -84,29 +80,6 @@ class MultinomialMetricTestCase(RiemannianMetricTestCase):
     def test_tangent_simplex_to_sphere(self, tangent_vec, base_point, expected, atol):
         res = self.space.metric.tangent_simplex_to_sphere(tangent_vec, base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_tangent_simplex_to_sphere_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.tangent_simplex_to_sphere(tangent_vec, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec=tangent_vec,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_tangent_simplex_to_sphere_is_tangent(self, n_points, atol):

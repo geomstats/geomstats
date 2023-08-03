@@ -33,20 +33,6 @@ class HeisenbergVectorsTestCase(LieGroupTestCase, VectorSpaceTestCase):
         res = self.space.upper_triangular_matrix_from_vector(point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_upper_triangular_matrix_from_vector_vec(self, n_reps, atol):
-        point = self.data_generator.random_point()
-
-        expected = self.space.upper_triangular_matrix_from_vector(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_vector_from_upper_triangular_matrix(self, matrix, expected, atol):
         res = self.space.vector_from_upper_triangular_matrix(matrix)
         self.assertAllClose(res, expected, atol=atol)

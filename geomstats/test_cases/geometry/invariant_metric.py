@@ -152,32 +152,6 @@ class InvariantMetricMatrixTestCase(_InvariantMetricTestCaseMixins):
         res = self.space.metric.connection(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_connection_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.connection(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_curvature_at_identity(
         self, tangent_vec_a, tangent_vec_b, tangent_vec_c, expected, atol
     ):
@@ -355,20 +329,6 @@ class InvariantMetricVectorTestCase(_InvariantMetricTestCaseMixins):
         res = self.space.metric.left_log_from_identity(point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_left_log_from_identity_vec(self, n_reps, atol):
-        point = self.data_generator.random_point()
-
-        expected = self.space.metric.left_log_from_identity(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     @pytest.mark.random
     def test_left_exp_from_identity_after_left_log_from_identity(self, n_points, atol):
         end_point = self.data_generator.random_point(n_points)
@@ -410,20 +370,6 @@ class InvariantMetricVectorTestCase(_InvariantMetricTestCaseMixins):
     def test_log_from_identity(self, point, expected, atol):
         res = self.space.metric.log_from_identity(point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_log_from_identity_vec(self, n_reps, atol):
-        point = self.data_generator.random_point()
-
-        expected = self.space.metric.log_from_identity(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_exp_from_identity_after_log_from_identity(self, n_points, atol):

@@ -12,6 +12,7 @@ from geomstats.vectorization import get_batch_shape
 
 class ConnectionTestCase(TestCase):
     tangent_to_multiple = False
+    is_metric = True
 
     def setup_method(self):
         if not hasattr(self, "data_generator"):
@@ -21,46 +22,9 @@ class ConnectionTestCase(TestCase):
         res = self.space.metric.christoffels(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_christoffels_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.christoffels(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_exp(self, tangent_vec, base_point, expected, atol):
         res = self.space.metric.exp(tangent_vec, base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_exp_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.exp(tangent_vec, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec=tangent_vec,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_exp_belongs(self, n_points, atol):
@@ -86,22 +50,6 @@ class ConnectionTestCase(TestCase):
     def test_log(self, point, base_point, expected, atol):
         res = self.space.metric.log(point, base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_log_vec(self, n_reps, atol):
-        point, base_point = self.data_generator.random_point(2)
-
-        expected = self.space.metric.log(point, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(point=point, base_point=base_point, expected=expected, atol=atol)
-            ],
-            arg_names=["point", "base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_log_is_tangent(self, n_points, atol):
@@ -166,20 +114,6 @@ class ConnectionTestCase(TestCase):
         res = self.space.metric.riemann_tensor(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_riemann_tensor_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.riemann_tensor(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_curvature(
         self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point, expected, atol
     ):
@@ -188,52 +122,9 @@ class ConnectionTestCase(TestCase):
         )
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_curvature_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_c = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.curvature(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    tangent_vec_c=tangent_vec_c,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec_a", "tangent_vec_b", "tangent_vec_c", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1-2",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_ricci_tensor(self, base_point, expected, atol):
         res = self.space.metric.ricci_tensor(base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_ricci_tensor_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.ricci_tensor(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     def test_directional_curvature(
         self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
@@ -242,33 +133,6 @@ class ConnectionTestCase(TestCase):
             tangent_vec_a, tangent_vec_b, base_point
         )
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_directional_curvature_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.directional_curvature(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     def test_curvature_derivative(
         self,
@@ -285,43 +149,6 @@ class ConnectionTestCase(TestCase):
         )
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_curvature_derivative_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_c = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_d = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.curvature_derivative(
-            tangent_vec_a, tangent_vec_b, tangent_vec_c, tangent_vec_d, base_point
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    tangent_vec_c=tangent_vec_c,
-                    tangent_vec_d=tangent_vec_d,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=[
-                "tangent_vec_a",
-                "tangent_vec_b",
-                "tangent_vec_c",
-                "tangent_vec_d",
-                "base_point",
-            ],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1-2-3",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_directional_curvature_derivative(
         self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
     ):
@@ -329,33 +156,6 @@ class ConnectionTestCase(TestCase):
             tangent_vec_a, tangent_vec_b, base_point
         )
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_directional_curvature_derivative_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.directional_curvature_derivative(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     def test_geodesic(
         self,
@@ -642,20 +442,6 @@ class ConnectionTestCase(TestCase):
     def test_injectivity_radius(self, base_point, expected, atol):
         res = self.space.metric.injectivity_radius(base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_injectivity_radius_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.injectivity_radius(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
 
 class ConnectionComparisonTestCase(TestCase):

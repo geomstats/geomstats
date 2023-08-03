@@ -12,37 +12,9 @@ class _LieGroupTestCaseMixins(GroupExpTestCaseMixins):
         composed = self.space.compose(point_a, point_b)
         self.assertAllClose(composed, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_compose_vec(self, n_reps, atol):
-        point_a, point_b = self.data_generator.random_point(2)
-
-        expected = self.space.compose(point_a, point_b)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point_a=point_a, point_b=point_b, expected=expected, atol=atol)],
-            arg_names=["point_a", "point_b"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_inverse(self, point, expected, atol):
         inverse = self.space.inverse(point)
         self.assertAllClose(inverse, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_inverse_vec(self, n_reps, atol):
-        point = self.data_generator.random_point()
-
-        expected = self.space.inverse(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_compose_with_inverse_is_identity(self, n_points, atol):
@@ -72,22 +44,6 @@ class _LieGroupTestCaseMixins(GroupExpTestCaseMixins):
     def test_log(self, point, base_point, expected, atol):
         vec = self.space.log(point, base_point)
         self.assertAllClose(vec, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_log_vec(self, n_reps, atol):
-        point, base_point = self.data_generator.random_point(2)
-
-        expected = self.space.log(point, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(point=point, base_point=base_point, expected=expected, atol=atol)
-            ],
-            arg_names=["point", "base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_exp_after_log(self, n_points, atol):
@@ -160,31 +116,6 @@ class _LieGroupTestCaseMixins(GroupExpTestCaseMixins):
         # TODO: any random test for validation here?
         bracket = self.space.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(bracket, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_lie_bracket_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec_a, tangent_vec_b = self.data_generator.random_tangent_vec(
-            repeat_point(base_point, 2)
-        )
-
-        expected = self.space.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     def test_identity(self, expected, atol):
         self.assertAllClose(self.space.identity, expected, atol=atol)

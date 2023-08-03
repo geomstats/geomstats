@@ -4,7 +4,6 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDMatrices
-from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.connection import (
     ConnectionComparisonTestCase,
     ConnectionTestCase,
@@ -16,20 +15,6 @@ class RiemannianMetricTestCase(ConnectionTestCase):
     def test_metric_matrix(self, base_point, expected, atol):
         res = self.space.metric.metric_matrix(base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_metric_matrix_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.metric_matrix(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_metric_matrix_is_spd(self, n_points, atol):
@@ -49,37 +34,9 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         res = self.space.metric.cometric_matrix(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_cometric_matrix_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.cometric_matrix(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_inner_product_derivative_matrix(self, base_point, expected, atol):
         res = self.space.metric.inner_product_derivative_matrix(base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_inner_product_derivative_matrix_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.inner_product_derivative_matrix(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     def test_inner_product(
         self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
@@ -87,33 +44,6 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         # TODO: test inner_product with itself?
         res = self.space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_inner_product_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_inner_product_is_symmetric(self, n_points, atol):
@@ -147,77 +77,13 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         )
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_inner_coproduct_vec(self, n_reps, atol):
-        # TODO: check if cotangent generation makes sense
-        base_point = self.data_generator.random_point()
-        cotangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        cotangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.inner_coproduct(
-            cotangent_vec_a, cotangent_vec_b, base_point
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    cotangent_vec_a=cotangent_vec_a,
-                    cotangent_vec_b=cotangent_vec_b,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["cotangent_vec_a", "cotangent_vec_b", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_squared_norm(self, vector, base_point, expected, atol):
         res = self.space.metric.squared_norm(vector, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_squared_norm_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        vector = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.squared_norm(vector, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(vector=vector, base_point=base_point, expected=expected, atol=atol)
-            ],
-            arg_names=["vector", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_norm(self, vector, base_point, expected, atol):
         res = self.space.metric.norm(vector, base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_norm_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        vector = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.norm(vector, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(vector=vector, base_point=base_point, expected=expected, atol=atol)
-            ],
-            arg_names=["vector", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_norm_is_positive(self, n_points, atol):
@@ -233,41 +99,9 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         res = self.space.metric.normalize(vector, base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_normalize_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        vector = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.normalize(vector, base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(vector=vector, base_point=base_point, expected=expected, atol=atol)
-            ],
-            arg_names=["vector", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_squared_dist(self, point_a, point_b, expected, atol):
         res = self.space.metric.squared_dist(point_a, point_b)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_squared_dist_vec(self, n_reps, atol):
-        point_a, point_b = self.data_generator.random_point(2)
-
-        expected = self.space.metric.squared_dist(point_a, point_b)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point_a=point_a, point_b=point_b, expected=expected, atol=atol)],
-            arg_names=["point_a", "point_b"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_squared_dist_is_symmetric(self, n_points, atol):
@@ -310,20 +144,6 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         # TODO: dist properties mixins? (thinking about stratified)
         res = self.space.metric.dist(point_a, point_b)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_dist_vec(self, n_reps, atol):
-        point_a, point_b = self.data_generator.random_point(2)
-
-        expected = self.space.metric.dist(point_a, point_b)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point_a=point_a, point_b=point_b, expected=expected, atol=atol)],
-            arg_names=["point_a", "point_b"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_dist_is_symmetric(self, n_points, atol):
@@ -436,20 +256,6 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         res = self.space.metric.covariant_riemann_tensor(base_point)
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_covariant_riemann_tensor_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.covariant_riemann_tensor(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     @pytest.mark.random
     def test_covariant_riemann_tensor_is_skew_symmetric_1(self, n_points, atol):
         """Check covariant riemannian tensor verifies first skew symmetry.
@@ -548,50 +354,9 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         )
         self.assertAllClose(res, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_sectional_curvature_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
-        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
-
-        expected = self.space.metric.sectional_curvature(
-            tangent_vec_a, tangent_vec_b, base_point
-        )
-
-        vec_data = generate_vectorization_data(
-            data=[
-                dict(
-                    tangent_vec_a=tangent_vec_a,
-                    tangent_vec_b=tangent_vec_b,
-                    base_point=base_point,
-                    expected=expected,
-                    atol=atol,
-                )
-            ],
-            arg_names=["tangent_vec_a", "tangent_vec_b", "base_point"],
-            expected_name="expected",
-            vectorization_type="sym" if self.tangent_to_multiple else "repeat-0-1",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     def test_scalar_curvature(self, base_point, expected, atol):
         res = self.space.metric.scalar_curvature(base_point)
         self.assertAllClose(res, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_scalar_curvature_vec(self, n_reps, atol):
-        base_point = self.data_generator.random_point()
-
-        expected = self.space.metric.scalar_curvature(base_point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(base_point=base_point, expected=expected, atol=atol)],
-            arg_names=["base_point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
 
     @pytest.mark.random
     def test_parallel_transport_ivp_norm(self, n_points, atol):

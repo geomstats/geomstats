@@ -7,6 +7,7 @@ import pytest
 import geomstats.backend as gs
 from geomstats.exceptions import AutodiffNotImplementedError
 from geomstats.test.test_case import autodiff_backend
+from geomstats.test.vectorization import test_vectorization
 
 
 class Parametrizer(type):
@@ -124,9 +125,11 @@ class DataBasedParametrizer(type):
         trials = testing_data.trials if hasattr(testing_data, "trials") else 1
 
         data_names_ls = _collect_testing_data_tests(testing_data)
-        test_attrs_with_data = _filter_test_funcs_given_data(
+        test_attrs_with_data, missing_vec_tests = _filter_test_funcs_given_data(
             all_test_attrs, data_names_ls
         )
+        vec_tests = _create_vectorization_tests(missing_vec_tests, all_test_attrs)
+        test_attrs_with_data.update(vec_tests)
 
         selected_test_attrs, test_attrs_to_skip, _ = _filter_skips_and_ignores(
             test_attrs_with_data, testing_data
@@ -383,6 +386,10 @@ def _test_name_to_test_data_name(test_name):
     return test_name[5:] + "_test_data"
 
 
+def _test_data_name_to_test_name(test_data_name):
+    return "test_" + test_data_name[:-10]
+
+
 def _collect_available_tests(attrs):
     return {attr_name: attr for attr_name, attr in attrs.items() if _is_test(attr_name)}
 
@@ -422,15 +429,45 @@ def _filter_test_funcs_given_data(test_attrs, data_names_ls):
             assigned_data_names.append(data_name)
             relevant_test_attrs[attr_name] = attr
 
+    assigned_data_names = set(assigned_data_names)
     if len(assigned_data_names) != len(data_names_ls):
         missing_tests = set(data_names_ls).difference(assigned_data_names)
+    else:
+        missing_tests = set()
+
+    # identify possible vectorization tests
+    missing_vec_tests = []
+    for data_name in missing_tests.copy():
+        test_name = _test_data_name_to_test_name(data_name)
+        if test_name.endswith("vec") and test_name[:-4] in test_attrs:
+            missing_vec_tests.append(test_name[:-4])
+            missing_tests.remove(data_name)
+
+    missing_tests = missing_tests.difference(missing_vec_tests)
+    if missing_tests:
         msg = "Need to define tests for:"
         for data_name in missing_tests:
             msg += f"\n\t-{data_name}"
 
         raise Exception(msg)
 
-    return relevant_test_attrs
+    return relevant_test_attrs, missing_vec_tests
+
+
+def _create_vectorization_tests(missing_vec_tests, test_attrs):
+    vec_tests = {}
+    for test_name in missing_vec_tests:
+        vec_tests[test_name + "_vec"] = pytest.mark.vec(
+            _create_vectorization_test(test_attrs[test_name])
+        )
+    return vec_tests
+
+
+def _create_vectorization_test(test_func):
+    def new_test(self, n_reps, atol):
+        return test_vectorization(self, test_func, n_reps, atol)
+
+    return new_test
 
 
 def _name_to_test_name(name):
@@ -457,7 +494,7 @@ def _filter_skips_and_ignores(test_attrs, testing_data):
     skips = list(testing_data.skips) if hasattr(testing_data, "skips") else []
 
     # TODO: review
-    skips_if = testing_data.skipif if hasattr(testing_data, "skips_if") else ()
+    skips_if = testing_data.skips_if if hasattr(testing_data, "skips_if") else ()
     for skipif in skips_if:
         if skipif[0]:
             skips.extend(skipif[1])

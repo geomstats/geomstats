@@ -41,19 +41,6 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
         vec = self.space.basis_representation(point)
         self.assertAllClose(vec, expected, atol=atol)
 
-    @pytest.mark.vec
-    def test_basis_representation_vec(self, n_reps, atol):
-        point = self.data_generator.random_point()
-        expected = self.space.basis_representation(point)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(point=point, expected=expected, atol=atol)],
-            arg_names=["point"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
     @pytest.mark.random
     def test_basis_representation_and_basis(self, n_points, atol):
         mat = self.data_generator.random_point(n_points)
