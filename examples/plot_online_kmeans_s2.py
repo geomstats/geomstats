@@ -21,7 +21,7 @@ def main():
     data = sphere.random_von_mises_fisher(kappa=10, n_samples=1000)
 
     n_clusters = 4
-    clustering = OnlineKMeans(sphere, n_clusters=n_clusters)
+    clustering = OnlineKMeans(sphere.metric, n_clusters=n_clusters)
     clustering = clustering.fit(data)
 
     plt.figure(0)

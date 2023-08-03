@@ -21,7 +21,7 @@ def main():
     data = circle.random_uniform(n_samples=1000)
 
     n_clusters = 5
-    clustering = OnlineKMeans(circle, n_clusters=n_clusters)
+    clustering = OnlineKMeans(circle.metric, n_clusters=n_clusters)
     clustering = clustering.fit(data)
 
     plt.figure(0)
