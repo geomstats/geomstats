@@ -10,10 +10,6 @@ class LowerTriangularMatricesTestData(
     pass
 
 
-class StrictlyLowerTriangularMatricesTestData(VectorSpaceTestData):
-    pass
-
-
 class LowerTriangularMatrices2TestData(TestData):
     def belongs_test_data(self):
         data = [

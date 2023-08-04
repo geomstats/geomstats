@@ -1,6 +1,5 @@
 from .base import LevelSetTestData
 from .fiber_bundle import FiberBundleTestData
-from .pullback_metric import PullbackDiffeoMetricTestData
 from .quotient_metric import QuotientMetricTestData
 
 
@@ -43,19 +42,3 @@ class FullRankCorrelationAffineQuotientMetricTestData(QuotientMetricTestData):
         "exp_after_log": {"atol": 1e-4},
         "log_vec": {"atol": 1e-4},
     }
-
-
-class FullRankEuclideanCholeskyMetricTestData(PullbackDiffeoMetricTestData):
-    trials = 3
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
-    # tolerances = {
-    #     "dist_point_to_itself_is_zero": {"atol": 1e-4},
-    #     "geodesic_bvp_vec": {"atol": 1e-4},
-    #     "geodesic_bvp_reverse": {"atol": 1e-4},
-    #     "geodesic_boundary_points": {"atol": 1e-4},
-    #     "log_after_exp": {"atol": 1e-3},
-    #     "exp_after_log": {"atol": 1e-4},
-    #     "log_vec": {"atol": 1e-4},
-    # }

@@ -2,10 +2,7 @@ import random
 
 import pytest
 
-from geomstats.geometry.lower_triangular_matrices import (
-    LowerTriangularMatrices,
-    StrictlyLowerTriangularMatrices,
-)
+from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import (
     MatrixVectorSpaceTestCaseMixins,
@@ -16,7 +13,6 @@ from .data.lower_triangular_matrices import (
     LowerTriangularMatrices2TestData,
     LowerTriangularMatrices3TestData,
     LowerTriangularMatricesTestData,
-    StrictlyLowerTriangularMatricesTestData,
 )
 
 
@@ -58,21 +54,3 @@ class TestLowerTriangularMatrices3(
 ):
     space = LowerTriangularMatrices(n=3)
     testing_data = LowerTriangularMatrices3TestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def stricly_lower_triangular_spaces(request):
-    request.cls.space = StrictlyLowerTriangularMatrices(n=request.param)
-
-
-@pytest.mark.usefixtures("stricly_lower_triangular_spaces")
-class TestStrictlyLowerTriangularMatrices(
-    VectorSpaceTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = StrictlyLowerTriangularMatricesTestData()

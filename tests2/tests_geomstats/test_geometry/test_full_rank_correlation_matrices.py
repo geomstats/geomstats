@@ -6,7 +6,6 @@ import geomstats.backend as gs
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
     FullRankCorrelationAffineQuotientMetric,
-    FullRankCorrelationEuclideanCholeskyMetric,
     FullRankCorrelationMatrices,
 )
 from geomstats.geometry.general_linear import GeneralLinear
@@ -17,14 +16,12 @@ from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
 from geomstats.test_cases.geometry.full_rank_correlation_matrices import (
     FullRankCorrelationMatricesTestCase,
 )
-from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
 
 from .data.full_rank_correlation_matrices import (
     CorrelationMatricesBundleTestData,
     FullRankCorrelationAffineQuotientMetricTestData,
     FullRankCorrelationMatricesTestData,
-    FullRankEuclideanCholeskyMetricTestData,
 )
 
 
@@ -100,25 +97,3 @@ class TestFullRankCorrelationAffineQuotientMetric(
     QuotientMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = FullRankCorrelationAffineQuotientMetricTestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        3,
-        random.randint(4, 5),
-    ],
-)
-def euclidean_cholesky_equipped_spaces(request):
-    n = request.param
-    request.cls.space = space = FullRankCorrelationMatrices(n=n, equip=False)
-    space.equip_with_metric(FullRankCorrelationEuclideanCholeskyMetric)
-
-
-# @pytest.mark.redundant
-# @pytest.mark.usefixtures("euclidean_cholesky_equipped_spaces")
-# class TestFullRankEuclideanCholeskyMetric(
-#     PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
-# ):
-#     # TODO: fix
-#     testing_data = FullRankEuclideanCholeskyMetricTestData()
