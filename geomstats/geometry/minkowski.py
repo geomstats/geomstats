@@ -9,6 +9,7 @@ import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import repeat_out
 
 
 class Minkowski(Euclidean):
@@ -103,8 +104,7 @@ class MinkowskiMetric(RiemannianMetric):
         exp : array-like, shape=[..., dim]
             Riemannian exponential.
         """
-        exp = base_point + tangent_vec
-        return exp
+        return base_point + tangent_vec
 
     def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of `point` at `base_point`.
@@ -123,8 +123,7 @@ class MinkowskiMetric(RiemannianMetric):
         log : array-like, shape=[..., dim]
             Riemannian logarithm.
         """
-        log = point - base_point
-        return log
+        return point - base_point
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.
@@ -142,7 +141,8 @@ class MinkowskiMetric(RiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return math.inf
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)

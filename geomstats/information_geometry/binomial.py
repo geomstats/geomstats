@@ -115,7 +115,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., n_samples]
+        samples : array-like, shape=[..., n_samples, dim]
             Sample from binomial distributions.
         """
 

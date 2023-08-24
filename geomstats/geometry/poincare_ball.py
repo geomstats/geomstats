@@ -87,9 +87,6 @@ class PoincareBall(_Hyperbolic, OpenSet):
         projected_point : array-like, shape=[..., dim]
             Point projected on the ball.
         """
-        if point.shape[-1] != self.dim:
-            raise NameError("Wrong dimension, expected ", self.dim)
-
         l2_norm = gs.linalg.norm(point, axis=-1)
         if gs.any(l2_norm >= 1 - gs.atol):
             projected_point = gs.einsum(
@@ -203,6 +200,23 @@ class PoincareBallMetric(RiemannianMetric):
             num_1 + num_2,
         )
         return self._space.projection(result)
+
+    def squared_dist(self, point_a, point_b):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
+        """
+        return self.dist(point_a, point_b) ** 2
 
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.

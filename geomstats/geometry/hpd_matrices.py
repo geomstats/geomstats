@@ -17,6 +17,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.integrator import integrate
+from geomstats.vectorization import repeat_out
 
 
 class HPDMatrices(ComplexOpenSet):
@@ -39,7 +40,9 @@ class HPDMatrices(ComplexOpenSet):
     """
 
     def __init__(self, n, equip=True):
-        super().__init__(dim=n**2, embedding_space=HermitianMatrices(n), equip=equip)
+        super().__init__(
+            dim=n**2, shape=(n, n), embedding_space=HermitianMatrices(n), equip=equip
+        )
         self.n = n
 
     @staticmethod
@@ -741,10 +744,11 @@ class HPDAffineMetric(ComplexRiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return math.inf
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)
 
 
 class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
@@ -870,9 +874,9 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
 
     def parallel_transport(
         self,
-        tangent_vec_a,
+        tangent_vec,
         base_point,
-        tangent_vec_b=None,
+        direction=None,
         end_point=None,
         n_steps=10,
         step="rk4",
@@ -886,13 +890,13 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at `base_point` to transport.
-        tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector ar `base_point`, initial velocity of the geodesic to
-            transport along.
         base_point : array-like, shape=[..., n, n]
             Initial point of the geodesic.
+        direction : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`, initial velocity of the geodesic to
+            transport along.
         end_point : array-like, shape=[..., n, n]
             Point to transport to.
             Optional, default: None.
@@ -914,10 +918,10 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         Integration module: geomstats.integrator
         """
         if end_point is None:
-            end_point = self.exp(tangent_vec_b, base_point)
+            end_point = self.exp(direction, base_point)
 
         horizontal_lift_a = gs.linalg.solve_sylvester(
-            base_point, base_point, tangent_vec_a
+            base_point, base_point, tangent_vec
         )
 
         square_root_bp, inverse_square_root_bp = HermitianMatrices.powerm(
@@ -1166,7 +1170,15 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         if self.power_euclidean == 1:
-            return gs.copy(tangent_vec)
+            return repeat_out(
+                self._space,
+                gs.copy(tangent_vec),
+                tangent_vec,
+                base_point,
+                direction,
+                end_point,
+                out_shape=self._space.shape,
+            )
         raise NotImplementedError("Parallel transport is only implemented for power 1")
 
 
@@ -1258,10 +1270,11 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return math.inf
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)
 
     def dist(self, point_a, point_b):
         """Compute log euclidean distance.

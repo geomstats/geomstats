@@ -17,6 +17,7 @@ import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import get_batch_shape, repeat_out
 
 
 class _Hypersphere(LevelSet):
@@ -46,6 +47,7 @@ class _Hypersphere(LevelSet):
         self.dim = dim
         super().__init__(
             dim=dim,
+            shape=(dim + 1,) if default_coords_type == "extrinsic" else (dim,),
             default_coords_type=default_coords_type,
             equip=equip,
         )
@@ -867,19 +869,15 @@ class HypersphereMetric(RiemannianMetric):
         )
         return transported
 
-    def christoffels(self, point, coords_type="spherical"):
+    def christoffels(self, base_point):
         """Compute the Christoffel symbols at a point.
 
         Only implemented in dimension 2 and for spherical coordinates.
 
         Parameters
         ----------
-        point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
             Point on hypersphere where the Christoffel symbols are computed.
-
-        coords_type: str, {'spherical', 'intrinsic', 'extrinsic'}
-            Coordinates in which to express the Christoffel symbols.
-            Optional, default: 'spherical'.
 
         Returns
         -------
@@ -887,28 +885,37 @@ class HypersphereMetric(RiemannianMetric):
                                          covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """
-        if self._space.dim != 2 or coords_type != "spherical":
+        if self._space.dim != 2 or self._space.default_coords_type != "intrinsic":
             raise NotImplementedError(
                 "The Christoffel symbols are only implemented"
                 " for spherical coordinates in the 2-sphere"
             )
+        batch_shape = get_batch_shape(self._space, base_point)
 
-        point = gs.to_ndarray(point, to_ndim=2)
-        christoffel = []
-        for sample in point:
-            gamma_0 = gs.array([[0, 0], [0, -gs.sin(sample[0]) * gs.cos(sample[0])]])
-            gamma_1 = gs.array(
-                [
-                    [0, gs.cos(sample[0]) / gs.sin(sample[0])],
-                    [gs.cos(sample[0]) / gs.sin(sample[0]), 0],
-                ]
-            )
-            christoffel.append(gs.stack([gamma_0, gamma_1]))
+        theta = base_point[..., 0]
 
-        christoffel = gs.stack(christoffel)
-        if gs.ndim(christoffel) == 4 and gs.shape(christoffel)[0] == 1:
-            christoffel = gs.squeeze(christoffel, axis=0)
-        return christoffel
+        gamma_0 = gs.stack(
+            [
+                gs.zeros(batch_shape + (2,)),
+                gs.stack(
+                    [gs.zeros(batch_shape), -gs.sin(theta) * gs.cos(theta)], axis=-1
+                ),
+            ],
+            axis=-1,
+        )
+        gamma_1 = gs.stack(
+            [
+                gs.stack(
+                    [gs.zeros(batch_shape), gs.cos(theta) / gs.sin(theta)], axis=-1
+                ),
+                gs.stack(
+                    [gs.cos(theta) / gs.sin(theta), gs.zeros(batch_shape)], axis=-1
+                ),
+            ],
+            axis=-1,
+        )
+
+        return gs.stack([gamma_0, gamma_1], axis=-3)
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         r"""Compute the curvature.
@@ -1079,7 +1086,17 @@ class HypersphereMetric(RiemannianMetric):
         curvature_derivative : array-like, shape=[..., dim]
             Tangent vector at base point.
         """
-        return gs.zeros_like(tangent_vec_a)
+        curvature_derivative = gs.zeros_like(tangent_vec_a)
+        return repeat_out(
+            self._space,
+            curvature_derivative,
+            tangent_vec_a,
+            tangent_vec_b,
+            tangent_vec_c,
+            tangent_vec_d,
+            base_point,
+            out_shape=self._space.shape,
+        )
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.
@@ -1097,10 +1114,11 @@ class HypersphereMetric(RiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return gs.pi
+        radius = gs.array(gs.pi)
+        return repeat_out(self._space, radius, base_point)
 
 
 class Hypersphere(_Hypersphere):

@@ -6,7 +6,6 @@ Lead author: Yann Cabanes.
 import logging
 
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.base import ComplexVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
@@ -23,7 +22,7 @@ class HermitianMatrices(ComplexVectorSpace):
     """
 
     def __init__(self, n, equip=True):
-        super().__init__(dim=n**2, shape=(n, n), equip=equip)
+        super().__init__(dim=n * (n + 1) - n, shape=(n, n), equip=equip)
         self.n = n
 
     @staticmethod
@@ -32,22 +31,36 @@ class HermitianMatrices(ComplexVectorSpace):
         return ComplexMatricesMetric
 
     def _create_basis(self):
-        """Compute the basis of the vector space of symmetric matrices."""
-        basis = []
+        """Compute the basis of the vector space of symmetric matrices.
+
+        Returns
+        -------
+        basis : array-like, shape=[dim, n, n]
+        """
+        diagonal = []
+        real_part = []
+        complex_part = []
         for row in gs.arange(self.n):
             for col in gs.arange(row, self.n):
                 if row == col:
                     indices = [(row, row)]
                     values = [1.0 + 0j]
-                    basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
+                    diagonal.append(
+                        gs.array_from_sparse(indices, values, (self.n,) * 2)
+                    )
                 else:
                     indices = [(row, col), (col, row)]
                     values = [1.0 + 0j, 1.0 + 0j]
-                    basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
+                    real_part.append(
+                        gs.array_from_sparse(indices, values, (self.n,) * 2)
+                    )
                     values = [1j, -1j]
-                    basis.append(gs.array_from_sparse(indices, values, (self.n,) * 2))
-        basis = gs.stack(basis)
-        return basis
+                    complex_part.append(
+                        gs.array_from_sparse(indices, values, (self.n,) * 2)
+                    )
+        return gs.vstack(
+            [gs.stack(diagonal), gs.stack(real_part), gs.stack(complex_part)]
+        )
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if a matrix is Hermitian.
@@ -64,7 +77,7 @@ class HermitianMatrices(ComplexVectorSpace):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the space.
         """
-        belongs = super(HermitianMatrices, self).belongs(point)
+        belongs = super().belongs(point)
         if gs.any(belongs):
             is_hermitian = ComplexMatrices.is_hermitian(point, atol)
             return gs.logical_and(belongs, is_hermitian)
@@ -120,12 +133,12 @@ class HermitianMatrices(ComplexVectorSpace):
         return ComplexMatrices.to_hermitian(point)
 
     @staticmethod
-    def to_vector(mat):
+    def to_vector(point):
         """Convert a Hermitian matrix into a vector.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
             Matrix.
 
         Returns
@@ -133,49 +146,30 @@ class HermitianMatrices(ComplexVectorSpace):
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
         """
-        if not gs.all(ComplexMatrices.is_hermitian(mat)):
-            logging.warning("non-Hermitian matrix encountered.")
-        mat = ComplexMatrices.to_hermitian(mat)
-        return gs.triu_to_vec(mat)
+        diag = Matrices.diagonal(point)
 
-    @staticmethod
-    @geomstats.vectorization.decorator(["vector", "else"])
-    def from_vector(vec, dtype=None):
+        up_triang = gs.triu_to_vec(point, k=1)
+        real_part = gs.real(up_triang)
+        complex_part = gs.imag(up_triang)
+
+        vec = gs.hstack([diag, real_part, complex_part])
+
+        return vec
+
+    def from_vector(self, vec):
         """Convert a vector into a Hermitian matrix.
 
         Parameters
         ----------
-        vec : array-like, shape=[..., n(n+1)/2]
+        vec : array-like, shape=[..., dim]
             Vector.
-        dtype : dtype, {gs.complex64, gs.complex128}
-            Data type object to use for the output.
-            Optional. Default: gs.complex128.
 
         Returns
         -------
         mat : array-like, shape=[..., n, n]
             Hermitian matrix.
         """
-        if dtype is None:
-            dtype = gs.get_default_cdtype()
-
-        vec_dim = vec.shape[-1]
-        mat_dim = (gs.sqrt(8.0 * vec_dim + 1) - 1) / 2
-        if mat_dim != int(mat_dim):
-            raise ValueError(
-                "Invalid input dimension, it must be of the form"
-                "(n_samples, n * (n + 1) / 2)"
-            )
-        mat_dim = int(mat_dim)
-        shape = (mat_dim, mat_dim)
-        mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
-        indices = list(zip(*gs.triu_indices(mat_dim)))
-        vec = gs.cast(vec, dtype)
-        upper_triangular = gs.stack(
-            [gs.array_from_sparse(indices, data, shape) for data in vec]
-        )
-        mat = ComplexMatrices.to_hermitian(upper_triangular) * gs.cast(mask, dtype)
-        return mat
+        return gs.einsum("...k,...kij->...ij", vec, self.basis)
 
     @classmethod
     def expm(cls, mat):

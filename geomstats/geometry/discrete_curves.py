@@ -19,6 +19,7 @@ from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
+from geomstats.vectorization import get_batch_shape
 
 
 class DiscreteCurves(Manifold):
@@ -846,6 +847,25 @@ class ElasticMetric(PullbackDiffeoMetric):
                 f"{ambient_manifold} of dimension {ambient_manifold.dim}."
             )
 
+    def _define_embedding_space(self):
+        r"""Create the metric this metric is in diffeomorphism with.
+
+        This instantiate the metric to use as image space of the
+        diffeomorphism.
+
+        -------
+        embedding_metric : RiemannianMetric object
+            The metric of the embedding space
+        """
+        embedding_space = DiscreteCurves(
+            ambient_manifold=self._space.ambient_manifold,
+            k_sampling_points=self._space.k_sampling_points - 1,
+            start_at_the_origin=False,
+            equip=False,
+        )
+        embedding_space.equip_with_metric(L2CurvesMetric)
+        return embedding_space
+
     def _cartesian_to_polar(self, tangent_vec):
         """Compute polar coordinates of a tangent vector from the cartesian ones.
 
@@ -857,15 +877,12 @@ class ElasticMetric(PullbackDiffeoMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., k_sampling_points, ambient_dim]
+        tangent_vec : array-like, shape=[..., k, ambient_dim]
             Tangent vector, representing the derivative c' of a discrete curve c.
 
         Returns
         -------
-        norms : array-like, shape=[..., k_sampling_points]
-            Norms of the components of the tangent vector in polar coordinates.
-        args : array-like, shape=[..., k_sampling_points]
-            Arguments, i.e. angle, of the components in polar coordinates.
+        polar_tangent_vec : array-like, shape=[..., k, ambient_dim]
         """
         k_sampling_points = tangent_vec.shape[-2]
         norms = self._space.ambient_manifold.metric.norm(tangent_vec)
@@ -883,9 +900,7 @@ class ElasticMetric(PullbackDiffeoMetric):
             args.append(arg)
 
         args = gs.stack(args, axis=-1)
-        polar_tangent_vec = gs.stack([norms, args], axis=-1)
-
-        return polar_tangent_vec
+        return gs.stack([norms, args], axis=-1)
 
     def _polar_to_cartesian(self, polar_tangent_vec):
         """Compute the cartesian coordinates of a tangent vector from polar ones.
@@ -895,14 +910,11 @@ class ElasticMetric(PullbackDiffeoMetric):
 
         Parameters
         ----------
-        norms : array-like, shape=[..., k_sampling_points]
-            Norms of the components.
-        args : array-like, shape=[..., k_sampling_points]
-            Arguments of the components.
+        polar_tangent_vec : array-like, shape=[..., k, ambient_dim]
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., k_sampling_points, ambient_dim]
+        tangent_vec : array-like, shape=[..., k, ambient_dim]
             Tangent vector.
         """
         tangent_vec_x = gs.cos(polar_tangent_vec[..., :, 1])
@@ -911,25 +923,6 @@ class ElasticMetric(PullbackDiffeoMetric):
         unit_tangent_vec = gs.stack((tangent_vec_x, tangent_vec_y), axis=-1)
 
         return norms[..., :, None] * unit_tangent_vec
-
-    def _define_embedding_space(self):
-        r"""Create the metric this metric is in diffeomorphism with.
-
-        This instantiate the metric to use as image space of the
-        diffeomorphism.
-
-        -------
-        embedding_metric : RiemannianMetric object
-            The metric of the embedding space
-        """
-        embedding_space = DiscreteCurves(
-            ambient_manifold=self._space.ambient_manifold,
-            k_sampling_points=self._space.k_sampling_points - 1,
-            start_at_the_origin=self._space.start_at_the_origin,
-            equip=False,
-        )
-        embedding_space.equip_with_metric(L2CurvesMetric)
-        return embedding_space
 
     def f_transform(self, point):
         r"""Compute the f_transform of a curve.
@@ -981,7 +974,7 @@ class ElasticMetric(PullbackDiffeoMetric):
         f : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             F_transform of the curve..
         """
-        k_sampling_points = point.shape[-2]
+        k_sampling_points = self._space.k_sampling_points
         velocity = (k_sampling_points - 1) * (point[..., 1:, :] - point[..., :-1, :])
         polar_velocity = self._cartesian_to_polar(velocity)
         speeds = polar_velocity[..., :, 0]
@@ -993,14 +986,14 @@ class ElasticMetric(PullbackDiffeoMetric):
 
         return self._polar_to_cartesian(f_polar)
 
-    def diffeomorphism(self, point):
+    def diffeomorphism(self, base_point):
         r"""Diffeomorphism at base point.
 
         This is the f_transform function,
 
         Parameters
         ----------
-        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+        base_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
 
         Returns
@@ -1009,7 +1002,7 @@ class ElasticMetric(PullbackDiffeoMetric):
             F_transform of the curve..
 
         """
-        return self.f_transform(point)
+        return self.f_transform(base_point)
 
     def f_transform_inverse(self, f_trans, starting_sampling_point):
         r"""Compute the inverse F_transform of a transformed curve.
@@ -1052,7 +1045,7 @@ class ElasticMetric(PullbackDiffeoMetric):
                 starting_sampling_point, to_ndim=f_trans.ndim, axis=-2
             )
 
-        k_sampling_points_minus_one = f_trans.shape[-2]
+        k_sampling_points_minus_one = self.embedding_space.k_sampling_points
 
         f_polar = self._cartesian_to_polar(f_trans)
         f_norms = f_polar[..., :, 0]
@@ -1072,9 +1065,7 @@ class ElasticMetric(PullbackDiffeoMetric):
         delta_points = 1 / (4 * self.b**2) * delta_points
 
         curve = gs.concatenate([starting_sampling_point, delta_points], axis=-2)
-        curve = gs.cumsum(curve, -2)
-
-        return gs.squeeze(curve)
+        return gs.cumsum(curve, axis=-2)
 
     def inverse_diffeomorphism(self, image_point):
         r"""Inverse diffeomorphism at image point.
@@ -1093,8 +1084,7 @@ class ElasticMetric(PullbackDiffeoMetric):
             Curve starting at the origin retrieved from its square-root velocity.
         """
         starting_sampling_point = gs.zeros(gs.shape(image_point[..., 0, :]))
-        f_transform = image_point
-        return self.f_transform_inverse(f_transform, starting_sampling_point)
+        return self.f_transform_inverse(image_point, starting_sampling_point)
 
     def squared_dist(self, point_a, point_b):
         """Compute squared geodesic distance between two curves.
@@ -1135,28 +1125,50 @@ class ElasticMetric(PullbackDiffeoMetric):
         curve_on_geodesic : callable
             The time parameterized geodesic curve.
         """
-        curve_ndim = 2
-        initial_point = gs.to_ndarray(initial_point, to_ndim=curve_ndim)
-        end_point = gs.to_ndarray(end_point, to_ndim=curve_ndim)
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError(
+                "Specify an end landmark set or an initial tangent"
+                "vector to define the geodesic."
+            )
+        if initial_tangent_vec is not None:
+            end_point = self.exp(initial_tangent_vec, initial_point)
 
-        def path(times):
+        initial_point, end_point = gs.broadcast_arrays(initial_point, end_point)
+        is_batch = end_point.ndim > self._space.point_ndim
+
+        def path(t):
             """Generate parametrized function for geodesic.
 
             Parameters
             ----------
-            times : array-like, shape=[n_times,]
+            t : array-like, shape=[n_times,]
                 Times in [0, 1] at which to compute points of the geodesic.
             """
-            times = gs.to_ndarray(times, to_ndim=1)
 
-            curves_path = []
-            for t in times:
+            def _scalar_point_mul(t, point):
+                return gs.einsum("t,ij->tij", t, point)
+
+            if not gs.is_array(t):
+                t = gs.array([t])
+
+            if gs.ndim(t) == 0:
+                t = gs.expand_dims(t, axis=0)
+
+            def _path_single(initial_point, end_point):
                 initial_f = self.diffeomorphism(initial_point)
                 end_f = self.diffeomorphism(end_point)
-                f_t = (1 - t) * initial_f + t * end_f
-                curve_t = self.inverse_diffeomorphism(f_t)
-                curves_path.append(curve_t)
-            return gs.stack(curves_path)
+                f_t = _scalar_point_mul(1 - t, initial_f) + _scalar_point_mul(t, end_f)
+                return self.inverse_diffeomorphism(f_t)
+
+            if not is_batch:
+                return _path_single(initial_point, end_point)
+
+            return gs.stack(
+                [
+                    _path_single(initial_point_, end_point_)
+                    for initial_point_, end_point_ in zip(initial_point, end_point)
+                ]
+            )
 
         return path
 
@@ -1216,7 +1228,7 @@ class SRVMetric(PullbackDiffeoMetric):
         embedding_space = DiscreteCurves(
             ambient_manifold=self._space.ambient_manifold,
             k_sampling_points=self._space.k_sampling_points - 1,
-            start_at_the_origin=self._space.start_at_the_origin,
+            start_at_the_origin=False,
             equip=False,
         )
         embedding_space.equip_with_metric(L2CurvesMetric)
@@ -1250,31 +1262,24 @@ class SRVMetric(PullbackDiffeoMetric):
             Square-root velocity representation of a discrete curve.
         """
         ambient_metric = self._space.ambient_manifold.metric
-        if gs.any(ambient_metric.norm(point[..., 1:, :] - point[..., :-1, :]) < tol):
-            raise AssertionError(
-                "The square root velocity framework "
-                "is only defined for discrete curves "
-                "with distinct consecutive sample points."
-            )
-        point_ndim = gs.ndim(point)
-        point = gs.to_ndarray(point, to_ndim=3)
-        n_points, k_sampling_points, n_coords = point.shape
-        srv_shape = (n_points, k_sampling_points - 1, n_coords)
 
-        point = gs.reshape(point, (n_points * k_sampling_points, n_coords))
-        coef = k_sampling_points - 1
-        velocity = coef * ambient_metric.log(
-            point=point[1:, :], base_point=point[:-1, :]
+        point_ = point[..., 1:, :]
+        base_point = point[..., :-1, :]
+
+        point_flat = gs.reshape(point_, (-1,) + self._space.ambient_manifold.shape)
+        base_point_flat = gs.reshape(
+            base_point, (-1,) + self._space.ambient_manifold.shape
         )
-        velocity_norm = ambient_metric.norm(velocity, point[:-1, :])
+
+        coef = self._space.k_sampling_points - 1
+        velocity = coef * ambient_metric.log(
+            point=point_flat, base_point=base_point_flat
+        )
+
+        velocity_norm = ambient_metric.norm(velocity, base_point_flat)
         srv = gs.einsum("...i,...->...i", velocity, 1.0 / gs.sqrt(velocity_norm))
-
-        index = gs.arange(n_points * k_sampling_points - 1)
-        mask = ~((index + 1) % k_sampling_points == 0)
-        srv = gs.reshape(srv[mask], srv_shape)
-
-        if point_ndim == 2:
-            return gs.squeeze(srv)
+        batch_shape = get_batch_shape(self._space, point)
+        srv = gs.reshape(srv, batch_shape + self.embedding_space.shape)
         return srv
 
     def diffeomorphism(self, base_point):
@@ -1327,21 +1332,18 @@ class SRVMetric(PullbackDiffeoMetric):
             starting_sampling_point = gs.to_ndarray(
                 starting_sampling_point, to_ndim=srv.ndim, axis=-2
             )
-        srv_shape = srv.shape
-        srv = gs.to_ndarray(srv, to_ndim=3)
-        n_curves, k_sampling_points_minus_one, n_coords = srv.shape
 
-        srv_flat = gs.reshape(srv, (n_curves * k_sampling_points_minus_one, n_coords))
-        srv_norm = self._space.ambient_manifold.metric.norm(srv_flat)
+        srv_flat = gs.reshape(srv, (-1,) + self.embedding_space.ambient_manifold.shape)
+        srv_norm = self.embedding_space.ambient_manifold.metric.norm(srv_flat)
 
-        dt = 1 / k_sampling_points_minus_one
+        dt = 1 / self.embedding_space.k_sampling_points
 
         delta_points = gs.einsum("...,...i->...i", dt * srv_norm, srv_flat)
-        delta_points = gs.reshape(delta_points, srv_shape)
+        delta_points = gs.reshape(delta_points, srv.shape)
 
-        curve = gs.concatenate((starting_sampling_point, delta_points), -2)
+        curve = gs.concatenate((starting_sampling_point, delta_points), axis=-2)
 
-        return gs.cumsum(curve, -2)
+        return gs.cumsum(curve, axis=-2)
 
     def inverse_diffeomorphism(self, image_point):
         r"""Inverse diffeomorphism at image point.
@@ -1360,8 +1362,7 @@ class SRVMetric(PullbackDiffeoMetric):
             Curve starting at the origin retrieved from its square-root velocity.
         """
         starting_sampling_point = gs.zeros(gs.shape(image_point[..., 0, :]))
-        f_transform = image_point
-        return self.f_transform_inverse(f_transform, starting_sampling_point)
+        return self.f_transform_inverse(image_point, starting_sampling_point)
 
     def tangent_diffeomorphism(self, tangent_vec, base_point):
         r"""Differential of the square root velocity transform.
@@ -1384,7 +1385,7 @@ class SRVMetric(PullbackDiffeoMetric):
             Differential of the square root velocity transform at curve
             evaluated at tangent_vec.
         """
-        k_sampling_points = base_point.shape[-2]
+        k_sampling_points = self._space.k_sampling_points
         d_vec = (k_sampling_points - 1) * (
             tangent_vec[..., 1:, :] - tangent_vec[..., :-1, :]
         )
@@ -1407,7 +1408,7 @@ class SRVMetric(PullbackDiffeoMetric):
 
         return d_srv_vec
 
-    def inverse_tangent_diffeomorphism(self, tangent_vec, image_point):
+    def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
         r"""Inverse of differential of the square root velocity transform.
 
         .. math::
@@ -1415,7 +1416,7 @@ class SRVMetric(PullbackDiffeoMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+        image_tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Tangent vector to srv.
         image_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             Square root velocity representation of a discrete curve.
@@ -1426,11 +1427,12 @@ class SRVMetric(PullbackDiffeoMetric):
             Inverse of the differential of the square root velocity transform at
             curve evaluated at tangent_vec.
         """
+        batch_shape = get_batch_shape(
+            self.embedding_space, image_tangent_vec, image_point
+        )
         point = self.inverse_diffeomorphism(image_point)
-        point = gs.to_ndarray(point, to_ndim=3)
-        n_points, k_sampling_points, ambient_dim = point.shape
 
-        k_sampling_points = point.shape[-2]
+        k_sampling_points = self._space.k_sampling_points
         velocity_vec = (k_sampling_points - 1) * (
             point[..., 1:, :] - point[..., :-1, :]
         )
@@ -1439,30 +1441,21 @@ class SRVMetric(PullbackDiffeoMetric):
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
         )
         inner_prod = self.embedding_space.metric.pointwise_inner_products(
-            tangent_vec, unit_velocity_vec, point[..., :-1, :]
+            image_tangent_vec, unit_velocity_vec, point[..., :-1, :]
         )
         tangent_vec_tangential = gs.einsum(
             "...ij,...i->...ij", unit_velocity_vec, inner_prod
         )
-        d_vec = tangent_vec + tangent_vec_tangential
+        d_vec = image_tangent_vec + tangent_vec_tangential
         d_vec = gs.einsum("...ij,...i->...ij", d_vec, velocity_norm ** (1 / 2))
         increment = d_vec / (k_sampling_points - 1)
-        initial_value = gs.zeros((n_points, 1, ambient_dim))
+        initial_value = gs.zeros(
+            batch_shape + (1,) + self._space.ambient_manifold.shape
+        )
 
-        n_increments, _, _ = increment.shape
-        if n_points != n_increments:
-            if n_points == 1:
-                initial_value = gs.tile(initial_value, (n_increments, 1, 1))
-            elif n_increments == 1:
-                increment = gs.tile(increment, (n_points, 1, 1))
-            else:
-                raise ValueError("Number of curves and of increments are incompatible.")
+        vec = gs.concatenate((initial_value, increment), axis=-2)
 
-        vec = gs.concatenate((initial_value, increment), -2)
-
-        vec = gs.cumsum(vec, -2)
-
-        return gs.squeeze(vec)
+        return gs.cumsum(vec, axis=-2)
 
     @staticmethod
     def space_derivative(curve):

@@ -23,7 +23,7 @@ class ComplexMatrices(ComplexVectorSpace):
     def __init__(self, m, n, equip=True):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
-        super().__init__(shape=(m, n), equip=equip)
+        super().__init__(dim=m * n * 2, shape=(m, n), equip=equip)
         self.m = m
         self.n = n
 
@@ -36,7 +36,9 @@ class ComplexMatrices(ComplexVectorSpace):
         """Create the canonical basis."""
         cdtype = gs.get_default_cdtype()
         m, n = self.m, self.n
-        return gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
+        real_part = gs.reshape(gs.eye(n * m), (n * m, m, n))
+        complex_part = gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
+        return gs.vstack([real_part, complex_part])
 
     def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
@@ -200,48 +202,10 @@ class ComplexMatrices(ComplexVectorSpace):
         """
         cdtype = gs.get_default_cdtype()
 
-        m, n = self.m, self.n
-        size = (n_samples, m, n) if n_samples != 1 else (m, n)
+        size = (n_samples,) + self.shape if n_samples != 1 else self.shape
         point = gs.cast(bound * (gs.random.rand(*size) - 0.5), dtype=cdtype)
         point += 1j * gs.cast(bound * (gs.random.rand(*size) - 0.5), dtype=cdtype)
         return point
-
-    def random_tangent_vec(self, base_point, n_samples=1):
-        """Generate random tangent vec.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        base_point :  array-like, shape=[..., dim]
-            Point.
-
-        Returns
-        -------
-        tangent_vec : array-like, shape=[..., dim]
-            Tangent vec at base point.
-        """
-        if (
-            n_samples > 1
-            and base_point.ndim > len(self.shape)
-            and n_samples != len(base_point)
-        ):
-            raise ValueError(
-                "The number of base points must be the same as the "
-                "number of samples, when different from 1."
-            )
-        cdtype = gs.get_default_cdtype()
-
-        tangent_vec = gs.cast(
-            gs.random.normal(size=(n_samples,) + self.shape),
-            dtype=cdtype,
-        )
-        tangent_vec += 1j * gs.cast(
-            gs.random.normal(size=(n_samples,) + self.shape),
-            dtype=cdtype,
-        )
-        return gs.squeeze(tangent_vec)
 
     @classmethod
     def congruent(cls, mat_1, mat_2):

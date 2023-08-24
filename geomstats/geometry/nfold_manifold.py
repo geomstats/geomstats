@@ -8,6 +8,7 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.vectorization import get_batch_shape
 
 
 class NFoldManifold(Manifold):
@@ -269,7 +270,7 @@ class NFoldMetric(RiemannianMetric):
             reshaped = gs.einsum("j,ij->ij", self.scales, reshaped)
         return gs.squeeze(gs.sum(reshaped, axis=-1))
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -287,17 +288,15 @@ class NFoldMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         base_manifold = self._space.base_manifold
+        batch_shape = get_batch_shape(self._space, tangent_vec, base_point)
 
         tangent_vec, point_ = gs.broadcast_arrays(tangent_vec, base_point)
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
         vector_ = gs.reshape(tangent_vec, (-1, *base_manifold.shape))
         each_exp = base_manifold.metric.exp(vector_, point_)
-        reshaped = gs.reshape(
-            each_exp, (-1, self._space.n_copies) + base_manifold.shape
-        )
-        return gs.squeeze(reshaped)
+        return gs.reshape(each_exp, batch_shape + self._space.shape)
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -315,15 +314,13 @@ class NFoldMetric(RiemannianMetric):
             of point at the base point.
         """
         base_manifold = self._space.base_manifold
+        batch_shape = get_batch_shape(self._space, point, base_point)
 
         point_, base_point_ = gs.broadcast_arrays(point, base_point)
         base_point_ = gs.reshape(base_point_, (-1, *base_manifold.shape))
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
         each_log = base_manifold.metric.log(point_, base_point_)
-        reshaped = gs.reshape(
-            each_log, (-1, self._space.n_copies) + base_manifold.shape
-        )
-        return gs.squeeze(reshaped)
+        return gs.reshape(each_log, batch_shape + self._space.shape)
 
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
@@ -365,24 +362,36 @@ class NFoldMetric(RiemannianMetric):
                         " far from the initial tangent vector."
                     )
             initial_tangent_vec = shooting_tangent_vec
-        initial_tangent_vec = gs.array(initial_tangent_vec)
 
-        def landmarks_on_geodesic(t):
-            t = gs.cast(t, initial_point.dtype)
-            t = gs.to_ndarray(t, to_ndim=1)
+        initial_point, initial_tangent_vec = gs.broadcast_arrays(
+            initial_point, initial_tangent_vec
+        )
+        is_batch = initial_tangent_vec.ndim > self._space.point_ndim
 
-            tangent_vecs = gs.einsum("...,...ij->...ij", t, initial_tangent_vec)
+        def path(t):
+            if not gs.is_array(t):
+                t = gs.array([t])
 
-            def point_ok_landmarks(tangent_vec):
-                if gs.ndim(tangent_vec) < 2:
-                    raise RuntimeError
-                exp = self.exp(tangent_vec=tangent_vec, base_point=initial_point)
-                return exp
+            if gs.ndim(t) == 0:
+                t = gs.expand_dims(t, axis=0)
 
-            landmarks_at_time_t = gs.vectorize(
-                tangent_vecs, point_ok_landmarks, signature="(i,j)->(i,j)"
+            def _path_single(initial_tangent_vec, initial_point):
+                idx = "ijk"[: self._space.point_ndim]
+                tangent_vec = gs.einsum(
+                    f"...,...{idx}->...{idx}", t, initial_tangent_vec
+                )
+                return self.exp(tangent_vec=tangent_vec, base_point=initial_point)
+
+            if not is_batch:
+                return _path_single(initial_tangent_vec, initial_point)
+
+            return gs.stack(
+                [
+                    _path_single(initial_tangent_vec_, initial_point_)
+                    for initial_tangent_vec_, initial_point_ in zip(
+                        initial_tangent_vec, initial_point
+                    )
+                ]
             )
 
-            return landmarks_at_time_t
-
-        return landmarks_on_geodesic
+        return path
