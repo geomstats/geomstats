@@ -8,4 +8,10 @@ class ComplexManifoldTestData(_ManifoldMixinsTestData, TestData):
         return self.generate_random_data()
 
     def random_point_imaginary_nonzero_test_data(self):
-        return self.generate_tests([dict(n_points=5)])
+        return self.generate_tests([dict(n_points=self.N_RANDOM_POINTS[-1])])
+
+    def random_tangent_vec_is_complex_test_data(self):
+        return self.generate_random_data()
+
+    def random_tangent_vec_imaginary_nonzero_test_data(self):
+        return self.generate_tests([dict(n_points=self.N_RANDOM_POINTS[-1])])

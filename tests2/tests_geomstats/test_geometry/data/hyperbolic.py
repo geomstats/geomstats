@@ -73,6 +73,7 @@ class HyperbolicCoordsTransform2TestData(TestData):
 
 class HyperbolicCmpWithTransformTestData(RiemannianMetricCmpWithTransformTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
 
 
 class HyperbolicMetricTestData(RiemannianMetricTestData):

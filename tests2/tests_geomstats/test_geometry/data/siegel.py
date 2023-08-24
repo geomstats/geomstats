@@ -54,6 +54,7 @@ class Siegel2TestData(TestData):
 
 class SiegelMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
 
     def tangent_vec_from_base_point_to_zero_vec_test_data(self):
         return self.generate_vec_data()

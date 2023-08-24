@@ -1,27 +1,9 @@
 import pytest
 
-import geomstats.backend as gs
-from geomstats.test.random import VectorSpaceRandomDataGenerator
+from geomstats.test.random import HeisenbergVectorsRandomDataGenerator
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import VectorSpaceTestCase
 from geomstats.test_cases.geometry.lie_group import LieGroupTestCase
-
-
-class HeisenbergVectorsRandomDataGenerator(VectorSpaceRandomDataGenerator):
-    def random_upper_triangular_matrix(self, n_points=1):
-        if n_points == 1:
-            size = 3
-            expected_shape = (3, 3)
-            indices = [(0, 1), (0, 2), (1, 2)]
-        else:
-            size = (n_points, 3)
-            expected_shape = (n_points, 3, 3)
-            indices = []
-            for k in range(n_points):
-                indices.extend([(k, 0, 1), (k, 0, 2), (k, 1, 2)])
-
-        vec = gs.random.uniform(size=size)
-        return gs.array_from_sparse(indices, vec, expected_shape) + gs.eye(3)
 
 
 class HeisenbergVectorsTestCase(LieGroupTestCase, VectorSpaceTestCase):

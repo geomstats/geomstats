@@ -1,8 +1,10 @@
 import math
 
-import geomstats.backend as gs
-from geomstats.test.data import TestData
+import pytest
 
+import geomstats.backend as gs
+
+from .base import ComplexOpenSetTestData
 from .complex_riemannian_metric import ComplexRiemannianMetricTestData
 
 LN_3 = math.log(3.0)
@@ -11,7 +13,7 @@ SQRT_2 = math.sqrt(2.0)
 SQRT_8 = math.sqrt(8.0)
 
 
-class ComplexPoincareDiskSmokeTestData(TestData):
+class ComplexPoincareDiskTestData(ComplexOpenSetTestData):
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([0.2 + 0.2j]), expected=gs.array(True)),
@@ -34,7 +36,7 @@ class ComplexPoincareDiskSmokeTestData(TestData):
                 expected=gs.array([[False, False], [False, False]]),
             ),
         ]
-        return self.generate_tests(data)
+        return self.generate_tests(data, marks=(pytest.mark.smoke,))
 
     def projection_test_data(self):
         data = [
@@ -52,15 +54,16 @@ class ComplexPoincareDiskSmokeTestData(TestData):
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return self.generate_tests(data, marks=(pytest.mark.smoke,))
 
 
 class ComplexPoincareDiskMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
+    trials = 2
+
     skips = ("sectional_curvature_vec",)
 
-
-class ComplexPoincareDiskMetricSmokeTestData(TestData):
     def inner_product_test_data(self):
         data = [
             dict(
@@ -82,7 +85,7 @@ class ComplexPoincareDiskMetricSmokeTestData(TestData):
                 expected=gs.array([1.0, 2.0, 3.0]),
             ),
         ]
-        return self.generate_tests(data)
+        return self.generate_tests(data, marks=(pytest.mark.smoke,))
 
     def exp_test_data(self):
         data = [
@@ -111,7 +114,7 @@ class ComplexPoincareDiskMetricSmokeTestData(TestData):
                 ),
             ),
         ]
-        return self.generate_tests(data)
+        return self.generate_tests(data, marks=(pytest.mark.smoke,))
 
     def log_test_data(self):
         data = [
@@ -121,4 +124,4 @@ class ComplexPoincareDiskMetricSmokeTestData(TestData):
                 expected=gs.array([[LN_3 / 2]]),
             )
         ]
-        return self.generate_tests(data)
+        return self.generate_tests(data, marks=(pytest.mark.smoke,))

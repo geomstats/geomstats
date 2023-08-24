@@ -31,6 +31,9 @@ def _filter_combs(n_args, combs, vectorization_type):
         return combs
 
     repeat_indices = [int(val) for val in vectorization_type.split("-")[1:]]
+    if len(repeat_indices) == n_args:
+        return combs
+
     remove_indices = [val for val in range(n_args) if val not in repeat_indices]
 
     for comb in combs.copy():

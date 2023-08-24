@@ -1,11 +1,21 @@
 import pytest
 
 import geomstats.backend as gs
+from geomstats.test.random import RandomDataGenerator
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
 class PullbackDiffeoMetricTestCase(RiemannianMetricTestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = RandomDataGenerator(self.space)
+
+        if not hasattr(self, "data_generator_embedding"):
+            self.data_generator_embedding = RandomDataGenerator(
+                self.space.metric.embedding_space
+            )
+
     def test_diffeomorphism(self, base_point, expected, atol):
         res = self.space.metric.diffeomorphism(base_point)
         self.assertAllClose(res, expected, atol=atol)
@@ -189,7 +199,7 @@ class PullbackDiffeoMetricTestCase(RiemannianMetricTestCase):
         tangent_vec = self.space.metric.inverse_tangent_diffeomorphism(
             image_tangent_vec, image_point
         )
-        base_point = self.space.metric.diffeomorphism(image_point)
+        base_point = self.space.metric.inverse_diffeomorphism(image_point)
 
         image_tangent_vec_ = self.space.metric.tangent_diffeomorphism(
             tangent_vec, base_point

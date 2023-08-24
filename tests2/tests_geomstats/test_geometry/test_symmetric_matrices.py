@@ -73,7 +73,7 @@ def test_dim(n, expected):
     assert space.dim == expected
 
 
-@pytest.mark.random
+@pytest.mark.smoke
 class TestSymmetricMatricesOps(
     SymmetricMatricesOpsTestCase, metaclass=DataBasedParametrizer
 ):

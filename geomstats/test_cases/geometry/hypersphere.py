@@ -5,7 +5,10 @@ import scipy
 
 import geomstats.backend as gs
 from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.test.random import get_random_tangent_vec
+from geomstats.test.random import (
+    EmbeddedSpaceRandomDataGenerator,
+    HypersphereIntrinsicRandomDataGenerator,
+)
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import LevelSetTestCase
@@ -52,6 +55,13 @@ def _is_tangent_intrinsic(space, tangent_vec, point, atol=gs.atol):
 
 
 class HypersphereCoordsTransformTestCase(TestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.extrinsic_data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
+            self.intrinsic_data_generator = HypersphereIntrinsicRandomDataGenerator(
+                self.space_intrinsic
+            )
+
     def _test_belongs_intrinsic(self, point, expected):
         res = _belongs_intrinsic(self.space_intrinsic, point)
         self.assertAllEqual(res, expected)
@@ -68,7 +78,7 @@ class HypersphereCoordsTransformTestCase(TestCase):
 
     @pytest.mark.vec
     def test_intrinsic_to_extrinsic_coords_vec(self, n_reps, atol):
-        point_intrinsic = self.space_intrinsic.random_point()
+        point_intrinsic = self.intrinsic_data_generator.random_point()
 
         try:
             expected = self.space.intrinsic_to_extrinsic_coords(point_intrinsic)
@@ -85,7 +95,7 @@ class HypersphereCoordsTransformTestCase(TestCase):
 
     @pytest.mark.random
     def test_intrinsic_to_extrinsic_coords_belongs(self, n_points, atol):
-        point_intrinsic = self.space_intrinsic.random_point(n_points)
+        point_intrinsic = self.intrinsic_data_generator.random_point(n_points)
 
         try:
             point_extrinsic = self.space.intrinsic_to_extrinsic_coords(point_intrinsic)
@@ -108,7 +118,7 @@ class HypersphereCoordsTransformTestCase(TestCase):
 
     @pytest.mark.vec
     def test_extrinsic_to_intrinsic_coords_vec(self, n_reps, atol):
-        point_extrinsic = self.space_extrinsic.random_point()
+        point_extrinsic = self.extrinsic_data_generator.random_point()
 
         try:
             expected = self.space.extrinsic_to_intrinsic_coords(point_extrinsic)
@@ -125,7 +135,7 @@ class HypersphereCoordsTransformTestCase(TestCase):
 
     @pytest.mark.random
     def test_extrinsic_to_intrinsic_coords_belongs(self, n_points):
-        point_extrinsic = self.space_extrinsic.random_point(n_points)
+        point_extrinsic = self.extrinsic_data_generator.random_point(n_points)
 
         try:
             point_intrinsic = self.space.extrinsic_to_intrinsic_coords(point_extrinsic)
@@ -139,7 +149,7 @@ class HypersphereCoordsTransformTestCase(TestCase):
     def test_intrinsic_to_extrinsic_coords_after_extrinsic_to_intrinsic(
         self, n_points, atol
     ):
-        point_extrinsic = self.space_extrinsic.random_point(n_points)
+        point_extrinsic = self.extrinsic_data_generator.random_point(n_points)
 
         try:
             point_intrinsic = self.space.extrinsic_to_intrinsic_coords(point_extrinsic)
@@ -154,7 +164,7 @@ class HypersphereCoordsTransformTestCase(TestCase):
     def test_extrinsic_to_intrinsic_coords_after_intrinsic_to_extrinsic_coords(
         self, n_points, atol
     ):
-        point_intrinsic = self.space_intrinsic.random_point(n_points)
+        point_intrinsic = self.intrinsic_data_generator.random_point(n_points)
 
         try:
             point_extrinsic = self.space.intrinsic_to_extrinsic_coords(point_intrinsic)
@@ -179,9 +189,9 @@ class HypersphereCoordsTransformTestCase(TestCase):
 
     @pytest.mark.vec
     def test_tangent_spherical_to_extrinsic_vec(self, n_reps, atol):
-        base_point_spherical = self.space_intrinsic.random_point()
-        tangent_vec_spherical = get_random_tangent_vec(
-            self.space_intrinsic, base_point_spherical
+        base_point_spherical = self.intrinsic_data_generator.random_point()
+        tangent_vec_spherical = self.intrinsic_data_generator.random_tangent_vec(
+            base_point_spherical
         )
 
         try:
@@ -208,9 +218,9 @@ class HypersphereCoordsTransformTestCase(TestCase):
 
     @pytest.mark.random
     def test_tangent_spherical_to_extrinsic_is_tangent(self, n_points, atol):
-        base_point_spherical = self.space_intrinsic.random_point(n_points)
-        tangent_vec_spherical = get_random_tangent_vec(
-            self.space_intrinsic, base_point_spherical
+        base_point_spherical = self.intrinsic_data_generator.random_point(n_points)
+        tangent_vec_spherical = self.intrinsic_data_generator.random_tangent_vec(
+            base_point_spherical
         )
 
         try:
@@ -238,8 +248,8 @@ class HypersphereCoordsTransformTestCase(TestCase):
 
     @pytest.mark.vec
     def test_tangent_extrinsic_to_spherical_vec(self, n_reps, atol):
-        base_point = self.space_extrinsic.random_point()
-        tangent_vec = get_random_tangent_vec(self.space, base_point)
+        base_point = self.extrinsic_data_generator.random_point()
+        tangent_vec = self.extrinsic_data_generator.random_tangent_vec(base_point)
 
         try:
             expected = self.space.tangent_extrinsic_to_spherical(
@@ -266,8 +276,8 @@ class HypersphereCoordsTransformTestCase(TestCase):
 
     @pytest.mark.random
     def test_tangent_extrinsic_to_spherical_is_tangent(self, n_points, atol):
-        base_point = self.space_extrinsic.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space_extrinsic, base_point)
+        base_point = self.extrinsic_data_generator.random_point(n_points)
+        tangent_vec = self.extrinsic_data_generator.random_tangent_vec(base_point)
 
         try:
             tangent_vec_spherical = self.space.tangent_extrinsic_to_spherical(
@@ -289,9 +299,9 @@ class HypersphereCoordsTransformTestCase(TestCase):
     def test_tangent_extrinsic_to_spherical_after_tangent_spherical_to_extrinsic(
         self, n_points, atol
     ):
-        base_point_spherical = self.space_intrinsic.random_point(n_points)
-        tangent_vec_spherical = get_random_tangent_vec(
-            self.space_intrinsic, base_point_spherical
+        base_point_spherical = self.intrinsic_data_generator.random_point(n_points)
+        tangent_vec_spherical = self.intrinsic_data_generator.random_tangent_vec(
+            base_point_spherical
         )
 
         try:
@@ -313,8 +323,8 @@ class HypersphereCoordsTransformTestCase(TestCase):
     def test_tangent_spherical_to_extrinsic_after_tangent_extrinsic_to_spherical(
         self, n_points, atol
     ):
-        base_point = self.space_extrinsic.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(self.space_extrinsic, base_point)
+        base_point = self.extrinsic_data_generator.random_point(n_points)
+        tangent_vec = self.extrinsic_data_generator.random_tangent_vec(base_point)
 
         try:
             tangent_vec_spherical = self.space.tangent_extrinsic_to_spherical(
@@ -350,7 +360,11 @@ class HypersphereExtrinsicTestCase(LevelSetTestCase):
         return precision * gs.eye(self.space.dim)
 
     def _fit_frechet_mean(self, sample):
-        estimator = FrechetMean(self.space.metric, method="adaptive")
+        if self.space.dim == 1:
+            estimator = FrechetMean(self.space)
+        else:
+            estimator = FrechetMean(self.space, method="adaptive")
+
         estimator.fit(sample)
 
         return estimator.estimate_
@@ -512,6 +526,10 @@ class HypersphereExtrinsicTestCase(LevelSetTestCase):
 
 class HypersphereIntrinsicTestCase(ManifoldTestCase):
     # TODO: update after refactoring
+
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = HypersphereIntrinsicRandomDataGenerator(self.space)
 
     @pytest.mark.random
     def test_random_point_belongs(self, n_points, atol):

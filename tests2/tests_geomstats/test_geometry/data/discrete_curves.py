@@ -2,15 +2,48 @@ from .base import LevelSetTestData
 from .fiber_bundle import FiberBundleTestData
 from .manifold import ManifoldTestData
 from .mixins import ProjectionMixinsTestData
+from .pullback_metric import PullbackDiffeoMetricTestData
 from .quotient_metric import QuotientMetricTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class DiscreteCurvesTestData(ProjectionMixinsTestData, ManifoldTestData):
     pass
 
 
+class ClosedDiscreteCurvesTestData(LevelSetTestData):
+    fail_for_not_implemented_errors = False
+
+    skips = ("srv_projection_vec",)
+
+    def srv_projection_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def projection_is_itself_test_data(self):
+        return self.generate_random_data()
+
+    def random_point_is_closed_test_data(self):
+        return self.generate_random_data()
+
+
+class L2CurvesMetricTestData(RiemannianMetricTestData):
+    fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
+
+
+class ElasticMetricTestData(PullbackDiffeoMetricTestData):
+    fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
+
+
+class SRVMetricTestData(PullbackDiffeoMetricTestData):
+    fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
+
+
 class SRVShapeBundleTestData(FiberBundleTestData):
     fail_for_not_implemented_errors = False
+
     skips = (
         "horizontal_geodesic_vec",
         "align_vec",
@@ -47,21 +80,6 @@ class SRVShapeBundleTestData(FiberBundleTestData):
         for n_times in [20]:
             data.extend([dict(n_points=n_points, n_times=n_times) for n_points in [1]])
         return self.generate_tests(data)
-
-
-class ClosedDiscreteCurvesTestData(LevelSetTestData):
-    fail_for_not_implemented_errors = False
-
-    skips = ("srv_projection_vec",)
-
-    def srv_projection_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def projection_is_itself_test_data(self):
-        return self.generate_random_data()
-
-    def random_point_is_closed_test_data(self):
-        return self.generate_random_data()
 
 
 class SRVQuotientMetricTestData(QuotientMetricTestData):

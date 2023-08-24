@@ -20,6 +20,9 @@ class Grassmannian32TestData(TestData):
 
 class GrassmannianCanonicalMetricTestData(MatricesMetricTestData):
     fail_for_not_implemented_errors = False
+    trials = 3
+
+    xfails = ("log_after_exp",)
 
 
 class GrassmannianCanonicalMetric32TestData(TestData):

@@ -2,7 +2,6 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.test.random import get_random_tangent_vec
 from geomstats.test.test_case import TestCase
 from geomstats.test.utils import PointTransformer
 from geomstats.test.vectorization import generate_vectorization_data
@@ -55,7 +54,7 @@ class HyperbolicCoordsTransformTestCase(TestCase):
     ):
         space = self._get_space(from_)
         base_point = space.random_point(n_points)
-        tangent_vec = get_random_tangent_vec(space, base_point)
+        tangent_vec = space.random_tangent_vec(base_point)
 
         func_to_tangent = getattr(
             self.space,
@@ -74,7 +73,7 @@ class HyperbolicCoordsTransformTestCase(TestCase):
     def _test_from_to_other_space_tangent_vec(self, n_reps, from_, other, atol):
         space = self._get_space(from_)
         base_point = space.random_point()
-        tangent_vec = get_random_tangent_vec(space, base_point)
+        tangent_vec = space.random_tangent_vec(base_point)
 
         func_to_tangent = getattr(
             self.space,

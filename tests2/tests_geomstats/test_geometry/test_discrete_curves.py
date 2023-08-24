@@ -5,6 +5,9 @@ import pytest
 from geomstats.geometry.discrete_curves import (
     ClosedDiscreteCurves,
     DiscreteCurves,
+    ElasticMetric,
+    L2CurvesMetric,
+    SRVMetric,
     SRVShapeBundle,
 )
 from geomstats.geometry.euclidean import Euclidean
@@ -18,14 +21,21 @@ from geomstats.test_cases.geometry.discrete_curves import (
 )
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
+from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 from geomstats.test_cases.geometry.quotient_metric import QuotientMetricTestCase
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.discrete_curves import (
     ClosedDiscreteCurvesTestData,
     DiscreteCurvesTestData,
+    ElasticMetricTestData,
+    L2CurvesMetricTestData,
+    SRVMetricTestData,
     SRVQuotientMetricTestData,
     SRVShapeBundleTestData,
 )
+
+# TODO: delete sphere?
 
 
 @pytest.fixture(
@@ -40,7 +50,7 @@ def discrete_curves_spaces(request):
 
     ambient_manifold = Euclidean(dim=dim)
     request.cls.space = DiscreteCurves(
-        ambient_manifold, k_sampling_points=k_sampling_points
+        ambient_manifold, k_sampling_points=k_sampling_points, equip=False
     )
 
 
@@ -66,7 +76,6 @@ def shape_bundles(request):
     dim, k_sampling_points = request.param
 
     ambient_manifold = Euclidean(dim=dim)
-    # TODO: can also test different metrics
     space = DiscreteCurves(
         ambient_manifold, k_sampling_points=k_sampling_points, equip=True
     )
@@ -75,6 +84,84 @@ def shape_bundles(request):
     request.cls.bundle = SRVShapeBundle(space)
 
     request.cls.sphere = Hypersphere(dim=dim - 1)
+
+
+@pytest.mark.usefixtures("closed_discrete_curves_spaces")
+class TestClosedDiscreteCurves(
+    ClosedDiscreteCurvesTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = ClosedDiscreteCurvesTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (2, random.randint(5, 10)),
+        (3, random.randint(5, 10)),
+    ],
+)
+def l2_discrete_curves_spaces(request):
+    dim, k_sampling_points = request.param
+
+    ambient_manifold = Euclidean(dim=dim)
+    space = request.cls.space = DiscreteCurves(
+        ambient_manifold, k_sampling_points=k_sampling_points, equip=False
+    )
+    space.equip_with_metric(L2CurvesMetric)
+
+
+@pytest.mark.usefixtures("l2_discrete_curves_spaces")
+class TestL2CurvesMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    testing_data = L2CurvesMetricTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (2, random.randint(5, 10)),
+    ],
+)
+def elastic_metric_discrete_curves_spaces(request):
+    dim, k_sampling_points = request.param
+
+    ambient_manifold = Euclidean(dim=dim)
+    space = request.cls.space = DiscreteCurves(
+        ambient_manifold,
+        k_sampling_points=k_sampling_points,
+        start_at_the_origin=True,
+        equip=False,
+    )
+    space.equip_with_metric(ElasticMetric, a=1.0, b=0.5)
+
+
+@pytest.mark.usefixtures("elastic_metric_discrete_curves_spaces")
+class TestElasticMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer):
+    testing_data = ElasticMetricTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (2, random.randint(5, 10)),
+        (3, random.randint(5, 10)),
+    ],
+)
+def srv_discrete_curves_spaces(request):
+    dim, k_sampling_points = request.param
+
+    ambient_manifold = Euclidean(dim=dim)
+    space = request.cls.space = DiscreteCurves(
+        ambient_manifold,
+        k_sampling_points=k_sampling_points,
+        start_at_the_origin=True,
+        equip=False,
+    )
+    space.equip_with_metric(SRVMetric)
+
+
+@pytest.mark.usefixtures("srv_discrete_curves_spaces")
+class TestSRVMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer):
+    testing_data = SRVMetricTestData()
 
 
 @pytest.mark.usefixtures("shape_bundles")
@@ -98,18 +185,11 @@ def closed_discrete_curves_spaces(request):
     )
 
 
-@pytest.mark.usefixtures("closed_discrete_curves_spaces")
-class TestClosedDiscreteCurves(
-    ClosedDiscreteCurvesTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = ClosedDiscreteCurvesTestData()
-
-
 @pytest.fixture(
     scope="class",
     params=[
         (2, random.randint(5, 10)),
-        # (3, random.randint(5, 10)),
+        (3, random.randint(5, 10)),
     ],
 )
 def spaces_with_quotient(request):

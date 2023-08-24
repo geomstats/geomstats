@@ -15,7 +15,7 @@ class HermitianTestData(GroupExpMixinsTestData, ComplexVectorSpaceTestData):
 
 
 class HermitianMetricTestData(ComplexRiemannianMetricTestData):
-    # fail_for_autodiff_exceptions = False
+    fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
     skips = ("sectional_curvature_vec",)

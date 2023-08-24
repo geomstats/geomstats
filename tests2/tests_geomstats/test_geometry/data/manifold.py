@@ -23,11 +23,17 @@ class _ManifoldMixinsTestData:
     def to_tangent_is_tangent_test_data(self):
         return self.generate_random_data()
 
+    def regularize_belongs_test_data(self):
+        return self.generate_random_data()
+
     def regularize_vec_test_data(self):
         return self.generate_vec_data()
 
     def random_tangent_vec_is_tangent_test_data(self):
         return self.generate_random_data()
+
+    def random_tangent_vec_shape_test_data(self):
+        return self.generate_shape_data()
 
 
 class ManifoldTestData(_ManifoldMixinsTestData, TestData):

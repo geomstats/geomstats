@@ -7,8 +7,6 @@ from geomstats.test.vectorization import generate_vectorization_data
 
 
 class _ManifoldTestCaseMixins:
-    # TODO: remove random_tangent_vec?
-    # TODO: remove regularize
     # TODO: check default_coords_type correcteness if intrinsic by comparing
     # with point shape?
     tangent_to_multiple = False
@@ -119,6 +117,15 @@ class _ManifoldTestCaseMixins:
         self.assertAllClose(regularized_point, expected, atol=atol)
 
     @pytest.mark.random
+    def test_regularize_belongs(self, n_points, atol):
+        point = self.data_generator.random_point(n_points)
+        regularized_point = self.space.regularize(point)
+
+        expected = gs.ones(n_points, dtype=bool)
+
+        self.test_belongs(regularized_point, expected, atol)
+
+    @pytest.mark.random
     def test_random_tangent_vec_is_tangent(self, n_points, atol):
         """Check to_tangent returns tangent vector.
 
@@ -129,12 +136,36 @@ class _ManifoldTestCaseMixins:
         atol : float
             Absolute tolerance.
         """
-        # TODO: notice manifold is not being used here
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
         expected = gs.ones(n_points, dtype=bool)
         self.test_is_tangent(tangent_vec, base_point, expected, atol)
+
+    @pytest.mark.shape
+    def test_random_tangent_vec_shape(self, n_points):
+        """Check random point shape.
+
+        Parameters
+        ----------
+        n_points : int
+            Number of random points to generate.
+        """
+        point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(point)
+        print(self.space.shape)
+        print(point.shape)
+        print(tangent_vec.shape)
+
+        expected_ndim = self.space.point_ndim + int(n_points > 1)
+        self.assertEqual(gs.ndim(point), expected_ndim)
+
+        self.assertAllEqual(
+            gs.shape(tangent_vec)[-self.space.point_ndim :], self.space.shape
+        )
+
+        if n_points > 1:
+            self.assertEqual(gs.shape(tangent_vec)[0], n_points)
 
 
 class ManifoldTestCase(_ManifoldTestCaseMixins, TestCase):
