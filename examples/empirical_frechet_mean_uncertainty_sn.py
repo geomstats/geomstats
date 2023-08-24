@@ -63,8 +63,8 @@ def empirical_frechet_var_bubble(n_samples, theta, dim, n_expectation=1000):
         rest_col = gs.sin(theta) * directions
         data = gs.concatenate([rest_col, last_col], axis=-1)
 
-        estimator = FrechetMean(
-            sphere.metric, max_iter=32, method="adaptive", init_point=north_pole
+        estimator = FrechetMean(sphere, method="adaptive").set(
+            max_iter=32, init_point=north_pole
         )
         if n_samples == 1:
             data = gs.expand_dims(data, 0)

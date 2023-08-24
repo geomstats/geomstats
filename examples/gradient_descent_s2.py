@@ -27,8 +27,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 
 matplotlib.use("Agg")  # NOQA
-SPHERE2 = Hypersphere(dim=2)
-METRIC = SPHERE2.metric
 
 
 def gradient_descent(
@@ -56,8 +54,6 @@ def plot_and_save_video(
     geodesics, loss, size=20, fps=10, dpi=100, out="out.mp4", color="red"
 ):
     """Render a set of geodesics and save it to an mpeg 4 file."""
-    FFMpegWriter = animation.writers["ffmpeg"]
-    writer = FFMpegWriter(fps=fps)
     fig = plt.figure(figsize=(size, size))
     ax = fig.add_subplot(111, projection="3d")
     sphere = visualization.Sphere()
@@ -65,6 +61,9 @@ def plot_and_save_video(
     points = gs.to_ndarray(geodesics[0], to_ndim=2)
     sphere.add_points(points)
     sphere.draw(ax, color=color, marker=".")
+
+    FFMpegWriter = animation.writers["ffmpeg"]
+    writer = FFMpegWriter(fps=fps)
     with writer.saving(fig, out, dpi=dpi):
         for points in geodesics[1:]:
             points = gs.to_ndarray(points, to_ndim=2)
@@ -81,6 +80,9 @@ def generate_well_behaved_matrix():
 def main(output_file="out.mp4", max_iter=128):
     """Run gradient descent on a sphere."""
     gs.random.seed(1985)
+
+    sphere2 = Hypersphere(dim=2)
+
     A = generate_well_behaved_matrix()
 
     def grad(x):
@@ -96,10 +98,10 @@ def main(output_file="out.mp4", max_iter=128):
     geodesics = []
     n_steps = 20
     for x, _ in gradient_descent(
-        initial_point, loss, grad, max_iter=max_iter, manifold=SPHERE2
+        initial_point, loss, grad, max_iter=max_iter, manifold=sphere2
     ):
-        initial_tangent_vec = METRIC.log(point=x, base_point=previous_x)
-        geodesic = METRIC.geodesic(
+        initial_tangent_vec = sphere2.metric.log(point=x, base_point=previous_x)
+        geodesic = sphere2.metric.geodesic(
             initial_point=previous_x, initial_tangent_vec=initial_tangent_vec
         )
 

@@ -13,12 +13,11 @@ class TestRiemannianKMedoids(tests.conftest.TestCase):
         gs.random.seed(55)
 
         manifold = Hypersphere(2)
-        metric = manifold.metric
 
         data = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmedoids = RiemannianKMedoids(metric=metric, n_clusters=1)
-        center = kmedoids.fit(data)
+        kmedoids = RiemannianKMedoids(manifold, n_clusters=1)
+        center = kmedoids.fit(data).centroids_
 
         self.assertTrue(manifold.belongs(center))
 
@@ -27,15 +26,17 @@ class TestRiemannianKMedoids(tests.conftest.TestCase):
         dim = 2
 
         manifold = Hypersphere(dim)
-        metric = manifold.metric
 
         data = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmedoids = RiemannianKMedoids(metric, n_clusters=5)
-        centroids = kmedoids.fit(data, max_iter=100)
+        kmedoids = RiemannianKMedoids(manifold, n_clusters=5, max_iter=100)
+        centroids = kmedoids.fit(data).centroids_
         result = kmedoids.predict(data)
 
         expected = gs.array(
-            [int(metric.closest_neighbor_index(x_i, centroids)) for x_i in data]
+            [
+                int(manifold.metric.closest_neighbor_index(x_i, centroids))
+                for x_i in data
+            ]
         )
         self.assertAllClose(expected, result)

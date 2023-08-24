@@ -50,13 +50,14 @@ def main():
     n_clusters = 2
 
     kmeans = RiemannianKMeans(
-        metric=hyperbolic_embedding.manifold.metric,
+        hyperbolic_embedding.manifold,
         n_clusters=n_clusters,
         init="random",
     )
 
-    centroids = kmeans.fit(X=embeddings)
-    labels = kmeans.predict(X=embeddings)
+    kmeans.fit(X=embeddings)
+    centroids = kmeans.centroids_
+    labels = kmeans.labels_
 
     colors = ["g", "c", "m"]
     circle = visualization.PoincareDisk(coords_type="ball")
@@ -97,14 +98,16 @@ def main():
     plt.show()
 
     kmedoid = RiemannianKMedoids(
-        metric=hyperbolic_embedding.manifold.metric,
+        hyperbolic_embedding.manifold,
         n_clusters=n_clusters,
+        max_iter=100,
         init="random",
         n_jobs=2,
     )
 
-    centroids = kmedoid.fit(data=embeddings, max_iter=100)
-    labels = kmedoid.predict(data=embeddings)
+    kmedoid.fit(X=embeddings)
+    centroids = kmedoid.centroids_
+    labels = kmedoid.labels_
 
     colors = ["g", "c", "m"]
     circle = visualization.PoincareDisk(coords_type="ball")

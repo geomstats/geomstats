@@ -161,8 +161,11 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
                 by point.
             """
             k = gs.reshape(gs.array(k), (-1,))
+            const = factorial(self.n_draws) / (
+                factorial(k) * factorial(self.n_draws - k)
+            )
             return (
-                (factorial(self.n_draws) / (factorial(k) * factorial(self.n_draws - k)))
+                gs.from_numpy(const)
                 * (point**k)
                 * ((1 - point) ** (self.n_draws - k))
             )
@@ -303,9 +306,7 @@ class BinomialMetric(RiemannianMetric):
 
         return path
 
-    def geodesic(
-        self, initial_point, end_point=None, initial_tangent_vec=None, **exp_kwargs
-    ):
+    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
