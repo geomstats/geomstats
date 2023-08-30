@@ -901,11 +901,16 @@ class ConnectionTestCase(TestCase):
         t = (
             gs.linspace(start=0.0, stop=1.0, num=n_points)
             if n_points > 1
-            else gs.ones(1)
+            else gs.ones([1])
         )
         points = geodesic(t)
         multiple_inputs = tangent_vec.ndim > len(space.shape)
-        result = points[:, -1] if multiple_inputs else points[-1]
+
+        result = (
+            points[:, -1]
+            if multiple_inputs
+            else (points[-1] if n_points > 1 else points)
+        )
         expected = space.metric.exp(tangent_vec, base_point)
         self.assertAllClose(expected, result, rtol=rtol, atol=atol)
 
@@ -1607,7 +1612,16 @@ class PullbackMetricTestCase(RiemannianMetricTestCase):
         self.assertAllClose(result, expected, rtol, atol)
 
 
-class PullbackDiffeoMetricTestCase(TestCase):
+class PullbackDiffeoMetricTestCase(RiemannianMetricTestCase):
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_1 = True
+    skip_test_covariant_riemann_tensor_is_skew_symmetric_2 = True
+    skip_test_covariant_riemann_tensor_bianchi_identity = True
+    skip_test_covariant_riemann_tensor_is_interchange_symmetric = True
+    skip_test_riemann_tensor_shape = True
+    skip_test_scalar_curvature_shape = True
+    skip_test_ricci_tensor_shape = True
+    skip_test_sectional_curvature_shape = True
+
     @property
     def Metric(self):
         return self.testing_data.Metric

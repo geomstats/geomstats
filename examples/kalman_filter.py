@@ -215,7 +215,7 @@ def main():
     initial_covs = (init_cov, prop_cov, obs_cov)
     kalman.initialize_covariances(*initial_covs)
 
-    true_state = gs.zeros(model.dim)
+    true_state = gs.zeros(model.group.dim)
     true_inputs = [gs.array([dt, 0.5, 0.0, 0.05]) for _ in range(n_traj)]
 
     true_traj, inputs, observations = create_data(

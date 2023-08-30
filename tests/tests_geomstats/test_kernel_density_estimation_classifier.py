@@ -18,15 +18,13 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
     def setup_method(self):
         """Define the parameters to test."""
         gs.random.seed(1234)
-        self.dim = 2
-        self.space = Euclidean(dim=self.dim)
-        self.distance = self.space.metric.dist
 
     def test_predict(self):
         """Test the 'predict' class method."""
+        space = Euclidean(dim=2)
         training_dataset = gs.array([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0]])
         labels = [0, 0, 1, 1]
-        kde = KernelDensityEstimationClassifier(distance=self.distance)
+        kde = KernelDensityEstimationClassifier(space)
         kde.fit(training_dataset, labels)
         result = kde.predict(gs.array([[1.1, 0.0]]))
         expected = gs.array([0])
@@ -34,23 +32,25 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
 
     def test_predict_one_dimensional_data(self):
         """Test the 'predict' class method."""
+        space = Euclidean(dim=1)
         training_dataset = gs.array([[0.0], [1.0], [2.0], [3.0]])
         labels = [0, 0, 1, 1]
-        kde = KernelDensityEstimationClassifier(distance="minkowski")
+        kde = KernelDensityEstimationClassifier(space)
         kde.fit(training_dataset, labels)
-        result = kde.predict(gs.array([1.1]))
-        expected = gs.array([0])
+        result = kde.predict(gs.array([[1.1]]))
+        expected = gs.array([0.0])
         self.assertAllClose(expected, result)
 
     @tests.conftest.np_and_autograd_only
     def test_predict_one_dimensional_data_callable_distance(self):
         """Test the 'predict' class method on one dimensional data."""
-        training_dataset = gs.array([0, 1, 2, 3])
+        space = Euclidean(dim=1)
+        training_dataset = gs.array([[0.0], [1.0], [2.0], [3.0]])
         labels = [0, 0, 1, 1]
-        kde = KernelDensityEstimationClassifier(distance=self.distance)
+        kde = KernelDensityEstimationClassifier(space)
         kde.fit(training_dataset, labels)
-        result = kde.predict(gs.array([1.1]))
-        expected = gs.array([0])
+        result = kde.predict(gs.array([[1.1]]))
+        expected = gs.array([0.0])
         self.assertAllClose(expected, result)
 
     @tests.conftest.np_and_autograd_only
@@ -60,23 +60,21 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
         Test the 'predict_proba' class method using the 'uniform' kernel on
         one-dimensional date of shape [n_samples,].
         """
-        training_dataset = gs.array([0, 1, 2, 3])
+        space = Euclidean(dim=1)
+        training_dataset = gs.array([[0.0], [1.0], [2.0], [3.0]])
         labels = [0, 0, 1, 1]
-        kde = KernelDensityEstimationClassifier(
-            kernel="uniform", distance=self.distance
-        )
+        kde = KernelDensityEstimationClassifier(space, kernel="uniform")
         kde.fit(training_dataset, labels)
-        result = kde.predict_proba(gs.array([0.9]))
+        result = kde.predict_proba(gs.array([[0.9]]))
         expected = gs.array([[1 / 2, 1 / 2]])
         self.assertAllClose(expected, result, atol=gs.atol)
 
     def test_predict_proba_uniform_kernel(self):
         """Test the 'predict_proba' class method using the 'uniform' kernel."""
+        space = Euclidean(dim=2)
         training_dataset = gs.array([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0]])
         labels = [0, 0, 1, 1]
-        kde = KernelDensityEstimationClassifier(
-            kernel="uniform", distance=self.distance
-        )
+        kde = KernelDensityEstimationClassifier(space, kernel="uniform")
         kde.fit(training_dataset, labels)
         result = kde.predict_proba(gs.array([[0.9, 0.0]]))
         expected = gs.array([[1 / 2, 1 / 2]])
@@ -84,11 +82,10 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
 
     def test_predict_proba_distance_kernel(self):
         """Test the 'predict_proba' class method using 'distance' kernel."""
+        space = Euclidean(dim=2)
         training_dataset = gs.array([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0]])
         labels = [0, 0, 1, 1]
-        kde = KernelDensityEstimationClassifier(
-            kernel="distance", distance=self.distance
-        )
+        kde = KernelDensityEstimationClassifier(space, kernel="distance")
         kde.fit(training_dataset, labels)
         result = kde.predict_proba(gs.array([[1.0, 0.0]]))
         expected = gs.array([[1, 0]])
@@ -96,10 +93,13 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
 
     def test_predict_proba_triangular_kernel(self):
         """Test the 'predict_proba' class method using a triangular kernel."""
+        space = Euclidean(dim=2)
         training_dataset = gs.array([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0]])
         labels = [0, 0, 1, 1]
         kde = KernelDensityEstimationClassifier(
-            kernel=triangular_radial_kernel, bandwidth=2.0, p=2, distance="minkowski"
+            space,
+            kernel=triangular_radial_kernel,
+            bandwidth=2.0,
         )
         kde.fit(training_dataset, labels)
         result = kde.predict_proba(gs.array([[1.0, 0.0]]))
@@ -108,10 +108,11 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
 
     def test_predict_proba_triangular_kernel_callable_distance(self):
         """Test the 'predict_proba' class method using a triangular kernel."""
+        space = Euclidean(dim=2)
         training_dataset = gs.array([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0]])
         labels = [0, 0, 1, 1]
         kde = KernelDensityEstimationClassifier(
-            kernel=triangular_radial_kernel, bandwidth=2.0, distance=self.distance
+            space, kernel=triangular_radial_kernel, bandwidth=2.0
         )
         kde.fit(training_dataset, labels)
         result = kde.predict_proba(gs.array([[1.0, 0.0]]))
@@ -120,10 +121,11 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
 
     def test_predict_triangular_kernel_callable_distance(self):
         """Test the 'predict' class method using a triangular kernel."""
+        space = Euclidean(dim=2)
         training_dataset = gs.array([[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0]])
         labels = [0, 0, 1, 1]
         kde = KernelDensityEstimationClassifier(
-            kernel=triangular_radial_kernel, bandwidth=2.0, distance=self.distance
+            space, kernel=triangular_radial_kernel, bandwidth=2.0
         )
         kde.fit(training_dataset, labels)
         result = kde.predict(gs.array([[1.0, 0.0], [1.0, 0.0]]))
@@ -134,7 +136,6 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
         """Test the 'predict' class method using the hypersphere distance."""
         dim = 2
         space = Hypersphere(dim=dim)
-        distance = space.metric.dist
         training_dataset = gs.array(
             [
                 [1, 0, 0],
@@ -146,7 +147,7 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
             ]
         )
         labels = [0, 0, 0, 1, 1, 1]
-        kde = KernelDensityEstimationClassifier(distance=distance)
+        kde = KernelDensityEstimationClassifier(space)
         kde.fit(training_dataset, labels)
         target_dataset = gs.array(
             [
@@ -166,7 +167,6 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
         """Test the 'predict' class method using the Poincare ball distance."""
         dim = 2
         space = PoincareBall(dim=dim)
-        distance = space.metric.dist
         training_dataset = gs.array(
             [
                 [1 / 2, 1 / 4],
@@ -178,7 +178,7 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
             ]
         )
         labels = [0, 0, 0, 1, 1, 1]
-        kde = KernelDensityEstimationClassifier(distance=distance, kernel="distance")
+        kde = KernelDensityEstimationClassifier(space, kernel="distance")
         kde.fit(training_dataset, labels)
         target_dataset = gs.array(
             [
@@ -198,7 +198,6 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
         """Test the 'predict' class method using the hyperboloid distance."""
         dim = 2
         space = Hyperboloid(dim=dim)
-        distance = space.metric.dist
         training_dataset_intrinsic = gs.array(
             [
                 [1 / 2, 1 / 4],
@@ -215,7 +214,7 @@ class TestKernelDensityEstimationClassifier(tests.conftest.TestCase):
             to_coordinates_system="extrinsic",
         )
         labels = [0, 0, 0, 1, 1, 1]
-        kde = KernelDensityEstimationClassifier(distance=distance, kernel="distance")
+        kde = KernelDensityEstimationClassifier(space, kernel="distance")
         kde.fit(training_dataset, labels)
         target_dataset_intrinsic = gs.array(
             [

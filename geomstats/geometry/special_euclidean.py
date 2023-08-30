@@ -318,6 +318,10 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         projected : array-like, shape=[..., n + 1, n + 1]
             Rotation-translation matrix in homogeneous representation.
         """
+        if gs.any(self.belongs(mat)):
+            # otherwise, there will be problems with autodiff
+            return gs.copy(mat)
+
         n = self.n
         projected_rot = self.rotations.projection(mat[..., :n, :n])
         translation = mat[..., :n, -1]

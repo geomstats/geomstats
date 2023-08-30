@@ -90,7 +90,7 @@ class _AACFrechetMean(BaseEstimator):
 
         self.total_space_estimator_kwargs = total_space_estimator_kwargs or {}
         self.total_space_estimator = FrechetMean(
-            self.metric.total_space_metric, **self.total_space_estimator_kwargs
+            self.metric._space.total_space, **self.total_space_estimator_kwargs
         )
 
         self.estimate_ = None

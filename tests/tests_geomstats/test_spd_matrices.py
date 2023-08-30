@@ -140,7 +140,6 @@ class TestSPDBuresWassersteinMetric(RiemannianMetricTestCase, metaclass=Parametr
         result = space.metric.log(point, base_point)
         self.assertAllClose(result, expected)
 
-    @tests.conftest.np_and_autograd_only
     def test_parallel_transport(self, space):
         space.equip_with_metric(self.Metric)
         n = space.n

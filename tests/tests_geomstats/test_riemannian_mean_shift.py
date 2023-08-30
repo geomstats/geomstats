@@ -5,9 +5,7 @@ import tests.conftest
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.learning.riemannian_mean_shift import (
-    RiemannianMeanShift as riemannian_mean_shift,
-)
+from geomstats.learning.riemannian_mean_shift import RiemannianMeanShift
 
 
 class TestRiemannianMeanShift(tests.conftest.TestCase):
@@ -16,13 +14,11 @@ class TestRiemannianMeanShift(tests.conftest.TestCase):
     def test_hypersphere_predict(self):
         gs.random.seed(1234)
 
-        sphere = Hypersphere(dim=2)
-        metric = sphere.metric
-        cluster = sphere.random_von_mises_fisher(kappa=100, n_samples=10)
+        space = Hypersphere(dim=2)
+        cluster = space.random_von_mises_fisher(kappa=100, n_samples=10)
 
-        rms = riemannian_mean_shift(
-            manifold=sphere,
-            metric=metric,
+        rms = RiemannianMeanShift(
+            space,
             bandwidth=0.6,
             tol=1e-4,
             n_centers=2,
@@ -33,8 +29,8 @@ class TestRiemannianMeanShift(tests.conftest.TestCase):
 
         closest_centers = []
         for point in cluster:
-            closest_center = metric.closest_neighbor_index(point, rms.centers)
-            closest_centers.append(rms.centers[closest_center, :])
+            closest_center = space.metric.closest_neighbor_index(point, rms.centers_)
+            closest_centers.append(rms.centers_[closest_center, :])
         expected = gs.array(closest_centers)
 
         self.assertAllClose(expected, result)
@@ -42,14 +38,12 @@ class TestRiemannianMeanShift(tests.conftest.TestCase):
     def test_single_cluster(self):
         gs.random.seed(10)
 
-        sphere = Hypersphere(dim=2)
-        metric = sphere.metric
+        space = Hypersphere(dim=2)
 
-        cluster = sphere.random_von_mises_fisher(kappa=100, n_samples=10)
+        cluster = space.random_von_mises_fisher(kappa=100, n_samples=10)
 
-        rms = riemannian_mean_shift(
-            manifold=sphere,
-            metric=metric,
+        rms = RiemannianMeanShift(
+            space,
             bandwidth=float("inf"),
             tol=1e-4,
             n_centers=1,
@@ -58,7 +52,7 @@ class TestRiemannianMeanShift(tests.conftest.TestCase):
         rms.fit(cluster)
         center = rms.predict(cluster)
 
-        mean = FrechetMean(metric=metric, init_step_size=1.0)
+        mean = FrechetMean(space)
         mean.fit(cluster)
 
         result = center[0]
@@ -79,10 +73,9 @@ class TestRiemannianMeanShift(tests.conftest.TestCase):
     ):
         gs.random.seed(seed)
         number_of_samples = num_of_samples
-        sphere = Hypersphere(size_of_dim)
-        metric = sphere.metric
+        space = Hypersphere(size_of_dim)
 
-        cluster = sphere.random_von_mises_fisher(
+        cluster = space.random_von_mises_fisher(
             kappa=kappa_value, n_samples=number_of_samples
         )
 
@@ -94,9 +87,8 @@ class TestRiemannianMeanShift(tests.conftest.TestCase):
         cluster_2 = cluster @ rotation2
 
         combined_cluster = gs.concatenate((cluster_1, cluster_2))
-        rms = riemannian_mean_shift(
-            manifold=sphere,
-            metric=metric,
+        rms = RiemannianMeanShift(
+            space,
             bandwidth=bandwidth,
             tol=tol,
             n_centers=num_of_centers,
@@ -115,9 +107,9 @@ class TestRiemannianMeanShift(tests.conftest.TestCase):
         count_in_second_cluster = 0
 
         for point in closest_centers:
-            if gs.allclose(point, rms.centers[0]):
+            if gs.allclose(point, rms.centers_[0]):
                 count_in_first_cluster += 1
-            elif gs.allclose(point, rms.centers[1]):
+            elif gs.allclose(point, rms.centers_[1]):
                 count_in_second_cluster += 1
 
         self.assertEqual(

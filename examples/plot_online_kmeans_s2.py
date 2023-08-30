@@ -21,7 +21,7 @@ def main():
     data = sphere.random_von_mises_fisher(kappa=10, n_samples=1000)
 
     n_clusters = 4
-    clustering = OnlineKMeans(metric=sphere.metric, n_clusters=n_clusters)
+    clustering = OnlineKMeans(sphere, n_clusters=n_clusters)
     clustering = clustering.fit(data)
 
     plt.figure(0)
@@ -40,7 +40,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if os.environ["GEOMSTATS_BACKEND"] != "numpy":
+    if os.environ.get("GEOMSTATS_BACKEND", "numpy") != "numpy":
         logging.info(
             "Examples with visualizations are only implemented "
             "with numpy backend.\n"

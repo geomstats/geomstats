@@ -25,16 +25,18 @@ def kmedoids_poincare_ball():
     dim = 2
     n_clusters = 2
     manifold = PoincareBall(dim=dim)
-    metric = manifold.metric
 
     cluster_1 = gs.random.uniform(low=0.5, high=0.6, size=(n_samples, dim))
     cluster_2 = gs.random.uniform(low=-0.2, high=0, size=(n_samples, dim))
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmedoids = RiemannianKMedoids(metric=metric, n_clusters=n_clusters, init="random")
+    kmedoids = RiemannianKMedoids(
+        manifold, n_clusters=n_clusters, max_iter=100, init="random"
+    )
 
-    centroids = kmedoids.fit(data=data, max_iter=100)
-    labels = kmedoids.predict(data=data)
+    kmedoids.fit(X=data)
+    centroids = kmedoids.centroids_
+    labels = kmedoids.labels_
 
     plt.figure(1)
     colors = ["red", "blue"]
@@ -78,7 +80,6 @@ def kmedoids_hypersphere():
     dim = 2
     n_clusters = 2
     manifold = Hypersphere(dim)
-    metric = manifold.metric
 
     # Generate data on north pole
     cluster_1 = manifold.random_von_mises_fisher(kappa=50, n_samples=n_samples)
@@ -90,9 +91,10 @@ def kmedoids_hypersphere():
 
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmedoids = RiemannianKMedoids(metric=metric, n_clusters=n_clusters)
-    centroids = kmedoids.fit(data)
-    labels = kmedoids.predict(data)
+    kmedoids = RiemannianKMedoids(manifold, n_clusters=n_clusters)
+    kmedoids.fit(X=data)
+    centroids = kmedoids.centroids_
+    labels = kmedoids.labels_
 
     plt.figure(2)
     colors = ["red", "blue"]
@@ -126,7 +128,7 @@ def main():
 if __name__ == "__main__":
     compatible_backends = ["numpy", "pytorch"]
 
-    if os.environ["GEOMSTATS_BACKEND"] not in compatible_backends:
+    if os.environ.get("GEOMSTATS_BACKEND", "numpy") not in compatible_backends:
         logging.info(
             "K-Medoids example is implemented"
             "with numpy or pytorch backend.\n"

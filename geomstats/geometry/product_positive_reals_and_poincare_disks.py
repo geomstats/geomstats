@@ -45,7 +45,6 @@ References
 .. [Yang_2013] Marc Arnaudon, Frédéric Barbaresco and Le Yang. Riemannian Medians
     and Means With Applications to Radar Signal Processing, IEEE, 2013.
 """
-
 from geomstats.geometry.complex_poincare_disk import (
     ComplexPoincareDisk,
     ComplexPoincareDiskMetric,

@@ -14,9 +14,7 @@ class TestWrappedGaussianProcess(tests.conftest.TestCase):
         self.n_samples = 20
 
         # Set up for hypersphere
-        self.dim_sphere = 2
-        self.shape_sphere = (self.dim_sphere + 1,)
-        self.sphere = Hypersphere(dim=self.dim_sphere)
+        self.sphere = Hypersphere(dim=2)
 
         self.intercept_sphere_true = gs.array([0.0, -1.0, 0.0])
         self.coef_sphere_true = gs.array([1.0, 0.0, 0.5])
@@ -43,16 +41,16 @@ class TestWrappedGaussianProcess(tests.conftest.TestCase):
 
     def test_fit_hypersphere(self):
         """Test the fit method"""
-        wgpr = WrappedGaussianProcess(
-            self.sphere, metric=self.sphere.metric, prior=self.prior, kernel=self.kernel
+        wgpr = WrappedGaussianProcess(self.sphere, prior=self.prior).set(
+            kernel=self.kernel
         )
         wgpr.fit(self.X_sphere, self.y_sphere)
         self.assertAllClose(wgpr.score(self.X_sphere, self.y_sphere), 1)
 
     def test_predict_hypersphere(self):
         """Test the predict method"""
-        wgpr = WrappedGaussianProcess(
-            self.sphere, metric=self.sphere.metric, prior=self.prior, kernel=self.kernel
+        wgpr = WrappedGaussianProcess(self.sphere, prior=self.prior).set(
+            kernel=self.kernel
         )
         wgpr.fit(self.X_sphere, self.y_sphere)
         y, std = wgpr.predict(self.X_sphere, return_tangent_std=True)
@@ -61,8 +59,8 @@ class TestWrappedGaussianProcess(tests.conftest.TestCase):
 
     def test_samples_y_hypersphere(self):
         """Test the samples_y method"""
-        wgpr = WrappedGaussianProcess(
-            self.sphere, metric=self.sphere.metric, prior=self.prior, kernel=self.kernel
+        wgpr = WrappedGaussianProcess(self.sphere, prior=self.prior).set(
+            kernel=self.kernel
         )
         wgpr.fit(self.X_sphere, self.y_sphere)
         y = wgpr.sample_y(self.X_sphere, n_samples=100)

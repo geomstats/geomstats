@@ -7,10 +7,15 @@ from scipy.special import softmax
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 import geomstats.backend as gs
+from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
 
 
-class RiemannianMinimumDistanceToMean(ClassifierMixin, BaseEstimator):
+class RiemannianMinimumDistanceToMean(
+    BaseEstimator,
+    ClassifierMixin,
+    TransformerMixin,
+):
     """Minimum Distance to Mean (MDM) classifier on manifolds.
 
     Classification by nearest centroid. For each of the given classes, a
@@ -19,8 +24,8 @@ class RiemannianMinimumDistanceToMean(ClassifierMixin, BaseEstimator):
 
     Parameters
     ----------
-    riemannian_metric : RiemannianMetric
-        Riemannian metric to be used.
+    space : Manifold
+        Equipped manifold.
 
     Attributes
     ----------
@@ -29,6 +34,10 @@ class RiemannianMinimumDistanceToMean(ClassifierMixin, BaseEstimator):
     mean_estimates_ : array-like, shape=[n_classes, *metric.shape]
         If fit, centroids computed on training set.
 
+    Notes
+    -----
+    * Required metric methods: `squared_dist`, `closest_neighbot_index`.
+
     References
     ----------
     .. [BBCJ2012] A. Barachant, S. Bonnet, M. Congedo and C. Jutten, Multiclass
@@ -36,10 +45,18 @@ class RiemannianMinimumDistanceToMean(ClassifierMixin, BaseEstimator):
         Trans. Biomed. Eng., vol. 59, pp. 920-928, 2012.
     """
 
-    def __init__(self, riemannian_metric):
-        self.riemannian_metric = riemannian_metric
+    def __init__(self, space):
+        self.space = space
+
         self.classes_ = None
         self.mean_estimates_ = None
+
+        self.mean_estimator = FrechetMean(space)
+
+    @property
+    def n_classes_(self):
+        """Number of classes."""
+        return len(self.classes_)
 
     def fit(self, X, y, weights=None):
         """Compute Frechet mean of each class.
@@ -60,19 +77,20 @@ class RiemannianMinimumDistanceToMean(ClassifierMixin, BaseEstimator):
             Returns self.
         """
         self.classes_ = gs.unique(y)
-        self.n_classes_ = len(self.classes_)
         if weights is None:
             weights = gs.ones(X.shape[0])
         weights /= gs.sum(weights)
 
-        mean_estimator = FrechetMean(metric=self.riemannian_metric)
         frechet_means = []
         for c in self.classes_:
             X_c = X[gs.where(y == c, True, False)]
             weights_c = weights[gs.where(y == c, True, False)]
-            mean_c = mean_estimator.fit(X_c, None, weights_c).estimate_
+            mean_c = self.mean_estimator.fit(X_c, weights=weights_c).estimate_
             frechet_means.append(mean_c)
+
         self.mean_estimates_ = gs.array(frechet_means)
+
+        return self
 
     def predict(self, X):
         """Compute closest neighbor according to riemannian_metric.
@@ -87,7 +105,7 @@ class RiemannianMinimumDistanceToMean(ClassifierMixin, BaseEstimator):
         y : array-like, shape=[n_samples,]
             Predicted labels.
         """
-        indices = self.riemannian_metric.closest_neighbor_index(
+        indices = self.space.metric.closest_neighbor_index(
             X,
             self.mean_estimates_,
         )
@@ -112,12 +130,35 @@ class RiemannianMinimumDistanceToMean(ClassifierMixin, BaseEstimator):
         probas : array-like, shape=[n_samples, n_classes]
             Probability of the sample for each class in the model.
         """
-        n_samples = X.shape[0]
         probas = []
-        for i in range(n_samples):
-            dist2 = self.riemannian_metric.squared_dist(
-                X[i],
+        for x in X:
+            dist2 = self.space.metric.squared_dist(
+                x,
                 self.mean_estimates_,
             )
             probas.append(softmax(-dist2))
         return gs.array(probas)
+
+    def transform(self, X):
+        """Compute distances to each centroid.
+
+        Compute distances to each centroid according to riemannian_metric.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, *metric.shape]
+            Test samples.
+
+        Returns
+        -------
+        dist : ndarray, shape=[n_samples, n_classes]
+            Distances to each centroid.
+        """
+        dists = []
+        for x in X:
+            dist = self.space.metric.dist(
+                x,
+                self.mean_estimates_,
+            )
+            dists.append(dist)
+        return gs.array(dists)

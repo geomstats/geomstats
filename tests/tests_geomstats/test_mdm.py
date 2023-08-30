@@ -24,7 +24,10 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
         y_train = gs.array([0, 0, 1, 1])
 
         for Metric in METRICS:
-            MDM = RiemannianMinimumDistanceToMean(Metric(SPDMatrices(n=2, equip=False)))
+            space = SPDMatrices(n=2, equip=False)
+            space.equip_with_metric(Metric)
+
+            MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
             bary_a_fit = MDM.mean_estimates_[0]
             bary_b_fit = MDM.mean_estimates_[1]
@@ -56,7 +59,10 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
         y_expected = gs.array([42])
 
         for Metric in METRICS:
-            MDM = RiemannianMinimumDistanceToMean(Metric(SPDMatrices(n=2, equip=False)))
+            space = SPDMatrices(n=2, equip=False)
+            space.equip_with_metric(Metric)
+
+            MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
             y_test = MDM.predict(X_test)
 
@@ -72,7 +78,10 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
         X_test = gs.array([[[1.0, 0], [0, 1]], [[EULER**5, 0], [0, 1]]])
 
         for Metric in METRICS:
-            MDM = RiemannianMinimumDistanceToMean(Metric(SPDMatrices(n=2, equip=False)))
+            space = SPDMatrices(n=2, equip=False)
+            space.equip_with_metric(Metric)
+
+            MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
             proba_test = MDM.predict_proba(X_test)
 
@@ -85,6 +94,34 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
 
             self.assertAllClose(proba_test, proba_expected)
 
+    def test_transform(self):
+        """Test the transform method."""
+        X_train_a = gs.array([[1.0, 0], [0, 1]])[None, ...]
+        X_train_b = gs.array([[EULER**10, 0], [0, 1]])[None, ...]
+        X_train = gs.concatenate([X_train_a, X_train_b])
+        y_train = gs.array([1, 2])
+
+        X_test = gs.array([[[1.0, 0], [0, 1]], [[EULER**5, 0], [0, 1]]])
+
+        for Metric in METRICS:
+            space = SPDMatrices(n=2, equip=False)
+            space.equip_with_metric(Metric)
+
+            MDM = RiemannianMinimumDistanceToMean(space)
+            MDM.fit(X_train, y_train)
+            dist_test = MDM.transform(X_test)
+
+            if Metric in [SPDAffineMetric, SPDLogEuclideanMetric]:
+                dist_expected = gs.array([[0.0, 10.0], [5.0, 5.0]])
+            elif Metric in [SPDEuclideanMetric]:
+                dist_expected = gs.array(
+                    [[0.0, 22025.465795], [147.413159, 21878.052636]]
+                )
+            else:
+                raise ValueError(f"Invalid metric: {Metric}")
+
+            self.assertAllClose(dist_test, dist_expected)
+
     def test_score(self):
         """Test the score method."""
         X_train_a = gs.array([[EULER, 0], [0, 1]])[None, ...]
@@ -95,7 +132,10 @@ class TestRiemannianMinimumDistanceToMeanClassifier(tests.conftest.TestCase):
         X_test = gs.array([[[EULER**3, 0], [0, 1]], [[EULER**2, 0], [0, 1]]])
 
         for Metric in METRICS:
-            MDM = RiemannianMinimumDistanceToMean(Metric(SPDMatrices(n=2, equip=False)))
+            space = SPDMatrices(n=2, equip=False)
+            space.equip_with_metric(Metric)
+
+            MDM = RiemannianMinimumDistanceToMean(space)
             MDM.fit(X_train, y_train)
 
             if Metric in [SPDAffineMetric, SPDLogEuclideanMetric]:

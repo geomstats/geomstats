@@ -34,7 +34,7 @@ class TestIncrementalFrechetMean(TestCase):
 
         LogNormalSampler = LogNormal(self.spd_log_euclidean, mean, cov)
         data = LogNormalSampler.sample(20)
-        ifm = IncrementalFrechetMean(self.spd_log_euclidean.metric).fit(data)
+        ifm = IncrementalFrechetMean(self.spd_log_euclidean).fit(data)
         ifm_mean = ifm.estimate_
         result = gs.all(self.spd.belongs(ifm_mean))
         expected = gs.array(True)
@@ -46,7 +46,7 @@ class TestIncrementalFrechetMean(TestCase):
 
         LogNormalSampler = LogNormal(self.spd_affine_invariant, mean, cov)
         data = LogNormalSampler.sample(20)
-        ifm = IncrementalFrechetMean(self.spd_affine_invariant.metric).fit(data)
+        ifm = IncrementalFrechetMean(self.spd_affine_invariant).fit(data)
         ifm_mean = ifm.estimate_
         result = gs.all(self.spd.belongs(ifm_mean))
         expected = gs.array(True)
@@ -54,7 +54,7 @@ class TestIncrementalFrechetMean(TestCase):
 
     def test_fit_euclidean(self):
         mean = gs.eye(3)
-        ifm = IncrementalFrechetMean(self.euclidean.metric).fit(mean)
+        ifm = IncrementalFrechetMean(self.euclidean).fit(mean)
         result = ifm.estimate_
-        expected = gs.array([[1.0, 1.0, 1.0]]) / 3.0
+        expected = gs.array([1.0, 1.0, 1.0]) / 3.0
         self.assertAllClose(result, expected)

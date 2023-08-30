@@ -84,3 +84,4 @@ class TestProductPositiveRealsAndComplexPoincareDisksMetric(
             + (n_manifolds - 1) * n_manifolds / 2 * sq_dist_complex_poincare_disk
         )
         self.assertAllClose(sq_dist_prod, sq_dist_expected)
+        assert not gs.is_complex(sq_dist_prod)
