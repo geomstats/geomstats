@@ -46,7 +46,9 @@ class TestClosedDiscreteCurves(ManifoldTestCase, metaclass=Parametrizer):
 
     @tests.conftest.np_and_autograd_only
     def test_projection_closed_curves(self, ambient_manifold, curve):
-        planar_closed_curve = self.Space(ambient_manifold)
+        planar_closed_curve = self.Space(
+            ambient_manifold, k_sampling_points=curve.shape[-2]
+        )
         proj = planar_closed_curve.projection(curve)
         expected = proj
         result = planar_closed_curve.projection(proj)

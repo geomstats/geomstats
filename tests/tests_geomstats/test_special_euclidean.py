@@ -7,9 +7,9 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 from tests.conftest import Parametrizer, TestCase, np_backend, pytorch_backend
 from tests.data.special_euclidean_data import (
     SpecialEuclidean3VectorsTestData,
-    SpecialEuclideanMatrixCanonicalLeftMetricTestData,
+    SpecialEuclideanMatricesCanonicalLeftMetricTestData,
+    SpecialEuclideanMatricesLieAlgebraTestData,
     SpecialEuclideanMatrixCanonicalRightMetricTestData,
-    SpecialEuclideanMatrixLieAlgebraTestData,
     SpecialEuclideanTestData,
 )
 from tests.geometry_test_cases import (
@@ -80,7 +80,7 @@ class TestSpecialEuclidean(LieGroupTestCase, metaclass=Parametrizer):
 class TestSpecialEuclideanMatrixLieAlgebra(
     MatrixLieAlgebraTestCase, metaclass=Parametrizer
 ):
-    testing_data = SpecialEuclideanMatrixLieAlgebraTestData()
+    testing_data = SpecialEuclideanMatricesLieAlgebraTestData()
 
     def test_dim(self, n, expected):
         algebra = self.Space(n)
@@ -106,7 +106,7 @@ class TestSpecialEuclideanMatrixCanonicalLeftMetric(
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
 
-    testing_data = SpecialEuclideanMatrixCanonicalLeftMetricTestData()
+    testing_data = SpecialEuclideanMatricesCanonicalLeftMetricTestData()
 
     def test_left_metric_wrong_group(self, group, expected):
         with expected:

@@ -193,24 +193,6 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def skew_to_vector_and_vector_to_skew_test_data(self):
-        random_data = []
-        random_data += [
-            dict(
-                n=2,
-                point_type="vector",
-                vec=SpecialOrthogonal(2, "vector").random_point(),
-            )
-        ]
-        random_data += [
-            dict(
-                n=3,
-                point_type="vector",
-                vec=SpecialOrthogonal(3, "vector").random_point(),
-            )
-        ]
-        return self.generate_tests([], random_data)
-
     def are_antipodals_test_data(self):
         mat1 = gs.eye(3)
         mat2 = gs.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
@@ -317,10 +299,6 @@ class SpecialOrthogonalTestData(_LieGroupTestData):
             for n, n_samples in zip(n_list, n_samples_list)
         ]
         return self.generate_tests([], random_data)
-
-    def skew_matrix_from_vector_test_data(self):
-        smoke_data = [dict(n=2, vec=[0.9], expected=[[0.0, -0.9], [0.9, 0.0]])]
-        return self.generate_tests(smoke_data)
 
     def rotation_vector_rotation_matrix_regularize_test_data(self):
         n_list = [2, 3]

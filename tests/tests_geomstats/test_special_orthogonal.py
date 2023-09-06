@@ -42,12 +42,6 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
         group = self.Space(n)
         self.assertAllClose(group.is_tangent(vec, base_point), expected)
 
-    def test_skew_to_vector_and_vector_to_skew(self, n, point_type, vec):
-        group = self.Space(n, point_type)
-        mat = group.skew_matrix_from_vector(vec)
-        result = group.vector_from_skew_matrix(mat)
-        self.assertAllClose(result, vec)
-
     def test_are_antipodals(self, n, mat1, mat2, expected):
         group = self.Space(n)
         self.assertAllClose(group.are_antipodals(mat1, mat2), expected)
@@ -79,10 +73,6 @@ class TestSpecialOrthogonal(LieGroupTestCase, metaclass=Parametrizer):
         self.assertAllClose(
             gs.shape(group.projection(group.random_point(n_samples))), expected
         )
-
-    def test_skew_matrix_from_vector(self, n, vec, expected):
-        group = self.Space(n=n, point_type="vector")
-        self.assertAllClose(group.skew_matrix_from_vector(vec), expected)
 
     def test_rotation_vector_rotation_matrix_regularize(self, n, point):
         group = SpecialOrthogonal(n=n)

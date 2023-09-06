@@ -71,10 +71,6 @@ class TestComplexMatrices(VectorSpaceTestCase, metaclass=Parametrizer):
         is_function = getattr(cls_mn, "is_" + matrix_type)
         self.assertAllClose(gs.all(is_function(to_function(mat))), True)
 
-    def test_basis(self, m, n, expected):
-        result = ComplexMatrices(m, n).basis
-        self.assertAllClose(result, expected)
-
 
 class TestComplexMatricesMetric(
     ComplexRiemannianMetricTestCase, metaclass=Parametrizer

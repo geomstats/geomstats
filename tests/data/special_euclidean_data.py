@@ -7,8 +7,8 @@ import geomstats.backend as gs
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
-    SpecialEuclideanMatrixCanonicalLeftMetric,
-    SpecialEuclideanMatrixLieAlgebra,
+    SpecialEuclideanMatricesCanonicalLeftMetric,
+    SpecialEuclideanMatricesLieAlgebra,
 )
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from tests.data_generation import (
@@ -225,8 +225,8 @@ class SpecialEuclideanTestData(_LieGroupTestData):
         return super().log_after_exp_test_data(amplitude=100.0)
 
 
-class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
-    Space = SpecialEuclideanMatrixLieAlgebra
+class SpecialEuclideanMatricesLieAlgebraTestData(_MatrixLieAlgebraTestData):
+    Space = SpecialEuclideanMatricesLieAlgebra
 
     n_list = random.sample(range(2, 5), 2)
     space_args_list = [(n,) for n in n_list]
@@ -261,7 +261,7 @@ class SpecialEuclideanMatrixLieAlgebraTestData(_MatrixLieAlgebraTestData):
         return self.generate_tests(smoke_data)
 
 
-class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData):
+class SpecialEuclideanMatricesCanonicalLeftMetricTestData(_InvariantMetricTestData):
     n_list = random.sample(range(2, 5), 2)
 
     metric_args_list = [{} for _ in n_list]
@@ -276,7 +276,7 @@ class SpecialEuclideanMatrixCanonicalLeftMetricTestData(_InvariantMetricTestData
     n_rungs_list = [1] * 2
     scheme_list = ["pole"] * 2
 
-    Metric = SpecialEuclideanMatrixCanonicalLeftMetric
+    Metric = SpecialEuclideanMatricesCanonicalLeftMetric
 
     def left_metric_wrong_group_test_data(self):
         smoke_data = [
