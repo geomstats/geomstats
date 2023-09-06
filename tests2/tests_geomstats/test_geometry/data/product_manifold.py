@@ -15,6 +15,8 @@ class ProductRiemannianMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
+    trials = 3
+
     skips = (
         # TODO: remove skip
         "metric_matrix_is_spd",

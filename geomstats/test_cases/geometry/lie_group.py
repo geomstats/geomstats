@@ -32,7 +32,7 @@ class _LieGroupTestCaseMixins(GroupExpTestCaseMixins):
         self.assertAllClose(identity_, identity, atol=atol)
 
     @pytest.mark.random
-    def test_compose_with_identity_is_point(self, n_points, atol):
+    def test_compose_with_identity_is_itself(self, n_points, atol):
         point = self.data_generator.random_point(n_points)
 
         point_ = self.space.compose(point, self.space.identity)
@@ -110,12 +110,101 @@ class _LieGroupTestCaseMixins(GroupExpTestCaseMixins):
         )
         self._test_vectorization(vec_data)
 
+    @pytest.mark.random
+    def test_tangent_translation_map_is_tangent(self, n_points, left, atol):
+        group_elem_1 = self.data_generator.random_point(n_points)
+        group_elem_2 = self.data_generator.random_point(n_points)
+
+        tangent_vec_11 = self.data_generator.random_tangent_vec(group_elem_1)
+
+        dtrans_2 = self.space.tangent_translation_map(
+            group_elem_2, left=left, inverse=False
+        )
+
+        if left:
+            group_elem_3 = self.space.compose(group_elem_2, group_elem_1)
+        else:
+            group_elem_3 = self.space.compose(group_elem_1, group_elem_2)
+
+        tangent_vec_31 = dtrans_2(tangent_vec_11)
+
+        res = self.space.is_tangent(tangent_vec_31, group_elem_3, atol=atol)
+        expected = gs.ones(n_points, dtype=bool)
+        self.assertAllEqual(res, expected)
+
     def test_lie_bracket(
         self, tangent_vec_a, tangent_vec_b, base_point, expected, atol
     ):
-        # TODO: any random test for validation here?
         bracket = self.space.lie_bracket(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(bracket, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_lie_bracket_belongs(self, n_points, atol):
+        identity = repeat_point(self.space.identity, n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(identity)
+        tangent_vec_b = self.data_generator.random_tangent_vec(identity)
+
+        tangent_vec_c = self.space.lie_bracket(tangent_vec_a, tangent_vec_b)
+
+        res = self.space.lie_algebra.belongs(tangent_vec_c, atol=atol)
+        expected = gs.ones(n_points, dtype=bool)
+        self.assertAllEqual(res, expected)
+
+    @pytest.mark.random
+    def test_lie_bracket_antisymmetry(self, n_points, atol):
+        identity = repeat_point(self.space.identity, n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(identity)
+        tangent_vec_b = self.data_generator.random_tangent_vec(identity)
+
+        tangent_vec_c = self.space.lie_bracket(tangent_vec_a, tangent_vec_b)
+        tangent_vec_c_ = -self.space.lie_bracket(tangent_vec_b, tangent_vec_a)
+        self.assertAllClose(tangent_vec_c, tangent_vec_c_, atol=atol)
+
+    @pytest.mark.random
+    def test_lie_bracket_jacobi_identity(self, n_points, atol):
+        identity = repeat_point(self.space.identity, n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(identity)
+        tangent_vec_b = self.data_generator.random_tangent_vec(identity)
+        tangent_vec_c = self.data_generator.random_tangent_vec(identity)
+
+        lhs = self.space.lie_bracket(
+            self.space.lie_bracket(tangent_vec_a, tangent_vec_b), tangent_vec_c
+        )
+        rhs_1 = self.space.lie_bracket(
+            tangent_vec_a, self.space.lie_bracket(tangent_vec_b, tangent_vec_c)
+        )
+        rhs_2 = -self.space.lie_bracket(
+            tangent_vec_b, self.space.lie_bracket(tangent_vec_a, tangent_vec_c)
+        )
+        rhs = rhs_1 + rhs_2
+
+        self.assertAllClose(lhs, rhs, atol=atol)
+
+    @pytest.mark.random
+    def test_lie_bracket_bilinearity(self, n_points, atol):
+        identity = repeat_point(self.space.identity, n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(identity)
+        tangent_vec_b = self.data_generator.random_tangent_vec(identity)
+        tangent_vec_c = self.data_generator.random_tangent_vec(identity)
+
+        a, b = gs.random.rand(2)
+
+        lhs = self.space.lie_bracket(
+            a * tangent_vec_a + b * tangent_vec_b, tangent_vec_c
+        )
+        rhs_1 = a * self.space.lie_bracket(tangent_vec_a, tangent_vec_c)
+        rhs_2 = b * self.space.lie_bracket(tangent_vec_b, tangent_vec_c)
+        rhs = rhs_1 + rhs_2
+        self.assertAllClose(lhs, rhs, atol=atol)
+
+        lhs = self.space.lie_bracket(
+            tangent_vec_c, a * tangent_vec_a + b * tangent_vec_b
+        )
+        rhs_1 = a * self.space.lie_bracket(tangent_vec_c, tangent_vec_a)
+        rhs_2 = b * self.space.lie_bracket(tangent_vec_c, tangent_vec_b)
+        rhs = rhs_1 + rhs_2
+
+        self.assertAllClose(lhs, rhs, atol=atol)
 
     def test_identity(self, expected, atol):
         self.assertAllClose(self.space.identity, expected, atol=atol)

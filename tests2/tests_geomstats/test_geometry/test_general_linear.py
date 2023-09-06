@@ -16,6 +16,7 @@ from .data.general_linear import (
     SquareMatrices3TestData,
 )
 from .data.lie_algebra import MatrixLieAlgebraTestData
+from .data.matrices import MatricesMetricTestData
 
 
 @pytest.fixture(
@@ -39,13 +40,13 @@ class TestGeneralLinear(GeneralLinearTestCase, metaclass=DataBasedParametrizer):
 
 @pytest.mark.smoke
 class TestGeneralLinear2(GeneralLinearTestCase, metaclass=DataBasedParametrizer):
-    space = GeneralLinear(n=3)
+    space = GeneralLinear(n=3, equip=False)
     testing_data = GeneralLinear2TestData()
 
 
 @pytest.mark.smoke
 class TestGeneralLinear3(GeneralLinearTestCase, metaclass=DataBasedParametrizer):
-    space = GeneralLinear(n=3)
+    space = GeneralLinear(n=3, equip=False)
     testing_data = GeneralLinear3TestData()
 
 
@@ -74,7 +75,7 @@ class TestMatricesMetric(RiemannianMetricTestCase, metaclass=DataBasedParametriz
     ],
 )
 def square_matrices_spaces(request):
-    request.cls.space = SquareMatrices(n=request.param)
+    request.cls.space = SquareMatrices(n=request.param, equip=False)
 
 
 @pytest.mark.usefixtures("square_matrices_spaces")
@@ -84,5 +85,14 @@ class TestSquareMatrices(MatrixLieAlgebraTestCase, metaclass=DataBasedParametriz
 
 @pytest.mark.smoke
 class TestSquareMatrices3(MatrixLieAlgebraTestCase, metaclass=DataBasedParametrizer):
-    space = SquareMatrices(n=3)
+    space = SquareMatrices(n=3, equip=False)
     testing_data = SquareMatrices3TestData()
+
+
+@pytest.mark.redundant
+class TestSquareMatricesMetric(
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+):
+    n = random.randint(2, 5)
+    space = SquareMatrices(n=n, equip=True)
+    testing_data = MatricesMetricTestData()

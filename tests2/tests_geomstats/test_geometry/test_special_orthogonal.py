@@ -46,7 +46,7 @@ class TestSpecialOrthogonalMatrices(
 class TestSpecialOrthogonalMatrices2(
     SpecialOrthogonalMatricesTestCase, metaclass=DataBasedParametrizer
 ):
-    space = _SpecialOrthogonalMatrices(n=2)
+    space = _SpecialOrthogonalMatrices(n=2, equip=False)
     testing_data = SpecialOrthogonalMatrices2TestData()
 
 
@@ -54,7 +54,7 @@ class TestSpecialOrthogonalMatrices2(
 class TestSpecialOrthogonalMatrices3(
     SpecialOrthogonalMatricesTestCase, metaclass=DataBasedParametrizer
 ):
-    space = _SpecialOrthogonalMatrices(n=3)
+    space = _SpecialOrthogonalMatrices(n=3, equip=False)
     testing_data = SpecialOrthogonalMatrices3TestData()
 
 
@@ -66,7 +66,7 @@ class TestSpecialOrthogonal2Vectors(
 
 
 @pytest.mark.smoke
-class TestSpecialOrthogonalVectors2Smoke(
+class TestSpecialOrthogonal2VectorsSmoke(
     SpecialOrthogonalVectorsTestCase, metaclass=DataBasedParametrizer
 ):
     space = SpecialOrthogonal(2, point_type="vector", equip=False)
@@ -76,13 +76,13 @@ class TestSpecialOrthogonalVectors2Smoke(
 class TestSpecialOrthogonal3Vectors(
     SpecialOrthogonal3VectorsTestCase, metaclass=DataBasedParametrizer
 ):
-    space = SpecialOrthogonal(3, point_type="vector")
+    space = SpecialOrthogonal(3, point_type="vector", equip=True)
     testing_data = SpecialOrthogonal3VectorsTestData()
 
 
 @pytest.mark.smoke
-class TestSpecialOrthogonalVectors3Smoke(
+class TestSpecialOrthogonal3VectorsSmoke(
     SpecialOrthogonal3VectorsTestCase, metaclass=DataBasedParametrizer
 ):
-    space = SpecialOrthogonal(3, point_type="vector", equip=False)
+    space = SpecialOrthogonal(3, point_type="vector", equip=True)
     testing_data = SpecialOrthogonal3VectorsSmokeTestData()

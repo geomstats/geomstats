@@ -41,6 +41,36 @@ class _InvariantMetricTestCaseMixins(RiemannianMetricTestCase):
         )
         self._test_vectorization(vec_data)
 
+    @pytest.mark.random
+    def test_invariance(self, n_points, atol):
+        left = self.space.metric.left
+
+        group_elem_1 = self.data_generator.random_point(n_points)
+        group_elem_2 = self.data_generator.random_point(n_points)
+
+        tangent_vec_11 = self.data_generator.random_tangent_vec(group_elem_1)
+        tangent_vec_12 = self.data_generator.random_tangent_vec(group_elem_1)
+
+        dtrans_2 = self.space.tangent_translation_map(
+            group_elem_2, left=left, inverse=False
+        )
+
+        if left:
+            group_elem_3 = self.space.compose(group_elem_2, group_elem_1)
+        else:
+            group_elem_3 = self.space.compose(group_elem_1, group_elem_2)
+
+        tangent_vec_31 = dtrans_2(tangent_vec_11)
+        tangent_vec_32 = dtrans_2(tangent_vec_12)
+
+        inner_prod = self.space.metric.inner_product(
+            tangent_vec_11, tangent_vec_12, group_elem_1
+        )
+        inner_prod_ = self.space.metric.inner_product(
+            tangent_vec_31, tangent_vec_32, group_elem_3
+        )
+        self.assertAllClose(inner_prod, inner_prod_, atol=atol)
+
 
 class InvariantMetricMatrixTestCase(_InvariantMetricTestCaseMixins):
     def test_structure_constant(
@@ -389,3 +419,41 @@ class InvariantMetricVectorTestCase(_InvariantMetricTestCaseMixins):
         tangent_vec_ = self.space.metric.log_from_identity(end_point)
 
         self.assertAllClose(tangent_vec_, tangent_vec, atol=atol)
+
+
+class BiInvariantMetricTestCase(RiemannianMetricTestCase):
+    @pytest.mark.random
+    def test_invariance(self, n_points, atol):
+        group_elem_1 = self.data_generator.random_point(n_points)
+        group_elem_2 = self.data_generator.random_point(n_points)
+
+        tangent_vec_11 = self.data_generator.random_tangent_vec(group_elem_1)
+        tangent_vec_12 = self.data_generator.random_tangent_vec(group_elem_1)
+
+        dleft_2 = self.space.tangent_translation_map(
+            group_elem_2, left=True, inverse=False
+        )
+        dright_2 = self.space.tangent_translation_map(
+            group_elem_2, left=False, inverse=False
+        )
+
+        group_elem_3 = self.space.compose(group_elem_2, group_elem_1)
+        group_elem_4 = self.space.compose(group_elem_1, group_elem_2)
+
+        tangent_vec_31 = dleft_2(tangent_vec_11)
+        tangent_vec_32 = dleft_2(tangent_vec_12)
+
+        tangent_vec_41 = dright_2(tangent_vec_11)
+        tangent_vec_42 = dright_2(tangent_vec_12)
+
+        inner_prod = self.space.metric.inner_product(
+            tangent_vec_11, tangent_vec_12, group_elem_1
+        )
+        inner_prod_left = self.space.metric.inner_product(
+            tangent_vec_31, tangent_vec_32, group_elem_3
+        )
+        inner_prod_right = self.space.metric.inner_product(
+            tangent_vec_41, tangent_vec_42, group_elem_4
+        )
+        self.assertAllClose(inner_prod, inner_prod_left, atol=atol)
+        self.assertAllClose(inner_prod, inner_prod_right, atol=atol)

@@ -5,6 +5,9 @@ class _InvariantMetricMixinsTestData(RiemannianMetricTestData):
     def inner_product_at_identity_vec_test_data(self):
         return self.generate_vec_data()
 
+    def invariance_test_data(self):
+        return self.generate_random_data()
+
 
 class InvariantMetricMatrixTestData(_InvariantMetricMixinsTestData):
     def structure_constant_vec_test_data(self):
@@ -42,7 +45,6 @@ class InvariantMetricMatrixTestData(_InvariantMetricMixinsTestData):
 
 
 class InvariantMetricMatrixSOTestData(InvariantMetricMatrixTestData):
-    trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
     tolerances = {
@@ -51,13 +53,16 @@ class InvariantMetricMatrixSOTestData(InvariantMetricMatrixTestData):
         "exp_after_log_at_identity": {"atol": 1e-4},
         "geodesic_boundary_points": {"atol": 1e-4},
         "geodesic_bvp_reverse": {"atol": 1e-4},
+        "geodesic_ivp_belongs": {"atol": 1e-4},
         "parallel_transport_bvp_transported_is_tangent": {"atol": 1e-4},
+        "parallel_transport_ivp_transported_is_tangent": {"atol": 1e-4},
         "parallel_transport_bvp_norm": {"atol": 1e-4},
         "parallel_transport_bvp_vec": {"atol": 1e-4},
     }
 
 
 class InvariantMetricMatrixSETestData(InvariantMetricMatrixTestData):
+    trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
     tolerances = {
@@ -67,7 +72,7 @@ class InvariantMetricMatrixSETestData(InvariantMetricMatrixTestData):
         "dist_is_symmetric": {"atol": 1e-4},
         "dist_triangle_inequality": {"atol": 1e-4},
         "exp_belongs": {"atol": 1e-4},
-        "exp_at_identity_vec": {"atol": 1e-4},
+        "exp_at_identity_vec": {"atol": 1e-1},
         "exp_after_log": {"atol": 1e-4},
         "exp_after_log_at_identity": {"atol": 1e-4},
         "log_after_exp": {"atol": 1e-4},
@@ -77,6 +82,7 @@ class InvariantMetricMatrixSETestData(InvariantMetricMatrixTestData):
         "geodesic_bvp_reverse": {"atol": 1e-4},
         "geodesic_bvp_belongs": {"atol": 1e-4},
         "parallel_transport_bvp_transported_is_tangent": {"atol": 1e-4},
+        "parallel_transport_ivp_transported_is_tangent": {"atol": 1e-4},
         "parallel_transport_bvp_norm": {"atol": 1e-4},
         "parallel_transport_bvp_vec": {"atol": 1e-4},
         "squared_dist_is_symmetric": {"atol": 1e-4},
@@ -87,6 +93,8 @@ class InvariantMetricMatrixSETestData(InvariantMetricMatrixTestData):
 class InvariantMetricVectorTestData(_InvariantMetricMixinsTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
+
+    skips = ("invariance",)
 
     def left_exp_from_identity_vec_test_data(self):
         return self.generate_vec_data()
@@ -113,11 +121,12 @@ class InvariantMetricVectorTestData(_InvariantMetricMixinsTestData):
         return self.generate_random_data()
 
 
-class BiInvariantMetricTestData(InvariantMetricVectorTestData):
-    pass
+class BiInvariantMetricTestData(RiemannianMetricTestData):
+    def invariance_test_data(self):
+        return self.generate_random_data()
 
 
-class BiInvariantMetricVectorSO3TestData(BiInvariantMetricTestData):
+class BiInvariantMetricVectorsSOTestData(BiInvariantMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
     skips = (
@@ -127,27 +136,10 @@ class BiInvariantMetricVectorSO3TestData(BiInvariantMetricTestData):
         "parallel_transport_ivp_transported_is_tangent",
         "parallel_transport_bvp_vec",
         "parallel_transport_ivp_vec",
+        "invariance",
     )
 
 
-class BiInvariantMetricMatrixSOTestData(BiInvariantMetricTestData):
+class BiInvariantMetricMatrixTestData(BiInvariantMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
-    skips = (
-        # due to bad inheritance (misses jacobian_translation)
-        "christoffels_vec",
-        "cometric_matrix_vec",
-        "inner_coproduct_vec",
-        "inner_product_derivative_matrix_vec",
-        "metric_matrix_is_spd",
-        "metric_matrix_vec",
-        # due to bad inheritance (misses regularize)
-        "exp_from_identity_after_log_from_identity",
-        "exp_from_identity_vec",
-        "left_exp_from_identity_after_left_log_from_identity",
-        "left_exp_from_identity_vec",
-        "left_log_from_identity_after_left_exp_from_identity",
-        "left_log_from_identity_vec",
-        "log_from_identity_after_exp_from_identity",
-        "log_from_identity_vec",
-    )

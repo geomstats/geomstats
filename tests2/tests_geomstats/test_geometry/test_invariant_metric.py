@@ -12,19 +12,18 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.invariant_metric import (
+    BiInvariantMetricTestCase,
     InvariantMetricMatrixTestCase,
     InvariantMetricVectorTestCase,
 )
 
 from .data.invariant_metric import (
-    BiInvariantMetricMatrixSOTestData,
-    BiInvariantMetricVectorSO3TestData,
+    BiInvariantMetricMatrixTestData,
+    BiInvariantMetricVectorsSOTestData,
     InvariantMetricMatrixSETestData,
     InvariantMetricMatrixSOTestData,
     InvariantMetricVectorTestData,
 )
-
-# TODO: comparison of different point types?
 
 
 @pytest.fixture(
@@ -35,12 +34,11 @@ from .data.invariant_metric import (
     ],
 )
 def equipped_SO_matrix_groups_left_right(request):
-    # TODO: different metric matrix at identity?
     space, left = request.param
     request.cls.space = space
     space.equip_with_metric(_InvariantMetricMatrix, left=left)
 
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=5.0)
+    request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
 
 
 @pytest.mark.slow
@@ -100,19 +98,21 @@ class TestInvariantMetricVector(
 @pytest.fixture(
     scope="class",
     params=[
+        # TODO: uncomment
+        # SpecialOrthogonal(2, point_type="vector", equip=False),
         SpecialOrthogonal(3, point_type="vector", equip=False),
     ],
 )
-def equipped_SO3_vector_groups(request):
+def equipped_vector_groups(request):
     request.cls.space = space = request.param
     space.equip_with_metric(BiInvariantMetric)
 
 
-@pytest.mark.usefixtures("equipped_SO3_vector_groups")
-class TestBiInvariantMetricVectorSO3(
-    InvariantMetricVectorTestCase, metaclass=DataBasedParametrizer
+@pytest.mark.usefixtures("equipped_vector_groups")
+class TestBiInvariantMetricVectorsSO(
+    BiInvariantMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = BiInvariantMetricVectorSO3TestData()
+    testing_data = BiInvariantMetricVectorsSOTestData()
 
 
 @pytest.fixture(
@@ -128,6 +128,6 @@ def equipped_SO_matrix_groups(request):
 
 @pytest.mark.usefixtures("equipped_SO_matrix_groups")
 class TestBiInvariantMetricMatrixSO(
-    InvariantMetricVectorTestCase, metaclass=DataBasedParametrizer
+    BiInvariantMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = BiInvariantMetricMatrixSOTestData()
+    testing_data = BiInvariantMetricMatrixTestData()

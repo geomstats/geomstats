@@ -95,7 +95,7 @@ class SpecialEuclideanMatrices2TestData(TestData):
 
 
 class SpecialEuclideanVectorsTestData(ProjectionMixinsTestData, LieGroupTestData):
-    skips = ("lie_bracket_vec",)
+    fail_for_not_implemented_errors = False
 
     def matrix_from_vector_vec_test_data(self):
         return self.generate_vec_data()
@@ -158,7 +158,7 @@ class SpecialEuclidean2VectorsTestData(TestData):
         return self.generate_tests(data)
 
 
-class SpecialEuclidean2MatrixLieAlgebraTestData(TestData):
+class SpecialEuclideanMatricesLieAlgebra2TestData(TestData):
     def belongs_test_data(self):
         theta = gs.pi / 3
         data = [
@@ -182,7 +182,9 @@ class SpecialEuclidean2MatrixLieAlgebraTestData(TestData):
         return self.generate_tests(data)
 
 
-class SpecialEuclideanMatrixCanonicalLeftMetricTestData(InvariantMetricMatrixTestData):
+class SpecialEuclideanMatricesCanonicalLeftMetricTestData(
+    InvariantMetricMatrixTestData
+):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 

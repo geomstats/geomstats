@@ -8,10 +8,12 @@ from geomstats.test_cases.geometry.base import (
     MatrixVectorSpaceTestCaseMixins,
     VectorSpaceTestCase,
 )
+from geomstats.test_cases.geometry.hermitian import HermitianMetricTestCase
 from geomstats.test_cases.geometry.symmetric_matrices import (
     SymmetricMatricesOpsTestCase,
 )
 
+from .data.complex_matrices import ComplexMatricesMetricTestData
 from .data.symmetric_matrices import (
     SymmetricMatrices1TestData,
     SymmetricMatrices2TestData,
@@ -29,7 +31,7 @@ from .data.symmetric_matrices import (
     ],
 )
 def spaces(request):
-    request.cls.space = SymmetricMatrices(n=request.param)
+    request.cls.space = SymmetricMatrices(n=request.param, equip=False)
 
 
 @pytest.mark.usefixtures("spaces")
@@ -47,13 +49,13 @@ class TestSymmetricMatrices1(
     VectorSpaceTestCase,
     metaclass=DataBasedParametrizer,
 ):
-    space = SymmetricMatrices(n=1)
+    space = SymmetricMatrices(n=1, equip=False)
     testing_data = SymmetricMatrices1TestData()
 
 
 @pytest.mark.smoke
 class TestSymmetricMatrices2(VectorSpaceTestCase, metaclass=DataBasedParametrizer):
-    space = SymmetricMatrices(n=2)
+    space = SymmetricMatrices(n=2, equip=False)
     testing_data = SymmetricMatrices2TestData()
 
 
@@ -63,14 +65,33 @@ class TestSymmetricMatrices3(
     VectorSpaceTestCase,
     metaclass=DataBasedParametrizer,
 ):
-    space = SymmetricMatrices(n=3)
+    space = SymmetricMatrices(n=3, equip=False)
     testing_data = SymmetricMatrices3TestData()
 
 
 @pytest.mark.parametrize("n,expected", [(1, 1), (2, 3), (5, 15)])
 def test_dim(n, expected):
-    space = SymmetricMatrices(n=n)
+    space = SymmetricMatrices(n=n, equip=False)
     assert space.dim == expected
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        2,
+        random.randint(3, 5),
+    ],
+)
+def equipped_spaces(request):
+    request.cls.space = SymmetricMatrices(n=request.param, equip=True)
+
+
+@pytest.mark.redundant
+@pytest.mark.usefixtures("equipped_spaces")
+class TestComplexMatricesMetric(
+    HermitianMetricTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = ComplexMatricesMetricTestData()
 
 
 @pytest.mark.smoke

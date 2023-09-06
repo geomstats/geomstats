@@ -68,18 +68,24 @@ class MatrixLieAlgebraTestCase(VectorSpaceTestCase):
         res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
         self.assertAllClose(res, mat, atol=atol)
 
-    def test_matrix_representation(self, vec, expected, atol):
-        mat = self.space.matrix_representation(vec)
+    def test_matrix_representation(self, basis_representation, expected, atol):
+        mat = self.space.matrix_representation(basis_representation)
         self.assertAllClose(mat, expected, atol=atol)
 
     @pytest.mark.vec
     def test_matrix_representation_vec(self, n_reps, atol):
-        vec = gs.random.rand(self.space.dim)
-        expected = self.space.matrix_representation(vec)
+        basis_representation = gs.random.rand(self.space.dim)
+        expected = self.space.matrix_representation(basis_representation)
 
         vec_data = generate_vectorization_data(
-            data=[dict(vec=vec, expected=expected, atol=atol)],
-            arg_names=["vec"],
+            data=[
+                dict(
+                    basis_representation=basis_representation,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["basis_representation"],
             expected_name="expected",
             n_reps=n_reps,
         )

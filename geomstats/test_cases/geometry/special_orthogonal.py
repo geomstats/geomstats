@@ -1,7 +1,6 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import (
     SpecialOrthogonal,
     _SpecialOrthogonal2Vectors,
@@ -25,78 +24,17 @@ from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
 class _SpecialOrthogonalTestCaseMixins:
     def _get_random_rotation_vector(self, n_points=1):
         if self.space.n == 2:
-            return _SpecialOrthogonal2Vectors().random_point(n_points)
+            return _SpecialOrthogonal2Vectors(equip=False).random_point(n_points)
 
         if self.space.n == 3:
-            return _SpecialOrthogonal3Vectors().random_point(n_points)
+            return _SpecialOrthogonal3Vectors(equip=False).random_point(n_points)
 
         raise NotImplementedError(
             f"Unable to create random orthogonal vector for `n={self.space.n}`"
         )
 
-    def _get_random_skew_sym_matrix(self, n_points=1):
-        return SkewSymmetricMatrices(self.space.n).random_point(n_points)
-
     def _get_random_rotation_matrix(self, n_points=1):
-        return SpecialOrthogonal(n=self.space.n).random_point(n_points)
-
-    def test_skew_matrix_from_vector(self, vec, expected, atol):
-        mat = self.space.skew_matrix_from_vector(vec)
-        self.assertAllClose(mat, expected)
-
-    @pytest.mark.vec
-    def test_skew_matrix_from_vector_vec(self, n_reps, atol):
-        if self.space.n > 3:
-            return
-
-        vec = self._get_random_rotation_vector()
-        expected = self.space.skew_matrix_from_vector(vec)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(vec=vec, expected=expected, atol=atol)],
-            arg_names=["vec"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    def test_vector_from_skew_matrix(self, mat, expected, atol):
-        vec = self.space.vector_from_skew_matrix(mat)
-        self.assertAllClose(vec, expected, atol=atol)
-
-    @pytest.mark.vec
-    def test_vector_from_skew_matrix_vec(self, n_reps, atol):
-        mat = self._get_random_skew_sym_matrix()
-        expected = self.space.vector_from_skew_matrix(mat)
-
-        vec_data = generate_vectorization_data(
-            data=[dict(mat=mat, expected=expected, atol=atol)],
-            arg_names=["mat"],
-            expected_name="expected",
-            n_reps=n_reps,
-        )
-        self._test_vectorization(vec_data)
-
-    @pytest.mark.random
-    def test_vector_from_skew_matrix_after_skew_matrix_from_vector(
-        self, n_points, atol
-    ):
-        if self.space.n > 3:
-            return
-
-        vec = self._get_random_rotation_vector(n_points)
-        mat = self.space.skew_matrix_from_vector(vec)
-        vec_ = self.space.vector_from_skew_matrix(mat)
-        self.assertAllClose(vec_, vec, atol=atol)
-
-    @pytest.mark.random
-    def test_skew_matrix_from_vector_after_vector_from_skew_matrix(
-        self, n_points, atol
-    ):
-        mat = self._get_random_skew_sym_matrix(n_points)
-        vec = self.space.vector_from_skew_matrix(mat)
-        mat_ = self.space.skew_matrix_from_vector(vec)
-        self.assertAllClose(mat_, mat, atol=atol)
+        return SpecialOrthogonal(n=self.space.n, equip=False).random_point(n_points)
 
     def test_rotation_vector_from_matrix(self, rot_mat, expected, atol):
         rot_vec = self.space.rotation_vector_from_matrix(rot_mat)
@@ -104,9 +42,6 @@ class _SpecialOrthogonalTestCaseMixins:
 
     @pytest.mark.vec
     def test_rotation_vector_from_matrix_vec(self, n_reps, atol):
-        if self.space.n > 3:
-            return
-
         rot_mat = self._get_random_rotation_matrix()
 
         expected = self.space.rotation_vector_from_matrix(rot_mat)
@@ -125,9 +60,6 @@ class _SpecialOrthogonalTestCaseMixins:
 
     @pytest.mark.vec
     def test_matrix_from_rotation_vector_vec(self, n_reps, atol):
-        if self.space.n > 3:
-            return
-
         rot_vec = self._get_random_rotation_vector()
         expected = self.space.matrix_from_rotation_vector(rot_vec)
 
@@ -143,9 +75,6 @@ class _SpecialOrthogonalTestCaseMixins:
     def test_rotation_vector_from_matrix_after_matrix_from_rotation_vector(
         self, n_points, atol
     ):
-        if self.space.n > 3:
-            return
-
         vec = self._get_random_rotation_vector(n_points)
         mat = self.space.matrix_from_rotation_vector(vec)
         vec_ = self.space.rotation_vector_from_matrix(mat)
@@ -155,9 +84,6 @@ class _SpecialOrthogonalTestCaseMixins:
     def test_matrix_from_rotation_vector_after_rotation_vector_from_matrix(
         self, n_points, atol
     ):
-        if self.space.n > 3:
-            return
-
         mat = self._get_random_rotation_matrix(n_points)
         vec = self.space.rotation_vector_from_matrix(mat)
         mat_ = self.space.matrix_from_rotation_vector(vec)
@@ -241,6 +167,36 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
         size = (n_points, 3) if n_points > 1 else 3
         return gs.random.uniform(low=-gs.pi, high=gs.pi, size=size)
 
+    def test_group_exp_after_log_with_angles_close_to_pi(self, point, base_point):
+        result = self.space.exp(self.space.log(point, base_point), base_point)
+        expected = self.space.regularize(point)
+        inv_expected = -expected
+
+        self.assertTrue(
+            gs.allclose(result, expected, atol=5e-3)
+            or gs.allclose(result, inv_expected, atol=5e-3)
+        )
+
+    def test_group_log_after_exp_with_angles_close_to_pi(self, tangent_vec, base_point):
+        result = self.space.log(self.space.exp(tangent_vec, base_point), base_point)
+        reg_tangent_vec = self.space.regularize_tangent_vec(
+            tangent_vec=tangent_vec, base_point=base_point
+        )
+        expected = reg_tangent_vec
+        inv_expected = -expected
+        self.assertTrue(
+            gs.allclose(result, expected, atol=5e-3)
+            or gs.allclose(result, inv_expected, atol=5e-3)
+        )
+
+    def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self, point):
+        mat = self.space.matrix_from_rotation_vector(point)
+        result = self.space.rotation_vector_from_matrix(mat)
+        expected1 = self.space.regularize(point)
+        expected2 = -1 * expected1
+        expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
+        self.assertTrue(expected)
+
     def test_quaternion_from_matrix(self, rot_mat, expected, atol):
         res = self.space.quaternion_from_matrix(rot_mat)
         self.assertAllClose(res, expected, atol=atol)
@@ -289,6 +245,15 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
         quaternion = self.space.quaternion_from_matrix(mat)
         mat_ = self.space.matrix_from_quaternion(quaternion)
         self.assertAllClose(mat_, mat, atol=atol)
+
+    def test_quaternion_and_matrix_with_angles_close_to_pi(self, point):
+        mat = self.space.matrix_from_rotation_vector(point)
+        quat = self.space.quaternion_from_matrix(mat)
+        result = self.space.matrix_from_quaternion(quat)
+        expected1 = mat
+        expected2 = gs.linalg.inv(mat)
+        expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
+        self.assertTrue(expected)
 
     def test_quaternion_from_rotation_vector(self, rot_vec, expected, atol):
         res = self.space.quaternion_from_rotation_vector(rot_vec)
@@ -342,6 +307,14 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
         quaternion = self.space.quaternion_from_rotation_vector(rot_vec)
         rot_vec_ = self.space.rotation_vector_from_quaternion(quaternion)
         self.assertAllClose(rot_vec_, rot_vec, atol=atol)
+
+    def test_quaternion_and_rotation_vector_with_angles_close_to_pi(self, point):
+        quaternion = self.space.quaternion_from_rotation_vector(point)
+        result = self.space.rotation_vector_from_quaternion(quaternion)
+        expected1 = self.space.regularize(point)
+        expected2 = -1 * expected1
+        expected = gs.allclose(result, expected1) or gs.allclose(result, expected2)
+        self.assertTrue(expected)
 
     def test_matrix_from_tait_bryan_angles(
         self, tait_bryan_angles, extrinsic, zyx, expected, atol
@@ -625,3 +598,18 @@ class SpecialOrthogonal3VectorsTestCase(SpecialOrthogonalVectorsTestCase):
         jacobian = self.space.jacobian_translation(point=point, left=True)
         result = gs.linalg.det(jacobian)
         self.assertAllClose(result, expected, atol=atol)
+
+    def test_compose_regularize_angles_close_to_pi(self, point):
+        result = self.space.compose(point, self.space.identity)
+        expected = self.space.regularize(point)
+        inv_expected = -expected
+        self.assertTrue(
+            gs.allclose(result, expected) or gs.allclose(result, inv_expected)
+        )
+
+        result = self.space.compose(self.space.identity, point)
+        expected = self.space.regularize(point)
+        inv_expected = -expected
+        self.assertTrue(
+            gs.allclose(result, expected) or gs.allclose(result, inv_expected)
+        )

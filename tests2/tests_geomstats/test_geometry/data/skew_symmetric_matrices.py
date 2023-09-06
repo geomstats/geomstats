@@ -16,6 +16,15 @@ class SkewSymmetricMatrices2TestData(TestData):
         ]
         return self.generate_tests(data)
 
+    def matrix_representation_test_data(self):
+        data = [
+            dict(
+                basis_representation=gs.array([0.9]),
+                expected=gs.array([[0.0, -0.9], [0.9, 0.0]]),
+            )
+        ]
+        return self.generate_tests(data)
+
 
 class SkewSymmetricMatrices3TestData(TestData):
     def belongs_test_data(self):

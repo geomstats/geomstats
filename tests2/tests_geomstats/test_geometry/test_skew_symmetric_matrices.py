@@ -4,10 +4,12 @@ import pytest
 
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from geomstats.test_cases.geometry.skew_symmetric_matrices import (
     SkewSymmetricMatricesTestCase,
 )
 
+from .data.matrices import MatricesMetricTestData
 from .data.skew_symmetric_matrices import (
     SkewSymmetricMatrices2TestData,
     SkewSymmetricMatrices3TestData,
@@ -24,7 +26,7 @@ from .data.skew_symmetric_matrices import (
     ],
 )
 def spaces(request):
-    request.cls.space = SkewSymmetricMatrices(n=request.param)
+    request.cls.space = SkewSymmetricMatrices(n=request.param, equip=False)
 
 
 @pytest.mark.usefixtures("spaces")
@@ -38,7 +40,7 @@ class TestSkewSymmetricMatrices(
 class TestSkewSymmetricMatrices2(
     SkewSymmetricMatricesTestCase, metaclass=DataBasedParametrizer
 ):
-    space = SkewSymmetricMatrices(n=2)
+    space = SkewSymmetricMatrices(n=2, equip=False)
     testing_data = SkewSymmetricMatrices2TestData()
 
 
@@ -46,5 +48,12 @@ class TestSkewSymmetricMatrices2(
 class TestSkewSymmetricMatrices3(
     SkewSymmetricMatricesTestCase, metaclass=DataBasedParametrizer
 ):
-    space = SkewSymmetricMatrices(n=3)
+    space = SkewSymmetricMatrices(n=3, equip=False)
     testing_data = SkewSymmetricMatrices3TestData()
+
+
+@pytest.mark.redundant
+class TestMatricesMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    n = random.randint(2, 5)
+    space = SkewSymmetricMatrices(n=n, equip=True)
+    testing_data = MatricesMetricTestData()

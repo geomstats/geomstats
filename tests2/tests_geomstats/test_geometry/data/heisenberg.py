@@ -6,7 +6,7 @@ from .lie_group import LieGroupTestData
 
 
 class HeisenbergVectorsTestData(LieGroupTestData, VectorSpaceTestData):
-    skips = ("lie_bracket_vec",)
+    fail_for_not_implemented_errors = False
 
     def upper_triangular_matrix_from_vector_vec_test_data(self):
         return self.generate_vec_data()

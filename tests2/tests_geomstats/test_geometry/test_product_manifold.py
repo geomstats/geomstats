@@ -90,7 +90,6 @@ def equipped_spaces(request):
     request.cls.space = ProductManifold(
         factors=factors,
         default_point_type=default_point_type,
-        equip=True,
     )
 
 

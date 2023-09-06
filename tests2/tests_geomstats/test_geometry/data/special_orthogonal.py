@@ -17,18 +17,6 @@ def sample_matrix(theta, mul=1.0):
 
 
 class _SpecialOrthogonalMixinsTestData:
-    def skew_matrix_from_vector_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def vector_from_skew_matrix_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def vector_from_skew_matrix_after_skew_matrix_from_vector_test_data(self):
-        return self.generate_random_data()
-
-    def skew_matrix_from_vector_after_vector_from_skew_matrix_test_data(self):
-        return self.generate_random_data()
-
     def rotation_vector_from_matrix_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -45,6 +33,9 @@ class _SpecialOrthogonalMixinsTestData:
 class SpecialOrthogonalMatricesTestData(
     _SpecialOrthogonalMixinsTestData, MatrixLieGroupTestData, LevelSetTestData
 ):
+    fail_for_not_implemented_errors = False
+    trials = 2
+
     tolerances = {
         "projection_belongs": {"atol": 1e-5},
         "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},
@@ -201,13 +192,10 @@ class SpecialOrthogonalVectorsTestData(
 
 
 class SpecialOrthogonal2VectorsTestData(SpecialOrthogonalVectorsTestData):
-    trials = 2
-    skips = (
-        "jacobian_translation_vec",
-        "tangent_translation_map_vec",
-        "lie_bracket_vec",
-        "projection_belongs",
-    )
+    fail_for_not_implemented_errors = False
+
+    trials = 3
+    skips = ("projection_belongs",)
 
 
 class SpecialOrthogonal2VectorsSmokeTestData(TestData):
@@ -239,10 +227,6 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
                 expected=gs.eye(2),
             )
         ]
-        return self.generate_tests(data)
-
-    def skew_matrix_from_vector_test_data(self):
-        data = [dict(vec=gs.array([0.9]), expected=gs.array([[0.0, -0.9], [0.9, 0.0]]))]
         return self.generate_tests(data)
 
     def compose_test_data(self):
@@ -286,32 +270,12 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
 
 
 class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
-    trials = 3
+    trials = 2
     skips = ("projection_belongs",)
     tolerances = {
-        "rotation_vector_from_matrix_after_matrix_from_rotation_vector": {"atol": 1e-5},
-        "matrix_from_rotation_vector_after_rotation_vector_from_matrix": {"atol": 1e-1},
-        "quaternion_from_matrix_after_matrix_from_quaternion": {"atol": 1e-2},
-        "matrix_from_quaternion_after_quaternion_from_matrix": {"atol": 1e-1},
-        "tait_bryan_angles_from_matrix_after_matrix_from_tait_bryan_angles": {
-            "atol": 1e-1
-        },
-        "matrix_from_tait_bryan_angles_after_tait_bryan_angles_from_matrix": {
-            "atol": 1e-1
-        },
         "tait_bryan_angles_from_quaternion_after_quaternion_from_tait_bryan_angles": {
-            "atol": 1e-1
+            "atol": 1e-6
         },
-        "tait_bryan_angles_from_rotation_vector_after_rotation_vector_from_tait_bryan_angles": {
-            "atol": 1e-1
-        },
-        "quaternion_from_tait_bryan_angles_after_tait_bryan_angles_from_quaternion": {
-            "atol": 1e-1
-        },
-        "rotation_vector_from_tait_bryan_angles_after_tait_bryan_angles_from_rotation_vector": {
-            "atol": 1e-1
-        },
-        "log_after_exp": {"atol": 1e-1},
     }
 
     def _generate_tait_bryan_angles_vec_data(self, marks=()):
@@ -439,13 +403,11 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
     cos_angle_pi_12 = gs.cos(angle_pi_6 / 2)
     sin_angle_pi_12 = gs.sin(angle_pi_6 / 2)
 
-    # angles_close_to_pi_all = [
-    #     "angle_close_pi_low",
-    #     "angle_pi",
-    #     "angle_close_pi_high",
-    # ]
-
-    # angles_close_to_pi = angles_close_to_pi_all
+    angles_close_to_pi = [
+        "angle_close_pi_low",
+        "angle_pi",
+        "angle_close_pi_high",
+    ]
 
     def rotation_vector_from_matrix_test_data(self):
         angle = 0.12
@@ -592,6 +554,46 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
+    def _regularize_extreme_data(self):
+        smoke_data = []
+        for angle_type in [
+            "angle_close_0",
+            "angle_close_pi_low",
+            "angle_pi",
+            "angle_0",
+        ]:
+            smoke_data += [
+                dict(
+                    point=self.elements[angle_type],
+                    expected=self.elements[angle_type],
+                )
+            ]
+        point = self.elements["angle_close_pi_high"]
+        norm = gs.linalg.norm(point)
+        smoke_data += [dict(point=point, expected=point / norm * (norm - 2 * gs.pi))]
+
+        for angle_type in ["angle_in_pi_2pi", "angle_close_2pi_low"]:
+            point = self.elements[angle_type]
+            angle = gs.linalg.norm(point)
+            new_angle = gs.pi - (angle - gs.pi)
+
+            point_initial = point
+            expected = -(new_angle / angle) * point_initial
+            smoke_data += [dict(point=point, expected=expected)]
+
+        smoke_data += [
+            dict(
+                point=self.elements["angle_2pi"],
+                expected=gs.array([0.0, 0.0, 0.0]),
+            )
+        ]
+        point = self.elements["angle_close_2pi_high"]
+        angle = gs.linalg.norm(point)
+        new_angle = angle - 2 * gs.pi
+        expected = new_angle * point / angle
+        smoke_data += [dict(point=point, expected=expected)]
+        return smoke_data
+
     def regularize_test_data(self):
         point = (gs.pi + 1e-6) * gs.array(
             [[1.0, 0.0, 0.0], [2, 0.5, 0.0], [0.0, 0.0, 0.0], [0.5, 0.0, 0.0]]
@@ -608,5 +610,48 @@ class SpecialOrthogonal3VectorsSmokeTestData(TestData):
             ]
         )
 
-        smoke_data = [dict(point=point, expected=expected)]
+        smoke_data = [
+            dict(point=point, expected=expected)
+        ] + self._regularize_extreme_data()
         return self.generate_tests(smoke_data)
+
+    def _angles_close_to_pi_data(self):
+        smoke_data = [
+            dict(point=self.elements[angle_type])
+            for angle_type in self.angles_close_to_pi
+        ]
+
+        return self.generate_tests(smoke_data)
+
+    def group_exp_after_log_with_angles_close_to_pi_test_data(self):
+        smoke_data = []
+        for angle_type in self.angles_close_to_pi:
+            for angle_type_base in self.elements.values():
+                smoke_data.append(
+                    dict(point=self.elements[angle_type], base_point=angle_type_base)
+                )
+        return self.generate_tests(smoke_data)
+
+    def group_log_after_exp_with_angles_close_to_pi_test_data(self):
+        smoke_data = []
+        for angle_type in self.angles_close_to_pi:
+            for angle_type_base in self.elements.values():
+                smoke_data.append(
+                    dict(
+                        tangent_vec=self.elements[angle_type],
+                        base_point=angle_type_base,
+                    )
+                )
+        return self.generate_tests(smoke_data)
+
+    def rotation_vector_and_rotation_matrix_with_angles_close_to_pi_test_data(self):
+        return self._angles_close_to_pi_data()
+
+    def quaternion_and_rotation_vector_with_angles_close_to_pi_test_data(self):
+        return self._angles_close_to_pi_data()
+
+    def quaternion_and_matrix_with_angles_close_to_pi_test_data(self):
+        return self._angles_close_to_pi_data()
+
+    def compose_regularize_angles_close_to_pi_test_data(self):
+        return self._angles_close_to_pi_data()

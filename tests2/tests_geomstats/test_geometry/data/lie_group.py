@@ -12,7 +12,7 @@ class _LieGroupMixinsTestData(GroupExpMixinsTestData):
     def compose_with_inverse_is_identity_test_data(self):
         return self.generate_random_data()
 
-    def compose_with_identity_is_point_test_data(self):
+    def compose_with_identity_is_itself_test_data(self):
         return self.generate_random_data()
 
     def log_vec_test_data(self):
@@ -39,8 +39,31 @@ class _LieGroupMixinsTestData(GroupExpMixinsTestData):
                 )
         return self.generate_tests(data)
 
+    def tangent_translation_map_is_tangent_test_data(self):
+        data = []
+        for left in [True, False]:
+            data.extend(
+                [
+                    dict(n_points=n_points, left=left)
+                    for n_points in self.N_RANDOM_POINTS
+                ]
+            )
+        return self.generate_tests(data)
+
     def lie_bracket_vec_test_data(self):
         return self.generate_vec_data()
+
+    def lie_bracket_belongs_test_data(self):
+        return self.generate_random_data()
+
+    def lie_bracket_antisymmetry_test_data(self):
+        return self.generate_random_data()
+
+    def lie_bracket_jacobi_identity_test_data(self):
+        return self.generate_random_data()
+
+    def lie_bracket_bilinearity_test_data(self):
+        return self.generate_random_data()
 
 
 class MatrixLieGroupTestData(_LieGroupMixinsTestData, ManifoldTestData):
