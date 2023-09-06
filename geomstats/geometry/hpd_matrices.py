@@ -130,7 +130,6 @@ class HPDMatrices(ComplexOpenSet):
             Optional, default: 1.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
 
         Returns
         -------
@@ -140,10 +139,10 @@ class HPDMatrices(ComplexOpenSet):
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
-        if base_point is None:
-            base_point = gs.eye(n, dtype=gs.get_default_cdtype())
-
-        sqrt_base_point = gs.linalg.sqrtm(base_point)
+        sqrt_base_point = gs.cast(
+            gs.linalg.sqrtm(base_point),
+            base_point.dtype,
+        )
 
         tangent_vec_at_id_aux = gs.random.rand(*size, dtype=gs.get_default_cdtype())
         tangent_vec_at_id_aux *= 2
@@ -152,9 +151,7 @@ class HPDMatrices(ComplexOpenSet):
             tangent_vec_at_id_aux
         )
 
-        tangent_vec = Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
-
-        return tangent_vec
+        return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
     @staticmethod
     def _aux_differential_power(power, tangent_vec, base_point):
@@ -595,7 +592,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
 
         return Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the affine-invariant exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -654,7 +651,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         log_at_id = HPDMatrices.logm(point_near_id)
         return Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the affine-invariant logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -795,7 +792,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
 
         return result
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Bures-Wasserstein exponential map.
 
         Parameters
@@ -823,7 +820,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
 
         return base_point + tangent_vec + hessian
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Bures-Wasserstein logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -848,7 +845,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         transconj_sqrt_product = ComplexMatrices.transconjugate(sqrt_product)
         return sqrt_product + transconj_sqrt_product - 2 * base_point
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Compute the Bures-Wasserstein squared distance.
 
         Compute the Riemannian squared distance between point_a and point_b.
@@ -1075,7 +1072,7 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
         eigen_values = gs.linalg.eigvalsh(base_point)
         return eigen_values[..., 0]
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Euclidean exponential map.
 
         Compute the Euclidean exponential at point base_point
@@ -1108,7 +1105,7 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
             )
         return exp
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Euclidean logarithm map.
 
         Compute the Euclidean logarithm at point base_point, of point.
@@ -1211,7 +1208,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
         modified_tangent_vec_b = hpd_space.differential_log(tangent_vec_b, base_point)
         return Matrices.trace_product(modified_tangent_vec_a, modified_tangent_vec_b)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Log-Euclidean exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -1234,7 +1231,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
         dlog_tangent_vec = HPDMatrices.differential_log(tangent_vec, base_point)
         return HermitianMatrices.expm(log_base_point + dlog_tangent_vec)
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Log-Euclidean logarithm map.
 
         Compute the Riemannian logarithm at point base_point,

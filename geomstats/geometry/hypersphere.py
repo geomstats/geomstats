@@ -885,7 +885,7 @@ class HypersphereMetric(RiemannianMetric):
                                          covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """
-        if self._space.dim != 2 or self._space.default_coords_type != "intrinsic":
+        if self._space.dim != 2:
             raise NotImplementedError(
                 "The Christoffel symbols are only implemented"
                 " for spherical coordinates in the 2-sphere"
