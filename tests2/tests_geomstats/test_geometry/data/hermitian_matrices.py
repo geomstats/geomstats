@@ -47,3 +47,40 @@ class HermitianMatrices3TestData(TestData):
             ),
         ]
         return self.generate_tests(data)
+
+
+class HermitianMatricesOpsTestData(TestData):
+    def expm_test_data(self):
+        data = [
+            dict(
+                mat=gs.array([[0.0, 1.0j], [-1.0j, 0.0]]),
+                expected=gs.array(
+                    [[1.54308063, 1.17520119j], [-1.17520119j, 1.54308063]]
+                ),
+            )
+        ]
+        return self.generate_tests(data)
+
+    def powerm_test_data(self):
+        data = [
+            dict(
+                mat=gs.array([[0.0, 1.0j], [-1.0j, 0.0]]),
+                power=1,
+                expected=gs.array([[0.0, 1.0j], [-1.0j, 0.0]]),
+            ),
+            dict(
+                mat=gs.array([[0.0, 1.0j], [-1.0j, 0.0]]),
+                power=2,
+                expected=gs.array(
+                    [
+                        [
+                            1.0 + 0j,
+                            0.0,
+                        ],
+                        [0.0, 1.0],
+                    ]
+                ),
+            ),
+        ]
+
+        return self.generate_tests(data)

@@ -10,6 +10,7 @@ from geomstats.geometry.hpd_matrices import (
     HPDMatrices,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.base import ComplexOpenSetTestCase
 from geomstats.test_cases.geometry.complex_riemannian_metric import (
     ComplexRiemannianMetricTestCase,
@@ -67,8 +68,7 @@ class TestHPDMatrices3(ComplexOpenSetTestCase, metaclass=DataBasedParametrizer):
 )
 def spaces_with_affine_metric_power_1(request):
     n = request.param
-    space = request.cls.space = HPDMatrices(n=n, equip=False)
-    space.equip_with_metric(HPDAffineMetric, power_affine=1)
+    request.cls.space = HPDMatrices(n=n)
 
 
 @pytest.mark.usefixtures("spaces_with_affine_metric_power_1")
@@ -89,8 +89,7 @@ class TestHPDAffineMetricPower1(
 )
 def spaces_with_affine_metric(request):
     n, power_affine = request.param
-    space = HPDMatrices(n=n, equip=False)
-    request.cls.space = space
+    space = request.cls.space = HPDMatrices(n=n, equip=False)
     space.equip_with_metric(HPDAffineMetric, power_affine=power_affine)
 
 
@@ -109,9 +108,10 @@ class TestHPDAffineMetric(
     ],
 )
 def spaces_with_bw_metric(request):
-    space = HPDMatrices(n=request.param, equip=False)
-    request.cls.space = space
+    space = request.cls.space = HPDMatrices(n=request.param, equip=False)
     space.equip_with_metric(HPDBuresWassersteinMetric)
+
+    request.cls.data_generator = RandomDataGenerator(space, amplitude=2.0)
 
 
 @pytest.mark.redundant
@@ -136,9 +136,10 @@ class TestHPDBuresWassersteinMetric(
 def hpd_with_euclidean_metric(request):
     n, power_euclidean = request.param
 
-    space = HPDMatrices(n=n, equip=False)
-    request.cls.space = space
+    space = request.cls.space = HPDMatrices(n=n, equip=False)
     space.equip_with_metric(HPDEuclideanMetric, power_euclidean=power_euclidean)
+
+    request.cls.data_generator = RandomDataGenerator(space, amplitude=4.0)
 
 
 @pytest.mark.usefixtures("hpd_with_euclidean_metric")
@@ -157,8 +158,7 @@ class TestHPDEuclideanMetric(
 )
 def spaces_with_log_euclidean(request):
     n = request.param
-    space = HPDMatrices(n=n, equip=False)
-    request.cls.space = space
+    space = request.cls.space = HPDMatrices(n=n, equip=False)
     space.equip_with_metric(HPDLogEuclideanMetric)
 
 

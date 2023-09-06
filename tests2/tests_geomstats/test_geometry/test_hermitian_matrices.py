@@ -8,14 +8,18 @@ from geomstats.test_cases.geometry.base import (
     ComplexVectorSpaceTestCase,
     MatrixVectorSpaceTestCaseMixins,
 )
+from geomstats.test_cases.geometry.hermitian import HermitianMetricTestCase
+from geomstats.test_cases.geometry.symmetric_matrices import (
+    SymmetricMatricesOpsTestCase,
+)
 
+from .data.complex_matrices import ComplexMatricesMetricTestData
 from .data.hermitian_matrices import (
     HermitianMatrices2TestData,
     HermitianMatrices3TestData,
+    HermitianMatricesOpsTestData,
     HermitianMatricesTestData,
 )
-
-# TODO: add redundant test here for metric?
 
 
 @pytest.fixture(
@@ -54,3 +58,30 @@ class TestHermitianMatrices3(
 ):
     space = HermitianMatrices(n=3, equip=False)
     testing_data = HermitianMatrices3TestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        2,
+        random.randint(3, 5),
+    ],
+)
+def equipped_spaces(request):
+    request.cls.space = HermitianMatrices(n=request.param)
+
+
+@pytest.mark.redundant
+@pytest.mark.usefixtures("equipped_spaces")
+class TestComplexMatricesMetric(
+    HermitianMetricTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = ComplexMatricesMetricTestData()
+
+
+@pytest.mark.smoke
+class TestHermitianMatricesOps(
+    SymmetricMatricesOpsTestCase, metaclass=DataBasedParametrizer
+):
+    Space = HermitianMatrices
+    testing_data = HermitianMatricesOpsTestData()

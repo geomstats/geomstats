@@ -87,6 +87,24 @@ class SPDMatricesTestCaseMixins:
         res = self.space.logm(mat)
         self.assertAllClose(res, expected, atol=atol)
 
+    @pytest.mark.random
+    def test_expm_after_logm(self, n_points, atol):
+        mat = self.data_generator.random_point(n_points)
+
+        logm = self.space.logm(mat)
+        mat_ = self.space.expm(logm)
+
+        self.assertAllClose(mat_, mat, atol=atol)
+
+    @pytest.mark.random
+    def test_logm_after_expm(self, n_points, atol):
+        mat = self.data_generator.random_point(n_points)
+
+        expm = self.space.expm(mat)
+        mat_ = self.space.logm(expm)
+
+        self.assertAllClose(mat_, mat, atol=atol)
+
     def test_cholesky_factor(self, mat, expected, atol):
         res = self.space.cholesky_factor(mat)
         self.assertAllClose(res, expected, atol=atol)

@@ -45,6 +45,12 @@ class SPDMatricesMixinsTestData:
     def logm_vec_test_data(self):
         return self.generate_vec_data()
 
+    def expm_after_logm_test_data(self):
+        return self.generate_random_data()
+
+    def logm_after_expm_test_data(self):
+        return self.generate_random_data()
+
     def cholesky_factor_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -385,17 +391,12 @@ class SPD3BuresWassersteinMetricTestData(TestData):
         return self.generate_tests(data)
 
 
-class SPDEuclideanMetricPower1TestData(RiemannianMetricTestData):
+class SPDEuclideanMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
     def exp_domain_vec_test_data(self):
         return self.generate_vec_data()
-
-
-class SPDEuclideanMetricTestData(SPDEuclideanMetricPower1TestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
 
 
 class SPD2EuclideanMetricPower1TestData(TestData):

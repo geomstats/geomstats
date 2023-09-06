@@ -60,10 +60,12 @@ class HPDMatrices3TestData(TestData):
 
 class HPDAffineMetricPower1TestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
 
 
 class HPDAffineMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
 
     skips = (
         "parallel_transport_bvp_norm",
@@ -73,12 +75,14 @@ class HPDAffineMetricTestData(ComplexRiemannianMetricTestData):
 
 class HPDBuresWassersteinMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
 
     xfails = ("dist_point_to_itself_is_zero",)
 
 
 class HPDEuclideanMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False
 
     xfails = (
         "geodesic_ivp_belongs",
@@ -88,3 +92,4 @@ class HPDEuclideanMetricTestData(ComplexRiemannianMetricTestData):
 
 class HPDLogEuclideanMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
+    fail_for_autodiff_exceptions = False

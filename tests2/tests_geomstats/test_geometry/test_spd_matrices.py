@@ -30,7 +30,6 @@ from .data.spd_matrices import (
     SPDAffineMetricPower1TestData,
     SPDAffineMetricTestData,
     SPDBuresWassersteinMetricTestData,
-    SPDEuclideanMetricPower1TestData,
     SPDEuclideanMetricTestData,
     SPDLogEuclideanMetricTestData,
     SPDMatrices2TestData,
@@ -47,7 +46,7 @@ from .data.spd_matrices import (
     ],
 )
 def spaces(request):
-    request.cls.space = SPDMatrices(n=request.param)
+    request.cls.space = SPDMatrices(n=request.param, equip=False)
 
 
 @pytest.mark.usefixtures("spaces")
@@ -70,15 +69,13 @@ class TestSPDMatrices3(SPDMatricesTestCase, metaclass=DataBasedParametrizer):
 @pytest.fixture(
     scope="class",
     params=[
-        (2, 1),
-        (random.randint(3, 5), 1),
+        2,
+        random.randint(3, 5),
     ],
 )
 def spd_with_affine_metric_power_1(request):
-    n, power_affine = request.param
-    space = SPDMatrices(n=n, equip=False)
-    request.cls.space = space
-    space.equip_with_metric(SPDAffineMetric, power_affine=power_affine)
+    n = request.param
+    request.cls.space = SPDMatrices(n=n)
 
 
 @pytest.mark.usefixtures("spd_with_affine_metric_power_1")
@@ -99,8 +96,7 @@ class TestSPDAffineMetricPower1(
 )
 def spd_with_affine_metric(request):
     n, power_affine = request.param
-    space = SPDMatrices(n=n, equip=False)
-    request.cls.space = space
+    space = request.cls.space = SPDMatrices(n=n, equip=False)
     space.equip_with_metric(SPDAffineMetric, power_affine=power_affine)
 
 
@@ -135,8 +131,7 @@ class TestSPD3AffineMetricPower05(
     ],
 )
 def spd_with_bw_metric(request):
-    space = SPDMatrices(n=request.param, equip=False)
-    request.cls.space = space
+    space = request.cls.space = SPDMatrices(n=request.param, equip=False)
     space.equip_with_metric(SPDBuresWassersteinMetric)
 
     request.cls.data_generator = RandomDataGenerator(space, amplitude=2.0)
@@ -171,30 +166,8 @@ class TestSPD3BuresWassersteinMetric(
 @pytest.fixture(
     scope="class",
     params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spd_with_euclidean_power_1(request):
-    n = request.param
-
-    space = SPDMatrices(n=n, equip=False)
-    request.cls.space = space
-    space.equip_with_metric(SPDEuclideanMetric)
-
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=4.0)
-
-
-@pytest.mark.usefixtures("spd_with_euclidean_power_1")
-class TestSPDEuclideanMetricPower1(
-    SPDEuclideanMetricTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = SPDEuclideanMetricPower1TestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
+        (2, 1),
+        (random.randint(3, 5), 1),
         (2, -0.5),
         (random.randint(3, 5), -0.5),
         (2, 0.5),
@@ -204,11 +177,10 @@ class TestSPDEuclideanMetricPower1(
 def spd_with_euclidean(request):
     n, power_euclidean = request.param
 
-    space = SPDMatrices(n=n, equip=False)
-    request.cls.space = space
+    space = request.cls.space = SPDMatrices(n=n, equip=False)
     space.equip_with_metric(SPDEuclideanMetric, power_euclidean=power_euclidean)
 
-    request.cls.data_generator = RandomDataGenerator(space, amplitude=2.0)
+    request.cls.data_generator = RandomDataGenerator(space, amplitude=4.0)
 
 
 @pytest.mark.usefixtures("spd_with_euclidean")
@@ -254,8 +226,7 @@ class TestSPD3EuclideanMetricPower05(
 )
 def spd_with_log_euclidean(request):
     n = request.param
-    space = SPDMatrices(n=n, equip=False)
-    request.cls.space = space
+    space = request.cls.space = SPDMatrices(n=n, equip=False)
     space.equip_with_metric(SPDLogEuclideanMetric)
 
 
