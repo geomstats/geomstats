@@ -36,7 +36,7 @@ class DiscreteCurves(Manifold):
     .. math::
         Imm(I, M)=\{c \in C^{\infty}(I, M) \|c'(t)\|\neq 0 \forall t \in I \},
 
-    where the open interval of parameters I is taken to be I = [0, 1]
+    where the interval of parameters I is taken to be I = [0, 1]
     without loss of generality.
 
     Parameters
