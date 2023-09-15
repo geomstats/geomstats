@@ -4,30 +4,16 @@ import pytest
 
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.kmeans import RiemannianKMeans
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.learning.kmeans import RiemannianKMeansTestCase
-
-from .data.kmeans import RiemannianKMeansOneClusterTestData, RiemannianKMeansTestData
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        Hypersphere(dim=random.randint(3, 4)),
-        SPDMatrices(n=random.randint(2, 4)),
-    ],
+from geomstats.test_cases.learning._base import (
+    BaseEstimatorTestCase,
+    ClusterMixinsTestCase,
 )
-def one_cluster_estimators(request):
-    space = request.param
-    request.cls.estimator = RiemannianKMeans(space, n_clusters=1)
+from geomstats.test_cases.learning.kmeans import AgainstFrechetMeanTestCase
 
-
-@pytest.mark.usefixtures("one_cluster_estimators")
-class TestRiemannianKMeansOneCluster(
-    RiemannianKMeansTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = RiemannianKMeansOneClusterTestData()
+from .data.kmeans import AgainstFrechetMeanTestData, RiemannianKMeansTestData
 
 
 def _make_centroids(space, X, n_clusters):
@@ -68,5 +54,27 @@ def estimators(request):
 
 
 @pytest.mark.usefixtures("estimators")
-class TestRiemannianKMeans(RiemannianKMeansTestCase, metaclass=DataBasedParametrizer):
+class TestRiemannianKMeans(
+    ClusterMixinsTestCase, BaseEstimatorTestCase, metaclass=DataBasedParametrizer
+):
     testing_data = RiemannianKMeansTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=(
+        Hypersphere(dim=random.randint(3, 4)),
+        SPDMatrices(n=random.randint(2, 4)),
+    ),
+)
+def estimators_one_cluster(request):
+    space = request.param
+    request.cls.estimator = RiemannianKMeans(space, n_clusters=1, tol=1e-4)
+    request.cls.other_estimator = FrechetMean(space, method="adaptive")
+
+
+@pytest.mark.usefixtures("estimators_one_cluster")
+class TestAgainstFrechetMean(
+    AgainstFrechetMeanTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = AgainstFrechetMeanTestData()

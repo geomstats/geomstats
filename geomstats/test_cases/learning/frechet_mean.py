@@ -5,32 +5,14 @@ from geomstats.geometry.discrete_curves import SRVMetric
 from geomstats.learning.frechet_mean import GradientDescent
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
-from geomstats.test_cases.learning._base import BaseEstimatorTestCase
+from geomstats.test_cases.learning._base import (
+    BaseEstimatorTestCase,
+    MeanEstimatorMixinsTestCase,
+)
 from geomstats.vectorization import repeat_point
 
 
-class FrechetMeanTestCase(BaseEstimatorTestCase):
-    @pytest.mark.random
-    def test_one_point(self, atol):
-        X = gs.expand_dims(self.data_generator.random_point(n_points=1), axis=0)
-
-        mean = self.estimator.fit(X).estimate_
-        self.assertAllClose(mean, X[0], atol)
-
-    @pytest.mark.random
-    def test_n_times_same_point(self, n_reps, atol):
-        X = repeat_point(self.data_generator.random_point(n_points=1), n_reps)
-
-        mean = self.estimator.fit(X).estimate_
-        self.assertAllClose(mean, X[0], atol)
-
-    @pytest.mark.random
-    def test_estimate_belongs(self, n_points, atol):
-        X = self.data_generator.random_point(n_points=n_points)
-        mean = self.estimator.fit(X).estimate_
-        belongs = self.estimator.space.belongs(mean, atol=atol)
-        self.assertTrue(belongs)
-
+class FrechetMeanTestCase(MeanEstimatorMixinsTestCase, BaseEstimatorTestCase):
     @pytest.mark.random
     def test_logs_at_mean(self, atol):
         X = self.data_generator.random_point(n_points=2)
@@ -41,6 +23,19 @@ class FrechetMeanTestCase(BaseEstimatorTestCase):
 
         result = gs.linalg.norm(logs[1] + logs[0])
         self.assertAllClose(result, gs.array(0.0), atol)
+
+    @pytest.mark.random
+    def test_weighted_mean_two_points(self, atol):
+        X = self.data_generator.random_point(n_points=2)
+        weights = gs.random.rand(2)
+
+        mean = self.estimator.fit(X, weights=weights).estimate_
+
+        space = self.estimator.space
+        expected = space.metric.exp(
+            weights[1] / gs.sum(weights) * space.metric.log(X[1], X[0]), X[0]
+        )
+        self.assertAllClose(mean, expected, atol=atol)
 
 
 class ElasticMeanTestCase(FrechetMeanTestCase):

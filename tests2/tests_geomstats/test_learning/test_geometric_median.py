@@ -13,7 +13,10 @@ from geomstats.geometry.spd_matrices import (
 from geomstats.learning.geometric_median import GeometricMedian
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.test_case import TestCase
-from geomstats.test_cases.learning.geometric_median import GeometricMedianTestCase
+from geomstats.test_cases.learning._base import (
+    BaseEstimatorTestCase,
+    MeanEstimatorMixinsTestCase,
+)
 
 from .data.geometric_median import GeometricMedianFitTestData, GeometricMedianTestData
 
@@ -38,7 +41,9 @@ def estimators(request):
 
 
 @pytest.mark.usefixtures("estimators")
-class TestGeometricMedian(GeometricMedianTestCase, metaclass=DataBasedParametrizer):
+class TestGeometricMedian(
+    MeanEstimatorMixinsTestCase, BaseEstimatorTestCase, metaclass=DataBasedParametrizer
+):
     testing_data = GeometricMedianTestData()
 
 

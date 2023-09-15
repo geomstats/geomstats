@@ -27,7 +27,6 @@ from geomstats.test_cases.learning.frechet_mean import (
 from .data.frechet_mean import (
     BatchGradientDescentTestData,
     CircularMeanTestData,
-    ElasticMeanTestData,
     FrechetMeanTestData,
 )
 
@@ -92,7 +91,7 @@ def elastic_mean_estimators(request):
 
 @pytest.mark.usefixtures("elastic_mean_estimators")
 class TestElasticMean(ElasticMeanTestCase, metaclass=DataBasedParametrizer):
-    testing_data = ElasticMeanTestData()
+    testing_data = FrechetMeanTestData()
 
 
 class TestCircularMean(CircularMeanTestCase, metaclass=DataBasedParametrizer):

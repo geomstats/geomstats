@@ -1,19 +1,15 @@
-import random
-
-from geomstats.test.data import TestData
+from ._base import BaseEstimatorTestData, ClusterMixinsTestData
 
 
-class RiemannianKMeansOneClusterTestData(TestData):
-    def one_cluster_test_data(self):
-        return self.generate_tests([dict(n_points=random.randint(2, 10))])
+class RiemannianKMeansTestData(ClusterMixinsTestData, BaseEstimatorTestData):
+    MIN_RANDOM = 5
+    MAX_RANDOM = 10
+
+    tolerances = {"n_repeated_clusters": {"atol": 1e-6}}
 
 
-class RiemannianKMeansTestData(TestData):
-    def cluster_assignment_test_data(self):
-        return self.generate_tests([dict(n_points=random.randint(5, 10))])
+class AgainstFrechetMeanTestData(BaseEstimatorTestData):
+    tolerances = {"against_frechet_mean": {"atol": 1e-1}}
 
-    def centroids_belong_test_data(self):
-        return self.generate_tests([dict(n_points=random.randint(5, 10))])
-
-    def centroids_shape_test_data(self):
-        return self.generate_tests([dict(n_points=random.randint(5, 10))])
+    def against_frechet_mean_test_data(self):
+        return self.generate_random_data()
