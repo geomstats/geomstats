@@ -465,7 +465,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             )
 
             kmeans_estimator.fit(X=X)
-            centroids = kmeans_estimator.centroids_
+            centroids = kmeans_estimator.cluster_centers_
             labels = kmeans_estimator.labels_
 
             means = centroids

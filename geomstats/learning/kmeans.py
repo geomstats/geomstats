@@ -74,14 +74,14 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.verbose = verbose
         self.max_iter = max_iter
 
-        self.init_centroids = None
+        self.init_cluster_centers_ = None
 
         self.mean_estimator = FrechetMean(
             space=space,
             method="default",
         ).set(max_iter=100, init_step_size=1.0)
 
-        self.centroids_ = None
+        self.cluster_centers_ = None
         self.labels_ = None
         self.inertia_ = None
 
@@ -148,7 +148,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             logging.info("Initializing...")
 
         centroids = self._pick_init_centroids(X)
-        self.init_centroids = gs.copy(centroids)
+        self.init_cluster_centers_ = gs.copy(centroids)
 
         dists = [
             gs.to_ndarray(self.space.metric.dist(centroids[i], X), 2, 1)
@@ -197,7 +197,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 "The mean may be inaccurate."
             )
 
-        self.centroids_ = centroids
+        self.cluster_centers_ = centroids
 
         return self
 
@@ -217,10 +217,10 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         labels : array-like, shape=[n_samples,]
             Array of predicted cluster indices for each sample.
         """
-        if self.centroids_ is None:
+        if self.cluster_centers_ is None:
             raise RuntimeError("fit needs to be called first.")
         dists = gs.stack(
-            [self.space.metric.dist(centroid, X) for centroid in self.centroids_],
+            [self.space.metric.dist(centroid, X) for centroid in self.cluster_centers_],
             axis=1,
         )
         dists = gs.squeeze(dists)

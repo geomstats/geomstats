@@ -94,11 +94,11 @@ class IncrementalFrechetMean(BaseEstimator):
 
         for i in idxs:
             geod_func = self.space.metric.geodesic(m_curr, X[i])
-            m_curr = geod_func(1 / (self.iter + 1))
+            m_curr = geod_func(1 / (self.iter + 1))[0]
             self.iter += 1
 
         if self.clean_state:
             self.iter = 0
 
-        self.estimate_ = m_curr[0]
+        self.estimate_ = m_curr
         return self

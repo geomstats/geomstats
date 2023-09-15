@@ -31,7 +31,7 @@ class RiemannianMinimumDistanceToMean(
     ----------
     classes_ : array-like, shape=[n_classes,]
         If fit, labels of training set.
-    mean_estimates_ : array-like, shape=[n_classes, *metric.shape]
+    mean_estimates_ : array-like, shape=[n_classes, *space.shape]
         If fit, centroids computed on training set.
 
     Notes
@@ -63,7 +63,7 @@ class RiemannianMinimumDistanceToMean(
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, *metric.shape]
+        X : array-like, shape=[n_samples, *space.shape]
             Training input samples.
         y : array-like, shape=[n_samples,]
             Training labels.
@@ -97,7 +97,7 @@ class RiemannianMinimumDistanceToMean(
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, *metric.shape]
+        X : array-like, shape=[n_samples, *space.shape]
             Test samples.
 
         Returns
@@ -122,7 +122,7 @@ class RiemannianMinimumDistanceToMean(
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, *metric.shape]
+        X : array-like, shape=[n_samples, *space.shape]
             Test samples.
 
         Returns
@@ -130,14 +130,18 @@ class RiemannianMinimumDistanceToMean(
         probas : array-like, shape=[n_samples, n_classes]
             Probability of the sample for each class in the model.
         """
-        probas = []
-        for x in X:
-            dist2 = self.space.metric.squared_dist(
-                x,
-                self.mean_estimates_,
-            )
-            probas.append(softmax(-dist2))
-        return gs.array(probas)
+        dists2 = gs.stack(
+            [
+                self.space.metric.squared_dist(
+                    X,
+                    mean_estimate,
+                )
+                for mean_estimate in self.mean_estimates_
+            ],
+            axis=-1,
+        )
+        probas = softmax(-dists2, axis=-1)
+        return gs.from_numpy(probas)
 
     def transform(self, X):
         """Compute distances to each centroid.
@@ -146,7 +150,7 @@ class RiemannianMinimumDistanceToMean(
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, *metric.shape]
+        X : array-like, shape=[n_samples, *space.shape]
             Test samples.
 
         Returns
@@ -154,11 +158,14 @@ class RiemannianMinimumDistanceToMean(
         dist : ndarray, shape=[n_samples, n_classes]
             Distances to each centroid.
         """
-        dists = []
-        for x in X:
-            dist = self.space.metric.dist(
-                x,
-                self.mean_estimates_,
-            )
-            dists.append(dist)
-        return gs.array(dists)
+        dists = gs.stack(
+            [
+                self.space.metric.dist(
+                    X,
+                    mean_estimate,
+                )
+                for mean_estimate in self.mean_estimates_
+            ],
+            axis=-1,
+        )
+        return dists
