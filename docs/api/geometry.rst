@@ -95,6 +95,11 @@ Graph Space
 .. automodule:: geomstats.geometry.stratified.graph_space
    :members:
 
+Fiber Bundle
+---------------------
+.. automodule:: geomstats.geometry.fiber_bundle
+   :members:
+
 Grassmannian Manifold
 ---------------------
 .. automodule:: geomstats.geometry.grassmannian
