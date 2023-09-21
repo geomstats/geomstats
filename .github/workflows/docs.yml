@@ -37,6 +37,7 @@ jobs:
 
       - name: Generate Docs [Sphinx]
         run: |
+          sphinx-apidoc -f -o docs/api geomstats
           sphinx-build  -b html -D version=latest -D release=latest docs docs/_build
 
       - name: Deployement of Docs
