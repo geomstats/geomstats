@@ -123,6 +123,7 @@ class DataBasedParametrizer(type):
             else True
         )
         trials = testing_data.trials if hasattr(testing_data, "trials") else 1
+        skip_vec = testing_data.skip_vec if hasattr(testing_data, "skip_vec") else False
 
         data_names_ls = _collect_testing_data_tests(testing_data)
         test_attrs_with_data, missing_vec_tests = _filter_test_funcs_given_data(
@@ -131,7 +132,7 @@ class DataBasedParametrizer(type):
         vec_tests = _create_vectorization_tests(missing_vec_tests, all_test_attrs)
         test_attrs_with_data.update(vec_tests)
 
-        selected_test_attrs, test_attrs_to_skip, _ = _filter_skips_and_ignores(
+        selected_test_attrs, test_attrs_to_skip = _filter_skips(
             test_attrs_with_data, testing_data
         )
 
@@ -169,7 +170,22 @@ class DataBasedParametrizer(type):
 
                 attrs[attr_name] = pytest.mark.ignore()(test_func)
 
+        if skip_vec:
+            for attr_name, attr_value in attrs.items():
+                if not hasattr(attr_value, "pytestmark"):
+                    continue
+                mark_names = _get_pytest_mark_names(attr_value)
+
+                if "skip" not in mark_names and "vec" in mark_names:
+                    attrs[attr_name] = pytest.mark.skip()(attr_value)
+
         return super().__new__(cls, name, bases, attrs)
+
+
+def _get_pytest_mark_names(test_func):
+    return tuple(
+        elem.name for elem in test_func.pytestmark if isinstance(elem, pytest.Mark)
+    )
 
 
 def _except_autodiff_exception(func):
@@ -195,6 +211,7 @@ def _except_not_implemented_errors(func):
 
 
 def _multiple_trials(func, trials):
+    # TODO: apply only to random/vec?
     @functools.wraps(func)
     def _wrapped(*args, **kwargs):
         trial = 0
@@ -474,51 +491,25 @@ def _name_to_test_name(name):
     return f"test_{name}"
 
 
-def _filter_skips_and_ignores(test_attrs, testing_data):
+def _filter_skips(test_attrs, testing_data):
     """Split data in skips and ignores.
 
     Notes
     -----
     * `skips` are a list of names
-    * `skips_if` are a list of tuples
-        * each element is a tuple
-        * each tuple contains a evaluated condition and a list of names
-    * `ignores_if_not_autodiff` are a list of names
     * `xfails` are treated separately (are a list of names)
     * names should not containt `test_` nor `_test_data`
     """
     selected_test_attrs = {}
     test_attrs_to_skip = {}
-    test_attrs_to_ignore = {}
 
     skips = list(testing_data.skips) if hasattr(testing_data, "skips") else []
-
-    # TODO: review
-    skips_if = testing_data.skips_if if hasattr(testing_data, "skips_if") else ()
-    for skipif in skips_if:
-        if skipif[0]:
-            skips.extend(skipif[1])
-
     skips = {_name_to_test_name(name) for name in skips}
-
-    # TODO: remove?
-    if not autodiff_backend():
-        ignores = (
-            set(testing_data.ignores_if_not_autodiff)
-            if hasattr(testing_data, "ignores_if_not_autodiff")
-            else ()
-        )
-    else:
-        ignores = ()
-
-    ignores = {_name_to_test_name(name) for name in ignores}
 
     for attr_name, attr_value in test_attrs.items():
         if attr_name in skips:
             test_attrs_to_skip[attr_name] = attr_value
-        elif attr_name in ignores:
-            test_attrs_to_ignore[attr_name] = attr_value
         else:
             selected_test_attrs[attr_name] = attr_value
 
-    return selected_test_attrs, test_attrs_to_skip, test_attrs_to_ignore
+    return selected_test_attrs, test_attrs_to_skip
