@@ -4,6 +4,15 @@ import random
 class TestData:
     """Class for TestData objects."""
 
+    fail_for_autodiff_exceptions = True
+    fail_for_not_implemented_errors = True
+    trials = 1
+    skip_vec = False
+
+    xfails = ()
+    skips = ()
+    tolerances = {}
+
     N_VEC_REPS = random.sample(range(2, 5), 1)
     N_SHAPE_POINTS = [1] + random.sample(range(2, 5), 1)
     N_RANDOM_POINTS = [1] + random.sample(range(2, 5), 1)

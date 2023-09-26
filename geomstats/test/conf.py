@@ -1,3 +1,6 @@
+import pytest
+
+
 def _has_ignore_marker(markers):
     for marker in markers:
         if marker.name == "ignore":
@@ -6,6 +9,7 @@ def _has_ignore_marker(markers):
     return False
 
 
+@pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(session, config, items):
     selected = []
     deselected = []

@@ -9,9 +9,192 @@ from geomstats.exceptions import AutodiffNotImplementedError
 from geomstats.test.test_case import autodiff_backend
 from geomstats.test.vectorization import test_vectorization
 
+NAME2MARK = {
+    "xfail": pytest.mark.xfail(),
+    "vec": pytest.mark.vec(),
+    "skip": pytest.mark.skip(),
+}
+
+
+class TestFunction:
+    def __init__(self, name, func, active=False):
+        self.name = name
+        self.func = func
+        self._marks = self._collect_initial_marks()
+        self._missing_marks = []
+        self.active = active
+        self._arg_names = None
+        self.tolerances = {}
+
+    def _collect_initial_marks(self):
+        if not hasattr(self.func, "pytestmark"):
+            return []
+        return _get_pytest_mark_names(self.func)
+
+    @property
+    def skip(self):
+        return "skip" in self.marks
+
+    @property
+    def marks(self):
+        return self._marks + self._missing_marks
+
+    @property
+    def vanilla_name(self):
+        return self.name[5:]
+
+    @property
+    def data_name(self):
+        return f"{self.vanilla_name}_test_data"
+
+    def add_mark(self, mark_name):
+        if mark_name not in self.marks:
+            self._missing_marks.append(mark_name)
+
+    @property
+    def arg_names(self):
+        if self._arg_names is None:
+            self._arg_names = inspect.getfullargspec(self.func)[0]
+            self._handle_tolerances_defaults()
+        return self._arg_names
+
+    @property
+    def arg_str(self):
+        return ", ".join(self.arg_names[1:])
+
+    def _handle_tolerances_defaults(self):
+        for arg_name in self.arg_names:
+            if arg_name.endswith("rtol"):
+                self.tolerances.setdefault(arg_name, gs.rtol)
+            elif arg_name.endswith("tol"):
+                self.tolerances.setdefault(arg_name, gs.atol)
+
+    def collect(
+        self, testing_data, decorators=(), conditional_decorators=(), skip_vec=False
+    ):
+        test_func, default_values = _copy_func(self.func)
+        if not self.active:
+            return pytest.mark.ignore()(test_func)
+
+        if self.skip or skip_vec and "vec" in self.marks:
+            return pytest.mark.skip()(test_func)
+
+        for decorator in decorators:
+            test_func = decorator(test_func)
+
+        for condition_func, decorator in conditional_decorators:
+            if condition_func(self):
+                test_func = decorator(test_func)
+
+        for mark_name in self._missing_marks:
+            test_func = NAME2MARK[mark_name]()(test_func)
+
+        # no args case (note selection was done above)
+        if len(self.arg_names) == 1:
+            return test_func
+
+        test_data = self._get_test_data(testing_data, default_values)
+        return pytest.mark.parametrize(self.arg_str, test_data)(test_func)
+
+    def _get_test_data(self, testing_data, default_values):
+        # assumes pairing test-data exists
+        test_data = getattr(testing_data, self.data_name)()
+
+        if test_data is None:
+            raise Exception(f"'{self.data_name}' returned None. should be list")
+
+        test_data = self._dictify_test_data(test_data)
+        test_data = self._pytestify_test_data(test_data, default_values)
+
+        return test_data
+
+    def _dictify_test_data(self, test_data):
+        test_data_ = []
+        for test_datum in test_data:
+            if not isinstance(test_datum, dict):
+                test_datum = dict(zip(self.arg_names[1:], test_datum[:-1]))
+                test_datum["marks"] = test_datum[-1]
+
+            for tol_arg_name, tol in self.tolerances.items():
+                test_datum.setdefault(tol_arg_name, tol)
+
+            test_data_.append(test_datum)
+
+        return test_data_
+
+    def _pytestify_test_data(self, test_data, default_values):
+        tests = []
+        for test_datum in test_data:
+            try:
+                values = [
+                    test_datum.get(key) if key in test_datum else default_values[key]
+                    for key in self.arg_names[1:]
+                ]
+
+            except KeyError:
+                raise Exception(
+                    f"{self.name} requires the following arguments: "
+                    f"{', '.join(self.arg_names[1:])}"
+                )
+            tests.append(pytest.param(*values, marks=test_datum.get("marks")))
+
+        return tests
+
+
+class AutoVecTestFunction(TestFunction):
+    def __init__(self, associated_test_func):
+        super().__init__(f"{associated_test_func.name}_vec", None)
+        self.associated_test_func = associated_test_func
+        self.active = True
+        self.add_mark("vec")
+
+    def collect(
+        self, testing_data, decorators=(), conditional_decorators=(), skip_vec=False
+    ):
+        if self.active:
+            self._generate_vectorized_func()
+        return super().collect(
+            testing_data,
+            decorators=decorators,
+            conditional_decorators=conditional_decorators,
+            skip_vec=skip_vec,
+        )
+
+    def _generate_vectorized_func(self):
+        test_func = self.associated_test_func.func
+
+        def new_test(self, n_reps, atol):
+            return test_vectorization(self, test_func, n_reps, atol)
+
+        self.func = new_test
+
+
+def _update_attrs(test_funcs, testing_data, attrs):
+    decorators = _collect_decorators(testing_data)
+    conditional_decorators = _collect_conditional_decorators(testing_data)
+
+    for skip_name in testing_data.skips:
+        test_funcs[skip_name].add_mark("skip")
+
+    for xfail_name in testing_data.xfails:
+        test_funcs[xfail_name].add_mark("xfail")
+
+    for func_name, tolerances in testing_data.tolerances.items():
+        test_funcs[func_name].tolerances.update(tolerances)
+
+    for test_func in test_funcs.values():
+        attrs[test_func.name] = test_func.collect(
+            testing_data,
+            decorators=decorators,
+            conditional_decorators=conditional_decorators,
+            skip_vec=testing_data.skip_vec,
+        )
+
+    return attrs
+
 
 class Parametrizer(type):
-    """Metaclass for test classes.
+    """Metaclass for test classes driven by test definition.
 
     Note: A test class is a class that inherits from TestCase.
     For example, `class TestEuclidean(TestCase)` defines
@@ -40,11 +223,12 @@ class Parametrizer(type):
     A sample test class looks like this:
 
     ```
+    class TestDataEuclidean(TestData):
+        def belongs_data():
+            ...
+            return self.generate_tests(...)
+
     class TestEuclidean(TestCase, metaclass=Parametrizer):
-        class TestDataEuclidean(TestData):
-            def belongs_data():
-                ...
-                return self.generate_tests(...)
         testing_data = TestDataEuclidean()
         def test_belongs():
             ...
@@ -71,121 +255,78 @@ class Parametrizer(type):
     """
 
     def __new__(cls, name, bases, attrs):
-        # TODO: bring skip filtering here
-        # TODO: use skipif instead? check if collection if performed
-        # skip_all = attrs.get("skip_all", False)
-
-        all_test_attrs = _collect_all_tests(attrs, bases)
-
         testing_data = locals()["attrs"].get("testing_data")
-        if testing_data is None:
-            raise Exception(
-                "Testing class doesn't have class object" " named 'testing_data'"
-            )
+        _raise_missing_testing_data(testing_data)
 
-        data_names_ls = _collect_testing_data_tests(testing_data)
-        _check_test_data_pairing(all_test_attrs, data_names_ls)
+        test_funcs = _collect_all_tests(attrs, bases, active=True)
+        _check_test_data_pairing(test_funcs, testing_data)
 
-        # TODO: warn about unused data?
-
-        for attr_name, attr_value in all_test_attrs.copy().items():
-            test_func, default_values = _copy_func(attr_value)
-
-            # TODO: move skips to data?
-            if (f"skip_{attr_name}", True) in locals()["attrs"].items():
-                attrs[attr_name] = pytest.mark.skip("skipped")(test_func)
-            else:
-                attrs[attr_name] = _parametrize_test_func(
-                    test_func, attr_name, testing_data, default_values
-                )
-
+        _update_attrs(test_funcs, testing_data, attrs)
         return super().__new__(cls, name, bases, attrs)
 
 
 class DataBasedParametrizer(type):
+    """Metaclass for test classes driven by data definition.
+
+    It differs from `Parametrizer` because every test data function must have
+    an associated test function, instead of the opposite.
+    """
+
     def __new__(cls, name, bases, attrs):
-        all_test_attrs = _collect_all_tests(attrs, bases)
-
         testing_data = locals()["attrs"].get("testing_data")
-        if testing_data is None:
-            raise Exception(
-                "Testing class doesn't have class object named 'testing_data'"
-            )
+        _raise_missing_testing_data(testing_data)
 
-        fail_for_autodiff_exceptions = (
-            testing_data.fail_for_autodiff_exceptions
-            if hasattr(testing_data, "fail_for_autodiff_exceptions")
-            else True
-        )
-        fail_for_not_implemented_errors = (
-            testing_data.fail_for_not_implemented_errors
-            if hasattr(testing_data, "fail_for_not_implemented_errors")
-            else True
-        )
-        trials = testing_data.trials if hasattr(testing_data, "trials") else 1
-        skip_vec = testing_data.skip_vec if hasattr(testing_data, "skip_vec") else False
+        test_funcs = _collect_all_tests(attrs, bases, active=False)
+        _activate_tests_given_data(test_funcs, testing_data)
 
-        data_names_ls = _collect_testing_data_tests(testing_data)
-        test_attrs_with_data, missing_vec_tests = _filter_test_funcs_given_data(
-            all_test_attrs, data_names_ls
-        )
-        vec_tests = _create_vectorization_tests(missing_vec_tests, all_test_attrs)
-        test_attrs_with_data.update(vec_tests)
-
-        selected_test_attrs, test_attrs_to_skip = _filter_skips(
-            test_attrs_with_data, testing_data
-        )
-
-        xfails = (
-            {_name_to_test_name(name) for name in testing_data.xfails}
-            if hasattr(testing_data, "xfails")
-            else ()
-        )
-
-        for attr_name, attr_value in selected_test_attrs.items():
-            test_func, default_values = _copy_func(
-                attr_value,
-                fail_for_autodiff_exceptions=fail_for_autodiff_exceptions,
-                fail_for_not_implemented_errors=fail_for_not_implemented_errors,
-                trials=trials,
-            )
-            test_func = _parametrize_test_func(
-                test_func, attr_name, testing_data, default_values
-            )
-            if attr_name in xfails:
-                test_func = pytest.mark.xfail()(test_func)
-
-            attrs[attr_name] = test_func
-
-        for attr_name, attr_value in test_attrs_to_skip.items():
-            test_func, _ = _copy_func(attr_value)
-            attrs[attr_name] = pytest.mark.skip()(test_func)
-
-        for attr_name, attr_value in all_test_attrs.items():
-            if (
-                attr_name not in selected_test_attrs
-                and attr_name not in test_attrs_to_skip
-            ):
-                test_func, _ = _copy_func(attr_value)
-
-                attrs[attr_name] = pytest.mark.ignore()(test_func)
-
-        if skip_vec:
-            for attr_name, attr_value in attrs.items():
-                if not hasattr(attr_value, "pytestmark"):
-                    continue
-                mark_names = _get_pytest_mark_names(attr_value)
-
-                if "skip" not in mark_names and "vec" in mark_names:
-                    attrs[attr_name] = pytest.mark.skip()(attr_value)
-
+        _update_attrs(test_funcs, testing_data, attrs)
         return super().__new__(cls, name, bases, attrs)
 
 
+def _get_available_data_names(testing_data):
+    return [
+        _test_data_name_to_vanilla_name(attr_name)
+        for attr_name in dir(testing_data)
+        if _is_test_data(attr_name)
+    ]
+
+
+def _raise_missing_testing_data(testing_data):
+    if testing_data is None:
+        raise Exception("Testing class doesn't have class object named 'testing_data'")
+
+
+def _collect_decorators(testing_data):
+    decorators = []
+    if not testing_data.fail_for_autodiff_exceptions and not autodiff_backend():
+        decorators.append(_except_autodiff_exception)
+
+    if not testing_data.fail_for_not_implemented_errors:
+        decorators.append(_except_not_implemented_errors)
+
+    return decorators
+
+
+def _trial_condition(test_func):
+    marks = test_func.marks
+    return "vec" in marks or "random" in marks
+
+
+def _collect_conditional_decorators(testing_data):
+    decorators = []
+    if testing_data.trials > 1:
+        decorators.append(
+            (
+                _trial_condition,
+                lambda fn: _multiple_trials(fn, trials=testing_data.trials),
+            )
+        )
+
+    return decorators
+
+
 def _get_pytest_mark_names(test_func):
-    return tuple(
-        elem.name for elem in test_func.pytestmark if isinstance(elem, pytest.Mark)
-    )
+    return [elem.name for elem in test_func.pytestmark if isinstance(elem, pytest.Mark)]
 
 
 def _except_autodiff_exception(func):
@@ -211,7 +352,6 @@ def _except_not_implemented_errors(func):
 
 
 def _multiple_trials(func, trials):
-    # TODO: apply only to random/vec?
     @functools.wraps(func)
     def _wrapped(*args, **kwargs):
         trial = 0
@@ -231,9 +371,6 @@ def _multiple_trials(func, trials):
 def _copy_func(
     f,
     name=None,
-    fail_for_autodiff_exceptions=True,
-    fail_for_not_implemented_errors=True,
-    trials=1,
 ):
     """Copy function.
 
@@ -259,136 +396,7 @@ def _copy_func(
     new_sign = sign.replace(parameters=new_params)
     fn.__signature__ = new_sign
 
-    if not fail_for_autodiff_exceptions and not autodiff_backend():
-        fn = _except_autodiff_exception(fn)
-
-    if not fail_for_not_implemented_errors:
-        fn = _except_not_implemented_errors(fn)
-
-    if trials > 1:
-        fn = _multiple_trials(fn, trials=trials)
-
     return fn, defaults
-
-
-def _check_test_data_pairing(test_attrs, data_names_ls):
-    not_paired = []
-    for test_name in test_attrs:
-        data_name = _test_name_to_test_data_name(test_name)
-        if data_name not in data_names_ls:
-            not_paired.append(test_name)
-
-    if not_paired:
-        msg = "Need to define data for:"
-        for test_name in not_paired:
-            msg += f"\n\t-{test_name}"
-
-        raise Exception(msg)
-
-
-def _parametrize_test_func(test_func, attr_name, testing_data, default_values):
-    arg_names = inspect.getfullargspec(test_func)[0]
-    args_str = ", ".join(arg_names[1:])
-
-    # TODO: allow marks from data in this case?
-    # no args case (note selection was done above)
-    if len(arg_names) == 1:
-        return test_func
-
-    test_data = _get_test_data(
-        attr_name,
-        testing_data,
-        arg_names,
-        default_values,
-    )
-
-    return pytest.mark.parametrize(args_str, test_data)(test_func)
-
-
-def _get_test_data(test_name, testing_data, test_arg_names, default_values):
-    # assumes pairing test-data exists
-
-    data_name = _test_name_to_test_data_name(test_name)
-    test_data = getattr(testing_data, data_name)()
-
-    if test_data is None:
-        raise Exception(f"'{data_name}' returned None. should be list")
-
-    test_data = _dictify_test_data(test_data, test_arg_names[1:])
-
-    cls_tols = _get_tolerances(testing_data)
-    test_data = _handle_tolerances(
-        test_name[5:],
-        test_arg_names[1:],
-        test_data,
-        cls_tols,
-    )
-    test_data = _pytestify_test_data(
-        test_name, test_data, test_arg_names[1:], default_values
-    )
-
-    return test_data
-
-
-def _dictify_test_data(test_data, arg_names):
-    tests = []
-    for test_datum in test_data:
-        if not isinstance(test_datum, dict):
-            test_datum = dict(zip(arg_names, test_datum[:-1]))
-            test_datum["marks"] = test_datum[-1]
-
-        tests.append(test_datum)
-
-    return tests
-
-
-def _get_tolerances(testing_data):
-    return testing_data.tolerances if hasattr(testing_data, "tolerances") else {}
-
-
-def _handle_tolerances(func_name, arg_names, test_data, cls_tols):
-    has_tol = False
-    for arg_name in arg_names:
-        if arg_name.endswith("tol"):
-            has_tol = True
-            break
-
-    if not has_tol:
-        return test_data
-
-    func_tols = cls_tols.get(func_name, {})
-
-    tols = {}
-    for arg_name in arg_names:
-        if arg_name.endswith("rtol"):
-            tols[arg_name] = func_tols.get(arg_name, gs.rtol)
-        elif arg_name.endswith("tol"):
-            tols[arg_name] = func_tols.get(arg_name, gs.atol)
-
-    for test_datum in test_data:
-        for tol_arg_name, tol in tols.items():
-            test_datum.setdefault(tol_arg_name, tol)
-
-    return test_data
-
-
-def _pytestify_test_data(func_name, test_data, arg_names, default_values):
-    tests = []
-    for test_datum in test_data:
-        try:
-            values = [
-                test_datum.get(key) if key in test_datum else default_values[key]
-                for key in arg_names
-            ]
-
-        except KeyError:
-            raise Exception(
-                f"{func_name} requires the following arguments: "
-                f"{', '.join(arg_names)}"
-            )
-        tests.append(pytest.param(*values, marks=test_datum.get("marks")))
-
-    return tests
 
 
 def _is_test(attr_name):
@@ -399,12 +407,8 @@ def _is_test_data(attr_name):
     return attr_name.endswith("_test_data")
 
 
-def _test_name_to_test_data_name(test_name):
-    return test_name[5:] + "_test_data"
-
-
-def _test_data_name_to_test_name(test_data_name):
-    return "test_" + test_data_name[:-10]
+def _test_data_name_to_vanilla_name(test_data_name):
+    return test_data_name[:-10]
 
 
 def _collect_available_tests(attrs):
@@ -422,94 +426,72 @@ def _collect_available_base_tests(bases):
     return base_tests
 
 
-def _collect_all_tests(attrs, bases):
+def _collect_all_tests(attrs, bases, active=True):
     test_attrs = _collect_available_tests(attrs)
     base_attrs = _collect_available_base_tests(bases)
 
     # order matters
-    return base_attrs | test_attrs
+    tests = base_attrs | test_attrs
+
+    all_tests = {}
+    for name, func in tests.items():
+        test_function = TestFunction(name, func, active=active)
+        all_tests[test_function.vanilla_name] = test_function
+
+    return all_tests
 
 
-def _collect_testing_data_tests(testing_data):
-    # TODO: some filtering may occur here
-    # TODO: play with `__` for markers? really need this?
-    return [attr_name for attr_name in dir(testing_data) if _is_test_data(attr_name)]
-
-
-def _filter_test_funcs_given_data(test_attrs, data_names_ls):
-    # TODO: need to think about skips; probably after
-    relevant_test_attrs = dict()
-    assigned_data_names = []
-    for attr_name, attr in test_attrs.items():
-        data_name = _test_name_to_test_data_name(attr_name)
-        if data_name in data_names_ls:
-            assigned_data_names.append(data_name)
-            relevant_test_attrs[attr_name] = attr
-
-    assigned_data_names = set(assigned_data_names)
-    if len(assigned_data_names) != len(data_names_ls):
-        missing_tests = set(data_names_ls).difference(assigned_data_names)
-    else:
-        missing_tests = set()
-
-    # identify possible vectorization tests
-    missing_vec_tests = []
-    for data_name in missing_tests.copy():
-        test_name = _test_data_name_to_test_name(data_name)
-        if test_name.endswith("vec") and test_name[:-4] in test_attrs:
-            missing_vec_tests.append(test_name[:-4])
-            missing_tests.remove(data_name)
-
-    missing_tests = missing_tests.difference(missing_vec_tests)
+def _raise_missing_tests(missing_tests):
     if missing_tests:
         msg = "Need to define tests for:"
-        for data_name in missing_tests:
-            msg += f"\n\t-{data_name}"
+        for name in set(missing_tests):
+            msg += f"\n\t-{name}_test_data"
 
         raise Exception(msg)
 
-    return relevant_test_attrs, missing_vec_tests
 
+def _activate_tests_given_data(test_funcs, testing_data):
+    defined_names_ls = _get_available_data_names(testing_data)
 
-def _create_vectorization_tests(missing_vec_tests, test_attrs):
-    vec_tests = {}
-    for test_name in missing_vec_tests:
-        vec_tests[test_name + "_vec"] = pytest.mark.vec(
-            _create_vectorization_test(test_attrs[test_name])
-        )
-    return vec_tests
+    missing_tests = []
+    for name in defined_names_ls:
+        if name in test_funcs:
+            test_funcs[name].active = True
 
+        elif not name.endswith("_vec"):
+            missing_tests.append(name)
+            continue
 
-def _create_vectorization_test(test_func):
-    def new_test(self, n_reps, atol):
-        return test_vectorization(self, test_func, n_reps, atol)
-
-    return new_test
-
-
-def _name_to_test_name(name):
-    return f"test_{name}"
-
-
-def _filter_skips(test_attrs, testing_data):
-    """Split data in skips and ignores.
-
-    Notes
-    -----
-    * `skips` are a list of names
-    * `xfails` are treated separately (are a list of names)
-    * names should not containt `test_` nor `_test_data`
-    """
-    selected_test_attrs = {}
-    test_attrs_to_skip = {}
-
-    skips = list(testing_data.skips) if hasattr(testing_data, "skips") else []
-    skips = {_name_to_test_name(name) for name in skips}
-
-    for attr_name, attr_value in test_attrs.items():
-        if attr_name in skips:
-            test_attrs_to_skip[attr_name] = attr_value
         else:
-            selected_test_attrs[attr_name] = attr_value
+            name_no_vec = name[:-4]
+            if name_no_vec not in test_funcs:
+                missing_tests.append(name)
+                continue
 
-    return selected_test_attrs, test_attrs_to_skip
+            test_function = AutoVecTestFunction(test_funcs[name_no_vec])
+            test_funcs[test_function.vanilla_name] = test_function
+
+    _raise_missing_tests(missing_tests)
+
+    return test_funcs
+
+
+def _raise_missing_data(missing_data):
+    if missing_data:
+        msg = "Need to define data for:"
+        for name in set(missing_data):
+            msg += f"\n\t-test_{name}"
+
+        raise Exception(msg)
+
+
+def _check_test_data_pairing(test_funcs, testing_data):
+    defined_names_ls = _get_available_data_names(testing_data)
+    missing_data = []
+    for name in test_funcs.keys():
+        if name not in defined_names_ls:
+            missing_data.append(name)
+
+    _raise_missing_data(missing_data)
+
+    return test_funcs
