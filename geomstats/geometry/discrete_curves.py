@@ -24,8 +24,8 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 class DiscreteCurves(Manifold):
     r"""Space of discrete curves sampled at points in ambient_manifold.
 
-    Each individual curve is represented by a 2d-array of shape `[
-    k_sampling_points, ambient_dim]`. A batch of curves can be passed to
+    Each individual curve is represented by a 2d-array of shape 
+    `(k_sampling_points, ambient_dim)`. A batch of curves can be passed to
     all methods either as a 3d-array if all curves have the same number of
     sampled points, or as a list of 2d-arrays, each representing a curve.
 
@@ -89,14 +89,12 @@ class DiscreteCurves(Manifold):
         return SRVMetric
 
     def belongs(self, point, atol=gs.atol):
-        """Test whether a point belongs to the manifold.
-
-        Test that all points of the curve belong to the ambient manifold.
+        """Test whether a point or list of points belongs to manifold of discrete curves.
 
         Parameters
         ----------
         point : array-like, shape=[..., k_sampling_points, ambient_dim]
-            Point representing a discrete curve.
+            Point representing one or a list of discrete curves.
         atol : float
             Absolute tolerance.
             Optional, default: backend atol.
@@ -118,9 +116,8 @@ class DiscreteCurves(Manifold):
 
             Returns
             -------
-            _ : array-like, shape=[]
-                Whether curve has all of its sampling points on
-                the ambient manifold.
+            belongs : bool
+                Boolean evaluating if pt belongs to ambient manifold.
             """
             return gs.all(self.ambient_manifold.belongs(pt))
 
@@ -134,10 +131,10 @@ class DiscreteCurves(Manifold):
 
             Returns
             -------
-            _ : array-like, shape=[]
-                Whether curve has the correct number of sampling points.
+            has_same_number : bool
+                Boolean evaluating whether curve has correct number of sampling points.
             """
-            return gs.array(pt.shape[-2] == self.k_sampling_points)
+            return pt.shape[-2] == self.k_sampling_points
 
         if isinstance(point, list) or point.ndim > 2:
             return gs.stack(
@@ -263,8 +260,6 @@ class ClosedDiscreteCurves(LevelSet):
 
     Each individual curve is represented by a 2d-array of shape `[
     k_sampling_points, ambient_dim]`.
-
-    See [Sea2011]_ for details.
 
     Parameters
     ----------
