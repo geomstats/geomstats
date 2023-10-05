@@ -3,27 +3,29 @@ import random
 import pytest
 
 from geomstats.information_geometry.normal import (
-    CenteredNormalDistributions,
-    CenteredNormalMetric,
-    DiagonalNormalDistributions,
-    DiagonalNormalMetric,
-    GeneralNormalDistributions,
-    UnivariateNormalDistributions,
-    UnivariateNormalMetric,
+    DiagonalNormalDistributionsRandomVariable,
+    MultivariateNormalDistributionsRandomVariable,
+    NormalDistributions,
+    SharedMeanNormalDistributionsRandomVariable,
+    UnivariateNormalDistributionsRandomVariable,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.base import OpenSetTestCase
-from geomstats.test_cases.geometry.manifold import ManifoldTestCase
-from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
+from geomstats.test_cases.geometry.poincare_half_space import PoincareHalfSpaceTestCase
+from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from geomstats.test_cases.geometry.spd_matrices import SPDMatricesTestCase
 from geomstats.test_cases.information_geometry.base import (
     InformationManifoldMixinTestCase,
 )
-from tests2.tests_geomstats.test_information_geometry.data.normal import (
+from geomstats.test_cases.information_geometry.normal import (
+    UnivariateNormalMetricTestCase,
+)
+
+from ..test_geometry.data.spd_matrices import SPDAffineMetricTestData
+from .data.normal import (
     CenteredNormalDistributionsTestData,
-    CenteredNormalMetricTestData,
     DiagonalNormalDistributionsTestData,
     DiagonalNormalMetricTestData,
     GeneralNormalDistributionsTestData,
@@ -34,17 +36,19 @@ from tests2.tests_geomstats.test_information_geometry.data.normal import (
 
 
 class TestUnivariateNormalDistributions(
-    InformationManifoldMixinTestCase, OpenSetTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase,
+    PoincareHalfSpaceTestCase,
+    metaclass=DataBasedParametrizer,
 ):
-    space = UnivariateNormalDistributions(equip=False)
+    space = NormalDistributions(sample_dim=1, equip=False)
+    random_variable = UnivariateNormalDistributionsRandomVariable(space)
     testing_data = UnivariateNormalDistributionsTestData()
 
 
 class TestUnivariateNormalMetric(
-    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
+    UnivariateNormalMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    space = UnivariateNormalDistributions(equip=False)
-    space.equip_with_metric(UnivariateNormalMetric)
+    space = NormalDistributions(sample_dim=1)
 
     data_generator = RandomDataGenerator(space, amplitude=5.0)
     data_generator_embedding = RandomDataGenerator(space.metric.embedding_space)
@@ -55,14 +59,14 @@ class TestUnivariateNormalMetric(
 @pytest.fixture(
     scope="class",
     params=[
-        2,
         random.randint(3, 5),
     ],
 )
 def centered_spaces(request):
-    request.cls.space = CenteredNormalDistributions(
-        sample_dim=request.param, equip=False
+    space = request.cls.space = NormalDistributions(
+        sample_dim=request.param, distribution_type="centered", equip=False
     )
+    request.cls.random_variable = SharedMeanNormalDistributionsRandomVariable(space)
 
 
 @pytest.mark.usefixtures("centered_spaces")
@@ -77,22 +81,21 @@ class TestCenteredNormalDistributions(
 @pytest.fixture(
     scope="class",
     params=[
-        2,
         random.randint(3, 5),
     ],
 )
 def equipped_centered_spaces(request):
-    space = request.cls.space = CenteredNormalDistributions(
-        sample_dim=request.param, equip=False
+    request.cls.space = NormalDistributions(
+        sample_dim=request.param, distribution_type="centered"
     )
-    space.equip_with_metric(CenteredNormalMetric)
 
 
+@pytest.mark.redundant
 @pytest.mark.usefixtures("equipped_centered_spaces")
 class TestCenteredNormalMetric(
     RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = CenteredNormalMetricTestData()
+    testing_data = SPDAffineMetricTestData()
 
 
 @pytest.fixture(
@@ -103,9 +106,10 @@ class TestCenteredNormalMetric(
     ],
 )
 def diagonal_spaces(request):
-    request.cls.space = DiagonalNormalDistributions(
-        sample_dim=request.param, equip=False
+    space = request.cls.space = NormalDistributions(
+        sample_dim=request.param, distribution_type="diagonal", equip=False
     )
+    request.cls.random_variable = DiagonalNormalDistributionsRandomVariable(space)
 
 
 @pytest.mark.usefixtures("diagonal_spaces")
@@ -123,11 +127,9 @@ class TestDiagonalNormalDistributions(
     ],
 )
 def equipped_diagonal_spaces(request):
-    space = request.cls.space = DiagonalNormalDistributions(
-        sample_dim=request.param, equip=False
+    space = request.cls.space = NormalDistributions(
+        sample_dim=request.param, distribution_type="diagonal"
     )
-    space.equip_with_metric(DiagonalNormalMetric)
-
     request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
 
 
@@ -141,19 +143,21 @@ class TestDiagonalNormalMetric(
 @pytest.fixture(
     scope="class",
     params=[
-        2,
         random.randint(3, 5),
     ],
 )
 def general_spaces(request):
-    request.cls.space = GeneralNormalDistributions(
+    space = request.cls.space = NormalDistributions(
         sample_dim=request.param, equip=False
     )
+    request.cls.random_variable = MultivariateNormalDistributionsRandomVariable(space)
 
 
 @pytest.mark.usefixtures("general_spaces")
 class TestGeneralNormalDistributions(
-    InformationManifoldMixinTestCase, ManifoldTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase,
+    ProductManifoldTestCase,
+    metaclass=DataBasedParametrizer,
 ):
     testing_data = GeneralNormalDistributionsTestData()
 
@@ -161,19 +165,16 @@ class TestGeneralNormalDistributions(
 @pytest.fixture(
     scope="class",
     params=[
-        2,
         random.randint(3, 5),
     ],
 )
 def equipped_general_spaces(request):
-    request.cls.space = GeneralNormalDistributions(sample_dim=request.param, equip=True)
+    request.cls.space = NormalDistributions(sample_dim=request.param)
 
 
-@pytest.mark.skip
+@pytest.mark.redundant
 @pytest.mark.usefixtures("equipped_general_spaces")
 class TestGeneralNormalMetric(
     RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = GeneralNormalMetricTestData()
-
-    # TODO: come back here

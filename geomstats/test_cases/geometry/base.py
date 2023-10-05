@@ -27,6 +27,7 @@ class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = VectorSpaceRandomDataGenerator(self.space)
+        super().setup_method()
 
     @pytest.mark.random
     def test_random_point_is_tangent(self, n_points, atol):
@@ -179,6 +180,7 @@ class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
+        super().setup_method()
 
     def test_submersion(self, point, expected, atol):
         submersed_point = self.space.submersion(point)
@@ -245,6 +247,7 @@ class _OpenSetTestCaseMixins(ProjectionTestCaseMixins):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
+        super().setup_method()
 
     @pytest.mark.random
     def test_to_tangent_is_tangent_in_embedding_space(self, n_points):

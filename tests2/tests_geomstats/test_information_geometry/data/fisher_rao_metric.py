@@ -3,6 +3,8 @@ from geomstats.test.data import TestData
 
 
 class FisherRaoMetricCmpUnivariateNormalTestData(TestData):
+    fail_for_autodiff_exceptions = False
+
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(base_point=gs.array([0.1, 0.8])),
@@ -37,6 +39,8 @@ class FisherRaoMetricCmpUnivariateNormalTestData(TestData):
 
 
 class FisherRaoMetricCmpExponentialTestData(TestData):
+    fail_for_autodiff_exceptions = False
+
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(
@@ -77,6 +81,8 @@ class FisherRaoMetricCmpExponentialTestData(TestData):
 
 
 class FisherRaoMetricCmpGammaTestData(TestData):
+    fail_for_autodiff_exceptions = False
+
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(
@@ -105,6 +111,8 @@ class FisherRaoMetricCmpGammaTestData(TestData):
 
 
 class FisherRaoMetricCmpBetaTestData(TestData):
+    fail_for_autodiff_exceptions = False
+
     def metric_matrix_test_data(self):
         smoke_data = [
             dict(

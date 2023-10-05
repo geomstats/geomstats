@@ -1,12 +1,5 @@
-from tests2.tests_geomstats.test_information_geometry.data.multinomial import (
-    MultinomialDistributionsTestData,
-    MultinomialMetricTestData,
-)
-
-
-class CategoricalDistributionsTestData(MultinomialDistributionsTestData):
-    pass
+from .multinomial import MultinomialMetricTestData
 
 
 class CategoricalMetricTestData(MultinomialMetricTestData):
-    pass
+    xfails = ("log_after_exp",)

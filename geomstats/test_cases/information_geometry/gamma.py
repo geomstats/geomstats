@@ -1,5 +1,6 @@
 import pytest
 
+import geomstats.backend as gs
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import OpenSetTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
@@ -8,7 +9,17 @@ from geomstats.test_cases.information_geometry.base import (
 )
 
 
+def scalar_curvature(base_point):
+    kappa = base_point[..., 0]
+    return (gs.polygamma(1, kappa) + kappa * gs.polygamma(2, kappa)) / (
+        2 * (-1 + kappa * gs.polygamma(1, kappa)) ** 2
+    )
+
+
 class GammaDistributionsTestCase(InformationManifoldMixinTestCase, OpenSetTestCase):
+    def _check_sample_belongs_to_support(self, sample, atol):
+        self.assertTrue(gs.all(sample > 0.0))
+
     def test_natural_to_standard(self, point, expected, atol):
         res = self.space.natural_to_standard(point)
         self.assertAllClose(res, expected, atol=atol)
@@ -77,8 +88,20 @@ class GammaDistributionsTestCase(InformationManifoldMixinTestCase, OpenSetTestCa
         vec_ = self.space.tangent_standard_to_natural(vec_standard, base_point_standard)
         self.assertAllClose(vec_, vec, atol=atol)
 
+    def test_maximum_likelihood_fit(self, data, expected, atol):
+        res = self.space.maximum_likelihood_fit(data)
+        self.assertAllClose(res, expected, atol=atol)
+
 
 class GammaMetricTestCase(RiemannianMetricTestCase):
     def test_jacobian_christoffels(self, base_point, expected, atol):
         res = self.space.metric.jacobian_christoffels(base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_scalar_curvature_against_closed_form(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        res = self.space.metric.scalar_curvature(base_point)
+        expected = scalar_curvature(base_point)
         self.assertAllClose(res, expected, atol=atol)

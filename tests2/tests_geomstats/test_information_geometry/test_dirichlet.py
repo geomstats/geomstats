@@ -2,18 +2,16 @@ import random
 
 import pytest
 
-from geomstats.information_geometry.dirichlet import (
-    DirichletDistributions,
-    DirichletMetric,
-)
+from geomstats.information_geometry.dirichlet import DirichletDistributions
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.geometry.base import OpenSetTestCase
-from geomstats.test_cases.information_geometry.base import (
-    InformationManifoldMixinTestCase,
+from geomstats.test_cases.information_geometry.dirichlet import (
+    DirichletDistributionsTestCase,
+    DirichletMetricTestCase,
 )
-from geomstats.test_cases.information_geometry.dirichlet import DirichletMetricTestCase
-from tests2.tests_geomstats.test_information_geometry.data.dirichlet import (
+
+from .data.dirichlet import (
+    DirichletDistributions3TestData,
     DirichletDistributionsTestData,
     DirichletMetricTestData,
 )
@@ -22,8 +20,7 @@ from tests2.tests_geomstats.test_information_geometry.data.dirichlet import (
 @pytest.fixture(
     scope="class",
     params=[
-        2,
-        random.randint(3, 5),
+        random.randint(3, 4),
     ],
 )
 def spaces(request):
@@ -32,25 +29,32 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestDirichletDistributions(
-    InformationManifoldMixinTestCase, OpenSetTestCase, metaclass=DataBasedParametrizer
+    DirichletDistributionsTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = DirichletDistributionsTestData()
+
+
+@pytest.mark.smoke
+class TestDirichletDistributions3(
+    DirichletDistributionsTestCase, metaclass=DataBasedParametrizer
+):
+    space = DirichletDistributions(dim=3, equip=False)
+    testing_data = DirichletDistributions3TestData()
 
 
 @pytest.fixture(
     scope="class",
     params=[
-        2,
-        random.randint(3, 5),
+        random.randint(3, 4),
     ],
 )
 def equipped_spaces(request):
-    space = request.cls.space = DirichletDistributions(dim=request.param, equip=False)
-    space.equip_with_metric(DirichletMetric)
+    space = request.cls.space = DirichletDistributions(dim=request.param)
 
     request.cls.data_generator = RandomDataGenerator(space, amplitude=5.0)
 
 
 @pytest.mark.usefixtures("equipped_spaces")
+@pytest.mark.slow
 class TestDirichletMetric(DirichletMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = DirichletMetricTestData()

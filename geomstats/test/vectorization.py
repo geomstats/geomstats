@@ -13,6 +13,7 @@ KNOWN_POINT_NAMES = (
     "mat",
 )
 KNOWN_VECTOR_NAMES = (
+    "vec",
     "vector",
     "tangent_vec",
     "tangent_vec_a",

@@ -2,20 +2,17 @@ import random
 
 import pytest
 
-from geomstats.information_geometry.multinomial import (
-    MultinomialDistributions,
-    MultinomialMetric,
-)
+import geomstats.backend as gs
+from geomstats.information_geometry.multinomial import MultinomialDistributions
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.geometry.base import LevelSetTestCase
-from geomstats.test_cases.information_geometry.base import (
-    InformationManifoldMixinTestCase,
-)
 from geomstats.test_cases.information_geometry.multinomial import (
+    MultinomialDistributionsTestCase,
     MultinomialMetricTestCase,
 )
 from tests2.tests_geomstats.test_information_geometry.data.multinomial import (
+    MultinomialDistributions2TestData,
+    MultinomialDistributions3TestData,
     MultinomialDistributionsTestData,
     MultinomialMetricTestData,
 )
@@ -32,9 +29,25 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestMultinomialDistributions(
-    InformationManifoldMixinTestCase, LevelSetTestCase, metaclass=DataBasedParametrizer
+    MultinomialDistributionsTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = MultinomialDistributionsTestData()
+
+
+@pytest.mark.smoke
+class TestMultinomialDistributions2(
+    MultinomialDistributionsTestCase, metaclass=DataBasedParametrizer
+):
+    space = MultinomialDistributions(dim=2, n_draws=3, equip=False)
+    testing_data = MultinomialDistributions2TestData()
+
+
+@pytest.mark.smoke
+class TestMultinomialDistributions3(
+    MultinomialDistributionsTestCase, metaclass=DataBasedParametrizer
+):
+    space = MultinomialDistributions(dim=3, n_draws=3, equip=False)
+    testing_data = MultinomialDistributions3TestData()
 
 
 @pytest.fixture(
@@ -46,10 +59,7 @@ class TestMultinomialDistributions(
 )
 def equipped_spaces(request):
     dim, n_draws = request.param
-    space = request.cls.space = MultinomialDistributions(
-        dim=dim, n_draws=n_draws, equip=False
-    )
-    space.equip_with_metric(MultinomialMetric)
+    space = request.cls.space = MultinomialDistributions(dim=dim, n_draws=n_draws)
 
     request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
     request.cls.data_generator_sphere = RandomDataGenerator(space.metric._sphere)

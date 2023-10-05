@@ -1,52 +1,57 @@
 from tests2.tests_geomstats.test_geometry.data.base import OpenSetTestData
-from tests2.tests_geomstats.test_geometry.data.manifold import ManifoldTestData
 from tests2.tests_geomstats.test_geometry.data.poincare_half_space import (
     PoincareHalfSpaceTestData,
 )
-from tests2.tests_geomstats.test_geometry.data.pullback_metric import (
-    PullbackDiffeoMetricTestData,
+from tests2.tests_geomstats.test_geometry.data.product_manifold import (
+    ProductManifoldTestData,
 )
-from tests2.tests_geomstats.test_geometry.data.riemannian_metric import (
-    RiemannianMetricTestData,
-)
-from tests2.tests_geomstats.test_geometry.data.spd_matrices import (
-    SPDAffineMetricTestData,
-    SPDMatricesTestData,
-)
-from tests2.tests_geomstats.test_information_geometry.data.base import (
-    InformationManifoldMixinTestData,
-)
+
+from ...test_geometry.data.product_manifold import ProductRiemannianMetricTestData
+from ...test_geometry.data.pullback_metric import PullbackDiffeoMetricTestData
+from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
+from ...test_geometry.data.spd_matrices import SPDMatricesTestData
+from .base import InformationManifoldMixinTestData
 
 
 class UnivariateNormalDistributionsTestData(
     InformationManifoldMixinTestData, PoincareHalfSpaceTestData
 ):
-    pass
+    fail_for_not_implemented_errors = False
+
+    def point_to_pdf_against_scipy_test_data(self):
+        return self.generate_random_data_with_samples()
 
 
 class UnivariateNormalMetricTestData(PullbackDiffeoMetricTestData):
+    trials = 2
+
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
+
+    def dist_against_closed_form_test_data(self):
+        return self.generate_random_data()
 
 
 class CenteredNormalDistributionsTestData(
     InformationManifoldMixinTestData, SPDMatricesTestData
 ):
-    pass
+    fail_for_not_implemented_errors = False
 
-
-class CenteredNormalMetricTestData(SPDAffineMetricTestData):
-    pass
+    def point_to_pdf_against_scipy_test_data(self):
+        return self.generate_random_data_with_samples()
 
 
 class DiagonalNormalDistributionsTestData(
     InformationManifoldMixinTestData, OpenSetTestData
 ):
-    pass
+    fail_for_not_implemented_errors = False
+
+    def point_to_pdf_against_scipy_test_data(self):
+        return self.generate_random_data_with_samples()
 
 
 class DiagonalNormalMetricTestData(RiemannianMetricTestData):
-    trials = 2
+    trials = 5
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
@@ -54,11 +59,17 @@ class DiagonalNormalMetricTestData(RiemannianMetricTestData):
 
 
 class GeneralNormalDistributionsTestData(
-    InformationManifoldMixinTestData, ManifoldTestData
+    InformationManifoldMixinTestData,
+    ProductManifoldTestData,
 ):
+    fail_for_not_implemented_errors = False
+
     skips = ("not_belongs",)
 
+    def point_to_pdf_against_scipy_test_data(self):
+        return self.generate_random_data_with_samples()
 
-class GeneralNormalMetricTestData(RiemannianMetricTestData):
+
+class GeneralNormalMetricTestData(ProductRiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False

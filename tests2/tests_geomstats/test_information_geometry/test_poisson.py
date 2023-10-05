@@ -1,28 +1,49 @@
-from geomstats.information_geometry.poisson import PoissonDistributions, PoissonMetric
+import pytest
+
+from geomstats.information_geometry.poisson import (
+    PoissonDistributions,
+    PoissonDistributionsRandomVariable,
+    PoissonMetric,
+)
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.geometry.base import OpenSetTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
-from geomstats.test_cases.information_geometry.base import (
-    InformationManifoldMixinTestCase,
+from geomstats.test_cases.information_geometry.poisson import (
+    PoissonDistributionsTestCase,
 )
-from tests2.tests_geomstats.test_information_geometry.data.poisson import (
+
+from .data.poisson import (
+    PoissonDistributionsSmokeTestData,
     PoissonDistributionsTestData,
+    PoissonMetricSmokeTestData,
     PoissonMetricTestData,
 )
 
 
 class TestPoissonDistributions(
-    InformationManifoldMixinTestCase, OpenSetTestCase, metaclass=DataBasedParametrizer
+    PoissonDistributionsTestCase, metaclass=DataBasedParametrizer
 ):
     space = PoissonDistributions(equip=False)
+    random_variable = PoissonDistributionsRandomVariable(space)
     testing_data = PoissonDistributionsTestData()
 
 
+@pytest.mark.smoke
+class TestPoissonDistributionsSmoke(
+    PoissonDistributionsTestCase, metaclass=DataBasedParametrizer
+):
+    space = PoissonDistributions(equip=False)
+    testing_data = PoissonDistributionsSmokeTestData()
+
+
 class TestPoissonMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    space = PoissonDistributions()
+    data_generator = RandomDataGenerator(space, amplitude=5.0)
+    testing_data = PoissonMetricTestData()
+
+
+@pytest.mark.smoke
+class TestPoissonMetricSmoke(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
     space = PoissonDistributions(equip=False)
     space.equip_with_metric(PoissonMetric)
-
-    data_generator = RandomDataGenerator(space, amplitude=5.0)
-
-    testing_data = PoissonMetricTestData()
+    testing_data = PoissonMetricSmokeTestData()

@@ -2,23 +2,16 @@ import random
 
 import pytest
 
-from geomstats.information_geometry.categorical import (
-    CategoricalDistributions,
-    CategoricalMetric,
-)
+from geomstats.information_geometry.categorical import CategoricalDistributions
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.geometry.base import LevelSetTestCase
-from geomstats.test_cases.information_geometry.base import (
-    InformationManifoldMixinTestCase,
-)
 from geomstats.test_cases.information_geometry.multinomial import (
+    MultinomialDistributionsTestCase,
     MultinomialMetricTestCase,
 )
-from tests2.tests_geomstats.test_information_geometry.data.categorical import (
-    CategoricalDistributionsTestData,
-    CategoricalMetricTestData,
-)
+
+from .data.categorical import CategoricalMetricTestData
+from .data.multinomial import MultinomialDistributionsTestData
 
 
 @pytest.fixture(
@@ -34,9 +27,9 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestCategoricalDistributions(
-    InformationManifoldMixinTestCase, LevelSetTestCase, metaclass=DataBasedParametrizer
+    MultinomialDistributionsTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = CategoricalDistributionsTestData()
+    testing_data = MultinomialDistributionsTestData()
 
 
 @pytest.fixture(
@@ -47,13 +40,13 @@ class TestCategoricalDistributions(
     ],
 )
 def equipped_spaces(request):
-    space = request.cls.space = CategoricalDistributions(dim=request.param, equip=False)
-    space.equip_with_metric(CategoricalMetric)
+    space = request.cls.space = CategoricalDistributions(dim=request.param)
 
     request.cls.data_generator = RandomDataGenerator(space, amplitude=10.0)
     request.cls.data_generator_sphere = RandomDataGenerator(space.metric._sphere)
 
 
+@pytest.mark.redundant
 @pytest.mark.usefixtures("equipped_spaces")
 class TestCategoricalMetric(MultinomialMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = CategoricalMetricTestData()
