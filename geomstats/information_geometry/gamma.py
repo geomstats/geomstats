@@ -528,7 +528,8 @@ class GammaDistributionsRandomVariable(ScipyUnivariateRandomVariable):
     def __init__(self, space):
         super().__init__(space, gamma.rvs, gamma.pdf)
 
-    def _flatten_params(self, point, pre_flat_shape):
+    @staticmethod
+    def _flatten_params(point, pre_flat_shape):
         param_a = gs.expand_dims(point[..., 0], axis=-1)
         scale = gs.expand_dims(point[..., 1] / point[..., 0], axis=-1)
 

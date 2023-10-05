@@ -85,7 +85,8 @@ class ScipyRandomVariable:
 class ScipyUnivariateRandomVariable(ScipyRandomVariable):
     """A univariate random variable."""
 
-    def _unflatten_res(self, flat_res, expected_shape):
+    @staticmethod
+    def _unflatten_res(flat_res, expected_shape):
         return gs.reshape(flat_res, expected_shape)
 
     def rvs(self, point, n_samples=1):
@@ -177,7 +178,7 @@ class ScipyMultivariateRandomVariable(ScipyRandomVariable):
 
         return self._rvs_single(point, n_samples)
 
-    def _pdf_single(self, x, point, n_samples=1):
+    def _pdf_single(self, x, point):
         out = self.scp_pdf(x, point)
         if x.shape[0] == 1 and point.ndim == self.space.point_ndim:
             return gs.array([out])

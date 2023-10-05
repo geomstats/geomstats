@@ -218,7 +218,8 @@ class BinomialMetric(RiemannianMetric):
             self._space.n_draws / (base_point * (1 - base_point)), axis=-1
         )
 
-    def _geodesic_path(self, t, initial_phase, frequency):
+    @staticmethod
+    def _geodesic_path(t, initial_phase, frequency):
         """Generate parameterized function for geodesic curve.
 
         Parameters
@@ -337,7 +338,8 @@ class BinomialDistributionsRandomVariable(ScipyUnivariateRandomVariable):
         rvs = lambda *args, **kwargs: binom.rvs(space.n_draws, *args, **kwargs)
         super().__init__(space, rvs)
 
-    def _flatten_params(self, point, pre_flat_shape):
+    @staticmethod
+    def _flatten_params(point, pre_flat_shape):
         flat_point = gs.reshape(gs.broadcast_to(point, pre_flat_shape), (-1,))
         return {"p": flat_point}
 

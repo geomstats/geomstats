@@ -554,7 +554,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             x_, (mean_, inv_cov_) = broadcast_to_multibatch(
                 (x.shape[0],), batch_shape, x, mean, inv_cov
             )
-            aux_0 = x - mean_
+            aux_0 = x_ - mean_
             aux_1 = gs.exp(-0.5 * gs.dot(aux_0, gs.matvec(inv_cov_, aux_0)))
             return gs.einsum(
                 "...,...i->...i", pdf_normalization, gs.to_ndarray(aux_1, to_ndim=1)
@@ -878,7 +878,8 @@ class UnivariateNormalDistributionsRandomVariable(ScipyUnivariateRandomVariable)
     def __init__(self, space):
         super().__init__(space, norm.rvs, norm.pdf)
 
-    def _flatten_params(self, point, pre_flat_shape):
+    @staticmethod
+    def _flatten_params(point, pre_flat_shape):
         loc = gs.expand_dims(point[..., 0], axis=-1)
         scale = gs.expand_dims(point[..., 1], axis=-1)
 

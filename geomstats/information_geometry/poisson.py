@@ -205,7 +205,8 @@ class PoissonMetric(RiemannianMetric):
         """
         return gs.expand_dims(1 / base_point, axis=-1)
 
-    def _geodesic_path(self, t, constant_a, constant_b):
+    @staticmethod
+    def _geodesic_path(t, constant_a, constant_b):
         """Generate parameterized function for geodesic curve.
 
         Parameters
@@ -310,7 +311,8 @@ class PoissonDistributionsRandomVariable(ScipyUnivariateRandomVariable):
     def __init__(self, space):
         super().__init__(space, poisson.rvs)
 
-    def _flatten_params(self, point, pre_flat_shape):
+    @staticmethod
+    def _flatten_params(point, pre_flat_shape):
         flat_point = gs.reshape(gs.broadcast_to(point, pre_flat_shape), (-1,))
         return {"mu": flat_point}
 

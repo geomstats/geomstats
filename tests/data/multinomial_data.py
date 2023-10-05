@@ -41,7 +41,10 @@ class MultinomialTestData(_LevelSetTestData):
                 n_draws=4,
                 point=gs.array([0.2, 0.3, 0.5]),
                 n_samples=1,
-                expected=(1, 3,),
+                expected=(
+                    1,
+                    3,
+                ),
             ),
             dict(
                 dim=3,

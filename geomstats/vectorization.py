@@ -596,7 +596,7 @@ def broadcast_to_multibatch(batch_shape_a, batch_shape_b, array_a, *array_b):
     array_a_ = gs.broadcast_to(array_a, batch_shape_b + array_a.shape)
 
     n_batch_b = len(batch_shape_b)
-    indices_in = [i for i in range(len(batch_shape_a))]
+    indices_in = list(range(len(batch_shape_a)))
     indices_out = [index + n_batch_b for index in indices_in]
 
     array_b_ = []

@@ -202,7 +202,8 @@ class ExponentialMetric(RiemannianMetric):
         """
         return gs.expand_dims(1 / base_point**2, axis=-1)
 
-    def _geodesic_path(self, t, initial_point, base):
+    @staticmethod
+    def _geodesic_path(t, initial_point, base):
         """Generate parameterized function for geodesic curve.
 
         Parameters
@@ -307,6 +308,7 @@ class ExponentialDistributionsRandomVariable(ScipyUnivariateRandomVariable):
     def __init__(self, space):
         super().__init__(space, expon.rvs, expon.pdf)
 
-    def _flatten_params(self, point, pre_flat_shape):
+    @staticmethod
+    def _flatten_params(point, pre_flat_shape):
         flat_scale_param = gs.reshape(gs.broadcast_to(1 / point, pre_flat_shape), (-1,))
         return {"scale": flat_scale_param}

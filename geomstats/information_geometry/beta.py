@@ -168,7 +168,8 @@ class BetaDistributionsRandomVariable(ScipyUnivariateRandomVariable):
     def __init__(self, space):
         super().__init__(space, beta.rvs, beta.pdf)
 
-    def _flatten_params(self, point, pre_flat_shape):
+    @staticmethod
+    def _flatten_params(point, pre_flat_shape):
         param_a = gs.expand_dims(point[..., 0], axis=-1)
         param_b = gs.expand_dims(point[..., 1], axis=-1)
 
