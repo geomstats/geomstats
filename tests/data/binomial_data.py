@@ -145,26 +145,26 @@ class BinomialMetricTestData(_RiemannianMetricTestData):
         smoke_data = [
             dict(
                 space=space_5,
-                point_a=gs.array([0.2, 0.3]),
-                point_b=gs.array([0.3, 0.5]),
+                point_a=gs.array([[0.2], [0.3]]),
+                point_b=gs.array([[0.3], [0.5]]),
                 expected=gs.array([0.26908349, 0.84673057]),
             ),
             dict(
                 space=space_10,
-                point_a=gs.array(0.1),
-                point_b=gs.array(0.99),
+                point_a=gs.array([0.1]),
+                point_b=gs.array([0.99]),
                 expected=gs.array(52.79685863761384),
             ),
             dict(
                 space=space_5,
-                point_a=gs.array(0.3),
-                point_b=gs.array([0.2, 0.5]),
+                point_a=gs.array([0.3]),
+                point_b=gs.array([[0.2], [0.5]]),
                 expected=gs.array([0.26908349, 0.84673057]),
             ),
             dict(
                 space=space_5,
-                point_a=gs.array([0.2, 0.5]),
-                point_b=gs.array(0.3),
+                point_a=gs.array([[0.2], [0.5]]),
+                point_b=gs.array([0.3]),
                 expected=gs.array([0.26908349, 0.84673057]),
             ),
         ]

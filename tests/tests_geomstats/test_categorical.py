@@ -62,7 +62,7 @@ class TestCategoricalDistributions(tests.conftest.TestCase):
         points = self.categorical.random_point(self.n_points)
         samples = self.categorical.sample(points, self.n_samples)
         result = samples.shape
-        expected = (self.n_points, self.n_samples)
+        expected = (self.n_points, self.n_samples, self.dim + 1)
         self.assertAllClose(expected, result)
 
     def test_simplex_to_sphere_and_back(self):
