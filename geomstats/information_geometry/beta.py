@@ -6,7 +6,7 @@ Lead author: Alice Le Brigant.
 from scipy.stats import beta
 
 import geomstats.backend as gs
-import geomstats.errors
+from geomstats.information_geometry.base import ScipyUnivariateRandomVariable
 from geomstats.information_geometry.dirichlet import (
     DirichletDistributions,
     DirichletMetric,
@@ -29,6 +29,8 @@ class BetaDistributions(DirichletDistributions):
 
     def __init__(self, equip=True):
         super().__init__(dim=2, equip=equip)
+        self.support_shape = ()
+        self._scp_rv = BetaDistributionsRandomVariable(self)
 
     @staticmethod
     def default_metric():
@@ -52,14 +54,9 @@ class BetaDistributions(DirichletDistributions):
         Returns
         -------
         samples : array-like, shape=[..., n_samples]
-            Sample from beta distributions.
+            Sample from beta distributions.)
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-        samples = []
-        for param_a, param_b in point:
-            samples.append(gs.array(beta.rvs(param_a, param_b, size=n_samples)))
-        return samples[0] if len(point) == 1 else gs.stack(samples)
+        return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -163,3 +160,18 @@ class BetaMetric(DirichletMetric):
             1, param_a + param_b
         ) * (gs.polygamma(1, param_a) + gs.polygamma(1, param_b))
         return metric_det
+
+
+class BetaDistributionsRandomVariable(ScipyUnivariateRandomVariable):
+    """A beta random variable."""
+
+    def __init__(self, space):
+        super().__init__(space, beta.rvs, beta.pdf)
+
+    def _flatten_params(self, point, pre_flat_shape):
+        param_a = gs.expand_dims(point[..., 0], axis=-1)
+        param_b = gs.expand_dims(point[..., 1], axis=-1)
+
+        flat_param_a = gs.reshape(gs.broadcast_to(param_a, pre_flat_shape), (-1,))
+        flat_param_b = gs.reshape(gs.broadcast_to(param_b, pre_flat_shape), (-1,))
+        return {"a": flat_param_a, "b": flat_param_b}

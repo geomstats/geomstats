@@ -9,7 +9,10 @@ import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.base import (
+    InformationManifoldMixin,
+    ScipyUnivariateRandomVariable,
+)
 
 
 class ExponentialDistributions(InformationManifoldMixin, OpenSet):
@@ -21,8 +24,12 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
 
     def __init__(self, equip=True):
         super().__init__(
-            dim=1, embedding_space=Euclidean(dim=1, equip=False), equip=equip
+            dim=1,
+            embedding_space=Euclidean(dim=1, equip=False),
+            support_shape=(),
+            equip=equip,
         )
+        self._scp_rv = ExponentialDistributionsRandomVariable(self)
 
     @staticmethod
     def default_metric():
@@ -112,14 +119,7 @@ class ExponentialDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples]
             Sample from exponential distributions.
         """
-
-        def _sample(param):
-            return expon.rvs(scale=1 / param, size=n_samples)
-
-        if point.ndim > 1:
-            return gs.array([_sample(point_) for point_ in point])
-
-        return gs.array(_sample(point))
+        return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -185,7 +185,6 @@ class ExponentialMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Squared distance between points point_a and point_b.
         """
-        point_a, point_b = gs.broadcast_arrays(point_a, point_b)
         return gs.squeeze(gs.log(point_a / point_b) ** 2)
 
     def metric_matrix(self, base_point):
@@ -202,6 +201,23 @@ class ExponentialMetric(RiemannianMetric):
             Metric matrix.
         """
         return gs.expand_dims(1 / base_point**2, axis=-1)
+
+    def _geodesic_path(self, t, initial_point, base):
+        """Generate parameterized function for geodesic curve.
+
+        Parameters
+        ----------
+        t : array-like, shape=[n_times,]
+            Times at which to compute points of the geodesics.
+
+        Returns
+        -------
+        geodesic : array-like, shape=[..., n_times, 1]
+            Values of the geodesic at times t.
+        """
+        t = gs.reshape(gs.array(t), (-1,))
+        base_aux, t_aux = gs.broadcast_arrays(base, t)
+        return gs.expand_dims(initial_point * base_aux**t_aux, axis=-1)
 
     def _geodesic_ivp(self, initial_point, initial_tangent_vec):
         """Solve geodesic initial value problem.
@@ -223,28 +239,8 @@ class ExponentialMetric(RiemannianMetric):
             Parameterized function for the geodesic curve starting at
             initial_point with velocity initial_tangent_vec.
         """
-        initial_point = gs.broadcast_to(initial_point, initial_tangent_vec.shape)
-
         base = gs.exp(initial_tangent_vec / initial_point)
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_times,]
-                Times at which to compute points of the geodesics.
-
-            Returns
-            -------
-            geodesic : array-like, shape=[..., n_times, 1]
-                Values of the geodesic at times t.
-            """
-            t = gs.reshape(gs.array(t), (-1,))
-            base_aux, t_aux = gs.broadcast_arrays(base, t)
-            return gs.expand_dims(initial_point * base_aux**t_aux, axis=-1)
-
-        return path
+        return lambda t: self._geodesic_path(t, initial_point, base)
 
     def _geodesic_bvp(self, initial_point, end_point):
         """Solve geodesic boundary problem.
@@ -265,70 +261,8 @@ class ExponentialMetric(RiemannianMetric):
             Parameterized function for the geodesic curve starting at
             initial_point and ending at end_point.
         """
-        initial_point, end_point = gs.broadcast_arrays(initial_point, end_point)
-
         base = end_point / initial_point
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_times,]
-                Times at which to compute points of the geodesics.
-
-            Returns
-            -------
-            geodesic : array-like, shape=[..., n_times, 1]
-                Values of the geodesic at times t.
-            """
-            t = gs.reshape(gs.array(t), (-1,))
-            base_aux, t_aux = gs.broadcast_arrays(base, t)
-            return gs.expand_dims(initial_point * base_aux**t_aux, axis=-1)
-
-        return path
-
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial point and an initial tangent vector,
-        - an initial point and an end point.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., 1]
-            Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., 1], optional
-            Point on the manifold, end point of the geodesic. If None,
-            an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., 1],
-            Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
-            If None, an end point must be given and a logarithm is computed.
-
-        Returns
-        -------
-        path : callable
-            Time parameterized geodesic curve. If a batch of initial
-            conditions is passed, the output array's first dimension
-            represents time, and the second corresponds to the different
-            initial conditions.
-        """
-        if end_point is None and initial_tangent_vec is None:
-            raise ValueError(
-                "Specify an end point or an initial tangent "
-                "vector to define the geodesic."
-            )
-        if end_point is not None:
-            if initial_tangent_vec is not None:
-                raise ValueError(
-                    "Cannot specify both an end point " "and an initial tangent vector."
-                )
-            return self._geodesic_bvp(initial_point, end_point)
-
-        return self._geodesic_ivp(initial_point, initial_tangent_vec)
+        return lambda t: self._geodesic_path(t, initial_point, base)
 
     def exp(self, tangent_vec, base_point):
         """Compute exp map of a base point in tangent vector direction.
@@ -348,12 +282,12 @@ class ExponentialMetric(RiemannianMetric):
         """
         return gs.exp(tangent_vec / base_point) * base_point
 
-    def log(self, end_point, base_point):
+    def log(self, point, base_point):
         """Compute log map using a base point and an end point.
 
         Parameters
         ----------
-        end_point : array-like, shape=[..., 1]
+        point : array-like, shape=[..., 1]
             End point.
         base_point : array-like, shape=[..., 1]
             Base point.
@@ -362,6 +296,17 @@ class ExponentialMetric(RiemannianMetric):
         -------
         tangent_vec : array-like, shape=[..., 1]
             Initial velocity of the geodesic starting at base_point and
-            reaching end_point at time 1.
+            reaching point at time 1.
         """
-        return base_point * gs.log(end_point / base_point)
+        return base_point * gs.log(point / base_point)
+
+
+class ExponentialDistributionsRandomVariable(ScipyUnivariateRandomVariable):
+    """An exponential random variable."""
+
+    def __init__(self, space):
+        super().__init__(space, expon.rvs, expon.pdf)
+
+    def _flatten_params(self, point, pre_flat_shape):
+        flat_scale_param = gs.reshape(gs.broadcast_to(1 / point, pre_flat_shape), (-1,))
+        return {"scale": flat_scale_param}

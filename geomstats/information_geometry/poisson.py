@@ -10,7 +10,10 @@ import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.base import (
+    InformationManifoldMixin,
+    ScipyUnivariateRandomVariable,
+)
 
 
 class PoissonDistributions(InformationManifoldMixin, OpenSet):
@@ -22,8 +25,12 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
 
     def __init__(self, equip=True):
         super().__init__(
-            dim=1, embedding_space=Euclidean(dim=1, equip=False), equip=equip
+            dim=1,
+            embedding_space=Euclidean(dim=1, equip=False),
+            support_shape=(),
+            equip=equip,
         )
+        self._scp_rv = PoissonDistributionsRandomVariable(self)
 
     @staticmethod
     def default_metric():
@@ -114,14 +121,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples]
             Sample from Poisson distributions.
         """
-
-        def _sample(param):
-            return poisson.rvs(param, size=n_samples)
-
-        if point.ndim > 1:
-            return gs.array([_sample(point_) for point_ in point])
-
-        return gs.array(_sample(point))
+        return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
         """Compute pmf associated to point.
@@ -173,7 +173,7 @@ class PoissonMetric(RiemannianMetric):
         Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
     """
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Compute squared distance associated with the Poisson metric.
 
         Parameters
@@ -188,7 +188,6 @@ class PoissonMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Squared distance between points point_a and point_b.
         """
-        point_a, point_b = gs.broadcast_arrays(point_a, point_b)
         return gs.squeeze(4 * (point_a - 2 * gs.sqrt(point_a * point_b) + point_b))
 
     def metric_matrix(self, base_point):
@@ -205,6 +204,21 @@ class PoissonMetric(RiemannianMetric):
             Metric matrix.
         """
         return gs.expand_dims(1 / base_point, axis=-1)
+
+    def _geodesic_path(self, t, constant_a, constant_b):
+        """Generate parameterized function for geodesic curve.
+
+        Parameters
+        ----------
+        t : array-like, shape=[n_times,]
+            Times at which to compute points of the geodesics.
+
+        Returns
+        -------
+        geodesic : array-like, shape=[..., n_times, 1]
+            Values of the geodesic at times t.
+        """
+        return gs.expand_dims((constant_a * t + constant_b) ** 2, axis=-1)
 
     def _geodesic_ivp(self, initial_point, initial_tangent_vec):
         """Solve geodesic initial value problem.
@@ -226,27 +240,9 @@ class PoissonMetric(RiemannianMetric):
             Parameterized function for the geodesic curve starting at
             initial_point with velocity initial_tangent_vec.
         """
-        initial_point = gs.broadcast_to(initial_point, initial_tangent_vec.shape)
-
         constant_a = initial_tangent_vec / (2 * gs.sqrt(initial_point))
         constant_b = gs.sqrt(initial_point)
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_times,]
-                Times at which to compute points of the geodesics.
-
-            Returns
-            -------
-            geodesic : array-like, shape=[..., n_times, 1]
-                Values of the geodesic at times t.
-            """
-            return gs.expand_dims((constant_a * t + constant_b) ** 2, axis=-1)
-
-        return path
+        return lambda t: self._geodesic_path(t, constant_a, constant_b)
 
     def _geodesic_bvp(self, initial_point, end_point):
         """Solve geodesic boundary problem.
@@ -267,72 +263,9 @@ class PoissonMetric(RiemannianMetric):
             Parameterized function for the geodesic curve starting at
             initial_point and ending at end_point.
         """
-        initial_point, end_point = gs.broadcast_arrays(initial_point, end_point)
-
         constant_a = gs.sqrt(end_point) - gs.sqrt(initial_point)
         constant_b = gs.sqrt(initial_point)
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_times,]
-                Times at which to compute points of the geodesics.
-
-            Returns
-            -------
-            geodesic : array-like, shape=[..., n_times, 1]
-                Values of the geodesic at times t.
-            """
-            return gs.expand_dims((constant_a * t + constant_b) ** 2, axis=-1)
-
-        return path
-
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial point and an initial tangent vector,
-        - an initial point and an end point.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., 1]
-            Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., 1], optional
-            Point on the manifold, end point of the geodesic. If None,
-            an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., 1],
-            Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
-            If None, an end point must be given and a logarithm is computed.
-
-        Returns
-        -------
-        path : callable
-            Time parameterized geodesic curve. If a batch of initial
-            conditions is passed, the output array's first dimension
-            corresponds to the different initial conditions, and the
-            second represents time.
-        """
-        if end_point is None and initial_tangent_vec is None:
-            raise ValueError(
-                "Specify an end point or an initial tangent "
-                "vector to define the geodesic."
-            )
-        if end_point is not None:
-            if initial_tangent_vec is not None:
-                raise ValueError(
-                    "Cannot specify both an end point " "and an initial tangent vector."
-                )
-            path = self._geodesic_bvp(initial_point, end_point)
-
-        if initial_tangent_vec is not None:
-            path = self._geodesic_ivp(initial_point, initial_tangent_vec)
-
-        return path
+        return lambda t: self._geodesic_path(t, constant_a, constant_b)
 
     def exp(self, tangent_vec, base_point):
         """Compute exp map of a base point in tangent vector direction.
@@ -352,12 +285,12 @@ class PoissonMetric(RiemannianMetric):
         """
         return (tangent_vec / (2 * gs.sqrt(base_point)) + gs.sqrt(base_point)) ** 2
 
-    def log(self, end_point, base_point):
+    def log(self, point, base_point):
         """Compute log map using a base point and an end point.
 
         Parameters
         ----------
-        end_point : array-like, shape=[..., 1]
+        point : array-like, shape=[..., 1]
             End point.
         base_point : array-like, shape=[..., 1]
             Base point.
@@ -366,6 +299,37 @@ class PoissonMetric(RiemannianMetric):
         -------
         tangent_vec : array-like, shape=[..., 1]
             Initial velocity of the geodesic starting at base_point and
-            reaching end_point at time 1.
+            reaching point at time 1.
         """
-        return 2 * gs.sqrt(base_point) * (gs.sqrt(end_point) - gs.sqrt(base_point))
+        return 2 * gs.sqrt(base_point) * (gs.sqrt(point) - gs.sqrt(base_point))
+
+
+class PoissonDistributionsRandomVariable(ScipyUnivariateRandomVariable):
+    """A Poisson random variable."""
+
+    def __init__(self, space):
+        super().__init__(space, poisson.rvs)
+
+    def _flatten_params(self, point, pre_flat_shape):
+        flat_point = gs.reshape(gs.broadcast_to(point, pre_flat_shape), (-1,))
+        return {"mu": flat_point}
+
+    def pdf(self, x, point):
+        """Evaluate the probability density function at x.
+
+        Parameters
+        ----------
+        x : array-like, shape=[n_samples, *support_shape]
+            Sample points at which to compute the probability density function.
+        point : array-like, shape=[..., *space.shape]
+            Point representing a distribution.
+
+        Returns
+        -------
+        pdf_at_x : array-like, shape=[..., n_samples, *support_shape]
+            Values of pdf at x for each value of the parameters provided
+            by point.
+        """
+        return gs.from_numpy(
+            poisson.pmf(x, point),
+        )

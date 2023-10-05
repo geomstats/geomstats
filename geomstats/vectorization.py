@@ -52,10 +52,6 @@ def get_n_points(space, *point):
         Number of points.
     """
     point_max_ndim = _get_max_ndim_point(*point)
-
-    if space.point_ndim == point_max_ndim.ndim:
-        return 1
-
     return math.prod(point_max_ndim.shape[: -space.point_ndim])
 
 
@@ -574,3 +570,38 @@ def is_scalar(vect_array):
         return False
     has_singleton_dim_1 = vect_array.shape[1] == 1
     return has_singleton_dim_1
+
+
+def broadcast_to_multibatch(batch_shape_a, batch_shape_b, array_a, *array_b):
+    """Broadcast to multibatch.
+
+    Gives to both arrays batch shape `batch_shape_b + batch_shape_a`.
+
+    Does nothing if one of the batch shapes is empty.
+
+    Parameters
+    ----------
+    batch_shape_a : tuple
+        Batch shape of array_a.
+    batch_shape_b : tuple
+        Batch shape of array_b.
+    array_a : array
+    array_b : array
+    """
+    multi_b = len(array_b) > 1
+
+    if not batch_shape_a or not batch_shape_b:
+        return (array_a, array_b) if multi_b else (array_a, array_b[0])
+
+    array_a_ = gs.broadcast_to(array_a, batch_shape_b + array_a.shape)
+
+    n_batch_b = len(batch_shape_b)
+    indices_in = [i for i in range(len(batch_shape_a))]
+    indices_out = [index + n_batch_b for index in indices_in]
+
+    array_b_ = []
+    for array in array_b:
+        array_b_aux = gs.broadcast_to(array, batch_shape_a + array.shape)
+        array_b_.append(gs.moveaxis(array_b_aux, indices_in, indices_out))
+
+    return (array_a_, array_b_) if multi_b else (array_a_, array_b_[0])

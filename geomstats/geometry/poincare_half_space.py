@@ -110,10 +110,9 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         inner_prod = gs.sum(tangent_vec_a * tangent_vec_b, axis=-1)
-        inner_prod = inner_prod / base_point[..., -1] ** 2
-        return inner_prod
+        return inner_prod / base_point[..., -1] ** 2
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential.
 
         Parameters
@@ -138,7 +137,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         )
         return self._poincare_ball.ball_to_half_space_coordinates(end_point_ball)
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters
