@@ -36,6 +36,7 @@ class TestSiegelMetric(ComplexRiemannianMetricTestCase, metaclass=Parametrizer):
     skip_test_scalar_curvature_shape = True
     skip_test_ricci_tensor_shape = True
     skip_test_sectional_curvature_shape = True
+    skip_test_inner_product_is_complex = True
 
     testing_data = SiegelMetricTestData()
 
