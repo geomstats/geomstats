@@ -89,7 +89,7 @@ class DiscreteCurves(Manifold):
         return SRVMetric
 
     def belongs(self, point, atol=gs.atol):
-        """Test whether a point or list of points belongs to manifold of discrete curves.
+        """Test whether a point belongs to manifold of discrete curves.
 
         Parameters
         ----------
@@ -134,7 +134,7 @@ class DiscreteCurves(Manifold):
             has_same_number : bool
                 Boolean evaluating whether curve has correct number of sampling points.
             """
-            return pt.shape[-2] == self.k_sampling_points
+            return gs.array(pt.shape[-2] == self.k_sampling_points)
 
         if isinstance(point, list) or point.ndim > 2:
             return gs.stack(
@@ -265,6 +265,8 @@ class ClosedDiscreteCurves(LevelSet):
     ----------
     ambient_manifold : Manifold
         Manifold in which curves take values.
+    k_sampling_points : int
+        Number of sampling points for the discrete curves.
 
     Attributes
     ----------
@@ -335,7 +337,7 @@ class ClosedDiscreteCurves(LevelSet):
         Returns
         -------
         belongs : bool
-            Boolean evaluating if point belongs to the space of discrete
+            Boolean evaluating if point belongs to the space of closed discrete
             curves.
         """
         point = gs.to_ndarray(point, to_ndim=3)
@@ -939,7 +941,7 @@ class ElasticMetric(PullbackDiffeoMetric):
         The f_transform is given by the formula:
 
         .. math::
-            Imm(I, R^2) / R^2 \mapsto C^\infty(I, C*)
+            Imm(I, R^2) / R^2 \mapsto C^\infty(I, R^2\backslash\{0\})
             c \mapsto 2b |c'|^{1/2} (\frac{c'}{|c'|})^{a/(2b)}
 
         where the identification :math:`C = R^2` is used and
