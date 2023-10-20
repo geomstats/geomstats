@@ -24,8 +24,8 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 class DiscreteCurves(Manifold):
     r"""Space of discrete curves sampled at points in ambient_manifold.
 
-    Each individual curve is represented by a 2d-array of shape 
-    `(k_sampling_points, ambient_dim)`. A batch of curves can be passed to
+    Each individual curve is represented by a 2d-array of shape
+    `[k_sampling_points, ambient_dim]`. A batch of curves can be passed to
     all methods either as a 3d-array if all curves have the same number of
     sampled points, or as a list of 2d-arrays, each representing a curve.
 
@@ -90,6 +90,8 @@ class DiscreteCurves(Manifold):
 
     def belongs(self, point, atol=gs.atol):
         """Test whether a point belongs to manifold of discrete curves.
+
+        Test that all points of the curve belong to the ambient manifold.
 
         Parameters
         ----------
