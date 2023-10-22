@@ -57,7 +57,7 @@ jobs:
       - name: unit testing for geomstats [pytest]
         if : ${{matrix.test-folder == 'tests/tests_geomstats/'}}
         run: |
-          pytest --cov-report term --cov=geomstats ${{matrix.test-folder}}
+          pytest -n auto --cov-report term --cov=geomstats ${{matrix.test-folder}}
 
       - name: unit testing for scripts [pytest]       
         if : ${{matrix.test-folder == 'tests/tests_scripts'}}

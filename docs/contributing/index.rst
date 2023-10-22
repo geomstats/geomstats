@@ -190,7 +190,7 @@ Then run all tests using:
 
     .. code-block:: bash 
 
-      $ pytest tests
+      $ pytest -n auto tests
 
 
 Optionally, run a particular test file using:

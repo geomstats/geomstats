@@ -54,6 +54,7 @@ lint = [
 test = [
     "pytest",
     "pytest-cov",
+    "pytest-xdist",
     "coverage",
     "jupyter"
 ]
