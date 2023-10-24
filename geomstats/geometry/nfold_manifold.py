@@ -68,10 +68,13 @@ class NFoldManifold(Manifold):
         belongs : array-like, shape=[..., n_copies, *base_shape]
             Boolean evaluating if the point belongs to the manifold.
         """
+        batch_shape = get_batch_shape(self, point)
         point_ = gs.reshape(point, (-1, *self.base_manifold.shape))
+
         each_belongs = self.base_manifold.belongs(point_, atol=atol)
-        reshaped = gs.reshape(each_belongs, (-1, self.n_copies))
-        return gs.squeeze(gs.all(reshaped, axis=1))
+
+        reshaped = gs.reshape(each_belongs, batch_shape + (self.n_copies,))
+        return gs.all(reshaped, axis=-1)
 
     def is_tangent(self, vector, base_point, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -94,12 +97,15 @@ class NFoldManifold(Manifold):
         is_tangent : bool
             Boolean denoting if vector is a tangent vector at the base point.
         """
-        vector_, point_ = gs.broadcast_arrays(vector, base_point)
-        point_ = gs.reshape(point_, (-1, *self.base_manifold.shape))
+        vector_, base_point_ = gs.broadcast_arrays(vector, base_point)
+        batch_shape = get_batch_shape(self, vector_)
+        base_point_ = gs.reshape(base_point_, (-1, *self.base_manifold.shape))
         vector_ = gs.reshape(vector_, (-1, *self.base_manifold.shape))
-        each_tangent = self.base_manifold.is_tangent(vector_, point_, atol=atol)
-        reshaped = gs.reshape(each_tangent, (-1, self.n_copies))
-        return gs.all(reshaped, axis=1)
+
+        each_tangent = self.base_manifold.is_tangent(vector_, base_point_, atol=atol)
+
+        reshaped = gs.reshape(each_tangent, batch_shape + (self.n_copies,))
+        return gs.all(reshaped, axis=-1)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
@@ -119,14 +125,14 @@ class NFoldManifold(Manifold):
         tangent_vec : array-like, shape=[..., n_copies, *base_shape]
             Tangent vector at base point.
         """
-        vector_, point_ = gs.broadcast_arrays(vector, base_point)
-        point_ = gs.reshape(point_, (-1, *self.base_manifold.shape))
+        vector_, base_point_ = gs.broadcast_arrays(vector, base_point)
+        base_point_ = gs.reshape(base_point_, (-1, *self.base_manifold.shape))
+        batch_shape = get_batch_shape(self, vector_)
         vector_ = gs.reshape(vector_, (-1, *self.base_manifold.shape))
-        each_tangent = self.base_manifold.to_tangent(vector_, point_)
-        reshaped = gs.reshape(
-            each_tangent, (-1, self.n_copies) + self.base_manifold.shape
-        )
-        return gs.squeeze(reshaped)
+
+        each_tangent = self.base_manifold.to_tangent(vector_, base_point_)
+
+        return gs.reshape(each_tangent, batch_shape + self.shape)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample in the product space from the product distribution.
@@ -169,14 +175,12 @@ class NFoldManifold(Manifold):
             Projected point.
         """
         if hasattr(self.base_manifold, "projection"):
+            batch_shape = get_batch_shape(self, point)
             point_ = gs.reshape(point, (-1, *self.base_manifold.shape))
             projected = self.base_manifold.projection(point_)
-            reshaped = gs.reshape(
-                projected, (-1, self.n_copies) + self.base_manifold.shape
-            )
-            return gs.squeeze(reshaped)
+            return gs.reshape(projected, batch_shape + self.shape)
         raise NotImplementedError(
-            "The base manifold does not implement a projection " "method."
+            "The base manifold does not implement a projection method."
         )
 
 
@@ -207,7 +211,7 @@ class NFoldMetric(RiemannianMetric):
 
         super().__init__(space=space)
 
-    def metric_matrix(self, base_point=None):
+    def metric_matrix(self, base_point):
         """Compute the matrix of the inner-product.
 
         Matrix of the inner-product defined by the Riemmanian metric
@@ -217,7 +221,6 @@ class NFoldMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., n_copies, *base_shape]
             Point on the manifold at which to compute the inner-product matrix.
-            Optional, default: None.
 
         Returns
         -------
@@ -225,15 +228,18 @@ class NFoldMetric(RiemannianMetric):
             Matrix of the inner-product at the base point.
         """
         base_manifold = self._space.base_manifold
+        batch_shape = get_batch_shape(self._space, base_point)
 
         point_ = gs.reshape(base_point, (-1, *base_manifold.shape))
         matrices = base_manifold.metric.metric_matrix(point_)
-        dim = self.base_manifold.dim
-        reshaped = gs.reshape(matrices, (-1, self._space.n_copies, dim, dim))
-        if self.scales is not None:
-            reshaped = gs.einsum("j,ijkl->ijkl", self.scales, matrices)
 
-        return gs.squeeze(reshaped)
+        dim = base_manifold.shape[-1]
+        reshaped = gs.reshape(matrices, batch_shape + (self._space.n_copies, dim, dim))
+
+        if self.scales is not None:
+            reshaped = gs.einsum("j,...jkl->...jkl", self.scales, reshaped)
+
+        return reshaped
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -261,14 +267,19 @@ class NFoldMetric(RiemannianMetric):
         tangent_vec_a_, tangent_vec_b_, point_ = gs.broadcast_arrays(
             tangent_vec_a, tangent_vec_b, base_point
         )
+        batch_shape = get_batch_shape(self._space, tangent_vec_a_)
+
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
         vector_a = gs.reshape(tangent_vec_a_, (-1, *base_manifold.shape))
         vector_b = gs.reshape(tangent_vec_b_, (-1, *base_manifold.shape))
         inner_each = base_manifold.metric.inner_product(vector_a, vector_b, point_)
-        reshaped = gs.reshape(inner_each, (-1, self._space.n_copies))
+
+        reshaped = gs.reshape(inner_each, batch_shape + (self._space.n_copies,))
+
         if self.scales is not None:
-            reshaped = gs.einsum("j,ij->ij", self.scales, reshaped)
-        return gs.squeeze(gs.sum(reshaped, axis=-1))
+            reshaped = gs.einsum("j,...j->...j", self.scales, reshaped)
+
+        return gs.sum(reshaped, axis=-1)
 
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.

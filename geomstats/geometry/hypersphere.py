@@ -885,7 +885,7 @@ class HypersphereMetric(RiemannianMetric):
                                          covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """
-        if self._space.dim != 2:
+        if self._space.dim != 2 or self._space.default_coords_type != "intrinsic":
             raise NotImplementedError(
                 "The Christoffel symbols are only implemented"
                 " for spherical coordinates in the 2-sphere"
@@ -926,7 +926,7 @@ class HypersphereMetric(RiemannianMetric):
         - \nabla_z\nabla_y z + \nabla_y\nabla_x z`, where :math:`\nabla`
         is the Levi-Civita connection. In the case of the hypersphere,
         we have the closed formula
-        :math:`R(x,y)z = \langle x, z \rangle y - \langle y,z \rangle x`.
+        :math:`R(x,y)z = \langle y,z \rangle x - \langle x, z \rangle y`.
 
         Parameters
         ----------
@@ -944,11 +944,14 @@ class HypersphereMetric(RiemannianMetric):
         curvature : array-like, shape=[..., dim]
             Tangent vector at `base_point`.
         """
+        if self._space.dim == 1:
+            raise NotImplementedError("Curvature is not implemented for the circle.")
+
         inner_ac = self.inner_product(tangent_vec_a, tangent_vec_c)
         inner_bc = self.inner_product(tangent_vec_b, tangent_vec_c)
         first_term = gs.einsum("...,...i->...i", inner_bc, tangent_vec_a)
         second_term = gs.einsum("...,...i->...i", inner_ac, tangent_vec_b)
-        return -first_term + second_term
+        return first_term - second_term
 
     def _normalization_factor_odd_dim(self, variances):
         """Compute the normalization factor - odd dimension."""

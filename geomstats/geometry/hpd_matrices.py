@@ -6,7 +6,6 @@ Lead author: Yann Cabanes.
 import math
 
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry.base import ComplexOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
@@ -1022,7 +1021,6 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
         return inner_product
 
     @staticmethod
-    @geomstats.vectorization.decorator(["matrix", "matrix"])
     def exp_domain(tangent_vec, base_point):
         """Compute the domain of the Euclidean exponential map.
 
@@ -1042,17 +1040,14 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
             Interval of time where the geodesic is defined.
         """
         invsqrt_base_point = HermitianMatrices.powerm(base_point, -0.5)
-
         reduced_vec = gs.matmul(invsqrt_base_point, tangent_vec)
         reduced_vec = gs.matmul(reduced_vec, invsqrt_base_point)
         eigvals = gs.linalg.eigvalsh(reduced_vec)
-        min_eig = gs.amin(eigvals, axis=1)
-        max_eig = gs.amax(eigvals, axis=1)
+        min_eig = gs.amin(eigvals, axis=-1)
+        max_eig = gs.amax(eigvals, axis=-1)
         inf_value = gs.where(max_eig <= 0.0, gs.array(-math.inf), -1.0 / max_eig)
-        inf_value = gs.to_ndarray(inf_value, to_ndim=2)
         sup_value = gs.where(min_eig >= 0.0, gs.array(-math.inf), -1.0 / min_eig)
-        sup_value = gs.to_ndarray(sup_value, to_ndim=2)
-        return gs.concatenate((inf_value, sup_value), axis=1)
+        return gs.stack((inf_value, sup_value), axis=-1)
 
     def injectivity_radius(self, base_point):
         """Compute the upper bound of the injectivity domain.

@@ -81,7 +81,7 @@ class ComplexMatrices(ComplexVectorSpace):
 
     @classmethod
     def is_hermitian(cls, mat, atol=gs.atol):
-        """Check if a matrix is Hermitian.
+        """Check if a square matrix is Hermitian.
 
         Parameters
         ----------
@@ -96,15 +96,11 @@ class ComplexMatrices(ComplexVectorSpace):
         is_herm : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric.
         """
-        is_square = Matrices.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return Matrices.equal(mat, cls.transconjugate(mat), atol)
 
     @classmethod
     def is_hpd(cls, mat, atol=gs.atol):
-        """Check if a matrix is Hermitian positive definite.
+        """Check if a square matrix is Hermitian positive definite.
 
         Parameters
         ----------
@@ -119,8 +115,7 @@ class ComplexMatrices(ComplexVectorSpace):
         is_hpd : array-like, shape=[...,]
             Boolean evaluating if the matrix is Hermitian positive definite.
         """
-        is_hpd = gs.logical_and(cls.is_hermitian(mat, atol), Matrices.is_pd(mat))
-        return is_hpd
+        return gs.logical_and(cls.is_hermitian(mat, atol), Matrices.is_pd(mat))
 
     @classmethod
     def is_skew_hermitian(cls, mat, atol=gs.atol):
