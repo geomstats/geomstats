@@ -56,7 +56,7 @@ def main():
     )
 
     kmeans.fit(X=embeddings)
-    centroids = kmeans.centroids_
+    centroids = kmeans.cluster_centers_
     labels = kmeans.labels_
 
     colors = ["g", "c", "m"]
@@ -106,7 +106,7 @@ def main():
     )
 
     kmedoid.fit(X=embeddings)
-    centroids = kmedoid.centroids_
+    centroids = kmedoid.cluster_centers_
     labels = kmedoid.labels_
 
     colors = ["g", "c", "m"]

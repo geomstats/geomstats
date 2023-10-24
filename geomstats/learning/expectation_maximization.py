@@ -138,7 +138,7 @@ class GaussianMixtureModel:
         variances_flatten = variances_expanded.flatten()
 
         distances = -(self.space.metric.dist_broadcast(data, self.means) ** 2)
-        distances = gs.reshape(distances, (data.shape[0] * self.variances.shape[0]))
+        distances = gs.reshape(distances, (data.shape[0] * self.variances.shape[0],))
 
         num = gs.exp(distances / (2 * variances_flatten**2))
 

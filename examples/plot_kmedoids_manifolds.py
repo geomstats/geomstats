@@ -35,7 +35,7 @@ def kmedoids_poincare_ball():
     )
 
     kmedoids.fit(X=data)
-    centroids = kmedoids.centroids_
+    centroids = kmedoids.cluster_centers_
     labels = kmedoids.labels_
 
     plt.figure(1)
@@ -93,7 +93,7 @@ def kmedoids_hypersphere():
 
     kmedoids = RiemannianKMedoids(manifold, n_clusters=n_clusters)
     kmedoids.fit(X=data)
-    centroids = kmedoids.centroids_
+    centroids = kmedoids.cluster_centers_
     labels = kmedoids.labels_
 
     plt.figure(2)

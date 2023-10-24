@@ -112,7 +112,7 @@ class RiemannianMinimumDistanceToMean(
         if gs.ndim(indices) == 0:
             indices = gs.expand_dims(indices, 0)
 
-        return gs.take(self.classes_, indices)
+        return gs.to_ndarray(gs.take(self.classes_, indices), to_ndim=1)
 
     def predict_proba(self, X):
         """Compute probabilities.

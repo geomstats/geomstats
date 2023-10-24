@@ -30,7 +30,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         Stopping condition. Computation of subsequent mean centers is stopped
         when the distance between them is less than 'tol'.
         Optional, default : 1e-2.
-    n_centers : int
+    n_clusters : int
         Number of centers.
         Optional, default : 1.
     n_jobs : int
@@ -57,7 +57,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         space,
         bandwidth,
         tol=1e-2,
-        n_centers=1,
+        n_clusters=1,
         n_jobs=1,
         max_iter=100,
         init_centers="from_points",
@@ -66,13 +66,13 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         self.space = space
         self.bandwidth = bandwidth
         self.tol = tol
-        self.n_centers = n_centers
+        self.n_clusters = n_clusters
         self.n_jobs = n_jobs
         self.max_iter = max_iter
         self.init_centers = init_centers
         self.kernel = kernel
 
-        self.centers_ = None
+        self.cluster_centers_ = None
 
         self.mean_estimator = FrechetMean(space)
 
@@ -114,9 +114,9 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
     def _initialization(self, X):
         if self.init_centers == "from_points":
             n_points = X.shape[0]
-            centers = X[gs.random.randint(n_points, size=(self.n_centers,)), :]
+            centers = X[gs.random.randint(n_points, size=(self.n_clusters,)), :]
         elif self.init_centers == "random_uniform":
-            centers = self.manifold.random_uniform(n_samples=self.n_centers)
+            centers = self.space.random_uniform(n_samples=self.n_clusters)
 
         return centers
 
@@ -163,7 +163,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
 
             points_to_average, nonzero_weights = [], []
 
-            for j in range(self.n_centers):
+            for j in range(self.n_clusters):
                 indexes = gs.where(weights[j] > 0)
                 nonzero_weights += [
                     weights[j][indexes],
@@ -175,7 +175,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
             pool = joblib.Parallel(n_jobs=self.n_jobs)
             out = pool(
                 pickable_mean(points_to_average[j], nonzero_weights[j])
-                for j in range(self.n_centers)
+                for j in range(self.n_clusters)
             )
 
             new_centers = gs.array(out)
@@ -186,7 +186,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
             if (gs.array(displacements) < self.tol).all():
                 break
 
-        self.centers_ = centers
+        self.cluster_centers_ = centers
 
         return self
 
@@ -198,22 +198,7 @@ class RiemannianMeanShift(ClusterMixin, BaseEstimator):
         points : array-like, shape=[n_samples, n_features]
             Clusters of points.
         """
-        if self.centers_ is None:
+        if self.cluster_centers_ is None:
             raise Exception("Not fitted")
 
-        indices = self.space.metric.closest_neighbor_index(X, self.centers_)
-
-        return gs.take(self.centers_, indices, axis=0)
-
-    def predict_labels(self, X):
-        """Predict the closest cluster label each point in `points` belongs to.
-
-        Parameters
-        ----------
-        X : array-like, shape=[n_samples, n_features]
-            Clusters of points.
-        """
-        if self.centers_ is None:
-            raise Exception("Not fitted")
-
-        return self.space.metric.closest_neighbor_index(X, self.centers_)
+        return self.space.metric.closest_neighbor_index(X, self.cluster_centers_)

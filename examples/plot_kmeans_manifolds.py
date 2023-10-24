@@ -33,7 +33,7 @@ def kmean_poincare_ball():
     kmeans = RiemannianKMeans(manifold, n_clusters=n_clusters, init="random")
 
     kmeans.fit(X=data)
-    centroids = kmeans.centroids_
+    centroids = kmeans.cluster_centers_
     labels = kmeans.labels_
 
     plt.figure(1)
@@ -90,7 +90,7 @@ def kmean_hypersphere():
 
     kmeans = RiemannianKMeans(manifold, n_clusters, tol=1e-3)
     kmeans.fit(data)
-    centroids = kmeans.centroids_
+    centroids = kmeans.cluster_centers_
     labels = kmeans.labels_
 
     plt.figure(2)

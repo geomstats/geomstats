@@ -92,15 +92,17 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             if self.init == "kmeans++":
                 centroids = [X[randint(0, n_samples - 1)]]
                 for i in range(self.n_clusters - 1):
-                    dists = [
-                        self.space.metric.dist(centroids[j], X) for j in range(i + 1)
-                    ]
+                    dists = gs.array(
+                        [self.space.metric.dist(centroids[j], X) for j in range(i + 1)]
+                    )
                     dists_to_closest_centroid = gs.amin(dists, axis=0)
                     indices = gs.arange(n_samples)
                     weights = dists_to_closest_centroid / gs.sum(
                         dists_to_closest_centroid
                     )
-                    index = rv_discrete(values=(indices, weights)).rvs()
+                    index = rv_discrete(
+                        values=(gs.to_numpy(indices), gs.to_numpy(weights))
+                    ).rvs()
                     centroids.append(X[index])
             elif self.init == "random":
                 centroids = [
