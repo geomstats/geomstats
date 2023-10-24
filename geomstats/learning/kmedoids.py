@@ -52,7 +52,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         self.init = init
         self.n_jobs = n_jobs
 
-        self.centroids_ = None
+        self.cluster_centers_ = None
         self.labels_ = None
         self.medoid_indices_ = None
 
@@ -100,7 +100,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
                     "improve the fit."
                 )
 
-        self.centroids_ = X[medoids_indices]
+        self.cluster_centers_ = X[medoids_indices]
         self.labels_ = labels
         self.medoid_indices_ = medoids_indices
 
@@ -143,8 +143,8 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         labels = gs.zeros(len(X))
 
         for point_index, point_value in enumerate(X):
-            distances = gs.zeros(len(self.centroids_))
-            for cluster_index, cluster_value in enumerate(self.centroids_):
+            distances = gs.zeros(len(self.cluster_centers_))
+            for cluster_index, cluster_value in enumerate(self.cluster_centers_):
                 distances[cluster_index] = self.space.metric.dist(
                     point_value, cluster_value
                 )

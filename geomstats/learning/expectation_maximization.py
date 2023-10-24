@@ -138,7 +138,7 @@ class GaussianMixtureModel:
         variances_flatten = variances_expanded.flatten()
 
         distances = -(self.space.metric.dist_broadcast(data, self.means) ** 2)
-        distances = gs.reshape(distances, (data.shape[0] * self.variances.shape[0]))
+        distances = gs.reshape(distances, (data.shape[0] * self.variances.shape[0],))
 
         num = gs.exp(distances / (2 * variances_flatten**2))
 
@@ -465,7 +465,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             )
 
             kmeans_estimator.fit(X=X)
-            centroids = kmeans_estimator.centroids_
+            centroids = kmeans_estimator.cluster_centers_
             labels = kmeans_estimator.labels_
 
             means = centroids
