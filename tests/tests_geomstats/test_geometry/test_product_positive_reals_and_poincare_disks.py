@@ -18,8 +18,7 @@ from .data.product_positive_reals_and_poincare_disks import (
 @pytest.fixture(
     scope="class",
     params=[
-        2,
-        random.randint(3, 5),
+        random.randint(2, 5),
     ],
 )
 def spaces(request):
@@ -38,8 +37,7 @@ class TestProductPositiveRealsAndComplexPoincareDisks(
 @pytest.fixture(
     scope="class",
     params=[
-        2,
-        random.randint(3, 5),
+        random.randint(2, 5),
     ],
 )
 def equipped_spaces(request):

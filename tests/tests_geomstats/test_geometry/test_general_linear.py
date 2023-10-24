@@ -35,6 +35,7 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestGeneralLinear(GeneralLinearTestCase, metaclass=DataBasedParametrizer):
+    trials = 3
     testing_data = GeneralLinearTestData()
 
 

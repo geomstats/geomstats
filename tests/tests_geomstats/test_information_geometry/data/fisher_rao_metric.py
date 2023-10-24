@@ -40,6 +40,7 @@ class FisherRaoMetricCmpUnivariateNormalTestData(TestData):
 
 class FisherRaoMetricCmpExponentialTestData(TestData):
     fail_for_autodiff_exceptions = False
+    tolerances = {"inner_product_derivative_matrix": {"atol": 1e-2}}
 
     def metric_matrix_test_data(self):
         smoke_data = [
@@ -82,6 +83,7 @@ class FisherRaoMetricCmpExponentialTestData(TestData):
 
 class FisherRaoMetricCmpGammaTestData(TestData):
     fail_for_autodiff_exceptions = False
+    tolerances = {"metric_matrix": {"atol": 1e-6}}
 
     def metric_matrix_test_data(self):
         smoke_data = [

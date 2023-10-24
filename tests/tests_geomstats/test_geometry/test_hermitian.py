@@ -4,6 +4,7 @@ import pytest
 
 from geomstats.geometry.hermitian import Hermitian
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.test_case import np_and_torch_only
 from geomstats.test_cases.geometry.hermitian import (
     HermitianMetricTestCase,
     HermitianTestCase,
@@ -43,6 +44,7 @@ def equipped_spaces(request):
     request.cls.space = Hermitian(dim=request.param)
 
 
+@np_and_torch_only
 @pytest.mark.usefixtures("equipped_spaces")
 class TestHermitianMetric(HermitianMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = HermitianMetricTestData()

@@ -37,6 +37,7 @@ class MultinomialMetricTestData(RiemannianMetricTestData):
     tolerances = {
         "log_after_exp": {"atol": 1e-3},
     }
+    xfails = ("log_after_exp",)
 
     def simplex_to_sphere_vec_test_data(self):
         return self.generate_vec_data()

@@ -4,7 +4,7 @@ import geomstats.backend as gs
 from geomstats.datasets.prepare_emg_data import TimeSeriesCovariance
 from geomstats.datasets.utils import load_emg
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import TestCase
+from geomstats.test.test_case import TestCase, np_and_autograd_only, pytorch_backend
 
 from .data.prepare_emg_data import TimeSeriesCovarianceTestData
 
@@ -26,8 +26,10 @@ def _get_transformer():
     return TimeSeriesCovariance(emg_data, n_steps, n_elec, label_map, margin)
 
 
+@np_and_autograd_only
 class TestTimeSeriesCovariance(TestCase, metaclass=DataBasedParametrizer):
-    transformer = _get_transformer()
+    if not pytorch_backend():
+        transformer = _get_transformer()
     testing_data = TimeSeriesCovarianceTestData()
 
     def setup_method(self):

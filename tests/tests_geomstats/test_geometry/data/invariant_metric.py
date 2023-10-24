@@ -118,7 +118,6 @@ class InvariantMetricMatrixSETestData(InvariantMetricMatrixTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
     skip_vec = True
-    trials = 1
 
     tolerances = {
         "dist_vec": {"atol": 1e-4},

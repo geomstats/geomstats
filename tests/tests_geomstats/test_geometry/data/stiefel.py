@@ -35,7 +35,6 @@ class StiefelStaticMethodsTestData(TestData):
 class StiefelCanonicalMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
-    trials = 2
 
     xfails = (
         "dist_is_log_norm",

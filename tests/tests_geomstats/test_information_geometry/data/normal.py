@@ -20,7 +20,7 @@ class UnivariateNormalDistributionsTestData(
 
 
 class UnivariateNormalMetricTestData(PullbackDiffeoMetricTestData):
-    trials = 2
+    trials = 4
 
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False

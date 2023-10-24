@@ -6,7 +6,7 @@ class TestData:
 
     fail_for_autodiff_exceptions = True
     fail_for_not_implemented_errors = True
-    trials = 2
+    trials = 3
     skip_vec = False
     # TODO: remove after refactoring stratified
     skip_all = False

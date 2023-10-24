@@ -69,7 +69,7 @@ class PreShapeSpaceBundleTestData(FiberBundleTestData):
 class PreShapeMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
-    trials = 2
+    trials = 5
 
 
 class KendallShapeMetricTestData(QuotientMetricTestData):

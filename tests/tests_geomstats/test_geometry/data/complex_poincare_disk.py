@@ -60,7 +60,6 @@ class ComplexPoincareDiskTestData(ComplexOpenSetTestData):
 class ComplexPoincareDiskMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
-    trials = 2
 
     skips = ("sectional_curvature_vec",)
 

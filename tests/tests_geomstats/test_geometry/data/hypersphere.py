@@ -55,7 +55,6 @@ class HypersphereCoordsTransformTestData(TestData):
 
 
 class HypersphereExtrinsicTestData(LevelSetTestData):
-    trials = 2
     tolerances = {
         "random_von_mises_fisher_sample_mean": {"atol": 1e-2},
         "random_von_mises_fisher_sample_kappa": {"atol": 1e-1},

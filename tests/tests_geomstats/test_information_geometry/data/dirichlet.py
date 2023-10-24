@@ -14,14 +14,14 @@ class DirichletDistributions3TestData(TestData):
     def belongs_test_data(self):
         smoke_data = [
             dict(point=gs.array([0.1, 1.0, 0.3]), expected=True),
-            dict(point=gs.array([0.1, 1.0]), expected=False),
-            dict(point=gs.array([0.0, 1.0, 0.3]), expected=False),
+            dict(point=gs.array([0.1, 1.001]), expected=False),
+            dict(point=gs.array([-0.001, 1.0, 0.3]), expected=False),
         ]
         return self.generate_tests(smoke_data)
 
 
 class DirichletMetricTestData(RiemannianMetricTestData):
-    trials = 2
+    trials = 5
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
     skip_vec = True

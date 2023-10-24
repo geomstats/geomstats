@@ -18,8 +18,7 @@ from .data.product_hpd_and_siegel_disks import (
 @pytest.fixture(
     scope="class",
     params=[
-        (2, 3),
-        (random.randint(3, 5), random.randint(3, 5)),
+        (random.randint(2, 5), random.randint(2, 5)),
     ],
 )
 def spaces(request):
@@ -39,8 +38,7 @@ class TestProductHPDMatricesAndSiegelDisks(
 @pytest.fixture(
     scope="class",
     params=[
-        (2, 3),
-        (random.randint(3, 5), random.randint(3, 5)),
+        (random.randint(2, 5), random.randint(2, 5)),
     ],
 )
 def equipped_spaces(request):

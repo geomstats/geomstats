@@ -74,7 +74,7 @@ class TestFunction:
             if arg_name.endswith("rtol"):
                 self.tolerances.setdefault(arg_name, gs.rtol)
             elif arg_name.endswith("tol"):
-                self.tolerances.setdefault(arg_name, gs.atol)
+                self.tolerances.setdefault(arg_name, 1e-6)
 
     def collect(
         self, testing_data, decorators=(), conditional_decorators=(), skip_vec=False

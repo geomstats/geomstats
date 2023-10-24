@@ -34,7 +34,6 @@ class SpecialOrthogonalMatricesTestData(
     _SpecialOrthogonalMixinsTestData, MatrixLieGroupTestData, LevelSetTestData
 ):
     fail_for_not_implemented_errors = False
-    trials = 2
 
     tolerances = {
         "projection_belongs": {"atol": 1e-5},
@@ -270,7 +269,6 @@ class SpecialOrthogonal2VectorsSmokeTestData(TestData):
 
 
 class SpecialOrthogonal3VectorsTestData(SpecialOrthogonalVectorsTestData):
-    trials = 2
     skips = ("projection_belongs",)
     tolerances = {
         "tait_bryan_angles_from_quaternion_after_quaternion_from_tait_bryan_angles": {

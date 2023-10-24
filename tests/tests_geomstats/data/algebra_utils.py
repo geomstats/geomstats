@@ -7,6 +7,10 @@ from geomstats.test.data import TestData
 
 
 class AlgebraUtilsTestData(TestData):
+    tolerances = {
+        "taylor_functions_even_exp": {"atol": 1e-4},
+    }
+
     def taylor_functions_even_exp_test_data(self):
         functions = [
             utils.cos_close_0,

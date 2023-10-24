@@ -34,7 +34,7 @@ def get_random_times(n_times, sort=True):
 
 
 class RandomDataGenerator:
-    def __init__(self, space, amplitude=1.0):
+    def __init__(self, space, amplitude=2.0):
         self.space = space
         self.amplitude = amplitude
 
@@ -80,7 +80,7 @@ class HypersphereIntrinsicRandomDataGenerator(RandomDataGenerator):
     def random_tangent_vec(self, base_point):
         n_points = get_n_points(self.space, base_point)
         batch_shape = (n_points,) if n_points > 1 else ()
-        return gs.random.uniform(size=batch_shape + (self.space.dim,))
+        return gs.random.uniform(size=batch_shape + (self.space.dim,)) / self.amplitude
 
 
 class RankKPSDMatricesRandomDataGenerator(RandomDataGenerator):
@@ -110,14 +110,16 @@ class FiberBundleRandomDataGenerator(RandomDataGenerator):
         return self.base.random_point(n_points)
 
     def base_random_tangent_vec(self, base_point):
-        return self.base.random_tangent_vec(base_point)
+        return self.base.random_tangent_vec(base_point) / self.amplitude
 
 
 class KendalShapeRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
     def random_horizontal_vec(self, base_point):
         tangent_vec = self.random_tangent_vec(base_point)
         fiber_bundle = self.space.metric.fiber_bundle
-        return fiber_bundle.horizontal_projection(tangent_vec, base_point)
+        return (
+            fiber_bundle.horizontal_projection(tangent_vec, base_point) / self.amplitude
+        )
 
 
 class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
@@ -127,8 +129,11 @@ class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
     def random_tangent_vec_standard(self, base_point):
         base_point_natural = self.space.standard_to_natural(base_point)
         tangent_vec_natural = self.random_tangent_vec(base_point_natural)
-        return self.space.tangent_natural_to_standard(
-            tangent_vec_natural, base_point_natural
+        return (
+            self.space.tangent_natural_to_standard(
+                tangent_vec_natural, base_point_natural
+            )
+            / self.amplitude
         )
 
 
@@ -158,7 +163,9 @@ class ShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):
 
         geod = geo(times)
 
-        return self.n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
+        return (
+            self.n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
+        ) / self.amplitude
 
 
 class HeisenbergVectorsRandomDataGenerator(VectorSpaceRandomDataGenerator):

@@ -47,7 +47,6 @@ def homogeneous_representation_test_data():
 
 
 class SpecialEuclideanMatricesTestData(MatrixLieGroupTestData, LevelSetTestData):
-    trials = 2
     tolerances = {
         "projection_belongs": {"atol": 1e-4},
     }

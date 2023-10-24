@@ -14,7 +14,6 @@ class BinomialDistributionsTestData(InformationManifoldMixinTestData, OpenSetTes
 
 
 class BinomialMetricTestData(RiemannianMetricTestData):
-    trials = 2
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
