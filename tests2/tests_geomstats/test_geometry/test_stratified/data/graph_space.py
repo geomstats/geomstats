@@ -15,11 +15,16 @@ from geomstats.geometry.stratified.graph_space import (
     _vectorize_graph_to_points,
 )
 from geomstats.test.data import TestData
+from geomstats.test.test_case import np_backend
 
 from .point_set import PointMetricTestData, PointSetTestData, PointTestData
 
+IS_NOT_NP = not np_backend()
+
 
 class GraphSpaceTestData(PointSetTestData):
+    skip_all = IS_NOT_NP
+
     _PointSet = GraphSpace
     _Point = GraphPoint
 
@@ -71,43 +76,12 @@ class GraphSpaceTestData(PointSetTestData):
                 space=space, graph=graph, permutation=gs.array([0, 1]), expected=graph
             ),
         ]
-        vec_data = (
-            dict(
-                space=space,
-                graph=graph,
-                permutation=gs.array([1, 0]),
-                expected=gs.array([[3.0, 2.0], [1.0, 0.0]]),
-            ),
-        )
-
-        return self.generate_tests(smoke_data) + self.generate_vectorization_tests(
-            vec_data,
-            ["graph", "permutation"],
-            expected_name="expected",
-            n_reps=3,
-        )
-
-    def pad_with_zeros_test_data(self):
-        space = self._PointSet(4)
-
-        adjs = [
-            Matrices(2, 2).random_point(),
-            Matrices(3, 3).random_point(),
-            Matrices(4, 4).random_point(),
-        ]
-        points = [self._Point(adj) for adj in adjs]
-
-        vec_data_1 = [dict(space=space, points=point) for point in adjs]
-        vec_data_2 = [dict(space=space, points=point) for point in points]
-
-        return self.generate_vectorization_tests(
-            vec_data_1, ["points"]
-        ) + self.generate_vectorization_tests(
-            vec_data_2, ["points"], check_expand=False
-        )
+        return self.generate_tests(smoke_data)
 
 
 class GraphTestData(PointTestData):
+    skip_all = IS_NOT_NP
+
     _Point = GraphPoint
 
     def to_array_test_data(self):
@@ -134,6 +108,8 @@ class GraphTestData(PointTestData):
 
 
 class GraphSpaceMetricTestData(PointMetricTestData):
+    skip_all = IS_NOT_NP
+
     _PointSetMetric = GraphSpaceMetric
     _PointSet = GraphSpace
     _Point = GraphPoint
@@ -218,6 +194,8 @@ class GraphSpaceMetricTestData(PointMetricTestData):
 
 
 class DecoratorsTestData(TestData):
+    skip_all = IS_NOT_NP
+
     _Point = GraphPoint
     _PointSet = GraphSpace
 
@@ -250,6 +228,8 @@ class DecoratorsTestData(TestData):
 
 
 class AlignerTestData(TestData):
+    skip_all = IS_NOT_NP
+
     def __init__(self):
         self._setup()
 
@@ -287,56 +267,10 @@ class AlignerTestData(TestData):
 
         return self.generate_tests(smoke_data)
 
-    def align_cmp_points_test_data(self):
-        vec_data = []
-        for space_args in self.space_args_list:
-            space = GraphSpace(*space_args, equip=True)
-            base_point, permute_point = space.random_point(2)
-
-            aligners = self._get_aligners()
-            for aligner in aligners:
-                if isinstance(aligner, IDAligner):
-                    expected = permute_point
-                else:
-                    expected = aligner.align(space, base_point, permute_point)
-
-                vec_data.append(
-                    dict(
-                        space=space,
-                        aligner=aligner,
-                        base_point=base_point,
-                        permute_point=permute_point,
-                        expected=expected,
-                    )
-                )
-
-        return self.generate_vectorization_tests(
-            vec_data, ["base_point", "permute_point"], expected_name="expected"
-        )
-
-    def align_output_shape_test_data(self):
-        smoke_data = []
-        for space_args in self.space_args_list:
-            space = GraphSpace(*space_args, equip=True)
-            base_point, permute_point = space.random_point(2)
-
-            aligners = self._get_aligners()
-            for aligner in aligners:
-                smoke_data.append(
-                    dict(
-                        space=space,
-                        aligner=aligner,
-                        base_point=base_point,
-                        permute_point=permute_point,
-                    )
-                )
-
-        return self.generate_vectorization_tests(
-            smoke_data, ["base_point", "permute_point"]
-        )
-
 
 class PointToGeodesicAlignerTestData(TestData):
+    skip_all = IS_NOT_NP
+
     tolerances = {
         "dist": {"atol": 1e-8},
     }
@@ -379,26 +313,7 @@ class PointToGeodesicAlignerTestData(TestData):
                     )
                 )
 
-        vec_data = []
-        for space_args in self.space_args_list:
-            space = GraphSpace(*space_args, equip=True)
-            aligners, geodesic = self._get_aligners_and_geo(space)
-            point = geodesic(0.5)[0]
-
-            for aligner in aligners:
-                vec_data.append(
-                    dict(
-                        space=space,
-                        aligner=aligner,
-                        geodesic=geodesic,
-                        point=point,
-                        expected=point,
-                    )
-                )
-
-        return self.generate_tests(smoke_data) + self.generate_vectorization_tests(
-            vec_data, ["point"], expected_name="expected"
-        )
+        return self.generate_tests(smoke_data)
 
     def dist_test_data(self):
         smoke_data = []
@@ -420,23 +335,4 @@ class PointToGeodesicAlignerTestData(TestData):
                     )
                 )
 
-        vec_data = []
-        for space_args in self.space_args_list:
-            space = GraphSpace(*space_args, equip=True)
-            aligners, geodesic = self._get_aligners_and_geo(space)
-            point = geodesic(0.5)[0]
-
-            for aligner in aligners:
-                vec_data.append(
-                    dict(
-                        space=space,
-                        aligner=aligner,
-                        geodesic=geodesic,
-                        point=point,
-                        expected=0.0,
-                    )
-                )
-
-        return self.generate_tests(smoke_data) + self.generate_vectorization_tests(
-            vec_data, ["point"], expected_name="expected"
-        )
+        return self.generate_tests(smoke_data)

@@ -1,5 +1,5 @@
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import TestCase, np_backend
+from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.stratified.point_set import (
     PointSetTestCase,
     PointTestCase,
@@ -12,20 +12,12 @@ from .data.wald_space import (
     WaldTestData,
 )
 
-IS_NOT_NP = not np_backend()
-
-# TODO: update to new format
-
 
 class TestWaldSpace(PointSetTestCase, metaclass=DataBasedParametrizer):
-    skip_all = IS_NOT_NP
-
     testing_data = WaldSpaceTestData()
 
 
 class TestWald(PointTestCase, metaclass=DataBasedParametrizer):
-    skip_all = IS_NOT_NP
-
     testing_data = WaldTestData()
     _Point = testing_data._Point
 
@@ -36,7 +28,6 @@ class TestWald(PointTestCase, metaclass=DataBasedParametrizer):
 
 
 class TestSplit(TestCase, metaclass=DataBasedParametrizer):
-    skip_all = IS_NOT_NP
     testing_data = SplitTestData()
 
     def test_restrict_to(self, split, subset, expected):
@@ -72,7 +63,6 @@ class TestSplit(TestCase, metaclass=DataBasedParametrizer):
 
 
 class TestTopology(TestCase, metaclass=DataBasedParametrizer):
-    skip_all = IS_NOT_NP
     testing_data = TopologyTestData()
 
     def test_partition(self, st_a, st_b, expected):

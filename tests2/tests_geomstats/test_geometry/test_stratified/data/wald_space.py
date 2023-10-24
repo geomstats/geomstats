@@ -3,11 +3,16 @@ import random
 import geomstats.backend as gs
 from geomstats.geometry.stratified.wald_space import Split, Topology, Wald, WaldSpace
 from geomstats.test.data import TestData
+from geomstats.test.test_case import np_backend
 
 from .point_set import PointSetTestData, PointTestData
 
+IS_NOT_NP = not np_backend()
+
 
 class WaldTestData(PointTestData):
+    skip_all = IS_NOT_NP
+
     _Point = Wald
 
     n_samples = 2
@@ -52,6 +57,8 @@ class WaldTestData(PointTestData):
 
 
 class WaldSpaceTestData(PointSetTestData):
+    skip_all = IS_NOT_NP
+
     _Point = Wald
     _PointSet = WaldSpace
 
@@ -177,12 +184,16 @@ class WaldSpaceTestData(PointSetTestData):
             gs.array([[1.0, 0.56, 0.63], [0.56, 1.0, 0.72], [0.63, 0.72, 1.0]])
         )
 
-        smoke_data.append(dict(space_args=(3,), points=points, expected=expected))
+        smoke_data.append(
+            dict(space_args=(3,), points=points, expected=gs.array(expected))
+        )
 
         return self.generate_tests(smoke_data)
 
 
 class SplitTestData(TestData):
+    skip_all = IS_NOT_NP
+
     def restrict_to_test_data(self):
         smoke_data = [
             dict(
@@ -298,6 +309,8 @@ class SplitTestData(TestData):
 
 
 class TopologyTestData(TestData):
+    skip_all = IS_NOT_NP
+
     def partition_test_data(self):
         # TODO: add false example
         smoke_data = [

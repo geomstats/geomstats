@@ -2,11 +2,16 @@ import random
 
 import geomstats.backend as gs
 from geomstats.geometry.stratified.spider import Spider, SpiderMetric, SpiderPoint
+from geomstats.test.test_case import np_backend
 
 from .point_set import PointMetricTestData, PointSetTestData, PointTestData
 
+IS_NOT_NP = not np_backend()
+
 
 class SpiderTestData(PointSetTestData):
+    skip_all = IS_NOT_NP
+
     _Point = SpiderPoint
     _PointSet = Spider
 
@@ -22,10 +27,10 @@ class SpiderTestData(PointSetTestData):
         pt4 = self._Point(2, 0)
 
         smoke_data = [
-            dict(space_args=(10,), points=[pt1], expected=[True]),
-            dict(space_args=(0,), points=[pt2, pt3], expected=[True, False]),
-            dict(space_args=(2,), points=[pt3], expected=[False]),
-            dict(space_args=(3,), points=[pt4], expected=[False]),
+            dict(space_args=(10,), points=[pt1], expected=gs.array([True])),
+            dict(space_args=(0,), points=[pt2, pt3], expected=gs.array([True, False])),
+            dict(space_args=(2,), points=[pt3], expected=gs.array([False])),
+            dict(space_args=(3,), points=[pt4], expected=gs.array([False])),
         ]
 
         return self.generate_tests(smoke_data)
@@ -51,6 +56,8 @@ class SpiderTestData(PointSetTestData):
 
 
 class SpiderPointTestData(PointTestData):
+    skip_all = IS_NOT_NP
+
     _Point = SpiderPoint
 
     def raise_zero_error_test_data(self):
@@ -68,6 +75,8 @@ class SpiderPointTestData(PointTestData):
 
 
 class SpiderMetricTestData(PointMetricTestData):
+    skip_all = IS_NOT_NP
+
     _PointSetMetric = SpiderMetric
     _PointSet = Spider
     _Point = SpiderPoint

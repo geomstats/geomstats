@@ -268,6 +268,10 @@ class Parametrizer(type):
         test_funcs = _collect_all_tests(attrs, bases, active=True)
         _check_test_data_pairing(test_funcs, testing_data)
 
+        if testing_data.skip_all:
+            for test_func in test_funcs.values():
+                test_func.add_mark("skip")
+
         _update_attrs(test_funcs, testing_data, attrs)
         return super().__new__(cls, name, bases, attrs)
 
@@ -284,7 +288,12 @@ class DataBasedParametrizer(type):
         _raise_missing_testing_data(testing_data)
 
         test_funcs = _collect_all_tests(attrs, bases, active=False)
+
         _activate_tests_given_data(test_funcs, testing_data)
+
+        if testing_data.skip_all:
+            for test_func in test_funcs.values():
+                test_func.add_mark("skip")
 
         _update_attrs(test_funcs, testing_data, attrs)
         return super().__new__(cls, name, bases, attrs)

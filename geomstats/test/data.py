@@ -8,6 +8,8 @@ class TestData:
     fail_for_not_implemented_errors = True
     trials = 2
     skip_vec = False
+    # TODO: remove after refactoring stratified
+    skip_all = False
 
     xfails = ()
     skips = ()

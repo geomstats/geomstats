@@ -70,7 +70,8 @@ class PointSetMetricTestCase(TestCase):
         dist_ba = dist_fnc(point_b, point_a)
         self.assertAllClose(dist_ab, dist_ba)
 
-        self.assertAllClose(dist_fnc(point_a, point_a), gs.zeros(1))
+        res = dist_fnc(point_a, point_a)
+        self.assertAllClose(res, gs.zeros_like(res))
 
         dist_ac = dist_fnc(point_a, point_c)
         dist_cb = dist_fnc(point_c, point_b)

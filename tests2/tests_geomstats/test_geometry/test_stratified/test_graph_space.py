@@ -5,7 +5,7 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import TestCase, np_backend
+from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.stratified.point_set import (
     PointSetMetricTestCase,
     PointSetTestCase,
@@ -21,11 +21,6 @@ from .data.graph_space import (
     PointToGeodesicAlignerTestData,
 )
 
-IS_NOT_NP = not np_backend()
-
-
-# TODO: update to new format
-
 
 def _expand_point(point):
     return gs.expand_dims(point, 0)
@@ -40,7 +35,6 @@ def _expand_and_repeat_point(point, n_reps=2):
 
 
 class TestGraphSpace(PointSetTestCase, metaclass=DataBasedParametrizer):
-    skip_all = IS_NOT_NP
     testing_data = GraphSpaceTestData()
 
     def test_random_point_output_shape(self, space, n_samples):
@@ -89,7 +83,6 @@ class TestGraphSpace(PointSetTestCase, metaclass=DataBasedParametrizer):
 
 
 class TestGraphPoint(PointTestCase, metaclass=DataBasedParametrizer):
-    skip_all = IS_NOT_NP
     testing_data = GraphTestData()
 
     def test_to_networkx(self, point):
@@ -97,8 +90,6 @@ class TestGraphPoint(PointTestCase, metaclass=DataBasedParametrizer):
 
 
 class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=DataBasedParametrizer):
-    skip_all = IS_NOT_NP
-
     skip_test_geodesic_output_type = True
 
     testing_data = GraphSpaceMetricTestData()
@@ -150,7 +141,6 @@ class TestGraphSpaceMetric(PointSetMetricTestCase, metaclass=DataBasedParametriz
 
 
 class TestDecorators(TestCase, metaclass=DataBasedParametrizer):
-    skip_all = IS_NOT_NP
     testing_data = DecoratorsTestData()
 
     def test_vectorize_graph(self, fnc, points):
@@ -184,7 +174,6 @@ class TestDecorators(TestCase, metaclass=DataBasedParametrizer):
 
 
 class TestAligner(TestCase, metaclass=DataBasedParametrizer):
-    skip_all = IS_NOT_NP
     testing_data = AlignerTestData()
 
     def _is_same_equivalence_class(self, permuted_point, expected, dist_fnc):
@@ -223,7 +212,6 @@ class TestAligner(TestCase, metaclass=DataBasedParametrizer):
 
 
 class TestPointToGeodesicAligner(TestCase, metaclass=DataBasedParametrizer):
-    skip_all = IS_NOT_NP
     testing_data = PointToGeodesicAlignerTestData()
 
     def test_align(self, space, aligner, geodesic, point, expected):
