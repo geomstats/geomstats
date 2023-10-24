@@ -3,12 +3,13 @@ import random
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.functions import HilbertSphere, HilbertSphereMetric
+from geomstats.geometry.functions import HilbertSphere
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.manifold import ManifoldTestCase
 from geomstats.test_cases.geometry.mixins import ProjectionTestCaseMixins
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
-from tests2.tests_geomstats.test_geometry.data.functions import (
+
+from .data.functions import (
     HilbertSphereMetricTestData,
     HilbertSphereSmokeTestData,
     HilbertSphereTestData,
@@ -51,8 +52,7 @@ class TestHilbertSphereSmoke(ManifoldTestCase, metaclass=DataBasedParametrizer):
 def equipped_spaces(request):
     n_samples = request.param
     domain = gs.linspace(0, 1, num=n_samples)
-    space = request.cls.space = HilbertSphere(domain, equip=False)
-    space.equip_with_metric(HilbertSphereMetric)
+    request.cls.space = HilbertSphere(domain)
 
 
 @pytest.mark.usefixtures("equipped_spaces")

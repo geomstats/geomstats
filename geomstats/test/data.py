@@ -6,7 +6,7 @@ class TestData:
 
     fail_for_autodiff_exceptions = True
     fail_for_not_implemented_errors = True
-    trials = 1
+    trials = 2
     skip_vec = False
 
     xfails = ()

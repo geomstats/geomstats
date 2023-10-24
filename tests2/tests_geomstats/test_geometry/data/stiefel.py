@@ -35,6 +35,7 @@ class StiefelStaticMethodsTestData(TestData):
 class StiefelCanonicalMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
+    trials = 2
 
     xfails = (
         "dist_is_log_norm",
@@ -68,4 +69,9 @@ class StiefelCanonicalMetricTestData(RiemannianMetricTestData):
         return self.generate_random_data()
 
     def retraction_after_lifting_test_data(self):
+        return self.generate_random_data()
+
+
+class StiefelCanonicalMetricSquareTestData(TestData):
+    def two_sheets_error_test_data(self):
         return self.generate_random_data()

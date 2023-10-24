@@ -8,12 +8,14 @@ from geomstats.test_cases.geometry.base import (
     MatrixVectorSpaceTestCaseMixins,
     VectorSpaceTestCase,
 )
+from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
 from .data.lower_triangular_matrices import (
     LowerTriangularMatrices2TestData,
     LowerTriangularMatrices3TestData,
     LowerTriangularMatricesTestData,
 )
+from .data.matrices import MatricesMetricTestData
 
 
 @pytest.fixture(
@@ -54,3 +56,9 @@ class TestLowerTriangularMatrices3(
 ):
     space = LowerTriangularMatrices(n=3)
     testing_data = LowerTriangularMatrices3TestData()
+
+
+@pytest.mark.redundant
+class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
+    space = LowerTriangularMatrices(n=random.randint(3, 5))
+    testing_data = MatricesMetricTestData()

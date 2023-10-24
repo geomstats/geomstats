@@ -101,3 +101,24 @@ class StiefelCanonicalMetricTestCase(RiemannianMetricTestCase):
 
         point_ = self.space.metric.retraction(tangent_vec, base_point)
         self.assertAllClose(point_, point, atol=atol)
+
+    @pytest.mark.random
+    def test_two_sheets_error(self, n_points):
+        if self.space.n != self.space.p:
+            raise ValueError("Test only defined for n=p.")
+
+        point = self.space.random_point(n_points)
+        base_point = self.space.random_point(n_points)
+
+        det_point = gs.linalg.det(point)
+        det_base = gs.linalg.det(base_point)
+        if n_points > 1:
+            for index in range(n_points):
+                if (det_base[index] * det_point[index]) > 0.0:
+                    point[index][0, :] *= -1
+        else:
+            if (det_base * det_point) > 0.0:
+                point[0, :] *= -1.0
+
+        with pytest.raises(ValueError):
+            self.space.metric.log(point, base_point)

@@ -4,7 +4,7 @@ import pytest
 
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 from geomstats.test_cases.geometry.skew_symmetric_matrices import (
     SkewSymmetricMatricesTestCase,
 )
@@ -53,7 +53,7 @@ class TestSkewSymmetricMatrices3(
 
 
 @pytest.mark.redundant
-class TestMatricesMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
     n = random.randint(2, 5)
-    space = SkewSymmetricMatrices(n=n, equip=True)
+    space = SkewSymmetricMatrices(n=n)
     testing_data = MatricesMetricTestData()

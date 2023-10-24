@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from geomstats.geometry.hyperboloid import Hyperboloid, HyperboloidMetric
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import LevelSetTestCase
@@ -52,8 +52,7 @@ class TestHyperboloid3(LevelSetTestCase, metaclass=DataBasedParametrizer):
     ],
 )
 def equipped_spaces(request):
-    space = request.cls.space = Hyperboloid(dim=request.param, equip=False)
-    space.equip_with_metric(HyperboloidMetric)
+    request.cls.space = Hyperboloid(dim=request.param)
 
 
 @pytest.mark.usefixtures("equipped_spaces")

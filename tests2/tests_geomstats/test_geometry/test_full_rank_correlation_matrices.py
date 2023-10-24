@@ -5,7 +5,6 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.full_rank_correlation_matrices import (
     CorrelationMatricesBundle,
-    FullRankCorrelationAffineQuotientMetric,
     FullRankCorrelationMatrices,
 )
 from geomstats.geometry.general_linear import GeneralLinear
@@ -87,8 +86,7 @@ class TestCorrelationMatricesBundle(
 )
 def affine_quotient_equipped_spaces(request):
     n = request.param
-    request.cls.space = space = FullRankCorrelationMatrices(n=n, equip=False)
-    space.equip_with_metric(FullRankCorrelationAffineQuotientMetric)
+    request.cls.space = FullRankCorrelationMatrices(n=n)
 
 
 @pytest.mark.redundant

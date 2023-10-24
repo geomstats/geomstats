@@ -5,7 +5,7 @@ from geomstats.test.data import TestData
 
 from .base import OpenSetTestData
 from .lie_group import MatrixLieGroupTestData
-from .riemannian_metric import RiemannianMetricTestData
+from .matrices import MatricesMetricTestData
 
 
 class GeneralLinearTestData(MatrixLieGroupTestData, OpenSetTestData):
@@ -18,17 +18,9 @@ class GeneralLinearTestData(MatrixLieGroupTestData, OpenSetTestData):
         return self.generate_tests(data)
 
 
-class GeneralLinearMatricesMetricTestData(RiemannianMetricTestData):
+class GeneralLinearMatricesMetricTestData(MatricesMetricTestData):
     trials = 3
     fail_for_not_implemented_errors = False
-    skips = (
-        "christoffels_vec",
-        "cometric_matrix_vec",
-        "inner_coproduct_vec",
-        "inner_product_derivative_matrix_vec",
-        "metric_matrix_is_spd",
-        "metric_matrix_vec",
-    )
     tolerances = {
         "exp_belongs": {"atol": 1e-4},
         "geodesic_bvp_belongs": {"atol": 1e-4},

@@ -334,9 +334,10 @@ class SPDBuresWassersteinMetricTestData(RiemannianMetricTestData):
     }
 
     skips = (
-        "parallel_transport_transported_is_tangent",
-        "parallel_transport_vec_with_direction",
-        "parallel_transport_vec_with_end_point",
+        "parallel_transport_bvp_transported_is_tangent",
+        "parallel_transport_ivp_transported_is_tangent",
+        "parallel_transport_bvp_vec",
+        "parallel_transport_ivp_vec",
     )
 
 
@@ -419,6 +420,17 @@ class SPD2EuclideanMetricPower1TestData(TestData):
             )
         ]
         return self.generate_tests(data)
+
+    def parallel_transport_test_data(self):
+        smoke_data = [
+            dict(
+                base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                tangent_vec=gs.array([[2.0, 0.0], [0.0, 2.0]]),
+                direction=gs.array([[1.0, 0.0], [0.0, 0.5]]),
+                expected=gs.array([[2.0, 0.0], [0.0, 2.0]]),
+            )
+        ]
+        return self.generate_tests(smoke_data)
 
 
 class SPD3EuclideanMetricPower1TestData(TestData):

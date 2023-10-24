@@ -1,7 +1,4 @@
-from tests2.tests_geomstats.test_geometry.data.product_manifold import (
-    ProductManifoldTestData,
-    ProductRiemannianMetricTestData,
-)
+from .product_manifold import ProductManifoldTestData, ProductRiemannianMetricTestData
 
 
 class ProductPositiveRealsAndComplexPoincareDisksTestData(ProductManifoldTestData):

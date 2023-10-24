@@ -11,12 +11,10 @@ from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
     CholeskyMetricTestCase,
     PositiveLowerTriangularMatricesTestCase,
 )
-from tests2.tests_geomstats.test_geometry.data.positive_lower_triangular_matrices import (
-    CholeskyMetricTestData,
-)
 
 from .data.positive_lower_triangular_matrices import (
     CholeskyMetric2TestData,
+    CholeskyMetricTestData,
     PositiveLowerTriangularMatrices2TestData,
     PositiveLowerTriangularMatricesTestData,
 )
@@ -56,10 +54,7 @@ class TestPositiveLowerTriangularMatrices2(
     ],
 )
 def equipped_spaces(request):
-    space = request.cls.space = PositiveLowerTriangularMatrices(
-        n=request.param, equip=False
-    )
-    space.equip_with_metric(CholeskyMetric)
+    request.cls.space = PositiveLowerTriangularMatrices(n=request.param)
 
 
 @pytest.mark.usefixtures("equipped_spaces")
@@ -69,5 +64,6 @@ class TestCholeskyMetric(CholeskyMetricTestCase, metaclass=DataBasedParametrizer
 
 @pytest.mark.smoke
 class TestCholeskyMetric2(CholeskyMetricTestCase, metaclass=DataBasedParametrizer):
-    space = PositiveLowerTriangularMatrices(n=2)
+    space = PositiveLowerTriangularMatrices(n=2, equip=False)
+    space.equip_with_metric(CholeskyMetric)
     testing_data = CholeskyMetric2TestData()

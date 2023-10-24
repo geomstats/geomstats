@@ -24,6 +24,7 @@ class MinkowskiMetricTestData(RiemannianMetricTestData):
         "metric_matrix_is_spd",
         "norm_is_positive",
         "normalize_vec",
+        "normalize_is_unitary",
         "norm_vec",
         "dist_vec",
     )

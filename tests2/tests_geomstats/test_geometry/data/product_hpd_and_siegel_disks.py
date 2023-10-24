@@ -1,7 +1,4 @@
-from tests2.tests_geomstats.test_geometry.data.product_manifold import (
-    ProductManifoldTestData,
-    ProductRiemannianMetricTestData,
-)
+from .product_manifold import ProductManifoldTestData, ProductRiemannianMetricTestData
 
 
 class ProductHPDMatricesAndSiegelDisksTestData(ProductManifoldTestData):
@@ -9,7 +6,7 @@ class ProductHPDMatricesAndSiegelDisksTestData(ProductManifoldTestData):
 
 
 class ProductHPDMatricesAndSiegelDisksMetricTestData(ProductRiemannianMetricTestData):
-    trials = 3
+    trials = 5
 
     tolerances = {
         "dist_is_log_norm": {"atol": 1e-6},

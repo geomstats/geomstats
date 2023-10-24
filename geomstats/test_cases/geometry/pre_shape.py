@@ -2,7 +2,7 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.test.random import get_random_times
+from geomstats.test.random import KendalShapeRandomDataGenerator, get_random_times
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.base import LevelSetTestCase
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
@@ -69,16 +69,13 @@ def integrability_tensor_alt(bundle, tangent_vec_a, tangent_vec_b, base_point):
 
 
 class PreShapeSpaceTestCase(LevelSetTestCase):
-    def _get_random_matrix_point(self, n_points=1):
-        return self.space.embedding_space.random_point(n_points)
-
     def test_is_centered(self, point, expected, atol):
         res = self.space.is_centered(point, atol=atol)
         self.assertAllEqual(res, expected)
 
     @pytest.mark.vec
     def test_is_centered_vec(self, n_reps, atol):
-        point = self._get_random_matrix_point()
+        point = self.data_generator.random_point()
         expected = self.space.is_centered(point, atol=atol)
 
         vec_data = generate_vectorization_data(
@@ -95,7 +92,7 @@ class PreShapeSpaceTestCase(LevelSetTestCase):
 
     @pytest.mark.vec
     def test_center_vec(self, n_reps, atol):
-        point = self._get_random_matrix_point()
+        point = self.data_generator.random_point()
         expected = self.space.center(point)
 
         vec_data = generate_vectorization_data(
@@ -108,7 +105,7 @@ class PreShapeSpaceTestCase(LevelSetTestCase):
 
     @pytest.mark.random
     def test_center_is_centered(self, n_points, atol):
-        point = self._get_random_matrix_point(n_points)
+        point = self.data_generator.random_point(n_points)
         res = self.space.center(point)
 
         expected = gs.ones(n_points, dtype=bool)
@@ -691,6 +688,11 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
 
 
 class KendallShapeMetricTestCase(QuotientMetricTestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = KendalShapeRandomDataGenerator(self.space)
+        super().setup_method()
+
     def _cmp_points(self, point, point_, atol):
         dists = self.space.metric.dist(point, point_)
         batch_shape = get_batch_shape(self.space, point, point_)
@@ -752,3 +754,163 @@ class KendallShapeMetricTestCase(QuotientMetricTestCase):
             (-1, *self.space.shape),
         )
         self._cmp_points(points, expected_points, atol=atol)
+
+    @pytest.mark.random
+    def test_curvature_is_skew_operator(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+
+        res = self.space.metric.curvature(
+            tangent_vec_a, tangent_vec_a, tangent_vec_b, base_point
+        )
+
+        batch_shape = (n_points,) if n_points > 1 else ()
+        expected = gs.zeros(batch_shape + self.space.shape)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_curvature_bianchi_identity(self, n_points, atol):
+        """First Bianchi identity on curvature in pre-shape space.
+
+        :math:`R(X,Y)Z + R(Y,Z)X + R(Z,X)Y = 0`.
+        """
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_c = self.data_generator.random_tangent_vec(base_point)
+
+        curvature_1 = self.space.metric.curvature(
+            tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point
+        )
+        curvature_2 = self.space.metric.curvature(
+            tangent_vec_b, tangent_vec_c, tangent_vec_a, base_point
+        )
+        curvature_3 = self.space.metric.curvature(
+            tangent_vec_c, tangent_vec_a, tangent_vec_b, base_point
+        )
+
+        result = curvature_1 + curvature_2 + curvature_3
+
+        batch_shape = (n_points,) if n_points > 1 else ()
+        expected = gs.zeros(batch_shape + self.space.shape)
+        self.assertAllClose(result, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_sectional_curvature_lower_bound(self, n_points, atol):
+        """Sectional curvature of Kendall shape space is larger than 1.
+
+        The sectional curvature always increase by taking the quotient in a
+        Riemannian submersion. Thus, it should larger in kendall shape space
+        thane the sectional curvature of the pre-shape space which is 1 as it
+        a hypersphere.
+        The sectional curvature is computed here with the generic
+        directional_curvature and sectional curvature methods.
+        """
+        base_point = self.data_generator.random_point(n_points)
+        hor_a = self.data_generator.random_horizontal_vec(base_point)
+        hor_b = self.data_generator.random_horizontal_vec(base_point)
+
+        tidal_force = self.space.metric.directional_curvature(hor_a, hor_b, base_point)
+
+        numerator = self.space.metric.inner_product(tidal_force, hor_a, base_point)
+        denominator = (
+            self.space.metric.inner_product(hor_a, hor_a, base_point)
+            * self.space.metric.inner_product(hor_b, hor_b, base_point)
+            - self.space.metric.inner_product(hor_a, hor_b, base_point) ** 2
+        )
+
+        condition = ~gs.isclose(denominator, 0.0, atol=atol)
+        kappa = numerator[condition] / denominator[condition]
+        kappa_direct = self.space.metric.sectional_curvature(hor_a, hor_b, base_point)[
+            condition
+        ]
+        self.assertAllClose(kappa, kappa_direct)
+
+        result = kappa > 1.0 - atol
+        self.assertTrue(gs.all(result))
+
+    @pytest.mark.random
+    def test_curvature_derivative_bianchi_identity(self, n_points, atol):
+        r"""2nd Bianchi identity on curvature derivative in kendall space.
+
+        For any 3 tangent vectors horizontally lifted from kendall shape
+        space to Kendall pre-shape space, :math:`(\nabla_X R)(Y, Z)
+        + (\nabla_Y R)(Z,X) + (\nabla_Z R)(X, Y) = 0`.
+        """
+        base_point = self.data_generator.random_point(n_points)
+        hor_x = self.data_generator.random_horizontal_vec(base_point)
+        hor_y = self.data_generator.random_horizontal_vec(base_point)
+        hor_z = self.data_generator.random_horizontal_vec(base_point)
+        hor_h = self.data_generator.random_horizontal_vec(base_point)
+
+        term_x = self.space.metric.curvature_derivative(
+            hor_x, hor_y, hor_z, hor_h, base_point
+        )
+        term_y = self.space.metric.curvature_derivative(
+            hor_y, hor_z, hor_x, hor_h, base_point
+        )
+        term_z = self.space.metric.curvature_derivative(
+            hor_z, hor_x, hor_y, hor_h, base_point
+        )
+
+        result = term_x + term_y + term_z
+        self.assertAllClose(result, gs.zeros_like(result), atol=atol)
+
+    @pytest.mark.random
+    def test_curvature_derivative_is_skew_operator(self, n_points, atol):
+        r"""Derivative of a skew operator is skew.
+
+        For any 3 tangent vectors horizontally lifted from kendall shape space
+        to Kendall pre-shape space, :math:`(\nabla_X R)(Y,Y)Z = 0`.
+        """
+        base_point = self.data_generator.random_point(n_points)
+        hor_x = self.data_generator.random_horizontal_vec(base_point)
+        hor_y = self.data_generator.random_horizontal_vec(base_point)
+        hor_z = self.data_generator.random_horizontal_vec(base_point)
+
+        result = self.space.metric.curvature_derivative(
+            hor_x, hor_y, hor_y, hor_z, base_point
+        )
+        self.assertAllClose(result, gs.zeros_like(result), atol=atol)
+
+    @pytest.mark.random
+    def test_directional_curvature_derivative_is_quadratic(self, n_points, atol):
+        """Directional curvature derivative is quadratic in both variables."""
+        base_point = self.data_generator.random_point(n_points)
+        hor_x = self.data_generator.random_horizontal_vec(base_point)
+        hor_y = self.data_generator.random_horizontal_vec(base_point)
+
+        coef_x, coef_y = gs.random.uniform(size=(2,))
+
+        res = self.space.metric.directional_curvature_derivative(
+            coef_x * hor_x, coef_y * hor_y, base_point
+        )
+        expected = (
+            coef_x**2
+            * coef_y**2
+            * self.space.metric.directional_curvature_derivative(
+                hor_x, hor_y, base_point
+            )
+        )
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_parallel_transport_ivp_transported_is_horizontal(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        direction = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec = self.data_generator.random_horizontal_vec(base_point)
+
+        transported = self.space.metric.parallel_transport(
+            tangent_vec, base_point, direction=direction
+        )
+
+        end_point = self.space.metric.exp(direction, base_point)
+
+        fiber_bundle = self.space.metric.fiber_bundle
+        res = fiber_bundle.is_horizontal(transported, end_point, atol=atol)
+
+        expected_shape = get_batch_shape(self.space, base_point)
+        expected = gs.ones(expected_shape, dtype=bool)
+
+        self.assertAllEqual(res, expected)

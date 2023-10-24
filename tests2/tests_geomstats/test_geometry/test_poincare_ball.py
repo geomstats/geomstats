@@ -33,6 +33,12 @@ class TestPoincareBall(PoincareBallTestCase, metaclass=DataBasedParametrizer):
     testing_data = PoincareBallTestData()
 
 
+@pytest.mark.smoke
+class TestPoincareBall2(PoincareBallTestCase, metaclass=DataBasedParametrizer):
+    space = PoincareBall(dim=2, equip=False)
+    testing_data = PoincareBall2TestData()
+
+
 @pytest.fixture(
     scope="class",
     params=[
@@ -41,8 +47,7 @@ class TestPoincareBall(PoincareBallTestCase, metaclass=DataBasedParametrizer):
     ],
 )
 def equipped_spaces(request):
-    request.cls.space = space = PoincareBall(dim=request.param, equip=False)
-    space.equip_with_metric(PoincareBallMetric)
+    request.cls.space = PoincareBall(dim=request.param)
 
 
 @pytest.mark.usefixtures("equipped_spaces")
@@ -53,14 +58,9 @@ class TestPoincareBallMetric(
 
 
 @pytest.mark.smoke
-class TestPoincareBall2(PoincareBallTestCase, metaclass=DataBasedParametrizer):
-    space = PoincareBall(dim=2, equip=False)
-    testing_data = PoincareBall2TestData()
-
-
-@pytest.mark.smoke
 class TestPoincareBall2Metric(
     PoincareBallMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    space = PoincareBall(dim=2, equip=True)
+    space = PoincareBall(dim=2, equip=False)
+    space.equip_with_metric(PoincareBallMetric)
     testing_data = PoincareBall2MetricTestData()

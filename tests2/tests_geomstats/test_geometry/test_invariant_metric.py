@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+import geomstats.backend as gs
 from geomstats.geometry.invariant_metric import (
     BiInvariantMetric,
     _InvariantMetricMatrix,
@@ -21,6 +22,7 @@ from .data.invariant_metric import (
     BiInvariantMetricMatrixTestData,
     BiInvariantMetricVectorsSOTestData,
     InvariantMetricMatrixSETestData,
+    InvariantMetricMatrixSO3TestData,
     InvariantMetricMatrixSOTestData,
     InvariantMetricVectorTestData,
 )
@@ -47,6 +49,149 @@ class TestInvariantMetricMatrixSO(
     InvariantMetricMatrixTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = InvariantMetricMatrixSOTestData()
+
+
+@pytest.mark.smoke
+class TestInvariantMetricMatrixSO3(
+    InvariantMetricMatrixTestCase, metaclass=DataBasedParametrizer
+):
+    space = SpecialOrthogonal(3, equip=False)
+    space.equip_with_metric(_InvariantMetricMatrix, left=True)
+    testing_data = InvariantMetricMatrixSO3TestData()
+
+    def test_connection_translation_map(self, n_points, atol):
+        # TODO: simplify code or apply to other quantities
+        # e.g. sectional_curvature, curvature, curvature derivative
+        base_point = self.data_generator.random_point()
+
+        x, y, z = self.space.metric.normal_basis(self.space.lie_algebra.basis)
+        expected = 1.0 / 2**0.5 / 2.0 * z
+
+        translation_map = self.space.tangent_translation_map(base_point)
+        tan_a = translation_map(x)
+        tan_b = translation_map(y)
+
+        res = self.space.metric.connection(tan_a, tan_b, base_point)
+        expected = translation_map(expected)
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_connection_smoke(self, atol):
+        base_point = self.space.identity
+        x, y, z = self.space.metric.normal_basis(self.space.lie_algebra.basis)
+        expected = 1.0 / 2**0.5 / 2.0 * z
+        self.test_connection(x, y, base_point, expected, atol)
+
+    def test_sectional_curvature_smoke(self, atol):
+        base_point = self.space.identity
+        x, y, z = self.space.metric.normal_basis(self.space.lie_algebra.basis)
+
+        self.test_sectional_curvature(x, y, base_point, 1.0 / 8, atol)
+        self.test_sectional_curvature(y, y, base_point, 0.0, atol)
+        self.test_sectional_curvature(
+            gs.stack([y, y]),
+            gs.stack([z] * 2),
+            base_point,
+            gs.array([1.0 / 8, 1.0 / 8]),
+            atol,
+        )
+
+    def test_curvature_smoke(self, atol):
+        base_point = self.space.identity
+        x, y, z = self.space.metric.normal_basis(self.space.lie_algebra.basis)
+
+        self.test_curvature(x, y, x, base_point, 1.0 / 8 * y, atol)
+        self.test_curvature(
+            tangent_vec_a=gs.stack([x, x]),
+            tangent_vec_b=gs.stack([y] * 2),
+            tangent_vec_c=gs.stack([x, x]),
+            base_point=base_point,
+            expected=gs.array([1.0 / 8 * y] * 2),
+            atol=atol,
+        )
+        self.test_curvature(
+            tangent_vec_a=y,
+            tangent_vec_b=y,
+            tangent_vec_c=z,
+            base_point=base_point,
+            expected=gs.zeros_like(z),
+            atol=atol,
+        )
+
+    def test_structure_constant_smoke(self, atol):
+        # TODO: simplify by testing properties
+        x, y, z = self.space.metric.normal_basis(self.space.lie_algebra.basis)
+
+        self.test_structure_constant(
+            tangent_vec_a=x,
+            tangent_vec_b=y,
+            tangent_vec_c=z,
+            expected=2.0**0.5 / 2.0,
+            atol=atol,
+        )
+        self.test_structure_constant(
+            tangent_vec_a=y,
+            tangent_vec_b=x,
+            tangent_vec_c=z,
+            expected=-(2.0**0.5 / 2.0),
+            atol=atol,
+        )
+        self.test_structure_constant(
+            tangent_vec_a=y,
+            tangent_vec_b=z,
+            tangent_vec_c=x,
+            expected=2.0**0.5 / 2.0,
+            atol=atol,
+        )
+        self.test_structure_constant(
+            tangent_vec_a=z,
+            tangent_vec_b=y,
+            tangent_vec_c=x,
+            expected=-(2.0**0.5 / 2.0),
+            atol=atol,
+        )
+        self.test_structure_constant(
+            tangent_vec_a=z,
+            tangent_vec_b=x,
+            tangent_vec_c=y,
+            expected=2.0**0.5 / 2.0,
+            atol=atol,
+        )
+        self.test_structure_constant(
+            tangent_vec_a=x,
+            tangent_vec_b=z,
+            tangent_vec_c=y,
+            expected=-(2.0**0.5 / 2.0),
+            atol=atol,
+        )
+        self.test_structure_constant(
+            tangent_vec_a=x,
+            tangent_vec_b=x,
+            tangent_vec_c=y,
+            expected=0.0,
+            atol=atol,
+        )
+
+    def test_curvature_derivative_at_identity_smoke(self, atol):
+        x, y, z = self.space.metric.normal_basis(self.space.lie_algebra.basis)
+
+        self.test_curvature_derivative_at_identity(
+            tangent_vec_a=x,
+            tangent_vec_b=y,
+            tangent_vec_c=z,
+            tangent_vec_d=x,
+            expected=gs.zeros_like(x),
+            atol=atol,
+        )
+
+    def test_inner_product_from_vec_representation(
+        self, tangent_vec_a, tangent_vec_b, expected, atol
+    ):
+        algebra = self.space.lie_algebra
+        tangent_vec_a = algebra.matrix_representation(tangent_vec_a)
+        tangent_vec_b = algebra.matrix_representation(tangent_vec_b)
+
+        res = self.space.metric.inner_product(tangent_vec_a, tangent_vec_b)
+        self.assertAllClose(res, expected, atol=atol)
 
 
 @pytest.fixture(

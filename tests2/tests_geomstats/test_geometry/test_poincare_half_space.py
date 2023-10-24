@@ -9,13 +9,11 @@ from geomstats.geometry.poincare_half_space import (
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.poincare_half_space import PoincareHalfSpaceTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
-from tests2.tests_geomstats.test_geometry.data.poincare_half_space import (
-    PoincareHalfSpaceMetricTestData,
-)
 
 from .data.poincare_half_space import (
     PoincareHalfSpace2TestData,
     PoincareHalfSpaceMetric2TestData,
+    PoincareHalfSpaceMetricTestData,
     PoincareHalfSpaceTestData,
 )
 
@@ -52,8 +50,7 @@ class TestPoincareHalfSpace2(
     ],
 )
 def equipped_spaces(request):
-    space = request.cls.space = PoincareHalfSpace(dim=request.param, equip=False)
-    space.equip_with_metric(PoincareHalfSpaceMetric)
+    request.cls.space = PoincareHalfSpace(dim=request.param)
 
 
 @pytest.mark.usefixtures("equipped_spaces")
@@ -67,7 +64,8 @@ class TestPoincareHalfSpaceMetric(
 class TestPoincareHalfSpaceMetric2(
     RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    space = PoincareHalfSpace(dim=2)
+    space = PoincareHalfSpace(dim=2, equip=False)
+    space.equip_with_metric(PoincareHalfSpaceMetric)
     testing_data = PoincareHalfSpaceMetric2TestData()
 
     def test_exp_and_coordinates_tangent(self, tangent_vec, base_point):

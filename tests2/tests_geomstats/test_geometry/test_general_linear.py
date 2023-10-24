@@ -6,7 +6,7 @@ from geomstats.geometry.general_linear import GeneralLinear, SquareMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.general_linear import GeneralLinearTestCase
 from geomstats.test_cases.geometry.lie_algebra import MatrixLieAlgebraTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
 from .data.general_linear import (
     GeneralLinear2TestData,
@@ -59,11 +59,12 @@ class TestGeneralLinear3(GeneralLinearTestCase, metaclass=DataBasedParametrizer)
 )
 def equipped_spaces(request):
     n, positive_det = request.param
-    request.cls.space = GeneralLinear(n=n, positive_det=positive_det, equip=True)
+    request.cls.space = GeneralLinear(n=n, positive_det=positive_det)
 
 
+@pytest.mark.redundant
 @pytest.mark.usefixtures("equipped_spaces")
-class TestMatricesMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = GeneralLinearMatricesMetricTestData()
 
 
@@ -90,9 +91,7 @@ class TestSquareMatrices3(MatrixLieAlgebraTestCase, metaclass=DataBasedParametri
 
 
 @pytest.mark.redundant
-class TestSquareMatricesMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
+class TestSquareMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
     n = random.randint(2, 5)
-    space = SquareMatrices(n=n, equip=True)
+    space = SquareMatrices(n=n)
     testing_data = MatricesMetricTestData()

@@ -10,27 +10,30 @@ from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.geometry.stiefel import Stiefel
 from geomstats.learning.frechet_mean import (
     BatchGradientDescent,
     FrechetMean,
     GradientDescent,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.learning._base import BaseEstimatorTestCase
 from geomstats.test_cases.learning.frechet_mean import (
     BatchGradientDescentTestCase,
     CircularMeanTestCase,
     ElasticMeanTestCase,
     FrechetMeanTestCase,
+    VarianceTestCase,
 )
 
 from .data.frechet_mean import (
     BatchGradientDescentTestData,
     CircularMeanTestData,
+    FrechetMeanSOCoincideTestData,
     FrechetMeanTestData,
+    LinearMeanEuclideaTestData,
+    VarianceEuclideanTestData,
+    VarianceTestData,
 )
-
-# TODO: add variance tests
 
 
 @pytest.fixture(
@@ -43,7 +46,6 @@ from .data.frechet_mean import (
         (SpecialOrthogonal(n=3, point_type="matrix"), "default"),
         (SpecialOrthogonal(n=3, point_type="matrix"), "adaptive"),
         (SPDMatrices(3), "default"),
-        # (Stiefel(3, 2), "default"),  # TODO: create own test
         (Hyperboloid(dim=3), "default"),
     ],
 )
@@ -55,6 +57,26 @@ def estimators(request):
 @pytest.mark.usefixtures("estimators")
 class TestFrechetMean(FrechetMeanTestCase, metaclass=DataBasedParametrizer):
     testing_data = FrechetMeanTestData()
+
+
+class TestFrechetMeanSOCoincide(BaseEstimatorTestCase, metaclass=DataBasedParametrizer):
+    estimator = FrechetMean(SpecialOrthogonal(n=3, point_type="matrix"))
+    other_estimator = FrechetMean(SpecialOrthogonal(n=3, point_type="vector"))
+
+    testing_data = FrechetMeanSOCoincideTestData()
+
+    @pytest.mark.random
+    def test_estimate_coincide(self, n_samples, atol):
+        mat_space = self.estimator.space
+        X = mat_space.random_point(n_samples)
+
+        res = self.estimator.fit(X).estimate_
+
+        X_vec = mat_space.rotation_vector_from_matrix(X)
+        res_vec = self.other_estimator.fit(X_vec).estimate_
+        res_ = mat_space.matrix_from_rotation_vector(res_vec)
+
+        self.assertAllClose(res, res_, atol=atol)
 
 
 @pytest.fixture(
@@ -73,6 +95,12 @@ def linear_mean_estimators(request):
 @pytest.mark.usefixtures("linear_mean_estimators")
 class TestLinearMean(FrechetMeanTestCase, metaclass=DataBasedParametrizer):
     testing_data = FrechetMeanTestData()
+
+
+@pytest.mark.smoke
+class TestLinearMeanEuclidean(FrechetMeanTestCase, metaclass=DataBasedParametrizer):
+    estimator = FrechetMean(Euclidean(dim=3))
+    testing_data = LinearMeanEuclideaTestData()
 
 
 @pytest.fixture(
@@ -99,6 +127,28 @@ class TestCircularMean(CircularMeanTestCase, metaclass=DataBasedParametrizer):
     estimator = FrechetMean(space)
 
     testing_data = CircularMeanTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        Hypersphere(dim=random.randint(3, 4)),
+        Hyperboloid(dim=3),
+    ],
+)
+def variance_estimators(request):
+    request.cls.space = request.param
+
+
+@pytest.mark.usefixtures("variance_estimators")
+class TestVariance(VarianceTestCase, metaclass=DataBasedParametrizer):
+    testing_data = VarianceTestData()
+
+
+@pytest.mark.smoke
+class TestVarianceEuclidean(VarianceTestCase, metaclass=DataBasedParametrizer):
+    space = Euclidean(dim=2)
+    testing_data = VarianceEuclideanTestData()
 
 
 @pytest.fixture(

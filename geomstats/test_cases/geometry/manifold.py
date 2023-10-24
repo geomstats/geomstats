@@ -24,10 +24,7 @@ class _ManifoldTestCaseMixins:
 
     @pytest.mark.random
     def test_not_belongs(self, n_points, atol):
-        # TODO: ideally find a way to check one of each in the same output
-
-        shape = list(self.space.shape)
-        shape[0] += 1
+        shape = [val + 1 for val in self.space.shape]
 
         batch_shape = [n_points] if n_points else []
         point = gs.ones(batch_shape + shape)
@@ -153,9 +150,6 @@ class _ManifoldTestCaseMixins:
         """
         point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(point)
-        print(self.space.shape)
-        print(point.shape)
-        print(tangent_vec.shape)
 
         expected_ndim = self.space.point_ndim + int(n_points > 1)
         self.assertEqual(gs.ndim(point), expected_ndim)

@@ -1,10 +1,8 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.tests_geomstats.test_geometry.data.base import OpenSetTestData
-from tests2.tests_geomstats.test_geometry.data.riemannian_metric import (
-    RiemannianMetricTestData,
-)
 
+from ...test_geometry.data.base import OpenSetTestData
+from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
 from .base import InformationManifoldMixinTestData
 
 

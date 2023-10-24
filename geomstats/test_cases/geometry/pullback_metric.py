@@ -1,9 +1,82 @@
 import pytest
 
 import geomstats.backend as gs
+from geomstats.geometry.base import ImmersedSet
+from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.invariant_metric import BiInvariantMetric
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+
+
+class CircleAsSO2Metric(PullbackDiffeoMetric):
+    def __init__(self, space):
+        if not space.dim == 1:
+            raise ValueError(
+                "This dummy class using SO(2) metric for S1 has "
+                "a meaning only when dim=1"
+            )
+        super().__init__(space=space)
+
+    def _define_embedding_space(self):
+        space = SpecialOrthogonal(n=2, point_type="matrix", equip=False)
+        space.equip_with_metric(BiInvariantMetric)
+        return space
+
+    def diffeomorphism(self, base_point):
+        second_column = gs.stack([-base_point[..., 1], base_point[..., 0]], axis=-1)
+        return gs.stack([base_point, second_column], axis=-1)
+
+    def inverse_diffeomorphism(self, image_point):
+        return image_point[..., 0]
+
+
+class CircleIntrinsic(ImmersedSet):
+    def __init__(self, equip=True):
+        super().__init__(dim=1, equip=equip)
+
+    def immersion(self, point):
+        return gs.hstack([gs.cos(point), gs.sin(point)])
+
+    def _define_embedding_space(self):
+        return Euclidean(dim=self.dim + 1)
+
+
+class SphereIntrinsic(ImmersedSet):
+    def __init__(self, equip=True):
+        super().__init__(dim=2, equip=equip)
+
+    def immersion(self, point):
+        theta = point[..., 0]
+        phi = point[..., 1]
+        return gs.stack(
+            [
+                gs.cos(phi) * gs.sin(theta),
+                gs.sin(phi) * gs.sin(theta),
+                gs.cos(theta),
+            ],
+            axis=-1,
+        )
+
+    def _define_embedding_space(self):
+        return Euclidean(dim=self.dim + 1)
+
+
+class PullbackMetricTestCase(RiemannianMetricTestCase):
+    def test_second_fundamental_form(self, base_point, expected, atol):
+        res = self.space.metric.second_fundamental_form(base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_mean_curvature_vector(self, base_point, expected, atol):
+        res = self.space.metric.mean_curvature_vector(base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_mean_curvature_vector_norm(self, base_point, expected, atol):
+        mean_curvature = self.space.metric.mean_curvature_vector(base_point)
+        res = gs.linalg.norm(mean_curvature)
+        self.assertAllClose(res, expected, atol=atol)
 
 
 class PullbackDiffeoMetricTestCase(RiemannianMetricTestCase):

@@ -1,9 +1,8 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.tests_geomstats.test_geometry.data.manifold import ManifoldTestData
-from tests2.tests_geomstats.test_geometry.data.riemannian_metric import (
-    RiemannianMetricTestData,
-)
+
+from .manifold import ManifoldTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 def gaussian(x, mu, sig):
@@ -37,7 +36,7 @@ class HilbertSphereSmokeTestData(TestData):
 
 
 class HilbertSphereMetricTestData(RiemannianMetricTestData):
-    trials = 3
+    trials = 5
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 

@@ -8,7 +8,7 @@ from geomstats.test_cases.geometry.base import (
     MatrixVectorSpaceTestCaseMixins,
     VectorSpaceTestCase,
 )
-from geomstats.test_cases.geometry.hermitian import HermitianMetricTestCase
+from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 from geomstats.test_cases.geometry.symmetric_matrices import (
     SymmetricMatricesOpsTestCase,
 )
@@ -71,26 +71,15 @@ class TestSymmetricMatrices3(
 
 @pytest.mark.parametrize("n,expected", [(1, 1), (2, 3), (5, 15)])
 def test_dim(n, expected):
-    space = SymmetricMatrices(n=n, equip=False)
+    space = SymmetricMatrices(n, equip=False)
     assert space.dim == expected
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def equipped_spaces(request):
-    request.cls.space = SymmetricMatrices(n=request.param, equip=True)
-
-
 @pytest.mark.redundant
-@pytest.mark.usefixtures("equipped_spaces")
-class TestComplexMatricesMetric(
-    HermitianMetricTestCase, metaclass=DataBasedParametrizer
-):
+class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
+    n = random.randint(3, 5)
+    space = SymmetricMatrices(n=n)
+
     testing_data = ComplexMatricesMetricTestData()
 
 

@@ -265,3 +265,50 @@ class OpenSetTestCase(_OpenSetTestCaseMixins, ManifoldTestCase):
 
 class ComplexOpenSetTestCase(_OpenSetTestCaseMixins, ComplexManifoldTestCase):
     pass
+
+
+class ImmersedSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = EmbeddedSpaceRandomDataGenerator(self.space)
+        super().setup_method()
+
+    def test_immersion(self, point, expected, atol):
+        res = self.space.immersion(point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_immersion_belongs(self, n_points, atol):
+        point = self.data_generator.random_point(n_points)
+
+        embedded_point = self.space.immersion(point)
+
+        expected = gs.ones(n_points, dtype=bool)
+        res = self.space.embedding_space.belongs(embedded_point, atol=atol)
+        self.assertAllEqual(res, expected)
+
+    def test_tangent_immersion(self, tangent_vec, base_point, expected, atol):
+        res = self.space.tangent_immersion(tangent_vec, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_tangent_immersion_is_tangent(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        embedded_point = self.space.immersion(base_point)
+        embedded_tangent_vec = self.space.tangent_immersion(tangent_vec, base_point)
+
+        expected = gs.ones(n_points, dtype=bool)
+        res = self.space.embedding_space.is_tangent(
+            embedded_tangent_vec, embedded_point, atol=atol
+        )
+        self.assertAllEqual(res, expected)
+
+    def test_jacobian_immersion(self, base_point, expected, atol):
+        res = self.space.jacobian_immersion(base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    def test_hessian_immersion(self, base_point, expected, atol):
+        res = self.space.hessian_immersion(base_point)
+        self.assertAllClose(res, expected, atol=atol)

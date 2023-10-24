@@ -4,12 +4,12 @@ import pytest
 
 from geomstats.geometry.product_hpd_and_siegel_disks import (
     ProductHPDMatricesAndSiegelDisks,
-    ProductHPDMatricesAndSiegelDisksMetric,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
-from tests2.tests_geomstats.test_geometry.data.product_hpd_and_siegel_disks import (
+
+from .data.product_hpd_and_siegel_disks import (
     ProductHPDMatricesAndSiegelDisksMetricTestData,
     ProductHPDMatricesAndSiegelDisksTestData,
 )
@@ -45,11 +45,7 @@ class TestProductHPDMatricesAndSiegelDisks(
 )
 def equipped_spaces(request):
     n_manifolds, n = request.param
-    space = request.cls.space = ProductHPDMatricesAndSiegelDisks(
-        n_manifolds=n_manifolds, n=n, equip=False
-    )
-
-    space.equip_with_metric(ProductHPDMatricesAndSiegelDisksMetric)
+    request.cls.space = ProductHPDMatricesAndSiegelDisks(n_manifolds=n_manifolds, n=n)
 
 
 @pytest.mark.usefixtures("equipped_spaces")

@@ -11,6 +11,7 @@ from geomstats.test_cases.geometry.stiefel import (
 )
 
 from .data.stiefel import (
+    StiefelCanonicalMetricSquareTestData,
     StiefelCanonicalMetricTestData,
     StiefelStaticMethodsTestData,
     StiefelTestData,
@@ -22,8 +23,8 @@ from .data.stiefel import (
 
 def _get_random_params():
     while True:
-        a = random.randint(2, 6)
-        b = random.randint(2, 6)
+        a = random.randint(2, 5)
+        b = random.randint(2, 5)
 
         if a != b:
             break
@@ -39,8 +40,6 @@ def _get_random_params():
 @pytest.fixture(
     scope="class",
     params=[
-        (3, 2),
-        # (random.randint(2, 4), 1),
         _get_random_params(),
     ],
 )
@@ -63,16 +62,12 @@ class TestStiefelStaticMethods(StiefelStaticMethodsTestCase, metaclass=Parametri
 @pytest.fixture(
     scope="class",
     params=[
-        (3, 2),
-        # (random.randint(2, 4), 1),
         _get_random_params(),
     ],
 )
 def equipped_spaces(request):
     n, p = request.param
-    space = Stiefel(n=n, p=p, equip=False)
-    request.cls.space = space
-    space.equip_with_metric(StiefelCanonicalMetric)
+    request.cls.space = Stiefel(n=n, p=p)
 
 
 @pytest.mark.usefixtures("equipped_spaces")
@@ -80,3 +75,12 @@ class TestStiefelCanonicalMetric(
     StiefelCanonicalMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = StiefelCanonicalMetricTestData()
+
+
+class TestStiefelCanonicalMetricSquare(
+    StiefelCanonicalMetricTestCase, metaclass=DataBasedParametrizer
+):
+    k = random.randint(2, 5)
+    space = Stiefel(n=k, p=k, equip=False)
+    space.equip_with_metric(StiefelCanonicalMetric)
+    testing_data = StiefelCanonicalMetricSquareTestData()

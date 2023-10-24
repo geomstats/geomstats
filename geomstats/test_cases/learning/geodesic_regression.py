@@ -53,7 +53,8 @@ class GeodesicRegressionTestCase(BaseEstimatorTestCase):
             )
 
     @pytest.mark.random
-    def test_loss(self, n_samples, atol):
+    def test_loss_at_true_is_zero(self, n_samples, atol):
+        """Test that the loss is 0 at the true parameters."""
         model = self.data_generator.random_model()
         X, y = model.generate(n_samples)
 

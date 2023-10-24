@@ -4,12 +4,12 @@ import pytest
 
 from geomstats.geometry.product_positive_reals_and_poincare_disks import (
     ProductPositiveRealsAndComplexPoincareDisks,
-    ProductPositiveRealsAndComplexPoincareDisksMetric,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
-from tests2.tests_geomstats.test_geometry.data.product_positive_reals_and_poincare_disks import (
+
+from .data.product_positive_reals_and_poincare_disks import (
     ProductPositiveRealsAndComplexPoincareDisksMetricTestData,
     ProductPositiveRealsAndComplexPoincareDisksTestData,
 )
@@ -43,10 +43,9 @@ class TestProductPositiveRealsAndComplexPoincareDisks(
     ],
 )
 def equipped_spaces(request):
-    space = request.cls.space = ProductPositiveRealsAndComplexPoincareDisks(
-        n_manifolds=request.param, equip=False
+    request.cls.space = ProductPositiveRealsAndComplexPoincareDisks(
+        n_manifolds=request.param
     )
-    space.equip_with_metric(ProductPositiveRealsAndComplexPoincareDisksMetric)
 
 
 @pytest.mark.usefixtures("equipped_spaces")

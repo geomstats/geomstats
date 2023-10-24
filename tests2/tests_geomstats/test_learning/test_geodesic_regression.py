@@ -8,6 +8,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.learning.geodesic_regression import GeodesicRegression
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.test_case import autograd_only
 from geomstats.test_cases.learning.geodesic_regression import GeodesicRegressionTestCase
 
 from .data.geodesic_regression import GeodesicRegressionTestData
@@ -23,8 +24,6 @@ from .data.geodesic_regression import GeodesicRegressionTestData
         (Euclidean(random.randint(3, 5)), "riemannian"),
         (Hypersphere(random.randint(3, 5)), "extrinsic"),
         (Hypersphere(random.randint(3, 5)), "riemannian"),
-        (SpecialEuclidean(n=2), "extrinsic"),
-        (SpecialEuclidean(n=2), "riemannian"),
         (
             DiscreteCurves(
                 Euclidean(dim=2),
@@ -39,8 +38,30 @@ def estimators(request):
     request.cls.estimator = GeodesicRegression(space, method=method)
 
 
+@pytest.mark.slow
 @pytest.mark.usefixtures("estimators")
 class TestGeodesicRegression(
+    GeodesicRegressionTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = GeodesicRegressionTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (SpecialEuclidean(n=2), "extrinsic"),
+        (SpecialEuclidean(n=2), "riemannian"),
+    ],
+)
+def estimators2(request):
+    space, method = request.param
+    request.cls.estimator = GeodesicRegression(space, method=method)
+
+
+@autograd_only
+@pytest.mark.slow
+@pytest.mark.usefixtures("estimators2")
+class TestGeodesicRegressionOnlyAutograd(
     GeodesicRegressionTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = GeodesicRegressionTestData()

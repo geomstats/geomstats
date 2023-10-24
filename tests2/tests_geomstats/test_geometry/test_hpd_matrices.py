@@ -148,6 +148,10 @@ class TestHPDEuclideanMetric(
 ):
     testing_data = HPDEuclideanMetricTestData()
 
+    def test_exp_domain(self, tangent_vec, base_point, expected, atol):
+        res = self.space.metric.exp_domain(tangent_vec, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
 
 @pytest.fixture(
     scope="class",

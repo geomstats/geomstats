@@ -1,10 +1,8 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
-from tests2.tests_geomstats.test_geometry.data.riemannian_metric import (
-    RiemannianMetricTestData,
-)
 
 from .base import OpenSetTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class PoincareHalfSpaceTestData(OpenSetTestData):

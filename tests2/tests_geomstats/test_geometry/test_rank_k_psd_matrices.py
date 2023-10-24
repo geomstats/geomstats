@@ -61,7 +61,6 @@ def spaces(request):
 class TestRankKPSDMatrices(
     ProjectionTestCaseMixins, ManifoldTestCase, metaclass=DataBasedParametrizer
 ):
-    # TODO: fix to_tangent?
     testing_data = RankKPSDMatricesTestData()
 
 

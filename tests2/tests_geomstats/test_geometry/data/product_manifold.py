@@ -1,7 +1,5 @@
-from tests2.tests_geomstats.test_geometry.data.manifold import ManifoldTestData
-from tests2.tests_geomstats.test_geometry.data.riemannian_metric import (
-    RiemannianMetricTestData,
-)
+from .manifold import ManifoldTestData
+from .riemannian_metric import RiemannianMetricTestData
 
 
 class ProductManifoldTestData(ManifoldTestData):

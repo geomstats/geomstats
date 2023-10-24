@@ -10,8 +10,4 @@ class AgglomerativeHierarchicalClusteringTestCase(TestCase):
         estimator.fit(dataset)
 
         clustering_labels = estimator.labels_
-        result = (clustering_labels == expected).all() or (
-            clustering_labels == gs.where(expected, 0, 1)
-        ).all()
-        expected = True
-        self.assertAllClose(expected, result)
+        self.assertAllEqual(clustering_labels, expected)

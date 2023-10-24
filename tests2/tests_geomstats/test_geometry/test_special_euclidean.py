@@ -13,7 +13,7 @@ from geomstats.test_cases.geometry.base import LevelSetTestCase
 from geomstats.test_cases.geometry.invariant_metric import InvariantMetricMatrixTestCase
 from geomstats.test_cases.geometry.lie_algebra import MatrixLieAlgebraTestCase
 from geomstats.test_cases.geometry.lie_group import MatrixLieGroupTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 from geomstats.test_cases.geometry.special_euclidean import (
     SpecialEuclideanVectorsTestCase,
     homogeneous_representation_test_case,
@@ -152,7 +152,7 @@ class TestSpecialEuclideanMatricesLieAlgebra2(
 
 
 @pytest.mark.redundant
-class TestMatricesMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer):
     n = random.randint(2, 5)
     space = SpecialEuclideanMatricesLieAlgebra(n=n, equip=True)
     testing_data = MatricesMetricTestData()

@@ -77,6 +77,10 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         )
         self.assertAllClose(res, expected, atol=atol)
 
+    def test_hamiltonian(self, state, expected, atol):
+        res = self.space.metric.hamiltonian(state)
+        self.assertAllClose(res, expected, atol=atol)
+
     def test_squared_norm(self, vector, base_point, expected, atol):
         res = self.space.metric.squared_norm(vector, base_point)
         self.assertAllClose(res, expected, atol=atol)
@@ -97,6 +101,18 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
     def test_normalize(self, vector, base_point, expected, atol):
         res = self.space.metric.normalize(vector, base_point)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_normalize_is_unitary(self, n_points, atol):
+        point = self.data_generator.random_point(n_points)
+        vec = self.data_generator.random_tangent_vec(point)
+
+        normalized_vec = self.space.metric.normalize(vec, point)
+        res = self.space.metric.norm(normalized_vec, point)
+
+        batch_shape = (n_points,) if n_points > 1 else ()
+        expected = gs.ones(batch_shape)
         self.assertAllClose(res, expected, atol=atol)
 
     def test_squared_dist(self, point_a, point_b, expected, atol):

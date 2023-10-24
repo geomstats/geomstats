@@ -156,10 +156,9 @@ class HypersphereExtrinsicMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
-    trials = 2
+    trials = 3
 
     tolerances = {"dist_point_to_itself_is_zero": {"atol": 1e-6}}
-    skips = ("sectional_curvature_is_one",)
 
     def sectional_curvature_is_one_test_data(self):
         return self.generate_random_data()
@@ -167,6 +166,23 @@ class HypersphereExtrinsicMetricTestData(RiemannianMetricTestData):
 
 class Hypersphere2IntrinsicMetricTestData(TestData):
     fail_for_autodiff_exceptions = False
+
+    def inner_product_test_data(self):
+        data = [
+            dict(
+                tangent_vec_a=gs.array([0.3, 0.4]),
+                tangent_vec_b=gs.array([0.1, -0.5]),
+                base_point=gs.array([gs.pi / 3.0, gs.pi / 5.0]),
+                expected=gs.array(-0.12),
+            )
+        ]
+        return self.generate_tests(
+            data,
+            marks=(
+                pytest.mark.smoke,
+                pytest.mark.skip,
+            ),
+        )
 
     def christoffels_vec_test_data(self):
         return self.generate_vec_data()
@@ -195,6 +211,33 @@ class Hypersphere2IntrinsicMetricTestData(TestData):
     def riemann_tensor_spherical_coords_test_data(self):
         data = [dict(base_point=gs.array([gs.pi / 2, gs.pi / 6]))]
         return self.generate_tests(data, marks=(pytest.mark.smoke,))
+
+    def exp_test_data(self):
+        data = [
+            dict(
+                tangent_vec=gs.array([gs.pi / 2.0, 0.0]),
+                base_point=gs.array([gs.pi / 10.0, gs.pi / 9.0]),
+                expected=gs.array([gs.pi / 10.0 + gs.pi / 2.0, gs.pi / 9.0]),
+            )
+        ]
+        return self.generate_tests(
+            data,
+            marks=(
+                pytest.mark.smoke,
+                pytest.mark.skip,
+            ),
+        )
+
+
+class Hypersphere2ExtrinsicMetricTestData(TestData):
+    def hamiltonian_test_data(self):
+        data = [
+            dict(
+                state=(gs.array([0.0, 0.0, 1.0]), gs.array([1.0, 2.0, 1.0])),
+                expected=gs.array(3.0),
+            )
+        ]
+        return self.generate_tests(data)
 
 
 class Hypersphere4ExtrinsicMetricTestData(TestData):

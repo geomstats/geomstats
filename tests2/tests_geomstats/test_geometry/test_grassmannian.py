@@ -5,7 +5,7 @@ import pytest
 from geomstats.geometry.grassmannian import Grassmannian, GrassmannianCanonicalMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import LevelSetTestCase
-from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
+from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
 from .data.base import LevelSetTestData
 from .data.grassmannian import (
@@ -67,14 +67,14 @@ def equipped_spaces(request):
 
 @pytest.mark.usefixtures("equipped_spaces")
 class TestGrassmannianCanonicalMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    MatricesMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = GrassmannianCanonicalMetricTestData()
 
 
 @pytest.mark.smoke
 class TestGrassmannianCanonicalMetric32(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    MatricesMetricTestCase, metaclass=DataBasedParametrizer
 ):
     space = Grassmannian(3, 2)
     testing_data = GrassmannianCanonicalMetric32TestData()

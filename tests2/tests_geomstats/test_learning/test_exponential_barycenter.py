@@ -50,8 +50,8 @@ class TestAgainstFrechetMean(BaseEstimatorTestCase, metaclass=DataBasedParametri
 
     testing_data = AgainstFrechetMeanTestData()
 
-    def test_against_frechet_mean(self, n_points, atol):
-        X = self.data_generator.random_point(n_points=n_points)
+    def test_against_frechet_mean(self, n_samples, atol):
+        X = self.data_generator.random_point(n_points=n_samples)
 
         res = self.estimator.fit(X).estimate_
         res_ = self.other_estimator.fit(X).estimate_
@@ -64,8 +64,8 @@ class TestAgainstLinearMean(BaseEstimatorTestCase, metaclass=DataBasedParametriz
 
     testing_data = AgainstLinearMeanTestData()
 
-    def test_against_linear_mean(self, n_points, atol):
-        X = self.data_generator.random_point(n_points=n_points)
+    def test_against_linear_mean(self, n_samples, atol):
+        X = self.data_generator.random_point(n_points=n_samples)
 
         optimizer = GradientDescent()
         res = optimizer.minimize(self.estimator.space, X)

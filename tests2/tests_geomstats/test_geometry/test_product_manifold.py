@@ -9,7 +9,8 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
-from tests2.tests_geomstats.test_geometry.data.product_manifold import (
+
+from .data.product_manifold import (
     ProductManifoldTestData,
     ProductRiemannianMetricTestData,
 )

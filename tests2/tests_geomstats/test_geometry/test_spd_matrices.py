@@ -37,6 +37,8 @@ from .data.spd_matrices import (
     SPDMatricesTestData,
 )
 
+# TODO: check affine invariance
+
 
 @pytest.fixture(
     scope="class",

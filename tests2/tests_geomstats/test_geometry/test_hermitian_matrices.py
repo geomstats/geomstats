@@ -60,22 +60,12 @@ class TestHermitianMatrices3(
     testing_data = HermitianMatrices3TestData()
 
 
-@pytest.fixture(
-    scope="class",
-    params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def equipped_spaces(request):
-    request.cls.space = HermitianMatrices(n=request.param)
-
-
 @pytest.mark.redundant
-@pytest.mark.usefixtures("equipped_spaces")
 class TestComplexMatricesMetric(
     HermitianMetricTestCase, metaclass=DataBasedParametrizer
 ):
+    n = random.randint(2, 5)
+    space = HermitianMatrices(n)
     testing_data = ComplexMatricesMetricTestData()
 
 

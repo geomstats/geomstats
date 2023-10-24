@@ -2,7 +2,7 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.geometry.discrete_curves import SRVMetric
-from geomstats.learning.frechet_mean import GradientDescent
+from geomstats.learning.frechet_mean import GradientDescent, variance
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test_cases.learning._base import (
@@ -71,6 +71,23 @@ class CircularMeanTestCase(FrechetMeanTestCase):
 
         msg = f"circular mean: {mean}, {sum_sd_mean}\ngd: {mean_gd}, {sum_sd_mean_gd}"
         self.assertTrue(sum_sd_mean < sum_sd_mean_gd + atol, msg)
+
+
+class VarianceTestCase(TestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = RandomDataGenerator(self.space)
+
+    def test_variance(self, points, base_point, expected, atol, weights=None):
+        res = variance(self.space, points, base_point, weights=weights)
+        self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_variance_repeated_is_zero(self, n_samples, atol):
+        base_point = point = self.data_generator.random_point(n_points=1)
+        points = repeat_point(point, n_samples)
+
+        self.test_variance(points, base_point, 0.0, atol)
 
 
 class BatchGradientDescentTestCase(TestCase):

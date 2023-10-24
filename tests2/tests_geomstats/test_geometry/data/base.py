@@ -69,3 +69,23 @@ class OpenSetTestData(_OpenSetMixinsTestData, ManifoldTestData):
 
 class ComplexOpenSetTestData(_OpenSetMixinsTestData, ComplexManifoldTestData):
     pass
+
+
+class ImmersedSetTestData(ProjectionMixinsTestData, ManifoldTestData):
+    def immersion_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def immersion_belongs_test_data(self):
+        return self.generate_random_data()
+
+    def tangent_immersion_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def tangent_immersion_is_tangent_test_data(self):
+        return self.generate_random_data()
+
+    def jacobian_immersion_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def hessian_immersion_vec_test_data(self):
+        return self.generate_vec_data()

@@ -1,12 +1,9 @@
-from tests2.tests_geomstats.test_geometry.data.base import OpenSetTestData
-from tests2.tests_geomstats.test_geometry.data.poincare_half_space import (
-    PoincareHalfSpaceTestData,
-)
-from tests2.tests_geomstats.test_geometry.data.product_manifold import (
+from ...test_geometry.data.base import OpenSetTestData
+from ...test_geometry.data.poincare_half_space import PoincareHalfSpaceTestData
+from ...test_geometry.data.product_manifold import (
     ProductManifoldTestData,
+    ProductRiemannianMetricTestData,
 )
-
-from ...test_geometry.data.product_manifold import ProductRiemannianMetricTestData
 from ...test_geometry.data.pullback_metric import PullbackDiffeoMetricTestData
 from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
 from ...test_geometry.data.spd_matrices import SPDMatricesTestData
@@ -29,6 +26,9 @@ class UnivariateNormalMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False
 
     def dist_against_closed_form_test_data(self):
+        return self.generate_random_data()
+
+    def sectional_curvature_value_test_data(self):
         return self.generate_random_data()
 
 

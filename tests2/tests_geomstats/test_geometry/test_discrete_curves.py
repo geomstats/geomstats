@@ -35,8 +35,6 @@ from .data.discrete_curves import (
     SRVShapeBundleTestData,
 )
 
-# TODO: delete sphere?
-
 
 @pytest.fixture(
     scope="class",
@@ -72,18 +70,13 @@ class TestDiscreteCurves(
         (3, random.randint(5, 10)),
     ],
 )
-def shape_bundles(request):
+def closed_discrete_curves_spaces(request):
     dim, k_sampling_points = request.param
-
     ambient_manifold = Euclidean(dim=dim)
-    space = DiscreteCurves(
-        ambient_manifold, k_sampling_points=k_sampling_points, equip=True
+
+    request.cls.space = ClosedDiscreteCurves(
+        ambient_manifold, k_sampling_points=k_sampling_points
     )
-    request.cls.total_space = request.cls.base = space
-
-    request.cls.bundle = SRVShapeBundle(space)
-
-    request.cls.sphere = Hypersphere(dim=dim - 1)
 
 
 @pytest.mark.usefixtures("closed_discrete_curves_spaces")
@@ -164,11 +157,6 @@ class TestSRVMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrize
     testing_data = SRVMetricTestData()
 
 
-@pytest.mark.usefixtures("shape_bundles")
-class TestSRVShapeBundle(SRVShapeBundleTestCase, metaclass=DataBasedParametrizer):
-    testing_data = SRVShapeBundleTestData()
-
-
 @pytest.fixture(
     scope="class",
     params=[
@@ -176,13 +164,23 @@ class TestSRVShapeBundle(SRVShapeBundleTestCase, metaclass=DataBasedParametrizer
         (3, random.randint(5, 10)),
     ],
 )
-def closed_discrete_curves_spaces(request):
+def shape_bundles(request):
     dim, k_sampling_points = request.param
-    ambient_manifold = Euclidean(dim=dim)
 
-    request.cls.space = ClosedDiscreteCurves(
-        ambient_manifold, k_sampling_points=k_sampling_points
+    ambient_manifold = Euclidean(dim=dim)
+    space = DiscreteCurves(
+        ambient_manifold, k_sampling_points=k_sampling_points, equip=True
     )
+    request.cls.total_space = request.cls.base = space
+
+    request.cls.bundle = SRVShapeBundle(space)
+
+    request.cls.sphere = Hypersphere(dim=dim - 1)
+
+
+@pytest.mark.usefixtures("shape_bundles")
+class TestSRVShapeBundle(SRVShapeBundleTestCase, metaclass=DataBasedParametrizer):
+    testing_data = SRVShapeBundleTestData()
 
 
 @pytest.fixture(
@@ -211,7 +209,6 @@ def spaces_with_quotient(request):
 @pytest.mark.skip
 @pytest.mark.usefixtures("spaces_with_quotient")
 class TestSRVQuotientMetric(QuotientMetricTestCase, metaclass=DataBasedParametrizer):
-    # TODO: failing. need to understand why
     testing_data = SRVQuotientMetricTestData()
 
     def setup_method(self):

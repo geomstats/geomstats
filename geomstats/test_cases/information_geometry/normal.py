@@ -32,3 +32,14 @@ class UnivariateNormalMetricTestCase(PullbackDiffeoMetricTestCase):
         res = self.space.metric.dist(point_a, point_b)
         expected = univariate_fisher_rao_dist(point_a, point_b)
         self.assertAllClose(res, expected, atol=atol)
+
+    @pytest.mark.random
+    def test_sectional_curvature_value(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
+        tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
+
+        res = self.space.metric.sectional_curvature(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+        self.assertTrue(gs.all(gs.abs(res + 1 / 2) < atol))

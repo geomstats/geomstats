@@ -1,4 +1,4 @@
-from geomstats.geometry.positive_reals import PositiveReals, PositiveRealsMetric
+from geomstats.geometry.positive_reals import PositiveReals
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import OpenSetTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
@@ -14,6 +14,5 @@ class TestPositiveReals(OpenSetTestCase, metaclass=DataBasedParametrizer):
 class TestPositiveRealsMetric(
     RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    space = PositiveReals(equip=False)
-    space.equip_with_metric(PositiveRealsMetric)
+    space = PositiveReals()
     testing_data = PositiveRealsMetricTestData()

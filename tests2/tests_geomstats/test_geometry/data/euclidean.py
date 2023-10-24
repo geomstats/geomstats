@@ -18,6 +18,15 @@ class EuclideanMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
+    def cometrix_matrix_is_identity_test_data(self):
+        return self.generate_random_data()
+
+    def inner_product_derivative_matrix_is_zeros_test_data(self):
+        return self.generate_random_data()
+
+    def christoffels_are_zeros_test_data(self):
+        return self.generate_random_data()
+
 
 class EuclideanMetric2TestData(TestData):
     def exp_test_data(self):
@@ -52,6 +61,26 @@ class EuclideanMetric2TestData(TestData):
                 tangent_vec_b=gs.array([[2.0, 10.0], [8.0, -1.0], [-3.0, 6.0]]),
                 base_point=None,
                 expected=gs.array([14.0, -12.0, 21.0]),
+            )
+        ]
+        return self.generate_tests(data)
+
+    def inner_coproduct_test_data(self):
+        data = [
+            dict(
+                cotangent_vec_a=gs.array([1.0, 2.0]),
+                cotangent_vec_b=gs.array([1.0, 2.0]),
+                base_point=None,
+                expected=gs.array(5.0),
+            ),
+        ]
+        return self.generate_tests(data)
+
+    def hamiltonian_test_data(self):
+        data = [
+            dict(
+                state=(gs.array([1.0, 2.0]), gs.array([1.0, 2.0])),
+                expected=gs.array(2.5),
             )
         ]
         return self.generate_tests(data)

@@ -684,7 +684,7 @@ class ConnectionComparisonTestCase(TestCase):
             tangent_vec_, base_point_, direction=direction_
         )
 
-        end_point_ = self.other_space.exp(direction_, base_point_)
+        end_point_ = self.other_space.metric.exp(direction_, base_point_)
         res_ = self.point_transformer.inverse_transform_tangent_vec(res_, end_point_)
         self.assertAllClose(res, res_, atol=atol)
 

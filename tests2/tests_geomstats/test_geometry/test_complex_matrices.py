@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
+from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.complex_matrices import ComplexMatricesTestCase
 from geomstats.test_cases.geometry.hermitian import HermitianMetricTestCase
@@ -46,8 +46,7 @@ class TestComplexMatrices33(ComplexMatricesTestCase, metaclass=DataBasedParametr
 )
 def equipped_spaces(request):
     m, n = request.param
-    space = request.cls.space = ComplexMatrices(m=m, n=n, equip=False)
-    space.equip_with_metric(ComplexMatricesMetric)
+    request.cls.space = ComplexMatrices(m=m, n=n)
 
 
 @pytest.mark.usefixtures("equipped_spaces")

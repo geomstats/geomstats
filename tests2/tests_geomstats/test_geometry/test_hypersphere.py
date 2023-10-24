@@ -14,6 +14,7 @@ from geomstats.test_cases.geometry.hypersphere import (
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 from .data.hypersphere import (
+    Hypersphere2ExtrinsicMetricTestData,
     Hypersphere2IntrinsicMetricTestData,
     Hypersphere4ExtrinsicMetricTestData,
     HypersphereCoordsTransformTestData,
@@ -95,10 +96,7 @@ class TestHypersphereIntrinsic(
 )
 def equipped_extrinsic_spaces(request):
     dim = request.param
-    space = request.cls.space = Hypersphere(
-        dim, default_coords_type="extrinsic", equip=False
-    )
-    space.equip_with_metric(HypersphereMetric)
+    request.cls.space = Hypersphere(dim, default_coords_type="extrinsic")
 
 
 @pytest.mark.usefixtures("equipped_extrinsic_spaces")
@@ -116,7 +114,8 @@ class TestHypersphereExtrinsicMetric(
         res = self.space.metric.sectional_curvature(
             tangent_vec_a, tangent_vec_b, base_point
         )
-        expected = gs.ones(n_points)
+        batch_shape = (n_points,) if n_points > 1 else ()
+        expected = gs.ones(batch_shape)
 
         self.assertAllClose(res, expected, atol=atol)
 
@@ -158,6 +157,16 @@ class TestHypersphere2IntrinsicMetric(
         self.assertAllClose(expected_221_1, result_221_1)
         self.assertAllClose(expected_121_2, result_121_2)
         self.assertAllClose(expected_112_2, result_112_2)
+
+
+@pytest.mark.smoke
+class TestHypersphere2ExtrinsicMetric(
+    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+):
+    space = space = Hypersphere(2, default_coords_type="extrinsic", equip=False)
+    space.equip_with_metric(HypersphereMetric)
+
+    testing_data = Hypersphere2ExtrinsicMetricTestData()
 
 
 @pytest.mark.smoke

@@ -7,15 +7,15 @@ from geomstats.test_cases.learning._base import BaseEstimatorTestCase
 
 class RiemannianEMTestCase(BaseEstimatorTestCase):
     @pytest.mark.random
-    def test_estimate_belongs(self, n_points, atol):
-        X = self.data_generator.random_point(n_points=n_points)
+    def test_estimate_belongs(self, n_samples, atol):
+        X = self.data_generator.random_point(n_points=n_samples)
         means = self.estimator.fit(X).means_
         belongs = self.estimator.space.belongs(means, atol=atol)
         self.assertAllEqual(belongs, gs.ones(self.estimator.n_gaussians, dtype=bool))
 
     @pytest.mark.random
-    def test_fit_coefficients_and_variances_bounds(self, n_points, atol):
-        X = self.data_generator.random_point(n_points=n_points)
+    def test_fit_coefficients_and_variances_bounds(self, n_samples, atol):
+        X = self.data_generator.random_point(n_points=n_samples)
         self.estimator.fit(X)
 
         coefficients = self.estimator.mixture_coefficients_

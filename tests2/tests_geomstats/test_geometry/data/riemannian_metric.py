@@ -40,6 +40,9 @@ class RiemannianMetricTestData(ConnectionTestData):
     def normalize_vec_test_data(self):
         return self.generate_vec_data()
 
+    def normalize_is_unitary_test_data(self):
+        return self.generate_random_data()
+
     def squared_dist_vec_test_data(self):
         return self.generate_vec_data()
 

@@ -10,7 +10,7 @@ from geomstats.learning.expectation_maximization import (
     RiemannianEM,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test.test_case import autodiff_backend, autograd_and_torch_only
+from geomstats.test.test_case import autograd_backend, autograd_only
 from geomstats.test_cases.learning.expectation_maximization import (
     GaussianMixtureModelTestCase,
     RiemannianEMTestCase,
@@ -44,12 +44,12 @@ class TestRiemannianEM(RiemannianEMTestCase, metaclass=DataBasedParametrizer):
     testing_data = RiemannianEMTestData()
 
 
-@autograd_and_torch_only
+@autograd_only
 class TestRiemannianEMHypersphere(
     RiemannianEMTestCase, metaclass=DataBasedParametrizer
 ):
     space = Hypersphere(dim=2)
-    if autodiff_backend():
+    if autograd_backend():
         estimator = RiemannianEM(
             space,
             initialisation_method="random",

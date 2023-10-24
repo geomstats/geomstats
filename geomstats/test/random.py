@@ -56,6 +56,19 @@ class EmbeddedSpaceRandomDataGenerator(RandomDataGenerator):
         return self.space.embedding_space.random_point(n_points)
 
 
+class NFoldManifoldRandomDataGenerator(RandomDataGenerator):
+    def point_to_project(self, n_points=1):
+        base = self.space.base_manifold
+        if not hasattr(base, "embedding_space"):
+            raise NotImplementedError("Can't get point to project.")
+
+        n_copies = self.space.n_copies
+        point = base.embedding_space.random_point(n_points * n_copies)
+
+        shape = (n_points, n_copies) if n_points > 1 else (n_copies,)
+        return gs.reshape(point, shape + base.shape)
+
+
 class DiscreteCurvesRandomDataGenerator(RandomDataGenerator):
     def point_to_project(self, n_points=1):
         return Matrices(
@@ -98,6 +111,13 @@ class FiberBundleRandomDataGenerator(RandomDataGenerator):
 
     def base_random_tangent_vec(self, base_point):
         return self.base.random_tangent_vec(base_point)
+
+
+class KendalShapeRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
+    def random_horizontal_vec(self, base_point):
+        tangent_vec = self.random_tangent_vec(base_point)
+        fiber_bundle = self.space.metric.fiber_bundle
+        return fiber_bundle.horizontal_projection(tangent_vec, base_point)
 
 
 class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):

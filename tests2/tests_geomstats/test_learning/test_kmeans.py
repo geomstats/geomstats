@@ -11,9 +11,16 @@ from geomstats.test_cases.learning._base import (
     BaseEstimatorTestCase,
     ClusterMixinsTestCase,
 )
-from geomstats.test_cases.learning.kmeans import AgainstFrechetMeanTestCase
+from geomstats.test_cases.learning.kmeans import (
+    AgainstFrechetMeanTestCase,
+    ClusterInitializationTestCase,
+)
 
-from .data.kmeans import AgainstFrechetMeanTestData, RiemannianKMeansTestData
+from .data.kmeans import (
+    AgainstFrechetMeanTestData,
+    ClusterInitializationTestData,
+    RiemannianKMeansTestData,
+)
 
 
 def _make_centroids(space, X, n_clusters):
@@ -48,9 +55,28 @@ def _get_params():
     scope="class",
     params=_get_params(),
 )
-def estimators(request):
+def init_estimators(request):
     space, n_clusters, init = request.param
     request.cls.estimator = RiemannianKMeans(space, n_clusters=n_clusters, init=init)
+
+
+@pytest.mark.usefixtures("init_estimators")
+class TestClusterInitialization(
+    ClusterInitializationTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = ClusterInitializationTestData()
+
+
+@pytest.fixture(
+    scope="class",
+    params=[
+        (Hypersphere(dim=random.randint(3, 4)), random.randint(2, 4)),
+        (SPDMatrices(n=random.randint(2, 4)), random.randint(2, 4)),
+    ],
+)
+def estimators(request):
+    space, n_clusters = request.param
+    request.cls.estimator = RiemannianKMeans(space, n_clusters=n_clusters)
 
 
 @pytest.mark.usefixtures("estimators")

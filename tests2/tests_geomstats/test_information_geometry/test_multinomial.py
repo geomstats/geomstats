@@ -10,7 +10,8 @@ from geomstats.test_cases.information_geometry.multinomial import (
     MultinomialDistributionsTestCase,
     MultinomialMetricTestCase,
 )
-from tests2.tests_geomstats.test_information_geometry.data.multinomial import (
+
+from .data.multinomial import (
     MultinomialDistributions2TestData,
     MultinomialDistributions3TestData,
     MultinomialDistributionsTestData,

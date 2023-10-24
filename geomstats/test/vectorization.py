@@ -143,6 +143,7 @@ def generate_vectorization_data(
     else:
         comb_indices = list(itertools.product(*[range(2)] * n_args))
         comb_indices = _filter_combs(n_args, comb_indices, vectorization_type)
+    comb_indices.pop(0)
 
     new_data = []
     for datum in data:

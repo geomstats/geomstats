@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from geomstats.geometry.hermitian import Hermitian, HermitianMetric
+from geomstats.geometry.hermitian import Hermitian
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.hermitian import (
     HermitianMetricTestCase,
@@ -40,8 +40,7 @@ class TestHermitian(HermitianTestCase, metaclass=DataBasedParametrizer):
     ],
 )
 def equipped_spaces(request):
-    space = request.cls.space = Hermitian(dim=request.param, equip=False)
-    space.equip_with_metric(HermitianMetric)
+    request.cls.space = Hermitian(dim=request.param)
 
 
 @pytest.mark.usefixtures("equipped_spaces")

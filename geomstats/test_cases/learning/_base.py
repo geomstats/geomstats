@@ -13,6 +13,10 @@ class BaseEstimatorTestCase(TestCase):
 
 
 class MeanEstimatorMixinsTestCase:
+    def test_fit(self, X, expected, atol, weights=None):
+        res = self.estimator.fit(X, weights=weights).estimate_
+        self.assertAllClose(res, expected, atol=atol)
+
     @pytest.mark.random
     def test_one_point(self, atol):
         X = gs.expand_dims(self.data_generator.random_point(n_points=1), axis=0)
@@ -21,15 +25,15 @@ class MeanEstimatorMixinsTestCase:
         self.assertAllClose(mean, X[0], atol)
 
     @pytest.mark.random
-    def test_n_times_same_point(self, n_reps, atol):
-        X = repeat_point(self.data_generator.random_point(n_points=1), n_reps)
+    def test_n_times_same_point(self, n_samples, atol):
+        X = repeat_point(self.data_generator.random_point(n_points=1), n_samples)
 
         mean = self.estimator.fit(X).estimate_
         self.assertAllClose(mean, X[0], atol)
 
     @pytest.mark.random
-    def test_estimate_belongs(self, n_points, atol):
-        X = self.data_generator.random_point(n_points=n_points)
+    def test_estimate_belongs(self, n_samples, atol):
+        X = self.data_generator.random_point(n_points=n_samples)
         mean = self.estimator.fit(X).estimate_
         belongs = self.estimator.space.belongs(mean, atol=atol)
         self.assertTrue(belongs)
@@ -37,19 +41,21 @@ class MeanEstimatorMixinsTestCase:
 
 class ClusterMixinsTestCase:
     @pytest.mark.random
-    def test_n_repeated_clusters(self, n_reps, atol):
+    def test_n_repeated_clusters(self, n_samples, atol):
         n_clusters = self.estimator.n_clusters
         X = []
         for _ in range(n_clusters):
-            X.extend(repeat_point(self.data_generator.random_point(n_points=1), n_reps))
+            X.extend(
+                repeat_point(self.data_generator.random_point(n_points=1), n_samples)
+            )
         X = gs.array(X)
 
         cluster_centers = self.estimator.fit(X).cluster_centers_
         labels = self.estimator.predict(X)
 
         for k in range(n_clusters):
-            i = n_reps * k
-            j = i + n_reps
+            i = n_samples * k
+            j = i + n_samples
             X_ = X[i:j]
             labels_ = labels[i:j]
 
@@ -57,11 +63,11 @@ class ClusterMixinsTestCase:
             cluster_center = cluster_centers[labels_[0]]
 
             dist = self.estimator.space.metric.dist(X_, cluster_center)
-            self.assertAllClose(dist, gs.zeros(n_reps), atol=atol)
+            self.assertAllClose(dist, gs.zeros(n_samples), atol=atol)
 
     @pytest.mark.random
-    def test_cluster_assignment(self, n_points):
-        X = self.data_generator.random_point(n_points)
+    def test_cluster_assignment(self, n_samples):
+        X = self.data_generator.random_point(n_samples)
         space = self.estimator.space
 
         cluster_centers = self.estimator.fit(X).cluster_centers_
@@ -76,8 +82,8 @@ class ClusterMixinsTestCase:
         self.assertAllEqual(result, expected)
 
     @pytest.mark.random
-    def test_cluster_centers_belong(self, n_points):
-        X = self.data_generator.random_point(n_points)
+    def test_cluster_centers_belong(self, n_samples):
+        X = self.data_generator.random_point(n_samples)
         space = self.estimator.space
 
         cluster_centers = self.estimator.fit(X).cluster_centers_
@@ -87,8 +93,8 @@ class ClusterMixinsTestCase:
         self.assertAllEqual(result, expected)
 
     @pytest.mark.shape
-    def test_cluster_centers_shape(self, n_points):
-        X = self.data_generator.random_point(n_points)
+    def test_cluster_centers_shape(self, n_samples):
+        X = self.data_generator.random_point(n_samples)
         space = self.estimator.space
 
         cluster_centers = self.estimator.fit(X).cluster_centers_

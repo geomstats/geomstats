@@ -75,6 +75,5 @@ class GeneralLinearBuresWassersteinBundleTestData(FiberBundleTestData):
     tolerances = {
         "align_vec": {"atol": 1e-1},
         "horizontal_lift_is_horizontal": {"atol": 1e-1},
-        "log_after_exp": {"atol": 1e-1},
         "log_after_align_is_horizontal": {"atol": 1e-1},
     }

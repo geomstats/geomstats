@@ -76,6 +76,7 @@ class HPDAffineMetricTestData(ComplexRiemannianMetricTestData):
 class HPDBuresWassersteinMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
+    trials = 3
 
     xfails = ("dist_point_to_itself_is_zero",)
 
@@ -88,6 +89,9 @@ class HPDEuclideanMetricTestData(ComplexRiemannianMetricTestData):
         "geodesic_ivp_belongs",
         "exp_belongs",
     )
+
+    def exp_domain_vec_test_data(self):
+        return self.generate_vec_data()
 
 
 class HPDLogEuclideanMetricTestData(ComplexRiemannianMetricTestData):
