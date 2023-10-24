@@ -627,6 +627,64 @@ class Connection(ABC):
 
         return path
 
+    def _geodesic_ivp(self, initial_point, initial_tangent_vec):
+        """Solve geodesic initial value problem.
+
+        Compute the parameterized function for the geodesic starting at
+        initial_point with initial velocity given by initial_tangent_vec.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Initial point.
+
+        initial_tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at initial point.
+
+        Returns
+        -------
+        path : function
+            Parameterized function for the geodesic curve starting at
+            initial_point with velocity initial_tangent_vec.
+        """
+        if _check_exp_solver(self, raise_=False) and hasattr(
+            self.exp_solver, "geodesic_ivp"
+        ):
+            return self.exp_solver.geodesic_ivp(
+                self._space, initial_tangent_vec, initial_point
+            )
+
+        return self._geodesic_from_exp(initial_point, initial_tangent_vec)
+
+    def _geodesic_bvp(self, initial_point, end_point):
+        """Solve geodesic boundary problem.
+
+        Compute the parameterized function for the geodesic starting at
+        initial_point and ending at end_point.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Initial point.
+        end_point : array-like, shape=[..., dim]
+            End point.
+
+        Returns
+        -------
+        path : function
+            Parameterized function for the geodesic curve starting at
+            initial_point and ending at end_point.
+        """
+        if _check_log_solver(self, raise_=False) and hasattr(
+            self.log_solver, "geodesic_bvp"
+        ):
+            return self.log_solver.geodesic_bvp(
+                self._space,
+                end_point,
+                initial_point,
+            )
+        return NotImplemented
+
     def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
         """Generate parameterized function for the geodesic curve.
 
@@ -666,23 +724,13 @@ class Connection(ABC):
                     "Cannot specify both an end point and an initial tangent vector."
                 )
 
-            if _check_log_solver(self, raise_=False):
-                if hasattr(self.log_solver, "geodesic_bvp"):
-                    return self.log_solver.geodesic_bvp(
-                        self._space,
-                        end_point,
-                        initial_point,
-                    )
+            out = self._geodesic_bvp(initial_point, end_point)
+            if out is not NotImplemented:
+                return out
 
             initial_tangent_vec = self.log(end_point, initial_point)
 
-        if _check_exp_solver(self, raise_=False):
-            if hasattr(self.exp_solver, "geodesic_ivp"):
-                return self.exp_solver.geodesic_ivp(
-                    self._space, initial_tangent_vec, initial_point
-                )
-
-        return self._geodesic_from_exp(initial_point, initial_tangent_vec)
+        return self._geodesic_ivp(initial_point, initial_tangent_vec)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None

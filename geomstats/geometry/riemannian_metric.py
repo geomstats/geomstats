@@ -299,8 +299,7 @@ class RiemannianMetric(Connection, ABC):
             Unit tangent vector at base_point.
         """
         norm = self.norm(vector, base_point)
-
-        norm = gs.where(norm < gs.atol, gs.ones(norm.shape), norm)
+        norm = gs.where(norm == 0, gs.ones(norm.shape), norm)
         indices = "ijk"[: self._space.point_ndim]
         return gs.einsum(f"...{indices},...->...{indices}", vector, 1 / norm)
 
@@ -578,6 +577,9 @@ class RiemannianMetric(Connection, ABC):
         sectional_curvature(X, Y, P) = K(X,Y) where X, Y are tangent vectors
         at base point P.
 
+        The information manifold of multinomial distributions has constant
+        sectional curvature given by :math:`K = 2 \sqrt{n}`.
+
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., dim]
@@ -596,10 +598,10 @@ class RiemannianMetric(Connection, ABC):
             tangent_vec_a, tangent_vec_b, tangent_vec_b, base_point
         )
         sectional = self.inner_product(curvature, tangent_vec_a, base_point)
-        squared_norm_a = self.squared_norm(tangent_vec_a, base_point)
-        squared_norm_b = self.squared_norm(tangent_vec_b, base_point)
+        norm_a = self.squared_norm(tangent_vec_a, base_point)
+        norm_b = self.squared_norm(tangent_vec_b, base_point)
         inner_ab = self.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        normalization_factor = squared_norm_a * squared_norm_b - inner_ab**2
+        normalization_factor = norm_a * norm_b - inner_ab**2
         return gs.divide(sectional, normalization_factor, ignore_div_zero=True)
 
     def scalar_curvature(self, base_point):

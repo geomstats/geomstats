@@ -18,12 +18,14 @@ Lead author: Jules Deschamps.
 from scipy.stats import gamma
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.base import (
+    InformationManifoldMixin,
+    ScipyUnivariateRandomVariable,
+)
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.geodesic import ExpODESolver, LogODESolver
 from geomstats.numerics.ivp import ScipySolveIVP
@@ -38,7 +40,14 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
     """
 
     def __init__(self, equip=True):
-        super().__init__(dim=2, embedding_space=Euclidean(2, equip=False), equip=equip)
+        super().__init__(
+            dim=2,
+            embedding_space=Euclidean(2, equip=False),
+            support_shape=(),
+            equip=equip,
+        )
+
+        self._scp_rv = GammaDistributionsRandomVariable(self)
 
     @staticmethod
     def default_metric():
@@ -67,8 +76,7 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == 2
-        belongs = gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
-        return belongs
+        return gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
 
     def random_point(self, n_samples=1, upper_bound=5.0, lower_bound=0.0):
         """Sample parameters of Gamma distributions.
@@ -137,15 +145,7 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples]
             Sample from the Gamma distributions.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-        samples = []
-        for param in point:
-            sample = gs.array(
-                gamma.rvs(param[0], loc=0, scale=param[1] / param[0], size=n_samples)
-            )
-            samples.append(sample)
-        return gs.squeeze(samples[0]) if len(point) == 1 else gs.stack(samples)
+        return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -520,3 +520,19 @@ class GammaMetric(RiemannianMetric):
             jac = gs.transpose(jac, [4, 0, 1, 2, 3])
 
         return gs.squeeze(jac)
+
+
+class GammaDistributionsRandomVariable(ScipyUnivariateRandomVariable):
+    """A gamma random variable."""
+
+    def __init__(self, space):
+        super().__init__(space, gamma.rvs, gamma.pdf)
+
+    @staticmethod
+    def _flatten_params(point, pre_flat_shape):
+        param_a = gs.expand_dims(point[..., 0], axis=-1)
+        scale = gs.expand_dims(point[..., 1] / point[..., 0], axis=-1)
+
+        flat_param_a = gs.reshape(gs.broadcast_to(param_a, pre_flat_shape), (-1,))
+        flat_scale = gs.reshape(gs.broadcast_to(scale, pre_flat_shape), (-1,))
+        return {"a": flat_param_a, "scale": flat_scale}

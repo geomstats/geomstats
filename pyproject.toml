@@ -101,7 +101,7 @@ max-line-length = 88
 extend-ignore = "E203"
 per-file-ignores = [
     "geomstats/learning/_sklearn_wrapper.py: D101, D102, D105",
-    "geomstats/learning/*: E731",
+    "geomstats/*: E731",
     "geomstats/_backend/*:F401, D103",
     "geomstats/numerics/*:D104,E731",
     "geomstats/visualization/*: D101, D102",

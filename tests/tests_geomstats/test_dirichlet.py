@@ -40,7 +40,7 @@ class TestDirichlet(OpenSetTestCase, metaclass=Parametrizer):
         pdf = []
         for i in range(n_points):
             pdf.append(gs.array([dirichlet.pdf(x, point[i, :]) for x in samples]))
-        expected = gs.squeeze(gs.stack(pdf, axis=0))
+        expected = gs.stack(pdf, axis=0)
         self.assertAllClose(result, expected)
 
 

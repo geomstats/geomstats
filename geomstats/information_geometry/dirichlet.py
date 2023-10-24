@@ -9,12 +9,14 @@ from scipy.optimize import minimize
 from scipy.stats import dirichlet
 
 import geomstats.backend as gs
-import geomstats.errors
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.base import (
+    InformationManifoldMixin,
+    ScipyMultivariateRandomVariable,
+)
 from geomstats.numerics.bvp import ScipySolveBVP
 from geomstats.numerics.geodesic import ExpODESolver, LogODESolver
 from geomstats.numerics.ivp import ScipySolveIVP
@@ -35,8 +37,12 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
 
     def __init__(self, dim, equip=True):
         super().__init__(
-            dim=dim, embedding_space=Euclidean(dim=dim, equip=False), equip=equip
+            dim=dim,
+            support_shape=(dim,),
+            embedding_space=Euclidean(dim=dim, equip=False),
+            equip=equip,
         )
+        self._scp_rv = DirichletRandomVariable(self)
 
     @staticmethod
     def default_metric():
@@ -129,24 +135,7 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
         samples : array-like, shape=[..., n_samples, dim]
             Sample from the Dirichlet distributions.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-        samples = []
-        for param in point:
-            sample = gs.array(dirichlet.rvs(param, size=n_samples))
-            samples.append(
-                gs.hstack(
-                    (
-                        sample[:, :-1],
-                        gs.transpose(
-                            gs.to_ndarray(
-                                1 - gs.sum(sample[:, :-1], axis=-1), to_ndim=2
-                            )
-                        ),
-                    )
-                )
-            )
-        return samples[0] if len(point) == 1 else gs.stack(samples)
+        return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
         """Compute pdf associated to point.
@@ -165,32 +154,7 @@ class DirichletDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the Dirichlet distribution with
             parameters provided by point.
         """
-        geomstats.errors.check_belongs(point, self)
-        point = gs.to_ndarray(point, to_ndim=2)
-
-        def pdf(x):
-            """Generate parameterized function for normal pdf.
-
-            Parameters
-            ----------
-            x : array-like, shape=[n_points, dim]
-                Points of the simplex at which to compute the probability
-                density function.
-
-            Returns
-            -------
-            pdf_at_x : array-like, shape=[..., n_points]
-                Values of pdf at x for each value of the parameters provided
-                by point.
-            """
-            pdf_at_x = []
-            for param in point:
-                pdf_at_x.append(gs.array([dirichlet.pdf(pt, param) for pt in x]))
-            pdf_at_x = gs.squeeze(gs.stack(pdf_at_x, axis=0))
-
-            return pdf_at_x
-
-        return pdf
+        return lambda x: self._scp_rv.pdf(x, point=point)
 
 
 class DirichletMetric(RiemannianMetric):
@@ -560,3 +524,11 @@ class DirichletMetric(RiemannianMetric):
         _, dist, curve, velocity = cost_fun(opt_param)
 
         return dist, curve, velocity
+
+
+class DirichletRandomVariable(ScipyMultivariateRandomVariable):
+    """A Dirichlet random variable."""
+
+    def __init__(self, space):
+        pdf = lambda x, point: dirichlet.pdf(gs.transpose(x), point)
+        super().__init__(space, dirichlet.rvs, pdf)
