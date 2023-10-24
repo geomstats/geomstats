@@ -115,7 +115,6 @@ class SPDMatrices(OpenSet):
             Optional, default: 1.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
 
         Returns
         -------
@@ -124,9 +123,6 @@ class SPDMatrices(OpenSet):
         """
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
-
-        if base_point is None:
-            base_point = gs.eye(n)
 
         sqrt_base_point = gs.linalg.sqrtm(base_point)
 
@@ -564,7 +560,7 @@ class SPDAffineMetric(RiemannianMetric):
         exp = Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
         return exp
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the affine-invariant exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -624,7 +620,7 @@ class SPDAffineMetric(RiemannianMetric):
         log = Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
         return log
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the affine-invariant logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -774,7 +770,7 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
 
         return result
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Bures-Wasserstein exponential map.
 
         Parameters
@@ -800,7 +796,7 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
 
         return base_point + tangent_vec + hessian
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Bures-Wasserstein logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -1060,7 +1056,7 @@ class SPDEuclideanMetric(RiemannianMetric):
         eigen_values = gs.linalg.eigvalsh(base_point)
         return eigen_values[..., 0]
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Euclidean exponential map.
 
         Compute the Euclidean exponential at point base_point
@@ -1091,7 +1087,7 @@ class SPDEuclideanMetric(RiemannianMetric):
         )
         return exp
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Euclidean logarithm map.
 
         Compute the Euclidean logarithm at point base_point, of point.
@@ -1194,7 +1190,7 @@ class SPDLogEuclideanMetric(RiemannianMetric):
         modified_tangent_vec_b = spd_space.differential_log(tangent_vec_b, base_point)
         return Matrices.trace_product(modified_tangent_vec_a, modified_tangent_vec_b)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Log-Euclidean exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -1217,7 +1213,7 @@ class SPDLogEuclideanMetric(RiemannianMetric):
         dlog_tangent_vec = SPDMatrices.differential_log(tangent_vec, base_point)
         return SymmetricMatrices.expm(log_base_point + dlog_tangent_vec)
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Log-Euclidean logarithm map.
 
         Compute the Riemannian logarithm at point base_point,

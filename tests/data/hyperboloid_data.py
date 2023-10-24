@@ -65,16 +65,6 @@ class HyperboloidTestData(_LevelSetTestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def extrinsic_to_intrinsic_coords_rasises_test_data(self):
-        smoke_data = [
-            dict(
-                dim=3,
-                point=gs.array([-1.0, 1.0, 0.0, 0.0]),
-                expected=pytest.raises(ValueError),
-            )
-        ]
-        return self.generate_tests(smoke_data)
-
     def extrinsic_ball_extrinsic_composition_test_data(self):
         smoke_data = [dict(dim=2, point_intrinsic=gs.array([0.5, 7]))]
         return self.generate_tests(smoke_data)

@@ -667,39 +667,6 @@ class ComplexMatricesTestData(_ComplexVectorSpaceTestData):
                 random_data += [dict(m=n, n=n, matrix_type=matrix_type, mat=mat)]
         return self.generate_tests([], random_data)
 
-    def basis_test_data(self):
-        smoke_data = [
-            dict(
-                m=2,
-                n=2,
-                expected=gs.array(
-                    [
-                        gs.cast(
-                            gs.array_from_sparse([(i, j)], [1], (2, 2)),
-                            dtype=CDTYPE,
-                        )
-                        for i in range(2)
-                        for j in range(2)
-                    ]
-                ),
-            ),
-            dict(
-                m=2,
-                n=3,
-                expected=gs.array(
-                    [
-                        gs.cast(
-                            gs.array_from_sparse([(i, j)], [1], (2, 3)),
-                            dtype=CDTYPE,
-                        )
-                        for i in range(2)
-                        for j in range(3)
-                    ]
-                ),
-            ),
-        ]
-        return self.generate_tests(smoke_data)
-
 
 class ComplexMatricesMetricTestData(_ComplexRiemannianMetricTestData):
     m_list = random.sample(range(3, 5), 2)

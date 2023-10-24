@@ -144,21 +144,22 @@ class BetaMetric(DirichletMetric):
     """Class for the Fisher information metric on beta distributions."""
 
     @staticmethod
-    def metric_det(param_a, param_b):
+    def metric_det(point):
         """Compute the determinant of the metric.
 
         Parameters
         ----------
-        param_a : array-like, shape=[...,]
-            First parameter of the beta distribution.
-        param_b : array-like, shape=[...,]
-            Second parameter of the beta distribution.
+        point : array-like, shape=[..., 2]
+            Point representing a beta distribution.
+
 
         Returns
         -------
         metric_det : array-like, shape=[...,]
             Determinant of the metric.
         """
+        param_a = point[..., 0]
+        param_b = point[..., 1]
         metric_det = gs.polygamma(1, param_a) * gs.polygamma(1, param_b) - gs.polygamma(
             1, param_a + param_b
         ) * (gs.polygamma(1, param_a) + gs.polygamma(1, param_b))

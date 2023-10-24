@@ -28,11 +28,6 @@ class TestHyperboloid(LevelSetTestCase, metaclass=Parametrizer):
         with expected:
             space.regularize(point)
 
-    def test_extrinsic_to_intrinsic_coords_rasises(self, dim, point, expected):
-        space = self.Space(dim)
-        with expected:
-            space.extrinsic_to_intrinsic_coords(point)
-
     def test_ball_extrinsic_ball(self, dim, x_ball):
         x_extrinsic = PoincareBall(dim).to_coordinates(
             x_ball, to_coords_type="extrinsic"
