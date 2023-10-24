@@ -1,8 +1,15 @@
 import functools
+import importlib
 import inspect
+import json
+import os
+import subprocess
+import tempfile
 import types
+import warnings
 
 import pytest
+from matplotlib import pyplot as plt
 
 import geomstats.backend as gs
 from geomstats.exceptions import AutodiffNotImplementedError
@@ -495,3 +502,103 @@ def _check_test_data_pairing(test_funcs, testing_data):
     _raise_missing_data(missing_data)
 
     return test_funcs
+
+
+def _run_example(path, **kwargs):
+    warnings.simplefilter("ignore", category=UserWarning)
+
+    spec = importlib.util.spec_from_file_location("module.name", path)
+    example = importlib.util.module_from_spec(spec)
+
+    spec.loader.exec_module(example)
+
+    example.main(**kwargs)
+    plt.close("all")
+
+
+class ExamplesParametrizer(type):
+    def __new__(cls, name, bases, attrs):
+        def _create_new_test(path, **kwargs):
+            def new_test(self):
+                return _run_example(path=path, **kwargs)
+
+            return new_test
+
+        BACKEND = os.environ.get("GEOMSTATS_BACKEND", "numpy")
+
+        testing_data = locals()["attrs"].get("testing_data")
+        _raise_missing_testing_data(testing_data)
+
+        paths = testing_data.paths
+        metadata = testing_data.metadata
+        skips = testing_data.skips
+
+        for path in paths:
+            name = path.split(os.sep)[-1].split(".")[0]
+
+            func_name = f"test_{name}"
+
+            metadata_ = metadata.get(name, {})
+            if not isinstance(metadata_, dict):
+                metadata_ = {"backends": metadata_}
+
+            kwargs = metadata_.get("kwargs", {})
+            test_func = _create_new_test(path, **kwargs)
+
+            backends = metadata_.get("backends", None)
+            if name in skips or (backends and BACKEND not in backends):
+                test_func = pytest.mark.skip()(test_func)
+
+            attrs[func_name] = test_func
+
+        return super().__new__(cls, name, bases, attrs)
+
+
+def _exec_notebook(path):
+    file_name = tempfile.NamedTemporaryFile(suffix=".ipynb").name
+    args = [
+        "jupyter",
+        "nbconvert",
+        "--to",
+        "notebook",
+        "--execute",
+        "--ExecutePreprocessor.timeout=1000",
+        "--ExecutePreprocessor.kernel_name=python3",
+        "--output",
+        file_name,
+        path,
+    ]
+    subprocess.check_call(args)
+
+
+class NotebooksParametrizer(type):
+    def __new__(cls, name, bases, attrs):
+        def _create_new_test(path, **kwargs):
+            def new_test(self):
+                return _exec_notebook(path=path)
+
+            return new_test
+
+        BACKEND = os.environ.get("GEOMSTATS_BACKEND", "numpy")
+
+        testing_data = locals()["attrs"].get("testing_data")
+        _raise_missing_testing_data(testing_data)
+
+        paths = testing_data.paths
+
+        for path in paths:
+            name = path.split(os.sep)[-1].split(".")[0]
+
+            func_name = f"test_{name}"
+            test_func = _create_new_test(path)
+
+            with open(path, "r", encoding="utf8") as file:
+                metadata = json.load(file).get("metadata")
+
+            backends = metadata.get("backends", None)
+            if backends and BACKEND not in backends:
+                test_func = pytest.mark.skip()(test_func)
+
+            attrs[func_name] = test_func
+
+        return super().__new__(cls, name, bases, attrs)
