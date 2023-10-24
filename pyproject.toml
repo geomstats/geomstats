@@ -115,7 +115,8 @@ per-file-ignores = [
     "geomstats/visualization/*: D101, D102",
     "geomstats/visualization/__init__.py: F401",
     "geomstats/tests.py : D101, D102",
-    "tests/*: D100, D101, D102, D103, D106, D200, D201, D205, D400, D404, I100, I101, I201, I202",
+    "tests/*: D100, D101, D102, D103, D106, D200, D201, D205, D400, D404, I100, I101, I201, I202, E501, E731",
+    "tests/conftest.py: D100, F401",
     "*/__init__.py: D104",
     "geomstats/test*/*: D100, D101, D102, D103, D104, E501"
 ]

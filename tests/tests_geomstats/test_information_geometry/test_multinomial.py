@@ -2,7 +2,6 @@ import random
 
 import pytest
 
-import geomstats.backend as gs
 from geomstats.information_geometry.multinomial import MultinomialDistributions
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
