@@ -76,7 +76,7 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == 2
-        return gs.logical_and(belongs, gs.all(point >= atol, axis=-1))
+        return gs.logical_and(belongs, gs.all(point >= -atol, axis=-1))
 
     def random_point(self, n_samples=1, upper_bound=5.0, lower_bound=0.0):
         """Sample parameters of Gamma distributions.

@@ -58,7 +58,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
         if not belongs_shape:
             shape = point.shape[: -self.point_ndim]
             return gs.zeros(shape, dtype=bool)
-        return gs.squeeze(point >= atol)
+        return gs.squeeze(point >= -atol)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample parameters of Possion distributions.

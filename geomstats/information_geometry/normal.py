@@ -343,7 +343,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
         _, diagonal = self._unstack_mean_diagonal(point)
-        return gs.logical_and(belongs, gs.all(diagonal >= atol, axis=-1))
+        return gs.logical_and(belongs, gs.all(diagonal >= -atol, axis=-1))
 
     def random_point(self, n_samples=1):
         """Generate random parameters of multivariate diagonal normal distributions.

@@ -57,7 +57,7 @@ class GeometricDistributions(InformationManifoldMixin, OpenSet):
         if not belongs_shape:
             shape = point.shape[: -self.point_ndim]
             return gs.zeros(shape, dtype=bool)
-        return gs.squeeze(gs.logical_and(atol <= point, point <= 1 - atol))
+        return gs.squeeze(gs.logical_and(-atol <= point, point <= 1 + atol))
 
     def random_point(self, n_samples=1):
         """Sample parameters of geometric distributions.

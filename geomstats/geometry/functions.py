@@ -101,7 +101,7 @@ class HilbertSphere(Manifold):
         """
         inner_product = self.metric.inner_product(vector, base_point)
 
-        return gs.isclose(inner_product, atol)
+        return gs.isclose(inner_product, gs.zeros_like(inner_product), atol)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.

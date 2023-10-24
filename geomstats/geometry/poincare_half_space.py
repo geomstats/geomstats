@@ -59,7 +59,7 @@ class PoincareHalfSpace(_Hyperbolic, OpenSet):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        return gs.logical_and(belongs, point[..., -1] >= atol)
+        return gs.logical_and(belongs, point[..., -1] >= -atol)
 
     def projection(self, point, atol=gs.atol):
         """Project a point in ambient space to the open set.
