@@ -107,7 +107,7 @@ tanh = _box_unary_scalar(target=_torch.tanh)
 
 
 arctan2 = _box_binary_scalar(target=_torch.atan2)
-mod = _box_binary_scalar(target=_torch.fmod, box_x2=False)
+mod = _box_binary_scalar(target=_torch.remainder, box_x2=False)
 power = _box_binary_scalar(target=_torch.pow, box_x2=False)
 
 
