@@ -4,7 +4,7 @@ Two random clusters are generated in separate regions of the
 manifold. Then K-medoids is applied using the metric of the manifold.
 The points are represented with two distinct colors. For the moment
 the example works on the Poincaré Ball and the Hypersphere.
-Computed centroids are marked as green stars.
+Computed cluster centers are marked as green stars.
 """
 
 import logging
@@ -35,7 +35,7 @@ def kmedoids_poincare_ball():
     )
 
     kmedoids.fit(X=data)
-    centroids = kmedoids.cluster_centers_
+    cluster_centers_ = kmedoids.cluster_centers_
     labels = kmedoids.labels_
 
     plt.figure(1)
@@ -60,7 +60,7 @@ def kmedoids_poincare_ball():
         )
 
     ax = visualization.plot(
-        centroids,
+        cluster_centers_,
         ax=ax,
         space="H2_poincare_disk",
         marker="*",
@@ -93,7 +93,7 @@ def kmedoids_hypersphere():
 
     kmedoids = RiemannianKMedoids(manifold, n_clusters=n_clusters)
     kmedoids.fit(X=data)
-    centroids = kmedoids.cluster_centers_
+    cluster_centers_ = kmedoids.cluster_centers_
     labels = kmedoids.labels_
 
     plt.figure(2)
@@ -108,7 +108,7 @@ def kmedoids_hypersphere():
             )
 
     ax = visualization.plot(
-        centroids, ax=ax, space="S2", marker="*", s=200, color="green"
+        cluster_centers_, ax=ax, space="S2", marker="*", s=200, color="green"
     )
 
     ax.set_title("Kmedoids on Hypersphere Manifold")

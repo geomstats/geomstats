@@ -8,8 +8,8 @@ class ClusterInitializationTestCase(BaseEstimatorTestCase):
     @pytest.mark.random
     def test_initialization_belongs(self, n_samples, atol):
         X = self.data_generator.random_point(n_points=n_samples)
-        init_centroids = self.estimator._pick_init_centroids(X)
-        belongs = self.estimator.space.belongs(init_centroids, atol=atol)
+        init_cluster_centers = self.estimator._pick_init_cluster_centers(X)
+        belongs = self.estimator.space.belongs(init_cluster_centers, atol=atol)
         self.assertTrue(gs.all(belongs))
 
 

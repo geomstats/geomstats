@@ -27,8 +27,8 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         Maximum number of iterations.
         Optional, default: 100.
     init : str
-        How to initialize centroids at the beginning of the algorithm. The
-        choice 'random' will select training points as initial centroids
+        How to initialize cluster centers at the beginning of the algorithm. The
+        choice 'random' will select training points as initial cluster centers
         uniformly at random.
         Optional, default: 'random'.
     n_jobs : int
@@ -66,11 +66,11 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         return medoids
 
     def fit(self, X):
-        """Provide clusters centroids and data labels.
+        """Provide cluster centers and data labels.
 
         Labels data by minimizing the distance between data points
-        and cluster centroids chosen from the data points.
-        Minimization is performed by swapping the centroids and data points.
+        and cluster center chosen from the data points.
+        Minimization is performed by swapping the cluster centers and data points.
 
         Parameters
         ----------

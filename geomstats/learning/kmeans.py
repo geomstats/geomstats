@@ -27,13 +27,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         Number of clusters (k value of the k-means).
         Optional, default: 8.
     init : str or callable or array-like, shape=[n_clusters, n_features]
-        How to initialize centroids at the beginning of the algorithm. The
-        choice 'random' will select training points as initial centroids
-        uniformly at random. The choice 'kmeans++' selects centroids
+        How to initialize cluster centers at the beginning of the algorithm. The
+        choice 'random' will select training points as initial cluster centers
+        uniformly at random. The choice 'kmeans++' selects cluster centers
         heuristically to improve the convergence rate. When providing an array
-        of shape ``(n_clusters, n_features)``, the centroids are chosen as the
+        of shape ``(n_clusters, n_features)``, the cluster centers are chosen as the
         rows of that array. When providing a callable, it receives as arguments
-        the argument ``X`` to :meth:`fit` and the number of centroids
+        the argument ``X`` to :meth:`fit` and the number of cluster centers
         ``n_clusters`` and is expected to return an array as above.
         Optional, default: 'random'.
     tol : float
@@ -85,54 +85,60 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.labels_ = None
         self.inertia_ = None
 
-    def _pick_init_centroids(self, X):
+    def _pick_init_cluster_centers(self, X):
         n_samples = X.shape[0]
 
         if isinstance(self.init, str):
             if self.init == "kmeans++":
-                centroids = [X[randint(0, n_samples - 1)]]
+                cluster_centers = [X[randint(0, n_samples - 1)]]
                 for i in range(self.n_clusters - 1):
                     dists = gs.array(
-                        [self.space.metric.dist(centroids[j], X) for j in range(i + 1)]
+                        [
+                            self.space.metric.dist(cluster_centers[j], X)
+                            for j in range(i + 1)
+                        ]
                     )
-                    dists_to_closest_centroid = gs.amin(dists, axis=0)
+                    dists_to_closest_cluster_center = gs.amin(dists, axis=0)
                     indices = gs.arange(n_samples)
-                    weights = dists_to_closest_centroid / gs.sum(
-                        dists_to_closest_centroid
+                    weights = dists_to_closest_cluster_center / gs.sum(
+                        dists_to_closest_cluster_center
                     )
                     index = rv_discrete(
                         values=(gs.to_numpy(indices), gs.to_numpy(weights))
                     ).rvs()
-                    centroids.append(X[index])
+                    cluster_centers.append(X[index])
             elif self.init == "random":
-                centroids = [
+                cluster_centers = [
                     X[randint(0, n_samples - 1)] for i in range(self.n_clusters)
                 ]
             else:
-                raise ValueError(f"Unknown initial centroids method '{self.init}'.")
-
-            centroids = gs.stack(centroids, axis=0)
-        else:
-            if callable(self.init):
-                centroids = self.init(X, self.n_clusters)
-            else:
-                centroids = self.init
-
-            if centroids.shape[0] != self.n_clusters:
-                raise ValueError("Need as many initial centroids as clusters.")
-
-            if centroids.shape[1] != X.shape[1]:
                 raise ValueError(
-                    "Dimensions of initial centroids and training data do not match."
+                    f"Unknown initial cluster centers method '{self.init}'."
                 )
 
-        return centroids
+            cluster_centers = gs.stack(cluster_centers, axis=0)
+        else:
+            if callable(self.init):
+                cluster_centers = self.init(X, self.n_clusters)
+            else:
+                cluster_centers = self.init
+
+            if cluster_centers.shape[0] != self.n_clusters:
+                raise ValueError("Need as many initial cluster centers as clusters.")
+
+            if cluster_centers.shape[1] != X.shape[1]:
+                raise ValueError(
+                    "Dimensions of initial cluster centers and "
+                    "training data do not match."
+                )
+
+        return cluster_centers
 
     def fit(self, X):
-        """Provide clusters centroids and data labels.
+        """Provide cluster centers and data labels.
 
         Alternate between computing the mean of each cluster
-        and labelling data according to the new positions of the centroids.
+        and labelling data according to the new positions of the cluster centers.
 
         Parameters
         ----------
@@ -149,11 +155,11 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         if self.verbose > 0:
             logging.info("Initializing...")
 
-        centroids = self._pick_init_centroids(X)
-        self.init_cluster_centers_ = gs.copy(centroids)
+        cluster_centers = self._pick_init_cluster_centers(X)
+        self.init_cluster_centers_ = gs.copy(cluster_centers)
 
         dists = [
-            gs.to_ndarray(self.space.metric.dist(centroids[i], X), 2, 1)
+            gs.to_ndarray(self.space.metric.dist(cluster_centers[i], X), 2, 1)
             for i in range(self.n_clusters)
         ]
         dists = gs.hstack(dists)
@@ -163,32 +169,34 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             if self.verbose > 0:
                 logging.info(f"Iteration {index}...")
 
-            old_centroids = gs.copy(centroids)
+            old_cluster_centers = gs.copy(cluster_centers)
             for i in range(self.n_clusters):
                 fold = X[self.labels_ == i]
 
                 if len(fold) > 0:
                     self.mean_estimator.fit(fold)
-                    centroids[i] = self.mean_estimator.estimate_
+                    cluster_centers[i] = self.mean_estimator.estimate_
                 else:
-                    centroids[i] = X[randint(0, n_samples - 1)]
+                    cluster_centers[i] = X[randint(0, n_samples - 1)]
 
             dists = [
-                gs.to_ndarray(self.space.metric.dist(centroids[i], X), 2, 1)
+                gs.to_ndarray(self.space.metric.dist(cluster_centers[i], X), 2, 1)
                 for i in range(self.n_clusters)
             ]
             dists = gs.hstack(dists)
             self.labels_ = gs.argmin(dists, 1)
-            dists_to_closest_centroid = gs.amin(dists, 1)
-            self.inertia_ = gs.sum(dists_to_closest_centroid**2)
-            centroids_distances = self.space.metric.dist(old_centroids, centroids)
+            dists_to_closest_cluster_center = gs.amin(dists, 1)
+            self.inertia_ = gs.sum(dists_to_closest_cluster_center**2)
+            cluster_centers_distances = self.space.metric.dist(
+                old_cluster_centers, cluster_centers
+            )
             if self.verbose > 0:
                 logging.info(
                     f"Convergence criterion at the end of iteration {index} "
-                    f"is {gs.mean(centroids_distances)}."
+                    f"is {gs.mean(cluster_centers_distances)}."
                 )
 
-            if gs.mean(centroids_distances) < self.tol:
+            if gs.mean(cluster_centers_distances) < self.tol:
                 if self.verbose > 0:
                     logging.info(f"Convergence reached after {index} iterations.")
 
@@ -199,7 +207,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 "The mean may be inaccurate."
             )
 
-        self.cluster_centers_ = centroids
+        self.cluster_centers_ = cluster_centers
 
         return self
 
@@ -207,7 +215,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         """Predict the labels for each data point.
 
         Label each data point with the cluster having the nearest
-        centroid using metric distance.
+        cluster center using metric distance.
 
         Parameters
         ----------
@@ -222,7 +230,10 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         if self.cluster_centers_ is None:
             raise RuntimeError("fit needs to be called first.")
         dists = gs.stack(
-            [self.space.metric.dist(centroid, X) for centroid in self.cluster_centers_],
+            [
+                self.space.metric.dist(cluster_center, X)
+                for cluster_center in self.cluster_centers_
+            ],
             axis=1,
         )
         dists = gs.squeeze(dists)
