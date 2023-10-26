@@ -1,5 +1,7 @@
 import glob
 
+import matplotlib
+
 from geomstats.test.parametrizers import ExamplesParametrizer
 from geomstats.test.test_case import TestCase
 
@@ -8,6 +10,9 @@ AUTODIFF_BACKENDS = ALL_BACKENDS[1:]
 NP_LIKE_BACKENDS = ALL_BACKENDS[:2]
 
 EXAMPLES_DIR = "examples"
+
+
+matplotlib.use("Agg")
 
 
 class ExamplesTestData:
