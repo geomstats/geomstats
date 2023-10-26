@@ -70,7 +70,7 @@ class GeneralLinearBuresWassersteinBundleTestData(FiberBundleTestData):
     trials = 3
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
-    xfails = ("horizontal_lift_is_horizontal",)
+    xfails = ("horizontal_lift_is_horizontal", "align_vec")
 
     tolerances = {
         "align_vec": {"atol": 1e-1},

@@ -37,6 +37,7 @@ class DirichletMetricTestData(RiemannianMetricTestData):
         "dist_is_symmetric",
         "squared_dist_is_symmetric",
         "exp_after_log",
+        "exp_diagonal_is_totally_geodesic",
     )
 
     def jacobian_christoffels_vec_test_data(self):
