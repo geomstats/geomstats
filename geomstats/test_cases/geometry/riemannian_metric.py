@@ -291,7 +291,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             covariant_metric_tensor, [-2, -1], [-1, -2]
         )
 
-        res = gs.all(gs.abs(skew_symmetry_1) < gs.atol)
+        res = gs.all(gs.abs(skew_symmetry_1) < atol)
         self.assertTrue(res)
 
     @pytest.mark.random
@@ -313,7 +313,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             covariant_metric_tensor, [-4, -3], [-3, -4]
         )
 
-        res = gs.all(gs.abs(skew_symmetry_2) < gs.atol)
+        res = gs.all(gs.abs(skew_symmetry_2) < atol)
         self.assertTrue(res)
 
     @pytest.mark.random
@@ -359,7 +359,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
             covariant_metric_tensor, [-4, -3, -2, -1], [-2, -1, -4, -3]
         )
 
-        res = gs.all(gs.abs(interchange_symmetry) < gs.atol)
+        res = gs.all(gs.abs(interchange_symmetry) < atol)
         self.assertTrue(res)
 
     def test_sectional_curvature(

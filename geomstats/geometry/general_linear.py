@@ -36,7 +36,8 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
 
         self.positive_det = positive_det
 
-    def default_metric(self):
+    @staticmethod
+    def default_metric():
         """Metric to equip the space with if equip is True."""
         return MatricesMetric
 

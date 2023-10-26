@@ -2,7 +2,8 @@ from geomstats.geometry.euclidean import Euclidean
 
 
 class EuclideanGroup(Euclidean):
-    def compose(self, point_a, point_b):
+    @staticmethod
+    def compose(point_a, point_b):
         return point_a + point_b
 
     def log(self, point, base_point=None):
@@ -17,5 +18,6 @@ class EuclideanGroup(Euclidean):
 
         return super().exp(tangent_vec, base_point)
 
-    def inverse(self, point):
+    @staticmethod
+    def inverse(point):
         return -point

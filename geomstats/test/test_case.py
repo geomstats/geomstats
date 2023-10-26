@@ -112,19 +112,24 @@ class TestCase:
         else:
             self.assertTrue(gs.all(gs.equal(a, b)))
 
-    def assertTrue(self, condition, msg=None):
+    @staticmethod
+    def assertTrue(condition, msg=None):
         return assert_true(condition, msg=msg)
 
-    def assertFalse(self, condition, msg=None):
+    @staticmethod
+    def assertFalse(condition, msg=None):
         assert not condition, msg
 
-    def assertEqual(self, a, b, msg=None):
+    @staticmethod
+    def assertEqual(a, b, msg=None):
         assert a == b, msg
 
-    def assertAllCloseToNp(self, a, np_a, rtol=gs.rtol, atol=gs.atol):
+    @staticmethod
+    def assertAllCloseToNp(a, np_a, rtol=gs.rtol, atol=gs.atol):
         are_same_shape = np.all(a.shape == np_a.shape)
         are_same = np.allclose(a, np_a, rtol=rtol, atol=atol)
         assert are_same and are_same_shape
 
-    def assertShapeEqual(self, a, b):
+    @staticmethod
+    def assertShapeEqual(a, b):
         assert a.shape == b.shape

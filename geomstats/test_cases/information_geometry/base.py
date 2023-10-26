@@ -7,9 +7,6 @@ from geomstats.vectorization import get_batch_shape
 
 
 class InformationManifoldMixinTestCase(TestCase):
-    def _get_sample_shape(self, point, n_samples):
-        return
-
     @pytest.mark.shape
     def test_sample_shape(self, n_points, n_samples):
         point = self.data_generator.random_point(n_points)

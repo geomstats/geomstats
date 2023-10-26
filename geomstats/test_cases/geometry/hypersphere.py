@@ -275,7 +275,7 @@ class HypersphereCoordsTransformTestCase(TestCase):
         self._test_vectorization(vec_data)
 
     @pytest.mark.random
-    def test_tangent_extrinsic_to_spherical_is_tangent(self, n_points, atol):
+    def test_tangent_extrinsic_to_spherical_is_tangent(self, n_points):
         base_point = self.extrinsic_data_generator.random_point(n_points)
         tangent_vec = self.extrinsic_data_generator.random_tangent_vec(base_point)
 

@@ -39,10 +39,7 @@ def _filter_combs(n_args, combs, vectorization_type):
 
     for comb in combs.copy():
         vals_remove = [comb[remove_index] for remove_index in remove_indices]
-        if max(vals_remove) == 0:
-            continue
-
-        elif min(vals_remove) == 1 and min(comb) == 1:
+        if max(vals_remove) == 0 or min(vals_remove) == 1 and min(comb) == 1:
             continue
 
         combs.remove(comb)

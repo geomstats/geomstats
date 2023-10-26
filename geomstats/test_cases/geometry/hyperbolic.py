@@ -168,7 +168,7 @@ class HyperbolicCoordsTransformTestCase(TestCase):
     def test_change_coordinates_system_after_change_coordinates_system(
         self, n_points, from_coordinates_system, to_coordinates_system, atol
     ):
-        point = self._get_random_point(from_coordinates_system)
+        point = self._get_random_point(from_coordinates_system, n_points)
         point_other = self.space.change_coordinates_system(
             point, from_coordinates_system, to_coordinates_system
         )

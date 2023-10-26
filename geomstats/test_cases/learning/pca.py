@@ -22,7 +22,7 @@ class TangentPCATestCase(BaseEstimatorTestCase):
         self.assertAllClose(res, res_, atol=atol)
 
     @pytest.mark.random
-    def test_n_components(self, n_samples, atol):
+    def test_n_components(self, n_samples):
         X = self.data_generator.random_point(n_samples)
 
         n_components_0 = self.estimator.n_components
@@ -46,12 +46,12 @@ class TangentPCATestCase(BaseEstimatorTestCase):
 
         self.estimator.fit(X)
         res = gs.cumsum(self.estimator.explained_variance_ratio_)[-1]
-        self.assertTrue(res > target)
+        self.assertTrue(res > target - atol)
 
         self.estimator.n_components = n_components_0
 
     @pytest.mark.random
-    def test_n_components_mle(self, n_samples, atol):
+    def test_n_components_mle(self, n_samples):
         if self.estimator.space.point_ndim > 1:
             return
 

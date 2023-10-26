@@ -263,7 +263,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
         alt_expected = integrability_tensor_alt(
             self.bundle, tangent_vec_a, tangent_vec_b, base_point
         )
-        self.assertAllClose(expected, alt_expected)
+        self.assertAllClose(expected, alt_expected, atol=atol)
 
     @pytest.mark.vec
     def test_integrability_tensor_derivative_vec(self, n_reps, atol):

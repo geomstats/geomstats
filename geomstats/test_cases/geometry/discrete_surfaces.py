@@ -52,7 +52,7 @@ class DiscreteSurfacesTestCase(ManifoldTestCase):
             for normal, normal_ in zip(res_, expected_):
                 _check_normal(normal, normal_)
 
-    def test_surface_one_forms_prod(self, point, expected, atol):
+    def test_surface_one_forms_prod(self, point, expected):
         """Test surface one forms."""
         res = self.space.surface_one_forms(point)
 

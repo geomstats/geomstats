@@ -148,7 +148,7 @@ class InvariantMetricMatrixTestCase(_InvariantMetricTestCaseMixins):
         expected = self.space.metric.structure_constant(
             tangent_vec_a, tangent_vec_c, tangent_vec_b
         )
-        self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected, atol=atol)
 
     def test_connection_at_identity(self, tangent_vec_a, tangent_vec_b, expected, atol):
         res = self.space.metric.connection_at_identity(tangent_vec_a, tangent_vec_b)

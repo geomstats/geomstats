@@ -1233,7 +1233,7 @@ class SRVMetric(PullbackDiffeoMetric):
         embedding_space.equip_with_metric(L2CurvesMetric)
         return embedding_space
 
-    def f_transform(self, point, tol=gs.atol):
+    def f_transform(self, point):
         r"""Square Root Velocity Transform (SRVT).
 
         Compute the square root velocity representation of a curve. The
@@ -1250,10 +1250,6 @@ class SRVMetric(PullbackDiffeoMetric):
         ----------
         point : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve.
-
-        tol : float
-            Tolerance value to decide duplicity of two consecutive sample
-            points on a given Discrete Curve.
 
         Returns
         -------

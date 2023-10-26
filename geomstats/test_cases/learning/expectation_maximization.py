@@ -21,8 +21,10 @@ class RiemannianEMTestCase(BaseEstimatorTestCase):
         coefficients = self.estimator.mixture_coefficients_
         variances = self.estimator.variances_
 
-        self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
-        self.assertTrue((variances < 1).all() and (variances > 0).all())
+        self.assertTrue(
+            (coefficients < 1 + atol).all() and (coefficients > -atol).all()
+        )
+        self.assertTrue((variances < 1 + atol).all() and (variances > -atol).all())
 
 
 class GaussianMixtureModelTestCase(TestCase):

@@ -107,11 +107,11 @@ class MatrixOperationsTestCase(TestCase):
         mat_ab = a * mat_a + b * mat_b
         left = Matrices.bracket(mat_ab, mat_c)
         right = a * Matrices.bracket(mat_a, mat_c) + b * Matrices.bracket(mat_b, mat_c)
-        self.assertAllClose(left, right)
+        self.assertAllClose(left, right, atol=atol)
 
         left = Matrices.bracket(mat_c, mat_ab)
         right = a * Matrices.bracket(mat_c, mat_a) + b * Matrices.bracket(mat_c, mat_b)
-        self.assertAllClose(left, right)
+        self.assertAllClose(left, right, atol=atol)
 
     def test_transpose(self, mat, expected, atol):
         res = Matrices.transpose(mat)
@@ -192,7 +192,7 @@ class MatrixOperationsTestCase(TestCase):
 
     def test_is_property(self, property_name, mat, expected, atol):
         func = getattr(Matrices, f"is_{property_name}")
-        res = func(mat)
+        res = func(mat, atol=atol)
         self.assertAllEqual(res, expected)
 
     @pytest.mark.vec

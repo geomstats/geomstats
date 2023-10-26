@@ -21,7 +21,7 @@ class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
         self.assertAllClose(inner_product_ab, gs.conj(inner_product_ba), atol=atol)
 
     @pytest.mark.type
-    def test_inner_product_is_complex(self, n_points, atol):
+    def test_inner_product_is_complex(self, n_points):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec_a = self.data_generator.random_tangent_vec(base_point)
         tangent_vec_b = self.data_generator.random_tangent_vec(base_point)
@@ -32,7 +32,7 @@ class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
         self.assertTrue(gs.is_complex(result))
 
     @pytest.mark.type
-    def test_dist_is_real(self, n_points, atol):
+    def test_dist_is_real(self, n_points):
         point_a = self.data_generator.random_point(n_points)
         point_b = self.data_generator.random_point(n_points)
 
@@ -40,7 +40,7 @@ class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
         self.assertTrue(not gs.is_complex(result))
 
     @pytest.mark.type
-    def test_log_is_complex(self, n_points, atol):
+    def test_log_is_complex(self, n_points):
         base_point = self.data_generator.random_point(n_points)
         point = self.data_generator.random_point(n_points)
 
@@ -48,7 +48,7 @@ class ComplexRiemannianMetricTestCase(RiemannianMetricTestCase):
         self.assertTrue(gs.is_complex(result))
 
     @pytest.mark.type
-    def test_exp_is_complex(self, n_points, atol):
+    def test_exp_is_complex(self, n_points):
         base_point = self.data_generator.random_point(n_points)
         tangent_vec = self.data_generator.random_tangent_vec(base_point)
 
