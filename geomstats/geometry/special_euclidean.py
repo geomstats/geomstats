@@ -10,10 +10,11 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.general_linear import GeneralLinear, Matrices
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric, _InvariantMetricMatrix
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.vectorization import repeat_out
@@ -193,7 +194,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
         super().__init__(
             dim=int((n * (n + 1)) / 2),
             representation_dim=n + 1,
-            lie_algebra=SpecialEuclideanMatrixLieAlgebra(n=n),
+            lie_algebra=SpecialEuclideanMatricesLieAlgebra(n=n, equip=False),
             equip=equip,
         )
         self.rotations = SpecialOrthogonal(n=n, equip=True)
@@ -202,7 +203,7 @@ class _SpecialEuclideanMatrices(MatrixLieGroup, LevelSet):
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
-        return SpecialEuclideanMatrixCanonicalLeftMetric
+        return SpecialEuclideanMatricesCanonicalLeftMetric
 
     def _define_embedding_space(self):
         return GeneralLinear(self.n + 1, positive_det=True)
@@ -622,6 +623,10 @@ class _SpecialEuclideanVectors(LieGroup):
         random_rot_vec = self.rotations.random_uniform(n_samples)
         return gs.concatenate([random_rot_vec, random_translation], axis=-1)
 
+    def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the lie bracket of two tangent vectors."""
+        raise NotImplementedError("The lie bracket is not implemented.")
+
 
 class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
     """Class for the special Euclidean group in 2d, SE(2).
@@ -700,7 +705,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
 
     def _exp_translation_transform(self, rot_vec):
         base_1 = gs.eye(2)
-        base_2 = self.rotations.skew_matrix_from_vector(gs.ones(1))
+        base_2 = self.rotations.skew.matrix_representation(gs.ones(1))
         cos_coef = rot_vec * utils.taylor_exp_even_func(
             rot_vec**2, utils.cosc_close_0, order=3
         )
@@ -751,11 +756,11 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         dim_rotations = self.rotations.dim
         metric_mat = self.metric.metric_mat_at_identity
         rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
-        rotations_kwargs = {
-            "metric_mat_at_identity": rot_metric_mat,
-            "left": self.metric.left,
-        }
-        self.rotations.equip_with_metric(InvariantMetric, **rotations_kwargs)
+        self.rotations.equip_with_metric(
+            InvariantMetric,
+            metric_mat_at_identity=rot_metric_mat,
+            left=self.metric.left,
+        )
 
     def regularize_tangent_vec(self, tangent_vec, base_point):
         """Regularize a tangent vector at a base point.
@@ -831,7 +836,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
             )
 
         else:
-            inv_skew_mat = -self.rotations.skew_matrix_from_vector(rot_vec)
+            inv_skew_mat = -self.rotations.skew.matrix_representation(rot_vec)
             eye = gs.eye(self.n)
             if is_vec:
                 eye = gs.repeat(gs.expand_dims(eye, axis=0), n_points, axis=0)
@@ -860,7 +865,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         angle = gs.linalg.norm(rot_vec, axis=-1)
         angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-        skew_rot_vec = self.rotations.skew_matrix_from_vector(rot_vec)
+        skew_rot_vec = self.rotations.skew.matrix_representation(rot_vec)
 
         coef_1 = gs.empty_like(angle)
         coef_2 = gs.empty_like(coef_1)
@@ -907,7 +912,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
             Matrix to be applied to the translation part in exp.
         """
         sq_angle = gs.sum(rot_vec**2, axis=-1)
-        skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
+        skew_mat = self.rotations.skew.matrix_representation(rot_vec)
         sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
         coef_1_ = utils.taylor_exp_even_func(sq_angle, utils.cosc_close_0, order=4)
@@ -935,7 +940,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         angle = gs.linalg.norm(rot_vec, axis=-1)
         angle = gs.to_ndarray(angle, to_ndim=2, axis=-1)
 
-        skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
+        skew_mat = self.rotations.skew.matrix_representation(rot_vec)
         sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
         mask_close_0 = gs.isclose(angle, 0.0)
@@ -990,7 +995,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         return transform
 
 
-class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
+class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
     """Class for the canonical left-invariant metric on SE(n).
 
     The canonical left-invariant metric is defined by endowing the tangent
@@ -1006,21 +1011,22 @@ class SpecialEuclideanMatrixCanonicalLeftMetric(_InvariantMetricMatrix):
     """
 
     def __init__(self, space):
-        if not self._check_implemented(space):
-            raise ValueError(
-                "group must be an instance of the "
-                "SpecialEuclidean class with `point_type=matrix`."
-            )
+        self._check_implemented(space)
         super().__init__(space=space)
 
     def _instantiate_solvers(self):
         pass
 
     def _check_implemented(self, space):
-        return (
+        check = (
             isinstance(space, _SpecialEuclideanMatrices)
             and space.default_point_type == "matrix"
         )
+        if not check:
+            raise ValueError(
+                "group must be an instance of the "
+                "SpecialEuclidean class with `point_type=matrix`."
+            )
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product of two vectors in tangent space at base point.
@@ -1312,7 +1318,7 @@ class SpecialEuclidean:
         return _SpecialEuclideanMatrices(n, equip=equip)
 
 
-class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
+class SpecialEuclideanMatricesLieAlgebra(MatrixLieAlgebra):
     r"""Lie Algebra of the special Euclidean group.
 
     This is the tangent space at the identity. It is identified with the
@@ -1331,12 +1337,17 @@ class SpecialEuclideanMatrixLieAlgebra(MatrixLieAlgebra):
         be of size: (n+1) x (n+1).
     """
 
-    def __init__(self, n):
+    def __init__(self, n, equip=True):
         self.n = n
         dim = int(n * (n + 1) / 2)
-        super().__init__(dim=dim, representation_dim=n + 1, equip=False)
+        super().__init__(dim=dim, representation_dim=n + 1, equip=equip)
 
-        self.skew = SkewSymmetricMatrices(n)
+        self.skew = SkewSymmetricMatrices(n, equip=False)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
 
     def _create_basis(self):
         """Create the canonical basis."""

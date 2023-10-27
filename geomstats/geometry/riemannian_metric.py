@@ -602,10 +602,7 @@ class RiemannianMetric(Connection, ABC):
         norm_b = self.squared_norm(tangent_vec_b, base_point)
         inner_ab = self.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         normalization_factor = norm_a * norm_b - inner_ab**2
-
-        condition = gs.isclose(normalization_factor, 0.0)
-        normalization_factor = gs.where(condition, EPSILON, normalization_factor)
-        return gs.where(~condition, sectional / normalization_factor, 0.0)
+        return gs.divide(sectional, normalization_factor, ignore_div_zero=True)
 
     def scalar_curvature(self, base_point):
         r"""Compute scalar curvature at base_point.

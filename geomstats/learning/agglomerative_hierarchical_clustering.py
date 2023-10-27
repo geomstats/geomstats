@@ -106,7 +106,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
                 affinity_matrix[i_sample, :i_sample] = self.space.metric.dist(
                     data[i_sample, ...], data[:i_sample, ...]
                 ).reshape(i_sample)
-            affinity_matrix += affinity_matrix.T
+            affinity_matrix = affinity_matrix + affinity_matrix.T
             return affinity_matrix
 
         self.space = space

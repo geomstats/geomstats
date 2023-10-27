@@ -138,7 +138,7 @@ class GaussianMixtureModel:
         variances_flatten = variances_expanded.flatten()
 
         distances = -(self.space.metric.dist_broadcast(data, self.means) ** 2)
-        distances = gs.reshape(distances, (data.shape[0] * self.variances.shape[0]))
+        distances = gs.reshape(distances, (data.shape[0] * self.variances.shape[0],))
 
         num = gs.exp(distances / (2 * variances_flatten**2))
 
@@ -269,7 +269,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         Optional, default: 'random'.
         Choice between initialization method for variances, means and weights.
            'random' : will select random uniformly train points as
-                     initial centroids.
+                     initial cluster centers.
             'kmeans' : will apply Riemannian kmeans to deduce
             variances and means that the EM will use initially.
     tol : float
@@ -465,18 +465,18 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             )
 
             kmeans_estimator.fit(X=X)
-            centroids = kmeans_estimator.centroids_
+            cluster_centers = kmeans_estimator.cluster_centers_
             labels = kmeans_estimator.labels_
 
-            means = centroids
+            means = cluster_centers
             variances = gs.zeros(self.n_gaussians)
 
             labeled_data = gs.vstack([labels, gs.transpose(X)])
             labeled_data = gs.transpose(labeled_data)
-            for label, centroid in enumerate(centroids):
+            for label, cluster_center in enumerate(cluster_centers):
                 label_mask = gs.where(labeled_data[:, 0] == label)
                 grouped_by_label = labeled_data[label_mask][:, 1:]
-                v = variance(self.space, grouped_by_label, centroid)
+                v = variance(self.space, grouped_by_label, cluster_center)
                 if grouped_by_label.shape[0] == 1:
                     v += MIN_VAR_INIT
                 variances[label] = v

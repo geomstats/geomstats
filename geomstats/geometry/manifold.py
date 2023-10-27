@@ -82,6 +82,8 @@ class Manifold(abc.ABC):
 
         self.metric = Metric(self, **metric_kwargs)
 
+        return self
+
     def equip_with_group_action(self, group_action):
         """Equip manifold with group action.
 

@@ -31,7 +31,7 @@ class PositiveLowerTriangularMatrices(OpenSet):
     def __init__(self, n, equip=True):
         super().__init__(
             dim=int(n * (n + 1) / 2),
-            embedding_space=LowerTriangularMatrices(n),
+            embedding_space=LowerTriangularMatrices(n, equip=False),
             equip=equip,
         )
         self.n = n
@@ -61,12 +61,12 @@ class PositiveLowerTriangularMatrices(OpenSet):
         sample = super().random_point(n_samples, bound)
         return self.projection(sample)
 
-    def belongs(self, mat, atol=gs.atol):
+    def belongs(self, point, atol=gs.atol):
         """Check if mat is lower triangular with >0 diagonal.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
             Matrix to be checked.
         atol : float
             Tolerance.
@@ -77,8 +77,8 @@ class PositiveLowerTriangularMatrices(OpenSet):
         belongs : array-like, shape=[...,]
             Boolean denoting if mat belongs to cholesky space.
         """
-        is_lower_triangular = self.embedding_space.belongs(mat, atol)
-        diagonal = Matrices.diagonal(mat)
+        is_lower_triangular = self.embedding_space.belongs(point, atol)
+        diagonal = Matrices.diagonal(point)
         is_positive = gs.all(diagonal > 0, axis=-1)
         return gs.logical_and(is_lower_triangular, is_positive)
 
