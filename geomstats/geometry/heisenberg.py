@@ -214,3 +214,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         return gs.stack(
             [modified_point[..., 0], modified_point[..., 2], corrected_elem], axis=-1
         )
+
+    def lie_bracket(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """Compute the lie bracket of two tangent vectors."""
+        raise NotImplementedError("The lie bracket is not implemented.")

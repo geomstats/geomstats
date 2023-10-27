@@ -4,12 +4,12 @@ import pytest
 
 import geomstats.backend as gs
 import geomstats.errors
-import tests.conftest
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.test.test_case import TestCase
 
 
-class TestBackends(tests.conftest.TestCase):
+class TestBackends(TestCase):
     def test_check_belongs(self):
         euclidean = Euclidean(5)
         point = gs.array([1, 2])

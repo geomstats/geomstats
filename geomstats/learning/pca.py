@@ -45,7 +45,7 @@ def _assess_dimension_(spectrum, rank, n_samples, n_features):
     Automatic Choice of Dimensionality for PCA. NIPS 2000: 598-604`
     """
     if rank > len(spectrum):
-        raise ValueError("The tested rank cannot exceed the rank of the" " dataset")
+        raise ValueError("The tested rank cannot exceed the rank of the dataset")
 
     pu = -rank * log(2.0)
     for i in range(rank):
@@ -210,7 +210,10 @@ class TangentPCA(_BasePCA):
         """
         tangent_vecs = self._geometry.log(X, base_point=self.base_point_)
         if self.space.default_point_type == "matrix":
-            if Matrices.is_symmetric(tangent_vecs).all():
+            if (
+                gs.all(Matrices.is_square(tangent_vecs))
+                and Matrices.is_symmetric(tangent_vecs).all()
+            ):
                 X = SymmetricMatrices.to_vector(tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), -1))
@@ -240,7 +243,9 @@ class TangentPCA(_BasePCA):
         scores = self.mean_ + gs.matmul(X, self.components_)
 
         if self.space.point_ndim > 1:
-            if gs.all(Matrices.is_symmetric(self.base_point_)):
+            if gs.all(Matrices.is_square(self.base_point_)) and gs.all(
+                Matrices.is_symmetric(self.base_point_)
+            ):
                 scores = SymmetricMatrices(self.base_point_.shape[-1]).from_vector(
                     scores
                 )
@@ -273,7 +278,9 @@ class TangentPCA(_BasePCA):
         tangent_vecs = self._geometry.log(X, base_point=base_point)
 
         if self.space.point_ndim > 1:
-            if gs.all(Matrices.is_symmetric(tangent_vecs)):
+            if gs.all(Matrices.is_square(tangent_vecs)) and gs.all(
+                Matrices.is_symmetric(tangent_vecs)
+            ):
                 X = SymmetricMatrices.to_vector(tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), -1))
@@ -284,6 +291,7 @@ class TangentPCA(_BasePCA):
             n_components = min(X.shape)
         else:
             n_components = self.n_components
+
         n_samples, n_features = X.shape
 
         if n_components == "mle":

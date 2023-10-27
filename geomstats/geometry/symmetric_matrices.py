@@ -104,7 +104,7 @@ class SymmetricMatrices(VectorSpace):
         return Matrices.to_symmetric(sample)
 
     @staticmethod
-    def to_vector(mat):
+    def to_vector(point):
         """Convert a symmetric matrix into a vector.
 
         Parameters
@@ -117,7 +117,7 @@ class SymmetricMatrices(VectorSpace):
         vec : array-like, shape=[..., n(n+1)/2]
             Vector.
         """
-        return gs.triu_to_vec(mat)
+        return gs.triu_to_vec(point)
 
     @staticmethod
     def from_vector(vec):

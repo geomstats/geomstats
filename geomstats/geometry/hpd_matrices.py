@@ -6,7 +6,6 @@ Lead author: Yann Cabanes.
 import math
 
 import geomstats.backend as gs
-import geomstats.vectorization
 from geomstats.geometry.base import ComplexOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
@@ -17,6 +16,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.integrator import integrate
+from geomstats.vectorization import repeat_out
 
 
 class HPDMatrices(ComplexOpenSet):
@@ -39,7 +39,9 @@ class HPDMatrices(ComplexOpenSet):
     """
 
     def __init__(self, n, equip=True):
-        super().__init__(dim=n**2, embedding_space=HermitianMatrices(n), equip=equip)
+        super().__init__(
+            dim=n**2, shape=(n, n), embedding_space=HermitianMatrices(n), equip=equip
+        )
         self.n = n
 
     @staticmethod
@@ -127,7 +129,6 @@ class HPDMatrices(ComplexOpenSet):
             Optional, default: 1.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
-            Optional, default: None.
 
         Returns
         -------
@@ -137,10 +138,10 @@ class HPDMatrices(ComplexOpenSet):
         n = self.n
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
-        if base_point is None:
-            base_point = gs.eye(n, dtype=gs.get_default_cdtype())
-
-        sqrt_base_point = gs.linalg.sqrtm(base_point)
+        sqrt_base_point = gs.cast(
+            gs.linalg.sqrtm(base_point),
+            base_point.dtype,
+        )
 
         tangent_vec_at_id_aux = gs.random.rand(*size, dtype=gs.get_default_cdtype())
         tangent_vec_at_id_aux *= 2
@@ -149,9 +150,7 @@ class HPDMatrices(ComplexOpenSet):
             tangent_vec_at_id_aux
         )
 
-        tangent_vec = Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
-
-        return tangent_vec
+        return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
     @staticmethod
     def _aux_differential_power(power, tangent_vec, base_point):
@@ -592,7 +591,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
 
         return Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the affine-invariant exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -651,7 +650,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
         log_at_id = HPDMatrices.logm(point_near_id)
         return Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the affine-invariant logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -741,10 +740,11 @@ class HPDAffineMetric(ComplexRiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return math.inf
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)
 
 
 class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
@@ -791,7 +791,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
 
         return result
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Bures-Wasserstein exponential map.
 
         Parameters
@@ -819,7 +819,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
 
         return base_point + tangent_vec + hessian
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Bures-Wasserstein logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -844,7 +844,7 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         transconj_sqrt_product = ComplexMatrices.transconjugate(sqrt_product)
         return sqrt_product + transconj_sqrt_product - 2 * base_point
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Compute the Bures-Wasserstein squared distance.
 
         Compute the Riemannian squared distance between point_a and point_b.
@@ -870,9 +870,9 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
 
     def parallel_transport(
         self,
-        tangent_vec_a,
+        tangent_vec,
         base_point,
-        tangent_vec_b=None,
+        direction=None,
         end_point=None,
         n_steps=10,
         step="rk4",
@@ -886,13 +886,13 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at `base_point` to transport.
-        tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector ar `base_point`, initial velocity of the geodesic to
-            transport along.
         base_point : array-like, shape=[..., n, n]
             Initial point of the geodesic.
+        direction : array-like, shape=[..., n, n]
+            Tangent vector at `base_point`, initial velocity of the geodesic to
+            transport along.
         end_point : array-like, shape=[..., n, n]
             Point to transport to.
             Optional, default: None.
@@ -914,10 +914,10 @@ class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
         Integration module: geomstats.integrator
         """
         if end_point is None:
-            end_point = self.exp(tangent_vec_b, base_point)
+            end_point = self.exp(direction, base_point)
 
         horizontal_lift_a = gs.linalg.solve_sylvester(
-            base_point, base_point, tangent_vec_a
+            base_point, base_point, tangent_vec
         )
 
         square_root_bp, inverse_square_root_bp = HermitianMatrices.powerm(
@@ -1021,7 +1021,6 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
         return inner_product
 
     @staticmethod
-    @geomstats.vectorization.decorator(["matrix", "matrix"])
     def exp_domain(tangent_vec, base_point):
         """Compute the domain of the Euclidean exponential map.
 
@@ -1041,17 +1040,14 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
             Interval of time where the geodesic is defined.
         """
         invsqrt_base_point = HermitianMatrices.powerm(base_point, -0.5)
-
         reduced_vec = gs.matmul(invsqrt_base_point, tangent_vec)
         reduced_vec = gs.matmul(reduced_vec, invsqrt_base_point)
         eigvals = gs.linalg.eigvalsh(reduced_vec)
-        min_eig = gs.amin(eigvals, axis=1)
-        max_eig = gs.amax(eigvals, axis=1)
+        min_eig = gs.amin(eigvals, axis=-1)
+        max_eig = gs.amax(eigvals, axis=-1)
         inf_value = gs.where(max_eig <= 0.0, gs.array(-math.inf), -1.0 / max_eig)
-        inf_value = gs.to_ndarray(inf_value, to_ndim=2)
         sup_value = gs.where(min_eig >= 0.0, gs.array(-math.inf), -1.0 / min_eig)
-        sup_value = gs.to_ndarray(sup_value, to_ndim=2)
-        return gs.concatenate((inf_value, sup_value), axis=1)
+        return gs.stack((inf_value, sup_value), axis=-1)
 
     def injectivity_radius(self, base_point):
         """Compute the upper bound of the injectivity domain.
@@ -1071,7 +1067,7 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
         eigen_values = gs.linalg.eigvalsh(base_point)
         return eigen_values[..., 0]
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Euclidean exponential map.
 
         Compute the Euclidean exponential at point base_point
@@ -1104,7 +1100,7 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
             )
         return exp
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Euclidean logarithm map.
 
         Compute the Euclidean logarithm at point base_point, of point.
@@ -1166,7 +1162,15 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
             Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
         """
         if self.power_euclidean == 1:
-            return gs.copy(tangent_vec)
+            return repeat_out(
+                self._space,
+                gs.copy(tangent_vec),
+                tangent_vec,
+                base_point,
+                direction,
+                end_point,
+                out_shape=self._space.shape,
+            )
         raise NotImplementedError("Parallel transport is only implemented for power 1")
 
 
@@ -1199,7 +1203,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
         modified_tangent_vec_b = hpd_space.differential_log(tangent_vec_b, base_point)
         return Matrices.trace_product(modified_tangent_vec_a, modified_tangent_vec_b)
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Log-Euclidean exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -1222,7 +1226,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
         dlog_tangent_vec = HPDMatrices.differential_log(tangent_vec, base_point)
         return HermitianMatrices.expm(log_base_point + dlog_tangent_vec)
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Log-Euclidean logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
@@ -1258,10 +1262,11 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return math.inf
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)
 
     def dist(self, point_a, point_b):
         """Compute log euclidean distance.

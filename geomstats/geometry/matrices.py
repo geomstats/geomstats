@@ -1,5 +1,6 @@
 """Module exposing the `Matrices` and `MatricesMetric` class."""
 import logging
+import math
 from functools import reduce
 
 import geomstats.backend as gs
@@ -147,13 +148,15 @@ class Matrices(VectorSpace):
         is_square : array-like, shape=[...,]
             Boolean evaluating if the matrix is square.
         """
-        n = mat.shape[-1]
-        m = mat.shape[-2]
-        return m == n
+        shape = mat.shape[:-2]
+        if mat.shape[-1] == mat.shape[-2]:
+            return gs.ones(shape, dtype=bool)
+
+        return gs.zeros(shape, dtype=bool)
 
     @classmethod
     def is_diagonal(cls, mat, atol=gs.atol):
-        """Check if a matrix is square and diagonal.
+        """Check if a square matrix is diagonal.
 
         Parameters
         ----------
@@ -168,16 +171,13 @@ class Matrices(VectorSpace):
         is_diagonal : array-like, shape=[...,]
             Boolean evaluating if the matrix is square and diagonal.
         """
-        is_square = cls.is_square(mat)
-        if not gs.all(is_square):
-            return False
         diagonal_mat = from_vector_to_diagonal_matrix(cls.diagonal(mat))
         is_diagonal = gs.all(gs.isclose(mat, diagonal_mat, atol=atol), axis=(-2, -1))
         return is_diagonal
 
     @classmethod
     def is_lower_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is lower triangular.
+        """Check if a square matrix is lower triangular.
 
         Parameters
         ----------
@@ -192,15 +192,11 @@ class Matrices(VectorSpace):
         is_tril : array-like, shape=[...,]
             Boolean evaluating if the matrix is lower triangular
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.tril(mat), atol)
 
     @classmethod
     def is_upper_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is upper triangular.
+        """Check if a square matrix is upper triangular.
 
         Parameters
         ----------
@@ -215,15 +211,11 @@ class Matrices(VectorSpace):
         is_triu : array-like, shape=[...,]
             Boolean evaluating if the matrix is upper triangular.
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.triu(mat), atol)
 
     @classmethod
     def is_strictly_lower_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is strictly lower triangular.
+        """Check if a square matrix is strictly lower triangular.
 
         Parameters
         ----------
@@ -238,15 +230,11 @@ class Matrices(VectorSpace):
         is_strictly_tril : array-like, shape=[...,]
             Boolean evaluating if the matrix is strictly lower triangular
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(mat) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.tril(mat, k=-1), atol)
 
     @classmethod
     def is_strictly_upper_triangular(cls, mat, atol=gs.atol):
-        """Check if a matrix is strictly upper triangular.
+        """Check if a square matrix is strictly upper triangular.
 
         Parameters
         ----------
@@ -261,15 +249,11 @@ class Matrices(VectorSpace):
         is_strictly_triu : array-like, shape=[...,]
             Boolean evaluating if the matrix is strictly upper triangular
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, gs.triu(mat, k=1))
 
     @classmethod
     def is_symmetric(cls, mat, atol=gs.atol):
-        """Check if a matrix is symmetric.
+        """Check if a square matrix is symmetric.
 
         Parameters
         ----------
@@ -284,10 +268,6 @@ class Matrices(VectorSpace):
         is_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric.
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod
@@ -331,12 +311,11 @@ class Matrices(VectorSpace):
         is_spd : array-like, shape=[...,]
             Boolean evaluating if the matrix is symmetric positive definite.
         """
-        is_spd = gs.logical_and(cls.is_symmetric(mat, atol), cls.is_pd(mat))
-        return is_spd
+        return gs.logical_and(cls.is_symmetric(mat, atol), cls.is_pd(mat))
 
     @classmethod
     def is_skew_symmetric(cls, mat, atol=gs.atol):
-        """Check if a matrix is skew symmetric.
+        """Check if a square matrix is skew symmetric.
 
         Parameters
         ----------
@@ -351,10 +330,6 @@ class Matrices(VectorSpace):
         is_skew_sym : array-like, shape=[...,]
             Boolean evaluating if the matrix is skew-symmetric.
         """
-        is_square = cls.is_square(mat)
-        if not is_square:
-            is_vectorized = gs.ndim(gs.array(mat)) == 3
-            return gs.array([False] * len(mat)) if is_vectorized else False
         return cls.equal(mat, -cls.transpose(mat), atol)
 
     @classmethod
@@ -592,7 +567,8 @@ class Matrices(VectorSpace):
         """
         return gs.einsum("...ij,...ji->...", mat_1, mat_2)
 
-    def flatten(self, mat):
+    @staticmethod
+    def flatten(mat):
         """Return a flattened form of the matrix.
 
         Flatten a matrix (compatible with vectorization on data axis 0).
@@ -612,13 +588,9 @@ class Matrices(VectorSpace):
         vec : array-like, shape=[..., m * n]
             Flatten copy of mat.
         """
-        is_data_vectorized = gs.ndim(gs.array(mat)) == 3
-        shape = (
-            (mat.shape[0], self.m * self.n)
-            if is_data_vectorized
-            else (self.m * self.n,)
-        )
-        return gs.reshape(mat, shape)
+        batch_shape = mat.shape[:-2]
+        mat_shape = mat.shape[-2:]
+        return gs.reshape(mat, batch_shape + (math.prod(mat_shape),))
 
     def reshape(self, vec):
         """Return a matricized form of the vector.

@@ -71,7 +71,8 @@ class RankKPSDMatrices(Manifold):
         is_symmetric = self.sym.belongs(point, atol)
         eigvalues = gs.linalg.eigvalsh(point)
         is_semipositive = gs.all(eigvalues > -atol, axis=-1)
-        is_rankk = gs.sum(gs.where(eigvalues < atol, 0, 1), axis=-1) == self.rank
+        sum_eig = gs.sum(gs.where(eigvalues < atol, 0, 1), axis=-1)
+        is_rankk = gs.isclose(sum_eig, self.rank, atol=atol)
         return gs.logical_and(gs.logical_and(is_symmetric, is_semipositive), is_rankk)
 
     def projection(self, point):

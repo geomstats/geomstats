@@ -148,7 +148,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
 
             cluster_centers[index_to_update, :] = new_center
 
-            if gs.isclose(gap, 0, atol=self.atol):
+            if gs.isclose(gap, 0.0, atol=self.atol):
                 break
         else:
             logging.warning(

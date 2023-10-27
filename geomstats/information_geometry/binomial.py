@@ -2,7 +2,6 @@
 
 Lead authors: Jules Deschamps, Tra My Nguyen.
 """
-
 from scipy.special import factorial
 from scipy.stats import binom
 
@@ -10,7 +9,10 @@ import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.base import (
+    InformationManifoldMixin,
+    ScipyUnivariateRandomVariable,
+)
 
 
 class BinomialDistributions(InformationManifoldMixin, OpenSet):
@@ -23,10 +25,12 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
     def __init__(self, n_draws, equip=True):
         super().__init__(
             dim=1,
+            support_shape=(),
             embedding_space=Euclidean(dim=1, equip=False),
             equip=equip,
         )
         self.n_draws = n_draws
+        self._scp_rv = BinomialDistributionsRandomVariable(self)
 
     @staticmethod
     def default_metric():
@@ -54,7 +58,7 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
         if not belongs_shape:
             shape = point.shape[: -self.point_ndim]
             return gs.zeros(shape, dtype=bool)
-        return gs.squeeze(gs.logical_and(atol <= point, point <= 1 - atol), axis=-1)
+        return gs.squeeze(gs.logical_and(-atol <= point, point <= 1 + atol), axis=-1)
 
     def random_point(self, n_samples=1):
         """Sample parameters of binomial distributions.
@@ -115,17 +119,10 @@ class BinomialDistributions(InformationManifoldMixin, OpenSet):
 
         Returns
         -------
-        samples : array-like, shape=[..., n_samples]
+        samples : array-like, shape=[..., n_samples, dim]
             Sample from binomial distributions.
         """
-
-        def _sample(param):
-            return binom.rvs(self.n_draws, param, size=n_samples)
-
-        if point.ndim > 1:
-            return gs.array([_sample(point_) for point_ in point])
-
-        return gs.array(_sample(point))
+        return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
         """Compute pmf associated to point.
@@ -182,7 +179,7 @@ class BinomialMetric(RiemannianMetric):
         Sankhyā: The Indian Journal of Statistics, Series A, 345-365.
     """
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Compute squared distance associated with the binomial Fisher Rao metric.
 
         Parameters
@@ -197,11 +194,11 @@ class BinomialMetric(RiemannianMetric):
         squared_dist : array-like, shape=[...,]
             Squared distance between points point_a and point_b.
         """
-        point_a, point_b = gs.broadcast_arrays(point_a, point_b)
         return gs.squeeze(
             4
             * self._space.n_draws
-            * (gs.arcsin(gs.sqrt(point_a)) - gs.arcsin(gs.sqrt(point_b))) ** 2
+            * (gs.arcsin(gs.sqrt(point_a)) - gs.arcsin(gs.sqrt(point_b))) ** 2,
+            axis=-1,
         )
 
     def metric_matrix(self, base_point):
@@ -220,6 +217,22 @@ class BinomialMetric(RiemannianMetric):
         return gs.expand_dims(
             self._space.n_draws / (base_point * (1 - base_point)), axis=-1
         )
+
+    @staticmethod
+    def _geodesic_path(t, initial_phase, frequency):
+        """Generate parameterized function for geodesic curve.
+
+        Parameters
+        ----------
+        t : array-like, shape=[n_times,]
+            Times at which to compute points of the geodesics.
+
+        Returns
+        -------
+        geodesic : array-like, shape=[..., n_times, 1]
+            Values of the geodesic at times t.
+        """
+        return gs.expand_dims(gs.sin(frequency * t + initial_phase) ** 2, axis=-1)
 
     def _geodesic_ivp(self, initial_point, initial_tangent_vec):
         """Solve geodesic initial value problem.
@@ -241,29 +254,11 @@ class BinomialMetric(RiemannianMetric):
             Parameterized function for the geodesic curve starting at
             initial_point with velocity initial_tangent_vec.
         """
-        initial_point = gs.broadcast_to(initial_point, initial_tangent_vec.shape)
-
         initial_phase = gs.arcsin(gs.sqrt(initial_point))
         frequency = initial_tangent_vec / (
             2.0 * gs.sqrt(initial_point) * gs.sqrt(1 - initial_point)
         )
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_times,]
-                Times at which to compute points of the geodesics.
-
-            Returns
-            -------
-            geodesic : array-like, shape=[..., n_times, 1]
-                Values of the geodesic at times t.
-            """
-            return gs.expand_dims(gs.sin(frequency * t + initial_phase) ** 2, axis=-1)
-
-        return path
+        return lambda t: self._geodesic_path(t, initial_phase, frequency)
 
     def _geodesic_bvp(self, initial_point, end_point):
         """Solve geodesic boundary problem.
@@ -284,69 +279,9 @@ class BinomialMetric(RiemannianMetric):
             Parameterized function for the geodesic curve starting at
             initial_point and ending at end_point.
         """
-        initial_point, end_point = gs.broadcast_arrays(initial_point, end_point)
-
         initial_phase = gs.arcsin(gs.sqrt(initial_point))
         frequency = gs.arcsin(gs.sqrt(end_point)) - initial_phase
-
-        def path(t):
-            """Generate parameterized function for geodesic curve.
-
-            Parameters
-            ----------
-            t : array-like, shape=[n_times,]
-                Times at which to compute points of the geodesics.
-
-            Returns
-            -------
-            geodesic : array-like, shape=[..., n_times, 1]
-                Values of the geodesic at times t.
-            """
-            return gs.expand_dims(gs.sin(frequency * t + initial_phase) ** 2, axis=-1)
-
-        return path
-
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial point and an initial tangent vector,
-        - an initial point and an end point.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., 1]
-            Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[..., 1], optional
-            Point on the manifold, end point of the geodesic. If None,
-            an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., 1],
-            Tangent vector at base point, the initial speed of the geodesics.
-            Optional, default: None.
-            If None, an end point must be given and a logarithm is computed.
-
-        Returns
-        -------
-        path : callable
-            Time parameterized geodesic curve. If a batch of initial
-            conditions is passed, the output array's first dimension
-            represents time, and the second corresponds to the different
-            initial conditions.
-        """
-        if end_point is None and initial_tangent_vec is None:
-            raise ValueError(
-                "Specify an end point or an initial tangent "
-                "vector to define the geodesic."
-            )
-        if end_point is not None:
-            if initial_tangent_vec is not None:
-                raise ValueError(
-                    "Cannot specify both an end point " "and an initial tangent vector."
-                )
-            return self._geodesic_bvp(initial_point, end_point)
-
-        return self._geodesic_ivp(initial_point, initial_tangent_vec)
+        return lambda t: self._geodesic_path(t, initial_phase, frequency)
 
     def exp(self, tangent_vec, base_point):
         """Compute exp map of a base point in tangent vector direction.
@@ -372,12 +307,12 @@ class BinomialMetric(RiemannianMetric):
             ** 2
         )
 
-    def log(self, end_point, base_point):
+    def log(self, point, base_point):
         """Compute log map using a base point and an end point.
 
         Parameters
         ----------
-        end_point : array-like, shape=[..., 1]
+        point : array-like, shape=[..., 1]
             End point.
         base_point : array-like, shape=[..., 1]
             Base point.
@@ -386,11 +321,44 @@ class BinomialMetric(RiemannianMetric):
         -------
         tangent_vec : array-like, shape=[..., 1]
             Initial velocity of the geodesic starting at base_point and
-            reaching end_point at time 1.
+            reaching point at time 1.
         """
         return (
             2
             * gs.sqrt(base_point)
             * gs.sqrt(1 - base_point)
-            * (gs.arcsin(gs.sqrt(end_point)) - gs.arcsin(gs.sqrt(base_point)))
+            * (gs.arcsin(gs.sqrt(point)) - gs.arcsin(gs.sqrt(base_point)))
+        )
+
+
+class BinomialDistributionsRandomVariable(ScipyUnivariateRandomVariable):
+    """A binomial random variable."""
+
+    def __init__(self, space):
+        rvs = lambda *args, **kwargs: binom.rvs(space.n_draws, *args, **kwargs)
+        super().__init__(space, rvs)
+
+    @staticmethod
+    def _flatten_params(point, pre_flat_shape):
+        flat_point = gs.reshape(gs.broadcast_to(point, pre_flat_shape), (-1,))
+        return {"p": flat_point}
+
+    def pdf(self, x, point):
+        """Evaluate the probability density function at x.
+
+        Parameters
+        ----------
+        x : array-like, shape=[n_samples, *support_shape]
+            Sample points at which to compute the probability density function.
+        point : array-like, shape=[..., *space.shape]
+            Point representing a distribution.
+
+        Returns
+        -------
+        pdf_at_x : array-like, shape=[..., n_samples, *support_shape]
+            Values of pdf at x for each value of the parameters provided
+            by point.
+        """
+        return gs.from_numpy(
+            binom.pmf(x, self.space.n_draws, point),
         )

@@ -13,6 +13,7 @@ import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import HyperbolicMetric, _Hyperbolic
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.minkowski import Minkowski
+from geomstats.vectorization import repeat_out
 
 
 class Hyperboloid(_Hyperbolic, LevelSet):
@@ -113,9 +114,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
                 "Minkowski space to the hyperboloid"
             )
         real_norm = gs.sqrt(gs.abs(sq_norm))
-        projected_point = gs.einsum("...i,...->...i", point, 1.0 / real_norm)
-
-        return projected_point
+        return gs.einsum("...i,...->...i", point, 1.0 / real_norm)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the hyperbolic space.
@@ -156,16 +155,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         point_extrinsic : array-like, shape=[..., dim + 1]
             Point in the embedded manifold in extrinsic coordinates.
         """
-        if self.dim != point_intrinsic.shape[-1]:
-            raise NameError(
-                "Wrong intrinsic dimension: "
-                + str(point_intrinsic.shape[-1])
-                + " instead of "
-                + str(self.dim)
-            )
-        return _Hyperbolic.change_coordinates_system(
-            point_intrinsic, "intrinsic", "extrinsic"
-        )
+        return self.change_coordinates_system(point_intrinsic, "intrinsic", "extrinsic")
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert from extrinsic to intrinsic coordinates.
@@ -181,12 +171,7 @@ class Hyperboloid(_Hyperbolic, LevelSet):
         point_intrinsic : array-like, shape=[..., dim]
             Point in intrinsic coordinates.
         """
-        belong_point = self.belongs(point_extrinsic)
-        if not gs.all(belong_point):
-            raise ValueError("Point that does not belong to the hyperboloid " "found")
-        return _Hyperbolic.change_coordinates_system(
-            point_extrinsic, "extrinsic", "intrinsic"
-        )
+        return self.change_coordinates_system(point_extrinsic, "extrinsic", "intrinsic")
 
 
 class HyperboloidMetric(HyperbolicMetric):
@@ -316,6 +301,23 @@ class HyperboloidMetric(HyperbolicMetric):
         log_term_2 = -gs.einsum("...,...j->...j", coef_2_, base_point)
         return log_term_1 + log_term_2
 
+    def squared_dist(self, point_a, point_b):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            Point.
+        point_b : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[...,]
+            Squared distance.
+        """
+        return self.dist(point_a, point_b) ** 2
+
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
 
@@ -407,7 +409,8 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Returns
         -------
-        radius : float
+        radius : array-like, shape=[...,]
             Injectivity radius.
         """
-        return math.inf
+        radius = gs.array(math.inf)
+        return repeat_out(self._space, radius, base_point)

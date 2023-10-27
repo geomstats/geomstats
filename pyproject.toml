@@ -85,7 +85,15 @@ include = [
 [tool.pytest.ini_options]
 markers = [
     "smoke: simple and basic numerical tests.",
-    "random: tests that use randomized data."
+    "random: tests that use randomized data.",
+    "validation: not smoke, neither random.",
+    "ignore: deselect tests.",
+    "vec: vectorization tests.",
+    "shape: array shape tests.",
+    "type: checks output types.",
+    "mathprop: mathematical properties tests.",
+    "slow: for slow tests.",
+    "redundant: redundant test."
 ]
 
 [tool.flake8]
@@ -101,12 +109,15 @@ max-line-length = 88
 extend-ignore = "E203"
 per-file-ignores = [
     "geomstats/learning/_sklearn_wrapper.py: D101, D102, D105",
-    "geomstats/learning/*: E731",
+    "geomstats/*: E731",
     "geomstats/_backend/*:F401, D103",
     "geomstats/numerics/*:D104,E731",
+    "geomstats/test_cases/backend/__init__.py: D104, F401",
     "geomstats/visualization/*: D101, D102",
     "geomstats/visualization/__init__.py: F401",
     "geomstats/tests.py : D101, D102",
-    "tests/*: D100, D101, D102, D103, D106, D200, D201, D205, D400, D404, I100, I101, I201, I202",
-    "*/__init__.py: D104"
+    "tests/*: D100, D101, D102, D103, D106, D200, D201, D205, D400, D404, I100, I101, I201, I202, E501, E731",
+    "tests/conftest.py: D100, F401",
+    "*/__init__.py: D104",
+    "geomstats/test*/*: D100, D101, D102, D103, D104, E501"
 ]
