@@ -5,8 +5,8 @@
 **Geomstats** is a Python package for computations, statistics, machine learning and deep learning on manifolds. 
 
 The package is organized into two main modules: *geometry* and *learning*. 
-The module *geometry* implements differential geometry: manifold, Lie groups, Riemannian metrics, and more. 
-The module *learning* implements statistics and learning algorithms for data on manifolds. The user can choose between backends: NumPy, Autograd or PyTorch.
+The module *geometry* implements differential geometry: manifolds, Lie groups, fiber bundles, shape spaces, information manifolds, Riemannian metrics, and more. 
+The module *learning* implements statistics and learning algorithms for data on manifolds. Users can choose between backends: NumPy, Autograd or PyTorch.
 
 .. list-table::
    :header-rows: 0
@@ -21,6 +21,8 @@ The module *learning* implements statistics and learning algorithms for data on 
      - |doc|\  |binder|\ |tutorial|\
    * - **Community**
      - |contributions|\  |Slack|\  |Twitter|\
+
+Keep in touch with the community by joining us on our `slack workspace <https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ>`__!
 
 **NEWS**:
 
@@ -41,8 +43,6 @@ The module *learning* implements statistics and learning algorithms for data on 
 - Interested in information geometry? Go to our `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
 -  To follow the scientific literature on geometric statistics, follow
    our twitter-bot `@geomstats <https://twitter.com/geomstats>`__!
-
-Keep in touch with the community by joining us on our `slack workspace <https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ>`__!
 
 
 Citing Geomstats
