@@ -1,5 +1,6 @@
-Geomstats
-=========
+.. image:: logo.png
+  :width: 730
+  :alt: Geomstats logo
 
 .. list-table::
    :header-rows: 0
