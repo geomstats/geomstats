@@ -213,7 +213,8 @@ class SiegelMetric(ComplexRiemannianMetric):
         The expression of the inner product between the vectors`v` and `w`
         at point O is :math:`<v, w>_{O}
         = 1/2 * trace((I - O O^{H})^{-1} v (I - O^{H} O)^{-1} w^{H})
-        + 1/2 * trace((I - O O^{H})^{-1} w (I - O^{H} O^{-1} v^{H})`
+        + 1/2 * trace((I - O O^{H})^{-1} w (I - O^{H} O)^{-1} v^{H})
+        = Re(trace((I - O O^{H})^{-1} v (I - O^{H} O)^{-1} w^{H}))`
         where H denotes the conjugate transpose operator.
 
         Parameters
@@ -233,7 +234,6 @@ class SiegelMetric(ComplexRiemannianMetric):
         identity = _create_identity_mat(base_point.shape, dtype=base_point.dtype)
 
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
-        tangent_vec_a_transconj = ComplexMatrices.transconjugate(tangent_vec_a)
         tangent_vec_b_transconj = ComplexMatrices.transconjugate(tangent_vec_b)
 
         aux_1 = gs.matmul(base_point, base_point_transconj)
@@ -250,13 +250,9 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         aux_a = gs.matmul(inv_aux_3, tangent_vec_a)
         aux_b = gs.matmul(inv_aux_4, tangent_vec_b_transconj)
-        trace_1 = Matrices.trace_product(aux_a, aux_b)
+        trace = Matrices.trace_product(aux_a, aux_b)
 
-        aux_c = gs.matmul(inv_aux_3, tangent_vec_b)
-        aux_d = gs.matmul(inv_aux_4, tangent_vec_a_transconj)
-        trace_2 = Matrices.trace_product(aux_c, aux_d)
-
-        return (trace_1 + trace_2) * 0.5
+        return gs.real(trace)
 
     @staticmethod
     def tangent_vec_from_base_point_to_zero(tangent_vec, base_point):
