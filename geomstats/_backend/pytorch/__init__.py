@@ -384,7 +384,12 @@ def linspace(start, stop, num=50, endpoint=True, dtype=None):
     else:
         result = _torch.vstack(
             [
-                _torch.arange(start=start[i], end=stop[i], step=(stop[i]-start[i])/num, dtype=dtype)
+                _torch.arange(
+                    start=start[i],
+                    end=stop[i],
+                    step=(stop[i] - start[i]) / num,
+                    dtype=dtype,
+                )
                 for i in range(start.shape[0])
             ]
         ).T
