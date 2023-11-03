@@ -52,10 +52,6 @@ def get_n_points(space, *point):
         Number of points.
     """
     point_max_ndim = _get_max_ndim_point(*point)
-
-    if space.point_ndim == point_max_ndim.ndim:
-        return 1
-
     return math.prod(point_max_ndim.shape[: -space.point_ndim])
 
 
@@ -151,78 +147,6 @@ def repeat_out(space, out, *point, out_shape=()):
     if out.shape[: -len(out_shape)] != batch_shape:
         return gs.broadcast_to(out, batch_shape + out_shape)
     return out
-
-
-def decorator(input_types):
-    """Vectorize geomstats functions.
-
-    This decorator assumes that its function:
-
-    - works with fully-vectorized inputs,
-    - returns fully-vectorized outputs,
-
-    where "fully-vectorized" means that:
-
-    - one scalar has shape [1, 1],
-    - n scalars have shape [n, 1],
-    - one d-D vector has shape [1, d],
-    - n d-D vectors have shape [n, d],etc
-    etc.
-
-    The decorator:
-
-    - gets the types of all inputs of its function:
-        - args,
-        - kwargs,
-        - optional kwargs,
-            - e.g. input_type=None,
-    - gets the type of the output of its function,
-        - e.g. distinguishes between 1D 'vector' vs 'scalar',
-    - gets the initial shapes of all inputs of its function,
-    - if needed, adapts the types of the inputs,
-        - e.g. distinguishes between 'vector' or 'matrix' inputs,
-        using variables 'point_type' or 'default_point_type',
-    - converts the inputs into fully-vectorized inputs,
-    - calls the function,
-    - adapts the output shapes to match the users' expectations,
-      using the initial shapes of the inputs.
-
-    Parameters
-    ----------
-    input_types : list
-        List of inputs' input_types, including for optional inputs.
-        The `input_type`s of optional inputs will not be read
-        by the decorator if the corresponding input is not given.
-    """
-    if not isinstance(input_types, list):
-        input_types = list(input_types)
-
-    def aux_decorator(function):
-        def wrapper(*args, **kwargs):
-            args_types, kwargs_types, opt_kwargs_types, is_scal = get_types(
-                input_types, args, kwargs
-            )
-            args_types, kwargs_types, kwargs = adapt_types(
-                args_types, kwargs_types, opt_kwargs_types, args, kwargs
-            )
-            args_kwargs_types = args_types + kwargs_types
-
-            args_shapes = get_initial_shapes(args_types, args)
-            kwargs_shapes = get_initial_shapes(kwargs_types, kwargs.values())
-            initial_shapes = args_shapes + kwargs_shapes
-
-            vect_args = vectorize_args(args_types, args)
-            vect_kwargs = vectorize_kwargs(kwargs_types, kwargs)
-
-            result = function(*vect_args, **vect_kwargs)
-
-            result = adapt_result(result, initial_shapes, args_kwargs_types, is_scal)
-
-            return result
-
-        return wrapper
-
-    return aux_decorator
 
 
 def get_types(input_types, args, kwargs):
@@ -574,3 +498,38 @@ def is_scalar(vect_array):
         return False
     has_singleton_dim_1 = vect_array.shape[1] == 1
     return has_singleton_dim_1
+
+
+def broadcast_to_multibatch(batch_shape_a, batch_shape_b, array_a, *array_b):
+    """Broadcast to multibatch.
+
+    Gives to both arrays batch shape `batch_shape_b + batch_shape_a`.
+
+    Does nothing if one of the batch shapes is empty.
+
+    Parameters
+    ----------
+    batch_shape_a : tuple
+        Batch shape of array_a.
+    batch_shape_b : tuple
+        Batch shape of array_b.
+    array_a : array
+    array_b : array
+    """
+    multi_b = len(array_b) > 1
+
+    if not batch_shape_a or not batch_shape_b:
+        return (array_a, array_b) if multi_b else (array_a, array_b[0])
+
+    array_a_ = gs.broadcast_to(array_a, batch_shape_b + array_a.shape)
+
+    n_batch_b = len(batch_shape_b)
+    indices_in = list(range(len(batch_shape_a)))
+    indices_out = [index + n_batch_b for index in indices_in]
+
+    array_b_ = []
+    for array in array_b:
+        array_b_aux = gs.broadcast_to(array, batch_shape_a + array.shape)
+        array_b_.append(gs.moveaxis(array_b_aux, indices_in, indices_out))
+
+    return (array_a_, array_b_) if multi_b else (array_a_, array_b_[0])

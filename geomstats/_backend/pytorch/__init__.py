@@ -794,9 +794,9 @@ def dot(a, b):
 
 
 def cross(a, b):
-    if a.ndim + b.ndim == 3 or a.ndim == b.ndim == 2 and a.shape[0] != b.shape[0]:
+    if a.shape != b.shape:
         a, b = broadcast_arrays(a, b)
-    return _torch.cross(*convert_to_wider_dtype([a, b]))
+    return _torch.cross(*convert_to_wider_dtype([a, b]), dim=-1)
 
 
 def gamma(a):

@@ -26,11 +26,13 @@ class ScipySolveBVP:
         def bc_(state_0, state_1):
             return bc(gs.from_numpy(state_0), gs.from_numpy(state_1))
 
-        fun_jac_ = None
         if fun_jac is not None:
 
             def fun_jac_(t, state):
                 return fun_jac(t, gs.from_numpy(state))
+
+        else:
+            fun_jac_ = None
 
         result = scipy.integrate.solve_bvp(
             fun_,

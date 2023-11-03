@@ -14,7 +14,7 @@ import geomstats.visualization as visualization
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_euclidean import (
     SpecialEuclidean,
-    SpecialEuclideanMatrixCanonicalLeftMetric,
+    SpecialEuclideanMatricesCanonicalLeftMetric,
 )
 
 
@@ -23,7 +23,7 @@ def main():
     n_steps = 40
 
     se2_group_left_metric = SpecialEuclidean(n=2, point_type="matrix", equip=False)
-    se2_group_left_metric.equip_with_metric(SpecialEuclideanMatrixCanonicalLeftMetric)
+    se2_group_left_metric.equip_with_metric(SpecialEuclideanMatricesCanonicalLeftMetric)
 
     se2_group_right_metric = SpecialEuclidean(n=2, point_type="matrix", equip=False)
     se2_group_right_metric.equip_with_metric(InvariantMetric, left=False)

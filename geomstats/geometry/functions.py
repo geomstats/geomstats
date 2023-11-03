@@ -16,7 +16,7 @@ class HilbertSphere(Manifold):
 
     Parameters
     ----------
-    domain_samples : array of shape (n_samples, )
+    domain : array-like, shape=[n_samples,]
         Grid points on the domain.
 
     Ref :
@@ -26,13 +26,19 @@ class HilbertSphere(Manifold):
     Vol. 1. New York: Springer, 2016.
     """
 
-    def __init__(self, domain_samples, equip=True):
-        self.domain = domain_samples
+    def __init__(self, domain, equip=True):
+        self.domain = domain
         super().__init__(
             dim=math.inf,
-            shape=(1, len(domain_samples)),
+            shape=(len(domain),),
             equip=equip,
         )
+
+        sinf_domain = (domain - min(domain)) / (max(domain) - min(domain))
+        if gs.allclose(domain, sinf_domain):
+            self._sinf = self
+        else:
+            self._sinf = HilbertSphere(sinf_domain)
 
     @staticmethod
     def default_metric():
@@ -53,9 +59,7 @@ class HilbertSphere(Manifold):
             Point projected to the hypersphere.
         """
         norm = self.metric.norm(point)
-        projected_point = gs.einsum("...,...i->...i", 1.0 / norm, point)
-
-        return projected_point
+        return gs.einsum("...,...i->...i", 1.0 / norm, point)
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the vector space.
@@ -64,7 +68,7 @@ class HilbertSphere(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[.., n_samples]
+        point : array-like, shape=[..., n_samples]
             Point to test.
         atol : float
 
@@ -97,7 +101,7 @@ class HilbertSphere(Manifold):
         """
         inner_product = self.metric.inner_product(vector, base_point)
 
-        return gs.isclose(inner_product, atol)
+        return gs.isclose(inner_product, gs.zeros_like(inner_product), atol)
 
     def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the manifold.
@@ -117,9 +121,7 @@ class HilbertSphere(Manifold):
         sq_norm = self.metric.squared_norm(base_point)
         inner_product = self.metric.inner_product(vector, base_point)
         coef = inner_product / sq_norm
-        tangent_vec = vector - gs.einsum("...,...j->...j", coef, base_point)
-
-        return tangent_vec
+        return vector - gs.einsum("...,...j->...j", coef, base_point)
 
     def random_point(self, n_samples=1, bound=1.0):
         """Sample random points on the manifold.
@@ -136,18 +138,22 @@ class HilbertSphere(Manifold):
         -------
         samples : array-like, shape=[..., dim]
         """
-        points = gs.random.rand(n_samples, len(self.domain))
+        n_domain = len(self.domain)
+        shape = (
+            (n_domain,)
+            if n_samples == 1
+            else (
+                n_samples,
+                n_domain,
+            )
+        )
+        point = gs.random.rand(*shape)
 
-        return self.projection(points)
+        return self.projection(point)
 
 
 class HilbertSphereMetric(RiemannianMetric):
     """A Riemannian metric on the Hilbert sphere (functions of norm 1)."""
-
-    def __init__(self, space):
-        domain = space.domain
-        self.x = (domain - min(domain)) / (max(domain) - min(domain))
-        super().__init__(space=space)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -167,13 +173,11 @@ class HilbertSphereMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         tangent_vec_a, tangent_vec_b = gs.broadcast_arrays(tangent_vec_a, tangent_vec_b)
-        x = gs.broadcast_to(self.x, tangent_vec_a.shape)
+        x = gs.broadcast_to(self._space._sinf.domain, tangent_vec_a.shape)
 
-        l2_norm = gs.trapz(tangent_vec_a * tangent_vec_b, x=x, axis=-1)
+        return gs.trapz(tangent_vec_a * tangent_vec_b, x=x, axis=-1)
 
-        return l2_norm
-
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -189,9 +193,9 @@ class HilbertSphereMetric(RiemannianMetric):
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        sinf = HilbertSphere(self.x)
-        proj_tangent_vec = sinf.to_tangent(tangent_vec, base_point)
-        norm = sinf.metric.norm(proj_tangent_vec)
+        proj_tangent_vec = self._space._sinf.to_tangent(tangent_vec, base_point)
+        norm = self._space._sinf.metric.norm(proj_tangent_vec)
+
         norm = gs.clip(norm, -gs.pi, gs.pi)
         coef_1 = utils.taylor_exp_even_func(norm, utils.cos_close_0, order=4)
         coef_2 = utils.taylor_exp_even_func(norm, utils.sinc_close_0, order=4)
@@ -201,7 +205,7 @@ class HilbertSphereMetric(RiemannianMetric):
 
         return exp
 
-    def log(self, point, base_point, **kwargs):
+    def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
         Parameters

@@ -11,7 +11,10 @@ from geomstats.geometry.base import LevelSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.information_geometry.base import InformationManifoldMixin
+from geomstats.information_geometry.base import (
+    InformationManifoldMixin,
+    ScipyMultivariateRandomVariable,
+)
 from geomstats.vectorization import repeat_out
 
 
@@ -35,8 +38,11 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
     def __init__(self, dim, n_draws, equip=True):
         self.dim = dim
 
-        super().__init__(dim=dim, shape=(dim + 1,), equip=equip)
+        super().__init__(
+            dim=dim, support_shape=(dim + 1,), shape=(dim + 1,), equip=equip
+        )
         self.n_draws = n_draws
+        self._scp_rv = MultinomialRandomVariable(self)
 
     @staticmethod
     def default_metric():
@@ -164,15 +170,25 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
             Note that this can be of shape [n_points, n_samples, dim + 1] if
             several points and several samples are provided as inputs.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        samples = []
-        for param in point:
-            counts = gs.from_numpy(multinomial.rvs(self.n_draws, param, size=n_samples))
-            if n_samples == 1:
-                samples.append(counts[0])
-            else:
-                samples.append(counts)
-        return samples[0] if len(point) == 1 else gs.stack(samples)
+        return self._scp_rv.rvs(point, n_samples)
+
+    def point_to_pdf(self, point):
+        """Compute pdf associated to point.
+
+        Compute the probability density function of the Multinomial
+        distribution with parameters provided by point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point representing a beta distribution.
+
+        Returns
+        -------
+        pdf : function
+            (Discrete) probability density function.
+        """
+        return lambda x: self._scp_rv.pdf(x, point=point)
 
 
 class MultinomialMetric(RiemannianMetric):
@@ -450,3 +466,14 @@ class MultinomialMetric(RiemannianMetric):
         n_sec_curv = max(n_sec_curv)
 
         return gs.tile(sectional_curv, (n_sec_curv,))
+
+
+class MultinomialRandomVariable(ScipyMultivariateRandomVariable):
+    """A multinomial random variable."""
+
+    def __init__(self, space):
+        rvs = lambda *args, **kwargs: multinomial.rvs(space.n_draws, *args, **kwargs)
+        pdf = lambda x, *args, **kwargs: multinomial.pmf(
+            x, space.n_draws, *args, **kwargs
+        )
+        super().__init__(space, rvs, pdf)

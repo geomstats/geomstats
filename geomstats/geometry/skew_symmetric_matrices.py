@@ -10,7 +10,7 @@ Lead author: Nicolas Guigui.
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):
@@ -22,11 +22,16 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         Number of rows and columns.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, equip=True):
         self.n = n
         dim = int(n * (n - 1) / 2)
-        super().__init__(dim=dim, representation_dim=n, equip=False)
-        self.embedding_space = Matrices(n, n)
+        super().__init__(dim=dim, representation_dim=n, equip=equip)
+        self.embedding_space = Matrices(n, n, equip=False)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return MatricesMetric
 
     def _create_basis(self):
         """Create the canonical basis."""

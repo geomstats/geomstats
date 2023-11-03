@@ -1099,7 +1099,7 @@ class _InvariantMetricVector(RiemannianMetric):
         return self.inner_product_at_identity(tangent_vec_a_at_id, tangent_vec_b_at_id)
 
 
-class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
+class InvariantMetric:
     """Class for invariant metrics on Lie groups.
 
     This class supports both left and right invariant metrics
@@ -1134,7 +1134,7 @@ class InvariantMetric(_InvariantMetricVector, _InvariantMetricMatrix):
         )
 
 
-class BiInvariantMetric(_InvariantMetricVector):
+class BiInvariantMetric(RiemannianMetric):
     """Class for bi-invariant metrics on compact Lie groups.
 
     Compact Lie groups and direct products of compact Lie groups with vector
@@ -1155,14 +1155,17 @@ class BiInvariantMetric(_InvariantMetricVector):
     """
 
     def __init__(self, space):
-        if not self._check_implemented(space):
-            raise ValueError("The bi-invariant metric is only implemented for SO(n)")
+        self._check_implemented(space)
 
         super().__init__(space=space)
+        if self._space.default_point_type == "vector":
+            # keeps behavior before removing inheritance
+            self.left = True
 
     def _check_implemented(self, space):
         # TODO (nguigs): implement it for SE(3)
-        return "SpecialOrthogonal" in space.__str__() or "SO" in space.__str__()
+        if not ("SpecialOrthogonal" in space.__str__() or "SO" in space.__str__()):
+            raise ValueError("The bi-invariant metric is only implemented for SO(n)")
 
     def exp(self, tangent_vec, base_point=None, **kwargs):
         """Compute Riemannian exponential of tangent vector from the identity.
@@ -1236,7 +1239,7 @@ class BiInvariantMetric(_InvariantMetricVector):
             Inner-product of the two tangent vectors.
         """
         if self._space.default_point_type == "vector":
-            return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+            return gs.dot(tangent_vec_a, tangent_vec_b)
 
         return Matrices.frobenius_product(tangent_vec_a, tangent_vec_b) / 2
 
@@ -1266,7 +1269,12 @@ class BiInvariantMetric(_InvariantMetricVector):
                 )
             return inner_prod
 
-        return super().inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        tangent_translation = self._space.tangent_translation_map(
+            base_point, left=True, inverse=True
+        )
+        tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
+        tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
+        return self.inner_product_at_identity(tangent_vec_a_at_id, tangent_vec_b_at_id)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None

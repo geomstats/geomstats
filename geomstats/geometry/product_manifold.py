@@ -306,7 +306,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
             ]
             # TODO: need to revisit due to removal of scales
             self.embedding_space = ProductManifold(
-                factor_embedding_spaces, default_point_type, equip=equip
+                factor_embedding_spaces, default_point_type, equip=False
             )
 
         cum_index = (

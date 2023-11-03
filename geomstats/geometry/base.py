@@ -298,7 +298,7 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
     def basis(self, basis):
         if len(basis) < self.dim:
             raise ValueError(
-                "The basis should have length equal to the " "dimension of the space."
+                "The basis should have length equal to the dimension of the space."
             )
         self._basis = basis
 
