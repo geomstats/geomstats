@@ -146,7 +146,9 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         component_mean = gs.mean(vector, axis=-1)
         tangent_vec = gs.transpose(gs.transpose(vector) - component_mean)
 
-        return repeat_out(self, tangent_vec, vector, base_point, out_shape=self.shape)
+        return repeat_out(
+            self.point_ndim, tangent_vec, vector, base_point, out_shape=self.shape
+        )
 
     def sample(self, point, n_samples=1):
         """Sample from the multinomial distribution.

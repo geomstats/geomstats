@@ -120,7 +120,7 @@ class _IterateOverFactorsMixins:
             points_ = []
             for point, factor in zip(points, self.factors):
                 if gs.ndim(point) > len(factor.shape):
-                    batch_shape = get_batch_shape(factor, point)
+                    batch_shape = get_batch_shape(factor.point_ndim, point)
                     point = gs.reshape(point, batch_shape + (-1,))
                 else:
                     point = gs.flatten(point)

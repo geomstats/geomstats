@@ -310,4 +310,4 @@ class ComplexMatricesMetric(HermitianMetric):
             Norm.
         """
         norm = gs.linalg.norm(vector, axis=(-2, -1))
-        return repeat_out(self._space, norm, vector, base_point)
+        return repeat_out(self._space.point_ndim, norm, vector, base_point)

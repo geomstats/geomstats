@@ -103,7 +103,7 @@ class SRVShapeBundleTestCase(FiberBundleTestCase):
         res = self.total_space.metric.inner_product(
             tangent_vec_hor, tangent_vec_ver, base_point
         )
-        expected_shape = get_batch_shape(self.total_space, base_point)
+        expected_shape = get_batch_shape(self.total_space.point_ndim, base_point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(res, expected, atol=atol)
 

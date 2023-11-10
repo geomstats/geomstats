@@ -214,7 +214,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
         result = self.total_space.metric.inner_product(
             tangent_vec_b, result_ab, base_point
         )
-        expected_shape = get_batch_shape(self.total_space, base_point)
+        expected_shape = get_batch_shape(self.total_space.point_ndim, base_point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
@@ -401,7 +401,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
             + inner(nabla_x_a_y_v, horizontal_vec_z)
             + inner(a_y_v, nabla_x_z)
         )
-        expected_shape = get_batch_shape(self.total_space, base_point)
+        expected_shape = get_batch_shape(self.total_space.point_ndim, base_point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
@@ -435,7 +435,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
 
         inner = self.total_space.metric.inner_product
         result = inner(nabla_x_a_y_z, horizontal_vec_h) + inner(a_y_z, nabla_x_h)
-        expected_shape = get_batch_shape(self.total_space, base_point)
+        expected_shape = get_batch_shape(self.total_space.point_ndim, base_point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
@@ -473,7 +473,7 @@ class PreShapeSpaceBundleTestCase(FiberBundleTestCase):
 
         inner = self.total_space.metric.inner_product
         result = inner(nabla_x_a_y_z, vertical_vec_w) + inner(a_y_z, nabla_x_w)
-        expected_shape = get_batch_shape(self.total_space, base_point)
+        expected_shape = get_batch_shape(self.total_space.point_ndim, base_point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(result, expected, atol=atol)
 
@@ -695,7 +695,7 @@ class KendallShapeMetricTestCase(QuotientMetricTestCase):
 
     def _cmp_points(self, point, point_, atol):
         dists = self.space.metric.dist(point, point_)
-        batch_shape = get_batch_shape(self.space, point, point_)
+        batch_shape = get_batch_shape(self.space.point_ndim, point, point_)
 
         self.assertAllClose(dists, gs.zeros(batch_shape), atol=atol)
 
@@ -910,7 +910,7 @@ class KendallShapeMetricTestCase(QuotientMetricTestCase):
         fiber_bundle = self.space.metric.fiber_bundle
         res = fiber_bundle.is_horizontal(transported, end_point, atol=atol)
 
-        expected_shape = get_batch_shape(self.space, base_point)
+        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
         expected = gs.ones(expected_shape, dtype=bool)
 
         self.assertAllEqual(res, expected)

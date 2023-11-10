@@ -715,7 +715,7 @@ class SPDAffineMetric(RiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(math.inf)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
 
 class SPDBuresWassersteinMetric(RiemannianMetric):
@@ -992,7 +992,11 @@ class SPDEuclideanMetric(RiemannianMetric):
         if power_euclidean == 1:
             inner_product = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
             return repeat_out(
-                self._space, inner_product, tangent_vec_a, tangent_vec_b, base_point
+                self._space.point_ndim,
+                inner_product,
+                tangent_vec_a,
+                tangent_vec_b,
+                base_point,
             )
 
         modified_tangent_vec_a = spd_space.differential_power(
@@ -1150,7 +1154,7 @@ class SPDEuclideanMetric(RiemannianMetric):
         """
         if self.power_euclidean == 1:
             return repeat_out(
-                self._space,
+                self._space.point_ndim,
                 gs.copy(tangent_vec),
                 tangent_vec,
                 base_point,
@@ -1253,7 +1257,7 @@ class SPDLogEuclideanMetric(RiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(math.inf)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
     def dist(self, point_a, point_b):
         """Compute log euclidean distance.

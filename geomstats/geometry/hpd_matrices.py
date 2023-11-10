@@ -744,7 +744,7 @@ class HPDAffineMetric(ComplexRiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(math.inf)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
 
 class HPDBuresWassersteinMetric(ComplexRiemannianMetric):
@@ -1163,7 +1163,7 @@ class HPDEuclideanMetric(ComplexRiemannianMetric):
         """
         if self.power_euclidean == 1:
             return repeat_out(
-                self._space,
+                self._space.point_ndim,
                 gs.copy(tangent_vec),
                 tangent_vec,
                 base_point,
@@ -1266,7 +1266,7 @@ class HPDLogEuclideanMetric(ComplexRiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(math.inf)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
     def dist(self, point_a, point_b):
         """Compute log euclidean distance.

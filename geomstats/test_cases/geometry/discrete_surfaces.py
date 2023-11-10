@@ -43,7 +43,7 @@ class DiscreteSurfacesTestCase(ManifoldTestCase):
 
         res = self.space.normals(point)
 
-        n_points = get_n_points(self.space, point)
+        n_points = get_n_points(self.space.point_ndim, point)
         if n_points == 1:
             res = gs.expand_dims(res, axis=0)
             expected = gs.expand_dims(expected, axis=0)

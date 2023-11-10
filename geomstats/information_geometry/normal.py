@@ -223,7 +223,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
             Probability density function of the centered multivariate normal
             distributions with covariance matrices provided by point.
         """
-        batch_shape = get_batch_shape(self, point)
+        batch_shape = get_batch_shape(self.point_ndim, point)
         det_cov = gs.linalg.det(point)
         inv_cov = gs.linalg.inv(point)
         pdf_normalization = 1 / gs.sqrt(gs.power(2 * gs.pi, self.sample_dim) * det_cov)
@@ -429,7 +429,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
             Probability density function of the normal distribution with
             parameters provided by point.
         """
-        batch_shape = get_batch_shape(self, point)
+        batch_shape = get_batch_shape(self.point_ndim, point)
         n = self.sample_dim
         mean, diagonal = self._unstack_mean_diagonal(point)
         det_cov = gs.prod(diagonal, axis=-1)
@@ -494,7 +494,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         diagonal : array-like, shape=[..., sample_dim, sample_dim]
             Covariance matrices from the input point.
         """
-        batch_shape = get_batch_shape(self, point)
+        batch_shape = get_batch_shape(self.point_ndim, point)
         mean = point[..., : self.sample_dim]
         cov = point[..., self.sample_dim :]
         cov = cov.reshape(batch_shape + (self.sample_dim, self.sample_dim))
@@ -536,7 +536,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
             Probability density function of the multivariate normal
             distributions with parameters provided by point.
         """
-        batch_shape = get_batch_shape(self, point)
+        batch_shape = get_batch_shape(self.point_ndim, point)
         mean, cov = self._unstack_mean_covariance(point)
         det_cov = gs.linalg.det(cov)
         inv_cov = gs.linalg.inv(cov)
@@ -721,7 +721,11 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         """
         sectional_curv = gs.array(-0.5)
         return repeat_out(
-            self._space, sectional_curv, tangent_vec_a, tangent_vec_b, base_point
+            self._space.point_ndim,
+            sectional_curv,
+            tangent_vec_a,
+            tangent_vec_b,
+            base_point,
         )
 
 
@@ -869,7 +873,7 @@ class DiagonalNormalMetric(RiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(math.inf)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
 
 class UnivariateNormalDistributionsRandomVariable(ScipyUnivariateRandomVariable):

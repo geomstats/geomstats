@@ -47,7 +47,7 @@ def _belongs_intrinsic(space, point, atol=gs.atol):
 
 
 def _is_tangent_intrinsic(space, tangent_vec, point, atol=gs.atol):
-    shape = get_batch_shape(space, point, tangent_vec)
+    shape = get_batch_shape(space.point_ndim, point, tangent_vec)
     if tangent_vec.shape[-1] == space.dim:
         return gs.ones(shape, dtype=bool)
 

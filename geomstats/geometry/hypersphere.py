@@ -890,7 +890,7 @@ class HypersphereMetric(RiemannianMetric):
                 "The Christoffel symbols are only implemented"
                 " for spherical coordinates in the 2-sphere"
             )
-        batch_shape = get_batch_shape(self._space, base_point)
+        batch_shape = get_batch_shape(self._space.point_ndim, base_point)
 
         theta = base_point[..., 0]
 
@@ -1091,7 +1091,7 @@ class HypersphereMetric(RiemannianMetric):
         """
         curvature_derivative = gs.zeros_like(tangent_vec_a)
         return repeat_out(
-            self._space,
+            self._space.point_ndim,
             curvature_derivative,
             tangent_vec_a,
             tangent_vec_b,
@@ -1121,7 +1121,7 @@ class HypersphereMetric(RiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(gs.pi)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
 
 class Hypersphere(_Hypersphere):

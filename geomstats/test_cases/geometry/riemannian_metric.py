@@ -25,7 +25,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
         res = SPDMatrices(n=math.prod(self.space.shape)).belongs(
             metric_matrix, atol=atol
         )
-        expected_shape = get_batch_shape(self.space, base_point)
+        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
         expected = gs.ones(expected_shape, dtype=bool)
 
         self.assertAllEqual(res, expected)
@@ -233,7 +233,7 @@ class RiemannianMetricTestCase(ConnectionTestCase):
 
         dist_ = self.space.metric.dist(point, point)
 
-        expected_shape = get_batch_shape(self.space, point)
+        expected_shape = get_batch_shape(self.space.point_ndim, point)
         expected = gs.zeros(expected_shape)
         self.assertAllClose(dist_, expected, atol=atol)
 

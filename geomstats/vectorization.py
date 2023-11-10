@@ -36,13 +36,13 @@ def _get_max_ndim_point(*point):
     return max_ndim_point
 
 
-def get_n_points(space, *point):
+def get_n_points(point_ndim, *point):
     """Compute the number of points.
 
     Parameters
     ----------
-    space : Manifold object
-        Space to which point belongs.
+    point_ndim : int
+        Point number of array dimensions.
     point : array-like
         Point belonging to the space.
 
@@ -52,16 +52,16 @@ def get_n_points(space, *point):
         Number of points.
     """
     point_max_ndim = _get_max_ndim_point(*point)
-    return math.prod(point_max_ndim.shape[: -space.point_ndim])
+    return math.prod(point_max_ndim.shape[:-point_ndim])
 
 
-def check_is_batch(space, *point):
+def check_is_batch(point_ndim, *point):
     """Check if inputs are batch.
 
     Parameters
     ----------
-    space : Manifold object
-        Space to which point belongs.
+    point_ndim : int
+        Point number of array dimensions.
     point : array-like
         Point belonging to the space.
 
@@ -70,16 +70,16 @@ def check_is_batch(space, *point):
     is_batch : bool
         Returns True if point contains several points.
     """
-    return any(point_.ndim > space.point_ndim for point_ in point)
+    return any(point_.ndim > point_ndim for point_ in point)
 
 
-def get_batch_shape(space, *point):
+def get_batch_shape(point_ndim, *point):
     """Get batch shape.
 
     Parameters
     ----------
-    space : Manifold
-        Space to which point belongs.
+    point_ndim : int
+        Point number of array dimensions.
     point : array-like or None
         Point belonging to the space.
 
@@ -92,7 +92,7 @@ def get_batch_shape(space, *point):
     if len(point) == 0:
         return ()
     point_max_ndim = _get_max_ndim_point(*point)
-    return point_max_ndim.shape[: -space.point_ndim]
+    return point_max_ndim.shape[:-point_ndim]
 
 
 def repeat_point(point, n_reps=2, expand=False):
@@ -123,13 +123,13 @@ def _is_not_none(value):
     return value is not None
 
 
-def repeat_out(space, out, *point, out_shape=()):
+def repeat_out(point_ndim, out, *point, out_shape=()):
     """Repeat out shape after finding batch shape.
 
     Parameters
     ----------
-    space : Manifold
-        Space to which point belongs.
+    point_ndim : int
+        Point number of array dimensions.
     out : array-like
         Output to be repeated
     point : array-like or None
@@ -143,7 +143,7 @@ def repeat_out(space, out, *point, out_shape=()):
         If no batch, then input is returned. Otherwise it is broadcasted.
     """
     point = filter(_is_not_none, point)
-    batch_shape = get_batch_shape(space, *point)
+    batch_shape = get_batch_shape(point_ndim, *point)
     if out.shape[: -len(out_shape)] != batch_shape:
         return gs.broadcast_to(out, batch_shape + out_shape)
     return out

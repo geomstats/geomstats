@@ -14,7 +14,9 @@ class InformationManifoldMixinTestCase(TestCase):
         res = self.space.sample(point, n_samples=n_samples)
 
         expected_shape = (
-            get_batch_shape(self.space, point) + (n_samples,) + self.space.support_shape
+            get_batch_shape(self.space.point_ndim, point)
+            + (n_samples,)
+            + self.space.support_shape
         )
         self.assertEqual(res.shape, expected_shape)
 

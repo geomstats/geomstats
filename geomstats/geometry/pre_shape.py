@@ -756,7 +756,7 @@ class PreShapeMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        batch_shape = get_batch_shape(self._space, point, base_point)
+        batch_shape = get_batch_shape(self._space.point_ndim, point, base_point)
 
         flat_bp = self._flatten_point(base_point)
         flat_pt = self._flatten_point(point)
@@ -793,7 +793,11 @@ class PreShapeMetric(RiemannianMetric):
             Tangent vector at `base_point`.
         """
         batch_shape = get_batch_shape(
-            self._space, base_point, tangent_vec_a, tangent_vec_b, tangent_vec_c
+            self._space.point_ndim,
+            base_point,
+            tangent_vec_a,
+            tangent_vec_b,
+            tangent_vec_c,
         )
         flat_a = self._flatten_point(tangent_vec_a)
         flat_b = self._flatten_point(tangent_vec_b)
@@ -846,7 +850,7 @@ class PreShapeMetric(RiemannianMetric):
             Tangent vector at base point.
         """
         batch_shape = get_batch_shape(
-            self._space,
+            self._space.point_ndim,
             tangent_vec_a,
             tangent_vec_b,
             tangent_vec_c,
@@ -890,7 +894,7 @@ class PreShapeMetric(RiemannianMetric):
                 )
 
         batch_shape = get_batch_shape(
-            self._space, tangent_vec, base_point, direction, end_point
+            self._space.point_ndim, tangent_vec, base_point, direction, end_point
         )
 
         flat_bp = self._flatten_point(base_point)
@@ -922,7 +926,7 @@ class PreShapeMetric(RiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(gs.pi)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
 
 class KendallShapeMetric(QuotientMetric):
