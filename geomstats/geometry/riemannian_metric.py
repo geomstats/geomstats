@@ -320,7 +320,7 @@ class RiemannianMetric(Connection, ABC):
         normalized_vector : array-like, shape=[..., n_vectors, dim]
             Random unit tangent vector at base_point.
         """
-        is_batch = check_is_batch(self._space, base_point)
+        is_batch = check_is_batch(self._space.point_ndim, base_point)
         if is_batch and n_vectors > 1:
             raise ValueError(
                 "Several tangent vectors is only applicable to a single base point."

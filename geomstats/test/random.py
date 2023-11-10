@@ -78,7 +78,7 @@ class DiscreteCurvesRandomDataGenerator(RandomDataGenerator):
 
 class HypersphereIntrinsicRandomDataGenerator(RandomDataGenerator):
     def random_tangent_vec(self, base_point):
-        n_points = get_n_points(self.space, base_point)
+        n_points = get_n_points(self.space.point_ndim, base_point)
         batch_shape = (n_points,) if n_points > 1 else ()
         return gs.random.uniform(size=batch_shape + (self.space.dim,)) / self.amplitude
 

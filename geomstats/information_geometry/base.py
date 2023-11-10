@@ -105,7 +105,7 @@ class ScipyUnivariateRandomVariable(ScipyRandomVariable):
         samples : array-like, shape=[..., n_samples, *support_shape]
             Sample from distribution.
         """
-        batch_shape = get_batch_shape(self.space, point)
+        batch_shape = get_batch_shape(self.space.point_ndim, point)
         n_points = math.prod(batch_shape)
 
         pre_flat_shape = batch_shape + (n_samples,)
@@ -133,7 +133,7 @@ class ScipyUnivariateRandomVariable(ScipyRandomVariable):
             Values of pdf at x for each value of the parameters provided
             by point.
         """
-        batch_shape = get_batch_shape(self.space, point)
+        batch_shape = get_batch_shape(self.space.point_ndim, point)
         n_points = math.prod(batch_shape)
         n_samples = sample.shape[0]
 

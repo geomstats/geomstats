@@ -287,7 +287,7 @@ class GammaDistributions(InformationManifoldMixin, OpenSet):
         jac_row_1 = gs.array([1, 0])
         jac_row_2 = gs.stack([1 / scale, -kappa / scale**2], axis=-1)
 
-        if check_is_batch(self, base_point):
+        if check_is_batch(self.point_ndim, base_point):
             jac_row_1 = gs.repeat(
                 gs.expand_dims(jac_row_1, axis=0), base_point.shape[0], axis=0
             )

@@ -147,7 +147,7 @@ class FiberBundle(ABC):
         group = self.group
         group_action = self.group_action
 
-        batch_shape = get_batch_shape(self.total_space, point, base_point)
+        batch_shape = get_batch_shape(self.total_space.point_ndim, point, base_point)
         max_shape = batch_shape + (self.group_dim,)
 
         if group is not None:
@@ -221,7 +221,7 @@ class FiberBundle(ABC):
             fiber_point=base_point,
         )
 
-    def vertical_projection(self, tangent_vec, base_point, **kwargs):
+    def vertical_projection(self, tangent_vec, base_point):
         r"""Project to vertical subspace.
 
         Compute the vertical component of a tangent vector :math:`w` at a

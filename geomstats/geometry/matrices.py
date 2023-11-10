@@ -687,7 +687,7 @@ class MatricesMetric(EuclideanMetric):
         """
         inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
         return repeat_out(
-            self._space, inner_prod, tangent_vec_a, tangent_vec_b, base_point
+            self._space.point_ndim, inner_prod, tangent_vec_a, tangent_vec_b, base_point
         )
 
     def norm(self, vector, base_point=None):
@@ -709,4 +709,4 @@ class MatricesMetric(EuclideanMetric):
             Norm.
         """
         norm = gs.linalg.norm(vector, axis=(-2, -1))
-        return repeat_out(self._space, norm, vector, base_point)
+        return repeat_out(self._space.point_ndim, norm, vector, base_point)

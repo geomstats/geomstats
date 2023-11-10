@@ -68,7 +68,7 @@ class ExpODESolver(ExpSolver):
         self.integrator = integrator
 
     def _solve(self, space, tangent_vec, base_point, t_eval=None):
-        batch_shape = get_batch_shape(space, base_point, tangent_vec)
+        batch_shape = get_batch_shape(space.point_ndim, base_point, tangent_vec)
         base_point = gs.broadcast_to(base_point, tangent_vec.shape)
 
         if self.integrator.state_is_raveled:

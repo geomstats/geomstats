@@ -68,7 +68,7 @@ class NFoldManifold(Manifold):
         belongs : array-like, shape=[..., n_copies, *base_shape]
             Boolean evaluating if the point belongs to the manifold.
         """
-        batch_shape = get_batch_shape(self, point)
+        batch_shape = get_batch_shape(self.point_ndim, point)
         point_ = gs.reshape(point, (-1, *self.base_manifold.shape))
 
         each_belongs = self.base_manifold.belongs(point_, atol=atol)
@@ -98,7 +98,7 @@ class NFoldManifold(Manifold):
             Boolean denoting if vector is a tangent vector at the base point.
         """
         vector_, base_point_ = gs.broadcast_arrays(vector, base_point)
-        batch_shape = get_batch_shape(self, vector_)
+        batch_shape = get_batch_shape(self.point_ndim, vector_)
         base_point_ = gs.reshape(base_point_, (-1, *self.base_manifold.shape))
         vector_ = gs.reshape(vector_, (-1, *self.base_manifold.shape))
 
@@ -127,7 +127,7 @@ class NFoldManifold(Manifold):
         """
         vector_, base_point_ = gs.broadcast_arrays(vector, base_point)
         base_point_ = gs.reshape(base_point_, (-1, *self.base_manifold.shape))
-        batch_shape = get_batch_shape(self, vector_)
+        batch_shape = get_batch_shape(self.point_ndim, vector_)
         vector_ = gs.reshape(vector_, (-1, *self.base_manifold.shape))
 
         each_tangent = self.base_manifold.to_tangent(vector_, base_point_)
@@ -175,7 +175,7 @@ class NFoldManifold(Manifold):
             Projected point.
         """
         if hasattr(self.base_manifold, "projection"):
-            batch_shape = get_batch_shape(self, point)
+            batch_shape = get_batch_shape(self.point_ndim, point)
             point_ = gs.reshape(point, (-1, *self.base_manifold.shape))
             projected = self.base_manifold.projection(point_)
             return gs.reshape(projected, batch_shape + self.shape)
@@ -228,7 +228,7 @@ class NFoldMetric(RiemannianMetric):
             Matrix of the inner-product at the base point.
         """
         base_manifold = self._space.base_manifold
-        batch_shape = get_batch_shape(self._space, base_point)
+        batch_shape = get_batch_shape(self._space.point_ndim, base_point)
 
         point_ = gs.reshape(base_point, (-1, *base_manifold.shape))
         matrices = base_manifold.metric.metric_matrix(point_)
@@ -267,7 +267,7 @@ class NFoldMetric(RiemannianMetric):
         tangent_vec_a_, tangent_vec_b_, point_ = gs.broadcast_arrays(
             tangent_vec_a, tangent_vec_b, base_point
         )
-        batch_shape = get_batch_shape(self._space, tangent_vec_a_)
+        batch_shape = get_batch_shape(self._space.point_ndim, tangent_vec_a_)
 
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
         vector_a = gs.reshape(tangent_vec_a_, (-1, *base_manifold.shape))
@@ -299,7 +299,7 @@ class NFoldMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         base_manifold = self._space.base_manifold
-        batch_shape = get_batch_shape(self._space, tangent_vec, base_point)
+        batch_shape = get_batch_shape(self._space.point_ndim, tangent_vec, base_point)
 
         tangent_vec, point_ = gs.broadcast_arrays(tangent_vec, base_point)
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
@@ -325,7 +325,7 @@ class NFoldMetric(RiemannianMetric):
             of point at the base point.
         """
         base_manifold = self._space.base_manifold
-        batch_shape = get_batch_shape(self._space, point, base_point)
+        batch_shape = get_batch_shape(self._space.point_ndim, point, base_point)
 
         point_, base_point_ = gs.broadcast_arrays(point, base_point)
         base_point_ = gs.reshape(base_point_, (-1, *base_manifold.shape))

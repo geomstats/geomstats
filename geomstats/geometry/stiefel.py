@@ -427,7 +427,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             https://dial.uclouvain.be/pr/boreal/object/boreal:132587.
         """
         radius = gs.array(0.89 * gs.pi)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)
 
 
 class _StiefelLogSolver:

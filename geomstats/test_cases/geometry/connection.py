@@ -43,7 +43,7 @@ class ConnectionTestCase(TestCase):
         point = self.space.metric.exp(tangent_vec, base_point)
 
         res = self.space.belongs(point, atol=atol)
-        expected_shape = get_batch_shape(self.space, base_point)
+        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
         expected = gs.ones(expected_shape, dtype=bool)
         self.assertAllEqual(res, expected)
 
@@ -68,7 +68,7 @@ class ConnectionTestCase(TestCase):
         tangent_vec = self.space.metric.log(point, base_point)
 
         res = self.space.is_tangent(tangent_vec, base_point, atol=atol)
-        expected_shape = get_batch_shape(self.space, base_point)
+        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
         expected = gs.ones(expected_shape, dtype=bool)
         self.assertAllEqual(res, expected)
 
@@ -278,7 +278,7 @@ class ConnectionTestCase(TestCase):
         res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)), atol=atol)
 
         expected_shape = (
-            math.prod(get_batch_shape(self.space, initial_point)) * n_times,
+            math.prod(get_batch_shape(self.space.point_ndim, initial_point)) * n_times,
         )
         expected = gs.ones(expected_shape, dtype=bool)
         self.assertAllEqual(res, expected)
@@ -310,7 +310,7 @@ class ConnectionTestCase(TestCase):
         res = self.space.belongs(gs.reshape(points, (-1, *self.space.shape)), atol=atol)
 
         expected_shape = (
-            math.prod(get_batch_shape(self.space, initial_point)) * n_times,
+            math.prod(get_batch_shape(self.space.point_ndim, initial_point)) * n_times,
         )
 
         expected = gs.ones(expected_shape, dtype=bool)
@@ -415,7 +415,7 @@ class ConnectionTestCase(TestCase):
 
         res = self.space.is_tangent(transported, end_point, atol=atol)
 
-        expected_shape = get_batch_shape(self.space, base_point)
+        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
         expected = gs.ones(expected_shape, dtype=bool)
 
         self.assertAllEqual(res, expected)
@@ -434,7 +434,7 @@ class ConnectionTestCase(TestCase):
 
         res = self.space.is_tangent(transported, end_point, atol=atol)
 
-        expected_shape = get_batch_shape(self.space, base_point)
+        expected_shape = get_batch_shape(self.space.point_ndim, base_point)
         expected = gs.ones(expected_shape, dtype=bool)
 
         self.assertAllEqual(res, expected)

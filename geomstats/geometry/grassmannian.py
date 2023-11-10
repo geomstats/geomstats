@@ -503,4 +503,4 @@ class GrassmannianCanonicalMetric(MatricesMetric):
             https://arxiv.org/abs/2011.13699.
         """
         radius = gs.array(gs.pi / 2)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)

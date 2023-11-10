@@ -1273,7 +1273,7 @@ class SRVMetric(PullbackDiffeoMetric):
 
         velocity_norm = ambient_metric.norm(velocity, base_point_flat)
         srv = gs.einsum("...i,...->...i", velocity, 1.0 / gs.sqrt(velocity_norm))
-        batch_shape = get_batch_shape(self._space, point)
+        batch_shape = get_batch_shape(self._space.point_ndim, point)
         srv = gs.reshape(srv, batch_shape + self.embedding_space.shape)
         return srv
 
@@ -1423,7 +1423,7 @@ class SRVMetric(PullbackDiffeoMetric):
             curve evaluated at tangent_vec.
         """
         batch_shape = get_batch_shape(
-            self.embedding_space, image_tangent_vec, image_point
+            self.embedding_space.point_ndim, image_tangent_vec, image_point
         )
         point = self.inverse_diffeomorphism(image_point)
 

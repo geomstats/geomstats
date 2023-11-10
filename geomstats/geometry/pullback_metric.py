@@ -64,7 +64,7 @@ class PullbackMetric(RiemannianMetric):
             Inner-product matrix.
         """
         dim, dim_embedding = self._space.dim, self._space.embedding_space.dim
-        is_vec = check_is_batch(self._space, base_point)
+        is_vec = check_is_batch(self._space.point_ndim, base_point)
 
         immersed_base_point = self._space.immersion(base_point)
         jacobian_immersion = self._space.jacobian_immersion(base_point)
@@ -295,7 +295,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
         image_tangent_vec : array-like, shape=[..., *i_shape]
             Image tangent vector at image of the base point.
         """
-        batch_shape = get_batch_shape(self._space, tangent_vec, base_point)
+        batch_shape = get_batch_shape(self._space.point_ndim, tangent_vec, base_point)
         flat_batch_shape = (-1,) if batch_shape else ()
 
         J_flat = gs.reshape(
@@ -352,7 +352,7 @@ class PullbackDiffeoMetric(RiemannianMetric, abc.ABC):
             Image tangent vector at image of the base point.
         """
         batch_shape = get_batch_shape(
-            self.embedding_space, image_tangent_vec, image_point
+            self.embedding_space.point_ndim, image_tangent_vec, image_point
         )
         flat_batch_shape = (-1,) if batch_shape else ()
 

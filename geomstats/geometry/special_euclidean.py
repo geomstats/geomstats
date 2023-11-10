@@ -1048,7 +1048,7 @@ class SpecialEuclideanMatricesCanonicalLeftMetric(_InvariantMetricMatrix):
         """
         inner_prod = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
         return repeat_out(
-            self._space, inner_prod, base_point, tangent_vec_a, tangent_vec_b
+            self._space.point_ndim, inner_prod, base_point, tangent_vec_a, tangent_vec_b
         )
 
     def exp(self, tangent_vec, base_point=None):

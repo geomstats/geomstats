@@ -188,7 +188,7 @@ class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
 
     def test_submersion_is_zero(self, point, submersion_shape, atol):
         # TODO: keep?
-        batch_shape = get_batch_shape(self.space, point)
+        batch_shape = get_batch_shape(self.space.point_ndim, point)
         expected = gs.zeros(batch_shape + submersion_shape)
 
         self.test_submersion(point, expected, atol)
@@ -215,7 +215,7 @@ class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
         self, tangent_vector, point, tangent_submersion_shape, atol
     ):
         # TODO: keep?
-        batch_shape = get_batch_shape(self.space, tangent_vector, point)
+        batch_shape = get_batch_shape(self.space.point_ndim, tangent_vector, point)
         expected = gs.zeros(batch_shape + tangent_submersion_shape)
 
         self.test_tangent_submersion(tangent_vector, point, expected, atol)

@@ -179,4 +179,4 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(math.inf)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)

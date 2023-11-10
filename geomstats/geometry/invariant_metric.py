@@ -1265,7 +1265,11 @@ class BiInvariantMetric(RiemannianMetric):
             inner_prod = self.inner_product_at_identity(tangent_vec_a, tangent_vec_b)
             if base_point is not None:
                 return repeat_out(
-                    self._space, inner_prod, base_point, tangent_vec_a, tangent_vec_b
+                    self._space.point_ndim,
+                    inner_prod,
+                    base_point,
+                    tangent_vec_a,
+                    tangent_vec_b,
                 )
             return inner_prod
 
@@ -1341,4 +1345,4 @@ class BiInvariantMetric(RiemannianMetric):
             Injectivity radius.
         """
         radius = gs.array(gs.pi * self._space.dim**0.5)
-        return repeat_out(self._space, radius, base_point)
+        return repeat_out(self._space.point_ndim, radius, base_point)

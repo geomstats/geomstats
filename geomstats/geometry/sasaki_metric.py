@@ -361,7 +361,7 @@ class SasakiMetric(RiemannianMetric):
                 ]
             )
 
-        is_batch = check_is_batch(self._space, initial_point, end_point)
+        is_batch = check_is_batch(self._space.point_ndim, initial_point, end_point)
         if not is_batch:
             return _geodesic_discrete_single(initial_point, end_point)
 
