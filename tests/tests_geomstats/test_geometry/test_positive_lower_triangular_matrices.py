@@ -7,24 +7,23 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test_cases.geometry.base import OpenSetTestCase
 from geomstats.test_cases.geometry.positive_lower_triangular_matrices import (
     CholeskyMetricTestCase,
-    PositiveLowerTriangularMatricesTestCase,
 )
 
+from .data.base import OpenSetTestData
 from .data.positive_lower_triangular_matrices import (
     CholeskyMetric2TestData,
     CholeskyMetricTestData,
     PositiveLowerTriangularMatrices2TestData,
-    PositiveLowerTriangularMatricesTestData,
 )
 
 
 @pytest.fixture(
     scope="class",
     params=[
-        random.randint(2, 3),
-        random.randint(4, 5),
+        random.randint(2, 5),
     ],
 )
 def spaces(request):
@@ -33,14 +32,14 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestPositiveLowerTriangularMatrices(
-    PositiveLowerTriangularMatricesTestCase, metaclass=DataBasedParametrizer
+    OpenSetTestCase, metaclass=DataBasedParametrizer
 ):
-    testing_data = PositiveLowerTriangularMatricesTestData()
+    testing_data = OpenSetTestData()
 
 
 @pytest.mark.smoke
 class TestPositiveLowerTriangularMatrices2(
-    PositiveLowerTriangularMatricesTestCase, metaclass=DataBasedParametrizer
+    OpenSetTestCase, metaclass=DataBasedParametrizer
 ):
     space = PositiveLowerTriangularMatrices(n=2, equip=False)
     testing_data = PositiveLowerTriangularMatrices2TestData()
@@ -49,8 +48,7 @@ class TestPositiveLowerTriangularMatrices2(
 @pytest.fixture(
     scope="class",
     params=[
-        random.randint(2, 3),
-        random.randint(4, 5),
+        random.randint(2, 5),
     ],
 )
 def equipped_spaces(request):

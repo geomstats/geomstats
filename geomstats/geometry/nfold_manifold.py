@@ -10,6 +10,9 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape
 
+# TODO: create simpler version of NFoldManifold for cases where
+# batch is implemented independent of batch_shape?
+
 
 class NFoldManifold(Manifold):
     r"""Class for an n-fold product manifold :math:`M^n`.
@@ -198,7 +201,7 @@ class NFoldMetric(RiemannianMetric):
         Scale of each metric in the product.
     """
 
-    def __init__(self, space, scales=None):
+    def __init__(self, space, scales=None, signature=None):
         if scales is not None:
             for scale in scales:
                 geomstats.errors.check_positive(scale, "Each value in scales")
@@ -209,7 +212,7 @@ class NFoldMetric(RiemannianMetric):
                 )
         self.scales = scales
 
-        super().__init__(space=space)
+        super().__init__(space=space, signature=signature)
 
     def metric_matrix(self, base_point):
         """Compute the matrix of the inner-product.
@@ -241,6 +244,27 @@ class NFoldMetric(RiemannianMetric):
 
         return reshaped
 
+    def pointwise_inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        # TODO: check need for making this public
+        base_manifold = self._space.base_manifold
+
+        tangent_vec_a_, tangent_vec_b_, point_ = gs.broadcast_arrays(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+        batch_shape = get_batch_shape(self._space.point_ndim, tangent_vec_a_)
+
+        point_ = gs.reshape(point_, (-1, *base_manifold.shape))
+        vector_a = gs.reshape(tangent_vec_a_, (-1, *base_manifold.shape))
+        vector_b = gs.reshape(tangent_vec_b_, (-1, *base_manifold.shape))
+        inner_each = base_manifold.metric.inner_product(vector_a, vector_b, point_)
+
+        reshaped = gs.reshape(inner_each, batch_shape + (self._space.n_copies,))
+
+        if self.scales is not None:
+            reshaped = gs.einsum("j,...j->...j", self.scales, reshaped)
+
+        return reshaped
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner-product of two tangent vectors at a base point.
 
@@ -262,24 +286,34 @@ class NFoldMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        base_manifold = self._space.base_manifold
-
-        tangent_vec_a_, tangent_vec_b_, point_ = gs.broadcast_arrays(
-            tangent_vec_a, tangent_vec_b, base_point
+        return gs.sum(
+            self.pointwise_inner_product(tangent_vec_a, tangent_vec_b, base_point),
+            axis=-1,
         )
-        batch_shape = get_batch_shape(self._space.point_ndim, tangent_vec_a_)
 
-        point_ = gs.reshape(point_, (-1, *base_manifold.shape))
-        vector_a = gs.reshape(tangent_vec_a_, (-1, *base_manifold.shape))
-        vector_b = gs.reshape(tangent_vec_b_, (-1, *base_manifold.shape))
-        inner_each = base_manifold.metric.inner_product(vector_a, vector_b, point_)
+    def pointwise_norm(self, tangent_vec, base_point):
+        """Compute the pointwise norms of a tangent vector.
 
-        reshaped = gs.reshape(inner_each, batch_shape + (self._space.n_copies,))
+        Compute the norms of the components of a tangent vector at the different
+        sampling points of a base curve.
 
-        if self.scales is not None:
-            reshaped = gs.einsum("j,...j->...j", self.scales, reshaped)
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_copies, *base_shape]
+            Tangent vector to discrete curve.
+        base_point : array-like, shape=[..., n_copies, *base_shape]
+            Point representing a discrete curve.
 
-        return gs.sum(reshaped, axis=-1)
+        Returns
+        -------
+        norm : array-like, shape=[..., *base_shape]
+            Point-wise norms.
+        """
+        # TODO: check need for this
+        sq_norm = self.pointwise_inner_product(
+            tangent_vec_a=tangent_vec, tangent_vec_b=tangent_vec, base_point=base_point
+        )
+        return gs.sqrt(sq_norm)
 
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.

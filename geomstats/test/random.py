@@ -1,7 +1,6 @@
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
-from geomstats.geometry.matrices import Matrices
 from geomstats.vectorization import get_n_points
 
 
@@ -67,13 +66,6 @@ class NFoldManifoldRandomDataGenerator(RandomDataGenerator):
 
         shape = (n_points, n_copies) if n_points > 1 else (n_copies,)
         return gs.reshape(point, shape + base.shape)
-
-
-class DiscreteCurvesRandomDataGenerator(RandomDataGenerator):
-    def point_to_project(self, n_points=1):
-        return Matrices(
-            self.space.k_sampling_points, self.space.ambient_manifold.dim
-        ).random_point(n_points)
 
 
 class HypersphereIntrinsicRandomDataGenerator(RandomDataGenerator):

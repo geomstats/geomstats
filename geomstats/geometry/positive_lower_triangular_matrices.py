@@ -103,69 +103,6 @@ class PositiveLowerTriangularMatrices(OpenSet):
         strictly_lower_triangular = Matrices.to_lower_triangular(point)
         return diag + strictly_lower_triangular
 
-    @staticmethod
-    def gram(point):
-        """Compute gram matrix of rows.
-
-        Gram_matrix is mapping from point to point.point^{T}.
-        This is diffeomorphism between cholesky space and spd manifold.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            element in cholesky space.
-
-        Returns
-        -------
-        projected: array-like, shape=[..., n, n]
-            SPD matrix.
-        """
-        return gs.einsum("...ij,...kj->...ik", point, point)
-
-    @staticmethod
-    def differential_gram(tangent_vec, base_point):
-        """Compute differential of gram.
-
-        Parameters
-        ----------
-        tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array_like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        differential_gram : array-like, shape=[..., n, n]
-            Differential of the gram.
-        """
-        mat1 = gs.einsum("...ij,...kj->...ik", tangent_vec, base_point)
-        mat2 = gs.einsum("...ij,...kj->...ik", base_point, tangent_vec)
-        return mat1 + mat2
-
-    @staticmethod
-    def inverse_differential_gram(tangent_vec, base_point):
-        """Compute inverse differential of gram map.
-
-        Parameters
-        ----------
-        tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at gram(base_point).
-        base_point : array_like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        inverse_differential_gram : array-like, shape=[..., n, n]
-            Inverse differential of gram.
-            Lower triangular matrix.
-        """
-        inv_base_point = gs.linalg.inv(base_point)
-        inv_transpose_base_point = Matrices.transpose(inv_base_point)
-        aux = Matrices.to_lower_triangular_diagonal_scaled(
-            Matrices.mul(inv_base_point, tangent_vec, inv_transpose_base_point)
-        )
-        return Matrices.mul(base_point, aux)
-
 
 class CholeskyMetric(RiemannianMetric):
     """Class for Cholesky metric on Cholesky space.

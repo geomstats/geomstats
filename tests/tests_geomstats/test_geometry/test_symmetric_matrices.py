@@ -9,16 +9,12 @@ from geomstats.test_cases.geometry.base import (
     VectorSpaceTestCase,
 )
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
-from geomstats.test_cases.geometry.symmetric_matrices import (
-    SymmetricMatricesOpsTestCase,
-)
 
-from .data.complex_matrices import ComplexMatricesMetricTestData
+from .data.matrices import MatricesMetricTestData
 from .data.symmetric_matrices import (
     SymmetricMatrices1TestData,
     SymmetricMatrices2TestData,
     SymmetricMatrices3TestData,
-    SymmetricMatricesOpsTestData,
     SymmetricMatricesTestData,
 )
 
@@ -80,12 +76,4 @@ class TestMatricesMetric(MatricesMetricTestCase, metaclass=DataBasedParametrizer
     n = random.randint(3, 5)
     space = SymmetricMatrices(n=n)
 
-    testing_data = ComplexMatricesMetricTestData()
-
-
-@pytest.mark.smoke
-class TestSymmetricMatricesOps(
-    SymmetricMatricesOpsTestCase, metaclass=DataBasedParametrizer
-):
-    Space = SymmetricMatrices
-    testing_data = SymmetricMatricesOpsTestData()
+    testing_data = MatricesMetricTestData()

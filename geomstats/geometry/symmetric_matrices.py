@@ -3,10 +3,7 @@
 Lead author: Yann Thanwerdas.
 """
 
-import logging
-
 import geomstats.backend as gs
-from geomstats import algebra_utils
 from geomstats.geometry.base import VectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
@@ -153,92 +150,3 @@ class SymmetricMatrices(VectorSpace):
 
         mat = Matrices.to_symmetric(upper_triangular) * mask
         return mat
-
-    @classmethod
-    def expm(cls, mat):
-        """Compute the matrix exponential for a symmetric matrix.
-
-        Parameters
-        ----------
-        mat : array_like, shape=[..., n, n]
-            Symmetric matrix.
-
-        Returns
-        -------
-        exponential : array_like, shape=[..., n, n]
-            Exponential of mat.
-        """
-        n = mat.shape[-1]
-        dim_3_mat = gs.reshape(mat, [-1, n, n])
-        expm = cls.apply_func_to_eigvals(dim_3_mat, gs.exp)
-        expm = gs.reshape(expm, mat.shape)
-        return expm
-
-    @classmethod
-    def powerm(cls, mat, power):
-        """
-        Compute the matrix power.
-
-        Parameters
-        ----------
-        mat : array_like, shape=[..., n, n]
-            Symmetric matrix with non-negative eigenvalues.
-        power : float, list
-            Power at which mat will be raised. If a list of powers is passed,
-            a list of results will be returned.
-
-        Returns
-        -------
-        powerm : array_like or list of arrays, shape=[..., n, n]
-            Matrix power of mat.
-        """
-        if isinstance(power, list):
-            power_ = [lambda ev, p=p: gs.power(ev, p) for p in power]
-        else:
-
-            def power_(ev):
-                return gs.power(ev, power)
-
-        return cls.apply_func_to_eigvals(mat, power_, check_positive=False)
-
-    @staticmethod
-    def apply_func_to_eigvals(mat, function, check_positive=False):
-        """
-        Apply function to eigenvalues and reconstruct the matrix.
-
-        Parameters
-        ----------
-        mat : array_like, shape=[..., n, n]
-            Symmetric matrix.
-        function : callable, list of callables
-            Function to apply to eigenvalues. If a list of functions is passed,
-            a list of results will be returned.
-        check_positive : bool
-            Whether to check positivity of the eigenvalues.
-            Optional. Default: False.
-
-        Returns
-        -------
-        mat : array_like, shape=[..., n, n]
-            Symmetric matrix.
-        """
-        eigvals, eigvecs = gs.linalg.eigh(mat)
-        if check_positive and gs.any(eigvals < 0.0):
-            try:
-                name = function.__name__
-            except AttributeError:
-                name = function[0].__name__
-
-            logging.warning("Negative eigenvalue encountered in %s", name)
-
-        return_list = True
-        if not isinstance(function, list):
-            function = [function]
-            return_list = False
-        reconstruction = []
-        transp_eigvecs = Matrices.transpose(eigvecs)
-        for fun in function:
-            eigvals_f = fun(eigvals)
-            eigvals_f = algebra_utils.from_vector_to_diagonal_matrix(eigvals_f)
-            reconstruction.append(Matrices.mul(eigvecs, eigvals_f, transp_eigvecs))
-        return reconstruction if return_list else reconstruction[0]

@@ -11,9 +11,9 @@ import geomstats.backend as gs
 import geomstats.errors
 from geomstats import algebra_utils
 from geomstats.geometry.base import LevelSet
+from geomstats.geometry.hermitian_matrices import powermh
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
 
 
@@ -126,7 +126,7 @@ class Stiefel(LevelSet):
         std_normal = gs.random.normal(size=size)
         std_normal_transpose = Matrices.transpose(std_normal)
         aux = Matrices.mul(std_normal_transpose, std_normal)
-        inv_sqrt_aux = SymmetricMatrices.powerm(aux, -1.0 / 2)
+        inv_sqrt_aux = powermh(aux, -1.0 / 2)
         samples = Matrices.mul(std_normal, inv_sqrt_aux)
 
         return samples

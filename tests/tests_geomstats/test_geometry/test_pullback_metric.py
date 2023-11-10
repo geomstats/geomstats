@@ -1,6 +1,8 @@
 import pytest
 
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.invariant_metric import BiInvariantMetric
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.base import ImmersedSetTestCase
 from geomstats.test_cases.geometry.pullback_metric import (
@@ -71,7 +73,10 @@ class TestCircleAsSO2PullbackDiffeoMetricCmp(
 ):
     space = Hypersphere(dim=1)
 
+    _image_space = SpecialOrthogonal(n=2, point_type="matrix", equip=False)
+    _image_space.equip_with_metric(BiInvariantMetric)
+
     other_space = Hypersphere(dim=1, equip=False)
-    other_space.equip_with_metric(CircleAsSO2Metric)
+    other_space.equip_with_metric(CircleAsSO2Metric, image_space=_image_space)
 
     testing_data = CircleAsSO2PullbackDiffeoMetricCmpTestData()
