@@ -84,7 +84,7 @@ from the project GitHub repository using the following instructions:
 
        .. code-block:: bash
 
-          $ git pull upstream master
+          $ git pull upstream main
 
 
 #. Verify your remote configuration:
@@ -104,7 +104,7 @@ from the project GitHub repository using the following instructions:
 
       $ git checkout -b <branch-name>
    
-   (`master` could have been used to develop new code. Nevertheless, the process is cleaner if you create a new branch - e.g. the merge from upstream is easier to handle when there's conflicts - and allows you to develop several features independently, each in its own branch.)
+   (`main` could have been used to develop new code. Nevertheless, the process is cleaner if you create a new branch - e.g. the merge from upstream is easier to handle when there's conflicts - and allows you to develop several features independently, each in its own branch.)
 
 #. Verify that you are on the new branch:
 
@@ -112,7 +112,7 @@ from the project GitHub repository using the following instructions:
 
       $ git branch
       * <branch-name>
-        master
+        main
 
 
 .. _dependencies
@@ -407,12 +407,12 @@ repository <https://github.com/geomstats/geomstats/>`__ and submit a "pull reque
 Follow the guidelines detailed in :ref:`getting-the-code` to setup the development environment.
 Then, follow the next steps before submitting a PR:
 
-#. Synchronize your master branch with the upstream master branch:
+#. Synchronize your main branch with the upstream main branch:
 
     .. code-block:: bash 
 
-        $ git checkout master
-        $ git pull upstream master
+        $ git checkout main
+        $ git pull upstream main
 
 #. | Create a feature branch to hold your development changes:
 
@@ -457,15 +457,15 @@ latest changes of the main geomstats repository. Bring remote changes locally:
 
     .. code-block:: bash 
 
-      $ git checkout master
-      $ git pull upstream master
+      $ git checkout main
+      $ git pull upstream main
 
 And then merge them into your branch:
 
     .. code-block:: bash 
 
       $ git checkout <branch-name>
-      $ git merge master
+      $ git merge main
 
 
 .. note::
@@ -490,7 +490,7 @@ complies with the following rules. The **bolded** ones are especially important:
 
 #. **Make sure that your code is** `vectorized
    <https://www.geeksforgeeks.org/vectorization-in-python/>`_. For vectorized matrix operations we recommend using the
-   methods of the  `Matrices <https://github.com/geomstats/geomstats/blob/master/geomstats/geometry/matrices.py>`_
+   methods of the  `Matrices <https://github.com/geomstats/geomstats/blob/main/geomstats/geometry/matrices.py>`_
    class instead of lower level backend functions, as they are automatically vectorized.
 
 #. **Submit your code with associated unit tests**. High-quality
@@ -568,7 +568,7 @@ complies with the following rules. The **bolded** ones are especially important:
    performance and efficiency or through examples of usage. Examples also
    illustrate the features and intricacies of the library to users. Have a
    look at other examples in the `examples/
-   <https://github.com/geomstats/geomstats/tree/master/examples>`_
+   <https://github.com/geomstats/geomstats/tree/main/examples>`_
    subdirectory for reference. Examples should demonstrate why the new
    functionality is useful in practice and, if possible, compare it to other
    methods available in geomstats.

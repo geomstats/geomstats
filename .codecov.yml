@@ -11,7 +11,7 @@ coverage:
           - unit
        # advanced
         branches:
-          - master
+          - main
         if_not_found: success
         if_ci_failed: error
         informational: False
@@ -36,7 +36,7 @@ coverage:
           - unit
         # advanced
         branches:
-          - master
+          - main
         if_no_uploads: error
         if_not_found: success
         if_ci_failed: error

@@ -22,7 +22,7 @@ Geomstats is an open-source Python package for computations and statistics on no
 The `source code <https://github.com/geomstats/geomstats>`_ is freely available on GitHub. Geomstats is organized into two main modules:
 `geometry` and `learning`. The module `geometry` implements concepts in differential geometry. The module `learning` implements statistics and learning algorithms for data on manifolds. The code is object-oriented and classes inherit from scikit-learn's base classes and mixins.
 
-Geomstats has found numerous applications, for example in the biomedical fields for machine learning applied to biological shape analysis. Typical usecases can be found within the `notebooks folder <https://github.com/geomstats/geomstats/blob/master/notebooks/>`_.
+Geomstats has found numerous applications, for example in the biomedical fields for machine learning applied to biological shape analysis. Typical usecases can be found within the `notebooks folder <https://github.com/geomstats/geomstats/blob/main/notebooks/>`_.
 
 
 Problem Statement
@@ -171,7 +171,7 @@ In this context, Geomstats provides code to fulfill four objectives:
 The `source code <https://github.com/geomstats/geomstats>`_ is freely available on GitHub. Geomstats is organized into two main modules:
 `geometry` and `learning`. The module `geometry` implements concepts in differential geometry. The module `learning` implements statistics and learning algorithms for data on manifolds. The code is object-oriented and classes inherit from scikit-learn's base classes and mixins.
 
-Geomstats has already found numerous applications, for example in the biomedical fields for machine learning applied to biological shape analysis. Typical usecases can be found within the `notebooks folder <https://github.com/geomstats/geomstats/blob/master/notebooks/>`_.
+Geomstats has already found numerous applications, for example in the biomedical fields for machine learning applied to biological shape analysis. Typical usecases can be found within the `notebooks folder <https://github.com/geomstats/geomstats/blob/main/notebooks/>`_.
 
 About the project
 =================
@@ -260,7 +260,7 @@ Proposed Budget
 Additional information
 ======================
 
-Nina Miolane, principal administrator, has been working with a master student to create the original Geomstats documentation website. She has worked with two engineers to update the documentation website in 2021.
+Nina Miolane, principal administrator, has been working with a main student to create the original Geomstats documentation website. She has worked with two engineers to update the documentation website in 2021.
 
 Nina Miolane has been a mentor for `Outreachy <https://www.outreachy.org/>`_ and is a mentor + member of the steering committee of the MIT's `Summer Geometry Initiative <https://sgi.mit.edu/>`_, two programs that are similar to Google Summer of Code and Google Season of Docs. Nina Miolane has co-organized `hackathons <https://github.com/geomstats/geomstats#contributing>`_ , `coding challenges <https://github.com/geomstats/challenge-iclr-2021>`_, and `international workshops <https://www.ninamiolane.com/pagecv>`_.
 

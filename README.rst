@@ -26,7 +26,7 @@ Keep in touch with the community by joining us on our `slack workspace <https://
 
 **NEWS**:
 
-- Discover our new  `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module, published in the ACM Transactions of Mathematical Software (`paper <https://dl.acm.org/doi/abs/10.1145/3627538>`_).
+- Discover our new  `information_geometry <https://github.com/geomstats/geomstats/tree/main/geomstats/information_geometry>`_ module, published in the ACM Transactions of Mathematical Software (`paper <https://dl.acm.org/doi/abs/10.1145/3627538>`_).
 
 - The white papers summarizing the findings from our ICLR 2021 and 2022 challenges of computational differential geometry and topology are available `here (2021) <https://arxiv.org/abs/2108.09810>`__ and `here (2022) <https://arxiv.org/abs/2206.09048>`_.
 
@@ -34,13 +34,13 @@ Keep in touch with the community by joining us on our `slack workspace <https://
    video <https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3>`__.
 - To understand how ``geomstats`` is built, check out `these slides <https://drive.google.com/file/d/1YxeGeLXrJdVQLBJQ-SYPirQ7V_UisqUw/view?usp=sharing>`__.
 -  To get started with ``geomstats``, see the
-   `examples <https://github.com/geomstats/geomstats/tree/master/examples>`__
+   `examples <https://github.com/geomstats/geomstats/tree/main/examples>`__
    and
-   `notebooks <https://github.com/geomstats/geomstats/tree/master/notebooks>`__
+   `notebooks <https://github.com/geomstats/geomstats/tree/main/notebooks>`__
    directories.
 -  The documentation of ``geomstats`` can be found on the `documentation
    website <https://geomstats.github.io/>`__.
-- Interested in information geometry? Go to our `information_geometry <https://github.com/geomstats/geomstats/tree/master/geomstats/information_geometry>`_ module.
+- Interested in information geometry? Go to our `information_geometry <https://github.com/geomstats/geomstats/tree/main/geomstats/information_geometry>`_ module.
 -  To follow the scientific literature on geometric statistics, follow
    our twitter-bot `@geomstats <https://twitter.com/geomstats>`__!
 
@@ -117,7 +117,7 @@ refer to the file ``pyproject.toml``.
 Install geomstats : Developers
 ------------------------------
 
-Developers should git clone the master branch of this repository, together with the development requirements
+Developers should git clone the main branch of this repository, together with the development requirements
 and the optional requirements to enable ``autograd`` and ``pytorch`` backends:
 
 ::
@@ -204,16 +204,16 @@ algorithm can be used with any of the manifolds and metric implemented
 in the package.
 
 To see additional examples, go to the
-`examples <https://github.com/geomstats/geomstats/tree/master/examples>`__
+`examples <https://github.com/geomstats/geomstats/tree/main/examples>`__
 or
-`notebooks <https://github.com/geomstats/geomstats/tree/master/notebooks>`__
+`notebooks <https://github.com/geomstats/geomstats/tree/main/notebooks>`__
 directories.
 
 Contributing
 ------------
 
 See our
-`contributing <https://github.com/geomstats/geomstats/blob/master/docs/contributing/index.rst>`__
+`contributing <https://github.com/geomstats/geomstats/blob/main/docs/contributing/index.rst>`__
 guidelines!
 
 Interested? Contact us and join the next hackathons. Previous Geomstats events include:
@@ -251,11 +251,11 @@ This work is supported by:
    :target: https://github.com/geomstats/geomstats/actions/workflows/test.yml
 .. |Slack| image:: https://img.shields.io/badge/Slack-Join-yellow
    :target: https://join.slack.com/t/geomstats/shared_invite/zt-15t8k0q7r-Duxt6j6aA3rDOIms2Vd~RQ
-.. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy
+.. |Coverage Status np| image:: https://codecov.io/gh/geomstats/geomstats/branch/main/graph/badge.svg?flag=numpy
    :target: https://codecov.io/gh/geomstats/geomstats
-.. |Coverage Status autograd| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=autograd
+.. |Coverage Status autograd| image:: https://codecov.io/gh/geomstats/geomstats/branch/main/graph/badge.svg?flag=autograd
    :target: https://codecov.io/gh/geomstats/geomstats
-.. |Coverage Status torch| image:: https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch
+.. |Coverage Status torch| image:: https://codecov.io/gh/geomstats/geomstats/branch/main/graph/badge.svg?flag=pytorch
    :target: https://codecov.io/gh/geomstats/geomstats
 .. |Zenodo| image:: https://zenodo.org/badge/108200238.svg
    :target: https://zenodo.org/badge/latestdoi/108200238
@@ -268,6 +268,6 @@ This work is supported by:
 .. |doc| image:: https://img.shields.io/badge/docs-website-brightgreen?style=flat
    :target: https://geomstats.github.io/?badge=latest
 .. |binder| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/geomstats/geomstats/master?filepath=notebooks
+   :target: https://mybinder.org/v2/gh/geomstats/geomstats/main?filepath=notebooks
 .. |contributions| image:: https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat
    :target: https://geomstats.github.io/contributing.html

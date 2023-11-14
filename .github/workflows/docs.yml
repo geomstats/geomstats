@@ -2,9 +2,9 @@ name: "Docs check and Deployment"
 
 on:
   push:
-    branches: [master, github-actions-test]
+    branches: [main, github-actions-test]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   build:
@@ -42,9 +42,9 @@ jobs:
 
       - name: Deployement of Docs
         uses: JamesIves/github-pages-deploy-action@v4.2.2
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'geomstats/geomstats' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'geomstats/geomstats' }}
         with:
-          branch: master
+          branch: main
           folder: docs/_build
           token: ${{ secrets.DOCUMENTATION_KEY }}
           repository-name: geomstats/geomstats.github.io

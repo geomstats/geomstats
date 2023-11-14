@@ -2,7 +2,7 @@ name: "Testing"
 
 on:
   push:
-    branches: [master, github-actions-test]
+    branches: [main, github-actions-test]
     paths-ignore:
       - "docs/**"
       - "README.rst"
@@ -12,7 +12,7 @@ on:
       - ".gitignore"
 
   pull_request:
-    branches: [master]
+    branches: [main]
     paths-ignore:
       - "docs/**"
       - "README.rst"
