@@ -75,6 +75,14 @@ nbsphinx_prolog = (
     \sphinxcode{\sphinxupquote{\strut {{ docname | escape_latex }}}} \dotfill}}
     """
 )
+
+nbsphinx_thumbnails = {
+    "notebooks/00_foundations__introduction_to_geomstats": "_images/intro_sphere_geodesic.png",
+    "notebooks/01_foundations__manifolds": "_images/manifold_definitions2.png",
+    "notebooks/02_foundations__connection_riemannian_metric": "_images/conn_black_hole.png",
+}
+
+
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 pygments_style = None
