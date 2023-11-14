@@ -46,7 +46,7 @@ templates_path = ["_templates"]
 
 source_suffix = [".rst"]
 
-master_doc = "index"
+main_doc = "index"
 
 language = "en"
 
@@ -59,10 +59,10 @@ nbsphinx_prolog = (
     <div class="admonition note">
       <p>Notebook source code:
         <a class="reference external" href="https://github.com/geomstats/"""
-    r"""geomstats/blob/master/{{ docname|e }}">{{ docname|e }}</a>
+    r"""geomstats/blob/main/{{ docname|e }}">{{ docname|e }}</a>
         <br>Run it yourself on binder
         <a href="https://mybinder.org/v2/gh/geomstats/geomstats/"""
-    r"""master?filepath={{ docname|e }}"><img alt="Binder badge"
+    r"""main?filepath={{ docname|e }}"><img alt="Binder badge"
         src="https://mybinder.org/badge_logo.svg"
         style="vertical-align:text-bottom"></a>
       </p>
@@ -89,7 +89,7 @@ latex_elements = {}
 
 latex_documents = [
     (
-        master_doc,
+        main_doc,
         "geomstats.tex",
         "geomstats Documentation",
         "Geomstats Team",
@@ -97,11 +97,11 @@ latex_documents = [
     ),
 ]
 
-man_pages = [(master_doc, "geomstats", "geomstats Documentation", [author], 1)]
+man_pages = [(main_doc, "geomstats", "geomstats Documentation", [author], 1)]
 
 texinfo_documents = [
     (
-        master_doc,
+        main_doc,
         "geomstats",
         "geomstats Documentation",
         author,

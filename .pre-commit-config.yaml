@@ -13,7 +13,7 @@ repos:
           - --fix=no
       - id: no-commit-to-branch
         args:
-          - --branch=master
+          - --branch=main
       - id: check-added-large-files
         args:
           - --maxkb=2048

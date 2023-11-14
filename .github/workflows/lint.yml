@@ -2,9 +2,9 @@ name: "Linting"
 
 on:
   push:
-    branches: [master, github-actions-test]
+    branches: [main, github-actions-test]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   lint:

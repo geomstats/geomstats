@@ -9,8 +9,8 @@ Thank you for opening this pull request!
 - [ ] I added appropriate unit tests.
 - [ ] I made sure the code passes all unit tests. (refer to comment below)
 - [ ] My PR follows [PEP8](https://peps.python.org/pep-0008/) guidelines. (refer to comment below)
-- [ ] My PR follows [geomstats coding style](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst#coding-style-guidelines) and API.
-- [ ] My code is properly documented and I made sure the documentation renders properly. ([Link](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst#documentation))
+- [ ] My PR follows [geomstats coding style](https://github.com/geomstats/geomstats/blob/main/docs/contributing.rst#coding-style-guidelines) and API.
+- [ ] My code is properly documented and I made sure the documentation renders properly. ([Link](https://github.com/geomstats/geomstats/blob/main/docs/contributing.rst#documentation))
 - [ ] I linked to issues and PRs that are relevant to this PR.
 
 
