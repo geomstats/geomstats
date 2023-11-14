@@ -44,7 +44,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'geomstats/geomstats' }}
         with:
-          branch: main
+          branch: master
           folder: docs/_build
           token: ${{ secrets.DOCUMENTATION_KEY }}
           repository-name: geomstats/geomstats.github.io
