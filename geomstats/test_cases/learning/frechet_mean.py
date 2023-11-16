@@ -50,7 +50,7 @@ class ElasticMeanTestCase(FrechetMeanTestCase):
         mean = self.estimator.fit(X).estimate_
 
         logs = space.metric.log(X, mean)
-        logs_srv = space.metric.tangent_diffeomorphism(logs, base_point=mean)
+        logs_srv = space.metric.diffeo.tangent_diffeomorphism(logs, base_point=mean)
         result = gs.linalg.norm(logs_srv[1] + logs_srv[0])
 
         self.assertAllClose(result, gs.array(0.0), atol)

@@ -698,11 +698,13 @@ class FTransform(AutodiffDiffeo):
     - and f_transform takes finitely many values if and only if a 2b is rational.
     """
 
-    def __init__(self, ambient_manifold, k_sampling_points, a=1.0):
+    def __init__(self, ambient_manifold, k_sampling_points, a=1.0, b=None):
         self._check_ambient_manifold(ambient_manifold)
 
         self.a = a
-        self.b = a / 2
+        if b is None:
+            b = a / 2
+        self.b = b
         self.ambient_manifold = ambient_manifold
         self.k_sampling_points = k_sampling_points
 
@@ -948,9 +950,10 @@ class ElasticTranslationMetric(PullbackDiffeoMetric):
         self,
         space,
         a,
+        b=None,
     ):
         image_space = self._instantiate_image_space(space)
-        diffeo = FTransform(space.ambient_manifold, space.k_sampling_points, a)
+        diffeo = FTransform(space.ambient_manifold, space.k_sampling_points, a, b)
 
         super().__init__(
             space=space,

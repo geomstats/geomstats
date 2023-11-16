@@ -446,8 +446,6 @@ class ElasticMean(BaseEstimator):
         self.space = space
         self.estimate_ = None
 
-        self.ambient_mean_estimator = FrechetMean(self.space.ambient_manifold)
-
     def _elastic_mean(self, points, weights=None):
         """Compute the weighted mean of elastic curves.
 
@@ -474,19 +472,11 @@ class ElasticMean(BaseEstimator):
         mean : array-like, shape=[k_sampling_points, dim]
             Weighted linear mean of the points (i.e. of the curves).
         """
-        # TODO: need to fix here
         diffeo = self.space.metric.diffeo
         transformed = diffeo.diffeomorphism(points)
         transformed_linear_mean = linear_mean(transformed, weights=weights)
 
-        starting_sampling_point = self.ambient_mean_estimator.fit(
-            points[:, 0, :], weights=weights
-        ).estimate_
-        starting_sampling_point = gs.expand_dims(starting_sampling_point, axis=0)
-
-        return diffeo.inverse_diffeomorphism(
-            transformed_linear_mean, starting_sampling_point=starting_sampling_point
-        )
+        return diffeo.inverse_diffeomorphism(transformed_linear_mean)
 
     def fit(self, X, y=None, weights=None):
         """Compute the elastic mean.
