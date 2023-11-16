@@ -10,9 +10,6 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import get_batch_shape
 
-# TODO: create simpler version of NFoldManifold for cases where
-# batch is implemented independent of batch_shape?
-
 
 class NFoldManifold(Manifold):
     r"""Class for an n-fold product manifold :math:`M^n`.
@@ -245,7 +242,23 @@ class NFoldMetric(RiemannianMetric):
         return reshaped
 
     def pointwise_inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        # TODO: check need for making this public
+        """Pointwise inner product.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_copies, *base_shape]
+            First tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., n_copies, *base_shape]
+            Second tangent vector at base point.
+        base_point : array-like, shape=[..., n_copies, *base_shape]
+            Point on the manifold.
+            Optional, default: None.
+
+        Returns
+        -------
+        pointwise_inner_prod : array-like, shape=[..., n_copies]
+            Inner-product of the two tangent vectors.
+        """
         base_manifold = self._space.base_manifold
 
         tangent_vec_a_, tangent_vec_b_, point_ = gs.broadcast_arrays(
@@ -309,7 +322,6 @@ class NFoldMetric(RiemannianMetric):
         norm : array-like, shape=[..., *base_shape]
             Point-wise norms.
         """
-        # TODO: check need for this
         sq_norm = self.pointwise_inner_product(
             tangent_vec_a=tangent_vec, tangent_vec_b=tangent_vec, base_point=base_point
         )
@@ -366,77 +378,3 @@ class NFoldMetric(RiemannianMetric):
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
         each_log = base_manifold.metric.log(point_, base_point_)
         return gs.reshape(each_log, batch_shape + self._space.shape)
-
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial landmark set and an initial tangent vector,
-        - an initial landmark set and an end landmark set.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., dim]
-            Landmark set, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim]
-            Landmark set, end point of the geodesic. If None,
-            an initial tangent vector must be given.
-            Optional, default : None
-        initial_tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at base point, the initial speed of the geodesics.
-            If None, an end point must be given and a logarithm is computed.
-            Optional, default : None
-
-        Returns
-        -------
-        path : callable
-            Time parameterized geodesic curve.
-        """
-        if end_point is None and initial_tangent_vec is None:
-            raise ValueError(
-                "Specify an end landmark set or an initial tangent"
-                "vector to define the geodesic."
-            )
-        if end_point is not None:
-            shooting_tangent_vec = self.log(point=end_point, base_point=initial_point)
-            if initial_tangent_vec is not None:
-                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
-                    raise RuntimeError(
-                        "The shooting tangent vector is too"
-                        " far from the initial tangent vector."
-                    )
-            initial_tangent_vec = shooting_tangent_vec
-
-        initial_point, initial_tangent_vec = gs.broadcast_arrays(
-            initial_point, initial_tangent_vec
-        )
-        is_batch = initial_tangent_vec.ndim > self._space.point_ndim
-
-        def path(t):
-            if not gs.is_array(t):
-                t = gs.array([t])
-
-            if gs.ndim(t) == 0:
-                t = gs.expand_dims(t, axis=0)
-
-            def _path_single(initial_tangent_vec, initial_point):
-                idx = "ijk"[: self._space.point_ndim]
-                tangent_vec = gs.einsum(
-                    f"...,...{idx}->...{idx}", t, initial_tangent_vec
-                )
-                return self.exp(tangent_vec=tangent_vec, base_point=initial_point)
-
-            if not is_batch:
-                return _path_single(initial_tangent_vec, initial_point)
-
-            return gs.stack(
-                [
-                    _path_single(initial_tangent_vec_, initial_point_)
-                    for initial_tangent_vec_, initial_point_ in zip(
-                        initial_tangent_vec, initial_point
-                    )
-                ]
-            )
-
-        return path

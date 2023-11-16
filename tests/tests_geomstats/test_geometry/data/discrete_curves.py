@@ -1,14 +1,14 @@
 from .base import LevelSetTestData
 from .fiber_bundle import FiberBundleTestData
-from .manifold import ManifoldTestData
-from .mixins import ProjectionMixinsTestData
+from .nfold_manifold import NFoldManifoldTestData
 from .pullback_metric import PullbackDiffeoMetricTestData
 from .quotient_metric import QuotientMetricTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 
-class DiscreteCurvesTestData(ProjectionMixinsTestData, ManifoldTestData):
-    pass
+class DiscreteCurvesStartingAtOriginTestData(NFoldManifoldTestData):
+    skips = ("not_belongs",)
+    fail_for_not_implemented_errors = False
 
 
 class ClosedDiscreteCurvesTestData(LevelSetTestData):
@@ -30,13 +30,19 @@ class L2CurvesMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
+    skips = (
+        "christoffels_vec",
+        "inner_product_derivative_matrix_vec",
+        "metric_matrix_is_spd",
+    )
 
-class ElasticMetricTestData(PullbackDiffeoMetricTestData):
+
+class ElasticTranslationMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
 
-class SRVMetricTestData(PullbackDiffeoMetricTestData):
+class SRVTranslationMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 

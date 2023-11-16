@@ -327,15 +327,16 @@ class FiberBundle(ABC):
         horizontal_lift : array-like, shape=[..., {total_space.dim, [n, m]}]
             Horizontal tangent vector to the total space at point.
         """
+        if base_point is None and fiber_point is None:
+            raise ValueError(
+                "Either a point (of the total space) or a "
+                "base point (of the base manifold) must be "
+                "given."
+            )
+
         if fiber_point is None:
-            if base_point is not None:
-                fiber_point = self.lift(base_point)
-            else:
-                raise ValueError(
-                    "Either a point (of the total space) or a "
-                    "base point (of the base manifold) must be "
-                    "given."
-                )
+            fiber_point = self.lift(base_point)
+
         return self.horizontal_projection(tangent_vec, fiber_point)
 
     def integrability_tensor(self, tangent_vec_a, tangent_vec_b, base_point):

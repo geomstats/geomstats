@@ -309,21 +309,21 @@ class FiberBundleTestCase(TestCase):
 
     @pytest.mark.vec
     def test_horizontal_lift_vec(self, n_reps, atol):
-        fiber_point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(fiber_point)
+        base_point = self.data_generator.base_random_point()
+        tangent_vec = self.data_generator.base_random_tangent_vec(base_point)
 
-        expected = self.bundle.horizontal_lift(tangent_vec, fiber_point=fiber_point)
+        expected = self.bundle.horizontal_lift(tangent_vec, base_point=base_point)
 
         vec_data = generate_vectorization_data(
             data=[
                 dict(
                     tangent_vec=tangent_vec,
-                    fiber_point=fiber_point,
+                    base_point=base_point,
                     expected=expected,
                     atol=atol,
                 )
             ],
-            arg_names=["tangent_vec", "fiber_point"],
+            arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
             vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
@@ -332,10 +332,14 @@ class FiberBundleTestCase(TestCase):
 
     @pytest.mark.random
     def test_horizontal_lift_is_horizontal(self, n_points, atol):
-        fiber_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(fiber_point)
+        base_point = self.data_generator.base_random_point(n_points)
+        tangent_vec = self.data_generator.base_random_tangent_vec(base_point)
 
-        horizontal = self.bundle.horizontal_lift(tangent_vec, fiber_point=fiber_point)
+        fiber_point = self.bundle.lift(base_point)
+        horizontal = self.bundle.horizontal_lift(
+            tangent_vec, base_point=base_point, fiber_point=fiber_point
+        )
+
         expected = gs.ones(n_points, dtype=bool)
         self.test_is_horizontal(horizontal, fiber_point, expected, atol)
 
@@ -477,15 +481,19 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle):
         return 2 * Matrices.to_symmetric(product)
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
+        if base_point is None and fiber_point is None:
+            raise ValueError(
+                "Either a point (of the total space) or a "
+                "base point (of the base manifold) must be "
+                "given."
+            )
+
         if base_point is None:
-            if fiber_point is not None:
-                base_point = self.riemannian_submersion(fiber_point)
-            else:
-                raise ValueError(
-                    "Either a point (of the total space) or a "
-                    "base point (of the base manifold) must be "
-                    "given."
-                )
+            base_point = self.riemannian_submersion(fiber_point)
+
+        if fiber_point is None:
+            fiber_point = self.lift(base_point)
+
         sylvester = gs.linalg.solve_sylvester(base_point, base_point, tangent_vec)
         return Matrices.mul(sylvester, fiber_point)
 
