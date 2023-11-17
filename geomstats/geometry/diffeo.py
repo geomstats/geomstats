@@ -21,12 +21,12 @@ class Diffeo:
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., *shape]
+        base_point : array-like, shape=[..., *space_shape]
             Base point.
 
         Returns
         -------
-        image_point : array-like, shape=[..., *i_shape]
+        image_point : array-like, shape=[..., *image_shape]
             Inner-product matrix.
         """
 
@@ -38,12 +38,12 @@ class Diffeo:
 
         Parameters
         ----------
-        image_point : array-like, shape=[..., *i_shape]
+        image_point : array-like, shape=[..., *image_shape]
             Base point.
 
         Returns
         -------
-        base_point : array-like, shape=[..., *shape]
+        base_point : array-like, shape=[..., *space_shape]
             Inner-product matrix.
         """
 
@@ -55,17 +55,34 @@ class Diffeo:
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., *shape]
+        tangent_vec : array-like, shape=[..., *space_shape]
             Tangent vector at base point.
-        base_point : array-like, shape=[..., *shape]
+        base_point : array-like, shape=[..., *space_shape]
             Base point.
-        image_point : array-like, shape=[..., *shape]
+        image_point : array-like, shape=[..., *image_shape]
             Image point.
 
         Returns
         -------
-        image_tangent_vec : array-like, shape=[..., *i_shape]
+        image_tangent_vec : array-like, shape=[..., *image_shape]
             Image tangent vector at image of the base point.
+
+        Notes
+        -----
+        Signature choice (i.e. having the possibility to pass both base and image
+        points) comes from performance considerations.
+        In several methods (e.g. `PullbackDiffeoMetric.inner_product`) the need
+        to call `tangent_diffeomorphism` comes after having called
+        `diffeomorphism`, which means we have both `base_point` and
+        `image_point` available.
+        In some cases, `tangent_diffeomorphism` needs access to `base_point`
+        (e.g. `SRVTransform`), while in others, it needs access to `image_point`
+        (e.g. `CholeskyMap`).
+        By passing both, we give the corresponding implementation the possibility
+        to choose the one that is more convenient (performancewise).
+        If we pass only one of the two, it has the mechanims to perform the
+        necessary transformations (e.g. calling `diffeomorphism` or
+        `inverse_diffeomorphism` on it).
         """
 
     @abc.abstractmethod
@@ -78,17 +95,21 @@ class Diffeo:
 
         Parameters
         ----------
-        image_tangent_vec : array-like, shape=[..., *i_shape]
+        image_tangent_vec : array-like, shape=[..., *image_shape]
             Image tangent vector at image point.
-        image_point : array-like, shape=[..., *i_shape]
+        image_point : array-like, shape=[..., *image_shape]
             Image point.
-        base_point : array-like, shape=[..., *shape]
+        base_point : array-like, shape=[..., *space_shape]
             Base point.
 
         Returns
         -------
-        image_tangent_vec : array-like, shape=[..., *shape]
+        image_tangent_vec : array-like, shape=[..., *image_shape]
             Image tangent vector at image of the base point.
+
+        Notes
+        -----
+        See `tangent_diffeomorphism` docstrings for signature considerations.
         """
 
 
@@ -111,12 +132,12 @@ class AutodiffDiffeo(Diffeo):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., *shape]
+        base_point : array-like, shape=[..., *space_shape]
             Base point.
 
         Returns
         -------
-        mat : array-like, shape=[..., *i_shape, *shape]
+        mat : array-like, shape=[..., *image_shape, *space_shape]
             Inner-product matrix.
         """
         return gs.autodiff.jacobian_vec(
@@ -128,16 +149,16 @@ class AutodiffDiffeo(Diffeo):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., *shape]
+        tangent_vec : array-like, shape=[..., *space_shape]
             Tangent vector at base point.
-        base_point : array-like, shape=[..., *shape]
+        base_point : array-like, shape=[..., *space_shape]
             Base point.
-        image_point : array-like, shape=[..., *shape]
+        image_point : array-like, shape=[..., *image_shape]
             Image point.
 
         Returns
         -------
-        image_tangent_vec : array-like, shape=[..., *i_shape]
+        image_tangent_vec : array-like, shape=[..., *image_shape]
             Image tangent vector at image of the base point.
         """
         if base_point is None:
@@ -164,12 +185,12 @@ class AutodiffDiffeo(Diffeo):
 
         Parameters
         ----------
-        image_point : array-like, shape=[..., *i_shape]
+        image_point : array-like, shape=[..., *image_shape]
             Base point.
 
         Returns
         -------
-        mat : array-like, shape=[..., *shape, *i_shape]
+        mat : array-like, shape=[..., *shape, *image_shape]
             Inner-product matrix.
         """
         return gs.autodiff.jacobian_vec(
@@ -183,16 +204,16 @@ class AutodiffDiffeo(Diffeo):
 
         Parameters
         ----------
-        image_tangent_vec : array-like, shape=[..., *i_shape]
+        image_tangent_vec : array-like, shape=[..., *image_shape]
             Tangent vector at base point.
-        image_point : array-like, shape=[..., *i_shape]
+        image_point : array-like, shape=[..., *image_shape]
             Base point.
-        base_point : array-like, shape=[..., *shape]
+        base_point : array-like, shape=[..., *space_shape]
             Base point.
 
         Returns
         -------
-        image_tangent_vec : array-like, shape=[..., *shape]
+        image_tangent_vec : array-like, shape=[..., *space_shape]
             Image tangent vector at image of the base point.
         """
         if image_point is None:
@@ -220,7 +241,12 @@ class AutodiffDiffeo(Diffeo):
 
 
 class ReversedDiffeo(Diffeo):
-    """Reverses the direction of a diffeomorphism."""
+    """Reverses the direction of a diffeomorphism.
+
+    Parameters
+    ----------
+    diffeo : Diffeo.
+    """
 
     def __init__(self, diffeo):
         self.diffeo = diffeo
@@ -249,7 +275,13 @@ class ReversedDiffeo(Diffeo):
 
 
 class ComposedDiffeo(Diffeo):
-    """A composed diffeomorphism."""
+    """A composed diffeomorphism.
+
+    Parameters
+    ----------
+    diffeos : list[Diffeo]
+        An (ordered) list of diffeomorphisms.
+    """
 
     def __init__(self, diffeos):
         self.diffeos = diffeos

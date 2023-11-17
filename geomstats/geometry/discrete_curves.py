@@ -14,6 +14,7 @@ from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.diffeo import AutodiffDiffeo, Diffeo
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import FiberBundle
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
@@ -24,9 +25,25 @@ from geomstats.vectorization import check_is_batch, get_batch_shape
 
 
 def _forward_difference(array, delta=None, axis=-1):
-    # TODO: add prefix 1d?
-    # TODO: update other parts of the code
-    # TODO: mention is valid only for euclidean space
+    """Forward difference in a Euclidean space.
+
+    Points live in R^n, but are a 1d embedding (e.g. a curve).
+
+    Parameters
+    ----------
+    array : array-like
+        Values of a function.
+    delta : float
+        Spacing between points.
+    axis : int
+        Axis in which perform the difference.
+        Must be given backwards.
+
+    Returns
+    -------
+    forward_diff : array-like
+        Shape in the specified axis reduces by one.
+    """
     n = array.shape[axis]
     if delta is None:
         delta = 1 / (n - 1)
@@ -42,8 +59,28 @@ def _forward_difference(array, delta=None, axis=-1):
 
 
 def _centered_difference(array, delta=None, axis=-1, endpoints=False):
-    # TODO: axis given backwards
-    # TODO: delta is half-interval
+    """Centered difference in a Euclidean space.
+
+    Points live in R^n, but are a 1d embedding (e.g. a curve).
+
+    Parameters
+    ----------
+    array : array-like
+        Values of a function.
+    delta : float
+        Spacing between points.
+    axis : int
+        Axis in which perform the difference.
+        Must be given backwards.
+    endpoints : bool
+        If True, endpoints are computed by backward and forward differences,
+        respectively.
+
+    Returns
+    -------
+    centered_diff : array-like
+        Same shape as array.
+    """
     n = array.shape[axis]
     if delta is None:
         delta = 1 / (n - 1)
@@ -73,6 +110,25 @@ def _centered_difference(array, delta=None, axis=-1, endpoints=False):
 
 
 def _second_centered_difference(array, delta=None, axis=-1):
+    """Second centered difference in a Euclidean space.
+
+    Points live in R^n, but are a 1d embedding (e.g. a curve).
+
+    Parameters
+    ----------
+    array : array-like
+        Values of a function.
+    delta : float
+        Spacing between points.
+    axis : int
+        Axis in which perform the difference.
+        Must be given backwards.
+
+    Returns
+    -------
+    second_centered_diff : array-like
+        Shape in the specified axis reduces by two (endpoints).
+    """
     n = array.shape[axis]
     if delta is None:
         delta = 1 / (n - 1)
@@ -91,7 +147,27 @@ def _second_centered_difference(array, delta=None, axis=-1):
     return (forward + backward - 2 * central) / (delta**2)
 
 
-def _insert_zeros(array, array_ndim=1, end=False):
+def _insert_zeros(array, axis=-1, end=False):
+    """Insert zeros in a given array.
+
+    Insert zeros while taking care of
+
+    Parameters
+    ----------
+    array : array-like
+    axis : int
+        Axis in which insert the zeros.
+        Must be given backwards.
+    end : bool
+        If True, zeros are introduced at the end.
+
+    Returns
+    -------
+    array_with_zeros : array-like
+        Shape in the specified axis increases by one.
+    """
+    array_ndim = len(array.shape[axis:])
+
     batch_shape = get_batch_shape(array_ndim, array)
 
     shape = batch_shape + (1,) + array.shape[len(batch_shape) + 1 :]
@@ -102,12 +178,10 @@ def _insert_zeros(array, array_ndim=1, end=False):
 
 
 class DiscreteCurvesStartingAtOrigin(NFoldManifold):
-    r"""Space of discrete curves sampled at points in ambient_manifold.
+    r"""Space of discrete curves modulo translations.
 
     Each individual curve is represented by a 2d-array of shape `[
-    k_sampling_points - 1, ambient_dim]`. A batch of curves can be passed to
-    all methods either as a 3d-array if all curves have the same number of
-    sampled points, or as a list of 2d-arrays, each representing a curve.
+    k_sampling_points - 1, ambient_dim]`.
 
     This space corresponds to the space of immersions defined below, i.e. the
     space of smooth functions from an interval I into the ambient manifold M,
@@ -121,15 +195,10 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
     Parameters
     ----------
-    ambient_manifold : Manifold
-        Manifold in which curves take values.
+    ambient_dim : int
+        Dimension of the ambient Euclidean space in which curves take values.
     k_sampling_points : int
-        Number of sampling points for the discrete curves.
-
-    Attributes
-    ----------
-    ambient_manifold : Manifold
-        Manifold in which curves take values.
+        Number of sampling points.
     """
 
     def __init__(self, ambient_dim=2, k_sampling_points=10, equip=True):
@@ -142,6 +211,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
                 SRVTranslationReparametrizationQuotientMetric,
             ),
         }
+        self._sphere = Hypersphere(dim=ambient_dim - 1)
 
     def new(self, equip=True):
         """Create manifold with same parameters."""
@@ -168,7 +238,39 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
     def insert_origin(self, point):
         """Insert origin as first element of point."""
-        return _insert_zeros(point, array_ndim=self.point_ndim)
+        return _insert_zeros(point, axis=-self.point_ndim)
+
+    def projection(self, point):
+        """Project a point from discrete curves.
+
+        Removes translation and origin.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+
+        Returns
+        -------
+        proj_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+        """
+        return (point[..., :, :] - gs.expand_dims(point[..., 0, :], axis=-2))[
+            ..., 1:, :
+        ]
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample random curves.
+
+        Sampling on the sphere to avoid chaotic curves.
+        """
+        sampling_times = gs.linspace(0.0, 1.0, self.k_sampling_points)
+
+        initial_point = self._sphere.random_point(n_samples)
+        initial_tangent_vec = self._sphere.random_tangent_vec(initial_point)
+
+        point = self._sphere.metric.geodesic(
+            initial_point, initial_tangent_vec=initial_tangent_vec
+        )(sampling_times)
+        return self.projection(point)
 
 
 class ClosedDiscreteCurves(Manifold):
@@ -471,6 +573,12 @@ class SRVTransform(Diffeo):
     ----------
     ambient_manifold : Manifold
         Manifold in which curves take values.
+    k_sampling_points : int
+        Number of sampling points.
+
+    Notes
+    -----
+    It is currently only implemented for the Euclidean ambient manifold.
     """
 
     def __init__(self, ambient_manifold, k_sampling_points):
@@ -500,11 +608,12 @@ class SRVTransform(Diffeo):
         Returns
         -------
         image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Square-root velocity representation of a discrete curve.
+            SRV representation.
         """
-        base_point_with_origin = _insert_zeros(base_point, array_ndim=self._point_ndim)
+        ndim = self._point_ndim
+        base_point_with_origin = _insert_zeros(base_point, axis=-ndim)
 
-        velocity = _forward_difference(base_point_with_origin, axis=-self._point_ndim)
+        velocity = _forward_difference(base_point_with_origin, axis=-ndim)
 
         pointwise_velocity_norm = self.ambient_manifold.metric.norm(
             velocity, base_point_with_origin[..., :-1, :]
@@ -529,17 +638,18 @@ class SRVTransform(Diffeo):
 
         See [Sea2011]_ Section 2.1 for details.
 
+        It performs numerical integration on a manifold.
+
         Parameters
         ----------
         image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Square-root velocity representation of a discrete curve.
+            SRV representation.
 
         Returns
         -------
         curve : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Curve starting at the origin retrieved from its square-root velocity.
+            Discrete curve.
         """
-        # TODO: this is just numerical integration on a manifold
         image_point_norm = self.ambient_manifold.metric.norm(image_point)
 
         dt = 1 / (self.k_sampling_points - 1)
@@ -560,10 +670,11 @@ class SRVTransform(Diffeo):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Tangent vector to curve, i.e. infinitesimal vector field
-            along curve.
+            Tangent vector to curve.
         base_point : array-like, shape=[..., k_sampling_points - 1, ambiend_dim]
             Discrete curve.
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambiend_dim]
+            SRV representation.
 
         Returns
         -------
@@ -574,13 +685,12 @@ class SRVTransform(Diffeo):
         if base_point is None:
             base_point = self.inverse_diffeomorphism(image_point)
 
-        base_point_with_origin = _insert_zeros(base_point, array_ndim=self._point_ndim)
-        tangent_vec_with_zeros = _insert_zeros(tangent_vec, array_ndim=self._point_ndim)
+        ndim = self._point_ndim
+        base_point_with_origin = _insert_zeros(base_point, axis=-ndim)
+        tangent_vec_with_zeros = _insert_zeros(tangent_vec, axis=-ndim)
 
-        d_vec = _forward_difference(tangent_vec_with_zeros, axis=-self._point_ndim)
-        velocity_vec = _forward_difference(
-            base_point_with_origin, axis=-self._point_ndim
-        )
+        d_vec = _forward_difference(tangent_vec_with_zeros, axis=-ndim)
+        velocity_vec = _forward_difference(base_point_with_origin, axis=-ndim)
 
         velocity_norm = self.ambient_manifold.metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum(
@@ -613,25 +723,26 @@ class SRVTransform(Diffeo):
         Parameters
         ----------
         image_tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Tangent vector to srv.
+            Tangent vector to SRV representation.
         image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            Square root velocity representation of a discrete curve.
+            SRV representation.
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve.
 
         Returns
         -------
-        vec : array-like, shape=[..., ambient_dim]
+        tangent_vec : array-like, shape=[..., ambient_dim]
             Inverse of the differential of the square root velocity transform at
             curve evaluated at tangent_vec.
         """
         if base_point is None:
             base_point = self.inverse_diffeomorphism(image_point)
 
-        base_point_with_origin = _insert_zeros(base_point, array_ndim=self._point_ndim)
+        ndim = self._point_ndim
+        base_point_with_origin = _insert_zeros(base_point, axis=-ndim)
 
         position = base_point_with_origin[..., :-1, :]
-        velocity_vec = _forward_difference(
-            base_point_with_origin, axis=-self._point_ndim
-        )
+        velocity_vec = _forward_difference(base_point_with_origin, axis=-ndim)
         velocity_norm = self.ambient_manifold.metric.norm(velocity_vec, position)
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
@@ -678,9 +789,12 @@ class FTransform(AutodiffDiffeo):
     where (r, theta) is the polar representation of c', and for
     any :math:`k \in Z`.
 
-
     Parameters
     ----------
+    ambient_manifold : Manifold
+        Manifold in which curves take values.
+    k_sampling_points : int
+        Number of sampling points.
     a : float
         Bending parameter.
     b : float
@@ -688,6 +802,9 @@ class FTransform(AutodiffDiffeo):
 
     Notes
     -----
+    It is currently only implemented for the Euclidean ambient manifold with
+    dimension 2.
+
     f_transform is a bijection if and only if a/2b=1.
 
     If a/2b is an integer not equal to 1:
@@ -714,7 +831,7 @@ class FTransform(AutodiffDiffeo):
     def _check_ambient_manifold(self, ambient_manifold):
         if not (isinstance(ambient_manifold, Euclidean) and ambient_manifold.dim == 2):
             raise NotImplementedError(
-                "This metric is only implemented for planar curves:\n"
+                "This transformation is only implemented for planar curves:\n"
                 "ambient_manifold must be a plane, but it is:\n"
                 f"{ambient_manifold} of dimension {ambient_manifold.dim}."
             )
@@ -723,8 +840,8 @@ class FTransform(AutodiffDiffeo):
         """Compute polar coordinates of a tangent vector from the cartesian ones.
 
         This function is an auxiliary function used for the computation
-        of the f_transform and its inverse : self.diffeomorphism and
-        self.inverse_diffeomorphism, and is applied to the derivative of a curve.
+        of the f_transform and its inverse, and is applied to the derivative
+        of a curve.
 
         See [KN2018]_ for details.
 
@@ -759,7 +876,7 @@ class FTransform(AutodiffDiffeo):
         """Compute the cartesian coordinates of a tangent vector from polar ones.
 
         This function is an auxiliary function used for the computation
-        of the f_transform : self.diffeomorphism .
+        of the f_transform.
 
         Parameters
         ----------
@@ -790,14 +907,12 @@ class FTransform(AutodiffDiffeo):
 
         Returns
         -------
-        f : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
-            F_transform of the curve..
+        image_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            F_transform of the curve.
         """
         coeff = self.k_sampling_points - 1
 
-        base_point_with_origin = _insert_zeros(
-            base_point, array_ndim=self._space_point_ndim
-        )
+        base_point_with_origin = _insert_zeros(base_point, axis=-self._space_point_ndim)
 
         velocity = coeff * (
             base_point_with_origin[..., 1:, :] - base_point_with_origin[..., :-1, :]
@@ -827,7 +942,7 @@ class FTransform(AutodiffDiffeo):
 
         Returns
         -------
-        curve : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Curve starting at the origin retrieved from its square-root velocity.
         """
         coef = self.k_sampling_points - 1
@@ -909,9 +1024,6 @@ class L2CurvesMetric(NFoldMetric):
             along a curve.
         base_point : array-like, shape=[..., k_landmarks, ambient_dim]
             Discrete curve defined on the unit interval [0, 1].
-        missing_last_time : boolean.
-            Is true when the values of the tangent vectors at time 1 are missing.
-            Optional, default True.
 
         Return
         ------
@@ -1018,15 +1130,38 @@ class SRVTranslationMetric(PullbackDiffeoMetric):
 
 
 class IterativeHorizontalGeodesic:
-    """Iterative horizontal geodesic algorithm."""
+    """Iterative horizontal geodesic algorithm.
 
-    # TODO: name can be more generic (IterativeHorizontalRegistration?)
+    The horizontal geodesic is computed by an interative procedure where
+    the initial curve stays fixed and the sampling points are moved on the
+    end curve to obtain its optimal parametrization with respect to the
+    initial curve. This optimal matching algorithm sets current_end_curve
+    to be the end curve and iterates three steps:
+    1) compute the geodesic between the initial curve and current_end_curve
+    2) compute the path of reparametrizations that transforms this geodesic
+    into a horizontal path of curves
+    3) invert this path of reparametrizations to find the horizontal path
+    and update current_end_curve to be its end point.
+    The algorithm stops when the new current_end_curve is sufficiently
+    close to the former current_end_curve.
 
-    # TODO: this has clearly two parts:
-    # 1) get the reparameterization
-    # 2) apply the reparameterization
+    Parameters
+    ----------
+    n_time_grid : int
+        Number of times in which compute the geodesic.
+    threshold : float
+        When the difference between the new end curve and the current end
+        curve becomes lower than this threshold, the algorithm stops.
+        Optional, default: 1e-3.
+    max_iter : int
+        Maximum number of iterations.
+    save_history : bool
+        If True, history is saved in a `self.history`.
+    """
 
-    def __init__(self, n_time_grid=20, threshold=1e-3, max_iter=20, save_history=False):
+    def __init__(
+        self, n_time_grid=100, threshold=1e-3, max_iter=20, save_history=False
+    ):
         self.n_time_grid = n_time_grid
         self.threshold = threshold
         self.max_iter = max_iter
@@ -1043,15 +1178,15 @@ class IterativeHorizontalGeodesic:
 
         Parameters
         ----------
-        vertical_norm: array-like, shape=[n_times - 1, k_sampling_points]
+        vertical_norm : array-like, shape=[n_times - 1, k_sampling_points]
             Pointwise norm of the vertical part of the time derivative of
             the path of curves.
-        space_deriv_norm: array-like, shape=[n_times - 1, k_sampling_points]
+        space_deriv_norm : array-like, shape=[n_times - 1, k_sampling_points]
             Pointwise norm of the space derivative of the path of curves.
 
         Returns
         -------
-        repar: array-like, shape=[n_times, k_sampling_points]
+        repar : array-like, shape=[n_times, k_sampling_points]
             Path of parametrizations, such that the path of curves
             composed with the path of parametrizations is a horizontal
             path.
@@ -1079,11 +1214,9 @@ class IterativeHorizontalGeodesic:
             )
             repars.append(repar_i)
 
-            # TODO: make check optional?
             test_repar = repar[1:] - repar[:-1] < 0
             if gs.any(test_repar):
-                # TODO: need to raise an error here (Spline will not work)
-                logging.warning(
+                raise ValueError(
                     "Warning: phi(t) is non increasing for at least "
                     "one time t. Solution may be inaccurate."
                 )
@@ -1116,10 +1249,9 @@ class IterativeHorizontalGeodesic:
 
         Parameters
         ----------
-        repar: array-like, shape=[n_times, k_sampling_points]
+        repar : array-like, shape=[n_times, k_sampling_points]
             Path of reparametrizations.
-        path_of_curves: array-like,
-            shape=[n_times, k_sampling_points, ambient_dim]
+        path_of_curves : array-like, shape=[n_times, k_sampling_points, ambient_dim]
             Path of curves.
         repar_inverse_end: list
             List of the inverses of the reparametrizations applied to
@@ -1127,13 +1259,12 @@ class IterativeHorizontalGeodesic:
 
         Returns
         -------
-        reparametrized_path: array-like,
+        reparametrized_path : array-like,
             shape=[n_times, k_sampling_points, ambient_dim]
             Path of curves composed with the inverse of the path of
             reparametrizations.
         """
         initial_curve = path_of_curves[0]
-        # TODO: can remove repar[0]
         reparametrized_path = [initial_curve] + [
             self._invert_reparametrize_single(
                 t_space,
@@ -1162,19 +1293,20 @@ class IterativeHorizontalGeodesic:
         repar_inverse_end,
         spline_end,
     ):
+        """Perform one step of the aligment algorithm."""
         ndim = bundle.total_space.point_ndim
 
         total_space_geod_fun = bundle.total_space.metric.geodesic(
             initial_point=initial_point, end_point=end_point
         )
         geod_points = total_space_geod_fun(times)
-        geod_points_with_origin = _insert_zeros(geod_points, array_ndim=ndim)
+        geod_points_with_origin = _insert_zeros(geod_points, axis=-ndim)
 
         time_deriv = _forward_difference(geod_points, axis=-(ndim + 1))
         _, vertical_norm = bundle.vertical_projection(
             time_deriv, geod_points[:-1], return_norm=True
         )
-        vertical_norm = _insert_zeros(vertical_norm, array_ndim=1)
+        vertical_norm = _insert_zeros(vertical_norm, axis=-1)
 
         space_deriv = _centered_difference(
             geod_points_with_origin, axis=-ndim, endpoints=True
@@ -1196,20 +1328,7 @@ class IterativeHorizontalGeodesic:
         return horizontal_path
 
     def _discrete_horizontal_geodesic_single(self, bundle, initial_point, end_point):
-        """Compute horizontal geodesic between two curves.
-
-        The horizontal geodesic is computed by an interative procedure where
-        the initial curve stays fixed and the sampling points are moved on the
-        end curve to obtain its optimal parametrization with respect to the
-        initial curve. This optimal matching algorithm sets current_end_curve
-        to be the end curve and iterates three steps:
-        1) compute the geodesic between the initial curve and current_end_curve
-        2) compute the path of reparametrizations that transforms this geodesic
-        into a horizontal path of curves
-        3) invert this path of reparametrizations to find the horizontal path
-        and update current_end_curve to be its end point.
-        The algorithm stops when the new current_end_curve is sufficiently
-        close to the former current_end_curve.
+        """Horizontal geodesic between two curves.
 
         Parameters
         ----------
@@ -1217,25 +1336,19 @@ class IterativeHorizontalGeodesic:
             Initial discrete curve.
         end_point : array-like, shape=[k_sampling_points, ambient_dim]
             End discrete curve.
-        threshold: float
-            When the difference between the new end curve and the current end
-            curve becomes lower than this threshold, the algorithm stops.
-            Optional, default: 1e-3.
 
         Returns
         -------
-        horizontal_path : callable
-            Time parametrized horizontal geodesic.
+        horizontal_geod_points : array, shape=[n_time_grid, k - 1, ambient_dim]
+            Geodesic points.
         """
-        # TODO: update docstrings for return
-
         times = gs.linspace(0.0, 1.0, self.n_time_grid)
 
         k_sampling_points = bundle.total_space.k_sampling_points
         t_space = gs.linspace(0.0, 1.0, k_sampling_points)
 
         end_point_with_origin = _insert_zeros(
-            end_point, array_ndim=bundle.total_space.point_ndim
+            end_point, axis=-bundle.total_space.point_ndim
         )
         spline_end = CubicSpline(t_space, end_point_with_origin, axis=0)
 
@@ -1276,6 +1389,13 @@ class IterativeHorizontalGeodesic:
 
     def discrete_horizontal_geodesic(self, bundle, initial_point, end_point):
         """Discrete horizontal geodesic.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Initial discrete curve.
+        end_point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            End discrete curve.
 
         Returns
         -------
@@ -1358,8 +1478,6 @@ class DynamicProgrammingAligner:
     Vision. 73(3):307-324, 2007.
     """
 
-    # TODO: test by comparing align to `IterativeHorizontalGeodesic`
-
     def __init__(self, n_space_grid=100, max_slope=6.0):
         self.n_space_grid = n_space_grid
         self.max_slope = max_slope
@@ -1372,15 +1490,15 @@ class DynamicProgrammingAligner:
         srv_function : array, shape=[..., k_sampling_points - 1, ambient_dim]
             Discrete curve.
 
-        Outputs
+        Returns
         -------
-        srv : array, shape=[..., n_discretization, ambient_dim]
+        srv : array, shape=[..., n_space_grid, ambient_dim]
             SRV function of the curve at the right size.
         """
-        n_discretization = self.n_space_grid
-        i = gs.array(range(n_discretization))
+        n_space_grid = self.n_space_grid
+        i = gs.array(range(n_space_grid))
 
-        ratio = (k_sampling_points - 1) / n_discretization
+        ratio = (k_sampling_points - 1) / n_space_grid
         indices = gs.cast(gs.floor(i * ratio), dtype=int)
 
         return srv_function[..., indices, :]
@@ -1395,9 +1513,9 @@ class DynamicProgrammingAligner:
         over :math: '\left[\x_min,x_max\right]' where gamma restricted to
         :math: '\left[\x_min,x_max\right]' is a linear.
 
-        Inputs
+        Parameters
         ----------
-        srv_1 : array , shape=[n, ambient_dim]
+        srv_1 : array, shape=[n, ambient_dim]
             SRV function of the initial curve.
         srv_2 : array, shape=[n, ambient_dim]
             SRV function of the end curve.
@@ -1444,25 +1562,25 @@ class DynamicProgrammingAligner:
     def _reparametrize(self, curve, gamma):
         """Reparametrize curve by gamma.
 
-        Inputs
+        Parameters
         ----------
         curve : array, shape=[k_sampling_points, ambient_dim]
             Discrete curve.
         gamma : array, shape=[n_subinterval]
             Parametrization of a curve.
 
-        Outputs
+        Returns
         -------
         new_curve : array , shape=[k_sampling_points, ambient_dim]
             Curve reparametrized by gamma.
         """
-        n_discretization = self.n_space_grid
+        n_space_grid = self.n_space_grid
         k_sampling_points = curve.shape[-2]
 
         new_curve = gs.zeros(curve.shape, dtype=float)
         n_subinterval = len(gamma)
-        list_gamma_slope = gs.zeros(n_discretization + 1, dtype=float)
-        list_gamma_constant = gs.zeros(n_discretization + 1, dtype=float)
+        list_gamma_slope = gs.zeros(n_space_grid + 1, dtype=float)
+        list_gamma_constant = gs.zeros(n_space_grid + 1, dtype=float)
 
         new_curve[0] = curve[0]
         new_curve[-1] = curve[-1]
@@ -1477,8 +1595,8 @@ class DynamicProgrammingAligner:
                 list_gamma_slope[i] = gamma_slope
                 list_gamma_constant[i] = gamma_constant
 
-        ratio_k = (n_discretization - 1) / k_sampling_points
-        ratio_n = (k_sampling_points - 1) / n_discretization
+        ratio_k = (n_space_grid - 1) / k_sampling_points
+        ratio_n = (k_sampling_points - 1) / n_space_grid
         for k in range(1, k_sampling_points):
             indice_n = int(gs.floor(k * ratio_k))
             gamma_indice_n = (k * ratio_k) * list_gamma_slope[
@@ -1492,29 +1610,49 @@ class DynamicProgrammingAligner:
 
         return new_curve
 
-    def _align_single(
-        self,
-        bundle,
-        point,
-        base_point,
-    ):
+    def _compute_squared_dist(self, initial_srv, end_srv, tableau):
+        """Compute squared distance using algorithmic information."""
+        n_space_grid = self.n_space_grid
+
+        norm_squared_initial_srv = (
+            self._compute_integral_restricted(
+                initial_srv, initial_srv, 0, n_space_grid, 0, n_space_grid
+            )
+            / n_space_grid
+        )
+        norm_squared_end_srv = (
+            self._compute_integral_restricted(
+                end_srv, end_srv, 0, n_space_grid, 0, n_space_grid
+            )
+            / n_space_grid
+        )
+
+        maximum_scalar_product = tableau[(n_space_grid, n_space_grid)] / n_space_grid
+
+        return (
+            norm_squared_initial_srv + norm_squared_end_srv - 2 * maximum_scalar_product
+        )
+
+    def _align_single(self, bundle, point, base_point, return_sdist=False):
         r"""Align point to base point.
 
         Parameters
         ----------
         point : array-like, shape=[k_sampling_points - 1, ambient_dim]
-            Initial discrete curve.
+            Point to align.
         base_point : array-like, shape=[k_sampling_points - 1, ambient_dim]
-            End discrete curve.
+            Reference point.
+        return_sdist : bool
+            If True, also returns squared distance.
 
-        Outputs
+        Returns
         -------
-        geodesic: callable
-            Time parametrized geodesic.
-        dist : float
-            Quotient distance between initial_point and end_point.
+        aligned : array, shape=[k_sampling_points - 1, ambient_dim]
+        squared_dist : float
+            Quotient distance between point and base point.
+            If return_sdist is True.
         """
-        n_discretization = self.n_space_grid
+        n_space_grid = self.n_space_grid
         max_slope = self.max_slope
 
         k_sampling_points = bundle.total_space.k_sampling_points
@@ -1528,22 +1666,23 @@ class DynamicProgrammingAligner:
         initial_srv = self._resample_srv_function(initial_srv, k_sampling_points)
         end_srv = self._resample_srv_function(end_srv, k_sampling_points)
 
-        tableau = (-1.0) * gs.ones((n_discretization + 1, n_discretization + 1))
+        initial_srv_ = gs.copy(initial_srv)
+        end_srv_ = gs.copy(end_srv)
+
+        tableau = (-1.0) * gs.ones((n_space_grid + 1, n_space_grid + 1))
         tableau[0, 0] = 0.0
         gamma = {(0, 0): [(0, 0)]}
-        for j in range(1, n_discretization + 1):
+        for j in range(1, n_space_grid + 1):
             min_i = int(
                 max(
                     gs.floor(j / max_slope),
-                    n_discretization - max_slope * (n_discretization - j),
+                    n_space_grid - max_slope * (n_space_grid - j),
                 )
             )
             max_i = int(
                 min(
                     j * max_slope,
-                    gs.ceil(
-                        n_discretization - (n_discretization - j) * (1 / max_slope)
-                    ),
+                    gs.ceil(n_space_grid - (n_space_grid - j) * (1 / max_slope)),
                 )
             )
             for i in range(min_i, max_i + 1):
@@ -1564,39 +1703,19 @@ class DynamicProgrammingAligner:
                                 new_gamma.append((i, j))
                                 gamma[(i, j)] = new_gamma
 
-        # TODO: store somehow?
-        # TODO: there's a slight difference between this distance and
-        # distance computed with total space
-        # norm_squared_initial_srv = (
-        #     self._compute_integral_restricted(
-        #         initial_srv, initial_srv, 0, n_discretization, 0, n_discretization
-        #     )
-        #     / n_discretization
-        # )
-        # norm_squared_end_srv = (
-        #     self._compute_integral_restricted(
-        #         end_srv, end_srv, 0, n_discretization, 0, n_discretization
-        #     )
-        #     / n_discretization
-        # )
-
-        # maximum_scalar_product = (
-        #     tableau[(n_discretization, n_discretization)] / n_discretization
-        # )
-
-        # squared_dist = (
-        #     norm_squared_initial_srv + norm_squared_end_srv
-        #     - 2 * maximum_scalar_product
-        # )
-
-        point_with_origin = _insert_zeros(point, array_ndim=2)
+        point_with_origin = _insert_zeros(point, axis=-2)
         point_reparametrized = self._reparametrize(
-            point_with_origin, gamma[(n_discretization, n_discretization)]
+            point_with_origin, gamma[(n_space_grid, n_space_grid)]
         )[1:]
 
-        return point_reparametrized
+        if not return_sdist:
+            return point_reparametrized
 
-    def align(self, bundle, point, base_point):
+        return point_reparametrized, self._compute_squared_dist(
+            initial_srv_, end_srv_, tableau
+        )
+
+    def align(self, bundle, point, base_point, return_sdist=False):
         """Vectorize the dynamic programming algorithm.
 
         Parameters
@@ -1605,11 +1724,16 @@ class DynamicProgrammingAligner:
             Initial discrete curve.
         base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             End discrete curve.
+        return_sdist : bool
+            If True, also returns squared distance.
 
         Returns
         -------
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
             Action of the optimal g on point.
+        squared_dist : array, shape=[...,]
+            Quotient distance between point and base point.
+            If return_sdist is True.
         """
         is_batch = check_is_batch(
             bundle.total_space.point_ndim,
@@ -1617,17 +1741,23 @@ class DynamicProgrammingAligner:
             base_point,
         )
         if not is_batch:
-            return self._align_single(bundle, point, base_point)
+            return self._align_single(
+                bundle, point, base_point, return_sdist=return_sdist
+            )
 
         if point.ndim != base_point.ndim:
             point, base_point = gs.broadcast_arrays(point, base_point)
 
-        return gs.stack(
-            [
-                self._align_single(bundle, point_, base_point_)
-                for point_, base_point_ in zip(point, base_point)
-            ]
-        )
+        out = [
+            self._align_single(bundle, point_, base_point_, return_sdist=return_sdist)
+            for point_, base_point_ in zip(point, base_point)
+        ]
+        if not return_sdist:
+            return gs.stack(out)
+
+        aligned = gs.stack([out_[0] for out_ in out])
+        sdists = gs.stack([out_[1] for out_ in out])
+        return aligned, sdists
 
 
 class SRVTranslationReparametrizationBundle(FiberBundle):
@@ -1671,21 +1801,17 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
 
         Parameters
         ----------
-        tangent_vec : array-like,
-            shape=[..., k_sampling_points - 1, ambient_dim]
+        tangent_vec : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Tangent vector to decompose into horizontal and vertical parts.
-        base_point : array-like,
-            shape=[..., k_sampling_points - 1, ambient_dim]
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Discrete curve, base point of tangent_vec in the manifold of curves.
         return_norm : boolean,
             If True, the method returns the pointwise norm of the vertical
             part of tangent_vec.
-            Optional, default is False.
 
         Returns
         -------
-        tangent_vec_ver : array-like,
-            shape=[..., k_sampling_points - 1, ambient_dim]
+        tangent_vec_ver : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Vertical part of tangent_vec.
         vertical_norm: array-like, shape=[..., n_points]
             Pointwise norm of the vertical part of tangent_vec.
@@ -1697,8 +1823,8 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
         squotient = (a_param / b_param) ** 2
 
         ndim = self.total_space.point_ndim
-        tangent_vec_with_zeros = _insert_zeros(tangent_vec, ndim)
-        base_point_with_origin = _insert_zeros(base_point, ndim)
+        tangent_vec_with_zeros = _insert_zeros(tangent_vec, axis=-ndim)
+        base_point_with_origin = _insert_zeros(base_point, axis=-ndim)
 
         position = base_point_with_origin[..., 1:-1, :]
         # TODO: why delta=1?
@@ -1755,9 +1881,9 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
         )
         tangent_vec_ver = gs.einsum("...ij,...i->...ij", unit_speed, vertical_norm)
 
-        tangent_vec_ver = _insert_zeros(tangent_vec_ver, ndim, end=True)
+        tangent_vec_ver = _insert_zeros(tangent_vec_ver, axis=-ndim, end=True)
         if return_norm:
-            vertical_norm = _insert_zeros(vertical_norm, end=True)
+            vertical_norm = _insert_zeros(vertical_norm, axis=-1, end=True)
             return tangent_vec_ver, vertical_norm
 
         return tangent_vec_ver
@@ -1767,17 +1893,14 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
 
         Parameters
         ----------
-        tangent_vec : array-like,
-            shape=[..., k_sampling_points, ambient_dim]
+        tangent_vec : array-like, shape=[..., k_sampling_points, ambient_dim]
             Tangent vector to decompose into horizontal and vertical parts.
-        base_point : array-like,
-            shape=[..., k_sampling_points, ambient_dim]
+        base_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             Discrete curve, base point of tangent_vec in the manifold of curves.
 
         Returns
         -------
-        tangent_vec_hor : array-like,
-            shape=[..., k_sampling_points, ambient_dim]
+        tangent_vec_hor : array-like, shape=[..., k_sampling_points, ambient_dim]
             Horizontal part of tangent_vec.
         """
         tangent_vec_ver = self.vertical_projection(tangent_vec, base_point)
@@ -1793,14 +1916,14 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
 
         Parameters
         ----------
-        point : array-like, shape=[k_sampling_points, ambient_dim]
-            Discrete curve.
-        base_point : array-like, shape=[k_sampling_points, ambient_dim]
-            Discrete curve.
+        point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Point to align.
+        base_point : array-like, shape=[..., k_sampling_points, ambient_dim]
+            Reference point.
 
         Returns
         -------
-        reparametrized_curve : array-like, shape=[k_sampling_points, ambient_dim]
+        aligned : array-like, shape=[..., k_sampling_points -1 , ambient_dim]
             Optimal reparametrization of the curve represented by point.
         """
         return self.aligner.align(self, point, base_point)
