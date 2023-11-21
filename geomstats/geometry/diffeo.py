@@ -304,8 +304,9 @@ class ComposedDiffeo(Diffeo):
     def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
         """Tangent diffeomorphism at base point."""
         for index, diffeo in enumerate(self.diffeos):
-            if index == 0 and image_point is not None:
+            if index > 0 or (index == 0 and image_point is None):
                 image_point = diffeo.diffeomorphism(base_point)
+
             image_tangent_vec = diffeo.tangent_diffeomorphism(
                 tangent_vec, base_point=base_point, image_point=image_point
             )
@@ -319,12 +320,12 @@ class ComposedDiffeo(Diffeo):
     ):
         """Inverse tangent diffeomorphism at image point."""
         for index, diffeo in enumerate(reversed(self.diffeos)):
-            if index == 0 and base_point is not None:
+            if index > 0 or (index == 0 and base_point is None):
                 base_point = diffeo.inverse_diffeomorphism(image_point)
             tangent_vec = diffeo.inverse_tangent_diffeomorphism(
                 image_tangent_vec, image_point=image_point, base_point=base_point
             )
             image_tangent_vec = tangent_vec
-            image_point = image_point
+            image_point = base_point
 
         return tangent_vec
