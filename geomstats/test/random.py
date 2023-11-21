@@ -1,6 +1,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
+from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.vectorization import get_n_points
 
 
@@ -130,9 +131,9 @@ class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
 
 
 class ShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):
-    def __init__(self, total_space, sphere, n_discretized_curves=5):
+    def __init__(self, total_space, n_discretized_curves=5):
         super().__init__(total_space, total_space)
-        self.sphere = sphere
+        self.sphere = Hypersphere(dim=total_space.ambient_manifold.dim - 1)
         self.n_discretized_curves = n_discretized_curves
 
     def random_point(self, n_points=1):
@@ -141,9 +142,11 @@ class ShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):
         initial_point = self.sphere.random_point(n_points)
         initial_tangent_vec = self.sphere.random_tangent_vec(initial_point)
 
-        return self.sphere.metric.geodesic(
-            initial_point, initial_tangent_vec=initial_tangent_vec
-        )(sampling_times)
+        return self.space.projection(
+            self.sphere.metric.geodesic(
+                initial_point, initial_tangent_vec=initial_tangent_vec
+            )(sampling_times)
+        )
 
     def random_tangent_vec(self, base_point):
         n_points = base_point.shape[0] if base_point.ndim > 2 else 1

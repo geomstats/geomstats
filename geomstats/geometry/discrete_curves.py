@@ -22,7 +22,7 @@ from geomstats.geometry.quotient_metric import QuotientMetric
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
 
-def _forward_difference(array, delta=None, axis=-1):
+def forward_difference(array, delta=None, axis=-1):
     """Forward difference in a Euclidean space.
 
     Points live in R^n, but are a 1d embedding (e.g. a curve).
@@ -56,7 +56,7 @@ def _forward_difference(array, delta=None, axis=-1):
     return (forward - center) / delta
 
 
-def _centered_difference(array, delta=None, axis=-1, endpoints=False):
+def centered_difference(array, delta=None, axis=-1, endpoints=False):
     """Centered difference in a Euclidean space.
 
     Points live in R^n, but are a 1d embedding (e.g. a curve).
@@ -107,7 +107,7 @@ def _centered_difference(array, delta=None, axis=-1, endpoints=False):
     return diff
 
 
-def _second_centered_difference(array, delta=None, axis=-1):
+def second_centered_difference(array, delta=None, axis=-1):
     """Second centered difference in a Euclidean space.
 
     Points live in R^n, but are a 1d embedding (e.g. a curve).
@@ -145,7 +145,7 @@ def _second_centered_difference(array, delta=None, axis=-1):
     return (forward + backward - 2 * central) / (delta**2)
 
 
-def _insert_zeros(array, axis=-1, end=False):
+def insert_zeros(array, axis=-1, end=False):
     """Insert zeros in a given array.
 
     Insert zeros while taking care of
@@ -236,7 +236,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
     def insert_origin(self, point):
         """Insert origin as first element of point."""
-        return _insert_zeros(point, axis=-self.point_ndim)
+        return insert_zeros(point, axis=-self.point_ndim)
 
     def projection(self, point):
         """Project a point from discrete curves.
@@ -319,9 +319,9 @@ class SRVTransform(Diffeo):
             SRV representation.
         """
         ndim = self._point_ndim
-        base_point_with_origin = _insert_zeros(base_point, axis=-ndim)
+        base_point_with_origin = insert_zeros(base_point, axis=-ndim)
 
-        velocity = _forward_difference(base_point_with_origin, axis=-ndim)
+        velocity = forward_difference(base_point_with_origin, axis=-ndim)
 
         pointwise_velocity_norm = self.ambient_manifold.metric.norm(
             velocity, base_point_with_origin[..., :-1, :]
@@ -394,11 +394,11 @@ class SRVTransform(Diffeo):
             base_point = self.inverse_diffeomorphism(image_point)
 
         ndim = self._point_ndim
-        base_point_with_origin = _insert_zeros(base_point, axis=-ndim)
-        tangent_vec_with_zeros = _insert_zeros(tangent_vec, axis=-ndim)
+        base_point_with_origin = insert_zeros(base_point, axis=-ndim)
+        tangent_vec_with_zeros = insert_zeros(tangent_vec, axis=-ndim)
 
-        d_vec = _forward_difference(tangent_vec_with_zeros, axis=-ndim)
-        velocity_vec = _forward_difference(base_point_with_origin, axis=-ndim)
+        d_vec = forward_difference(tangent_vec_with_zeros, axis=-ndim)
+        velocity_vec = forward_difference(base_point_with_origin, axis=-ndim)
 
         velocity_norm = self.ambient_manifold.metric.norm(velocity_vec)
         unit_velocity_vec = gs.einsum(
@@ -447,10 +447,10 @@ class SRVTransform(Diffeo):
             base_point = self.inverse_diffeomorphism(image_point)
 
         ndim = self._point_ndim
-        base_point_with_origin = _insert_zeros(base_point, axis=-ndim)
+        base_point_with_origin = insert_zeros(base_point, axis=-ndim)
 
         position = base_point_with_origin[..., :-1, :]
-        velocity_vec = _forward_difference(base_point_with_origin, axis=-ndim)
+        velocity_vec = forward_difference(base_point_with_origin, axis=-ndim)
         velocity_norm = self.ambient_manifold.metric.norm(velocity_vec, position)
         unit_velocity_vec = gs.einsum(
             "...ij,...i->...ij", velocity_vec, 1 / velocity_norm
@@ -620,7 +620,7 @@ class FTransform(AutodiffDiffeo):
         """
         coeff = self.k_sampling_points - 1
 
-        base_point_with_origin = _insert_zeros(base_point, axis=-self._space_point_ndim)
+        base_point_with_origin = insert_zeros(base_point, axis=-self._space_point_ndim)
 
         velocity = coeff * (
             base_point_with_origin[..., 1:, :] - base_point_with_origin[..., :-1, :]
@@ -907,7 +907,7 @@ class IterativeHorizontalGeodesic:
         repar = gs.linspace(0.0, 1.0, k_sampling_points)
         repars = [repar]
         for i in range(n_times - 1):
-            repar_diff = _forward_difference(repar, axis=-1)
+            repar_diff = forward_difference(repar, axis=-1)
 
             repar_space_deriv = gs.where(
                 vertical_norm[i, 1:-1] > 0,
@@ -1008,15 +1008,15 @@ class IterativeHorizontalGeodesic:
             initial_point=initial_point, end_point=end_point
         )
         geod_points = total_space_geod_fun(times)
-        geod_points_with_origin = _insert_zeros(geod_points, axis=-ndim)
+        geod_points_with_origin = insert_zeros(geod_points, axis=-ndim)
 
-        time_deriv = _forward_difference(geod_points, axis=-(ndim + 1))
+        time_deriv = forward_difference(geod_points, axis=-(ndim + 1))
         _, vertical_norm = bundle.vertical_projection(
             time_deriv, geod_points[:-1], return_norm=True
         )
-        vertical_norm = _insert_zeros(vertical_norm, axis=-1)
+        vertical_norm = insert_zeros(vertical_norm, axis=-1)
 
-        space_deriv = _centered_difference(
+        space_deriv = centered_difference(
             geod_points_with_origin, axis=-ndim, endpoints=True
         )[:-1]
 
@@ -1055,7 +1055,7 @@ class IterativeHorizontalGeodesic:
         k_sampling_points = bundle.total_space.k_sampling_points
         t_space = gs.linspace(0.0, 1.0, k_sampling_points)
 
-        end_point_with_origin = _insert_zeros(
+        end_point_with_origin = insert_zeros(
             end_point, axis=-bundle.total_space.point_ndim
         )
         spline_end = CubicSpline(t_space, end_point_with_origin, axis=0)
@@ -1411,7 +1411,7 @@ class DynamicProgrammingAligner:
                                 new_gamma.append((i, j))
                                 gamma[(i, j)] = new_gamma
 
-        point_with_origin = _insert_zeros(point, axis=-2)
+        point_with_origin = insert_zeros(point, axis=-2)
         point_reparametrized = self._reparametrize(
             point_with_origin, gamma[(n_space_grid, n_space_grid)]
         )[1:]
@@ -1531,18 +1531,18 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
         squotient = (a_param / b_param) ** 2
 
         ndim = self.total_space.point_ndim
-        tangent_vec_with_zeros = _insert_zeros(tangent_vec, axis=-ndim)
-        base_point_with_origin = _insert_zeros(base_point, axis=-ndim)
+        tangent_vec_with_zeros = insert_zeros(tangent_vec, axis=-ndim)
+        base_point_with_origin = insert_zeros(base_point, axis=-ndim)
 
         position = base_point_with_origin[..., 1:-1, :]
         # TODO: why delta=1?
         delta = 1.0
-        d_pos = _centered_difference(base_point_with_origin, delta=delta, axis=-ndim)
-        d_vec = _centered_difference(tangent_vec_with_zeros, delta=delta, axis=-ndim)
-        d2_pos = _second_centered_difference(
+        d_pos = centered_difference(base_point_with_origin, delta=delta, axis=-ndim)
+        d_vec = centered_difference(tangent_vec_with_zeros, delta=delta, axis=-ndim)
+        d2_pos = second_centered_difference(
             base_point_with_origin, delta=delta, axis=-ndim
         )
-        d2_vec = _second_centered_difference(
+        d2_vec = second_centered_difference(
             tangent_vec_with_zeros, delta=delta, axis=-ndim
         )
 
@@ -1579,6 +1579,10 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
             + from_vector_to_diagonal_matrix(vec_b, 0)
             + from_vector_to_diagonal_matrix(vec_c[..., 1:], -1)
         )
+        if linear_system.ndim == 2 and tangent_vec.ndim > 2:
+            linear_system = gs.broadcast_to(
+                linear_system, vec_d.shape[:-1] + linear_system.shape
+            )
 
         vertical_norm = gs.linalg.solve(linear_system, vec_d)
 
@@ -1589,9 +1593,9 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
         )
         tangent_vec_ver = gs.einsum("...ij,...i->...ij", unit_speed, vertical_norm)
 
-        tangent_vec_ver = _insert_zeros(tangent_vec_ver, axis=-ndim, end=True)
+        tangent_vec_ver = insert_zeros(tangent_vec_ver, axis=-ndim, end=True)
         if return_norm:
-            vertical_norm = _insert_zeros(vertical_norm, axis=-1, end=True)
+            vertical_norm = insert_zeros(vertical_norm, axis=-1, end=True)
             return tangent_vec_ver, vertical_norm
 
         return tangent_vec_ver

@@ -300,3 +300,48 @@ class AutodiffDiffeoTestCase(DiffeoTestCase):
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
+
+
+class DiffeoComparisonTestCase(TestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator") and hasattr(self, "space"):
+            self.data_generator = RandomDataGenerator(self.space)
+
+        if not hasattr(self, "image_data_generator") and hasattr(self, "image_space"):
+            self.image_data_generator = RandomDataGenerator(self.image_space)
+
+    @pytest.mark.random
+    def test_diffeomorphism(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+
+        res = self.diffeo.diffeomorphism(base_point)
+        res_ = self.other_diffeo.diffeomorphism(base_point)
+        self.assertAllClose(res, res_, atol=atol)
+
+    @pytest.mark.random
+    def test_inverse_diffeomorphism(self, n_points, atol):
+        image_point = self.image_data_generator.random_point(n_points)
+
+        res = self.diffeo.inverse_diffeomorphism(image_point)
+        res_ = self.other_diffeo.inverse_diffeomorphism(image_point)
+        self.assertAllClose(res, res_, atol=atol)
+
+    @pytest.mark.random
+    def test_tangent_diffeomorphism(self, n_points, atol):
+        base_point = self.data_generator.random_point(n_points)
+        tangent_vec = self.data_generator.random_tangent_vec(base_point)
+
+        res = self.diffeo.tangent_diffeomorphism(tangent_vec, base_point)
+        res_ = self.other_diffeo.tangent_diffeomorphism(tangent_vec, base_point)
+        self.assertAllClose(res, res_, atol=atol)
+
+    @pytest.mark.random
+    def test_inverse_tangent_diffeomorphism(self, n_points, atol):
+        image_point = self.image_data_generator.random_point(n_points)
+        image_tangent_vec = self.image_data_generator.random_tangent_vec(image_point)
+
+        res = self.diffeo.inverse_tangent_diffeomorphism(image_tangent_vec, image_point)
+        res_ = self.other_diffeo.inverse_tangent_diffeomorphism(
+            image_tangent_vec, image_point
+        )
+        self.assertAllClose(res, res_, atol=atol)

@@ -53,3 +53,19 @@ class AutodiffDiffeoTestData(DiffeoTestData):
 
     def inverse_jacobian_diffeomorphism_vec_test_data(self):
         return self.generate_vec_data()
+
+
+class DiffeoComparisonTestData(TestData):
+    fail_for_autodiff_exceptions = False
+
+    def diffeomorphism_test_data(self):
+        return self.generate_random_data()
+
+    def inverse_diffeomorphism_test_data(self):
+        return self.generate_random_data()
+
+    def tangent_diffeomorphism_test_data(self):
+        return self.generate_random_data()
+
+    def inverse_tangent_diffeomorphism_test_data(self):
+        return self.generate_random_data()
