@@ -251,6 +251,9 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         -------
         proj_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
         """
+        if point.shape[-2] == self.k_sampling_points - 1:
+            return gs.copy(point)
+
         return (point[..., :, :] - gs.expand_dims(point[..., 0, :], axis=-2))[
             ..., 1:, :
         ]
