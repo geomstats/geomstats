@@ -1,24 +1,11 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.test.random import ShapeBundleRandomDataGenerator
 from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
 from geomstats.vectorization import get_batch_shape
 
 
 class SRVTranslationReparametrizationBundleTestCase(FiberBundleTestCase):
-    def setup_method(self):
-        if not hasattr(self, "data_generator"):
-            n_discretized_curves = (
-                5
-                if not hasattr(self, "n_discretized_curves")
-                else self.n_discretized_curves
-            )
-            self.data_generator = ShapeBundleRandomDataGenerator(
-                self.total_space,
-                n_discretized_curves=n_discretized_curves,
-            )
-
     @pytest.mark.random
     def test_tangent_vector_projections_orthogonality_with_metric(self, n_points, atol):
         """Test horizontal and vertical projections.

@@ -1,7 +1,6 @@
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
-from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.vectorization import get_n_points
 
 
@@ -94,18 +93,6 @@ class LieGroupVectorRandomDataGenerator(RandomDataGenerator):
         return self._euclidean.random_point(n_points)
 
 
-class FiberBundleRandomDataGenerator(RandomDataGenerator):
-    def __init__(self, total_space, base):
-        super().__init__(space=total_space)
-        self.base = base
-
-    def base_random_point(self, n_points=1):
-        return self.base.random_point(n_points)
-
-    def base_random_tangent_vec(self, base_point):
-        return self.base.random_tangent_vec(base_point) / self.amplitude
-
-
 class KendalShapeRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
     def random_horizontal_vec(self, base_point):
         tangent_vec = self.random_tangent_vec(base_point)
@@ -128,39 +115,6 @@ class GammaRandomDataGenerator(EmbeddedSpaceRandomDataGenerator):
             )
             / self.amplitude
         )
-
-
-class ShapeBundleRandomDataGenerator(FiberBundleRandomDataGenerator):
-    def __init__(self, total_space, n_discretized_curves=5):
-        super().__init__(total_space, total_space)
-        self.sphere = Hypersphere(dim=total_space.ambient_manifold.dim - 1)
-        self.n_discretized_curves = n_discretized_curves
-
-    def random_point(self, n_points=1):
-        sampling_times = gs.linspace(0.0, 1.0, self.space.k_sampling_points)
-
-        initial_point = self.sphere.random_point(n_points)
-        initial_tangent_vec = self.sphere.random_tangent_vec(initial_point)
-
-        return self.space.projection(
-            self.sphere.metric.geodesic(
-                initial_point, initial_tangent_vec=initial_tangent_vec
-            )(sampling_times)
-        )
-
-    def random_tangent_vec(self, base_point):
-        n_points = base_point.shape[0] if base_point.ndim > 2 else 1
-        point = self.random_point(n_points=n_points)
-
-        geo = self.space.metric.geodesic(initial_point=base_point, end_point=point)
-
-        times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
-
-        geod = geo(times)
-
-        return (
-            self.n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
-        ) / self.amplitude
 
 
 class HeisenbergVectorsRandomDataGenerator(VectorSpaceRandomDataGenerator):
