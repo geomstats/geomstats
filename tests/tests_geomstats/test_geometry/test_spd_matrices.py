@@ -73,7 +73,7 @@ class TestLogDiffeoSmoke(DiffeoTestCase, metaclass=DataBasedParametrizer):
 class TestPowerDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(2, 5)
     space = image_space = SPDMatrices(n=_n, equip=False)
-    diffeo = PowerDiffeo(power=gs.random.uniform(size=1))
+    diffeo = PowerDiffeo(power=gs.random.uniform(low=0.5, high=1.5, size=1))
     testing_data = DiffeoTestData()
 
 
