@@ -47,7 +47,7 @@ If you use the flag ``-e``, geomstats will be installed in editable mode, i.e. l
 
 **CHOOSE THE BACKEND**
 
-Geomstats can run seemlessly with ``numpy`` or ``pytorch``. Note that ``pytorch`` requirement is optional, as geomstats can be used with ``numpy`` only. By default, the ``numpy`` backend is used. The visualizations are only available with this backend.
+Geomstats can run seamlessly with ``numpy`` or ``pytorch``. Note that ``pytorch`` requirement is optional, as geomstats can be used with ``numpy`` only. By default, the ``numpy`` backend is used. The visualizations are only available with this backend.
 
 To get the ``autograd`` and ``pytorch`` versions compatible with geomstats, install the optional requirements::
 

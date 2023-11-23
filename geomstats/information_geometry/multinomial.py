@@ -310,7 +310,7 @@ class MultinomialMetric(RiemannianMetric):
     def exp(self, tangent_vec, base_point):
         """Compute the exponential map.
 
-        Comute the exponential map associated to the Fisher information
+        Compute the exponential map associated to the Fisher information
         metric by pulling back the exponential map on the sphere by the
         simplex_to_sphere map.
 

@@ -37,9 +37,9 @@ class KendallSphere:
     pole : array-like, shape=[3,2]
         Equilateral triangle (north pole).
     ua : array-like, shape=[3,2]
-        Tangent vector toward isocele triangle at vertex A.
+        Tangent vector toward isosceles triangle at vertex A.
     ub : array-like, shape=[3,2]
-        Tangent vector toward isocele triangle at vertex B.
+        Tangent vector toward isosceles triangle at vertex B.
     na : array-like, shape=[3,2]
         Tangent vector such that (ua,na) is a positively oriented
         orthonormal basis of the horizontal space at north pole.
@@ -285,9 +285,9 @@ class KendallDisk:
     centre : array-like, shape=[3,3]
         Equilateral triangle in 3D (centre).
     ua : array-like, shape=[3,2]
-        Tangent vector at north pole toward isocele triangle at vertex A.
+        Tangent vector at north pole toward isosceles triangle at vertex A.
     ub : array-like, shape=[3,2]
-        Tangent vector at north pole toward isocele triangle at vertex B.
+        Tangent vector at north pole toward isosceles triangle at vertex B.
     na : array-like, shape=[3,2]
         Tangent vector such that (ua,na) is a positively oriented
         orthonormal basis of the horizontal space at north pole.

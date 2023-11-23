@@ -355,7 +355,7 @@ should not break any test.
 Workflow of a contribution 
 ===========================
 
-The best way to start contributing is by finding a part of the project that is more familiar to you (e.g. a specific manifold or metric, a learning algoritgm, etc). Instead, if these concepts are new to you and you would like to contribute while learning, look at some of the existing issues.
+The best way to start contributing is by finding a part of the project that is more familiar to you (e.g. a specific manifold or metric, a learning algorithm, etc). Instead, if these concepts are new to you and you would like to contribute while learning, look at some of the existing issues.
 
 
 .. _new-contributors:
@@ -678,7 +678,7 @@ guidelines:
    objects living in several namespaces which creates confusion (see
    `Language Constructs You Should Not Use <https://docs.python.org/2/howto/doanddont.html#language-constructs-you-should-not-use>`_).
    Keeping the original namespace ensures naming consistency in the codebase
-   and speeds up the code reviews: co-developpers and maintainers do not have
+   and speeds up the code reviews: co-developers and maintainers do not have
    to check if you are using the original module's method or if you have
    overwritten it.
 
@@ -725,7 +725,7 @@ Building the documentation requires installing specific requirements::
 
    pip install -e .[doc]
 
-To build the documentation, follow the steps discussed in `build the docs`_ to install other dependecies 
+To build the documentation, follow the steps discussed in `build the docs`_ to install other dependencies 
 and build the documentation.
 
 Writing Docstrings
@@ -951,7 +951,7 @@ from high-level questions to a more detailed check-list.
 Reporting bugs and features 
 ===========================
 
-Sharing bugs and potential new features for the geomstats project is an equally significant conteibution.
+Sharing bugs and potential new features for the geomstats project is an equally significant contribution.
 We encourage reports for any module including documentation and missing tests.
 
 Issue tracker
@@ -975,15 +975,15 @@ Issue Triaging
 ==============
 
 Other than reporting bugs, another important aspect of contribution is `issue triaging`. This is
-about issue mamanagement and includes certain aspects that are described in the sequel.
+about issue management and includes certain aspects that are described in the sequel.
 
 Reproducing issues
 ------------------
 
-Sometimes reported issues need to be verified to acertain if they are actual issues or false alarms. Part of 
+Sometimes reported issues need to be verified to ascertain if they are actual issues or false alarms. Part of 
 triaging is trying to simulate the bugs in their reported environments and other relevant environments. 
 
-We encourage you to help with this and comment on the issue if you can or can not reproduce it as decribed.
+We encourage you to help with this and comment on the issue if you can or can not reproduce it as described.
 This allows core devs to close the issue if it does not require fixing.
 
 Commenting on alternative solutions
