@@ -61,7 +61,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
         return gs.squeeze(point >= -atol)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample parameters of Possion distributions.
+        """Sample parameters of Poisson distributions.
 
         The uniform distribution on (0, bound) is used.
 
