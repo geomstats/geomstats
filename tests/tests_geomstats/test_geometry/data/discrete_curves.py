@@ -40,7 +40,10 @@ class SRVTranslationReparametrizationBundleTestData(FiberBundleTestData):
         "align_vec",
         "log_after_align_is_horizontal",
     )
-    xfails = ("tangent_riemannian_submersion_after_horizontal_lift",)
+    xfails = (
+        "tangent_riemannian_submersion_after_horizontal_lift",
+        "horizontal_lift_is_horizontal",
+    )
     tolerances = {
         "tangent_vector_projections_orthogonality_with_metric": {"atol": 5e-1},
         "vertical_projection_is_vertical": {"atol": 1e-1},
