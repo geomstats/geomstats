@@ -24,7 +24,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.hermitian_matrices import HermitianMatrices, expmh, powermh
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
-from geomstats.geometry.spd_matrices import LogDiffeo, logmh
+from geomstats.geometry.spd_matrices import SymMatrixLog, logmh
 from geomstats.integrator import integrate
 from geomstats.vectorization import repeat_out
 
@@ -589,5 +589,5 @@ class HPDLogEuclideanMetric(PullbackDiffeoMetric):
     def __init__(self, space, image_space=None):
         if image_space is None:
             image_space = HermitianMatrices(n=space.n)
-        diffeo = LogDiffeo()
+        diffeo = SymMatrixLog()
         super().__init__(space, diffeo, image_space)

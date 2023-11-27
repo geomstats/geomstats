@@ -92,7 +92,7 @@ def _aux_differential_power(power, tangent_vec, base_point):
     return (eigvectors, transp_eigvectors, numerator, denominator, temp_result)
 
 
-class LogDiffeo(Diffeo):
+class SymMatrixLog(Diffeo):
     """Matrix logarithm diffeomorphism.
 
     A diffeomorphism from the space of symmetric positive-definite matrices to
@@ -220,7 +220,7 @@ class LogDiffeo(Diffeo):
         return Matrices.mul(eigvectors, result, transp_eigvectors)
 
 
-class PowerDiffeo(Diffeo):
+class MatrixPower(Diffeo):
     """Matrix power diffeomorphism.
 
     A diffeomorphism from the space of symmetric positive-definite matrices to
@@ -1011,7 +1011,7 @@ class SPDLogEuclideanMetric(PullbackDiffeoMetric):
     def __init__(self, space, image_space=None):
         if image_space is None:
             image_space = SymmetricMatrices(n=space.n)
-        diffeo = LogDiffeo()
+        diffeo = SymMatrixLog()
         super().__init__(space, diffeo, image_space)
 
 
@@ -1049,6 +1049,6 @@ class SPDPowerMetric(PullbackDiffeoMetric):
                 "`image-space` must be equipped with a `ScalarProductMetric`"
             )
         power = 1 / gs.sqrt(image_space.metric.scale)
-        diffeo = PowerDiffeo(power)
+        diffeo = MatrixPower(power)
 
         super().__init__(space, diffeo, image_space)

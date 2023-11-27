@@ -10,7 +10,7 @@ from geomstats.geometry.hpd_matrices import (
     HPDLogEuclideanMetric,
     HPDMatrices,
 )
-from geomstats.geometry.spd_matrices import LogDiffeo, PowerDiffeo
+from geomstats.geometry.spd_matrices import MatrixPower, SymMatrixLog
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test_cases.geometry.base import ComplexOpenSetTestCase
@@ -32,18 +32,18 @@ from .data.hpd_matrices import (
 )
 
 
-class TestLogDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+class TestSymMatrixLog(DiffeoTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(2, 5)
     space = HPDMatrices(n=_n, equip=False)
     image_space = HermitianMatrices(n=_n, equip=False)
-    diffeo = LogDiffeo()
+    diffeo = SymMatrixLog()
     testing_data = DiffeoTestData()
 
 
-class TestPowerDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+class TestMatrixPower(DiffeoTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(2, 5)
     space = image_space = HPDMatrices(n=_n, equip=False)
-    diffeo = PowerDiffeo(power=gs.random.uniform(size=1))
+    diffeo = MatrixPower(power=gs.random.uniform(size=1))
     testing_data = DiffeoTestData()
 
 

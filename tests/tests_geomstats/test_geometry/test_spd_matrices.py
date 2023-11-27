@@ -9,14 +9,14 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
 from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.spd_matrices import (
     CholeskyMap,
-    LogDiffeo,
-    PowerDiffeo,
+    MatrixPower,
     SPDAffineMetric,
     SPDBuresWassersteinMetric,
     SPDEuclideanMetric,
     SPDLogEuclideanMetric,
     SPDMatrices,
     SPDPowerMetric,
+    SymMatrixLog,
 )
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
@@ -32,8 +32,7 @@ from geomstats.test_cases.geometry.spd_matrices import (
 from .data.diffeo import DiffeoTestData
 from .data.spd_matrices import (
     CholeskyMapSmokeTestData,
-    LogDiffeoSmokeTestData,
-    PowerDiffeo05TestData,
+    MatrixPower05TestData,
     SPD2AffineMetricTestData,
     SPD2BuresWassersteinMetricTestData,
     SPD2EuclideanMetricTestData,
@@ -50,37 +49,38 @@ from .data.spd_matrices import (
     SPDMatrices2TestData,
     SPDMatrices3TestData,
     SPDMatricesTestData,
+    SymMatrixLogSmokeTestData,
 )
 
 # TODO: check affine invariance
 # TODO: add SPDPowerMetricTestCase against some power=1?
 
 
-class TestLogDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+class TestSymMatrixLog(DiffeoTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(2, 5)
     space = SPDMatrices(n=_n, equip=False)
     image_space = SymmetricMatrices(n=_n, equip=False)
-    diffeo = LogDiffeo()
+    diffeo = SymMatrixLog()
     testing_data = DiffeoTestData()
 
 
 @pytest.mark.smoke
-class TestLogDiffeoSmoke(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    diffeo = LogDiffeo()
-    testing_data = LogDiffeoSmokeTestData()
+class TestSymMatrixLogSmoke(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    diffeo = SymMatrixLog()
+    testing_data = SymMatrixLogSmokeTestData()
 
 
-class TestPowerDiffeo(DiffeoTestCase, metaclass=DataBasedParametrizer):
+class TestMatrixPower(DiffeoTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(2, 5)
     space = image_space = SPDMatrices(n=_n, equip=False)
-    diffeo = PowerDiffeo(power=gs.random.uniform(low=0.5, high=1.5, size=1))
+    diffeo = MatrixPower(power=gs.random.uniform(low=0.5, high=1.5, size=1))
     testing_data = DiffeoTestData()
 
 
 @pytest.mark.smoke
-class TestPowerDiffeo05(DiffeoTestCase, metaclass=DataBasedParametrizer):
-    diffeo = PowerDiffeo(power=0.5)
-    testing_data = PowerDiffeo05TestData()
+class TestMatrixPower05(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    diffeo = MatrixPower(power=0.5)
+    testing_data = MatrixPower05TestData()
 
 
 class TestCholeskyMap(DiffeoTestCase, metaclass=DataBasedParametrizer):

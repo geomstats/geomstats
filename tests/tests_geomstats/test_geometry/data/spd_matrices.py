@@ -15,7 +15,7 @@ EXP_2 = math.exp(2.0)
 SINH_1 = math.sinh(1.0)
 
 
-class LogDiffeoSmokeTestData(TestData):
+class SymMatrixLogSmokeTestData(TestData):
     def diffeomorphism_test_data(self):
         data = [
             dict(
@@ -92,7 +92,7 @@ class LogDiffeoSmokeTestData(TestData):
         return self.generate_tests(data)
 
 
-class PowerDiffeo05TestData(TestData):
+class MatrixPower05TestData(TestData):
     def tangent_diffeomorphism_test_data(self):
         data = [
             dict(
