@@ -16,6 +16,7 @@ from geomstats.geometry.discrete_curves import (
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.landmarks import Landmarks
 from geomstats.test.parametrizers import DataBasedParametrizer
+from geomstats.test.random import ShapeBundleRandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test_cases.geometry.diffeo import (
     AutodiffDiffeoTestCase,
@@ -163,6 +164,8 @@ class TestSRVTranslationReparametrizationBundle(
         k_sampling_points=_k_sampling_points,
     )
     bundle = SRVTranslationReparametrizationBundle(total_space)
+
+    data_generator = base_data_generator = ShapeBundleRandomDataGenerator(total_space)
     testing_data = SRVTranslationReparametrizationBundleTestData()
 
 

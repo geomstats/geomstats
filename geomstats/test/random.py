@@ -132,3 +132,23 @@ class HeisenbergVectorsRandomDataGenerator(VectorSpaceRandomDataGenerator):
 
         vec = gs.random.uniform(size=size)
         return gs.array_from_sparse(indices, vec, expected_shape) + gs.eye(3)
+
+
+class ShapeBundleRandomDataGenerator(RandomDataGenerator):
+    def __init__(self, space, n_discretized_curves=5):
+        super().__init__(space)
+        self.n_discretized_curves = n_discretized_curves
+
+    def random_tangent_vec(self, base_point):
+        n_points = base_point.shape[0] if base_point.ndim > 2 else 1
+        point = self.random_point(n_points=n_points)
+
+        geo = self.space.metric.geodesic(initial_point=base_point, end_point=point)
+
+        times = gs.linspace(0.0, 1.0, self.n_discretized_curves)
+
+        geod = geo(times)
+
+        return (
+            self.n_discretized_curves * (geod[..., 1, :, :] - geod[..., 0, :, :])
+        ) / self.amplitude
