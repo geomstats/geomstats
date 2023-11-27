@@ -27,24 +27,24 @@ class Diffeo:
         Returns
         -------
         image_point : array-like, shape=[..., *image_shape]
-            Inner-product matrix.
+            Image point.
         """
 
     @abc.abstractmethod
     def inverse_diffeomorphism(self, image_point):
         r"""Inverse diffeomorphism at base point.
 
-        :math:`f^-1: N \rightarrow M` of the manifold
+        :math:`f^-1: N \rightarrow M`
 
         Parameters
         ----------
         image_point : array-like, shape=[..., *image_shape]
-            Base point.
+            Image point.
 
         Returns
         -------
         base_point : array-like, shape=[..., *space_shape]
-            Inner-product matrix.
+            Base point.
         """
 
     @abc.abstractmethod
@@ -138,7 +138,7 @@ class AutodiffDiffeo(Diffeo):
         Returns
         -------
         mat : array-like, shape=[..., *image_shape, *space_shape]
-            Inner-product matrix.
+            Jacobian of the diffeomorphism.
         """
         return gs.autodiff.jacobian_vec(
             self.diffeomorphism, point_ndim=self._space_point_ndim
@@ -167,21 +167,21 @@ class AutodiffDiffeo(Diffeo):
         batch_shape = get_batch_shape(self._space_point_ndim, tangent_vec, base_point)
         flat_batch_shape = (-1,) if batch_shape else ()
 
-        J_flat = gs.reshape(
+        j_flat = gs.reshape(
             self.jacobian_diffeomorphism(base_point),
             flat_batch_shape + (self._image_shape_prod, self._shape_prod),
         )
         tv_flat = gs.reshape(tangent_vec, flat_batch_shape + (self._shape_prod,))
 
         image_tv = gs.reshape(
-            gs.einsum("...ij,...j->...i", J_flat, tv_flat),
+            gs.einsum("...ij,...j->...i", j_flat, tv_flat),
             batch_shape + self._image_space_shape,
         )
 
         return image_tv
 
     def inverse_jacobian_diffeomorphism(self, image_point):
-        r"""Inverse Jacobian of the diffeomorphism at image point.
+        r"""Jacobian of the inverse diffeomorphism at image point.
 
         Parameters
         ----------
@@ -191,7 +191,7 @@ class AutodiffDiffeo(Diffeo):
         Returns
         -------
         mat : array-like, shape=[..., *shape, *image_shape]
-            Inner-product matrix.
+            Jacobian of the inverse diffeomorphism.
         """
         return gs.autodiff.jacobian_vec(
             self.inverse_diffeomorphism, point_ndim=self._image_space_point_ndim
@@ -224,7 +224,7 @@ class AutodiffDiffeo(Diffeo):
         )
         flat_batch_shape = (-1,) if batch_shape else ()
 
-        J_flat = gs.reshape(
+        j_flat = gs.reshape(
             self.inverse_jacobian_diffeomorphism(image_point),
             flat_batch_shape + (self._shape_prod, self._image_shape_prod),
         )
@@ -234,7 +234,7 @@ class AutodiffDiffeo(Diffeo):
         )
 
         tv = gs.reshape(
-            gs.einsum("...ij,...j->...i", J_flat, itv_flat),
+            gs.einsum("...ij,...j->...i", j_flat, itv_flat),
             batch_shape + self._space_shape,
         )
         return tv

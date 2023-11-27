@@ -182,8 +182,8 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     k_sampling_points - 1, ambient_dim]`.
 
     This space corresponds to the space of immersions defined below, i.e. the
-    space of smooth functions from an interval I into the ambient manifold M,
-    with non-vanishing derivative.
+    space of smooth functions from an interval I into the ambient Euclidean
+    space M, with non-vanishing derivative.
 
     .. math::
         Imm(I, M)=\{c \in C^{\infty}(I, M) \|c'(t)\|\neq 0 \forall t \in I \},
@@ -197,6 +197,8 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         Dimension of the ambient Euclidean space in which curves take values.
     k_sampling_points : int
         Number of sampling points.
+    equip : bool
+        If True, equip space with default metric.
     """
 
     def __init__(self, ambient_dim=2, k_sampling_points=10, equip=True):
