@@ -187,7 +187,7 @@ class GeneralLinear(MatrixLieGroup, OpenSet):
         return path
 
 
-class SquareMatrices(MatrixLieAlgebra):
+class SquareMatrices(Matrices):
     """Lie algebra of the general linear group.
 
     This is the space of matrices.
@@ -200,17 +200,14 @@ class SquareMatrices(MatrixLieAlgebra):
 
     def __init__(self, n, equip=True):
         self.n = n
-        super().__init__(dim=n**2, representation_dim=n, equip=equip)
-        self._mat_space = Matrices(n, n, equip=False)
+        super().__init__(n=n, m=n, equip=equip)
 
-    @staticmethod
-    def default_metric():
-        """Metric to equip the space with if equip is True."""
-        return MatricesMetric
 
-    def _create_basis(self):
-        """Create the canonical basis of the space of matrices."""
-        return self._mat_space.basis
+class SquareMatricesLieAlgebraStruct(MatrixLieAlgebra):
+    """Lie algebra structure for square matrices."""
+
+    def __init__(self, space):
+        super().__init__(space=space, representation_dim=space.n)
 
     def basis_representation(self, matrix_representation):
         """Compute the coefficient in the usual matrix basis.
@@ -227,7 +224,7 @@ class SquareMatrices(MatrixLieAlgebra):
         basis_representation : array-like, shape=[..., dim]
             Representation in the basis.
         """
-        return self._mat_space.flatten(matrix_representation)
+        return self.flatten(matrix_representation)
 
     def matrix_representation(self, basis_representation):
         """Compute the matrix representation for the given basis coefficients.
@@ -244,4 +241,4 @@ class SquareMatrices(MatrixLieAlgebra):
         matrix_representation : array-like, shape=[..., n, n]
             Matrix.
         """
-        return self._mat_space.reshape(basis_representation)
+        return self.reshape(basis_representation)
