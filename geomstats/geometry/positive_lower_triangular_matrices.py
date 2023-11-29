@@ -45,26 +45,6 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         """Metric to equip the space with if equip is True."""
         return CholeskyMetric
 
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample from the manifold.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of hypercube support.
-            Optional, default: 1.0
-
-        Returns
-        -------
-        point : array-like, shape=[..., n, n]
-           Sample.
-        """
-        sample = super().random_point(n_samples, bound)
-        return self.projection(sample)
-
     def belongs(self, point, atol=gs.atol):
         """Check if mat is lower triangular with >0 diagonal.
 
@@ -87,24 +67,20 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         return gs.logical_and(is_lower_triangular, is_positive)
 
     def projection(self, point):
-        """Project a matrix to the Cholesksy space.
-
-        First it is projected to space lower triangular matrices
-        and then diagonal elements are exponentiated to make it positive.
+        """Project a matrix to the PLT space.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
-            Matrix to project.
 
         Returns
         -------
         projected: array-like, shape=[..., n, n]
-            SPD matrix.
         """
-        vec_diag = gs.abs(Matrices.diagonal(point) - 0.1) + 0.1
+        vec_diag = gs.abs(Matrices.diagonal(point))
+        vec_diag = gs.where(vec_diag < gs.atol, gs.atol, vec_diag)
         diag = gs.vec_to_diag(vec_diag)
-        strictly_lower_triangular = Matrices.to_lower_triangular(point)
+        strictly_lower_triangular = gs.tril(point, k=-1)
         return diag + strictly_lower_triangular
 
 
