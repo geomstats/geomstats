@@ -1,11 +1,11 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import OpenSetTestData
+from .base import VectorSpaceOpenSetTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 
-class PoincareBallTestData(OpenSetTestData):
+class PoincareBallTestData(VectorSpaceOpenSetTestData):
     xfails = ("projection_belongs",)
 
 

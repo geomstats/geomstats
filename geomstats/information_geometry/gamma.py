@@ -19,7 +19,7 @@ from scipy.stats import gamma
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.information_geometry.base import (
@@ -32,7 +32,7 @@ from geomstats.numerics.ivp import ScipySolveIVP
 from geomstats.vectorization import check_is_batch
 
 
-class GammaDistributions(InformationManifoldMixin, OpenSet):
+class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
     """Class for the manifold of Gamma distributions.
 
     This is :math: Gamma = `(R_+^*)^2`, the positive quadrant of the

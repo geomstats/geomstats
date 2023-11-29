@@ -1,12 +1,12 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import ComplexOpenSetTestData
+from .base import ComplexVectorSpaceOpenSetTestData
 from .complex_riemannian_metric import ComplexRiemannianMetricTestData
 from .spd_matrices import SPDMatricesMixinsTestData
 
 
-class HPDMatricesTestData(SPDMatricesMixinsTestData, ComplexOpenSetTestData):
+class HPDMatricesTestData(SPDMatricesMixinsTestData, ComplexVectorSpaceOpenSetTestData):
     skips = ("cholesky_factor_belongs_to_positive_lower_triangular_matrices",)
 
 

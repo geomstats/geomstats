@@ -3,14 +3,14 @@ import math
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import OpenSetTestData
+from .base import VectorSpaceOpenSetTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 EULER = gs.exp(1.0)
 SQRT_2 = math.sqrt(2)
 
 
-class PositiveLowerTriangularMatricesTestData(OpenSetTestData):
+class PositiveLowerTriangularMatricesTestData(VectorSpaceOpenSetTestData):
     def gram_vec_test_data(self):
         return self.generate_vec_data()
 

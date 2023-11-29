@@ -9,14 +9,14 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
 
 
-class PoincareHalfSpace(_Hyperbolic, OpenSet):
+class PoincareHalfSpace(_Hyperbolic, VectorSpaceOpenSet):
     """Class for the n-dimensional Poincare half-space.
 
     Class for the n-dimensional Poincaré half space model. For other

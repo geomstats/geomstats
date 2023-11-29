@@ -67,7 +67,13 @@ class OpenSetTestData(_OpenSetMixinsTestData, ManifoldTestData):
     pass
 
 
-class ComplexOpenSetTestData(_OpenSetMixinsTestData, ComplexManifoldTestData):
+class VectorSpaceOpenSetTestData(OpenSetTestData):
+    pass
+
+
+class ComplexVectorSpaceOpenSetTestData(
+    _OpenSetMixinsTestData, ComplexManifoldTestData
+):
     pass
 
 
