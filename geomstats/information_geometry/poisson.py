@@ -7,7 +7,7 @@ from scipy.special import factorial
 from scipy.stats import poisson
 
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.information_geometry.base import (
@@ -16,7 +16,7 @@ from geomstats.information_geometry.base import (
 )
 
 
-class PoissonDistributions(InformationManifoldMixin, OpenSet):
+class PoissonDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
     """Class for the manifold of Poisson distributions.
 
     This is the parameter space of Poisson distributions
@@ -61,7 +61,7 @@ class PoissonDistributions(InformationManifoldMixin, OpenSet):
         return gs.squeeze(point >= -atol)
 
     def random_point(self, n_samples=1, bound=1.0):
-        """Sample parameters of Possion distributions.
+        """Sample parameters of Poisson distributions.
 
         The uniform distribution on (0, bound) is used.
 

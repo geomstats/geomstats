@@ -3,12 +3,12 @@ import random
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import OpenSetTestData
+from .base import VectorSpaceOpenSetTestData
 from .lie_group import MatrixLieGroupTestData
 from .matrices import MatricesMetricTestData
 
 
-class GeneralLinearTestData(MatrixLieGroupTestData, OpenSetTestData):
+class GeneralLinearTestData(MatrixLieGroupTestData, VectorSpaceOpenSetTestData):
     trials = 3
     xfails = ("exp_after_log", "log_after_exp")
 

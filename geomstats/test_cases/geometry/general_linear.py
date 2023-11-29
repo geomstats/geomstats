@@ -2,11 +2,11 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.lie_group import MatrixLieGroupTestCase
 
 
-class GeneralLinearTestCase(MatrixLieGroupTestCase, OpenSetTestCase):
+class GeneralLinearTestCase(MatrixLieGroupTestCase, VectorSpaceOpenSetTestCase):
     def test_orbit(self, point, base_point, time, expected, atol):
         path = self.space.orbit(point, base_point)
         res = path(time)

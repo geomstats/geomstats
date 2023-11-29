@@ -3,7 +3,7 @@ import math
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import OpenSetTestData
+from .base import VectorSpaceOpenSetTestData
 from .matrices import MatricesMetricTestData
 from .pullback_metric import PullbackDiffeoMetricTestData
 from .riemannian_metric import RiemannianMetricTestData
@@ -224,7 +224,7 @@ class CholeskyMapSmokeTestData(TestData):
         return self.generate_tests(data)
 
 
-class SPDMatricesTestData(OpenSetTestData):
+class SPDMatricesTestData(VectorSpaceOpenSetTestData):
     pass
 
 

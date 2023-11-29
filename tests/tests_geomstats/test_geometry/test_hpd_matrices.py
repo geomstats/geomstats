@@ -13,14 +13,14 @@ from geomstats.geometry.hpd_matrices import (
 from geomstats.geometry.spd_matrices import MatrixPower, SymMatrixLog
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.geometry.base import ComplexOpenSetTestCase
+from geomstats.test_cases.geometry.base import ComplexVectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.complex_riemannian_metric import (
     ComplexRiemannianMetricTestCase,
 )
 from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 
-from .data.base import ComplexOpenSetTestData
+from .data.base import ComplexVectorSpaceOpenSetTestData
 from .data.diffeo import DiffeoTestData
 from .data.hpd_matrices import (
     HPDAffineMetricTestData,
@@ -58,18 +58,24 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestHPDMatrices(ComplexOpenSetTestCase, metaclass=DataBasedParametrizer):
-    testing_data = ComplexOpenSetTestData()
+class TestHPDMatrices(
+    ComplexVectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
+):
+    testing_data = ComplexVectorSpaceOpenSetTestData()
 
 
 @pytest.mark.smoke
-class TestHPDMatrices2(ComplexOpenSetTestCase, metaclass=DataBasedParametrizer):
+class TestHPDMatrices2(
+    ComplexVectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
+):
     space = HPDMatrices(n=2, equip=False)
     testing_data = HPDMatrices2TestData()
 
 
 @pytest.mark.smoke
-class TestHPDMatrices3(ComplexOpenSetTestCase, metaclass=DataBasedParametrizer):
+class TestHPDMatrices3(
+    ComplexVectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
+):
     space = HPDMatrices(n=3, equip=False)
     testing_data = HPDMatrices3TestData()
 

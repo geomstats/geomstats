@@ -17,7 +17,7 @@ References
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexOpenSet
+from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.general_linear import GeneralLinear
@@ -29,7 +29,7 @@ from geomstats.integrator import integrate
 from geomstats.vectorization import repeat_out
 
 
-class HPDMatrices(ComplexOpenSet):
+class HPDMatrices(ComplexVectorSpaceOpenSet):
     """Class for the manifold of Hermitian positive definite (HPD) matrices.
 
     Parameters

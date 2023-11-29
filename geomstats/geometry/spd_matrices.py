@@ -6,7 +6,7 @@ Lead author: Yann Thanwerdas.
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.general_linear import GeneralLinear
@@ -432,7 +432,7 @@ class CholeskyMap(Diffeo):
         return mat1 + mat2
 
 
-class SPDMatrices(OpenSet):
+class SPDMatrices(VectorSpaceOpenSet):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
 
     Parameters

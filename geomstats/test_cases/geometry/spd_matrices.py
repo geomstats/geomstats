@@ -1,8 +1,8 @@
-from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
 
-class SPDMatricesTestCase(OpenSetTestCase):
+class SPDMatricesTestCase(VectorSpaceOpenSetTestCase):
     pass
 
 

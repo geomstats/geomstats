@@ -2,11 +2,11 @@ import pytest
 
 import geomstats.backend as gs
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
-class PoincareBallTestCase(OpenSetTestCase):
+class PoincareBallTestCase(VectorSpaceOpenSetTestCase):
     def test_projection_norm_less_than_1(self, point, atol):
         projected_point = self.space.projection(point)
         result = gs.sum(projected_point * projected_point, axis=-1) < 1.0 + atol
