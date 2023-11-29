@@ -223,7 +223,7 @@ class CorrelationMatricesBundle(FiberBundle):
         mat = tangent_vec - 0.5 * aux
         return self.group_action(diagonal_bp ** (-0.5), mat)
 
-    def vertical_projection(self, tangent_vec, base_point, **kwargs):
+    def vertical_projection(self, tangent_vec, base_point):
         """Compute the vertical projection wrt the affine-invariant metric.
 
         Parameters
@@ -263,7 +263,7 @@ class CorrelationMatricesBundle(FiberBundle):
         hor_lift : array-like, shape=[..., n, n]
             Horizontal lift of tangent_vec from point to base_point.
         """
-        if fiber_point is None and base_point is not None:
+        if base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
         diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
         lift = self.group_action(diagonal_point, tangent_vec)

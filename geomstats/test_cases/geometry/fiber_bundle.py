@@ -4,7 +4,7 @@ import geomstats.backend as gs
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.test.random import FiberBundleRandomDataGenerator
+from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
 
@@ -14,9 +14,10 @@ class FiberBundleTestCase(TestCase):
 
     def setup_method(self):
         if not hasattr(self, "data_generator"):
-            self.data_generator = FiberBundleRandomDataGenerator(
-                self.total_space, self.base
-            )
+            self.data_generator = RandomDataGenerator(self.total_space)
+
+        if not hasattr(self, "base_data_generator"):
+            self.base_data_generator = RandomDataGenerator(self.base)
 
     def _test_belongs_to_base(self, point, expected, atol):
         res = self.base.belongs(point, atol=atol)
@@ -58,7 +59,7 @@ class FiberBundleTestCase(TestCase):
 
     @pytest.mark.vec
     def test_lift_vec(self, n_reps, atol):
-        point = self.data_generator.base_random_point()
+        point = self.base_data_generator.random_point()
         expected = self.bundle.lift(point)
 
         vec_data = generate_vectorization_data(
@@ -71,7 +72,7 @@ class FiberBundleTestCase(TestCase):
 
     @pytest.mark.random
     def test_lift_belongs_to_total_space(self, n_points, atol):
-        point = self.data_generator.base_random_point(n_points)
+        point = self.base_data_generator.random_point(n_points)
         lifted_point = self.bundle.lift(point)
 
         expected = gs.ones(n_points, dtype=bool)
@@ -79,7 +80,7 @@ class FiberBundleTestCase(TestCase):
 
     @pytest.mark.random
     def test_riemannian_submersion_after_lift(self, n_points, atol):
-        point = self.data_generator.base_random_point(n_points)
+        point = self.base_data_generator.random_point(n_points)
         lifted_point = self.bundle.lift(point)
         point_ = self.bundle.riemannian_submersion(lifted_point)
 
@@ -309,21 +310,21 @@ class FiberBundleTestCase(TestCase):
 
     @pytest.mark.vec
     def test_horizontal_lift_vec(self, n_reps, atol):
-        fiber_point = self.data_generator.random_point()
-        tangent_vec = self.data_generator.random_tangent_vec(fiber_point)
+        base_point = self.base_data_generator.random_point()
+        tangent_vec = self.base_data_generator.random_tangent_vec(base_point)
 
-        expected = self.bundle.horizontal_lift(tangent_vec, fiber_point=fiber_point)
+        expected = self.bundle.horizontal_lift(tangent_vec, base_point=base_point)
 
         vec_data = generate_vectorization_data(
             data=[
                 dict(
                     tangent_vec=tangent_vec,
-                    fiber_point=fiber_point,
+                    base_point=base_point,
                     expected=expected,
                     atol=atol,
                 )
             ],
-            arg_names=["tangent_vec", "fiber_point"],
+            arg_names=["tangent_vec", "base_point"],
             expected_name="expected",
             vectorization_type="sym" if self.tangent_to_multiple else "repeat-0",
             n_reps=n_reps,
@@ -332,17 +333,21 @@ class FiberBundleTestCase(TestCase):
 
     @pytest.mark.random
     def test_horizontal_lift_is_horizontal(self, n_points, atol):
-        fiber_point = self.data_generator.random_point(n_points)
-        tangent_vec = self.data_generator.random_tangent_vec(fiber_point)
+        base_point = self.base_data_generator.random_point(n_points)
+        tangent_vec = self.base_data_generator.random_tangent_vec(base_point)
 
-        horizontal = self.bundle.horizontal_lift(tangent_vec, fiber_point=fiber_point)
+        fiber_point = self.bundle.lift(base_point)
+        horizontal = self.bundle.horizontal_lift(
+            tangent_vec, base_point=base_point, fiber_point=fiber_point
+        )
+
         expected = gs.ones(n_points, dtype=bool)
         self.test_is_horizontal(horizontal, fiber_point, expected, atol)
 
     @pytest.mark.random
     def test_tangent_riemannian_submersion_after_horizontal_lift(self, n_points, atol):
-        base_point = self.data_generator.base_random_point(n_points)
-        tangent_vec = self.data_generator.base_random_tangent_vec(base_point)
+        base_point = self.base_data_generator.random_point(n_points)
+        tangent_vec = self.base_data_generator.random_tangent_vec(base_point)
         fiber_point = self.bundle.lift(base_point)
 
         horizontal = self.bundle.horizontal_lift(tangent_vec, fiber_point=fiber_point)
@@ -477,15 +482,19 @@ class GeneralLinearBuresWassersteinBundle(FiberBundle):
         return 2 * Matrices.to_symmetric(product)
 
     def horizontal_lift(self, tangent_vec, base_point=None, fiber_point=None):
+        if base_point is None and fiber_point is None:
+            raise ValueError(
+                "Either a point (of the total space) or a "
+                "base point (of the base manifold) must be "
+                "given."
+            )
+
         if base_point is None:
-            if fiber_point is not None:
-                base_point = self.riemannian_submersion(fiber_point)
-            else:
-                raise ValueError(
-                    "Either a point (of the total space) or a "
-                    "base point (of the base manifold) must be "
-                    "given."
-                )
+            base_point = self.riemannian_submersion(fiber_point)
+
+        if fiber_point is None:
+            fiber_point = self.lift(base_point)
+
         sylvester = gs.linalg.solve_sylvester(base_point, base_point, tangent_vec)
         return Matrices.mul(sylvester, fiber_point)
 

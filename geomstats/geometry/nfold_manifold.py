@@ -198,7 +198,7 @@ class NFoldMetric(RiemannianMetric):
         Scale of each metric in the product.
     """
 
-    def __init__(self, space, scales=None):
+    def __init__(self, space, scales=None, signature=None):
         if scales is not None:
             for scale in scales:
                 geomstats.errors.check_positive(scale, "Each value in scales")
@@ -209,7 +209,7 @@ class NFoldMetric(RiemannianMetric):
                 )
         self.scales = scales
 
-        super().__init__(space=space)
+        super().__init__(space=space, signature=signature)
 
     def metric_matrix(self, base_point):
         """Compute the matrix of the inner-product.
@@ -241,6 +241,43 @@ class NFoldMetric(RiemannianMetric):
 
         return reshaped
 
+    def pointwise_inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Pointwise inner product.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n_copies, *base_shape]
+            First tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., n_copies, *base_shape]
+            Second tangent vector at base point.
+        base_point : array-like, shape=[..., n_copies, *base_shape]
+            Point on the manifold.
+            Optional, default: None.
+
+        Returns
+        -------
+        pointwise_inner_prod : array-like, shape=[..., n_copies]
+            Inner-product of the two tangent vectors.
+        """
+        base_manifold = self._space.base_manifold
+
+        tangent_vec_a_, tangent_vec_b_, point_ = gs.broadcast_arrays(
+            tangent_vec_a, tangent_vec_b, base_point
+        )
+        batch_shape = get_batch_shape(self._space.point_ndim, tangent_vec_a_)
+
+        point_ = gs.reshape(point_, (-1, *base_manifold.shape))
+        vector_a = gs.reshape(tangent_vec_a_, (-1, *base_manifold.shape))
+        vector_b = gs.reshape(tangent_vec_b_, (-1, *base_manifold.shape))
+        inner_each = base_manifold.metric.inner_product(vector_a, vector_b, point_)
+
+        reshaped = gs.reshape(inner_each, batch_shape + (self._space.n_copies,))
+
+        if self.scales is not None:
+            reshaped = gs.einsum("j,...j->...j", self.scales, reshaped)
+
+        return reshaped
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the inner-product of two tangent vectors at a base point.
 
@@ -262,24 +299,33 @@ class NFoldMetric(RiemannianMetric):
         inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
-        base_manifold = self._space.base_manifold
-
-        tangent_vec_a_, tangent_vec_b_, point_ = gs.broadcast_arrays(
-            tangent_vec_a, tangent_vec_b, base_point
+        return gs.sum(
+            self.pointwise_inner_product(tangent_vec_a, tangent_vec_b, base_point),
+            axis=-1,
         )
-        batch_shape = get_batch_shape(self._space.point_ndim, tangent_vec_a_)
 
-        point_ = gs.reshape(point_, (-1, *base_manifold.shape))
-        vector_a = gs.reshape(tangent_vec_a_, (-1, *base_manifold.shape))
-        vector_b = gs.reshape(tangent_vec_b_, (-1, *base_manifold.shape))
-        inner_each = base_manifold.metric.inner_product(vector_a, vector_b, point_)
+    def pointwise_norm(self, tangent_vec, base_point):
+        """Compute the pointwise norms of a tangent vector.
 
-        reshaped = gs.reshape(inner_each, batch_shape + (self._space.n_copies,))
+        Compute the norms of the components of a tangent vector at the different
+        sampling points of a base curve.
 
-        if self.scales is not None:
-            reshaped = gs.einsum("j,...j->...j", self.scales, reshaped)
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n_copies, *base_shape]
+            Tangent vector to discrete curve.
+        base_point : array-like, shape=[..., n_copies, *base_shape]
+            Point representing a discrete curve.
 
-        return gs.sum(reshaped, axis=-1)
+        Returns
+        -------
+        norm : array-like, shape=[..., *base_shape]
+            Point-wise norms.
+        """
+        sq_norm = self.pointwise_inner_product(
+            tangent_vec_a=tangent_vec, tangent_vec_b=tangent_vec, base_point=base_point
+        )
+        return gs.sqrt(sq_norm)
 
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
@@ -332,77 +378,3 @@ class NFoldMetric(RiemannianMetric):
         point_ = gs.reshape(point_, (-1, *base_manifold.shape))
         each_log = base_manifold.metric.log(point_, base_point_)
         return gs.reshape(each_log, batch_shape + self._space.shape)
-
-    def geodesic(self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial landmark set and an initial tangent vector,
-        - an initial landmark set and an end landmark set.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[..., dim]
-            Landmark set, initial point of the geodesic.
-        end_point : array-like, shape=[..., dim]
-            Landmark set, end point of the geodesic. If None,
-            an initial tangent vector must be given.
-            Optional, default : None
-        initial_tangent_vec : array-like, shape=[..., dim]
-            Tangent vector at base point, the initial speed of the geodesics.
-            If None, an end point must be given and a logarithm is computed.
-            Optional, default : None
-
-        Returns
-        -------
-        path : callable
-            Time parameterized geodesic curve.
-        """
-        if end_point is None and initial_tangent_vec is None:
-            raise ValueError(
-                "Specify an end landmark set or an initial tangent"
-                "vector to define the geodesic."
-            )
-        if end_point is not None:
-            shooting_tangent_vec = self.log(point=end_point, base_point=initial_point)
-            if initial_tangent_vec is not None:
-                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
-                    raise RuntimeError(
-                        "The shooting tangent vector is too"
-                        " far from the initial tangent vector."
-                    )
-            initial_tangent_vec = shooting_tangent_vec
-
-        initial_point, initial_tangent_vec = gs.broadcast_arrays(
-            initial_point, initial_tangent_vec
-        )
-        is_batch = initial_tangent_vec.ndim > self._space.point_ndim
-
-        def path(t):
-            if not gs.is_array(t):
-                t = gs.array([t])
-
-            if gs.ndim(t) == 0:
-                t = gs.expand_dims(t, axis=0)
-
-            def _path_single(initial_tangent_vec, initial_point):
-                idx = "ijk"[: self._space.point_ndim]
-                tangent_vec = gs.einsum(
-                    f"...,...{idx}->...{idx}", t, initial_tangent_vec
-                )
-                return self.exp(tangent_vec=tangent_vec, base_point=initial_point)
-
-            if not is_batch:
-                return _path_single(initial_tangent_vec, initial_point)
-
-            return gs.stack(
-                [
-                    _path_single(initial_tangent_vec_, initial_point_)
-                    for initial_tangent_vec_, initial_point_ in zip(
-                        initial_tangent_vec, initial_point
-                    )
-                ]
-            )
-
-        return path

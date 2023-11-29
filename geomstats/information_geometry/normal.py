@@ -10,11 +10,9 @@ from scipy.stats import multivariate_normal, norm
 import geomstats.backend as gs
 import geomstats.errors as errors
 from geomstats.geometry.base import VectorSpaceOpenSet
+from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.poincare_half_space import (
-    PoincareHalfSpace,
-    PoincareHalfSpaceMetric,
-)
+from geomstats.geometry.poincare_half_space import PoincareHalfSpace
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -563,27 +561,8 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         return pdf
 
 
-class UnivariateNormalMetric(PullbackDiffeoMetric):
-    """Class for the Fisher information metric on univariate normal distributions.
-
-    This is the pullback of the metric of the Poincare upper half-plane
-    by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
-    """
-
-    def _define_embedding_space(self):
-        r"""Define the equipped space with the metric to pull back.
-
-        This is the metric of the Poincare upper half-plane
-        with a scaling factor of 2.
-
-        Returns
-        -------
-        embedding_metric : RiemannianMetric object
-            The metric of the Poincare upper half-plane.
-        """
-        space = PoincareHalfSpace(dim=2)
-        space.metric = ScalarProductMetric(PoincareHalfSpaceMetric(space), 2.0)
-        return space
+class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
+    """Diffeomorphism from univariate normal to Poincare half space."""
 
     def diffeomorphism(self, base_point):
         r"""Image of base point in the Poincare upper half-plane.
@@ -627,7 +606,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
             [image_point[..., 0] * gs.sqrt(2.0), image_point[..., 1]], axis=-1
         )
 
-    def tangent_diffeomorphism(self, tangent_vec, base_point):
+    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
         r"""Image of tangent vector.
 
         This is the image by the tangent map of the diffeomorphism
@@ -637,9 +616,10 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         ----------
         tangent_vec : array-like, shape=[..., 2]
             Tangent vector at base point.
-
         base_point : array-like, shape=[..., 2]
             Base point representing a normal distribution.
+        image_point : array-like, shape=[..., *shape]
+            Image point.
 
         Returns
         -------
@@ -648,7 +628,9 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         """
         return self.diffeomorphism(tangent_vec)
 
-    def inverse_tangent_diffeomorphism(self, image_tangent_vec, image_point):
+    def inverse_tangent_diffeomorphism(
+        self, image_tangent_vec, image_point=None, base_point=None
+    ):
         r"""Inverse image of tangent vector.
 
         This is the inverse image by the tangent map of the diffeomorphism
@@ -658,9 +640,10 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
         ----------
         image_tangent_vec : array-like, shape=[..., 2]
             Image of a tangent vector at image_point.
-
         image_point : array-like, shape=[..., 2]
             Image of a point representing a normal distribution.
+        base_point : array-like, shape=[..., *shape]
+            Base point.
 
         Returns
         -------
@@ -668,6 +651,20 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
             Inverse image of image_tangent_vec.
         """
         return self.inverse_diffeomorphism(image_tangent_vec)
+
+
+class UnivariateNormalMetric(PullbackDiffeoMetric):
+    """Class for the Fisher information metric on univariate normal distributions.
+
+    This is the pullback of the metric of the Poincare upper half-plane
+    by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
+    """
+
+    def __init__(self, space):
+        diffeo = UnivariateNormalToPoincareHalfSpaceDiffeo()
+        image_space = PoincareHalfSpace(dim=2)
+        image_space.metric = ScalarProductMetric(image_space.metric, 2.0)
+        super().__init__(space, diffeo, image_space)
 
     @staticmethod
     def metric_matrix(base_point):

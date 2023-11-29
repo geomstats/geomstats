@@ -7,15 +7,429 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpaceOpenSet
+from geomstats.geometry.complex_matrices import ComplexMatrices
+from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.positive_lower_triangular_matrices import (
-    PositiveLowerTriangularMatrices,
-)
+from geomstats.geometry.hermitian_matrices import apply_func_to_eigvalsh, expmh, powermh
+from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.integrator import integrate
 from geomstats.vectorization import repeat_out
+
+
+def logmh(mat):
+    """Compute the matrix log for a Hermitian matrix."""
+    n = mat.shape[-1]
+    dim_3_mat = gs.reshape(mat, [-1, n, n])
+    logm = apply_func_to_eigvalsh(dim_3_mat, gs.log, check_positive=True)
+    return gs.reshape(logm, mat.shape)
+
+
+def _aux_differential_power(power, tangent_vec, base_point):
+    """Compute the differential of the matrix power.
+
+    Auxiliary function to the functions differential_power and
+    inverse_differential_power.
+
+    Parameters
+    ----------
+    power : float
+        Power function to differentiate.
+    tangent_vec : array_like, shape=[..., n, n]
+        Tangent vector at base point.
+    base_point : array_like, shape=[..., n, n]
+        Base point.
+
+    Returns
+    -------
+    eigvectors : array-like, shape=[..., n, n]
+    transp_eigvectors : array-like, shape=[..., n, n]
+    numerator : array-like, shape=[..., n, n]
+    denominator : array-like, shape=[..., n, n]
+    temp_result : array-like, shape=[..., n, n]
+    """
+    eigvalues, eigvectors = gs.linalg.eigh(base_point)
+
+    if power == 0:
+        powered_eigvalues = gs.log(eigvalues)
+    elif power == math.inf:
+        powered_eigvalues = gs.exp(eigvalues)
+    else:
+        powered_eigvalues = eigvalues**power
+
+    denominator = eigvalues[..., :, None] - eigvalues[..., None, :]
+    numerator = powered_eigvalues[..., :, None] - powered_eigvalues[..., None, :]
+
+    null_denominator = gs.abs(denominator) < gs.atol
+    if power == 0:
+        numerator = gs.where(null_denominator, gs.ones_like(numerator), numerator)
+        denominator = gs.where(null_denominator, eigvalues[..., :, None], denominator)
+    elif power == math.inf:
+        numerator = gs.where(
+            null_denominator, powered_eigvalues[..., :, None], numerator
+        )
+        denominator = gs.where(null_denominator, gs.ones_like(numerator), denominator)
+    else:
+        numerator = gs.where(
+            null_denominator, power * powered_eigvalues[..., :, None], numerator
+        )
+        denominator = gs.where(null_denominator, eigvalues[..., :, None], denominator)
+
+    if gs.is_complex(base_point):
+        transp_eigvectors = ComplexMatrices.transconjugate(eigvectors)
+    else:
+        transp_eigvectors = Matrices.transpose(eigvectors)
+
+    temp_result = Matrices.mul(transp_eigvectors, tangent_vec, eigvectors)
+
+    if gs.is_complex(base_point):
+        numerator = gs.cast(numerator, dtype=temp_result.dtype)
+        denominator = gs.cast(denominator, dtype=temp_result.dtype)
+
+    return (eigvectors, transp_eigvectors, numerator, denominator, temp_result)
+
+
+class SymMatrixLog(Diffeo):
+    """Matrix logarithm diffeomorphism.
+
+    A diffeomorphism from the space of symmetric positive-definite matrices to
+    the space of symmetric matrices.
+    """
+
+    @classmethod
+    def diffeomorphism(cls, base_point):
+        """Compute the matrix log for a symmetric matrix.
+
+        Parameters
+        ----------
+        base_point : array_like, shape=[..., n, n]
+            Symmetric matrix.
+
+        Returns
+        -------
+        log : array_like, shape=[..., n, n]
+            Matrix logarithm of base_point.
+        """
+        return logmh(base_point)
+
+    @classmethod
+    def inverse_diffeomorphism(cls, image_point):
+        """Compute the matrix exponential for a symmetric matrix.
+
+        Parameters
+        ----------
+        image_point : array_like, shape=[..., n, n]
+            Symmetric matrix.
+
+        Returns
+        -------
+        exponential : array_like, shape=[..., n, n]
+            Exponential of image_point.
+        """
+        return expmh(image_point)
+
+    @classmethod
+    def tangent_diffeomorphism(cls, tangent_vec, base_point=None, image_point=None):
+        """Compute the differential of the matrix logarithm.
+
+        Compute the differential of the matrix logarithm on SPD
+        matrices at base_point applied to tangent_vec.
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+        image_point : array_like, shape=[..., n, n]
+            Image base point.
+
+        Returns
+        -------
+        differential_log : array-like, shape=[..., n, n]
+            Differential of the matrix logarithm.
+        """
+        if base_point is not None:
+            (
+                eigvectors,
+                transp_eigvectors,
+                numerator,
+                denominator,
+                temp_result,
+            ) = _aux_differential_power(0, tangent_vec, base_point)
+            power_operator = numerator / denominator
+        else:
+            (
+                eigvectors,
+                transp_eigvectors,
+                numerator,
+                denominator,
+                temp_result,
+            ) = _aux_differential_power(math.inf, tangent_vec, image_point)
+            power_operator = denominator / numerator
+
+        result = power_operator * temp_result
+        return Matrices.mul(eigvectors, result, transp_eigvectors)
+
+    @classmethod
+    def inverse_tangent_diffeomorphism(
+        cls, image_tangent_vec, image_point=None, base_point=None
+    ):
+        """Compute the differential of the matrix exponential.
+
+        Computes the differential of the matrix exponential on SPD
+        matrices at base_point applied to tangent_vec.
+
+        Parameters
+        ----------
+        image_tangent_vec : array_like, shape=[..., n, n]
+            Image tangent vector at image point.
+        image_point : array_like, shape=[..., n, n]
+            Image point.
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        differential_exp : array-like, shape=[..., n, n]
+            Differential of the matrix exponential.
+        """
+        if image_point is not None:
+            (
+                eigvectors,
+                transp_eigvectors,
+                numerator,
+                denominator,
+                temp_result,
+            ) = _aux_differential_power(math.inf, image_tangent_vec, image_point)
+            power_operator = numerator / denominator
+        else:
+            (
+                eigvectors,
+                transp_eigvectors,
+                numerator,
+                denominator,
+                temp_result,
+            ) = _aux_differential_power(0, image_tangent_vec, base_point)
+            power_operator = denominator / numerator
+
+        result = power_operator * temp_result
+        return Matrices.mul(eigvectors, result, transp_eigvectors)
+
+
+class MatrixPower(Diffeo):
+    """Matrix power diffeomorphism.
+
+    A diffeomorphism from the space of symmetric positive-definite matrices to
+    itself.
+    """
+
+    def __init__(self, power):
+        self.power = power
+
+    def diffeomorphism(self, base_point):
+        """Compute the matrix power.
+
+        Parameters
+        ----------
+        base_point : array_like, shape=[..., n, n]
+            Symmetric matrix with non-negative eigenvalues.
+
+        Returns
+        -------
+        powerm : array_like or list of arrays, shape=[..., n, n]
+            Matrix power of mat.
+        """
+        return powermh(base_point, self.power)
+
+    def inverse_diffeomorphism(self, image_point):
+        """Compute the inverse matrix power.
+
+        Parameters
+        ----------
+        image_point : array_like, shape=[..., n, n]
+            Symmetric matrix with non-negative eigenvalues.
+
+        Returns
+        -------
+        powerm : array_like or list of arrays, shape=[..., n, n]
+            Matrix power of mat.
+        """
+        return powermh(image_point, 1 / self.power)
+
+    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+        r"""Compute the differential of the matrix power function.
+
+        Compute the differential of the power function on SPD(n)
+        (:math:`A^p=\exp(p \log(A))`) at base_point applied to tangent_vec.
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+        image_point : array_like, shape=[..., n, n]
+            Image base point.
+
+        Returns
+        -------
+        differential_power : array-like, shape=[..., n, n]
+            Differential of the power function.
+        """
+        if base_point is None:
+            base_point = self.inverse_diffeomorphism(image_point)
+        (
+            eigvectors,
+            transp_eigvectors,
+            numerator,
+            denominator,
+            temp_result,
+        ) = _aux_differential_power(self.power, tangent_vec, base_point)
+
+        power_operator = numerator / denominator
+        result = power_operator * temp_result
+        return Matrices.mul(eigvectors, result, transp_eigvectors)
+
+    def inverse_tangent_diffeomorphism(
+        self, image_tangent_vec, image_point=None, base_point=None
+    ):
+        r"""Compute the inverse of the differential of the matrix power.
+
+        Compute the inverse of the differential of the power
+        function on SPD matrices (:math:`A^p=\exp(p \log(A))`) at base_point
+        applied to tangent_vec.
+
+        Parameters
+        ----------
+        image_tangent_vec : array_like, shape=[..., n, n]
+            Image tangent vector at image point.
+        image_base_point : array_like, shape=[..., n, n]
+            Image point.
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        inverse_differential_power : array-like, shape=[..., n, n]
+            Inverse of the differential of the power function.
+        """
+        if base_point is None:
+            base_point = self.inverse_diffeomorphism(image_point)
+        (
+            eigvectors,
+            transp_eigvectors,
+            numerator,
+            denominator,
+            temp_result,
+        ) = _aux_differential_power(self.power, image_tangent_vec, base_point)
+        power_operator = denominator / numerator
+        result = power_operator * temp_result
+        return Matrices.mul(eigvectors, result, transp_eigvectors)
+
+
+class CholeskyMap(Diffeo):
+    """Cholesky map.
+
+    A diffeomorphism from the space of symmetric positive-definite matrices to
+    the space of positive lower triangular matrices.
+    """
+
+    @classmethod
+    def diffeomorphism(cls, base_point):
+        """Compute cholesky factor.
+
+        Compute cholesky factor for a symmetric positive definite matrix.
+
+        Parameters
+        ----------
+        base_point : array_like, shape=[..., n, n]
+            spd matrix.
+
+        Returns
+        -------
+        cf : array_like, shape=[..., n, n]
+            lower triangular matrix with positive diagonal elements.
+        """
+        return gs.linalg.cholesky(base_point)
+
+    @staticmethod
+    def inverse_diffeomorphism(image_point):
+        """Compute gram matrix of rows.
+
+        Gram_matrix is mapping from point to point.point^{T}.
+        This is diffeomorphism between cholesky space and spd manifold.
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., n, n]
+            element in cholesky space.
+
+        Returns
+        -------
+        projected: array-like, shape=[..., n, n]
+            SPD matrix.
+        """
+        return gs.einsum("...ij,...kj->...ik", image_point, image_point)
+
+    @classmethod
+    def tangent_diffeomorphism(cls, tangent_vec, base_point=None, image_point=None):
+        """Compute the differential of the cholesky factor map.
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+        image_point : array_like, shape=[..., n, n]
+            Image base point.
+
+        Returns
+        -------
+        differential_cf : array-like, shape=[..., n, n]
+            Differential of cholesky factor map
+            lower triangular matrix.
+        """
+        if image_point is None:
+            image_point = cls.diffeomorphism(base_point)
+
+        inv_base_point = gs.linalg.inv(image_point)
+        inv_transpose_base_point = Matrices.transpose(inv_base_point)
+        aux = Matrices.to_lower_triangular_diagonal_scaled(
+            Matrices.mul(inv_base_point, tangent_vec, inv_transpose_base_point)
+        )
+        return Matrices.mul(image_point, aux)
+
+    @classmethod
+    def inverse_tangent_diffeomorphism(
+        cls, image_tangent_vec, image_point=None, base_point=None
+    ):
+        """Compute differential of gram.
+
+        Parameters
+        ----------
+        image_tangent_vec : array_like, shape=[..., n, n]
+            Tangent vector at base point.
+        image_point : array_like, shape=[..., n, n]
+            Base point.
+        base_point : array_like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        differential_gram : array-like, shape=[..., n, n]
+            Differential of the gram.
+        """
+        if image_point is None:
+            image_point = cls.diffeomorphism(base_point)
+
+        mat1 = gs.einsum("...ij,...kj->...ik", image_tangent_vec, image_point)
+        mat2 = gs.einsum("...ij,...kj->...ik", image_point, image_tangent_vec)
+        return mat1 + mat2
 
 
 class SPDMatrices(VectorSpaceOpenSet):
@@ -133,321 +547,8 @@ class SPDMatrices(VectorSpaceOpenSet):
 
         return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
-    @staticmethod
-    def _aux_differential_power(power, tangent_vec, base_point):
-        """Compute the differential of the matrix power.
-
-        Auxiliary function to the functions differential_power and
-        inverse_differential_power.
-
-        Parameters
-        ----------
-        power : float
-            Power function to differentiate.
-        tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array_like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        eigvectors : array-like, shape=[..., n, n]
-        transp_eigvectors : array-like, shape=[..., n, n]
-        numerator : array-like, shape=[..., n, n]
-        denominator : array-like, shape=[..., n, n]
-        temp_result : array-like, shape=[..., n, n]
-        """
-        eigvalues, eigvectors = gs.linalg.eigh(base_point)
-
-        if power == 0:
-            powered_eigvalues = gs.log(eigvalues)
-        elif power == math.inf:
-            powered_eigvalues = gs.exp(eigvalues)
-        else:
-            powered_eigvalues = eigvalues**power
-
-        denominator = eigvalues[..., :, None] - eigvalues[..., None, :]
-        numerator = powered_eigvalues[..., :, None] - powered_eigvalues[..., None, :]
-
-        null_denominator = gs.abs(denominator) < gs.atol
-        if power == 0:
-            numerator = gs.where(null_denominator, gs.ones_like(numerator), numerator)
-            denominator = gs.where(
-                null_denominator, eigvalues[..., :, None], denominator
-            )
-        elif power == math.inf:
-            numerator = gs.where(
-                null_denominator, powered_eigvalues[..., :, None], numerator
-            )
-            denominator = gs.where(
-                null_denominator, gs.ones_like(numerator), denominator
-            )
-        else:
-            numerator = gs.where(
-                null_denominator, power * powered_eigvalues[..., :, None], numerator
-            )
-            denominator = gs.where(
-                null_denominator, eigvalues[..., :, None], denominator
-            )
-
-        transp_eigvectors = Matrices.transpose(eigvectors)
-        temp_result = Matrices.mul(transp_eigvectors, tangent_vec, eigvectors)
-
-        return (eigvectors, transp_eigvectors, numerator, denominator, temp_result)
-
-    @classmethod
-    def differential_power(cls, power, tangent_vec, base_point):
-        r"""Compute the differential of the matrix power function.
-
-        Compute the differential of the power function on SPD(n)
-        (:math:`A^p=\exp(p \log(A))`) at base_point applied to tangent_vec.
-
-        Parameters
-        ----------
-        power : int
-            Power.
-        tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array_like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        differential_power : array-like, shape=[..., n, n]
-            Differential of the power function.
-        """
-        (
-            eigvectors,
-            transp_eigvectors,
-            numerator,
-            denominator,
-            temp_result,
-        ) = cls._aux_differential_power(power, tangent_vec, base_point)
-        power_operator = numerator / denominator
-        result = power_operator * temp_result
-        return Matrices.mul(eigvectors, result, transp_eigvectors)
-
-    @classmethod
-    def inverse_differential_power(cls, power, tangent_vec, base_point):
-        r"""Compute the inverse of the differential of the matrix power.
-
-        Compute the inverse of the differential of the power
-        function on SPD matrices (:math:`A^p=\exp(p \log(A))`) at base_point
-        applied to tangent_vec.
-
-        Parameters
-        ----------
-        power : int
-            Power.
-        tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array_like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        inverse_differential_power : array-like, shape=[..., n, n]
-            Inverse of the differential of the power function.
-        """
-        (
-            eigvectors,
-            transp_eigvectors,
-            numerator,
-            denominator,
-            temp_result,
-        ) = cls._aux_differential_power(power, tangent_vec, base_point)
-        power_operator = denominator / numerator
-        result = power_operator * temp_result
-        return Matrices.mul(eigvectors, result, transp_eigvectors)
-
-    @classmethod
-    def differential_log(cls, tangent_vec, base_point):
-        """Compute the differential of the matrix logarithm.
-
-        Compute the differential of the matrix logarithm on SPD
-        matrices at base_point applied to tangent_vec.
-
-        Parameters
-        ----------
-        tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array_like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        differential_log : array-like, shape=[..., n, n]
-            Differential of the matrix logarithm.
-        """
-        (
-            eigvectors,
-            transp_eigvectors,
-            numerator,
-            denominator,
-            temp_result,
-        ) = cls._aux_differential_power(0, tangent_vec, base_point)
-        power_operator = numerator / denominator
-        result = power_operator * temp_result
-        return Matrices.mul(eigvectors, result, transp_eigvectors)
-
-    @classmethod
-    def inverse_differential_log(cls, tangent_vec, base_point):
-        """Compute the inverse of the differential of the matrix logarithm.
-
-        Compute the inverse of the differential of the matrix
-        logarithm on SPD matrices at base_point applied to tangent_vec.
-
-        Parameters
-        ----------
-        tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array_like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        inverse_differential_log : array-like, shape=[..., n, n]
-            Inverse of the differential of the matrix logarithm.
-        """
-        (
-            eigvectors,
-            transp_eigvectors,
-            numerator,
-            denominator,
-            temp_result,
-        ) = cls._aux_differential_power(0, tangent_vec, base_point)
-        power_operator = denominator / numerator
-        result = power_operator * temp_result
-        return Matrices.mul(eigvectors, result, transp_eigvectors)
-
-    @classmethod
-    def differential_exp(cls, tangent_vec, base_point):
-        """Compute the differential of the matrix exponential.
-
-        Computes the differential of the matrix exponential on SPD
-        matrices at base_point applied to tangent_vec.
-
-        Parameters
-        ----------
-        tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array_like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        differential_exp : array-like, shape=[..., n, n]
-            Differential of the matrix exponential.
-        """
-        (
-            eigvectors,
-            transp_eigvectors,
-            numerator,
-            denominator,
-            temp_result,
-        ) = cls._aux_differential_power(math.inf, tangent_vec, base_point)
-        power_operator = numerator / denominator
-        result = power_operator * temp_result
-        return Matrices.mul(eigvectors, result, transp_eigvectors)
-
-    @classmethod
-    def inverse_differential_exp(cls, tangent_vec, base_point):
-        """Compute the inverse of the differential of the matrix exponential.
-
-        Computes the inverse of the differential of the matrix
-        exponential on SPD matrices at base_point applied to tangent_vec.
-
-        Parameters
-        ----------
-        tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array_like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        inverse_differential_exp : array-like, shape=[..., n, n]
-            Inverse of the differential of the matrix exponential.
-        """
-        (
-            eigvectors,
-            transp_eigvectors,
-            numerator,
-            denominator,
-            temp_result,
-        ) = cls._aux_differential_power(math.inf, tangent_vec, base_point)
-        power_operator = denominator / numerator
-        result = power_operator * temp_result
-        return Matrices.mul(eigvectors, result, transp_eigvectors)
-
-    @classmethod
-    def logm(cls, mat):
-        """Compute the matrix log for a symmetric matrix.
-
-        Parameters
-        ----------
-        mat : array_like, shape=[..., n, n]
-            Symmetric matrix.
-
-        Returns
-        -------
-        log : array_like, shape=[..., n, n]
-            Matrix logarithm of mat.
-        """
-        n = mat.shape[-1]
-        dim_3_mat = gs.reshape(mat, [-1, n, n])
-        logm = SymmetricMatrices.apply_func_to_eigvals(
-            dim_3_mat, gs.log, check_positive=True
-        )
-        return gs.reshape(logm, mat.shape)
-
-    expm = SymmetricMatrices.expm
-    powerm = SymmetricMatrices.powerm
     from_vector = SymmetricMatrices.__dict__["from_vector"]
     to_vector = SymmetricMatrices.__dict__["to_vector"]
-
-    @classmethod
-    def cholesky_factor(cls, mat):
-        """Compute cholesky factor.
-
-        Compute cholesky factor for a symmetric positive definite matrix.
-
-        Parameters
-        ----------
-        mat : array_like, shape=[..., n, n]
-            spd matrix.
-
-        Returns
-        -------
-        cf : array_like, shape=[..., n, n]
-            lower triangular matrix with positive diagonal elements.
-        """
-        return gs.linalg.cholesky(mat)
-
-    @classmethod
-    def differential_cholesky_factor(cls, tangent_vec, base_point):
-        """Compute the differential of the cholesky factor map.
-
-        Parameters
-        ----------
-        tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector at base point.
-            symmetric matrix.
-
-        base_point : array_like, shape=[..., n, n]
-            Base point.
-            spd matrix.
-
-        Returns
-        -------
-        differential_cf : array-like, shape=[..., n, n]
-            Differential of cholesky factor map
-            lower triangular matrix.
-        """
-        cf = cls.cholesky_factor(base_point)
-        return PositiveLowerTriangularMatrices.inverse_differential_gram(
-            tangent_vec, cf
-        )
 
 
 class SPDAffineMetric(RiemannianMetric):
@@ -465,32 +566,6 @@ class SPDAffineMetric(RiemannianMetric):
         SPD matrices? A principled continuum of metrics" Proc. of GSI,
         2019. https://arxiv.org/abs/1906.01349
     """
-
-    def __init__(self, space, power_affine=1):
-        super().__init__(space=space)
-        self.power_affine = power_affine
-
-    @staticmethod
-    def _aux_inner_product(tangent_vec_a, tangent_vec_b, inv_base_point):
-        """Compute the inner-product (auxiliary).
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
-        tangent_vec_b : array-like, shape=[..., n, n]
-        inv_base_point : array-like, shape=[..., n, n]
-
-        Returns
-        -------
-        inner_product : array-like, shape=[...]
-        """
-        aux_a = Matrices.mul(inv_base_point, tangent_vec_a)
-        aux_b = Matrices.mul(inv_base_point, tangent_vec_b)
-
-        # Use product instead of matrix product and trace to save time
-        inner_product = Matrices.trace_product(aux_a, aux_b)
-
-        return inner_product
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the affine-invariant inner-product.
@@ -512,53 +587,11 @@ class SPDAffineMetric(RiemannianMetric):
         inner_product : array-like, shape=[..., n, n]
             Inner-product.
         """
-        power_affine = self.power_affine
-        spd_space = SPDMatrices
+        inv_base_point = GeneralLinear.inverse(base_point)
+        aux_a = Matrices.mul(inv_base_point, tangent_vec_a)
+        aux_b = Matrices.mul(inv_base_point, tangent_vec_b)
 
-        if power_affine == 1:
-            inv_base_point = GeneralLinear.inverse(base_point)
-            inner_product = self._aux_inner_product(
-                tangent_vec_a, tangent_vec_b, inv_base_point
-            )
-        else:
-            modified_tangent_vec_a = spd_space.differential_power(
-                power_affine, tangent_vec_a, base_point
-            )
-            modified_tangent_vec_b = spd_space.differential_power(
-                power_affine, tangent_vec_b, base_point
-            )
-            power_inv_base_point = SymmetricMatrices.powerm(base_point, -power_affine)
-            inner_product = self._aux_inner_product(
-                modified_tangent_vec_a, modified_tangent_vec_b, power_inv_base_point
-            )
-
-            inner_product = inner_product / (power_affine**2)
-
-        return inner_product
-
-    @staticmethod
-    def _aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point):
-        """Compute the exponential map (auxiliary function).
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-        sqrt_base_point : array-like, shape=[..., n, n]
-        inv_sqrt_base_point : array-like, shape=[..., n, n]
-
-        Returns
-        -------
-        exp : array-like, shape=[..., n, n]
-        """
-        tangent_vec_at_id = Matrices.mul(
-            inv_sqrt_base_point, tangent_vec, inv_sqrt_base_point
-        )
-
-        tangent_vec_at_id = Matrices.to_symmetric(tangent_vec_at_id)
-        exp_from_id = SymmetricMatrices.expm(tangent_vec_at_id)
-
-        exp = Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
-        return exp
+        return Matrices.trace_product(aux_a, aux_b)
 
     def exp(self, tangent_vec, base_point):
         """Compute the affine-invariant exponential map.
@@ -579,46 +612,16 @@ class SPDAffineMetric(RiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Riemannian exponential.
         """
-        power_affine = self.power_affine
+        sqrt_base_point, inv_sqrt_base_point = powermh(base_point, [1.0 / 2, -1.0 / 2])
 
-        if power_affine == 1:
-            powers = SymmetricMatrices.powerm(base_point, [1.0 / 2, -1.0 / 2])
-            exp = self._aux_exp(tangent_vec, powers[0], powers[1])
-        else:
-            modified_tangent_vec = SPDMatrices.differential_power(
-                power_affine, tangent_vec, base_point
-            )
-            power_sqrt_base_point = SymmetricMatrices.powerm(
-                base_point, power_affine / 2
-            )
-            power_inv_sqrt_base_point = GeneralLinear.inverse(power_sqrt_base_point)
-            exp = self._aux_exp(
-                modified_tangent_vec, power_sqrt_base_point, power_inv_sqrt_base_point
-            )
-            exp = SymmetricMatrices.powerm(exp, 1 / power_affine)
+        tangent_vec_at_id = Matrices.mul(
+            inv_sqrt_base_point, tangent_vec, inv_sqrt_base_point
+        )
 
-        return exp
+        tangent_vec_at_id = Matrices.to_symmetric(tangent_vec_at_id)
+        exp_from_id = expmh(tangent_vec_at_id)
 
-    @staticmethod
-    def _aux_log(point, sqrt_base_point, inv_sqrt_base_point):
-        """Compute the log (auxiliary function).
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-        sqrt_base_point : array-like, shape=[..., n, n]
-        inv_sqrt_base_point : array-like, shape=[.., n, n]
-
-        Returns
-        -------
-        log : array-like, shape=[..., n, n]
-        """
-        point_near_id = Matrices.mul(inv_sqrt_base_point, point, inv_sqrt_base_point)
-        point_near_id = Matrices.to_symmetric(point_near_id)
-
-        log_at_id = SPDMatrices.logm(point_near_id)
-        log = Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
-        return log
+        return Matrices.mul(sqrt_base_point, exp_from_id, sqrt_base_point)
 
     def log(self, point, base_point):
         """Compute the affine-invariant logarithm map.
@@ -639,19 +642,12 @@ class SPDAffineMetric(RiemannianMetric):
         log : array-like, shape=[..., n, n]
             Riemannian logarithm of point at base_point.
         """
-        power_affine = self.power_affine
+        sqrt_base_point, inv_sqrt_base_point = powermh(base_point, [1.0 / 2, -1.0 / 2])
+        point_near_id = Matrices.mul(inv_sqrt_base_point, point, inv_sqrt_base_point)
+        point_near_id = Matrices.to_symmetric(point_near_id)
 
-        if power_affine == 1:
-            powers = SymmetricMatrices.powerm(base_point, [1.0 / 2, -1.0 / 2])
-            log = self._aux_log(point, powers[0], powers[1])
-        else:
-            power_point = SymmetricMatrices.powerm(point, power_affine)
-            powers = SymmetricMatrices.powerm(
-                base_point, [power_affine / 2, -power_affine / 2]
-            )
-            log = self._aux_log(power_point, powers[0], powers[1])
-            log = SPDMatrices.inverse_differential_power(power_affine, log, base_point)
-        return log
+        log_at_id = logmh(point_near_id)
+        return Matrices.mul(sqrt_base_point, log_at_id, sqrt_base_point)
 
     def parallel_transport(
         self, tangent_vec, base_point, direction=None, end_point=None
@@ -691,10 +687,8 @@ class SPDAffineMetric(RiemannianMetric):
         if end_point is None:
             end_point = self.exp(direction, base_point)
         # compute B^1/2(B^-1/2 A B^-1/2)B^-1/2 instead of sqrtm(AB^-1)
-        sqrt_bp, inv_sqrt_bp = SymmetricMatrices.powerm(base_point, [1.0 / 2, -1.0 / 2])
-        pdt = SymmetricMatrices.powerm(
-            Matrices.mul(inv_sqrt_bp, end_point, inv_sqrt_bp), 1.0 / 2
-        )
+        sqrt_bp, inv_sqrt_bp = powermh(base_point, [1.0 / 2, -1.0 / 2])
+        pdt = powermh(Matrices.mul(inv_sqrt_bp, end_point, inv_sqrt_bp), 1.0 / 2)
         congruence_mat = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         return Matrices.congruent(tangent_vec, congruence_mat)
 
@@ -816,8 +810,8 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
             Riemannian logarithm.
         """
         # compute B^1/2(B^-1/2 A B^-1/2)B^-1/2 instead of sqrtm(AB^-1)
-        sqrt_bp, inv_sqrt_bp = SymmetricMatrices.powerm(base_point, [0.5, -0.5])
-        pdt = SymmetricMatrices.powerm(Matrices.mul(sqrt_bp, point, sqrt_bp), 0.5)
+        sqrt_bp, inv_sqrt_bp = powermh(base_point, [0.5, -0.5])
+        pdt = powermh(Matrices.mul(sqrt_bp, point, sqrt_bp), 0.5)
         sqrt_product = Matrices.mul(sqrt_bp, pdt, inv_sqrt_bp)
         transp_sqrt_product = Matrices.transpose(sqrt_product)
         return sqrt_product + transp_sqrt_product - 2 * base_point
@@ -906,11 +900,9 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
             base_point, base_point, tangent_vec
         )
 
-        square_root_bp, inverse_square_root_bp = SymmetricMatrices.powerm(
-            base_point, [0.5, -0.5]
-        )
+        square_root_bp, inverse_square_root_bp = powermh(base_point, [0.5, -0.5])
         end_point_lift = Matrices.mul(square_root_bp, end_point, square_root_bp)
-        square_root_lift = SymmetricMatrices.powerm(end_point_lift, 0.5)
+        square_root_lift = powermh(end_point_lift, 0.5)
 
         horizontal_velocity = gs.matmul(inverse_square_root_bp, square_root_lift)
         partial_horizontal_velocity = Matrices.mul(horizontal_velocity, square_root_bp)
@@ -959,56 +951,8 @@ class SPDBuresWassersteinMetric(RiemannianMetric):
         return eigen_values[..., 0] ** 0.5
 
 
-class SPDEuclideanMetric(RiemannianMetric):
+class SPDEuclideanMetric(MatricesMetric):
     """Class for the Euclidean metric on the SPD manifold."""
-
-    def __init__(self, space, power_euclidean=1):
-        super().__init__(space=space)
-        self.power_euclidean = power_euclidean
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the Euclidean inner-product.
-
-        Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the power-Euclidean metric.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        inner_product : array-like, shape=[...,]
-            Inner-product.
-        """
-        power_euclidean = self.power_euclidean
-        spd_space = SPDMatrices
-
-        if power_euclidean == 1:
-            inner_product = Matrices.frobenius_product(tangent_vec_a, tangent_vec_b)
-            return repeat_out(
-                self._space.point_ndim,
-                inner_product,
-                tangent_vec_a,
-                tangent_vec_b,
-                base_point,
-            )
-
-        modified_tangent_vec_a = spd_space.differential_power(
-            power_euclidean, tangent_vec_a, base_point
-        )
-        modified_tangent_vec_b = spd_space.differential_power(
-            power_euclidean, tangent_vec_b, base_point
-        )
-
-        return Matrices.frobenius_product(
-            modified_tangent_vec_a, modified_tangent_vec_b
-        ) / (power_euclidean**2)
 
     @staticmethod
     def exp_domain(tangent_vec, base_point):
@@ -1029,7 +973,7 @@ class SPDEuclideanMetric(RiemannianMetric):
         exp_domain : array-like, shape=[..., 2]
             Interval of time where the geodesic is defined.
         """
-        invsqrt_base_point = SymmetricMatrices.powerm(base_point, -0.5)
+        invsqrt_base_point = powermh(base_point, -0.5)
 
         reduced_vec = gs.matmul(invsqrt_base_point, tangent_vec)
         reduced_vec = gs.matmul(reduced_vec, invsqrt_base_point)
@@ -1060,220 +1004,51 @@ class SPDEuclideanMetric(RiemannianMetric):
         eigen_values = gs.linalg.eigvalsh(base_point)
         return eigen_values[..., 0]
 
-    def exp(self, tangent_vec, base_point):
-        """Compute the Euclidean exponential map.
 
-        Compute the Euclidean exponential at point base_point
-        of tangent vector tangent_vec.
-        This gives a symmetric positive definite matrix.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        exp : array-like, shape=[..., n, n]
-            Euclidean exponential.
-        """
-        power_euclidean = self.power_euclidean
-
-        if power_euclidean == 1:
-            return tangent_vec + base_point
-
-        exp = SymmetricMatrices.powerm(
-            SymmetricMatrices.powerm(base_point, power_euclidean)
-            + SPDMatrices.differential_power(power_euclidean, tangent_vec, base_point),
-            1 / power_euclidean,
-        )
-        return exp
-
-    def log(self, point, base_point):
-        """Compute the Euclidean logarithm map.
-
-        Compute the Euclidean logarithm at point base_point, of point.
-        This gives a tangent vector at point base_point.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
-
-        Returns
-        -------
-        log : array-like, shape=[..., n, n]
-            Euclidean logarithm.
-        """
-        power_euclidean = self.power_euclidean
-
-        if power_euclidean == 1:
-            return point - base_point
-
-        log = SPDMatrices.inverse_differential_power(
-            power_euclidean,
-            SymmetricMatrices.powerm(point, power_euclidean)
-            - SymmetricMatrices.powerm(base_point, power_euclidean),
-            base_point,
-        )
-
-        return log
-
-    def parallel_transport(
-        self, tangent_vec, base_point, direction=None, end_point=None
-    ):
-        r"""Compute the parallel transport of a tangent vector.
-
-        Closed-form solution for the parallel transport of a tangent vector
-        along the geodesic between two points `base_point` and `end_point`
-        or alternatively defined by :math:`t \mapsto exp_{(base\_point)}(
-        t*direction)`.
-
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point to be transported.
-        base_point : array-like, shape=[..., n, n]
-            Point on the manifold. Point to transport from.
-        direction : array-like, shape=[..., n, n]
-            Tangent vector at base point, along which the parallel transport
-            is computed.
-            Optional, default: None.
-        end_point : array-like, shape=[..., n, n]
-            Point on the manifold. Point to transport to.
-            Optional, default: None.
-
-        Returns
-        -------
-        transported_tangent_vec: array-like, shape=[..., n, n]
-            Transported tangent vector at `exp_(base_point)(tangent_vec_b)`.
-        """
-        if self.power_euclidean == 1:
-            return repeat_out(
-                self._space.point_ndim,
-                gs.copy(tangent_vec),
-                tangent_vec,
-                base_point,
-                direction,
-                end_point,
-                out_shape=self._space.shape,
-            )
-        raise NotImplementedError("Parallel transport is only implemented for power 1")
-
-
-class SPDLogEuclideanMetric(RiemannianMetric):
+class SPDLogEuclideanMetric(PullbackDiffeoMetric):
     """Class for the Log-Euclidean metric on the SPD manifold."""
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the Log-Euclidean inner-product.
+    def __init__(self, space, image_space=None):
+        if image_space is None:
+            image_space = SymmetricMatrices(n=space.n)
+        diffeo = SymMatrixLog()
+        super().__init__(space, diffeo, image_space)
 
-        Compute the inner-product of tangent_vec_a and tangent_vec_b
-        at point base_point using the log-Euclidean metric.
 
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
+class SPDPowerMetric(PullbackDiffeoMetric):
+    r"""Pullback metric induced by the power diffeomorphism.
 
-        Returns
-        -------
-        inner_product : array-like, shape=[...,]
-            Inner-product.
-        """
-        spd_space = SPDMatrices
+    Given an equipped image space, the pullback metric is given by
 
-        modified_tangent_vec_a = spd_space.differential_log(tangent_vec_a, base_point)
-        modified_tangent_vec_b = spd_space.differential_log(tangent_vec_b, base_point)
-        return Matrices.trace_product(modified_tangent_vec_a, modified_tangent_vec_b)
+    .. math::
 
-    def exp(self, tangent_vec, base_point):
-        """Compute the Log-Euclidean exponential map.
+        g_{\Sigma}^{(p)}(X, X)=
+        \frac{1}{p^2} g_{\Sigma^p}\left(d_{\Sigma}
+        \operatorname{pow}_p(X), d_{\Sigma} \operatorname{pow}_p(X)\right)
 
-        Compute the Riemannian exponential at point base_point
-        of tangent vector tangent_vec wrt the Log-Euclidean metric.
-        This gives a symmetric positive definite matrix.
+    The image space must be equipped with a `ScalarProductMetric`. The scale
+    :math:`s` relates with power :math:`p` by
 
-        Parameters
-        ----------
-        tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at base point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
+    .. math::
 
-        Returns
-        -------
-        exp : array-like, shape=[..., n, n]
-            Riemannian exponential.
-        """
-        log_base_point = SPDMatrices.logm(base_point)
-        dlog_tangent_vec = SPDMatrices.differential_log(tangent_vec, base_point)
-        return SymmetricMatrices.expm(log_base_point + dlog_tangent_vec)
+        s = 1 / power^2
 
-    def log(self, point, base_point):
-        """Compute the Log-Euclidean logarithm map.
+    Check section 5.3 of [T2022]_ for more details.
 
-        Compute the Riemannian logarithm at point base_point,
-        of point wrt the Log-Euclidean metric.
-        This gives a tangent vector at point base_point.
+    References
+    ----------
+    .. [T2022] Thanwerdas, Y. (2022) Riemannian and stratified
+    geometries of covariance and correlation matrices. Theses.
+    Université Côte d’Azur. Available at:
+    https://hal.archives-ouvertes.fr/tel-03698752 (Accessed: 29 September 2022).
+    """
 
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Point.
-        base_point : array-like, shape=[..., n, n]
-            Base point.
+    def __init__(self, space, image_space):
+        if not isinstance(image_space.metric, ScalarProductMetric):
+            raise ValueError(
+                "`image-space` must be equipped with a `ScalarProductMetric`"
+            )
+        power = 1 / gs.sqrt(image_space.metric.scale)
+        diffeo = MatrixPower(power)
 
-        Returns
-        -------
-        log : array-like, shape=[..., n, n]
-            Riemannian logarithm.
-        """
-        log_base_point = SPDMatrices.logm(base_point)
-        log_point = SPDMatrices.logm(point)
-        return SPDMatrices.differential_exp(log_point - log_base_point, log_base_point)
-
-    def injectivity_radius(self, base_point):
-        """Radius of the largest ball where the exponential is injective.
-
-        Because of this space is flat, the injectivity radius is infinite
-        everywhere.
-
-        Parameters
-        ----------
-        base_point : array-like, shape=[..., n, n]
-            Point on the manifold.
-
-        Returns
-        -------
-        radius : array-like, shape=[...,]
-            Injectivity radius.
-        """
-        radius = gs.array(math.inf)
-        return repeat_out(self._space.point_ndim, radius, base_point)
-
-    def dist(self, point_a, point_b):
-        """Compute log euclidean distance.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., dim]
-            Point.
-        point_b : array-like, shape=[..., dim]
-            Point.
-
-        Returns
-        -------
-        dist : array-like, shape=[...,]
-            Distance.
-        """
-        log_a = SPDMatrices.logm(point_a)
-        log_b = SPDMatrices.logm(point_b)
-        return gs.linalg.norm(log_a - log_b, axis=(-2, -1))
+        super().__init__(space, diffeo, image_space)

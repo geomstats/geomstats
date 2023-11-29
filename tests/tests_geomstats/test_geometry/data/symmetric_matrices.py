@@ -84,29 +84,3 @@ class SymmetricMatrices3TestData(TestData):
             ),
         ]
         return self.generate_tests(data)
-
-
-class SymmetricMatricesOpsTestData(TestData):
-    def expm_test_data(self):
-        data = [
-            dict(
-                mat=gs.array([[0.0, 0.0], [0.0, 0.0]]),
-                expected=gs.array([[1.0, 0.0], [0.0, 1.0]]),
-            )
-        ]
-        return self.generate_tests(data)
-
-    def powerm_test_data(self):
-        data = [
-            dict(
-                mat=gs.array([[1.0, 2.0], [2.0, 3.0]]),
-                power=1.0,
-                expected=gs.array([[1.0, 2.0], [2.0, 3.0]]),
-            ),
-            dict(
-                mat=gs.array([[1.0, 2.0], [2.0, 3.0]]),
-                power=2.0,
-                expected=gs.array([[5.0, 8.0], [8.0, 13.0]]),
-            ),
-        ]
-        return self.generate_tests(data)

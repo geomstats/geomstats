@@ -1,10 +1,11 @@
 import math
-import random
 
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
 from .base import VectorSpaceOpenSetTestData
+from .matrices import MatricesMetricTestData
+from .pullback_metric import PullbackDiffeoMetricTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 SQRT_2 = math.sqrt(2.0)
@@ -14,59 +15,216 @@ EXP_2 = math.exp(2.0)
 SINH_1 = math.sinh(1.0)
 
 
-class SPDMatricesMixinsTestData:
-    def _generate_power_vec_data(self):
-        power = [random.randint(1, 4)]
-        data = []
-        for power_ in power:
-            data.extend(
-                [dict(n_reps=n_reps, power=power_) for n_reps in self.N_VEC_REPS]
+class SymMatrixLogSmokeTestData(TestData):
+    def diffeomorphism_test_data(self):
+        data = [
+            dict(
+                base_point=gs.array([[1.0, 0.0], [0.0, 1.0]]),
+                expected=gs.array([[0.0, 0.0], [0.0, 0.0]]),
             )
+        ]
         return self.generate_tests(data)
 
-    def differential_power_vec_test_data(self):
-        return self._generate_power_vec_data()
+    def tangent_diffeomorphism_test_data(self):
+        data = [
+            dict(
+                tangent_vec=gs.array(
+                    [[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]]
+                ),
+                expected=gs.array(
+                    [
+                        [1.0, 1.0, 2 * LN_2],
+                        [1.0, 1.0, 2 * LN_2],
+                        [2 * LN_2, 2 * LN_2, 1],
+                    ]
+                ),
+            ),
+            dict(
+                tangent_vec=gs.array(
+                    [
+                        [EXP_1, EXP_1, SINH_1],
+                        [EXP_1, EXP_1, SINH_1],
+                        [SINH_1, SINH_1, 1 / EXP_1],
+                    ]
+                ),
+                image_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]]
+                ),
+                expected=gs.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]),
+            ),
+        ]
+        return self.generate_tests(data)
 
-    def inverse_differential_power_vec_test_data(self):
-        return self._generate_power_vec_data()
-
-    def differential_log_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def inverse_differential_log_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def differential_exp_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def inverse_differential_exp_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def logm_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def expm_after_logm_test_data(self):
-        return self.generate_random_data()
-
-    def logm_after_expm_test_data(self):
-        return self.generate_random_data()
-
-    def cholesky_factor_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def cholesky_factor_belongs_to_positive_lower_triangular_matrices_test_data(self):
-        return self.generate_random_data()
-
-    def differential_cholesky_factor_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def differential_cholesky_factor_belongs_to_positive_lower_triangular_matrices_test_data(
-        self,
-    ):
-        return self.generate_random_data()
+    def inverse_tangent_diffeomorphism_test_data(self):
+        data = [
+            dict(
+                image_tangent_vec=gs.array(
+                    [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]
+                ),
+                image_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]]
+                ),
+                expected=gs.array(
+                    [
+                        [EXP_1, EXP_1, SINH_1],
+                        [EXP_1, EXP_1, SINH_1],
+                        [SINH_1, SINH_1, 1 / EXP_1],
+                    ]
+                ),
+            ),
+            dict(
+                image_tangent_vec=gs.array(
+                    [
+                        [1.0, 1.0, 2 * LN_2],
+                        [1.0, 1.0, 2 * LN_2],
+                        [2 * LN_2, 2 * LN_2, 1],
+                    ]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]]
+                ),
+                expected=gs.array([[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]]),
+            ),
+        ]
+        return self.generate_tests(data)
 
 
-class SPDMatricesTestData(SPDMatricesMixinsTestData, VectorSpaceOpenSetTestData):
+class MatrixPower05TestData(TestData):
+    def tangent_diffeomorphism_test_data(self):
+        data = [
+            dict(
+                tangent_vec=gs.array(
+                    [[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]]
+                ),
+                expected=gs.array(
+                    [
+                        [1.0, 1 / 3, 1 / 3],
+                        [1 / 3, 0.125, 0.125],
+                        [1 / 3, 0.125, 0.125],
+                    ]
+                ),
+            )
+        ]
+        return self.generate_tests(data)
+
+    def inverse_tangent_diffeomorphism_test_data(self):
+        data = [
+            dict(
+                image_tangent_vec=gs.array(
+                    [
+                        [1.0, 1 / 3, 1 / 3],
+                        [1 / 3, 0.125, 0.125],
+                        [1 / 3, 0.125, 0.125],
+                    ]
+                ),
+                base_point=gs.array(
+                    [[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]]
+                ),
+                expected=gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]),
+            )
+        ]
+        return self.generate_tests(data)
+
+
+class CholeskyMapSmokeTestData(TestData):
+    def diffeomorphism_test_data(self):
+        data = [
+            dict(
+                base_point=gs.array(
+                    [[[1.0, 2.0], [2.0, 5.0]], [[1.0, 0.0], [0.0, 1.0]]]
+                ),
+                expected=gs.array([[[1.0, 0.0], [2.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]]),
+            ),
+            dict(
+                base_point=gs.array(
+                    [[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]]
+                ),
+                expected=gs.array(
+                    [
+                        [SQRT_2, 0.0, 0.0],
+                        [0.0, SQRT_2, 0.0],
+                        [0.0, 0.0, SQRT_2],
+                    ]
+                ),
+            ),
+        ]
+        return self.generate_tests(data)
+
+    def inverse_diffeomorphism_test_data(self):
+        data = [
+            dict(
+                image_point=gs.array([[1.0, 0.0], [2.0, 1.0]]),
+                expected=gs.array([[1.0, 2.0], [2.0, 5.0]]),
+            ),
+            dict(
+                image_point=gs.array(
+                    [[[2.0, 1.0], [0.0, 1.0]], [[-6.0, 0.0], [5.0, 3.0]]]
+                ),
+                expected=gs.array(
+                    [[[5.0, 1.0], [1.0, 1.0]], [[36.0, -30.0], [-30.0, 34.0]]]
+                ),
+            ),
+        ]
+        return self.generate_tests(data)
+
+    def tangent_diffeomorphism_test_data(self):
+        data = [
+            dict(
+                tangent_vec=gs.array([[1.0, 1.0], [1.0, 1.0]]),
+                base_point=gs.array([[4.0, 2.0], [2.0, 5.0]]),
+                expected=gs.array([[1 / 4, 0.0], [3 / 8, 1 / 16]]),
+            ),
+            dict(
+                tangent_vec=gs.array([[1.0, 2.0], [2.0, 5.0]]),
+                image_point=gs.array([[1.0, 0.0], [2.0, 2.0]]),
+                expected=gs.array([[0.5, 0.0], [1.0, 0.25]]),
+            ),
+            dict(
+                tangent_vec=gs.array(
+                    [[[-4.0, 1.0], [1.0, -4.0]], [[0.0, 4.0], [4.0, -8.0]]]
+                ),
+                image_point=gs.array(
+                    [[[2.0, 0.0], [-1.0, 2.0]], [[4.0, 0.0], [-1.0, 2.0]]]
+                ),
+                expected=gs.array(
+                    [[[-1.0, 0.0], [0.0, -1.0]], [[0.0, 0.0], [1.0, -1.5]]]
+                ),
+            ),
+        ]
+        return self.generate_tests(data)
+
+    def inverse_tangent_diffeomorphism_test_data(self):
+        data = [
+            dict(
+                image_tangent_vec=gs.array([[-1.0, 0.0], [2.0, -1.0]]),
+                image_point=gs.array([[1.0, 0.0], [2.0, 1.0]]),
+                expected=gs.array([[-2.0, 0.0], [0.0, 6.0]]),
+            ),
+            dict(
+                image_tangent_vec=gs.array(
+                    [[[-1.0, 2.0], [2.0, -1.0]], [[0.0, 4.0], [4.0, -1.0]]]
+                ),
+                image_point=gs.array(
+                    [[[3.0, 0.0], [-1.0, 2.0]], [[4.0, 0.0], [-1.0, 4.0]]]
+                ),
+                expected=gs.array(
+                    [
+                        [[-6.0, 11.0], [11.0, -8.0]],
+                        [[0.0, 32.0], [32.0, -16.0]],
+                    ]
+                ),
+            ),
+        ]
+        return self.generate_tests(data)
+
+
+class SPDMatricesTestData(VectorSpaceOpenSetTestData):
     pass
 
 
@@ -96,34 +254,6 @@ class SPDMatrices2TestData(TestData):
         ]
         return self.generate_tests(data)
 
-    def logm_test_data(self):
-        data = [
-            dict(
-                mat=gs.array([[1.0, 0.0], [0.0, 1.0]]),
-                expected=gs.array([[0.0, 0.0], [0.0, 0.0]]),
-            )
-        ]
-        return self.generate_tests(data)
-
-    def cholesky_factor_test_data(self):
-        data = [
-            dict(
-                mat=gs.array([[[1.0, 2.0], [2.0, 5.0]], [[1.0, 0.0], [0.0, 1.0]]]),
-                expected=gs.array([[[1.0, 0.0], [2.0, 1.0]], [[1.0, 0.0], [0.0, 1.0]]]),
-            ),
-        ]
-        return self.generate_tests(data)
-
-    def differential_cholesky_factor_test_data(self):
-        data = [
-            dict(
-                tangent_vec=gs.array([[1.0, 1.0], [1.0, 1.0]]),
-                base_point=gs.array([[4.0, 2.0], [2.0, 5.0]]),
-                expected=gs.array([[1 / 4, 0.0], [3 / 8, 1 / 16]]),
-            )
-        ]
-        return self.generate_tests(data)
-
 
 class SPDMatrices3TestData(TestData):
     def belongs_test_data(self):
@@ -135,155 +265,13 @@ class SPDMatrices3TestData(TestData):
         ]
         return self.generate_tests(data)
 
-    def cholesky_factor_test_data(self):
-        data = [
-            dict(
-                mat=gs.array([[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]]),
-                expected=gs.array(
-                    [
-                        [SQRT_2, 0.0, 0.0],
-                        [0.0, SQRT_2, 0.0],
-                        [0.0, 0.0, SQRT_2],
-                    ]
-                ),
-            ),
-        ]
-        return self.generate_tests(data)
-
-    def differential_power_test_data(self):
-        data = [
-            dict(
-                power=0.5,
-                tangent_vec=gs.array(
-                    [[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]
-                ),
-                base_point=gs.array(
-                    [[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]]
-                ),
-                expected=gs.array(
-                    [
-                        [1.0, 1 / 3, 1 / 3],
-                        [1 / 3, 0.125, 0.125],
-                        [1 / 3, 0.125, 0.125],
-                    ]
-                ),
-            )
-        ]
-        return self.generate_tests(data)
-
-    def inverse_differential_power_test_data(self):
-        data = [
-            dict(
-                power=0.5,
-                tangent_vec=gs.array(
-                    [
-                        [1.0, 1 / 3, 1 / 3],
-                        [1 / 3, 0.125, 0.125],
-                        [1 / 3, 0.125, 0.125],
-                    ]
-                ),
-                base_point=gs.array(
-                    [[1.0, 0.0, 0.0], [0.0, 2.5, 1.5], [0.0, 1.5, 2.5]]
-                ),
-                expected=gs.array([[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]),
-            )
-        ]
-        return self.generate_tests(data)
-
-    def differential_log_test_data(self):
-        data = [
-            dict(
-                tangent_vec=gs.array(
-                    [[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]]
-                ),
-                base_point=gs.array(
-                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]]
-                ),
-                expected=gs.array(
-                    [
-                        [1.0, 1.0, 2 * LN_2],
-                        [1.0, 1.0, 2 * LN_2],
-                        [2 * LN_2, 2 * LN_2, 1],
-                    ]
-                ),
-            )
-        ]
-        return self.generate_tests(data)
-
-    def inverse_differential_log_test_data(self):
-        data = [
-            dict(
-                tangent_vec=gs.array(
-                    [
-                        [1.0, 1.0, 2 * LN_2],
-                        [1.0, 1.0, 2 * LN_2],
-                        [2 * LN_2, 2 * LN_2, 1],
-                    ]
-                ),
-                base_point=gs.array(
-                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 4.0]]
-                ),
-                expected=gs.array([[1.0, 1.0, 3.0], [1.0, 1.0, 3.0], [3.0, 3.0, 4.0]]),
-            )
-        ]
-
-        return self.generate_tests(data)
-
-    def differential_exp_test_data(self):
-        data = [
-            dict(
-                tangent_vec=gs.array(
-                    [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]
-                ),
-                base_point=gs.array(
-                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]]
-                ),
-                expected=gs.array(
-                    [
-                        [EXP_1, EXP_1, SINH_1],
-                        [EXP_1, EXP_1, SINH_1],
-                        [SINH_1, SINH_1, 1 / EXP_1],
-                    ]
-                ),
-            )
-        ]
-        return self.generate_tests(data)
-
-    def inverse_differential_exp_test_data(self):
-        data = [
-            dict(
-                tangent_vec=gs.array(
-                    [
-                        [EXP_1, EXP_1, SINH_1],
-                        [EXP_1, EXP_1, SINH_1],
-                        [SINH_1, SINH_1, 1 / EXP_1],
-                    ]
-                ),
-                base_point=gs.array(
-                    [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]]
-                ),
-                expected=gs.array([[1.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]),
-            )
-        ]
-        return self.generate_tests(data)
-
-
-class SPDAffineMetricPower1TestData(RiemannianMetricTestData):
-    fail_for_autodiff_exceptions = False
-    fail_for_not_implemented_errors = False
-
 
 class SPDAffineMetricTestData(RiemannianMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
-    skips = (
-        "parallel_transport_ivp_norm",
-        "parallel_transport_bvp_norm",
-    )
 
-
-class SPD2AffineMetricPower1TestData(TestData):
+class SPD2AffineMetricTestData(TestData):
     def exp_test_data(self):
         data = [
             dict(
@@ -309,7 +297,6 @@ class SPD3AffineMetricPower05TestData(TestData):
     def inner_product_test_data(self):
         data = [
             dict(
-                power_affine=0.5,
                 tangent_vec_a=gs.array(
                     [[2.0, 1.0, 1.0], [1.0, 0.5, 0.5], [1.0, 0.5, 0.5]]
                 ),
@@ -392,7 +379,7 @@ class SPD3BuresWassersteinMetricTestData(TestData):
         return self.generate_tests(data)
 
 
-class SPDEuclideanMetricTestData(RiemannianMetricTestData):
+class SPDEuclideanMetricTestData(MatricesMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 
@@ -400,7 +387,7 @@ class SPDEuclideanMetricTestData(RiemannianMetricTestData):
         return self.generate_vec_data()
 
 
-class SPD2EuclideanMetricPower1TestData(TestData):
+class SPD2EuclideanMetricTestData(TestData):
     def exp_test_data(self):
         data = [
             dict(
@@ -433,7 +420,7 @@ class SPD2EuclideanMetricPower1TestData(TestData):
         return self.generate_tests(smoke_data)
 
 
-class SPD3EuclideanMetricPower1TestData(TestData):
+class SPD3EuclideanMetricTestData(TestData):
     def exp_domain_test_data(self):
         data = [
             dict(
@@ -468,7 +455,7 @@ class SPD3EuclideanMetricPower05TestData(TestData):
         return self.generate_tests(data)
 
 
-class SPDLogEuclideanMetricTestData(RiemannianMetricTestData):
+class SPDLogEuclideanMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_autodiff_exceptions = False
     fail_for_not_implemented_errors = False
 

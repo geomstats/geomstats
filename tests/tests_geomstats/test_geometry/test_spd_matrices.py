@@ -2,32 +2,46 @@ import random
 
 import pytest
 
+import geomstats.backend as gs
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    PositiveLowerTriangularMatrices,
+)
+from geomstats.geometry.scalar_product_metric import ScalarProductMetric
 from geomstats.geometry.spd_matrices import (
+    CholeskyMap,
+    MatrixPower,
     SPDAffineMetric,
     SPDBuresWassersteinMetric,
     SPDEuclideanMetric,
     SPDLogEuclideanMetric,
     SPDMatrices,
+    SPDPowerMetric,
+    SymMatrixLog,
 )
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
+from geomstats.test_cases.geometry.diffeo import DiffeoTestCase
+from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 from geomstats.test_cases.geometry.spd_matrices import (
     SPDEuclideanMetricTestCase,
     SPDMatricesTestCase,
 )
 
+from .data.diffeo import DiffeoTestData
 from .data.spd_matrices import (
-    SPD2AffineMetricPower1TestData,
+    CholeskyMapSmokeTestData,
+    MatrixPower05TestData,
+    SPD2AffineMetricTestData,
     SPD2BuresWassersteinMetricTestData,
-    SPD2EuclideanMetricPower1TestData,
+    SPD2EuclideanMetricTestData,
     SPD2LogEuclideanMetricTestData,
     SPD3AffineMetricPower05TestData,
     SPD3BuresWassersteinMetricTestData,
-    SPD3EuclideanMetricPower1TestData,
     SPD3EuclideanMetricPower05TestData,
+    SPD3EuclideanMetricTestData,
     SPD3LogEuclideanMetricTestData,
-    SPDAffineMetricPower1TestData,
     SPDAffineMetricTestData,
     SPDBuresWassersteinMetricTestData,
     SPDEuclideanMetricTestData,
@@ -35,16 +49,55 @@ from .data.spd_matrices import (
     SPDMatrices2TestData,
     SPDMatrices3TestData,
     SPDMatricesTestData,
+    SymMatrixLogSmokeTestData,
 )
 
-# TODO: check affine invariance
+
+class TestSymMatrixLog(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+    space = SPDMatrices(n=_n, equip=False)
+    image_space = SymmetricMatrices(n=_n, equip=False)
+    diffeo = SymMatrixLog()
+    testing_data = DiffeoTestData()
+
+
+@pytest.mark.smoke
+class TestSymMatrixLogSmoke(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    diffeo = SymMatrixLog()
+    testing_data = SymMatrixLogSmokeTestData()
+
+
+class TestMatrixPower(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+    space = image_space = SPDMatrices(n=_n, equip=False)
+    diffeo = MatrixPower(power=gs.random.uniform(low=0.5, high=1.5, size=1))
+    testing_data = DiffeoTestData()
+
+
+@pytest.mark.smoke
+class TestMatrixPower05(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    diffeo = MatrixPower(power=0.5)
+    testing_data = MatrixPower05TestData()
+
+
+class TestCholeskyMap(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    _n = random.randint(2, 5)
+    space = SPDMatrices(n=_n, equip=False)
+    image_space = PositiveLowerTriangularMatrices(n=_n, equip=False)
+    diffeo = CholeskyMap()
+    testing_data = DiffeoTestData()
+
+
+@pytest.mark.smoke
+class TestCholeskyMapSmoke(DiffeoTestCase, metaclass=DataBasedParametrizer):
+    diffeo = CholeskyMap()
+    testing_data = CholeskyMapSmokeTestData()
 
 
 @pytest.fixture(
     scope="class",
     params=[
-        2,
-        random.randint(3, 5),
+        random.randint(2, 5),
     ],
 )
 def spaces(request):
@@ -71,35 +124,12 @@ class TestSPDMatrices3(SPDMatricesTestCase, metaclass=DataBasedParametrizer):
 @pytest.fixture(
     scope="class",
     params=[
-        2,
-        random.randint(3, 5),
-    ],
-)
-def spd_with_affine_metric_power_1(request):
-    n = request.param
-    request.cls.space = SPDMatrices(n=n)
-
-
-@pytest.mark.usefixtures("spd_with_affine_metric_power_1")
-class TestSPDAffineMetricPower1(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = SPDAffineMetricPower1TestData()
-
-
-@pytest.fixture(
-    scope="class",
-    params=[
-        (2, 0.5),
-        (random.randint(3, 5), 0.5),
-        (2, -0.5),
-        (random.randint(3, 5), -0.5),
+        random.randint(2, 5),
     ],
 )
 def spd_with_affine_metric(request):
-    n, power_affine = request.param
-    space = request.cls.space = SPDMatrices(n=n, equip=False)
-    space.equip_with_metric(SPDAffineMetric, power_affine=power_affine)
+    n = request.param
+    request.cls.space = SPDMatrices(n=n)
 
 
 @pytest.mark.usefixtures("spd_with_affine_metric")
@@ -108,12 +138,10 @@ class TestSPDAffineMetric(RiemannianMetricTestCase, metaclass=DataBasedParametri
 
 
 @pytest.mark.smoke
-class TestSPD2AffineMetricPower1(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
-):
-    testing_data = SPD2AffineMetricPower1TestData()
+class TestSPD2AffineMetric(RiemannianMetricTestCase, metaclass=DataBasedParametrizer):
+    testing_data = SPD2AffineMetricTestData()
     space = SPDMatrices(n=2, equip=False)
-    space.equip_with_metric(SPDAffineMetric, power_affine=1)
+    space.equip_with_metric(SPDAffineMetric)
 
 
 @pytest.mark.smoke
@@ -121,15 +149,22 @@ class TestSPD3AffineMetricPower05(
     RiemannianMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SPD3AffineMetricPower05TestData()
+
+    _power = 0.5
+    _scale = 1 / _power**2
+
+    image_space = SPDMatrices(n=3, equip=False)
+    image_space.equip_with_metric(SPDAffineMetric)
+    image_space.metric = ScalarProductMetric(image_space.metric, scale=_scale)
+
     space = SPDMatrices(n=3, equip=False)
-    space.equip_with_metric(SPDAffineMetric, power_affine=0.5)
+    space.equip_with_metric(SPDPowerMetric, image_space=image_space)
 
 
 @pytest.fixture(
     scope="class",
     params=[
-        2,
-        random.randint(3, 5),
+        random.randint(2, 5),
     ],
 )
 def spd_with_bw_metric(request):
@@ -167,24 +202,18 @@ class TestSPD3BuresWassersteinMetric(
 
 @pytest.fixture(
     scope="class",
-    params=[
-        (2, 1),
-        (random.randint(3, 5), 1),
-        (2, -0.5),
-        (random.randint(3, 5), -0.5),
-        (2, 0.5),
-        (random.randint(3, 5), 0.5),
-    ],
+    params=[random.randint(2, 5)],
 )
 def spd_with_euclidean(request):
-    n, power_euclidean = request.param
+    n = request.param
 
     space = request.cls.space = SPDMatrices(n=n, equip=False)
-    space.equip_with_metric(SPDEuclideanMetric, power_euclidean=power_euclidean)
+    space.equip_with_metric(SPDEuclideanMetric)
 
     request.cls.data_generator = RandomDataGenerator(space, amplitude=4.0)
 
 
+@pytest.mark.redundant
 @pytest.mark.usefixtures("spd_with_euclidean")
 class TestSPDEuclideanMetric(
     SPDEuclideanMetricTestCase, metaclass=DataBasedParametrizer
@@ -193,37 +222,44 @@ class TestSPDEuclideanMetric(
 
 
 @pytest.mark.smoke
-class TestSPD2EuclideanMetricPower1(
+class TestSPD2EuclideanMetric(
     SPDEuclideanMetricTestCase, metaclass=DataBasedParametrizer
 ):
     space = SPDMatrices(n=2, equip=False)
-    space.equip_with_metric(SPDEuclideanMetric, power_euclidean=1)
-    testing_data = SPD2EuclideanMetricPower1TestData()
+    space.equip_with_metric(SPDEuclideanMetric)
+    testing_data = SPD2EuclideanMetricTestData()
 
 
 @pytest.mark.smoke
-class TestSPD3EuclideanMetricPower1(
+class TestSPD3EuclideanMetric(
     SPDEuclideanMetricTestCase, metaclass=DataBasedParametrizer
 ):
     space = SPDMatrices(n=3, equip=False)
-    space.equip_with_metric(SPDEuclideanMetric, power_euclidean=1)
-    testing_data = SPD3EuclideanMetricPower1TestData()
+    space.equip_with_metric(SPDEuclideanMetric)
+    testing_data = SPD3EuclideanMetricTestData()
 
 
 @pytest.mark.smoke
 class TestSPD3EuclideanMetricPower05(
     SPDEuclideanMetricTestCase, metaclass=DataBasedParametrizer
 ):
-    space = SPDMatrices(n=2, equip=False)
-    space.equip_with_metric(SPDEuclideanMetric, power_euclidean=0.5)
+    _power = 0.5
+    _scale = 1 / _power**2
+
+    image_space = SPDMatrices(n=3, equip=False)
+    image_space.equip_with_metric(SPDEuclideanMetric)
+    image_space.metric = ScalarProductMetric(image_space.metric, scale=_scale)
+
+    space = SPDMatrices(n=3, equip=False)
+    space.equip_with_metric(SPDPowerMetric, image_space=image_space)
+
     testing_data = SPD3EuclideanMetricPower05TestData()
 
 
 @pytest.fixture(
     scope="class",
     params=[
-        2,
-        random.randint(3, 5),
+        random.randint(2, 5),
     ],
 )
 def spd_with_log_euclidean(request):
@@ -232,16 +268,17 @@ def spd_with_log_euclidean(request):
     space.equip_with_metric(SPDLogEuclideanMetric)
 
 
+@pytest.mark.redundant
 @pytest.mark.usefixtures("spd_with_log_euclidean")
 class TestSPDLogEuclideanMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
 ):
     testing_data = SPDLogEuclideanMetricTestData()
 
 
 @pytest.mark.smoke
 class TestSPD2LogEuclideanMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
 ):
     space = SPDMatrices(n=2, equip=False)
     space.equip_with_metric(SPDLogEuclideanMetric)
@@ -250,7 +287,7 @@ class TestSPD2LogEuclideanMetric(
 
 @pytest.mark.smoke
 class TestSPD3LogEuclideanMetric(
-    RiemannianMetricTestCase, metaclass=DataBasedParametrizer
+    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
 ):
     space = SPDMatrices(n=3, equip=False)
     space.equip_with_metric(SPDLogEuclideanMetric)

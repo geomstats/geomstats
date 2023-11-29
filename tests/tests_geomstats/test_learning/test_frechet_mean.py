@@ -2,7 +2,10 @@ import random
 
 import pytest
 
-from geomstats.geometry.discrete_curves import DiscreteCurves, ElasticMetric
+from geomstats.geometry.discrete_curves import (
+    DiscreteCurvesStartingAtOrigin,
+    ElasticTranslationMetric,
+)
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
@@ -106,10 +109,11 @@ class TestLinearMeanEuclidean(FrechetMeanTestCase, metaclass=DataBasedParametriz
 @pytest.fixture(
     scope="class",
     params=[
-        DiscreteCurves(Euclidean(dim=2, equip=True), equip=False).equip_with_metric(
-            ElasticMetric, a=1, b=1
+        DiscreteCurvesStartingAtOrigin(ambient_dim=2, equip=False).equip_with_metric(
+            ElasticTranslationMetric,
+            a=1,
         ),
-        DiscreteCurves(Euclidean(dim=2, equip=True)),
+        DiscreteCurvesStartingAtOrigin(ambient_dim=2, equip=True),
     ],
 )
 def elastic_mean_estimators(request):
