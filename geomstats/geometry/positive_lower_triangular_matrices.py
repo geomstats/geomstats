@@ -4,13 +4,13 @@ Lead author: Saiteja Utpala.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class PositiveLowerTriangularMatrices(OpenSet):
+class PositiveLowerTriangularMatrices(VectorSpaceOpenSet):
     """Manifold of lower triangular matrices with >0 diagonal.
 
     This manifold is also called the cholesky space.

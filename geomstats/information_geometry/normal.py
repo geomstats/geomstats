@@ -9,7 +9,7 @@ from scipy.stats import multivariate_normal, norm
 
 import geomstats.backend as gs
 import geomstats.errors as errors
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.poincare_half_space import (
     PoincareHalfSpace,
@@ -254,7 +254,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
         return pdf
 
 
-class DiagonalNormalDistributions(InformationManifoldMixin, OpenSet):
+class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
     """Class for the manifold of diagonal multivariate normal distributions.
 
     This is the class for multivariate normal distributions with diagonal

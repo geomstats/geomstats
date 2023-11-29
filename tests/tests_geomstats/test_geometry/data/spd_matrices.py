@@ -4,7 +4,7 @@ import random
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import OpenSetTestData
+from .base import VectorSpaceOpenSetTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 SQRT_2 = math.sqrt(2.0)
@@ -66,7 +66,7 @@ class SPDMatricesMixinsTestData:
         return self.generate_random_data()
 
 
-class SPDMatricesTestData(SPDMatricesMixinsTestData, OpenSetTestData):
+class SPDMatricesTestData(SPDMatricesMixinsTestData, VectorSpaceOpenSetTestData):
     pass
 
 

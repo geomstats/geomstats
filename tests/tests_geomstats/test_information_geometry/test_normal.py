@@ -11,7 +11,7 @@ from geomstats.information_geometry.normal import (
 )
 from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test.random import RandomDataGenerator
-from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.poincare_half_space import PoincareHalfSpaceTestCase
 from geomstats.test_cases.geometry.product_manifold import ProductManifoldTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
@@ -114,7 +114,9 @@ def diagonal_spaces(request):
 
 @pytest.mark.usefixtures("diagonal_spaces")
 class TestDiagonalNormalDistributions(
-    InformationManifoldMixinTestCase, OpenSetTestCase, metaclass=DataBasedParametrizer
+    InformationManifoldMixinTestCase,
+    VectorSpaceOpenSetTestCase,
+    metaclass=DataBasedParametrizer,
 ):
     testing_data = DiagonalNormalDistributionsTestData()
 

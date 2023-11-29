@@ -263,7 +263,13 @@ class OpenSetTestCase(_OpenSetTestCaseMixins, ManifoldTestCase):
     pass
 
 
-class ComplexOpenSetTestCase(_OpenSetTestCaseMixins, ComplexManifoldTestCase):
+class VectorSpaceOpenSetTestCase(OpenSetTestCase):
+    pass
+
+
+class ComplexVectorSpaceOpenSetTestCase(
+    _OpenSetTestCaseMixins, ComplexManifoldTestCase
+):
     pass
 
 

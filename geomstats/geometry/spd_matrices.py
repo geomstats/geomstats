@@ -6,7 +6,7 @@ Lead author: Yann Thanwerdas.
 import math
 
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.positive_lower_triangular_matrices import (
@@ -18,7 +18,7 @@ from geomstats.integrator import integrate
 from geomstats.vectorization import repeat_out
 
 
-class SPDMatrices(OpenSet):
+class SPDMatrices(VectorSpaceOpenSet):
     """Class for the manifold of symmetric positive definite (SPD) matrices.
 
     Parameters

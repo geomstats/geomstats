@@ -30,7 +30,7 @@ References
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexOpenSet
+from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
@@ -58,7 +58,7 @@ def _create_identity_mat(shape, dtype):
     return gs.stack([gs.eye(shape[-1], dtype=dtype) for _ in range(shape[0])], axis=0)
 
 
-class Siegel(ComplexOpenSet):
+class Siegel(ComplexVectorSpaceOpenSet):
     """Class for the Siegel space.
 
     Parameters

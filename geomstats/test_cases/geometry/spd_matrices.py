@@ -6,7 +6,7 @@ from geomstats.geometry.positive_lower_triangular_matrices import (
     PositiveLowerTriangularMatrices,
 )
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
@@ -143,7 +143,7 @@ class SPDMatricesTestCaseMixins:
         self.assertAllEqual(res, expected)
 
 
-class SPDMatricesTestCase(SPDMatricesTestCaseMixins, OpenSetTestCase):
+class SPDMatricesTestCase(SPDMatricesTestCaseMixins, VectorSpaceOpenSetTestCase):
     pass
 
 

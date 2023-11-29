@@ -3,11 +3,11 @@ import pytest
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
-from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.riemannian_metric import RiemannianMetricTestCase
 
 
-class PositiveLowerTriangularMatricesTestCase(OpenSetTestCase):
+class PositiveLowerTriangularMatricesTestCase(VectorSpaceOpenSetTestCase):
     def test_gram(self, point, expected, atol):
         res = self.space.gram(point)
         self.assertAllClose(res, expected, atol=atol)

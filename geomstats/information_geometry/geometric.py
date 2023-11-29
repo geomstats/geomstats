@@ -6,7 +6,7 @@ Lead author: Tra My Nguyen.
 from scipy.stats import geom
 
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.information_geometry.base import (
@@ -15,7 +15,7 @@ from geomstats.information_geometry.base import (
 )
 
 
-class GeometricDistributions(InformationManifoldMixin, OpenSet):
+class GeometricDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
     """Class for the manifold of geometric distributions.
 
     This is the parameter space of geometric distributions

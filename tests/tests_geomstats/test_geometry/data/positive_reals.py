@@ -4,7 +4,7 @@ import pytest
 
 import geomstats.backend as gs
 
-from .base import OpenSetTestData
+from .base import VectorSpaceOpenSetTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 LN_2 = math.log(2.0)
@@ -12,7 +12,7 @@ EXP_1 = math.exp(1.0)
 EXP_2 = math.exp(2.0)
 
 
-class PositiveRealsTestData(OpenSetTestData):
+class PositiveRealsTestData(VectorSpaceOpenSetTestData):
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([[10.0]]), expected=[True]),
