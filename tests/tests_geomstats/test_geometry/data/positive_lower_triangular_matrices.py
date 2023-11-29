@@ -3,10 +3,19 @@ import math
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
+from .base import VectorSpaceOpenSetTestData
+from .invariant_metric import InvariantMetricMatrixTestData
+from .lie_group import MatrixLieGroupTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 EULER = gs.exp(1.0)
 SQRT_2 = math.sqrt(2)
+
+
+class PositiveLowerTriangularMatricesTestData(
+    MatrixLieGroupTestData, VectorSpaceOpenSetTestData
+):
+    pass
 
 
 class PositiveLowerTriangularMatrices2TestData(TestData):
@@ -170,3 +179,13 @@ class CholeskyMetric2TestData(TestData):
             ),
         ]
         return self.generate_tests(data)
+
+
+class InvariantPositiveLowerTriangularMatricesMetricTestData(
+    InvariantMetricMatrixTestData
+):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
+    skip_vec = True
+
+    skips = ("parallel_transport_ivp_norm",)

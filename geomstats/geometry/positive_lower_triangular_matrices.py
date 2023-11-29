@@ -5,12 +5,14 @@ Lead author: Saiteja Utpala.
 
 import geomstats.backend as gs
 from geomstats.geometry.base import VectorSpaceOpenSet
+from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
+from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class PositiveLowerTriangularMatrices(VectorSpaceOpenSet):
+class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
     """Manifold of lower triangular matrices with >0 diagonal.
 
     This manifold is also called the cholesky space.
@@ -30,6 +32,8 @@ class PositiveLowerTriangularMatrices(VectorSpaceOpenSet):
 
     def __init__(self, n, equip=True):
         super().__init__(
+            representation_dim=n,
+            lie_algebra=LowerTriangularMatrices(n, equip=False),
             dim=int(n * (n + 1) / 2),
             embedding_space=LowerTriangularMatrices(n, equip=False),
             equip=equip,
@@ -40,26 +44,6 @@ class PositiveLowerTriangularMatrices(VectorSpaceOpenSet):
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return CholeskyMetric
-
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample from the manifold.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of hypercube support.
-            Optional, default: 1.0
-
-        Returns
-        -------
-        point : array-like, shape=[..., n, n]
-           Sample.
-        """
-        sample = super().random_point(n_samples, bound)
-        return self.projection(sample)
 
     def belongs(self, point, atol=gs.atol):
         """Check if mat is lower triangular with >0 diagonal.
@@ -83,24 +67,20 @@ class PositiveLowerTriangularMatrices(VectorSpaceOpenSet):
         return gs.logical_and(is_lower_triangular, is_positive)
 
     def projection(self, point):
-        """Project a matrix to the Cholesksy space.
-
-        First it is projected to space lower triangular matrices
-        and then diagonal elements are exponentiated to make it positive.
+        """Project a matrix to the PLT space.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
-            Matrix to project.
 
         Returns
         -------
         projected: array-like, shape=[..., n, n]
-            SPD matrix.
         """
-        vec_diag = gs.abs(Matrices.diagonal(point) - 0.1) + 0.1
+        vec_diag = gs.abs(Matrices.diagonal(point))
+        vec_diag = gs.where(vec_diag < gs.atol, gs.atol, vec_diag)
         diag = gs.vec_to_diag(vec_diag)
-        strictly_lower_triangular = Matrices.to_lower_triangular(point)
+        strictly_lower_triangular = gs.tril(point, k=-1)
         return diag + strictly_lower_triangular
 
 
@@ -274,3 +254,30 @@ class CholeskyMetric(RiemannianMetric):
         sl_diff = sl_a - sl_b
         squared_dist_sl = Matrices.frobenius_product(sl_diff, sl_diff)
         return squared_dist_sl + squared_dist_diag
+
+
+class InvariantPositiveLowerTriangularMatricesMetric(_InvariantMetricMatrix):
+    """Invariant metric on the positive lower triangular matrices."""
+
+    def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
+        """Compute inner product at tangent space at identity.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., n, n]
+            First tangent vector at identity.
+        tangent_vec_b : array-like, shape=[..., n, n]
+            Second tangent vector at identity.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[...]
+            Inner-product of the two tangent vectors.
+        """
+        if Matrices.is_diagonal(self.metric_mat_at_identity):
+            return super().inner_product_at_identity(tangent_vec_a, tangent_vec_b)
+
+        return gs.dot(
+            gs.tril_to_vec(tangent_vec_a),
+            gs.matvec(self.metric_mat_at_identity, gs.tril_to_vec(tangent_vec_b)),
+        )
