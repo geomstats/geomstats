@@ -52,9 +52,6 @@ from .data.spd_matrices import (
     SymMatrixLogSmokeTestData,
 )
 
-# TODO: check affine invariance
-# TODO: add SPDPowerMetricTestCase against some power=1?
-
 
 class TestSymMatrixLog(DiffeoTestCase, metaclass=DataBasedParametrizer):
     _n = random.randint(2, 5)

@@ -842,7 +842,7 @@ class SRVTranslationMetric(PullbackDiffeoMetric):
         return image_space
 
 
-class IterativeHorizontalGeodesic:
+class IterativeHorizontalGeodesicAligner:
     """Iterative horizontal geodesic algorithm.
 
     The horizontal geodesic is computed by an interative procedure where
@@ -1507,7 +1507,7 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
 
     def __init__(self, total_space):
         super().__init__(total_space=total_space)
-        self.aligner = IterativeHorizontalGeodesic()
+        self.aligner = IterativeHorizontalGeodesicAligner()
 
     def vertical_projection(self, tangent_vec, base_point, return_norm=False):
         """Compute vertical part of tangent vector at base point.
