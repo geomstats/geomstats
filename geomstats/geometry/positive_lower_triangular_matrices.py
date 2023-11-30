@@ -45,6 +45,33 @@ class PositiveLowerTriangularMatrices(MatrixLieGroup, VectorSpaceOpenSet):
         """Metric to equip the space with if equip is True."""
         return CholeskyMetric
 
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample in PLT.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
+
+        Returns
+        -------
+        point : array-like, shape=[..., *point_shape]
+           Sample.
+        """
+        batch_shape = (n_samples,) if n_samples > 1 else ()
+        shape = batch_shape + (self.dim - self.n,)
+
+        lower_part = bound * (gs.random.rand(*shape) - 0.5) * 2
+
+        diag_shape = batch_shape + (self.n,)
+        diagonal = bound * gs.random.rand(*diag_shape) + gs.atol
+
+        return gs.mat_from_diag_triu_tril(diagonal, gs.array([0.0]), lower_part)
+
     def belongs(self, point, atol=gs.atol):
         """Check if mat is lower triangular with >0 diagonal.
 
