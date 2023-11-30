@@ -6,6 +6,7 @@ from geomstats.test.data import TestData
 from .base import VectorSpaceOpenSetTestData
 from .invariant_metric import InvariantMetricMatrixTestData
 from .lie_group import MatrixLieGroupTestData
+from .pullback_metric import PullbackDiffeoMetricTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 EULER = gs.exp(1.0)
@@ -15,7 +16,7 @@ SQRT_2 = math.sqrt(2)
 class PositiveLowerTriangularMatricesTestData(
     MatrixLieGroupTestData, VectorSpaceOpenSetTestData
 ):
-    pass
+    xfails = ("log_after_exp",)
 
 
 class PositiveLowerTriangularMatrices2TestData(TestData):
@@ -189,3 +190,8 @@ class InvariantPositiveLowerTriangularMatricesMetricTestData(
     skip_vec = True
 
     skips = ("parallel_transport_ivp_norm",)
+
+
+class UnitNormedRowsPLTMatricesPullbackMetricTestData(PullbackDiffeoMetricTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False

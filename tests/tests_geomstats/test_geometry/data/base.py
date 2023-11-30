@@ -95,3 +95,7 @@ class ImmersedSetTestData(ProjectionMixinsTestData, ManifoldTestData):
 
     def hessian_immersion_vec_test_data(self):
         return self.generate_vec_data()
+
+
+class DiffeomorphicManifoldTestData(ManifoldTestData):
+    pass

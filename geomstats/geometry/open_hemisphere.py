@@ -1,6 +1,14 @@
 """Open hemisphere.
 
+For more details, check section 7.4.1 of [T2022]_.
+
 Lead author: Olivier Bisson.
+
+References
+----------
+.. [T2022] Yann Thanwerdas. Riemannian and stratified
+geometries on covariance and correlation matrices. Differential
+Geometry [math.DG]. Université Côte d'Azur, 2022.
 """
 
 import geomstats.backend as gs
@@ -8,6 +16,7 @@ from geomstats.geometry.base import OpenSet
 from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.product_manifold import ProductManifold, ProductRiemannianMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 
 
@@ -111,3 +120,30 @@ class OpenHemispherePullbackMetric(PullbackDiffeoMetric):
         image_space = Hyperboloid(dim=space.dim)
         diffeo = OpenHemisphereToHyperboloidDiffeo()
         super().__init__(space=space, diffeo=diffeo, image_space=image_space)
+
+
+class OpenHemispheresProduct(ProductManifold):
+    r"""A consecutively factor-dim increasing product manifold of open hemispheres.
+
+    ..math::
+
+        HS^1\times \dots \times HS(n)
+    """
+
+    def __init__(self, n, equip=True):
+        factors = [OpenHemisphere(dim=dim, equip=True) for dim in range(1, n)]
+
+        super().__init__(
+            factors=factors,
+            default_point_type="vector",
+            equip=equip,
+        )
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return OpenHemispheresProductMetric
+
+
+class OpenHemispheresProductMetric(ProductRiemannianMetric):
+    """Define the product metric on these manifolds."""

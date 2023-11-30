@@ -104,8 +104,8 @@ class Diffeo:
 
         Returns
         -------
-        image_tangent_vec : array-like, shape=[..., *image_shape]
-            Image tangent vector at image of the base point.
+        tangent_vec : array-like, shape=[..., *space_shape]
+            Tangent vector at base point.
 
         Notes
         -----
@@ -213,8 +213,8 @@ class AutodiffDiffeo(Diffeo):
 
         Returns
         -------
-        image_tangent_vec : array-like, shape=[..., *space_shape]
-            Image tangent vector at image of the base point.
+        tangent_vec : array-like, shape=[..., *space_shape]
+            Tangent vector at base point.
         """
         if image_point is None:
             image_point = self.diffeomorphism(base_point)

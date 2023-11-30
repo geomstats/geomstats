@@ -1,14 +1,23 @@
 """The manifold of lower triangular matrices with positive diagonal elements.
 
-Lead author: Saiteja Utpala.
+Lead authors: Olivier Bisson and Saiteja Utpala.
+
+References
+----------
+.. [T2022] Yann Thanwerdas. Riemannian and stratified
+geometries on covariance and correlation matrices. Differential
+Geometry [math.DG]. Université Côte d'Azur, 2022.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import VectorSpaceOpenSet
+from geomstats.geometry.base import DiffeomorphicManifold, VectorSpaceOpenSet
+from geomstats.geometry.diffeo import Diffeo
 from geomstats.geometry.invariant_metric import _InvariantMetricMatrix
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.open_hemisphere import OpenHemisphere, OpenHemispheresProduct
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
@@ -307,4 +316,217 @@ class InvariantPositiveLowerTriangularMatricesMetric(_InvariantMetricMatrix):
         return gs.dot(
             gs.tril_to_vec(tangent_vec_a),
             gs.matvec(self.metric_mat_at_identity, gs.tril_to_vec(tangent_vec_b)),
+        )
+
+
+class UnitNormedRowsPLTDiffeo(Diffeo):
+    """A diffeomorphism from UnitNormedRowsPLTDMatrices to OpenHemispheresProduct.
+
+    A diffeomorphism between the space of lower triangular matrices with
+    positive diagonal and unit normed rows and the product space of
+    successively increasing factor-dimension open hemispheres.
+
+    Given the way `OpenHemisphere` is implemented, i.e. the first component
+    is positive, rows need to be flipped.
+    """
+
+    def __init__(self, n):
+        super().__init__()
+        self.n = n
+
+    def diffeomorphism(self, base_point):
+        """Diffeomorphism at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        image_point : array-like, shape=[..., space_dim]
+            Image point.
+        """
+        return gs.concatenate(
+            [gs.flip(base_point[..., i, : i + 1], axis=-1) for i in range(1, self.n)],
+            axis=-1,
+        )
+
+    def _from_product_to_mat(self, vec, ones=True):
+        r"""Transform vector into matrix.
+
+        A generalization of inverse diffeomorphism and inverse tangent
+        diffeomorphism, where we can choose if the first element is one
+        (diffeomorphism) or zero (tangent diffeormorphism).
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., space_dim]
+
+        Returns
+        -------
+        mat : array-like, shape=[..., n, n]
+        """
+        n = self.n
+        flipped_vec = gs.flip(vec, axis=-1)
+        batch_shape = vec.shape[:-1]
+
+        gen_first = gs.ones if ones else gs.zeros
+
+        first = gen_first(batch_shape + (1,))
+
+        flipped_vec_ = gs.concatenate([flipped_vec, first], axis=-1)
+
+        indices = sorted(zip(*gs.tril_indices(n)), key=lambda x: x[0], reverse=True)
+
+        for n_batch in reversed(batch_shape):
+            indices = [(k,) + indices_ for k in range(n_batch) for indices_ in indices]
+
+        return gs.array_from_sparse(
+            indices, gs.flatten(flipped_vec_), batch_shape + (n, n)
+        )
+
+    def inverse_diffeomorphism(self, image_point):
+        r"""Inverse diffeomorphism at base point.
+
+        :math:`f^-1: N \rightarrow M`
+
+        Parameters
+        ----------
+        image_point : array-like, shape=[..., space_dim]
+            Image point.
+
+        Returns
+        -------
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        """
+        return self._from_product_to_mat(image_point)
+
+    def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
+        r"""Tangent diffeomorphism at base point.
+
+        df_p is a linear map from T_pM to T_f(p)N.
+        The diffeomorphism is linear, so its pushforward is itself
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        image_point : array-like, shape=[..., space_dim]
+            Image point.
+
+        Returns
+        -------
+        image_tangent_vec : array-like, shape=[..., space_dim]
+            Image tangent vector at image of the base point.
+        """
+        return self.diffeomorphism(tangent_vec)
+
+    def inverse_tangent_diffeomorphism(
+        self, image_tangent_vec, image_point=None, base_point=None
+    ):
+        r"""Inverse tangent diffeomorphism at image point.
+
+        df^-1_p is a linear map from T_f(p)N to T_pM
+
+        Parameters
+        ----------
+        image_tangent_vec : array-like, shape=[..., space_dim]
+            Image tangent vector at image point.
+        image_point : array-like, shape=[..., space_dim]
+            Image point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *]
+            Tangent vector at base point.
+        """
+        return self._from_product_to_mat(image_tangent_vec, ones=False)
+
+
+class UnitNormedRowsPLTMatrices(DiffeomorphicManifold):
+    """Space of positive lower triangular matrices with unit-normed rows.
+
+    Rows are unit normed wrt Euclidean norm.
+
+    For more details, check section 7.4.1 of [T2022]_.
+    """
+
+    def __init__(self, n, equip=True):
+        diffeo = UnitNormedRowsPLTDiffeo(n=n)
+
+        image_space = OpenHemispheresProduct(n=n) if n > 2 else OpenHemisphere(dim=1)
+
+        super().__init__(
+            dim=int(n * (n + 1) / 2),
+            shape=(n, n),
+            diffeo=diffeo,
+            image_space=image_space,
+            equip=equip,
+        )
+        self.n = n
+        self.embedding_space = PositiveLowerTriangularMatrices(n=n, equip=False)
+
+    @staticmethod
+    def default_metric():
+        """Metric to equip the space with if equip is True."""
+        return UnitNormedRowsPLTMatricesPullbackMetric
+
+    def belongs(self, point, atol=gs.atol):
+        """Check if a point belongs to the unit normed plt matrices."""
+        is_plt = self.embedding_space.belongs(point)
+        is_unit_normed = self.image_space.belongs(
+            self.diffeo.diffeomorphism(point),
+        )
+        return gs.logical_and(is_plt, is_unit_normed)
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector: array-like, shape = [..., *point_shape]
+            Vector.
+        base_point: array-like, shape = [..., *point_shape]
+            Point on the manifold.
+        atol: float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent: bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        is_lt = self.embedding_space.is_tangent(vector, base_point)
+        first_is_zero = gs.isclose(vector[..., 0, 0], 0.0)
+
+        image_point = self.diffeo.diffeomorphism(base_point)
+        image_vector = self.diffeo.tangent_diffeomorphism(
+            vector, base_point=base_point, image_point=image_point
+        )
+        image_is_tangent = self.image_space.is_tangent(
+            image_vector, image_point, atol=atol
+        )
+
+        return gs.logical_and(
+            gs.logical_and(is_lt, first_is_zero),
+            image_is_tangent,
+        )
+
+
+class UnitNormedRowsPLTMatricesPullbackMetric(PullbackDiffeoMetric):
+    """Pullback diffeo metric on `UnitNormedRowsPLTMatrices`.
+
+    Results from the pullback of a metric on the `OpenHemispheresProduct`.
+    """
+
+    def __init__(self, space):
+        super().__init__(
+            space=space, diffeo=space.diffeo, image_space=space.image_space
         )
