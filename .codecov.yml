@@ -4,9 +4,8 @@ coverage:
   status:
     project:
       default:
-        target: 90%
-        threshold: 2%
-        base: auto
+        target: auto
+        threshold: 1%
         flags:
           - unit
        # advanced
@@ -29,9 +28,8 @@ coverage:
     patch:
       default:
         # basic
-        target: 90%
-        threshold: 2%
-        base: auto
+        target: auto
+        threshold: 1%
         flags:
           - unit
         # advanced
@@ -56,6 +54,8 @@ coverage:
 # Files to ignore
 ignore:
   - "geomstats/datasets/data"
+  - "geomstats/test"
+  - "geomstats/test_cases"
   - "examples/data"
   - "examples/imgs"
 
