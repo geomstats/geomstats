@@ -172,7 +172,7 @@ class PointSetMetric(ABC):
         self._space = space
 
     @abstractmethod
-    def dist(self, point_a, point_b, **kwargs):
+    def dist(self, point_a, point_b):
         """Distance between two points in the PointSet.
 
         Parameters
@@ -189,7 +189,7 @@ class PointSetMetric(ABC):
         """
 
     @abstractmethod
-    def geodesic(self, initial_point, end_point, **kwargs):
+    def geodesic(self, initial_point, end_point):
         """Compute the geodesic in the PointSet.
 
         Parameters
