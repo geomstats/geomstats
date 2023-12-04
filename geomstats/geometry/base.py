@@ -938,3 +938,99 @@ class ImmersedSet(Manifold, abc.ABC):
             Points sampled on the manifold.
         """
         raise NotImplementedError("`random_point` is not implemented yet")
+
+
+class DiffeomorphicManifold(Manifold):
+    """A manifold defined by a diffeomorphism."""
+
+    def __init__(self, diffeo, image_space, **kwargs):
+        self.diffeo = diffeo
+        self.image_space = image_space
+        super().__init__(**kwargs)
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *point_shape]
+            Vector.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *point_shape]
+            Tangent vector at base point.
+        """
+        image_point = self.diffeo.diffeomorphism(base_point)
+        image_vector = self.diffeo.tangent_diffeomorphism(
+            vector, base_point=base_point, image_point=image_point
+        )
+        image_tangent_vec = self.image_space.to_tangent(image_vector, image_point)
+        return self.diffeo.inverse_tangent_diffeomorphism(
+            image_tangent_vec, image_point=image_point, base_point=base_point
+        )
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample random points on the manifold according to some distribution.
+
+        If the manifold is compact, preferably a uniform distribution will be used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., *point_shape]
+            Points sampled on the manifold.
+        """
+        image_point = self.image_space.random_point(n_samples=n_samples, bound=bound)
+        return self.diffeo.inverse_diffeomorphism(image_point)
+
+    def regularize(self, point):
+        """Regularize a point to the canonical representation for the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        regularized_point : array-like, shape=[..., *point_shape]
+            Regularized point.
+        """
+        image_point = self.diffeo.diffeomorphism(point)
+        regularized_image_point = self.image_space.regularize(image_point)
+        return self.diffeo.inverse_diffeomorphism(regularized_image_point)
+
+    def random_tangent_vec(self, base_point, n_samples=1):
+        """Generate random tangent vec.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
+            Point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *point_shape]
+            Tangent vec at base point.
+        """
+        image_point = self.diffeo.diffeomorphism(base_point)
+        image_tangent_vec = self.image_space.random_tangent_vec(
+            image_point, n_samples=n_samples
+        )
+        return self.diffeo.inverse_tangent_diffeomorphism(
+            image_tangent_vec, image_point=image_point, base_point=base_point
+        )

@@ -318,3 +318,7 @@ class ImmersedSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):
     def test_hessian_immersion(self, base_point, expected, atol):
         res = self.space.hessian_immersion(base_point)
         self.assertAllClose(res, expected, atol=atol)
+
+
+class DiffeomorphicManifoldTestCase(ManifoldTestCase):
+    pass

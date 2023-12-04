@@ -1,5 +1,6 @@
 from .base import LevelSetTestData
 from .fiber_bundle import FiberBundleTestData
+from .pullback_metric import PullbackDiffeoMetricTestData
 from .quotient_metric import QuotientMetricTestData
 
 
@@ -41,3 +42,8 @@ class FullRankCorrelationAffineQuotientMetricTestData(QuotientMetricTestData):
         "exp_after_log": {"atol": 1e-4},
         "log_vec": {"atol": 1e-4},
     }
+
+
+class PolyHyperbolicCholeskyMetricTestData(PullbackDiffeoMetricTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
