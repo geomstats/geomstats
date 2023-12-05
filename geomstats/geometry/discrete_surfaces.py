@@ -249,7 +249,8 @@ class DiscreteSurfaces(Manifold):
             batch_shape + (-1,),
         )
         incident_areas = gs.scatter_add(
-            gs.cast(incident_areas, dtype = val.dtype), dim=len(batch_shape), index=id_vertices, src=val
+            gs.cast(incident_areas, dtype=val.dtype),
+            dim=len(batch_shape), index=id_vertices, src=val,
         )
         vertex_areas = 2 * incident_areas / 3.0
         return vertex_areas
@@ -450,11 +451,12 @@ class DiscreteSurfaces(Manifold):
 
             for i_dim in range(3):
                 laplacian_at_tangent_vec[:, :, i_dim] = gs.scatter_add(
-                    input=gs.cast(laplacian_at_tangent_vec[:, :, i_dim],dtype = values[:,:,i_dim].dtype),
+                    input=gs.cast(laplacian_at_tangent_vec[:, :, i_dim],
+                                  dtype=values[:,:,i_dim].dtype),
                     dim=1,
                     index=id_vertices_201_repeated,
                     src=values[:, :, i_dim],
-                    )
+                )
             return (
                     gs.squeeze(laplacian_at_tangent_vec, axis=0)
                     if to_squeeze
