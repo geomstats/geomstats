@@ -452,16 +452,16 @@ class DiscreteSurfaces(Manifold):
             for i_dim in range(3):
                 laplacian_at_tangent_vec[:, :, i_dim] = gs.scatter_add(
                     input=gs.cast(laplacian_at_tangent_vec[:, :, i_dim],
-                                  dtype=values[:,:,i_dim].dtype),
+                                  dtype=values[:,: , i_dim].dtype),
                     dim=1,
                     index=id_vertices_201_repeated,
                     src=values[:, :, i_dim],
                 )
             return (
-                    gs.squeeze(laplacian_at_tangent_vec, axis=0)
-                    if to_squeeze
-                    else laplacian_at_tangent_vec
-                )
+                gs.squeeze(laplacian_at_tangent_vec, axis=0)
+                if to_squeeze
+                else laplacian_at_tangent_vec
+            )
 
         return _laplacian
 
@@ -999,7 +999,6 @@ class _ExpSolver:
         self.n_steps = n_steps
         self.optimizer = optimizer
 
-
     def exp(self, space, tangent_vec, base_point):
         """Compute exponential map associated to the Riemmannian metric.
 
@@ -1021,8 +1020,11 @@ class _ExpSolver:
             Point on the manifold.
         """
         if gs.__name__.endswith("autograd"):
-            return('This ExpSolver currently works only for the pytorch backend. '
-                'Change backend via the command export GEOMSTATS_BACKEND=pytorch in a terminal')
+            return(
+                "This ExpSolver works for the pytorch backend."
+                "Change backend via the command "
+                "export GEOMSTATS_BACKEND=pytorch in a terminal"
+            )
 
         exps = []
         need_squeeze = False
@@ -1090,7 +1092,7 @@ class _ExpSolver:
         next_point = gs.array(next_point)
         n_vertices = current_point.shape[-2]
 
-        zeros = gs.zeros_like(current_point, dtype = float)
+        zeros = gs.zeros_like(current_point, dtype=float)
         next_point_clone = gs.copy(next_point)
 
         def energy_objective(next_next_point):
@@ -1197,8 +1199,11 @@ class _LogSolver:
             Tangent vector at the base point.
         """
         if gs.__name__.endswith("autograd"):
-            return('This LogSolver currently works only for the pytorch backend. '
-              'Change backend via the command export GEOMSTATS_BACKEND=pytorch in a terminal')
+            return(
+                "This LogSolver works for the pytorch backend."
+                "Change backend via the command "
+                "export GEOMSTATS_BACKEND=pytorch in a terminal"
+            )
 
         logs = []
         need_squeeze = False
