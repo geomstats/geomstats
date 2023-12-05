@@ -452,7 +452,7 @@ class DiscreteSurfaces(Manifold):
             for i_dim in range(3):
                 laplacian_at_tangent_vec[:, :, i_dim] = gs.scatter_add(
                     input=gs.cast(laplacian_at_tangent_vec[:, :, i_dim],
-                                  dtype=values[:,: , i_dim].dtype),
+                                  dtype=values[:, :, i_dim].dtype),
                     dim=1,
                     index=id_vertices_201_repeated,
                     src=values[:, :, i_dim],
@@ -1020,7 +1020,7 @@ class _ExpSolver:
             Point on the manifold.
         """
         if gs.__name__.endswith("autograd"):
-            return(
+            return (
                 "This ExpSolver works for the pytorch backend."
                 "Change backend via the command "
                 "export GEOMSTATS_BACKEND=pytorch in a terminal"
@@ -1199,7 +1199,7 @@ class _LogSolver:
             Tangent vector at the base point.
         """
         if gs.__name__.endswith("autograd"):
-            return(
+            return (
                 "This LogSolver works for the pytorch backend."
                 "Change backend via the command "
                 "export GEOMSTATS_BACKEND=pytorch in a terminal"
@@ -1219,7 +1219,7 @@ class _LogSolver:
 
         for one_point, one_base_point in zip(point, base_point):
             geod = self._bvp(space, one_base_point, one_point)
-            logs.append((geod[1] - geod[0])*self.n_steps)
+            logs.append((geod[1] - geod[0]) * self.n_steps)
 
         logs = gs.array(logs)
         if need_squeeze:
@@ -1253,13 +1253,12 @@ class _LogSolver:
         initial_point = gs.expand_dims(initial_point, axis=0)
         end_point = gs.expand_dims(end_point, axis=0)
 
-
         def objective(midpoint):
             """Compute path energy of paths going through a midpoint.
 
             Parameters
             ----------
-            midpoint : array-like, shape=[(self.n_steps-2)* n_points*3]
+            midpoint : array-like, shape=[(self.n_steps-2) * n_points * 3]
                 Midpoints of the path.
 
             Returns
@@ -1268,16 +1267,16 @@ class _LogSolver:
                 Energy of the path going through this midpoint.
             """
             midpoint = gs.reshape(
-                gs.array(midpoint), (self.n_steps-2, n_points, 3)
+                gs.array(midpoint), (self.n_steps - 2, n_points, 3)
             )
             paths = gs.concatenate(
-                    [
-                        initial_point,
-                        midpoint,
-                        end_point,
-                    ],
-                    axis=0,
-                )
+                [
+                    initial_point,
+                    midpoint,
+                    end_point,
+                ],
+                axis=0,
+            )
             return space.metric.path_energy(paths)
 
         initial_geod = gs.flatten(midpoints)
@@ -1289,12 +1288,12 @@ class _LogSolver:
         solution_midpoint = gs.reshape(gs.array(sol.x), (self.n_steps - 2, n_points, 3))
 
         geod = gs.concatenate(
-                    [
-                        initial_point,
-                        solution_midpoint,
-                        end_point,
-                    ],
-                    axis=0,
-                )
+            [
+                initial_point,
+                solution_midpoint,
+                end_point,
+            ],
+            axis=0,
+        )
 
         return geod
