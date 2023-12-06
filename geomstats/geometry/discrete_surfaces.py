@@ -250,7 +250,9 @@ class DiscreteSurfaces(Manifold):
         )
         incident_areas = gs.scatter_add(
             gs.cast(incident_areas, dtype=val.dtype),
-            dim=len(batch_shape), index=id_vertices, src=val,
+            dim=len(batch_shape),
+            index=id_vertices,
+            src=val,
         )
         vertex_areas = 2 * incident_areas / 3.0
         return vertex_areas
@@ -451,8 +453,10 @@ class DiscreteSurfaces(Manifold):
 
             for i_dim in range(3):
                 laplacian_at_tangent_vec[:, :, i_dim] = gs.scatter_add(
-                    input=gs.cast(laplacian_at_tangent_vec[:, :, i_dim],
-                                  dtype=values[:, :, i_dim].dtype),
+                    input=gs.cast(
+                        laplacian_at_tangent_vec[:, :, i_dim],
+                        dtype=values[:, :, i_dim].dtype,
+                    ),
                     dim=1,
                     index=id_vertices_201_repeated,
                     src=values[:, :, i_dim],
@@ -844,7 +848,7 @@ class ElasticMetric(RiemannianMetric):
 
         point_a = base_point + tangent_vec_a
         point_b = base_point + tangent_vec_b
-        inner_prod = gs.zeros(gs.maximum(len(tangent_vec_a), len(tangent_vec_b)))
+        inner_prod = gs.zeros(1, gs.maximum(len(tangent_vec_a), len(tangent_vec_b)))
         if self.a0 > 0 or self.a2 > 0:
             vertex_areas_bp = self._space.vertex_areas(base_point)
             if self.a0 > 0:
@@ -1246,7 +1250,7 @@ class _LogSolver:
         """
         times = gs.linspace(0.0, 1.0, self.n_steps)
         n_points = initial_point.shape[-2]
-        step = (end_point - initial_point)
+        step = end_point - initial_point
         geod = gs.array([initial_point + i * step for i in times])
         midpoints = geod[1 : self.n_steps - 1]
 
@@ -1266,9 +1270,7 @@ class _LogSolver:
             _ : array-like, shape=[...]
                 Energy of the path going through this midpoint.
             """
-            midpoint = gs.reshape(
-                gs.array(midpoint), (self.n_steps - 2, n_points, 3)
-            )
+            midpoint = gs.reshape(gs.array(midpoint), (self.n_steps - 2, n_points, 3))
             paths = gs.concatenate(
                 [
                     initial_point,
@@ -1280,10 +1282,7 @@ class _LogSolver:
             return space.metric.path_energy(paths)
 
         initial_geod = gs.flatten(midpoints)
-        sol = self.optimizer.minimize(
-            objective,
-            initial_geod
-        )
+        sol = self.optimizer.minimize(objective, initial_geod)
 
         solution_midpoint = gs.reshape(gs.array(sol.x), (self.n_steps - 2, n_points, 3))
 
