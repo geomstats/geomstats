@@ -848,7 +848,7 @@ class ElasticMetric(RiemannianMetric):
 
         point_a = base_point + tangent_vec_a
         point_b = base_point + tangent_vec_b
-        inner_prod = gs.zeros(1, gs.maximum(len(tangent_vec_a), len(tangent_vec_b)))
+        inner_prod = gs.zeros((1, gs.maximum(len(tangent_vec_a), len(tangent_vec_b))))
         if self.a0 > 0 or self.a2 > 0:
             vertex_areas_bp = self._space.vertex_areas(base_point)
             if self.a0 > 0:
