@@ -42,6 +42,7 @@ class Manifold(abc.ABC):
         shape,
         default_coords_type="intrinsic",
         equip=True,
+        equip_maximally=True,
     ):
         geomstats.errors.check_integer(dim, "dim")
 
@@ -63,8 +64,11 @@ class Manifold(abc.ABC):
         if equip:
             self.equip_with_metric()
 
-        self._math_structs = []
+        self._structures = []
         self._attr_cache = {}
+
+        if equip_maximally:
+            self.equip_maximally()
 
     def __getattr__(self, name):
         """Get attribute.
@@ -79,7 +83,7 @@ class Manifold(abc.ABC):
             if attr is not None:
                 return attr
 
-            for math_struct in self._math_structs:
+            for math_struct in self._structures:
                 attr = math_struct._getattr(name)
                 if attr is NotImplemented:
                     continue
@@ -147,10 +151,10 @@ class Manifold(abc.ABC):
         self.quotient = self.new(equip=False)
         self.quotient.equip_with_metric(QuotientMetric_, fiber_bundle=self.fiber_bundle)
 
-    def endow_with_math_struct(self, MathStruct, **kwargs):
+    def equip_with_structure(self, Structure, **kwargs):
         """Endow manifold with mathematic structure.
 
-        Methods available in `MathStruct` become directly available to
+        Methods available in `Structure` become directly available to
         the manifold.
 
         A space can be endowed with several math structures. In case of
@@ -161,10 +165,27 @@ class Manifold(abc.ABC):
 
         Parameters
         ----------
-        MathStruct : MathStruct object
+        Structure : Structure object
         """
         self._attr_cache = {}
-        self._math_structs.append(MathStruct(self, **kwargs))
+        self._structures.append(Structure(self, **kwargs))
+        return self
+
+    def equip_maximally(
+        self,
+    ):
+        if not hasattr(self, "default_maximal_structures"):
+            return self
+
+        structures = self.default_maximal_structures()
+        for elem in structures:
+            if isinstance(elem, tuple):
+                Structure, kwargs = elem
+            else:
+                Structure = elem
+                kwargs = {}
+            self.equip_with_structure(Structure, **kwargs)
+
         return self
 
     @abc.abstractmethod

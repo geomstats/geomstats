@@ -12,7 +12,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.pullback_metric import PullbackMetric
 
 
-class MathStruct(abc.ABC):
+class Structure(abc.ABC):
     """Abstract mathematical structure.
 
     Implements methods required to handle method/attribute calling.
