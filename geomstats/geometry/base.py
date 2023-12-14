@@ -33,7 +33,11 @@ class MathStruct(abc.ABC):
         Uses space to get attribute, as it is aware of mathematical structures.
         This way preserves overriding expected behavior.
         """
-        return getattr(self._space, name)
+        attr = self.__getattr__(name)
+        if attr is NotImplemented:
+            return getattr(self._space, name)
+
+        return attr
 
 
 class VectorSpace(Manifold, abc.ABC):
