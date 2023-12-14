@@ -75,10 +75,9 @@ class Manifold(abc.ABC):
             return self.__getattribute__(name)
         except AttributeError as e:
             for math_struct in self._math_structs:
-                try:
-                    return getattr(math_struct, name)
-                except AttributeError:
-                    pass
+                out = math_struct._getattr(name)
+                if not (out is NotImplemented):
+                    return out
             raise e
 
     def equip_with_metric(self, Metric=None, **metric_kwargs):

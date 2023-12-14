@@ -21,6 +21,12 @@ class MathStruct(abc.ABC):
     def __init__(self, space):
         self._space = space
 
+    def _getattr(self, name):
+        try:
+            return self.__getattribute__(name)
+        except AttributeError:
+            return NotImplemented
+
     def __getattr__(self, name):
         """Get attribute.
 
