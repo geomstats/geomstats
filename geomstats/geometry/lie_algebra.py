@@ -12,14 +12,13 @@ Lead author: Stefan Heyder.
 import abc
 
 import geomstats.backend as gs
-from geomstats.errors import check_integer
-from geomstats.geometry.base import MathStruct
+from geomstats.geometry.base import Structure
 from geomstats.geometry.matrices import Matrices
 
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
-class MatrixLieAlgebra(MathStruct, abc.ABC):
+class MatrixLieBracket(Structure, abc.ABC):
     """Class implementing matrix Lie algebra related functions.
 
     Parameters
@@ -28,11 +27,6 @@ class MatrixLieAlgebra(MathStruct, abc.ABC):
         Amount of rows and columns in the matrix representation of the
         Lie algebra.
     """
-
-    def __init__(self, space, representation_dim):
-        check_integer(representation_dim, "representation_dim")
-        self.representation_dim = representation_dim
-        super().__init__(space=space)
 
     bracket = Matrices.bracket
 
@@ -85,37 +79,3 @@ class MatrixLieAlgebra(MathStruct, abc.ABC):
                 float(BCH_COEFFICIENTS[i, 3]) / float(BCH_COEFFICIENTS[i, 4]) * el[i]
             )
         return result
-
-    @abc.abstractmethod
-    def basis_representation(self, matrix_representation):
-        """Compute the coefficients of matrices in the given basis.
-
-        Parameters
-        ----------
-        matrix_representation : array-like, shape=[..., *point_shape]
-            Matrix.
-
-        Returns
-        -------
-        basis_representation : array-like, shape=[..., dim]
-            Coefficients in the basis.
-        """
-        raise NotImplementedError("basis_representation not implemented.")
-
-    def matrix_representation(self, basis_representation):
-        """Compute the matrix representation for the given basis coefficients.
-
-        Sums the basis elements according to the coefficients given in
-        basis_representation.
-
-        Parameters
-        ----------
-        basis_representation : array-like, shape=[..., dim]
-            Coefficients in the basis.
-
-        Returns
-        -------
-        matrix_representation : array-like, shape=[..., *point_shape]
-            Matrix.
-        """
-        return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)

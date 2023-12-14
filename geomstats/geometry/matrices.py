@@ -20,11 +20,11 @@ class Matrices(VectorSpace):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n, equip=True):
+    def __init__(self, m, n, equip=True, equip_maximally=True):
         geomstats.errors.check_integer(n, "n")
         geomstats.errors.check_integer(m, "m")
 
-        super().__init__(shape=(m, n), equip=equip)
+        super().__init__(shape=(m, n), equip=equip, equip_maximally=equip_maximally)
         self.m = m
         self.n = n
 

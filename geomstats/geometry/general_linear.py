@@ -3,7 +3,7 @@
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.base import OpenSet
-from geomstats.geometry.lie_algebra import MatrixLieAlgebra
+from geomstats.geometry.lie_algebra import MatrixLieBracket
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
@@ -198,47 +198,9 @@ class SquareMatrices(Matrices):
         Integer representing the shape of the matrices: n x n.
     """
 
-    def __init__(self, n, equip=True):
+    def __init__(self, n, equip=True, equip_maximally=True):
         self.n = n
-        super().__init__(n=n, m=n, equip=equip)
+        super().__init__(n=n, m=n, equip=equip, equip_maximally=equip_maximally)
 
-
-class SquareMatricesLieAlgebraStruct(MatrixLieAlgebra):
-    """Lie algebra structure for square matrices."""
-
-    def __init__(self, space):
-        super().__init__(space=space, representation_dim=space.n)
-
-    def basis_representation(self, matrix_representation):
-        """Compute the coefficient in the usual matrix basis.
-
-        This simply flattens the input.
-
-        Parameters
-        ----------
-        matrix_representation : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        basis_representation : array-like, shape=[..., dim]
-            Representation in the basis.
-        """
-        return self.flatten(matrix_representation)
-
-    def matrix_representation(self, basis_representation):
-        """Compute the matrix representation for the given basis coefficients.
-
-        This simply reshapes the input into a square matrix.
-
-        Parameters
-        ----------
-        basis_representation : array-like, shape=[..., dim]
-            Coefficients in the basis.
-
-        Returns
-        -------
-        matrix_representation : array-like, shape=[..., n, n]
-            Matrix.
-        """
-        return self.reshape(basis_representation)
+    def default_maximal_structures(self):
+        return (MatrixLieBracket,)
