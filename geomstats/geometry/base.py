@@ -12,6 +12,34 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.pullback_metric import PullbackMetric
 
 
+class MathStruct(abc.ABC):
+    """Abstract mathematical structure.
+
+    Implements methods required to handle method/attribute calling.
+    """
+
+    def __init__(self, space):
+        self._space = space
+
+    def _getattr(self, name):
+        try:
+            return self.__getattribute__(name)
+        except AttributeError:
+            return NotImplemented
+
+    def __getattr__(self, name):
+        """Get attribute.
+
+        Uses space to get attribute, as it is aware of mathematical structures.
+        This way preserves overriding expected behavior.
+        """
+        attr = self.__getattr__(name)
+        if attr is NotImplemented:
+            return getattr(self._space, name)
+
+        return attr
+
+
 class VectorSpace(Manifold, abc.ABC):
     """Abstract class for vector spaces.
 

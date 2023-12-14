@@ -12,14 +12,14 @@ Lead author: Stefan Heyder.
 import abc
 
 import geomstats.backend as gs
-import geomstats.errors
-from geomstats.geometry.base import VectorSpace
+from geomstats.errors import check_integer
+from geomstats.geometry.base import MathStruct
 from geomstats.geometry.matrices import Matrices
 
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
-class MatrixLieAlgebra(VectorSpace, abc.ABC):
+class MatrixLieAlgebra(MathStruct, abc.ABC):
     """Class implementing matrix Lie algebra related functions.
 
     Parameters
@@ -29,10 +29,10 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
         Lie algebra.
     """
 
-    def __init__(self, representation_dim, **kwargs):
-        geomstats.errors.check_integer(representation_dim, "representation_dim")
-        super().__init__(shape=(representation_dim, representation_dim), **kwargs)
+    def __init__(self, space, representation_dim):
+        check_integer(representation_dim, "representation_dim")
         self.representation_dim = representation_dim
+        super().__init__(space=space)
 
     bracket = Matrices.bracket
 
@@ -118,7 +118,4 @@ class MatrixLieAlgebra(VectorSpace, abc.ABC):
         matrix_representation : array-like, shape=[..., *point_shape]
             Matrix.
         """
-        if self.basis is None:
-            raise NotImplementedError("basis not implemented")
-
         return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)

@@ -63,6 +63,32 @@ class Manifold(abc.ABC):
         if equip:
             self.equip_with_metric()
 
+        self._math_structs = []
+        self._attr_cache = {}
+
+    def __getattr__(self, name):
+        """Get attribute.
+
+        Looks for the attribute in the space and in the endowed mathematical
+        structures.
+        """
+        try:
+            return self.__getattribute__(name)
+        except AttributeError as e:
+            attr = self._attr_cache.get(name, None)
+            if attr is not None:
+                return attr
+
+            for math_struct in self._math_structs:
+                attr = math_struct._getattr(name)
+                if attr is NotImplemented:
+                    continue
+
+                self._attr_cache[name] = attr
+
+                return attr
+            raise e
+
     def equip_with_metric(self, Metric=None, **metric_kwargs):
         """Equip manifold with a Riemannian metric.
 
@@ -120,6 +146,26 @@ class Manifold(abc.ABC):
 
         self.quotient = self.new(equip=False)
         self.quotient.equip_with_metric(QuotientMetric_, fiber_bundle=self.fiber_bundle)
+
+    def endow_with_math_struct(self, MathStruct, **kwargs):
+        """Endow manifold with mathematic structure.
+
+        Methods available in `MathStruct` become directly available to
+        the manifold.
+
+        A space can be endowed with several math structures. In case of
+        name clashing, first endowed structure has priority.
+
+        User is responsible for compatibility between mathematical
+        structures.
+
+        Parameters
+        ----------
+        MathStruct : MathStruct object
+        """
+        self._attr_cache = {}
+        self._math_structs.append(MathStruct(self, **kwargs))
+        return self
 
     @abc.abstractmethod
     def belongs(self, point, atol=gs.atol):
