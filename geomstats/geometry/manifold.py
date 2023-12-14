@@ -64,6 +64,7 @@ class Manifold(abc.ABC):
             self.equip_with_metric()
 
         self._math_structs = []
+        self._attr_cache = {}
 
     def __getattr__(self, name):
         """Get attribute.
@@ -74,10 +75,18 @@ class Manifold(abc.ABC):
         try:
             return self.__getattribute__(name)
         except AttributeError as e:
+            attr = self._attr_cache.get(name, None)
+            if attr is not None:
+                return attr
+
             for math_struct in self._math_structs:
-                out = math_struct._getattr(name)
-                if not (out is NotImplemented):
-                    return out
+                attr = math_struct._getattr(name)
+                if attr is NotImplemented:
+                    continue
+
+                self._attr_cache[name] = attr
+
+                return attr
             raise e
 
     def equip_with_metric(self, Metric=None, **metric_kwargs):
@@ -154,6 +163,7 @@ class Manifold(abc.ABC):
         ----------
         MathStruct : MathStruct object
         """
+        self._attr_cache = {}
         self._math_structs.append(MathStruct(self, **kwargs))
         return self
 
