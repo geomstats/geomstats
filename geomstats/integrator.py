@@ -104,11 +104,7 @@ def leapfrog_step(force, state, time, dt):
     vector_new : array-like, shape=[1, dim]
         Second variable at time t + dt.
     """
-    pos, vel = state[0, :], state[1, :]  # Unpack position and velocity
-    vel_half_step = vel + 0.5 * dt * force(pos, time)
-    pos_full_step = pos + dt * vel_half_step
-    vel_full_step = vel_half_step + 0.5 * dt * force(pos_full_step, time + dt)
-    return pos_full_step, vel_full_step
+    raise NotImplementedError
 
 
 def rk2_step(force, state, time, dt):
@@ -159,6 +155,7 @@ def rk4_step(force, state, time, dt):
     Returns
     -------
     point_new : array-like, shape=[1, dim]
+        Vari
 
     See Also
     --------
