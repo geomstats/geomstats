@@ -165,11 +165,11 @@ def copy(x):
 
 
 def outer(a, b):
-    if a.ndim == 2 and b.ndim == 2:
+    if a.ndim > 1 and b.ndim > 1:
         return _np.einsum("...i,...j->...ij", a, b)
 
     out = _np.outer(a, b).reshape(a.shape + b.shape)
-    if b.ndim == 2:
-        out = out.swapaxes(-3, -2)
+    if b.ndim > 1:
+        out = out.swapaxes(0, -2)
 
     return out

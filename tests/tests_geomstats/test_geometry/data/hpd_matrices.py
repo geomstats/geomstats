@@ -1,13 +1,9 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import ComplexOpenSetTestData
+from .complex_matrices import ComplexMatricesMetricTestData
 from .complex_riemannian_metric import ComplexRiemannianMetricTestData
-from .spd_matrices import SPDMatricesMixinsTestData
-
-
-class HPDMatricesTestData(SPDMatricesMixinsTestData, ComplexOpenSetTestData):
-    skips = ("cholesky_factor_belongs_to_positive_lower_triangular_matrices",)
+from .pullback_metric import PullbackDiffeoMetricTestData
 
 
 class HPDMatrices2TestData(TestData):
@@ -58,42 +54,24 @@ class HPDMatrices3TestData(TestData):
         return self.generate_tests(smoke_data)
 
 
-class HPDAffineMetricPower1TestData(ComplexRiemannianMetricTestData):
-    fail_for_not_implemented_errors = False
-    fail_for_autodiff_exceptions = False
-
-
 class HPDAffineMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
-
-    skips = (
-        "parallel_transport_bvp_norm",
-        "parallel_transport_ivp_norm",
-    )
 
 
 class HPDBuresWassersteinMetricTestData(ComplexRiemannianMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
-    trials = 3
-
-    xfails = ("dist_point_to_itself_is_zero",)
 
 
-class HPDEuclideanMetricTestData(ComplexRiemannianMetricTestData):
+class HPDEuclideanMetricTestData(ComplexMatricesMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
-
-    xfails = (
-        "geodesic_ivp_belongs",
-        "exp_belongs",
-    )
 
     def exp_domain_vec_test_data(self):
         return self.generate_vec_data()
 
 
-class HPDLogEuclideanMetricTestData(ComplexRiemannianMetricTestData):
+class HPDLogEuclideanMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False

@@ -2,13 +2,13 @@
 
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import MatrixLieGroup
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
-class GeneralLinear(MatrixLieGroup, OpenSet):
+class GeneralLinear(MatrixLieGroup, VectorSpaceOpenSet):
     """Class for the general linear group GL(n) and its identity component.
 
     If `positive_det=True`, this is the connected component of the identity,

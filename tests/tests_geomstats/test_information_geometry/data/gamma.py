@@ -1,12 +1,14 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from ...test_geometry.data.base import OpenSetTestData
+from ...test_geometry.data.base import VectorSpaceOpenSetTestData
 from ...test_geometry.data.riemannian_metric import RiemannianMetricTestData
 from .base import InformationManifoldMixinTestData
 
 
-class GammaDistributionsTestData(InformationManifoldMixinTestData, OpenSetTestData):
+class GammaDistributionsTestData(
+    InformationManifoldMixinTestData, VectorSpaceOpenSetTestData
+):
     fail_for_not_implemented_errors = False
 
     def point_to_pdf_against_scipy_test_data(self):

@@ -21,12 +21,12 @@ References
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexOpenSet
+from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
 from geomstats.geometry.hermitian import Hermitian
 
 
-class ComplexPoincareDisk(ComplexOpenSet):
+class ComplexPoincareDisk(ComplexVectorSpaceOpenSet):
     """Class for the complex Poincaré disk.
 
     The Poincaré disk is a representation of the Hyperbolic

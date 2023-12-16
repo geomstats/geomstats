@@ -3,31 +3,20 @@ import math
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import OpenSetTestData
+from .base import VectorSpaceOpenSetTestData
+from .invariant_metric import InvariantMetricMatrixTestData
+from .lie_group import MatrixLieGroupTestData
+from .pullback_metric import PullbackDiffeoMetricTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 EULER = gs.exp(1.0)
 SQRT_2 = math.sqrt(2)
 
 
-class PositiveLowerTriangularMatricesTestData(OpenSetTestData):
-    def gram_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def differential_gram_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def inverse_differential_gram_vec_test_data(self):
-        return self.generate_vec_data()
-
-    def gram_belongs_to_spd_matrices_test_data(self):
-        return self.generate_random_data()
-
-    def differential_gram_belongs_to_symmetric_matrices_test_data(self):
-        return self.generate_random_data()
-
-    def inverse_differential_gram_belongs_to_lower_triangular_matrices_test_data(self):
-        return self.generate_random_data()
+class PositiveLowerTriangularMatricesTestData(
+    MatrixLieGroupTestData, VectorSpaceOpenSetTestData
+):
+    xfails = ("log_after_exp",)
 
 
 class PositiveLowerTriangularMatrices2TestData(TestData):
@@ -57,66 +46,6 @@ class PositiveLowerTriangularMatrices2TestData(TestData):
                     ]
                 ),
                 expected=gs.array([False, False, False, False]),
-            ),
-        ]
-        return self.generate_tests(data)
-
-    def gram_test_data(self):
-        data = [
-            dict(
-                point=gs.array([[1.0, 0.0], [2.0, 1.0]]),
-                expected=gs.array([[1.0, 2.0], [2.0, 5.0]]),
-            ),
-            dict(
-                point=gs.array([[[2.0, 1.0], [0.0, 1.0]], [[-6.0, 0.0], [5.0, 3.0]]]),
-                expected=gs.array(
-                    [[[5.0, 1.0], [1.0, 1.0]], [[36.0, -30.0], [-30.0, 34.0]]]
-                ),
-            ),
-        ]
-        return self.generate_tests(data)
-
-    def differential_gram_test_data(self):
-        data = [
-            dict(
-                tangent_vec=gs.array([[-1.0, 0.0], [2.0, -1.0]]),
-                base_point=gs.array([[1.0, 0.0], [2.0, 1.0]]),
-                expected=gs.array([[-2.0, 0.0], [0.0, 6.0]]),
-            ),
-            dict(
-                tangent_vec=gs.array(
-                    [[[-1.0, 2.0], [2.0, -1.0]], [[0.0, 4.0], [4.0, -1.0]]]
-                ),
-                base_point=gs.array(
-                    [[[3.0, 0.0], [-1.0, 2.0]], [[4.0, 0.0], [-1.0, 4.0]]]
-                ),
-                expected=gs.array(
-                    [
-                        [[-6.0, 11.0], [11.0, -8.0]],
-                        [[0.0, 32.0], [32.0, -16.0]],
-                    ]
-                ),
-            ),
-        ]
-        return self.generate_tests(data)
-
-    def inverse_differential_gram_test_data(self):
-        data = [
-            dict(
-                tangent_vec=gs.array([[1.0, 2.0], [2.0, 5.0]]),
-                base_point=gs.array([[1.0, 0.0], [2.0, 2.0]]),
-                expected=gs.array([[0.5, 0.0], [1.0, 0.25]]),
-            ),
-            dict(
-                tangent_vec=gs.array(
-                    [[[-4.0, 1.0], [1.0, -4.0]], [[0.0, 4.0], [4.0, -8.0]]]
-                ),
-                base_point=gs.array(
-                    [[[2.0, 0.0], [-1.0, 2.0]], [[4.0, 0.0], [-1.0, 2.0]]]
-                ),
-                expected=gs.array(
-                    [[[-1.0, 0.0], [0.0, -1.0]], [[0.0, 0.0], [1.0, -1.5]]]
-                ),
             ),
         ]
         return self.generate_tests(data)
@@ -251,3 +180,18 @@ class CholeskyMetric2TestData(TestData):
             ),
         ]
         return self.generate_tests(data)
+
+
+class InvariantPositiveLowerTriangularMatricesMetricTestData(
+    InvariantMetricMatrixTestData
+):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False
+    skip_vec = True
+
+    skips = ("parallel_transport_ivp_norm",)
+
+
+class UnitNormedRowsPLTMatricesPullbackMetricTestData(PullbackDiffeoMetricTestData):
+    fail_for_autodiff_exceptions = False
+    fail_for_not_implemented_errors = False

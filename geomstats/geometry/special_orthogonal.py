@@ -7,11 +7,11 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.hermitian_matrices import powermh
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup, MatrixLieGroup
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 ATOL = 1e-5
 
@@ -117,7 +117,7 @@ class _SpecialOrthogonalMatrices(MatrixLieGroup, LevelSet):
             Rotation matrix.
         """
         aux_mat = self._aux_submersion(point)
-        inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, -1 / 2)
+        inv_sqrt_mat = powermh(aux_mat, -1 / 2)
         rotation_mat = Matrices.mul(point, inv_sqrt_mat)
         det = gs.linalg.det(rotation_mat)
         return utils.flip_determinant(rotation_mat, det)

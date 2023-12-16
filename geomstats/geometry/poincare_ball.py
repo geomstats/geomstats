@@ -10,7 +10,7 @@ import math
 import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 from geomstats.geometry._hyperbolic import _Hyperbolic
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.vectorization import repeat_out
@@ -23,7 +23,7 @@ SQRT_2 = gs.sqrt(2.0)
 _COORDS_TYPE = "ball"
 
 
-class PoincareBall(_Hyperbolic, OpenSet):
+class PoincareBall(_Hyperbolic, VectorSpaceOpenSet):
     """Class for the n-dimensional Poincare ball.
 
     Class for the n-dimensional Poincaré ball model. For other

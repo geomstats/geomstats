@@ -1,7 +1,7 @@
 import pytest
 
 import geomstats.backend as gs
-from geomstats.geometry.discrete_curves import SRVMetric
+from geomstats.geometry.discrete_curves import SRVTranslationMetric
 from geomstats.learning.frechet_mean import GradientDescent, variance
 from geomstats.test.random import RandomDataGenerator
 from geomstats.test.test_case import TestCase
@@ -42,7 +42,7 @@ class ElasticMeanTestCase(FrechetMeanTestCase):
     @pytest.mark.random
     def test_logs_at_mean(self, atol):
         space = self.estimator.space
-        if not isinstance(space.metric, SRVMetric):
+        if not isinstance(space.metric, SRVTranslationMetric):
             return
 
         X = self.data_generator.random_point(n_points=2)
@@ -50,7 +50,7 @@ class ElasticMeanTestCase(FrechetMeanTestCase):
         mean = self.estimator.fit(X).estimate_
 
         logs = space.metric.log(X, mean)
-        logs_srv = space.metric.tangent_diffeomorphism(logs, base_point=mean)
+        logs_srv = space.metric.diffeo.tangent_diffeomorphism(logs, base_point=mean)
         result = gs.linalg.norm(logs_srv[1] + logs_srv[0])
 
         self.assertAllClose(result, gs.array(0.0), atol)

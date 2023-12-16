@@ -4,10 +4,10 @@ import pytest
 
 from geomstats.geometry.siegel import Siegel, SiegelMetric
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.base import ComplexOpenSetTestCase
+from geomstats.test_cases.geometry.base import ComplexVectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.siegel import SiegelMetricTestCase
 
-from .data.base import ComplexOpenSetTestData
+from .data.base import ComplexVectorSpaceOpenSetTestData
 from .data.siegel import (
     Siegel2MetricTestData,
     Siegel2TestData,
@@ -28,12 +28,12 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestSiegel(ComplexOpenSetTestCase, metaclass=DataBasedParametrizer):
-    testing_data = ComplexOpenSetTestData()
+class TestSiegel(ComplexVectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer):
+    testing_data = ComplexVectorSpaceOpenSetTestData()
 
 
 @pytest.mark.smoke
-class TestSiegel2(ComplexOpenSetTestCase, metaclass=DataBasedParametrizer):
+class TestSiegel2(ComplexVectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer):
     space = Siegel(2, equip=False)
     testing_data = Siegel2TestData()
 

@@ -30,10 +30,10 @@ References
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import ComplexOpenSet
+from geomstats.geometry.base import ComplexVectorSpaceOpenSet
 from geomstats.geometry.complex_matrices import ComplexMatrices
 from geomstats.geometry.complex_riemannian_metric import ComplexRiemannianMetric
-from geomstats.geometry.hermitian_matrices import HermitianMatrices
+from geomstats.geometry.hermitian_matrices import expmh, powermh
 from geomstats.geometry.matrices import Matrices
 
 
@@ -58,7 +58,7 @@ def _create_identity_mat(shape, dtype):
     return gs.stack([gs.eye(shape[-1], dtype=dtype) for _ in range(shape[0])], axis=0)
 
 
-class Siegel(ComplexOpenSet):
+class Siegel(ComplexVectorSpaceOpenSet):
     """Class for the Siegel space.
 
     Parameters
@@ -244,9 +244,9 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         aux_4 = identity - aux_2
 
-        inv_aux_3 = HermitianMatrices.powerm(aux_3, -1)
+        inv_aux_3 = powermh(aux_3, -1)
 
-        inv_aux_4 = HermitianMatrices.powerm(aux_4, -1)
+        inv_aux_4 = powermh(aux_4, -1)
 
         aux_a = gs.matmul(inv_aux_3, tangent_vec_a)
         aux_b = gs.matmul(inv_aux_4, tangent_vec_b_transconj)
@@ -276,8 +276,8 @@ class SiegelMetric(ComplexRiemannianMetric):
         aux_2 = gs.matmul(base_point_transconj, base_point)
         aux_3 = identity - aux_1
         aux_4 = identity - aux_2
-        factor_1 = HermitianMatrices.powerm(aux_3, -1 / 2)
-        factor_3 = HermitianMatrices.powerm(aux_4, -1 / 2)
+        factor_1 = powermh(aux_3, -1 / 2)
+        factor_3 = powermh(aux_4, -1 / 2)
         prod_1 = gs.matmul(factor_1, tangent_vec)
         return gs.matmul(prod_1, factor_3)
 
@@ -300,12 +300,12 @@ class SiegelMetric(ComplexRiemannianMetric):
         identity = _create_identity_mat(tangent_vec.shape, dtype=tangent_vec.dtype)
         tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
         aux_1 = gs.matmul(tangent_vec, tangent_vec_transconj)
-        aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
-        aux_3 = HermitianMatrices.expm(2 * aux_2)
+        aux_2 = powermh(aux_1, 1 / 2)
+        aux_3 = expmh(2 * aux_2)
         factor_1 = aux_3 - identity
         aux_4 = aux_3 + identity
-        factor_2 = HermitianMatrices.powerm(aux_4, -1)
-        factor_3 = HermitianMatrices.powerm(aux_2, -1)
+        factor_2 = powermh(aux_4, -1)
+        factor_3 = powermh(aux_2, -1)
         factor_3 = gs.where(gs.isnan(factor_3), gs.zeros_like(factor_2), factor_3)
         prod_1 = gs.matmul(factor_1, factor_2)
         prod_2 = gs.matmul(prod_1, factor_3)
@@ -336,8 +336,8 @@ class SiegelMetric(ComplexRiemannianMetric):
         aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
         aux_3 = identity - aux_1
         aux_4 = identity - aux_2
-        factor_1 = HermitianMatrices.powerm(aux_3, -1 / 2)
-        factor_4 = HermitianMatrices.powerm(aux_4, 1 / 2)
+        factor_1 = powermh(aux_3, -1 / 2)
+        factor_4 = powermh(aux_4, 1 / 2)
         factor_2 = point - point_to_zero
         aux_5 = gs.matmul(point_to_zero_transconj, point)
         aux_6 = identity - aux_5
@@ -390,13 +390,13 @@ class SiegelMetric(ComplexRiemannianMetric):
         identity = _create_identity_mat(point.shape, dtype=point.dtype)
         point_transconj = ComplexMatrices.transconjugate(point)
         aux_1 = gs.matmul(point, point_transconj)
-        aux_2 = HermitianMatrices.powerm(aux_1, 1 / 2)
+        aux_2 = powermh(aux_1, 1 / 2)
         num = identity + aux_2
         den = identity - aux_2
-        inv_den = HermitianMatrices.powerm(den, -1)
+        inv_den = powermh(den, -1)
         frac = gs.matmul(num, inv_den)
         factor_1 = gs.linalg.logm(frac)
-        factor_2 = HermitianMatrices.powerm(aux_2, -1)
+        factor_2 = powermh(aux_2, -1)
         factor_2 = gs.where(gs.isnan(factor_2), gs.zeros_like(factor_2), factor_2)
         prod_1 = gs.matmul(factor_1, factor_2)
         return gs.matmul(prod_1, point) * 0.5
@@ -423,8 +423,8 @@ class SiegelMetric(ComplexRiemannianMetric):
         aux_2 = gs.matmul(base_point_transconj, base_point)
         aux_3 = identity - aux_1
         aux_4 = identity - aux_2
-        factor_1 = HermitianMatrices.powerm(aux_3, 1 / 2)
-        factor_3 = HermitianMatrices.powerm(aux_4, 1 / 2)
+        factor_1 = powermh(aux_3, 1 / 2)
+        factor_3 = powermh(aux_4, 1 / 2)
         prod_1 = gs.matmul(factor_1, tangent_vec)
         return gs.matmul(prod_1, factor_3)
 

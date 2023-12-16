@@ -4,10 +4,10 @@ import pytest
 
 from geomstats.geometry.full_rank_matrices import FullRankMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.base import OpenSetTestCase
+from geomstats.test_cases.geometry.base import VectorSpaceOpenSetTestCase
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
-from .data.base import OpenSetTestData
+from .data.base import VectorSpaceOpenSetTestData
 from .data.full_rank_matrices import FullRankMatrices32TestData
 from .data.matrices import MatricesMetricTestData
 
@@ -25,12 +25,14 @@ def spaces(request):
 
 
 @pytest.mark.usefixtures("spaces")
-class TestFullRankMatrices(OpenSetTestCase, metaclass=DataBasedParametrizer):
-    testing_data = OpenSetTestData()
+class TestFullRankMatrices(VectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer):
+    testing_data = VectorSpaceOpenSetTestData()
 
 
 @pytest.mark.smoke
-class TestFullRankMatrices32(OpenSetTestCase, metaclass=DataBasedParametrizer):
+class TestFullRankMatrices32(
+    VectorSpaceOpenSetTestCase, metaclass=DataBasedParametrizer
+):
     space = FullRankMatrices(3, 2, equip=False)
     testing_data = FullRankMatrices32TestData()
 

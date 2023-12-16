@@ -42,12 +42,12 @@ References
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class PositiveReals(OpenSet):
+class PositiveReals(VectorSpaceOpenSet):
     """Class for the manifold of positive reals.
 
     The real positive axis endowed with the Information geometry metric.

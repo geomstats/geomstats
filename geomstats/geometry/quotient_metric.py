@@ -53,26 +53,26 @@ class QuotientMetric(RiemannianMetric):
         inner_product : float, shape=[...]
             Inner products
         """
+        if base_point is None and fiber_point is None:
+            raise ValueError(
+                "Either a point (of the total space) or a "
+                "base point (of the base manifold) must be "
+                "given."
+            )
         if fiber_point is None:
-            if base_point is not None:
-                fiber_point = self.fiber_bundle.lift(base_point)
-            else:
-                raise ValueError(
-                    "Either a point (of the total space) or a "
-                    "base point (of the quotient manifold) must "
-                    "be given."
-                )
+            fiber_point = self.fiber_bundle.lift(base_point)
+
         horizontal_a = self.fiber_bundle.horizontal_lift(
-            tangent_vec_a, fiber_point=fiber_point
+            tangent_vec_a, base_point=base_point, fiber_point=fiber_point
         )
         horizontal_b = self.fiber_bundle.horizontal_lift(
-            tangent_vec_b, fiber_point=fiber_point
+            tangent_vec_b, base_point=base_point, fiber_point=fiber_point
         )
         return self.fiber_bundle.total_space.metric.inner_product(
             horizontal_a, horizontal_b, fiber_point
         )
 
-    def exp(self, tangent_vec, base_point, **kwargs):
+    def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -88,15 +88,50 @@ class QuotientMetric(RiemannianMetric):
         exp : array-like, shape=[..., {dim, [n, n]}]
             Point on the quotient manifold.
         """
-        lift = self.fiber_bundle.lift(base_point)
+        fiber_point = self.fiber_bundle.lift(base_point)
         horizontal_vec = self.fiber_bundle.horizontal_lift(
-            tangent_vec, fiber_point=lift
+            tangent_vec, fiber_point=fiber_point, base_point=base_point
         )
         return self.fiber_bundle.riemannian_submersion(
-            self.fiber_bundle.total_space.metric.exp(horizontal_vec, lift)
+            self.fiber_bundle.total_space.metric.exp(horizontal_vec, fiber_point)
         )
 
-    def log(self, point, base_point, **kwargs):
+    def _geodesic_from_exp(self, initial_point, initial_tangent_vec):
+        """Generate parameterized function for the geodesic curve.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[..., dim]
+            Point on the manifold, initial point of the geodesic.
+        initial_tangent_vec : array-like, shape=[..., dim],
+            Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
+            If None, an end point must be given and a logarithm is computed.
+
+        Returns
+        -------
+        path : callable
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents the different initial conditions, and the second
+            corresponds to time.
+        """
+        fiber_point = self.fiber_bundle.lift(initial_point)
+        horizontal_vec = self.fiber_bundle.horizontal_lift(
+            initial_tangent_vec, fiber_point=fiber_point, base_point=initial_point
+        )
+        total_path = self.fiber_bundle.total_space.metric._geodesic_from_exp(
+            fiber_point, horizontal_vec
+        )
+
+        def path(t):
+            total_geod_points = total_path(t)
+            out = self.fiber_bundle.riemannian_submersion(total_geod_points)
+            return out
+
+        return path
+
+    def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -113,13 +148,14 @@ class QuotientMetric(RiemannianMetric):
             of point at the base point.
         """
         fiber_point = self.fiber_bundle.lift(point)
-        bp_fiber = self.fiber_bundle.lift(base_point)
-        aligned = self.fiber_bundle.align(fiber_point, bp_fiber, **kwargs)
+        fiber_base_point = self.fiber_bundle.lift(base_point)
+        aligned = self.fiber_bundle.align(fiber_point, fiber_base_point)
         return self.fiber_bundle.tangent_riemannian_submersion(
-            self.fiber_bundle.total_space.metric.log(aligned, bp_fiber), bp_fiber
+            self.fiber_bundle.total_space.metric.log(aligned, fiber_base_point),
+            fiber_base_point,
         )
 
-    def squared_dist(self, point_a, point_b, **kwargs):
+    def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
         Parameters
@@ -134,10 +170,10 @@ class QuotientMetric(RiemannianMetric):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        lift_a = self.fiber_bundle.lift(point_a)
-        lift_b = self.fiber_bundle.lift(point_b)
-        aligned = self.fiber_bundle.align(lift_a, lift_b, **kwargs)
-        return self.fiber_bundle.total_space.metric.squared_dist(aligned, lift_b)
+        fiber_point_a = self.fiber_bundle.lift(point_a)
+        fiber_point_b = self.fiber_bundle.lift(point_b)
+        aligned = self.fiber_bundle.align(fiber_point_b, fiber_point_a)
+        return self.fiber_bundle.total_space.metric.squared_dist(fiber_point_a, aligned)
 
     def curvature(self, tangent_vec_a, tangent_vec_b, tangent_vec_c, base_point):
         r"""Compute the curvature.

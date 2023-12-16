@@ -561,13 +561,8 @@ class Connection(ABC):
             tangent_vec_a, tangent_vec_b, tangent_vec_a, tangent_vec_b, base_point
         )
 
-    def _geodesic_from_exp(self, initial_point, initial_tangent_vec=None):
+    def _geodesic_from_exp(self, initial_point, initial_tangent_vec):
         """Generate parameterized function for the geodesic curve.
-
-        Geodesic curve defined by either:
-
-        - an initial point and an initial tangent vector,
-        - an initial point and an end point.
 
         Parameters
         ----------
@@ -586,19 +581,12 @@ class Connection(ABC):
             represents the different initial conditions, and the second
             corresponds to time.
         """
-        point_type = self._space.default_point_type
+        ndim = self._space.point_ndim
+        ijk = "ijk"[: self._space.point_ndim]
 
-        if point_type == "vector":
-            initial_point = gs.to_ndarray(initial_point, to_ndim=2)
-            initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=2)
-
-        else:
-            initial_point = gs.to_ndarray(initial_point, to_ndim=3)
-            initial_tangent_vec = gs.to_ndarray(initial_tangent_vec, to_ndim=3)
-        n_initial_conditions = initial_tangent_vec.shape[0]
-
-        if n_initial_conditions > 1 and len(initial_point) == 1:
-            initial_point = gs.stack([initial_point[0]] * n_initial_conditions)
+        multiple_tangent = initial_tangent_vec.ndim > ndim
+        multiple_point = initial_point.ndim > ndim
+        is_batch = multiple_tangent or multiple_point
 
         def path(t):
             """Generate parameterized function for geodesic curve.
@@ -611,19 +599,27 @@ class Connection(ABC):
             t = gs.array(t)
             t = gs.cast(t, initial_tangent_vec.dtype)
             t = gs.to_ndarray(t, to_ndim=1)
-            if point_type == "vector":
-                tangent_vecs = gs.einsum("i,...k->...ik", t, initial_tangent_vec)
-            else:
-                tangent_vecs = gs.einsum("i,...kl->...ikl", t, initial_tangent_vec)
 
-            points_at_time_t = [
-                self.exp(tv, pt) for tv, pt in zip(tangent_vecs, initial_point)
-            ]
-            points_at_time_t = gs.stack(points_at_time_t, axis=0)
+            tangent_vecs = gs.einsum(f"n,...{ijk}->...n{ijk}", t, initial_tangent_vec)
+            if is_batch:
+                if multiple_point and multiple_tangent:
+                    points_at_time_t = [
+                        self.exp(tv, pt) for tv, pt in zip(tangent_vecs, initial_point)
+                    ]
 
-            return (
-                points_at_time_t[0] if n_initial_conditions == 1 else points_at_time_t
-            )
+                elif multiple_point:
+                    points_at_time_t = [
+                        self.exp(tangent_vecs, pt) for pt in initial_point
+                    ]
+
+                elif multiple_tangent:
+                    points_at_time_t = [
+                        self.exp(tv, initial_point) for tv in tangent_vecs
+                    ]
+
+                return gs.stack(points_at_time_t, axis=0)
+
+            return self.exp(tangent_vecs, initial_point)
 
         return path
 

@@ -9,15 +9,11 @@ from geomstats.test_cases.geometry.base import (
     MatrixVectorSpaceTestCaseMixins,
 )
 from geomstats.test_cases.geometry.hermitian import HermitianMetricTestCase
-from geomstats.test_cases.geometry.symmetric_matrices import (
-    SymmetricMatricesOpsTestCase,
-)
 
 from .data.complex_matrices import ComplexMatricesMetricTestData
 from .data.hermitian_matrices import (
     HermitianMatrices2TestData,
     HermitianMatrices3TestData,
-    HermitianMatricesOpsTestData,
     HermitianMatricesTestData,
 )
 
@@ -67,11 +63,3 @@ class TestComplexMatricesMetric(
     n = random.randint(2, 5)
     space = HermitianMatrices(n)
     testing_data = ComplexMatricesMetricTestData()
-
-
-@pytest.mark.smoke
-class TestHermitianMatricesOps(
-    SymmetricMatricesOpsTestCase, metaclass=DataBasedParametrizer
-):
-    Space = HermitianMatrices
-    testing_data = HermitianMatricesOpsTestData()
