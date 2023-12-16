@@ -2,8 +2,8 @@ r"""Integrator functions used when no closed forms are available.
 
 Lead author: Nicolas Guigui.
 
-These are designed for first and second order autonomous systems of ODEs written as a spatial variable x and a time
-variable t:
+These are designed for first and second order autonomous systems of ODEs written as a
+spatial variable x and a time variable t:
 
 .. math::
 
