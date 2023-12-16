@@ -1,15 +1,32 @@
 """The manifold of full-rank correlation matrices.
 
-Lead author: Yann Thanwerdas.
+Lead authors: Yann Thanwerdas and Olivier Bisson.
+
+
+References
+----------
+.. [T2022] Yann Thanwerdas. Riemannian and stratified
+geometries on covariance and correlation matrices. Differential
+Geometry [math.DG]. Université Côte d'Azur, 2022.
 """
 
 import geomstats.backend as gs
 from geomstats.geometry.base import LevelSet
+from geomstats.geometry.diffeo import ComposedDiffeo
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.open_hemisphere import (
+    OpenHemispheresProduct,
+    OpenHemisphereToHyperboloidDiffeo,
+)
+from geomstats.geometry.positive_lower_triangular_matrices import (
+    UnitNormedRowsPLTDiffeo,
+)
+from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
-from geomstats.geometry.spd_matrices import SPDAffineMetric, SPDMatrices
+from geomstats.geometry.spd_matrices import CholeskyMap, SPDAffineMetric, SPDMatrices
 
 
 class FullRankCorrelationMatrices(LevelSet):
@@ -223,7 +240,7 @@ class CorrelationMatricesBundle(FiberBundle):
         mat = tangent_vec - 0.5 * aux
         return self.group_action(diagonal_bp ** (-0.5), mat)
 
-    def vertical_projection(self, tangent_vec, base_point, **kwargs):
+    def vertical_projection(self, tangent_vec, base_point):
         """Compute the vertical projection wrt the affine-invariant metric.
 
         Parameters
@@ -263,7 +280,7 @@ class CorrelationMatricesBundle(FiberBundle):
         hor_lift : array-like, shape=[..., n, n]
             Horizontal lift of tangent_vec from point to base_point.
         """
-        if fiber_point is None and base_point is not None:
+        if base_point is not None:
             return self.horizontal_projection(tangent_vec, base_point)
         diagonal_point = Matrices.diagonal(fiber_point) ** 0.5
         lift = self.group_action(diagonal_point, tangent_vec)
@@ -287,3 +304,33 @@ class FullRankCorrelationAffineQuotientMetric(QuotientMetric):
             space=space,
             fiber_bundle=CorrelationMatricesBundle(total_space),
         )
+
+
+class PolyHyperbolicCholeskyMetric(PullbackDiffeoMetric):
+    """Pullback metric via a diffeomorphism.
+
+    Diffeormorphism between full-rank correlation matrices and
+    the space of lower triangular matrices with positive diagonal
+    and unit normed rows.
+
+    Since this image space is also diffeomorphic to another space, the
+    product space of successively increasing factor-dimension open hemispheres,
+    we take advantage of `ComposedDiffeo` to avoid explicitly representing
+    the intermediate space.
+
+    For more details, check section 7.4.1 [T2022]_.
+    """
+
+    def __init__(self, space):
+        n = space.n
+        diffeos = [CholeskyMap(), UnitNormedRowsPLTDiffeo(n)]
+
+        if n == 2:
+            diffeos.append(OpenHemisphereToHyperboloidDiffeo())
+            image_space = Hyperboloid(dim=1)
+        else:
+            image_space = OpenHemispheresProduct(n=n)
+
+        diffeo = ComposedDiffeo(diffeos)
+
+        super().__init__(space=space, diffeo=diffeo, image_space=image_space)

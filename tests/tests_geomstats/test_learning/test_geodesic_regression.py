@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from geomstats.geometry.discrete_curves import DiscreteCurves
+from geomstats.geometry.discrete_curves import DiscreteCurvesStartingAtOrigin
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_euclidean import SpecialEuclidean
@@ -25,8 +25,8 @@ from .data.geodesic_regression import GeodesicRegressionTestData
         (Hypersphere(random.randint(3, 5)), "extrinsic"),
         (Hypersphere(random.randint(3, 5)), "riemannian"),
         (
-            DiscreteCurves(
-                Euclidean(dim=2),
+            DiscreteCurvesStartingAtOrigin(
+                ambient_dim=2,
                 k_sampling_points=random.randint(5, 10),
             ),
             "extrinsic",

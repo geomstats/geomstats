@@ -67,7 +67,13 @@ class OpenSetTestData(_OpenSetMixinsTestData, ManifoldTestData):
     pass
 
 
-class ComplexOpenSetTestData(_OpenSetMixinsTestData, ComplexManifoldTestData):
+class VectorSpaceOpenSetTestData(OpenSetTestData):
+    pass
+
+
+class ComplexVectorSpaceOpenSetTestData(
+    _OpenSetMixinsTestData, ComplexManifoldTestData
+):
     pass
 
 
@@ -89,3 +95,7 @@ class ImmersedSetTestData(ProjectionMixinsTestData, ManifoldTestData):
 
     def hessian_immersion_vec_test_data(self):
         return self.generate_vec_data()
+
+
+class DiffeomorphicManifoldTestData(ManifoldTestData):
+    pass

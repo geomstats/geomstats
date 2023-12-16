@@ -1,4 +1,4 @@
-from ...test_geometry.data.base import OpenSetTestData
+from ...test_geometry.data.base import VectorSpaceOpenSetTestData
 from ...test_geometry.data.poincare_half_space import PoincareHalfSpaceTestData
 from ...test_geometry.data.product_manifold import (
     ProductManifoldTestData,
@@ -42,7 +42,7 @@ class CenteredNormalDistributionsTestData(
 
 
 class DiagonalNormalDistributionsTestData(
-    InformationManifoldMixinTestData, OpenSetTestData
+    InformationManifoldMixinTestData, VectorSpaceOpenSetTestData
 ):
     fail_for_not_implemented_errors = False
 

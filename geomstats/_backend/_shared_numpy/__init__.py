@@ -349,20 +349,20 @@ def ravel_tril_indices(n, k=0, m=None):
     return _np.ravel_multi_index(idxs, size)
 
 
-def matmul(*ar_gs, **kwar_gs):
-    for arg in ar_gs:
+def matmul(*args, **kwargs):
+    for arg in args:
         if arg.ndim == 1:
             raise ValueError("ndims must be >=2")
-    return _np.matmul(*ar_gs, **kwar_gs)
+    return _np.matmul(*args, **kwargs)
 
 
 def outer(a, b):
-    if a.ndim == 2 and b.ndim == 2:
+    if a.ndim > 1 and b.ndim > 1:
         return _np.einsum("...i,...j->...ij", a, b)
 
     out = _np.multiply.outer(a, b)
-    if b.ndim == 2:
-        out = out.swapaxes(-3, -2)
+    if b.ndim > 1:
+        out = out.swapaxes(0, -2)
 
     return out
 

@@ -4,7 +4,7 @@ import pytest
 
 import geomstats.backend as gs
 
-from .base import ComplexOpenSetTestData
+from .base import ComplexVectorSpaceOpenSetTestData
 from .complex_riemannian_metric import ComplexRiemannianMetricTestData
 
 LN_3 = math.log(3.0)
@@ -13,7 +13,7 @@ SQRT_2 = math.sqrt(2.0)
 SQRT_8 = math.sqrt(8.0)
 
 
-class ComplexPoincareDiskTestData(ComplexOpenSetTestData):
+class ComplexPoincareDiskTestData(ComplexVectorSpaceOpenSetTestData):
     def belongs_test_data(self):
         data = [
             dict(point=gs.array([0.2 + 0.2j]), expected=gs.array(True)),

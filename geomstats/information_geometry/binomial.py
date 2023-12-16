@@ -6,7 +6,7 @@ from scipy.special import factorial
 from scipy.stats import binom
 
 import geomstats.backend as gs
-from geomstats.geometry.base import OpenSet
+from geomstats.geometry.base import VectorSpaceOpenSet
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.information_geometry.base import (
@@ -15,7 +15,7 @@ from geomstats.information_geometry.base import (
 )
 
 
-class BinomialDistributions(InformationManifoldMixin, OpenSet):
+class BinomialDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
     """Class for the manifold of binomial distributions.
 
     This is the parameter space of binomial distributions

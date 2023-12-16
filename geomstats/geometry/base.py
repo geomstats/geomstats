@@ -497,6 +497,85 @@ class LevelSet(Manifold, abc.ABC):
 
 
 class OpenSet(Manifold, abc.ABC):
+    """Class for manifolds that are open sets.
+
+    NB: if the embedding space is a vector space, use `VectorSpaceOpenSet`.
+
+    Parameters
+    ----------
+    embedding_space: Manifold
+        Embedding space that contains the manifold.
+    """
+
+    def __init__(self, embedding_space, shape=None, **kwargs):
+        self.embedding_space = embedding_space
+        if shape is None:
+            shape = embedding_space.shape
+        super().__init__(shape=shape, **kwargs)
+
+    def is_tangent(self, vector, base_point, atol=gs.atol):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *point_shape]
+            Vector.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+        atol : float
+            Absolute tolerance.
+            Optional, default: backend atol.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        return self.embedding_space.is_tangent(vector, base_point, atol)
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *point_shape]
+            Vector.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *point_shape]
+            Tangent vector at base point.
+        """
+        return self.embedding_space.to_tangent(vector, base_point)
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample random points on the manifold.
+
+        Points are sampled from the embedding space using the distribution set
+        for that manifold and then projected to the manifold. As a result, this
+        is not a uniform distribution on the manifold itself.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for the embedding space.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., *point_shape]
+            Points sampled on the hypersphere.
+        """
+        sample = self.embedding_space.random_point(n_samples, bound)
+        return self.projection(sample)
+
+
+class VectorSpaceOpenSet(OpenSet, abc.ABC):
     """Class for manifolds that are open sets of a vector space.
 
     In this case, tangent vectors are identified with vectors of the embedding
@@ -507,12 +586,6 @@ class OpenSet(Manifold, abc.ABC):
     embedding_space: VectorSpace
         Embedding space that contains the manifold.
     """
-
-    def __init__(self, embedding_space, shape=None, **kwargs):
-        self.embedding_space = embedding_space
-        if shape is None:
-            shape = embedding_space.shape
-        super().__init__(shape=shape, **kwargs)
 
     def is_tangent(self, vector, base_point=None, atol=gs.atol):
         """Check whether the vector is tangent at base_point.
@@ -557,30 +630,6 @@ class OpenSet(Manifold, abc.ABC):
             return gs.broadcast_to(tangent_vec, base_point.shape)
         return tangent_vec
 
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample random points on the manifold.
-
-        Points are sampled from the embedding space using the distribution set
-        for that manifold and then projected to the manifold. As a result, this
-        is not a uniform distribution on the manifold itself.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Bound of the interval in which to sample for the embedding space.
-            Optional, default: 1.
-
-        Returns
-        -------
-        samples : array-like, shape=[..., *point_shape]
-            Points sampled on the hypersphere.
-        """
-        sample = self.embedding_space.random_point(n_samples, bound)
-        return self.projection(sample)
-
     @abc.abstractmethod
     def projection(self, point):
         """Project a point in embedding manifold on manifold.
@@ -597,7 +646,7 @@ class OpenSet(Manifold, abc.ABC):
         """
 
 
-class ComplexOpenSet(ComplexManifold, abc.ABC):
+class ComplexVectorSpaceOpenSet(ComplexManifold, abc.ABC):
     """Class for manifolds that are open sets of a complex vector space.
 
     In this case, tangent vectors are identified with vectors of the embedding
@@ -889,3 +938,99 @@ class ImmersedSet(Manifold, abc.ABC):
             Points sampled on the manifold.
         """
         raise NotImplementedError("`random_point` is not implemented yet")
+
+
+class DiffeomorphicManifold(Manifold):
+    """A manifold defined by a diffeomorphism."""
+
+    def __init__(self, diffeo, image_space, **kwargs):
+        self.diffeo = diffeo
+        self.image_space = image_space
+        super().__init__(**kwargs)
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., *point_shape]
+            Vector.
+        base_point : array-like, shape=[..., *point_shape]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *point_shape]
+            Tangent vector at base point.
+        """
+        image_point = self.diffeo.diffeomorphism(base_point)
+        image_vector = self.diffeo.tangent_diffeomorphism(
+            vector, base_point=base_point, image_point=image_point
+        )
+        image_tangent_vec = self.image_space.to_tangent(image_vector, image_point)
+        return self.diffeo.inverse_tangent_diffeomorphism(
+            image_tangent_vec, image_point=image_point, base_point=base_point
+        )
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample random points on the manifold according to some distribution.
+
+        If the manifold is compact, preferably a uniform distribution will be used.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound of the interval in which to sample for non compact manifolds.
+            Optional, default: 1.
+
+        Returns
+        -------
+        samples : array-like, shape=[..., *point_shape]
+            Points sampled on the manifold.
+        """
+        image_point = self.image_space.random_point(n_samples=n_samples, bound=bound)
+        return self.diffeo.inverse_diffeomorphism(image_point)
+
+    def regularize(self, point):
+        """Regularize a point to the canonical representation for the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point.
+
+        Returns
+        -------
+        regularized_point : array-like, shape=[..., *point_shape]
+            Regularized point.
+        """
+        image_point = self.diffeo.diffeomorphism(point)
+        regularized_image_point = self.image_space.regularize(image_point)
+        return self.diffeo.inverse_diffeomorphism(regularized_image_point)
+
+    def random_tangent_vec(self, base_point, n_samples=1):
+        """Generate random tangent vec.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        base_point :  array-like, shape={[n_samples, *point_shape], [*point_shape,]}
+            Point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., *point_shape]
+            Tangent vec at base point.
+        """
+        image_point = self.diffeo.diffeomorphism(base_point)
+        image_tangent_vec = self.image_space.random_tangent_vec(
+            image_point, n_samples=n_samples
+        )
+        return self.diffeo.inverse_tangent_diffeomorphism(
+            image_tangent_vec, image_point=image_point, base_point=base_point
+        )

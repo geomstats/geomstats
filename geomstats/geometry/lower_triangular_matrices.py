@@ -93,6 +93,21 @@ class LowerTriangularMatrices(VectorSpace):
         """
         return gs.einsum("...i,...ijk->...jk", vec, self.basis)
 
+    def matrix_representation(self, vec):
+        """Compute the matrix representation for the given basis coefficients.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Representation in the basis.
+        """
+        return self.from_vector(vec)
+
     def projection(self, point):
         """Make a square matrix lower triangular by zeroing out other elements.
 

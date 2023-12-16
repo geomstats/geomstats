@@ -11,14 +11,17 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 import geomstats.errors as error
-from geomstats.geometry.discrete_curves import ElasticMetric, SRVMetric
+from geomstats.geometry.discrete_curves import (
+    ElasticTranslationMetric,
+    SRVTranslationMetric,
+)
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import HypersphereMetric
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import MinkowskiMetric
 
 LINEAR_METRICS = [EuclideanMetric, MatricesMetric, MinkowskiMetric]
-ELASTIC_METRICS = [SRVMetric, ElasticMetric]
+ELASTIC_METRICS = [SRVTranslationMetric, ElasticTranslationMetric]
 
 
 def _is_metric_in_list(metric, metric_classes):
@@ -443,8 +446,6 @@ class ElasticMean(BaseEstimator):
         self.space = space
         self.estimate_ = None
 
-        self.ambient_mean_estimator = FrechetMean(self.space.ambient_manifold)
-
     def _elastic_mean(self, points, weights=None):
         """Compute the weighted mean of elastic curves.
 
@@ -471,18 +472,11 @@ class ElasticMean(BaseEstimator):
         mean : array-like, shape=[k_sampling_points, dim]
             Weighted linear mean of the points (i.e. of the curves).
         """
-        transformed = self.space.metric.f_transform(points)
+        diffeo = self.space.metric.diffeo
+        transformed = diffeo.diffeomorphism(points)
         transformed_linear_mean = linear_mean(transformed, weights=weights)
 
-        starting_sampling_point = self.ambient_mean_estimator.fit(
-            points[:, 0, :], weights=weights
-        ).estimate_
-        starting_sampling_point = gs.expand_dims(starting_sampling_point, axis=0)
-
-        mean = self.space.metric.f_transform_inverse(
-            transformed_linear_mean, starting_sampling_point=starting_sampling_point
-        )
-        return mean
+        return diffeo.inverse_diffeomorphism(transformed_linear_mean)
 
     def fit(self, X, y=None, weights=None):
         """Compute the elastic mean.

@@ -2,11 +2,13 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean, EuclideanMetric
+from geomstats.geometry.hermitian_matrices import expmh, powermh
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.spd_matrices import (
     SPDAffineMetric,
     SPDLogEuclideanMetric,
     SPDMatrices,
+    logmh,
 )
 
 
@@ -44,7 +46,7 @@ class LogNormalSPD:
     def sample(self, n_samples):
         """Generate samples for SPD manifold."""
         if isinstance(self.space.metric, SPDLogEuclideanMetric):
-            sym_matrix = self.space.logm(self.mean)
+            sym_matrix = logmh(self.mean)
             mean_euclidean = gs.hstack(
                 (
                     gs.diagonal(sym_matrix)[None, :],
@@ -57,10 +59,10 @@ class LogNormalSPD:
             samples_sym = self.samples_sym(
                 gs.zeros(self.space.dim), self.cov, n_samples
             )
-            mean_half = self.space.powerm(self.mean, 0.5)
+            mean_half = powermh(self.mean, 0.5)
             _samples = Matrices.mul(mean_half, samples_sym, mean_half)
 
-        return self.space.expm(_samples)
+        return expmh(_samples)
 
 
 class LogNormalEuclidean:
