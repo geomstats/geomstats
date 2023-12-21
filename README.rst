@@ -26,9 +26,11 @@ Keep in touch with the community by joining us on our `slack workspace <https://
 
 **NEWS**:
 
-- Discover our new  `information_geometry <https://github.com/geomstats/geomstats/tree/main/geomstats/information_geometry>`_ module, published in the ACM Transactions of Mathematical Software (`paper <https://dl.acm.org/doi/abs/10.1145/3627538>`_).
+- 2023: Discover our `information_geometry module <https://github.com/geomstats/geomstats/tree/main/geomstats/information_geometry>`_ , and its paper `Parametric information geometry with the package Geomstats <https://dl.acm.org/doi/abs/10.1145/3627538>`_ by Alice Le Brigant, Jules Deschamps, Antoine Collas, and Nina Miolane, published in the ACM Transactions of Mathematical Software.
 
-- The white papers summarizing the findings from our ICLR 2021 and 2022 challenges of computational differential geometry and topology are available `here (2021) <https://arxiv.org/abs/2108.09810>`__ and `here (2022) <https://arxiv.org/abs/2206.09048>`_.
+- 2023: Discover our foundational paper `Introduction to Riemannian Geometry and Geometric Statistics: From Basic Theory to Implementation with Geomstats <https://www.nowpublishers.com/article/Details/MAL-098>`_ by Nicolas Guigui, Nina Miolane and Xavier Pennec, published in Foundations and Trends in Machine Learning.
+
+- 2021-2022: The white papers summarizing the findings from our ICLR 2021 and 2022 challenges of computational differential geometry and topology are available `here (2021) <https://arxiv.org/abs/2108.09810>`__ and `here (2022) <https://arxiv.org/abs/2206.09048>`_.
 
 -  To get an overview of ``geomstats``, see our `introductory
    video <https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3>`__.
