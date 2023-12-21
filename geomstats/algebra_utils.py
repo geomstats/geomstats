@@ -116,7 +116,9 @@ def from_vector_to_diagonal_matrix(vector, num_diag=0):
     num_columns = gs.shape(vector)[-1]
     identity = gs.repeat(
         gs.zeros_like(gs.reshape(vector, (-1, num_columns))[:1, :]),
-        repeats=num_columns, axis=0)
+        repeats=num_columns,
+        axis=0,
+    )
     identity[range(num_columns), range(num_columns)] = 1
     diagonals = gs.einsum("...i,ij->...ij", vector, identity)
     diagonals = gs.to_ndarray(diagonals, to_ndim=3)
