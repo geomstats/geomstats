@@ -37,25 +37,22 @@ from geomstats.geometry.hermitian_matrices import expmh, powermh
 from geomstats.geometry.matrices import Matrices
 
 
-def _create_identity_mat(shape, dtype):
+def _eye_like(mat):
     """Stack identity matrices.
 
     Parameters
     ----------
-    shape : tuple
-        Desired identity matrix shape of form [..., n, n].
-    dtype : dtype
-        Desired dtype.
+    mat : array-like, shape=[..., n, n]
+        Matrix.
 
     Returns
     -------
     identity : array-like, shape=[..., n, n]
         Stacked identity matrices.
     """
-    ndim = len(shape)
-    if ndim == 2:
-        return gs.eye(shape[-1], dtype=dtype)
-    return gs.stack([gs.eye(shape[-1], dtype=dtype) for _ in range(shape[0])], axis=0)
+    identity = gs.zeros_like(mat)
+    identity[..., range(mat.ndim), range(mat.ndim)] = 1
+    return identity
 
 
 class Siegel(ComplexVectorSpaceOpenSet):
@@ -231,7 +228,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         inner_product : array-like, shape=[...,]
             Inner-product.
         """
-        identity = _create_identity_mat(base_point.shape, dtype=base_point.dtype)
+        identity = _eye_like(base_point)
 
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         tangent_vec_b_transconj = ComplexMatrices.transconjugate(tangent_vec_b)
@@ -270,7 +267,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         tangent_vec_at_zero : array-like, shape=[..., n, n]
             Tangent vector at zero (null matrix).
         """
-        identity = _create_identity_mat(base_point.shape, dtype=base_point.dtype)
+        identity = _eye_like(base_point)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         aux_1 = gs.matmul(base_point, base_point_transconj)
         aux_2 = gs.matmul(base_point_transconj, base_point)
@@ -297,7 +294,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Point on the manifold.
         """
-        identity = _create_identity_mat(tangent_vec.shape, dtype=tangent_vec.dtype)
+        identity = _eye_like(tangent_vec)
         tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
         aux_1 = gs.matmul(tangent_vec, tangent_vec_transconj)
         aux_2 = powermh(aux_1, 1 / 2)
@@ -330,7 +327,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         point_image : array-like, shape=[..., n, n]
             Image of point by the isometry.
         """
-        identity = _create_identity_mat(point.shape, dtype=point.dtype)
+        identity = _eye_like(point)
         point_to_zero_transconj = ComplexMatrices.transconjugate(point_to_zero)
         aux_1 = gs.matmul(point_to_zero, point_to_zero_transconj)
         aux_2 = gs.matmul(point_to_zero_transconj, point_to_zero)
@@ -387,7 +384,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         log_at_zero : array-like, shape=[..., n, n]
             Riemannian logarithm at zero (null matrix).
         """
-        identity = _create_identity_mat(point.shape, dtype=point.dtype)
+        identity = _eye_like(point)
         point_transconj = ComplexMatrices.transconjugate(point)
         aux_1 = gs.matmul(point, point_transconj)
         aux_2 = powermh(aux_1, 1 / 2)
@@ -417,7 +414,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         tangent_vec_at_base_point : array-like, shape=[..., n, n]
             Tangent vector at the base point.
         """
-        identity = _create_identity_mat(tangent_vec.shape, dtype=base_point.dtype)
+        identity = _eye_like(tangent_vec)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         aux_1 = gs.matmul(base_point, base_point_transconj)
         aux_2 = gs.matmul(base_point_transconj, base_point)
@@ -475,7 +472,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         if gs.ndim(point_a) > gs.ndim(point_b):
             point_a, point_b = point_b, point_a
 
-        identity = _create_identity_mat(point_b.shape, dtype=point_a.dtype)
+        identity = _eye_like(point_a)
 
         point_a_transconj = ComplexMatrices.transconjugate(point_a)
         point_b_transconj = ComplexMatrices.transconjugate(point_b)
