@@ -7,8 +7,8 @@ Lead author: Olivier Bisson.
 References
 ----------
 .. [T2022] Yann Thanwerdas. Riemannian and stratified
-geometries on covariance and correlation matrices. Differential
-Geometry [math.DG]. Université Côte d'Azur, 2022.
+    geometries on covariance and correlation matrices. Differential
+    Geometry [math.DG]. Université Côte d'Azur, 2022.
 """
 
 import geomstats.backend as gs
@@ -66,7 +66,7 @@ class OpenHemisphere(OpenSet):
     An open set of the hypersphere where the first coordinate is always
     positive.
 
-    ..math::
+    .. math::
 
         \mathrm{HS}^{k-1}=\left\{x \in \mathbb{R}^k: \|x\|=1
         \text { and } x_0>0\right\}
@@ -125,7 +125,7 @@ class OpenHemispherePullbackMetric(PullbackDiffeoMetric):
 class OpenHemispheresProduct(ProductManifold):
     r"""A consecutively factor-dim increasing product manifold of open hemispheres.
 
-    ..math::
+    .. math::
 
         HS^1\times \dots \times HS(n)
     """

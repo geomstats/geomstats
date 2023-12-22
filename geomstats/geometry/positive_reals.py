@@ -5,8 +5,8 @@ of the SPD matrices endowed with the SPD affine-invariant metric
 with a power affine coefficient equal to one.
 This manifold is used as part of a product manifold involving
 complex Poincare disks to classify complex stationary centered
-Gaussian autoregressive time series in [Cabanes2022], [Cabanes_CESAR_2019],
-[Cabanes_GSI_2019] and [Cabanes_RADAR_2019].
+Gaussian autoregressive time series in [Cabanes2022]_, [Cabanes_CESAR_2019]_,
+[Cabanes_GSI_2019]_ and [Cabanes_RADAR_2019]_.
 This product manifold is called ProductPositiveRealsAndComplexPoincareDisks
 in geomstats. It is a product manifold of complex type, therefore the manifold
 PositiveReals is compatible with complex input points and vectors even if the

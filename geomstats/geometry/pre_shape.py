@@ -330,8 +330,8 @@ class PreShapeSpaceBundle(FiberBundle):
         r"""Compute the fundamental tensor A of the submersion.
 
         The fundamental tensor A is defined for tangent vectors of the total
-        space by [O'Neill]_ :math:`A_X Y = ver\nabla^M_{hor X} (hor Y)
-            + hor \nabla^M_{hor X}( ver Y)`
+        space by [ONeill]_
+        :math:`A_X Y = ver\nabla^M_{hor X}(hor Y) + hor \nabla^M_{hor X}(ver Y)`
         where :math:`hor, ver` are the horizontal and vertical projections.
 
         For the Kendall shape space, we have the closed-form expression at
@@ -358,7 +358,7 @@ class PreShapeSpaceBundle(FiberBundle):
 
         References
         ----------
-        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        .. [ONeill]  O’Neill, Barrett. The Fundamental Equations of a
             Submersion, Michigan Mathematical Journal 13, no. 4
             (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
 
@@ -506,8 +506,8 @@ class PreShapeSpaceBundle(FiberBundle):
 
         The horizontal covariant derivative :math:`\nabla_X (A_Y Z)` of the
         integrability tensor A may be computed more efficiently in the case of
-        parallel vector fields in the quotient space. :math:
-        `\nabla_X (A_Y Z)` and :math:`A_Y Z` are computed here for the
+        parallel vector fields in the quotient space.
+        :math:`\nabla_X (A_Y Z)` and :math:`A_Y Z` are computed here for the
         Kendall shape space with quotient-parallel vector fields :math:`X,
         Y, Z` extending the values horizontal_vec_x, horizontal_vec_y and
         horizontal_vec_z by parallel transport in a neighborhood of the
@@ -538,7 +538,7 @@ class PreShapeSpaceBundle(FiberBundle):
         References
         ----------
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
         # Vectors X and Y have to be horizontal.
         if not gs.all(self.total_space.is_centered(base_point)):
@@ -594,8 +594,8 @@ class PreShapeSpaceBundle(FiberBundle):
         Kendall shape space in the special case of quotient-parallel vector
         fields :math:`X, Y` extending the values horizontal_vec_x and
         horizontal_vec_y by parallel transport in a neighborhood.
-        Such vector fields verify :math:`\nabla_X^X = A_X X` and :math:
-        `\nabla_X^Y = A_X Y`.
+        Such vector fields verify :math:`\nabla_X^X = A_X X` and
+        :math:`\nabla_X^Y = A_X Y`.
 
         Parameters
         ----------
@@ -630,7 +630,7 @@ class PreShapeSpaceBundle(FiberBundle):
         References
         ----------
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
         if not gs.all(self.total_space.is_centered(base_point)):
             raise ValueError("The base_point does not belong to the pre-shape space")
@@ -943,10 +943,10 @@ class KendallShapeMetric(QuotientMetric):
 
         For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
         tangent\_vec\_b` with tangent vector value specified in argument at the
-        base point `P`, the covariant derivative (in the direction 'X')
+        base point `P`, the covariant derivative (in the direction `X`)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)
-        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
+        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in `X` and `Y` that
         plays an important role in the computation of the moments of the
         empirical Fréchet mean [Pennec]_.
 
@@ -956,8 +956,8 @@ class KendallShapeMetric(QuotientMetric):
         base-space. Such vector fields verify :math:`\nabla^T_X X=0` and
         :math:`\nabla^T_X^Y = A_X Y` using the connection :math:`\nabla^T`
         of the total space. Then the covariant derivative of the
-        directional curvature tensor is given by :math:
-        `\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
+        directional curvature tensor is given by
+        :math:`\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
         - 3 (\nabla_X^T A_Y A_X Y - A_X A_Y A_X Y )`, where :math:`R^T_Y(X)`
         is the directional curvature tensor of the total space.
 

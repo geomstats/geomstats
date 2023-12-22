@@ -267,8 +267,8 @@ class MatrixPower(Diffeo):
     def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
         r"""Compute the differential of the matrix power function.
 
-        Compute the differential of the power function on SPD(n)
-        (:math:`A^p=\exp(p \log(A))`) at base_point applied to tangent_vec.
+        Compute the differential of the power function on SPD(n),
+        :math:`A^p=\exp(p \log(A))`, at base_point applied to tangent_vec.
 
         Parameters
         ----------
@@ -304,7 +304,7 @@ class MatrixPower(Diffeo):
         r"""Compute the inverse of the differential of the matrix power.
 
         Compute the inverse of the differential of the power
-        function on SPD matrices (:math:`A^p=\exp(p \log(A))`) at base_point
+        function on SPD matrices, :math:`A^p=\exp(p \log(A))`, at base_point
         applied to tangent_vec.
 
         Parameters
@@ -1042,9 +1042,9 @@ class SPDPowerMetric(PullbackDiffeoMetric):
     References
     ----------
     .. [T2022] Thanwerdas, Y. (2022) Riemannian and stratified
-    geometries of covariance and correlation matrices. Theses.
-    Université Côte d’Azur. Available at:
-    https://hal.archives-ouvertes.fr/tel-03698752 (Accessed: 29 September 2022).
+        geometries of covariance and correlation matrices. Theses.
+        Université Côte d’Azur. Available at:
+        https://hal.archives-ouvertes.fr/tel-03698752 (Accessed: 29 September 2022).
     """
 
     def __init__(self, space, image_space):
@@ -1067,8 +1067,8 @@ class LieCholeskyMetric(PullbackDiffeoMetric):
     References
     ----------
     .. [T2022] Yann Thanwerdas. Riemannian and stratified
-    geometries on covariance and correlation matrices. Differential
-    Geometry [math.DG]. Université Côte d'Azur, 2022.
+        geometries on covariance and correlation matrices. Differential
+        Geometry [math.DG]. Université Côte d'Azur, 2022.
     """
 
     def __init__(self, space):

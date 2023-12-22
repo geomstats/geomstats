@@ -187,7 +187,7 @@ class QuotientMetric(RiemannianMetric):
         In the case of quotient metrics, the fundamental equations of a
         Riemannian submersion allow to compute the curvature of the base
         manifold from the one of the total space and a correction term that
-        uses the integrability tensor A [O'Neill]_.
+        uses the integrability tensor A [ONeill]_.
 
         In more details, let :math:`X, Y, Z` be the horizontal lift of
         vector fields extending the tangent vectors given in argument in a
@@ -215,7 +215,7 @@ class QuotientMetric(RiemannianMetric):
 
         References
         ----------
-        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        .. [ONeill]  O’Neill, Barrett. The Fundamental Equations of a
             Submersion, Michigan Mathematical Journal 13, no. 4
             (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
         """
@@ -275,12 +275,14 @@ class QuotientMetric(RiemannianMetric):
         :math:`\nabla^T_H^X = A_H X` (and similarly for Y and Z) using the
         connection :math:`\nabla^T` of the total space. Then the covariant
         derivative of the curvature tensor is given by
-        :math:`\nabla_H (R(X, Y) Z) =
-        \hor\nabla_H^T(R^T(X,Y)Z) - A_H(ver R^T(X,Y)Z )
-        + (2 A_H A_Z A_X Y - A_H A_X A_Y Z + A_H A_Y A_X Z)
-        - (2 \nabla_H^T A_Z A_X Y - \nabla_H^T A_X A_Y Z +
-             \nabla_H^T A_Y A_X Z)`, where :math:`R^T(X,Y)Z` is the curvature
-        tensor of the total space.
+
+        .. math::
+            \nabla_H (R(X, Y) Z) =
+            \hor\nabla_H^T(R^T(X,Y)Z) - A_H(ver R^T(X,Y)Z )
+            + (2 A_H A_Z A_X Y - A_H A_X A_Y Z + A_H A_Y A_X Z)
+            - (2 \nabla_H^T A_Z A_X Y - \nabla_H^T A_X A_Y Z + \nabla_H^T A_Y A_X Z)
+
+        where :math:`R^T(X,Y)Z` is the curvature tensor of the total space.
 
         Parameters
         ----------
@@ -392,10 +394,13 @@ class QuotientMetric(RiemannianMetric):
         base-space. Such vector fields verify :math:`\nabla^T_X X=0` and
         :math:`\nabla^T_X^Y = A_X Y` using the connection :math:`\nabla^T`
         of the total space. Then the covariant derivative of the
-        directional curvature tensor is given by :math:
-        `\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
-        + 3 A_X A_Y A_X Y - 3 \nabla_X^T A_Y A_X Y `, where :math:`R^T_Y(X)`
-        is the directional curvature tensor of the total space.
+        directional curvature tensor is given by
+
+        .. math::
+            \nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
+            + 3 A_X A_Y A_X Y - 3 \nabla_X^T A_Y A_X Y
+
+        where :math:`R^T_Y(X)` is the directional curvature tensor of the total space.
 
         Parameters
         ----------
@@ -414,7 +419,7 @@ class QuotientMetric(RiemannianMetric):
         References
         ----------
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
         bundle = self.fiber_bundle
         point_fiber = bundle.lift(base_point)

@@ -171,9 +171,9 @@ class SasakiMetric(RiemannianMetric):
 
     The Sasaki metric is characterized by the following three properties:
 
-     * the canonical projection of TM becomes a Riemannian submersion,
-     * parallel vector fields along curves are orthogonal to their fibres, and
-     * its restriction to any tangent space is Euclidean.
+    * the canonical projection of TM becomes a Riemannian submersion,
+    * parallel vector fields along curves are orthogonal to their fibres, and
+    * its restriction to any tangent space is Euclidean.
 
     Geodesic computations are realized via a discrete formulation of the
     geodesic equation on TM that involve geodesics, parallel translation, and

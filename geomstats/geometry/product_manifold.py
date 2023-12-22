@@ -381,7 +381,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, embedding_space.dim,
+        point : array-like, shape=[..., {dim, embedding_space.dim, \
             [n_manifolds, dim_each]}]
             Point.
         atol : float,
@@ -400,13 +400,13 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, embedding_space.dim,
+        point : array-like, shape=[..., {dim, embedding_space.dim, \
             [n_manifolds, dim_each]}]
             Point to be regularized.
 
         Returns
         -------
-        regularized_point : array-like, shape=[..., {dim, embedding_space.dim,
+        regularized_point : array-like, shape=[..., {dim, embedding_space.dim, \
             [n_manifolds, dim_each]}]
             Point in the manifold's canonical representation.
         """
@@ -429,7 +429,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         Returns
         -------
-        samples : array-like, shape=[..., {dim, embedding_space.dim,
+        samples : array-like, shape=[..., {dim, embedding_space.dim, \
             [n_manifolds, dim_each]}]
             Points sampled from the manifold.
         """
@@ -455,7 +455,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         Returns
         -------
-        samples : array-like, shape=[..., {dim, embedding_space.dim,
+        samples : array-like, shape=[..., {dim, embedding_space.dim, \
             [n_manifolds, dim_each]}]
             Points sampled in the tangent space of the product manifold at base_point.
         """
@@ -475,7 +475,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         Returns
         -------
-        projected : array-like, shape=[..., {dim, embedding_space.dim,
+        projected : array-like, shape=[..., {dim, embedding_space.dim, \
             [n_manifolds, dim_each]}]
             Projected point.
         """
