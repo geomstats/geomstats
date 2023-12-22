@@ -51,7 +51,7 @@ def _eye_like(mat):
         Stacked identity matrices.
     """
     identity = gs.zeros_like(mat)
-    identity[..., range(mat.ndim), range(mat.ndim)] = 1
+    identity[..., range(mat.shape[-2]), range(mat.shape[-1])] = 1
     return identity
 
 
