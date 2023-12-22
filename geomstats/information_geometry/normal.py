@@ -370,7 +370,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return point
 
     def projection(self, point):
-        r"""Project a point on the manifold of diagonal multivariate normal distribution.
+        r"""Project a point on the manifold.
 
         Floor the eigenvalues of the diagonal covariance matrix to gs.atol.
 
