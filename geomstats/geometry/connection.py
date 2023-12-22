@@ -363,11 +363,10 @@ class Connection(ABC):
         :math:`R_{ijk}^l = dx^l(R(X_j, X_k)X_i)`
 
         which gives :math:`R_{ijk}^l` as a sum of four terms:
-        :math:`R_{ijk}^l =`
-        :math:`\partial_j \Gamma^l_{ki}`
-        :math:`- \partial_k \Gamma^l_{ji}`
-        :math:`+ \Gamma^l_{jm} \Gamma^m_{ki}`
-        :math:`- \Gamma^l_{km} \Gamma^m_{ji}`
+
+        .. math::
+            \partial_j \Gamma^l_{ki} - \partial_k \Gamma^l_{ji}
+            + \Gamma^l_{jm} \Gamma^m_{ki} - \Gamma^l_{km} \Gamma^m_{ji}
 
         Note that geomstats puts the contravariant index on
         the first dimension of the Christoffel symbols.
