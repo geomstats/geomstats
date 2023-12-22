@@ -169,7 +169,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
 
     This is the class for multivariate normal distributions with zero mean.
     Each distribution is represented by its covariance matrix, i.e. a symmetric
-    positive-definite matrix of size :math:`sample_dim`.
+    positive-definite matrix of size :math:`sample\_dim`.
 
     Parameters
     ----------
@@ -257,8 +257,8 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
     This is the class for multivariate normal distributions with diagonal
     covariance matrices. Each distribution is represented by a vector of size
-    :math:`2 * sample_dim` where the first :math:`sample_dim` elements contain
-    the mean vector and the :math:`sample_dim` last elements contain the
+    :math:`2 * sample\_dim` where the first :math:`sample\_dim` elements contain
+    the mean vector and the :math:`sample\_dim` last elements contain the
     diagonal of the covariance matrix.
 
     Parameters
@@ -329,8 +329,8 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         Parameters
         ----------
         point : array-like, shape=[..., 2 * sample_dim]
-            Point to test. First :math:`sample_dim` elements contain the
-            mean vector and the last :math:`sample_dim` elements contain
+            Point to test. First :math:`sample\_dim` elements contain the
+            mean vector and the last :math:`sample\_dim` elements contain
             the diagonal of the covariance matrix.
 
         Returns
@@ -356,8 +356,8 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         -------
         samples : array-like, shape=[..., 2 * sample_dim]
             Sample of points representing multivariate diagonal normal distributions.
-            First :math:`sample_dim` elements contain the mean vector and the last
-            :math:`sample_dim` elements contain the diagonal of the covariance matrix.
+            First :math:`sample\_dim` elements contain the mean vector and the last
+            :math:`sample\_dim` elements contain the diagonal of the covariance matrix.
         """
         sample_dim = self.sample_dim
         bound = 1.0
@@ -377,8 +377,8 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         Parameters
         ----------
         point : array-like, shape=[..., 2 * sample_dim]
-            Point to project. First :math:`sample_dim` elements contain
-            the mean vector and the last :math:`sample_dim` elements contain
+            Point to project. First :math:`sample\_dim` elements contain
+            the mean vector and the last :math:`sample\_dim` elements contain
             the diagonal of the covariance matrix.
 
         Returns
@@ -397,8 +397,8 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         Parameters
         ----------
         point : array-like, shape=[..., 2 * sample_dim]
-            Point on the manifold. First :math:`sample_dim` elements contain
-            the mean vector and the last :math:`sample_dim` elements contain
+            Point on the manifold. First :math:`sample\_dim` elements contain
+            the mean vector and the last :math:`sample\_dim` elements contain
             the diagonal of the covariance matrix.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
@@ -418,8 +418,8 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         ----------
         point : array-like, shape=[..., 2 * sample_dim]
             Point representing a probability distribution.
-            First :math:`sample_dim` elements contain the mean vector and the last
-            :math:`sample_dim` elements contain the diagonal of the covariance matrix.
+            First :math:`sample\_dim` elements contain the mean vector and the last
+            :math:`sample\_dim` elements contain the diagonal of the covariance matrix.
 
         Returns
         -------
@@ -459,7 +459,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
 
     This is the class for multivariate normal distributions on the Euclidean space.
     Each distribution is represented by the concatenation of its mean vector and
-    its covariance matrix reshaped in a vector of size :math:`sample_dim ** 2`.
+    its covariance matrix reshaped in a vector of size :math:`sample\_dim ** 2`.
 
     Parameters
     ----------
@@ -505,8 +505,8 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         ----------
         point : array-like, shape=[..., sample_dim + sample_dim ** 2]
             Point representing a multivariate normal distribution.
-            First :math:`sample_dim` elements contain the mean vector and the last
-            :math:`sample_dim ** 2` elements contain the covariance matrix row by row.
+            First :math:`sample\_dim` elements contain the mean vector and the last
+            :math:`sample\_dim ** 2` elements contain the covariance matrix row by row.
         n_samples : int
             Number of points to sample with each parameter in point.
             Optional, default: 1.
@@ -525,8 +525,8 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         ----------
         point : array-like, shape=[..., sample_dim + sample_dim ** 2]
             Point representing a multivariate normal distribution.
-            First :math:`sample_dim` elements contain the mean vector and the last
-            :math:`sample_dim ** 2` elements contain the covariance matrix row by row.
+            First :math:`sample\_dim` elements contain the mean vector and the last
+            :math:`sample\_dim ** 2` elements contain the covariance matrix row by row.
 
         Returns
         -------
@@ -568,7 +568,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
         r"""Image of base point in the Poincare upper half-plane.
 
         This is the image by the diffeomorphism
-        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
 
         Parameters
         ----------
@@ -589,7 +589,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
         r"""Inverse image of a point in the Poincare upper half-plane.
 
         This is the inverse image by the diffeomorphism
-        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
 
         Parameters
         ----------
@@ -610,7 +610,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
         r"""Image of tangent vector.
 
         This is the image by the tangent map of the diffeomorphism
-        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
 
         Parameters
         ----------
@@ -634,7 +634,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
         r"""Inverse image of tangent vector.
 
         This is the inverse image by the tangent map of the diffeomorphism
-        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
 
         Parameters
         ----------
@@ -657,7 +657,7 @@ class UnivariateNormalMetric(PullbackDiffeoMetric):
     """Class for the Fisher information metric on univariate normal distributions.
 
     This is the pullback of the metric of the Poincare upper half-plane
-    by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
+    by the diffeomorphism :math:`(mean, std) -> (mean, \sqrt{2} std)`.
     """
 
     def __init__(self, space):
