@@ -444,6 +444,7 @@ class AAC:
         Metric Class on Graph Space.
     estimate : str
         Desired estimator. One of the following:
+
         - "frechet_mean": Frechet Mean estimation [Calissano2020]_
         - "ggpca": Generalized Geodesic Principal Components [Calissano2020]_
         - "regression": Graph-on-vector regression model [Calissano2022]_
