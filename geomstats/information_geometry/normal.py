@@ -165,7 +165,7 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
 
 
 class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
-    """Class for the manifold of centered multivariate normal distributions.
+    r"""Class for the manifold of centered multivariate normal distributions.
 
     This is the class for multivariate normal distributions with zero mean.
     Each distribution is represented by its covariance matrix, i.e. a symmetric
@@ -253,7 +253,7 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
 
 
 class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
-    """Class for the manifold of diagonal multivariate normal distributions.
+    r"""Class for the manifold of diagonal multivariate normal distributions.
 
     This is the class for multivariate normal distributions with diagonal
     covariance matrices. Each distribution is represented by a vector of size
@@ -324,7 +324,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return gs.concatenate([mean, diagonal], axis=-1)
 
     def belongs(self, point, atol=gs.atol):
-        """Evaluate if the point belongs to the manifold.
+        r"""Evaluate if the point belongs to the manifold.
 
         Parameters
         ----------
@@ -344,7 +344,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return gs.logical_and(belongs, gs.all(diagonal >= -atol, axis=-1))
 
     def random_point(self, n_samples=1):
-        """Generate random parameters of multivariate diagonal normal distributions.
+        r"""Generate random parameters of multivariate diagonal normal distributions.
 
         Parameters
         ----------
@@ -370,7 +370,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return point
 
     def projection(self, point):
-        """Project a point on the manifold of diagonal multivariate normal distribution.
+        r"""Project a point on the manifold of diagonal multivariate normal distribution.
 
         Floor the eigenvalues of the diagonal covariance matrix to gs.atol.
 
@@ -392,7 +392,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return self._stack_mean_diagonal(mean, regularized)
 
     def sample(self, point, n_samples=1):
-        """Sample from the diagonal multivariate normal distribution.
+        r"""Sample from the diagonal multivariate normal distribution.
 
         Parameters
         ----------
@@ -412,7 +412,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
-        """Compute pdf associated to point.
+        r"""Compute pdf associated to point.
 
         Parameters
         ----------
@@ -455,7 +455,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
 
 class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
-    """Class for the manifold of multivariate normal distributions.
+    r"""Class for the manifold of multivariate normal distributions.
 
     This is the class for multivariate normal distributions on the Euclidean space.
     Each distribution is represented by the concatenation of its mean vector and
@@ -499,7 +499,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         return mean, cov
 
     def sample(self, point, n_samples=1):
-        """Sample from a multivariate normal distribution.
+        r"""Sample from a multivariate normal distribution.
 
         Parameters
         ----------
@@ -519,7 +519,7 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
-        """Compute pdf associated to point.
+        r"""Compute pdf associated to point.
 
         Parameters
         ----------
@@ -654,7 +654,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
 
 
 class UnivariateNormalMetric(PullbackDiffeoMetric):
-    """Class for the Fisher information metric on univariate normal distributions.
+    r"""Class for the Fisher information metric on univariate normal distributions.
 
     This is the pullback of the metric of the Poincare upper half-plane
     by the diffeomorphism :math:`(mean, std) -> (mean, \sqrt{2} std)`.
