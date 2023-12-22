@@ -111,15 +111,14 @@ class LogNormal:
     space : Manifold obj, {Euclidean(n), SPDMatrices(n)}
         Manifold to sample over. Manifold should
         be instance of Euclidean or SPDMatrices.
-    mean : array-like,
-            shape=[dim] if space is Euclidean Space
+    mean : array-like, \
+            shape=[dim] if space is Euclidean Space \
             shape=[n, n] if space is SPD Manifold
         Mean of the distribution.
-    cov : array-like,
-            shape=[dim, dim] if space is Euclidean Space
+    cov : array-like, \
+            shape=[dim, dim] if space is Euclidean Space \
             shape=[n*(n+1)/2, n*(n+1)/2] if space is SPD Manifold
         Covariance of the distribution.
-
 
     Example
     --------

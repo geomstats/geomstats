@@ -357,7 +357,7 @@ class Connection(ABC):
     def riemann_tensor(self, base_point):
         r"""Compute Riemannian tensor at base_point.
 
-        In the literature the riemannian curvature tensor is noted :math:`R_{ijk}^l`.
+        In the literature the Riemannian curvature tensor is noted :math:`R_{ijk}^l`.
 
         Following tensor index convention (ref. Wikipedia), we have:
         :math:`R_{ijk}^l = dx^l(R(X_j, X_k)X_i)`
@@ -373,13 +373,12 @@ class Connection(ABC):
 
         Parameters
         ----------
-        base_point :  array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold.
 
         Returns
         -------
-        riemann_curvature : array-like, shape=[..., dim, dim,
-                                                    dim, dim]
+        riemann_curvature : array-like, shape=[..., dim, dim, dim, dim]
             riemann_tensor[...,i,j,k,l] = R_{ijk}^l
             Riemannian tensor curvature,
             with the contravariant index on the last dimension.

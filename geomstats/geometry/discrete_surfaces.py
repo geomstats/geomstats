@@ -14,14 +14,14 @@ from geomstats.numerics.optimizers import ScipyMinimize
 class DiscreteSurfaces(Manifold):
     r"""Space of parameterized discrete surfaces.
 
-    Each surface is sampled with fixed n_vertices vertices and n_faces faces
-    in :math:`\mathbb{R}^3`.
+    Each surface is sampled with fixed `n_vertices` vertices and `n_faces`
+    faces in :math:`\mathbb{R}^3`.
 
-    Each individual surface is represented by a 2d-array of shape `[
-    n_vertices, 3]`. This space corresponds to the space of immersions
+    Each individual surface is represented by a 2d-array of shape
+    `[n_vertices, 3]`. This space corresponds to the space of immersions
     defined below, i.e. the
-    space of smooth functions from a template to manifold $M$ into :math:`\mathbb{R}^3`,
-    with non-vanishing Jacobian.
+    space of smooth functions from a template to manifold :math:`M`
+    into :math:`\mathbb{R}^3`, with non-vanishing Jacobian.
 
     .. math::
         Imm(M,\mathbb{R}^3)=\{ f \in C^{\infty}(M, \mathbb{R}^3)
@@ -468,8 +468,8 @@ class DiscreteSurfaces(Manifold):
 class ElasticMetric(RiemannianMetric):
     """Elastic metric defined by a family of second order Sobolev metrics.
 
-    Each individual discrete surface is represented by a 2D-array of shape `[
-    n_vertices, 3]`. See [HSKCB2022]_ for details.
+    Each individual discrete surface is represented by a 2D-array of shape
+    `[n_vertices, 3]`. See [HSKCB2022]_ for details.
 
     The parameters a0, a1, b1, c1, d1, a2 (detailed below) are non-negative weighting
     coefficients for the different terms in the metric.

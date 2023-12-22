@@ -215,7 +215,7 @@ class DirichletMetric(RiemannianMetric):
         christoffels : array-like, shape=[..., dim, dim, dim]
             Christoffel symbols, with the contravariant index on
             the first dimension.
-            :math: 'christoffels[..., i, j, k] = Gamma^i_{jk}'
+            :math:`christoffels[..., i, j, k] = Gamma^i_{jk}`
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         n_points = base_point.shape[0]
@@ -278,7 +278,7 @@ class DirichletMetric(RiemannianMetric):
         -------
         jac : array-like, shape=[..., dim, dim, dim, dim]
             Jacobian of the Christoffel symbols.
-            :math: 'jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l'
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
         """
         dim = self._space.dim
         n_dim = base_point.ndim

@@ -705,9 +705,11 @@ class L2CurvesMetric(NFoldMetric):
         Compute the left Riemann sum approximation of the integral of a
         function func defined on the unit interval, given by sample points
         at regularly spaced times
-        ..math::
+
+        .. math::
             t_i = i / (k_landmarks),
             i = 0, ..., k_landmarks - 1
+
         (last time is missing).
 
         Parameters
@@ -1173,11 +1175,12 @@ class DynamicProgrammingAligner:
     the L2 scalar product between initial_srv and end_srv@gamma where initial_srv
     is the SRV representation of the initial curve and end_srv@gamma is the SRV
     representation of the end curve reparametrized by gamma, i.e
+
     .. math::
-    end_srv@\gamma(t) = end_srv(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
+        end_srv@\gamma(t) = end_srv(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
 
     The dynamic programming algorithm assumes that for every subinterval
-    :math: '\left[\frac{i}{n},\frac{i+1}{n}\right]' of :math: '\left[0,1\right]',
+    :math:`\left[\frac{i}{n},\frac{i+1}{n}\right]` of :math:`\left[0,1\right]`,
     gamma is linear.
 
     Parameters
@@ -1226,10 +1229,12 @@ class DynamicProgrammingAligner:
         r"""Compute the value of an integral over a subinterval.
 
         Compute n * the value of the integral of
+
         .. math::
         srv_1(t)\cdotsrv_2(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
-        over :math: '\left[\x_min,x_max\right]' where gamma restricted to
-        :math: '\left[\x_min,x_max\right]' is a linear.
+
+        over :math:`\left[\x_min,x_max\right]` where gamma restricted to
+        :math:`\left[\x_min,x_max\right]` is a linear.
 
         Parameters
         ----------

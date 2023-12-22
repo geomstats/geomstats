@@ -373,10 +373,10 @@ class QuotientMetric(RiemannianMetric):
 
         For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
         tangent\_vec\_b` with tangent vector value specified in argument at the
-        base point `P`, the covariant derivative (in the direction 'X')
+        base point `P`, the covariant derivative (in the direction `X`)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)
-        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in 'X' and 'Y' that
+        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in `X` and `Y` that
         plays an important role in the computation of the moments of the
         empirical Fréchet mean.
 

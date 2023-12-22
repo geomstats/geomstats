@@ -453,7 +453,7 @@ class GammaMetric(RiemannianMetric):
         -------
         jac : array-like, shape=[..., 2, 2, 2, 2]
             Jacobian of the Christoffel symbols.
-            :math: 'jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l'
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
         """
         base_point = gs.to_ndarray(base_point, 2)
 

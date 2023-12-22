@@ -36,15 +36,15 @@ Lead author: Jonas Lueg
 
 References
 ----------
-[Garba21]_  Garba, M. K., T. M. W. Nye, J. Lueg and S. F. Huckemann.
-            "Information geometry for phylogenetic trees"
-            Journal of Mathematical Biology, 82(3):19, February 2021a.
-            https://doi.org/10.1007/s00285-021-01553-x.
-[Lueg21]_   Lueg, J., M. K. Garba, T. M. W. Nye, S. F. Huckemann.
-            "Wald Space for Phylogenetic Trees."
-            Geometric Science of Information, Lecture Notes in Computer Science,
-            pages 710–717, Cham, 2021.
-            https://doi.org/10.1007/978-3-030-80209-7_76.
+.. [Garba21] Garba, M. K., T. M. W. Nye, J. Lueg and S. F. Huckemann.
+    "Information geometry for phylogenetic trees"
+    Journal of Mathematical Biology, 82(3):19, February 2021a.
+    https://doi.org/10.1007/s00285-021-01553-x.
+.. [Lueg21] Lueg, J., M. K. Garba, T. M. W. Nye, S. F. Huckemann.
+    "Wald Space for Phylogenetic Trees."
+    Geometric Science of Information, Lecture Notes in Computer Science,
+    pages 710–717, Cham, 2021.
+    https://doi.org/10.1007/978-3-030-80209-7_76.
 """
 
 import functools
