@@ -3,7 +3,7 @@ import math
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import VectorSpaceTestData
+from .base import MatrixVectorSpaceTestData
 from .riemannian_metric import RiemannianMetricTestData
 
 
@@ -224,7 +224,7 @@ class MatrixOperationsSmokeTestData(TestData):
         return self.generate_tests(smoke_data)
 
 
-class MatricesTestData(VectorSpaceTestData):
+class MatricesTestData(MatrixVectorSpaceTestData):
     def reshape_after_flatten_test_data(self):
         return self.generate_random_data()
 

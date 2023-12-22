@@ -4,11 +4,11 @@ Lead author: Yann Thanwerdas.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.base import MatrixVectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
-class SymmetricMatrices(VectorSpace):
+class SymmetricMatrices(MatrixVectorSpace):
     """Class for the vector space of symmetric matrices of size n.
 
     Parameters
@@ -78,59 +78,37 @@ class SymmetricMatrices(VectorSpace):
         """
         return Matrices.to_symmetric(point)
 
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample a symmetric matrix.
-
-        Samples from a uniform distribution in a box and then converts to symmetric.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0
-
-        Returns
-        -------
-        point : array-like, shape=[..., n, n]
-           Sample.
-        """
-        sample = super().random_point(n_samples, bound)
-        return Matrices.to_symmetric(sample)
-
     @staticmethod
-    def to_vector(point):
+    def basis_representation(matrix_representation):
         """Convert a symmetric matrix into a vector.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
+        matrix_representation : array-like, shape=[..., n, n]
             Matrix.
 
         Returns
         -------
-        vec : array-like, shape=[..., n(n+1)/2]
+        basis_representation : array-like, shape=[..., n(n+1)/2]
             Vector.
         """
-        return gs.triu_to_vec(point)
+        return gs.triu_to_vec(matrix_representation)
 
     @staticmethod
-    def from_vector(vec):
+    def matrix_representation(basis_representation):
         """Convert a vector into a symmetric matrix.
 
         Parameters
         ----------
-        vec : array-like, shape=[..., n(n+1)/2]
+        basis_representation : array-like, shape=[..., n(n+1)/2]
             Vector.
 
         Returns
         -------
-        mat : array-like, shape=[..., n, n]
+        matrix_representation : array-like, shape=[..., n, n]
             Symmetric matrix.
         """
-        vec_dim = vec.shape[-1]
+        vec_dim = basis_representation.shape[-1]
         mat_dim = (gs.sqrt(8.0 * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
             raise ValueError(
@@ -141,11 +119,16 @@ class SymmetricMatrices(VectorSpace):
         shape = (mat_dim, mat_dim)
         mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
         indices = list(zip(*gs.triu_indices(mat_dim)))
-        if gs.ndim(vec) == 1:
-            upper_triangular = gs.array_from_sparse(indices, vec, shape)
+        if gs.ndim(basis_representation) == 1:
+            upper_triangular = gs.array_from_sparse(
+                indices, basis_representation, shape
+            )
         else:
             upper_triangular = gs.stack(
-                [gs.array_from_sparse(indices, data, shape) for data in vec]
+                [
+                    gs.array_from_sparse(indices, data, shape)
+                    for data in basis_representation
+                ]
             )
 
         mat = Matrices.to_symmetric(upper_triangular) * mask

@@ -1,10 +1,10 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import MatrixVectorSpaceMixinsTestData, VectorSpaceTestData
+from .base import MatrixVectorSpaceTestData
 
 
-class SymmetricMatricesTestData(MatrixVectorSpaceMixinsTestData, VectorSpaceTestData):
+class SymmetricMatricesTestData(MatrixVectorSpaceTestData):
     pass
 
 
@@ -15,14 +15,14 @@ class SymmetricMatrices1TestData(TestData):
         ]
         return self.generate_tests(smoke_data)
 
-    def to_vector_test_data(self):
-        data = [dict(point=gs.array([[1.0]]), expected=gs.array([1.0]))]
+    def basis_representation_test_data(self):
+        data = [dict(matrix_representation=gs.array([[1.0]]), expected=gs.array([1.0]))]
 
         return self.generate_tests(data)
 
-    def from_vector_test_data(self):
+    def matrix_representation_test_data(self):
         data = [
-            dict(vec=gs.array([1.0]), expected=gs.array([[1.0]])),
+            dict(basis_representation=gs.array([1.0]), expected=gs.array([[1.0]])),
         ]
 
         return self.generate_tests(data)
@@ -67,19 +67,21 @@ class SymmetricMatrices3TestData(TestData):
 
         return self.generate_tests(data)
 
-    def to_vector_test_data(self):
+    def basis_representation_test_data(self):
         data = [
             dict(
-                point=gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]]),
+                matrix_representation=gs.array(
+                    [[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]]
+                ),
                 expected=gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
             ),
         ]
         return self.generate_tests(data)
 
-    def from_vector_test_data(self):
+    def matrix_representation_test_data(self):
         data = [
             dict(
-                vec=gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
+                basis_representation=gs.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
                 expected=gs.array([[1.0, 2.0, 3.0], [2.0, 4.0, 5.0], [3.0, 5.0, 6.0]]),
             ),
         ]

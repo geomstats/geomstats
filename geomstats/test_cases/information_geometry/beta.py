@@ -39,7 +39,7 @@ def metric_matrix(base_point):
         ],
         axis=-1,
     )
-    return SymmetricMatrices.from_vector(vector)
+    return SymmetricMatrices.matrix_representation(vector)
 
 
 def christoffels(base_point):
@@ -63,8 +63,8 @@ def christoffels(base_point):
     c4, c5, c6 = coefficients(param_b, param_a)
     vector_0 = gs.stack([c1, c2, c3], axis=-1)
     vector_1 = gs.stack([c6, c5, c4], axis=-1)
-    gamma_0 = SymmetricMatrices.from_vector(vector_0)
-    gamma_1 = SymmetricMatrices.from_vector(vector_1)
+    gamma_0 = SymmetricMatrices.matrix_representation(vector_0)
+    gamma_1 = SymmetricMatrices.matrix_representation(vector_1)
 
     return gs.stack([gamma_0, gamma_1], axis=-3)
 

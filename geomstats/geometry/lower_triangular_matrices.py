@@ -4,11 +4,11 @@ Lead author: Saiteja Utpala.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.base import MatrixVectorSpace
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 
 
-class LowerTriangularMatrices(VectorSpace):
+class LowerTriangularMatrices(MatrixVectorSpace):
     """Class for the vector space of lower triangular matrices of size n.
 
     Parameters
@@ -63,38 +63,8 @@ class LowerTriangularMatrices(VectorSpace):
         return belongs
 
     @staticmethod
-    def to_vector(point):
+    def basis_representation(matrix_representation):
         """Convert a lower triangular matrix into a vector.
-
-        Parameters
-        ----------
-        point : array-like, shape=[..., n, n]
-            Matrix.
-
-        Returns
-        -------
-        vec : array-like, shape=[..., n(n+1)/2]
-            Vector.
-        """
-        return gs.tril_to_vec(point)
-
-    def from_vector(self, vec):
-        """Convert a vector into a lower triangular matrix.
-
-        Parameters
-        ----------
-        vec : array-like, shape=[..., n(n+1)/2]
-            Vector.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., n, n]
-            Lower triangular matrix.
-        """
-        return gs.einsum("...i,...ijk->...jk", vec, self.basis)
-
-    def matrix_representation(self, vec):
-        """Compute the matrix representation for the given basis coefficients.
 
         Parameters
         ----------
@@ -103,10 +73,10 @@ class LowerTriangularMatrices(VectorSpace):
 
         Returns
         -------
-        basis_representation : array-like, shape=[..., dim]
-            Representation in the basis.
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
         """
-        return self.from_vector(vec)
+        return gs.tril_to_vec(matrix_representation)
 
     def projection(self, point):
         """Make a square matrix lower triangular by zeroing out other elements.
@@ -122,23 +92,3 @@ class LowerTriangularMatrices(VectorSpace):
             Symmetric matrix.
         """
         return gs.tril(point)
-
-    def random_point(self, n_samples=1, bound=1.0):
-        """Sample a lower triangular matrix with a uniform distribution in a box.
-
-        Parameters
-        ----------
-        n_samples : int
-            Number of samples.
-            Optional, default: 1.
-        bound : float
-            Side of hypercube support of the uniform distribution.
-            Optional, default: 1.0.
-
-        Returns
-        -------
-        point : array-like, shape=[..., n, n]
-           Sample.
-        """
-        sample = super().random_point(n_samples, bound)
-        return gs.tril(sample)

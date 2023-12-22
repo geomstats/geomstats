@@ -4,10 +4,7 @@ import pytest
 
 from geomstats.geometry.lower_triangular_matrices import LowerTriangularMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.base import (
-    MatrixVectorSpaceTestCaseMixins,
-    VectorSpaceTestCase,
-)
+from geomstats.test_cases.geometry.base import MatrixVectorSpaceTestCase
 from geomstats.test_cases.geometry.matrices import MatricesMetricTestCase
 
 from .data.lower_triangular_matrices import (
@@ -31,8 +28,7 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestLowerTriangularMatrices(
-    MatrixVectorSpaceTestCaseMixins,
-    VectorSpaceTestCase,
+    MatrixVectorSpaceTestCase,
     metaclass=DataBasedParametrizer,
 ):
     testing_data = LowerTriangularMatricesTestData()
@@ -40,8 +36,7 @@ class TestLowerTriangularMatrices(
 
 @pytest.mark.smoke
 class TestLowerTriangularMatrices2(
-    MatrixVectorSpaceTestCaseMixins,
-    VectorSpaceTestCase,
+    MatrixVectorSpaceTestCase,
     metaclass=DataBasedParametrizer,
 ):
     space = LowerTriangularMatrices(n=2)
@@ -50,8 +45,7 @@ class TestLowerTriangularMatrices2(
 
 @pytest.mark.smoke
 class TestLowerTriangularMatrices3(
-    MatrixVectorSpaceTestCaseMixins,
-    VectorSpaceTestCase,
+    MatrixVectorSpaceTestCase,
     metaclass=DataBasedParametrizer,
 ):
     space = LowerTriangularMatrices(n=3)

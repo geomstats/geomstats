@@ -132,14 +132,13 @@ class VectorSpace(Manifold, abc.ABC):
 
         Returns
         -------
-        point : array-like, shape=[..., *point_shape]
+        point : array-like, shape=[..., dim]
            Sample.
         """
-        size = self.shape
+        size = (self.dim,)
         if n_samples != 1:
-            size = (n_samples,) + self.shape
-        point = bound * (gs.random.rand(*size) - 0.5) * 2
-        return point
+            size = (n_samples,) + size
+        return bound * (gs.random.rand(*size) - 0.5) * 2
 
     @property
     def basis(self):
@@ -151,6 +150,63 @@ class VectorSpace(Manifold, abc.ABC):
     @abc.abstractmethod
     def _create_basis(self):
         """Create a canonical basis."""
+
+
+class MatrixVectorSpace(VectorSpace):
+    """A matrix vector space."""
+
+    @abc.abstractmethod
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficients of matrices in the given basis.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., *point_shape]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
+        """
+        raise NotImplementedError("basis_representation not implemented.")
+
+    def matrix_representation(self, basis_representation):
+        """Compute the matrix representation for the given basis coefficients.
+
+        Sums the basis elements according to the coefficients given in
+        basis_representation.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., *point_shape]
+            Matrix.
+        """
+        return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample in the vector space with a uniform distribution in a box.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
+
+        Returns
+        -------
+        point : array-like, shape=[..., *point_shape]
+           Sample.
+        """
+        return self.matrix_representation(super().random_point(n_samples, bound))
 
 
 class ComplexVectorSpace(ComplexManifold, abc.ABC):
@@ -305,6 +361,44 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
     @abc.abstractmethod
     def _create_basis(self):
         """Create a canonical basis."""
+
+
+class ComplexMatrixVectorSpace(ComplexVectorSpace):
+    """A matrix vector space."""
+
+    @abc.abstractmethod
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficients of matrices in the given basis.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., *point_shape]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
+        """
+        raise NotImplementedError("basis_representation not implemented.")
+
+    def matrix_representation(self, basis_representation):
+        """Compute the matrix representation for the given basis coefficients.
+
+        Sums the basis elements according to the coefficients given in
+        basis_representation.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., *point_shape]
+            Matrix.
+        """
+        return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
 
 
 class LevelSet(Manifold, abc.ABC):

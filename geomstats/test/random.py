@@ -1,4 +1,5 @@
 import geomstats.backend as gs
+from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import SquareMatrices
 from geomstats.vectorization import get_n_points
@@ -48,6 +49,24 @@ class RandomDataGenerator:
 class VectorSpaceRandomDataGenerator(RandomDataGenerator):
     def point_to_project(self, n_points=1):
         return self.random_point(n_points)
+
+
+class MatrixVectorSpaceRandomDataGenerator(VectorSpaceRandomDataGenerator):
+    def random_basis_representation(self, n_points=1):
+        dtype = (
+            gs.get_default_cdtype()
+            if isinstance(self, ComplexMatrixVectorSpace)
+            else None
+        )
+
+        if n_points == 1:
+            return gs.random.rand(self.space.dim, dtype=dtype)
+
+        return gs.reshape(
+            gs.random.rand(n_points * self.space.dim),
+            (n_points, -1),
+            dtype=dtype,
+        )
 
 
 class EmbeddedSpaceRandomDataGenerator(RandomDataGenerator):

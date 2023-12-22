@@ -551,9 +551,6 @@ class SPDMatrices(VectorSpaceOpenSet):
 
         return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
-    from_vector = SymmetricMatrices.__dict__["from_vector"]
-    to_vector = SymmetricMatrices.__dict__["to_vector"]
-
 
 class SPDAffineMetric(RiemannianMetric):
     """Class for the affine-invariant metric on the SPD manifold.

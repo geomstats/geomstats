@@ -152,9 +152,6 @@ class HPDMatrices(ComplexVectorSpaceOpenSet):
 
         return Matrices.mul(sqrt_base_point, tangent_vec_at_id, sqrt_base_point)
 
-    from_vector = HermitianMatrices.__dict__["from_vector"]
-    to_vector = HermitianMatrices.__dict__["to_vector"]
-
 
 class HPDAffineMetric(ComplexRiemannianMetric):
     """Class for the affine-invariant metric on the HPD manifold."""

@@ -453,7 +453,9 @@ class RiemannianMetric(Connection, ABC):
         pool = joblib.Parallel(n_jobs=n_jobs, **joblib_kwargs)
         out = pool(pickable_dist(points[i], points[j]) for i, j in zip(rows, cols))
 
-        return geometry.symmetric_matrices.SymmetricMatrices.from_vector(gs.array(out))
+        return geometry.symmetric_matrices.SymmetricMatrices.matrix_representation(
+            gs.array(out)
+        )
 
     def diameter(self, points):
         """Give the distance between two farthest points.

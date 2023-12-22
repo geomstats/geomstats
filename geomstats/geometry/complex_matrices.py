@@ -5,13 +5,13 @@ Lead author: Yann Cabanes.
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.base import ComplexVectorSpace
+from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.hermitian import HermitianMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.vectorization import repeat_out
 
 
-class ComplexMatrices(ComplexVectorSpace):
+class ComplexMatrices(ComplexMatrixVectorSpace):
     """Class for the space of complex matrices (m, n).
 
     Parameters
@@ -39,6 +39,22 @@ class ComplexMatrices(ComplexVectorSpace):
         real_part = gs.reshape(gs.eye(n * m), (n * m, m, n))
         complex_part = gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
         return gs.vstack([real_part, complex_part])
+
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficients of matrices in the given basis.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., *point_shape]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
+        """
+        # TODO: complete
+        raise NotImplementedError("basis_representation not implemented.")
 
     def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.

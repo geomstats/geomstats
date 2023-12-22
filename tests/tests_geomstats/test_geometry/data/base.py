@@ -1,5 +1,3 @@
-from geomstats.test.data import TestData
-
 from .complex_manifold import ComplexManifoldTestData
 from .manifold import ManifoldTestData
 from .mixins import ProjectionMixinsTestData
@@ -27,27 +25,34 @@ class ComplexVectorSpaceTestData(_VectorSpaceMixinsTestData, ComplexManifoldTest
     pass
 
 
-class MatrixVectorSpaceMixinsTestData(TestData):
-    def to_vector_vec_test_data(self):
+class _MatrixVectorSpaceMixinsTestData:
+    def basis_representation_vec_test_data(self):
         return self.generate_vec_data()
 
-    def to_vector_and_basis_test_data(self):
+    def basis_representation_and_basis_test_data(self):
         return self.generate_random_data()
 
-    def from_vector_vec_test_data(self):
+    def matrix_representation_vec_test_data(self):
         return self.generate_vec_data()
 
-    def from_vector_belongs_test_data(self):
+    def matrix_representation_belongs_test_data(self):
         return self.generate_random_data()
 
-    def from_vector_after_to_vector_test_data(self):
+    def matrix_representation_after_basis_representation_test_data(self):
         return self.generate_random_data()
 
-    def to_vector_after_from_vector_test_data(self):
+    def basis_representation_after_matrix_representation_test_data(self):
         return self.generate_random_data()
 
 
-ComplexMatrixVectorSpaceMixinsTestData = MatrixVectorSpaceMixinsTestData
+class MatrixVectorSpaceTestData(_MatrixVectorSpaceMixinsTestData, VectorSpaceTestData):
+    pass
+
+
+class ComplexMatrixVectorSpaceTestData(
+    _MatrixVectorSpaceMixinsTestData, ComplexVectorSpaceTestData
+):
+    pass
 
 
 class LevelSetTestData(ProjectionMixinsTestData, ManifoldTestData):

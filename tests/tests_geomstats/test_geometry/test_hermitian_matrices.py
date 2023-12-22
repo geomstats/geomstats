@@ -4,10 +4,7 @@ import pytest
 
 from geomstats.geometry.hermitian_matrices import HermitianMatrices
 from geomstats.test.parametrizers import DataBasedParametrizer
-from geomstats.test_cases.geometry.base import (
-    ComplexVectorSpaceTestCase,
-    MatrixVectorSpaceTestCaseMixins,
-)
+from geomstats.test_cases.geometry.base import ComplexMatrixVectorSpaceTestCase
 from geomstats.test_cases.geometry.hermitian import HermitianMetricTestCase
 
 from .data.complex_matrices import ComplexMatricesMetricTestData
@@ -31,8 +28,7 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestHermitianMatrices(
-    MatrixVectorSpaceTestCaseMixins,
-    ComplexVectorSpaceTestCase,
+    ComplexMatrixVectorSpaceTestCase,
     metaclass=DataBasedParametrizer,
 ):
     testing_data = HermitianMatricesTestData()
@@ -40,7 +36,7 @@ class TestHermitianMatrices(
 
 @pytest.mark.smoke
 class TestHermitianMatrices2(
-    ComplexVectorSpaceTestCase, metaclass=DataBasedParametrizer
+    ComplexMatrixVectorSpaceTestCase, metaclass=DataBasedParametrizer
 ):
     space = HermitianMatrices(n=2, equip=False)
     testing_data = HermitianMatrices2TestData()
@@ -48,8 +44,7 @@ class TestHermitianMatrices2(
 
 @pytest.mark.smoke
 class TestHermitianMatrices3(
-    MatrixVectorSpaceTestCaseMixins,
-    ComplexVectorSpaceTestCase,
+    ComplexMatrixVectorSpaceTestCase,
     metaclass=DataBasedParametrizer,
 ):
     space = HermitianMatrices(n=3, equip=False)
