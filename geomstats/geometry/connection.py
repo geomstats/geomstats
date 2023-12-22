@@ -362,7 +362,7 @@ class Connection(ABC):
         Following tensor index convention (ref. Wikipedia), we have:
         :math:`R_{ijk}^l = dx^l(R(X_j, X_k)X_i)`
 
-        which gives :math:`R_{ijk}^lk` as a sum of four terms:
+        which gives :math:`R_{ijk}^l` as a sum of four terms:
         :math:`R_{ijk}^l =`
         :math:`\partial_j \Gamma^l_{ki}`
         :math:`- \partial_k \Gamma^l_{ji}`
