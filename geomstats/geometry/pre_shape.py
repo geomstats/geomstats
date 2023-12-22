@@ -404,8 +404,8 @@ class PreShapeSpaceBundle(FiberBundle):
         :math:`Y|_P = horizontal\_vec\_y` and a general vector field
         :math:`E` extending :math:`E|_P = tangent\_vec\_e` in a neighborhood
         of the base-point P with covariant derivatives
-        :math:`\nabla_X Y |_P = nabla_x_y` and
-        :math:`\nabla_X E |_P = nabla_x_e`.
+        :math:`\nabla_X Y |_P = nabla_x y` and
+        :math:`\nabla_X E |_P = nabla_x e`.
 
         Parameters
         ----------
