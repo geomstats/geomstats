@@ -21,8 +21,8 @@ class HeisenbergVectors(LieGroup, VectorSpace):
     ----------
     No parameters
 
-    Reference
-    ---------
+    References
+    ----------
     https://en.wikipedia.org/wiki/Heisenberg_group
     """
 
@@ -91,7 +91,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
         """Compute the Jacobian matrix of left/right translation by a point.
 
         This calculates the differential of the left translation L_(point)
-        evaluated at 'point'. Note that it only depends on the point we are
+        evaluated at `point`. Note that it only depends on the point we are
         left-translating by, not on the point where the differential is
         evaluated.
 
@@ -161,7 +161,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
 
         The 3D Heisenberg group can also be represented as 3x3 upper triangular
         matrices. This function computes this representation of the vector
-        'point'.
+        `point`.
 
         Parameters
         ----------

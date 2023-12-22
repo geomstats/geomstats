@@ -344,6 +344,7 @@ class SRVTransform(Diffeo):
             c(t) = c(0) + \int_0^t q(s) |q(s)|ds
 
         with:
+
         - c the curve that can be retrieved only up to a translation,
         - q the srv representation of the curve,
         - c(0) the starting point of the curve.
@@ -376,7 +377,7 @@ class SRVTransform(Diffeo):
     def tangent_diffeomorphism(self, tangent_vec, base_point=None, image_point=None):
         r"""Differential of the square root velocity transform.
 
-        ..math::
+        .. math::
             (h, c) -> dQ_c(h) = |c'|^(-1/2} * (h' - 1/2 * <h',v>v)
             v = c'/|c'|
 
@@ -431,7 +432,7 @@ class SRVTransform(Diffeo):
         r"""Inverse of differential of the square root velocity transform.
 
         .. math::
-            (c, k) -> h, where dQ_c(h)=k and h' = |c'| * (k + <k,v> v)
+            (c, k) -> h, \text{ where } dQ_c(h)=k \text{ and } h' = |c'| * (k + <k,v> v)
 
         Parameters
         ----------
@@ -521,9 +522,11 @@ class FTransform(AutodiffDiffeo):
     f_transform is a bijection if and only if a/2b=1.
 
     If a/2b is an integer not equal to 1:
+
     - then f_transform is well-defined but many-to-one.
 
     If a/2b is not an integer:
+
     - then f_transform is multivalued,
     - and f_transform takes finitely many values if and only if a 2b is rational.
     """
@@ -801,8 +804,10 @@ class SRVTranslationMetric(PullbackDiffeoMetric):
     """Square Root Velocity metric on the space of discrete curves.
 
     The SRV metric is equivalent to the elastic metric chosen with
+
     - bending parameter a = 1,
     - stretching parameter b = 1/2.
+
     It can be obtained as the pullback of the L2 metric by the Square Root
     Velocity Function.
 
