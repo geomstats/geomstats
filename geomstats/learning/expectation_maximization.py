@@ -38,11 +38,11 @@ class GaussianMixtureModel:
     phi_inv_var : array-like, shape=[n_variances,]
         Array of the computed inverse of a function phi
         whose expression is closed-form
-        :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
-        {\mathstrut d\sigma}\log \zeta_m(\sigma)'
-        where :math:'\sigma' denotes the variance
-        and :math:'\zeta' the normalization coefficient
-        and :math:'m' the dimension.
+        :math:`\sigma\mapsto \sigma^3 \times \frac{d}
+        {\mathstrut d\sigma}\log \zeta_m(\sigma)`
+        where :math:`\sigma` denotes the variance
+        and :math:`\zeta` the normalization coefficient
+        and :math:`m` the dimension.
     """
 
     def __init__(
@@ -268,10 +268,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     initialisation_method : basestring
         Optional, default: 'random'.
         Choice between initialization method for variances, means and weights.
-           'random' : will select random uniformly train points as
-                     initial cluster centers.
-            'kmeans' : will apply Riemannian kmeans to deduce
-            variances and means that the EM will use initially.
+
+        - 'random' : will select random uniformly train points as
+          initial cluster centers.
+        - 'kmeans' : will apply Riemannian kmeans to deduce
+          variances and means that the EM will use initially.
     tol : float
         Optional, default: 1e-2.
         Convergence tolerance. If the difference of mean distance

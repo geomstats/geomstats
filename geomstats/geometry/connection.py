@@ -357,30 +357,28 @@ class Connection(ABC):
     def riemann_tensor(self, base_point):
         r"""Compute Riemannian tensor at base_point.
 
-        In the literature the riemannian curvature tensor is noted :math:`R_{ijk}^l`.
+        In the literature the Riemannian curvature tensor is noted :math:`R_{ijk}^l`.
 
         Following tensor index convention (ref. Wikipedia), we have:
         :math:`R_{ijk}^l = dx^l(R(X_j, X_k)X_i)`
 
-        which gives :math:`R_{ijk}^lk` as a sum of four terms:
-        :math:`R_{ijk}^l =
-        :math:`\partial_j \Gamma^l_{ki}`
-        :math:`- \partial_k \Gamma^l_{ji}`
-        :math:`+ \Gamma^l_{jm} \Gamma^m_{ki}`
-        :math:`- \Gamma^l_{km} \Gamma^m_{ji}`
+        which gives :math:`R_{ijk}^l` as a sum of four terms:
+
+        .. math::
+            \partial_j \Gamma^l_{ki} - \partial_k \Gamma^l_{ji}
+            + \Gamma^l_{jm} \Gamma^m_{ki} - \Gamma^l_{km} \Gamma^m_{ji}
 
         Note that geomstats puts the contravariant index on
         the first dimension of the Christoffel symbols.
 
         Parameters
         ----------
-        base_point :  array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold.
 
         Returns
         -------
-        riemann_curvature : array-like, shape=[..., dim, dim,
-                                                    dim, dim]
+        riemann_curvature : array-like, shape=[..., dim, dim, dim, dim]
             riemann_tensor[...,i,j,k,l] = R_{ijk}^l
             Riemannian tensor curvature,
             with the contravariant index on the last dimension.
@@ -408,9 +406,11 @@ class Connection(ABC):
         r"""Compute the Riemann curvature map R.
 
         For three tangent vectors at base point :math:`P`:
+
         - :math:`X|_P = tangent\_vec\_a`,
         - :math:`Y|_P = tangent\_vec\_b`,
         - :math:`Z|_P = tangent\_vec\_c`,
+
         the curvature(X, Y, Z, P) is defined by
         :math:`R(X,Y)Z = \nabla_X \nabla_Y Z - \nabla_Y \nabla_X Z - \nabla_[X, Y]Z`.
 
@@ -471,8 +471,10 @@ class Connection(ABC):
         r"""Compute the directional curvature (tidal force operator).
 
         For two tangent vectors at base_point :math:`P`:
+
         - :math:`X|_P = tangent\_vec\_a`,
         - :math:`Y|_P = tangent\_vec\_b`,
+
         the directional curvature, better known
         in relativity as the tidal force operator,
         is defined by
@@ -505,10 +507,12 @@ class Connection(ABC):
         r"""Compute the covariant derivative of the curvature.
 
         For four tangent vectors at base_point :math:`P`:
+
         - :math:`H|_P = tangent\_vec\_a`,
         - :math:`X|_P = tangent\_vec\_b`,
         - :math:`Y|_P = tangent\_vec\_c`,
         - :math:`Z|_P = tangent\_vec\_d`,
+
         the covariant derivative of the curvature is defined as:
         :math:`(\nabla_H R)(X, Y) Z |_P`.
 
@@ -540,8 +544,10 @@ class Connection(ABC):
         r"""Compute the covariant derivative of the directional curvature.
 
         For tangent vector fields at base_point :math:`P`:
+
         - :math:`X|_P = tangent\_vec\_a`,
         - :math:`Y|_P = tangent\_vec\_b`,
+
         the covariant derivative (in the direction `X`)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
         directional curvature (in the direction `Y`)

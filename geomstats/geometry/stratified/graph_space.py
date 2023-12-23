@@ -767,7 +767,7 @@ class GraphSpace(PointSet):
 
         Parameters
         ----------
-        graph_to_permute : list of GraphPoint or array-like,
+        graph_to_permute : list of GraphPoint or array-like, \
             shape=[..., n_nodes, n_nodes]
             Input graphs to be permuted.
         permutation: array-like, shape=[..., n_nodes]
@@ -871,9 +871,9 @@ class GraphSpaceMetric(PointSetMetric):
         Parameters
         ----------
         aligner : str
-            'ID' Identity
-            'FAQ' Fast Quadratic Assignment - only compatible with Frobenious norm
-            'exhaustive' all group exhaustive search
+            'ID' Identity,
+            'FAQ' Fast Quadratic Assignment - only compatible with Frobenious norm,
+            'exhaustive' all group exhaustive search.
 
         References
         ----------
@@ -996,9 +996,9 @@ class GraphSpaceMetric(PointSetMetric):
         References
         ----------
         .. [Calissano2020]  Calissano, A., Feragen, A., Vantini, S.
-        “Graph Space: Geodesic Principal Components for a Population of
-        Network-valued Data.” Mox report 14, 2020.
-        https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
+            “Graph Space: Geodesic Principal Components for a Population of
+            Network-valued Data.” Mox report 14, 2020.
+            https://mox.polimi.it/reports-and-theses/publication-results/?id=855.
         """
         aligned_end_point = self.align_point_to_point(base_point, end_point)
 

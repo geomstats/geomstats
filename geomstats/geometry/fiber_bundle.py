@@ -344,7 +344,7 @@ class FiberBundle(ABC):
 
         The fundamental integrability tensor A is defined for tangent vectors
         :math:`X = tangent\_vec\_a` and :math:`Y = tangent\_vec\_b` of the
-        total space by [O'Neill]_ as
+        total space by [ONeill]_ as
         :math:`A_X Y = ver\nabla_{hor X} (hor Y) + hor \nabla_{hor X}( ver Y)`
         where :math:`hor, ver` are the horizontal and vertical projections
         and :math:`\nabla` is the connection of the total space.
@@ -366,7 +366,7 @@ class FiberBundle(ABC):
 
         References
         ----------
-        .. [O'Neill]  O’Neill, Barrett. The Fundamental Equations of a
+        .. [ONeill]  O’Neill, Barrett. The Fundamental Equations of a
             Submersion, Michigan Mathematical Journal 13, no. 4
             (December 1966): 459–69. https://doi.org/10.1307/mmj/1028999604.
         """
@@ -388,12 +388,12 @@ class FiberBundle(ABC):
         curvature in a submersion. The components :math:`\nabla_X (A_Y E)`
         and :math:`A_Y E` are computed at base-point :math:`P = base\_point`
         for horizontal vector fields :math:`X, Y` extending the values
-        given in argument :math:`X|_P = horizontal_vec_x`,
+        given in argument :math:`X|_P = horizontal\_vec\_x`,
         :math:`Y|_P = horizontal\_vec\_y` and a general vector field
-        :math:`E` extending :math:`E|_x =
-        tangent\_vec\_e` in a neighborhood of x with covariant derivatives
-        :math:`\nabla_X Y |_P = nabla_x_y` and
-        :math:`\nabla_X E |_P = nabla_x_e`.
+        :math:`E` extending :math:`E|_x = tangent\_vec\_e`
+        in a neighborhood of x with covariant derivatives
+        :math:`\nabla_X Y |_P = nabla_x y` and
+        :math:`\nabla_X E |_P = nabla_x e`.
 
         Parameters
         ----------

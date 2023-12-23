@@ -5,8 +5,8 @@ Lead authors: Olivier Bisson and Saiteja Utpala.
 References
 ----------
 .. [T2022] Yann Thanwerdas. Riemannian and stratified
-geometries on covariance and correlation matrices. Differential
-Geometry [math.DG]. Université Côte d'Azur, 2022.
+    geometries on covariance and correlation matrices. Differential
+    Geometry [math.DG]. Université Côte d'Azur, 2022.
 """
 
 import geomstats.backend as gs
@@ -389,7 +389,7 @@ class UnitNormedRowsPLTDiffeo(Diffeo):
     def inverse_diffeomorphism(self, image_point):
         r"""Inverse diffeomorphism at base point.
 
-        :math:`f^-1: N \rightarrow M`
+        :math:`f^{-1}: N \rightarrow M`
 
         Parameters
         ----------

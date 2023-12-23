@@ -110,7 +110,7 @@ class MultinomialDistributions(InformationManifoldMixin, LevelSet):
         ----------
         point: array-like, shape=[..., dim + 1]
             Point in embedding Euclidean space.
-         atol : float
+        atol : float
             Tolerance to evaluate positivity.
 
         Returns

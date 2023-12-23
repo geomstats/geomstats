@@ -19,11 +19,11 @@ class HilbertSphere(Manifold):
     domain : array-like, shape=[n_samples,]
         Grid points on the domain.
 
-    Ref :
-    -----
+    References
+    ----------
     .. [Sea2016] Srivastava, Anuj, and Eric P. Klassen.
-    Functional and shape data analysis.
-    Vol. 1. New York: Springer, 2016.
+        Functional and shape data analysis.
+        Vol. 1. New York: Springer, 2016.
     """
 
     def __init__(self, domain, equip=True):

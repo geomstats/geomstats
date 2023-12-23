@@ -111,7 +111,7 @@ class TangentPCA(_BasePCA):
     * Required geometry methods: `exp`, `log`.
     * If `base_point=None`, also requires `FrechetMean` required methods.
     * Lie groups can be used without a metric, but `base_point` or `mean_estimator`
-     need to be specified.
+      need to be specified.
     """
 
     def __init__(

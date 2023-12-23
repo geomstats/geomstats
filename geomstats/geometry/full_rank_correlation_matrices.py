@@ -86,7 +86,7 @@ class FullRankCorrelationMatrices(LevelSet):
         r"""Apply a diagonal matrix on an SPD matrices by congruence.
 
         The action of :math:`D` on :math:`\Sigma` is given by :math:`D
-        \Sigma D. The diagonal matrix must be passed as a vector representing
+        \Sigma D`. The diagonal matrix must be passed as a vector representing
         its diagonal.
 
         Parameters
@@ -109,7 +109,7 @@ class FullRankCorrelationMatrices(LevelSet):
         r"""Compute the correlation matrix associated to an SPD matrix.
 
         The correlation matrix associated to an SPD matrix (the covariance)
-        :math:`\Sigma` is given by :math:`D  \Sigma D` where :math:`D` is
+        :math:`\Sigma` is given by :math:`D \Sigma D` where :math:`D` is
         the inverse square-root of the diagonal of :math:`\Sigma`.
 
         Parameters

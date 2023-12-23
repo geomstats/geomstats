@@ -14,14 +14,15 @@ from geomstats.numerics.optimizers import ScipyMinimize
 class DiscreteSurfaces(Manifold):
     r"""Space of parameterized discrete surfaces.
 
-    Each surface is sampled with fixed n_vertices vertices and n_faces faces
-    in $\mathbb{R}^3$.
+    Each surface is sampled with fixed `n_vertices` vertices and `n_faces`
+    faces in :math:`\mathbb{R}^3`.
 
-    Each individual surface is represented by a 2d-array of shape `[
-    n_vertices, 3]`. This space corresponds to the space of immersions
+    Each individual surface is represented by a 2d-array of shape
+    `[n_vertices, 3]`. This space corresponds to the space of immersions
     defined below, i.e. the
-    space of smooth functions from a template to manifold $M$ into  $\mathbb{R}^3$,
-    with non-vanishing Jacobian.
+    space of smooth functions from a template to manifold :math:`M`
+    into :math:`\mathbb{R}^3`, with non-vanishing Jacobian.
+
     .. math::
         Imm(M,\mathbb{R}^3)=\{ f \in C^{\infty}(M, \mathbb{R}^3)
         \|Df(x)\|\neq 0 \forall x \in M \}.
@@ -366,8 +367,8 @@ class DiscreteSurfaces(Manifold):
         r"""Compute the mesh Laplacian operator of a triangulated surface.
 
         Denoting q the surface, i.e. the point in the DiscreteSurfaces manifold,
-        the laplacian at q is defined as the operator:
-        :math: `\Delta_q = - Tr(g_q^{-1} \nabla^2)`
+        the laplacian at :math:`q` is defined as the operator:
+        :math:`\Delta_q = - Tr(g_q^{-1} \nabla^2)`
         where :math:`g_q` is the surface metric matrix of :math:`q`.
 
         Parameters
@@ -467,8 +468,8 @@ class DiscreteSurfaces(Manifold):
 class ElasticMetric(RiemannianMetric):
     """Elastic metric defined by a family of second order Sobolev metrics.
 
-    Each individual discrete surface is represented by a 2D-array of shape `[
-    n_vertices, 3]`. See [HSKCB2022]_ for details.
+    Each individual discrete surface is represented by a 2D-array of shape
+    `[n_vertices, 3]`. See [HSKCB2022]_ for details.
 
     The parameters a0, a1, b1, c1, d1, a2 (detailed below) are non-negative weighting
     coefficients for the different terms in the metric.
@@ -525,7 +526,7 @@ class ElasticMetric(RiemannianMetric):
         :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
 
         This method computes :math:`G_{a_0} = a_0 <h, k>`,
-        with notations taken from .. [HSKCB2022].
+        with notations taken from [HSKCB2022]_.
 
         Parameters
         ----------
@@ -563,7 +564,7 @@ class ElasticMetric(RiemannianMetric):
         :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
 
         This method computes :math:`G_{a_1} = a_1.g_q^{-1} <dh_m, dk_m>`,
-        with notations taken from .. [HSKCB2022].
+        with notations taken from [HSKCB2022]_.
 
         Parameters
         ----------
@@ -602,7 +603,7 @@ class ElasticMetric(RiemannianMetric):
         :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
 
         This method computes :math:`G_{b_1} = b_1.g_q^{-1} <dh_+, dk_+>`,
-        with notations taken from .. [HSKCB2022].
+        with notations taken from [HSKCB2022]_.
 
         Parameters
         ----------
@@ -643,7 +644,7 @@ class ElasticMetric(RiemannianMetric):
         :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
 
         This method computes :math:`G_{c_1} = c_1.g_q^{-1} <dh_\perp, dk_\perp>`,
-        with notations taken from .. [HSKCB2022].
+        with notations taken from [HSKCB2022]_.
 
         Parameters
         ----------
@@ -685,7 +686,7 @@ class ElasticMetric(RiemannianMetric):
         :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
 
         This method computes :math:`G_{d_1} = d_1.g_q^{-1} <dh_0, dk_0>`,
-        with notations taken from .. [HSKCB2022].
+        with notations taken from [HSKCB2022]_.
 
         Parameters
         ----------
@@ -755,7 +756,7 @@ class ElasticMetric(RiemannianMetric):
         :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`.
 
         This method computes :math:`G_{a_2} = a_2 <\Delta_q h, \Delta_q k>`,
-        with notations taken from .. [HSKCB2022].
+        with notations taken from [HSKCB2022]_.
 
         Parameters
         ----------
@@ -803,6 +804,7 @@ class ElasticMetric(RiemannianMetric):
         :math:`\int_M (G_{a_0} + G_{a_1} + G_{b_1} + G_{c_1} + G_{d_1} + G_{a_2})vol_q`
 
         where:
+
         - :math:`G_{a_0} = a_0 <h, k>`
         - :math:`G_{a_1} = a_1.g_q^{-1} <dh_m, dk_m>`
         - :math:`G_{b_1} = b_1.g_q^{-1} <dh_+, dk_+>`
@@ -810,7 +812,7 @@ class ElasticMetric(RiemannianMetric):
         - :math:`G_{d_1} = d_1.g_q^{-1} <dh_0, dk_0>`
         - :math:`G_{a_2} = a_2 <\Delta_q h, \Delta_q k>`
 
-        with notations taken from .. [HSKCB2022].
+        with notations taken from [HSKCB2022]_.
 
         Parameters
         ----------

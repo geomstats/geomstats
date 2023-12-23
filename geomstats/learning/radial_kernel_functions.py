@@ -427,8 +427,8 @@ def laplacian_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
 
-    Returns
-    -------
+    References
+    ----------
     http://crsouza.com/2010/03/17/
     kernel-functions-for-machine-learning-applications/
     https://data-flair.training/blogs/svm-kernel-functions/

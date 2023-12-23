@@ -271,7 +271,7 @@ class HyperboloidMetric(HyperbolicMetric):
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
-        If `default_coords_type` is 'poincare' then base_point belongs
+        If `default_coords_type` is `poincare` then base_point belongs
         to the Poincare ball and point is a vector in the Euclidean
         space of the same dimension as the ball.
 

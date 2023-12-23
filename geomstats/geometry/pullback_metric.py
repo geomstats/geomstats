@@ -120,7 +120,7 @@ class PullbackMetric(RiemannianMetric):
         -------
         inner_prod_deriv_mat : array-like, shape=[..., dim, dim, dim]
             Inner-product derivative matrix, where the index of the derivation
-            is last: :math:`mat_{ij}_k = \partial_k g_{ij}`.
+            is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
         """
         jacobian_ai = self._space.jacobian_immersion(base_point)
         hessian_aij = self._space.hessian_immersion(base_point)
@@ -134,7 +134,7 @@ class PullbackMetric(RiemannianMetric):
         In the case of an immersion f, the second fundamental form is
         given by the formula:
         :math:`\RN{2}(p)_{ij}^\alpha = \partial_{i j}^2 f^\alpha(p)`
-        :math:`  -\Gamma_{i j}^k(p) \partial_k f^\alpha(p)`
+        :math:`-\Gamma_{i j}^k(p) \partial_k f^\alpha(p)`
         at base_point :math:`p`.
 
         Parameters
@@ -146,7 +146,7 @@ class PullbackMetric(RiemannianMetric):
         -------
         second_fundamental_form : array-like, shape=[..., embedding_dim, dim, dim]
             Second fundamental form :math:`\RN{2}(p)_{ij}^\alpha` where the
-             :math:`\alpha` index is first.
+            :math:`\alpha` index is first.
         """
         christoffels = self.christoffels(base_point)
 
@@ -160,7 +160,7 @@ class PullbackMetric(RiemannianMetric):
 
         The mean curvature vector is defined at base point :math:`p` by
         :math:`H_p^\alpha= \frac{1}{d} (f^{*}g)_{p}^{ij} (\partial_{i j}^2 f^\alpha(p)`
-        :math:`  -\Gamma_{i j}^k(p) \partial_k f^\alpha(p))`
+        :math:`-\Gamma_{i j}^k(p) \partial_k f^\alpha(p))`
         where :math:`f^{*}g` is the pullback of the metric :math:`g` by the
         immersion :math:`f`.
 

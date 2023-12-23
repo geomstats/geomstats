@@ -881,7 +881,7 @@ class HypersphereMetric(RiemannianMetric):
 
         Returns
         -------
-        christoffel : array-like, shape=[..., contravariant index, 1st
+        christoffel : array-like, shape=[..., contravariant index, 1st \
                                          covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """

@@ -123,7 +123,7 @@ class RiemannianMetric(Connection, ABC):
         -------
         metric_derivative : array-like, shape=[..., dim, dim, dim]
             Derivative of the inner-product matrix, where the index
-            k of the derivation is last: math:`mat_{ijk} = \partial_k g_{ij}`.
+            k of the derivation is last: :math:`mat_{ijk} = \partial_k g_{ij}`.
         """
         return gs.autodiff.jacobian_vec(self.metric_matrix)(base_point)
 
@@ -389,7 +389,7 @@ class RiemannianMetric(Connection, ABC):
 
         Returns
         -------
-        dist : array-like,
+        dist : array-like, \
             shape=[n_samples_a, dim] or [n_samples_a, n_samples_b, dim]
             Geodesic distance between the two points.
         """

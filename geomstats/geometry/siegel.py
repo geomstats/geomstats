@@ -210,8 +210,8 @@ class SiegelMetric(ComplexRiemannianMetric):
 
         Compute the inner-product of tangent_vec_a and tangent_vec_b
         at point base_point using the Siegel Riemannian metric.
-        The expression of the inner product between the vectors`v` and `w`
-        at point O is :math:`<v, w>_{O}
+        The expression of the inner product between the vectors `v` and `w`
+        at point `O` is :math:`<v, w>_{O}
         = 1/2 * trace((I - O O^{H})^{-1} v (I - O^{H} O)^{-1} w^{H})
         + 1/2 * trace((I - O O^{H})^{-1} w (I - O^{H} O)^{-1} v^{H})
         = Re(trace((I - O O^{H})^{-1} v (I - O^{H} O)^{-1} w^{H}))`

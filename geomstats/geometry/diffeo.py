@@ -12,7 +12,7 @@ class Diffeo:
 
     Let :math:`f` be the diffeomorphism
     :math:`f: M \rightarrow N` of the manifold
-    :math:`M` into the manifold `N`.
+    :math:`M` into the manifold :math:`N`.
     """
 
     @abc.abstractmethod
@@ -34,7 +34,7 @@ class Diffeo:
     def inverse_diffeomorphism(self, image_point):
         r"""Inverse diffeomorphism at base point.
 
-        :math:`f^-1: N \rightarrow M`
+        :math:`f^{-1}: N \rightarrow M`
 
         Parameters
         ----------

@@ -165,11 +165,11 @@ class UnivariateNormalDistributions(InformationManifoldMixin, PoincareHalfSpace)
 
 
 class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
-    """Class for the manifold of centered multivariate normal distributions.
+    r"""Class for the manifold of centered multivariate normal distributions.
 
     This is the class for multivariate normal distributions with zero mean.
     Each distribution is represented by its covariance matrix, i.e. a symmetric
-    positive-definite matrix of size :math:`sample_dim`.
+    positive-definite matrix of size :math:`sample\_dim`.
 
     Parameters
     ----------
@@ -253,12 +253,12 @@ class CenteredNormalDistributions(InformationManifoldMixin, SPDMatrices):
 
 
 class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
-    """Class for the manifold of diagonal multivariate normal distributions.
+    r"""Class for the manifold of diagonal multivariate normal distributions.
 
     This is the class for multivariate normal distributions with diagonal
     covariance matrices. Each distribution is represented by a vector of size
-    :math:`2 * sample_dim` where the first :math:`sample_dim` elements contain
-    the mean vector and the :math:`sample_dim` last elements contain the
+    :math:`2 * sample\_dim` where the first :math:`sample\_dim` elements contain
+    the mean vector and the :math:`sample\_dim` last elements contain the
     diagonal of the covariance matrix.
 
     Parameters
@@ -324,13 +324,13 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return gs.concatenate([mean, diagonal], axis=-1)
 
     def belongs(self, point, atol=gs.atol):
-        """Evaluate if the point belongs to the manifold.
+        r"""Evaluate if the point belongs to the manifold.
 
         Parameters
         ----------
         point : array-like, shape=[..., 2 * sample_dim]
-            Point to test. First :math:`sample_dim` elements contain the
-            mean vector and the last :math:`sample_dim` elements contain
+            Point to test. First :math:`sample\_dim` elements contain the
+            mean vector and the last :math:`sample\_dim` elements contain
             the diagonal of the covariance matrix.
 
         Returns
@@ -344,7 +344,7 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return gs.logical_and(belongs, gs.all(diagonal >= -atol, axis=-1))
 
     def random_point(self, n_samples=1):
-        """Generate random parameters of multivariate diagonal normal distributions.
+        r"""Generate random parameters of multivariate diagonal normal distributions.
 
         Parameters
         ----------
@@ -356,8 +356,8 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         -------
         samples : array-like, shape=[..., 2 * sample_dim]
             Sample of points representing multivariate diagonal normal distributions.
-            First :math:`sample_dim` elements contain the mean vector and the last
-            :math:`sample_dim` elements contain the diagonal of the covariance matrix.
+            First :math:`sample\_dim` elements contain the mean vector and the last
+            :math:`sample\_dim` elements contain the diagonal of the covariance matrix.
         """
         sample_dim = self.sample_dim
         bound = 1.0
@@ -370,15 +370,15 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return point
 
     def projection(self, point):
-        """Project a point on the manifold of diagonal multivariate normal distribution.
+        r"""Project a point on the manifold.
 
         Floor the eigenvalues of the diagonal covariance matrix to gs.atol.
 
         Parameters
         ----------
         point : array-like, shape=[..., 2 * sample_dim]
-            Point to project. First :math:`sample_dim` elements contain
-            the mean vector and the last :math:`sample_dim` elements contain
+            Point to project. First :math:`sample\_dim` elements contain
+            the mean vector and the last :math:`sample\_dim` elements contain
             the diagonal of the covariance matrix.
 
         Returns
@@ -392,13 +392,13 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return self._stack_mean_diagonal(mean, regularized)
 
     def sample(self, point, n_samples=1):
-        """Sample from the diagonal multivariate normal distribution.
+        r"""Sample from the diagonal multivariate normal distribution.
 
         Parameters
         ----------
         point : array-like, shape=[..., 2 * sample_dim]
-            Point on the manifold. First :math:`sample_dim` elements contain
-            the mean vector and the last :math:`sample_dim` elements contain
+            Point on the manifold. First :math:`sample\_dim` elements contain
+            the mean vector and the last :math:`sample\_dim` elements contain
             the diagonal of the covariance matrix.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
@@ -412,14 +412,14 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
         return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
-        """Compute pdf associated to point.
+        r"""Compute pdf associated to point.
 
         Parameters
         ----------
         point : array-like, shape=[..., 2 * sample_dim]
             Point representing a probability distribution.
-            First :math:`sample_dim` elements contain the mean vector and the last
-            :math:`sample_dim` elements contain the diagonal of the covariance matrix.
+            First :math:`sample\_dim` elements contain the mean vector and the last
+            :math:`sample\_dim` elements contain the diagonal of the covariance matrix.
 
         Returns
         -------
@@ -455,11 +455,11 @@ class DiagonalNormalDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
 
 
 class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
-    """Class for the manifold of multivariate normal distributions.
+    r"""Class for the manifold of multivariate normal distributions.
 
     This is the class for multivariate normal distributions on the Euclidean space.
     Each distribution is represented by the concatenation of its mean vector and
-    its covariance matrix reshaped in a vector of size :math:`sample_dim ** 2`.
+    its covariance matrix reshaped in a vector of size :math:`sample\_dim ** 2`.
 
     Parameters
     ----------
@@ -499,14 +499,14 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         return mean, cov
 
     def sample(self, point, n_samples=1):
-        """Sample from a multivariate normal distribution.
+        r"""Sample from a multivariate normal distribution.
 
         Parameters
         ----------
         point : array-like, shape=[..., sample_dim + sample_dim ** 2]
             Point representing a multivariate normal distribution.
-            First :math:`sample_dim` elements contain the mean vector and the last
-            :math:`sample_dim ** 2` elements contain the covariance matrix row by row.
+            First :math:`sample\_dim` elements contain the mean vector and the last
+            :math:`sample\_dim ** 2` elements contain the covariance matrix row by row.
         n_samples : int
             Number of points to sample with each parameter in point.
             Optional, default: 1.
@@ -519,14 +519,14 @@ class GeneralNormalDistributions(InformationManifoldMixin, ProductManifold):
         return self._scp_rv.rvs(point, n_samples)
 
     def point_to_pdf(self, point):
-        """Compute pdf associated to point.
+        r"""Compute pdf associated to point.
 
         Parameters
         ----------
         point : array-like, shape=[..., sample_dim + sample_dim ** 2]
             Point representing a multivariate normal distribution.
-            First :math:`sample_dim` elements contain the mean vector and the last
-            :math:`sample_dim ** 2` elements contain the covariance matrix row by row.
+            First :math:`sample\_dim` elements contain the mean vector and the last
+            :math:`sample\_dim ** 2` elements contain the covariance matrix row by row.
 
         Returns
         -------
@@ -568,7 +568,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
         r"""Image of base point in the Poincare upper half-plane.
 
         This is the image by the diffeomorphism
-        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
 
         Parameters
         ----------
@@ -589,7 +589,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
         r"""Inverse image of a point in the Poincare upper half-plane.
 
         This is the inverse image by the diffeomorphism
-        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
 
         Parameters
         ----------
@@ -610,7 +610,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
         r"""Image of tangent vector.
 
         This is the image by the tangent map of the diffeomorphism
-        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
 
         Parameters
         ----------
@@ -634,7 +634,7 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
         r"""Inverse image of tangent vector.
 
         This is the inverse image by the tangent map of the diffeomorphism
-        :math:`(mean, std) -> (mean, sqrt{2} std)`.
+        :math:`(mean, std) -> (mean, \sqrt{2} std)`.
 
         Parameters
         ----------
@@ -654,10 +654,10 @@ class UnivariateNormalToPoincareHalfSpaceDiffeo(Diffeo):
 
 
 class UnivariateNormalMetric(PullbackDiffeoMetric):
-    """Class for the Fisher information metric on univariate normal distributions.
+    r"""Class for the Fisher information metric on univariate normal distributions.
 
     This is the pullback of the metric of the Poincare upper half-plane
-    by the diffeomorphism :math:`(mean, std) -> (mean, sqrt{2} std)`.
+    by the diffeomorphism :math:`(mean, std) -> (mean, \sqrt{2} std)`.
     """
 
     def __init__(self, space):

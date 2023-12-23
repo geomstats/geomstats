@@ -23,7 +23,7 @@ import geomstats.backend as gs
 class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
     r"""Wrapped Gaussian Process.
 
-    The implementation is based on the algorithm 4 of [1].
+    The implementation is based on the algorithm 4 of [1]_.
 
     Parameters
     ----------
@@ -35,8 +35,8 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
     References
     ----------
     [1] Mallasto, A. and Feragen, A. Wrapped gaussian process
-    regression on riemannian manifolds. In 2018 IEEE/CVF
-    Conference on Computer Vision and Pattern Recognition
+        regression on riemannian manifolds. In 2018 IEEE/CVF
+        Conference on Computer Vision and Pattern Recognition
     """
 
     def __init__(self, space, prior):

@@ -82,9 +82,9 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
 
     References
     ----------
-        This algorithm uses the scikit-learn library:
-        https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/
-        cluster/_agglomerative.py#L656
+    This algorithm uses the scikit-learn library:
+    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/
+    cluster/_agglomerative.py#L656
     """
 
     def __init__(

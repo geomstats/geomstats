@@ -35,7 +35,7 @@ from geomstats.vectorization import check_is_batch
 class GammaDistributions(InformationManifoldMixin, VectorSpaceOpenSet):
     """Class for the manifold of Gamma distributions.
 
-    This is :math: Gamma = `(R_+^*)^2`, the positive quadrant of the
+    This is :math:`Gamma = (R_+^*)^2`, the positive quadrant of the
     2-dimensional Euclidean space.
     """
 
@@ -382,7 +382,7 @@ class GammaMetric(RiemannianMetric):
         christoffels : array-like, shape=[..., 2, 2, 2]
             Christoffel symbols, with the contravariant index on
             the first dimension.
-            :math: 'christoffels[..., i, j, k] = Gamma^i_{jk}'
+            :math:`christoffels[..., i, j, k] = Gamma^i_{jk}`
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -453,7 +453,7 @@ class GammaMetric(RiemannianMetric):
         -------
         jac : array-like, shape=[..., 2, 2, 2, 2]
             Jacobian of the Christoffel symbols.
-            :math: 'jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l'
+            :math:`jac[..., i, j, k, l] = dGamma^i_{jk} / dx_l`
         """
         base_point = gs.to_ndarray(base_point, 2)
 
