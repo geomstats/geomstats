@@ -2,14 +2,12 @@ r"""Integrator functions used when no closed forms are available.
 
 Lead author: Nicolas Guigui.
 
-These are designed for first and second order autonomous systems of ODEs written as a
+These are designed for first order systems of ODEs written as a
 spatial variable x and a time variable t:
 
 .. math::
 
-    \frac{dx}{dt} = v(x, t)
-
-    \frac{d^2 x}{dt^2} = a(x, t)
+    \frac{dx}{dt} = force(x, t)
 
 where :math:`x` is called the state variable. It may represent many
 variables by stacking arrays, e.g. position and velocity in a geodesic
@@ -39,7 +37,7 @@ def euler_step(force, state, time, dt):
     ----------
     force : callable
         Vector field that is being integrated.
-    state : array-like, shape=[1, dim]
+    state : array-like, shape=[..., n, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
     time : float
@@ -49,7 +47,7 @@ def euler_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[1, d]
+    point_new : array-like, shape=[..., n, dim]
         Variables at time t + dt.
     """
     derivatives = force(state, time)
@@ -62,11 +60,11 @@ def symplectic_euler_step(force, state, time, dt):
 
     Parameters
     ----------
-    state : array-like, shape=[2, dim]
+    state : array-like, shape=[..., 2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
     force : callable
-        Acceleration field that is being integrated.
+        Vector field that is being integrated.
     time : float
         Time variable.
     dt : float
@@ -74,10 +72,10 @@ def symplectic_euler_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[1, dim]
-        First variable at time t + dt.
-    vector_new : array-like, shape=[1, dim]
-        Second variable at time t + dt.
+    point_new : array-like, shape=[..., 1, dim]
+        Position variable at time t + dt.
+    vector_new : array-like, shape=[..., 1, dim]
+        Velocity variable at time t + dt.
     """
     raise NotImplementedError
 
@@ -87,11 +85,11 @@ def leapfrog_step(force, state, time, dt):
 
     Parameters
     ----------
-    state : array-like, shape=[2, dim]
+    state : array-like, shape=[..., 2, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
     force : callable
-        Acceleration field that is being integrated.
+        Vector field that is being integrated.
     time : float
         Time variable.
     dt : float
@@ -99,10 +97,10 @@ def leapfrog_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[1, dim]
-        First variable at time t + dt.
-    vector_new : array-like, shape=[1, dim]
-        Second variable at time t + dt.
+    point_new : array-like, shape=[..., 1, dim]
+        Position variable at time t + dt.
+    vector_new : array-like, shape=[..., 1, dim]
+        Velocity variable at time t + dt.
     """
     raise NotImplementedError
 
@@ -114,7 +112,7 @@ def rk2_step(force, state, time, dt):
     ----------
     force : callable
         Vector field that is being integrated.
-    state : array-like, shape=[1, dim]
+    state : array-like, shape=[..., n, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
     time : float
@@ -124,8 +122,8 @@ def rk2_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[1, dim]
-        First variable at time t + dt.
+    point_new : array-like, shape=[..., n, dim]
+        Variables at time t + dt.
 
     See Also
     --------
@@ -144,7 +142,7 @@ def rk4_step(force, state, time, dt):
     ----------
     force : callable
         Vector field that is being integrated.
-    state : array-like, shape=[1, dim]
+    state : array-like, shape=[..., n, dim]
         State at time t, corresponds to position and velocity variables at
         time t.
     time : float
@@ -154,8 +152,8 @@ def rk4_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[1, dim]
-        Vari
+    point_new : array-like, shape=[..., n, dim]
+        Variables at time t + dt.
 
     See Also
     --------
