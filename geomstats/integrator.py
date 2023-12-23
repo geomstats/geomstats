@@ -14,12 +14,14 @@ variables by stacking arrays, e.g. position and velocity in a geodesic
 equation.
 """
 
+import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 
 STEP_FUNCTIONS = {
     "euler": "euler_step",
     "rk4": "rk4_step",
     "rk2": "rk2_step",
+    "leapfrog": "leapfrog_step",
 }
 
 
@@ -27,6 +29,7 @@ FEVALS_PER_STEP = {
     "euler": 1,
     "rk4": 4,
     "rk2": 2,
+    "leapfrog": 2,
 }
 
 
@@ -97,12 +100,22 @@ def leapfrog_step(force, state, time, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[..., 1, dim]
-        Position variable at time t + dt.
-    vector_new : array-like, shape=[..., 1, dim]
-        Velocity variable at time t + dt.
+    state_new : array-like, shape=[..., 2, dim]
+        State at time t + dt, corresponds to position and velocity variables
+        at time t + dt.
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Leapfrog_integration
     """
-    raise NotImplementedError
+    pos, vel = state[..., 0, :], state[..., 1, :]
+    vel_half_step = vel + 0.5 * dt * force(pos, time)
+    pos_full_step = pos + dt * vel_half_step
+    vel_full_step = vel_half_step + 0.5 * dt * force(pos_full_step, time + dt)
+    point_new = pos_full_step[..., None, :]
+    vector_new = vel_full_step[..., None, :]
+    state_new = gs.concatenate([point_new, vector_new], axis=-2)
+    return state_new
 
 
 def rk2_step(force, state, time, dt):
