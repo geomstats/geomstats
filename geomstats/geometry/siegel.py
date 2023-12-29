@@ -276,7 +276,9 @@ class SiegelMetric(ComplexRiemannianMetric):
         exp : array-like, shape=[..., n, n]
             Point on the manifold.
         """
-        identity = gs.eye(tangent_vec.shape[-1], dtype=tangent_vec.dtype, like=tangent_vec)
+        identity = gs.eye(
+            tangent_vec.shape[-1], dtype=tangent_vec.dtype, like=tangent_vec
+        )
         tangent_vec_transconj = ComplexMatrices.transconjugate(tangent_vec)
         aux_1 = gs.matmul(tangent_vec, tangent_vec_transconj)
         aux_2 = powermh(aux_1, 1 / 2)
