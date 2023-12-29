@@ -818,7 +818,6 @@ def imag(a):
 def eye(N, M=None, dtype=float, like=None):
     if M is None:
         M = N
-    if like is not None:
-        if hasattr(like, "device"):
-            return _torch.eye(n=N, m=M, dtype=dtype, device=like.device)
+    if like is not None and hasattr(like, "device"):
+        return _torch.eye(n=N, m=M, dtype=dtype, device=like.device)
     return _torch.eye(n=N, m=M, dtype=dtype)
