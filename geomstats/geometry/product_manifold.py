@@ -469,7 +469,7 @@ class ProductManifold(_IterateOverFactorsMixins, Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[..., {dim, embedding_space.dim,
+        point : array-like, shape=[..., {dim, embedding_space.dim, \
             [n_manifolds, dim_each]}]
             Point in product manifold.
 
@@ -719,7 +719,7 @@ class ProductRiemannianMetric(_IterateOverFactorsMixins, RiemannianMetric):
         end_point : array-like, shape=[..., dim], optional
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim],
+        initial_tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.

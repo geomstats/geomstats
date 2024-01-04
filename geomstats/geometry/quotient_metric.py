@@ -103,7 +103,7 @@ class QuotientMetric(RiemannianMetric):
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        initial_tangent_vec : array-like, shape=[..., dim],
+        initial_tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
@@ -278,7 +278,7 @@ class QuotientMetric(RiemannianMetric):
 
         .. math::
             \nabla_H (R(X, Y) Z) =
-            \hor\nabla_H^T(R^T(X,Y)Z) - A_H(ver R^T(X,Y)Z )
+            hor\nabla_H^T(R^T(X,Y)Z) - A_H(ver R^T(X,Y)Z )
             + (2 A_H A_Z A_X Y - A_H A_X A_Y Z + A_H A_Y A_X Z)
             - (2 \nabla_H^T A_Z A_X Y - \nabla_H^T A_X A_Y Z + \nabla_H^T A_Y A_X Z)
 
@@ -305,7 +305,7 @@ class QuotientMetric(RiemannianMetric):
         References
         ----------
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
         bundle = self.fiber_bundle
         point_fiber = bundle.lift(base_point)
