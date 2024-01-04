@@ -66,9 +66,8 @@ class Graph:
 
         Returns
         -------
-        self : array-like,
-            Shape=[n_walks_per_node*self.n_edges), walk_length]
-            array containing random walks.
+        self : array-like, shape=[n_walks_per_node*self.n_edges), walk_length]
+            Array containing random walks.
         """
         paths = [
             [0] * (walk_length + 1) for i in range(self.n_nodes * n_walks_per_node)

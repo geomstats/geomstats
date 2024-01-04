@@ -375,7 +375,7 @@ class MultinomialMetric(RiemannianMetric):
             Point on the manifold, end point of the geodesic.
             Optional, default: None.
             If None, an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[..., dim + 1],
+        initial_tangent_vec : array-like, shape=[..., dim + 1]
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
