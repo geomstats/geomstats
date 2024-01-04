@@ -700,7 +700,7 @@ class L2CurvesMetric(NFoldMetric):
 
     @staticmethod
     def riemann_sum(func):
-        """Compute the left Riemann sum approximation of the integral.
+        r"""Compute the left Riemann sum approximation of the integral.
 
         Compute the left Riemann sum approximation of the integral of a
         function func defined on the unit interval, given by sample points
@@ -1174,7 +1174,8 @@ class DynamicProgrammingAligner:
     representations: it is equivalent to finding the gamma that maximizes
     the L2 scalar product between :math:`initial\_srv` and :math:`end\_srv@\gamma`,
     where :math:`initial\_srv` is the SRV representation of the initial curve and
-    :math:`end\_srv@\gamma` is the SRV representation of the end curve reparametrized by gamma, i.e
+    :math:`end\_srv@\gamma` is the SRV representation of the end curve
+    reparametrized by gamma, i.e
 
     .. math::
         end\_srv@\gamma(t) = end\_srv(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}

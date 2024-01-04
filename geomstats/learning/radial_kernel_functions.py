@@ -429,7 +429,8 @@ def laplacian_radial_kernel(distance, bandwidth=1.0):
 
     References
     ----------
-    .. [1] http://crsouza.com/2010/03/17/kernel-functions-for-machine-learning-applications/
+    .. [1] http://crsouza.com/2010/03/17/
+        kernel-functions-for-machine-learning-applications/
     .. [2] https://data-flair.training/blogs/svm-kernel-functions/
     """
     distance = _check_distance(distance)
