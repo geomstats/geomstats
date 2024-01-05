@@ -32,30 +32,6 @@ class ComplexMatrices(ComplexMatrixVectorSpace):
         """Metric to equip the space with if equip is True."""
         return ComplexMatricesMetric
 
-    def _create_basis(self):
-        """Create the canonical basis."""
-        cdtype = gs.get_default_cdtype()
-        m, n = self.m, self.n
-        real_part = gs.reshape(gs.eye(n * m), (n * m, m, n))
-        complex_part = gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
-        return gs.vstack([real_part, complex_part])
-
-    def basis_representation(self, matrix_representation):
-        """Compute the coefficients of matrices in the given basis.
-
-        Parameters
-        ----------
-        matrix_representation : array-like, shape=[..., *point_shape]
-            Matrix.
-
-        Returns
-        -------
-        basis_representation : array-like, shape=[..., dim]
-            Coefficients in the basis.
-        """
-        # TODO: complete
-        raise NotImplementedError("basis_representation not implemented.")
-
     def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.
 

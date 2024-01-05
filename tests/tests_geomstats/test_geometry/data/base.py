@@ -4,12 +4,6 @@ from .mixins import ProjectionMixinsTestData
 
 
 class _VectorSpaceMixinsTestData(ProjectionMixinsTestData):
-    def basis_cardinality_test_data(self):
-        return None
-
-    def basis_belongs_test_data(self):
-        return self.generate_tests([dict()])
-
     def random_point_is_tangent_test_data(self):
         return self.generate_random_data()
 
@@ -18,14 +12,18 @@ class _VectorSpaceMixinsTestData(ProjectionMixinsTestData):
 
 
 class VectorSpaceTestData(_VectorSpaceMixinsTestData, ManifoldTestData):
-    pass
+    def basis_cardinality_test_data(self):
+        return None
+
+    def basis_belongs_test_data(self):
+        return self.generate_tests([dict()])
 
 
 class ComplexVectorSpaceTestData(_VectorSpaceMixinsTestData, ComplexManifoldTestData):
     pass
 
 
-class _MatrixVectorSpaceMixinsTestData:
+class MatrixVectorSpaceTestData(VectorSpaceTestData):
     def basis_representation_vec_test_data(self):
         return self.generate_vec_data()
 
@@ -45,13 +43,7 @@ class _MatrixVectorSpaceMixinsTestData:
         return self.generate_random_data()
 
 
-class MatrixVectorSpaceTestData(_MatrixVectorSpaceMixinsTestData, VectorSpaceTestData):
-    pass
-
-
-class ComplexMatrixVectorSpaceTestData(
-    _MatrixVectorSpaceMixinsTestData, ComplexVectorSpaceTestData
-):
+class ComplexMatrixVectorSpaceTestData(ComplexVectorSpaceTestData):
     pass
 
 

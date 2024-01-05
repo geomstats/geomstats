@@ -10,7 +10,6 @@ from geomstats.test_cases.geometry.hermitian import HermitianMetricTestCase
 from .data.complex_matrices import ComplexMatricesMetricTestData
 from .data.hermitian_matrices import (
     HermitianMatrices2TestData,
-    HermitianMatrices3TestData,
     HermitianMatricesTestData,
 )
 
@@ -40,15 +39,6 @@ class TestHermitianMatrices2(
 ):
     space = HermitianMatrices(n=2, equip=False)
     testing_data = HermitianMatrices2TestData()
-
-
-@pytest.mark.smoke
-class TestHermitianMatrices3(
-    ComplexMatrixVectorSpaceTestCase,
-    metaclass=DataBasedParametrizer,
-):
-    space = HermitianMatrices(n=3, equip=False)
-    testing_data = HermitianMatrices3TestData()
 
 
 @pytest.mark.redundant

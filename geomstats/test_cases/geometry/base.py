@@ -63,6 +63,8 @@ class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
 
         self.assertAllClose(result, expected, atol=atol)
 
+
+class VectorSpaceTestCase(_VectorSpaceTestCaseMixins, ManifoldTestCase):
     @pytest.mark.mathprop
     def test_basis_cardinality(self):
         """Check number of basis elements is the dimension.
@@ -91,15 +93,11 @@ class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
         self.assertAllClose(self.space.basis, expected, atol=atol)
 
 
-class VectorSpaceTestCase(_VectorSpaceTestCaseMixins, ManifoldTestCase):
-    pass
-
-
 class ComplexVectorSpaceTestCase(_VectorSpaceTestCaseMixins, ComplexManifoldTestCase):
     pass
 
 
-class _MatrixVectorSpaceTestCaseMixins:
+class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = MatrixVectorSpaceRandomDataGenerator(self.space)
@@ -183,13 +181,7 @@ class _MatrixVectorSpaceTestCaseMixins:
         self.assertAllClose(vec_, vec, atol=atol)
 
 
-class MatrixVectorSpaceTestCase(_MatrixVectorSpaceTestCaseMixins, VectorSpaceTestCase):
-    pass
-
-
-class ComplexMatrixVectorSpaceTestCase(
-    _MatrixVectorSpaceTestCaseMixins, ComplexVectorSpaceTestCase
-):
+class ComplexMatrixVectorSpaceTestCase(ComplexVectorSpaceTestCase):
     pass
 
 

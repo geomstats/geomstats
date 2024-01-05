@@ -226,7 +226,6 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         if dim is None:
             dim = math.prod(shape)
         super().__init__(shape=shape, dim=dim, **kwargs)
-        self._basis = None
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the vector space.
@@ -343,62 +342,9 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         )
         return point
 
-    @property
-    def basis(self):
-        """Basis of the vector space."""
-        if self._basis is None:
-            self._basis = self._create_basis()
-        return self._basis
-
-    @basis.setter
-    def basis(self, basis):
-        if len(basis) < self.dim:
-            raise ValueError(
-                "The basis should have length equal to the dimension of the space."
-            )
-        self._basis = basis
-
-    @abc.abstractmethod
-    def _create_basis(self):
-        """Create a canonical basis."""
-
 
 class ComplexMatrixVectorSpace(ComplexVectorSpace):
     """A matrix vector space."""
-
-    @abc.abstractmethod
-    def basis_representation(self, matrix_representation):
-        """Compute the coefficients of matrices in the given basis.
-
-        Parameters
-        ----------
-        matrix_representation : array-like, shape=[..., *point_shape]
-            Matrix.
-
-        Returns
-        -------
-        basis_representation : array-like, shape=[..., dim]
-            Coefficients in the basis.
-        """
-        raise NotImplementedError("basis_representation not implemented.")
-
-    def matrix_representation(self, basis_representation):
-        """Compute the matrix representation for the given basis coefficients.
-
-        Sums the basis elements according to the coefficients given in
-        basis_representation.
-
-        Parameters
-        ----------
-        basis_representation : array-like, shape=[..., dim]
-            Coefficients in the basis.
-
-        Returns
-        -------
-        matrix_representation : array-like, shape=[..., *point_shape]
-            Matrix.
-        """
-        return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
 
 
 class LevelSet(Manifold, abc.ABC):
