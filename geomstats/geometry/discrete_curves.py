@@ -707,10 +707,10 @@ class L2CurvesMetric(NFoldMetric):
         at regularly spaced times
 
         .. math::
-            t_i = i / (k\_landmarks), \\
-            i = 0, ..., k\_landmarks - 1
+            t_i = i / k, \\
+            i = 0, ..., k - 1
 
-        (last time is missing).
+        where :math:`k` is the number of landmarks (last time is missing).
 
         Parameters
         ----------
@@ -1172,13 +1172,13 @@ class DynamicProgrammingAligner:
 
     The objective can be expressed in terms of square root velocity (SRV)
     representations: it is equivalent to finding the gamma that maximizes
-    the L2 scalar product between :math:`initial\_srv` and :math:`end\_srv@\gamma`,
-    where :math:`initial\_srv` is the SRV representation of the initial curve and
-    :math:`end\_srv@\gamma` is the SRV representation of the end curve
-    reparametrized by gamma, i.e
+    the L2 scalar product between :math:`initial_{srv}` and :math:`end_{srv}@\gamma`,
+    where :math:`initial_{srv}` is the SRV representation of the initial curve
+    and :math:`end_{srv}@\gamma` is the SRV representation of the end curve
+    reparametrized by :math:`\gamma`, i.e
 
     .. math::
-        end\_srv@\gamma(t) = end\_srv(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
+        end_{srv}@\gamma(t) = end_{srv}(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
 
     The dynamic programming algorithm assumes that for every subinterval
     :math:`\left[\frac{i}{n},\frac{i+1}{n}\right]` of :math:`\left[0,1\right]`,
