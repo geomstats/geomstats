@@ -8,7 +8,7 @@ from geomstats.geometry.discrete_curves import (
     DynamicProgrammingAligner,
     ElasticTranslationMetric,
     FTransform,
-    IterativeHorizontalGeodesicAligner,
+    IterativeFiberBundleAligner,
     L2CurvesMetric,
     SRVTransform,
     SRVTranslationReparametrizationBundle,
@@ -174,7 +174,7 @@ class TestAlignerCmp(TestCase, metaclass=DataBasedParametrizer):
     total_space = DiscreteCurvesStartingAtOrigin(k_sampling_points=10)
     bundle = SRVTranslationReparametrizationBundle(total_space)
 
-    aligner = IterativeHorizontalGeodesicAligner()
+    aligner = IterativeFiberBundleAligner()
     other_aligner = DynamicProgrammingAligner()
 
     testing_data = AlignerCmpTestData()

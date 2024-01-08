@@ -894,7 +894,7 @@ class SRVTranslationMetric(PullbackDiffeoMetric):
         return image_space
 
 
-class IterativeHorizontalGeodesicAligner:
+class IterativeFiberBundleAligner:
     r"""Align two curves through iterative horizontal geodesic algorithm.
 
     This algorithm computes the horizontal geodesic between two curves in the shape
@@ -1657,7 +1657,7 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
 
     def __init__(self, total_space):
         super().__init__(total_space=total_space)
-        self.aligner = IterativeHorizontalGeodesicAligner()
+        self.aligner = IterativeFiberBundleAligner()
 
     def vertical_projection(self, tangent_vec, base_point, return_norm=False):
         """Compute vertical part of tangent vector at base point.
