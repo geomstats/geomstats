@@ -378,7 +378,7 @@ class SRVTransform(Diffeo):
         r"""Differential of the square root velocity transform.
 
         .. math::
-            (h, c) -> dQ_c(h) = |c'|^(-1/2} * (h' - 1/2 * <h',v>v)
+            (h, c) -> dQ_c(h) = |c'|^(-1/2) * (h' - 1/2 * <h',v>v)
             v = c'/|c'|
 
         Parameters
@@ -700,17 +700,17 @@ class L2CurvesMetric(NFoldMetric):
 
     @staticmethod
     def riemann_sum(func):
-        """Compute the left Riemann sum approximation of the integral.
+        r"""Compute the left Riemann sum approximation of the integral.
 
         Compute the left Riemann sum approximation of the integral of a
         function func defined on the unit interval, given by sample points
         at regularly spaced times
 
         .. math::
-            t_i = i / (k_landmarks),
-            i = 0, ..., k_landmarks - 1
+            t_i = i / k, \\
+            i = 0, ..., k - 1
 
-        (last time is missing).
+        where :math:`k` is the number of landmarks (last time is missing).
 
         Parameters
         ----------
@@ -979,7 +979,7 @@ class IterativeHorizontalGeodesicAligner:
 
         Returns
         -------
-        reparametrized_path : array-like,
+        reparametrized_path : array-like, \
             shape=[n_times, k_sampling_points, ambient_dim]
             Path of curves composed with the inverse of the path of
             reparametrizations.
@@ -1172,12 +1172,13 @@ class DynamicProgrammingAligner:
 
     The objective can be expressed in terms of square root velocity (SRV)
     representations: it is equivalent to finding the gamma that maximizes
-    the L2 scalar product between initial_srv and end_srv@gamma where initial_srv
-    is the SRV representation of the initial curve and end_srv@gamma is the SRV
-    representation of the end curve reparametrized by gamma, i.e
+    the L2 scalar product between :math:`initial_{srv}` and :math:`end_{srv}@\gamma`,
+    where :math:`initial_{srv}` is the SRV representation of the initial curve
+    and :math:`end_{srv}@\gamma` is the SRV representation of the end curve
+    reparametrized by :math:`\gamma`, i.e
 
     .. math::
-        end_srv@\gamma(t) = end_srv(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
+        end_{srv}@\gamma(t) = end_{srv}(\gamma(t))\cdot|\gamma(t)|^\frac{1}{2}
 
     The dynamic programming algorithm assumes that for every subinterval
     :math:`\left[\frac{i}{n},\frac{i+1}{n}\right]` of :math:`\left[0,1\right]`,

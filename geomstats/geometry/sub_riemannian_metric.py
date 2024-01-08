@@ -336,7 +336,7 @@ class SubRiemannianMetric:
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        initial_cotangent_vec : array-like, shape=[..., dim],
+        initial_cotangent_vec : array-like, shape=[..., dim]
             Cotangent vector at base point, the initial speed of the geodesics.
 
         Returns

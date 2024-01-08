@@ -103,7 +103,7 @@ class QuotientMetric(RiemannianMetric):
         ----------
         initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        initial_tangent_vec : array-like, shape=[..., dim],
+        initial_tangent_vec : array-like, shape=[..., dim]
             Tangent vector at base point, the initial speed of the geodesics.
             Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
@@ -256,11 +256,12 @@ class QuotientMetric(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math:`H|_P = tangent\_vec\_a, X|_P =
-        tangent\_vec\_b, Y|_P = tangent\_vec\_c, Z|_P = tangent\_vec\_d` with
-        tangent vector value specified in argument at the base point `P`,
+        For four vectors fields :math:`H|_P =` `tangent_vec_a`,
+        :math:`X|_P =` `tangent_vec_b`, :math:`Y|_P =` `tangent_vec_c`,
+        :math:`Z|_P =` `tangent_vec_d` with
+        tangent vector value specified in argument at the `base_point` :math:`P`,
         the covariant derivative of the curvature
-        :math:`(\nabla_H R)(X, Y)Z |_P` is computed at the base point P.
+        :math:`(\nabla_H R)(X, Y)Z |_P` is computed at the `base_point` :math:`P`.
 
         In the case of quotient metrics, the fundamental equations of a
         Riemannian submersion allow to compute this tensor on the base manifold
@@ -270,15 +271,15 @@ class QuotientMetric(RiemannianMetric):
 
         In more details, let :math:`H, X, Y, Z` be the horizontal lift of
         parallel vector fields extending the tangent vectors given in argument
-        by parallel transport in a neighborhood of the base-point P in the
+        by parallel transport in a neighborhood of the `base_point` :math:`P` in the
         base-space. Such vector fields verify :math:`\nabla^T_H H=0`,
-        :math:`\nabla^T_H^X = A_H X` (and similarly for Y and Z) using the
+        :math:`\nabla^T_H X = A_H X` (and similarly for Y and Z) using the
         connection :math:`\nabla^T` of the total space. Then the covariant
         derivative of the curvature tensor is given by
 
         .. math::
             \nabla_H (R(X, Y) Z) =
-            \hor\nabla_H^T(R^T(X,Y)Z) - A_H(ver R^T(X,Y)Z )
+            hor\nabla_H^T(R^T(X,Y)Z) - A_H(ver R^T(X,Y)Z )
             + (2 A_H A_Z A_X Y - A_H A_X A_Y Z + A_H A_Y A_X Z)
             - (2 \nabla_H^T A_Z A_X Y - \nabla_H^T A_X A_Y Z + \nabla_H^T A_Y A_X Z)
 
@@ -287,7 +288,7 @@ class QuotientMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector at `base_point` (derivative direction)).
+            Tangent vector at `base_point` (derivative direction).
         tangent_vec_b : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
         tangent_vec_c : array-like, shape=[..., n, n]
@@ -300,12 +301,12 @@ class QuotientMetric(RiemannianMetric):
         Returns
         -------
         curvature_derivative : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at `base_point`.
 
         References
         ----------
         .. [Pennec] Pennec, Xavier. Computing the curvature and its gradient
-        in Kendall shape spaces. Unpublished.
+            in Kendall shape spaces. Unpublished.
         """
         bundle = self.fiber_bundle
         point_fiber = bundle.lift(base_point)
@@ -371,13 +372,14 @@ class QuotientMetric(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
-        tangent\_vec\_b` with tangent vector value specified in argument at the
-        base point `P`, the covariant derivative (in the direction `X`)
+        For two vectors fields :math:`X|_P =` `tangent_vec_a`,
+        :math:`Y|_P =` `tangent_vec_b` with tangent vector value specified in
+        argument at the `base_point` :math:`P`,
+        the covariant derivative (in the direction :math:`X`)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
-        directional curvature (in the direction `Y`)
-        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in `X` and `Y` that
-        plays an important role in the computation of the moments of the
+        directional curvature (in the direction :math:`Y`)
+        :math:`R_Y(X) = R(Y, X) Y` is a quadratic tensor in :math:`X` and :math:`Y`
+        that plays an important role in the computation of the moments of the
         empirical Fréchet mean.
 
         This tensor can be computed from the covariant derivative of the
@@ -390,7 +392,7 @@ class QuotientMetric(RiemannianMetric):
 
         In more details, let :math:`X, Y` be the horizontal lift of parallel
         vector fields extending the tangent vectors given in argument by
-        parallel transport in a neighborhood of the base-point P in the
+        parallel transport in a neighborhood of the `base_point` :math:`P` in the
         base-space. Such vector fields verify :math:`\nabla^T_X X=0` and
         :math:`\nabla^T_X^Y = A_X Y` using the connection :math:`\nabla^T`
         of the total space. Then the covariant derivative of the
@@ -414,7 +416,7 @@ class QuotientMetric(RiemannianMetric):
         Returns
         -------
         curvature_derivative : array-like, shape=[..., n, n]
-            Tangent vector at base point.
+            Tangent vector at `base_point`.
 
         References
         ----------

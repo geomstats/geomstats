@@ -34,7 +34,7 @@ class WrappedGaussianProcess(MultiOutputMixin, RegressorMixin, BaseEstimator):
 
     References
     ----------
-    [1] Mallasto, A. and Feragen, A. Wrapped gaussian process
+    .. [1] Mallasto, A. and Feragen, A. Wrapped gaussian process
         regression on riemannian manifolds. In 2018 IEEE/CVF
         Conference on Computer Vision and Pattern Recognition
     """

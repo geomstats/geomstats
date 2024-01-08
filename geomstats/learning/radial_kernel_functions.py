@@ -235,8 +235,8 @@ def gaussian_radial_kernel(distance, bandwidth=1.0):
 
     References
     ----------
-    https://en.wikipedia.org/wiki/Kernel_(statistics)
-    https://en.wikipedia.org/wiki/Radial_basis_function
+    .. [1] https://en.wikipedia.org/wiki/Kernel_(statistics)
+    .. [2] https://en.wikipedia.org/wiki/Radial_basis_function
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -429,9 +429,9 @@ def laplacian_radial_kernel(distance, bandwidth=1.0):
 
     References
     ----------
-    http://crsouza.com/2010/03/17/
-    kernel-functions-for-machine-learning-applications/
-    https://data-flair.training/blogs/svm-kernel-functions/
+    .. [1] http://crsouza.com/2010/03/17/
+        kernel-functions-for-machine-learning-applications/
+    .. [2] https://data-flair.training/blogs/svm-kernel-functions/
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)

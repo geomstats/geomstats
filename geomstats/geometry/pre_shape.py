@@ -819,13 +819,13 @@ class PreShapeMetric(RiemannianMetric):
     ):
         r"""Compute the covariant derivative of the curvature.
 
-        For four vectors fields :math:`H|_P = tangent\_vec\_a, X|_P =
-        tangent\_vec\_b, Y|_P = tangent\_vec\_c, Z|_P = tangent\_vec\_d` with
-        tangent vector value specified in argument at the base point `P`,
+        For four vectors fields :math:`H|_P =` `tangent_vec_a`,
+        :math:`X|_P =` `tangent_vec_b`, :math:`Y|_P =` `tangent_vec_c`,
+        :math:`Z|_P =` `tangent_vec_d` with
+        tangent vector value specified in argument at the `base_point` :math:`P`,
         the covariant derivative of the curvature
-        :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the base point P.
-        Since the sphere is a constant curvature space this
-        vanishes identically.
+        :math:`(\nabla_H R)(X, Y) Z |_P` is computed at the `base_point` :math:`P`.
+        Since the sphere is a constant curvature space this vanishes identically.
 
         Parameters
         ----------
@@ -847,7 +847,7 @@ class PreShapeMetric(RiemannianMetric):
         Returns
         -------
         curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at base point.
+            Tangent vector at `base_point`.
         """
         batch_shape = get_batch_shape(
             self._space.point_ndim,
@@ -941,20 +941,21 @@ class KendallShapeMetric(QuotientMetric):
     ):
         r"""Compute the covariant derivative of the directional curvature.
 
-        For two vectors fields :math:`X|_P = tangent\_vec\_a, Y|_P =
-        tangent\_vec\_b` with tangent vector value specified in argument at the
-        base point `P`, the covariant derivative (in the direction `X`)
+        For two vectors fields :math:`X|_P =` `tangent_vec_a`,
+        :math:`Y|_P =` `tangent_vec_b` with tangent vector value specified in argument
+        at the `base_point` :math:`P`,
+        the covariant derivative (in the direction :math:`X`)
         :math:`(\nabla_X R_Y)(X) |_P = (\nabla_X R)(Y, X) Y |_P` of the
-        directional curvature (in the direction `Y`)
-        :math:`R_Y(X) = R(Y, X) Y`  is a quadratic tensor in `X` and `Y` that
-        plays an important role in the computation of the moments of the
+        directional curvature (in the direction :math:`Y`)
+        :math:`R_Y(X) = R(Y, X) Y` is a quadratic tensor in :math:`X` and :math:`Y`
+        that plays an important role in the computation of the moments of the
         empirical Fréchet mean [Pennec]_.
 
         In more details, let :math:`X, Y` be the horizontal lift of parallel
         vector fields extending the tangent vectors given in argument by
-        parallel transport in a neighborhood of the base-point P in the
+        parallel transport in a neighborhood of the`base_point` :math:`P` in the
         base-space. Such vector fields verify :math:`\nabla^T_X X=0` and
-        :math:`\nabla^T_X^Y = A_X Y` using the connection :math:`\nabla^T`
+        :math:`\nabla^T_X Y = A_X Y` using the connection :math:`\nabla^T`
         of the total space. Then the covariant derivative of the
         directional curvature tensor is given by
         :math:`\nabla_X (R_Y(X)) = hor \nabla^T_X (R^T_Y(X)) - A_X( ver R^T_Y(X))
@@ -973,7 +974,7 @@ class KendallShapeMetric(QuotientMetric):
         Returns
         -------
         curvature_derivative : array-like, shape=[..., k_landmarks, m_ambient]
-            Tangent vector at base point.
+            Tangent vector at `base_point`.
         """
         horizontal_x = self.fiber_bundle.horizontal_projection(
             tangent_vec_a, base_point
