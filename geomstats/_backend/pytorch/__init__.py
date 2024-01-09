@@ -815,9 +815,9 @@ def imag(a):
     return _torch.zeros(a.shape, dtype=a.dtype)
 
 
-def eye(N, M=None, dtype=float, like=None):
+def eye(N, M=None, dtype=None, like=None):
     if M is None:
         M = N
-    if like is not None and hasattr(like, "device"):
+    if hasattr(like, "device"):
         return _torch.eye(n=N, m=M, dtype=dtype, device=like.device)
     return _torch.eye(n=N, m=M, dtype=dtype)
