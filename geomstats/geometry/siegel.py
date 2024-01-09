@@ -456,7 +456,9 @@ class SiegelMetric(ComplexRiemannianMetric):
         if gs.ndim(point_a) > gs.ndim(point_b):
             point_a, point_b = point_b, point_a
 
-        identity = gs.eye(point_a.shape[-1], dtype=point_a.dtype, like=point_a)
+        identity = gs.eye(
+            point_a.shape[-1], dtype=point_a.dtype, like=gs.array(point_a)
+        )
 
         point_a_transconj = ComplexMatrices.transconjugate(point_a)
         point_b_transconj = ComplexMatrices.transconjugate(point_b)
