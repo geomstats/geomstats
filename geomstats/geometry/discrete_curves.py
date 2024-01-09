@@ -894,7 +894,7 @@ class SRVTranslationMetric(PullbackDiffeoMetric):
         return image_space
 
 
-class IterativeFiberBundleAligner:
+class IterativeHorizontalGeodesicAligner:
     r"""Align two curves through iterative horizontal geodesic algorithm.
 
     This algorithm computes the horizontal geodesic between two curves in the shape
@@ -938,10 +938,9 @@ class IterativeFiberBundleAligner:
 
     References
     ----------
-    .. [LAB2017] A. Le Brigant,
-        "A discrete framework to find the optimal matching between manifold-
-        valued curves," in Journal of Mathematical Imaging and Vision, 61,
-        pp. 40-70, 2019.
+    .. [LAB2017] A. Le Brigant, "Optimal matching between curves in a manifold",
+        in Geometric Science of Information. Springer Lecture Notes in Computer
+        Science 10589 (2017), 57 - 64. https://hal.science/hal-04374199.
     """
 
     def __init__(
@@ -1634,20 +1633,22 @@ class DynamicProgrammingAligner:
 class SRVTranslationReparametrizationBundle(FiberBundle):
     """Principal bundle of curves modulo reparameterizations with the SRV metric.
 
-    The space of parameterized curves is the total space of a principal
-    bundle where the group action is given by reparameterization and the
-    base space is the shape space of curves modulo reparametrization, i.e.
-    unparametrized curves. In the discrete case, reparametrization corresponds
-    to resampling.
+    The space of parameterized curves is the total space of a principal bundle
+    where the group action is given by reparameterization and the base space is
+    the shape space of curves modulo reparametrization, i.e.unparametrized
+    curves. In the discrete case, reparametrization corresponds to resampling.
 
-    Each tangent vector to the space of parameterized curves can be
-    split into a vertical part (tangent to the fibers of the principal
-    bundle) and a horizontal part (orthogonal to the vertical part with
-    respect to the SRV metric). Horizontal geodesics in the total space
-    can be computed using 2 different methods:
-    - an algorithm that iteratively finds the best correspondence between
-    two fibers of the principal bundle, see Reference below (default method)
-    - or dynamic programming.
+    Each tangent vector to the space of parameterized curves can be split into a
+    vertical part (tangent to the fibers of the principal bundle) and a
+    horizontal part (orthogonal to the vertical part with respect to the SRV
+    metric). The geodesic between the shapes of two curves is computed by
+    aligning (i.e. reparametrizing) one of the two curves with respect to the
+    other, and computing the geodesic between the aligned curves. This geodesic
+    will be horizontal, and will project to a geodesic on the shape space.
+
+    Two different aligners are available:
+    - IterativeHorizontalGeodesicAligner (default)
+    - DynamicProgrammingAligner.
 
     Parameters
     ----------
@@ -1657,7 +1658,7 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
 
     def __init__(self, total_space):
         super().__init__(total_space=total_space)
-        self.aligner = IterativeFiberBundleAligner()
+        self.aligner = IterativeHorizontalGeodesicAligner()
 
     def vertical_projection(self, tangent_vec, base_point, return_norm=False):
         """Compute vertical part of tangent vector at base point.
