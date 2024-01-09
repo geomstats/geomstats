@@ -14,6 +14,7 @@ from torch import (
     empty,
     empty_like,
     erf,
+    eye,
     flatten,
     float32,
     float64,
@@ -813,11 +814,3 @@ def imag(a):
     if is_complex(a):
         return _torch.imag(a)
     return _torch.zeros(a.shape, dtype=a.dtype)
-
-
-def eye(N, M=None, dtype=None, like=None):
-    if M is None:
-        M = N
-    if hasattr(like, "device"):
-        return _torch.eye(n=N, m=M, dtype=dtype, device=like.device)
-    return _torch.eye(n=N, m=M, dtype=dtype)
