@@ -396,7 +396,7 @@ class SiegelMetric(ComplexRiemannianMetric):
         tangent_vec_at_base_point : array-like, shape=[..., n, n]
             Tangent vector at the base point.
         """
-        identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype, like=base_point)
+        identity = gs.eye(base_point.shape[-1], dtype=base_point.dtype)
         base_point_transconj = ComplexMatrices.transconjugate(base_point)
         aux_1 = gs.matmul(base_point, base_point_transconj)
         aux_2 = gs.matmul(base_point_transconj, base_point)
