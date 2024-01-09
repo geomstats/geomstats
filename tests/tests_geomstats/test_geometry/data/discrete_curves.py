@@ -23,17 +23,17 @@ class L2CurvesMetricTestData(RiemannianMetricTestData):
     )
 
 
-class ElasticTranslationMetricTestData(PullbackDiffeoMetricTestData):
+class ElasticMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
 
-class SRVTranslationMetricTestData(PullbackDiffeoMetricTestData):
+class SRVMetricTestData(PullbackDiffeoMetricTestData):
     fail_for_not_implemented_errors = False
     fail_for_autodiff_exceptions = False
 
 
-class SRVTranslationReparametrizationBundleTestData(FiberBundleTestData):
+class SRVReparametrizationBundleTestData(FiberBundleTestData):
     fail_for_not_implemented_errors = False
 
     skips = (

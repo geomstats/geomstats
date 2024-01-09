@@ -6,12 +6,12 @@ import geomstats.backend as gs
 from geomstats.geometry.discrete_curves import (
     DiscreteCurvesStartingAtOrigin,
     DynamicProgrammingAligner,
-    ElasticTranslationMetric,
+    ElasticMetric,
     FTransform,
     IterativeHorizontalGeodesicAligner,
     L2CurvesMetric,
+    SRVReparametrizationBundle,
     SRVTransform,
-    SRVTranslationReparametrizationBundle,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.landmarks import Landmarks
@@ -24,7 +24,7 @@ from geomstats.test_cases.geometry.diffeo import (
     DiffeoTestCase,
 )
 from geomstats.test_cases.geometry.discrete_curves import (
-    SRVTranslationReparametrizationBundleTestCase,
+    SRVReparametrizationBundleTestCase,
 )
 from geomstats.test_cases.geometry.nfold_manifold import (
     NFoldManifoldTestCase,
@@ -40,10 +40,10 @@ from .data.diffeo import (
 from .data.discrete_curves import (
     AlignerCmpTestData,
     DiscreteCurvesStartingAtOriginTestData,
-    ElasticTranslationMetricTestData,
+    ElasticMetricTestData,
     L2CurvesMetricTestData,
-    SRVTranslationMetricTestData,
-    SRVTranslationReparametrizationBundleTestData,
+    SRVMetricTestData,
+    SRVReparametrizationBundleTestData,
 )
 
 
@@ -127,22 +127,18 @@ class TestL2CurvesMetric(NFoldMetricTestCase, metaclass=DataBasedParametrizer):
     testing_data = L2CurvesMetricTestData()
 
 
-class TestElasticTranslationMetric(
-    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
-):
+class TestElasticMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer):
     _k_sampling_points = random.randint(5, 10)
     _a = gs.random.uniform(low=0.5, high=2.5, size=1)
 
     space = DiscreteCurvesStartingAtOrigin(
         ambient_dim=2, k_sampling_points=_k_sampling_points, equip=False
-    ).equip_with_metric(ElasticTranslationMetric, a=_a)
+    ).equip_with_metric(ElasticMetric, a=_a)
 
-    testing_data = ElasticTranslationMetricTestData()
+    testing_data = ElasticMetricTestData()
 
 
-class TestSRVTranslationMetric(
-    PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer
-):
+class TestSRVMetric(PullbackDiffeoMetricTestCase, metaclass=DataBasedParametrizer):
     _ambient_dim = random.randint(2, 3)
     _k_sampling_points = random.randint(5, 10)
 
@@ -150,11 +146,11 @@ class TestSRVTranslationMetric(
         ambient_dim=_ambient_dim,
         k_sampling_points=_k_sampling_points,
     )
-    testing_data = SRVTranslationMetricTestData()
+    testing_data = SRVMetricTestData()
 
 
-class TestSRVTranslationReparametrizationBundle(
-    SRVTranslationReparametrizationBundleTestCase, metaclass=DataBasedParametrizer
+class TestSRVReparametrizationBundle(
+    SRVReparametrizationBundleTestCase, metaclass=DataBasedParametrizer
 ):
     _ambient_dim = random.randint(2, 3)
     _k_sampling_points = random.randint(5, 10)
@@ -163,16 +159,16 @@ class TestSRVTranslationReparametrizationBundle(
         ambient_dim=_ambient_dim,
         k_sampling_points=_k_sampling_points,
     )
-    bundle = SRVTranslationReparametrizationBundle(total_space)
+    bundle = SRVReparametrizationBundle(total_space)
 
     data_generator = base_data_generator = ShapeBundleRandomDataGenerator(total_space)
-    testing_data = SRVTranslationReparametrizationBundleTestData()
+    testing_data = SRVReparametrizationBundleTestData()
 
 
 @pytest.mark.smoke
 class TestAlignerCmp(TestCase, metaclass=DataBasedParametrizer):
     total_space = DiscreteCurvesStartingAtOrigin(k_sampling_points=10)
-    bundle = SRVTranslationReparametrizationBundle(total_space)
+    bundle = SRVReparametrizationBundle(total_space)
 
     aligner = IterativeHorizontalGeodesicAligner()
     other_aligner = DynamicProgrammingAligner()

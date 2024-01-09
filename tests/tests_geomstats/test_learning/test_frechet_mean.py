@@ -4,7 +4,7 @@ import pytest
 
 from geomstats.geometry.discrete_curves import (
     DiscreteCurvesStartingAtOrigin,
-    ElasticTranslationMetric,
+    ElasticMetric,
 )
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
@@ -110,7 +110,7 @@ class TestLinearMeanEuclidean(FrechetMeanTestCase, metaclass=DataBasedParametriz
     scope="class",
     params=[
         DiscreteCurvesStartingAtOrigin(ambient_dim=2, equip=False).equip_with_metric(
-            ElasticTranslationMetric,
+            ElasticMetric,
             a=1,
         ),
         DiscreteCurvesStartingAtOrigin(ambient_dim=2, equip=True),

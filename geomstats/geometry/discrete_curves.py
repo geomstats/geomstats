@@ -206,13 +206,13 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         super().__init__(ambient_manifold, k_sampling_points - 1, equip=equip)
 
         self._quotient_map = {
-            (SRVTranslationMetric, "reparametrizations"): (
-                SRVTranslationReparametrizationBundle,
-                SRVTranslationReparametrizationQuotientMetric,
+            (SRVMetric, "reparametrizations"): (
+                SRVReparametrizationBundle,
+                SRVReparametrizationQuotientMetric,
             ),
-            (SRVTranslationMetric, "rotations"): (
-                SRVTranslationRotationBundle,
-                SRVTranslationRotationQuotientMetric,
+            (SRVMetric, "rotations"): (
+                SRVRotationBundle,
+                SRVRotationQuotientMetric,
             ),
         }
         self._sphere = Hypersphere(dim=ambient_dim - 1)
@@ -238,7 +238,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
-        return SRVTranslationMetric
+        return SRVMetric
 
     def insert_origin(self, point):
         """Insert origin as first element of point."""
@@ -801,7 +801,7 @@ class L2CurvesMetric(NFoldMetric):
         return self.riemann_sum(inner_products)
 
 
-class ElasticTranslationMetric(PullbackDiffeoMetric):
+class ElasticMetric(PullbackDiffeoMetric):
     """Elastic metric on the space of discrete curves.
 
     Family of elastic metric parametrized by bending and stretching parameters
@@ -849,7 +849,7 @@ class ElasticTranslationMetric(PullbackDiffeoMetric):
         return image_space
 
 
-class SRVTranslationMetric(PullbackDiffeoMetric):
+class SRVMetric(PullbackDiffeoMetric):
     """Square Root Velocity metric on the space of discrete curves.
 
     The SRV metric is equivalent to the elastic metric chosen with
@@ -1183,7 +1183,7 @@ class IterativeHorizontalGeodesicAligner:
 
         Parameters
         ----------
-        bundle : SRVTranslationReparametrizationBundle
+        bundle : SRVReparametrizationBundle
             Fiber bundle of curves modulo reparametrizations.
         initial_point : array-like, shape=[k_sampling_points, ambient_dim]
             Initial discrete curve.
@@ -1248,7 +1248,7 @@ class IterativeHorizontalGeodesicAligner:
 
         Parameters
         ----------
-        bundle : SRVTranslationReparametrizationBundle
+        bundle : SRVReparametrizationBundle
             Fiber bundle of curves modulo reparametrizations.
         initial_point : array-like, shape=[..., k_sampling_points, ambient_dim]
             Initial discrete curve.
@@ -1290,7 +1290,7 @@ class IterativeHorizontalGeodesicAligner:
 
         Parameters
         ----------
-        bundle : SRVTranslationReparametrizationBundle
+        bundle : SRVReparametrizationBundle
             Fiber bundle of curves modulo reparametrizations.
         point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Discrete curve to align.
@@ -1503,7 +1503,7 @@ class DynamicProgrammingAligner:
 
         Parameters
         ----------
-        bundle : SRVTranslationReparametrizationBundle
+        bundle : SRVReparametrizationBundle
             Fiber bundle of curves modulo reparametrizations.
         point : array-like, shape=[k_sampling_points - 1, ambient_dim]
             Discrete curve to align.
@@ -1588,7 +1588,7 @@ class DynamicProgrammingAligner:
 
         Parameters
         ----------
-        bundle : SRVTranslationReparametrizationBundle
+        bundle : SRVReparametrizationBundle
             Fiber bundle of curves modulo reparametrizations.
         point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
             Discrete curve to align.
@@ -1630,7 +1630,7 @@ class DynamicProgrammingAligner:
         return aligned, sdists
 
 
-class SRVTranslationReparametrizationBundle(FiberBundle):
+class SRVReparametrizationBundle(FiberBundle):
     """Principal bundle of curves modulo reparameterizations with the SRV metric.
 
     The space of parameterized curves is the total space of a principal bundle
@@ -1797,7 +1797,7 @@ class SRVTranslationReparametrizationBundle(FiberBundle):
         return self.aligner.align(self, point, base_point)
 
 
-class SRVTranslationReparametrizationQuotientMetric(QuotientMetric):
+class SRVReparametrizationQuotientMetric(QuotientMetric):
     """SRV quotient metric on the space of unparametrized curves.
 
     This is the class for the quotient metric induced by the SRV Metric
@@ -1807,7 +1807,7 @@ class SRVTranslationReparametrizationQuotientMetric(QuotientMetric):
     """
 
 
-class SRVTranslationRotationBundle(SRVTranslationReparametrizationBundle):
+class SRVRotationBundle(SRVReparametrizationBundle):
     """SRV fiber bundle of curves modulo rotations and reparametrizations.
 
     This is the fiber bundle where the total space is the space of parameterized
@@ -1992,7 +1992,7 @@ class SRVTranslationRotationBundle(SRVTranslationReparametrizationBundle):
         return aligned_points
 
 
-class SRVTranslationRotationQuotientMetric(QuotientMetric):
+class SRVRotationQuotientMetric(QuotientMetric):
     """SRV quotient metric on space of curves modulo rotations and reparametrizations.
 
     This is the class for the quotient metric induced by the SRV Metric on the

@@ -5,7 +5,7 @@ from geomstats.test_cases.geometry.fiber_bundle import FiberBundleTestCase
 from geomstats.vectorization import get_batch_shape
 
 
-class SRVTranslationReparametrizationBundleTestCase(FiberBundleTestCase):
+class SRVReparametrizationBundleTestCase(FiberBundleTestCase):
     @pytest.mark.random
     def test_tangent_vector_projections_orthogonality_with_metric(self, n_points, atol):
         """Test horizontal and vertical projections.
