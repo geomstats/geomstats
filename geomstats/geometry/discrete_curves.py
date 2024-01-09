@@ -206,13 +206,17 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         super().__init__(ambient_manifold, k_sampling_points - 1, equip=equip)
 
         self._quotient_map = {
+            (SRVMetric, "rotations"): (
+                SRVRotationBundle,
+                SRVRotationQuotientMetric,
+            ),
             (SRVMetric, "reparametrizations"): (
                 SRVReparametrizationBundle,
                 SRVReparametrizationQuotientMetric,
             ),
             (SRVMetric, "rotations and reparametrizations"): (
-                SRVRotationBundle,
-                SRVRotationQuotientMetric,
+                SRVRotationReparametrizationBundle,
+                SRVRotationReparametrizationQuotientMetric,
             ),
         }
         self._sphere = Hypersphere(dim=ambient_dim - 1)
@@ -1807,38 +1811,21 @@ class SRVReparametrizationQuotientMetric(QuotientMetric):
     """
 
 
-class SRVRotationBundle(SRVReparametrizationBundle):
-    """SRV fiber bundle of curves modulo rotations and reparametrizations.
+class SRVRotationBundle(FiberBundle):
+    """Fiber bundle of curves modulo rotations with the SRV metric.
 
     This is the fiber bundle where the total space is the space of parameterized
     curves equipped with the SRV metric, the group action is given by the left action
-    of rotations and the right action of reparametrizations, and the base space is the
-    shape space of curves modulo rotations and reparametrizations.
+    of rotations, and the base space is the shape space of curves modulo rotations.
 
     Parameters
     ----------
     total_space : DiscreteCurvesStartingAtOrigin
         Space of discrete curves starting at the origin
-    threshold : float
-        Parameter used in the alignment of a curve with respect to a base curve.
-        When the difference between the new curve and the current curve becomes lower
-        than this threshold, the alignment algorithm stops.
-        Optional, default: 1e-3.
-    max_iter : int
-        Maximum number of iterations in the alignment of a curve with respect to a base.
-        curve.
-        Optional, default: 20.
-    verbose : boolean
-        Parameter used in the alignment of a curve with respect to a base curve.
-        Optional, default: False.
     """
 
-    def __init__(self, total_space, threshold=1e-3, max_iter=20, verbose=0):
+    def __init__(self, total_space):
         super().__init__(total_space=total_space)
-
-        self.threshold = threshold
-        self.max_iter = max_iter
-        self.verbose = verbose
 
     @staticmethod
     def _transpose(point):
@@ -1849,8 +1836,10 @@ class SRVRotationBundle(SRVReparametrizationBundle):
         """Rotate discrete curve starting at origin."""
         return self._transpose(gs.matmul(rotation, self._transpose(point)))
 
-    def align_rotation(self, point, base_point, return_rotation=False):
-        """Find optimal rotation of curve with respect to base curve.
+    def align(self, point, base_point, return_rotation=False):
+        """Align point to base point.
+
+        Find optimal rotation of curve with respect to base curve.
 
         Parameters
         ----------
@@ -1884,6 +1873,68 @@ class SRVRotationBundle(SRVReparametrizationBundle):
             return point_aligned, rotation
 
         return point_aligned
+
+
+class SRVRotationQuotientMetric(QuotientMetric):
+    """SRV quotient metric on space of curves modulo rotations.
+
+    This is the class for the quotient metric induced by the SRV Metric on the
+    space of parametrized curves quotiented by the action of rotations.
+    """
+
+
+class SRVRotationReparametrizationBundle(SRVRotationBundle, SRVReparametrizationBundle):
+    """SRV fiber bundle of curves modulo rotations and reparametrizations.
+
+    This is the fiber bundle where the total space is the space of parameterized
+    curves equipped with the SRV metric, the group action is given by the left action
+    of rotations and the right action of reparametrizations, and the base space is the
+    shape space of curves modulo rotations and reparametrizations.
+
+    Parameters
+    ----------
+    total_space : DiscreteCurvesStartingAtOrigin
+        Space of discrete curves starting at the origin
+    threshold : float
+        Parameter used in the alignment of a curve with respect to a base curve.
+        When the difference between the new curve and the current curve becomes lower
+        than this threshold, the alignment algorithm stops.
+        Optional, default: 1e-3.
+    max_iter : int
+        Maximum number of iterations in the alignment of a curve with respect to a base.
+        curve.
+        Optional, default: 20.
+    verbose : boolean
+        Parameter used in the alignment of a curve with respect to a base curve.
+        Optional, default: False.
+    """
+
+    def __init__(self, total_space, threshold=1e-3, max_iter=20, verbose=0):
+        super().__init__(total_space=total_space)
+
+        self.threshold = threshold
+        self.max_iter = max_iter
+        self.verbose = verbose
+
+    def align_rotation(self, point, base_point, return_rotation=False):
+        """Find optimal rotation of curve with respect to base curve.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Discrete curve to align.
+        base_point : array-like, shape=[..., k_sampling_points - 1, ambient_dim]
+            Reference discrete curve.
+        return_rotation : boolean
+            If true, returns the optimal rotation used for the alignment.
+            Optional, default : False.
+
+        Returns
+        -------
+        aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
+            Curve optimally rotated with respect to reference curve.
+        """
+        return super().align(point, base_point, return_rotation)
 
     def align_reparametrization(self, point, base_point, spline):
         """Find optimal parametrization of a curve with respect to a base curve.
@@ -1992,7 +2043,7 @@ class SRVRotationBundle(SRVReparametrizationBundle):
         return aligned_points
 
 
-class SRVRotationQuotientMetric(QuotientMetric):
+class SRVRotationReparametrizationQuotientMetric(QuotientMetric):
     """SRV quotient metric on space of curves modulo rotations and reparametrizations.
 
     This is the class for the quotient metric induced by the SRV Metric on the
