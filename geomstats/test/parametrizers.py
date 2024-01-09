@@ -447,7 +447,7 @@ def _collect_all_tests(attrs, bases, active=True):
     base_attrs = _collect_available_base_tests(bases)
 
     # order matters
-    tests = base_attrs | test_attrs
+    tests = {**base_attrs, **test_attrs}
 
     all_tests = {}
     for name, func in tests.items():
