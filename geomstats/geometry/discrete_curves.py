@@ -1812,11 +1812,11 @@ class SRVReparametrizationQuotientMetric(QuotientMetric):
 
 
 class SRVRotationBundle(FiberBundle):
-    """Fiber bundle of curves modulo rotations with the SRV metric.
+    """Principal bundle of curves modulo rotations with the SRV metric.
 
     This is the fiber bundle where the total space is the space of parameterized
-    curves equipped with the SRV metric, the group action is given by the left action
-    of rotations, and the base space is the shape space of curves modulo rotations.
+    curves equipped with the SRV metric, the action is given by rotations, and
+    the base space is the shape space of curves modulo rotations.
 
     Parameters
     ----------
@@ -1884,12 +1884,12 @@ class SRVRotationQuotientMetric(QuotientMetric):
 
 
 class SRVRotationReparametrizationBundle(SRVRotationBundle, SRVReparametrizationBundle):
-    """SRV fiber bundle of curves modulo rotations and reparametrizations.
+    """SRV principal bundle of curves modulo rotations and reparametrizations.
 
     This is the fiber bundle where the total space is the space of parameterized
-    curves equipped with the SRV metric, the group action is given by the left action
-    of rotations and the right action of reparametrizations, and the base space is the
-    shape space of curves modulo rotations and reparametrizations.
+    curves equipped with the SRV metric, the action is the joint action of rotations
+    and reparametrizations, and the base space is the shape space of curves modulo
+    rotations and reparametrizations.
 
     Parameters
     ----------
