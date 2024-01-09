@@ -210,7 +210,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
                 SRVReparametrizationBundle,
                 SRVReparametrizationQuotientMetric,
             ),
-            (SRVMetric, "rotations"): (
+            (SRVMetric, "rotations and reparametrizations"): (
                 SRVRotationBundle,
                 SRVRotationQuotientMetric,
             ),
