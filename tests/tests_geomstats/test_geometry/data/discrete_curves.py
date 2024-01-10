@@ -45,6 +45,7 @@ class SRVReparametrizationBundleTestData(FiberBundleTestData):
         "horizontal_lift_is_horizontal",
     )
     tolerances = {
+        "align": {"atol": 1e-2},
         "tangent_vector_projections_orthogonality_with_metric": {"atol": 5e-1},
         "vertical_projection_is_vertical": {"atol": 1e-1},
         "horizontal_projection_is_horizontal": {"atol": 1e-1},
@@ -54,6 +55,9 @@ class SRVReparametrizationBundleTestData(FiberBundleTestData):
     }
 
     def tangent_vector_projections_orthogonality_with_metric_test_data(self):
+        return self.generate_random_data()
+
+    def align_test_data(self):
         return self.generate_random_data()
 
 
@@ -74,3 +78,17 @@ class AlignerCmpTestData(TestData):
         )
         data = [dict(curve_a=parametrized_curve_a, curve_b=parametrized_curve_b)]
         return self.generate_tests(data)
+
+
+class SRVRotationBundleTestData(TestData):
+    def align_test_data(self):
+        return self.generate_random_data()
+
+
+class SRVRotationReparametrizationBundleTestData(TestData):
+    tolerances = {
+        "align": {"atol": 1e-2},
+    }
+
+    def align_test_data(self):
+        return self.generate_random_data()
