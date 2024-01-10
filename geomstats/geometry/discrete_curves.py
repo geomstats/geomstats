@@ -242,7 +242,11 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     @property
     def discrete_curves_with_l2(self):
         """Copy of discrete curves with the L^2 metric."""
-        return self.new(equip=False).equip_with_metric(L2CurvesMetric)
+        if self._discrete_curves_with_l2 is None:  # create variable at init
+            self._discrete_curves_with_l2 = self.new(equip=False).equip_with_metric(
+                L2CurvesMetric
+            )
+        return self._discrete_curves_with_l2
 
     @staticmethod
     def default_metric():
