@@ -492,11 +492,11 @@ class QuotientMetric(RiemannianMetric):
                 )
             initial_fiber_point = self.fiber_bundle.lift(initial_point)
             end_fiber_point = self.fiber_bundle.lift(end_point)
-            aligned_end_point = self.fiber_bundle.align(
+            aligned_end_fiber_point = self.fiber_bundle.align(
                 end_fiber_point, initial_fiber_point
             )
             geodesic = self.fiber_bundle.total_space.metric.geodesic(
-                initial_point=initial_point, end_point=aligned_end_point
+                initial_point=initial_fiber_point, end_point=aligned_end_fiber_point
             )
 
             def projected_geodesic(t):
