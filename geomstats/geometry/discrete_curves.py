@@ -220,6 +220,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
             ),
         }
         self._sphere = Hypersphere(dim=ambient_dim - 1)
+        self._discrete_curves_with_l2 = None
 
     def new(self, equip=True):
         """Create manifold with same parameters."""
@@ -242,7 +243,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
     @property
     def discrete_curves_with_l2(self):
         """Copy of discrete curves with the L^2 metric."""
-        if self._discrete_curves_with_l2 is None:  # create variable at init
+        if self._discrete_curves_with_l2 is None:
             self._discrete_curves_with_l2 = self.new(equip=False).equip_with_metric(
                 L2CurvesMetric
             )
