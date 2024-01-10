@@ -239,6 +239,11 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         """Number of sampling points for the discrete curves."""
         return self.n_copies + 1
 
+    @property
+    def discrete_curves_with_l2(self):
+        """Copy of discrete curves with the L^2 metric."""
+        return self.new(equip=False).equip_with_metric(L2CurvesMetric)
+
     @staticmethod
     def default_metric():
         """Metric to equip the space with if equip is True."""
@@ -325,7 +330,8 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         """
         point_with_origin = self.insert_origin(point)
         velocity = forward_difference(point_with_origin, axis=-self.point_ndim)
-        return L2CurvesMetric(self).norm(velocity, point_with_origin[..., :-1, :])
+        l2_metric = self.discrete_curves_with_l2.metric
+        return l2_metric.norm(velocity, point_with_origin[..., :-1, :])
 
     def normalize(self, point):
         """Rescale discrete curve to have unit length."""
@@ -1219,9 +1225,8 @@ class IterativeHorizontalGeodesicAligner:
                 end_spline,
             )
             new_end_point = horizontal_path_with_origin[-1][1:]
-            gap = L2CurvesMetric(bundle.total_space).dist(
-                new_end_point, current_end_point
-            )
+            l2_metric = bundle.total_space.discrete_curves_with_l2.metric
+            gap = l2_metric.dist(new_end_point, current_end_point)
             current_end_point = new_end_point
 
             if gap < self.threshold:
@@ -1856,18 +1861,16 @@ class SRVRotationBundle(FiberBundle):
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
             Curve optimally rotated with respect to reference curve.
         """
-        k_sampling_points = self.total_space.k_sampling_points
-        srv_transform = SRVTransform(
-            self.total_space.ambient_manifold,
-            k_sampling_points,
-        )
+        srv_transform = self.total_space.metric.diffeo
         initial_srv = srv_transform.diffeomorphism(base_point)
         end_srv = srv_transform.diffeomorphism(point)
+
         mat = gs.matmul(self._transpose(initial_srv), end_srv)
         u_svd, _, vt_svd = gs.linalg.svd(mat)
         sign = gs.linalg.det(gs.matmul(u_svd, vt_svd))
         vt_svd[..., -1, :] = gs.einsum("...,...j->...j", sign, vt_svd[..., -1, :])
         rotation = gs.matmul(u_svd, vt_svd)
+
         point_aligned = self._rotate(point, rotation)
         if return_rotation:
             return point_aligned, rotation
@@ -1973,9 +1976,8 @@ class SRVRotationReparametrizationBundle(SRVRotationBundle, SRVReparametrization
             new_aligned_point = self.align_reparametrization(
                 new_aligned_point, base_point, rotated_spline
             )
-            gap = L2CurvesMetric(self.total_space).dist(
-                aligned_point, new_aligned_point
-            )
+            l2_metric = self.total_space.discrete_curves_with_l2.metric
+            gap = l2_metric.dist(aligned_point, new_aligned_point)
             aligned_point = gs.copy(new_aligned_point)
 
             if gap < self.threshold:
