@@ -270,7 +270,7 @@ class TestSRVRotationReparametrizationBundle(TestCase, metaclass=DataBasedParame
 
         point = self.total_space.projection(point)
         rotation = SpecialOrthogonal(self._ambient_dim).random_point(n_points)
-        point = self.bundle._rotate(point, rotation)
+        point = self.bundle._rotations_bundle._rotate(point, rotation)
 
         aligned_point, inv_rotation = self.bundle.align(
             point, base_point, return_rotation=True

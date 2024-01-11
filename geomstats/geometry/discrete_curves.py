@@ -16,6 +16,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.fiber_bundle import FiberBundle
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.nfold_manifold import NFoldManifold, NFoldMetric
 from geomstats.geometry.pullback_metric import PullbackDiffeoMetric
 from geomstats.geometry.quotient_metric import QuotientMetric
@@ -303,7 +304,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
         Returns
         -------
-        spline : function
+        spline : function or list of functions
             Cubic spline that interpolates between the sampling points
             of the discrete curve.
         """
@@ -1837,10 +1838,10 @@ class SRVRotationBundle(FiberBundle):
     def __init__(self, total_space):
         super().__init__(total_space=total_space)
 
-    @staticmethod
-    def _transpose(point):
+    def _transpose(self, point):
         """Transpose discrete curve starting at origin."""
-        return gs.moveaxis(point, -1, -2)
+        dim = self.total_space.ambient_manifold.dim
+        return Matrices(dim, dim).transpose(point)
 
     def _rotate(self, point, rotation):
         """Rotate discrete curve starting at origin."""
@@ -1891,7 +1892,7 @@ class SRVRotationQuotientMetric(QuotientMetric):
     """
 
 
-class SRVRotationReparametrizationBundle(SRVRotationBundle, SRVReparametrizationBundle):
+class SRVRotationReparametrizationBundle(FiberBundle):
     """SRV principal bundle of curves modulo rotations and reparametrizations.
 
     This is the fiber bundle where the total space is the space of parameterized
@@ -1923,6 +1924,8 @@ class SRVRotationReparametrizationBundle(SRVRotationBundle, SRVReparametrization
         self.threshold = threshold
         self.max_iter = max_iter
         self.verbose = verbose
+        self._rotations_bundle = SRVRotationBundle(total_space)
+        self._reparameterizations_bundle = SRVReparametrizationBundle(total_space)
 
     def align_rotation(self, point, base_point, return_rotation=False):
         """Find optimal rotation of curve with respect to base curve.
@@ -1942,7 +1945,7 @@ class SRVRotationReparametrizationBundle(SRVRotationBundle, SRVReparametrization
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
             Curve optimally rotated with respect to reference curve.
         """
-        return super().align(point, base_point, return_rotation)
+        return self._rotations_bundle.align(point, base_point, return_rotation)
 
     def align_reparametrization(self, point, base_point, spline):
         """Find optimal parametrization of a curve with respect to a base curve.
@@ -1962,8 +1965,8 @@ class SRVRotationReparametrizationBundle(SRVRotationBundle, SRVReparametrization
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
             Curve optimally reparametrized with respect to reference curve.
         """
-        return self.aligner.discrete_horizontal_geodesic(
-            self, base_point, point, spline
+        return self._reparameterizations_bundle.aligner.discrete_horizontal_geodesic(
+            self._reparameterizations_bundle, base_point, point, spline
         )[..., -1, :, :]
 
     def _align_single(self, point, base_point):
@@ -1975,7 +1978,7 @@ class SRVRotationReparametrizationBundle(SRVRotationBundle, SRVReparametrization
                 aligned_point, base_point, return_rotation=True
             )
             rotation = gs.matmul(new_rotation, rotation)
-            rotated_point = self._rotate(point, rotation)
+            rotated_point = self._rotations_bundle._rotate(point, rotation)
             rotated_spline = self.total_space.interpolate(rotated_point)
 
             new_aligned_point = self.align_reparametrization(
