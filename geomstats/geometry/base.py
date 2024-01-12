@@ -159,6 +159,14 @@ class MatrixVectorSpace(VectorSpace):
     def basis_representation(self, matrix_representation):
         """Compute the coefficients of matrices in the given basis.
 
+        This takes a matrix (the matrix representation of a point) and
+        transforms it into its corresponding vector representation
+        (the coefficients wrt a given basis).
+
+        Previously, this method was called `to_vector`. `basis_representation`
+        makes it more clear that the vector representation depends on the chosen
+        basis.
+
         Parameters
         ----------
         matrix_representation : array-like, shape=[..., *point_shape]
@@ -174,8 +182,8 @@ class MatrixVectorSpace(VectorSpace):
     def matrix_representation(self, basis_representation):
         """Compute the matrix representation for the given basis coefficients.
 
-        Sums the basis elements according to the coefficients given in
-        basis_representation.
+        This takes a vector representation of a point (the coefficients wrt
+        a given basis) and creates the corresponding matrix representation.
 
         Parameters
         ----------
