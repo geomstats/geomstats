@@ -2,10 +2,11 @@
 
 from abc import ABC, abstractmethod
 
+import geomstats.backend as gs
 from geomstats.geometry.stratified.point_set import PointSetMetric
 
 
-class BaseAlignerAlgorithm(ABC):
+class AlignerAlgorithm(ABC):
     """Base class for point to point aligner."""
 
     @abstractmethod
@@ -63,7 +64,7 @@ class QuotientMetric(PointSetMetric, ABC):
         self.total_space = total_space
         super().__init__(space)
 
-    def dist(self, point_a, point_b):
+    def squared_dist(self, point_a, point_b):
         """Compute distance between two points.
 
         Parameters
@@ -77,10 +78,25 @@ class QuotientMetric(PointSetMetric, ABC):
             Distance between the points.
         """
         aligned_point_b = self.total_space.aligner.align(point_b, point_a)
-        return self.total_space.metric.dist(
+        return self.total_space.metric.squared_dist(
             point_a,
             aligned_point_b,
         )
+
+    def dist(self, point_a, point_b):
+        """Compute distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., *point_shape]
+        point_b : array-like, shape=[..., *point_shape]
+
+        Returns
+        -------
+        distance : array-like, shape=[...]
+            Distance between the points.
+        """
+        return gs.sqrt(self.squared_dist(point_a, point_b))
 
     def geodesic(self, initial_point, end_point):
         """Compute geodesic between two points.

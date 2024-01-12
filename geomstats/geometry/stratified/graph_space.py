@@ -6,21 +6,20 @@ Lead author: Anna Calissano.
 import itertools
 from abc import ABC, abstractmethod
 
-import scipy
-
 import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 from geomstats.geometry.group_action import PermutationAction
 from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.stratified.quotient import (
     Aligner,
-    BaseAlignerAlgorithm,
+    AlignerAlgorithm,
     QuotientMetric,
 )
+from geomstats.numerics.optimizers import ScipyMinimize
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
 
-class _GraphSpaceAlignerAlgorithm(BaseAlignerAlgorithm, ABC):
+class GraphSpaceAlignerAlgorithm(AlignerAlgorithm, ABC):
     """Base class for graph space numerical aligner.
 
     Attributes
@@ -31,12 +30,10 @@ class _GraphSpaceAlignerAlgorithm(BaseAlignerAlgorithm, ABC):
     """
 
     def __init__(self):
-        # TODO: rename to `opt_group_elem` or `opt_elem`?
-        # Send it to `Aligner` (would change `Aligner.align`)?
         self.perm_ = None
 
 
-class FAQAligner(_GraphSpaceAlignerAlgorithm):
+class FAQAligner(GraphSpaceAlignerAlgorithm):
     """Fast Quadratic Assignment for graph matching (or network alignment).
 
     References
@@ -86,7 +83,7 @@ class FAQAligner(_GraphSpaceAlignerAlgorithm):
         return total_space.group_action.act(self.perm_, point)
 
 
-class IDAligner(_GraphSpaceAlignerAlgorithm):
+class IDAligner(GraphSpaceAlignerAlgorithm):
     """Identity alignment.
 
     The identity alignment is not performing any matching but returning the nodes in
@@ -124,7 +121,7 @@ class IDAligner(_GraphSpaceAlignerAlgorithm):
         return gs.copy(point)
 
 
-class ExhaustiveAligner(_GraphSpaceAlignerAlgorithm):
+class ExhaustiveAligner(GraphSpaceAlignerAlgorithm):
     """Brute force exact alignment.
 
     Exact Alignment obtained by exploring the whole permutation group.
@@ -190,7 +187,7 @@ class ExhaustiveAligner(_GraphSpaceAlignerAlgorithm):
         return total_space.group_action.act(self.perm_, point)
 
 
-class _BasePointToGeodesicAligner(ABC):
+class PointToGeodesicAlignerBase(ABC):
     """Base class for point to geodesic aligner.
 
     Attributes
@@ -204,16 +201,15 @@ class _BasePointToGeodesicAligner(ABC):
         self.perm_ = None
 
     @abstractmethod
-    def align(self, total_space, geodesic, graph_to_permute):
+    def align(self, total_space, geodesic, point):
         """Class for the Alignment of the geodesic with respect to a point."""
 
     @abstractmethod
-    def dist(self, total_space, geodesic, graph_to_permute):
+    def dist(self, total_space, geodesic, point):
         """Class to compute distance between the geodesic with respect to a point."""
-        # TODO: require as abstract?
 
 
-class PointToGeodesicAligner(_BasePointToGeodesicAligner):
+class PointToGeodesicAligner(PointToGeodesicAlignerBase):
     """Class for the Alignment of the points with respect to a geodesic.
 
     Implementing the algorithm in [Huckemann2010]_ to select an optimal alignment to a
@@ -227,7 +223,7 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         Minimum value of the domain to sample along the geodesics.
     s_max : float
         Minimum value of the domain to sample along the geodesics.
-    n_points: int
+    n_grid: int
         Number of points to sample between s_min and s_max.
 
     References
@@ -241,71 +237,64 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         isometric Lie group actions." Statistica Sinica, 1-58, 2010.
     """
 
-    def __init__(self, s_min, s_max, n_points=10):
-        # TODO: rename n_points to n_grid
+    def __init__(self, s_min, s_max, n_grid=10):
         super().__init__()
         self.s_min = s_min
         self.s_max = s_max
-        self.n_points = n_points
-        self._s = None
+        self.n_grid = n_grid
+        self._s_grid = None
 
     def __setattr__(self, attr_name, value):
         """Set attributes."""
         if attr_name in ["s_min", "s_max", "n_points"]:
-            self._s = None
+            self._s_grid = None
 
         return object.__setattr__(self, attr_name, value)
 
     def _discretize_s(self):
         """Compute the domain distretization."""
-        return gs.linspace(self.s_min, self.s_max, num=self.n_points)
+        return gs.linspace(self.s_min, self.s_max, num=self.n_grid)
 
     @property
-    def s(self):
+    def s_grid(self):
         """Save the domain discretization."""
-        if self._s is None:
-            self._s = self._discretize_s()
+        if self._s_grid is None:
+            self._s_grid = self._discretize_s()
 
-        return self._s
-
-    def _get_geodesic_s(self, geodesic):
-        """Evaluate the geodesic in s."""
-        return geodesic(self.s)
+        return self._s_grid
 
     def _compute_dists(self, total_space, geodesic, point):
-        geodesic_s = self._get_geodesic_s(geodesic)
-        geo_shape = (self.n_points,) + total_space.shape
+        geodesic_points = geodesic(self.s_grid)
+        geo_shape = (self.n_grid,) + total_space.shape
 
-        geo_batch_shape = get_batch_shape(3, geodesic_s)
+        geo_batch_shape = get_batch_shape(3, geodesic_points)
         point_batch_shape = get_batch_shape(2, point)
         if point_batch_shape or geo_batch_shape:
             batch_shape = point_batch_shape or geo_batch_shape
         else:
             batch_shape = ()
 
-        point = gs.broadcast_to(
-            point, (self.n_points,) + batch_shape + total_space.shape
-        )
+        point = gs.broadcast_to(point, (self.n_grid,) + batch_shape + total_space.shape)
         if point_batch_shape:
             point = gs.moveaxis(point, 0, -3)
 
         if batch_shape and not geo_batch_shape:
-            geodesic_s = gs.broadcast_to(geodesic_s, batch_shape + geo_shape)
+            geodesic_points = gs.broadcast_to(geodesic_points, batch_shape + geo_shape)
 
         flat_point = gs.reshape(point, (-1,) + total_space.shape)
-        flat_geodesic_s = gs.reshape(geodesic_s, (-1,) + total_space.shape)
+        flat_geodesic_s = gs.reshape(geodesic_points, (-1,) + total_space.shape)
 
         aligned_flat_points = total_space.aligner.align(flat_geodesic_s, flat_point)
         flat_dists = total_space.metric.dist(flat_geodesic_s, aligned_flat_points)
 
-        perm_ = total_space.aligner.aligner.perm_
-        total_space.aligner.aligner.perm_ = gs.reshape(
-            perm_, batch_shape + (self.n_points, total_space.n_nodes)
+        perm_ = total_space.aligner.aligner_algorithm.perm_
+        total_space.aligner.aligner_algorithm.perm_ = gs.reshape(
+            perm_, batch_shape + (self.n_grid, total_space.n_nodes)
         )
 
         dists = gs.reshape(
             flat_dists,
-            batch_shape + (self.n_points,),
+            batch_shape + (self.n_grid,),
         )
         min_dists_idx = gs.argmin(dists, axis=-1)
 
@@ -366,60 +355,69 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         return aligned_points[tuple(slc)]
 
 
-class _GeodesicToPointAligner(_BasePointToGeodesicAligner):
-    def __init__(self, method="BFGS", *, save_opt_res=False):
+class _GeodesicToPointAligner(PointToGeodesicAlignerBase):
+    def __init__(self, *, save_opt_res=False):
         super().__init__()
 
-        self.method = method
         self.save_opt_res = save_opt_res
+        self.minimizer = ScipyMinimize(method="BFGS")
 
         self.opt_results_ = None
 
-    def _objective(self, s, space, graph, geodesic):
-        point = geodesic(s)
-        dist = space.metric.dist(point, graph)
+    def _objective_single(self, param, total_space, geodesic, point):
+        geodesic_point = geodesic(param)
+        if geodesic_point.ndim > 3:
+            raise NotImplementedError("Cannot handle more than one geodesic at time")
 
-        return dist
+        geodesic_point = gs.squeeze(geodesic_point, axis=0)
+        return total_space.quotient.metric.squared_dist(geodesic_point, point)
 
-    def _compute_dists(self, space, geodesic, graph_to_permute):
-        n_points = self._get_n_points(graph_to_permute)
+    def _optimize_single(self, total_space, geodesic, point):
+        def objective(param):
+            return self._objective_single(
+                param, total_space=total_space, geodesic=geodesic, point=point
+            )
 
-        if n_points == 1:
-            graph_to_permute = gs.expand_dims(graph_to_permute, axis=0)
+        return self.minimizer.minimize(
+            objective,
+            x0=0.0,
+        )
+
+    def _compute_squared_dist(self, total_space, geodesic, point):
+        batch_shape = get_batch_shape(total_space.point_ndim, point)
+
+        if not batch_shape:
+            point = gs.expand_dims(point, axis=0)
 
         perms = []
-        min_dists = []
+        min_sdists = []
         opt_results = []
-        for graph in graph_to_permute:
-            s0 = 0.0
-            res = scipy.optimize.minimize(
-                self._objective,
-                x0=s0,
-                args=(space, graph, geodesic),
-                method=self.method,
-            )
-            perms.append(space.metric.perm_[0])
-            min_dists.append(res.fun)
+        for point_ in point:
+            res = self._optimize_single(total_space, geodesic, point_)
+            perms.append(total_space.aligner.aligner_algorithm.perm_)
+            min_sdists.append(res.fun)
 
             opt_results.append(res)
+
+        if not batch_shape:
+            min_sdists = min_sdists[0]
+            perms = perms[0]
+            opt_results = opt_results[0]
 
         if self.save_opt_res:
             self.opt_results_ = opt_results
 
-        return gs.array(min_dists), gs.array(perms), n_points
+        return gs.array(min_sdists), gs.array(perms)
 
-    def dist(self, space, geodesic, graph_to_permute):
-        dists, _, _ = self._compute_dists(space, geodesic, graph_to_permute)
+    def dist(self, total_space, geodesic, point):
+        sdist, _ = self._compute_squared_dist(total_space, geodesic, point)
+        return gs.sqrt(sdist)
 
-        return dists
+    def align(self, total_space, geodesic, point):
+        _, perms = self._compute_squared_dist(total_space, geodesic, point)
 
-    def align(self, space, geodesic, graph_to_permute):
-        _, perms, n_points = self._compute_dists(space, geodesic, graph_to_permute)
-
-        new_graph = self._permute(space, graph_to_permute, perms)
-        self.perm_ = perms[0] if n_points == 1 else perms
-
-        return new_graph
+        self.perm_ = perms
+        return total_space.group_action.act(self.perm_, point)
 
 
 class GraphSpace(Matrices):
@@ -510,20 +508,15 @@ class GraphSpaceAligner(Aligner):
         "FAQ": FAQAligner,
         "exhaustive": ExhaustiveAligner,
     }
-    # TODO: set register strategy?
-    # TODO: rename things as numerical_aligner
 
     def __init__(self, total_space, aligner_algorithm=None):
         if aligner_algorithm is None:
-            aligner_algorithm = self._set_default_aligner_algorithm()
+            aligner_algorithm = self.set_aligner_algorithm()
 
         super().__init__(total_space=total_space, aligner_algorithm=aligner_algorithm)
-        self.point_to_geodesic_aligner = None
+        self.point_to_geodesic_aligner = self.set_point_to_geodesic_aligner()
 
-    def _set_default_aligner_algorithm(self):
-        return self.set_aligner_algorithm("FAQ")
-
-    def set_aligner_algorithm(self, aligner, **kwargs):
+    def set_aligner_algorithm(self, aligner_algorithm="FAQ", **kwargs):
         """Set the aligning strategy.
 
         Graph Space metric relies on alignment. In this module we propose the
@@ -532,32 +525,22 @@ class GraphSpaceAligner(Aligner):
 
         Parameters
         ----------
-        aligner : str
-            'ID': Identity
-            'FAQ': Fast Quadratic Assignment - only compatible with Frobenius norm
+        aligner_algorithm : str or GraphSpaceAlignerAlgorithm
+            'ID': Identity,
+            'FAQ': Fast Quadratic Assignment - only compatible with Frobenius norm,
             'exhaustive': all group exhaustive search
         """
-        if isinstance(aligner, str):
+        if isinstance(aligner_algorithm, str):
             check_parameter_accepted_values(
-                aligner, "aligner", list(self.MAP_ALIGNER.keys())
+                aligner_algorithm, "aligner_algorithm", list(self.MAP_ALIGNER.keys())
             )
 
-            aligner = self.MAP_ALIGNER.get(aligner)(**kwargs)
+            aligner_algorithm = self.MAP_ALIGNER.get(aligner_algorithm)(**kwargs)
 
-        self.aligner = aligner
-        return self.aligner
+        self.aligner_algorithm = aligner_algorithm
+        return self.aligner_algorithm
 
-    @property
-    def perm_(self):
-        """Permutation of nodes after alignment.
-
-        Node permutations where in position i we have the value j meaning
-        the node i should be permuted with node j.
-        """
-        # TODO: rename if also renamed above
-        return self.aligner.perm_
-
-    def set_point_to_geodesic_aligner(self, aligner, **kwargs):
+    def set_point_to_geodesic_aligner(self, aligner="default", **kwargs):
         """Set the alignment between a point and a geodesic.
 
         Following the geodesic to point alignment in [Calissano2020]_ and
@@ -566,6 +549,7 @@ class GraphSpaceAligner(Aligner):
 
         Parameters
         ----------
+        aligner: BasePointToGeodesicAligner
         s_min : float
             Minimum value of the domain to sample along the geodesics.
         s_max : float
@@ -576,7 +560,7 @@ class GraphSpaceAligner(Aligner):
         if aligner == "default":
             kwargs.setdefault("s_min", -1.0)
             kwargs.setdefault("s_max", 1.0)
-            kwargs.setdefault("n_points", 10)
+            kwargs.setdefault("n_grid", 10)
             aligner = PointToGeodesicAligner(**kwargs)
 
         self.point_to_geodesic_aligner = aligner
@@ -599,12 +583,6 @@ class GraphSpaceAligner(Aligner):
         -------
         permuted_graph: list, shape = [..., n_nodes, n_nodes]
         """
-        if self.point_to_geodesic_aligner is None:
-            raise UnboundLocalError(
-                "Set point to geodesic aligner first (e.g. "
-                "`metric.set_point_to_geodesic_aligner('default', "
-                "s_min=-1., s_max=1.)`)"
-            )
         return self.point_to_geodesic_aligner.align(self._total_space, geodesic, point)
 
 

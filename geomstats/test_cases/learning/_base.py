@@ -14,7 +14,8 @@ class BaseEstimatorTestCase(TestCase):
 
 class MeanEstimatorMixinsTestCase:
     def test_fit(self, X, expected, atol, weights=None):
-        res = self.estimator.fit(X, weights=weights).estimate_
+        kwargs = {} if weights is None else {"weights": weights}
+        res = self.estimator.fit(X, **kwargs).estimate_
         self.assertAllClose(res, expected, atol=atol)
 
     @pytest.mark.random
