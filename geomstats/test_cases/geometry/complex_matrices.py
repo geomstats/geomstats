@@ -1,9 +1,7 @@
-from geomstats.test_cases.geometry.base import ComplexVectorSpaceTestCase
+from geomstats.test_cases.geometry.base import ComplexMatrixVectorSpaceTestCase
 
 
-class ComplexMatricesTestCase(ComplexVectorSpaceTestCase):
-    # TODO: with mixins?
-
+class ComplexMatricesTestCase(ComplexMatrixVectorSpaceTestCase):
     def test_transconjugate(self, mat, expected, atol):
         res = self.space.transconjugate(mat)
         self.assertAllClose(res, expected, atol=atol)

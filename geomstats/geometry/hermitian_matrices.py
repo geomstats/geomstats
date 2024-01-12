@@ -6,7 +6,7 @@ import logging
 
 import geomstats.backend as gs
 from geomstats import algebra_utils as utils
-from geomstats.geometry.base import ComplexVectorSpace
+from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.complex_matrices import ComplexMatrices, ComplexMatricesMetric
 from geomstats.geometry.matrices import Matrices
 
@@ -102,7 +102,7 @@ def apply_func_to_eigvalsh(mat, function, check_positive=False):
     return reconstruction if return_list else reconstruction[0]
 
 
-class HermitianMatrices(ComplexVectorSpace):
+class HermitianMatrices(ComplexMatrixVectorSpace):
     """Class for the vector space of Hermitian matrices of size n.
 
     Parameters
@@ -223,40 +223,25 @@ class HermitianMatrices(ComplexVectorSpace):
         return ComplexMatrices.to_hermitian(point)
 
     @staticmethod
-    def to_vector(point):
+    def basis_representation(matrix_representation):
         """Convert a Hermitian matrix into a vector.
 
         Parameters
         ----------
-        point : array-like, shape=[..., n, n]
+        matrix_representation : array-like, shape=[..., n, n]
             Matrix.
 
         Returns
         -------
-        vec : array-like, shape=[..., n(n+1)/2]
+        basis_representation : array-like, shape=[..., n(n+1)/2]
             Vector.
         """
-        diag = Matrices.diagonal(point)
+        diag = Matrices.diagonal(matrix_representation)
 
-        up_triang = gs.triu_to_vec(point, k=1)
+        up_triang = gs.triu_to_vec(matrix_representation, k=1)
         real_part = gs.real(up_triang)
         complex_part = gs.imag(up_triang)
 
         vec = gs.hstack([diag, real_part, complex_part])
 
         return vec
-
-    def from_vector(self, vec):
-        """Convert a vector into a Hermitian matrix.
-
-        Parameters
-        ----------
-        vec : array-like, shape=[..., dim]
-            Vector.
-
-        Returns
-        -------
-        mat : array-like, shape=[..., n, n]
-            Hermitian matrix.
-        """
-        return gs.einsum("...k,...kij->...ij", vec, self.basis)

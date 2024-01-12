@@ -3,6 +3,7 @@ import pytest
 import geomstats.backend as gs
 from geomstats.test.random import (
     EmbeddedSpaceRandomDataGenerator,
+    MatrixVectorSpaceRandomDataGenerator,
     VectorSpaceRandomDataGenerator,
 )
 from geomstats.test.vectorization import generate_vectorization_data
@@ -62,6 +63,8 @@ class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
 
         self.assertAllClose(result, expected, atol=atol)
 
+
+class VectorSpaceTestCase(_VectorSpaceTestCaseMixins, ManifoldTestCase):
     @pytest.mark.mathprop
     def test_basis_cardinality(self):
         """Check number of basis elements is the dimension.
@@ -90,87 +93,96 @@ class _VectorSpaceTestCaseMixins(ProjectionTestCaseMixins):
         self.assertAllClose(self.space.basis, expected, atol=atol)
 
 
-class VectorSpaceTestCase(_VectorSpaceTestCaseMixins, ManifoldTestCase):
-    pass
-
-
 class ComplexVectorSpaceTestCase(_VectorSpaceTestCaseMixins, ComplexManifoldTestCase):
     pass
 
 
-class MatrixVectorSpaceTestCaseMixins:
-    def _get_random_vector(self, n_points=1):
-        # TODO: from data generator?
-        if n_points == 1:
-            return gs.random.rand(self.space.dim)
+class MatrixVectorSpaceTestCase(VectorSpaceTestCase):
+    def setup_method(self):
+        if not hasattr(self, "data_generator"):
+            self.data_generator = MatrixVectorSpaceRandomDataGenerator(self.space)
+        super().setup_method()
 
-        return gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
-
-    def test_to_vector(self, point, expected, atol):
-        vec = self.space.to_vector(point)
+    def test_basis_representation(self, matrix_representation, expected, atol):
+        vec = self.space.basis_representation(matrix_representation)
         self.assertAllClose(vec, expected, atol=atol)
 
-    @pytest.mark.random
-    def test_to_vector_and_basis(self, n_points, atol):
-        mat = self.data_generator.random_point(n_points)
-        vec = self.space.to_vector(mat)
-
-        res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
-        self.assertAllClose(res, mat, atol=atol)
-
-    def test_from_vector(self, vec, expected, atol):
-        mat = self.space.from_vector(vec)
-        self.assertAllClose(mat, expected, atol=atol)
-
     @pytest.mark.vec
-    def test_from_vector_vec(self, n_reps, atol):
-        vec = self._get_random_vector()
-        expected = self.space.from_vector(vec)
+    def test_basis_representation_vec(self, n_reps, atol):
+        matrix_representation = self.data_generator.random_point()
+        expected = self.space.basis_representation(matrix_representation)
 
         vec_data = generate_vectorization_data(
-            data=[dict(vec=vec, expected=expected, atol=atol)],
-            arg_names=["vec"],
+            data=[
+                dict(
+                    matrix_representation=matrix_representation,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["matrix_representation"],
             expected_name="expected",
             n_reps=n_reps,
         )
         self._test_vectorization(vec_data)
 
     @pytest.mark.random
-    def test_from_vector_belongs(self, n_points, atol):
-        vec = self._get_random_vector(n_points)
-        point = self.space.from_vector(vec)
+    def test_basis_representation_and_basis(self, n_points, atol):
+        mat = self.data_generator.random_point(n_points)
+        vec = self.space.basis_representation(mat)
+
+        res = gs.einsum("...i,...ijk->...jk", vec, self.space.basis)
+        self.assertAllClose(res, mat, atol=atol)
+
+    def test_matrix_representation(self, basis_representation, expected, atol):
+        mat = self.space.matrix_representation(basis_representation)
+        self.assertAllClose(mat, expected, atol=atol)
+
+    @pytest.mark.vec
+    def test_matrix_representation_vec(self, n_reps, atol):
+        basis_representation = gs.random.rand(self.space.dim)
+        expected = self.space.matrix_representation(basis_representation)
+
+        vec_data = generate_vectorization_data(
+            data=[
+                dict(
+                    basis_representation=basis_representation,
+                    expected=expected,
+                    atol=atol,
+                )
+            ],
+            arg_names=["basis_representation"],
+            expected_name="expected",
+            n_reps=n_reps,
+        )
+        self._test_vectorization(vec_data)
+
+    @pytest.mark.random
+    def test_matrix_representation_belongs(self, n_points, atol):
+        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+        point = self.space.matrix_representation(vec)
 
         self.test_belongs(point, gs.ones(n_points, dtype=bool), atol)
 
     @pytest.mark.random
-    def test_from_vector_after_to_vector(self, n_points, atol):
-        mat = self.data_generator.random_point(n_points)
+    def test_matrix_representation_after_basis_representation(self, n_points, atol):
+        point = self.data_generator.random_point(n_points)
+        vec = self.space.basis_representation(point)
+        point_ = self.space.matrix_representation(vec)
 
-        vec = self.space.to_vector(mat)
-
-        mat_ = self.space.from_vector(vec)
-        self.assertAllClose(mat_, mat, atol=atol)
+        self.assertAllClose(point_, point, atol=atol)
 
     @pytest.mark.random
-    def test_to_vector_after_from_vector(self, n_points, atol):
-        vec = self._get_random_vector(n_points)
+    def test_basis_representation_after_matrix_representation(self, n_points, atol):
+        vec = gs.reshape(gs.random.rand(n_points * self.space.dim), (n_points, -1))
+        point = self.space.matrix_representation(vec)
+        vec_ = self.space.basis_representation(point)
 
-        mat = self.space.from_vector(vec)
-
-        vec_ = self.space.to_vector(mat)
         self.assertAllClose(vec_, vec, atol=atol)
 
 
-class ComplexMatrixVectorSpaceTestCaseMixins(MatrixVectorSpaceTestCaseMixins):
-    def _get_random_vector(self, n_points=1):
-        if n_points == 1:
-            return gs.random.rand(self.space.dim, dtype=gs.get_default_cdtype())
-
-        return gs.reshape(
-            gs.random.rand(n_points * self.space.dim),
-            (n_points, -1),
-            dtype=gs.get_default_cdtype(),
-        )
+class ComplexMatrixVectorSpaceTestCase(ComplexVectorSpaceTestCase):
+    pass
 
 
 class LevelSetTestCase(ProjectionTestCaseMixins, ManifoldTestCase):

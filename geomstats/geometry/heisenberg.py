@@ -191,7 +191,7 @@ class HeisenbergVectors(LieGroup, VectorSpace):
                 axis=-1,
             )
 
-        return gs.triu(SymmetricMatrices.from_vector(modified_point))
+        return gs.triu(SymmetricMatrices.matrix_representation(modified_point))
 
     @staticmethod
     def vector_from_upper_triangular_matrix(matrix):

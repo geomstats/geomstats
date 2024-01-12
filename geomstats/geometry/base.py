@@ -132,14 +132,13 @@ class VectorSpace(Manifold, abc.ABC):
 
         Returns
         -------
-        point : array-like, shape=[..., *point_shape]
+        point : array-like, shape=[..., dim]
            Sample.
         """
-        size = self.shape
+        size = (self.dim,)
         if n_samples != 1:
-            size = (n_samples,) + self.shape
-        point = bound * (gs.random.rand(*size) - 0.5) * 2
-        return point
+            size = (n_samples,) + size
+        return bound * (gs.random.rand(*size) - 0.5) * 2
 
     @property
     def basis(self):
@@ -151,6 +150,71 @@ class VectorSpace(Manifold, abc.ABC):
     @abc.abstractmethod
     def _create_basis(self):
         """Create a canonical basis."""
+
+
+class MatrixVectorSpace(VectorSpace):
+    """A matrix vector space."""
+
+    @abc.abstractmethod
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficients of matrices in the given basis.
+
+        This takes a matrix (the matrix representation of a point) and
+        transforms it into its corresponding vector representation
+        (the coefficients wrt a given basis).
+
+        Previously, this method was called `to_vector`. `basis_representation`
+        makes it more clear that the vector representation depends on the chosen
+        basis.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., *point_shape]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
+        """
+        raise NotImplementedError("basis_representation not implemented.")
+
+    def matrix_representation(self, basis_representation):
+        """Compute the matrix representation for the given basis coefficients.
+
+        This takes a vector representation of a point (the coefficients wrt
+        a given basis) and creates the corresponding matrix representation.
+
+        Parameters
+        ----------
+        basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
+
+        Returns
+        -------
+        matrix_representation : array-like, shape=[..., *point_shape]
+            Matrix.
+        """
+        return gs.einsum("...i,ijk ->...jk", basis_representation, self.basis)
+
+    def random_point(self, n_samples=1, bound=1.0):
+        """Sample in the vector space with a uniform distribution in a box.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
+
+        Returns
+        -------
+        point : array-like, shape=[..., *point_shape]
+           Sample.
+        """
+        return self.matrix_representation(super().random_point(n_samples, bound))
 
 
 class ComplexVectorSpace(ComplexManifold, abc.ABC):
@@ -170,7 +234,6 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         if dim is None:
             dim = math.prod(shape)
         super().__init__(shape=shape, dim=dim, **kwargs)
-        self._basis = None
 
     def belongs(self, point, atol=gs.atol):
         """Evaluate if the point belongs to the vector space.
@@ -287,24 +350,9 @@ class ComplexVectorSpace(ComplexManifold, abc.ABC):
         )
         return point
 
-    @property
-    def basis(self):
-        """Basis of the vector space."""
-        if self._basis is None:
-            self._basis = self._create_basis()
-        return self._basis
 
-    @basis.setter
-    def basis(self, basis):
-        if len(basis) < self.dim:
-            raise ValueError(
-                "The basis should have length equal to the dimension of the space."
-            )
-        self._basis = basis
-
-    @abc.abstractmethod
-    def _create_basis(self):
-        """Create a canonical basis."""
+class ComplexMatrixVectorSpace(ComplexVectorSpace):
+    """A matrix vector space."""
 
 
 class LevelSet(Manifold, abc.ABC):

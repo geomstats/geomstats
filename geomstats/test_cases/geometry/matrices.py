@@ -4,7 +4,7 @@ import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
-from geomstats.test_cases.geometry.base import VectorSpaceTestCase
+from geomstats.test_cases.geometry.base import MatrixVectorSpaceTestCase
 from geomstats.test_cases.geometry.euclidean import EuclideanMetricTestCase
 
 
@@ -355,7 +355,7 @@ class MatrixOperationsTestCase(TestCase):
         self._test_vectorization(vec_data)
 
 
-class MatricesTestCase(VectorSpaceTestCase):
+class MatricesTestCase(MatrixVectorSpaceTestCase):
     @pytest.mark.random
     def test_reshape_after_flatten(self, n_points, atol):
         point = self.data_generator.random_point(n_points)

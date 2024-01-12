@@ -1,12 +1,10 @@
 import geomstats.backend as gs
 from geomstats.test.data import TestData
 
-from .base import MatrixVectorSpaceMixinsTestData, VectorSpaceTestData
+from .base import MatrixVectorSpaceTestData
 
 
-class LowerTriangularMatricesTestData(
-    MatrixVectorSpaceMixinsTestData, VectorSpaceTestData
-):
+class LowerTriangularMatricesTestData(MatrixVectorSpaceTestData):
     pass
 
 
@@ -76,10 +74,12 @@ class LowerTriangularMatrices3TestData(TestData):
         ]
         return self.generate_tests(data)
 
-    def to_vector_test_data(self):
+    def basis_representation_test_data(self):
         data = [
             dict(
-                point=gs.array([[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]]),
+                matrix_representation=gs.array(
+                    [[1.0, 0.0, 0.0], [0.6, 7.0, 0.0], [-3.0, 0.0, 8.0]]
+                ),
                 expected=gs.array([1.0, 0.6, 7.0, -3.0, 0.0, 8.0]),
             ),
         ]

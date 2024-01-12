@@ -214,7 +214,7 @@ class TangentPCA(_BasePCA):
                 gs.all(Matrices.is_square(tangent_vecs))
                 and Matrices.is_symmetric(tangent_vecs).all()
             ):
-                X = SymmetricMatrices.to_vector(tangent_vecs)
+                X = SymmetricMatrices.basis_representation(tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), -1))
         else:
@@ -246,9 +246,9 @@ class TangentPCA(_BasePCA):
             if gs.all(Matrices.is_square(self.base_point_)) and gs.all(
                 Matrices.is_symmetric(self.base_point_)
             ):
-                scores = SymmetricMatrices(self.base_point_.shape[-1]).from_vector(
-                    scores
-                )
+                scores = SymmetricMatrices(
+                    self.base_point_.shape[-1]
+                ).matrix_representation(scores)
             else:
                 dim = self.base_point_.shape[-1]
                 scores = gs.reshape(scores, (len(scores), dim, dim))
@@ -281,7 +281,7 @@ class TangentPCA(_BasePCA):
             if gs.all(Matrices.is_square(tangent_vecs)) and gs.all(
                 Matrices.is_symmetric(tangent_vecs)
             ):
-                X = SymmetricMatrices.to_vector(tangent_vecs)
+                X = SymmetricMatrices.basis_representation(tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), -1))
         else:

@@ -6,12 +6,12 @@ from functools import reduce
 import geomstats.backend as gs
 import geomstats.errors
 from geomstats.algebra_utils import flip_determinant, from_vector_to_diagonal_matrix
-from geomstats.geometry.base import VectorSpace
+from geomstats.geometry.base import MatrixVectorSpace
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.vectorization import repeat_out
 
 
-class Matrices(VectorSpace):
+class Matrices(MatrixVectorSpace):
     """Class for the space of matrices (m, n).
 
     Parameters
@@ -37,6 +37,23 @@ class Matrices(VectorSpace):
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return MatricesMetric
+
+    def basis_representation(self, matrix_representation):
+        """Compute the coefficient in the usual matrix basis.
+
+        This simply flattens the input.
+
+        Parameters
+        ----------
+        matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        basis_representation : array-like, shape=[..., dim]
+            Representation in the basis.
+        """
+        return self.flatten(matrix_representation)
 
     @staticmethod
     def equal(mat_a, mat_b, atol=gs.atol):

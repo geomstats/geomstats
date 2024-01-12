@@ -7,7 +7,7 @@ from geomstats.test.parametrizers import DataBasedParametrizer
 from geomstats.test_cases.geometry.complex_matrices import ComplexMatricesTestCase
 from geomstats.test_cases.geometry.hermitian import HermitianMetricTestCase
 
-from .data.base import ComplexVectorSpaceTestData
+from .data.base import ComplexMatrixVectorSpaceTestData
 from .data.complex_matrices import (
     ComplexMatrices33TestData,
     ComplexMatricesMetricTestData,
@@ -28,7 +28,7 @@ def spaces(request):
 
 @pytest.mark.usefixtures("spaces")
 class TestComplexMatrices(ComplexMatricesTestCase, metaclass=DataBasedParametrizer):
-    testing_data = ComplexVectorSpaceTestData()
+    testing_data = ComplexMatrixVectorSpaceTestData()
 
 
 @pytest.mark.smoke

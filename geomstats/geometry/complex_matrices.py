@@ -5,13 +5,13 @@ Lead author: Yann Cabanes.
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.geometry.base import ComplexVectorSpace
+from geomstats.geometry.base import ComplexMatrixVectorSpace
 from geomstats.geometry.hermitian import HermitianMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.vectorization import repeat_out
 
 
-class ComplexMatrices(ComplexVectorSpace):
+class ComplexMatrices(ComplexMatrixVectorSpace):
     """Class for the space of complex matrices (m, n).
 
     Parameters
@@ -31,14 +31,6 @@ class ComplexMatrices(ComplexVectorSpace):
     def default_metric():
         """Metric to equip the space with if equip is True."""
         return ComplexMatricesMetric
-
-    def _create_basis(self):
-        """Create the canonical basis."""
-        cdtype = gs.get_default_cdtype()
-        m, n = self.m, self.n
-        real_part = gs.reshape(gs.eye(n * m), (n * m, m, n))
-        complex_part = gs.reshape(gs.eye(n * m, dtype=cdtype), (n * m, m, n))
-        return gs.vstack([real_part, complex_part])
 
     def belongs(self, point, atol=gs.atol):
         """Check if point belongs to the Matrices space.

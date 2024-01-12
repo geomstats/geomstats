@@ -108,5 +108,7 @@ class TimeSeriesCovariance:
             covs.append(np.cov(x.transpose()))
         self.labels = gs.array(self.data["y"][self.batches])
         self.covs = gs.array(covs)
-        self.covecs = gs.array([SymmetricMatrices.to_vector(cov) for cov in self.covs])
+        self.covecs = gs.array(
+            [SymmetricMatrices.basis_representation(cov) for cov in self.covs]
+        )
         self.diags = self.covs.diagonal(0, 1, 2)
