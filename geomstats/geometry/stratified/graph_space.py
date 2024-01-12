@@ -12,12 +12,16 @@ import geomstats.backend as gs
 from geomstats.errors import check_parameter_accepted_values
 from geomstats.geometry.group_action import PermutationAction
 from geomstats.geometry.matrices import Matrices, MatricesMetric
-from geomstats.geometry.stratified.quotient import BaseAligner, Bundle, QuotientMetric
+from geomstats.geometry.stratified.quotient import (
+    Aligner,
+    BaseAlignerAlgorithm,
+    QuotientMetric,
+)
 from geomstats.vectorization import check_is_batch, get_batch_shape
 
 
-class _GraphSpaceAligner(BaseAligner, ABC):
-    """Base class for graph space aligner.
+class _GraphSpaceAlignerAlgorithm(BaseAlignerAlgorithm, ABC):
+    """Base class for graph space numerical aligner.
 
     Attributes
     ----------
@@ -27,10 +31,12 @@ class _GraphSpaceAligner(BaseAligner, ABC):
     """
 
     def __init__(self):
+        # TODO: rename to `opt_group_elem` or `opt_elem`?
+        # Send it to `Aligner` (would change `Aligner.align`)?
         self.perm_ = None
 
 
-class FAQAligner(_GraphSpaceAligner):
+class FAQAligner(_GraphSpaceAlignerAlgorithm):
     """Fast Quadratic Assignment for graph matching (or network alignment).
 
     References
@@ -41,7 +47,7 @@ class FAQAligner(_GraphSpaceAligner):
         PLoS One. 2015 Apr 17; doi: 10.1371/journal.pone.0121002.
     """
 
-    def _align_single_perm(self, point, base_point):
+    def _align_single(self, point, base_point):
         """Get optimal element of the group."""
         return gs.linalg.quadratic_assignment(
             base_point, point, options={"maximize": True}
@@ -70,17 +76,17 @@ class FAQAligner(_GraphSpaceAligner):
                 point, base_point = gs.broadcast_arrays(point, base_point)
             self.perm_ = gs.array(
                 [
-                    self._align_single_perm(point_, base_point_)
+                    self._align_single(point_, base_point_)
                     for point_, base_point_ in zip(point, base_point)
                 ]
             )
         else:
-            self.perm_ = gs.array(self._align_single_perm(point, base_point))
+            self.perm_ = gs.array(self._align_single(point, base_point))
 
         return total_space.group_action.act(self.perm_, point)
 
 
-class IDAligner(_GraphSpaceAligner):
+class IDAligner(_GraphSpaceAlignerAlgorithm):
     """Identity alignment.
 
     The identity alignment is not performing any matching but returning the nodes in
@@ -118,7 +124,7 @@ class IDAligner(_GraphSpaceAligner):
         return gs.copy(point)
 
 
-class ExhaustiveAligner(_GraphSpaceAligner):
+class ExhaustiveAligner(_GraphSpaceAlignerAlgorithm):
     """Brute force exact alignment.
 
     Exact Alignment obtained by exploring the whole permutation group.
@@ -142,7 +148,7 @@ class ExhaustiveAligner(_GraphSpaceAligner):
 
         return self._all_perms
 
-    def _align_single_perm(self, total_space, point, base_point):
+    def _align_single(self, total_space, point, base_point):
         """Get optimal element of the group."""
         perms = self._get_all_perms(total_space.n_nodes)
 
@@ -174,14 +180,12 @@ class ExhaustiveAligner(_GraphSpaceAligner):
                 point, base_point = gs.broadcast_arrays(point, base_point)
             self.perm_ = gs.array(
                 [
-                    self._align_single_perm(total_space, point_, base_point_)
+                    self._align_single(total_space, point_, base_point_)
                     for point_, base_point_ in zip(point, base_point)
                 ]
             )
         else:
-            self.perm_ = gs.array(
-                self._align_single_perm(total_space, point, base_point)
-            )
+            self.perm_ = gs.array(self._align_single(total_space, point, base_point))
 
         return total_space.group_action.act(self.perm_, point)
 
@@ -291,11 +295,11 @@ class PointToGeodesicAligner(_BasePointToGeodesicAligner):
         flat_point = gs.reshape(point, (-1,) + total_space.shape)
         flat_geodesic_s = gs.reshape(geodesic_s, (-1,) + total_space.shape)
 
-        aligned_flat_points = total_space.bundle.align(flat_geodesic_s, flat_point)
+        aligned_flat_points = total_space.aligner.align(flat_geodesic_s, flat_point)
         flat_dists = total_space.metric.dist(flat_geodesic_s, aligned_flat_points)
 
-        perm_ = total_space.bundle.aligner.perm_
-        total_space.bundle.aligner.perm_ = gs.reshape(
+        perm_ = total_space.aligner.aligner.perm_
+        total_space.aligner.aligner.perm_ = gs.reshape(
             perm_, batch_shape + (self.n_points, total_space.n_nodes)
         )
 
@@ -456,7 +460,7 @@ class GraphSpace(Matrices):
 
         self._quotient_map = {
             (MatricesMetric, PermutationAction): (
-                GraphSpaceBundle,
+                GraphSpaceAligner,
                 GraphSpaceQuotientMetric,
             )
         }
@@ -475,7 +479,11 @@ class GraphSpace(Matrices):
     def equip_with_quotient_structure(self):
         """Equip manifold with quotient structure.
 
-        Creates attributes `quotient` and `bundle`.
+        Creates attributes `quotient` and `aligner`.
+
+        NB: `aligner` instead of `bundle` because total space does not
+        have fiber bundle structure due to the nature of the group actions
+        on this space.
         """
         self._check_equip_with_quotient_structure()
 
@@ -484,9 +492,9 @@ class GraphSpace(Matrices):
         out = self._quotient_map.get(key, None)
         if out is None:
             raise ValueError(f"No mapping for key: {key}")
-        Bundle, QuotientMetric_ = out
+        Aligner, QuotientMetric_ = out
 
-        self.bundle = Bundle(self)
+        self.aligner = Aligner(self)
 
         self.quotient = self.new(equip=False)
         self.quotient.equip_with_metric(QuotientMetric_, total_space=self)
@@ -494,26 +502,28 @@ class GraphSpace(Matrices):
         return self.quotient
 
 
-class GraphSpaceBundle(Bundle):
-    """Graph space bundle."""
+class GraphSpaceAligner(Aligner):
+    """Graph space aligner."""
 
     MAP_ALIGNER = {
         "ID": IDAligner,
         "FAQ": FAQAligner,
         "exhaustive": ExhaustiveAligner,
     }
+    # TODO: set register strategy?
+    # TODO: rename things as numerical_aligner
 
-    def __init__(self, total_space, aligner=None):
-        if aligner is None:
-            aligner = self._set_default_aligner()
+    def __init__(self, total_space, aligner_algorithm=None):
+        if aligner_algorithm is None:
+            aligner_algorithm = self._set_default_aligner_algorithm()
 
-        super().__init__(total_space=total_space, aligner=aligner)
+        super().__init__(total_space=total_space, aligner_algorithm=aligner_algorithm)
         self.point_to_geodesic_aligner = None
 
-    def _set_default_aligner(self):
-        return self.set_aligner("FAQ")
+    def _set_default_aligner_algorithm(self):
+        return self.set_aligner_algorithm("FAQ")
 
-    def set_aligner(self, aligner, **kwargs):
+    def set_aligner_algorithm(self, aligner, **kwargs):
         """Set the aligning strategy.
 
         Graph Space metric relies on alignment. In this module we propose the
@@ -544,6 +554,7 @@ class GraphSpaceBundle(Bundle):
         Node permutations where in position i we have the value j meaning
         the node i should be permuted with node j.
         """
+        # TODO: rename if also renamed above
         return self.aligner.perm_
 
     def set_point_to_geodesic_aligner(self, aligner, **kwargs):

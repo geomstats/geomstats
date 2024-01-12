@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from geomstats.geometry.stratified.point_set import PointSetMetric
 
 
-class BaseAligner(ABC):
+class BaseAlignerAlgorithm(ABC):
     """Base class for point to point aligner."""
 
     @abstractmethod
@@ -16,23 +16,25 @@ class BaseAligner(ABC):
         ----------
         total_space : PointSet
             Set with quotient structure.
-        point : array-like, shape=[..., n_nodes, n_nodes]
-            Graph to align.
-        base_point : array-like, shape=[..., n_nodes, n_nodes]
-            Reference graph.
+        point : array-like, shape=[..., *point_shape]
+            Point to align.
+        base_point : array-like, shape=[..., *point_shape]
+            Reference point.
 
         Returns
         -------
-        aligned_point : array-like, shape=[..., n_nodes, n_nodes]
-            Aligned graph.
+        aligned_point : array-like, shape=[..., *point_shape]
+            Aligned point.
         """
 
 
-class Bundle(ABC):
+class Aligner(ABC):
     """Bundle structure."""
 
-    def __init__(self, total_space, aligner):
+    def __init__(self, total_space, aligner_algorithm=None):
         self._total_space = total_space
+        if aligner_algorithm is not None:
+            self.aligner_algorithm = aligner_algorithm
 
     def align(self, point, base_point):
         """Align point to base point.
@@ -48,7 +50,10 @@ class Bundle(ABC):
         -------
         aligned_point: list, shape = [..., *point_shape]
         """
-        return self.aligner.align(self._total_space, point, base_point)
+        if hasattr(self, "aligner_algorithm"):
+            return self.aligner_algorithm.align(self._total_space, point, base_point)
+
+        raise NotImplementedError("`align` is not implemented")
 
 
 class QuotientMetric(PointSetMetric, ABC):
@@ -71,7 +76,7 @@ class QuotientMetric(PointSetMetric, ABC):
         distance : array-like, shape=[...]
             Distance between the points.
         """
-        aligned_point_b = self.total_space.bundle.align(point_b, point_a)
+        aligned_point_b = self.total_space.aligner.align(point_b, point_a)
         return self.total_space.metric.dist(
             point_a,
             aligned_point_b,
@@ -92,7 +97,7 @@ class QuotientMetric(PointSetMetric, ABC):
         geodesic : callable
             Geodesic function.
         """
-        aligned_end_point = self.total_space.bundle.align(end_point, initial_point)
+        aligned_end_point = self.total_space.aligner.align(end_point, initial_point)
         return self.total_space.metric.geodesic(
             initial_point=initial_point, end_point=aligned_end_point
         )

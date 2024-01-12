@@ -18,8 +18,8 @@ from geomstats.test.test_case import TestCase
 from geomstats.test.vectorization import generate_vectorization_data
 from geomstats.test_cases.geometry.matrices import MatricesTestCase
 from geomstats.test_cases.geometry.stratified.quotient import (
-    AlignerCmpTestCase,
-    AlignerTestCase,
+    AlignerAlgorithmCmpTestCase,
+    AlignerAlgorithmTestCase,
     QuotientMetricWithArrayTestCase,
 )
 
@@ -29,7 +29,7 @@ from .data.graph_space import (
     GraphSpaceTestData,
     PointToGeodesicAlignerTestData,
 )
-from .data.quotient import AlignerTestData
+from .data.quotient import AlignerAlgorithmTestData
 
 
 @pytest.fixture(
@@ -40,21 +40,25 @@ from .data.quotient import AlignerTestData
         FAQAligner,
     ],
 )
-def aligners(request):
+def aligner_algorithms(request):
     Aligner = request.param
     request.cls.aligner = Aligner()
 
 
-@pytest.mark.usefixtures("aligners")
-class TestGraphAligner(AlignerTestCase, metaclass=DataBasedParametrizer):
+@pytest.mark.usefixtures("aligner_algorithms")
+class TestGraphAlignerAlgorithm(
+    AlignerAlgorithmTestCase, metaclass=DataBasedParametrizer
+):
     _n = random.randint(2, 4)
     total_space = GraphSpace(_n)
     total_space.equip_with_group_action()
 
-    testing_data = AlignerTestData()
+    testing_data = AlignerAlgorithmTestData()
 
 
-class TestGraphAlignerCmp(AlignerCmpTestCase, metaclass=DataBasedParametrizer):
+class TestGraphAlignerAlgorithmCmp(
+    AlignerAlgorithmCmpTestCase, metaclass=DataBasedParametrizer
+):
     _n = random.randint(2, 4)
     total_space = GraphSpace(_n)
     total_space.equip_with_group_action()

@@ -9,7 +9,7 @@ from geomstats.test_cases.geometry.stratified.point_set import (
 )
 
 
-class AlignerTestCase(TestCase):
+class AlignerAlgorithmTestCase(TestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.total_space)
@@ -20,6 +20,7 @@ class AlignerTestCase(TestCase):
 
     @pytest.mark.vec
     def test_align_vec(self, n_reps, atol):
+        # TODO: extend vec_test generation to accept this case?
         point = self.data_generator.random_point()
         base_point = self.data_generator.random_point()
 
@@ -36,7 +37,7 @@ class AlignerTestCase(TestCase):
         self._test_vectorization(vec_data)
 
 
-class AlignerCmpTestCase(TestCase):
+class AlignerAlgorithmCmpTestCase(TestCase):
     def setup_method(self):
         if not hasattr(self, "data_generator"):
             self.data_generator = RandomDataGenerator(self.total_space)
@@ -69,7 +70,7 @@ class QuotientMetricWithArrayTestCase(PointSetMetricWithArrayTestCase):
         geod_func = self.space.metric.geodesic(initial_point, end_point=end_point)
 
         res = geod_func(time)
-        aligned_end_point = self.total_space.bundle.align(end_point, initial_point)
+        aligned_end_point = self.total_space.aligner.align(end_point, initial_point)
         expected = gs.stack(
             [initial_point, aligned_end_point], axis=-(self.space.point_ndim + 1)
         )
@@ -92,11 +93,11 @@ class QuotientMetricWithArrayTestCase(PointSetMetricWithArrayTestCase):
         if n_points > 1:
             aligned_res_ = gs.stack(
                 [
-                    self.total_space.bundle.align(point_res_, initial_point_)
+                    self.total_space.aligner.align(point_res_, initial_point_)
                     for point_res_, initial_point_ in zip(res_, initial_point)
                 ]
             )
         else:
-            aligned_res_ = self.total_space.bundle.align(res_, initial_point)
+            aligned_res_ = self.total_space.aligner.align(res_, initial_point)
 
         self.assertAllClose(res, aligned_res_, atol=atol)

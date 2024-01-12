@@ -29,7 +29,7 @@ def broadcast_lists(list_a, list_b):
 
 
 def _manipulate_input(arg):
-    if not (type(arg) in [list, tuple]):
+    if type(arg) not in [list, tuple]:
         return [arg]
 
     return arg

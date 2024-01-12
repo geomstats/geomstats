@@ -4,12 +4,12 @@ from geomstats.test.data import TestData
 from geomstats.test.test_case import np_backend
 
 from ...data.matrices import MatricesTestData
-from .quotient import AlignerCmpTestData, QuotientMetricWithArrayTestData
+from .quotient import AlignerAlgorithmCmpTestData, QuotientMetricWithArrayTestData
 
 IS_NOT_NP = not np_backend()
 
 
-class GraphAlignerCmpTestData(AlignerCmpTestData):
+class GraphAlignerCmpTestData(AlignerAlgorithmCmpTestData):
     N_RANDOM_POINTS = [1, 2]
     trials = 5
 
