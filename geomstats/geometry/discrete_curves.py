@@ -313,9 +313,13 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         point_with_origin = insert_zeros(point, axis=-self.point_ndim)
         is_batch = check_is_batch(self.point_ndim, point)
         if not is_batch:
-            return CubicSpline(t_space, point_with_origin, axis=-self.point_ndim)
+            return gs.from_numpy(
+                CubicSpline(t_space, point_with_origin, axis=-self.point_ndim)
+            )
         return [
-            CubicSpline(t_space, point_with_origin_, axis=-self.point_ndim)
+            gs.from_numpy(
+                CubicSpline(t_space, point_with_origin_, axis=-self.point_ndim)
+            )
             for point_with_origin_ in point_with_origin
         ]
 
