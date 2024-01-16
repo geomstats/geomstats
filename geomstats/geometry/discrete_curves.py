@@ -1003,7 +1003,7 @@ class IterativeHorizontalGeodesicAligner:
         sampling points are greater than a given tolerance.
         """
         k_sampling_points = current.shape[0]
-        max_index = gs.floor(k_sampling_points / 2).astype("int")
+        max_index = gs.cast(gs.floor(k_sampling_points / 2), int)
         new = gs.copy(current)
         sign = gs.sign(tol)
         for index in range(1, max_index):
