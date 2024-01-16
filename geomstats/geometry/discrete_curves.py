@@ -7,7 +7,7 @@ import copy
 import logging
 import math
 
-from scipy.interpolate import CubicSpline
+from scipy.interpolate import CubicSpline, PchipInterpolator
 
 import geomstats.backend as gs
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
@@ -1088,7 +1088,7 @@ class IterativeHorizontalGeodesicAligner:
     def _invert_reparametrize_single(self, t_space, repar, point):
         """Invert path of reparametrizations, non vectorized."""
         spline = CubicSpline(t_space, point, axis=0)
-        repar_inverse = CubicSpline(repar, t_space)
+        repar_inverse = PchipInterpolator(repar, t_space)
         return gs.from_numpy(spline(repar_inverse(t_space)))
 
     def _invert_reparametrization(
@@ -1139,7 +1139,7 @@ class IterativeHorizontalGeodesicAligner:
             for repar_i, point in zip(repar[1:-1], path_of_curves[1:-1])
         ]
 
-        repar_inverse_end.append(CubicSpline(repar[-1], t_space))
+        repar_inverse_end.append(PchipInterpolator(repar[-1], t_space))
         arg = t_space
         for repar_inverse in reversed(repar_inverse_end):
             arg = repar_inverse(arg)
