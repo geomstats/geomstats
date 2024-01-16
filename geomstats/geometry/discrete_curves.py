@@ -312,12 +312,20 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
         t_space = gs.linspace(0.0, 1.0, k_sampling_points)
         point_with_origin = insert_zeros(point, axis=-self.point_ndim)
         is_batch = check_is_batch(self.point_ndim, point)
-        if not is_batch:
-            return CubicSpline(t_space, point_with_origin, axis=-self.point_ndim)
-        return [
-            CubicSpline(t_space, point_with_origin_, axis=-self.point_ndim)
-            for point_with_origin_ in point_with_origin
-        ]
+
+        def interpolating_curve(t):
+            if not is_batch:
+                return gs.from_numpy(
+                    CubicSpline(t_space, point_with_origin, axis=-self.point_ndim)(t)
+                )
+            return [
+                gs.from_numpy(
+                    CubicSpline(t_space, point_with_origin_, axis=-self.point_ndim)(t)
+                )
+                for point_with_origin_ in point_with_origin
+            ]
+
+        return interpolating_curve
 
     def length(self, point):
         """Compute the length of a discrete curve.
