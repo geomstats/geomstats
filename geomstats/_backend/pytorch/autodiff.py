@@ -82,7 +82,7 @@ def jacobian(func):
     """
 
     def _jacobian(point):
-        return _torch_jacobian(func=lambda x: func(x), inputs=point)
+        return _torch_jacobian(func=lambda x: func(x), inputs=point, create_graph=True)
 
     return _jacobian
 
@@ -121,10 +121,10 @@ def jacobian_vec(func, point_ndim=1):
 
     def _jacobian(point):
         if point.ndim == point_ndim:
-            return _torch_jacobian(func=lambda x: func(x), inputs=point)
+            return _torch_jacobian(func=lambda x: func(x), inputs=point, create_graph=True)
         return _torch.stack(
             [
-                _torch_jacobian(func=lambda x: func(x), inputs=one_point)
+                _torch_jacobian(func=lambda x: func(x), inputs=one_point, create_graph=True)
                 for one_point in point
             ],
             axis=0,
@@ -151,7 +151,7 @@ def hessian(func, func_out_ndim=0):
     """
 
     def _hessian(point):
-        return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True)
+        return _torch_hessian(func=lambda x: func(x), inputs=point, strict=True, create_graph=True)
 
     def _hessian_vector_valued(point):
         def scalar_func(point, a):
