@@ -318,12 +318,16 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
                 return gs.from_numpy(
                     CubicSpline(t_space, point_with_origin, axis=-self.point_ndim)(t)
                 )
-            return [
-                gs.from_numpy(
-                    CubicSpline(t_space, point_with_origin_, axis=-self.point_ndim)(t)
-                )
-                for point_with_origin_ in point_with_origin
-            ]
+            return gs.stack(
+                [
+                    gs.from_numpy(
+                        CubicSpline(t_space, point_with_origin_, axis=-self.point_ndim)(
+                            t
+                        )
+                    )
+                    for point_with_origin_ in point_with_origin
+                ]
+            )
 
         return interpolating_curve
 
@@ -1325,7 +1329,12 @@ class IterativeHorizontalGeodesicAligner:
         aligned : array-like, shape=[..., k_sampling_points - 1, ambient_dim
             Curve reparametrized in an optimal way with respect to reference curve.
         """
-        spline = bundle.total_space.interpolate(point)
+        is_batch = check_is_batch(bundle.total_space.point_ndim, point)
+
+        if not is_batch:
+            spline = bundle.total_space.interpolate(point)
+        else:
+            spline = [bundle.total_space.interpolate(point_) for point_ in point]
         return self.discrete_horizontal_geodesic(bundle, base_point, point, spline)[
             ..., -1, :, :
         ]

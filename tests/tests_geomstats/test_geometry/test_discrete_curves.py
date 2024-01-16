@@ -175,12 +175,7 @@ class TestSRVReparametrizationBundle(
         k_sampling_points = self.total_space.k_sampling_points
         sampling_points = gs.linspace(0.0, 1.0, k_sampling_points)
 
-        if n_points == 1:
-            point = base_curve(sampling_points**2)
-        else:
-            point = gs.stack(
-                [_base_curve(sampling_points**2) for _base_curve in base_curve]
-            )
+        point = base_curve(sampling_points**2)
 
         point = self.total_space.projection(point)
         aligned_point = self.bundle.align(point, base_point)
@@ -261,12 +256,7 @@ class TestSRVRotationReparametrizationBundle(TestCase, metaclass=DataBasedParame
         k_sampling_points = self.total_space.k_sampling_points
         sampling_points = gs.linspace(0.0, 1.0, k_sampling_points)
 
-        if n_points == 1:
-            point = base_curve(sampling_points**2)
-        else:
-            point = gs.stack(
-                [_base_curve(sampling_points**2) for _base_curve in base_curve]
-            )
+        point = base_curve(sampling_points**2)
 
         point = self.total_space.projection(point)
         rotation = SpecialOrthogonal(self._ambient_dim).random_point(n_points)
