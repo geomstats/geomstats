@@ -276,7 +276,7 @@ class CustomGradientTestData(TestData):
             ),
         ]
 
-        return self.generate_tests(data)
+        return self.generate_tests(data, marks=[pytest.mark.smoke])
 
     def value_and_grad_vec_test_data(self):
         data = [
