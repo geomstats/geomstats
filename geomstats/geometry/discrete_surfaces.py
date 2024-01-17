@@ -1150,12 +1150,16 @@ class _ExpSolver:
                 return space.metric.squared_norm(next_to_next_next, base_point)
 
             _, energy_1 = gs.autodiff.value_and_grad(
-                _inner_product_with_current_to_next
+                _inner_product_with_current_to_next,
+                point_ndims=2,
             )(zeros)
             _, energy_2 = gs.autodiff.value_and_grad(
-                _inner_product_with_next_to_next_next
+                _inner_product_with_next_to_next_next,
+                point_ndims=2,
             )(zeros)
-            _, energy_3 = gs.autodiff.value_and_grad(_norm)(next_point_clone)
+            _, energy_3 = gs.autodiff.value_and_grad(_norm, point_ndims=2)(
+                next_point_clone
+            )
 
             energy_tot = 2 * energy_1 - 2 * energy_2 + energy_3
             return gs.sum(energy_tot**2)

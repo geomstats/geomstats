@@ -44,83 +44,6 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.vectorization import repeat_out
 
 
-def _squared_dist_grad_point_a(point_a, point_b, metric):
-    """Compute gradient of squared_dist wrt point_a.
-
-    Compute the Riemannian gradient of the squared geodesic
-    distance with respect to the first point point_a.
-
-    Parameters
-    ----------
-    point_a : array-like, shape=[..., dim]
-        Point.
-    point_b : array-like, shape=[..., dim]
-        Point.
-    metric : SpecialEuclideanMatrixCanonicalLeftMetric
-        Metric defining the distance.
-
-    Returns
-    -------
-    _ : array-like, shape=[..., dim]
-        Riemannian gradient, in the form of a tangent
-        vector at base point : point_a.
-    """
-    return -2 * metric.log(point_b, point_a)
-
-
-def _squared_dist_grad_point_b(point_a, point_b, metric):
-    """Compute gradient of squared_dist wrt point_b.
-
-    Compute the Riemannian gradient of the squared geodesic
-    distance with respect to the second point point_b.
-
-    Parameters
-    ----------
-    point_a : array-like, shape=[..., dim]
-        Point.
-    point_b : array-like, shape=[..., dim]
-        Point.
-    metric : SpecialEuclideanMatrixCanonicalLeftMetric
-        Metric defining the distance.
-
-    Returns
-    -------
-    _ : array-like, shape=[..., dim]
-        Riemannian gradient, in the form of a tangent
-        vector at base point : point_b.
-    """
-    return -2 * metric.log(point_a, point_b)
-
-
-@gs.autodiff.custom_gradient(_squared_dist_grad_point_a, _squared_dist_grad_point_b)
-def _squared_dist(point_a, point_b, metric):
-    """Compute geodesic distance between two points.
-
-    Compute the squared geodesic distance between point_a
-    and point_b, as defined by the metric.
-
-    This is an auxiliary private function that:
-
-    - is called by the method `squared_dist` of the class
-      SpecialEuclideanMatrixCanonicalLeftMetric,
-
-    Parameters
-    ----------
-    point_a : array-like, shape=[..., dim]
-        Point.
-    point_b : array-like, shape=[..., dim]
-        Point.
-    metric : SpecialEuclideanMatrixCanonicalLeftMetric
-        Metric defining the distance.
-
-    Returns
-    -------
-    _ : array-like, shape=[...,]
-        Geodesic distance between point_a and point_b.
-    """
-    return metric._squared_dist(point_a, point_b)
-
-
 class Grassmannian(LevelSet):
     """Class for Grassmann manifolds :math:`Gr(n, p)`.
 
@@ -434,31 +357,6 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         rot = -Matrices.bracket(base_point, direction)
         return mul(expm(rot), tangent_vec, expm(-rot))
 
-    def _squared_dist(self, point_a, point_b):
-        """Compute geodesic distance between two points.
-
-        Compute the squared geodesic distance between point_a
-        and point_b, as defined by the metric.
-
-        This is an auxiliary private function that:
-
-        - is called by the method `squared_dist` of the class
-          GrassmannianCanonicalMetric,
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[..., dim]
-            Point.
-        point_b : array-like, shape=[..., dim]
-            Point.
-
-        Returns
-        -------
-        _ : array-like, shape=[...,]
-            Geodesic distance between point_a and point_b.
-        """
-        return super().squared_dist(point_a, point_b)
-
     def squared_dist(self, point_a, point_b, **kwargs):
         """Squared geodesic distance between two points.
 
@@ -474,7 +372,37 @@ class GrassmannianCanonicalMetric(MatricesMetric):
         sq_dist : array-like, shape=[...,]
             Squared distance.
         """
-        return _squared_dist(point_a, point_b, metric=self)
+        sdist_func = super().squared_dist
+
+        def _squared_dist_grad_point_a(point_a, point_b):
+            """Compute gradient of squared_dist wrt point_a."""
+            return -2 * self.log(point_b, point_a)
+
+        def _squared_dist_grad_point_b(point_a, point_b):
+            """Compute gradient of squared_dist wrt point_b."""
+            return -2 * self.log(point_a, point_b)
+
+        @gs.autodiff.custom_gradient(
+            _squared_dist_grad_point_a, _squared_dist_grad_point_b
+        )
+        def _squared_dist(point_a, point_b):
+            """Compute geodesic distance between two points.
+
+            Parameters
+            ----------
+            point_a : array-like, shape=[..., dim]
+                Point.
+            point_b : array-like, shape=[..., dim]
+                Point.
+
+            Returns
+            -------
+            _ : array-like, shape=[...,]
+                Geodesic distance between point_a and point_b.
+            """
+            return sdist_func(point_a, point_b)
+
+        return _squared_dist(point_a, point_b)
 
     def injectivity_radius(self, base_point):
         """Compute the radius of the injectivity domain.

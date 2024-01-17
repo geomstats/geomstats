@@ -175,12 +175,11 @@ class FiberBundle(ABC):
             lambda param: gs.sum(
                 self.total_space.metric.squared_dist(wrap(param), base_point)
             ),
-            to_numpy=True,
         )
 
         tangent_vec = gs.flatten(gs.random.rand(*max_shape))
         res = minimize(
-            objective_with_grad,
+            lambda x: objective_with_grad(gs.from_numpy(x)),
             tangent_vec,
             method="L-BFGS-B",
             jac=True,

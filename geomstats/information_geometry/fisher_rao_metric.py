@@ -88,7 +88,7 @@ class FisherRaoMetric(RiemannianMetric):
             (
                 pdf_x_at_base_point,
                 pdf_x_derivative_at_base_point,
-            ) = gs.autodiff.value_and_grad(pdf_x, to_numpy=True)(base_point)
+            ) = gs.autodiff.value_and_grad(pdf_x)(base_point)
 
             return gs.einsum(
                 "...ij,...->...ij",
