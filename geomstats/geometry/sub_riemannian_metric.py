@@ -183,7 +183,7 @@ class SubRiemannianMetric:
             The symplectic gradient of the Hamiltonian.
         """
         value_and_grad = gs.autodiff.value_and_grad(
-            lambda state: hamiltonian(state),
+            hamiltonian,
             point_ndims=2,
         )
 
