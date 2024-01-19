@@ -11,6 +11,18 @@ class DiscreteCurvesStartingAtOriginTestData(NFoldManifoldTestData):
     skips = ("not_belongs",)
     fail_for_not_implemented_errors = False
 
+    def interpolate_vec_test_data(self):
+        return self.generate_vec_data_with_time()
+
+    def length_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def normalize_vec_test_data(self):
+        return self.generate_vec_data()
+
+    def normalize_is_unit_length_test_data(self):
+        return self.generate_random_data()
+
 
 class L2CurvesMetricTestData(RiemannianMetricTestData):
     fail_for_not_implemented_errors = False

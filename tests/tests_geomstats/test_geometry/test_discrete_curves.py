@@ -27,12 +27,10 @@ from geomstats.test_cases.geometry.diffeo import (
     DiffeoTestCase,
 )
 from geomstats.test_cases.geometry.discrete_curves import (
+    DiscreteCurvesStartingAtOriginTestCase,
     SRVReparametrizationBundleTestCase,
 )
-from geomstats.test_cases.geometry.nfold_manifold import (
-    NFoldManifoldTestCase,
-    NFoldMetricTestCase,
-)
+from geomstats.test_cases.geometry.nfold_manifold import NFoldMetricTestCase
 from geomstats.test_cases.geometry.pullback_metric import PullbackDiffeoMetricTestCase
 
 from .data.diffeo import (
@@ -53,7 +51,7 @@ from .data.discrete_curves import (
 
 
 class TestDiscreteCurvesStartingAtOrigin(
-    NFoldManifoldTestCase, metaclass=DataBasedParametrizer
+    DiscreteCurvesStartingAtOriginTestCase, metaclass=DataBasedParametrizer
 ):
     _ambient_dim = random.randint(2, 3)
     _k_sampling_points = random.randint(5, 10)

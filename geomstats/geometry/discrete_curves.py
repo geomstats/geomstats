@@ -304,7 +304,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
         Returns
         -------
-        spline : function or list of functions
+        spline : function
             Cubic spline that interpolates between the sampling points
             of the discrete curve.
         """
@@ -353,7 +353,7 @@ class DiscreteCurvesStartingAtOrigin(NFoldManifold):
 
     def normalize(self, point):
         """Rescale discrete curve to have unit length."""
-        return point / self.length(point)
+        return gs.einsum("...ij,...->...ij", point, 1 / self.length(point))
 
 
 class SRVTransform(Diffeo):
