@@ -182,21 +182,14 @@ class SubRiemannianMetric:
         vector : array-like, shape=[, 2*dim]
             The symplectic gradient of the Hamiltonian.
         """
-
-        def H_sum(state):
-            """Sum each value of the Hamiltonian (relevant for vectorized input)."""
-            # TODO: nice trick to vectorize the gradient
-            return gs.sum(hamiltonian(state))
-
-        # TODO: vectorized grad
-        value_and_grad = gs.autodiff.value_and_grad(H_sum)
+        value_and_grad = gs.autodiff.value_and_grad(
+            hamiltonian,
+            point_ndims=2,
+        )
 
         def vector(x):
             """Compute symplectic gradient at x."""
-            # TODO: update after add vectorized grad to backend
-            _, grad = value_and_grad(x)
-            h_q = grad[0]
-            h_p = grad[1]
+            _, (h_q, h_p) = value_and_grad(x)
             return gs.array([h_p, -h_q])
 
         return vector
