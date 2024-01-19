@@ -10,8 +10,9 @@ from scipy.stats import rv_discrete
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.learning._template import TransformerMixin
-from geomstats.learning.frechet_mean import FrechetMean
+from geomstats.learning.frechet_mean import FrechetMean, LinearMean
 
 
 class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
@@ -76,10 +77,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         self.init_cluster_centers_ = None
 
-        self.mean_estimator = FrechetMean(
-            space=space,
-            method="default",
-        ).set(max_iter=100, init_step_size=1.0)
+        if isinstance(space, Euclidean):
+            self.mean_estimator = LinearMean(space=space)
+        else:
+            self.mean_estimator = FrechetMean(
+                space=space,
+                method="default",
+            ).set(max_iter=100, init_step_size=1.0)
 
         self.cluster_centers_ = None
         self.labels_ = None
