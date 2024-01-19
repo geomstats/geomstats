@@ -314,14 +314,14 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.conv_rate = conv_rate
         self.minimum_epochs = minimum_epochs
 
-        self.mean_estimator = FrechetMean(
-            space,
-            method="batch",
-        ).set(
-            max_iter=100,
-            epsilon=1e-4,
-            init_step_size=1.0,
-        )
+        self.mean_estimator = FrechetMean(space)
+        if isinstance(self.mean_estimator, FrechetMean):
+            self.mean_estimator.method = "batch"
+            self.mean_estimator.set(
+                max_iter=100,
+                epsilon=1e-4,
+                init_step_size=1.0,
+            )
 
         self._model = GaussianMixtureModel(self.space)
 

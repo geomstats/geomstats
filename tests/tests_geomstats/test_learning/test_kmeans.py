@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.learning.frechet_mean import FrechetMean
@@ -70,6 +71,7 @@ class TestClusterInitialization(
 @pytest.fixture(
     scope="class",
     params=[
+        (Euclidean(dim=random.randint(3, 4)), random.randint(2, 4)),
         (Hypersphere(dim=random.randint(3, 4)), random.randint(2, 4)),
         (SPDMatrices(n=random.randint(2, 4)), random.randint(2, 4)),
     ],

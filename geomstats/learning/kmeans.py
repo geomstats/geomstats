@@ -76,10 +76,9 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         self.init_cluster_centers_ = None
 
-        self.mean_estimator = FrechetMean(
-            space=space,
-            method="default",
-        ).set(max_iter=100, init_step_size=1.0)
+        self.mean_estimator = FrechetMean(space=space)
+        if isinstance(self.mean_estimator, FrechetMean):
+            self.mean_estimator.set(max_iter=100, init_step_size=1.0)
 
         self.cluster_centers_ = None
         self.labels_ = None
