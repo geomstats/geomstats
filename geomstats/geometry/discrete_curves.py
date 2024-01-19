@@ -996,74 +996,6 @@ class IterativeHorizontalGeodesicAligner:
         if save_history:
             self.history = None
 
-    @staticmethod
-    def _euler_step_forward(current, increment, step, tol):
-        r"""Perform Euler step while enforcing increasing solution.
-
-        Compute the new state phi(t+dt,.) from the current state phi(t,.) using
-        the Euler step: new = current + step * increment, i.e.
-        :math:`phi(t+dt,.) = phi(t,.) + dt * d/dt phi(t,.)`
-        while ensuring that the result is an increasing function on the unit
-        interval that preserves the end points 0 and 1. This is done by alternatively
-        computing phi(t+dt,s) and phi(t+dt,1-s), for s increasing from 0 to 0.5,
-        in a way that ensures that the spacing with the previous and following
-        sampling points are greater than a given tolerance.
-        """
-        k_sampling_points = current.shape[0]
-        max_index = k_sampling_points // 2
-        new = gs.copy(current)
-        sign = gs.sign(tol)
-        for index in range(1, max_index):
-            new_index = current[index] + step * increment[index - 1]
-            new_index_min = new[index - 1] + tol
-            new_index_max = (
-                new[k_sampling_points - index] - (k_sampling_points - 2 * index) * tol
-            )
-            new_index = sign * gs.maximum(sign * new_index, sign * new_index_min)
-            new[index] = sign * gs.minimum(sign * new_index, sign * new_index_max)
-
-            symindex = k_sampling_points - 1 - index
-            new_symindex = current[symindex] + step * increment[symindex - 1]
-            new_symindex_min = new[index] + (k_sampling_points - 2 * index - 1) * tol
-            new_symindex_max = new[symindex + 1] - tol
-            new_symindex = sign * gs.minimum(
-                sign * new_symindex, sign * new_symindex_max
-            )
-            new[symindex] = sign * gs.maximum(
-                sign * new_symindex, sign * new_symindex_min
-            )
-
-        if k_sampling_points % 2 > 0:
-            new_midindex = current[index + 1] + step * increment[index]
-            new_midindex_min = new[index] + tol
-            new_midindex_max = new[index + 2] - tol
-            new_midindex = sign * gs.maximum(
-                sign * new_midindex, sign * new_midindex_min
-            )
-            new[index + 1] = sign * gs.minimum(
-                sign * new_midindex, sign * new_midindex_max
-            )
-
-        return new
-
-    def _euler_step(self, current, increment, step):
-        r"""Perform Euler step while enforcing increasing solution.
-
-        Symmetric version of previous function.
-        """
-        return (
-            self._euler_step_forward(current, increment, step, self.tol)
-            + gs.flip(
-                self._euler_step_forward(
-                    gs.flip(current, axis=0),
-                    gs.flip(increment, axis=0),
-                    step,
-                    -self.tol,
-                ),
-                axis=0,
-            )
-        ) / 2
-
     def _construct_reparametrization(self, vertical_norm, space_deriv_norm):
         r"""Construct path of reparametrizations.
 
@@ -1104,9 +1036,16 @@ class IterativeHorizontalGeodesicAligner:
                 repar_diff[:-1],
             )
             repar_time_deriv = repar_space_deriv * quotient[i, 1:-1]
-            repar = repar_i = self._euler_step(repar, repar_time_deriv, 1 / n_times)
+            repar = gs.concatenate(
+                (
+                    gs.array([0.0]),
+                    repar[1:-1] + repar_time_deriv / n_times,
+                    gs.array([1.0]),
+                )
+            )
+            repar = gs.sort(repar)
 
-            repars.append(repar_i)
+            repars.append(repar)
 
         return gs.stack(repars)
 
